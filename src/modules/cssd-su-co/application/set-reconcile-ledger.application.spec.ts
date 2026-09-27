@@ -62,4 +62,19 @@ describe("applySetReconcilePhysicalLines batch", () => {
       "COALESCE(SUM(tx.so_luong_thay_doi), 0)::integer + COALESCE(ct.so_luong, 0)::integer",
     );
   });
+
+  it("Approach A migrate ensures chi_tiet on BO_SUNG / DIEU_CHUYEN dest", () => {
+    const sql = readFileSync(
+      "supabase/migrations/20260928023000_cssd_ledger_ensure_chi_tiet_on_move.sql",
+      "utf8",
+    );
+    expect(sql).toContain("fn_cssd_ensure_chi_tiet_for_ledger");
+    expect(sql).toContain("fn_cssd_apply_instrument_ledger_tx");
+    expect(sql).toContain("so_luong");
+    expect(sql).toContain("BO_SUNG");
+    expect(sql).toContain("DIEU_CHUYEN");
+    expect(sql).toContain("FOR UPDATE");
+    expect(sql).toContain("unique_violation");
+    expect(sql).not.toContain("DROP TABLE");
+  });
 });

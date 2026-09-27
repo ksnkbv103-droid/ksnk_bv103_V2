@@ -22,15 +22,29 @@ describe("cssd-batch-recall", () => {
     expect(recallTargetStationForLotMember("")).toBe("TIEP_NHAN");
   });
 
-  it("lists clinically used sets and recalls the rest", () => {
-    expect(isCssdCycleUsedClinically({ maCaMoId: "CA-1" })).toBe(true);
-    expect(isCssdCycleUsedClinically({ maCaMoId: "  " })).toBe(false);
+  it("lists clinically used sets (event) and recalls the rest — ma_ca_mo alone is not used", () => {
+    expect(isCssdCycleUsedClinically({ maCaMoId: "CA-1" })).toBe(false);
+    expect(
+      isCssdCycleUsedClinically({
+        usedClinically: true,
+        usedClinicallyAt: "2026-09-28T01:00:00.000Z",
+        usedClinicallyBy: "u1",
+      }),
+    ).toBe(true);
     const split = partitionRecallMembers([
       { id: "a", loId: "m1", maCaMoId: null, maBo: "B01" },
       { id: "b", loId: "m1", maCaMoId: "CA-9", maBo: "B02" },
+      {
+        id: "c",
+        loId: "m1",
+        maBo: "B03",
+        usedClinically: true,
+        usedClinicallyAt: "2026-09-28T01:00:00.000Z",
+        usedClinicallyBy: "u1",
+      },
     ]);
-    expect(split.recall.map((row) => row.id)).toEqual(["a"]);
-    expect(split.listedOnly.map((row) => row.id)).toEqual(["b"]);
+    expect(split.recall.map((row) => row.id)).toEqual(["a", "b"]);
+    expect(split.listedOnly.map((row) => row.id)).toEqual(["c"]);
   });
 
   it("recalls from the batch after the latest prior BI-negative through the positive batch", () => {

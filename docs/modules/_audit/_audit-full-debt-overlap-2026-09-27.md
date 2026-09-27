@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft **CSSD dung-cu ledger logic deep** **DONE** — `_audit-soft-cssd-dung-cu-logic-deep-2026-09-28.md`; prior QLCV/NKBV/admin Soft DONE; ME polish N/A; W6+W4 DONE |
+| Tip audit | Soft **QLCV-L01/L02 verify PASS** Soft Soft-queue — `_audit-soft-qlcv-l01-l02-verify-2026-09-28.md`; Soft Soft-queue Soft Soft-queue-ready **empty** (idle until Nghĩa commit/apply or Domain L04) |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -37,7 +37,15 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
 | 5 | This audit status | Soft Soft-queue **empty** — W4 DONE prod · W6 FE closed Soft |
 
-**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin P0+P1 DONE · NKBV logic Soft DONE · QLCV logic Soft DONE · **CSSD dung-cu ledger Soft DONE** 2026-09-28 (QR maBo + dest hub; BOM facade closed; orphan stock park Cloud).
+**Soft Soft-queue empty?** **Y Soft Soft-queue-ready** — **QLCV-L01/L02 verify PASS** Soft Soft-queue 2026-09-28 (`_audit-soft-qlcv-l01-l02-verify-2026-09-28.md`). Soft Soft **idle** until Nghĩa commit/apply Soft Soft-local WT + drafts, or Domain CSSD-L04 schema. Ops residual (not Soft Soft-queue-ready Soft Soft): W4/W6 DONE · Soft Soft-local uncommitted (NKBV 20a–f · GSC L01/L02 · CSSD L01–L07 · cho_toi 24) · drafts await Lead (checklist post-Wave3 · cho_toi · used_clinically · ledger ensure · GSC L01 RPC) · L04 `parent_bo_id` Domain · Q-14/AB-2/NGHIEM_THU DINH_KY park.
+
+### Soft Soft-queue — CSSD-L01…L05 verify (2026-09-28)
+
+**DONE Soft-local** — L01 Đóng gói scan-only (ẩn tách/vật liệu/BOM đề nghị trên `gateMode`; giữ đếm mỏng) · L02 soft-warn UI off + `formatTimeHmVi` · L03 SC picker whitelist (prior 23 WT) · L04 **PARK** `parent_bo_id` · L05 CAP_PHAT hard-block SC TK tip OK. L06/L07/L08 verify-only (18b / 23 / ledger draft). Detail `_audit-soft-cssd-l01-l05-verify-2026-09-28.md`. **Next Soft (closed):** **QLCV-L01/L02 verify** → DONE Soft Soft-queue (see beat below).
+
+### Soft Soft-queue — QLCV **L01+L02 verify** Soft Soft-queue-ready (2026-09-28)
+
+**DONE Soft Soft-queue** — tip `244ef21`: **L01 PASS** 19d gói A (ưu tiên nổi · ẩn loại · `QlcvDmAdminLinks` gone · khóa CRUD LOAI/TT) · **L02 PASS** tip FE null-TT + `fn_qlcv_transition` + migrate recreate on tip (no `qlcv_dm_*`). Residual Lead: apply `20260928021700` + Soft deep §7 smoke nếu chưa prod. **No** code change this beat. Left alone Chờ tôi 24 WT + other drafts. Detail `_audit-soft-qlcv-l01-l02-verify-2026-09-28.md`. Soft Soft-queue Soft Soft-queue-ready **empty** — Soft Soft idle overnight.
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -65,17 +73,63 @@ Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan).
 
 **DONE Soft P0 (shallow pass)** — IA/doors + PedVAP label — `_audit-soft-nkbv-deep-2026-09-28.md`.
 
+### Soft Soft-queue — NKBV **RIT hard-stop 20a=A** (2026-09-28)
+
+**DONE Soft** — PO locked A · DoD §3: `applyCh2RitGate` in evaluate* (BSI/UTI/PNEU/Ch.17); SSI/VAE bypass; ENDO RIT=hết admission; write sibling lookup + IWP bridge inject; vitest `nkbv-rit-hard-stop.spec.ts`. Detail `_audit-soft-nkbv-rit-20a-2026-09-28.md`. Soft Soft-queue: RIT 20a **closed Soft-local** (uncommitted). **age-null 20b → DONE Soft** (see beat below). Park: Transfer · SSI deepest · MBI ANC · APRV.
+
+
+### Soft Soft-queue — NKBV **age-null 20b=A** (2026-09-28)
+
+**DONE Soft** — PO skip → default A · DoD §3: bỏ default `age=45` bridge PNEU + `coerceAdultPatientAge`; thiếu DOB/tuổi → `NO_EVENT` / submit gate «Thiếu ngày sinh — không xác định ca»; vitest L02 null-age + gate. Detail `_audit-soft-nkbv-age-null-20b-2026-09-28.md`. Soft Soft-queue: age-null 20b **closed Soft-local** (uncommitted). **Transfer 20c → DONE Soft** (see beat below). Park: SSI deepest · MBI ANC · APRV.
+
+
+### Soft Soft-queue — NKBV **Transfer multi-khoa 20c=A** (2026-09-28)
+
+**DONE Soft** — Domain A · DoD §3: `attributeLocationOfAttribution` in `nkbv-timeline-math` — multi-khoa 24h calendar → first khoa ngày trước DOE; Transfer day/day-after → khoa chuyển đi; empty `ba_ngay_khoa` → null LOA + warn (L07); Hub hydrate clears synthetic stay. Vitest timeline-math + ba-ngay/grid. Detail `_audit-soft-nkbv-transfer-20c-2026-09-28.md`. Soft Soft-queue: Transfer 20c **closed Soft-local** (uncommitted). **SSI 20d → DONE Soft** (see beat below). Park: MBI ANC · APRV.
+
+
+
+### Soft Soft-queue — NKBV **SSI deepest 20d=A** (2026-09-28)
+
+**DONE Soft** — Domain A · DoD §3: `evaluateSsi` deepest met (Superficial<Deep<Organ); Organ needs Ch.17 when site has def (no invent); user nông hơn → engine + amber warn (`warnings` / SsiClinicalSubForm / DiagnosticCaseForm); `mapSsiCriteriaFlags` maps shared ticks → all depth flags; PATOS/SP/RIT/MBI/Transfer/APRV untouched. Vitest `nkbv-ssi-deepest.spec.ts` + SSI suites. Detail `_audit-soft-nkbv-ssi-20d-2026-09-28.md`. Soft Soft-queue: SSI 20d **closed Soft-local** (uncommitted). **MBI ANC 20e → DONE Soft** (see beat below). **Next Soft:** **APRV 20f** (line-check `cdc-ch10`, no invent).
+
+### Soft Soft-queue — NKBV **MBI ANC 20e=A** (2026-09-28)
+
+**DONE Soft** — Domain A · DoD §3: Soft Soft line-check `nkbv-sources/extracted/cdc-ch4.txt` (Table 2/5); constants <500 · ≥2d · máu±3 · diarrhea under allo HSCT only; `nkbv-mbi-ch4` + rules-engine MBI block; diarrhea-alone ≠ MBI (tip P1 fix); organism = `is_intestinal_pathogen` proxy (**G.1#5**); **flag PO G.1#1**. Vitest `nkbv-mbi-ch4.spec.ts` + BSI MBI. Detail `_audit-soft-nkbv-mbi-20e-2026-09-28.md`. Soft Soft-queue: MBI 20e **closed Soft-local** (uncommitted). **APRV 20f → DONE Soft** (see beat below).
+
+### Soft Soft-queue — NKBV **APRV/ECMO/HFV 20f=A** (2026-09-28)
+
+**DONE Soft** — Domain A · DoD §3: Soft Soft line-check `nkbv-sources/extracted/cdc-ch10.txt` (126-131 · 1460-1472); ECMO/HFV full-day out of VAC stretch (calendar-adjacent); APRV FiO₂-only (no PEEP-equivalent); remove whole-day `NO_EVENT` stub when daily grid ≥4; **flag PO G.1#2**. Vitest `nkbv-vae-vent-compute` + rules-engine VAE. Detail `_audit-soft-nkbv-aprv-20f-2026-09-28.md`. Soft Soft-queue: APRV 20f **closed Soft-local** (uncommitted). **GSC-L01/L02 → DONE Soft** · **CSSD-L01…L05 verify → DONE Soft** (see beat). **Next Soft (closed):** **QLCV-L01/L02 verify** → DONE Soft Soft-queue.
+
+### Soft Soft-queue — CSSD **used_clinically 23=A / CSSD-L07** (2026-09-28)
+
+**DONE Soft** — Domain A · DoD Soft: event actor+timestamp only (CLINICAL ca mổ / MANUAL fallback); **no** silent on print CAP_PHAT; SC picker `listBoForSuCoPickerAction` §17.3 ¬used; recall partition M-23; draft migrate `20260928024100_cssd_used_clinically_recall.sql` (await Lead). Detail `_audit-soft-cssd-used-clinically-23-2026-09-28.md`. Soft Soft-queue: used_clinically 23 **closed Soft-local** (uncommitted). **Next Soft (closed):** phiếu mẻ harden **18+18b A×6** → DONE Soft (see beat below). Park: L08 ensure-chi_tiet Lead apply · khoa/PM integration.
+
+
+### Soft Soft-queue — CSSD **phiếu mẻ 18+18b A×6** (2026-09-28)
+
+**DONE Soft** — PO A×6 · AB-1…6 locked: TN fail target · no emergency implant · BI(+) conservative all PP · Plasma/EO `CHO_BI` · PP hard-block on scan · tổ trưởng=`qc` for implant/`CHO_BI`. Harden helpers `me-tiet-khuan-ab-gates` + vitest; mirror 18/18b. Detail `_audit-soft-cssd-phieu-me-18b-2026-09-28.md`. Soft Soft-queue: phiếu mẻ 18b **closed Soft-local** (uncommitted). **Next Soft (closed):** **QLCV Chờ tôi 24** → DONE Soft (see beat below). Park: M-17 thẩm định · M-25 retention · M-28 Plasma Tyvek · M-04 chương trình catalog.
+
+
+### Soft Soft-queue — GSC **L01+L02** Soft Soft-queue-ready (2026-09-28)
+
+**DONE Soft** — Domain A (PO bỏ qua widget 14 · PO 18:51 hub VST): **L01** `deriveHinhThucGiamSat` Lock A — KSNK luôn `HT_CHUYEN_TRACH` (FE policy + header); draft RPC `fn_get_session_stype` Lock A (await Lead). **L02** hub `/giam-sat` 3 lối WHO+BM.07.02+BM.07.03 · BCTH `VeSinhTayKpiTriptych` 3 KPI tách · `shouldFetchSource(VST→GSC)` · WHO exclude picker. Vitest 36 focused. Detail `_audit-soft-gsc-l01-l02-2026-09-28.md`. Soft Soft-queue: GSC-L01/L02 **closed Soft-local** (uncommitted). **CSSD-L01…L05 verify → DONE Soft** (see beat). **Next Soft (closed):** **QLCV-L01/L02 verify** → DONE Soft Soft-queue. Park: GSC-L03 seed (PO) · L01 historical backfill.
+
+### Soft Soft-queue — QLCV **Chờ tôi 24=A** / QLCV-L03 (2026-09-28)
+
+**DONE Soft** — Domain A actor lens: RPC/`cho_toi` + FE `isQlcvChoToiDuyet` = DE_XUAT|CHO_DUYET ∩ (phụ trách ∨ phối hợp ∨ người giao); chip không hiện open global unrelated; vitest PH-only / outsider=0; **no** Q-14 / AB-2 / 7 TT churn. Draft migrate `20260928025300_qlcv_cho_toi_actor_lens.sql` (await Lead). Detail `_audit-soft-qlcv-cho-toi-24-2026-09-28.md`. Soft Soft-queue: cho_toi 24 **closed Soft-local** (uncommitted). **SSI/MBI/GSC/CSSD-L01…L05 → DONE Soft** (see beats). **Next Soft (closed):** **QLCV-L01/L02 verify** → DONE Soft Soft-queue.
+
 ### Soft Soft-queue — NKBV **logic** deep vs Domain SSOT adult v4.0 (2026-09-28)
 
-**DONE Soft P0/P1 logic** — tip vs `10-NKBV-diagnosis-domain-ssot-adult.md` v4.0: POA gate in rules-engine (cấm 48h/day-3); FE/BE device enrich `??` drift; Scenario2 Secondary window; UTI clinical SBAP helper; strip dead `infantGasOk`; Transfer spec titles calendar-day. **Park Domain:** multi-khoa Transfer 24h · RIT hard-stop · SSI deepest-wins auto · MBI ANC table · APRV/ECMO full · SIR · age-null=45. EENT/SST engine **present** (prior Soft «missing» stale). Detail `_audit-soft-nkbv-logic-deep-2026-09-28.md`. Soft Soft-queue: NKBV logic Soft closed; Domain P1 park.
+**DONE Soft P0/P1 logic** — tip vs `10-NKBV-diagnosis-domain-ssot-adult.md` v4.0: POA gate in rules-engine (cấm 48h/day-3); FE/BE device enrich `??` drift; Scenario2 Secondary window; UTI clinical SBAP helper; strip dead `infantGasOk`; Transfer spec titles calendar-day. **Park Domain:** SIR. **RIT 20a + age-null 20b + Transfer 20c + SSI deepest 20d + MBI 20e + APRV 20f → DONE Soft** (see beats). Soft next = Soft-ready GSC/CSSD/QLCV verify. EENT/SST engine **present**. Detail `_audit-soft-nkbv-logic-deep-2026-09-28.md`. Soft Soft-queue: NKBV logic Soft closed; Domain P1 residual SIR · G.1#1/#2/#5 confirm.
 
 ### Soft Soft-queue — QLCV **logic** deep vs Domain 19/19c (2026-09-28)
 
-**DONE Soft P0/P1 logic** — tip `d05275b`+ : post-Wave3 `fn_qlcv_update_checklist` still validated against dropped `qlcv_dm_trang_thai` → Soft FE writes checklist/% with null TT then `fn_qlcv_transition` SET; hủy → action `HUY`. **Draft migrate** `20260928021700_qlcv_checklist_rpc_post_wave3.sql` local — Nghĩa/W4/Cloud apply. **Park Domain:** cho_toi label vs global gates · Q-14 kỳ RPC · AB-2 duyệt cuối · NGHIEM_THU SQL block DINH_KY. Detail `_audit-soft-qlcv-logic-deep-2026-09-28.md`. Soft Soft-queue: QLCV logic Soft closed; migrate apply + Domain park.
+**DONE Soft P0/P1 logic** — tip `d05275b`+ : post-Wave3 `fn_qlcv_update_checklist` still validated against dropped `qlcv_dm_trang_thai` → Soft FE writes checklist/% with null TT then `fn_qlcv_transition` SET; hủy → action `HUY`. **Draft migrate** `20260928021700_qlcv_checklist_rpc_post_wave3.sql` local — Nghĩa/W4/Cloud apply. **cho_toi 24=A → DONE Soft** (actor lens; see beat). **Park Domain:** Q-14 kỳ RPC · AB-2 duyệt cuối · NGHIEM_THU SQL block DINH_KY. Detail `_audit-soft-qlcv-logic-deep-2026-09-28.md`. Soft Soft-queue: QLCV logic Soft closed; migrate apply + Domain park residual.
 
 ### Soft Soft-queue — CSSD **Dụng cụ + ledger** logic deep (2026-09-28)
 
-**DONE Soft P0/P1 logic** — tip `50898ff`+: QR hub `maBo` when SET resolve (cycle→catalog); INSTRUMENT scan prefer `maBo`; LUAN_CHUYEN dest scan via hub (reject MACHINE/BATCH); close orphan `dieuChuyenThanhPhanGiuaHaiQrAction` (BOM-only no ledger). **Park Cloud:** BO_SUNG/DIEU_CHUYEN vào bộ thiếu `chi_tiet` → orphan tx invisible on `v_cssd_bo_dung_cu_chi_tiet_realtime` / LOAI totals — DoD `/tmp/cloud-cssd-dung-cu-dod.md`. **Park Domain:** auto-create chi_tiet vs reject→DE_NGHI; chuẩn so_luong when ensure. Detail `_audit-soft-cssd-dung-cu-logic-deep-2026-09-28.md`. Soft Soft-queue: CSSD dung-cu ledger Soft closed; Cloud orphan + Domain park.
+**DONE Soft P0/P1 logic** — tip `50898ff`+: QR hub `maBo` when SET resolve (cycle→catalog); INSTRUMENT scan prefer `maBo`; LUAN_CHUYEN dest scan via hub (reject MACHINE/BATCH); close orphan `dieuChuyenThanhPhanGiuaHaiQrAction` (BOM-only no ledger). **Approach A ensure chi_tiet** — local migrate `20260928023000_cssd_ledger_ensure_chi_tiet_on_move.sql` (CREATE OR REPLACE `fn_cssd_ensure_chi_tiet_for_ledger` + `fn_cssd_apply_instrument_ledger_tx`; BO_SUNG + DIEU_CHUYEN dest; `so_luong=0`; lock loai→chi_tiet→tx; TRA_KHO/BAO_* unchanged). Soft **does not** apply prod — Lead applies after Nghĩa confirm project `cvzwslpxwgqiugzzhqej`. **Park Domain:** so_luong 0 vs qty · THEM_DONG-only reject path. Detail `_audit-soft-cssd-dung-cu-logic-deep-2026-09-28.md`. Soft Soft-queue: CSSD orphan **closed Soft-local**; prod apply residual.
 
 
 

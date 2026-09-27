@@ -149,6 +149,9 @@ export default function NkbvClinicalChecklistModal({
               };
             }),
           );
+        } else {
+          // 20c / L07: Hub ba_ngay_khoa trống → không giữ stay giả; LOA warn qua calculateCdcMetrics
+          setTreatmentHistory([]);
         }
       } else {
         setTimelineMilestones([]);

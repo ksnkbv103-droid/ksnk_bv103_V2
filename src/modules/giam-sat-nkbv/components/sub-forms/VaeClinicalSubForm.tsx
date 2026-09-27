@@ -52,7 +52,12 @@ export default function VaeClinicalSubForm({
   const showClinical = activeTab === "LAM_SANG";
 
   const daily = form.vent_daily_params || [];
-  const vacHint = computeVacFromDailyVent(daily);
+  const vacHint = computeVacFromDailyVent(daily, {
+    on_ecmo: form.on_ecmo,
+    on_hfv: form.on_hfv,
+    on_aprv: form.on_aprv,
+    on_aprv_or_hfv: form.on_aprv_or_hfv,
+  });
 
   const applyVacHint = () => {
     if (!vacHint.has_stable_baseline) return;
@@ -166,11 +171,26 @@ export default function VaeClinicalSubForm({
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={!!form.on_aprv_or_hfv}
+                  checked={!!form.on_aprv || !!form.on_aprv_or_hfv}
                   disabled={!allowedEdit}
-                  onChange={(e) => onChange({ ...form, on_aprv_or_hfv: e.target.checked })}
+                  onChange={(e) =>
+                    onChange({
+                      ...form,
+                      on_aprv: e.target.checked,
+                      on_aprv_or_hfv: e.target.checked ? false : form.on_aprv_or_hfv,
+                    })
+                  }
                 />
-                APRV / HFV — loại khỏi VAC ngày này
+                APRV — VAC chỉ FiO₂ (không PEEP)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!form.on_hfv}
+                  disabled={!allowedEdit}
+                  onChange={(e) => onChange({ ...form, on_hfv: e.target.checked })}
+                />
+                HFV — loại khỏi dải VAC (trọn ngày)
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -179,9 +199,12 @@ export default function VaeClinicalSubForm({
                   disabled={!allowedEdit}
                   onChange={(e) => onChange({ ...form, on_ecmo: e.target.checked })}
                 />
-                ECMO — loại khỏi giám sát VAE ngày này
+                ECMO — loại khỏi dải VAC (trọn ngày)
               </label>
             </div>
+            <p className="text-[11px] text-slate-500">
+              Ch.10: ECMO/HFV trọn ngày lịch out of stretch; APRV vẫn giám sát — chỉ FiO₂. Tick theo ngày trong bảng bên dưới nếu khác nhau từng ngày.
+            </p>
             {form.device_placed_date && !isVaeInvalid ? (
               <p className="text-[11px] text-emerald-800">
                 Ngày thở máy: <strong>{liveDeviceDays !== undefined ? liveDeviceDays : form.vent_days}</strong> (yêu
@@ -210,12 +233,15 @@ export default function VaeClinicalSubForm({
               <p className="text-[11px] text-slate-500">Chọn ngày bắt đầu thở máy để sinh bảng.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] border-collapse text-xs">
+                <table className="w-full min-w-[560px] border-collapse text-xs">
                   <thead>
                     <tr className="font-bold uppercase text-slate-400">
                       <th className="px-2 py-1.5 text-left">Ngày</th>
                       <th className="px-2 py-1.5 text-left">PEEP min</th>
                       <th className="px-2 py-1.5 text-left">FiO₂ min %</th>
+                      <th className="px-2 py-1.5 text-left">APRV</th>
+                      <th className="px-2 py-1.5 text-left">HFV</th>
+                      <th className="px-2 py-1.5 text-left">ECMO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -254,6 +280,33 @@ export default function VaeClinicalSubForm({
                               })
                             }
                             className={C.controlInput}
+                          />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={!!row.on_aprv}
+                            disabled={!allowedEdit || isVaeInvalid}
+                            onChange={(e) => updateDaily(idx, { on_aprv: e.target.checked })}
+                            title="APRV — FiO₂-only"
+                          />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={!!row.on_hfv}
+                            disabled={!allowedEdit || isVaeInvalid}
+                            onChange={(e) => updateDaily(idx, { on_hfv: e.target.checked })}
+                            title="HFV full-day exclude"
+                          />
+                        </td>
+                        <td className="px-2 py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={!!row.on_ecmo}
+                            disabled={!allowedEdit || isVaeInvalid}
+                            onChange={(e) => updateDaily(idx, { on_ecmo: e.target.checked })}
+                            title="ECMO full-day exclude"
                           />
                         </td>
                       </tr>

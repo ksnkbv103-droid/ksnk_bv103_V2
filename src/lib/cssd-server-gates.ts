@@ -54,7 +54,7 @@ export async function verifyCssdBatchEdit(): Promise<void> {
   await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
 }
 
-/** Nhả mẻ implant hoặc nhập BI cho mẻ chờ BI. */
+/** AB-6 A: tổ trưởng CSSD — Soft maps to RBAC `CSSD_ME_TIET_KHUAN.qc` (implant HOAN_THANH / nhả từ CHO_BI). */
 export async function verifyCssdBatchQc(): Promise<void> {
   await verifyPermission("CSSD_ME_TIET_KHUAN", "qc");
 }

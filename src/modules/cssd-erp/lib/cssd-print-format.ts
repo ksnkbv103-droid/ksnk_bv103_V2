@@ -1,5 +1,6 @@
 /** Định dạng hiển thị cho phiếu in CSSD (A4). */
 
+import { isCssdCycleUsedClinically } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
 import type { CssdBatchAnhMinhChung, CssdBatchPrintData, CssdQcProofRow } from "../types/cssd-print.types";
 
@@ -79,13 +80,25 @@ export function canPrintBatchTicket(input: {
 }
 
 
-/** Nhãn xử lý bộ trên phiếu in khi mẻ thu hồi / không đạt. */
+/** Nhãn xử lý bộ trên phiếu in khi mẻ thu hồi / không đạt (M-23 / Domain 23). */
 export function formatBatchMemberRecallXuLy(input: {
+  usedClinically?: boolean | null;
+  usedClinicallyAt?: string | null;
+  usedClinicallyBy?: string | null;
+  metadata?: unknown;
+  /** @deprecated Domain 23 — không đủ làm nguồn used. */
   maCaMoId?: string | null;
   isActive?: boolean | null;
 }): string {
-  if (String(input.maCaMoId || "").trim()) {
-    return "Đã dùng lâm sàng — giữ nguyên, cần đánh giá / thu hồi lâm sàng";
+  if (
+    isCssdCycleUsedClinically({
+      usedClinically: input.usedClinically,
+      usedClinicallyAt: input.usedClinicallyAt,
+      usedClinicallyBy: input.usedClinicallyBy,
+      metadata: input.metadata,
+    })
+  ) {
+    return "Đã dùng lâm sàng — liệt kê đánh giá KSNK (không thu hồi được)";
   }
   if (input.isActive === false) {
     return "Thu hồi về Tiếp nhận (xử lý lại như dụng cụ bẩn)";

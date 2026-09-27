@@ -688,6 +688,12 @@ export default function NkbvDiagnosticCaseForm({
             </span>
           </p>
           <p className="leading-relaxed text-slate-600">{liveEvaluation.reason}</p>
+          {liveEvaluation.warnings?.length ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-950">
+              <strong>Cảnh báo độ sâu SSI:</strong>{" "}
+              {liveEvaluation.warnings.join(" · ")}
+            </div>
+          ) : null}
         </div>
       </NkbvDiagnosticRow>
 

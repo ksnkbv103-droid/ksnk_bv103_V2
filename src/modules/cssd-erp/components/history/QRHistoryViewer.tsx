@@ -6,6 +6,8 @@ import { Search, History, CheckCircle2, AlertTriangle, Clock, User, QrCode } fro
 import QrScanInput from "@/components/shared/QrScanInput";
 import { toast } from "sonner";
 import { fetchCssdQrHistory, assignCssdCaMoTrace } from "../../actions/cssd-qr-history.actions";
+import { markCssdUsedClinicallyAction } from "@/modules/cssd-su-co/actions/cssd-used-clinically.actions";
+import { isCssdCycleUsedClinically } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 import { useCssdPrint } from "../../hooks/use-cssd-print";
 import CssdPrintPortal from "../print/CssdPrintPortal";
 import type { CssdBatchPrintData } from "../../types/cssd-print.types";
@@ -38,6 +40,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
   const [batchTrace, setBatchTrace] = useState<CssdBatchPrintData | null>(null);
   const [assigningCaMo, setAssigningCaMo] = useState(false);
   const [caMoInput, setCaMoInput] = useState("");
+  const [togglingUsed, setTogglingUsed] = useState(false);
   const autoFetched = useRef<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
   const { printState, onPrintBatch, isPrinting } = useCssdPrint();
@@ -86,12 +89,37 @@ export default function QRHistoryViewer({ initialQr }: Props) {
     try {
       const res = await assignCssdCaMoTrace(String(process.id), val);
       if (!res.success) throw new Error(res.error);
-      toast.success("Đã gán truy vết ca mổ / bệnh nhân");
+      toast.success("Đã ghi nhận dùng lâm sàng (ca mổ) — actor + timestamp");
       await fetchHistory(code);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Không gán được ca mổ");
     } finally {
       setAssigningCaMo(false);
+    }
+  };
+
+  /** Manual fallback Domain 23 — khi thiếu event khoa/PM; không thay event A. */
+  const toggleUsedClinicallyManual = async () => {
+    if (!process?.id) return;
+    const currentlyUsed = isCssdCycleUsedClinically({
+      usedClinically: process.used_clinically,
+      usedClinicallyAt: process.used_clinically_at,
+      usedClinicallyBy: process.used_clinically_by,
+    });
+    setTogglingUsed(true);
+    try {
+      const res = await markCssdUsedClinicallyAction({
+        quyTrinhId: String(process.id),
+        source: "MANUAL",
+        clear: currentlyUsed,
+      });
+      if (!res.success) throw new Error(res.error);
+      toast.success(currentlyUsed ? "Đã gỡ cờ used_clinically (manual)" : "Đã ghi nhận used_clinically (manual)");
+      await fetchHistory(code);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Không cập nhật used_clinically");
+    } finally {
+      setTogglingUsed(false);
     }
   };
 
@@ -206,11 +234,28 @@ export default function QRHistoryViewer({ initialQr }: Props) {
 
           <div className="bg-emerald-50 border border-emerald-100 rounded-[var(--radius-shell)] p-5 space-y-3">
             <h4 className="text-xs font-semibold tracking-wide text-emerald-800">
-              Truy vết ca mổ / bệnh nhân
+              Truy vết ca mổ / bệnh nhân · used_clinically
             </h4>
             <p className="text-[11px] text-emerald-700">
-              Gán sau khi cấp phát — không nhập tại trạm quét workflow.
+              Sự kiện lâm sàng sau cấp phát (Domain 23 A): gắn ca mổ = set used kèm actor + timestamp.
+              Không silent khi in CAP_PHAT.
             </p>
+            {isCssdCycleUsedClinically({
+              usedClinically: process.used_clinically,
+              usedClinicallyAt: process.used_clinically_at,
+              usedClinicallyBy: process.used_clinically_by,
+            }) ? (
+              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[11px] text-emerald-900">
+                Đã dùng lâm sàng
+                {process.used_clinically_source ? ` · nguồn ${process.used_clinically_source}` : ""}
+                {process.used_clinically_at ? ` · ${formatCssdPrintDateTime(process.used_clinically_at)}` : ""}
+                {process.used_clinically_by ? ` · actor ${String(process.used_clinically_by).slice(0, 8)}…` : ""}
+              </p>
+            ) : (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
+                Chưa used_clinically — CAP_PHAT còn trong SC picker / có thể thu hồi BI+.
+              </p>
+            )}
             <input
               value={caMoInput}
               onChange={(e) => setCaMoInput(e.target.value)}
@@ -223,7 +268,24 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               onClick={() => void saveCaMoTrace()}
               className="bv103-control-h w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >
-              {assigningCaMo ? "Đang lưu…" : "Lưu truy vết ca mổ"}
+              {assigningCaMo ? "Đang lưu…" : "Lưu ca mổ = ghi nhận used (CLINICAL)"}
+            </button>
+            <button
+              type="button"
+              disabled={togglingUsed}
+              onClick={() => void toggleUsedClinicallyManual()}
+              className="bv103-control-h w-full rounded-[var(--radius-control)] border border-emerald-300 bg-white text-xs font-semibold text-emerald-900 disabled:opacity-50"
+              data-testid="used-clinically-manual-toggle"
+            >
+              {togglingUsed
+                ? "Đang cập nhật…"
+                : isCssdCycleUsedClinically({
+                      usedClinically: process.used_clinically,
+                      usedClinicallyAt: process.used_clinically_at,
+                      usedClinicallyBy: process.used_clinically_by,
+                    })
+                  ? "Gỡ used (manual fallback)"
+                  : "Đánh dấu used (manual fallback)"}
             </button>
           </div>
 

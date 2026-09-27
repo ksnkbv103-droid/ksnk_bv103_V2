@@ -15,6 +15,7 @@ interface Props {
   /** Trạm hiện tại (từ trang cha; tránh gọi hook trùng state). */
   tramDisplay?: string;
   maLoTietKhuan?: string;
+  /** @deprecated CSSD-L02 / 17b — soft-allow silent; FE không render. */
   ledgerWarning?: string;
   /** Tem chu trình túi hấp (khác tem bộ vĩnh viễn). */
   maCycleQr?: string | null;
@@ -36,7 +37,6 @@ export default function QRScanSuccessCard({
   buocTiepTheo,
   tramDisplay = "CSSD",
   maLoTietKhuan,
-  ledgerWarning,
   maCycleQr,
   onPrintCapPhat,
   isPrintBusy,
@@ -134,12 +134,7 @@ export default function QRScanSuccessCard({
               </div>
             ) : null}
 
-            {ledgerWarning ? (
-              <div className={`${C.noticeDanger} text-left`}>
-                <p className="text-[11px] font-semibold">Thiếu dụng cụ — vẫn cấp</p>
-                <p className="mt-0.5 text-[11px] font-medium leading-relaxed">{ledgerWarning}</p>
-              </div>
-            ) : null}
+            {/* CSSD-L02 / 17b: soft-allow D8 silent — không banner ledgerWarning */}
           </div>
 
           {meHandoffHref ? (

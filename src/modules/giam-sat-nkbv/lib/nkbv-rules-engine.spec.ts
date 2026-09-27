@@ -244,7 +244,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("MBI_LCBI");
     });
 
-    it("applies MBI_LCBI when intestinal pathogen + tiêu chảy nặng (catalog)", () => {
+    it("tiêu chảy nặng đơn (không allo HSCT) → không MBI — vẫn CLABSI (Ch.4 criterion 1b)", () => {
       const data: BsiVerificationData = {
         is_fungi_respiratory: false,
         pathogen_name: "Candida tropicalis",
@@ -263,8 +263,80 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         blood_mandatory_for_localized: false,
       };
       const res = evaluateBsiClabsi(data);
+      expect(res.classification).toBe("CLABSI");
+    });
+
+    it("applies MBI_LCBI when allo HSCT attest + tiêu chảy nặng (Ch.4 criterion 1b)", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Candida tropicalis",
+        pathogen_type: "RECOGNIZED",
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: false,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        is_intestinal_pathogen: true,
+        has_hsct_or_gvhd: true,
+        has_severe_diarrhea_mbi: true,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      const res = evaluateBsiClabsi(data);
       expect(res.classification).toBe("MBI_LCBI");
-      expect(res.reason).toMatch(/tiêu chảy nặng/i);
+      expect(res.reason).toMatch(/HSCT|tiêu chảy|barrier/i);
+    });
+
+    it("applies MBI_LCBI when raw ANC/WBC samples meet <500 ≥2 days in blood±3d window", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Enterococcus faecium",
+        pathogen_type: "RECOGNIZED",
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: false,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        is_intestinal_pathogen: true,
+        blood_collection_date: "2026-03-10",
+        anc_wbc_samples: [
+          { date: "2026-03-09", wbc: 320 },
+          { date: "2026-03-10", wbc: 400 },
+        ],
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      const res = evaluateBsiClabsi(data);
+      expect(res.classification).toBe("MBI_LCBI");
+      expect(res.reason).toMatch(/neutropenia|ANC\/WBC <500/i);
+    });
+
+    it("thiếu organism MBI-eligible → không MBI dù đủ neutropenia", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Staphylococcus aureus",
+        pathogen_type: "RECOGNIZED",
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: false,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        anc_wbc_lt_500_ge_2d: true,
+        is_intestinal_pathogen: false,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      const res = evaluateBsiClabsi(data);
+      expect(res.classification).toBe("CLABSI");
     });
   });
 
@@ -563,7 +635,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU1_VAP");
     });
 
-    it("excludes VAE day when on ECMO", () => {
+    it("20f: episode ECMO without daily grid → NO_EVENT (no day to carve)", () => {
       const data: VaeVerificationData = {
         patient_age: 60,
         vent_days: 6,
@@ -589,6 +661,83 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_positive).toBe(false);
       expect(res.classification).toBe("NO_EVENT");
       expect(res.reason).toMatch(/ECMO/i);
+    });
+
+    it("20f: ECMO mid-stretch day out — VAC on remaining adjacent days (no whole-day stub)", () => {
+      const data: VaeVerificationData = {
+        patient_age: 60,
+        vent_days: 7,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: false,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 0,
+        fever_or_wbc_abnormal: false,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 0,
+        microbiology_evidence: "NONE",
+        vent_daily_params: [
+          { date: "2026-05-01", peep_min: 5, fio2_min: 40 },
+          { date: "2026-05-02", peep_min: 5, fio2_min: 40 },
+          { date: "2026-05-03", peep_min: 10, fio2_min: 60, on_ecmo: true },
+          { date: "2026-05-04", peep_min: 5, fio2_min: 40 },
+          { date: "2026-05-05", peep_min: 5, fio2_min: 40 },
+          { date: "2026-05-06", peep_min: 8, fio2_min: 40 },
+          { date: "2026-05-07", peep_min: 8, fio2_min: 40 },
+        ],
+      };
+      const res = evaluateVaeVap(data, "VAE");
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("VAC");
+      expect(res.reason).not.toMatch(/loại khỏi giám sát VAE/);
+    });
+
+    it("20f: APRV FiO₂ đủ → VAC; PEEP-equivalent ignored (no NO_EVENT stub)", () => {
+      const peepOnly: VaeVerificationData = {
+        patient_age: 55,
+        vent_days: 5,
+        has_stable_baseline_peep_fio2: true,
+        peep_increase_ge_3: true,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: false,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 0,
+        fever_or_wbc_abnormal: false,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 0,
+        microbiology_evidence: "NONE",
+        on_aprv: true,
+      };
+      expect(evaluateVaeVap(peepOnly, "VAE").classification).toBe("NO_EVENT");
+
+      const fioGrid: VaeVerificationData = {
+        ...peepOnly,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        on_aprv: true,
+        vent_daily_params: [
+          { date: "2026-05-01", peep_min: 5, fio2_min: 40, on_aprv: true },
+          { date: "2026-05-02", peep_min: 5, fio2_min: 40, on_aprv: true },
+          { date: "2026-05-03", peep_min: 12, fio2_min: 65, on_aprv: true },
+          { date: "2026-05-04", peep_min: 12, fio2_min: 65, on_aprv: true },
+        ],
+      };
+      const res = evaluateVaeVap(fioGrid, "VAE");
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("VAC");
     });
 
     it("rejects VAE pathway when not adult ventilated", () => {
@@ -1056,7 +1205,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("INCOMPLETE");
     });
 
-    it("Organ/Space bắt buộc site hợp lệ; PJI chỉ sau HPRO/KPRO", () => {
+    it("Organ/Space bắt buộc site hợp lệ; PJI chỉ sau HPRO/KPRO; thiếu Ch.17 → không Organ (20d)", () => {
       const base: SsiVerificationData = {
         days_since_surgery: 10,
         has_implant: false,
@@ -1076,15 +1225,26 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         blood_ssi_pathogen_matches: false,
         loai_phau_thuat_nhsn: "COLO",
       };
-      expect(evaluateSsi(base).classification).toBe("INCOMPLETE");
+      // Không site + không Ch.17 / không tầng nông-sâu → NO_INFECTION (Organ chưa met)
+      expect(evaluateSsi(base).classification).toBe("NO_INFECTION");
+      // IAB có def Ch.17 — generic alone không nâng Organ (DoD 20d)
       expect(
         evaluateSsi({ ...base, organ_space_site: "IAB" }).classification,
+      ).toBe("NO_INFECTION");
+      // Ch.17 met → Organ; site allowlist vẫn enforce
+      expect(
+        evaluateSsi({
+          ...base,
+          organ_space_site: "IAB",
+          chapter17_flags: { micro_iab_fluid_or_abscess: true },
+        }).classification,
       ).toBe("ORGAN_SPACE:IAB");
       expect(
         evaluateSsi({
           ...base,
           loai_phau_thuat_nhsn: "COLO",
           organ_space_site: "PJI",
+          chapter17_flags: { sx_pji_sinus_tract: true },
         }).classification,
       ).toBe("INVALID_SITE");
       expect(
@@ -1092,6 +1252,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
           ...base,
           loai_phau_thuat_nhsn: "KPRO",
           organ_space_site: "PJI",
+          chapter17_flags: { sx_pji_sinus_tract: true },
         }).classification,
       ).toBe("ORGAN_SPACE:PJI");
     });

@@ -108,6 +108,8 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     }
     const { error: capErr } = await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
     if (capErr) throw new Error(capErr.message);
+    // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
+    // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
     if (maCaMoId) {
       const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
         p_id: preRow.id,

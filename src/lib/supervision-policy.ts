@@ -42,6 +42,19 @@ async function userHasSupervisionEligibleRole(
   });
 }
 
+/** Domain 14 Lock A — KSNK ≠ TGS: NV biên chế Khoa KSNK luôn chuyên trách. */
+export type DeriveHinhThucGiamSatInput = {
+  isKsnkDept: boolean;
+  /** khoa_GS ≠ khoa được GS (và đã có đủ id). */
+  crossKhoa: boolean;
+};
+
+export function deriveHinhThucGiamSat(input: DeriveHinhThucGiamSatInput): string {
+  if (input.isKsnkDept) return HINH_THUC_CHUYEN_TRACH;
+  if (input.crossKhoa) return HINH_THUC_GIAM_SAT_CHEO;
+  return HINH_THUC_TU_GIAM_SAT;
+}
+
 export type ResolveSupervisorPolicyParams = {
   supabase: SupabaseClient;
   supervisorId: string;
@@ -114,21 +127,9 @@ export async function resolveSupervisorPolicy(params: ResolveSupervisorPolicyPar
       String(profile.khoa_id) !== String(selectedKhoaId),
   );
 
-  let derivedHinhThuc: string;
-  if (isNetworkAtSelectedKhoa) {
-    // Mạng lưới giám sát tại khoa mình = tự giám sát.
-    derivedHinhThuc = HINH_THUC_TU_GIAM_SAT;
-  } else if (isKsnkDept) {
-    // KSNK tại khoa KSNK = tự giám sát (nhất quán: cùng khoa = tự GS).
-    // KSNK tại khoa khác = chuyên trách.
-    derivedHinhThuc = crossKhoa ? HINH_THUC_CHUYEN_TRACH : HINH_THUC_TU_GIAM_SAT;
-  } else if (crossKhoa) {
-    // Nhân viên khoa khác giám sát = giám sát chéo.
-    derivedHinhThuc = HINH_THUC_GIAM_SAT_CHEO;
-  } else {
-    // Cùng khoa, không phải KSNK = tự giám sát.
-    derivedHinhThuc = HINH_THUC_TU_GIAM_SAT;
-  }
+  // Domain 14 Lock A: KSNK luôn chuyên trách (kể cả cùng khoa / khoa KSNK).
+  // Mạng lưới tại khoa mình → TGS qua nhánh !crossKhoa (không phải KSNK dept).
+  const derivedHinhThuc = deriveHinhThucGiamSat({ isKsnkDept, crossKhoa });
 
   return {
     profile,

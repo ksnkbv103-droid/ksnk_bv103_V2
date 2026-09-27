@@ -153,14 +153,8 @@ export function useNkbvChecklistModalState({
     if (existing.treatment_history && existing.treatment_history.length > 0) {
       setTreatmentHistory(existing.treatment_history);
     } else {
-      const defaultStay: DepartmentStay = {
-        khoa_id: row.khoa_ghi_nhan_id || row.khoa_ghi_nhan?.id || "",
-        ten_khoa: row.khoa_ghi_nhan?.ten_khoa || "Khoa hiện tại",
-        ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
-        ngay_vao: row.ngay_vao_vien ? row.ngay_vao_vien.slice(0, 10) : "",
-        ngay_ra: undefined,
-      };
-      setTreatmentHistory([defaultStay]);
+      // 20c / L07: không silent default single-stay từ khoa ghi nhận — chờ Hub ba_ngay_khoa / BA nhập
+      setTreatmentHistory([]);
     }
 
     setBsiForm(prepopulateBsiData(row, existing));
@@ -509,13 +503,11 @@ export function useNkbvChecklistModalState({
         calculated_iwp_end: liveCdcMetrics?.iwp_end,
         calculated_sbap_start: liveCdcMetrics?.sbap_start,
         calculated_sbap_end: liveCdcMetrics?.sbap_end,
-        attributed_khoa_id: liveCdcMetrics?.attributedStay?.khoa_id || row.khoa_ghi_nhan_id || "",
-        attributed_khoa_name: formatKhoaCompactLabel(
-          liveCdcMetrics?.attributedStay || {
-            ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
-            ten_khoa: row.khoa_ghi_nhan?.ten_khoa,
-          },
-        ),
+        // 20c / L07: không silent fallback khoa ghi nhận khi metrics chưa quy kết LOA
+        attributed_khoa_id: liveCdcMetrics?.attributedStay?.khoa_id || "",
+        attributed_khoa_name: liveCdcMetrics?.attributedStay
+          ? formatKhoaCompactLabel(liveCdcMetrics.attributedStay)
+          : "",
         hai_status: liveCdcMetrics?.haiStatus,
         
         ...(checklistType === 'BSI' && {

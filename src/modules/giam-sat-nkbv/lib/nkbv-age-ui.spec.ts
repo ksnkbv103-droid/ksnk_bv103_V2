@@ -10,9 +10,12 @@ describe("nkbv-age-ui adult-only", () => {
     expect(pneuAgeUiBranchFromAge(0.5)).toBe("ADULT");
     expect(pneuAgeUiBranchFromAge(40)).toBe("ADULT");
   });
-  it("ép tuổi <13 → 45", () => {
-    expect(coerceAdultPatientAge(null, 5)).toBe(45);
+  it("L02/20b: thiếu DOB/tuổi hợp lệ → null (không invent 45)", () => {
+    expect(coerceAdultPatientAge(null, 5)).toBeNull();
+    expect(coerceAdultPatientAge(null, null)).toBeNull();
+    expect(coerceAdultPatientAge(null, undefined)).toBeNull();
     expect(coerceAdultPatientAge(30, 5)).toBe(30);
+    expect(coerceAdultPatientAge(null, 40)).toBe(40);
   });
   it("Ch.17 chỉ hiện OVER_1Y", () => {
     expect(

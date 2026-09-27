@@ -37,6 +37,11 @@ import {
   secondaryIncisionMismatchWarning,
 } from "./nkbv-ssi-nhsn-catalog";
 import { evaluateRuledOut } from "./nkbv-ruled-out";
+import { applyCh2RitGate } from "./nkbv-rit-hard-stop";
+import {
+  evaluateMbiMucosalBarrier,
+  isMbiEligibleOrganismFlag,
+} from "./nkbv-mbi-ch4";
 
 
 /** Ch.2 only: DOE POA (HD1–2) → không tính tử số HAI. SSI/VAE không gọi. */
@@ -67,6 +72,10 @@ export interface RuleEvaluationResult {
   is_secondary_bsi?: boolean;
   lcbi_type?: string;
   reason: string;
+  /** Soft 20d — SSI: user depth nông hơn engine (sâu nhất thắng). */
+  warnings?: string[];
+  /** Soft 20d — độ sâu engine chọn (deepest met). */
+  ssi_engine_depth?: "SUPERFICIAL" | "DEEP" | "ORGAN_SPACE";
 }
 
 /** Triệu chứng lâm sàng LCBI (người lớn). */
@@ -76,7 +85,7 @@ export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
 }
 
 export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResult {
-  return applyCh2PoaGate(data, evaluateBsiClabsiCore(data));
+  return applyCh2RitGate(data, "BSI", applyCh2PoaGate(data, evaluateBsiClabsiCore(data)));
 }
 
 function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult {
@@ -206,20 +215,23 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
     };
   }
 
-  // MBI-LCBI: tác nhân đường ruột + bằng chứng hàng rào (ANC ≥2d | HSCT/GVHD | tiêu chảy nặng).
-  // Tick «giảm bạch cầu» đơn không đủ — tránh CLABSI âm tính giả (BSI-P0-1).
-  const mbiMucosalBarrier =
-    Boolean(data.anc_wbc_lt_500_ge_2d) ||
-    Boolean(data.has_hsct_or_gvhd) ||
-    Boolean(data.has_severe_diarrhea_mbi);
-  if (data.is_intestinal_pathogen && mbiMucosalBarrier) {
+  // MBI-LCBI Soft 20e Domain A — Ch.4 Table 2 (cite nkbv-sources/extracted/cdc-ch4.txt).
+  // MBI = LCBI (already) + MBI-eligible organism + mucosal barrier. Never «ung thư = MBI».
+  // Tick «giảm bạch cầu» đơn (is_neutropenia) không đủ — BSI-P0-1.
+  // Tiêu chảy đơn không đủ — chỉ criterion 1b dưới allo HSCT (cite 415-421). Flag PO G.1#1 · G.1#5.
+  const mbiBarrier = evaluateMbiMucosalBarrier({
+    anc_wbc_lt_500_ge_2d: data.anc_wbc_lt_500_ge_2d,
+    has_hsct_or_gvhd: data.has_hsct_or_gvhd,
+    has_severe_diarrhea_mbi: data.has_severe_diarrhea_mbi,
+    anc_wbc_samples: data.anc_wbc_samples,
+    blood_collection_date: data.blood_collection_date || data.calculated_doe,
+  });
+  if (isMbiEligibleOrganismFlag(data.is_intestinal_pathogen) && mbiBarrier.met) {
     return {
       is_positive: true,
       classification: "MBI_LCBI",
       lcbi_type: lcbiType,
-      reason: data.has_severe_diarrhea_mbi && !data.anc_wbc_lt_500_ge_2d && !data.has_hsct_or_gvhd
-        ? "MBI-LCBI: tác nhân đường ruột + tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h) trong 7 ngày trước cấy máu (+). Không tính lỗi CLABSI."
-        : "Ngoại lệ Tổn thương hàng rào niêm mạc (MBI-LCBI): tác nhân đường ruột + ANC/WBC <500 ≥2 ngày lịch hoặc HSCT/GVHD hoặc tiêu chảy nặng. Không tính lỗi CLABSI.",
+      reason: `${mbiBarrier.reason} Không tính lỗi CLABSI. (MBI organism = tip is_intestinal_pathogen proxy — G.1#5 browser còn mở.)`,
     };
   }
 
@@ -236,8 +248,9 @@ export function evaluateVaeVap(
   pathway: "VAE" | "PNEU" = "VAE",
 ): RuleEvaluationResult {
   const raw = evaluateVaeVapCore(data, pathway);
-  // POA/HAI day-3 chỉ áp PNEU lâm sàng; VAE không dùng Ch.2 POA
-  return pathway === "PNEU" ? applyCh2PoaGate(data, raw) : raw;
+  // POA/HAI day-3 + RIT chỉ áp PNEU lâm sàng; VAE bypass Ch.2 POA/RIT
+  if (pathway !== "PNEU") return raw;
+  return applyCh2RitGate(data, "PNEU", applyCh2PoaGate(data, raw));
 }
 
 function evaluateVaeVapCore(
@@ -259,25 +272,47 @@ function evaluateVaeVapCore(
   }
 
   if (useVaePathway) {
-    // APRV/HFV/ECMO: ngày đó loại khỏi eligibility VAC (NHSN — không dùng PEEP/FiO2 chuẩn).
-    if (data.on_aprv_or_hfv || data.on_ecmo) {
+    // Soft Soft 20f / NKBV-L06 — Domain A (cdc-ch10.txt:126-131 · 1460-1472):
+    // - ECMO/HFV full calendar day → out of VAC stretch (day-level via vent grid)
+    // - APRV → FiO₂-only (no PEEP-equivalent); NOT whole-day NO_EVENT
+    // - Stub NO_EVENT whole-day removed once day-level carve-out runs on vent_daily_params
+    const episodeMode = {
+      on_ecmo: data.on_ecmo,
+      on_hfv: data.on_hfv,
+      on_aprv: data.on_aprv,
+      on_aprv_or_hfv: data.on_aprv_or_hfv,
+    };
+    const hasDailyGrid =
+      Array.isArray(data.vent_daily_params) && data.vent_daily_params.length >= 4;
+    const aprvEpisode =
+      !!data.on_aprv || !!(data.on_aprv_or_hfv && !data.on_hfv);
+
+    // No daily grid: episode ECMO/HFV attestation still excludes (no day to carve).
+    // APRV episode alone must NOT NO_EVENT — FiO₂ tick path below.
+    if (!hasDailyGrid && (data.on_ecmo || data.on_hfv)) {
       return {
         is_positive: false,
         classification: "NO_EVENT",
         reason: data.on_ecmo
-          ? "Ngày trên ECMO — loại khỏi giám sát VAE (không áp dụng PEEP/FiO₂ chuẩn)."
-          : "Ngày trên APRV/HFV — loại khỏi giám sát VAE (chỉ theo dõi FiO₂; chưa đủ pipeline VAC chuẩn).",
+          ? "ECMO/ECLS trọn ngày — loại khỏi giám sát VAE (Ch.10). Nhập bảng theo ngày để loại từng ngày."
+          : "HFV trọn ngày — loại khỏi giám sát VAE (Ch.10). Nhập bảng theo ngày để loại từng ngày.",
       };
     }
+
     let stable = data.has_stable_baseline_peep_fio2;
     let peepUp = data.peep_increase_ge_3;
     let fioUp = data.fio2_increase_ge_20;
-    if (data.vent_daily_params && data.vent_daily_params.length >= 4) {
-      const vac = computeVacFromDailyVent(data.vent_daily_params);
+    // APRV: ignore PEEP-equivalent ticks (Ch.10 FiO₂-only)
+    if (aprvEpisode) peepUp = false;
+
+    if (hasDailyGrid) {
+      const vac = computeVacFromDailyVent(data.vent_daily_params!, episodeMode);
       if (vac.has_stable_baseline && (vac.peep_increase_ge_3 || vac.fio2_increase_ge_20)) {
         stable = true;
         peepUp = vac.peep_increase_ge_3;
         fioUp = vac.fio2_increase_ge_20;
+      } else if (vac.excluded_dates && vac.excluded_dates.length > 0 && !vac.has_stable_baseline) {
+        // Fall through: may still use manual ticks on remaining days; do not stub NO_EVENT.
       }
     }
     const hasVac = stable && (peepUp || fioUp);
@@ -476,7 +511,7 @@ function attachUtiSecondaryBsi(
 }
 
 export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResult {
-  return applyCh2PoaGate(data, evaluateUtiCautiCore(data));
+  return applyCh2RitGate(data, "UTI", applyCh2PoaGate(data, evaluateUtiCautiCore(data)));
 }
 
 function evaluateUtiCautiCore(data: UtiVerificationData): RuleEvaluationResult {
@@ -597,6 +632,144 @@ function evaluateUtiCautiCore(data: UtiVerificationData): RuleEvaluationResult {
   };
 }
 
+export type SsiDepthTier = "SUPERFICIAL" | "DEEP" | "ORGAN_SPACE";
+
+const SSI_DEPTH_RANK: Record<SsiDepthTier, number> = {
+  SUPERFICIAL: 1,
+  DEEP: 2,
+  ORGAN_SPACE: 3,
+};
+
+export function ssiDepthRank(depth: string | null | undefined): number {
+  if (depth === "ORGAN_SPACE") return 3;
+  if (depth === "DEEP") return 2;
+  if (depth === "SUPERFICIAL") return 1;
+  return 0;
+}
+
+export function ssiSuperficialCriteriaMet(data: SsiVerificationData): boolean {
+  return Boolean(
+    data.superficial_purulent_drainage ||
+      data.superficial_culture_positive ||
+      data.superficial_opened_with_inflammation ||
+      data.superficial_physician_diagnosis,
+  );
+}
+
+export function ssiDeepCriteriaMet(data: SsiVerificationData): boolean {
+  return Boolean(
+    data.deep_purulent_drainage ||
+      data.deep_dehisced_or_opened_with_symptoms ||
+      data.deep_abscess_imaging_pathology,
+  );
+}
+
+/** Tiêu chí Organ/Space chung đã có trên form — không invent thêm. */
+export function ssiOrganGenericCriteriaMet(data: SsiVerificationData): boolean {
+  const proc = String(data.loai_phau_thuat_nhsn || "").trim().toUpperCase();
+  const obgynPainOk =
+    !!data.organ_space_obgyn_abdominal_pain &&
+    (proc === "CSEC" || proc === "HYST" || proc === "VHYS");
+  return Boolean(
+    data.organ_space_purulent_drainage ||
+      data.organ_space_culture_positive ||
+      data.organ_space_abscess_imaging_pathology ||
+      obgynPainOk,
+  );
+}
+
+/**
+ * Organ/Space met (SSOT C.5.3 / DoD 20d):
+ * - có mã site; và
+ * - nếu site có định nghĩa Ch.17 → **bắt buộc** ≥1 tiêu chí Ch.17 met (generic alone không nâng Organ);
+ * - nếu site chưa có def Ch.17 → dùng tiêu chí Organ chung (không invent Ch.17).
+ */
+export function ssiOrganSpaceCriteriaMet(data: SsiVerificationData): {
+  met: boolean;
+  reason: string;
+  ch17Applicable: boolean;
+  ch17Met: boolean;
+} {
+  const siteCode = (data.organ_space_site || "").trim();
+  if (!siteCode) {
+    return { met: false, reason: "", ch17Applicable: false, ch17Met: false };
+  }
+  const ch17 = evaluateCh17Type({
+    typeCode: siteCode,
+    evidence: normalizeCh17EvidenceFlags({
+      ...(data.chapter17_flags || {}),
+      ...(data.organ_space_obgyn_abdominal_pain
+        ? { organ_space_obgyn_abdominal_pain: true }
+        : {}),
+    }),
+    procedureCode: data.loai_phau_thuat_nhsn,
+  });
+  const generic = ssiOrganGenericCriteriaMet(data);
+  if (ch17.applicable) {
+    if (ch17.met) {
+      return {
+        met: true,
+        reason: `Organ/Space SSI — ${ch17.reason}`,
+        ch17Applicable: true,
+        ch17Met: true,
+      };
+    }
+    // DoD: Organ thiếu Ch.17 → không Organ (kể cả khi generic flags bật)
+    return {
+      met: false,
+      reason: "",
+      ch17Applicable: true,
+      ch17Met: false,
+    };
+  }
+  if (generic) {
+    const proc = String(data.loai_phau_thuat_nhsn || "").trim().toUpperCase();
+    const obgynOnly =
+      !!data.organ_space_obgyn_abdominal_pain &&
+      (proc === "CSEC" || proc === "HYST" || proc === "VHYS") &&
+      !data.organ_space_purulent_drainage &&
+      !data.organ_space_culture_positive &&
+      !data.organ_space_abscess_imaging_pathology;
+    return {
+      met: true,
+      reason: obgynOnly
+        ? "Organ/Space SSI — đau bụng sau mổ (CSEC/HYST/VHYS) đạt chuẩn NHSN."
+        : "Nhiễm khuẩn cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.",
+      ch17Applicable: false,
+      ch17Met: false,
+    };
+  }
+  return { met: false, reason: "", ch17Applicable: false, ch17Met: false };
+}
+
+function ssiDepthWithinSp(
+  data: SsiVerificationData,
+  depth: SsiDepthTier,
+  days: number,
+  eventTypeCode?: string,
+): boolean {
+  const limitDays = resolveSsiSurveillanceDays({
+    depth,
+    procedureCode: data.loai_phau_thuat_nhsn,
+    hasImplantFallback: data.has_implant,
+    eventTypeCode,
+  });
+  return days < limitDays;
+}
+
+/** Event type khớp độ sâu engine; giữ primary/secondary incision nếu có. */
+export function ssiEventTypeForEngineDepth(
+  userEventType: string | null | undefined,
+  engineDepth: SsiDepthTier,
+): string {
+  const ev = getNhsnSsiEventType(userEventType);
+  if (engineDepth === "ORGAN_SPACE") return "ORGAN_SPACE";
+  if (engineDepth === "DEEP") {
+    return ev?.incision === "SECONDARY" ? "DIS" : "DIP";
+  }
+  return ev?.incision === "SECONDARY" ? "SIS" : "SIP";
+}
+
 export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
   const ruledOut = evaluateRuledOut(data, "SSI");
   if (ruledOut) return ruledOut;
@@ -610,15 +783,20 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     }
   }
 
-  const event = getNhsnSsiEventType(data.ssi_event_type);
-  const depth = event?.depth || data.ssi_depth;
-  const limitDays = resolveSsiSurveillanceDays({
-    depth,
+  const userEvent = getNhsnSsiEventType(data.ssi_event_type);
+  const userDepth: SsiDepthTier | "NONE" =
+    (userEvent?.depth as SsiDepthTier | undefined) ||
+    (data.ssi_depth === "NONE" ? "NONE" : data.ssi_depth) ||
+    "SUPERFICIAL";
+
+  const userEventCode = data.ssi_event_type;
+  const proc = getNhsnProcedure(data.loai_phau_thuat_nhsn);
+  const userLimitDays = resolveSsiSurveillanceDays({
+    depth: userDepth === "NONE" ? "SUPERFICIAL" : userDepth,
     procedureCode: data.loai_phau_thuat_nhsn,
     hasImplantFallback: data.has_implant,
-    eventTypeCode: data.ssi_event_type,
+    eventTypeCode: userEventCode,
   });
-  const proc = getNhsnProcedure(data.loai_phau_thuat_nhsn);
   const limitHint = isSecondaryIncisionalEvent(data.ssi_event_type)
     ? "đường mổ phụ SIS/DIS luôn 30 ngày"
     : proc
@@ -626,14 +804,6 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
       : data.has_implant
         ? "fallback implant 90 ngày (chưa chọn mã PT NHSN)"
         : "30 ngày (chưa chọn mã PT NHSN hoặc nông)";
-
-  if (days >= limitDays) {
-    return {
-      is_positive: false,
-      classification: "EXPIRED",
-      reason: `Vượt quá khung thời gian giám sát quy định (${limitDays} ngày — ${limitHint}).`,
-    };
-  }
 
   if (data.is_patos) {
     return {
@@ -643,65 +813,57 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     };
   }
 
-  let matched = false;
-  let reason = "";
-
-  if (depth === "ORGAN_SPACE") {
-    const proc = String(data.loai_phau_thuat_nhsn || "").trim().toUpperCase();
-    const obgynPainOk =
-      !!data.organ_space_obgyn_abdominal_pain &&
-      (proc === "CSEC" || proc === "HYST" || proc === "VHYS");
-    const ch17 = evaluateCh17Type({
-      typeCode: data.organ_space_site,
-      evidence: normalizeCh17EvidenceFlags({
-        ...(data.chapter17_flags || {}),
-        ...(data.organ_space_obgyn_abdominal_pain
-          ? { organ_space_obgyn_abdominal_pain: true }
-          : {}),
-      }),
-      procedureCode: data.loai_phau_thuat_nhsn,
-    });
-    const genericOrgan =
-      data.organ_space_purulent_drainage ||
-      data.organ_space_culture_positive ||
-      data.organ_space_abscess_imaging_pathology ||
-      obgynPainOk;
-    // Site có định nghĩa Ch.17 → đạt cây tiêu chuẩn hoặc tiêu chí Organ chung (purulent/culture/abscess)
-    if (ch17.applicable) {
-      if (ch17.met || genericOrgan) {
-        matched = true;
-        reason = ch17.met
-          ? `Organ/Space SSI — ${ch17.reason}`
-          : "Nhiễm khuẩn cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.";
-      }
-    } else if (genericOrgan) {
-      matched = true;
-      reason = obgynPainOk && !data.organ_space_purulent_drainage && !data.organ_space_culture_positive && !data.organ_space_abscess_imaging_pathology
-        ? "Organ/Space SSI — đau bụng sau mổ (CSEC/HYST/VHYS) đạt chuẩn NHSN."
-        : "Nhiễm khuẩn cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.";
+  // Site allowlist / catalog — fail-closed sớm khi BA chọn site (kể cả khi Ch.17 chưa met)
+  const siteEarly = (data.organ_space_site || "").trim();
+  if (siteEarly) {
+    if (!getNhsnOrganSpaceSite(siteEarly)) {
+      return {
+        is_positive: false,
+        classification: "INVALID_SITE",
+        reason: `Mã vị trí Organ/Space «${siteEarly}» không thuộc danh mục NHSN.`,
+      };
     }
-  } else if (depth === "DEEP") {
-    if (
-      data.deep_purulent_drainage ||
-      data.deep_dehisced_or_opened_with_symptoms ||
-      data.deep_abscess_imaging_pathology
-    ) {
-      matched = true;
-      reason = "Nhiễm khuẩn vết mổ sâu mức cân/cơ (Deep Incisional SSI) đạt chuẩn CDC/NHSN.";
-    }
-  } else if (depth === "SUPERFICIAL") {
-    if (
-      data.superficial_purulent_drainage ||
-      data.superficial_culture_positive ||
-      data.superficial_opened_with_inflammation ||
-      data.superficial_physician_diagnosis
-    ) {
-      matched = true;
-      reason = "Nhiễm khuẩn vết mổ nông mức da/dưới da (Superficial Incisional SSI) đạt chuẩn CDC/NHSN.";
+    if (!isOrganSpaceSiteAllowedForProcedure(siteEarly, data.loai_phau_thuat_nhsn)) {
+      return {
+        is_positive: false,
+        classification: "INVALID_SITE",
+        reason: `Mã vị trí «${siteEarly}» không hợp lệ với mã phẫu thuật «${data.loai_phau_thuat_nhsn || "—"}» (PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS).`,
+      };
     }
   }
 
-  if (!matched) {
+  // Candidates met by existing depth flags (DoD: không invent Organ criteria)
+  const organEval = ssiOrganSpaceCriteriaMet(data);
+  const candidates: Array<{ depth: SsiDepthTier; reason: string }> = [];
+  if (ssiSuperficialCriteriaMet(data)) {
+    candidates.push({
+      depth: "SUPERFICIAL",
+      reason:
+        "Nhiễm khuẩn vết mổ nông mức da/dưới da (Superficial Incisional SSI) đạt chuẩn CDC/NHSN.",
+    });
+  }
+  if (ssiDeepCriteriaMet(data)) {
+    candidates.push({
+      depth: "DEEP",
+      reason: "Nhiễm khuẩn vết mổ sâu mức cân/cơ (Deep Incisional SSI) đạt chuẩn CDC/NHSN.",
+    });
+  }
+  if (organEval.met) {
+    candidates.push({ depth: "ORGAN_SPACE", reason: organEval.reason });
+  }
+
+  const inWindow = candidates.filter((c) =>
+    ssiDepthWithinSp(data, c.depth, days, ssiEventTypeForEngineDepth(userEventCode, c.depth)),
+  );
+
+  if (!inWindow.length) {
+    if (candidates.length || days >= userLimitDays) {
+      return {
+        is_positive: false,
+        classification: "EXPIRED",
+        reason: `Vượt quá khung thời gian giám sát quy định (${userLimitDays} ngày — ${limitHint}).`,
+      };
+    }
     return {
       is_positive: false,
       classification: "NO_INFECTION",
@@ -709,22 +871,47 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     };
   }
 
-  if (!event) {
+  inWindow.sort((a, b) => SSI_DEPTH_RANK[b.depth] - SSI_DEPTH_RANK[a.depth]);
+  const picked = inWindow[0]!;
+  const engineDepth = picked.depth;
+  let reason = picked.reason;
+
+  const warnings: string[] = [];
+  if (
+    userDepth !== "NONE" &&
+    ssiDepthRank(userDepth) > 0 &&
+    ssiDepthRank(userDepth) < ssiDepthRank(engineDepth)
+  ) {
+    warnings.push(
+      `Độ sâu form (${userDepth}) nông hơn kết luận engine (${engineDepth}) — báo cáo theo ${engineDepth} (sâu nhất thắng SSOT C.5.3).`,
+    );
+  }
+
+  const engineEventCode = data.ssi_event_type
+    ? ssiEventTypeForEngineDepth(data.ssi_event_type, engineDepth)
+    : "";
+  const event = engineEventCode ? getNhsnSsiEventType(engineEventCode) : null;
+
+  if (!data.ssi_event_type) {
     return {
       is_positive: false,
       classification: "INCOMPLETE",
       reason:
         "Thiếu mã loại sự kiện NHSN (SIP/SIS/DIP/DIS hoặc ORGAN_SPACE) — bắt buộc trước khi chốt ca.",
+      warnings: warnings.length ? warnings : undefined,
+      ssi_engine_depth: engineDepth,
     };
   }
 
-  if (depth === "ORGAN_SPACE") {
+  if (engineDepth === "ORGAN_SPACE") {
     const siteCode = (data.organ_space_site || "").trim();
     if (!siteCode) {
       return {
         is_positive: false,
         classification: "INCOMPLETE",
         reason: "Organ/Space SSI bắt buộc chọn mã vị trí cơ quan (Chương 17 NHSN).",
+        warnings: warnings.length ? warnings : undefined,
+        ssi_engine_depth: engineDepth,
       };
     }
     if (!getNhsnOrganSpaceSite(siteCode)) {
@@ -732,6 +919,8 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
         is_positive: false,
         classification: "INVALID_SITE",
         reason: `Mã vị trí Organ/Space «${siteCode}» không thuộc danh mục NHSN.`,
+        warnings: warnings.length ? warnings : undefined,
+        ssi_engine_depth: engineDepth,
       };
     }
     if (!isOrganSpaceSiteAllowedForProcedure(siteCode, data.loai_phau_thuat_nhsn)) {
@@ -739,21 +928,28 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
         is_positive: false,
         classification: "INVALID_SITE",
         reason: `Mã vị trí «${siteCode}» không hợp lệ với mã phẫu thuật «${data.loai_phau_thuat_nhsn || "—"}» (PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS).`,
+        warnings: warnings.length ? warnings : undefined,
+        ssi_engine_depth: engineDepth,
       };
     }
     reason = `${reason} Vị trí: ${siteCode}.`;
   }
 
   const classification =
-    nhsClassificationFromEvent(data.ssi_event_type, data.organ_space_site) || event.code;
-  reason = `${event.name_vi}. ${reason}`;
+    nhsClassificationFromEvent(engineEventCode, data.organ_space_site) ||
+    event?.code ||
+    engineEventCode;
+  reason = `${event?.name_vi || engineEventCode}. ${reason}`;
 
   const secondaryWarn = secondaryIncisionMismatchWarning(
-    data.ssi_event_type,
+    engineEventCode,
     data.loai_phau_thuat_nhsn,
   );
   if (secondaryWarn) {
     reason = `${reason} Cảnh báo: ${secondaryWarn}`;
+  }
+  if (warnings.length) {
+    reason = `${reason} Cảnh báo: ${warnings.join(" ")}`;
   }
 
   let isSecondaryBsi = false;
@@ -789,12 +985,20 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     reason: isSecondaryBsi
       ? `${reason} Kèm theo Nhiễm khuẩn huyết thứ phát (Secondary BSI) trùng khớp tác nhân.`
       : reason,
+    warnings: warnings.length ? warnings : undefined,
+    ssi_engine_depth: engineDepth,
   };
 }
 
 /** Ca Chương 17 độc lập (không SSI) — cùng cây tiêu chuẩn với Organ/Space. */
 export function evaluateCh17(data: Ch17VerificationData): RuleEvaluationResult {
-  return applyCh2PoaGate(data, evaluateCh17Core(data));
+  const specific = String(data.ch17_type_code || "").trim().toUpperCase() || null;
+  return applyCh2RitGate(
+    data,
+    "CH17",
+    applyCh2PoaGate(data, evaluateCh17Core(data)),
+    specific,
+  );
 }
 
 function evaluateCh17Core(data: Ch17VerificationData): RuleEvaluationResult {

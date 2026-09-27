@@ -87,7 +87,8 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
 
     expect(metrics.doe).toBe("2026-05-12");
     expect(metrics.attributedStay?.khoa_id).toBe("CC"); // Transferred to ICU on 12th, DOE is 12th -> attributes to CC (Cấp cứu)
-    expect(metrics.attributionReason).toContain("Quy kết cho khoa chuyển đi [Cấp cứu]");
+    // 20c: single transfer day also ∈ multi-khoa window (≥2 khoa) → first khoa day-before = CC
+    expect(metrics.attributionReason).toMatch(/khoa chuyển đi|multi-khoa 24h/);
   });
 
   it("LOA: DOE từ ngày thứ 2 sau chuyển trở đi → khoa đang điều trị (calendar day, không 48h)", () => {
@@ -221,6 +222,90 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.iwp_end).toBe("2026-08-13");
     expect(metrics.uses_clinical_iwp).toBe(true);
     expect(metrics.doe).toBe("2026-08-10");
+  });
+
+
+  it("LOA multi-khoa 24h: ≥2 khoa trong cửa sổ ngày trước DOE → khoa đầu ngày trước DOE (không longest-stay)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-12",
+      ngay_vao_vien: "2026-05-08",
+      checklistType: "BSI",
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-12" },
+      treatmentHistory: [
+        { khoa_id: "A", ten_khoa: "Khoa A", ngay_vao: "2026-05-08", ngay_ra: "2026-05-11" },
+        { khoa_id: "B", ten_khoa: "Khoa B", ngay_vao: "2026-05-11", ngay_ra: "2026-05-12" },
+        { khoa_id: "C", ten_khoa: "Khoa C", ngay_vao: "2026-05-12" },
+      ],
+    });
+    expect(metrics.doe).toBe("2026-05-12");
+    // dayBefore=05-11: A (ra=11) + B (vao=11); first by ngay_vao = A. Không = longest.
+    expect(metrics.attributedStay?.khoa_id).toBe("A");
+    expect(metrics.attributionReason).toContain("multi-khoa 24h");
+  });
+
+  it("LOA multi-khoa: WARD dài trước đó không thắng — first khoa ngày trước DOE = CC", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-12",
+      ngay_vao_vien: "2026-05-01",
+      checklistType: "UTI",
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-12" },
+      treatmentHistory: [
+        { khoa_id: "WARD_LONG", ten_khoa: "Nội dài", ngay_vao: "2026-05-01", ngay_ra: "2026-05-09" },
+        { khoa_id: "CC", ten_khoa: "Cấp cứu", ngay_vao: "2026-05-09", ngay_ra: "2026-05-11" },
+        { khoa_id: "STEP", ten_khoa: "Hồi sức", ngay_vao: "2026-05-11", ngay_ra: "2026-05-12" },
+        { khoa_id: "ICU", ten_khoa: "ICU", ngay_vao: "2026-05-12" },
+      ],
+    });
+    expect(metrics.doe).toBe("2026-05-12");
+    expect(metrics.attributedStay?.khoa_id).toBe("CC");
+    expect(metrics.attributionReason).toMatch(/multi-khoa 24h/);
+  });
+
+  it("LOA: grid trống → không gán LOA im lặng + warn (L07)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-15",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "BSI",
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-14" },
+      treatmentHistory: [],
+    });
+    expect(metrics.attributedStay).toBeNull();
+    expect(metrics.attributionReason).toMatch(/Thiếu lịch sử khoa|không quy kết LOA/i);
+  });
+
+  it("LOA: không khớp DOE → không silent gán khoa cuối", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-20",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "BSI",
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-20" },
+      treatmentHistory: [
+        { khoa_id: "OLD", ten_khoa: "Khoa cũ", ngay_vao: "2026-05-01", ngay_ra: "2026-05-05" },
+      ],
+    });
+    expect(metrics.attributedStay).toBeNull();
+    expect(metrics.attributionReason).toMatch(/không quy kết LOA im lặng/i);
+  });
+
+  it("LOA Transfer: DOE+2 sau chuyển đơn → ICU (không multi-khoa)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-16",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "BSI",
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-14" },
+      treatmentHistory: [
+        { khoa_id: "CC", ten_khoa: "Cấp cứu", ngay_vao: "2026-05-10", ngay_ra: "2026-05-12" },
+        { khoa_id: "ICU", ten_khoa: "ICU", ngay_vao: "2026-05-12" },
+      ],
+    });
+    expect(metrics.doe).toBe("2026-05-14");
+    expect(metrics.attributedStay?.khoa_id).toBe("ICU");
+    expect(metrics.attributionReason).toContain("khoa đang điều trị");
   });
 
   it("CH17 ENDO IWP ±10", () => {

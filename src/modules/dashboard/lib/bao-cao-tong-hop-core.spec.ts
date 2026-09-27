@@ -358,6 +358,10 @@ describe("bao-cao-tong-hop-core", () => {
     expect(shouldFetchSource("ALL", "VST")).toBe(true);
     expect(shouldFetchSource("GSC", "VST")).toBe(false);
     expect(shouldFetchSource("NKBV", "NKBV")).toBe(true);
+    // Vệ sinh tay tab: WHO + BM.02/03 (GSC engine)
+    expect(shouldFetchSource("VST", "VST")).toBe(true);
+    expect(shouldFetchSource("VST", "GSC")).toBe(true);
+    expect(shouldFetchSource("VST", "NKBV")).toBe(false);
   });
 
   it("compose capabilities flags compare dimensions from source matrices", () => {

@@ -48,7 +48,7 @@ CRON quá hạn         → QUA_HAN (mã) + view is_qua_han (cờ) — cùng ý 
 | 2 | Q-08 hủy qua transition typed | `huyKhiChoNghiemThuKhongDat` dùng `SET_TRANG_THAI` → DA_HUY | `cong-viec-write.actions.ts` (pre) | **P1 Soft** | **FIXED Soft** → action `HUY` |
 | 3 | TAC-3A đóng cần kết quả / checklist 100% | Nghiệm thu FE+BE OK; DINH_KY auto-close viết nhat_ky HOAN_THANH (đủ extract «Kết quả» trên detail) | `close-requires-result.ts` · `cong-viec-checklist.actions.ts` | OK Soft | Keep |
 | 4 | Q-14 báo cáo kỳ người–việc–đúng hạn | Có `bao-cao-ky` + MVP strip từ **board slice**; RPC gates không có tong/% HT | `qlcv-mvp-stats.ts` · `QlcvGateStats.tsx` | **P1 Domain** | Park — mở rộng RPC hoặc kỳ SSOT |
-| 5 | Gate «Chờ tôi» = việc chờ actor duyệt? | Label «Chờ tôi» nhưng RPC+FE = **mọi** DE_XUAT+CHO_DUYET (không filter actor) | `rpc_qlcv_board_counts` cho_toi · `isQlcvChoToiDuyet` | **P1 Domain** | Ask Domain: rename «Chờ duyệt» **hoặc** filter APPROVE actor |
+| 5 | Gate «Chờ tôi» = việc chờ actor duyệt? | Domain **24=A** actor lens (PT∨PH∨giao) — Soft DONE Soft-local | `qlcv-board-filter` · draft `20260928025300_qlcv_cho_toi_actor_lens.sql` | **DONE Soft** | See `_audit-soft-qlcv-cho-toi-24-2026-09-28.md` |
 | 6 | AB-2 người duyệt từ nhat_ky | Detail extract kết quả OK; **không** cột/list «duyệt cuối» riêng | `CongViecDetail.extractQlcvCloseResultText` · table columns | **P1 Domain** | Park (AB-2A) |
 | 7 | Q-01 KSNK-only assignee | `validateAssigneeForQlcv` + `ensureQlcvKsnkAccess` trên create/update/import | `qlcv-ksnk-server` · action-guard | OK Soft | Keep |
 | 8 | Assignee không CRUD metadata đã giao | FE+`updateCongViec` chặn; checklist/progress **cho** assignee | `qlcv-access.ts` · checklist.actions | OK Soft | Keep |
@@ -88,7 +88,7 @@ Silent defaults: empty `trang_thai`→`MOI`; empty loai→`DOT_XUAT`; `muc_do_uu
 
 ## 5. Domain asks (do NOT Soft fan-out)
 
-1. **Gate «Chờ tôi»:** lock rename → «Chờ duyệt» **hay** filter theo actor có APPROVE / người giao?
+1. **Gate «Chờ tôi»:** **CLOSED Domain 24=A** — actor lens PT∨PH∨giao (Soft Soft-local; RPC draft await Lead).
 2. **AB-2:** có cần cột/list «Người duyệt cuối» derive nhat_ky trên Điều hành không (P1)?
 3. **Q-14:** MVP tong/% từ board slice đủ tạm, hay bắt buộc RPC kỳ (tuần/tháng) trước Soft FE thêm?
 4. **NGHIEM_THU RPC:** có chặn `loai=DINH_KY` trong SQL khi W4 harden không?

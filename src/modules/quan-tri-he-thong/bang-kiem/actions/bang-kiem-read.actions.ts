@@ -127,6 +127,7 @@ export async function getBangKiemsForGiamSat() {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const { getActorKsnkScope } = await import("@/lib/actor-ksnk-scope-server");
     const { resolveBkApDungChoKhoa } = await import("@/lib/domain/bang-kiem-ap-dung");
+    const { filterOutWhoBangKiemRows } = await import("@/lib/domain/ve-sinh-tay-catalog");
     const scope = await getActorKsnkScope();
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
@@ -135,7 +136,8 @@ export async function getBangKiemsForGiamSat() {
       .eq("is_active", true)
       .order("ma_bk", { ascending: true });
     if (error) throw error;
-    let filteredData = normalizeBangKiemRows(data || []).map((bk) => ({
+    // WHO / QT.07 BM.01 không vào picker BK GSC (họ form riêng → /giam-sat-vst).
+    let filteredData = filterOutWhoBangKiemRows(normalizeBangKiemRows(data || [])).map((bk) => ({
       ...bk,
       tieu_chi_bang_kiem: (bk.tieu_chi_bang_kiem || []).filter(
         (tc: TieuChiBangKiem) => tc.is_active === true,

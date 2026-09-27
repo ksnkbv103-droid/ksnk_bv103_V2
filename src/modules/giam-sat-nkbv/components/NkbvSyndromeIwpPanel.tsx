@@ -43,6 +43,7 @@ import {
   scanIndexPriorRitAlert,
 } from "../lib/nkbv-ket-luan-smart";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
+import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
 import {
   priorEventsToSecondarySites,
   resolveDoeBelongsPriorEvent,
@@ -324,7 +325,24 @@ export default function NkbvSyndromeIwpPanel({
     canThiepDates,
   ]);
 
+  const ritPriorEvents = useMemo(
+    () =>
+      (priorEvents || [])
+        .map((e) =>
+          ritPriorFromCaseLike({
+            id: e.id,
+            ngay_phat_hien: e.ngay_phat_hien,
+            loai_ma: e.loai_ma,
+            vi_tri_nhiem_khuan: e.vi_tri_nhiem_khuan,
+            loai_ten: e.loai_ten,
+          }),
+        )
+        .filter((x): x is NonNullable<typeof x> => Boolean(x)),
+    [priorEvents],
+  );
+
   const utiVerdictPreview = useMemo(() => {
+
     if (panel !== "UTI") return null;
     return buildUtiTimelineVerdict({
       indexXn,
@@ -338,6 +356,7 @@ export default function NkbvSyndromeIwpPanel({
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
+      ritPriorEvents,
     });
   }, [
     panel,
@@ -350,6 +369,7 @@ export default function NkbvSyndromeIwpPanel({
     draft.bloodCriterionIds,
     ngayVaoVien,
     ngayRaVien,
+    ritPriorEvents,
   ]);
 
   const pneuVerdictPreview = useMemo(() => {
@@ -370,6 +390,7 @@ export default function NkbvSyndromeIwpPanel({
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
+      ritPriorEvents,
       hasCardiopulmonaryDisease: Boolean(draft.hasCardiopulmonaryDisease),
       pneuIcAtoms: draft.pneuIcAtoms,
     });
@@ -390,6 +411,7 @@ export default function NkbvSyndromeIwpPanel({
     ageYears,
     ngayVaoVien,
     ngayRaVien,
+    ritPriorEvents,
   ]);
 
   const bsiVerdictPreview = useMemo(() => {
@@ -405,6 +427,7 @@ export default function NkbvSyndromeIwpPanel({
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
+      ritPriorEvents,
       localizedSite: draft.bsiLocalizedSite,
       ancWbcLt500Ge2d: Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d),
       hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
@@ -422,6 +445,7 @@ export default function NkbvSyndromeIwpPanel({
     draft.bsiMbi,
     ngayVaoVien,
     ngayRaVien,
+    ritPriorEvents,
   ]);
 
   const session = useMemo(() => {
@@ -490,6 +514,7 @@ export default function NkbvSyndromeIwpPanel({
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
+      ritPriorEvents,
     });
   }, [
     panel,
@@ -502,6 +527,7 @@ export default function NkbvSyndromeIwpPanel({
     draft.bloodCriterionIds,
     ngayVaoVien,
     ngayRaVien,
+    ritPriorEvents,
   ]);
 
   const pneuVerdict = useMemo(() => {
@@ -522,6 +548,7 @@ export default function NkbvSyndromeIwpPanel({
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
+      ritPriorEvents,
       hasCardiopulmonaryDisease: Boolean(draft.hasCardiopulmonaryDisease),
       pneuIcAtoms: draft.pneuIcAtoms,
     });
@@ -542,6 +569,7 @@ export default function NkbvSyndromeIwpPanel({
     ageYears,
     ngayVaoVien,
     ngayRaVien,
+    ritPriorEvents,
   ]);
 
   const bsiVerdict = useMemo(() => {
@@ -557,6 +585,7 @@ export default function NkbvSyndromeIwpPanel({
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
+      ritPriorEvents,
       localizedSite: draft.bsiLocalizedSite,
       ancWbcLt500Ge2d: Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d),
       hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
@@ -574,6 +603,7 @@ export default function NkbvSyndromeIwpPanel({
     draft.bsiMbi,
     ngayVaoVien,
     ngayRaVien,
+    ritPriorEvents,
   ]);
 
   const bloodInIwp = useMemo(() => {
@@ -1121,7 +1151,7 @@ export default function NkbvSyndromeIwpPanel({
                     })
                   }
                 />
-                ANC/WBC &lt;500 ≥2 ngày
+                ANC/WBC &lt;500 ≥2d (máu±3)
               </label>
               <label className="flex items-center gap-1">
                 <input
@@ -1137,7 +1167,7 @@ export default function NkbvSyndromeIwpPanel({
                     })
                   }
                 />
-                HSCT / GVHD
+                Allo HSCT + GVHD III/IV
               </label>
               <label className="flex items-center gap-1">
                 <input
@@ -1153,7 +1183,7 @@ export default function NkbvSyndromeIwpPanel({
                     })
                   }
                 />
-                Tiêu chảy nặng
+                Tiêu chảy (≥ cần HSCT)
               </label>
             </div>
           ) : null}

@@ -9,6 +9,9 @@ export type BatchRecallListItem = {
   maLo: string;
   loId: string;
   maCaMoId?: string;
+  usedClinically?: boolean;
+  usedClinicallyAt?: string;
+  usedClinicallyBy?: string;
   newQuyTrinhId?: string;
 };
 
@@ -51,6 +54,10 @@ function readItems(raw: unknown): BatchRecallListItem[] {
   return raw.map((item) => {
     const row = (item || {}) as Record<string, unknown>;
     const maCaMo = String(row.ma_ca_mo_id || "").trim();
+    const usedAt = String(row.used_clinically_at || "").trim();
+    const usedBy = String(row.used_clinically_by || "").trim();
+    const used =
+      row.used_clinically === true || String(row.used_clinically || "").toLowerCase() === "true";
     return {
       quyTrinhId: String(row.quy_trinh_id || ""),
       maBo: String(row.ma_bo || ""),
@@ -58,6 +65,9 @@ function readItems(raw: unknown): BatchRecallListItem[] {
       maLo: String(row.ma_lo || ""),
       loId: String(row.lo_id || ""),
       ...(maCaMo ? { maCaMoId: maCaMo } : {}),
+      ...(used ? { usedClinically: true } : {}),
+      ...(usedAt ? { usedClinicallyAt: usedAt } : {}),
+      ...(usedBy ? { usedClinicallyBy: usedBy } : {}),
       ...(row.new_quy_trinh_id ? { newQuyTrinhId: String(row.new_quy_trinh_id) } : {}),
     };
   });

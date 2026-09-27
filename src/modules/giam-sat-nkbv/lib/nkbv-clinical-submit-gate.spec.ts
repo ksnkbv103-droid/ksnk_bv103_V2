@@ -51,6 +51,7 @@ describe("assertClinicalEvidenceForSubmit", () => {
   it("VAE thiếu PEEP/FiO₂ → chặn", () => {
     const res = assertClinicalEvidenceForSubmit("VAE", {
       ngay_phat_hien: "2026-05-21",
+      patient_age: 55,
       had_ventilator: true,
     });
     expect(res.ok).toBe(false);
@@ -59,10 +60,30 @@ describe("assertClinicalEvidenceForSubmit", () => {
   it("VAE có bảng PEEP → cho qua", () => {
     const res = assertClinicalEvidenceForSubmit("VAE", {
       ngay_phat_hien: "2026-05-21",
+      patient_age: 55,
       had_ventilator: true,
       vent_daily_params: [{ date: "2026-05-18", peep_min: 5, fio2_min: 40 }],
     });
     expect(res.ok).toBe(true);
+  });
+
+  it("L02/20b: PNEU/VAE thiếu patient_age → chặn «Thiếu ngày sinh»", () => {
+    const pneu = assertClinicalEvidenceForSubmit("PNEU", {
+      ngay_phat_hien: "2026-05-21",
+      has_chest_imaging_abnormal: true,
+      fever_or_wbc_abnormal: true,
+      symptom_dates: { fever_or_wbc_abnormal: "2026-05-21" },
+    });
+    expect(pneu.ok).toBe(false);
+    if (!pneu.ok) expect(pneu.error).toMatch(/Thiếu ngày sinh/);
+
+    const vae = assertClinicalEvidenceForSubmit("VAE", {
+      ngay_phat_hien: "2026-05-21",
+      had_ventilator: true,
+      vent_daily_params: [{ date: "2026-05-18", peep_min: 5, fio2_min: 40 }],
+    });
+    expect(vae.ok).toBe(false);
+    if (!vae.ok) expect(vae.error).toMatch(/Thiếu ngày sinh/);
   });
 
   it("SSI thiếu PATOS → chặn", () => {

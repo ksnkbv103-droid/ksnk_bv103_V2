@@ -246,7 +246,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     id: "sx.bsi_mbi_severe_diarrhea",
     name_en: "Severe diarrhea (MBI-LCBI)",
     name_vi: "Tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h)",
-    threshold_note: "Khởi phát trong 7 ngày trước ngày cấy máu (+)",
+    threshold_note: "Ch.4 criterion 1b — chỉ cùng allo HSCT ≤1 năm; khởi phát trong 7 ngày trước cấy máu (+). Đơn độc ≠ MBI.",
     syndromes: ["BSI"],
     checklist_gates: ["BSI"],
     age_gate: "any",

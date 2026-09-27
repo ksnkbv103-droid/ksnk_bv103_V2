@@ -19,7 +19,7 @@ Một lát trên nhánh S1. Không gồm truy vết thu hồi, in phiếu, UX nh
 
 - Nhả (`HOAN_THANH`) chuyển bộ sang trạm cấp phát (kho vô khuẩn) và gán hạn dùng. Không ghi `thoi_gian_cap_phat` / `nguoi_cap_phat_id`.
 - Người nạp, người dỡ, người nhả là user phiên, giờ server.
-- Nhả mẻ thường: quyền `CSSD_ME_TIET_KHUAN.edit`. Nhả mẻ implant hoặc nhập BI cho `CHO_BI`: quyền `qc`.
+- Nhả mẻ thường: quyền `CSSD_ME_TIET_KHUAN.edit` (AB-6 A · NV/QC có quyền nhả). Nhả mẻ implant hoặc nhập BI cho `CHO_BI`: quyền `qc` = **tổ trưởng** (Soft map RBAC; Domain 18b AB-6 A). Soft **không** có nhả khẩn implant khi chưa BI âm (AB-2 A).
 - Cổng cấp phát: mẻ `HOAN_THANH`, không `CHO_BI`, không sự cố tiệt khuẩn đang mở hoặc đã xác nhận gắn mẻ/bộ.
 
 ## Bowie–Dick

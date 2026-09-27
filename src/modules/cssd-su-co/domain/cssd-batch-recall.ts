@@ -3,13 +3,24 @@
  * Tham số trạm giữ để chỗ gọi cũ không đổi chữ ký; đích không còn phụ thuộc trạm hiện tại.
  */
 
+import {
+  isCssdCycleUsedClinically as isUsedFromEvent,
+} from "./cssd-used-clinically";
+
 export function recallTargetStationForLotMember(_currentStation?: string | null): "TIEP_NHAN" {
   return "TIEP_NHAN";
 }
 
-/** Đã dùng lâm sàng khi chu kỳ có mã ca mổ. Không có hàm khác trên base. */
-export function isCssdCycleUsedClinically(input: { maCaMoId?: string | null }): boolean {
-  return String(input.maCaMoId || "").trim().length > 0;
+/** Domain 23 A: used chỉ qua event (actor+timestamp). Re-export SSOT. */
+export function isCssdCycleUsedClinically(input: {
+  usedClinically?: boolean | null;
+  usedClinicallyAt?: string | null;
+  usedClinicallyBy?: string | null;
+  metadata?: unknown;
+  /** @deprecated — không đủ làm nguồn used (Domain 23). */
+  maCaMoId?: string | null;
+}): boolean {
+  return isUsedFromEvent(input);
 }
 
 export type BatchRecallMember = {
@@ -17,11 +28,15 @@ export type BatchRecallMember = {
   maBo?: string | null;
   tenBo?: string | null;
   maCaMoId?: string | null;
+  usedClinically?: boolean | null;
+  usedClinicallyAt?: string | null;
+  usedClinicallyBy?: string | null;
+  metadata?: unknown;
   loId: string;
   maLo?: string | null;
 };
 
-/** Bộ đã dùng: chỉ liệt kê. Bộ còn lại: thu hồi về Tiếp nhận. */
+/** M-23: ¬used → thu hồi; used → list đánh giá KSNK (không «thu hồi được»). */
 export function partitionRecallMembers(members: readonly BatchRecallMember[]): {
   recall: BatchRecallMember[];
   listedOnly: BatchRecallMember[];

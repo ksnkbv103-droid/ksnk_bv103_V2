@@ -166,7 +166,11 @@ function abscessInSp(cdha: BaGridCdhaCell[], spDates: Set<string>): boolean {
   );
 }
 
-/** Map TC/ticks → cờ độ sâu evaluateSsi theo ssi_depth đang chọn. */
+/**
+ * Map TC/ticks → cờ evaluateSsi cho **mọi** tầng độ sâu (Soft 20d deepest-wins).
+ * `depth` giữ chữ ký gọi — SP vẫn theo depth form; engine chọn sâu nhất trong các tầng met.
+ * Organ chỉ nâng khi evaluateSsi thấy Ch.17 met (không invent).
+ */
 export function mapSsiCriteriaFlags(input: {
   depth: SsiDepth;
   tieuChuanByDate: BaGridSymptomByDate;
@@ -187,6 +191,7 @@ export function mapSsiCriteriaFlags(input: {
   | "organ_space_abscess_imaging_pathology"
   | "organ_space_obgyn_abdominal_pain"
 > {
+  void input.depth; // SP/window vẫn theo depth caller; flags map all tiers for deepest
   const sources = [input.tieuChuanByDate, input.draftLamSang];
   const purulent = anyKeyOnDates(sources, input.spDates, "purulent_drainage");
   const opened = anyKeyOnDates(sources, input.spDates, "wound_opened");
@@ -197,43 +202,18 @@ export function mapSsiCriteriaFlags(input: {
     anyKeyOnDates(sources, input.spDates, "abscess_imaging") ||
     abscessInSp(input.cdha, input.spDates);
 
-  const empty = {
-    superficial_purulent_drainage: false,
-    superficial_culture_positive: false,
-    superficial_opened_with_inflammation: false,
-    superficial_physician_diagnosis: false,
-    deep_purulent_drainage: false,
-    deep_dehisced_or_opened_with_symptoms: false,
-    deep_abscess_imaging_pathology: false,
-    organ_space_purulent_drainage: false,
-    organ_space_culture_positive: false,
-    organ_space_abscess_imaging_pathology: false,
-    organ_space_obgyn_abdominal_pain: false,
-  };
-
-  if (input.depth === "ORGAN_SPACE") {
-    return {
-      ...empty,
-      organ_space_purulent_drainage: purulent,
-      organ_space_culture_positive: culture,
-      organ_space_abscess_imaging_pathology: abscess,
-      organ_space_obgyn_abdominal_pain: obgynPain,
-    };
-  }
-  if (input.depth === "DEEP") {
-    return {
-      ...empty,
-      deep_purulent_drainage: purulent,
-      deep_dehisced_or_opened_with_symptoms: opened,
-      deep_abscess_imaging_pathology: abscess || culture,
-    };
-  }
   return {
-    ...empty,
     superficial_purulent_drainage: purulent,
     superficial_culture_positive: culture,
     superficial_opened_with_inflammation: opened,
     superficial_physician_diagnosis: physicianDx,
+    deep_purulent_drainage: purulent,
+    deep_dehisced_or_opened_with_symptoms: opened,
+    deep_abscess_imaging_pathology: abscess || culture,
+    organ_space_purulent_drainage: purulent,
+    organ_space_culture_positive: culture,
+    organ_space_abscess_imaging_pathology: abscess,
+    organ_space_obgyn_abdominal_pain: obgynPain,
   };
 }
 
@@ -419,6 +399,11 @@ export function buildSsiTimelineVerdict(
   }
 
   const result = evaluateSsi(data);
+  if (result.warnings?.length) {
+    for (const w of result.warnings) {
+      if (!warnings.includes(w)) warnings.push(w);
+    }
+  }
   const criteriaMet =
     result.is_positive &&
     !["PATOS", "EXPIRED", "NO_INFECTION", "INCOMPLETE", "INVALID_SITE"].includes(

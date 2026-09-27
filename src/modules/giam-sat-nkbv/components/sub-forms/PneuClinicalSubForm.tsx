@@ -97,6 +97,8 @@ export default function PneuClinicalSubForm({
   const coercedAge = coerceAdultPatientAge(ageFromDob, form.patient_age);
 
   useEffect(() => {
+    // L02/20b: không invent age=45 — chỉ sync khi đã biết tuổi người lớn
+    if (coercedAge == null) return;
     if (form.patient_age === coercedAge) return;
     onChange({ ...form, patient_age: coercedAge });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync age from DOB / adult coerce
@@ -157,12 +159,11 @@ export default function PneuClinicalSubForm({
             value={form.patient_age}
             disabled={!allowedEdit || ageFromDob != null}
             onChange={(e) => {
-              const raw = parseInt(e.target.value) || 0;
-              // BV103: chỉ giám sát người lớn
-              onChange({
-                ...form,
-                patient_age: coerceAdultPatientAge(null, raw),
-              });
+              const raw = parseInt(e.target.value, 10);
+              // L02/20b: chỉ nhận tuổi người lớn đã biết; thiếu → không invent 45
+              const next = coerceAdultPatientAge(null, Number.isFinite(raw) ? raw : null);
+              if (next == null) return;
+              onChange({ ...form, patient_age: next });
             }}
             className={C.controlInput}
           />
@@ -171,8 +172,8 @@ export default function PneuClinicalSubForm({
               Theo ngày sinh ({ageFromDob} tuổi) — không sửa tay.
             </p>
           ) : (
-            <p className="mt-1 text-[11px] text-slate-500">
-              BV103 chỉ giám sát người lớn (tuổi &lt; 13 bị ép ≥ 45).
+            <p className="mt-1 text-[11px] text-amber-700">
+              Thiếu ngày sinh — nhập tuổi người lớn (&gt;12) hoặc bổ sung DOB HIS; thiếu tuổi không xác định ca.
             </p>
           )}
           

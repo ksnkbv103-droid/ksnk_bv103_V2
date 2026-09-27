@@ -180,7 +180,7 @@ export async function executeWorkflowStationScan(
     throw new Error(result.message || "Không thể thực hiện quét trạm.");
   }
 
-  // 3. Xử lý extraPayload (Ví dụ: Truy vết ca mổ tại trạm Cấp phát)
+  // 3. CAP_PHAT may patch ma_ca_mo_id for trace — Domain 23: do NOT set used_clinically here.
   if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id && quyTrinh.id) {
     const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
       p_id: quyTrinh.id,

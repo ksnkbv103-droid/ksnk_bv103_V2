@@ -10,7 +10,10 @@ import {
   listSuCoNhanSuOptionsAction,
   resolveSuCoFaultTrace,
 } from "../actions/su-co-form-catalog.actions";
-import { listActiveBoForInstrumentTransferAction } from "../actions/su-co-bo-picker.actions";
+import {
+  listActiveBoForInstrumentTransferAction,
+  listBoForSuCoPickerAction,
+} from "../actions/su-co-bo-picker.actions";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createIncidentReport, getIncidentForPrint } from "../actions/su-co-report.actions";
 import {
@@ -262,7 +265,13 @@ export default function SuCoReportForm({
     }
     let alive = true;
     setBoLoading(true);
-    void listActiveBoForInstrumentTransferAction().then((res) => {
+    // Domain 23 / §17.3: SC incident picker = open cycle ∧ tram∈6 ∧ ¬used.
+    // Luân chuyển giữ catalog (cascade intentional).
+    const load =
+      entryMode === "luan-chuyen"
+        ? listActiveBoForInstrumentTransferAction()
+        : listBoForSuCoPickerAction();
+    void load.then((res) => {
       if (!alive) return;
       setBoLoading(false);
       if (!res.success) {
@@ -274,7 +283,7 @@ export default function SuCoReportForm({
     return () => {
       alive = false;
     };
-  }, [enabled, needsBoCatalog]);
+  }, [enabled, needsBoCatalog, entryMode]);
 
   useEffect(() => {
     if (entryMode === "luan-chuyen") {

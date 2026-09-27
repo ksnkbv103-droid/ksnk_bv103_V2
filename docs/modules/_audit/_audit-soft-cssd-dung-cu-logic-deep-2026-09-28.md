@@ -64,7 +64,7 @@ KIEM_KE
 | 1 | G-P0-06 MOVE only on `/cssd-dung-cu` LUAN_CHUYEN | OK — su-co picker chỉ PHYSICAL; form `entryMode=luan-chuyen` embed | `page.tsx` · `SuCoReportForm` · taxonomy | OK Soft | Keep |
 | 2 | D3 MOVE kinds only cửa Chuyển | OK — `rejectMoveOnlyKindsOnReconcile` + `validateInstrumentDoorLines` | `cssd-set-reconcile.ts:114–117,670–688` | OK Soft | Keep |
 | 3 | kho↔bộ cascade stock | OK — BO_SUNG/NHAP_KHO cập nhật `so_luong_kho_du_phong` ± n **trong cùng TX** với dòng sổ | `20260925150000…:350–372` | OK Soft | Keep |
-| 4 | bộ↔bộ cascade set totals | **Partial** — dest tx ghi OK **nếu** dest có dòng `chi_tiet` cùng loại; view FROM chi_tiet → **orphan tx invisible** khi BO_SUNG/DIEU_CHUYEN loại mới (FE `buildKhoBoMoveLines` cho phép) | view `:125–129` · `buildKhoBoMoveLines:620–630` · ledger `:430–438` | **P0 Cloud** | Park Cloud DoD — ensure/create chi_tiet hoặc reject |
+| 4 | bộ↔bộ cascade set totals | **Soft-local fix draft** — ensure chi_tiet on BO_SUNG/DIEU_CHUYEN dest (`so_luong=0`) same TX; await Lead prod apply | migrate `20260928023000_…` · view realtime · ledger_tx | **P0 → draft** | Prod apply + Domain §5 |
 | 5 | QR dest/source → composition by `ma_bo` | **Was** dest scan raw uppercase (no hub); cycle QR → `loadBoCompositionByMaBo` fail; source INSTRUMENT không map `maBo` | `SuCoReportForm` pre · hub no `maBo` | **P0 Soft** | **FIXED** hub `maBo` + form prefer + dest hub scan |
 | 6 | Dual path BOM-only transfer (no ledger) | `dieuChuyenThanhPhanGiuaHaiQrAction` 0 callers — metadata.bom_lines only | `cssd-asset.actions.ts` | **P1 Soft** | **FIXED** close → `instrumentChangeRequiresIncidentResult` |
 | 7 | Orphan / deprecated writers | `insertInstrumentIssueLedgerCore` direct insert; `replenishSetInstrumentCore` only specs; `applySetReconcileEngravedCodes` / `applySubmittedSetReconcile` 0 prod callers (RPC engraved+commit SSOT) | master-data · set-reconcile-ledger | **P2 Soft** | Park hygiene — không đụng engine |
@@ -115,9 +115,9 @@ Silent defaults: qty floor ≥1; empty note → null; DIEU_CHUYEN dest resolve f
 | | |
 |--|--|
 | Soft local | **Done** P0 QR maBo + dest hub · P1 close BOM facade |
-| Cloud **needed** | **Yes** — engine ensure chi_tiet (or reject) on BO_SUNG/DIEU_CHUYEN dest thiếu dòng · optional `bo_dung_cu_id_den` on lines |
+| Cloud / local migrate | **Draft local** Approach A — `supabase/migrations/20260928023000_cssd_ledger_ensure_chi_tiet_on_move.sql` (CREATE OR REPLACE ensure + ledger_tx). Soft/Cloud **does not** apply prod; Lead applies after Nghĩa confirm. FE thin `bo_dung_cu_id_den` **skipped** (RPC resolves dest via `ma_qr_den`). |
 | Whitelist | `/tmp/cloud-cssd-dung-cu-dod.md` |
-| Prefer Soft-first | FE unblocks cycle-QR → composition; Cloud needed for orphan stock totals |
+| Prefer Soft-first | FE unblocks cycle-QR → composition; orphan stock → local migrate (await prod apply) |
 
 ---
 
@@ -132,7 +132,7 @@ See `/tmp/cloud-cssd-dung-cu-dod.md` (Nghĩa authorized Cloud when needed). Soft
 - [ ] `/cssd-dung-cu` tab Luân chuyển: quét **tem bộ** nguồn + đích → tải thành phần; ghi BO_SUNG → kho dự phòng giảm + thuc_te bộ tăng; HISTORY NHAP_KHO/BO_SUNG
 - [ ] Quét **cycle QR** nguồn/đích → resolve về `ma_bo` (không lỗi «Không tìm thấy bộ»)
 - [ ] bộ↔bộ DIEU_CHUYEN loại **đã có** hai bên → src giảm / dest tăng trên tab Bộ + LOAI `so_luong_trong_bo`
-- [ ] bộ↔bộ loại **chưa có** trên đích → ghi sổ được nhưng UI có thể thiếu dòng (**known P0 Cloud** — báo Domain §5)
+- [ ] bộ↔bộ / BO_SUNG loại **chưa có** trên đích → sau RPC có dòng realtime + LOAI `so_luong_trong_bo` khớp (**local migrate** `20260928023000_cssd_ledger_ensure_chi_tiet_on_move.sql` — Lead apply prod; so_luong baseline 0)
 - [ ] Hỏng/Mất `/cssd-su-co` → tồn giảm; không thấy MOVE trên picker
 - [ ] DE_NGHI tạo/sửa → duyệt admin **không** đổi kho; kho chỉ đổi qua Luân chuyển
 - [ ] Đóng gói: CompositionReconcile soft-warning thiếu cấu phần; heat binary; **không** ghi ledger từ panel
@@ -142,6 +142,6 @@ See `/tmp/cloud-cssd-dung-cu-dod.md` (Nghĩa authorized Cloud when needed). Soft
 
 ## 9. Soft Soft-queue
 
-**CSSD dung-cu ledger Soft:** P0 QR/`maBo` + dest hub **DONE**; P1 close BOM facade **DONE**; orphan stock view **park Cloud**; Domain park §5.
+**CSSD dung-cu ledger Soft:** P0 QR/`maBo` + dest hub **DONE**; P1 close BOM facade **DONE**; **Approach A ensure chi_tiet** draft local `20260928023000_cssd_ledger_ensure_chi_tiet_on_move.sql` (BO_SUNG + DIEU_CHUYEN dest, `so_luong=0`, same TX, lock loai→chi_tiet→tx) — **await Lead prod apply**; Domain §5 still open (0 vs qty / THEM_DONG-only). Soft Soft-queue CSSD orphan **closed Soft-local**; prod apply + Domain residual park.
 
 *Dirty WT pre-existing (`AGENTS.md`, scripts, qlcv proposal) — để yên.*

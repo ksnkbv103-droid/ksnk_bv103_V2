@@ -13,13 +13,10 @@ import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../.
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { registerSplitSubQrFromMainMaAction } from "../../actions/cssd-register-label.actions";
 import { formatSetQtyLine, summarizeSetComposition } from "../../shared/domain/cssd-set-composition";
-import {
-  assertPlasmaPackMaterialAllowed,
-  type PackMaterial,
-} from "@/lib/domain/cssd-packaging-rules";
 
 export type DongGoiPackAdvancePayload = {
-  packMaterial?: PackMaterial | string;
+  /** @deprecated CSSD-L01 / 17c — Đóng gói scan-only; không chọn vật liệu trên trạm. */
+  packMaterial?: string;
   method?: string;
 };
 
@@ -47,7 +44,6 @@ export default function CompositionReconcilePanel({
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
   const [splitting, setSplitting] = useState(false);
-  const [packMaterial, setPackMaterial] = useState<PackMaterial>("UNKNOWN");
 
   const fetchData = useCallback(async () => {
     const id = String(boDungCuId || "").trim();
@@ -94,16 +90,17 @@ export default function CompositionReconcilePanel({
                 )}
               </p>
             ) : null}
-              {gateMode ? (
+            {gateMode ? (
               <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
-                Kiểm đếm trên phiếu bộ. Đóng gói chỉ quét và chuyển bước. Đề nghị danh mục / luân chuyển / hỏng-mất làm ở Dụng cụ hoặc Sự cố — không ghi trên trạm này.
+                Kiểm đếm trên phiếu bộ. Đóng gói chỉ quét và chuyển bước. Đề nghị danh mục / tách nhiệt / vật liệu / luân chuyển / hỏng-mất làm ở Dụng cụ hoặc Sự cố — không trên trạm này.
               </p>
             ) : null}
           </div>
           {loading ? <Loader2 className="animate-spin text-slate-400" size={18} /> : null}
         </div>
 
-        {data?.heat.requireSplit ? (
+        {/* CSSD-L01 / 17c: không UI tách trên Đóng gói (gateMode). Catalog-only path giữ nút tách nếu !gateMode. */}
+        {!gateMode && data?.heat.requireSplit ? (
           <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-900">
             <ShieldAlert className="mt-0.5 shrink-0" size={18} />
             <div className="space-y-2">
@@ -132,6 +129,16 @@ export default function CompositionReconcilePanel({
                 {splitting ? "Đang tách…" : "Tách gói nhạy nhiệt"}
               </button>
             </div>
+          </div>
+        ) : null}
+
+        {gateMode && data?.heat.requireSplit ? (
+          <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-950">
+            <AlertCircle className="mt-0.5 shrink-0" size={18} />
+            <p className="text-[11px] font-medium leading-relaxed">
+              Bộ hỗn hợp nhiệt — tách ở danh mục (Lock A), không trên trạm Đóng gói.{" "}
+              {data.heat.methodLabelVi ? `Gợi ý PP: ${data.heat.methodLabelVi}.` : ""}
+            </p>
           </div>
         ) : null}
 
@@ -200,7 +207,7 @@ export default function CompositionReconcilePanel({
           </ResponsiveTableShell>
         ) : null}
 
-        {/* gateMode (Đóng gói): scan + đối chiếu + chuyển bước only — đề nghị BOM tại /cssd-dung-cu */}
+        {/* gateMode (Đóng gói): scan + đối chiếu mỏng + chuyển bước — đề nghị BOM tại /cssd-dung-cu */}
         {data && data.items.length > 0 && !gateMode ? (
           <Link
             href={cssdCatalogEditProposalHref({
@@ -215,39 +222,6 @@ export default function CompositionReconcilePanel({
           </Link>
         ) : null}
 
-
-        {gateMode && data?.heat.recommendedMethod === "PLASMA" ? (
-          <div className="space-y-2 rounded-xl border border-violet-200 bg-violet-50 p-3 text-violet-950">
-            <p className="text-[11px] font-semibold">Plasma — chọn vật liệu đóng gói</p>
-            <p className="text-[11px] font-medium leading-relaxed text-violet-900">
-              Plasma cấm cellulose (giấy/vải). Dùng Tyvek / túi không cellulose.
-            </p>
-            <label className="block text-[11px] font-semibold">
-              Vật liệu đóng gói
-              <select
-                className="mt-1 h-10 w-full rounded-lg border border-violet-200 bg-white px-2 text-xs font-medium text-slate-800"
-                value={packMaterial}
-                onChange={(e) => setPackMaterial(e.target.value as PackMaterial)}
-              >
-                <option value="UNKNOWN">— Chọn —</option>
-                <option value="NON_CELLULOSE">Tyvek / không cellulose</option>
-                <option value="CELLULOSE">Cellulose / giấy / vải</option>
-              </select>
-            </label>
-            {(() => {
-              const plasmaCheck = assertPlasmaPackMaterialAllowed({
-                method: data.heat.recommendedMethod,
-                packMaterial,
-              });
-              return !plasmaCheck.ok ? (
-                <p className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5 text-[11px] font-semibold text-rose-800">
-                  {plasmaCheck.message}
-                </p>
-              ) : null;
-            })()}
-          </div>
-        ) : null}
-
         {gateMode ? (
           <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:justify-end">
             <button
@@ -260,21 +234,8 @@ export default function CompositionReconcilePanel({
             </button>
             <button
               type="button"
-              onClick={() =>
-                onConfirmAdvance?.({
-                  packMaterial,
-                  method: data?.heat.recommendedMethod,
-                })
-              }
-              disabled={
-                advancing ||
-                loading ||
-                (data?.heat.recommendedMethod === "PLASMA" &&
-                  !assertPlasmaPackMaterialAllowed({
-                    method: data.heat.recommendedMethod,
-                    packMaterial,
-                  }).ok)
-              }
+              onClick={() => onConfirmAdvance?.({ method: data?.heat.recommendedMethod })}
+              disabled={advancing || loading}
               className="h-11 touch-manipulation rounded-xl bg-emerald-600 px-5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {advancing ? "Đang chuyển…" : "Xác nhận chuyển chờ tiệt khuẩn"}

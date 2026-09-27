@@ -1,0 +1,2271 @@
+                                                                                                                                                            January 2025
+
+
+
+
+Bloodstream Infection Event (Central Line-Associated Bloodstream
+Infection and Non-central Line Associated Bloodstream Infection)
+
+                                                                      Table of Contents
+Introduction ............................................................................................................................................................... 2
+Settings ...................................................................................................................................................................... 2
+Key Terms and Abbreviations .................................................................................................................................... 2
+Definitions Specific to Bloodstream Infection (BSI) / Central Line Associated Bloodstream Infection (CLABSI)
+Surveillance ............................................................................................................................................................... 3
+Laboratory Confirmed Bloodstream Infection (LCBIs) Hierarchy; Types of LCBIs ..................................................... 3
+Types of Central Lines for NHSN reporting purposes ................................................................................................ 5
+Devices Not Considered Central Lines for NHSN Reporting Purposes ...................................................................... 6
+Table 1: Laboratory-Confirmed Bloodstream Infection Criteria: .............................................................................. 6
+Table 2: Mucosal Barrier Injury Laboratory-Confirmed Bloodstream Infection (MBI-LCBI) ..................................... 9
+Reporting Instructions: See below for a Summary of CLABSI Exclusions and Reporting Requirements. ............... 11
+Reporting Instructions ............................................................................................................................................. 12
+Blood Specimen Collection ...................................................................................................................................... 14
+Table 3: Examples of Associating the Use of Central Lines to BSI Events (CLABSI) ................................................ 15
+Pathogen Exclusions and Reporting Considerations ............................................................................................... 17
+Table 4: Reporting Speciated and Unspeciated Organisms Identified from Blood Specimens............................... 18
+Table 5: Examples Illustrating the MBI-LCBI Criteria for Neutropenia .................................................................... 18
+Monthly Summary Data .......................................................................................................................................... 19
+Table 6: Examples of Denominator Day counts for Device Days ............................................................................ 20
+Table 7: Denominator Data Collection Methods..................................................................................................... 22
+Data Analyses ................................................................................................................................................. ………25
+Table 8: CLABSI Measures Available in NHSN ......................................................................................................... 28
+References ............................................................................................................................................................... 29
+Appendix: Secondary BSI Guide (not applicable to Ventilator-associated Events [VAE]) ....................................... 30
+Table B1: Secondary BSI Guide: List of all NHSN primary site-specific definitions available for making secondary
+BSI determinations using Scenario 1 or Scenario 2 ................................................................................................. 34
+Secondary BSI Reporting Instructions ..................................................................................................................... 35
+Pathogen Assignment .............................................................................................................................................. 37
+Figure B1: Secondary BSI Guide for eligible organisms .......................................................................................... 45
+Figure B2: VAE Guidance for Secondary BSI Determination .................................................................................. 46
+
+Disclaimer: The appearance of any product or brand names in this training protocol is for educational purposes
+only and is not meant to serve as an official endorsement of any such product or brand by the Centers for
+Disease Control and Prevention (CDC) or the United States Government. CDC and the United States
+Government, by mentioning any particular product or brand, is neither recommending that product or brand
+nor recommending against the product’s or brand’s use.
+
+
+ 4-1
+January 2025                                                                              Device-associated Module
+                                                                                                               BSI
+
+
+Bloodstream Infection Event (Central Line-Associated Bloodstream
+Infection and Non-central Line Associated Bloodstream Infection)
+
+Introduction
+Although a 46% decrease in CLABSIs has occurred in hospitals across the U.S. from 2008-2013, an estimated
+30,100 central line-associated bloodstream infections (CLABSI) still occur in intensive care units and wards of
+U.S. acute care facilities each year.1 CLABSIs are serious infections typically causing a prolongation of hospital
+stay, increased cost, and risk of mortality.
+
+CLABSIs can be prevented through proper insertion techniques and management of the central line which are
+addressed in the CDC’s Healthcare Infection Control Practices Advisory Committee (CDC/HICPAC) Guidelines for
+the Prevention of Intravascular Catheter-Related Infections, 2011.2
+
+Settings
+Surveillance may occur in any inpatient location where denominator data can be collected, which can include
+critical/intensive care units (ICU), specialty care areas (SCA), neonatal units including neonatal intensive care
+units (NICUs), step down units, wards, and long-term acute care units. A complete listing of inpatient locations
+and instructions for mapping can be found in the CDC Locations and Descriptions chapter.
+
+    Note: CLABSI surveillance after patient discharge from a facility is not required. However, if discovered, any
+    CLABSI with a date of event (DOE) on the day of or the day after discharge is attributed to the discharging
+    location and should be communicated to that facility to encourage appropriate NHSN reporting of CLABSIs.
+    (See Transfer Rule, Chapter 2). Do not collect or report additional central line days after discharge.
+
+
+
+Key Terms and Abbreviations
+
+Refer to the NHSN Patient Safety Manual, Chapter 2 Identifying Healthcare Associated Infections in NHSN and
+Chapter 16 NHSN Key Terms for definitions of the following universal concepts for conducting HAI surveillance.
+    I.      Date of event (DOE)
+    II.     Healthcare associated infection (HAI)
+    III.    Infection window period (IWP)
+    IV.     Present on admission (POA)
+    V.      Repeat infection timeframe (RIT)
+    VI.     Secondary BSI attribution period (SBAP)
+    VII.    Location of Attribution (LOA)
+    VIII.   Transfer rule
+
+
+
+
+4-2
+January 2025                                                                             Device-associated Module
+                                                                                                              BSI
+
+
+Definitions Specific to Bloodstream Infection (BSI) / Central Line Associated
+Bloodstream Infection (CLABSI) Surveillance:
+
+Primary bloodstream infection (BSI): A Laboratory Confirmed Bloodstream Infection (LCBI) that is not secondary
+to an infection at another body site (see Appendix: Secondary BSI Guide and CDC/NHSN Surveillance Definitions
+for Specific Types of Infection [Ch-17], urinary tract infection (UTI) [Ch-7], pneumonia (PNEU) [Ch-6], and surgical
+site infection (SSI) [Ch- 9].
+
+Laboratory Confirmed Bloodstream Infection (LCBIs) Hierarchy; Types of LCBIs
+(see Table 1 and Table 2):
+
+
+
+
+Secondary BSI: A BSI that is thought to be seeded from a site-specific infection at another body site (see
+Appendix: Secondary BSI Guide and CDC/NHSN Surveillance Definitions for Specific Types of Infection, UTI,
+PNEU, and SSI).
+
+Secondary BSI Attribution Period (SBAP): The period in which a blood specimen must be collected for a
+secondary BSI to be attributed to a primary site of infection. This period includes the Infection Window Period
+(IWP) combined with the Repeat Infection Timeframe (RIT). The SBAP is 14-17 days in length depending upon
+the date of event (See Secondary BSI Attribution period, Chapter 2).
+
+Infusion: The administration of any solution through the lumen of a catheter into a blood vessel. Infusions
+include continuous infusion (for example, nutritional fluids or medications), intermittent infusion (for example,
+IV flush), IV antimicrobial administration, and blood transfusion or hemodialysis treatment.
+
+Access: The performance of any of the following activities during the current inpatient admission:
+   • Line placement
+   • Use of (entering the line with a needle or needleless device) any central line for:
+            o Infusion
+            o Withdrawal of blood
+   • Use for hemodynamic monitoring
+
+
+4-3
+January 2025                                                                              Device-associated Module
+                                                                                                               BSI
+
+
+Notes:
+
+    1. If a patient is admitted to an inpatient location with a central line (CL) already in place, and it is the
+       patient’s only CL, the day of first access in an inpatient location begins the central line day count (CL Day
+       for making central line-associated determinations). De-accessing any type of central line (for example,
+       removal of port needle but port remains in body) does not remove the patient from CLABSI surveillance
+       or device day counts for reporting denominator summary data.
+
+    2. An inpatient location, for making determinations about central line access, includes but is not limited to,
+       any department or unit within the facility that provides service to inpatients [for example, inpatient
+       Dialysis, Operating Room (OR), Interventional Radiology, Gastroenterology Lab (GI), Cardiac
+       Catheterization lab (CC), wards, ICUs, etc.].
+
+
+    3. Include any inpatient receiving dialysis in CLABSI surveillance conducted in the patient’s assigned
+       inpatient location, regardless of whether the patient only has one CL and dialysis staff are the only
+       providers to access it during dialysis treatment.
+         Examples: CLABSIs in the following examples will be attributed to Unit A
+               • Patient on Unit A receives onsite dialysis by contracted dialysis staff
+               • Dialysis staff travels to Unit A to provide dialysis to a Unit A patient
+               • Patient in Unit A for inpatient care is transported to dialysis unit within the facility for
+                    dialysis
+
+                 Because CLABSI events cannot be attributed to a non-bedded inpatient location (inpatient
+                 location where denominator data is not collected but inpatient care is provided, for example,
+                 OR, IR, or inpatient dialysis), such events must be attributed to the inpatient location housing
+                 the patient.
+
+Central line (CL): An intravascular catheter that terminates at or close to the heart, or in one of the great vessels
+AND is used for infusion, withdrawal of blood, or hemodynamic monitoring. Consider the following great
+vessels when making determinations about CLABSI events and counting CL device days:
+    •    Aorta
+    •    Pulmonary artery
+    •    Superior vena cava
+    •    Inferior vena cava
+    •    Brachiocephalic veins
+    •    Internal jugular veins
+    •    Subclavian veins
+    •    External iliac veins
+    •    Common iliac veins
+    •    Femoral veins
+    •    In neonates, the umbilical artery/vein.
+
+
+
+4-4
+January 2025                                                                              Device-associated Module
+                                                                                                               BSI
+
+
+Notes:
+    1. Neither the type of device nor the insertion site is used to determine if a device is considered a central
+       line for NHSN reporting purposes.
+    2. At times, a CL may migrate from its original central location after confirmation of proper placement.
+       NHSN does not require ongoing verification of proper line placement. Therefore, once a line has been
+       designated a CL it remains a CL, regardless of migration, until removed from the body or patient
+       discharge, whichever comes first. CL days are included for any CLABSI surveillance conducted in that
+       location.
+    3. An introducer is an intravascular catheter, and depending on the location of the tip and its use, may be
+       considered a CL.
+    4. A non-lumened intravascular catheter that terminates at or close to the heart or in a great vessel that is
+       not used for infusion, withdrawal of blood or hemodynamic monitoring is not considered a CL for NHSN
+       reporting purposes (for example, non-lumened pacemaker wires.)
+            • There are some pacemaker wires that do have lumens, which may be considered a central line.
+
+
+
+Types of Central Lines for NHSN reporting purposes:
+    1. Permanent central line: Includes:
+          a. Tunneled catheters, including tunneled dialysis catheters
+          b. Implanted catheters (including ports)
+    2. Temporary central line: A non-tunneled, non-implanted catheter
+    3. Umbilical catheter: A vascular catheter inserted through the umbilical artery or vein in a neonate. All
+       umbilical catheters are central lines
+
+
+Eligible Central Line: A CL that has been in place for more than two consecutive calendar days (on or after CL
+Day 3), following the first access of the central line, in an inpatient location, during the current admission. Such
+lines are eligible for CLABSI events and remain eligible for CLABSI events until the day after removal from the
+body or patient discharge, whichever comes first. (See Table 3 for examples).
+
+Eligible BSI Organism: Any organism that is eligible for use to meet LCBI or MBI-LCBI criteria. In other words, an
+organism that is not an excluded pathogen for use in meeting LCBI or MBI-LCBI criteria. All organisms may not be
+included in the NHSN Terminology Browser. Contact NHSN for guidance regarding organisms that are not found
+in the browser.
+
+Central line-associated BSI (CLABSI): A laboratory confirmed bloodstream infection where an eligible BSI
+organism is identified, and an eligible central line is present on the LCBI DOE or the day before.
+
+Central line days: The number of days a central line is accessed to determine if an LCBI is a CLABSI.
+
+Denominator device days: The count of central lines on an inpatient unit that is recorded in the monthly
+denominator summary data. This count begins on the first day the central line is present, regardless of access.
+
+
+4-5
+January 2025                                                                            Device-associated Module
+                                                                                                             BSI
+
+
+Devices Not Considered Central Lines for NHSN Reporting Purposes:
+    •   Arterial catheters unless in the pulmonary artery, aorta, or umbilical artery
+    •   Arteriovenous fistula
+    •   Arteriovenous graft
+    •   Extracorporeal life support (ECMO)
+    •   Hemodialysis reliable outflow (HERO) dialysis catheter
+    •   Intra-aortic balloon pump (IABP) devices
+    •   Peripheral IV or Midlines
+    •   Ventricular Assist Device (VAD)
+
+
+Table 1: Laboratory-Confirmed Bloodstream Infection Criteria:
+Must meet one of the following LCBI criteria:
+  Criterion    Comments and reporting instructions that follow the site-specific criteria provide further
+               explanation and are integral to the correct application of the criteria.
+
+                 Once an LCBI determination is made, proceed to the MBI-LCBI definitions, and determine if
+                 the corresponding MBI-LCBI criteria are also met (for example, after meeting LCBI 2,
+                 investigate for potential MBI-LCBI 2)
+
+     LCBI 1      Patient of any age has a recognized bacterial or fungal pathogen, not included on the NHSN
+                 common commensal list:
+ If LCBI 1
+ criterion is        1. Identified from one or more blood specimens obtained by a culture
+ met,                   OR
+ consider            2. Identified to the genus or species level by non-culture based microbiologic testing
+ MBI-LCBI 1             (NCT)* methods (for example, T2 Magnetic Resonance [T2MR] or next-generation
+                        sequencing [NGS]). Note: If blood is collected for culture within 2 days before, or 1
+                        day after the NCT, disregard the result of the NCT and use only the result of the
+                        CULTURE to make an LCBI surveillance determination. If no blood is collected for
+                        culture within this time period, use the result of the NCT for LCBI surveillance
+                        determination.
+
+                         AND
+
+                         Organism(s) identified in blood is not related to an infection at another site
+                         (See Appendix: Secondary BSI Guide).
+
+                 *For the purposes of meeting LCBI 1, NCT is defined as a methodology that identifies an
+                 organism directly from a blood specimen without inoculation of the blood specimen to any
+                 culture media.
+
+
+
+
+4-6
+January 2025                                                                           Device-associated Module
+                                                                                                            BSI
+
+
+                Notes:
+                    1. If a patient meets both LCBI 1 and LCBI 2 or LCBI 3 criteria, report LCBI 1 with the
+                        recognized pathogen entered as pathogen #1 and the common commensal as
+                        pathogen #2.
+                    2. An eligible organism in the blood specimen is the only element needed to meet LCBI 1
+                        criterion; therefore, the LCBI 1 DOE will always be the collection date of the first
+                        positive blood specimen used to set the BSI IWP.
+     LCBI 2     Patient of any age has at least one of the following signs or symptoms: fever (>38.0oC), chills,
+                or hypotension
+ If LCBI 2
+ criterion is   AND
+ met,
+ consider       Organism(s) identified in blood is not related to an infection at another site
+ MBI-LCBI 2     (See Appendix: Secondary BSI Guide).
+
+                AND
+
+                The same NHSN common commensal is identified by culture from two or more blood
+                specimens collected on separate occasions (see Blood Specimen Collection).
+
+                For common commensal organisms, refer to the NHSN Terminology Browser.
+                Notes:
+                    1. Criterion elements must occur within the 7-day IWP (as defined in Chapter 2) which
+                       includes the collection date of the positive blood specimen, the 3 calendar days
+                       before and the 3 calendar days after.
+
+                    2. The two matching common commensal specimens represent a single element for use
+                       in meeting LCBI 2 criterion, and the collection date of the first specimen is used to
+                       determine the BSI IWP.
+
+                    3. At least one element (specifically, a sign or symptom of fever, chills, or hypotension)
+                       is required to meet LCBI 2 criterion; the LCBI 2 DOE will always be the date the first
+                       element occurs for the first time during the BSI IWP, whether that be a sign or
+                       symptom or the positive blood specimen.
+                              --          6/1    Fever > 38.0 °C            LCBI 2 DOE = 6/1
+                              --          6/2    No LCBI element            --
+                              --          6/3    No LCBI element            --
+                              Single      6/4    S. epidermidis (1 of 2)    Date of 1st diagnostic
+                              element                                       test = 6/4
+                                          6/5    S. epidermidis (2 of 2)    --
+                              --          6/6    No LCBI element            --
+                              --          6/7    No LCBI element            --
+
+
+
+4-7
+January 2025                                                                            Device-associated Module
+                                                                                                             BSI
+
+
+     LCBI 3     Patient ≤ 1 year of age has at least one of the following signs or symptoms:
+                fever (>38.0oC), hypothermia (<36.0oC), apnea, or bradycardia
+ If LCBI 3
+ criterion is   AND
+ met,
+ consider       Organism(s) identified in blood is not related to an infection at another site
+ MBI-LCBI 3     (See Appendix: Secondary BSI Guide).
+
+                AND
+
+                The same NHSN common commensal is identified by a culture from two or more blood
+                specimens collected on separate occasions (see Blood Specimen Collection).
+
+                For common commensal organisms, refer to the NHSN Terminology Browser.
+
+                Notes:
+
+                      1. Criterion elements must occur within the 7-day IWP (as defined in Chapter 2) which
+                         includes the collection date of the positive blood specimen, the 3 calendar days
+                         before and the 3 calendar days after.
+                      2. The two matching common commensal specimens represent a single element for use
+                         in meeting LCBI 3 criterion, and the date of the first is used to determine the BSI IWP.
+
+                At least one element (specifically, a sign or symptom of fever, hypothermia, apnea, or
+                bradycardia) is required to meet LCBI 3 criterion; the LCBI 3 DOE will always be the date the
+                first element occurs for the first time during the BSI IWP whether that be a sign or symptom
+                or the positive blood specimen.
+
+
+
+                 --           5/31    No LCBI element             --
+                 -             6/1    No LCBI element             -
+                 -             6/2    No LCBI element             -
+                 Single        6/3    S. epidermidis (1 of 2)     Date of 1st diagnostic test = 6/3
+                 element                                          LCBI DOE = 6/3
+                               6/4    S. epidermidis (2 of 2)     -
+                 -             6/5    Apnea documented            -
+                 -             6/6    No LCBI element             -
+
+
+
+
+4-8
+January 2025                                                                               Device-associated Module
+                                                                                                                BSI
+
+
+
+
+Table 2: Mucosal Barrier Injury Laboratory-Confirmed Bloodstream Infection (MBI-
+LCBI)
+
+An MBI-LCBI is a subset of the LCBI criteria; therefore, a BSI event must fully meet an LCBI criterion before
+evaluating for the corresponding MBI-LCBI criterion.
+
+The MBI-LCBI DOE will always be the date the prerequisite LCBI criteria are met. Abnormal ANC and WBC
+values reflect risk factors for acquiring an MBI-LCBI, not symptoms of infection and therefore are not used in
+DOE determinations.
+
+Must meet one of the following MBI-LCBI criteria
+
+               MBI-LCBI 1                            MBI-LCBI 2                            MBI-LCBI 3
+ Patient of any age fully meets LCBI 1    Patient of any age fully meets     Patient <1 year of age fully meets
+ criterion                                LCBI 2 criterion                   LCBI 3 criterion
+
+ with at least one blood specimen                      with at least two matching blood specimens
+
+ with ONLY organisms from the NHSN        with ONLY Viridans Group Streptococcus and/or Rothia spp. alone
+ MBI organism list*                       but no other organisms†
+
+ identified by culture or non-culture
+                                                                   identified by culture
+ based microbiologic testing method
+ AND
+ Patient meets at least one of the following:
+ 1. Is an allogeneic hematopoietic stem cell transplant recipient within the past year with one of the
+    following documented during same hospitalization as positive blood specimen:
+    a. Grade III or IV gastrointestinal graft versus host disease [GI GVHD]
+         OR
+    b. ≥1-liter diarrhea in a 24-hour period (or ≥20 mL/kg in a 24-hour period for patients <18 years of age)
+         with onset on or within the 7 calendar days before the date the positive blood specimen was
+         collected.
+
+        OR
+
+ 2. Is neutropenic, defined as at least two separate days with ANC† and/or WBC values <500 cells/mm3
+    collected within a 7-day time period which includes the collection date of the positive blood specimen,
+    the 3 calendar days before and the 3 calendar days after (See Table 5).
+
+
+
+
+4-9
+January 2025                                                                             Device-associated Module
+                                                                                                              BSI
+
+
+ Notes:
+ 1. If a patient meets both MBI-LCBI 1 and MBI-LCBI 2 or MBI-LCBI 3 criteria (specifically has Viridans Group
+    Streptococcus or Rothia spp. and only MBI organisms in the blood specimen), report organisms as MBI-
+    LCBI 1 with the recognized pathogen as pathogen #1 and the common commensal as pathogen #2.
+ 2. Any combination of ANC and/or WBC values can be used to meet neutropenic criteria provided they are
+    collected on separate days within the 7-day period that includes the date of the positive blood
+    specimen, the 3 calendar days before and the 3 calendar days after.
+ 3.    When a blood specimen positive for an organism not included on the NHSN MBI organism list is
+      collected during the BSI RIT of an MBI-LCBI, the initial MBI-LCBI event is edited to an LCBI and the
+      identified non-MBI organism is added.
+ * Refer to the NHSN Terminology Browser for eligible MBI organisms.
+
+
+ †Eligible positive blood specimens must be collected on separate occasions and limited to the following:
+      •   Viridans Group Streptococcus identified in at least two sets of blood specimens
+      •   Rothia spp. identified in at least two sets of blood specimens
+      •   Viridans Group Streptococcus and Rothia spp. identified in at least two sets of blood specimens
+
+
+
+
+             †
+               Formula for calculating ANC if not provided by your laboratory:
+                  •   The ANC is not always reported directly in the chart
+                  •   The WBC in the chart is usually reported in terms of a thousand
+                      cells/mm3 and can be used to calculate the ANC
+                                     ANC = Absolute Segs + Absolute Bands
+                                                       OR
+                                      ANC = WBC X %Segs + %Bands ÷ 100
+
+                              Example:
+                                   WBC              Segs            Bands
+                                 2 k/mm3            20%              20%
+
+                               ANC = 2000 X (20 + 20) ÷ 100 = 800 cells/mm3
+
+
+
+
+4 - 10
+January 2025                                                                               Device-associated Module
+                                                                                                                BSI
+
+
+
+
+Reporting Instructions: See below for a Summary of CLABSI Exclusions and
+Reporting Requirements
+
+When a BSI event in the presence of a central line meets one of the CLABSI exclusions listed below the
+following guidelines are applied:
+     • The event is reported to NHSN but is NOT considered central line associated.
+    •    The Central Line field is marked “Yes” if an eligible central line has been on the BSI DOE and is still in
+         place on the BSI DOE or the day before.
+    •    The events do not contribute to the CLABSI SIR measure.
+    •    In each instance where the date of event of subsequent positive blood specimens are outside of the
+         established BSI RIT, meeting the exclusion criteria, the subsequent positive blood must be investigated
+         as primary or secondary to another site-specific infection. The CLABSI exclusion criteria must be met
+         again in a new BSI IWP to determine if the positive blood specimen is central line associated.
+Note: Meeting LCBI criteria in all situations noted below will result in setting a BSI RIT and any associated device
+days should be included in the denominator summary data counts.
+
+    a. Extracorporeal life support (ECLS or ECMO): A BSI meeting LCBI criteria with an eligible central line
+       where extracorporeal life support (for example, extracorporeal membrane oxygenation [ECMO]) is
+       present for more than 2 days on the BSI DOE and is still in place on the DOE or the day before, is
+       considered an LCBI. Report such events, marking the ECMO field as “Yes.”
+
+    b. Ventricular Assist Device (VAD): A BSI meeting LCBI criteria with an eligible central line where a VAD is
+       present for more than 2 days on the BSI DOE and is still in place on the DOE or the day before, is
+       considered an LCBI. Report such events, marking the VAD field as “Yes.”
+
+    c. Patient Injection: A BSI meeting LCBI criteria that is accompanied by documentation of observed or
+       suspected patient injection into the vascular access line, within the BSI IWP, will be considered an LCBI
+       for NHSN reporting purposes. This exclusion is very specific to “INJECTION”. Manipulating or tampering
+       with the line (such as biting, picking at, sucking on, etc.) DOES NOT meet the intent of this exclusion.
+       The documentation must specifically state the patient was “observed injecting…” or “suspected of
+       injecting…” the device. Insinuations or descriptive events that suggest such behavior DO NOT meet the
+       intent of this exclusion. Report such events, marking the Patient Injection field as “Yes.”
+
+    d. Epidermolysis bullosa (EB): If during the current admission, there is documentation of a diagnosis of EB
+       report such an event, marking the EB field as “Yes.”
+
+         Note: The Epidermolysis bullosa (EB) CLABSI exclusion is limited to the genetic forms of EB in the
+         pediatric population.
+
+    e. Munchausen Syndrome by Proxy (MSBP): If during the current admission, there is documentation or a
+       diagnosis of known or suspected MSBP, also known as factitious disorder, imposed on another (FDIA),
+       report such an event, marking the MSBP fields as “Yes.”
+
+
+4 - 11
+January 2025                                                                             Device-associated Module
+                                                                                                              BSI
+
+
+   f.    Pus at the vascular access site: Occasionally, a patient with both an eligible central line and another
+         vascular access device will have pus at the other access site. If there is pus at the site of one of the
+         following vascular access devices and a specimen collected from that site has at least one matching
+         organism to an organism identified in the blood during the BSI IWP, report such events marking the “pus
+         at the vascular access site” field as “Yes.” Vascular access devices included in this exception are limited
+         to:
+
+             •   Arterial catheters unless in the pulmonary artery, aorta or umbilical artery
+             •   Arteriovenous fistulae
+             •   Arteriovenous grafts
+             •   Hemodialysis reliable outflow (HERO) dialysis catheters
+             •   Intra-aortic balloon pump (IABP) devices
+             •   Non-accessed CL (those neither inserted nor used during current admission)
+             •   Peripheral IV or Midlines
+
+
+
+Reporting Instructions:
+
+   1. Group B Streptococcus: Group B Streptococcus identified from blood, with a date of event during the
+      first 6 days of life, is not reported as a CLABSI. A BSI RIT is set, and any associated device days should be
+      included in the denominator summary data counts.
+
+   2. Do not report an LCBI that has a DOE within a BSI RIT. Any additional organisms identified meeting LCBI
+      criteria are added to the initial BSI event. See RIT guidance in Chapter 2, Identifying Healthcare
+      associated Infections or Chapter 16, Key Terms.
+
+   3. Do not report an MBI-LCBI that has a DOE within a BSI RIT. Any additional organisms identified meeting
+      MBI-LCBI criteria are added to the initial BSI event. See RIT guidance in Chapter 2, Identifying Healthcare
+      associated Infections.
+
+   4. Only primary BSIs create a 14-day BSI RIT:
+      Primary BSI example: Patient has a positive blood specimen identifying Staphylococcus aureus on
+      hospital day 6, which is not secondary to another site-specific source of infection. A subsequent positive
+      blood specimen is collected on hospital day 12 that identifies Pseudomonas aeruginosa. Because the
+      date of event is during the BSI RIT, no new BSI event is reported, and Pseudomonas is added to the initial
+      BSI event.
+
+   5. Secondary BSIs do not create a 14-day BSI RIT:
+         Secondary BSI example: A symptomatic urinary tract infection (SUTI) with Enterococcus faecalis is
+         identified and E. faecalis is also identified from a blood specimen on hospital day 11. Because the
+         positive blood culture is collected during the SUTI secondary BSI attribution period, the positive E.
+
+
+
+4 - 12
+January 2025                                                                            Device-associated Module
+                                                                                                             BSI
+
+
+         faecalis blood specimen is deemed secondary to the SUTI. Since the BSI is secondary to the SUTI, a SUTI
+         RIT is set, not a BSI RIT. On hospital day 15 (also within the SUTI RIT and secondary BSI attribution
+         period), a blood culture growing Staphylococcus aureus is collected. Because the blood growing S.
+         aureus does not have at least one organism that matches the organism used to meet the SUTI criterion,
+         the BSI cannot be attributed as secondary to the SUTI. Additionally, there is no BSI RIT established;
+         therefore, the BSI will need to be investigated as a new BSI event and either assigned as primary or
+         secondary to another site-specific infection.
+
+         Note: The secondary BSI attribution period of a primary source of infection is not a “catch all” for
+         subsequent BSIs.
+
+
+   6. There is no expectation that positive blood specimens collected during the present on admission (POA)
+      time period are investigated. If identified, they are not reported to NHSN. However, if a subsequent
+      positive blood specimen is collected within 14 days of a positive blood specimen collected during the
+      POA time period, it is imperative that a determination is made for the original blood specimen in order
+      to make the correct determination about the subsequent blood specimen.
+
+         Example 1: A patient has a positive blood specimen with Escherichia coli (E. coli) that is a POA on 6/1.
+         On 6/10, a subsequent positive blood specimen with Klebsiella pneumoniae is identified. The 6/1 blood
+         specimen is investigated and if determined a primary BSI, sets a 14-day BSI RIT (6/1-6/14). Therefore,
+         the 6/10 specimen is not a new BSI event and K. pneumoniae is added to the POA BSI event if reported.
+
+
+         Example 2: A patient has a positive blood specimen that identifies Staphylococcus aureus present on
+         admission 6/1. On 6/10, a subsequent positive blood specimen with Klebsiella pneumoniae is collected.
+         To make the correct determination about the second blood specimen, the initial POA BSI event must be
+         investigated to determine if it is primary or secondary to another site. In reviewing the chart, a right
+         elbow culture from 5/31, is also positive for S. aureus, plus the symptoms needed to meet Joint or Bursa
+         infection (JNT) criterion 3c are documented making the 6/1 BSI secondary to JNT. The POA primary JNT
+         infection creates a 14-day JNT RIT (6/1-6/14) during which no new JNT infections are reported.
+         Additionally, since the subsequent blood specimen does not contain at least one matching pathogen to
+         the specimen used to meet the JNT criterion, the positive blood with K. pneumoniae cannot be
+         attributed to the original JNT event and must be investigated as a primary or secondary BSI.
+
+
+
+
+4 - 13
+January 2025                                                                            Device-associated Module
+                                                                                                             BSI
+
+
+Blood Specimen Collection
+The “two or more blood specimens drawn on separate occasions” criterion is met if there is blood collected
+from at least two separate blood draws on the same or consecutive calendar days.
+AND
+the blood cultures are assigned separate specimen numbers, processed individually, and are reported separately
+in the final laboratory report.
+1. Specimen Collection Considerations: Blood specimens drawn through central lines can have a higher rate of
+   contamination than blood specimens collected through peripheral venipuncture.3, 4 However, all positive
+   blood specimens, regardless of the site from which they are drawn or the purpose for which they are
+   collected, must be included when conducting in-plan CLABSI surveillance (for example, weekly blood
+   cultures performed in hematology and oncology locations).
+
+2. Catheter tip cultures cannot be used in place of blood specimens for meeting LCBI criteria.
+
+
+3. In MBI-LCBI 1, 2 and 3, “no other organisms” means there is no identification of a non-MBI-LCBI pathogen
+   (such as S. aureus) or 2 matching common commensals (such as coagulase-negative staphylococci) collected
+   from the blood on separate occasions that would otherwise meet LCBI criteria. If this occurs, the infection
+   does not meet MBI-LCBI criteria.
+
+4. When a blood specimen positive for an organism not included on the NHSN MBI organism list is collected
+   during the BSI RIT of an MBI-LCBI, the initial MBI-LCBI event is edited to an LCBI and the identified non-MBI
+   organism is added.
+
+         MBI-RIT Exception: An MBI-LCBI designation will not change to an LCBI event if the following criteria are
+         met:
+
+             1. The blood culture with the non-MBI organism is collected during an existing BSI (MBI-LCBI) RIT
+                             AND
+             2. The blood culture with the non-MBI organism is deemed secondary to an NHSN site-specific
+                infection
+
+         See Example 5 in the Secondary BSI Guide section of this protocol and Chapter 2 Pathogen Assignment
+         (Example 2b).
+
+
+
+
+4 - 14
+January 2025                                                                                   Device-associated Module
+                                                                                                                    BSI
+
+
+
+Table 3: Examples of Associating the Use of Central Lines to BSI Events
+(CLABSI):
+This table provides examples that illustrate:
+   • Device association as determined by the presence of an eligible CL on the BSI DOE or the day
+        before.
+   • The goal of NHSN HAI surveillance is to identify risks to the patient that are the result of device
+        use in general; therefore, NHSN does not require association of a BSI with a specific device when
+        more than one line is present.
+
+         Note: The procedure for de-accessing a port involves ensuring patency of the line prior to removal
+         of the needle which involves blood withdrawal, an IV flush and injection of an anticoagulant.
+
+
+    Date         31-Mar        1-Apr           2-Apr            3-Apr              4-Apr               5-Apr              6-Apr
+ Patient A:
+ Port Status     Port in       Port in         Port in          Port in           Port in             Port in             Port in
+  Accessed                                                                          Yes
+                   No           No              Yes              Yes                                    No                  No
+                                                                                De-accessed
+ Eligible for
+                                                                                Yes-eligible                            Yes-eligible
+   CLABSI          No            No              No              No                                Yes-eligible CL
+                                                                                    CL                                      CL
+    event
+                                                CL               CL                 CL                  CL                  CL
+                    -            -
+                                               Day 1            Day 2              Day 3               Day 4               Day 5
+ Patient A becomes eligible for a CLABSI on 4/4 because an accessed port is in place for some portion of > 2 consecutive
+ calendar days making it an eligible CL on 4/4 (CL Day 3). The port remains eligible for a CLABSI until it is removed, or the
+ patient is discharged, whichever comes first.
+
+
+
+     Date         31-Mar              1-Apr           2-Apr             3-Apr              4-Apr             5-Apr          6-Apr
+ Patient B:
+                                                                                       CL/Port in
+   CL/Port       CL/Port in      CL/Port in        CL/Port in       CL/Port in                           No device        No device
+                                                                                      CL/Port out
+    Status
+  Accessed           No                No                Yes              Yes          Removed                  -              -
+ Eligible for
+                                                                                      Yes-eligible       Yes-eligible
+   CLABSI            No                No                No               No                                                  No
+                                                                                          CL                 CL
+    event
+                                                        CL             CL              CL
+                        -                -                                                                -            -
+                                                       Day 1          Day 2           Day 3
+ Patient B is eligible for a CLABSI on 4/4 (CL Day 3) through 4/5. An accessed device (CL or port) is in place > 2
+ consecutive calendar days making it an eligible CL on 4/4 (CL Day 3). A BSI with a DOE on the day of or the day after
+ device removal or patient discharge is considered device associated (CLABSI).
+
+
+
+
+4 - 15
+January 2025                                                                                  Device-associated Module
+                                                                                                                   BSI
+
+
+    Date           31-Mar            1-Apr            2-Apr            3-Apr           4-Apr            5-Apr            6-Apr
+ Patient C:
+                     CL in           CL in        CL in/ CL out         CL in           CL in        CL in/ CL out     No device
+  CL Status
+  Accessed            Yes             Yes           Removed            Placed           Yes           Removed              -
+ Eligible for
+                 Yes-eligible    Yes- eligible     Yes- eligible    Yes- eligible   Yes- eligible    Yes- eligible        Yes-
+   CLABSI
+                     CL               CL                CL               CL              CL               CL          eligible CL
+    event
+                       CL             CL              CL              CL                CL                 CL
+                                                                                                                            -
+                    Day 3           Day 4           Day 5           Day 6              Day 7              Day 8
+ Patient C is admitted to an inpatient location on 3/29 with a central line in place. Patient C is eligible for a CLABSI on 3/31
+ (CL Day 3) through 4/6 because an accessed CL is in place > 2 consecutive calendar days. A BSI with a DOE on the day of or
+ the day after device removal or patient discharge is considered a device-associated infection (CLABSI). The patient remains
+ eligible for a CLABSI event through 4/6 because a full calendar day did not pass without a CL in place, therefore, device
+ counts continue uninterrupted.
+
+
+
+    Date          31-Mar          1-Apr             2-Apr            3-Apr           4-Apr             5-Apr            6-Apr
+ Patient D:
+                   CL in           CL in         CL in/ CL out     No device          CL in            CL in            CL in
+  CL Status
+  Accessed          Yes             Yes           Removed               -            Placed             Yes              Yes
+ Eligible for
+                Yes-eligible    Yes-eligible     Yes-eligible      Yes-eligible                                      Yes-eligible
+   CLABSI                                                                              No               No
+                    CL              CL               CL                CL                                                CL
+    event
+                    CL                CL             CL                                CL                 CL               CL
+                                                                      -
+                   Day 3             Day 4          Day 5                            Day 1              Day 2            Day 3
+ Patient D is admitted to an inpatient location on 3/29 with a central line in place. Patient D is eligible for a CLABSI 3/31 (CL
+ Day 3) through 4/3. An accessed CL had been in place > 2 consecutive calendar days, however, a full calendar day passed
+ (4/3) with no CL in place, therefore, device day counts start over at CL Day 1 when a new line is placed. After 4/3, the
+ patient will not be eligible for a CLABSI event again until 4/6 when the new CL becomes an eligible CL (CL Day 3).
+
+
+
+    Date          31-Mar           1-Apr             2-Apr             3-Apr           4-Apr            5-Apr            6-Apr
+ Patient E:
+                No device           CL in             CL in             CL in           CL in           CL in            CL in
+  CL Status
+  Accessed           -             Placed              Yes              Yes             Yes              Yes              Yes
+ Eligible for
+                                                                    Yes-eligible    Yes-eligible     Yes-eligible     Yes-eligible
+   CLABSI            -               No                No
+                                                                        CL              CL               CL               CL
+    event
+                                      CL               CL               CL              CL              CL             CL
+                     -
+                                     Day 1           Day 2            Day 3            Day 4          Day 5           Day 6
+ Patient E is eligible for a CLABSI on 4/3 (CL Day 3) through 4/6. Line placement is considered access and begins device day
+ counts for making a CLABSI determination. An accessed device is in place > 2 consecutive calendar days making it an eligible
+ CL on 4/3 (CL Day 3).
+
+BOLD = change in status
+
+
+4 - 16
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+Pathogen Exclusions and Reporting Considerations:
+The term “recognized pathogen” in LCBI 1 criterion refers to any organism that is not included on the
+NHSN common commensal list (Refer to the NHSN Terminology Browser for common commensals used
+for NHSN reporting purposes).
+
+Exceptions:
+    a. Organisms that are parasites and viruses are excluded as LCBI pathogens. This exclusion applies to
+        meeting a primary BSI only. Viruses and parasites are eligible for use in secondary BSI
+        determinations.
+
+   b. Organisms belonging to the following genera are excluded as LCBI pathogens: Campylobacter,
+      Salmonella, Shigella, Listeria, Vibrio, and Yersinia as well as C. difficile, Enterohemorrhagic E. coli,
+      and Enteropathogenic E. coli. These organisms are eligible for use in secondary BSI determinations
+      but are not reported as the sole pathogen in a primary BSI.
+    c. Organisms belonging to the following genera cannot be used to meet any NHSN definition:
+       Blastomyces, Histoplasma, Coccidioides, Paracoccidioides, Cryptococcus, and Pneumocystis. These
+       organisms are excluded because they typically cause community-associated infections and are
+       rarely known to cause healthcare-associated infections.
+
+
+1. Business rules written into the pathogen fields of the NHSN application prevent entry of a common
+   commensal as pathogen #1 when attempting to report both a recognized pathogen and common
+   commensal identified in an LCBI 1 or MBI-LCBI 1 event. To save the event successfully, enter the
+   recognized pathogen as pathogen # 1 and the common commensal as pathogen #2.
+2. For LCBI criteria 2 and 3, if the common commensal is identified to the species level for one blood
+   specimen, and a companion blood specimen is identified with only a descriptive name, which is
+   complementary to the companion culture (in other words, to the genus level), then it is assumed the
+   organisms are the same.
+    •    Colony morphology, biotype, and antibiogram comparisons should not be used to determine the
+         “sameness “of organisms because laboratory testing capabilities and protocols vary between
+         facilities.
+    •    To reduce reporting variabilities due to differences in laboratory practice only genus and species
+         identification should be used, and they should only be reported once.
+    •    An organism identified to the species level should be reported along with the antibiogram, if
+         available. If antibiograms are available and the sensitivities differ for the same organisms in
+         separate specimens, always report the more resistant panel (see Table 4).
+3. A common commensal identified in a single blood specimen is considered a contaminant. A single
+   common commensal organism is not used to meet LCBI 2 or 3 criteria or secondary BSI attribution.
+   Additionally, it does not prevent a case from meeting MBI-LCBI criteria when the organism
+   requirements call for “only” a specific organism or type of organism (for example, “only intestinal
+   organisms from the MBI list”).
+
+
+
+4 - 17
+January 2025                                                                    Device-associated Module
+                                                                                                     BSI
+
+
+
+Table 4: Reporting Speciated and Unspeciated Organisms Identified from Blood
+Specimens
+ Culture Report                         Companion Culture Report                         Report as…
+ Coagulase-positive staphylococci       S. aureus                                        S. aureus
+ S. epidermidis                         Coagulase-negative staphylococci                 S. epidermidis
+ Enterococcus spp.                      E. faecium                                       E. faecium
+ Bacillus spp. (not anthracis)          B. cereus                                        B. cereus
+ S. salivarius                          Strep viridans                                   S. salivarius
+
+Note: When identification to the species level is not provided, the genus of the organism will be reported
+to NHSN. When identification to the genus level is not provided, report the organism as available on the
+NHSN organism list (for example, Gram-positive bacillus).
+
+
+
+Table 5: Examples Illustrating the MBI-LCBI Criteria for Neutropenia
+
+  -       -        Day    Day    Day    Day    Day        Day    Day         Day             Day          Day    Day
+                    -7     -6     -5     -4     -3         -2     -1         1*               2            3      4
+ Pt.     WBC      100    800     400   300     ND        ND     320†    400†                ND           550    600
+ A                                                                      + BC* x 1
+                                                                        Candida spp.
+ Pt.     ANC      ND     410     130   ND      ND        120†   110†    ND                  110          300    320
+ B                                                                      +BC* x 2
+                                                                        viridans strep
+                                                                        plus fever
+                                                                        >38°C
+ Pt.     WBC      100    800     400   300     ND        ND     ND      600                 230†         ND     400†
+ C                                                                      + BC* x 1
+                                                                        Candida spp.
+ND = not done; *Collection date of positive blood specimen; Italics = ANC/WBC < 500 cells/mm3; †
+ANC/WBC < 500 cells/mm3 used to meet neutropenia for MBI-LCBI criteria
+
+Rationale for Table 5:
+Patient A meets MBI-LCBI 1 criterion with neutropenia: Positive blood specimen with intestinal organism
+(Candida spp.) and neutropenia*. In this case, the WBC values on Day 1 = 400, and Day -1 = 320 are used.
+Patient B meets MBI-LCBI 2 criterion with neutropenia: At least two positive blood specimens with
+viridans group streptococci, fever >38°C and neutropenia*. In this case, the ANC values on day -1 = 110
+and Day -2 = 120 are used.
+
+
+4 - 18
+January 2025                                                                       Device-associated Module
+                                                                                                        BSI
+
+
+
+Note: Any two of Days -2, -1, 2, 3, and 4 could be used to meet this requirement since WBC and/or ANC
+values of <500cells/mm3 were present on those days.
+Patient C meets MBI-LCBI 1 criterion with neutropenia: Positive blood specimen with intestinal organism
+(Candida spp.) and neutropenia*. In this case, WBC values on Day 2 = 230 and Day 4 = 400 are used.
+
+*Neutropenia is defined as: 2 separate days of ANC or WBC <500 cells/mm3 occurring on the collection
+date of the positive blood specimen (Day 1) or during the 3 days before or the 3 days after Day 1.
+
+
+Monthly Summary Data
+Numerator Data: The Primary Bloodstream Infection (BSI) form (CDC 57.108) is used to collect and report
+each CLABSI that is identified during the month selected for surveillance. For CLABSI surveillance, all LCBI
+and MBI-LCBI that are identified as central-line associated must be included. The Instructions for
+Completion of Primary Bloodstream Infection (BSI) form contains brief instructions for collection and
+entry of each data element on the form. The Primary BSI form includes patient demographic information
+and whether a central line was present, and, if so, the type of central line the patient had if appropriate to
+the location; these data will be used to calculate line-specific infection rates. Additional data include the
+specific criteria met for identifying the primary BSI, whether the patient died, organisms identified from
+blood specimens, and the organisms’ antimicrobial susceptibilities.
+
+Reporting Instruction:
+During the month of surveillance, if no CLABSI events are identified, the “Report No Events” box must be
+checked on the appropriate denominator summary screen, (for example, Denominators for Intensive Care
+Unit [ICU]/other locations [not NICU or SCA], etc.
+
+
+
+
+4 - 19
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+
+
+Table 6: Examples of Denominator Day counts for Device Days
+This table provides examples that illustrate:
+
+    •    Denominator device day counts for a central line present on an inpatient location at the time of
+         the device day count.
+
+Note: If the central line is in place at the time of the denominator device count, it is included in the daily
+denominator device day count.
+     Date           31-Mar           1-Apr        2-Apr          3-Apr          4-Apr           5-Apr            6-Apr
+  Patient A:       Inpatient
+                                     ICU           ICU            ICU            ICU            ICU              ICU
+                 Location ICU
+                                     CL in         CL in          CL in          CL in          CL in            CL in
+                  CL inserted
+ Denominator
+  Day Counts
+                     Day 1           Day 2        Day 3          Day 4          Day 5           Day 6            Day 7
+  for Device
+     Days
+ Patient A has a CL inserted in the ICU. Because the CL is inserted in an inpatient location, Day 1 begins the
+ denominator day count for device days. Patient A has 7 denominator device days for 3/31-4/6.
+
+     Date           31-Mar           1-Apr        2-Apr          3-Apr          4-Apr           5-Apr            6-Apr
+   Patient B:                        Patient
+                       ED
+                                  admitted to                                                 Inpatient      Inpatient
+                 CL in place at                    ICU            ICU            ICU
+                                    inpatient                                                 Location       Location
+                    time of                        CL in          CL in          CL in
+                                  location ICU                                                  CL in          CL in
+                  admission
+                                      CL in
+ Denominator
+  Day Counts
+                       -             Day 1        Day 2          Day 3          Day 4           Day 5            Day 6
+  for Device
+     Days
+ Patient B has a central line at the time of admission. Because Patient B is admitted to the emergency department
+ on 3/31, the denominator day count for device days does not begin until the patient is transferred to the inpatient
+ location on 4/1. Patient B has 6 denominator device days for 4/1-4/6.
+
+
+
+
+4 - 20
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+    Date           31-Mar           1-Apr          2-Apr         3-Apr          4-Apr          5-Apr          6-Apr
+  Patient C:      Inpatient
+                Location ICU
+                                    ICU              ICU         ICU            ICU              ICU           ICU
+                CL in place at
+                                    CL in       CL in/ CL out    CL in          CL in       CL in/ CL out   No device
+                   time of
+                 admission
+ Denominator
+  Day Counts
+                    Day 1           Day 2          Day 3*        Day 4          Day 5          Day 6*           -
+  for Device
+     Days
+ Patient C has a central at the time of admission to ICU. Because Patient C is admitted to ICU on 3/31, the
+ denominator day count for device days begins on the date of admission (3/31). Because there is no device on 4/6,
+ the denominator device day count will end on 4/5. Patient C has 6 denominator device days for 3/31-4/5.
+
+
+
+
+    Date           31-Mar           1-Apr          2-Apr         3-Apr          4-Apr          5-Apr          6-Apr
+  Patient D:      Inpatient        Inpatient
+                                                    ICU          ICU            ICU             ICU           ICU
+                Location ICU     Location ICU
+                                                    CL in        CL in          CL in           CL in         CL in
+                 No device        CL inserted
+ Denominator
+  Day Counts
+                      -             Day 1          Day 2         Day 3          Day 4          Day 5          Day 6
+  for Device
+     Days
+ Patient D does not have a central line in place at the time of admission to ICU. Because there is no central line in
+ place on admission, the denominator day count for device days does not begin until the central line is placed in
+ the inpatient location on 4/1. Patient D has 6 denominator device days for 4/1-4/6.
+
+
+
+    Date           31-Mar           1-Apr          2-Apr         3-Apr          4-Apr          5-Apr          6-Apr
+  Patient E:      Inpatient
+                Location ICU
+                                   Inpatient
+                   Patient                         ICU            ICU           ICU            ICU            ICU
+                                 Location ICU
+                 admitted                        Port not         Port          Port           Port           Port
+                                    Port not
+                 with non-                       accessed       accessed      accessed       accessed       accessed
+                                   accessed
+                  accessed
+                    port
+ Denominator
+  Day Counts
+                    Day 1           Day 2          Day 3         Day 4          Day 5          Day 6          Day 7
+  for Device
+     Days
+ Patient E has a non-accessed port at the time of admission to ICU. The denominator device day count begins on
+ the date the patient is admitted to ICU (3/31). Accessing the port on 4/3 does not change the denominator day
+ count for device days. Patient E has 7 denominator device days for 3/31-4/6.
+
+
+
+
+4 - 21
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+
+
+Table 7: Denominator Data Collection Methods
+Denominator Data: Device days and patient days are used for denominator reporting. Device-day
+denominator data that are collected differ according to the patient location. The following methods can
+be used for the collection of denominator data:
+
+
+   Data Collection       Details
+      Method
+Manual, Daily            Denominator data (patient days and device days) should be collected at the
+                         same time, every day, for each location performing surveillance to ensure that
+                         differing collection methods don’t inadvertently result in device days being
+                         greater than patient days.
+
+                         •   For locations other than specialty care areas/oncology (SCA/ONC) and
+                             NICUs, the number of patients with at least one central line of any type, is
+                             collected daily, at the same time each day during the month and is recorded
+                             on the Denominators for Intensive Care Unit (ICU)/Other Locations (Not NICU
+                             or SCA/ONC) form (CDC 57.118). Only the totals for the month are entered
+                             into NHSN.
+                             Notes:
+                             1. Only one central line per patient is counted per calendar day regardless
+                                 of the number of central lines present.
+                             2. All central lines on inpatient units should be included in device day
+                                 counts regardless of access.
+                         •   For specialty care areas/oncology, the number of patients with at least one
+                             central line are separated into those with permanent central lines and those
+                             with temporary central lines. The number of patients with at least one
+                             central line of either or both type(s), is collected daily, at the same time each
+                             day during the month and is recorded on the Denominators for Specialty
+                             Care Area (SCA)/Oncology (ONC) form (CDC 57.117). Only the totals for the
+                             month are entered into NHSN. Temporary and permanent lines are reported
+                             separately in this location because permanent lines are more commonly
+                             used in this patient population and may be associated with a lower BSI rate
+                             when compared to temporary central lines.
+                             Notes:
+                             1. Only one central line per patient is counted per calendar day regardless
+                                of the number of central lines present.
+                             2. All central lines on inpatient units should be included in device day
+                                counts regardless of access.
+
+
+4 - 22
+January 2025                                                                   Device-associated Module
+                                                                                                    BSI
+
+   Data Collection     Details
+      Method
+                           3. If a patient has both a temporary and a permanent central line, only
+                              report the temporary line because it is associated with a higher risk of
+                              bloodstream infection.
+                           The Instructions for Completion of Denominators for Intensive Care Unit
+                           (ICU)/Other Locations (Not NICU and SCA/ONC) and Instructions for
+                           Completion of Denominators for Specialty Care Areas (SCA)/Oncology (ONC)
+                           contain brief instructions for collection and entry of each data element on
+                           the form.
+                       •   In NICUs, the number of patients with at least one central line is stratified by
+                           birth weight in five categories because the risk of BSI varies by birth weight.
+                           These data are reported on the Denominators for Neonatal Intensive Care
+                           Unit (NICU) form (CDC 57.116).
+                           Note:
+                           1. Report only birth weight when entering BSI denominator data. The
+                              infant’s weight at the time of BSI identification is not used and should
+                              not be reported. For example, a neonate weighs 1006 grams at birth but
+                              remains in the NICU for two months and has a body weight of 1650
+                              grams when a CLABSI develops; enter the birth weight of 1006 grams on
+                              the BSI form.
+                           2. All central lines on inpatient units should be included in device day
+                              counts regardless of access. The Instructions for Completion of
+                              Denominators for Neonatal Intensive Care Unit (NICU) form contains
+                              brief instructions for collection and entry of each data element on the
+                              forms.
+Manual, sampled        •   To reduce staff time spent collecting surveillance data, once weekly sampling
+once/week (collected       of denominator data to generate estimated central line days, may be used as
+at the same time on        an alternative to daily collection in non-oncology ICUs and wards (see Notes
+the same designated        below). Sampling may not be used in SCA/ONC locations or NICUs. During
+day, once per week)        the month, the number of patients in the location (patient-days) and the
+                           number of patients with at least one central line of any type (central line
+                           days) is collected on a designated day each week (for example, every
+                           Tuesday), and at the same time each day.
+
+                       •   Evaluations of this method have repeatedly shown the use of Saturday or
+                           Sunday generate the least accurate estimates of denominator data;
+                           therefore, weekend days should not be selected as the designated
+                           denominator data collection day.6-8 If the designated day is missed, collect
+                           the denominator data on the next available weekday.
+
+
+4 - 23
+January 2025                                                                 Device-associated Module
+                                                                                                  BSI
+
+   Data Collection   Details
+      Method
+
+
+                     •   The following must be collected and entered into NHSN:
+                         1. The monthly total for patient-days, collected daily
+                         2. The sampled total for patient-days
+                         3. The sampled total central line-days
+
+                         When these data are entered, the NHSN application will calculate an
+                         estimate of central line-days.
+
+                         Notes:
+
+                         1. To ensure the accuracy of estimated denominator data obtained by
+                            sampling, only ICU and ward location types with an average of 75 or
+                            more central line-days per month are eligible to use this method. A
+                            review of each location’s central line denominator data for the past
+                            twelve months in NHSN will help determine which locations are eligible.
+
+                         2. The accuracy of estimated denominator data generated by sampling can
+                            be heavily influenced by incorrect or missing data. Careful
+                            implementation of data collection following the guidance in this protocol
+                            is essential to avoid erroneous fluctuations in rates or standard infection
+                            ratios (SIRs).
+
+Electronic           For any location, denominator data from electronic sources (in other words,
+                     central line days from electronic charting may be used only after a validation of a
+                     minimum 3 consecutive months proves the data to be within 5% (+/-) of the
+                     manually collected once-a-day counts.
+
+                     When converting from one electronic counting system to another electronic
+                     counting system, the new electronic system should be validated against manual
+                     counts as above. If electronic counts for the new electronic system are not
+                     within 5% of manual counts, resume manual counting and continue working with
+                     IT staff to improve design of electronic denominator data extraction (while
+                     reporting manual counts) until concurrent counts are within 5% for 3
+                     consecutive months.
+
+                     Notes: This guideline is important because validating a new electronic counting
+                     system against an existing electronic system can magnify errors and result in
+                     inaccurate denominator counts.
+                         • Perform the validation of electronic counts separately for each location
+                             conducting CLABSI surveillance.
+
+
+
+
+4 - 24
+January 2025                                                                          Device-associated Module
+                                                                                                           BSI
+
+
+
+Data Analyses:
+All data that are entered into NHSN can be analyzed at event or summary level. The data in NHSN can be
+visualized and analyzed in various ways, for example, descriptive analysis reports for both the
+denominator and numerator data.
+
+                                     Types of CLABSI Analysis Reports
+
+Standardized Infection Ratio (SIR):
+The standardized infection ratio (SIR) is calculated by dividing the number of observed events by the
+number of predicted events. The number of predicted events is calculated using probabilities estimated
+from statistical models constructed from national NHSN data, which represents the baseline population.
+For more information on SIR and the CLABSI parameter estimates, please see the 2015 SIR guide:
+https://www.cdc.gov/nhsn/pdfs/ps-analysis-resources/nhsn-sir-guide.pdf.
+
+                                                   𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂 (𝑂𝑂) 𝐻𝐻𝐻𝐻𝐻𝐻𝑂𝑂
+                                           SIR =
+                                                   𝑃𝑃𝑂𝑂𝑂𝑂𝑂𝑂𝑃𝑃𝑃𝑃𝑃𝑃𝑂𝑂𝑂𝑂 (𝑃𝑃) 𝐻𝐻𝐻𝐻𝐻𝐻𝑂𝑂
+
+
+
+
+While SIRs can be calculated for single locations, the measure also allows you to summarize your data
+across multiple locations, adjusting for differences in the incidence of infection among the location types.
+For example, you can obtain one CLABSI SIR adjusting for all locations reported. Similarly, you can obtain
+one CLABSI SIR for all ICUs in your facility. In addition, IRF units within Acute Care Hospitals will be
+separated from all other ACH locations.
+
+For more information on using the CLABSI SIR reports, please see the troubleshooting guide:
+https://www.cdc.gov/nhsn/pdfs/ps-analysis-resources/clabsicauti_sirtroubleshooting.pdf.
+For further information regarding the p-value and 95% confidence interval, see the following guide:
+https://www.cdc.gov/nhsn/ps-analysis-resources/keys-to-success.html
+
+Note: The SIR will be calculated only if the number of predicted events (numPred) is ≥1 to help enforce a
+minimum precision criterion.
+
+Standardized Utilization Ratio (SUR):
+The SUR, or standardized utilization ratio, is a summary measure used to track device use at a national,
+state, local, or facility level over time. The SUR adjusts for various facility and/or location-level factors
+that contribute to device use. The method of calculating an SUR is similar to the method used to calculate
+the Standardized Infection Ratio (SIR), a summary statistic used in NHSN to track healthcare-associated
+infections (HAIs). In device-associated HAI data analysis, the SUR compares the actual number of device
+days reported to what would be predicted, given the standard population (specifically, the NHSN
+baseline), adjusting for several factors that have been found to be significantly associated with differences
+in device utilization.
+
+
+
+
+4 - 25
+January 2025                                                                                        Device-associated Module
+                                                                                                                         BSI
+
+In other words, an SUR greater than 1.0 indicates that more device days were observed than predicted;
+conversely, an SUR less than 1.0 indicates that fewer device days were observed than predicted. SURs are
+currently calculated in NHSN for the following device types: central lines, urinary catheters, and
+ventilators.
+
+More information regarding the 2015 SUR calculations can be found at:
+https://www.cdc.gov/nhsn/pdfs/ps-analysis-resources/nhsn-sur-guide-508.pdf
+https://www.cdc.gov/nhsn/pdfs/ps-analysis-resources/run-interpret-sur-reports.pdf
+
+Rates and Ratios:
+The CLABSI rate per 1000 central line days is calculated by dividing the number of CLABSIs by the number
+of central line days and multiplying the result by 1000. The Central Line Utilization Ratio is calculated by
+dividing the number of central line days by the number of patient days. These calculations will be
+performed separately for different types of ICUs, specialty care areas, oncology units, and other locations
+in the institution. Separate rates and ratios will also be calculated for different types of central lines in
+specialty care areas/oncology locations and for birth weight categories in NICUs.
+                                                      𝑁𝑁𝑁𝑁. 𝑁𝑁𝑜𝑜 𝐶𝐶𝐶𝐶𝐻𝐻𝐶𝐶𝐻𝐻𝑂𝑂
+                             CLABSI Rate =                                                 * 1000
+                                             𝑁𝑁𝑁𝑁. 𝑁𝑁𝑜𝑜 𝐶𝐶𝑂𝑂𝐶𝐶𝑃𝑃𝑂𝑂𝐶𝐶𝐶𝐶 𝐶𝐶𝑃𝑃𝐶𝐶𝑂𝑂 𝐷𝐷𝐶𝐶𝐷𝐷𝑂𝑂
+
+
+
+Device Utilization Ratio
+The Central Line Utilization Ratio is calculated by dividing the number of central line catheter days by the
+number of patient days.
+These calculations will be performed separately for the different types of ICUs, specialty care areas, and
+other locations in the institution, except for neonatal locations. DURs are useful for the purposes of
+tracking device use over shorter periods of time and for internal trend analyses.
+                                             𝑁𝑁𝑁𝑁. 𝑁𝑁𝑜𝑜 𝐶𝐶𝑂𝑂𝐶𝐶𝑃𝑃𝑂𝑂𝐶𝐶𝐶𝐶 𝐶𝐶𝑃𝑃𝐶𝐶𝑂𝑂 𝐷𝐷𝐶𝐶𝐷𝐷𝑂𝑂
+                                     DUR =
+                                                 𝑁𝑁𝑁𝑁. 𝑁𝑁𝑜𝑜 𝑃𝑃𝐶𝐶𝑃𝑃𝑃𝑃𝑂𝑂𝐶𝐶𝑃𝑃 𝐷𝐷𝐶𝐶𝐷𝐷𝑂𝑂
+
+
+
+Descriptive analysis
+Descriptive analysis output options of numerator and denominator data, such as line listings, frequency
+tables, and bar and pie charts are available in the NHSN application. CLABSI SIRs, rates, and run charts are
+also available. A line list, frequency table, and rate table are also available to analyze pathogens and
+antimicrobial susceptibility data reported for CLABSIs. Guides on using NHSN analysis features are
+available from: https://www.cdc.gov/nhsn/ps-analysis-resources/reference-guides.html.
+
+NHSN Group Analysis:
+NHSN Group Users can perform the same analysis as facility level users in NHSN. A few helpful tools in
+NHSN for groups are listed in the resources below. These tools are guides on how to start and join a
+Group; how to create a template to request data from facilities; how to determine the level of access
+granted by the facility following the previous steps, and how to analyze the facilities data.
+
+
+
+
+4 - 26
+January 2025                                                                   Device-associated Module
+                                                                                                    BSI
+
+Group Analysis Resources:
+NHSN Group Users Page: https://www.cdc.gov/nhsn/group-users/index.html
+Group User’s Guide to the Membership Rights Report: https://www.cdc.gov/nhsn/pdfs/ps-analysis-
+resources/GroupAnalysisWebinar.pdf
+Group User’s Guide to the Line Listing- Participation Alerts: https://www.cdc.gov/nhsn/pdfs/ps-analysis-
+resources/group-alerts.pdf
+
+Data Quality Resources
+Data Quality Website: https://www.cdc.gov/nhsn/ps-analysis-resources/data-quality/index.html
+Data Quality Manual: https://www.cdc.gov/nhsn/pdfs/pscmanual/Instructions_DQ.pdf
+Data Quality Training: https://www.cdc.gov/nhsn/training/analysis/index.html
+Verifying BSI Events Contributing to CLABSI Numerator: https://www.cdc.gov/nhsn/pdfs/ps-analysis-
+resources/bsi-excluded-linelist-508.pdf
+
+Additional Resources
+Analysis Resources: https://www.cdc.gov/nhsn/ps-analysis-resources/index.html
+Analysis Reference Guides: https://www.cdc.gov/nhsn/PS-Analysis-resources/reference-guides.html
+NHSN Training: https://www.cdc.gov/nhsn/training/index.html
+
+
+
+
+4 - 27
+         January 2025                                                                               Device-associated Module
+                                                                                                                         BSI
+
+         Table 8: CLABSI Measures Available in NHSN
+ Measure               Exclusions                                     Calculation                                   Application
+
+                  MBI-LCBIs, ECMO,
+                                                                                                                 Both location
+                  VAD, MSBP, EB,
+                                                        The number of Observed CLABSIs                           specific and
+CLABSI SIR        Patient self-
+                                                        The number of Predicted CLABSIs                          summarized
+                  injection, and Pus at
+                                                                                                                 measure
+                  vascular site
+                  ECMO, VAD, MSBP,                                                                               Both location
+MBI-LCBI
+                  EB, Patient self-                   The number of Observed MBI − LCBIs                         specific and
+SIR
+                  injection, and Pus at               The number of Predicted MBI − LCBIs                        summarized
+(ACH Only)
+                  vascular site                                                                                  measure
+                  MBI-LCBIs, ECMO,
+                  VAD, MSBP, EB,
+CLABSI                                              The number of CLABSIs for a location                         Location specific
+                  Patient self-           �                                                       � × 1000
+Rates                                         The number of Central Line Days for that location                  measure only
+                  injection, and Pus at
+                  vascular site
+                  ECMO, VAD, MSBP,
+MBI-LCBI          EB, Patient self-                The number of MBI_LCBIs for a location                        Location specific
+                                          �                                                       � × 1000
+Rates             injection, and Pus at       The number of Central Line Days for that location                  measure only
+                  vascular site
+                                                                                                                 Both location
+Central Line                                       The number of Observed Central Line Days                      specific and
+SUR                                                The number of Predicted Central Line Days                     summarized
+                                                                                                                 measure
+                                                         Central Line Days for a location                        Location specific
+DUR
+                                                        The Patient Days for that location                       measure only
+
+
+
+
+         4 - 28
+January 2025                                                                    Device-associated Module
+                                                                                                     BSI
+
+References
+
+1
+ CDC National and State Healthcare-Associated Infections Progress Report, published
+          April 2024, available at https://www.cdc.gov/hai/data/portal/progress-report.html
+2
+  O’Grady, NP., Alexander, M., Burns, LA., Dellinger, EP., Garland, J., Heard, SO.,
+           Maki, DG., et al. “Guidelines for the Prevention of Intravascular Catheter-related Infections”.
+          Clinical Infectious Diseases 52 (a): (2011): 1087-99.
+3
+ Boyce JM, Nadeau J, Dumigan D, Miller D, Dubowsky C, Reilly L, Hannon CV. Obtaining blood cultures by
+          venipuncture versus from central lines: impact on blood culture contamination rates and
+          potential effect on central line-associated bloodstream infection reporting. Infect Control Hosp
+          Epidemiol. 2013 Oct;34(10):1042-7. doi: 10.1086/673142. Epub 2013 Aug 21. PMID: 24018920.
+4
+  Doern GV, Carroll KC, Diekema DJ, Garey KW, Rupp ME, Weinstein MP, Sexton DJ. Practical Guidance for
+          Clinical Microbiology Laboratories: A Comprehensive Update on the Problem of Blood Culture
+          Contamination and a Discussion of Methods for Addressing the Problem. Clin Microbiol Rev.
+          2019 Oct 30;33(1):e00009-19. doi: 10.1128/CMR.00009-19. PMID: 31666280; PMCID:
+          PMC6822992.
+5
+  Lee, A., Mirrett, S., Reller, LB., Weinstein, MP. “Detection of Bloodstream Infections In
+          Adults: How Many Blood Cultures are Needed?” Journal of Clinical Microbiology, Nov; 45(11):
+          (2007): 3546-8.
+6
+  Klevens, RM., et al. “Sampling for Collection of Central Line Day Denominators in
+          Surveillance for Healthcare-associated Bloodstream Infections”. Infection Control Hospital
+          Epidemiology. 27: (2006):338-42.
+7
+  Thompson, ND., et al.” Evaluating the Accuracy of Sampling to Estimate Central Line–Days:
+          Simplification of NHSN Surveillance Methods”. Infection Control Hospital Epidemiology. 34(3):
+          (2013): 221-228.
+8
+  See, I., et al. ID Week 2012 (Abstract #1284): Evaluation of Sampling Denominator Data to
+          Estimate Urinary Catheter- and Ventilator-Days for the NHSN. San Diego, California. October 19,
+          2012.
+
+
+
+
+4 - 29
+January 2025                                                                       Device-associated Module
+                                                                                                        BSI
+
+Appendix: Secondary BSI Guide (not applicable to Ventilator-associated Events
+[VAE])
+The purpose of using the CDC/NHSN infection criteria is to identify and consistently categorize infections
+that are healthcare-associated into major infection and site-specific infection types. LCBI criteria include
+the caveat that organism(s) identified from the blood cannot be related to infection at another and must
+be a primary BSI. One must be sure there is no other CDC/NHSN defined primary site-specific infection
+that may have seeded the bloodstream secondarily; otherwise, the bloodstream infection may be
+misclassified as a primary BSI and erroneously associated with the use of a central line, specifically called a
+CLABSI. For locations performing in-plan VAE surveillance, refer to Figure B2 in this appendix, as well as
+the VAE chapter for specific guidance on assigning a secondary BSI to a VAE. When conducting BSI
+surveillance, the PNEU definitions as well as UTI, SSI and all definitions found in Chapter 17 are available
+for attributing a secondary BSI for any patient in any location.
+
+         Example: A ventilated patient in an adult location where VAE surveillance is being conducted can
+         have a secondary BSI assigned to VAE or PNEU. A ventilated patient in a neonatal location where
+         in-plan PedVAP surveillance is not an option can have a secondary BSI assigned to PNEU.
+
+
+Secondary BSI Scenarios: For the purposes of NHSN reporting, for a bloodstream infection to be
+determined secondary to another site of infection, the following requirements must be met: *
+
+An NHSN site-specific definition must be met; either one of the CDC/NHSN Surveillance Definitions for
+Specific Types of Infections (defined in Chapter 17), or UTI, PNEU or SSI definitions.
+  AND
+One of the following scenarios must be met:
+
+Scenario 1: At least one organism from the blood specimen matches an organism identified from the site-
+specific specimen that is used as an element to meet the NHSN site-specific infection criterion AND the
+blood specimen is collected during the secondary BSI attribution period (infection window period + repeat
+infection timeframe) †.
+OR
+Scenario 2: An organism identified in the blood specimen is an element that is used to meet a NHSN site-
+specific infection criterion, and therefore is collected during the site-specific infection window period.
+
+Exception to Scenarios 1 & 2: Necrotizing Enterocolitis (NEC)
+
+The Necrotizing Enterocolitis (NEC) criteria include neither a site-specific specimen (to apply Scenario 1)
+nor an organism identified from blood specimen (to apply Scenario 2). A BSI is considered secondary to
+NEC if the patient meets one of the two NEC criterion below AND an organism identified from blood
+specimen collected during the secondary BSI attribution period is an LCBI pathogen, or the same common
+commensal is identified from two or more blood specimens drawn on separate occasions collected on the
+same or consecutive calendar days.
+
+
+
+4 - 30
+January 2025                                                                       Device-associated Module
+                                                                                                        BSI
+
+
+Necrotizing enterocolitis in infants (≤ 1 year of age) must meet one of the following criteria:
+
+1. Infant has at least one of the clinical and one of the imaging test findings from the lists below:
+   At least one clinical sign:
+      a. bilious aspirate** (see Note)
+      b. vomiting
+      c. abdominal distention
+      d. occult or gross blood in stools (with no rectal fissure)
+
+   And at least one imaging test finding which if equivocal is supported by clinical correlation
+   (specifically, physician documentation or physician designee of antimicrobial treatment for NEC):
+      a. Pneumatosis intestinalis
+      b. Portal venous gas (Hepatobiliary gas)
+      c. Pneumoperitoneum
+    **Note: Bilious aspirate from a transpyloric feeding tube should be excluded
+
+2. Surgical NEC: Infant has at least one of the following surgical findings:
+      a. surgical evidence of extensive bowel necrosis (>2 cm of bowel affected)
+      b. surgical evidence of pneumatosis intestinalis with or without intestinal perforation
+
+
+NEC Exception Notes:
+
+         •   Pneumatosis is considered an equivocal abdominal imaging finding for Necrotizing
+             enterocolitis.
+                 o Examples of abdominal imaging include KUB, ultrasound, or an abdominal x-ray
+         •   NEC criteria cannot be met in patients > 1 year of age. Review Gastrointestinal tract infection
+             (GIT) for eligibility.
+
+
+Endocarditis Exception Note:
+         •   The Endocarditis (ENDO) criteria have different rules for infection window period, RIT,
+             pathogen assignment and secondary BSI attribution period. (See ENDO criteria in Ch. 17)
+
+Applying Secondary BSI Attribution Using Scenario 1 or Scenario 2
+    Below are examples with guidance on how to distinguish between a primary or secondary BSI. The
+    definition of “matching organisms”, important notes, and reporting instructions are also provided.
+    See Figure B1: Secondary BSI Guide for algorithmic display of the following instructions.
+
+
+    Scenario 1: An organism identified from the site-specific infection is used as an element to meet the
+    site-specific infection criterion, AND the blood specimen contains at least one matching organism to
+    that site-specific specimen. The positive blood specimen must be collected during the site-specific
+    infection’s secondary BSI attribution period.
+
+
+
+
+4 - 31
+January 2025                                                                       Device-associated Module
+                                                                                                        BSI
+
+   For your convenience, a list of infection criteria that include a blood specimen with at least one
+   matching pathogen to the site-specific specimen that is used as an element to meet the definition are
+   included in Table B1). Table B1 lists the only site-specific infections eligible for secondary BSI
+   attribution.
+
+         Example A: Patient meets NHSN criteria for a symptomatic urinary tract infection (suprapubic
+         tenderness and >105 CFU/ml of Escherichia. coli) and blood specimen collected during the
+         symptomatic urinary tract infection (SUTI) secondary BSI attribution period is positive for
+         Escherichia coli. This is a SUTI with a secondary BSI and the reported organism is Escherichia coli.
+
+         Example B: Patient meets NHSN criteria for a symptomatic urinary tract infection (suprapubic
+         tenderness and >105 CFU/ml of Escherichia coli) and blood specimen collected during the SUTI
+         secondary BSI attribution period grows E. coli and Pseudomonas aeruginosa. This is a SUTI with a
+         secondary BSI and the reported organisms are E. coli and P. aeruginosa since both site and blood
+         specimens are positive for at least one matching pathogen.
+
+         Example C: Patient meets NHSN criteria for a symptomatic urinary tract infection (suprapubic
+         tenderness and >105 CFU/ml of Escherichia coli) and a single blood specimen collected during the
+         SUTI secondary BSI attribution period is positive for E. coli and Staphylococcus epidermidis. This is
+         a SUTI with a secondary BSI and the reported organism is only E. coli since the single common
+         commensal S. epidermidis positive blood specimen does not meet BSI criteria.
+
+   Scenario 2: An organism identified from a blood specimen is an element used to meet the site-specific
+   infection criterion and is collected during the site-specific infection window period.
+   A list of site-specific infections that include a positive blood culture as an element are included in
+   Table B1). Table B1 lists the only site-specific infections eligible for secondary BSI attribution.
+         Example D: Patient becomes febrile (> 38.0o C) and complains of nausea and abdominal pain. CT
+         scan performed on the same day shows an intraabdominal abscess and a blood specimen
+         collected the same day results in the identification of Bacteroides fragilis. Because the patient
+         meets intraabdominal infection criterion 3b (IAB 3b), where identification of an organism from
+         the blood specimen is a required element, along with at least two signs and symptoms and a CT
+         scan showing an intraabdominal abscess, the BSI is considered secondary to an IAB 3b infection.
+
+         Example E: Patient is febrile, has a new onset of cough and has a positive chest imaging test
+         indicating the presence of an infiltrate. Blood specimens collected identified Pseudomonas
+         aeruginosa. Because the patient can meet the PNU2 definition using the identification of
+         organisms from a blood specimen as one of the elements of the infection criterion, and there is
+         an infiltrate on chest imaging test, fever, plus new onset of cough, the BSI is considered secondary
+         to PNEU (PNU2).
+
+         *Example F: Following a COLO procedure, on day 10 of the SSI surveillance period the patient
+         becomes febrile (>38.0°C) and complains of nausea and abdominal pain. A CT scan performed
+         indicates an abscess in the intraabdominal cavity definitive for infection. The following day
+         cultures are performed that showed Escherichia coli from a T-tube drainage specimen and
+         Bacteroides fragilis from a blood specimen. Although the organisms in the site-specific specimen
+
+
+4 - 32
+January 2025                                                                         Device-associated Module
+                                                                                                          BSI
+
+         culture and blood culture do not match for at least one organism, the blood culture is considered
+         secondary to IAB because the patient meets IAB criterion 3b with fever, nausea, and abdominal
+         pain. Also, the CT scan results are definitive for an intraabdominal infection, and there is an MBI
+         organism identified in the blood specimen. The organism identified in the blood specimen is used
+         as an element to meet the Organ/Space SSI site-specific infection criterion and is collected during
+         the SSI surveillance period. The patient also meets IAB criterion 3a with fever, nausea, abdominal
+         pain, and the organism (Escherichia coli) identified from the site-specific specimen culture.
+         Although the organism identified (Escherichia coli), differs from the organism used to meet IAB
+         criterion 3b (Bacteroides fragilis), the BSI is considered secondary to the organ/space SSI IAB and
+         both organisms (Escherichia coli and Bacteroides fragilis) would be listed as the IAB infection
+         pathogens.
+
+         *Example G: Patient is febrile with a new onset of cough and has a positive chest imaging test
+         indicating the presence of an infiltrate. Blood and bronchoalveolar lavage (BAL) specimens are
+         collected that identifies Klebsiella pneumoniae > 104 CFU/ml from the BAL and Pseudomonas
+         aeruginosa from the blood. Although the organisms in the blood specimen and site-specific
+         specimen do not match for at least one organism, the patient can meet PNU2 using either the
+         identification of an organism from blood specimen or the BAL specimen as one of the elements of
+         the infection criterion. The positive blood culture or BAL specimen plus the infiltrate on chest
+         imaging test, fever, and new onset of cough are used to fully meet the PNU2 definition. The
+         blood culture is considered to be a secondary BSI to PNEU and both organisms are listed as PNEU
+         pathogens.
+
+         *In situations where an NHSN infection definition can be met using more than one criterion of the
+         infection definition, it is possible that identification of an organism from the blood and site-specific
+         specimens may not match, and a BSI may still be considered a secondary BSI.
+
+Reporting Guidance - When Scenario 1, 2, or the NEC Exception Cannot Be Applied:
+
+If the organism identified from the blood specimen does not match the organism from the site-specific
+specimen, and that blood specimen cannot be used to meet the site-specific infection criteria, that blood
+specimen cannot be considered a secondary BSI, and in this scenario, the positive blood specimen is
+considered a primary BSI.
+
+         Example 1: Patient has pustules on their abdomen along with tenderness and swelling. Purulent
+         material is obtained from the pustules and is positive for Streptococcus Group B. A blood
+         specimen collected the same day identifies methicillin resistant Staphylococcus aureus. Because
+         the organisms from the pustules and blood specimen do not match, and SKIN does not include a
+         positive blood specimen as an element, both a site-specific infection, SKIN (criterion 1 and 2a),
+         and a primary BSI is reported.
+
+         Example 2: A patient has an abscess in the soft tissue around a percutaneous endoscopic
+         gastrostomy (PEG) tube, identified by CT scan, and there is purulent drainage noted from the site.
+         There is no site-specific specimen collected, or other sites of infection identified, however, a
+         blood specimen is positive for Staphylococcus aureus. Since there are no site-specific cultures
+         collected, ST criterion 1 is not met which means a blood specimen cannot deemed secondary.
+         Therefore, the positive blood specimen must be investigated as primary BSI. The patient has an ST
+         infection (criterion 2), and a primary BSI with the pathogen Staphylococcus aureus.
+
+4 - 33
+January 2025                                                                 Device-associated Module
+                                                                                                  BSI
+
+Table B1: Secondary BSI Guide: List of all NHSN primary site-specific definitions
+available for making secondary BSI determinations using Scenario 1 or Scenario 2
+                         Scenario 1                                           Scenario 2
+ A positive blood specimen must contain at least one   Positive blood specimen must be an element of the
+ eligible matching organism to the site-specific       site-specific definition
+ specimen
+ And the blood specimen is collected in the site-      And blood specimen is collected in the site-specific
+ specific secondary BSI attribution period             infection window period
+ And an eligible organism identified from the site-    And an eligible organism identified in a blood
+ specific specimen is used as an element to meet the   specimen is used as an element to meet the site-
+ site-specific definition                              specific definition
+                 Site            Criterion                          Site               Criterion
+         ABUTI                     ABUTI                       ABUTI                     ABUTI
+         BONE                         1                        BONE                        3a
+         BRST                         1                        BURN                        1
+         CARD                         1                        DISC                        3a
+         CIRC                       2 or 3                                       4a, 4b, 4c, 4d (titer
+         CONJ                         1a                                          excluded), 4f, 5a,
+         DECU                         1                                            5b, 5c, 5d (titer
+                                                               ENDO
+         DISC                         1                                          excluded), 5f, 6e, or
+         EAR                    1, 3, 5 or 7                                         7f plus other
+         EMET                         1                                            criteria as listed
+         ENDO                         1                        GIT                      1b or 2c
+         EYE                          1                        IAB                     2b or 3b
+         GE                           2a                       JNT                         3c
+         GIT                2a, 2b (only yeast)                MEN                      2c or 3c
+         IAB                       1 or 3a                     OREP                        3a
+         IC                           1                        PNEU                      2 or 3
+         JNT                          1                        SA                         3a
+         LUNG                         1                        UMB                        1b
+         MED                          1                        USI                     3b or 4b
+         MEN                          1
+         ORAL                1, 3a, 3d (only
+                                   yeast)
+         OREP                         1
+         PJI                       1 or 3e
+         PNEU                       2 or 3
+         SA                           1
+         SINU                         1
+         SSI                    SI, DI or OS
+         SKIN                         2a
+         ST                           1
+         UMB                          1a
+         UR                       1a or 3a
+         USI                          1
+         SUTI                   1a, 1b or 2
+         VASC only as SSI             1
+         VCUF                         3
+
+
+
+4 - 34
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+
+
+Secondary BSI Reporting Instructions:
+    •    For reporting secondary BSI for possible VAP (PVAP), see Figure B2 and Chapter 10.
+    •    Do not report secondary bloodstream infection for vascular (VASC) infections, ventilator-
+         associated conditions (VAC), infection-related ventilator-associated complications (IVAC), or
+         pneumonia 1 (PNU1).
+    •    When a BSI is suspected to be secondary to a lower respiratory tract infection, the BSI can be
+         determined secondary to VAE or PNEU definitions. (See Figure B2).
+    •    Site-specific organism exclusions apply to secondary BSI attribution as well.
+
+A matching organism is defined as one of the following:
+
+1. If genus and species are identified in both specimens, they must be the same.
+        a. Example: An intraabdominal specimen is used as an element to meet an IAB definition and is
+            growing Enterobacter cloacae. A blood specimen with a collection date in the IAB secondary
+            BSI attribution period is growing Enterobacter cloacae. These are considered matching
+            organisms.
+        b. Example: An intraabdominal specimen is used as an element to meet an IAB definition and is
+            growing Enterobacter aerogenes. A blood specimen with a collection date during the IAB
+            secondary BSI attribution period is growing Enterobacter cloacae. These are NOT considered
+            matching organisms as the species, aerogenes and cloacae, are different.
+
+2. Organisms must at least match to the genus level and at that level the organisms must be the same.
+      a. Example: A surgical wound growing Pseudomonas species is used to meet deep incisional SSI
+          criteria and a blood specimen growing Pseudomonas aeruginosa is collected in the SSI
+          secondary BSI attribution period. The organisms are considered matching at the genus level,
+          and therefore the BSI is secondary to the SSI.
+      b. Example: A PCR identifying Enterococcus faecalis in CSF meets the MEN definition. A
+          subsequent blood culture collected in the MEN secondary BSI attribution period is identified
+          as Enterococcus species. The organisms are considered matching at the genus level
+          Enterococcus, and therefore the BSI is secondary to MEN.
+
+3. There are two exceptions to the matching organisms definition:
+      a. Infections meeting LCBI 2 criterion with Staphylococcus or Streptococcus
+           Example (Staphylococcus): A patient has a fever and a previous chest tube site that is
+           reddened and swollen, and a culture is collected from the soft tissue site. A culture of the
+           chest tube site is positive for Staphylococcus species therefore, the ST 1 definition is met. The
+           next day, two blood culture sets are collected and both blood cultures are positive for
+           coagulase-negative Staphylococcus. The site-specific and blood organisms are NOT considered
+           matching, because Staphylococcus species could be a coagulase-negative or a coagulase-
+           positive Staphylococcus. Therefore, the BSI is not considered secondary to the ST 1.
+
+
+4 - 35
+January 2025                                                                       Device-associated Module
+                                                                                                        BSI
+
+
+                 Example (Streptococcus): A patient has a fever and a previous chest tube site that is
+                 reddened and swollen, and a culture is collected from the soft tissue site. The chest tube
+                 site culture is reported positive for Streptococcus species therefore, the ST 1 definition is
+                 met. The next day, two blood culture sets are collected and both blood cultures are
+                 positive for Streptococcus, viridans group. The site-specific and blood organisms are NOT
+                 considered matching, because Streptococcus species could represent a Streptococcus,
+                 viridans group or non- Streptococcus, viridans group. Therefore, the BSI is not considered
+                 secondary to the ST 1.
+
+         b. In cases where an organism is identified only as “yeast” or “yeast not otherwise specified,”
+            the organism can be considered a match to other yeasts, when the yeast is collected during
+            the required timeframe, whether more fully identified or not.
+                Example: A tissue culture from the ulcer margin of a decubiti is reported positive for yeast
+                is used as an element to meet the DECU definition. A blood specimen collected in the
+                secondary BSI attribution period of the DECU is reported as Candida albicans. In this
+                example, the two organisms are considered matching organisms as the organisms are
+                complementary (specifically, Candida is a type of yeast).
+                 Note: This exception is limited to yeast and does not apply to identification of organisms
+                 identified as Gram-positive cocci, Gram negative rods, etc.
+
+                 Yeasts isolated from non-sterile sites are commonly not identified to the genus or genus
+                 and species level.
+
+
+                 Example: A culture of tissue from the ulcer margin of a decubiti reported positive for a
+                 Gram-negative rod is used as an element to meet DECU definition. A blood specimen
+                 collected in the secondary BSI attribution period of the DECU is reported as E. coli. In this
+                 example the two organisms are NOT considered matching organisms.
+
+Notes:
+
+1. Antibiograms of the blood and potential primary site isolates do not have to match.
+
+2. If the blood specimen alone does not meet BSI criteria (for example, only one blood specimen positive
+   for a common commensal), that specimen may not be used to meet secondary BSI criteria (see
+   Scenario 1c).
+
+
+
+
+4 - 36
+January 2025                                                                     Device-associated Module
+                                                                                                      BSI
+
+
+
+Pathogen Assignment
+•   Additional pathogens identified from secondary BSIs, should be added to the pathogens reported for
+    the primary infection type. The Secondary BSI data collection field should be checked yes.
+         MBI-RIT Exception: An MBI-LCBI designation will not change to an LCBI event if the following
+         criteria are met:
+
+             1. The blood culture with the non-MBI organism is collected during an existing BSI (MBI-LCBI)
+                RIT
+                               AND
+             2. The blood culture with the non-MBI organism is deemed secondary to an NHSN site-
+                specific infection
+
+         See Example 5 in the Secondary BSI Guide section of this protocol and Chapter 2 Pathogen
+         Assignment (Example 2b)
+
+•   If at least one BSI pathogen with a collection date in the secondary BSI attribution period matches an
+    organism from a specimen that was used to meet a site-specific infection criterion (either a site-
+    specific specimen or a blood specimen) the BSI is considered secondary to the event. However, if no
+    matching pathogen is identified, the subsequent BSI pathogen must be evaluated and deemed
+    primary or secondary to another site-specific infection.
+    Example: A patient with a primary UTI with Escherichia coli and a secondary BSI with Escherichia. coli
+    has a subsequent positive blood specimen with yeast. Yeast is an excluded pathogen for meeting UTI
+    criteria; therefore, the subsequent blood must be evaluated as primary or secondary to another site-
+    specific infection.
+
+•   A secondary BSI pathogen may be assigned to two different primary sites of infection (for example,
+    UTI and an IAB infection). In Example 1 below, two primary sites of infection have been identified and
+    a blood culture is collected within both the SUTI and the IAB secondary BSI attribution period. The
+    blood culture pathogen matches the pathogens for both primary sites of infection (SUTI and IAB).
+    Therefore, the pathogen is reported for both primary sites of infection as a secondary bloodstream
+    infection.
+
+
+
+
+4 - 37
+January 2025                                                                     Device-associated Module
+                                                                                                      BSI
+
+
+
+
+Example 1: Pathogen Assignment
+   Hospital     UTI       UTI    UTI Infection     IAB Infection    IAB    IAB
+   Day (HD)    SBAP       RIT   Window Period     Window Period     RIT   SBAP
+  1
+                                                                                   Infection Window Period
+  2
+                                                                                 (First positive diagnostic test, 3 days
+  3                                                                                     before and 3 days after)
+  4                   1         Urine culture:
+                                >100,000 cfu/ml
+                                                                                 Repeat Infection Timeframe
+                                K. pneumoniae
+  5                   2         Fever > 38.0 C
+                                                                                            (RIT)
+                                                                                        (date of event = day 1)
+  6                   3
+  7                   4
+                                                                                  Secondary BSI Attribution
+  8                   5                           Fever >38.0 C,
+                                                  Abdominal pain                 Period (SBAP) (Infection Window
+                                                                                             Period + RIT)
+  9                   6                           CT Scan:
+                                                  Abdominal
+                                                  abscess                              Date of Event (DOE)
+                                                                                  Date the first element occurs for the
+  10                  7         Blood culture:    Blood culture:
+                                                                                 first time within the infection window
+                                K. pneumoniae     K. pneumoniae
+  11                  8
+  12                  9
+  13                  10
+  14                  11
+  15                  12
+  16                  13
+  17                  14
+  18
+  19
+  20
+  21
+  22
+  23
+                                SUTI &            IAB & Secondary
+                                Secondary BSI     BSI
+                                DOE = HD 4        DOE = HD 8
+                                Pathogen: K.      Pathogen: K.
+                                pneumoniae        pneumoniae
+
+
+
+
+4 - 38
+January 2025                                                                     Device-associated Module
+                                                                                                      BSI
+
+
+Example 2: Pathogen Assignment (continued)
+Pathogens excluded from specific infection definitions (for example, yeast in UTI, or Enterococcus spp. for
+PNEU) are also excluded as pathogens for BSIs secondary to that type of infection (they cannot be added
+as a pathogen based on the infection type). In example 2 below, the excluded organism must be
+accounted for as either 1) a primary bloodstream infection (BSI/CLABSI) or, 2) a secondary bloodstream
+infection attributed to another primary infection (for example, IAB, SINU).
+
+ A blood culture with yeast and E. faecalis is collected during the SUTI RIT. A BSI secondary to a SUTI (E.
+faecalis) is identified. E. faecalis is already documented as the SUTI pathogen, however, the yeast cannot
+be reported as a secondary BSI pathogen, because yeasts are excluded organisms in the UTI definition.
+Since there is no other primary source of infection for which the yeast BSI can be assigned as secondary, a
+primary BSI with yeast is identified.
+
+Note: The Enterococcus faecalis is not reported as a pathogen for the primary BSI because if an excluded
+UTI organism, yeast, had not been identified, a primary BSI would not have been reported.
+
+
+
+
+4 - 39
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+   Hospital     UTI   UTI     UTI Infection         BSI Infection           BSI
+   Day (HD)    SBAP   RIT    Window Period         Window Period            RIT        Infection Window Period
+  1                                                                                  (First positive diagnostic test, 3 days
+                                                                                            before and 3 days after)
+  2
+  3                   1     Dysuria
+                                                                                   Repeat Infection Timeframe (RIT)
+  4                   2     Urine culture:                                                  (date of event = day 1)
+                            > 100,000 cfu/ml
+                            E. faecalis
+  5                   3                                                            Secondary BSI Attribution Period
+  6                   4                                                                        (SBAP)
+  7                   5                                                                 (Infection Window Period + RIT)
+  8                   6
+  9                   7                                                                     Date of Event (DOE)
+  10                  8                                                             Date the first element occurs for the first
+                                                                                    time within the infection window period
+  11                  9     Blood culture:        Blood culture:        1
+                            E. Faecalis / Yeast   E. faecalis / Yeast
+  12                  10                                                2
+  13                  11                                                3
+  14                  12                                                4
+  15                  13                                                5
+  16                  14                                                6
+  17                                                                    7
+  18                                                                    8
+  19                                                                    9
+  20                                                                    10
+  21                                                                    11
+  22                                                                    12
+  23                                                                    13
+  24                                                                    14
+  25
+                            UTI & Secondary       Primary BSI
+                            BSI                   DOE = HD 11
+                            DOE = HD 3            Pathogen: Yeast
+                            Pathogen: E.
+                            faecalis
+
+
+
+
+4 - 40
+January 2025                                                                         Device-associated Module
+                                                                                                          BSI
+
+Example 3: Pathogen Assignment (continued)
+   Hospital      IAB    IAB      IAB Infection Window       IAB Infection Window
+   Day (HD)     SBAP    RIT              Period                     Period
+  1            Admit           Abdominal pain &
+                                                                                             Infection Window Period
+                               distention
+                                                                                           (First positive diagnostic test, 3 days
+  2            PICC                                                                               before and 3 days after)
+               placed
+  3
+  4                            US guided drainage-5L                                       Repeat Infection Timeframe
+                               purulent peritoneal fluid:                                             (RIT)
+                                                                                                  (date of event = day 1)
+                               Klebsiella pneumoniae
+                               and E. coli
+  5                                                                                      Secondary BSI Attribution Period
+  6                                                                                                  (SBAP)
+  7                                                                                           (Infection Window Period + RIT)
+  8
+  9                                                                                               Date of Event (DOE)
+  10                                                        Abdominal pain                Date the first element occurs for the first
+  11                                                        CTS multiple liver            time within the infection window period
+
+                                                            abscesses
+                                                            Blood culture:
+                                                            C. glabrata, L. casei
+  12
+  13                                                        jaundice, fever
+  14
+  15
+                               IAB 1 DOE = HD 4             IAB 3b & Secondary BSI
+                               Pathogens: K.                DOE = HD 4
+                               pneumoniae, E. coli          Pathogens:
+                                                             C. glabrata, L. casei
+
+Only one infection of a specific type (or major type: BSI, UTI and PNEU) is reported during an RIT for that
+specific type of event. However, a new event of the same specific type (or major type: BSI, UTI and PNEU)
+can be identified during a RIT if all required elements of the new event occur within a new IWP; the DOE
+of the new event must be within the RIT of the initial event. In example 3, IAB criteria 1 is met on hospital
+day 4 using organisms identified from purulent fluid. During the IAB RIT (hospital day 4-hospital day 17),
+IAB criteria 3b is met (on hospital day 10) using two symptoms, positive imaging evidence of an abscess
+and a positive blood specimen. Because the positive blood specimen was used to re-meet an IAB criterion
+during the IAB RIT, the blood specimen is considered secondary to IAB. The pathogens, in this case, do not
+have to match because another definition (IAB 3b) is fully met within a new IAB IWP (hospital day 8-
+hospital day 14). Because the DOE (hospital day 10) occurs within the RIT of the initial IAB 1, a new event
+is not reported. The DOE, RIT, and device association are not changed. Any additional organisms identified
+(C. glabrata and L. casei) are added to the initial IAB event if reported.
+
+
+
+
+4 - 41
+January 2025                                                                           Device-associated Module
+                                                                                                            BSI
+
+
+Example 4: Pathogen Assignment (continued)
+   Hospital      GIT      GIT RIT        GIT Infection        GIT Infection Window
+   Day (HD)     SBAP                    Window Period                 Period
+  1            Admit                 Fever & vomiting
+                                                                                                Infection Window Period
+  2            PICC                                                                           (First positive diagnostic test, 3 days
+               placed                                                                                before and 3 days after)
+  3
+  4                                  CT bowel abscess
+  5                                                                                         Repeat Infection Timeframe (RIT)
+                                                                                                     (date of event = day 1)
+  6                                  Blood culture:
+                                     Enterococcus faecalis
+                                     X2
+  7                                                                                         Secondary BSI Attribution Period
+  8                                                                                                     (SBAP)
+  9                                                                                              (Infection Window Period + RIT)
+
+  10
+  11                                                         Blood culture:                          Date of Event (DOE)
+                                                             Candida glabrata                Date the first element occurs for the first
+  12                                                                                         time within the infection window period
+
+  13                                                         Abscess drainage:
+                                                             Candida glabrata
+                                                             Abdominal pain and
+                                                             nausea
+  14
+  15
+                                     GIT-2c & Secondary      GIT-2a & Secondary BSI
+                                     BSI DOE= HD 1           DOE = HD 1
+                                     Pathogen:               Pathogen: C. glabrata
+                                     E. faecalis
+
+
+Only one infection of a specific type (or major type for BSI, UTI and PNEU) is reported during an RIT for that
+type of event. However, a new event of the same specific type (or major type for BSI, UTI and PNEU) can be
+identified during an RIT if all required elements occur within a new IWP and the DOE is within the RIT of the
+initial event. In example 4, GIT criterion 2c is met on hospital day-1 using two symptoms, positive imaging,
+evidence of an abscess, and a positive blood specimen for Enterococcus faecalis. GIT 2a is met during the GIT
+RIT (two symptoms and positive abscess). The positive blood specimen occurs within the GIT secondary BSI
+attribution period and matches the organism identified from the abscess culture, Candida glabrata. Therefore,
+the positive blood culture is considered secondary to the GIT infection. The pathogens, in this case, do not
+have to match because another definition (GIT 2a) is fully met within a new GIT IWP (hospital day 8-hospital
+day 14). Because the DOE (hospital day 11) occurs within the RIT of the initial GIT 2c, a new event is not
+reported. The DOE, RIT, and device association are not changed but any additional organism identified (C.
+glabrata) is added to the initial GIT event if reported. This scenario is applicable to any site-specific infection
+definition from Chapter 17 or major infection type including BSI, UTI or PNEU.
+
+
+4 - 42
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+Example 5: Pathogen Assignment (continued)
+ Hospital   RIT      Infection Window       Infection Window Period    RIT   SBAP
+   Day                     Period
+ 1
+ 2                                                                                          Infection Window Period
+                                                                                          (First positive diagnostic test, 3 days
+ 3                                                                                                before and 3 days after)
+ 4
+ 5                WBC –
+                                                                                          Repeat Infection Timeframe
+                  400 cells/mm3
+                                                                                                     (RIT)
+ 6                                                                                               (date of event = day 1)
+ 7          1     Blood culture:
+                  E. faecalis
+                                                                                            Secondary BSI Attribution
+ 8          2
+                                                                                                 Period (SBAP)
+ 9          3                                                                                (Infection Window Period + RIT)
+ 10         4     WBC –                    Erythema, Pain              1
+                  300 cells/mm3
+ 11         5                              Skin culture:               2                         Date of Event (DOE)
+                                                                                         Date the first element occurs for the first
+                                           Staphylococcus aureus
+                                                                                         time within the infection window period
+ 12         6                                                          3
+ 13         7                                                          4
+ 14         8                                                          5
+ 15         9                                                          6
+ 16         10                                                         7
+ 17         11                                                         8
+ 18         12                                                         9
+ 19         13                             Blood culture:              10
+                                           Staphylococcus aureus
+ 20         14                                                         11
+ 21                                                                    12
+ 22                                                                    13
+ 23                                                                    14
+ 24
+ 25
+ 26
+                  MBI-LCBI 1               SKIN 2a & Secondary BSI
+                  Date of Event = HD 7     Date of Event = HD 10
+                  Pathogen: E. faecalis    Pathogen: Staphylococcus
+                                           aureus
+
+A non-MBI organism is NOT assigned to an MBI-LCBI (primary BSI) event when a blood culture with a non-
+MBI organism is collected during a BSI (MBI-LCBI)-RIT and deemed secondary to an NHSN site-specific
+infection. The MBI-LCBI designation will not change to an LCBI event. On day 7 of hospital admission,
+Enterococcus faecalis is identified in a blood culture meeting MBI-LCBI 1 criteria. During the BSI RIT of the
+
+4 - 43
+January 2025                                                                 Device-associated Module
+                                                                                                  BSI
+
+MBI-LCBI 1 event, a blood culture with a non-MBI organism (Staphylococcus aureus) is collected but is
+deemed secondary to a SKIN 2a. Because the Staphylococcus aureus (a non-MBI organism) is secondary
+to SKIN 2a, the MBI-LCBI 1 designation will not change to an LCBI 1.
+
+
+
+
+4 - 44
+January 2025                                                                     Device-associated Module
+                                                                                                      BSI
+
+Figure B1: Secondary BSI Guide for eligible organisms*‡
+(Not applicable to Ventilator-associated Events [VAE], See Figure B2)
+
+
+
+
+ *
+  Exception: The necrotizing enterocolitis (NEC) definition does not include criteria for a matching
+ site-specific specimen, nor an organism identified from a blood specimen, however an exception
+ for assigning a BSI secondary to NEC is provided. A BSI is considered secondary to NEC if the
+ patient meets one of the two NEC criteria AND an organism identified from a blood specimen,
+ collected during the secondary BSI attribution period, is an LCBI pathogen or the same common
+ commensal is identified from 2 or more blood specimens drawn on separate occasions on the
+ same or consecutive days.
+
+
+4 - 45
+January 2025                                                                      Device-associated Module
+                                                                                                       BSI
+
+
+
+Figure B2: VAE Guidance for Secondary BSI Determination
+
+
+
+
+*Secondary BSIs may be reported for possible VAP (PVAP) events, provided that at least one organism
+identified from the blood specimen matches an organism identified from an appropriate respiratory tract
+specimen (including respiratory secretions, pleural fluid, and lung tissue). The respiratory tract specimen
+must have been collected on or after the 3rd day of mechanical ventilation and within 2 calendar days
+before or after the day of onset of worsening oxygenation to be considered as a criterion for meeting the
+PVAP definition. In addition, the blood specimen must have been collected during the 14-day event
+period, where day 1 is the day of onset of worsening oxygenation.
+    •    In cases where PVAP is met with only the histopathology criterion and no culture or non-culture
+         based testing is performed on an eligible respiratory specimen, and there is also a positive blood
+         specimen, a secondary BSI to VAE is not reported.
+    •    In cases where a culture or non-culture based testing of respiratory secretions, pleural fluid, or
+         lung tissue is performed and does not identify an organism that matches an organism identified
+         from blood, a secondary BSI to VAE is not reported.
+Note: Any Candida species or yeast not otherwise specified, any coagulase-negative Staphylococcus
+species, and any Enterococcus species identified from blood cannot be deemed secondary to a PVAP,
+unless the organism was also identified from pleural fluid or lung tissue.
+
+4 - 46
+                                                                                        Last Update: January 2024
+
+
+      Central Line Insertion Practices (CLIP) Adherence Monitoring
+
+      Introduction
+      Central line-associated bloodstream infections (CLABSIs) may be prevented through proper placement
+      and management of the central line.1-4 The CDC’s Healthcare Infection Control Practices Advisory
+      Committee (CDC/HICPAC) Guidelines for the Prevention of Intravascular Catheter-Related Infections, 20111
+      recommend evidence-based central line insertion practices known to reduce the risk of subsequent
+      central line-associated bloodstream infection. These include hand hygiene by inserters, use of maximal
+      sterile barriers during insertion, proper use of a skin antiseptic prior to insertion, and time to allow the
+      skin antiseptic to dry before catheter insertion.
+
+      Several centers have found it useful to monitor adherence to evidence-based central line insertion
+      practices as a method for identifying quality improvement opportunities and strategically targeting
+      interventions. Feedback of adherence data has been a component of multifaceted interventions that have
+      successfully reduced CLABSI rates.
+
+      Participation in NHSN CLIP surveillance enables participating facilities and CDC to:
+          • Monitor central line insertion practices in individual patient care units and facilities and provide
+              aggregate adherence data for all participating facilities; facilities have the option of recording
+              inserter-specific adherence data
+          • Facilitate quality improvement by identifying specific gaps in adherence to recommended
+              prevention practices, thereby helping to target intervention strategies for reducing CLABSI rates
+
+      Participating facilities may perform surveillance for insertion practices during the following:
+          • a month when concurrent CLABSI surveillance is being conducted
+          • a month when no CLABSI surveillance is being conducted
+
+      If participating facilities wish to identify associations between insertion practices
+      and outcomes (specifically, CLABSI), surveillance for insertion practices and CLABSI must be done
+      concurrently.
+
+
+      Settings
+      Surveillance may occur in any type of patient care location where central lines are inserted.
+
+
+
+
+5-1
+      Last Update: January 2024                                                     Central Line Insertion Practices
+
+
+      Numerator and Denominator Data
+      The Central Line Insertion Practices Adherence Monitoring Form (CDC 57.125) is used to collect and report
+      central line insertion practices for every central line insertion attempt occurring during the month in the
+      unit(s) selected for surveillance. If an insertion attempt is unsuccessful, report a new CLIP event only if a
+      new site preparation was performed. The Table of Instructions for Completion of the Central Line Insertion
+      Practices Adherence Monitoring Form contains directions for collection and entry of each data element on
+      the form. The form can be completed at or near the time of insertion, either by the inserter or an
+      observer present at the insertion (for example, a nurse assisting with the catheter insertion), or the form
+      can be completed from documentation in the patient chart (only if all elements of the monitoring form
+      have been incorporated into standard central line insertion procedure notes). The form includes
+      information pertaining to demographics of the patient, information pertaining to the inserter, information
+      on maximal sterile barriers used, the reason for central line insertion, whether the insertion was
+      successful, skin antisepsis, hand hygiene practice before insertion, type of central line including whether it
+      was antimicrobial coated, insertion site and, if placed because of suspected existing central line infection,
+      the use of a guide wire. Elements of some of these data will be used to calculate adherence to
+      recommended insertion practices.
+
+
+      Data Analyses
+      Adherence rates for specific insertion practices will be calculated by dividing the number of bundle-
+      compliant central line insertions (numerator) by the total number of central line insertions (denominator)
+      and multiplying the result by 100. Such calculations can also be done for a bundle of practices that have
+      been shown to reduce the incidence of CLABSI (specifically, NHSN CLIP Bundle). In NHSN for CLIP
+      insertions dated January 1, 2016 and forward, adherence to the bundle requires a “Yes” to all of the
+      following:
+           • Hand hygiene performed
+           • Appropriate skin prep*
+                  o Chlorhexidine gluconate (CHG) for patients ≥ 60 days old unless there is a documented
+                      contraindication to CHG
+                  o Povidone iodine, alcohol, CHG, or other specified for children < 60 days old
+           • Skin prep agent has completely dried before insertion
+           • All 5 maximal sterile barriers used
+                  o Sterile gloves
+                  o Sterile gown
+                  o Cap
+                  o Mask worn
+                  o Large sterile drape (a large sterile drape covers the patient’s entire body)
+
+      Note: These calculations are performed separately for different types of locations in the institution.
+      Participants have the option of calculating inserter-specific adherence rates.
+
+      *The Food and Drug Administration (FDA) has labeled CHG to be used with care in premature infants and
+      infants < 2 months of age.
+
+
+
+5-2
+      Last Update: January 2024                                                   Central Line Insertion Practices
+
+
+      References
+
+      O’Grady NP, Alexander M, Burns LA, et al. Guidelines for the prevention of intravascular catheter-related
+      1
+
+            infections. Clin Infect Dis. 2011;52(9):1087-99.
+
+      Tang HJ, Lin HL, Lin YH, Leung PO, Chuang YC, Lai CC. The impact of central line insertion bundle on
+      2
+
+            central line-associated bloodstream infection. BMC Infect Dis. 2014;14:356.
+
+      Infusion Nurses Society. Infusion Therapy Standards of Practice. J Inf Nurs. 2016;39(1S).
+      3
+
+
+
+      Pronovost P, Needham D, Berenholtz S, et al. An intervention to decrease catheter-related bloodstream
+      4
+
+            infections in the ICU. N Engl J Med. 2006;355(26):2725-2732.
+
+
+
+
+5-3
+

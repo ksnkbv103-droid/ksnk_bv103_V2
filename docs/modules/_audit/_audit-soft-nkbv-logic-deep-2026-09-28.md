@@ -93,9 +93,9 @@ Defs wired: BJ/CNS/CVS/GI/LRI/REPR/**USI** + **EENT** + **SST** (`nkbv-ch17-defi
 | 3 | FE preview vs BE submit same device facts | Preview used `??`; submit used `\|\| 0/false` → silent wipe form device days when metrics 0 | `useNkbvChecklistModalState.ts` enrich block | **P0 Soft** | **FIXED Soft** `??` + form fallback |
 | 4 | Scenario 2 Secondary: blood ∈ IWP/SBAP | `blood_mandatory_for_localized` alone → Secondary | `nkbv-rules-engine.ts` Secondary gate | **P1 Soft** | **FIXED Soft** require window |
 | 5 | Clinical SBAP = [Index−3, DOE+13] | UTI bridge hand-rolled; OK when Index present; now explicit helper | `nkbv-uti-timeline-verdict.ts` post-SUTI | Soft clarity | **FIXED Soft** `clinicalSbapWindow` |
-| 6 | Transfer Rule multi-khoa 24h → first khoa day-before DOE | Only transfer-day / day-after of active stay | `nkbv-timeline-math.ts:248–259` | **P1 Domain** | Park (needs UAT stays) |
-| 7 | RIT: no new same-type event in 14d | Grid/ket-luan soft; **evaluate* không chặn RIT** | rules-engine / `nkbv-ket-luan-smart` | **P1 Domain** | Park |
-| 8 | SSI deepest wins | User picks depth; shared ticks mapped only to selected depth | `mapSsiCriteriaFlags` · `evaluateSsi` | **P1 Domain** | Park + Soft option warn |
+| 6 | Transfer Rule multi-khoa 24h → first khoa day-before DOE | Only transfer-day / day-after of active stay | `nkbv-timeline-math.ts` `attributeLocationOfAttribution` | **P1 Domain** | **DONE Soft 20c=A** |
+| 7 | RIT: no new same-type event in 14d | **DONE Soft 20a=A** hard-stop evaluate* + bridge/write | `nkbv-rit-hard-stop` · rules-engine | Soft | **DONE** `_audit-soft-nkbv-rit-20a-2026-09-28.md` |
+| 8 | SSI deepest wins | Engine deepest met + warn; Organ needs Ch.17 (no invent) | `mapSsiCriteriaFlags` · `evaluateSsi` | Soft | **DONE Soft 20d=A** `_audit-soft-nkbv-ssi-20d-2026-09-28.md` |
 | 9 | MBI full ANC table NHSN | Partial ANC≥2d \| HSCT \| diarrhea | `evaluateBsiClabsiCore` MBI | Domain park | Park (PO) |
 | 10 | APRV/ECMO/HFV exclusion full | Stub `NO_EVENT` whole day | `evaluateVaeVapCore` | Domain park | Park |
 | 11 | Ped OUT | Engine no LCBI_3/SUTI_2 emit; residual `isInfantLe1` plumbing always false; dead `infantGasOk` | age-ui · ch17 · rules | Soft residual | **FIXED Soft** strip `infantGasOk`; ped plumbing Domain cleanup |
@@ -137,8 +137,8 @@ Unused / underused drivers: `hai_status` (now consumed); RIT hard-stop; multi-kh
 ## 5. Domain / PO park list (do **not** Soft-invent)
 
 1. Multi-khoa Transfer (24h → first khoa day before DOE)
-2. Hard RIT suppress new same-type phiếu
-3. SSI auto «deepest wins»
+2. Hard RIT suppress new same-type phiếu — **DONE Soft 20a=A**
+3. SSI auto «deepest wins» — **DONE Soft 20d=A**
 4. MBI full ANC/GI NHSN table + organism browser lists
 5. APRV/ECMO/HFV day-level VAC pipeline (beyond stub)
 6. Strip `isInfantLe1` param + taxonomy legacy read maps (cleanup wave)

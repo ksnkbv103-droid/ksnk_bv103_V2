@@ -5,6 +5,7 @@ import {
   formatQcTriWord,
   isCssdPrintImageUrl,
   parseBatchAnhMinhChung,
+  formatBatchMemberRecallXuLy,
 } from "./cssd-print-format";
 import type { CssdBatchPrintData } from "../types/cssd-print.types";
 
@@ -128,5 +129,20 @@ describe("cssd-print-format", () => {
     expect(fail.trangThaiLabel).toBe("Không đạt");
     expect(fail.biLabel).toBe("Dương");
     expect(fail.coTheIn).toBe(true);
+  });
+});
+
+
+describe("formatBatchMemberRecallXuLy Domain 23", () => {
+  it("lists used only when event has actor+timestamp — not ma_ca_mo alone", () => {
+    expect(formatBatchMemberRecallXuLy({ maCaMoId: "CA-1" })).toBe("Trong mẻ");
+    expect(
+      formatBatchMemberRecallXuLy({
+        usedClinically: true,
+        usedClinicallyAt: "2026-09-28T01:00:00.000Z",
+        usedClinicallyBy: "u1",
+      }),
+    ).toMatch(/đánh giá KSNK/);
+    expect(formatBatchMemberRecallXuLy({ isActive: false })).toMatch(/Tiếp nhận/);
   });
 });

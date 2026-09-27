@@ -8,7 +8,7 @@ import { prepareDongGoiBomGateScan } from "../actions/cssd-bom-checkpoint.action
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
 import { SCAN_STATIONS, WORKFLOW_STEPS, nextIsMeHandoff, nextStationLabel } from "../workflow/domain/cssd-stations";
-import { formatTimeVi } from "@/lib/format-datetime-vi";
+import { formatTimeHmVi } from "@/lib/format-datetime-vi";
 import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
 /** Các ô chọn được trên trang 6 bước — không có «trạm quét TK» (TK chỉ qua phiếu mẻ). */
@@ -105,7 +105,7 @@ export function useCSSDWorkflow() {
         qrCode: displayQr,
         tenBoDungCu: scanRes.tenBoDungCu || "Chưa gán bộ",
         nguoiThucHien: operatorLabel,
-        thoiGianQuet: formatTimeVi(new Date()),
+        thoiGianQuet: formatTimeHmVi(new Date()),
         buocTiepTheo: nextStationLabel(station),
         meHandoffHref: nextIsMeHandoff(station) ? cssdQuyTrinhBatchTabHref() : undefined,
         quyTrinhId: scanRes.quyTrinhId,
@@ -113,7 +113,7 @@ export function useCSSDWorkflow() {
         maCycleQr: scanRes.maCycleQr,
         maLoTietKhuan: scanRes.maLoTietKhuan,
         issuanceOnly: scanRes.issuanceOnly,
-        ledgerWarning: opts?.ledgerWarning,
+        // CSSD-L02 / 17b: soft-allow silent — do not surface ledgerWarning on card
       });
       toast.success(`Đã xử lý: ${displayQr}`);
       void fetchWaitingList(station);
@@ -133,7 +133,7 @@ export function useCSSDWorkflow() {
       try {
         const scanRes = await scanQR(code, station, extraPayload);
         applyScanSuccess(station, code, scanRes, {
-          ledgerWarning: opts?.ledgerWarning || scanRes.ledgerWarning,
+          // CSSD-L02 / 17b: soft-allow silent
         });
         return scanRes;
       } catch (error: unknown) {
@@ -147,7 +147,7 @@ export function useCSSDWorkflow() {
             qrCode: code,
             tenBoDungCu: "Đang chờ đồng bộ...",
             nguoiThucHien: operatorLabel,
-            thoiGianQuet: formatTimeVi(new Date()),
+            thoiGianQuet: formatTimeHmVi(new Date()),
             buocTiepTheo: nextStationLabel(station),
             meHandoffHref: nextIsMeHandoff(station) ? cssdQuyTrinhBatchTabHref() : undefined,
             isOffline: true,

@@ -4,6 +4,7 @@
 
 import type { UtiVerificationData } from "../types/nkbv-verification";
 import { evaluateUtiCauti, type RuleEvaluationResult } from "./nkbv-rules-engine";
+import type { RitPriorEvent } from "./nkbv-rit-hard-stop";
 import type { BaGridSymptomByDate, BaGridXnCell } from "./nkbv-ba-grid-engine";
 import {
   UTI_VOIDING_CRITERIA_KEYS,
@@ -148,6 +149,9 @@ export type BuildUtiTimelineVerdictInput = {
   dischargeDate?: string | null;
   devicePlacedDate?: string | null;
   deviceRemovedDate?: string | null;
+  /** Ca trước cùng BA — Ch.2 RIT hard-stop (DoD 20a). */
+  ritPriorEvents?: RitPriorEvent[];
+  ritExcludeEventIds?: string[];
 };
 
 export type UtiTimelineVerdict = {
@@ -235,6 +239,8 @@ export function buildUtiTimelineVerdict(
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
         : undefined,
+    rit_prior_events: input.ritPriorEvents,
+    rit_exclude_event_ids: input.ritExcludeEventIds,
   };
 
   let result = evaluateUtiCauti(data);

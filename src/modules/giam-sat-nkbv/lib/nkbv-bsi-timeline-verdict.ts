@@ -5,6 +5,7 @@
 
 import type { BsiVerificationData } from "../types/nkbv-verification";
 import { evaluateBsiClabsi, type RuleEvaluationResult } from "./nkbv-rules-engine";
+import type { RitPriorEvent } from "./nkbv-rit-hard-stop";
 import type { BaGridSymptomByDate, BaGridXnCell } from "./nkbv-ba-grid-engine";
 import { classifyPathogen } from "./nkbv-pathogen-rules";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
@@ -108,6 +109,9 @@ export type BuildBsiTimelineVerdictInput = {
   ancWbcLt500Ge2d?: boolean;
   hasHsctOrGvhd?: boolean;
   hasSevereDiarrheaMbi?: boolean;
+  /** Ca trước cùng BA — Ch.2 RIT hard-stop (DoD 20a). */
+  ritPriorEvents?: RitPriorEvent[];
+  ritExcludeEventIds?: string[];
 };
 
 export type BsiTimelineGate = {
@@ -259,6 +263,8 @@ export function buildBsiTimelineVerdict(
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
         : undefined,
+    rit_prior_events: input.ritPriorEvents,
+    rit_exclude_event_ids: input.ritExcludeEventIds,
   };
 
   const result = evaluateBsiClabsi(data);

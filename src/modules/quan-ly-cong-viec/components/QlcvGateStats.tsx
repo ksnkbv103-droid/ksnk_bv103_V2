@@ -42,7 +42,11 @@ export function QlcvGateStats({
       : 0;
     const inProgress = list.filter((t) => isBoardLaneDangLam(t)).length;
     const overdue = list.filter((t) => isBoardLaneQuaHan(t)).length;
-    const choToi = list.filter((t) => isQlcvChoToiDuyet(t as unknown as Record<string, unknown>)).length;
+    const choToi = actorStaffId
+      ? list.filter((t) =>
+          isQlcvChoToiDuyet(t as unknown as Record<string, unknown>, actorStaffId),
+        ).length
+      : 0;
     return { myTasks, inProgress, overdue, choToi };
   }, [list, actorStaffId]);
 

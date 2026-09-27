@@ -246,7 +246,14 @@ export default function NkbvCdcMetricsPanel({
               })()}
 
               {metrics.attributionReason ? (
-                <p className="border-t border-slate-200/40 pt-1.5 text-[11px] text-slate-600">
+                <p
+                  className={`border-t pt-1.5 text-[11px] ${
+                    !metrics.attributedStay
+                      ? "border-amber-200/80 text-amber-900 font-medium"
+                      : "border-slate-200/40 text-slate-600"
+                  }`}
+                >
+                  {!metrics.attributedStay ? "⚠ " : ""}
                   {metrics.attributionReason}
                 </p>
               ) : null}

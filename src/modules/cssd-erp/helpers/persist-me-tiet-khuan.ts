@@ -3,6 +3,7 @@ import type { KitHeatLine } from "../lib/me-tiet-khuan-batch-heat";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
 import { derivePassQuyTrinhIds, type PassMemberRow } from "../lib/me-tiet-khuan-batch-integrity";
 import { evaluateMeQcRelease, type MeQcOutcome } from "../lib/me-tiet-khuan-qc";
+import { assertImplantReleaseWithoutBiBlocked } from "../lib/me-tiet-khuan-ab-gates";
 import { getSterilizerMethod, type SterilizerMethod } from "./me-tiet-khuan-machine-kind";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { applyBatchRecallAndHoldMachine } from "@/modules/cssd-su-co/application/batch-recall-hold.application";
@@ -224,6 +225,12 @@ export async function persistMeTietKhuanFinishWithClient(
   if (!evaluated.ok) return evaluated;
 
   const decision = evaluated.decision;
+  const implantGate = assertImplantReleaseWithoutBiBlocked({
+    coImplant,
+    trangThaiBi: p.trangThaiBi,
+    outcome: decision.outcome,
+  });
+  if (!implantGate.ok) return implantGate;
   if (!p.isPass && decision.outcome === "HOAN_THANH") {
     return { ok: false, message: "Chưa có mục Không đạt — không kết luận mẻ không đạt." };
   }

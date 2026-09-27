@@ -6,13 +6,13 @@ Một lát trên nhánh ME-S2. Không gồm UX nhãn.
 
 Mẻ không đạt (một mục QC hoặc BI dương lúc kết luận) cập nhật mẻ, bộ và sự cố trong `rpc_cssd_me_thu_hoi`. Không thu hồi xong rồi mới ghi mẻ.
 
-Mọi bộ chưa dùng lâm sàng: đóng chu kỳ cũ (`is_active = false`, giữ `lo_tiet_khuan_id`, khóa chu kỳ đó) và mở chu kỳ mới tại Tiếp nhận, không gắn mẻ, để xử lý lại như dụng cụ bẩn. Không về Đóng gói. Máy đang sẵn sàng chuyển `HOLD_QC`.
+Domain 18b **AB-1 A**: về `TIEP_NHAN` (không `DONG_GOI`). Mọi bộ chưa dùng lâm sàng: đóng chu kỳ cũ (`is_active = false`, giữ `lo_tiet_khuan_id`, khóa chu kỳ đó) và mở chu kỳ mới tại Tiếp nhận, không gắn mẻ, để xử lý lại như dụng cụ bẩn. Không về Đóng gói. Máy đang sẵn sàng chuyển `HOLD_QC`.
 
 ## BI dương
 
 Kể cả mẻ đã nhả. Mẻ dương: `trang_thai_bi = DUONG`. Đã nhả thì `THU_HOI`, chưa nhả thì `QC_KHONG_DAT`. `ket_qua_test = false` — không còn hiển thị Đạt.
 
-Phạm vi: cùng máy, sau mẻ BI âm gần nhất (mốc, không thu hồi) đến hết mẻ dương. Không có mốc âm thì lấy từ đầu đến mẻ dương. Không lấy mẻ chạy sau mẻ dương. Mẻ khác trong cửa sổ chuyển `THU_HOI`.
+Domain 18b **AB-3 A** (mọi PP): phạm vi cùng máy, sau mẻ BI âm gần nhất (mốc, không thu hồi) đến hết mẻ dương. Không có mốc âm thì lấy từ đầu đến mẻ dương. Không lấy mẻ chạy sau mẻ dương. Mẻ khác trong cửa sổ chuyển `THU_HOI`.
 
 Bộ đã có `ma_ca_mo_id` không đổi trạm. Tên bộ ghi trên phiếu sự cố (`RECALL_LISTED_USED`) và trả về cho màn mẻ. Bộ chưa dùng bị thu hồi như trên.
 

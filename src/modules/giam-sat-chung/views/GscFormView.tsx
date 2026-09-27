@@ -24,6 +24,7 @@ import type { GscFormProgress } from "../lib/gsc-score-display";
 import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
 import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
 import type { GscPatientPrefill } from "../lib/gsc-patient-prefill";
+import { filterOutWhoBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
 
 export type { GscLocPrefill };
 
@@ -41,8 +42,10 @@ function filterBangKiemByLoai(
   all: BangKiemListRow[],
   initialLoaiGiamSat?: GscLoaiGiamSatRoute,
 ): BangKiemListRow[] {
-  if (!initialLoaiGiamSat) return all;
-  return all.filter((bk) => {
+  // Defense-in-depth: WHO/BM.01 cũng đã lọc ở getBangKiemsForGiamSat.
+  const base = filterOutWhoBangKiemRows(all);
+  if (!initialLoaiGiamSat) return base;
+  return base.filter((bk) => {
     const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
     if (initialLoaiGiamSat === "TUAN_THU") return !lg || lg === "TUAN_THU";
     return lg === initialLoaiGiamSat;

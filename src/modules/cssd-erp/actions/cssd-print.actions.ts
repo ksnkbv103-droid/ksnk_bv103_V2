@@ -122,6 +122,10 @@ async function mapBatchPrintData(
       maBo: String(m.ma_bo || m.ma_vach_qr || m.ma_qr_quy_trinh || "—"),
       tenBo: String((m.bo as { ten_bo?: string } | null)?.ten_bo || m.ten_bo || "—"),
       xuLyLabel: formatBatchMemberRecallXuLy({
+        usedClinically: (m as { used_clinically?: boolean }).used_clinically,
+        usedClinicallyAt: (m as { used_clinically_at?: string | null }).used_clinically_at,
+        usedClinicallyBy: (m as { used_clinically_by?: string | null }).used_clinically_by,
+        metadata: (m as { metadata?: unknown }).metadata,
         maCaMoId: (m.ma_ca_mo_id as string | null | undefined) ?? null,
         isActive: m.is_active === false ? false : m.is_active === true ? true : null,
       }),

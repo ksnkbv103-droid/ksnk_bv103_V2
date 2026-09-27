@@ -19,6 +19,7 @@ import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import { clean, validateLoaiTrangAndLyDo, type Payload } from "./giam-sat-nkbv-write.helpers";
+import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
 
 export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
@@ -163,7 +164,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
 
     const { data: caRow } = await supabase
       .from("nkbv_fact_su_kien")
-      .select("ngay_phat_hien, ngay_vao_vien, clinical_notes")
+      .select("ngay_phat_hien, ngay_vao_vien, clinical_notes, ma_benh_an")
       .eq("id", id)
       .maybeSingle();
 
@@ -183,19 +184,78 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       return { success: false as const, error: gate.error };
     }
 
+    // Ch.2 RIT hard-stop (DoD 20a=A): load sibling ca cùng BA — SSI/VAE bypass in evaluate*
+    let ritPriorEvents = verificationInput?.rit_prior_events;
+    if (
+      !ritPriorEvents?.length &&
+      caRow?.ma_benh_an &&
+      viTriNhiemKhuan !== "SSI" &&
+      viTriNhiemKhuan !== "VAE"
+    ) {
+      const { data: siblings } = await supabase
+        .from("v_nkbv_su_kien_full")
+        .select(
+          "id, loai_ma, loai_ten, vi_tri_nhiem_khuan, ngay_phat_hien, trang_thai_ma, verification_data",
+        )
+        .eq("ma_benh_an", caRow.ma_benh_an)
+        .eq("is_active", true)
+        .neq("id", id)
+        .limit(100);
+      ritPriorEvents = (siblings || [])
+        .filter((s) => String(s.trang_thai_ma || "").toUpperCase() !== "LOAI_TRU")
+        .map((s) => {
+          const vd =
+            s.verification_data && typeof s.verification_data === "object"
+              ? (s.verification_data as Record<string, unknown>)
+              : {};
+          const metrics =
+            vd.cdc_metrics && typeof vd.cdc_metrics === "object"
+              ? (vd.cdc_metrics as Record<string, unknown>)
+              : vd;
+          const doe =
+            (metrics.doe as string | undefined) ||
+            (metrics.DOE as string | undefined) ||
+            (vd.calculated_doe as string | undefined) ||
+            (s.ngay_phat_hien as string | null);
+          const ch17 =
+            typeof vd.ch17_type_code === "string" ? vd.ch17_type_code : null;
+          return ritPriorFromCaseLike({
+            id: String(s.id),
+            doe: doe ? String(doe).slice(0, 10) : null,
+            ngay_phat_hien: s.ngay_phat_hien ? String(s.ngay_phat_hien).slice(0, 10) : null,
+            loai_ma: s.loai_ma ? String(s.loai_ma) : null,
+            loai_ten: s.loai_ten ? String(s.loai_ten) : null,
+            vi_tri_nhiem_khuan: s.vi_tri_nhiem_khuan
+              ? String(s.vi_tri_nhiem_khuan)
+              : null,
+            ch17_type_code: ch17,
+          });
+        })
+        .filter((x): x is NonNullable<typeof x> => Boolean(x));
+    }
+
+    const evalInput = {
+      ...verificationInput,
+      rit_prior_events: ritPriorEvents,
+      rit_exclude_event_ids: [
+        id,
+        ...((verificationInput?.rit_exclude_event_ids as string[] | undefined) || []),
+      ],
+    };
+
     let result;
     if (viTriNhiemKhuan === "BSI") {
-      result = evaluateBsiClabsi(verificationInput);
+      result = evaluateBsiClabsi(evalInput);
     } else if (viTriNhiemKhuan === "VAE") {
-      result = evaluateVaeVap(verificationInput, "VAE");
+      result = evaluateVaeVap(evalInput, "VAE");
     } else if (viTriNhiemKhuan === "VAP" || viTriNhiemKhuan === "HAP" || viTriNhiemKhuan === "PNEU") {
-      result = evaluateVaeVap(verificationInput, "PNEU");
+      result = evaluateVaeVap(evalInput, "PNEU");
     } else if (viTriNhiemKhuan === "UTI") {
-      result = evaluateUtiCauti(verificationInput);
+      result = evaluateUtiCauti(evalInput);
     } else if (viTriNhiemKhuan === "SSI") {
-      result = evaluateSsi(verificationInput);
+      result = evaluateSsi(evalInput);
     } else if (viTriNhiemKhuan === "CH17") {
-      result = evaluateCh17(verificationInput);
+      result = evaluateCh17(evalInput);
     } else {
       throw new Error(`Vị trí nhiễm khuẩn không hợp lệ: ${viTriNhiemKhuan}`);
     }

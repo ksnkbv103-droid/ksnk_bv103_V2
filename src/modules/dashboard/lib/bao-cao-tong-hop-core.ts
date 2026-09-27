@@ -419,6 +419,8 @@ export function buildBaoCaoReportNo(tuNgay: string, denNgay: string): string {
 
 export function shouldFetchSource(chuyenDe: BaoCaoChuyenDe, source: "VST" | "GSC" | "NKBV"): boolean {
   if (chuyenDe === "ALL") return true;
+  // Khối Vệ sinh tay = WHO (VST) + BM.02/03 (GSC) — cùng tab chuyên đề, không gộp %.
+  if (chuyenDe === "VST" && (source === "VST" || source === "GSC")) return true;
   return chuyenDe === source;
 }
 

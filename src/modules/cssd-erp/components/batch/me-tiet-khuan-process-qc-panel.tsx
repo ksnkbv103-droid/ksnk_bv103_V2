@@ -184,7 +184,12 @@ export default function MeTietKhuanProcessQcPanel({
                 {method ? METHOD_LABEL[method] : "Chưa rõ phương pháp máy"}
                 {coImplant ? " · có implant" : ""}
               </p>
-              {biBatBuoc ? <span className="text-[11px] font-medium text-violet-700">BI bắt buộc trước khi nhả</span> : null}
+              {biBatBuoc ? (
+                <span className="text-[11px] font-medium text-violet-700">
+                  BI bắt buộc trước khi nhả
+                  {coImplant ? " · Soft không nhả khẩn implant" : ""}
+                </span>
+              ) : null}
             </div>
             {steamBiReminder ? (
               <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-900">{steamBiReminder}</p>

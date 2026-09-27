@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isMyQlcvTask, matchesQlcvBoardFilter } from "./qlcv-board-filter";
+import {
+  isMyQlcvTask,
+  isQlcvChoToiDuyet,
+  matchesQlcvBoardFilter,
+} from "./qlcv-board-filter";
 
 describe("isMyQlcvTask", () => {
   it("matches assignee", () => {
@@ -52,15 +56,75 @@ describe("matchesQlcvBoardFilter OVERDUE / GATE_CHO_TOI", () => {
     ).toBe(false);
   });
 
-  it("GATE_CHO_TOI gồm đề xuất và chờ nghiệm thu", () => {
+  it("GATE_CHO_TOI không còn global — cần actor ∈ PT∨PH∨giao", () => {
+    const dexuat = { is_active: false, trang_thai: "MOI" };
+    const choNt = { trang_thai: "CHO_DUYET", phan_tram_hoan_thanh: 100 };
+    // no actor → 0
+    expect(matchesQlcvBoardFilter(dexuat, "GATE_CHO_TOI")).toBe(false);
+    expect(matchesQlcvBoardFilter(choNt, "GATE_CHO_TOI", { actorStaffId: null })).toBe(false);
+    // DANG_LAM never cho_toi even if PT
     expect(
-      matchesQlcvBoardFilter({ is_active: false, trang_thai: "MOI" }, "GATE_CHO_TOI"),
-    ).toBe(true);
-    expect(
-      matchesQlcvBoardFilter({ trang_thai: "CHO_DUYET", phan_tram_hoan_thanh: 100 }, "GATE_CHO_TOI"),
-    ).toBe(true);
-    expect(
-      matchesQlcvBoardFilter({ trang_thai: "DANG_LAM", phan_tram_hoan_thanh: 40 }, "GATE_CHO_TOI"),
+      matchesQlcvBoardFilter(
+        { trang_thai: "DANG_LAM", phan_tram_hoan_thanh: 40, nguoi_phu_trach_id: "me" },
+        "GATE_CHO_TOI",
+        { actorStaffId: "me" },
+      ),
     ).toBe(false);
+  });
+});
+
+describe("isQlcvChoToiDuyet Domain 24=A actor lens", () => {
+  const choNt = {
+    trang_thai: "CHO_DUYET",
+    phan_tram_hoan_thanh: 100,
+  };
+  const dexuat = { is_active: false, trang_thai: "MOI" };
+
+  it("user chỉ PH → thấy", () => {
+    expect(
+      isQlcvChoToiDuyet(
+        { ...choNt, nguoi_phoi_hop_ids: ["ph-only", "other"] },
+        "ph-only",
+      ),
+    ).toBe(true);
+    expect(
+      matchesQlcvBoardFilter(
+        { ...dexuat, nguoi_phoi_hop_ids: ["ph-only"] },
+        "GATE_CHO_TOI",
+        { actorStaffId: "ph-only" },
+      ),
+    ).toBe(true);
+  });
+
+  it("user phụ trách → thấy", () => {
+    expect(
+      isQlcvChoToiDuyet({ ...choNt, nguoi_phu_trach_id: "pt-1" }, "pt-1"),
+    ).toBe(true);
+  });
+
+  it("user người giao → thấy", () => {
+    expect(
+      isQlcvChoToiDuyet({ ...dexuat, nguoi_giao_viec_id: "giao-1" }, "giao-1"),
+    ).toBe(true);
+  });
+
+  it("user ngoài ba vai → 0", () => {
+    expect(
+      isQlcvChoToiDuyet(
+        {
+          ...choNt,
+          nguoi_phu_trach_id: "pt",
+          nguoi_giao_viec_id: "giao",
+          nguoi_phoi_hop_ids: ["ph"],
+          nguoi_tao_id: "outsider",
+        },
+        "outsider",
+      ),
+    ).toBe(false);
+  });
+
+  it("không hiện open global không dính actor", () => {
+    expect(isQlcvChoToiDuyet({ ...choNt }, "stranger")).toBe(false);
+    expect(isQlcvChoToiDuyet({ ...dexuat }, "stranger")).toBe(false);
   });
 });

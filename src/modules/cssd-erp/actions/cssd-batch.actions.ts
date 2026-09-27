@@ -22,6 +22,7 @@ import {
   type PersistMeTietKhuanInput,
 } from "../helpers/persist-me-tiet-khuan";
 import { evaluateMeQcRelease, steamBiWeeklyReminder } from "../lib/me-tiet-khuan-qc";
+import { requiresToTruongReleaseRight } from "../lib/me-tiet-khuan-ab-gates";
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
@@ -43,6 +44,7 @@ import {
   partitionWaitingKitsByMethod,
   rejectRemoveKitFromBatch,
 } from "../lib/me-tiet-khuan-batch-heat";
+import { parseUsedClinicallyFromMetadata } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 
 async function requireSessionActorId(): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
   try {
@@ -356,18 +358,40 @@ export async function fetchCssdBatchMembers(batchId: string) {
       .order("updated_at", { ascending: false });
     if (error) return { success: false as const, error: mapFkError(error.message), data: [] as unknown[] };
     const raw = (rows || []) as Array<{
+      id?: string;
       ma_qr_quy_trinh?: string | null;
       ma_bo?: string | null;
       ten_bo?: string | null;
       ma_trang_thai_hien_tai?: string | null;
       bo_dung_cu_id?: string | null;
     } & Record<string, unknown>>;
-    const data = raw.map((x) => ({
-      ...x,
-      ma_vach_qr: x.ma_qr_quy_trinh || x.ma_bo || "",
-      trang_thai_hien_tai: x.ma_trang_thai_hien_tai || "",
-      bo: { ten_bo: x.ten_bo || null },
-    }));
+    const ids = raw.map((x) => String(x.id || "").trim()).filter(Boolean);
+    const metaById = new Map<string, unknown>();
+    if (ids.length > 0) {
+      const { data: metaRows } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("id, metadata")
+        .in("id", ids);
+      for (const mr of metaRows || []) {
+        const mid = String((mr as { id?: string }).id || "").trim();
+        if (mid) metaById.set(mid, (mr as { metadata?: unknown }).metadata);
+      }
+    }
+    const data = raw.map((x) => {
+      const mid = String(x.id || "").trim();
+      const metadata = metaById.get(mid);
+      const used = parseUsedClinicallyFromMetadata(metadata);
+      return {
+        ...x,
+        metadata,
+        used_clinically: used.usedClinically,
+        used_clinically_at: used.usedClinicallyAt,
+        used_clinically_by: used.usedClinicallyBy,
+        ma_vach_qr: x.ma_qr_quy_trinh || x.ma_bo || "",
+        trang_thai_hien_tai: x.ma_trang_thai_hien_tai || "",
+        bo: { ten_bo: x.ten_bo || null },
+      };
+    });
     return { success: true as const, data };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e), data: [] as unknown[] };
@@ -732,7 +756,13 @@ async function previewFinishNeedsQc(
     thoiGianChuKy: p.thoiGianChuKy,
   });
   if (!evaluated.ok) return evaluated;
-  return { ok: true, needsQc: evaluated.decision.outcome === "HOAN_THANH" && coImplant };
+  return {
+    ok: true,
+    needsQc: requiresToTruongReleaseRight({
+      coImplant,
+      outcome: evaluated.decision.outcome,
+    }),
+  };
 }
 
 export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInput) {
