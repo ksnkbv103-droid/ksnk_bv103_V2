@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft report/print station SSOT on tip after `32449b0` (Quy trình SSOT); W1–W5 done; Soft Soft-queue empty except W4/W6 |
+| Tip audit | Soft GSC H2 leftover on tip after `50f7a76` (report/print SSOT); W1–W5 done; Soft Soft-queue empty except W4/W6 |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -37,7 +37,7 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
 | 5 | This audit status | Soft Soft-queue **empty** except **W4** (migrates Nghĩa) + **W6** (QLCV priority — needs lock) |
 
-**Soft Soft-queue empty except W4/W6?** **Y** (report/print station SSOT done this beat)
+**Soft Soft-queue empty except W4/W6?** **Y** (GSC H2 leftover done this beat → `_audit-soft-next-gsc-h2-leftover-2026-09-27.md`)
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -46,6 +46,10 @@ Prefer order #1 after Soft Soft-queue empty: **FE-only** Kiểm bộ label diges
 ### Soft next — Report/print station SSOT (2026-09-27 post Quy trình)
 
 Parked B from Quy trình beat unlocked: thin FE digests report/print/RCA/mẻ-scan → `stationLabel` (QC → Kiểm bộ). See `_audit-soft-next-report-print-station-ssot-2026-09-27.md`. **No** migrate / W4 / W6 / non-station replace sweep.
+
+### Soft next — GSC/TGS H2 leftover (2026-09-27 post CSSD Soft-queue empty)
+
+Prefer GSC/TGS vs locked H2: thin FE leftover (breadcrumb `/` · RBAC copy · delete orphan `qlcv-brief` · SSOT docs). See `_audit-soft-next-gsc-h2-leftover-2026-09-27.md`. **No** invent IA / W4 / W6 / VST (no clear P0).
 
 
 

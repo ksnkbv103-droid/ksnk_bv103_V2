@@ -31,7 +31,8 @@ export type KsnkHeaderBreadcrumb = {
 /** Context bar — zone + trang hiện tại. */
 export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderBreadcrumb {
   const p = normalizePath(pathname);
-  if (p === "/" || p === "") return { zone: "Điều hành", page: "Tổng quan KSNK" };
+  // H2: `/` redirects → BCTH; keep breadcrumb one-door if ever rendered before redirect.
+  if (p === "/" || p === "") return { zone: "Điều hành", page: "Báo cáo chính thức" };
   if (p === "/bao-cao-tong-hop" || p.startsWith("/bao-cao-tong-hop/")) {
     return { zone: "Điều hành", page: "Báo cáo chính thức" };
   }

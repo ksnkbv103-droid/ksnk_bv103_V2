@@ -38,4 +38,15 @@ describe("getKsnkAppHeaderBreadcrumb — CSSD per-route (P0-1)", () => {
       page: "Báo cáo chính thức",
     });
   });
+
+  it("H2 one door — `/` breadcrumb matches Báo cáo chính thức (not Tổng quan)", () => {
+    expect(getKsnkAppHeaderBreadcrumb("/")).toEqual({
+      zone: "Điều hành",
+      page: "Báo cáo chính thức",
+    });
+    expect(getKsnkAppHeaderBreadcrumb("")).toEqual({
+      zone: "Điều hành",
+      page: "Báo cáo chính thức",
+    });
+  });
 });

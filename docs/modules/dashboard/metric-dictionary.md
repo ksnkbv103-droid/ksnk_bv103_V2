@@ -106,18 +106,18 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
 | Lớp | Định nghĩa | Code |
 |-----|------------|------|
-| Hàng đợi quyết định ngày | Tối đa 10 dòng derive từ gap comparable · BK yếu · CSSD đỏ/đóng băng · NKBV chờ XN · QLCV quá hạn | `decision-queue.ts` · UI `/` |
-| QLCV CC brief | Quá hạn trên «Việc hôm nay» (mẫu bật, đến hạn tuần, phiếu mở tuần) | `getQlcvQuaHanBrief` · `CommandCenterDecisionQueue` |
-| PDCA metadata | Khi tạo việc từ analytics: `analytics_meta` = `{ chi_so, khoa_id, ky_do_lai, gia_tri_luc_tao }` trên `qlcv_fact_cong_viec` | deep-link + `insertQlcvTaskRow` |
-| Can thiệp đang mở | Việc mở có `chi_so`; sau `ky_do_lai` hiện Δ = hiện tại − lúc tạo (cùng khóa chỉ số). UI dùng `labelAnalyticsChiSo` — **không** mono raw key | Không còn khối riêng trên `/` (2026-08-22) |
-| Định mức nguồn lực | Đã gỡ khỏi Tổng quan (2026-08-23) — không còn bảng NV / cảnh báo phiên/NV | — |
+| Hàng đợi quyết định ngày | **REMOVED H2 (2026-09-17)** — không UI `/` / decision-queue | — |
+| QLCV CC brief / «Việc hôm nay» | **REMOVED H2** — không brief QLCV trên điều hành; `qlcv-brief.actions` xóa Soft 2026-09-27 | Công việc = sidebar riêng |
+| PDCA metadata | Khi tạo việc **trong module Công việc**: `analytics_meta` = `{ chi_so, khoa_id, ky_do_lai, gia_tri_luc_tao }` | QLCV insert (không deep-link từ TGS/BCTH) |
+| Can thiệp đang mở | Việc mở có `chi_so`; Δ sau `ky_do_lai` | Không surface trên BCTH |
+| Định mức nguồn lực | Đã gỡ (2026-08-23) | — |
 
 ### Nhãn cảnh báo CSSD (Management Control)
 
 | Tín hiệu | Định nghĩa | UI |
 |----------|------------|-----|
-| **Đỏ** (`is_red_alert` / trạm rate sự cố `> 5%`) | Trạm/khoảng có tỷ lệ sự cố vượt ngưỡng banner | Command Center hàng đợi · CSSD report |
-| **Đóng băng** | Máy/`trang_thai` bảo trì hoặc quy trình bị khóa vận hành theo domain CSSD (không phải %) | Việc hôm nay · CSSD report |
+| **Đỏ** (`is_red_alert` / trạm rate sự cố `> 5%`) | Trạm/khoảng có tỷ lệ sự cố vượt ngưỡng banner | CSSD report (không hàng đợi CC — H2) |
+| **Đóng băng** | Máy/`trang_thai` bảo trì hoặc quy trình bị khóa vận hành theo domain CSSD (không phải %) | CSSD report |
 
 ### PDCA `chi_so` → nhãn nghiệp vụ
 
