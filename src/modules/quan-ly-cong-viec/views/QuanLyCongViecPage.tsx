@@ -620,7 +620,7 @@ export default function QuanLyCongViecPage() {
 
         {canManageDinhKy ? (
           <Tabs.Content value="DINH_KY" className="outline-none">
-            <QlcvDinhKyPanel highlightMauId={highlightMauId} onRequestPrintPlan={runPrintPlan} />
+            <QlcvDinhKyPanel highlightMauId={highlightMauId} onRequestPrintPlan={runPrintPlan} onAfterSpawn={() => void refreshAll()} />
           </Tabs.Content>
         ) : null}
 

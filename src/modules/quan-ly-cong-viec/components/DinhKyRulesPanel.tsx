@@ -70,9 +70,11 @@ function labelMucDoUuTien(ma: string | null): { label: string; cls: string } {
 type Props = {
   highlightMauId?: string | null;
   onRequestPrintPlan?: (period: QlcvPeriodKind) => void;
+  /** After spawn — bump board list + gate counts on Điều hành. */
+  onAfterSpawn?: () => void;
 };
 
-export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) {
+export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSpawn }: Props) {
   const [rows, setRows] = useState<DinhKyMauRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -219,6 +221,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
       const { inserted } = await spawnCongViecDinhKyHomNay();
       toast.success(`Đã sinh ${inserted} phiếu cho hôm nay (đã có cùng mẫu + cùng hạn thì bỏ qua).`);
       await load();
+      onAfterSpawn?.();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Không gọi được RPC (migration / quyền service_role).");
     } finally {
