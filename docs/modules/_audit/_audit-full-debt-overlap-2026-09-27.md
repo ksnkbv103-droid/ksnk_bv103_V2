@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft W6 QLCV type-vs-priority closed (19d A + thin FE polish); W4 DONE prod; Soft Soft-queue empty |
+| Tip audit | Soft ME polish FE post-W4 **N/A** (already polished); W6+W4 DONE; Soft Soft-queue empty |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -52,6 +52,10 @@ Parked B from Quy trình beat unlocked: thin FE digests report/print/RCA/mẻ-sc
 Prefer GSC/TGS vs locked H2: thin FE leftover (breadcrumb `/` · RBAC copy · delete orphan `qlcv-brief` · SSOT docs). See `_audit-soft-next-gsc-h2-leftover-2026-09-27.md`. **No** invent IA / W4 / W6 / VST (no clear P0).
 
 Prefer Soft Soft-queue next after H2 leftover: **VST / giám sát BM hub** thin — ModeNav Thống kê sidebar active (`isGiamSatNavPath` + `/thong-ke/vst|gsc`). See `_audit-soft-next-vst-bm-hub-2026-09-27.md`. **No** invent nest IA / W4 / W6.
+
+### Soft next — ME polish FE post W4 (2026-09-28)
+
+Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan). See `_audit-soft-next-me-polish-fe-2026-09-28.md`. **N/A** — no FE churn.
 
 
 
