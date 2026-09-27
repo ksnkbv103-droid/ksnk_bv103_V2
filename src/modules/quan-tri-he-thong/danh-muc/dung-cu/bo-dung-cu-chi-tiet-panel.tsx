@@ -399,7 +399,7 @@ export function BoDungCuChiTietPanel({
 
                     <div className="my-1 border-t border-slate-100" role="separator" />
                     <p className="bv103-type-label px-2.5 py-1 font-medium tracking-wide text-slate-400">
-                      Biến động dụng cụ (3 cửa)
+                      Hỏng/Mất · Luân chuyển
                     </p>
                     <Link
                       role="menuitem"
@@ -429,7 +429,7 @@ export function BoDungCuChiTietPanel({
                         !selectedChiTiet ? "pointer-events-none opacity-50" : ""
                       }`}
                     >
-                      Chuyển (kho / bộ)
+                      Luân chuyển
                     </Link>
                   </div>
                 ) : null}
@@ -628,8 +628,8 @@ export function BoDungCuChiTietPanel({
                   </span>
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Hỏng/Mất · Chuyển chỉ lập tại /cssd-su-co (hub Biến động). Đề nghị sửa danh mục chờ duyệt ở tab
-                  Phiếu (quản trị).
+                  Hỏng/Mất lập tại /cssd-su-co. Luân chuyển số lượng lập tại /cssd-dung-cu → tab Luân chuyển.
+                  Đề nghị sửa danh mục chờ duyệt ở tab Phiếu (quản trị).
                 </p>
                 <p className="text-[11px] font-medium text-slate-600">
                   Các bộ khác đang dùng loại này:

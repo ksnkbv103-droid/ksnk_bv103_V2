@@ -3,11 +3,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FileBarChart, ExternalLink, Zap, Undo2 } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_ROUTES, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import { CSSD_ROUTES, cssdLuanChuyenHref, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import {
   coerceInstrumentFormTypeId,
@@ -31,7 +31,9 @@ const INSTRUMENT_TYPES = new Set([
 
 export default function SuCoBaoCaoPage() {
   const { loading, allowed } = useModulePermission("BAO_SU_CO");
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const luanChuyenBookmark = isLuanChuyenTypeId(searchParams.get("type"));
   const prefill = useMemo(() => {
     const groupRaw = String(searchParams.get("group") || "").trim().toUpperCase();
     const typeRaw = String(searchParams.get("type") || "").trim().toUpperCase();
@@ -91,13 +93,32 @@ export default function SuCoBaoCaoPage() {
   };
 
   useEffect(() => {
-    if (loading || (!allowed.create && !allowed.view)) return;
+    if (!luanChuyenBookmark) return;
+    router.replace(
+      cssdLuanChuyenHref({
+        ma: searchParams.get("ma"),
+        loai: searchParams.get("loai"),
+        chiTiet: searchParams.get("chiTiet"),
+      }),
+    );
+  }, [luanChuyenBookmark, router, searchParams]);
+
+  useEffect(() => {
+    if (loading || (!allowed.create && !allowed.view) || luanChuyenBookmark) return;
     reloadRecent();
-  }, [loading, allowed.create, allowed.view]);
+  }, [loading, allowed.create, allowed.view, luanChuyenBookmark]);
+
+  if (luanChuyenBookmark) {
+    return (
+      <CSSDPageShell title="Sự cố / biến động">
+        <p className="px-2 py-6 text-sm text-slate-600">Đang mở Luân chuyển trên Dụng cụ…</p>
+      </CSSDPageShell>
+    );
+  }
 
   if (loading) {
     return (
-      <CSSDPageShell title="Sự cố an toàn / Biến động dụng cụ">
+      <CSSDPageShell title="Sự cố / biến động">
         <div className="flex h-[40vh] items-center justify-center text-sm text-slate-500">Đang tải…</div>
       </CSSDPageShell>
     );
@@ -105,7 +126,7 @@ export default function SuCoBaoCaoPage() {
 
   if (!allowed.view && !allowed.create) {
     return (
-      <CSSDPageShell title="Sự cố an toàn / Biến động dụng cụ">
+      <CSSDPageShell title="Sự cố / biến động">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
           Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
         </div>
@@ -117,7 +138,7 @@ export default function SuCoBaoCaoPage() {
 
   return (
     <CSSDPageShell
-      title="Sự cố an toàn / Biến động dụng cụ"
+      title="Sự cố / biến động"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Link

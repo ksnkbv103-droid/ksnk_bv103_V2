@@ -25,6 +25,9 @@ type Props = {
   relatedOptions: SearchableSelectOption[];
   relatedHint?: string;
   wide?: boolean;
+  timeLabel?: string;
+  detectorLabel?: string;
+  moTaLabel?: string;
   onChange: (key: keyof SuCoIncidentMetaState, value: string) => void;
   onSelectDetector: (id: string, label: string) => void;
   onSelectRelated: (id: string, label: string) => void;
@@ -45,6 +48,9 @@ export default function SuCoIncidentMetaFields({
   relatedOptions,
   relatedHint,
   wide = false,
+  timeLabel = "Thời gian phát hiện",
+  detectorLabel = "Người phát hiện (tùy chọn)",
+  moTaLabel = "Mô tả chi tiết sự cố",
   onChange,
   onSelectDetector,
   onSelectRelated,
@@ -57,7 +63,7 @@ export default function SuCoIncidentMetaFields({
     <div className="space-y-[var(--bv103-space-3)]">
       <div className={peopleGrid}>
         <div className="space-y-1.5">
-          <label className={bv103LayoutChrome.labelBlock}>Thời gian phát hiện</label>
+          <label className={bv103LayoutChrome.labelBlock}>{timeLabel}</label>
           <input
             type="datetime-local"
             value={values.thoiGianPhatHien}
@@ -74,7 +80,7 @@ export default function SuCoIncidentMetaFields({
           />
         </div>
         <div className="space-y-1.5">
-          <label className={bv103LayoutChrome.labelBlock}>Người phát hiện (tùy chọn)</label>
+          <label className={bv103LayoutChrome.labelBlock}>{detectorLabel}</label>
           <SearchableSelect
             value={values.nguoiPhatHienId}
             onChange={(id) => {
@@ -107,7 +113,7 @@ export default function SuCoIncidentMetaFields({
       <div className={detailGrid}>
         <div className="space-y-1.5">
           <label className={bv103LayoutChrome.labelBlock}>
-            Mô tả chi tiết sự cố <span className="text-red-500">*</span>
+            {moTaLabel} <span className="text-red-500">*</span>
           </label>
           <textarea
             value={values.moTa}

@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { CssdSuCoPage } from "@/modules/cssd-su-co/contexts/su-co/entrypoint";
 
 export const metadata = {
-  title: "Sự cố an toàn / Biến động dụng cụ | KSNK 103",
-  description: "Hub An toàn (QT/HC/máy) và Biến động dụng cụ (Hỏng/Mất · Chuyển). Danh mục master qua Đề nghị danh mục.",
+  title: "Sự cố / biến động | KSNK 103",
+  description: "Hỏng/Mất và sự cố an toàn (quy trình, hóa chất, thiết bị). Luân chuyển số lượng nằm ở Dụng cụ.",
 };
 
 export default function Page() {
