@@ -209,7 +209,7 @@ export function evaluateVaeVap(
       is_positive: false,
       classification: "NO_EVENT",
       reason:
-        "VAE chỉ áp dụng người lớn ≥18 tuổi thở máy ≥4 ngày lịch. Chọn VAP (PedVAP) hoặc HAP nếu dùng tiêu chuẩn viêm phổi lâm sàng (PNEU).",
+        "VAE chỉ áp dụng người lớn ≥18 tuổi thở máy ≥4 ngày lịch. Chọn VAP hoặc HAP nếu dùng tiêu chuẩn viêm phổi lâm sàng (PNEU).",
     };
   }
 
