@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | `a068e6e` (IA A flatten); W1–W2+W5+**W3A** applied on tip after `e12a83e` |
+| Tip audit | `a068e6e` (IA A flatten); W1–W2+W5+**W3A**+**W3B N/A** on tip after `e12a83e` |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -19,7 +19,7 @@
 |------|------|--------|
 | **W1** | **A** hygiene | **DONE** Soft — dead writers + InstrumentDoorTabs + ChiTiet/HoaChat/KhoDungCu prune + HC CTA `?group=CHEMICAL` + entryMode comment |
 | **W2** | **A** dung-cu primary Việc / secondary Tra cứu | **DONE** Soft — strip regroup; deep-link `?tab=` giữ; G-P0-06 write paths giữ; no MOVE on su-co |
-| **W3** | **A** flatten CSSD báo cáo (FE) | **DONE** Soft 2026-09-27 — strip phẳng 7 cửa; bỏ hub «Phân tích» lồng; `?tab=` legacy giữ; **W3 B NKBV park** |
+| **W3** | **A** flatten CSSD báo cáo (FE) · **B** NKBV Phân tích | **A DONE**; **B N/A / already OK** Soft 2026-09-27 — survey: `/giam-sat-nkbv` đã 1 strip phẳng 5 tab (`records·cases·vi-sinh·mau-so·dashboard`); **không** có nested hub «Phân tích» như CSSD report trước W3A → không FE churn |
 | **W4** | **park** | migrates Nghĩa only — Soft không apply |
 | **W5** | **A** perf CSSD eager pages | **DONE** Soft — `next/dynamic` tab panels `/cssd-dung-cu` · `/cssd-thiet-bi` · `/cssd-hoa-chat` (shell light như QLCV Perf P1); no W3/W4/W6 |
 | Ops | Soft **may** `rm -rf .next` local | optional after code |
@@ -95,7 +95,7 @@ Evidence: `src/lib/nav/sidebar-nav-groups.ts` + `sidebar-admin-nav-groups.ts`.
 | `/quan-ly-cong-viec` | Điều hành · Nhiệm vụ · Định kỳ · Báo cáo | 4 tab + **dynamic** panels (Perf P1) | OK Domain 19 |
 | `/giam-sat` | Hub VST·GSC·NKBV write | Hub CTAs + quiet lịch sử/thống kê | OK |
 | `/giam-sat-vst` `/giam-sat-chung` | Form only; history/analytics redirect | Redirect `?tab=history|analytics` | OK |
-| `/giam-sat-nkbv` | Write-first; analytics gom | 5 tab ngang: records · cases · vi-sinh · mau-so · dashboard | P2 mix |
+| `/giam-sat-nkbv` | Write-first; flat strip | **W3B N/A** — đã phẳng: records · cases · vi-sinh · mau-so · dashboard (`KsnkSupervisionTabList`); default `records` | OK flatten; residual P2 mix write+analytics (khác W3B) |
 | `/bao-cao-tong-hop` | Báo cáo chính thức | KPI+VST+GSC default; more collapsed (CSSD appendix) | OK/P2 polish |
 | `/quan-tri-he-thong` | MDM admin · duyệt DE_NGHI · RBAC | Hub jobs 4 + tabs DANH_MUC/PHAN_QUYEN/IT | OK; dễ nhầm vs dung-cu DE_NGHI |
 | `/dao-tao` | Thi KSNK | Hub + admin dynamic | OK peripheral |
@@ -131,7 +131,7 @@ Ký hiệu: **OK** Domain-tách đúng · **LEAK** cửa/IA lẫn · **DUAL** ha
 | L2 | Su-co form vẫn là write path LUAN_CHUYEN (embed dung-cu) — đúng thin, dễ hiểu nhầm «còn MOVE trên su-co» | P1 copy / P2 optional tách component | Doc + banner; optional extract MoveForm |
 | L3 | MDM duyệt DE_NGHI vs ops tạo DE_NGHI — 2 mặt D5 | P2 | Banner 1 dòng hai phía (đã partial) |
 | L4 | Report nested analytics dưới «Vận hành» | — | **DONE W3A** flat strip |
-| L5 | NKBV 5 tab write+analytics ngang hàng | P2 | Default records; gom Thống kê/vi-sinh phụ |
+| L5 | NKBV 5 tab write+analytics ngang hàng | P2 residual | **W3B flatten N/A** (đã phẳng); group «Phân tích» = đề xuất *khác* (nest) — park, không làm dưới W3B |
 | L6 | BCTH phụ lục CSSD vs `/cssd-erp/report` full | P3 | Quiet link «Báo cáo CSSD đầy đủ» |
 | L7 | QLCV DB JOIN dm vs FE hardcode | P1 park | Nghĩa apply Wave3 draft |
 | L8 | `KhoDungCuPage` / `CSSDCatalogChiTietTab` / `CSSDCatalogHoaChatTab` còn export | P2 hygiene | Xóa hoặc unexport sau grep sạch |
@@ -155,7 +155,7 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 | 7 | Report nested analytics | **GONE** (W3A flat strip) | — | done |
 | 8 | QLCV 4 cửa | OK | — | giữ; type-vs-priority proposal riêng |
 | 9 | Giám sát hub | OK | — | giữ |
-| 10 | NKBV 5 tab mix | **Còn** | P2 | group Phân tích |
+| 10 | NKBV nested «Phân tích» hub (flatten như W3A) | **N/A / already flat** (W3B Soft) | — | no FE; residual mix P2 park |
 | 11 | QT hub 3 khu | OK | — | giữ |
 | 12 | MDM dung-cu vs ops DE_NGHI | TEACH | P2 | banner |
 | 13 | `/cssd-erp/batch` dual URL | redirect OK | P3 | giữ alias hoặc eventual drop bookmark |
@@ -329,7 +329,9 @@ Supervision: /giam-sat*|/giam-sat-vst|/giam-sat-chung|/giam-sat-nkbv|/qr*
 | **DoD** | Deep-link `?tab=` cũ vẫn resolve | |
 | **Migrate?** | Không | |
 
-**Status 2026-09-27 (Soft):** **W3 A DONE** — FE only trên `/cssd-erp/report`: bỏ nested «Phân tích» + strip phụ; một strip phẳng Vận hành · Sự cố · Sản lượng · Bộ · Máy · NV · Trách nhiệm. Mirror `/thong-ke/cssd` + `cssdReportAnalyticsHref` nhận thêm `accountability`. **W3 B NKBV** vẫn **park**.
+**Status 2026-09-27 (Soft):** **W3 A DONE** — FE only trên `/cssd-erp/report`: bỏ nested «Phân tích» + strip phụ; một strip phẳng Vận hành · Sự cố · Sản lượng · Bộ · Máy · NV · Trách nhiệm. Mirror `/thong-ke/cssd` + `cssdReportAnalyticsHref` nhận thêm `accountability`.
+
+**W3 B NKBV — N/A / already OK (Soft 2026-09-27):** Survey `GiamSatNkbvPage.tsx` `MAIN_TABS` + `supervisionTabs` + `KsnkSupervisionTabList` — **một** strip phẳng 5 cửa (Hàng đợi BA · Danh sách phiếu · Cổng Vi sinh LIS · Nộp Mẫu số · Thống kê); default `records`; deep-link `?tab=` đã resolve. **Không** có nested hub «Phân tích» + strip phụ (khác CSSD report pre-W3A). Options weighed: (1) invent nest rồi flatten = churn vô nghĩa; (2) audit A «group Phân tích» = *thêm* nest, ngược spirit flatten W3A; (3) **doc-only N/A** ← pick. **No FE change.** Residual «mix write+analytics» (L5/P2) park riêng — không thuộc W3B flatten.
 
 ### W4 — Migrates (Nghĩa only)
 
@@ -405,7 +407,7 @@ W0 lock ─┬─► W1 hygiene (Soft) ─► W5 perf CSSD
 | Hóa chất | Kho (+ CTA Báo sự cố HC) |
 | QLCV | Điều hành · Nhiệm vụ · Định kỳ · Báo cáo |
 | Giám sát hub | VST · GSC · NKBV · quiet Lịch sử/Thống kê |
-| NKBV | Hàng đợi BA · Phiếu · (Phân tích: Thống kê · Vi sinh) · Mẫu số |
+| NKBV | **Hiện tại (W3B N/A):** Hàng đợi BA · Phiếu · Vi sinh · Mẫu số · Thống kê (phẳng). *Đề xuất group «Phân tích»* trong sketch cũ = nest — **không** apply dưới W3B |
 | Báo cáo CSSD | Phẳng: Vận hành · Sự cố · Sản lượng · Bộ · Máy · NV · Trách nhiệm |
 | BCTH | KPI · VST · GSC · (More…) |
 | Quản trị | Việc ngày · Phân quyền · IT |
@@ -457,11 +459,11 @@ Trả lời ngắn (A/B) cho Soft:
 | **W1** | **A DONE** Soft | Hygiene: dead writers + dead tabs + InstrumentDoorTabs + CTA HC + comments |
 | **W2** | **A DONE** Soft | Dung-cu primary Việc / secondary Tra cứu |
 | **W5** | **A DONE** Soft | `dynamic()` dung-cu / thiet-bi / hoa-chat shells |
-| **W3** | **A DONE** Soft (report flatten); B NKBV park | — |
+| **W3** | **A DONE** Soft (report flatten); **B N/A / already OK** Soft (NKBV đã phẳng — audit note only) | — |
 | **W4** | park | migrates Nghĩa only |
 | **W6** | park | QLCV type-vs-priority — cần lock |
 
-Sau đó: W3 (1 IA) → W4 khi Nghĩa apply migrate → W6 QLCV.
+Sau đó: W3 **đóng** (A done + B N/A) → W4 khi Nghĩa apply migrate → W6 QLCV.
 
 ---
 
