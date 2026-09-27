@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import SuCoReportForm from "@/modules/cssd-su-co/components/SuCoReportForm";
 
 /** Cửa luân chuyển số lượng — không phải đề nghị danh mục, không phải Hỏng/Mất. */
-export function CSSDCatalogLuanChuyenTab() {
+export function CSSDCatalogLuanChuyenTab({ onSubmitted }: { onSubmitted?: () => void }) {
   const searchParams = useSearchParams();
   const ma = String(searchParams.get("ma") || "").trim();
 
@@ -20,6 +20,7 @@ export function CSSDCatalogLuanChuyenTab() {
         initialTypeId="INSTRUMENT_MOVE"
         initialMaQR={ma || undefined}
         enabled
+        onSubmitted={onSubmitted}
       />
     </div>
   );

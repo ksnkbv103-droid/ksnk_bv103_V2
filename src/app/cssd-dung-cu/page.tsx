@@ -155,7 +155,7 @@ export default function Page() {
         ) : s.tab === "DE_NGHI" ? (
           <CSSDCatalogDeNghiTab />
         ) : s.tab === "LUAN_CHUYEN" ? (
-          <CSSDCatalogLuanChuyenTab />
+          <CSSDCatalogLuanChuyenTab onSubmitted={() => void s.reload()} />
         ) : (
           <InventoryHistoryTable />
         )}
