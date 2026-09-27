@@ -120,3 +120,17 @@
 
 - Ẩn link đề nghị BOM khi `gateMode` — 1 chỗ, không gỡ panel đếm/plasma (vẫn cần cho chuyển bước đúng). Không cherry-pick cả branch dong-goi (conflict/nhiều hơn cần).
 
+
+## 6. Phase 2 applied (local tip)
+
+| Finding | Commit | Kết quả |
+|---------|--------|---------|
+| F1 three doors | `77e7b63` | su-co picker chỉ Hỏng/Mất; tab LUAN_CHUYEN + deep-link redirect |
+| F2 đóng gói BOM | `2380628` | `gateMode` ẩn link đề nghị BOM |
+| F3 copy | trong `77e7b63` | meta/page/modal/admin panel đồng bộ |
+| F4 Wave3 migrate | — | **parked** (cần Nghĩa apply) |
+| F5 ME migrate | — | **parked** (cần Nghĩa apply) |
+
+Verify: `npx tsc --noEmit` OK · vitest routes+taxonomy+stations+packaging 23/23.
+
+Tip after work: `2380628` · branch `cursor/me-sync-recall-print` · ahead 31 · **không push**.
