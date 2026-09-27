@@ -107,7 +107,7 @@ export type IncidentPreset = { code: string; label: string };
 export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   PROCESS: [
     { code: "PROCESS_MISSTEP", label: "Sai thao tác quy trình tại khâu" },
-    { code: "PROCESS_QC_FAIL", label: "Không đạt kiểm tra chất lượng tại khâu" },
+    { code: "PROCESS_QC_FAIL", label: "Không đạt Kiểm bộ tại khâu" },
     { code: "PROCESS_STERILIZATION_FAIL", label: "Chất lượng tiệt khuẩn / mẻ không đạt" },
     { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
@@ -139,19 +139,6 @@ export function instrumentFormTypeOptions(): IncidentPreset[] {
   return INCIDENT_TYPE_PRESETS.INSTRUMENT;
 }
 
-/** @deprecated UI A: không còn family An toàn — giữ cho bookmark/report legacy. */
-export const SAFETY_INCIDENT_GROUPS: IncidentGroup[] = ["PROCESS", "CHEMICAL", "EQUIPMENT", "OTHER"];
-
-/** @deprecated UI A: hub SAFETY|INSTRUMENT bỏ khỏi picker; giữ helper legacy. */
-export type SuCoHub = "SAFETY" | "INSTRUMENT";
-
-export function hubOfIncidentGroup(group: IncidentGroup): SuCoHub {
-  return group === "INSTRUMENT" ? "INSTRUMENT" : "SAFETY";
-}
-
-export function defaultGroupForHub(hub: SuCoHub): IncidentGroup {
-  return hub === "INSTRUMENT" ? "INSTRUMENT" : "PROCESS";
-}
 
 /** Deep-link / bookmark legacy type ids — coerce → 3 cửa; không xóa mã lịch sử sổ. */
 export const LEGACY_INSTRUMENT_TYPE_IDS = [

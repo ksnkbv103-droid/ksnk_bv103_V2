@@ -58,6 +58,12 @@ describe("cssd-incident-taxonomy", () => {
     expect(isBatchQcFailTypeId("PROCESS_QC_FAIL")).toBe(false);
   });
 
+  it("PROCESS_QC_FAIL label uses Kiểm bộ SSOT (not generic QC copy)", () => {
+    const preset = INCIDENT_TYPE_PRESETS.PROCESS.find((p) => p.code === "PROCESS_QC_FAIL");
+    expect(preset?.label).toBe("Không đạt Kiểm bộ tại khâu");
+    expect(preset?.label.toLowerCase()).not.toContain("kiểm tra chất lượng");
+  });
+
   it("IA A: 5 direct doors — no An toàn / Biến động shell labels", () => {
     expect(DIRECT_INCIDENT_DOORS).toEqual([
       "INSTRUMENT",

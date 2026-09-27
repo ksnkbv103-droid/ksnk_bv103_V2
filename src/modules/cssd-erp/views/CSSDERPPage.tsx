@@ -11,7 +11,7 @@ import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
-import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
+import { SCAN_STATIONS, stationLabel } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
 import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 import { useCssdPrint } from "../hooks/use-cssd-print";
@@ -144,7 +144,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           ) : showScanSuccess ? (
             <QRScanSuccessCard
               {...lastScan}
-              tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
+              tramDisplay={currentStation ? stationLabel(currentStation) : "CSSD"}
               ledgerWarning={lastScan?.ledgerWarning}
               meHandoffHref={lastScan?.meHandoffHref}
               onPrintCapPhat={

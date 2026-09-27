@@ -11,6 +11,7 @@ import CssdPrintPortal from "../print/CssdPrintPortal";
 import type { CssdBatchPrintData } from "../../types/cssd-print.types";
 import { formatCssdPrintDateTime } from "../../lib/cssd-print-format";
 import { normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
+import { stationLabel } from "../../workflow/domain/cssd-stations";
 
 interface HistoryLog {
   id: string;
@@ -167,7 +168,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               <h3 className="bv103-type-title mb-1 font-mono">{process.ma_vach_qr}</h3>
               <p className="text-[11px] font-medium text-[var(--primary)] flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" /> Trạng thái:{" "}
-                {String(process.trang_thai_hien_tai || "").replace(/_/g, " ")}
+                {stationLabel(String(process.trang_thai_hien_tai || ""))}
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {process.ma_qr_bo_vinh_vien ? (
@@ -239,7 +240,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                 <div className={`p-4 rounded-[var(--radius-shell)] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100' : 'bg-white border-slate-200'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <span className={`text-[11px] font-semibold ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
-                      Trạm {String(log.tram || "").replace(/_/g, " ")}
+                      Trạm {stationLabel(String(log.tram || ""))}
                     </span>
                     <span className="bv103-type-label font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
                       {formatCssdPrintDateTime(log.created_at)}

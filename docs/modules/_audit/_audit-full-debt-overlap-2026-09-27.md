@@ -39,6 +39,11 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 
 **Soft Soft-queue empty except W4/W6?** **Y**
 
+### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
+
+Prefer order #1 after Soft Soft-queue empty: **FE-only** Kiểm bộ label digests on `/cssd-quy-trinh` shell + thin su-co residual (PROCESS_QC_FAIL + delete dead hub exports). See `_audit-soft-next-quy-trinh-tram-ssot-2026-09-27.md`. **No** migrate / W4 / W6.
+
+
 
 DoD W1: tsc + vitest taxonomy/routes/catalog xanh; 0 caller dead writers.
 DoD W2: UAT tạo đề nghị + luân chuyển + xem BO không lệch `?tab=`.

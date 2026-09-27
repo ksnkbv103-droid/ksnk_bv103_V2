@@ -7,9 +7,9 @@ import { SCAN_STATIONS, STATION_LABEL } from "../../workflow/domain/cssd-station
 import { CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 import CssdBatchMeLinkChip from "./cssd-batch-me-link-chip";
 
-/** Helper QT.19 — tách QC trạm vs QC mẻ (domain). */
+/** Helper QT.19 — tách Kiểm bộ (trạm) vs QC mẻ (domain). */
 const STATION_HINT: Partial<Record<Station, string>> = {
-  QC: "QC trước đóng gói (QT.19) ≠ QC mẻ",
+  QC: "Kiểm bộ trước đóng gói (QT.19) ≠ QC mẻ",
 };
 
 const STATION_ICON: Record<Exclude<Station, "TIET_KHUAN">, React.ReactNode> = {
