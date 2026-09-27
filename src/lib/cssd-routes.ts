@@ -159,7 +159,7 @@ export function cssdSuCoIncidentJournalHref(incidentId?: string | null): string 
 
 /** Deep-link báo cáo CSSD (sản lượng / bộ / máy / NV) với kỳ lọc tùy chọn. */
 export function cssdReportAnalyticsHref(params?: {
-  tab?: "overview" | "volume" | "sets" | "equipment" | "staff" | "incident";
+  tab?: "overview" | "volume" | "sets" | "equipment" | "staff" | "incident" | "accountability";
   from?: string | null;
   to?: string | null;
   station?: string | null;

@@ -2,8 +2,8 @@
 import { CSSDReportingPage } from "@/modules/cssd-erp/contexts/reporting/entrypoint";
 
 export const metadata = {
-  title: "Báo cáo Tổng hợp CSSD | KSNK 103",
-  description: "Thống kê và phân tích hiệu suất tiệt khuẩn tại Khoa KSNK",
+  title: "Báo cáo CSSD | KSNK 103",
+  description: "Một cửa báo cáo CSSD: vận hành, sự cố, sản lượng, bộ, máy, NV, trách nhiệm",
 };
 
 export default function Page() {

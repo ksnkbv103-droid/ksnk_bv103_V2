@@ -43,20 +43,17 @@ const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_
 type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";
 
 function parseReportTab(tabParam: string | null, highlightIncidentId: string): ReportTab {
+  // W3A: flat doors; legacy nested hub aliases (`phan-tich`) → VOLUME
   if (tabParam === "incident" || tabParam === "su-co" || highlightIncidentId) return "INCIDENT";
-  if (tabParam === "accountability") return "ACCOUNTABILITY";
+  if (tabParam === "accountability" || tabParam === "trach-nhiem") return "ACCOUNTABILITY";
   if (tabParam === "volume" || tabParam === "san-luong" || tabParam === "phan-tich") return "VOLUME";
   if (tabParam === "sets" || tabParam === "bo") return "SETS";
   if (tabParam === "equipment" || tabParam === "may") return "EQUIPMENT";
   if (tabParam === "staff" || tabParam === "nhan-su") return "STAFF";
-  if (tabParam === "van-hanh") return "OVERVIEW";
+  if (tabParam === "van-hanh" || tabParam === "overview" || tabParam === "tong-quan") return "OVERVIEW";
   return "OVERVIEW";
 }
 
-const ANALYTICS_TABS: ReportTab[] = ["VOLUME", "SETS", "EQUIPMENT", "STAFF", "ACCOUNTABILITY"];
-function isAnalyticsTab(tab: ReportTab): boolean {
-  return ANALYTICS_TABS.includes(tab);
-}
 
 function CSSDReportPageInner() {
   const searchParams = useSearchParams();
@@ -211,27 +208,20 @@ function CSSDReportPageInner() {
       }
     >
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
-      <div className="space-y-2">
-        <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Vận hành" />
-          <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố" />
-          <CssdHorizTabButton
-            active={isAnalyticsTab(tab)}
-            onClick={() => {
-              if (!isAnalyticsTab(tab)) setTab("VOLUME");
-            }}
-            label="Phân tích"
-          />
-        </div>
-        {isAnalyticsTab(tab) ? (
-          <div className={CSSD_UI_TAB_GROUP}>
-            <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
-            <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
-            <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy và bảo trì" mobileLabel="Máy" />
-            <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
-            <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi và người lỗi" mobileLabel="Trách nhiệm" />
-          </div>
-        ) : null}
+      {/* W3A: one flat door — no nested «Phân tích» hub (north-star: Vận hành · Sự cố · Sản lượng · Bộ · Máy · NV · Trách nhiệm) */}
+      <div className={CSSD_UI_TAB_GROUP} data-testid="cssd-report-flat-tabs">
+        <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Vận hành" />
+        <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố" />
+        <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
+        <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
+        <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy và bảo trì" mobileLabel="Máy" />
+        <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" mobileLabel="NV" />
+        <CssdHorizTabButton
+          active={tab === "ACCOUNTABILITY"}
+          onClick={() => setTab("ACCOUNTABILITY")}
+          label="Khâu lỗi và người lỗi"
+          mobileLabel="Trách nhiệm"
+        />
       </div>
 
       {tab === "OVERVIEW" && (
@@ -275,7 +265,7 @@ function CSSDReportPageInner() {
           ) : null}
           <ReportCharts pieData={pieData} barData={barData} />
           <p className="text-[11px] text-slate-500">
-            Biểu đồ cột trạm phía trên = <strong>tồn hiện tại</strong> (trạng thái cuối). Tab «Sản lượng» = hoàn thành
+            Biểu đồ cột trạm phía trên = <strong>tồn hiện tại</strong> (trạng thái cuối). Cửa «Sản lượng» = hoàn thành
             trong kỳ theo timestamp quét.
           </p>
           <div className="space-y-2 print:hidden">
