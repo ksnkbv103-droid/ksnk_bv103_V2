@@ -10,14 +10,20 @@ import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable
 import { Plus, KeyRound, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
-import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
+import {
+  adminResetStaffPasswordAction,
+  provisionStaffAuthAccount,
+} from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
 import {
   approveAccountAccessRequest,
+  approveForgotResetRequest,
   listPendingAccountRequests,
   rejectAccountAccessRequest,
 } from "../actions/account-access-request.actions";
 import { isPendingAccountRequest, readAccountRequest } from "../lib/account-access-request";
-import StaffAuthPasswordDialog from "./StaffAuthPasswordDialog";
+import StaffAuthPasswordDialog, {
+  type StaffAuthPasswordMode,
+} from "./StaffAuthPasswordDialog";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
@@ -60,7 +66,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const [totalCount, setTotalCount] = useState(0);
   const [pendingOnly, setPendingOnly] = useState(false);
   const [authDialog, setAuthDialog] = useState<{
-    mode: "approve_request" | "approve_reset";
+    mode: StaffAuthPasswordMode;
     staff: NhanSu;
   } | null>(null);
   const [authSubmitting, setAuthSubmitting] = useState(false);
@@ -101,33 +107,17 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const allowEdit = permission?.edit !== false;
   const allowDelete = permission?.delete !== false;
 
-  const { isAdmin, canEdit } = usePermission();
+  const { isAdmin, canEdit, userData } = usePermission();
   const canProvisionTk = isAdmin || canEdit("PHAN_QUYEN");
   const [provisioningId, setProvisioningId] = useState<string | null>(null);
+  const selfStaffId = userData?.id || null;
 
-  const handleCreateTk = async (row: NhanSu) => {
+  const openCreateTk = (row: NhanSu) => {
     if (!row.email?.trim()) {
       toast.error("Nhân sự chưa có email — cập nhật hồ sơ trước khi tạo TK.");
       return;
     }
-    const pw = window.prompt(`Mật khẩu ban đầu cho ${row.ho_ten} (≥8 ký tự):`);
-    if (pw == null) return;
-    if (pw.length < 8) {
-      toast.error("Mật khẩu tối thiểu 8 ký tự.");
-      return;
-    }
-    setProvisioningId(row.id);
-    try {
-      const res = await provisionStaffAuthAccount({ staffId: row.id, password: pw });
-      if (!res.success) {
-        toast.error(res.error || "Không tạo được tài khoản.");
-        return;
-      }
-      toast.success("Đã tạo tài khoản và liên kết hồ sơ.");
-      setRefreshKey((k) => k + 1);
-    } finally {
-      setProvisioningId(null);
-    }
+    setAuthDialog({ mode: "create", staff: row });
   };
 
   const openEditPrefill = (row: NhanSu) => {
@@ -135,38 +125,81 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     setIsFormOpen(true);
   };
 
-  const handleApproveSubmit = async (payload: {
+  const handleAuthDialogSubmit = async (payload: {
     password: string;
     confirmActorPassword?: string;
+    secondApproverEmail?: string;
   }) => {
     if (!authDialog) return;
     const staffId = authDialog.staff.id;
-    const kind = readAccountRequest(authDialog.staff.extra_data)?.kind || "REQUEST";
+    const mode = authDialog.mode;
     setAuthSubmitting(true);
+    if (mode === "create") setProvisioningId(staffId);
     try {
-      if (kind === "RESET" || authDialog.mode === "approve_reset") {
-        toast.error("Dùng đặt lại MK trên hồ sơ cho yêu cầu RESET.");
-        return;
+      if (mode === "create") {
+        const res = await provisionStaffAuthAccount({ staffId, password: payload.password });
+        if (!res.success) {
+          toast.error(res.error || "Không tạo được tài khoản.");
+          return;
+        }
+        toast.success("Đã tạo tài khoản và liên kết hồ sơ.");
+      } else if (mode === "reset") {
+        const actorPw = String(payload.confirmActorPassword || "").trim();
+        if (!actorPw) {
+          toast.error("Nhập mật khẩu đăng nhập hiện tại của bạn để xác nhận.");
+          return;
+        }
+        const res = await adminResetStaffPasswordAction({
+          staffId,
+          password: payload.password,
+          confirmActorPassword: actorPw,
+          secondApproverEmail: payload.secondApproverEmail,
+        });
+        if (!res.success) {
+          toast.error(res.error || "Không đặt lại được mật khẩu.");
+          return;
+        }
+        toast.success(`Đã đặt lại mật khẩu cho ${authDialog.staff.ho_ten || "nhân sự"}.`);
+      } else if (mode === "approve_reset") {
+        const actorPw = String(payload.confirmActorPassword || "").trim();
+        if (!actorPw) {
+          toast.error("Nhập mật khẩu đăng nhập hiện tại của bạn để xác nhận.");
+          return;
+        }
+        const res = await approveForgotResetRequest({
+          staffId,
+          password: payload.password,
+          confirmActorPassword: actorPw,
+          secondApproverEmail: payload.secondApproverEmail,
+        });
+        if (!res.success) {
+          toast.error(res.error || "Duyệt đặt lại MK thất bại.");
+          return;
+        }
+        toast.success("Đã duyệt và đặt lại mật khẩu.");
+      } else {
+        // approve_request
+        const actorPw = String(payload.confirmActorPassword || "").trim();
+        if (!actorPw) {
+          toast.error("Nhập mật khẩu đăng nhập hiện tại của bạn để xác nhận.");
+          return;
+        }
+        const res = await approveAccountAccessRequest({
+          staffId,
+          password: payload.password,
+          confirmActorPassword: actorPw,
+        });
+        if (!res.success) {
+          toast.error(res.error || "Duyệt thất bại.");
+          return;
+        }
+        toast.success("Đã duyệt và tạo tài khoản.");
       }
-      const actorPw = String(payload.confirmActorPassword || "").trim();
-      if (!actorPw) {
-        toast.error("Nhập mật khẩu đăng nhập hiện tại của bạn để xác nhận.");
-        return;
-      }
-      const res = await approveAccountAccessRequest({
-        staffId,
-        password: payload.password,
-        confirmActorPassword: actorPw,
-      });
-      if (!res.success) {
-        toast.error(res.error || "Duyệt thất bại.");
-        return;
-      }
-      toast.success("Đã duyệt và tạo tài khoản.");
       setAuthDialog(null);
       setRefreshKey((k) => k + 1);
     } finally {
       setAuthSubmitting(false);
+      setProvisioningId(null);
     }
   };
 
@@ -392,9 +425,14 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                       Duyệt cấp TK
                     </button>
                   ) : (
-                    <span className="text-[10px] font-medium text-slate-500">
-                      RESET — dùng Đặt lại MK trên hồ sơ Tài khoản
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAuthDialog({ mode: "approve_reset", staff: i })}
+                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-semibold text-amber-950 hover:bg-amber-100"
+                    >
+                      <KeyRound size={12} aria-hidden />
+                      Duyệt đặt lại MK
+                    </button>
                   )}
                   <button
                     type="button"
@@ -410,11 +448,21 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
             <button
               type="button"
               disabled={i.is_active === false || provisioningId === i.id}
-              onClick={() => void handleCreateTk(i)}
+              onClick={() => openCreateTk(i)}
               className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
             >
               <KeyRound size={12} aria-hidden />
               {provisioningId === i.id ? "Đang tạo…" : "Tạo TK"}
+            </button>
+          ) : canProvisionTk && i.auth_user_id ? (
+            <button
+              type="button"
+              disabled={i.is_active === false}
+              onClick={() => setAuthDialog({ mode: "reset", staff: i })}
+              className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+            >
+              <KeyRound size={12} aria-hidden />
+              Đặt lại MK
             </button>
           ) : null}
         </div>
@@ -509,8 +557,12 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           mode={authDialog.mode}
           staffName={authDialog.staff.ho_ten || authDialog.staff.ma_nv || "nhân sự"}
           submitting={authSubmitting}
-          requireReauth
-          onSubmit={(payload) => void handleApproveSubmit(payload)}
+          requireReauth={authDialog.mode !== "create"}
+          requireSecondApprover={
+            (authDialog.mode === "reset" || authDialog.mode === "approve_reset") &&
+            Boolean(selfStaffId && selfStaffId === authDialog.staff.id)
+          }
+          onSubmit={(payload) => void handleAuthDialogSubmit(payload)}
         />
       ) : null}
     </div>
