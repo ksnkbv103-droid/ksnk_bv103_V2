@@ -90,3 +90,23 @@ Neo: form `saveGiamSatChung` / `deleteGiamSatChungSessions` · view live `gstt_f
 | P0 đếm | Thêm/sửa ghi `results_jsonb`; view lịch sử và KPI/top lỗi/so sánh đếm lại từ jsonb, bỏ phiên `is_active=false`. Xóa hàng thì cả lịch sử và báo cáo mất phiên (không summary trigger). `%` KPI đã tính lại từ Đạt/áp dụng (2 chữ số). Top lỗi và `do_lech` trước đó giữ số ROUND RPC — cùng đếm 1/3 ra 33.3 cạnh KPI 66.67. Nay top lỗi, tiêu chí×khoa, và độ lệch tự GS − chuyên trách tính lại từ đếm. |
 | P0 cửa | Picker `lop_giam_sat` trên list đã đúng (thực hành ẩn `he_thong` + hub VST; hệ thống chỉ `he_thong`). `?bk=` vẫn mở mẫu lookup kể cả khi list đã lọc — cửa thứ hai. Giữ BM.02/BM.03 trên tuân thủ (hub VST). Chặn lớp hệ thống trên tuân thủ, thực hành trên hệ thống, và WHO (form VST). |
 | Park | GSC-L05: KPI mặc định vẫn lọc `loai_giam_sat` null hoặc `TUAN_THU`, chưa tách `lop_giam_sat` / báo cáo hệ thống riêng (file 16 R7). Hybrid QT.06 chưa hiện trên picker hệ thống (R6). `worst_khoa_ty_le` trên overview không có đếm kèm — giữ số RPC. Không invent KPI. |
+
+## Workflows sâu
+
+Neo: sidebar `sidebar-nav-groups.ts` là cổng module. Tab trong page là cửa thao tác. Domain 27 không đụng (trạm QC đã là «Kiểm bộ», không có route riêng). Không migrate. Không đổi Domain QT. Tip trước lát: `ff4afee`.
+
+| Cửa nhân viên | Đường |
+|---------------|--------|
+| CSSD Quy trình | Sidebar «Quy trình» → Chu trình (Kiểm bộ là trạm QC trên cùng trang) · Mẻ · kính Truy vết. Link «Báo cáo CSSD» khi có `CSSD_REPORT`. |
+| Dụng cụ | Việc: Đề nghị danh mục · Luân chuyển. Tra cứu: Bộ · Loại · Lịch sử kho. Hỏng/Mất sang Sự cố. |
+| GSC | Hub (nhiều quyền) hoặc sidebar một quyền → tuân thủ. Cùng hàng: Nhật ký vận hành · Đánh giá hệ thống. Header từng cửa một nhãn. |
+| NKBV | Hub «NKBV» và quiet «Danh sách NKBV» (`?tab=cases`). Năm tab trên `/giam-sat-nkbv` giữ. |
+| QLCV | Sidebar «Công việc» → Điều hành. Tab Nhiệm vụ / Định kỳ / Báo cáo chỉ khi được sửa mẫu. Bookmark `TUAN` / `PHAN_CONG_TUAN` / `CHUONG_TRINH` / `KE_HOACH_NAM` về Điều hành. |
+
+| | Việc |
+|---|------|
+| P0 nhãn | Header `/cssd-erp/report` và mirror `/thong-ke/cssd` là **Báo cáo CSSD** (trước đó «Báo cáo»). Tab Dụng cụ mobile hết chữ «Chuyển» — nhãn **Luân chuyển**. Header `/giam-sat-chung/nhat-ky` = Nhật ký vận hành; `/he-thong` = Đánh giá hệ thống (trước đó cả hai ghi «Giám sát tuân thủ»). |
+| P0 tab ẩn | `/cssd-erp/inventory` trỏ thẳng `/cssd-dung-cu`. Bookmark `?tab=kho` trên Quy trình không vẽ Chu trình — một dòng «Đang mở Dụng cụ…» rồi sang Dụng cụ. |
+| P0 sổ | `?tab=loai` và URL trống Quản trị dụng cụ vẽ **Bộ** (sheet Loại khi `?tab=loai`). Trước đó rơi xuống **Sổ rà soát** dù tab không chọn. Đóng sheet Loại về `?tab=bo`. Sổ chỉ khi `?tab=lich-su`. |
+| P0 GSC | Hub thêm hai thẻ Nhật ký vận hành và Đánh giá hệ thống. Form GSC (kể cả form gốc) có hàng link ba cửa. Một quyền GSC vẫn vào thẳng tuân thủ (bỏ click hub); từ tuân thủ bấm sang hai cửa kia. |
+| Park | Admin P2 / Auth-ban. Không thêm mục sidebar Báo cáo CSSD. Form gốc `/giam-sat-chung` vẫn một form mọi loại — hàng link đẩy sang cửa riêng, không xóa route. QLCV `?tab=DINH_KY` khi không có quyền sửa: ở Điều hành, không xóa query. `InventoryIssueModal` không caller. Domain 27 không code. |

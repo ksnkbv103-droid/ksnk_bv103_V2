@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
       { source: "/cssd-erp", destination: "/cssd-quy-trinh", permanent: true },
       { source: "/cssd-erp/batch", destination: "/cssd-quy-trinh?tab=batch", permanent: true },
       { source: "/cssd-erp/catalog", destination: "/cssd-dung-cu", permanent: true },
-      { source: "/cssd-erp/inventory", destination: "/cssd-quy-trinh?tab=kho", permanent: true },
+      { source: "/cssd-erp/inventory", destination: "/cssd-dung-cu", permanent: true },
       { source: "/cssd-erp/kho-hoa-chat", destination: "/cssd-hoa-chat", permanent: true },
       { source: "/cssd-erp/equipment-maintenance", destination: "/cssd-thiet-bi", permanent: true },
       { source: "/cssd-erp/su-co", destination: "/cssd-su-co", permanent: true },

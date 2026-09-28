@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Activity, ClipboardList, Hand, Stethoscope, ChevronRight } from "lucide-react";
+import { Activity, Building2, ClipboardList, Hand, ScrollText, Stethoscope, ChevronRight } from "lucide-react";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { VE_SINH_TAY_ENTRIES } from "@/lib/domain/ve-sinh-tay-catalog";
@@ -15,6 +15,7 @@ import {
   canSeeNavGate,
 } from "@/lib/nav/ksnk-nav-gates";
 import { pickSoleWriteHrefForMode } from "@/lib/nav/giam-sat-write-dest";
+import { GSC_ROUTE_CHROME } from "@/modules/giam-sat-chung/lib/gsc-app-paths";
 import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 
 type HubLink = {
@@ -106,10 +107,24 @@ export default function GiamSatHubPage() {
   const primaryWrites: HubLink[] = useMemo(
     () => [
       {
-        href: "/giam-sat-chung/tuan-thu",
+        href: GSC_ROUTE_CHROME.TUAN_THU.href,
         label: "Giám sát tuân thủ",
         hint: "Bảng kiểm chuyên đề khác",
         icon: ClipboardList,
+        visible: seeGsc,
+      },
+      {
+        href: GSC_ROUTE_CHROME.NHAT_KY_VAN_HANH.href,
+        label: "Nhật ký vận hành",
+        hint: "Số liệu thiết bị và môi trường",
+        icon: ScrollText,
+        visible: seeGsc,
+      },
+      {
+        href: GSC_ROUTE_CHROME.DANH_GIA_HE_THONG.href,
+        label: "Đánh giá hệ thống",
+        hint: "SOP và thanh tra nội bộ",
+        icon: Building2,
         visible: seeGsc,
       },
     ],
@@ -196,7 +211,9 @@ export default function GiamSatHubPage() {
       {visiblePrimary.length > 0 ? (
         <section className="space-y-2">
           <h2 className="bv103-type-label">Nhập giám sát khác</h2>
-          <p className="text-[11px] text-slate-500">Bảng kiểm tuân thủ ngoài khối vệ sinh tay.</p>
+          <p className="text-[11px] text-slate-500">
+            Ba cửa GSC: tuân thủ, nhật ký vận hành, đánh giá hệ thống.
+          </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {visiblePrimary.map((link) => (
               <WriteCta key={link.href} link={link} emphasize={false} />

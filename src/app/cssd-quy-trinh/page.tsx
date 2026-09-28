@@ -77,7 +77,7 @@ function CssdQuyTrinhPageInner() {
 
   useEffect(() => {
     if (tabParam === "kho") {
-      router.replace("/cssd-dung-cu", { scroll: false });
+      router.replace(CSSD_ROUTES.dungCu, { scroll: false });
     }
   }, [tabParam, router]);
 
@@ -98,6 +98,14 @@ function CssdQuyTrinhPageInner() {
     () => (tabParam === "trace" ? String(qrParam || "").trim().toUpperCase() : ""),
     [tabParam, qrParam],
   );
+
+  if (tabParam === "kho") {
+    return (
+      <CSSDPageShell title="Quy trình">
+        <p className="px-2 py-6 text-sm text-slate-600">Đang mở Dụng cụ…</p>
+      </CSSDPageShell>
+    );
+  }
 
   return (
     <CSSDPageShell

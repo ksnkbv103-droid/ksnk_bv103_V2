@@ -38,12 +38,14 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
   }
   if (p.startsWith("/giam-sat-vst")) return { zone: "Giám sát", page: "Vệ sinh tay" };
   if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Form giám sát chung" };
+  if (p.startsWith("/giam-sat-chung/nhat-ky")) return { zone: "Giám sát", page: "Nhật ký vận hành" };
+  if (p.startsWith("/giam-sat-chung/he-thong")) return { zone: "Giám sát", page: "Đánh giá hệ thống" };
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };
   if (p.startsWith("/giam-sat-nkbv")) return { zone: "Giám sát", page: "NKBV" };
   if (p === "/giam-sat") return { zone: "Giám sát", page: "Cổng giám sát" };
   if (p === "/qr" || p.startsWith("/qr/")) return { zone: "Giám sát", page: "Quét QR truy vết" };
   if (p.startsWith("/lich-su")) return { zone: "Tra cứu", page: "Lịch sử giám sát" };
-  if (p.startsWith("/thong-ke/cssd")) return { zone: "CSSD", page: "Báo cáo" };
+  if (p.startsWith("/thong-ke/cssd")) return { zone: "CSSD", page: "Báo cáo CSSD" };
   if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê khoa" };
   if (p.startsWith("/quan-ly-cong-viec")) return { zone: "Vận hành", page: "Công việc" };
   if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Thi KSNK" };
@@ -67,7 +69,7 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
     return { zone: "CSSD", page: "Mẻ tiệt khuẩn" };
   }
   if (p.startsWith("/cssd-erp/report")) {
-    return { zone: "CSSD", page: "Báo cáo" };
+    return { zone: "CSSD", page: "Báo cáo CSSD" };
   }
   if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
     return { zone: "CSSD", page: "Quy trình" };

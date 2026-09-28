@@ -80,6 +80,8 @@ export default function QuanLyDungCuPage() {
     );
   }
 
+  const showsBo = layer === "bo" || layer === "loai";
+
   return (
     <div className="space-y-3">
       <KsnkPageChrome
@@ -87,18 +89,21 @@ export default function QuanLyDungCuPage() {
         title="Quản lý dụng cụ"
         tabs={
           <div className={`${C.navTabStrip} w-full max-sm:rounded-xl sm:w-fit`} role="tablist" aria-label="Quản lý dụng cụ">
-            {(isAdmin ? LAYERS : LAYERS.filter((t) => t.id !== "phieu")).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={layer === t.id}
-                onClick={() => selectLayer(t.id)}
-                className={dungCuTabBtn(layer === t.id)}
-              >
-                <t.icon size={14} aria-hidden /> {t.label}
-              </button>
-            ))}
+            {(isAdmin ? LAYERS : LAYERS.filter((t) => t.id !== "phieu")).map((t) => {
+              const selected = t.id === "bo" ? showsBo : layer === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => selectLayer(t.id)}
+                  className={dungCuTabBtn(selected)}
+                >
+                  <t.icon size={14} aria-hidden /> {t.label}
+                </button>
+              );
+            })}
           </div>
         }
       />
@@ -114,7 +119,7 @@ export default function QuanLyDungCuPage() {
         </p>
       )}
 
-      {layer === "bo" ? (
+      {showsBo ? (
         boAllowed.view || leAllowed.view ? (
           <BoDungCuPageContent onOpenLoaiSheet={isAdmin ? () => router.replace(quanTriDungCuHref("loai"), { scroll: false }) : undefined} />
         ) : (
@@ -129,12 +134,14 @@ export default function QuanLyDungCuPage() {
         </div>
       ) : layer === "phieu" ? (
         <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chỉ quản trị duyệt phiếu rà soát danh mục.</p>
-      ) : (
+      ) : layer === "lich-su" ? (
         <SetReconcileHistoryList />
-      )}
+      ) : null}
 
       {loaiSheet && isAdmin ? (
-        <DungCuLoaiSheet onClose={() => router.replace(quanTriDungCuHref(layer), { scroll: false })} />
+        <DungCuLoaiSheet
+          onClose={() => router.replace(quanTriDungCuHref(layer === "loai" ? "bo" : layer), { scroll: false })}
+        />
       ) : null}
     </div>
   );

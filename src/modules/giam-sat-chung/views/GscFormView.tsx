@@ -4,6 +4,7 @@
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -23,7 +24,7 @@ import {
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
 import { markSupervisionHistoryStale, SUPERVISION_HISTORY_PATHS } from "@/lib/supervision-form-nav";
-import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { GSC_ROUTE_CHROME, type GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import type { GscFormProgress } from "../lib/gsc-score-display";
 import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
 import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
@@ -46,6 +47,35 @@ type BangKiemListRow = {
   cach_tinh_diem?: string | null;
   ap_dung_jsonb?: unknown;
 };
+
+const GSC_SIBLING_DOORS: { loai: GscLoaiGiamSatRoute; label: string }[] = [
+  { loai: "TUAN_THU", label: "Giám sát tuân thủ" },
+  { loai: "NHAT_KY_VAN_HANH", label: "Nhật ký vận hành" },
+  { loai: "DANH_GIA_HE_THONG", label: "Đánh giá hệ thống" },
+];
+
+function GscSiblingDoors({ current }: { current?: GscLoaiGiamSatRoute }) {
+  return (
+    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+      Cửa GSC:{" "}
+      {GSC_SIBLING_DOORS.map((d, i) => (
+        <React.Fragment key={d.loai}>
+          {i > 0 ? " · " : null}
+          {d.loai === current ? (
+            <span className="font-semibold text-slate-700">{d.label}</span>
+          ) : (
+            <Link
+              href={GSC_ROUTE_CHROME[d.loai].href}
+              className="font-semibold text-[var(--primary)] hover:underline"
+            >
+              {d.label}
+            </Link>
+          )}
+        </React.Fragment>
+      ))}
+    </p>
+  );
+}
 
 function filterBangKiemByLoai(
   all: BangKiemListRow[],
@@ -295,13 +325,10 @@ export default function GscFormView({
         <div className="space-y-2">
           {!initialLoaiGiamSat ? (
             <p className="px-0.5 text-[11px] leading-snug text-slate-500">
-              Form gốc: mọi loại bảng kiểm. Hub Giám sát chỉ mở mẫu tuân thủ.
-            </p>
-          ) : initialLoaiGiamSat === "TUAN_THU" ? (
-            <p className="px-0.5 text-[11px] leading-snug text-slate-500">
-              Mẫu tuân thủ — cửa từ hub Giám sát. Nhật ký vận hành và đánh giá hệ thống không nằm ở đây.
+              Form gốc: mọi loại bảng kiểm. Chọn một cửa riêng bên dưới.
             </p>
           ) : null}
+          <GscSiblingDoors current={initialLoaiGiamSat} />
           <ChecklistTemplateTable
             data={processedData}
             onSelect={handleSelectTemplate}

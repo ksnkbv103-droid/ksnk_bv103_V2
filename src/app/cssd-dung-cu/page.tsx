@@ -148,7 +148,7 @@ export default function Page() {
                 onClick={() => s.setTab("LUAN_CHUYEN")}
                 icon={ArrowLeftRight}
                 label="Luân chuyển"
-                mobileLabel="Chuyển"
+                mobileLabel="Luân chuyển"
               />
             </div>
           </div>

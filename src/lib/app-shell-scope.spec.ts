@@ -13,7 +13,7 @@ describe("getKsnkAppHeaderBreadcrumb — CSSD per-route (P0-1)", () => {
       zone: "CSSD",
       page: "Mẻ tiệt khuẩn",
     });
-    expect(getKsnkAppHeaderBreadcrumb("/cssd-erp/report")).toEqual({ zone: "CSSD", page: "Báo cáo" });
+    expect(getKsnkAppHeaderBreadcrumb("/cssd-erp/report")).toEqual({ zone: "CSSD", page: "Báo cáo CSSD" });
   });
 
   it("does not coarsen all CSSD routes to Quản lý CSSD", () => {
@@ -39,11 +39,19 @@ describe("getKsnkAppHeaderBreadcrumb — CSSD per-route (P0-1)", () => {
       zone: "Giám sát",
       page: "Giám sát tuân thủ",
     });
+    expect(getKsnkAppHeaderBreadcrumb("/giam-sat-chung/nhat-ky")).toEqual({
+      zone: "Giám sát",
+      page: "Nhật ký vận hành",
+    });
+    expect(getKsnkAppHeaderBreadcrumb("/giam-sat-chung/he-thong")).toEqual({
+      zone: "Giám sát",
+      page: "Đánh giá hệ thống",
+    });
     expect(getKsnkAppHeaderBreadcrumb("/thong-ke/vst")).toEqual({
       zone: "Tra cứu",
       page: "Thống kê khoa",
     });
-    expect(getKsnkAppHeaderBreadcrumb("/thong-ke/cssd")).toEqual({ zone: "CSSD", page: "Báo cáo" });
+    expect(getKsnkAppHeaderBreadcrumb("/thong-ke/cssd")).toEqual({ zone: "CSSD", page: "Báo cáo CSSD" });
     expect(getKsnkAppHeaderBreadcrumb("/giam-sat-vst")).toEqual({ zone: "Giám sát", page: "Vệ sinh tay" });
     expect(getKsnkAppHeaderBreadcrumb("/quan-ly-cong-viec")).toEqual({ zone: "Vận hành", page: "Công việc" });
     expect(getKsnkAppHeaderBreadcrumb("/bao-cao-tong-hop")).toEqual({
