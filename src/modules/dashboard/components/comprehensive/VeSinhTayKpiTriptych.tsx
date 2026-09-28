@@ -13,6 +13,13 @@ export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayloa
   const cards = buildVeSinhTayKpiCards({
     vst: payload?.vst ?? null,
     gsc: payload?.gsc ?? null,
+    filters: payload
+      ? {
+          tu_ngay: payload.filters.tu_ngay,
+          den_ngay: payload.filters.den_ngay,
+          khoa_ids: payload.filters.khoa_ids,
+        }
+      : undefined,
   });
 
   return (

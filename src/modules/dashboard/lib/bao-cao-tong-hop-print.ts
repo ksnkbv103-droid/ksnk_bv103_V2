@@ -2,7 +2,7 @@ import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import { buildGapKhoaRows, mergeMasterGapRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { mergeKhoaRankWithSelected } from "./bao-cao-tong-hop-core";
-import { escHtml, fmtDelta, fmtIsoDate, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
+import { escHtml, fmtDelta, fmtIsoDate, fmtKyTruocDelta, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
 import {
   renderChecklistTrends,
   renderComparableGapTable,
@@ -76,6 +76,19 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
   );
   const masterGapRows = mergeMasterGapRows(vstGapRows, gscGapRows);
 
+  const ky = p.payload?.ky_truoc;
+  const weekAndPrior = (
+    week: number | null | undefined,
+    prior: number | null | undefined,
+    digits: 1 | 2,
+  ) => {
+    const priorLine =
+      ky && prior != null
+        ? `<div>${escHtml(fmtKyTruocDelta(prior, ky.tu_ngay, ky.den_ngay, digits))}</div>`
+        : "";
+    return `${escHtml(fmtDelta(week, digits))}${priorLine}`;
+  };
+
   const cssdAnalyticsHref = cssdReportAnalyticsHref({
     tab: "volume",
     from: p.tuNgay,
@@ -98,12 +111,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
         <tr>
           <td class="text-left"><strong>Vệ sinh tay (VST)</strong></td>
           <td class="text-success"><strong>${fmtPct(kpi?.ty_le_vst)}</strong></td>
-          <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_vst))}</td>
+          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_vst, ky?.delta_vst, 1)}</td>
         </tr>
         <tr>
           <td class="text-left"><strong>Giám sát chung (GSC)</strong></td>
           <td class="text-success"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
-          <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_gsc))}</td>
+          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_gsc, ky?.delta_gsc, 2)}</td>
         </tr>
       </tbody>
     </table>

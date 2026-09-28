@@ -4,7 +4,11 @@
  */
 
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-analytics-data";
-import { buildGscAnalyticsDeepLink } from "@/lib/analytics/supervision-deep-link";
+import {
+  buildAnalyticsUrlQuery,
+  buildGscAnalyticsDeepLink,
+  type AnalyticsUrlSeed,
+} from "@/lib/analytics/supervision-deep-link";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { VE_SINH_TAY_ENTRIES, type VeSinhTayQtMa } from "./ve-sinh-tay-catalog";
@@ -28,8 +32,13 @@ function pickBkRow(gsc: GscStrategicPayload | null | undefined, maBk: string) {
 export function buildVeSinhTayKpiCards(input: {
   vst: VstStrategicPayload | null | undefined;
   gsc: GscStrategicPayload | null | undefined;
+  /** Kỳ đang mở trên bản ký — deep-link thống kê không được rơi về kỳ mặc định. */
+  filters?: AnalyticsUrlSeed;
 }): VeSinhTayKpiCard[] {
   const vstK = input.vst?.kpis;
+  const seed = input.filters ?? {};
+  const vstQuery = buildAnalyticsUrlQuery(seed);
+  const vstHref = vstQuery ? `/thong-ke/vst?${vstQuery}` : "/thong-ke/vst";
   return VE_SINH_TAY_ENTRIES.map((entry) => {
     if (entry.kind === "who") {
       return {
@@ -41,7 +50,7 @@ export function buildVeSinhTayKpiCards(input: {
           vstK != null
             ? `${vstK.da_tuan_thu.toLocaleString()}/${vstK.tong_co_hoi.toLocaleString()} cơ hội`
             : null,
-        statsHref: "/thong-ke/vst",
+        statsHref: vstHref,
       };
     }
     const row = pickBkRow(input.gsc, entry.catalogMaBk!);
@@ -54,7 +63,7 @@ export function buildVeSinhTayKpiCards(input: {
         row != null
           ? `${row.tong_dat.toLocaleString()}/${row.tong_quan_sat.toLocaleString()} đạt · ${row.tong_phien} phiên`
           : null,
-      statsHref: buildGscAnalyticsDeepLink({}, entry.catalogMaBk!),
+      statsHref: buildGscAnalyticsDeepLink(seed, entry.catalogMaBk!),
     };
   });
 }

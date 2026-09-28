@@ -121,3 +121,14 @@ Neo: domain §2.1 (tối đa 3 đối tượng; tuân thủ tối đa 2 chỉ đ
 | P0 đếm | «Đúng kỹ thuật» và «Đủ thời gian» chia `da_tuan_thu` (đã rửa/chà). «Lạm dụng găng» chia `bo_sot`. Trước đó app chia mọi `tong_co_hoi` nên bản in và fold Nâng cao thấp hơn RPC khi có bỏ sót. Tuân thủ vẫn `đạt / tong_co_hoi`, 1 chữ số. `do_lech` = tự GS − chuyên trách sau khi mỗi tỷ lệ đã làm tròn 1 chữ số. |
 | P0 sửa | Sửa phiên chỉ xóa cơ hội cũ sau khi đã dựng dòng mới. Insert lỗi thì ghi lại dòng cũ — KPI không về 0 vì phiếu sửa dở. Header phiên cập nhật sau khi cơ hội mới đã vào. |
 | Park | Biểu đồ thời điểm tách chỉ định WHO (một cơ hội 2 mốc đếm 2 trên moments, 1 trên `tong_co_hoi`) — đúng RPC, không gộp. Xóa vẫn cứng, không soft-delete (không migrate). CCS không cộng NKBV. |
+
+## BCTH sâu
+
+Neo: bản ký `/bao-cao-tong-hop` chỉ đọc. KPI VST/GSC lấy counts đã chuẩn hóa ở lát VST/GSC (`normalizeVstStrategicPercents` / `normalizeGscStrategicPercents`), rồi `computeTyLeVst` (1 chữ số) và `computeTyLeGsc` (2 chữ số). NKBV = `ti_le_xac_nhan_so_voi_pa` nguyên từ aggregate (làm tròn số nguyên). Phụ lục CSSD = `summarizeCssdAnalyticsBrief` cùng bundle `/cssd-erp/report`. Không ghi fact GSC/VST/NKBV. Không migrate. Không đổi Domain QT. Tip trước lát: `925531b`.
+
+| | Việc |
+|---|------|
+| Cửa | Một cửa đọc: sidebar «Báo cáo chính thức» và `/` cùng redirect `/bao-cao-tong-hop`. Action `getBaoCaoTongHopAnalytics` chỉ gọi RPC/đọc strategic + bundle CSSD. Không insert/update/delete fact. In phiếu là HTML cục bộ. |
+| P0 đếm | Δ tuần và `ky_truoc` của GSC làm tròn 2 chữ số sau khi mỗi tỷ lệ đã làm tròn (66.67 − 33.33 = 33.34). Trước đó cả hai chỉ số làm tròn 1 chữ số nên bản ký hiện 33.3 cạnh tỷ lệ 66.67. VST giữ 1 chữ số. Màn hình và cột «So sánh tuần» tách hai dòng: «Δ 2 tuần» và «vs kỳ trước (dd-mm→dd-mm)». |
+| P0 cửa | «Chi tiết thống kê» trên ba KPI vệ sinh tay và trên so sánh khoa mang `tu_ngay` / `den_ngay` / `khoa_ids` của kỳ đang mở. Trước đó rơi `/thong-ke/vst` và `/thong-ke/gsc#so-sanh` không kỳ — thống kê khoa mở kỳ mặc định, số lệch bản ký. NKBV vẫn `?tab=dashboard` (tab Thống kê). Phụ lục CSSD vẫn `/cssd-erp/report?tab=volume&from=&to=` — khớp #68, không còn `/thong-ke/cssd`. |
+| Park | `fetchMucTieuKpiVien` không có caller — không gắn mũi tên mục tiêu viện lên thẻ. `ty_le_avg` chỉ để sắp xếp nội bộ, không hiện nhãn CCS. Tỷ lệ CSSD trên phụ lục là số đã làm tròn 1 chữ số từ core; màn Báo cáo CSSD `toFixed(1)` cùng số. Gap in dùng trị tuyệt đối vì hai cột tự GS và chuyên trách đã in đủ dấu. |

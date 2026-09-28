@@ -78,6 +78,19 @@ describe("buildVeSinhTayKpiCards", () => {
     expect(cards[1]!.statsHref).toContain("bk=BM.07.02");
   });
 
+  it("giữ kỳ lọc bản ký trên deep-link thống kê", () => {
+    const cards = buildVeSinhTayKpiCards({
+      vst: minimalVst(),
+      gsc: minimalGsc(),
+      filters: { tu_ngay: "2026-09-01", den_ngay: "2026-09-28", khoa_ids: ["k1"] },
+    });
+    expect(cards[0]!.statsHref).toContain("/thong-ke/vst?");
+    expect(cards[0]!.statsHref).toContain("tu_ngay=2026-09-01");
+    expect(cards[0]!.statsHref).toContain("khoa_ids=k1");
+    expect(cards[1]!.statsHref).toContain("bk=BM.07.02");
+    expect(cards[1]!.statsHref).toContain("den_ngay=2026-09-28");
+  });
+
   it("handles missing payloads", () => {
     const cards = buildVeSinhTayKpiCards({ vst: null, gsc: null });
     expect(cards.every((c) => c.tyLe == null)).toBe(true);

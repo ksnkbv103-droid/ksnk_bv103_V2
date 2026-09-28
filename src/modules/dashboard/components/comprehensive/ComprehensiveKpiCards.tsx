@@ -26,27 +26,30 @@ function DeltaLine({
   label,
   delta,
   prevRate,
+  digits,
 }: {
   label: string;
   delta: number | null;
   prevRate?: number | null;
+  digits: 1 | 2;
 }) {
   if (delta == null && prevRate == null) {
     return <span className="bv103-type-label text-slate-400">{label}: —</span>;
   }
+  const fmt = digits === 2 ? formatPercent2 : formatPercent1;
   const up = (delta ?? 0) >= 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
     <span className="bv103-type-label text-slate-500">
       <span className="mr-1">{label}:</span>
-      {prevRate != null ? <span className="mr-1 tabular-nums">{prevRate}% · </span> : null}
+      {prevRate != null ? <span className="mr-1 tabular-nums">{fmt(prevRate)} · </span> : null}
       {delta != null ? (
         <span
           className={`inline-flex items-center gap-0.5 font-medium ${up ? "text-[var(--surface-success-text)]" : "text-[var(--surface-danger-text)]"}`}
         >
           <Icon size={12} aria-hidden />
-          {up ? "+" : ""}
-          {delta}%
+          {delta > 0 ? "+" : ""}
+          {fmt(delta)}
         </span>
       ) : (
         <span>—</span>
@@ -55,24 +58,34 @@ function DeltaLine({
   );
 }
 
+function shortDayMonth(iso: string): string {
+  const [, m, d] = iso.split("-");
+  if (!m || !d) return iso;
+  return `${d}-${m}`;
+}
+
 function KpiCard({
   label,
   value,
   suffix,
+  digits,
   weekDelta,
   weekPrev,
   periodDelta,
   periodPrev,
+  periodLabel,
   note,
   volumeNote,
 }: {
   label: string;
   value: string;
   suffix?: string;
+  digits: 1 | 2;
   weekDelta?: number | null;
   weekPrev?: number | null;
   periodDelta?: number | null;
   periodPrev?: number | null;
+  periodLabel?: string | null;
   note?: string | null;
   volumeNote?: string | null;
 }) {
@@ -87,8 +100,13 @@ function KpiCard({
       </p>
       {volumeNote ? <p className="mt-[var(--bv103-space-1)] bv103-type-label font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
       {weekDelta != null || periodDelta != null ? (
-        <div className="mt-[var(--bv103-space-1)]">
-          <DeltaLine label="So kỳ gần" delta={periodDelta ?? weekDelta ?? null} prevRate={periodPrev ?? weekPrev} />
+        <div className="mt-[var(--bv103-space-1)] flex flex-col gap-0.5">
+          {weekDelta != null ? (
+            <DeltaLine label="Δ 2 tuần" delta={weekDelta} prevRate={weekPrev} digits={digits} />
+          ) : null}
+          {periodDelta != null && periodLabel ? (
+            <DeltaLine label={periodLabel} delta={periodDelta} prevRate={periodPrev} digits={digits} />
+          ) : null}
         </div>
       ) : null}
       {note ? <p className="mt-[var(--bv103-space-1)] bv103-type-label leading-snug opacity-80">{note}</p> : null}
@@ -111,37 +129,45 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
     payload.gsc?.kpis != null
       ? `${payload.gsc.kpis.tong_dat.toLocaleString()}/${payload.gsc.kpis.tong_quan_sat.toLocaleString()} đạt`
       : null;
+  const periodLabel = ky
+    ? `vs kỳ trước (${shortDayMonth(ky.tu_ngay)}→${shortDayMonth(ky.den_ngay)})`
+    : null;
 
   return (
     <div className="space-y-[var(--bv103-space-2)]">
       <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
         <KpiCard
           label="Vệ sinh tay"
+          digits={1}
           value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "N/A"}
           weekDelta={k?.delta_vst}
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
           periodDelta={ky?.delta_vst}
           periodPrev={ky?.ty_le_vst}
+          periodLabel={periodLabel}
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
         <KpiCard
           label="Giám sát chung"
+          digits={2}
           value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "N/A"}
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}
           periodPrev={ky?.ty_le_gsc}
+          periodLabel={periodLabel}
           volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
         />
         <KpiCard
           label="NKBV — tỷ lệ xác nhận"
+          digits={1}
           value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}
           suffix={k?.tong_phieu_nkbv != null ? `(${k.tong_phieu_nkbv} phiếu)` : undefined}
           note="Kết quả nhiễm khuẩn — tách khỏi tỷ lệ vệ sinh tay / giám sát chung"
         />
       </div>
       <p className="bv103-type-label text-slate-500">
-        Mũi tên = chênh so với kỳ gần. Xu hướng theo tuần nằm ở mục bên dưới.
+        Δ 2 tuần = hai tuần ISO liền kề trên xu hướng. Dòng kỳ trước = cùng độ dài kỳ lọc, lùi liền trước.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

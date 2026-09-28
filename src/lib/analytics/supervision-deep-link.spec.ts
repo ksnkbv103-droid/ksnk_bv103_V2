@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   appendPreservedAnalyticsQueryKeys,
+  buildSupervisionCompareDeepLink,
   parseAnalyticsUrlSeed,
   parseSupervisionTab,
   preservedAnalyticsQuerySnapshot,
@@ -21,6 +22,17 @@ describe("supervision-deep-link", () => {
       den_ngay: "2026-01-31",
       khoa_ids: ["a", "b"],
     });
+  });
+
+  it("buildSupervisionCompareDeepLink keeps the signed-report period", () => {
+    expect(buildSupervisionCompareDeepLink("vst")).toBe("/thong-ke/vst#so-sanh");
+    expect(
+      buildSupervisionCompareDeepLink("gsc", {
+        tu_ngay: "2026-09-01",
+        den_ngay: "2026-09-28",
+        khoa_ids: ["k1"],
+      }),
+    ).toBe("/thong-ke/gsc?tu_ngay=2026-09-01&den_ngay=2026-09-28&khoa_ids=k1#so-sanh");
   });
 
   it("parseAnalyticsUrlSeed rejects invalid dates", () => {

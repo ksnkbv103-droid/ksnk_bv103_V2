@@ -10,6 +10,10 @@ import {
   type ComplianceTone,
 } from "@/lib/analytics/supervision-thresholds";
 import type { ActionBoardModel, ActionBoardRankRow, ActionBoardSource } from "@/lib/analytics/supervision-action-board";
+import {
+  buildSupervisionCompareDeepLink,
+  type AnalyticsUrlSeed,
+} from "@/lib/analytics/supervision-deep-link";
 
 function fmtPct(source: ActionBoardSource, value: number | null | undefined): string {
   if (value == null || Number.isNaN(Number(value))) return "—";
@@ -158,8 +162,14 @@ export function SupervisionActionBoard({ model, loading, hint }: Props) {
 }
 
 /** Deep-link từ BCTH sang thống kê module (so sánh đa chiều theo từng phân hệ). */
-export function SupervisionActionDeepLink({ source }: { source: ActionBoardSource }) {
-  const href = source === "vst" ? "/thong-ke/vst#so-sanh" : "/thong-ke/gsc#so-sanh";
+export function SupervisionActionDeepLink({
+  source,
+  seed,
+}: {
+  source: ActionBoardSource;
+  seed?: AnalyticsUrlSeed;
+}) {
+  const href = buildSupervisionCompareDeepLink(source, seed);
   const label = source === "vst" ? "Chi tiết thống kê VST" : "Chi tiết thống kê GSC";
   return (
     <a
