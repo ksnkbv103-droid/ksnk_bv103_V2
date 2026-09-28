@@ -110,3 +110,14 @@ Neo: sidebar `sidebar-nav-groups.ts` là cổng module. Tab trong page là cửa
 | P0 sổ | `?tab=loai` và URL trống Quản trị dụng cụ vẽ **Bộ** (sheet Loại khi `?tab=loai`). Trước đó rơi xuống **Sổ rà soát** dù tab không chọn. Đóng sheet Loại về `?tab=bo`. Sổ chỉ khi `?tab=lich-su`. |
 | P0 GSC | Hub thêm hai thẻ Nhật ký vận hành và Đánh giá hệ thống. Form GSC (kể cả form gốc) có hàng link ba cửa. Một quyền GSC vẫn vào thẳng tuân thủ (bỏ click hub); từ tuân thủ bấm sang hai cửa kia. |
 | Park | Admin P2 / Auth-ban. Không thêm mục sidebar Báo cáo CSSD. Form gốc `/giam-sat-chung` vẫn một form mọi loại — hàng link đẩy sang cửa riêng, không xóa route. QLCV `?tab=DINH_KY` khi không có quyền sửa: ở Điều hành, không xóa query. `InventoryIssueModal` không caller. Domain 27 không code. |
+
+## VST sâu
+
+Neo: domain §2.1 (tối đa 3 đối tượng; tuân thủ tối đa 2 chỉ định WHO, bỏ sót 1) · một cửa `saveVSTSession` / `deleteVSTSessions` · KPI `rpc_dashboard_vst_strategic_analytics_impl` + view `v_gstt_giam_sat_vst_sessions_full` (cùng đếm dòng `gstt_fact_vst`, phiên `is_active`). BCTH đọc payload đã chuẩn hóa. Không ghi fact GSC/NKBV. Không migrate. Không đổi Domain QT.
+
+| | Việc |
+|---|------|
+| Cửa | Form và offline replay cùng `saveVSTSession`. Sửa = cùng UUID, chủ phiên, trong cửa sổ sửa. Xóa cứng phiên + cơ hội (không cửa ẩn trên UI). Zod: 1–3 đối tượng, mỗi cơ hội ≥1 thời điểm. |
+| P0 đếm | «Đúng kỹ thuật» và «Đủ thời gian» chia `da_tuan_thu` (đã rửa/chà). «Lạm dụng găng» chia `bo_sot`. Trước đó app chia mọi `tong_co_hoi` nên bản in và fold Nâng cao thấp hơn RPC khi có bỏ sót. Tuân thủ vẫn `đạt / tong_co_hoi`, 1 chữ số. `do_lech` = tự GS − chuyên trách sau khi mỗi tỷ lệ đã làm tròn 1 chữ số. |
+| P0 sửa | Sửa phiên chỉ xóa cơ hội cũ sau khi đã dựng dòng mới. Insert lỗi thì ghi lại dòng cũ — KPI không về 0 vì phiếu sửa dở. Header phiên cập nhật sau khi cơ hội mới đã vào. |
+| Park | Biểu đồ thời điểm tách chỉ định WHO (một cơ hội 2 mốc đếm 2 trên moments, 1 trên `tong_co_hoi`) — đúng RPC, không gộp. Xóa vẫn cứng, không soft-delete (không migrate). CCS không cộng NKBV. |

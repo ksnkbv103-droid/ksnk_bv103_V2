@@ -23,7 +23,9 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 ### `ty_le_vst` / `ty_le_gsc`
 
 - **Công thức:** `round((đạt / tổng) × 100, 1 chữ số thập phân)` — **VST**
-- **VST mẫu số:** `tong_co_hoi`
+- **VST mẫu số:** `tong_co_hoi` (một dòng `gstt_fact_vst` = một cơ hội, không tách chỉ định WHO)
+- **Đúng kỹ thuật / đủ thời gian:** mẫu số `da_tuan_thu` (đã rửa hoặc chà). Bỏ sót không vào mẫu.
+- **Lạm dụng găng:** mẫu số `bo_sot`.
 - **GSC mẫu số:** `tong_quan_sat` — **2 chữ số thập phân** (`Đạt ÷ tiêu chí có áp dụng`, loại NA). Nhật ký không hiện %.
 - **Spec change 2026-08-24:** `ty_le_gsc` trên form / lịch sử / in / thống kê GSC / BCTH thống nhất 2 chữ số từ counts; `ty_le_vst` giữ 1 chữ số.
 - **Spec change 2026-08-22:** `ty_le_gsc` trên điều hành / BCTH / thống kê mặc định **chỉ** bảng kiểm loại tuân thủ (`TUAN_THU` hoặc `loai_giam_sat` trống). Nhật ký vận hành và đánh giá hệ thống không vào mẫu số trừ khi người dùng chọn đúng chuyên đề / `?loai=`.
@@ -52,7 +54,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 | **TGS** | Tự giám sát khoa lâm sàng (`vol_tgs`, `ty_le_tgs`) — **nhãn UI/in:** tự giám sát |
 | **Comparable** | `vol_tgs > 0` **và** `vol_ksnk > 0` trong cùng kỳ/lọc |
 | **Loại trừ** | Mã RPC «Chưa TGS» / «Chưa KSNK» / «Chưa triển khai» — UI: «Chưa tự giám sát» / «Chưa chuyên trách» |
-| **`do_lech`** | Từ RPC `gap_analysis` — chênh % tự giám sát vs chuyên trách (mã `ty_le_tgs` / `ty_le_ksnk`) |
+| **`do_lech`** | Tự giám sát − chuyên trách, sau khi mỗi tỷ lệ đã làm tròn từ đếm (VST 1 chữ số, GSC 2 chữ số) |
 
 ---
 

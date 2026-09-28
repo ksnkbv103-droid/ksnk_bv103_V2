@@ -71,5 +71,27 @@ describe("normalizeVstStrategicPercents", () => {
     const out = normalizeVstStrategicPercents(p);
     expect(out.gap_analysis[0]?.ty_le_tgs).toBe(66.7);
     expect(out.gap_analysis[0]?.ty_le_ksnk).toBe(33.3);
+    expect(out.gap_analysis[0]?.do_lech).toBe(33.4);
+  });
+
+  it("kỹ thuật và găng dùng mẫu số RPC, không chia mọi cơ hội", () => {
+    const p = emptyPayload();
+    p.kpis = {
+      ...p.kpis,
+      tong_co_hoi: 3,
+      da_tuan_thu: 2,
+      bo_sot: 1,
+      dung_ky_thuat: 1,
+      du_thoi_gian: 2,
+      lam_dung_gang: 1,
+      ty_le_dung_ky_thuat: 33.3,
+      ty_le_du_thoi_gian: 66.7,
+      ty_le_lam_dung_gang: 33.3,
+    };
+    const out = normalizeVstStrategicPercents(p);
+    expect(out.kpis.ty_le_tuan_thu).toBe(66.7);
+    expect(out.kpis.ty_le_dung_ky_thuat).toBe(50);
+    expect(out.kpis.ty_le_du_thoi_gian).toBe(100);
+    expect(out.kpis.ty_le_lam_dung_gang).toBe(100);
   });
 });

@@ -28,6 +28,9 @@ import { vstSaveSessionSchema } from "@/lib/validations/giam-sat-vst.validations
 
 type SaveVSTSessionOpts = { existingSessionId?: string | null };
 
+const VST_OBS_RESTORE_COLUMNS =
+  "id, session_id, nhan_vien_id, khoa_id, vi_tri, ngay_giam_sat, thoi_diem, hanh_dong, dung_ky_thuat, du_thoi_gian, co_deo_gang, thoi_gian_ghi_nhan, ghi_chu, khu_vuc_id, nghe_nghiep_id, metadata, created_at";
+
 /** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) — chỉ chủ phiên, trong 30 phút. */
 export async function saveVSTSession(
   sessionData: SessionInput,
@@ -37,6 +40,8 @@ export async function saveVSTSession(
   const supabase = createAdminSupabaseClient();
   const existingSessionId = String(opts?.existingSessionId ?? "").trim();
   let createdSessionId: string | null = null;
+  let pendingObservationRestore = false;
+  let previousObservationRows: Record<string, unknown>[] | null = null;
   try {
     // 1. Validate permissions
     await verifyPermission("GIAM_SAT_VST", existingSessionId ? "edit" : "create");
@@ -157,18 +162,6 @@ export async function saveVSTSession(
         }
       }
 
-      const { error: delObsErr } = await supabase.from("gstt_fact_vst").delete().eq("session_id", existingSessionId);
-      if (delObsErr) throw delObsErr;
-
-      const { error: upErr } = await supabase
-        .from("gstt_fact_vst_sessions")
-        .update({
-          ...sessionRowPayload,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingSessionId);
-      if (upErr) throw upErr;
-
       sessionId = existingSessionId;
     } else {
       const { data: session, error: sessionError } = await supabase
@@ -235,11 +228,35 @@ export async function saveVSTSession(
 
     logVstSaveDebug(`Chuẩn bị insert ${recordsToInsert.length} cơ hội`);
 
+    if (existingSessionId) {
+      const { data: prevRows, error: prevErr } = await supabase
+        .from("gstt_fact_vst")
+        .select(VST_OBS_RESTORE_COLUMNS)
+        .eq("session_id", existingSessionId);
+      if (prevErr) throw prevErr;
+      previousObservationRows = (prevRows ?? []) as Record<string, unknown>[];
+      const { error: delObsErr } = await supabase.from("gstt_fact_vst").delete().eq("session_id", existingSessionId);
+      if (delObsErr) throw delObsErr;
+      pendingObservationRestore = true;
+    }
+
     const { error: obsError } = await supabase.from("gstt_fact_vst").insert(recordsToInsert);
 
     if (obsError) {
       if (process.env.NODE_ENV !== "production") console.error("[VST save] Lỗi insert observations:", obsError.message);
       throw obsError;
+    }
+    pendingObservationRestore = false;
+
+    if (existingSessionId) {
+      const { error: upErr } = await supabase
+        .from("gstt_fact_vst_sessions")
+        .update({
+          ...sessionRowPayload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingSessionId);
+      if (upErr) throw upErr;
     }
 
     logVstSaveDebug("Insert observations xong");
@@ -250,6 +267,12 @@ export async function saveVSTSession(
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {
       console.error("[VST save] Lỗi:", error instanceof Error ? error.message : error);
+    }
+    if (pendingObservationRestore && previousObservationRows?.length) {
+      const { error: restoreErr } = await supabase.from("gstt_fact_vst").insert(previousObservationRows);
+      if (restoreErr && process.env.NODE_ENV !== "production") {
+        console.error("[VST save] Không khôi phục được cơ hội cũ:", restoreErr.message);
+      }
     }
     if (createdSessionId && !existingSessionId) {
       await supabase.from("gstt_fact_vst_sessions").delete().eq("id", createdSessionId);
