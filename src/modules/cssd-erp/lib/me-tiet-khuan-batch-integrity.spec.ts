@@ -3,6 +3,7 @@ import { assertSteamKitHeatAllowed } from "./me-tiet-khuan-batch-heat";
 import {
   derivePassQuyTrinhIds,
   rejectIfMachineHasOpenBatch,
+  rejectParentBoWithSub,
   rejectStartMember,
 } from "./me-tiet-khuan-batch-integrity";
 
@@ -87,5 +88,14 @@ describe("rejectStartMember", () => {
     expect(
       rejectStartMember({ maQr: "B01.SET.1", tram: "DONG_GOI", isActive: true, isDongBang: false }),
     ).toBeNull();
+  });
+});
+
+describe("rejectParentBoWithSub", () => {
+  it("chặn MAIN hoặc khi còn SUB; bộ thường cho nạp", () => {
+    expect(rejectParentBoWithSub({ maVaiTroBo: "MAIN", hasActiveSub: false })).toMatch(/thành phần/);
+    expect(rejectParentBoWithSub({ maVaiTroBo: "SUB", hasActiveSub: true })).toMatch(/thành phần/);
+    expect(rejectParentBoWithSub({ maVaiTroBo: null, hasActiveSub: false })).toBeNull();
+    expect(rejectParentBoWithSub({ maVaiTroBo: "SUB", hasActiveSub: false })).toBeNull();
   });
 });

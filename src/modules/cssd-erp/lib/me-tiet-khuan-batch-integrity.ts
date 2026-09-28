@@ -64,9 +64,9 @@ export function rejectStartMember(member: StartMemberCheck): string | null {
 }
 
 /**
- * Bộ mẹ đã tách SUB không vào mẻ — chỉ bộ thành phần.
- * Schema không có `parent_bo_id`: liên kết là `ma_vai_tro_bo = MAIN`
- * hoặc quy trình con `quy_trinh_cha_id` + `ma_vai_tro_bo = SUB`.
+ * Bộ mẹ đã tách SUB trên quy trình không vào mẻ — chỉ bộ thành phần.
+ * Cổng này đọc `ma_vai_tro_bo = MAIN` hoặc quy trình con còn `SUB`.
+ * Catalog L04 (`parent_bo_id` / `vai_tro_tach`) là lớp danh mục khác — không chặn nạp tại đây.
  */
 export function rejectParentBoWithSub(input: {
   maVaiTroBo?: string | null;
