@@ -1,8 +1,8 @@
 "use server";
-import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
 import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
 import { lockedSystemLookupMutateError } from "@/lib/master-data/locked-system-lookups";
+import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
@@ -74,6 +74,8 @@ export async function upsertGenericDmAction(
   if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
+  const locked = rejectLockedLookupWrite(loaiDanhMuc);
+  if (locked) return locked;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   const payload = buildMigratedUpsertPayload(reg, {
@@ -90,6 +92,8 @@ export async function toggleGenericDmAction(loaiDanhMuc: string, id: string, cur
   if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
+  const locked = rejectLockedLookupWrite(loaiDanhMuc);
+  if (locked) return locked;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   return toggleMasterStatus(reg.sourceTable, id, currentActive);
@@ -101,6 +105,8 @@ export async function softDeleteGenericDmAction(loaiDanhMuc: string, id: string)
   if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
+  const locked = rejectLockedLookupWrite(loaiDanhMuc);
+  if (locked) return locked;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   return softDeleteMasterRow(reg.sourceTable, id);
@@ -112,6 +118,8 @@ export async function softDeleteManyGenericDmAction(loaiDanhMuc: string, ids: st
   if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
+  const locked = rejectLockedLookupWrite(loaiDanhMuc);
+  if (locked) return locked;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };

@@ -4,6 +4,10 @@ import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-a
 import { lockedSystemLookupMutateError } from "@/lib/master-data/locked-system-lookups";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
+import {
+  isLockedSystemLookup,
+  LOCKED_SYSTEM_LOOKUP_WRITE_ERROR,
+} from "@/lib/master-data/locked-system-lookups";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import { buildMigratedUpsertPayload } from "@/lib/master-data/danh-muc-routing";
 import { listMasterRows, softDeleteManyMasterRows, upsertMasterRow } from "./master-crud-core";
@@ -51,6 +55,9 @@ export async function importGenericDmExcelAction(
     if (lockedError) return { success: false as const, error: lockedError };
     const dedicatedError = genericDmMustUseDedicatedPageError(loaiDanhMuc);
     if (dedicatedError) return { success: false as const, error: dedicatedError };
+    if (isLockedSystemLookup(loaiDanhMuc)) {
+      return { success: false as const, error: LOCKED_SYSTEM_LOOKUP_WRITE_ERROR };
+    }
     const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
     if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
     if (!Array.isArray(data) || data.length === 0) {
