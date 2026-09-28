@@ -167,5 +167,5 @@ Nhánh `cursor/cssd-dong-goi-ton-9e1e` từ `209b5d6`. Không push / migrate. Ch
 
 | | Việc |
 |---|------|
-| P0 | Hết cắt 120/500 (chờ mẻ) và 5000 (bản đồ trạm) và trang 1000 mặc định của hàng chờ. `is_active=false` / thu hồi không vào các query này. |
+| P0 | `5e92b52` — hết cắt 120/500 (chờ mẻ) và 5000 (bản đồ trạm) và trang 1000 mặc định của hàng chờ. `is_active=false` / thu hồi không vào các query này. |
 | Park | Đổi QT/QĐ/CDC hoặc nới scan-only. Ghi sự cố / tách nhiệt trên trạm Đóng gói. `InventoryIssueModal`. Auth-ban. GSC-L05. RPC kho chip không trả từng trạm — đếm trạm vẫn trên view active, không thêm migration. |
