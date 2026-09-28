@@ -190,7 +190,7 @@ export function useMeTietKhuanWorkflow() {
     };
     const [g, w, m] = await Promise.all([
       fetchCssdBatchWorkflowState(activeMe.id),
-      napLocked ? Promise.resolve(waitingStub) : fetchCssdTietKhuanWaitingRows(120, activeMe.id),
+      napLocked ? Promise.resolve(waitingStub) : fetchCssdTietKhuanWaitingRows(undefined, activeMe.id),
       fetchCssdBatchMembers(activeMe.id),
     ]);
     if (g.success) setBatchGate(g.data);

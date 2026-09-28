@@ -153,3 +153,19 @@ Neo: hồ sơ `v_mdm_nhan_su_full` (cột `is_active`, `auth_user_id`, `extra_da
 | P0 đếm | Số «Phiếu chờ duyệt» đếm hồ sơ `extra_data` chờ duyệt — cùng lọc `?pending=1`. Trước đó đếm mọi dòng `sys_account_access_request` status chờ, kể cả phiếu không có trên danh sách. Tìm trên danh sách chờ lấy `total` từ cùng query (hết đếm lại trên một trang). Thẻ «chưa có tài khoản» đếm `is_active` và `auth_user_id` null trên view, đầu không cắt 1000 dòng. `?chuaTk=1` mở đúng tập đó. |
 | P0 cửa | Link thẻ hết `/tai-khoan-nhan-su` (redirect sang cả danh sách Nhân sự). «Bộ thiếu mã chuẩn» mở `?tab=bo` (trước đó URL trống Quản trị dụng cụ = tab Loại). Dropdown vai trò chỉ 4 vai trò đang hoạt động, nhãn tiếng Việt; danh sách map `sys_roles.name` cùng nhãn. |
 | Park | Auth-ban khi khóa hồ sơ. Dual-admin duyệt tự đặt lại MK. Đổi model RBAC. Xóa file orphan `TaiKhoanNhanSuPage`. Phiếu trên bảng `sys_account_access_request` lệch `extra_data` không hiện số (số theo danh sách). Thẻ khoa / bảng kiểm vẫn đếm trên payload đã tải. |
+
+## CSSD Đóng gói / tồn chu trình sâu
+
+Nhánh `cursor/cssd-dong-goi-ton-9e1e` từ `209b5d6`. Không push / migrate. Chưa UAT đăng nhập.
+
+| Cửa | Ghi / đọc |
+|-----|-----------|
+| `/cssd-quy-trinh` trạm Đóng gói | Quét → `prepareDongGoiBomGateScan` → thẻ `gateMode` → `confirmDongGoiAdvance` → `scanQR` DONG_GOI. Không BOM / tách / vật liệu trên trạm. |
+| Chờ đóng gói | `getWaitingListByStation("DONG_GOI")` đọc fact còn `is_active` ở trạm QC. |
+| Chờ tiệt khuẩn | `fetchCssdTietKhuanWaitingRows` đọc fact Đóng gói, chưa mẻ, `is_active`. |
+| Đếm trạm | `getCssdStationFlowMap` trên view active (cùng luật `is_active` với `rpc_cssd_kho_station_counts`). |
+
+| | Việc |
+|---|------|
+| P0 | Hết cắt 120/500 (chờ mẻ) và 5000 (bản đồ trạm) và trang 1000 mặc định của hàng chờ. `is_active=false` / thu hồi không vào các query này. |
+| Park | Đổi QT/QĐ/CDC hoặc nới scan-only. Ghi sự cố / tách nhiệt trên trạm Đóng gói. `InventoryIssueModal`. Auth-ban. GSC-L05. RPC kho chip không trả từng trạm — đếm trạm vẫn trên view active, không thêm migration. |

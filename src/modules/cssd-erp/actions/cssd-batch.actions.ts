@@ -44,7 +44,7 @@ import {
   partitionWaitingKitsByMethod,
   rejectRemoveKitFromBatch,
 } from "../lib/me-tiet-khuan-batch-heat";
-import { parseUsedClinicallyFromMetadata } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
+import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 
 async function requireSessionActorId(): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
   try {
@@ -74,38 +74,50 @@ export async function fetchCssdMeListData() {
   }
 }
 
-/** Bộ đang ĐÓNG GÓI, chưa gán mẻ. Có batchId thì chỉ trả bộ hợp phương pháp máy của mẻ. */
-export async function fetchCssdTietKhuanWaitingRows(limit = 120, batchId?: string) {
+/** Bộ đang ĐÓNG GÓI, chưa gán mẻ, còn hiệu lực. Đọc hết trang — không cắt 120/500. */
+export async function fetchCssdTietKhuanWaitingRows(_ignoredCap?: number, batchId?: string) {
   try {
     await verifyCssdBatchView();
     const supabase = createAdminSupabaseClient();
-    const cap = Math.min(Math.max(Number(limit) || 120, 1), 500);
     const dongGoiId = await resolveCssdTramId(supabase, "DONG_GOI");
     if (!dongGoiId) return { success: true as const, data: [], hiddenIncompatible: 0 };
-    const { data, error } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, is_dong_bang, lo_tiet_khuan_id")
-      .eq("tram_hien_tai_id", dongGoiId)
-      .is("lo_tiet_khuan_id", null)
-      .eq("is_active", true)
-      .order("updated_at", { ascending: true })
-      .limit(cap);
-    if (error) {
-      return { success: false as const, error: mapFkError(error.message), data: [] as unknown[], hiddenIncompatible: 0 };
-    }
-    const raw = (data || []) as Array<{
+    type WaitingFact = {
       id: string;
       ma_qr_quy_trinh?: string | null;
       bo_dung_cu_id?: string | null;
       updated_at?: string | null;
       is_dong_bang?: boolean | null;
       lo_tiet_khuan_id?: string | null;
-    }>;
+    };
+    const raw: WaitingFact[] = [];
+    let from = 0;
+    for (;;) {
+      const { data, error } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, is_dong_bang, lo_tiet_khuan_id")
+        .eq("tram_hien_tai_id", dongGoiId)
+        .is("lo_tiet_khuan_id", null)
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, from + CSSD_ACTIVE_PAGE_SIZE - 1);
+      if (error) {
+        return { success: false as const, error: mapFkError(error.message), data: [] as unknown[], hiddenIncompatible: 0 };
+      }
+      const chunk = (data || []) as WaitingFact[];
+      raw.push(...chunk);
+      const next = nextActivePageFrom(chunk.length, from);
+      if (next == null) break;
+      from = next;
+    }
     const boIds = [...new Set(raw.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
-    let boMap = new Map<string, { ten_bo?: string | null }>();
-    if (boIds.length) {
-      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
-      boMap = new Map((bos || []).map((x: { id: string; ten_bo?: string | null }) => [String(x.id), x]));
+    const boMap = new Map<string, { ten_bo?: string | null }>();
+    for (let i = 0; i < boIds.length; i += 200) {
+      const slice = boIds.slice(i, i + 200);
+      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ten_bo").in("id", slice);
+      for (const x of bos || []) {
+        const row = x as { id: string; ten_bo?: string | null };
+        boMap.set(String(row.id), row);
+      }
     }
     const mapped = raw.map((x) => ({
       id: x.id,
@@ -130,22 +142,24 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120, batchId?: strin
     }
     const gate = meRow as { phuong_phap?: string | null; thiet_bi?: unknown };
     const method = getSterilizerMethod({ phuong_phap: gate.phuong_phap }) || getSterilizerMethod(gate.thiet_bi);
-    const heat = await loadKitHeatLinesByBoIds(
-      supabase,
-      eligible.map((row) => String(row.bo_dung_cu_id || "")),
-    );
-    if (!heat.ok) {
-      return {
-        success: false as const,
-        error: "Không kiểm tra được chịu nhiệt — đã chặn thao tác.",
-        data: [] as unknown[],
-        hiddenIncompatible: eligible.length,
-      };
+    const heatIds = eligible.map((row) => String(row.bo_dung_cu_id || ""));
+    const heatByBo = new Map<string, { is_chiu_nhiet: boolean | null }[]>();
+    for (let i = 0; i < heatIds.length; i += 200) {
+      const heat = await loadKitHeatLinesByBoIds(supabase, heatIds.slice(i, i + 200));
+      if (!heat.ok) {
+        return {
+          success: false as const,
+          error: "Không kiểm tra được chịu nhiệt — đã chặn thao tác.",
+          data: [] as unknown[],
+          hiddenIncompatible: eligible.length,
+        };
+      }
+      for (const [boId, lines] of heat.byBo) heatByBo.set(boId, lines);
     }
     const part = partitionWaitingKitsByMethod(eligible, method, (row) => {
       const boId = String(row.bo_dung_cu_id || "").trim();
       if (!boId) return { lines: [] };
-      return { lines: heat.byBo.get(boId) ?? [] };
+      return { lines: heatByBo.get(boId) ?? [] };
     });
     return { success: true as const, data: part.visible, hiddenIncompatible: part.hiddenCount };
   } catch (e: unknown) {
