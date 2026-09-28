@@ -113,7 +113,7 @@ Neo: sidebar `sidebar-nav-groups.ts` là cổng module. Tab trong page là cửa
 
 ## VST sâu
 
-Neo: domain §2.1 (tối đa 3 đối tượng; tuân thủ tối đa 2 chỉ định WHO, bỏ sót 1) · một cửa `saveVSTSession` / `deleteVSTSessions` · KPI `rpc_dashboard_vst_strategic_analytics_impl` + view `v_gstt_giam_sat_vst_sessions_full` (cùng đếm dòng `gstt_fact_vst`, phiên `is_active`). BCTH đọc payload đã chuẩn hóa. Không ghi fact GSC/NKBV. Không migrate. Không đổi Domain QT.
+Neo: domain §2.1 (tối đa 3 đối tượng; tuân thủ tối đa 2 chỉ định WHO, bỏ sót 1) · một cửa `saveVSTSession` / `deleteVSTSessions` · KPI `rpc_dashboard_vst_strategic_analytics_impl` + view `v_gstt_giam_sat_vst_sessions_full` (cùng đếm dòng `gstt_fact_vst`, phiên `is_active`). BCTH đọc payload đã chuẩn hóa. Không ghi fact GSC/NKBV. Không migrate. Không đổi Domain QT. Commit lát: `f8eae1d`.
 
 | | Việc |
 |---|------|
