@@ -93,7 +93,7 @@ Neo: form `saveGiamSatChung` / `deleteGiamSatChungSessions` · view live `gstt_f
 
 ## Workflows sâu
 
-Neo: sidebar `sidebar-nav-groups.ts` là cổng module. Tab trong page là cửa thao tác. Domain 27 không đụng (trạm QC đã là «Kiểm bộ», không có route riêng). Không migrate. Không đổi Domain QT. Tip trước lát: `ff4afee`.
+Neo: sidebar `sidebar-nav-groups.ts` là cổng module. Tab trong page là cửa thao tác. Domain 27 không đụng (trạm QC đã là «Kiểm bộ», không có route riêng). Không migrate. Không đổi Domain QT. Tip trước lát: `ff4afee`. Commit lát: `689c231`.
 
 | Cửa nhân viên | Đường |
 |---------------|--------|
