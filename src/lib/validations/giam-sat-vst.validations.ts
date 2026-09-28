@@ -100,6 +100,20 @@ const vstSessionSchema = z.object({
   thoi_gian_ket_thuc: z.string().nullable().optional(),
   ghi_chu: z.string().optional(),
   is_active: z.boolean().default(true),
+  /** Soft: Bổ sung NB tùy chọn — tắt mặc định, không reject khi off. */
+  is_bo_sung_nguoi_benh: z.boolean().optional(),
+  ma_benh_an: z.string().max(200).optional(),
+  ma_nguoi_benh: z.string().max(200).optional(),
+  ten_nguoi_benh: z.string().max(300).optional(),
+  so_giuong_nguoi_benh: z.string().max(120).optional(),
+  bn_tho_may: z.boolean().optional(),
+  bn_phau_thuat: z.boolean().optional(),
+  bn_cvc: z.boolean().optional(),
+  bn_foley: z.boolean().optional(),
+  bn_nhiem_mdro: z.boolean().optional(),
+  bn_mdro_phenotype: z.string().max(120).optional(),
+  bn_nhiem_tac_nhan_nguy_hiem: z.boolean().optional(),
+  bn_tac_nhan_nguy_hiem_ten: z.string().max(300).optional(),
 });
 
 export const vstSaveSessionSchema = z

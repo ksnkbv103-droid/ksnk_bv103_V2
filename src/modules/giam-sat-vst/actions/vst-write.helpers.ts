@@ -24,6 +24,20 @@ export type SessionInput = {
   hinh_thuc_id?: string | null;
   cach_thuc_giam_sat?: string | null;
   cach_thuc_id?: string | null;
+  /** Optional NB — Soft parity GSC; default off không reject. */
+  is_bo_sung_nguoi_benh?: boolean;
+  ma_benh_an?: string;
+  ma_nguoi_benh?: string;
+  ten_nguoi_benh?: string;
+  so_giuong_nguoi_benh?: string;
+  bn_tho_may?: boolean;
+  bn_phau_thuat?: boolean;
+  bn_cvc?: boolean;
+  bn_foley?: boolean;
+  bn_nhiem_mdro?: boolean;
+  bn_mdro_phenotype?: string;
+  bn_nhiem_tac_nhan_nguy_hiem?: boolean;
+  bn_tac_nhan_nguy_hiem_ten?: string;
 };
 export function vstWriteErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Lỗi không xác định";

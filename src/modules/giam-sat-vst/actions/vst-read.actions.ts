@@ -5,7 +5,12 @@ import { verifyPermission } from "@/lib/server-permission";
 import { buildDisplayMaps, toDistinctIds, mapDanhMucOptions } from "@/lib/master-data/gateway";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
-import { VST_OBSERVATION_FULL_VIEW_SELECT, VST_SESSIONS_FULL_VIEW_SELECT } from "../lib/vst-read-view-select";
+import {
+  VST_OBSERVATION_FULL_VIEW_SELECT,
+  VST_SESSIONS_FULL_VIEW_SELECT,
+  VST_SESSIONS_FULL_VIEW_SELECT_WITH_NB,
+} from "../lib/vst-read-view-select";
+import { isVstSessionsMetadataColumnMissing } from "../lib/vst-bo-sung-nguoi-benh";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { applyVstHistoryReadScope, assertVstHistoryAccess } from "../lib/vst-read-scope";
@@ -112,14 +117,29 @@ export async function getVSTSessionDetail(sessionId: string) {
 
     const supabase = createAdminSupabaseClient();
 
-    // 1. Fetch Session Metadata from View (Smart DB pattern)
-    const { data: sessionView, error: sErr } = await supabase
-      .from("v_gstt_giam_sat_vst_sessions_full")
-      .select(VST_SESSIONS_FULL_VIEW_SELECT)
-      .eq("id", sessionId)
-      .single();
-
-    if (sErr) throw sErr;
+    // 1. Fetch Session Metadata from View (Smart DB pattern).
+    // Soft-safe: thử WITH_NB (sau migrate); nếu view chưa có cột → fallback BASE.
+    let sessionView: Record<string, unknown> | null = null;
+    {
+      const withNb = await supabase
+        .from("v_gstt_giam_sat_vst_sessions_full")
+        .select(VST_SESSIONS_FULL_VIEW_SELECT_WITH_NB)
+        .eq("id", sessionId)
+        .single();
+      if (withNb.error && isVstSessionsMetadataColumnMissing(withNb.error)) {
+        const base = await supabase
+          .from("v_gstt_giam_sat_vst_sessions_full")
+          .select(VST_SESSIONS_FULL_VIEW_SELECT)
+          .eq("id", sessionId)
+          .single();
+        if (base.error) throw base.error;
+        sessionView = (base.data as Record<string, unknown> | null) ?? null;
+      } else if (withNb.error) {
+        throw withNb.error;
+      } else {
+        sessionView = (withNb.data as Record<string, unknown> | null) ?? null;
+      }
+    }
     if (!sessionView) throw new Error("Không tìm thấy phiên giám sát.");
 
     if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {

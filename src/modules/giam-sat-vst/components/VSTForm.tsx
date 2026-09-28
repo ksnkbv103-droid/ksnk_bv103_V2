@@ -17,6 +17,7 @@ import { resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legac
 import type { VSTFormPerson } from "../hooks/useVSTFormHandlers";
 import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { useEntityQrImage } from "@/hooks/useEntityQr";
+import { parseVstBoSungNbFromSessionRow } from "../lib/vst-bo-sung-nguoi-benh";
 
 type VstEditDetail = {
   session: Record<string, unknown>;
@@ -123,6 +124,7 @@ export default function VSTForm({
       const hinhDm = hinhThucGiamSats.find((h) => String(h.ten_danh_muc ?? "").trim() === hinhLabel);
       const cachDm = cachThucGiamSats.find((c) => String(c.ten_danh_muc ?? "").trim() === cach);
 
+      const nbHydrate = parseVstBoSungNbFromSessionRow(sess as Record<string, unknown>);
       setSession((prev) => ({
         ...prev,
         khoa_id: String(sess.khoa_id ?? ""),
@@ -136,6 +138,7 @@ export default function VSTForm({
         ngay_giam_sat: String(sess.ngay_giam_sat ?? prev.ngay_giam_sat ?? new Date().toISOString().split("T")[0]),
         thoi_gian_bat_dau: String(sess.thoi_gian_bat_dau ?? prev.thoi_gian_bat_dau ?? ""),
         thoi_gian_ket_thuc: String(sess.thoi_gian_ket_thuc ?? prev.thoi_gian_ket_thuc ?? ""),
+        ...nbHydrate,
       }));
 
       const obs = editDetail.observations || [];
@@ -300,6 +303,7 @@ export default function VSTForm({
             showGiamSatCaNhan={false}
             lockedSupervisorHoSoId={currentHoSoId}
             suppressStaffIdentityBanner={masterDataFetchFailed}
+            showBoSungNguoiBenhToggle
             hinhThucGiamSats={hinhThucGiamSats}
             cachThucGiamSats={cachThucGiamSats}
             moduleContext="vst"

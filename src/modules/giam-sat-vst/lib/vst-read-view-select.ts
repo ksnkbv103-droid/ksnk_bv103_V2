@@ -1,9 +1,19 @@
 /**
  * View `v_gstt_giam_sat_vst_sessions_full` + `v_gstt_giam_sat_vst_full`.
  * Literal `as const` để Supabase suy luận Result.
+ *
+ * Soft: NB columns chỉ có sau migrate `20260928170000_vst_sessions_metadata_bo_sung_nb`.
+ * List/history dùng BASE (không vỡ trước migrate). Detail thử WITH_NB rồi fallback.
  */
-export const VST_SESSIONS_FULL_VIEW_SELECT =
+export const VST_SESSIONS_FULL_VIEW_SELECT_BASE =
   "id,khoa_id,khu_vuc_id,vi_tri_cu_the,hinh_thuc_id,cach_thuc_id,hinh_thuc_giam_sat,cach_thuc_giam_sat,ma_hinh_thuc_giam_sat,ma_cach_thuc_giam_sat,ten_hinh_thuc_danh_muc,ten_cach_thuc_danh_muc,nguoi_giam_sat_id,thoi_gian_bat_dau,thoi_gian_ket_thuc,ngay_giam_sat,created_at,updated_at,is_active,is_seen,ma_khoa_phong,ten_khoa_phong,ten_khu_vuc_giam_sat,ten_nguoi_giam_sat,tong_co_hoi,da_tuan_thu" as const;
+
+/** Sau Soft migrate — flatten NB từ metadata. */
+export const VST_SESSIONS_FULL_VIEW_SELECT_WITH_NB =
+  `${VST_SESSIONS_FULL_VIEW_SELECT_BASE},is_bo_sung_nguoi_benh,ma_benh_an,ma_nguoi_benh,ten_nguoi_benh,so_giuong_nguoi_benh` as const;
+
+/** Alias list/history — BASE an toàn trước migrate. */
+export const VST_SESSIONS_FULL_VIEW_SELECT = VST_SESSIONS_FULL_VIEW_SELECT_BASE;
 
 /** Đọc dòng quan sát — nhãn khu_vuc/nghe_nghiep từ JOIN (alias trên view). */
 export const VST_OBSERVATION_FULL_VIEW_SELECT =

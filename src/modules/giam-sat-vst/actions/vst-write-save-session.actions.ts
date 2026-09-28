@@ -22,6 +22,10 @@ import {
   validateVstModeFields,
   vstWriteErrorMessage,
 } from "./vst-write.helpers";
+import {
+  buildVstBoSungNbMetadata,
+  isVstSessionsMetadataColumnMissing,
+} from "../lib/vst-bo-sung-nguoi-benh";
 
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { vstSaveSessionSchema } from "@/lib/validations/giam-sat-vst.validations";
@@ -125,7 +129,8 @@ export async function saveVSTSession(
       existingSessionId: existingSessionId || null,
     });
 
-    const sessionRowPayload = {
+    const patientMetadata = buildVstBoSungNbMetadata(sessionData);
+    const sessionRowBase = {
       khoa_id: khoaSessionNorm,
       khu_vuc_id: lockedKhuVucId,
       vi_tri_cu_the: sessionData.vi_tri,
@@ -135,6 +140,51 @@ export async function saveVSTSession(
       ngay_giam_sat: ngayGiamSat,
       thoi_gian_bat_dau: sessionData.thoi_gian_bat_dau || null,
       thoi_gian_ket_thuc: sessionData.thoi_gian_ket_thuc || null,
+    };
+    /** Soft-safe: ghi metadata khi cột đã migrate; nếu thiếu cột → bỏ metadata, không reject. */
+    let sessionRowPayload: Record<string, unknown> = {
+      ...sessionRowBase,
+      metadata: patientMetadata,
+    };
+    let omitSessionMetadata = false;
+
+    const persistSessionRow = async (mode: "insert" | "update", sessionIdForUpdate?: string) => {
+      const payload = omitSessionMetadata
+        ? { ...sessionRowBase }
+        : { ...sessionRowBase, metadata: patientMetadata };
+      sessionRowPayload = payload;
+      if (mode === "insert") {
+        const { data: session, error: sessionError } = await supabase
+          .from("gstt_fact_vst_sessions")
+          .insert(payload)
+          .select()
+          .single();
+        if (sessionError) {
+          if (!omitSessionMetadata && isVstSessionsMetadataColumnMissing(sessionError)) {
+            omitSessionMetadata = true;
+            logVstSaveDebug("metadata column missing — retry insert without metadata");
+            return persistSessionRow("insert");
+          }
+          return { ok: false as const, error: sessionError };
+        }
+        return { ok: true as const, session };
+      }
+      const { error: upErr } = await supabase
+        .from("gstt_fact_vst_sessions")
+        .update({
+          ...payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", sessionIdForUpdate!);
+      if (upErr) {
+        if (!omitSessionMetadata && isVstSessionsMetadataColumnMissing(upErr)) {
+          omitSessionMetadata = true;
+          logVstSaveDebug("metadata column missing — retry update without metadata");
+          return persistSessionRow("update", sessionIdForUpdate);
+        }
+        return { ok: false as const, error: upErr };
+      }
+      return { ok: true as const };
     };
 
     let sessionId: string;
@@ -164,18 +214,15 @@ export async function saveVSTSession(
 
       sessionId = existingSessionId;
     } else {
-      const { data: session, error: sessionError } = await supabase
-        .from("gstt_fact_vst_sessions")
-        .insert(sessionRowPayload)
-        .select()
-        .single();
-
-      if (sessionError) {
-        if (process.env.NODE_ENV !== "production") console.error("[VST save] Lỗi insert session:", sessionError.message);
-        throw sessionError;
+      const inserted = await persistSessionRow("insert");
+      if (!inserted.ok) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("[VST save] Lỗi insert session:", (inserted.error as { message?: string })?.message);
+        }
+        throw inserted.error;
       }
-      createdSessionId = session.id;
-      sessionId = session.id;
+      createdSessionId = inserted.session.id;
+      sessionId = inserted.session.id;
     }
 
     logVstSaveDebug("Đã có session id", { sessionId });
@@ -249,14 +296,8 @@ export async function saveVSTSession(
     pendingObservationRestore = false;
 
     if (existingSessionId) {
-      const { error: upErr } = await supabase
-        .from("gstt_fact_vst_sessions")
-        .update({
-          ...sessionRowPayload,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingSessionId);
-      if (upErr) throw upErr;
+      const updated = await persistSessionRow("update", existingSessionId);
+      if (!updated.ok) throw updated.error;
     }
 
     logVstSaveDebug("Insert observations xong");
