@@ -142,3 +142,14 @@ Neo: cùng lát đọc. VST hiển thị 1 chữ số (`formatPercent1` / `rateF
 | P0 đếm | Cột và tooltip khoa module VST hết `formatPercent2` (66.7 thành 66.70 cạnh KPI 66.7). Δ đối soát VST là 1 chữ số (66.7 − 33.3 = 33.4), GSC là 2 chữ số (66.67 − 33.33 = 33.34). |
 | P0 in | Mục 3b không còn một bảng `mergeMasterGapRows`. Trước đó % VST giữ lại, mẫu số lấy max với GSC — ô có thể là 66.7% (10/20) trong khi 10/20 là 50% GSC. Nay hai bảng: VST `66.7% (2/3)`, GSC `50.00% (10/20)`. |
 | Park | Biểu đồ cột in vẫn ưu tiên GSC %, chú thích đã ghi; bảng khoa bên dưới có đủ hai cột. `mergeMasterGapRows` còn trong mapper, bản in không gọi. Không bịa công thức CDC. |
+
+## Admin Soft sâu
+
+Neo: hồ sơ `v_mdm_nhan_su_full` (cột `is_active`, `auth_user_id`, `extra_data.account_request`, `vai_tro_he_thong_id` → `sys_roles`). Gán quyền đăng nhập: `rpc_assign_staff_ksnk_role`. Ma trận: `sys_role_permissions` / `v_sys_role_permissions_matrix`. Không đổi model RBAC. Không migrate. Không đổi Domain QT. Tip trước lát: `71707fa`. Commit lát: `a06ebcf`.
+
+| | Việc |
+|---|------|
+| Cửa | Tạo / sửa hồ sơ: form Nhân sự. Tạo TK, đặt lại MK, duyệt / từ chối phiếu: cột Tài khoản trên cùng danh sách. Ma trận quyền: hub tab Phân quyền. Hub Tài khoản chỉ đọc số và dẫn link. |
+| P0 đếm | Số «Phiếu chờ duyệt» đếm hồ sơ `extra_data` chờ duyệt — cùng lọc `?pending=1`. Trước đó đếm mọi dòng `sys_account_access_request` status chờ, kể cả phiếu không có trên danh sách. Tìm trên danh sách chờ lấy `total` từ cùng query (hết đếm lại trên một trang). Thẻ «chưa có tài khoản» đếm `is_active` và `auth_user_id` null trên view, đầu không cắt 1000 dòng. `?chuaTk=1` mở đúng tập đó. |
+| P0 cửa | Link thẻ hết `/tai-khoan-nhan-su` (redirect sang cả danh sách Nhân sự). «Bộ thiếu mã chuẩn» mở `?tab=bo` (trước đó URL trống Quản trị dụng cụ = tab Loại). Dropdown vai trò chỉ 4 vai trò đang hoạt động, nhãn tiếng Việt; danh sách map `sys_roles.name` cùng nhãn. |
+| Park | Auth-ban khi khóa hồ sơ. Dual-admin duyệt tự đặt lại MK. Đổi model RBAC. Xóa file orphan `TaiKhoanNhanSuPage`. Phiếu trên bảng `sys_account_access_request` lệch `extra_data` không hiện số (số theo danh sách). Thẻ khoa / bảng kiểm vẫn đếm trên payload đã tải. |
