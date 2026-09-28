@@ -196,13 +196,16 @@ export async function getBangKiemByMaOrIdForGscLookup(maOrId: string) {
     if (!q) return { success: false as const, error: "Thiếu mã bảng kiểm." };
     const supabase = createAdminSupabaseClient();
     const byId = UUID_RE.test(q);
-    const { data, error } = await supabase
-      .from("gstt_dm_bang_kiem")
-      .select("*")
-      .eq(byId ? "id" : "ma_bk", q)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data?.id && byId) {
+    if (byId) {
+      const { data, error } = await supabase
+        .from("gstt_dm_bang_kiem")
+        .select("*")
+        .eq("id", q)
+        .maybeSingle();
+      if (error) throw error;
+      if (data?.id) {
+        return { success: true as const, data: normalizeBangKiemRows([data])[0] };
+      }
       const { data: byMa, error: maErr } = await supabase
         .from("gstt_dm_bang_kiem")
         .select("*")
@@ -212,8 +215,21 @@ export async function getBangKiemByMaOrIdForGscLookup(maOrId: string) {
       if (!byMa?.id) return { success: false as const, error: "Không tìm thấy mẫu bảng kiểm." };
       return { success: true as const, data: normalizeBangKiemRows([byMa])[0] };
     }
-    if (!data?.id) return { success: false as const, error: "Không tìm thấy mẫu bảng kiểm." };
-    return { success: true as const, data: normalizeBangKiemRows([data])[0] };
+    // Non-UUID: thử exact ma rồi alias VST (BM.07.0x ↔ KSNK.QT.07.BM.0x).
+    const { resolveBangKiemMaCandidates } = await import("@/lib/domain/ve-sinh-tay-catalog");
+    const candidates = resolveBangKiemMaCandidates(q);
+    for (const cand of candidates) {
+      const { data, error } = await supabase
+        .from("gstt_dm_bang_kiem")
+        .select("*")
+        .eq("ma_bk", cand)
+        .maybeSingle();
+      if (error) throw error;
+      if (data?.id) {
+        return { success: true as const, data: normalizeBangKiemRows([data])[0] };
+      }
+    }
+    return { success: false as const, error: "Không tìm thấy mẫu bảng kiểm." };
   } catch (error: unknown) {
     return { success: false as const, error: errMsg(error) };
   }

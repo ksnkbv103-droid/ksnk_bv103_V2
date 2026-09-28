@@ -38,6 +38,7 @@ function minimalGsc(): GscStrategicPayload {
     gap_analysis: [],
     dynamic_checklists: [
       {
+        // short form — pickBkRow resolves via alias to catalogMaBk long
         ma_bk: "BM.07.02",
         ten_bang_kiem: "VST TQ",
         tong_phien: 2,
@@ -71,11 +72,11 @@ describe("buildVeSinhTayKpiCards", () => {
     const cards = buildVeSinhTayKpiCards({ vst: minimalVst(), gsc: minimalGsc() });
     expect(cards).toHaveLength(3);
     expect(cards[0]!.tyLe).toBe(80);
-    expect(cards[1]!.catalogMaBk).toBe("BM.07.02");
+    expect(cards[1]!.catalogMaBk).toBe("KSNK.QT.07.BM.02");
     expect(cards[1]!.tyLe).toBe(90);
-    expect(cards[2]!.catalogMaBk).toBe("BM.07.03");
+    expect(cards[2]!.catalogMaBk).toBe("KSNK.QT.07.BM.03");
     expect(cards[2]!.tyLe).toBeNull();
-    expect(cards[1]!.statsHref).toContain("bk=BM.07.02");
+    expect(cards[1]!.statsHref).toContain("bk=KSNK.QT.07.BM.02");
   });
 
   it("giữ kỳ lọc bản ký trên deep-link thống kê", () => {
@@ -87,12 +88,29 @@ describe("buildVeSinhTayKpiCards", () => {
     expect(cards[0]!.statsHref).toContain("/thong-ke/vst?");
     expect(cards[0]!.statsHref).toContain("tu_ngay=2026-09-01");
     expect(cards[0]!.statsHref).toContain("khoa_ids=k1");
-    expect(cards[1]!.statsHref).toContain("bk=BM.07.02");
+    expect(cards[1]!.statsHref).toContain("bk=KSNK.QT.07.BM.02");
     expect(cards[1]!.statsHref).toContain("den_ngay=2026-09-28");
   });
 
   it("handles missing payloads", () => {
     const cards = buildVeSinhTayKpiCards({ vst: null, gsc: null });
     expect(cards.every((c) => c.tyLe == null)).toBe(true);
+  });
+
+  it("matches overview row when payload uses prod long ma_bk", () => {
+    const gsc = minimalGsc();
+    gsc.dynamic_checklists = [
+      {
+        ma_bk: "KSNK.QT.07.BM.02",
+        ten_bang_kiem: "VST TQ",
+        tong_phien: 1,
+        tong_quan_sat: 5,
+        tong_dat: 4,
+        tong_vi_pham: 1,
+        ty_le_tuan_thu: 80,
+      },
+    ];
+    const cards = buildVeSinhTayKpiCards({ vst: minimalVst(), gsc });
+    expect(cards[1]!.tyLe).toBe(80);
   });
 });

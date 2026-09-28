@@ -1,6 +1,6 @@
 /**
  * Ba KPI cạnh nhau khối Vệ sinh tay — không gộp 1 %.
- * VST = strategic WHO; GSC = lọc theo ma_bk BM.07.02 / BM.07.03 từ overview.
+ * VST = strategic WHO; GSC = lọc theo ma_bk (prod KSNK.QT.07.BM.02/03 hoặc alias BM.07.02/03).
  */
 
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-analytics-data";
@@ -11,7 +11,11 @@ import {
 } from "@/lib/analytics/supervision-deep-link";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
-import { VE_SINH_TAY_ENTRIES, type VeSinhTayQtMa } from "./ve-sinh-tay-catalog";
+import {
+  resolveBangKiemMaCandidates,
+  VE_SINH_TAY_ENTRIES,
+  type VeSinhTayQtMa,
+} from "./ve-sinh-tay-catalog";
 
 export type VeSinhTayKpiCard = {
   qtMa: VeSinhTayQtMa;
@@ -25,8 +29,10 @@ export type VeSinhTayKpiCard = {
 
 function pickBkRow(gsc: GscStrategicPayload | null | undefined, maBk: string) {
   const rows = resolveChecklistOverview(gsc);
-  const key = maBk.toUpperCase();
-  return rows.find((r) => String(r.ma_bk ?? "").trim().toUpperCase() === key) ?? null;
+  const candidates = new Set(resolveBangKiemMaCandidates(maBk));
+  return (
+    rows.find((r) => candidates.has(String(r.ma_bk ?? "").trim().toUpperCase())) ?? null
+  );
 }
 
 export function buildVeSinhTayKpiCards(input: {
