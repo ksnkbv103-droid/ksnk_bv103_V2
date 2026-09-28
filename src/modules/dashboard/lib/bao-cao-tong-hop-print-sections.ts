@@ -12,6 +12,11 @@ import {
   sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
+import {
+  formatGapDeltaPercent,
+  formatSupervisionPercent,
+  type SupervisionPercentDigits,
+} from "@/lib/analytics/supervision-percent";
 import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { formatBaoCaoIssueDateVi } from "./bao-cao-tong-hop-core";
 import { escHtml, fmtIsoDate, fmtPct } from "./bao-cao-tong-hop-print-format";
@@ -273,13 +278,12 @@ export function renderTrendWeekTable(points: BaoCaoTrendPoint[]): string {
     </table>`;
 }
 
-function gapPrintCompareLabel(row: ReturnType<typeof normalizeGapKhoaRow>): string {
+function gapPrintCompareLabel(
+  row: ReturnType<typeof normalizeGapKhoaRow>,
+  digits: SupervisionPercentDigits,
+): string {
   if (isGapComparable(row)) {
-    if (row.ty_le_ksnk != null && row.ty_le_tgs != null) {
-      const delta = Math.abs(Math.round((row.ty_le_ksnk - row.ty_le_tgs) * 100) / 100);
-      return `Δ ${delta}%`;
-    }
-    return "Đủ đối soát";
+    return formatGapDeltaPercent(row.ty_le_ksnk, row.ty_le_tgs, digits) ?? "Đủ đối soát";
   }
   return labelGapExclusion(gapExclusionReason(row));
 }
@@ -291,15 +295,21 @@ function gapPrintPctClass(pct: number | null | undefined): string {
   return "text-danger";
 }
 
-function gapPrintPctCell(pct: number | null, dat: number, tong: number): string {
+function gapPrintPctCell(
+  pct: number | null,
+  dat: number,
+  tong: number,
+  digits: SupervisionPercentDigits,
+): string {
   if (pct == null || tong === 0) return "—";
-  return `${pct}% (${dat.toLocaleString()}/${tong.toLocaleString()})`;
+  return `${formatSupervisionPercent(pct, digits)} (${dat.toLocaleString()}/${tong.toLocaleString()})`;
 }
 
 export function renderKhoaGapModulePrint(
   title: string,
   rows: ReturnType<typeof buildGapKhoaRows>,
   limit = 30,
+  digits: SupervisionPercentDigits = 2,
 ): string {
   const sorted = sortGapRowsByMetric(rows, "ty_le_ksnk", "desc").slice(0, limit);
   if (sorted.length === 0) {
@@ -327,11 +337,11 @@ export function renderKhoaGapModulePrint(
           <tr>
             <td>${i + 1}</td>
             <td class="text-left">${escHtml(r.label)}</td>
-            <td class="${gapPrintPctClass(r.ty_le_ksnk)}"><strong>${gapPrintPctCell(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk)}</strong></td>
-            <td class="${gapPrintPctClass(r.ty_le_tgs)}">${gapPrintPctCell(r.ty_le_tgs, r.dat_tgs, r.vol_tgs)}</td>
+            <td class="${gapPrintPctClass(r.ty_le_ksnk)}"><strong>${gapPrintPctCell(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, digits)}</strong></td>
+            <td class="${gapPrintPctClass(r.ty_le_tgs)}">${gapPrintPctCell(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, digits)}</td>
             <td>${r.vol_ksnk > 0 ? `${r.dat_ksnk.toLocaleString()}/${r.vol_ksnk.toLocaleString()}` : "0"}</td>
             <td>${r.vol_tgs > 0 ? `${r.dat_tgs.toLocaleString()}/${r.vol_tgs.toLocaleString()}` : "0"}</td>
-            <td class="text-left" style="font-size:11px;">${escHtml(gapPrintCompareLabel(r))}</td>
+            <td class="text-left" style="font-size:11px;">${escHtml(gapPrintCompareLabel(r, digits))}</td>
           </tr>`,
           )
           .join("")}

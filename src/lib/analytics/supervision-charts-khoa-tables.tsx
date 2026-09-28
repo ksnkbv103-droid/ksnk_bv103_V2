@@ -6,7 +6,7 @@ import type { GapKhoaRow } from "@/lib/analytics/supervision-matrix-mappers";
 import { KHOA_COMPLIANCE_WARN_PCT } from "@/lib/analytics/supervision-matrix-mappers";
 import type { BaoCaoKhoaRankRow } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
-import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1, formatPercent2, supervisionPercentDigits } from "@/lib/analytics/supervision-percent";
 import {
   formatGapPctWithDatTong,
   gapCompareStatus,
@@ -39,6 +39,7 @@ export function SupervisionKhoaMasterTable({
   if (!loading && sorted.length === 0) return null;
 
   const title = moduleLabel ? `Bảng tổng hợp khoa · ${moduleLabel}` : "Bảng tổng hợp khoa";
+  const percentDigits = supervisionPercentDigits(moduleLabel);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -71,7 +72,7 @@ export function SupervisionKhoaMasterTable({
             ) : (
               sorted.map((r, index) => {
                 const rank = rankById.get(r.id);
-                const compare = gapCompareStatus(r);
+                const compare = gapCompareStatus(r, percentDigits);
                 const ksnkTone = gapPctTone(r.ty_le_ksnk);
                 const tgsTone = gapPctTone(r.ty_le_tgs);
                 const vstTone = rank ? complianceToneFromPercent(rank.ty_le_vst) : "neutral";
@@ -95,10 +96,10 @@ export function SupervisionKhoaMasterTable({
                       {r.vol_ksnk > 0 ? `${r.dat_ksnk.toLocaleString()}/${r.vol_ksnk.toLocaleString()}` : "0"}
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[tgsTone]}`}>
-                      {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs)}
+                      {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, percentDigits)}
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[ksnkTone]}`}>
-                      {formatGapPctWithDatTong(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk)}
+                      {formatGapPctWithDatTong(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, percentDigits)}
                     </td>
                     <td className={`px-2 py-2 text-center text-[11px] font-medium ${momentToneClass[compare.tone]}`}>
                       {compare.label}

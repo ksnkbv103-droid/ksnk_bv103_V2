@@ -132,3 +132,13 @@ Neo: bản ký `/bao-cao-tong-hop` chỉ đọc. KPI VST/GSC lấy counts đã c
 | P0 đếm | Δ tuần và `ky_truoc` của GSC làm tròn 2 chữ số sau khi mỗi tỷ lệ đã làm tròn (66.67 − 33.33 = 33.34). Trước đó cả hai chỉ số làm tròn 1 chữ số nên bản ký hiện 33.3 cạnh tỷ lệ 66.67. VST giữ 1 chữ số. Màn hình và cột «So sánh tuần» tách hai dòng: «Δ 2 tuần» và «vs kỳ trước (dd-mm→dd-mm)». |
 | P0 cửa | «Chi tiết thống kê» trên ba KPI vệ sinh tay và trên so sánh khoa mang `tu_ngay` / `den_ngay` / `khoa_ids` của kỳ đang mở. Trước đó rơi `/thong-ke/vst` và `/thong-ke/gsc#so-sanh` không kỳ — thống kê khoa mở kỳ mặc định, số lệch bản ký. NKBV vẫn `?tab=dashboard` (tab Thống kê). Phụ lục CSSD vẫn `/cssd-erp/report?tab=volume&from=&to=` — khớp #68, không còn `/thong-ke/cssd`. |
 | Park | `fetchMucTieuKpiVien` không có caller — không gắn mũi tên mục tiêu viện lên thẻ. `ty_le_avg` chỉ để sắp xếp nội bộ, không hiện nhãn CCS. Tỷ lệ CSSD trên phụ lục là số đã làm tròn 1 chữ số từ core; màn Báo cáo CSSD `toFixed(1)` cùng số. Gap in dùng trị tuyệt đối vì hai cột tự GS và chuyên trách đã in đủ dấu. |
+
+## BCTH sâu — đếm khớp nguồn
+
+Neo: cùng lát đọc. VST hiển thị 1 chữ số (`formatPercent1` / `rateFromTotals`). GSC hiển thị 2 chữ số (`formatPercent2` / `gscCompliancePercentFromCounts`). Thêm/sửa/xóa phiên ở form nguồn đổi fact; BCTH lần tải sau đọc lại RPC đã chuẩn hóa — không có cửa ghi trên bản ký. Tiêu đề trang vẫn «Báo cáo chính thức». Không migrate. Không đổi Domain QT. Tip trước lát này: `22246db`.
+
+| | Việc |
+|---|------|
+| P0 đếm | Cột và tooltip khoa module VST hết `formatPercent2` (66.7 thành 66.70 cạnh KPI 66.7). Δ đối soát VST là 1 chữ số (66.7 − 33.3 = 33.4), GSC là 2 chữ số (66.67 − 33.33 = 33.34). |
+| P0 in | Mục 3b không còn một bảng `mergeMasterGapRows`. Trước đó % VST giữ lại, mẫu số lấy max với GSC — ô có thể là 66.7% (10/20) trong khi 10/20 là 50% GSC. Nay hai bảng: VST `66.7% (2/3)`, GSC `50.00% (10/20)`. |
+| Park | Biểu đồ cột in vẫn ưu tiên GSC %, chú thích đã ghi; bảng khoa bên dưới có đủ hai cột. `mergeMasterGapRows` còn trong mapper, bản in không gọi. Không bịa công thức CDC. |

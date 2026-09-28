@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
+import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { getBaoCaoTongHopPrintHtml } from "./bao-cao-tong-hop-print";
+import { renderKhoaGapModulePrint } from "./bao-cao-tong-hop-print-sections";
 import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 
 describe("bản ký phụ lục CSSD", () => {
@@ -88,5 +90,26 @@ describe("bản ký phụ lục CSSD", () => {
     expect(html).toContain("+33.4% so với tuần trước");
     expect(html).toContain("vs kỳ trước (01-06→07-06): +33.34%");
     expect(html).toContain("vs kỳ trước (01-06→07-06): +33.4%");
+  });
+
+  it("không ghép % VST với mẫu số GSC trên cùng một ô", () => {
+    const vst = buildGapKhoaRows(
+      [{ id: "k1", ten: "Khoa A", ty_le_ksnk: 66.7, ksnk_dat: 2, ksnk_co_hoi: 3 }],
+      undefined,
+      [],
+      0,
+    );
+    const gsc = buildGapKhoaRows(
+      [{ id: "k1", ten: "Khoa A", ty_le_ksnk: 50, ksnk_dat: 10, ksnk_quan_sat: 20 }],
+      undefined,
+      [],
+      0,
+    );
+    const vstHtml = renderKhoaGapModulePrint("VST", vst, 30, 1);
+    const gscHtml = renderKhoaGapModulePrint("GSC", gsc, 30, 2);
+    expect(vstHtml).toContain("66.7% (2/3)");
+    expect(vstHtml).not.toContain("10/20");
+    expect(gscHtml).toContain("50.00% (10/20)");
+    expect(gscHtml).not.toContain("66.7%");
   });
 });

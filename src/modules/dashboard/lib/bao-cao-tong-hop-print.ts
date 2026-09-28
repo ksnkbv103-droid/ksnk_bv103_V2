@@ -1,6 +1,6 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
-import { buildGapKhoaRows, mergeMasterGapRows } from "@/lib/analytics/supervision-matrix-mappers";
+import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { mergeKhoaRankWithSelected } from "./bao-cao-tong-hop-core";
 import { escHtml, fmtDelta, fmtIsoDate, fmtKyTruocDelta, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
 import {
@@ -74,8 +74,6 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     p.khoaOptions,
     p.khoaOptions.length,
   );
-  const masterGapRows = mergeMasterGapRows(vstGapRows, gscGapRows);
-
   const ky = p.payload?.ky_truoc;
   const weekAndPrior = (
     week: number | null | undefined,
@@ -126,8 +124,9 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     <h3>3. So sánh theo khoa (VST · GSC — thấp → cao)</h3>
     ${renderKhoaGscBarChartSvg(fullKhoaRank)}
     ${renderFullKhoaRankSection(fullKhoaRank)}
-    <h3>3b. Tuân thủ & khối lượng theo khoa (gộp VST · GSC)</h3>
-    ${renderKhoaGapModulePrint("Gộp VST + GSC", masterGapRows)}
+    <h3>3b. Tuân thủ và khối lượng theo khoa — từng nguồn</h3>
+    ${renderKhoaGapModulePrint("VST", vstGapRows, 30, 1)}
+    ${renderKhoaGapModulePrint("GSC", gscGapRows, 30, 2)}
     <h3>4. Kết quả NKBV (lâm sàng — tách khỏi tuân thủ process)</h3>
     <table>
       <thead>
