@@ -22,6 +22,7 @@ import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
+import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -74,6 +75,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     p.khoaOptions.length,
   );
   const masterGapRows = mergeMasterGapRows(vstGapRows, gscGapRows);
+
+  const cssdAnalyticsHref = cssdReportAnalyticsHref({
+    tab: "volume",
+    from: p.tuNgay,
+    to: p.denNgay,
+  });
 
   const dieuHanhSection = `
     <h2>ĐIỀU HÀNH TỔNG HỢP (PROCESS)</h2>
@@ -176,7 +183,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           )
           .join("")}
       </tbody>
-    </table>`
+    </table>
+    <p class="muted">Phụ lục và bản ký dùng cùng lõi Báo cáo CSSD: ${escHtml(cssdAnalyticsHref)}</p>`
         : ""
     }
   `;

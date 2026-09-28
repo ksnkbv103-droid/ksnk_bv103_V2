@@ -177,7 +177,7 @@ function CSSDReportPageInner() {
     return (
       <CSSDPageShell title="Báo cáo CSSD">
         <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-12 text-center text-sm font-semibold text-slate-400 shadow-sm">
-          Bạn không có quyền xem báo cáo tổng hợp
+          Bạn không có quyền xem Báo cáo CSSD
         </div>
       </CSSDPageShell>
     );
