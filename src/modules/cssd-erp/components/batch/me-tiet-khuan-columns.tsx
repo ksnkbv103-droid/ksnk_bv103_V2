@@ -2,9 +2,7 @@
 "use client";
 
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import Link from "next/link";
-import { Printer, Undo2 } from "lucide-react";
-import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
+import { Printer } from "lucide-react";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import {
   CSSD_UI_CELL_CODE,
@@ -96,26 +94,6 @@ export function buildMeTietKhuanBatchColumns(opts?: {
         >
           {action.label}
         </button>
-      );
-    },
-  },
-  {
-    header: "Thu hồi",
-    accessorKey: "id",
-    cell: (i: any) => {
-      const id = String(i.id || "").trim();
-      const maLo = String(i.ma_lo_tiet_khuan || "").trim();
-      if (!id) return <span className={CSSD_UI_CELL_META}>—</span>;
-      const href = cssdSuCoBatchRecallHref({ loTietKhuanId: id, maLo: maLo || undefined });
-      return (
-        <Link
-          href={href}
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 bv103-type-label font-semibold text-amber-900 hover:bg-amber-100"
-          title="Thu hồi mẻ"
-        >
-          <Undo2 size={14} /> Thu hồi
-        </Link>
       );
     },
   },

@@ -76,6 +76,8 @@ export type SuCoReportFormProps = {
   quyTrinhId?: string | null;
   initialMaLo?: string;
   initialLoTietKhuanId?: string;
+  /** Id máy từ deep-link `?group=EQUIPMENT&machine=`. */
+  initialMachineId?: string;
   /** QT.24 entry rõ: thu hồi theo mẻ (không lẫn 3 cửa dụng cụ). */
   batchRecallEntry?: boolean;
   allowStationOverride?: boolean;
@@ -112,6 +114,7 @@ export default function SuCoReportForm({
   quyTrinhId,
   initialMaLo,
   initialLoTietKhuanId,
+  initialMachineId,
   batchRecallEntry = false,
   allowStationOverride = false,
   enabled,
@@ -158,7 +161,7 @@ export default function SuCoReportForm({
   });
   const [maQR, setMaQR] = useState(initialMaQR || "");
   const [faultStation, setFaultStation] = useState<Station>(initialStation);
-  const [machineId, setMachineId] = useState("");
+  const [machineId, setMachineId] = useState(initialMachineId || "");
   const [maLo, setMaLo] = useState(initialMaLo || "");
   const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
   const [batchRecallReason, setBatchRecallReason] = useState<BatchRecallReasonCode>(() => {
@@ -184,7 +187,8 @@ export default function SuCoReportForm({
     if (initialMaQR) setMaQR(initialMaQR);
     if (initialMaLo) setMaLo(initialMaLo);
     if (initialLoTietKhuanId) setLoTietKhuanId(initialLoTietKhuanId);
-  }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
+    if (initialMachineId) setMachineId(initialMachineId);
+  }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId, initialMachineId]);
 
   useEffect(() => {
     if (!enabled || !batchRecallEntry) return;
@@ -313,12 +317,14 @@ export default function SuCoReportForm({
       if (!initialMaQR) setMaQR("");
       setMachineId("");
       setMaLo("");
+    } else if (incidentGroup === "EQUIPMENT" && initialMachineId) {
+      setMachineId((cur) => cur || initialMachineId);
     }
     if (incidentGroup !== "PROCESS" && incidentGroup !== "INSTRUMENT" && incidentGroup !== "EQUIPMENT") {
       setMaQR("");
     }
     if (incidentGroup !== "PROCESS") setCyclePerformers([]);
-  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR, entryMode]);
+  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR, initialMachineId, entryMode]);
 
   const applyFaultTraceResult = useCallback(
     (

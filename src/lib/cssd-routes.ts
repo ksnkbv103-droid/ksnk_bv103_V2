@@ -84,6 +84,15 @@ export function cssdSuCoChemicalHref(): string {
   return `${CSSD_ROUTES.suCo}?group=CHEMICAL`;
 }
 
+/** Deep-link sự cố máy — CTA từ bảo dưỡng. `machine` = id thiết bị nếu đang chọn. */
+export function cssdSuCoEquipmentHref(params?: { machineId?: string | null }): string {
+  const q = new URLSearchParams();
+  q.set("group", "EQUIPMENT");
+  const machineId = String(params?.machineId || "").trim();
+  if (machineId) q.set("machine", machineId);
+  return `${CSSD_ROUTES.suCo}?${q.toString()}`;
+}
+
 export function cssdSuCoInstrumentHref(params?: {
   type?:
     | "INSTRUMENT_SET_RECONCILE"

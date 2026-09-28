@@ -2,10 +2,9 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Download, Printer, Undo2 } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -32,7 +31,6 @@ import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
 import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
-import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
 import { stationLabel } from "../workflow/domain/cssd-stations";
 
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
@@ -146,14 +144,12 @@ function CSSDReportPageInner() {
     const tyLe =
       analytics?.tyLeQuyTrinhKhongSuCo != null
         ? analytics.tyLeQuyTrinhKhongSuCo.toFixed(1)
-        : raw.quyTrinh.length
-          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
-          : "—";
+        : "—";
 
     return {
       stats: {
-        total: raw.quyTrinh.length,
-        incidents: raw.suCo.length,
+        total: analytics?.quyTrinhKyCount ?? 0,
+        incidents: analytics?.suCoKyCount ?? 0,
         /** Chỉ số CSSD riêng — không gộp tuân thủ VST–GSC. */
         tyLeQuyTrinhKhongSuCo: tyLe,
         bestStation: ranked[0] ? stationLabel(ranked[0].name) : "Không áp dụng",
@@ -304,20 +300,6 @@ function CSSDReportPageInner() {
 
       {tab === "INCIDENT" && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 print:hidden">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-amber-950">Thu hồi theo mẻ</p>
-              <p className="text-[11px] text-amber-900">
-                Sự cố quy trình BI+/ướt/lỗi máy — không lẫn Hỏng/Mất.
-              </p>
-            </div>
-            <Link
-              href={cssdSuCoBatchRecallHref()}
-              className={`${CSSD_UI_ACTION_SECONDARY} border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}
-            >
-              <Undo2 size={16} aria-hidden /> Thu hồi theo mẻ
-            </Link>
-          </div>
           {highlightIncidentId ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-950">
               {raw.suCo.some((x) => String(x.id) === highlightIncidentId) ? (

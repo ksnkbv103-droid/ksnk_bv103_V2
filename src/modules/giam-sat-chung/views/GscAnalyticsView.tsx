@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useGscAnalyticsData } from "../hooks/use-gsc-analytics-data";
@@ -155,6 +156,13 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
             ) : null}
           </details>
         ) : null}
+        <p className="px-1 text-[11px] leading-snug text-slate-500">
+          Thống kê khoa — không phải bản ký gửi Ban Giám đốc. Bản ký nằm ở{" "}
+          <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
+            Báo cáo chính thức
+          </Link>
+          . Nhập và lịch sử phiên qua ModeNav. Không tạo việc từ trang này.
+        </p>
       </div>
     </Bv103AnalyticsPageFrame>
   );

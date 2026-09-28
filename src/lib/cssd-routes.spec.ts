@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSSD_ROUTES, cssdLuanChuyenHref, cssdReportAnalyticsHref, cssdSuCoBatchRecallHref, cssdSuCoChemicalHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
+import { CSSD_ROUTES, cssdLuanChuyenHref, cssdReportAnalyticsHref, cssdSuCoBatchRecallHref, cssdSuCoChemicalHref, cssdSuCoEquipmentHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
 import {
   INSTRUMENT_MOVE_TYPE_ID,
   INSTRUMENT_PHYSICAL_DOOR_ID,
@@ -80,5 +80,13 @@ describe("cssd-routes deep links", () => {
 describe("cssdSuCoChemicalHref", () => {
   it("deep-links HC CTA to su-co CHEMICAL group", () => {
     expect(cssdSuCoChemicalHref()).toBe("/cssd-su-co?group=CHEMICAL");
+  });
+});
+
+describe("cssdSuCoEquipmentHref", () => {
+  it("deep-links bảo dưỡng to su-co EQUIPMENT, kèm máy khi có id", () => {
+    expect(cssdSuCoEquipmentHref()).toBe("/cssd-su-co?group=EQUIPMENT");
+    expect(cssdSuCoEquipmentHref({ machineId: "  may-1  " })).toBe("/cssd-su-co?group=EQUIPMENT&machine=may-1");
+    expect(cssdSuCoEquipmentHref({ machineId: "" })).toBe("/cssd-su-co?group=EQUIPMENT");
   });
 });

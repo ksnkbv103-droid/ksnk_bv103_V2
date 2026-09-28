@@ -285,14 +285,25 @@ export default function GscFormView({
           />
         </div>
       ) : (
-        <ChecklistTemplateTable
-          data={processedData}
-          onSelect={handleSelectTemplate}
-          onSearch={handleSearch}
-          onSort={(key) => handleSort(key as keyof BangKiemListRow)}
-          searchTerm={searchTerm}
-          loading={loadingTemplates}
-        />
+        <div className="space-y-2">
+          {!initialLoaiGiamSat ? (
+            <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+              Form gốc: mọi loại bảng kiểm. Hub Giám sát chỉ mở mẫu tuân thủ.
+            </p>
+          ) : initialLoaiGiamSat === "TUAN_THU" ? (
+            <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+              Mẫu tuân thủ — cửa từ hub Giám sát. Nhật ký vận hành và đánh giá hệ thống không nằm ở đây.
+            </p>
+          ) : null}
+          <ChecklistTemplateTable
+            data={processedData}
+            onSelect={handleSelectTemplate}
+            onSearch={handleSearch}
+            onSort={(key) => handleSort(key as keyof BangKiemListRow)}
+            searchTerm={searchTerm}
+            loading={loadingTemplates}
+          />
+        </div>
       )}
     </KsnkSupervisionPanel>
   );

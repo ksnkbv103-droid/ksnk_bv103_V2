@@ -31,6 +31,19 @@ describe("getKsnkAppHeaderBreadcrumb — CSSD per-route (P0-1)", () => {
   });
 
   it("keeps non-CSSD fine-grained labels", () => {
+    expect(getKsnkAppHeaderBreadcrumb("/giam-sat-chung")).toEqual({
+      zone: "Giám sát",
+      page: "Form giám sát chung",
+    });
+    expect(getKsnkAppHeaderBreadcrumb("/giam-sat-chung/tuan-thu")).toEqual({
+      zone: "Giám sát",
+      page: "Giám sát tuân thủ",
+    });
+    expect(getKsnkAppHeaderBreadcrumb("/thong-ke/vst")).toEqual({
+      zone: "Tra cứu",
+      page: "Thống kê khoa",
+    });
+    expect(getKsnkAppHeaderBreadcrumb("/thong-ke/cssd")).toEqual({ zone: "CSSD", page: "Báo cáo" });
     expect(getKsnkAppHeaderBreadcrumb("/giam-sat-vst")).toEqual({ zone: "Giám sát", page: "Vệ sinh tay" });
     expect(getKsnkAppHeaderBreadcrumb("/quan-ly-cong-viec")).toEqual({ zone: "Vận hành", page: "Công việc" });
     expect(getKsnkAppHeaderBreadcrumb("/bao-cao-tong-hop")).toEqual({

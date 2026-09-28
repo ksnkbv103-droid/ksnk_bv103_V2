@@ -221,6 +221,13 @@ export default function GiamSatHubPage() {
           <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Lịch sử · Thống kê · QR
           </p>
+          <p className="mb-1 text-[11px] leading-snug text-slate-500">
+            Thống kê khoa và tra cứu ca. Bản ký gửi Ban Giám đốc ở{" "}
+            <Link href="/bao-cao-tong-hop" prefetch={false} className="font-medium text-[var(--primary)] underline">
+              Báo cáo chính thức
+            </Link>
+            .
+          </p>
           <div className="flex flex-wrap gap-0.5">
             {quietLinks.map((l) => (
               <QuietLink key={l.href + l.label} href={l.href} label={l.label} />

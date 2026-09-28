@@ -3,7 +3,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { Plus } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
@@ -14,12 +13,10 @@ import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
-import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
 import { MeTietKhuanConfirmDialog } from "../components/batch/me-tiet-khuan-slip-stepper";
 
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
-  const [isIncidentOpen, setIsIncidentOpen] = React.useState(false);
   const [isBatchRecallOpen, setIsBatchRecallOpen] = React.useState(false);
   const confirmDialog = (
     <MeTietKhuanConfirmDialog
@@ -145,12 +142,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-slate-700">Danh sách mẻ tiệt khuẩn</h3>
           <div className="flex flex-wrap gap-2">
-            <Link
-              href={cssdSuCoBatchRecallHref()}
-              className="inline-flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900 hover:bg-amber-100"
-            >
-              Thu hồi mẻ
-            </Link>
             <button
               type="button"
               onClick={() => w.setStep("CREATE")}
@@ -199,34 +190,11 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           >
             <Plus size={18} /> Mở mẻ mới
           </button>
-          <Link
-            href={cssdSuCoBatchRecallHref()}
-            className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-5 text-[11px] font-semibold text-amber-900 shadow-sm hover:bg-amber-100 active:scale-[0.98] transition-all"
-            title="Thu hồi mẻ"
-          >
-            Thu hồi mẻ
-          </Link>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
-            onClick={() => setIsIncidentOpen(true)}
-          >
-            ⚠️ Báo sự cố
-          </button>
         </div>
       }
     >
       {listContent}
       {printPortal}
-      <IncidentReportModal
-        isOpen={isIncidentOpen}
-        onClose={() => setIsIncidentOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="PROCESS"
-        initialTypeId="PROCESS_STERILIZATION_FAIL"
-        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
-        initialLoTietKhuanId={w.activeMe?.id}
-      />
     </CSSDPageShell>
   );
 }

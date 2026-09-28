@@ -2,11 +2,15 @@
 
 import React, { Suspense, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { WashingMachine, Flame, History, Search, type LucideIcon } from "lucide-react";
+import { ExternalLink, WashingMachine, Flame, History, Search, type LucideIcon } from "lucide-react";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 type QuyTrinhTab = "WORKFLOW" | "BATCH" | "TRACE";
 
@@ -66,6 +70,7 @@ function resolveTab(param: string | null): QuyTrinhTab {
 function CssdQuyTrinhPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const reportPerm = useModulePermission("CSSD_REPORT");
   const tabParam = searchParams.get("tab");
   const qrParam = searchParams.get("qr");
   const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
@@ -97,6 +102,17 @@ function CssdQuyTrinhPageInner() {
   return (
     <CSSDPageShell
       title="Chu trình xử lý dụng cụ"
+      actions={
+        reportPerm.loading || !reportPerm.allowed.view ? null : (
+          <Link
+            href={CSSD_ROUTES.report}
+            className={`${bv103LayoutChrome.linkQuiet} gap-1`}
+          >
+            Báo cáo CSSD
+            <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden />
+          </Link>
+        )
+      }
     >
       <div className="space-y-[var(--bv103-space-3)]">
         <div className="flex flex-wrap items-center gap-2">

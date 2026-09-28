@@ -37,12 +37,14 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
     return { zone: "Điều hành", page: "Báo cáo chính thức" };
   }
   if (p.startsWith("/giam-sat-vst")) return { zone: "Giám sát", page: "Vệ sinh tay" };
+  if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Form giám sát chung" };
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };
   if (p.startsWith("/giam-sat-nkbv")) return { zone: "Giám sát", page: "NKBV" };
   if (p === "/giam-sat") return { zone: "Giám sát", page: "Cổng giám sát" };
   if (p === "/qr" || p.startsWith("/qr/")) return { zone: "Giám sát", page: "Quét QR truy vết" };
   if (p.startsWith("/lich-su")) return { zone: "Tra cứu", page: "Lịch sử giám sát" };
-  if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê giám sát" };
+  if (p.startsWith("/thong-ke/cssd")) return { zone: "CSSD", page: "Báo cáo" };
+  if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê khoa" };
   if (p.startsWith("/quan-ly-cong-viec")) return { zone: "Vận hành", page: "Công việc" };
   if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Thi KSNK" };
   // CSSD — per-route page name (nav clinical short labels); Header SSOT (P0-1).

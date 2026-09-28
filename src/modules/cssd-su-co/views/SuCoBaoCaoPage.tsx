@@ -4,10 +4,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FileBarChart, ExternalLink, Zap, Undo2 } from "lucide-react";
+import { FileBarChart, ExternalLink, Zap } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_ROUTES, cssdLuanChuyenHref, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
+import { CSSD_ROUTES, cssdLuanChuyenHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import {
   coerceInstrumentFormTypeId,
@@ -17,10 +17,8 @@ import {
 } from "../domain/cssd-incident-taxonomy";
 import { resolveBatchRecallReason } from "../domain/cssd-batch-recall";
 import { listRecentSuCoForReporter } from "../actions/su-co-report.actions";
-import IncidentJournalPrintButton from "../components/IncidentJournalPrintButton";
-import IncidentConfirmButton from "../components/IncidentConfirmButton";
 import SuCoReportForm from "../components/SuCoReportForm";
-import { INCIDENT_STATUS_CONFIRMED, type IncidentPhieuStatus } from "../domain/cssd-incident-status";
+import { type IncidentPhieuStatus } from "../domain/cssd-incident-status";
 
 const INSTRUMENT_TYPES = new Set([
   "INSTRUMENT_SET_RECONCILE",
@@ -66,6 +64,7 @@ export default function SuCoBaoCaoPage() {
       chiTiet: String(searchParams.get("chiTiet") || "").trim() || undefined,
       maLo: String(searchParams.get("maLo") || searchParams.get("lo") || "").trim().toUpperCase() || undefined,
       loTietKhuanId: String(searchParams.get("loTietKhuanId") || "").trim() || undefined,
+      machineId: String(searchParams.get("machine") || "").trim() || undefined,
       batchRecallEntry,
     };
   }, [searchParams]);
@@ -142,14 +141,6 @@ export default function SuCoBaoCaoPage() {
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Link
-            href={cssdSuCoBatchRecallHref()}
-            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
-            title="Thu hồi theo mẻ — sự cố quy trình"
-          >
-            <Undo2 size={14} aria-hidden />
-            Thu hồi theo mẻ
-          </Link>
-          <Link
             href={CSSD_ROUTES.quyTrinh}
             className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
             title="Báo nhanh tại trạm quy trình"
@@ -185,6 +176,7 @@ export default function SuCoBaoCaoPage() {
             initialChiTietId={prefill.chiTiet}
             initialMaLo={prefill.maLo}
             initialLoTietKhuanId={prefill.loTietKhuanId}
+            initialMachineId={prefill.machineId}
             batchRecallEntry={prefill.batchRecallEntry}
           />
         )}
@@ -205,18 +197,6 @@ export default function SuCoBaoCaoPage() {
                       {row.incident_status_label} · {formatDateTimeVi(row.created_at)}{" "}
                       {row.mo_ta ? `— ${row.mo_ta}` : ""}
                     </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {allowed.create && row.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
-                      <IncidentConfirmButton incidentId={row.id} onConfirmed={reloadRecent} />
-                    ) : null}
-                    <IncidentJournalPrintButton incidentId={row.id} />
-                    <Link
-                      href={cssdSuCoIncidentJournalHref(row.id)}
-                      className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
-                    >
-                      Nhật ký
-                    </Link>
                   </div>
                 </li>
               ))}

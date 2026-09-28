@@ -39,7 +39,9 @@ export default function ReportDashboard({ stats, alerts }: Props) {
           title="100 − (sự cố ÷ quy trình) × 100 trong kỳ lọc. Chỉ số CSSD riêng — không phải tuân thủ giám sát VST–GSC."
         >
           Không sự cố{" "}
-          <span className="font-semibold tabular-nums">{stats.tyLeQuyTrinhKhongSuCo}%</span>
+          <span className="font-semibold tabular-nums">
+            {stats.tyLeQuyTrinhKhongSuCo === "—" ? "—" : `${stats.tyLeQuyTrinhKhongSuCo}%`}
+          </span>
         </span>
         <span className="text-slate-300" aria-hidden>
           ·

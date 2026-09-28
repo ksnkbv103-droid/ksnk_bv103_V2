@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   BarChart,
   Bar,
@@ -162,6 +163,14 @@ export default function NkbvDashboardPanel({
           {tuNgay} → {denNgay}. Chỉ tính phiếu có ngày phát hiện trong khoảng.
         </p>
       )}
+
+      <p className="text-[11px] leading-snug text-slate-500">
+        Tra cứu ca theo kỳ — không phải bản in ký. Bản ký NKBV nằm ở{" "}
+        <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
+          Báo cáo chính thức
+        </Link>
+        .
+      </p>
 
       <p className="rounded-[var(--radius-shell)] border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
         Tỷ lệ CAUTI / CLABSI / VAE trên bảng này lấy từ sổ mẫu số khoa (ngày nằm viện / ngày dụng cụ đã nộp),

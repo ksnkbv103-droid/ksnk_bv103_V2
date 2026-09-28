@@ -6,8 +6,9 @@ import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton
 import { pickSearchParam, redirectWithQuery } from "@/lib/nav/redirect-with-query";
 
 export const metadata = {
-  title: "Giám sát tuân thủ KSNK | KSNK 103",
-  description: "Hệ thống bảng kiểm giám sát tuân thủ Kiểm soát nhiễm khuẩn",
+  title: "Form giám sát chung | KSNK 103",
+  description:
+    "Form gốc — mọi loại bảng kiểm. Hub Giám sát mở mẫu tuân thủ tại /giam-sat-chung/tuan-thu.",
 };
 
 type Props = {

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClipboardList, Database, History } from "lucide-react";
 import { BoDungCuPageContent } from "./BoDungCuPage";
@@ -16,7 +15,6 @@ import {
   quanTriDungCuHref,
   type DungCuLayer,
 } from "@/lib/master-data/quan-tri-paths";
-import { cssdCatalogEditProposalHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
@@ -29,7 +27,7 @@ const dungCuTabBtn = (active: boolean) =>
 const LAYERS: { id: DungCuLayer; label: string; icon: typeof Database }[] = [
   { id: "bo", label: "Bộ", icon: Database },
   { id: "phieu", label: "Rà soát", icon: ClipboardList },
-  { id: "lich-su", label: "Lịch sử", icon: History },
+  { id: "lich-su", label: "Sổ rà soát", icon: History },
 ];
 
 export default function QuanLyDungCuPage() {
@@ -103,19 +101,12 @@ export default function QuanLyDungCuPage() {
             ))}
           </div>
         }
-        actions={
-          layer === "phieu" ? (
-            <Link href={cssdCatalogEditProposalHref({ kind: "BOM" })} className={C.btnPrimary}>
-              Lập phiếu rà soát
-            </Link>
-          ) : null
-        }
       />
 
       {isAdmin ? (
         <p className="text-[11px] text-slate-500">
           Duyệt đổi danh mục tại tab <span className="font-semibold text-slate-700">Rà soát</span>
-          {" "}(phiếu chờ). Điều chuyển / lấy kho / trả kho ở sự cố CSSD — cửa <span className="font-semibold text-slate-700">Chuyển</span>.
+          {" "}(phiếu chờ). Luân chuyển ở Dụng cụ, tab <span className="font-semibold text-slate-700">Luân chuyển</span>.
         </p>
       ) : (
         <p className="text-[11px] text-slate-500">

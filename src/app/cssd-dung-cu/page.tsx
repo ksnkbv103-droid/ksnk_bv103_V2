@@ -1,6 +1,6 @@
 "use client";
 
-/** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại · Lịch sử). Hỏng/Mất ở /cssd-su-co. */
+/** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại · Lịch sử kho). Hỏng/Mất ở /cssd-su-co. */
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
@@ -123,7 +123,7 @@ export default function Page() {
           <span className="font-semibold text-slate-700">Luân chuyển</span>
           {" (kho ↔ bộ / bộ ↔ bộ). "}
           <span className="font-semibold text-slate-700">Tra cứu</span>
-          {" — Bộ · Loại · Lịch sử. "}
+          {" — Bộ · Loại · Lịch sử kho. "}
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
             Hỏng/Mất
           </Link>
