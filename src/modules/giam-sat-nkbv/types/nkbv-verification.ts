@@ -108,6 +108,11 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   device_removed_date?: string; // Ngày dừng thở máy (Mới, nếu có)
   /** Bảng PEEP/FiO2 min theo ngày — cò súng VAE (vent-first). */
   vent_daily_params?: VaeVentDailyParam[];
+  /**
+   * NKBV-L11 — DOE ca VAE đang mở cùng BA (hydrate từ prior events).
+   * calculated_doe ∈ Event Period 14d → EVENT_PERIOD_SUPPRESS. Không dùng RIT Ch.2.
+   */
+  prior_open_vae_doe?: string | null;
   has_stable_baseline_peep_fio2: boolean; // Có giai đoạn ổn định: PEEP/FiO2 tối thiểu ổn định hoặc giảm trong >= 2 ngày
   peep_increase_ge_3: boolean; // PEEP tối thiểu tăng >= 3 cmH2O trong >= 2 ngày liên tiếp ngay sau đó
   fio2_increase_ge_20: boolean; // FiO2 tối thiểu tăng >= 0.20 (20%) trong >= 2 ngày liên tiếp ngay sau đó

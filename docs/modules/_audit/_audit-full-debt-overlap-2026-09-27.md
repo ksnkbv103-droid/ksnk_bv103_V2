@@ -246,7 +246,7 @@ Ký hiệu: **OK** Domain-tách đúng · **LEAK** cửa/IA lẫn · **DUAL** ha
 | L6 | BCTH phụ lục CSSD vs `/cssd-erp/report` full | P3 | Quiet link «Báo cáo CSSD đầy đủ» |
 | L7 | QLCV DB JOIN dm vs FE hardcode | P1 park | Nghĩa apply Wave3 draft |
 | L8 | `KhoDungCuPage` / ChiTiet / HoaChat exports | — | **DONE W1** + Soft residual: dead `cssd-kho-read` deleted; entrypoint tabs unexported |
-| L9 | Dead writers `reportInventoryIssue` / `recordInstrumentTransaction` | P2 | Xóa (C7) |
+| L9 | Dead writers `reportInventoryIssue` / `recordInstrumentTransaction` | — | **DONE Soft Soft Soft-local** (0 `src`; see `_audit-soft-hygiene-debt-2026-09-28.md`) — overlap body was stale vs WT |
 | L10 | NKBV module size 2.2M / 1173-line page — gravity well | P2–P3 | Split views đã partial dynamic; tiếp tục |
 
 ---
@@ -270,7 +270,7 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 | 11 | QT hub 3 khu | OK | — | giữ |
 | 12 | MDM dung-cu vs ops DE_NGHI | TEACH | P2 | banner |
 | 13 | `/cssd-erp/batch` dual URL | redirect OK | P3 | giữ alias hoặc eventual drop bookmark |
-| 14 | `InstrumentDoorTabs` khi INSTRUMENT chỉ 1 preset | **Dead branch** (`length > 1` never) | P2 | xóa branch / component nếu không plan multi |
+| 14 | `InstrumentDoorTabs` khi INSTRUMENT chỉ 1 preset | **GONE Soft Soft Soft-local** (0 `src`) | — | **DONE Soft Soft Soft-local** — `_audit-soft-hygiene-debt-2026-09-28.md` (origin tip still stale) |
 | 15 | `entryMode=luan-chuyen` trong module su-co | intentional reuse | P1 | comment + optional extract |
 | 16 | SAFETY_INCIDENT_GROUPS / hubOfIncidentGroup | `@deprecated` còn code | P3 | giữ tới hết bookmark report; rồi xóa |
 | 17 | CHI_TIET / HOA_CHAT catalog tab types | legacy type + unused views | P2 | prune |
@@ -282,7 +282,7 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 
 | Nghiệp vụ | Path A (SSOT) | Path B (redundant/legacy) |
 |-----------|---------------|---------------------------|
-| Inventory instrument lines | `createIncidentReport` → ledger RPC | `reportInventoryIssue` / `recordInstrumentTransaction` (**0 callers**) |
+| Inventory instrument lines | `createIncidentReport` → ledger RPC | Path B **GONE Soft Soft Soft-local** (0 `src`; `_audit-soft-hygiene-debt-2026-09-28.md`) |
 | Luân chuyển | dung-cu tab + `entryMode=luan-chuyen` → cùng submit | (không dual RPC — OK) |
 | Đề nghị DM | ops create → QT approve | hard CRUD QT (ADMIN) — **đúng D5**, không dual approve |
 | Mẻ TK | `/cssd-quy-trinh?tab=batch` | `/cssd-erp/batch` redirect |
@@ -296,11 +296,11 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 
 | Item | Evidence | Action |
 |------|----------|--------|
-| `reportInventoryIssue` | `cssd-write.actions.ts:30` · 0 callers | **Delete** (C7) — Soft alone sau lock hygiene |
-| `recordInstrumentTransaction` | `:258` · 0 callers | **Delete** |
-| `CSSDCatalogChiTietTab` | export entrypoint; page redirects CHI_TIET→BO; no page import | Unexport / delete view |
-| `CSSDCatalogHoaChatTab` | view exists; không trên strip dung-cu (HC có route riêng) | Unexport / delete hoặc embed hoa-chat only |
-| `InstrumentDoorTabs` live path | only if `options.length > 1`; INSTRUMENT presets = 1 | Remove call site / component |
+| `reportInventoryIssue` | Soft Soft Soft WT `src` **0** | **DONE Soft Soft Soft-local** — `_audit-soft-hygiene-debt-2026-09-28.md` (origin tip still stale) |
+| `recordInstrumentTransaction` | Soft Soft Soft WT `src` **0** | **DONE Soft Soft Soft-local** — same hygiene audit |
+| `CSSDCatalogChiTietTab` | Soft Soft Soft WT **0** file / export | **DONE Soft Soft Soft-local** (L8) — hygiene audit |
+| `CSSDCatalogHoaChatTab` | Soft Soft Soft WT **0** file / export | **DONE Soft Soft Soft-local** (L8) — hygiene audit |
+| `InstrumentDoorTabs` live path | Soft Soft Soft WT `src` **0** | **DONE Soft Soft Soft-local** (L14/#14) — hygiene audit |
 | `KhoDungCuPage` as embedded | **deleted W1** (`3ed708b`); dead `fetchCssdKhoDungCuList` **deleted Soft residual** (0 callers) | done |
 | SAFETY hub helpers | deprecated after A | Keep short; delete when report filters stop using |
 
@@ -550,10 +550,10 @@ Trả lời ngắn (A/B) cho Soft:
 | 2 | Dung-cu 5-tab trộn lookup+write | P2 | Nghĩa lock W2 |
 | 3 | Report nested analytics | P2 | Nghĩa lock W3 |
 | 4 | NKBV 5-tab write+analytics; module 2.2M | P2 | Nghĩa lock W3 |
-| 5 | Dead inventory writers (C7) 0 callers | P2 | Soft W1 |
-| 6 | Dead/unused catalog ChiTiet + HoaChat tab views | P2 | Soft W1 |
-| 7 | `InstrumentDoorTabs` dead branch (1 preset) | P2 | Soft W1 |
-| 8 | `entryMode=luan-chuyen` embed su-co shell | P1 teach | Soft W1 comment / W7 extract |
+| 5 | Dead inventory writers (C7) | — | **DONE Soft Soft Soft-local** — hygiene audit |
+| 6 | Dead/unused catalog ChiTiet + HoaChat tab views | — | **DONE Soft Soft Soft-local** (L8) — hygiene audit |
+| 7 | `InstrumentDoorTabs` dead branch (1 preset) | — | **DONE Soft Soft Soft-local** (L14) — hygiene audit |
+| 8 | `entryMode=luan-chuyen` embed su-co shell | — | **DONE Soft Soft Soft-local** teach comment on `SuCoReportForm`; W7 extract **PARK** |
 | 9 | QLCV Wave3 migrate unapplied — DUAL DB JOIN dm | P1 | Nghĩa W4 |
 | 10 | ME-S* migrates unapplied — UAT mẻ park | P1 | Nghĩa W4 |
 | 11 | Eager cssd-dung-cu/thiet-bi pages | — | **DONE W5** Soft |

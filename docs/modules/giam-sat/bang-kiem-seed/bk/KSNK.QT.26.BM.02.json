@@ -1,0 +1,96 @@
+{
+  "ma": "KSNK.QT.26.BM.02",
+  "ten": "Bảng kiểm KKMĐC PTNS (có mục «không ngâm PM»)",
+  "ho_form": "BK",
+  "chuyen_de": "KKMĐC nội soi",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Nhân viên mang PTPH đầy đủ (kính hoặc tấm che mặt, găng tay kháng hóa chất, áo chống thấm) khi làm sạch dụng cụ bẩn và thao tác hóa chất",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Tháo rời hoàn toàn các chi tiết tháo rời được của dụng cụ PTNS theo hướng dẫn nhà sản xuất",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Tách riêng ống kính (Optic), dây dẫn sáng và camera; cọ rửa thủ công bằng khăn hoặc bọt biển mềm; không đưa thiết bị quang học vào máy rửa siêu âm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Que thử MEC được nhúng và đọc màu trước mỗi chu trình ngâm; đổ bỏ và pha mới khi kết quả không đạt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Dụng cụ được ngâm ngập hoàn toàn; lòng ống rỗng được bơm đầy hóa chất, không còn bọt khí",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Đồng hồ hẹn giờ được cài và thời gian ngâm khớp chỉ định nhà sản xuất hóa chất / bảng hóa chất phụ lục",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Trước khi tráng: vệ sinh tay bằng dung dịch vệ sinh tay chứa cồn, tháo găng làm sạch, mang găng tay vô khuẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Tráng toàn bộ bề mặt và lòng ống bằng nước cất vô khuẩn hoặc nước lọc qua màng 0,2 µm; không dùng nước máy sinh hoạt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Kênh rỗng được thổi khô bằng khí nén y tế đã qua màng lọc vô khuẩn; bề mặt ngoài lau bằng khăn vô khuẩn không xơ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Lắp ráp trên săng vô khuẩn và chuyển ngay vào buồng phẫu thuật; không lưu dụng cụ qua đêm sau KKMĐC bằng hóa chất lỏng",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.26.BM.02 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.26.docx (+ ipc-updated/QT/KSNK.QT.26.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (pack có appendices).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Đơn vị Nội soi",
+      "CSSD / tiệt khuẩn"
+    ],
+    "ghi_chu": "Thao tác KKMĐC dụng cụ PTNS tại nội soi/CSSD."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_noi_soi",
+    "ky_thuat_vien_cssd",
+    "NV_noi_soi"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "noi_soi|cssd",
+  "ly_do_phan_bo": "Thao tác KKMĐC dụng cụ PTNS tại nội soi/CSSD."
+}

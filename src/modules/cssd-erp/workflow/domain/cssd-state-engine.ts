@@ -4,7 +4,7 @@
  * pre-check app + contract test — giữ đồng bộ khi đổi luồng trạm.
  */
 import type { Station } from "../../types/cssd.types";
-import { WORKFLOW_STEPS, previousWorkflowStation, stepIndex } from "./cssd-stations";
+import { WORKFLOW_STEPS, previousWorkflowStation, stationLabel, stepIndex } from "./cssd-stations";
 
 export type AdvanceContext = {
   /** Rỗng = shell chưa vào trạm (bootstrap catalog). */
@@ -50,7 +50,7 @@ export function validateStationAdvance(ctx: AdvanceContext): { ok: true } | { ok
   const curIdx = stepIndex(current);
   const tgtIdx = stepIndex(targetStation);
   if (curIdx < 0 || tgtIdx < 0) {
-    return { ok: false, message: `Trạng thái không hợp lệ: ${current} → ${targetStation}` };
+    return { ok: false, message: `Trạng thái không hợp lệ: ${stationLabel(current)} → ${stationLabel(targetStation)}` };
   }
 
   const loopBack = allowNewCycleFromCapPhat && targetStation === "TIEP_NHAN" && current === "CAP_PHAT";
@@ -59,7 +59,7 @@ export function validateStationAdvance(ctx: AdvanceContext): { ok: true } | { ok
   if (tgtIdx !== curIdx + 1) {
     return {
       ok: false,
-      message: `Sai trạm! Quy trình đang ở bước ${current}`,
+      message: `Sai trạm! Quy trình đang ở bước ${stationLabel(current)}`,
     };
   }
 

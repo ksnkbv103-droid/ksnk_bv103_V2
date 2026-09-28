@@ -1,0 +1,97 @@
+{
+  "ma": "KSNK.QT.22.BM.04",
+  "ten": "Bảng kiểm lưu trữ–cấp phát (có mục hết hạn tại khoa)",
+  "ho_form": "BK",
+  "chuyen_de": "Lưu trữ – cấp phát",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Nhân viên khu vô khuẩn mang trang phục sạch và vệ sinh tay trước khi cầm nắm gói dụng cụ vô khuẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Nhiệt độ kho vô khuẩn ghi trong nhật ký nằm trong khoảng 20 °C–25 °C; độ ẩm 30 %–60 % (không quá 70 %)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Gói dụng cụ trên giá kệ cách sàn 20–25 cm, trần ≥ 45 cm, tường ≥ 5 cm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Gói nhẹ xếp phía trên; hộp cứng nặng xếp phía dưới; không xếp chồng làm nát bao gói",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Sắp xếp và cấp phát tuân thủ nguyên tắc FIFO hoặc FEFO; nhãn hướng ra ngoài",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Vận chuyển bằng xe đẩy hoặc thùng kín chuyên dụng sạch; không chở chung đồ bẩn hoặc rác thải",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Tủ lưu trữ tại khoa lâm sàng có cửa kín, khô sạch; không để lẫn thuốc, hóa chất hoặc dụng cụ bẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Trước khi mở gói: đúng loại dụng cụ, HSD còn hiệu lực, CI bên ngoài đạt, bao gói nguyên vẹn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Sau khi mở gói: CI bên trong (loại 5 hoặc tương đương) đổi màu đạt theo nhà sản xuất",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Gói rách, hở mép, ướt, ố bẩn hoặc chỉ thị lỗi được cách ly và trả về CSSD; không sử dụng",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.22.BM.04 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.22.docx (+ ipc-updated/QT/KSNK.QT.22.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (pack có appendices).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "CSSD / tiệt khuẩn",
+      "Khoa lâm sàng chung",
+      "Ngoại / PT / gây mê / can thiệp"
+    ],
+    "ghi_chu": "Kho vô khuẩn CSSD + tủ hết hạn tại khoa — thực hành đơn vị."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_cssd",
+    "dieu_duong",
+    "NVYT"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cssd|tai_khoa_ls",
+  "ly_do_phan_bo": "Kho vô khuẩn CSSD + tủ hết hạn tại khoa — thực hành đơn vị."
+}

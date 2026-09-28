@@ -1,0 +1,96 @@
+{
+  "ma": "KSNK.QT.38.BM.03",
+  "ten": "Bảng kiểm giám sát tuân thủ quản lý và sử dụng hóa chất",
+  "ho_form": "BK",
+  "chuyen_de": "Hóa chất",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Hóa chất lưu tại khoa trong tủ hoặc kho có khóa; biển cảnh báo hóa chất nguy hại treo rõ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Cồn và hóa chất dễ cháy để tách biệt với Clo, hydrogen peroxide và hóa chất oxi hóa mạnh",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Không phát hiện bao bì thực phẩm hoặc đồ uống được dùng để san chiết hay lưu hóa chất",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Chai hoặc can san chiết có nhãn phụ ghi tên, nồng độ, ngày pha, hạn dùng và người pha",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Nhân viên mang găng tay kháng hóa chất, khẩu trang và kính bảo hộ khi pha Clo nồng độ cao hoặc hóa chất khử khuẩn mức độ cao",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Pha hóa chất bay hơi (glutaraldehyde, peracetic acid) tại nơi thông thoáng hoặc tủ hút áp suất âm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Que thử MEC dùng trước mỗi mẻ ngâm hóa chất khử khuẩn mức độ cao; dung dịch không đạt đã loại bỏ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Khu vực cách ly lao hoặc Clostridioides difficile dùng Clo hoặc peroxygen; không dùng Quats",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Dung dịch Clo đã pha loãng dùng trong vòng 24 giờ; phần thừa thải đúng quy định",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Bộ xử lý tràn đổ hóa chất và bản sao MSDS sẵn tại khu vực pha chế tập trung",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.38.BM.03 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.38.docx (+ ipc-updated/QT/KSNK.QT.38.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Lưu/pha/dùng hóa chất tại đơn vị — thực hành."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "NV_ve_sinh",
+    "ky_thuat_vien_cssd",
+    "NV_pha_che"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|cssd|pha_che",
+  "ly_do_phan_bo": "Lưu/pha/dùng hóa chất tại đơn vị — thực hành."
+}

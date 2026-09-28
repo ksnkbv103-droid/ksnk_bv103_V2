@@ -1,0 +1,111 @@
+{
+  "ma": "KSNK.QT.16.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ KSNK trong xử lý tử thi",
+  "ho_form": "BK",
+  "chuyen_de": "Xử lý tử thi",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Mang PTPH phù hợp phân tầng nguy cơ trước khi tiếp xúc thi thể: găng, áo choàng chống thấm, khẩu trang y tế, kính hoặc tấm che mặt; bổ sung trang phục phòng hộ, găng cao su, giày hoặc ủng khi ca dịch bệnh nguy hiểm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "VST bằng dung dịch VST chứa cồn hoặc xà phòng và nước trước khi mang và ngay sau khi tháo PTPH",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Rút ống thông, catheter, dẫn lưu, ống nội khí quản chậm; phủ gạc tại vị trí rút; không ép ấn ngực–bụng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Bỏ vật sắc nhọn trực tiếp vào hộp kháng thủng đúng loại; không để kim, lưỡi dao trên giường hoặc khăn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Bịt kín lỗ tự nhiên và vết thương hở; không còn rò máu hoặc dịch trên da thi thể",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Thẻ nhận dạng buộc chắc ở cổ tay hoặc cổ chân thi thể VÀ mặt ngoài túi: họ tên, tuổi, chẩn đoán, mã hồ sơ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Bọc kín bằng túi chống thấm, không trong suốt, khóa kéo kín, cố định dây buộc hoặc băng dính; hoặc 02 lớp vải rồi 02 lớp ni-lon khi không có túi chuyên dụng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Lau khử khuẩn mặt ngoài túi bằng dung dịch chứa 0,1% clo hoạt tính trước khi chuyển lên xe đẩy",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Xe đẩy có mái che hoặc khăn phủ kín; đi tuyến phân luồng, thang máy chuyên dụng, tránh khu đông người",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Thu gom đồ vải và chất thải tại giường đúng loại ngay sau khi chuyển thi thể",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Lau khử khuẩn giường, thiết bị, sàn và xe đẩy bằng dung dịch chứa 0,1% clo hoạt tính, cồn 70% hoặc chế phẩm diệt khuẩn bề mặt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Ca dịch bệnh nguy hiểm: không mở túi; dán cảnh báo «NGUY CƠ LÂY NHIỄM CAO — KHÔNG MỞ TÚI»; áp dụng HD.01 — Xử lý tử thi mắc bệnh truyền nhiễm nguy hiểm",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.16.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.16.docx (+ ipc-updated/QT/KSNK.QT.16.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Khoa lâm sàng chung",
+      "Khoa Cấp cứu",
+      "Nội / ICU / HSTC",
+      "Khoa Truyền nhiễm"
+    ],
+    "ghi_chu": "Thực hành xử lý tử thi tại khoa có tử vong / nhà tang."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "dieu_duong",
+    "bac_si",
+    "NV_nha_tang"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|nha_tang",
+  "ly_do_phan_bo": "Thực hành xử lý tử thi tại khoa có tử vong / nhà tang."
+}

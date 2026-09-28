@@ -505,13 +505,22 @@ export async function recordSteamDailyBdAction(input: {
   }
 }
 
-export async function createCssdSterilizationBatch(machineId: string, nguoiLoad: string) {
+export async function createCssdSterilizationBatch(
+  machineId: string,
+  nguoiLoad: string,
+  chuongTrinh?: string | null,
+) {
   try {
     await verifyCssdBatchEdit();
     const supabase = createAdminSupabaseClient();
-    const validated = createSterilizationBatchSchema.parse({ machineId, nguoiLoad });
+    const validated = createSterilizationBatchSchema.parse({
+      machineId,
+      nguoiLoad,
+      chuongTrinh: String(chuongTrinh ?? "").trim(),
+    });
     const mid = validated.machineId;
     const nguoi = validated.nguoiLoad;
+    const chuong = validated.chuongTrinh;
     const mayOk = await assertThietBiSanSangChoMeTietKhuan(supabase, mid);
     if (!mayOk.ok) return { success: false as const, error: mayOk.message };
     const { data: tbRow } = await supabase
@@ -555,7 +564,7 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       p_thiet_bi_id: mid,
       p_actor_user_id: actor.userId,
       p_ghi_chu: `Người load: ${nguoi}`,
-      p_chuong_trinh: null,
+      p_chuong_trinh: chuong,
     });
     if (error) {
       if (/uq_cssd_fact_lo_mo_mot_may|chưa kết luận/i.test(error.message)) {

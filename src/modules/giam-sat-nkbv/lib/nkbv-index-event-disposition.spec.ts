@@ -247,6 +247,43 @@ describe("nkbv-index-event-disposition", () => {
     expect(d).toBeNull();
   });
 
+  it("L11: DOE ∈ Event Period VAE → BELONGS (không RIT Ch.2)", () => {
+    const d = resolveDoeBelongsPriorEvent({
+      doe: "2026-08-06",
+      sampleMajor: "VAE",
+      priorEvents: [
+        {
+          id: "ev-vae",
+          ngay_phat_hien: "2026-08-01",
+          loai_ma: "VAE",
+          loai_ten: "VAC",
+          vi_tri_nhiem_khuan: "VAE",
+        },
+      ],
+    });
+    expect(d?.kind).toBe("BELONGS_PRIOR_EVENT");
+    expect(d?.priorEventId).toBe("ev-vae");
+    expect(d?.ketLuanLabel).toMatch(/Event Period/);
+    expect(d?.reason).not.toMatch(/RIT 14 ngày/);
+  });
+
+  it("L11: DOE ngoài Event Period VAE → không BELONGS", () => {
+    const d = resolveDoeBelongsPriorEvent({
+      doe: "2026-08-15",
+      sampleMajor: "VAE",
+      priorEvents: [
+        {
+          id: "ev-vae",
+          ngay_phat_hien: "2026-08-01",
+          loai_ma: "VAE",
+          loai_ten: "VAC",
+          vi_tri_nhiem_khuan: "VAE",
+        },
+      ],
+    });
+    expect(d).toBeNull();
+  });
+
   it("XN không đủ TC nằm trong RIT sự kiện sau → annotate", () => {
     const note = resolveInsufficientInLaterEventNote({
       sampleId: "xn-nt-a",

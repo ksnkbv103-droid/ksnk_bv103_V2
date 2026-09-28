@@ -1,0 +1,98 @@
+{
+  "ma": "KSNK.QT.27.BM.03",
+  "ten": "Bảng kiểm PCI.03.01",
+  "ho_form": "BK",
+  "chuyen_de": "PCI / Dụng cụ",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "SUD đưa vào tái xử lý có tên trong danh mục phê duyệt hiện hành",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "BS giải thích cho NB về việc sử dụng dụng cụ tái xử lý và có chữ ký đồng thuận trên hồ sơ trước thủ thuật",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Dụng cụ bẩn gửi CSSD còn gắn mã định danh rõ, không mờ, không bong",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "CSSD từ chối xử lý và chuyển tiêu hủy khi dụng cụ mất định danh hoặc hỏng cấu trúc tại khâu tiếp nhận",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Dụng cụ đạt kiểm duyệt đi vào làm sạch chuyên sâu, kiểm tra chức năng, đóng gói và tiệt khuẩn nhiệt độ thấp kèm BI",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Khoa Trang bị đối chiếu mã định danh với sổ theo dõi ngay khi nhận gói vô khuẩn từ CSSD",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Khoa Trang bị lập biên bản loại bỏ và ngừng cấp phát khi dụng cụ đã đạt số lần tái sử dụng tối đa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Bao bì cấp phát có tem chỉ báo số lần tái sử dụng hiện tại khớp sổ theo dõi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "ĐD bóc dán mã truy xuất dụng cụ vào hồ sơ bệnh án ngay sau khi kết thúc thủ thuật",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Khoa KSNK thu thập dữ liệu sự cố liên quan dụng cụ tái xử lý để rà soát danh mục định kỳ",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.27.BM.03 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.27.docx (+ ipc-updated/QT/KSNK.QT.27.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (pack có appendices).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "CSSD / tiệt khuẩn",
+      "Ngoại / PT / gây mê / can thiệp",
+      "Khoa lâm sàng chung"
+    ],
+    "ghi_chu": "Tuân thủ tái xử lý SUD tại CSSD + khoa dùng — thực hành đơn vị (TC10 KSNK thu thập dữ liệu là hỗ trợ, không đổi lớp)."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_cssd",
+    "bac_si",
+    "dieu_duong",
+    "NV_trang_bi"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cssd|tai_khoa_ls|phong_mo",
+  "ly_do_phan_bo": "Tuân thủ tái xử lý SUD tại CSSD + khoa dùng — thực hành đơn vị (TC10 KSNK thu thập dữ liệu là hỗ trợ, không đổi lớp)."
+}

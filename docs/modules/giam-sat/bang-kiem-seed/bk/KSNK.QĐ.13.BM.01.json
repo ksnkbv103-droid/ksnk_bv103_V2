@@ -1,0 +1,89 @@
+{
+  "ma": "KSNK.QĐ.13.BM.01",
+  "ten": "Bảng kiểm giám sát hệ thống kiểm soát nhiễm khuẩn tại Khoa Hồi sức ngoại",
+  "ho_form": "BK",
+  "chuyen_de": "Hồi sức ngoại",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Dung dịch VST gốc cồn sẵn có tại mỗi giường bệnh và xe thủ thuật thay băng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Biển báo phòng ngừa lây qua tiếp xúc treo rõ trước khu vực cách ly vi khuẩn đa kháng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Thiết bị y tế cá nhân (ống nghe, huyết áp kế) dùng riêng cho NB mang vi khuẩn đa kháng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Băng vết mổ hậu phẫu 24–48 giờ đầu duy trì khô ráo, kín và nguyên vẹn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Hồ sơ bệnh án có đánh giá hàng ngày sự cần thiết duy trì thiết bị xâm lấn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Hồ sơ bệnh án thể hiện dừng KSDP trong 24 giờ (hoặc 48 giờ phẫu thuật tim mạch) sau mổ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cung cấp đầy đủ PTPH phục vụ thay băng và chăm sóc cách ly",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Bề mặt thiết bị dùng chung (monitor, máy thở, bơm tiêm điện) được lau khử khuẩn giữa các ca sử dụng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Khu vực cách ly vi khuẩn đa kháng dùng bộ dụng cụ vệ sinh môi trường có mã màu riêng",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QĐ.13.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QD.13.docx",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "chuyen_khoa",
+    "nhom": [
+      "Khoa Hồi sức ngoại"
+    ],
+    "ghi_chu": "Dù tên «hệ thống KSNK tại Khoa HS ngoại» — TC01–TC09 là thực hành tại khoa (VST giường, MDRO, băng vết mổ, KSDP) → thuc_hanh_don_vi, không phải lớp đánh giá hệ "
+  },
+  "doi_tuong_goi_y": [
+    "bac_si",
+    "dieu_duong",
+    "phau_thuat_vien"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "hs_ngoai",
+  "ly_do_phan_bo": "Dù tên «hệ thống KSNK tại Khoa HS ngoại» — TC01–TC09 là thực hành tại khoa (VST giường, MDRO, băng vết mổ, KSDP) → thuc_hanh_don_vi, không phải lớp đánh giá hệ thống viện."
+}

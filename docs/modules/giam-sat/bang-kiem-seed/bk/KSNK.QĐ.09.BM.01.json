@@ -1,0 +1,108 @@
+{
+  "ma": "KSNK.QĐ.09.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ kiểm soát nhiễm khuẩn tại phòng can thiệp mạch",
+  "ho_form": "BK",
+  "chuyen_de": "Can thiệp mạch",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Cửa phòng can thiệp duy trì đóng kín trong suốt quá trình làm thủ thuật",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Duy trì thông gió (15 ACH), nhiệt độ (20–24°C), độ ẩm (30–60%) và áp suất dương (≥ 2,5 Pa)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Mọi cá nhân trong phòng tuân thủ trang phục can thiệp, mũ trùm kín tóc, khẩu trang y tế",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "NVYT mang kính bảo hộ hoặc tấm che mặt khi có nguy cơ văng bắn máu–dịch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Kíp can thiệp áp dụng VST ngoại khoa đúng kỹ thuật trước khi mặc áo choàng vô khuẩn bên ngoài áo chì",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Sát khuẩn da vùng chọc mạch bằng cồn-Chlorhexidine hoặc Iodine đúng kỹ thuật; chờ hóa chất khô",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Che phủ (draping) bằng săng vô khuẩn lớn che kín toàn thân NB",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Bóng phát tia và bảng điều khiển máy C-arm được bọc bằng vỏ vô khuẩn chuyên dụng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Không dùng chung chai thuốc cản quang đa liều cho nhiều NB bằng bơm tiêm thông thường",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Áo chì bảo hộ được treo thẳng trên giá chuyên dụng; không gấp gập hoặc để dưới sàn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Áo chì được lau khử khuẩn mặt trong và mặt ngoài; không còn vết bẩn hoặc mùi hôi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Lau khử khuẩn thiết bị và chờ lưu thông không khí (14–18 phút) giữa các ca can thiệp",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QĐ.09.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QD.09.docx",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "chuyen_khoa",
+    "nhom": [
+      "Phòng can thiệp mạch"
+    ],
+    "ghi_chu": "Thực hành tại phòng can thiệp mạch."
+  },
+  "doi_tuong_goi_y": [
+    "bac_si",
+    "dieu_duong",
+    "ky_thuat_vien",
+    "NVYT_can_thiep"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "phong_can_thiep",
+  "ly_do_phan_bo": "Thực hành tại phòng can thiệp mạch."
+}

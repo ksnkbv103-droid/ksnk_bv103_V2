@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import { useCssdPrint } from "./use-cssd-print";
 import {
@@ -18,6 +18,14 @@ import {
   nhapKetQuaBiMeTietKhuan,
 } from "../actions/cssd.actions";
 import { isMeMaLoScan } from "../lib/me-tiet-khuan-qc";
+import {
+  prefillFromChuongTrinh,
+  pickDefaultChuongTrinh,
+  resolveChuongTrinhOptions,
+  type ChuongTrinhMayOption,
+  type ChuongTrinhPrefill,
+} from "../lib/me-tiet-khuan-chuong-trinh";
+import type { SterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
 import {
   filterWaitingSetsForSlip,
   meQcDraftStorageKey,
@@ -68,6 +76,8 @@ export function useMeTietKhuanWorkflow() {
     }
   }, [userData, nguoiLoad, nguoiUnload]);
   const [chuongTrinh, setChuongTrinh] = useState("");
+  const [chuongTrinhMa, setChuongTrinhMa] = useState("");
+  const chuongPrefillRef = useRef<ChuongTrinhPrefill | null>(null);
   const [nhietDo, setNhietDo] = useState("");
   const [apSuat, setApSuat] = useState("");
   const [thoiGianChuKy, setThoiGianChuKy] = useState("");
@@ -108,6 +118,8 @@ export function useMeTietKhuanWorkflow() {
 
   const resetQcFields = () => {
     setChuongTrinh("");
+    setChuongTrinhMa("");
+    chuongPrefillRef.current = null;
     setNhietDo("");
     setApSuat("");
     setThoiGianChuKy("");
@@ -254,9 +266,26 @@ export function useMeTietKhuanWorkflow() {
     }
   }, [step, activeMe?.id, qcDraft]);
 
+  const onChuongTrinhMaChange = (ma: string, opt: ChuongTrinhMayOption | null) => {
+    setChuongTrinhMa(ma);
+    if (!opt) {
+      chuongPrefillRef.current = null;
+      return;
+    }
+    const pre = prefillFromChuongTrinh(opt);
+    chuongPrefillRef.current = pre;
+    setChuongTrinh(pre.chuongTrinh);
+    setNhietDo(pre.nhietDo);
+    setApSuat(pre.apSuat);
+    setThoiGianChuKy(pre.thoiGianChuKy);
+  };
+
   const createMe = async () => {
     if (!machineId || !nguoiLoad) return toast.error("Vui lòng chọn Máy và Người load");
-    const r = await createCssdSterilizationBatch(machineId, nguoiLoad);
+    if (!chuongTrinhMa || !String(chuongTrinh || "").trim()) {
+      return toast.error("Chọn chương trình máy trước khi tạo mẻ (M-04).");
+    }
+    const r = await createCssdSterilizationBatch(machineId, nguoiLoad, chuongTrinh);
     if (!r.success) return toast.error(r.error);
     setActiveMe(r.data);
     setStep("PROCESS");
@@ -264,10 +293,9 @@ export function useMeTietKhuanWorkflow() {
     setBatchGate(null);
     setWaitingRows([]);
     setHiddenIncompatible(0);
-    setChuongTrinh(String((r.data as { chuong_trinh?: string | null })?.chuong_trinh || ""));
-    setNhietDo("");
-    setApSuat("");
-    setThoiGianChuKy("");
+    const fromRpc = String((r.data as { chuong_trinh?: string | null })?.chuong_trinh || "").trim();
+    if (fromRpc) setChuongTrinh(fromRpc);
+    // giữ prefill nhiệt/áp/thời gian đã chọn; không xóa
     setThongSoVatLy("");
     setCiNgoaiGoi("");
     setCiPcd("");
@@ -387,6 +415,7 @@ export function useMeTietKhuanWorkflow() {
       isPass,
       nguoiUnload,
       chuongTrinh,
+      chuongPrefill: chuongPrefillRef.current,
       nhietDo,
       apSuat,
       thoiGianChuKy,
@@ -482,10 +511,49 @@ export function useMeTietKhuanWorkflow() {
     }
     setActiveMe(row);
     setStep("PROCESS");
-    setChuongTrinh(String(row.chuong_trinh || ""));
     resetQcFields();
-    if (row.chuong_trinh) setChuongTrinh(String(row.chuong_trinh));
+    const ct = String(row.chuong_trinh || "").trim();
+    if (ct) setChuongTrinh(ct);
+    const mid = String(row.thiet_bi_id || "").trim();
+    const m = (machines || []).find((x: { id?: string }) => String(x.id || "") === mid);
+    if (m) {
+      const opts = resolveChuongTrinhOptions({
+        method: (m.phuong_phap as SterilizerMethod | null) || null,
+        specs: m.specs || null,
+      });
+      const def = pickDefaultChuongTrinh(opts, ct || m.chuong_trinh_gan_nhat || undefined);
+      if (def) {
+        setChuongTrinhMa(def.ma);
+        const pre = prefillFromChuongTrinh(def);
+        chuongPrefillRef.current = pre;
+        if (!ct) {
+          setChuongTrinh(pre.chuongTrinh);
+          setNhietDo(pre.nhietDo);
+          setApSuat(pre.apSuat);
+          setThoiGianChuKy(pre.thoiGianChuKy);
+        } else {
+          setChuongTrinh(ct);
+        }
+      } else {
+        setChuongTrinhMa("");
+        chuongPrefillRef.current = null;
+      }
+    }
   };
+
+  const activeMachine = useMemo(() => {
+    const tid = String(activeMe?.thiet_bi_id || machineId || "").trim();
+    return (machines || []).find((m: { id?: string }) => String(m.id || "") === tid) || null;
+  }, [activeMe, machineId, machines]);
+
+  const chuongOptions = useMemo(() => {
+    if (!activeMachine) return [] as ChuongTrinhMayOption[];
+    return resolveChuongTrinhOptions({
+      method: (activeMachine.phuong_phap as SterilizerMethod | null) || null,
+      specs: activeMachine.specs || null,
+    });
+  }, [activeMachine]);
+
 
   return {
     batches,
@@ -504,6 +572,10 @@ export function useMeTietKhuanWorkflow() {
     items,
     chuongTrinh,
     setChuongTrinh,
+    chuongTrinhMa,
+    chuongOptions,
+    onChuongTrinhMaChange,
+    chuongPrefillRef,
     nhietDo,
     setNhietDo,
     apSuat,

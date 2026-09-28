@@ -32,6 +32,9 @@ export default function MeTietKhuanProcessStep({
   hiddenIncompatible = 0,
   chuongTrinh,
   setChuongTrinh,
+  chuongOptions = [],
+  chuongTrinhMa = "",
+  onSelectChuongMa,
   nhietDo,
   setNhietDo,
   apSuat,
@@ -65,6 +68,9 @@ export default function MeTietKhuanProcessStep({
   hiddenIncompatible?: number;
   chuongTrinh: string;
   setChuongTrinh: (v: string) => void;
+  chuongOptions?: { ma: string; ten: string; nguon_label?: string }[];
+  chuongTrinhMa?: string;
+  onSelectChuongMa?: (ma: string) => void;
   nhietDo: string;
   setNhietDo: (v: string) => void;
   apSuat: string;
@@ -196,16 +202,33 @@ export default function MeTietKhuanProcessStep({
           <div className="space-y-3">
             <label className="block space-y-1">
               <span className={CSSD_UI_FORM_LABEL}>Chương trình</span>
-              <input
-                className={CSSD_UI_CONTROL}
-                value={chuongTrinh}
-                maxLength={80}
-                placeholder="Tên chương trình trên máy"
-                onChange={(e) => setChuongTrinh(e.target.value)}
-              />
+              {chuongOptions.length > 0 ? (
+                <select
+                  className={CSSD_UI_CONTROL}
+                  value={chuongTrinhMa || ""}
+                  onChange={(e) => onSelectChuongMa?.(e.target.value)}
+                  data-testid="me-process-chuong-trinh"
+                >
+                  <option value="">-- Chọn chương trình --</option>
+                  {chuongOptions.map((o) => (
+                    <option key={o.ma} value={o.ma}>
+                      {o.ten}
+                      {o.nguon_label ? ` · ${o.nguon_label}` : ""}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className={CSSD_UI_CONTROL}
+                  value={chuongTrinh}
+                  maxLength={80}
+                  placeholder="Tên chương trình trên máy"
+                  onChange={(e) => setChuongTrinh(e.target.value)}
+                />
+              )}
               {chuongTrinhEmpty && items.length > 0 ? (
                 <span className="block text-[11px] font-medium text-amber-700">
-                  Khuyến nghị ghi chương trình — không chặn «Bắt đầu chu trình».
+                  Bắt buộc chọn chương trình trước khi kết luận QC (M-04).
                 </span>
               ) : null}
             </label>
@@ -281,6 +304,9 @@ export default function MeTietKhuanProcessStep({
             choBi={choBi}
             chuongTrinh={chuongTrinh}
             setChuongTrinh={setChuongTrinh}
+            chuongOptions={chuongOptions}
+            chuongTrinhMa={chuongTrinhMa}
+            onSelectChuongMa={onSelectChuongMa}
             nhietDo={nhietDo}
             setNhietDo={setNhietDo}
             apSuat={apSuat}

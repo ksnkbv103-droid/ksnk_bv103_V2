@@ -8,6 +8,7 @@ import { getSterilizerMethod, type SterilizerMethod } from "./me-tiet-khuan-mach
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { applyBatchRecallAndHoldMachine } from "@/modules/cssd-su-co/application/batch-recall-hold.application";
 import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
+import { buildChuongTrinhEditAudit, type ChuongTrinhPrefill } from "../lib/me-tiet-khuan-chuong-trinh";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -18,6 +19,8 @@ export type PersistMeTietKhuanInput = {
   operatorAuthUserId?: string | null;
   operatorEmail?: string | null;
   chuongTrinh?: string;
+  /** M-04 Soft Soft Soft-safe: prefill lúc chọn CT — audit khi NV sửa. */
+  chuongPrefill?: ChuongTrinhPrefill | null;
   nhietDo?: string;
   apSuat?: string;
   thoiGianChuKy?: string;
@@ -144,6 +147,13 @@ function qcJson(args: {
     co_implant: args.coImplant ? "true" : "false",
     phuong_phap: args.method || "",
     chuong_trinh: String(args.p.chuongTrinh || "").trim().slice(0, 80),
+    ...(buildChuongTrinhEditAudit({
+      prefill: args.p.chuongPrefill,
+      chuongTrinh: String(args.p.chuongTrinh || ""),
+      nhietDo: String(args.p.nhietDo || ""),
+      apSuat: String(args.p.apSuat || ""),
+      thoiGianChuKy: String(args.p.thoiGianChuKy || ""),
+    }) || {}),
     actor_user_id: args.actorUserId,
     nguoiUnload: args.p.nguoiUnload,
     anhMinhChung: String(args.p.anhMinhChung || "").trim(),

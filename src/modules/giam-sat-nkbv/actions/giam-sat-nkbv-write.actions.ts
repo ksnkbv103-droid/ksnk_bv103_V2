@@ -20,6 +20,7 @@ import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import { clean, validateLoaiTrangAndLyDo, type Payload } from "./giam-sat-nkbv-write.helpers";
 import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
+import { hydratePriorOpenVaeDoe } from "../lib/nkbv-vae-event-period";
 
 export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
@@ -234,7 +235,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         .filter((x): x is NonNullable<typeof x> => Boolean(x));
     }
 
-    const evalInput = {
+    const evalInput: Record<string, unknown> = {
       ...verificationInput,
       rit_prior_events: ritPriorEvents,
       rit_exclude_event_ids: [
@@ -243,19 +244,85 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       ],
     };
 
+    // L11 Soft Soft Soft-safe: hydrate prior_open_vae_doe từ prior open VAE cùng BA
+    // (không reuse RIT Ch.2; Event Period gate trong evaluateVaeVap).
+    if (viTriNhiemKhuan === "VAE" && caRow?.ma_benh_an) {
+      const { data: vaeSiblings } = await supabase
+        .from("v_nkbv_su_kien_full")
+        .select(
+          "id, loai_ma, loai_ten, vi_tri_nhiem_khuan, ngay_phat_hien, trang_thai_ma, verification_data",
+        )
+        .eq("ma_benh_an", caRow.ma_benh_an)
+        .eq("is_active", true)
+        .neq("id", id)
+        .limit(100);
+      const priorCases = (vaeSiblings || [])
+        .filter((s) => String(s.trang_thai_ma || "").toUpperCase() !== "LOAI_TRU")
+        .map((s) => {
+          const vd =
+            s.verification_data && typeof s.verification_data === "object"
+              ? (s.verification_data as Record<string, unknown>)
+              : {};
+          const metrics =
+            vd.cdc_metrics && typeof vd.cdc_metrics === "object"
+              ? (vd.cdc_metrics as Record<string, unknown>)
+              : vd;
+          const doe =
+            (metrics.doe as string | undefined) ||
+            (metrics.DOE as string | undefined) ||
+            (vd.calculated_doe as string | undefined) ||
+            (s.ngay_phat_hien as string | null);
+          return {
+            id: String(s.id),
+            doe: doe ? String(doe).slice(0, 10) : null,
+            ngay_phat_hien: s.ngay_phat_hien ? String(s.ngay_phat_hien).slice(0, 10) : null,
+            calculated_doe: vd.calculated_doe ? String(vd.calculated_doe).slice(0, 10) : null,
+            loai_ma: s.loai_ma ? String(s.loai_ma) : null,
+            vi_tri_nhiem_khuan: s.vi_tri_nhiem_khuan
+              ? String(s.vi_tri_nhiem_khuan)
+              : null,
+            classification:
+              typeof vd.classification === "string"
+                ? vd.classification
+                : typeof vd.engine_classification === "string"
+                  ? vd.engine_classification
+                  : null,
+          };
+        });
+      const candidateDoe =
+        String(
+          (verificationInput as { calculated_doe?: string } | null | undefined)
+            ?.calculated_doe ||
+            (verificationInput as { ngay_phat_hien?: string } | null | undefined)
+              ?.ngay_phat_hien ||
+            "",
+        ).slice(0, 10) || null;
+      const existing = (verificationInput as { prior_open_vae_doe?: string | null } | null)
+        ?.prior_open_vae_doe;
+      const hydrated = hydratePriorOpenVaeDoe({
+        candidateDoe,
+        priorCases,
+        excludeEventIds: [id],
+        existingPriorOpenVaeDoe: existing,
+      });
+      if (hydrated) {
+        evalInput.prior_open_vae_doe = hydrated;
+      }
+    }
+
     let result;
     if (viTriNhiemKhuan === "BSI") {
-      result = evaluateBsiClabsi(evalInput);
+      result = evaluateBsiClabsi(evalInput as never);
     } else if (viTriNhiemKhuan === "VAE") {
-      result = evaluateVaeVap(evalInput, "VAE");
+      result = evaluateVaeVap(evalInput as never, "VAE");
     } else if (viTriNhiemKhuan === "VAP" || viTriNhiemKhuan === "HAP" || viTriNhiemKhuan === "PNEU") {
-      result = evaluateVaeVap(evalInput, "PNEU");
+      result = evaluateVaeVap(evalInput as never, "PNEU");
     } else if (viTriNhiemKhuan === "UTI") {
-      result = evaluateUtiCauti(evalInput);
+      result = evaluateUtiCauti(evalInput as never);
     } else if (viTriNhiemKhuan === "SSI") {
-      result = evaluateSsi(evalInput);
+      result = evaluateSsi(evalInput as never);
     } else if (viTriNhiemKhuan === "CH17") {
-      result = evaluateCh17(evalInput);
+      result = evaluateCh17(evalInput as never);
     } else {
       throw new Error(`Vị trí nhiễm khuẩn không hợp lệ: ${viTriNhiemKhuan}`);
     }

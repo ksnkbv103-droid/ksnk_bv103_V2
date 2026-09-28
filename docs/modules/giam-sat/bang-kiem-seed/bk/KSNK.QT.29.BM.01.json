@@ -1,0 +1,68 @@
+{
+  "ma": "KSNK.QT.29.BM.01",
+  "ten": "Bảng kiểm an toàn phẫu thuật (SSI / QĐ 7482)",
+  "ho_form": "BK",
+  "chuyen_de": "SSI",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "NB đã tắm bằng xà phòng sát khuẩn hoặc dung dịch CHG trước khi vào OR",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "KSDP đã được tiêm truyền tĩnh mạch trong cửa sổ 60 phút trước rạch da (120 phút với vancomycin hoặc fluoroquinolone)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Lông vùng mổ (nếu cần loại bỏ) được cắt bằng tông đơ chuyên dụng; không dùng dao cạo",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Dung dịch sát khuẩn da chứa cồn đã bay hơi, khô hoàn toàn trên da trước khi trải săng và rạch da",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Đường huyết chu phẫu được duy trì dưới 200 mg/dL (11,1 mmol/L)",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.29.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.29.docx (+ ipc-updated/QT/KSNK.QT.29.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Ngoại / PT / gây mê / can thiệp",
+      "Phòng mổ / khối mổ"
+    ],
+    "ghi_chu": "Bundle SSI trước/trong mổ — thực hành khối mổ/ngoại."
+  },
+  "doi_tuong_goi_y": [
+    "phau_thuat_vien",
+    "gay_me",
+    "dieu_duong_mo",
+    "bac_si",
+    "dieu_duong"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "phong_mo|tai_khoa_ls",
+  "ly_do_phan_bo": "Bundle SSI trước/trong mổ — thực hành khối mổ/ngoại."
+}

@@ -74,6 +74,14 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
     return { ...b, so_bo_trong_me: byMe.get(b.id) || 0, trang_thai };
   });
   const loaiMap = new Map(loaiPack.rows.map((r) => [r.ma, r.ten]));
+  /** M-04 default = chương trình gần nhất của máy (từ list mẻ vừa tải). */
+  const lastChuongByMay = new Map<string, string>();
+  for (const b of raw) {
+    const row = b as { thiet_bi_id?: string; chuong_trinh?: string | null };
+    const tid = String(row.thiet_bi_id || "").trim();
+    const ct = String(row.chuong_trinh || "").trim();
+    if (tid && ct && !lastChuongByMay.has(tid)) lastChuongByMay.set(tid, ct);
+  }
   const machines = (mRes.data || [])
     .map((m: Record<string, unknown>) => {
       const lm = m.loai_may as { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
@@ -81,7 +89,14 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
       const ma = String(lmRow?.ma_loai_may || "").trim();
       const loaiTen = String(lmRow?.ten_loai_may || "").trim() || (ma ? loaiMap.get(ma) || ma : "");
       const phuong_phap = getSterilizerMethod({ ma_loai_may: ma, loai_may: lmRow });
-      return { ...m, loai_ten_hien_thi: loaiTen, loai_thiet_bi: ma, phuong_phap };
+      const mid = String(m.id || "").trim();
+      return {
+        ...m,
+        loai_ten_hien_thi: loaiTen,
+        loai_thiet_bi: ma,
+        phuong_phap,
+        chuong_trinh_gan_nhat: lastChuongByMay.get(mid) || null,
+      };
     })
     .filter((m) => m.phuong_phap != null);
   return {

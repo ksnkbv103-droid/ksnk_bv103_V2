@@ -1,0 +1,93 @@
+{
+  "ma": "KSNK.QT.19.BM.02",
+  "ten": "Bảng kiểm giám sát kiểm tra và bảo dưỡng",
+  "ho_form": "BK",
+  "chuyen_de": "Kiểm tra bảo dưỡng dụng cụ",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Nhân viên khu sạch mang quần áo sạch, mũ trùm tóc, khẩu trang; VST trước khi tiếp xúc dụng cụ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Bàn kiểm tra có đèn chiếu sáng, kính lúp, khí nén y tế, vật liệu thử chức năng, máy thử rò rỉ điện và chất bôi trơn y tế gốc nước",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Soi 100% dụng cụ dưới kính lúp lồng đèn: rãnh răng cưa, khớp nối hộp, lỗ vít, lòng ống — không còn chất bẩn ngoại lai",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Trả về khu bẩn để làm sạch lại dụng cụ còn vết máu, cặn khoáng hoặc đọng nước — không rửa lại tại khu sạch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Soi thấu kính dụng cụ PTNS dưới nguồn sáng: không nứt, xước, ố mờ, đọng nước trong lòng kính",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Luồn thân cách điện của mọi dụng cụ PTNS có kết nối điện qua máy thử rò rỉ điện; loại khỏi chu trình khi máy báo",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cắt thử kéo phẫu thuật trên bìa cao su mỏng hoặc gạc: nhát cắt gãy gọn, không nhai mép ở một phần ba đầu mũi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Tách riêng, dán nhãn và ghi sổ dụng cụ gãy nứt, mất chức năng, rỉ sét không phục hồi hoặc hở cách điện theo BM.01 — Sổ theo dõi dụng cụ hỏng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Phun chất bôi trơn y tế hòa tan trong nước vào khớp nối, ốc vít, thanh trượt — không dùng dầu máy, mỡ hoặc silicone",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Đóng mở khớp ba đến năm lần; lau phần dung dịch thừa trên thân ngoài bằng khăn không xơ",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.19.BM.02 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.19.docx (+ ipc-updated/QT/KSNK.QT.19.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "CSSD / tiệt khuẩn"
+    ],
+    "ghi_chu": "Thao tác khu sạch CSSD."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_cssd"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cssd",
+  "ly_do_phan_bo": "Thao tác khu sạch CSSD."
+}

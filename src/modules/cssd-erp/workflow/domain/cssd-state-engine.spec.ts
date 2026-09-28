@@ -62,4 +62,26 @@ describe("cssd-state-engine", () => {
     expect(nextWorkflowStation("DONG_GOI")).toBe("TIET_KHUAN");
     expect(nextWorkflowStation("CAP_PHAT")).toBeNull();
   });
+
+  it("wrong-station toast uses SSOT label not raw QC code", () => {
+    const r = validateStationAdvance({ currentStatus: "QC", targetStation: "TIEP_NHAN" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.message).toMatch(/Kiểm bộ/);
+      expect(r.message).not.toMatch(/\bQC\b/);
+    }
+  });
+
+  it("invalid status message uses SSOT labels", () => {
+    const r = validateStationAdvance({
+      currentStatus: "NOT_A_STATION" as never,
+      targetStation: "LAM_SACH",
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.message).toMatch(/không hợp lệ/);
+      expect(r.message).toMatch(/Làm sạch/);
+    }
+  });
+
 });

@@ -1,0 +1,93 @@
+{
+  "ma": "KSNK.QT.21.BM.01",
+  "ten": "Bảng kiểm vận hành TK + **sổ IUSS**",
+  "ho_form": "BK",
+  "chuyen_de": "Vận hành tiệt khuẩn",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Thử nghiệm Bowie-Dick trên mẻ trống đầu ngày đối với máy hấp hơi nước chân không",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Hộp kim loại / khay nặng ở tầng dưới, gói túi ép / đồ vải nhẹ ở tầng trên; khoảng trống 2–5 cm giữa các gói và thành buồng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Túi ép xếp đứng nghiêng trên giá đỡ chuyên dụng, mặt giấy hướng về mặt nhựa của túi kế bên",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "PCD chứa BI / CI đặt tại vị trí khó xuyên thấu nhất của buồng máy",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Máy plasma hydrogen peroxide chỉ nạp túi Tyvek (polyolefin); không đưa giấy cellulose hoặc vải vào buồng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Dụng cụ khô 100% (thổi khí nén y tế) trước khi nạp tải vào máy plasma hydrogen peroxide",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cửa buồng máy EO giữ đóng kín trong suốt thời gian đuổi khí (aeration)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Dụng cụ hơi nước để nguội tự nhiên tại khu vực dỡ tải từ 30–60 phút trước khi chuyển kho vô khuẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Gói nóng không đặt lên bàn kim loại lạnh; gói ướt được cách ly ngay và xử lý lại từ đầu như dụng cụ bẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Phiếu in thông số vật lý đạt và CI chuyển màu chuẩn trước khi giải phóng mẻ",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.21.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.21.docx (+ ipc-updated/QT/KSNK.QT.21.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (pack có appendices).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "CSSD / tiệt khuẩn"
+    ],
+    "ghi_chu": "Vận hành máy TK / IUSS — thao tác CSSD (IUSS tại OR: [PO])."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_cssd"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cssd",
+  "ly_do_phan_bo": "Vận hành máy TK / IUSS — thao tác CSSD (IUSS tại OR: [PO])."
+}

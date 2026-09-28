@@ -1,0 +1,94 @@
+{
+  "ma": "KSNK.QT.11.BM.02",
+  "ten": "Bảng kiểm giám sát thực hành vệ sinh môi trường bề mặt",
+  "ho_form": "BK",
+  "chuyen_de": "Vệ sinh môi trường",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Mang đủ PTPH (găng tay cao su dày, khẩu trang, tạp dề hoặc ủng) khi làm vệ sinh hoặc pha hóa chất",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Xe đẩy vệ sinh sạch, đủ hóa chất đã ghi nhãn nồng độ và dụng cụ đúng mã màu khu vực",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Pha hóa chất khử khuẩn đúng nồng độ theo nhóm nguy cơ khu vực theo HD.01 — Hướng dẫn pha hóa chất khử khuẩn (gốc Clo)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Dụng cụ xô, khăn, cây lau đúng mã màu; không đưa dụng cụ khu bẩn sang khu sạch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Lau một chiều từ sạch đến bẩn, từ trên cao xuống thấp, từ trong ra ngoài",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Lau ziczac chồng mép; không lau xoáy tròn; không nhúng lại khăn bẩn vào xô sạch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Không quét khô trong khu vực chăm sóc NB",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Thay nước, hóa chất và khăn ngay khi đục hoặc khi chuyển sang buồng bệnh khác",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Giặt sạch, vắt kiệt, phơi khô dụng cụ sau ca; không ngâm chổi hoặc khăn ướt trong xô qua đêm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Đặt biển cảnh báo sàn ướt khi lau sàn hoặc xử lý tràn đổ máu, dịch",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.11.BM.02 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.11.docx (+ ipc-updated/QT/KSNK.QT.11.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Kỹ thuật lau/pha hóa chất — quan sát tại đơn vị."
+  },
+  "doi_tuong_goi_y": [
+    "NV_ve_sinh",
+    "ho_ly"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls",
+  "ly_do_phan_bo": "Kỹ thuật lau/pha hóa chất — quan sát tại đơn vị."
+}

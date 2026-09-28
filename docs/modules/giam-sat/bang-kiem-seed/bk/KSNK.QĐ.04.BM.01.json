@@ -1,0 +1,84 @@
+{
+  "ma": "KSNK.QĐ.04.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ kiểm soát nhiễm khuẩn tại Khoa Khám bệnh và Ngoại trú",
+  "ho_form": "BK",
+  "chuyen_de": "Khoa Khám bệnh – Ngoại trú",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Bố trí bàn tiếp đón và sàng lọc nhanh hội chứng (hô hấp, sốt+phát ban, tiêu chảy, vết thương chảy) ngay từ cửa vào",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Thiết lập khu vực cách ly tạm thời hoặc luồng đi riêng cho người bệnh nghi ngờ lây truyền qua đường hô hấp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Cấp phát khẩu trang y tế miễn phí và hướng dẫn đeo đúng cách cho người bệnh có triệu chứng hô hấp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Trang bị đầy đủ trạm vệ sinh tay, dung dịch vệ sinh tay nhanh chứa cồn tại các khu vực chờ và phòng khám",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Niêm yết biển báo, poster hướng dẫn vệ sinh tay, vệ sinh hô hấp tại các vị trí dễ quan sát",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Nhân viên y tế tuân thủ mang phương tiện phòng hộ cá nhân và vệ sinh tay giữa các lượt người bệnh; TBP thực nghiệm không chờ xét nghiệm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Lau khử khuẩn môi trường bề mặt, ghế ngồi; thông khí ≥4 ACH tổng / ≥2 ACH tươi (hoặc nhật ký tương đương)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Phân loại chất thải y tế lây nhiễm và chất thải thông thường chính xác vào thùng có mã màu (TT 20) ngay tại nguồn",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "QĐ.04 Phụ lục BM / ipc-updated/QD/KSNK.QD.04.md",
+  "ghi_chu": "",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "chuyen_khoa",
+    "nhom": [
+      "Khoa Khám bệnh – Ngoại trú"
+    ],
+    "ghi_chu": "QĐ chuyên khoa — quan sát tại KB–Ngoại trú."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "bac_si",
+    "dieu_duong",
+    "NV_tiep_don"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "kham_benh",
+  "ly_do_phan_bo": "QĐ chuyên khoa — quan sát tại KB–Ngoại trú."
+}

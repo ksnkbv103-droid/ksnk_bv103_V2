@@ -1,0 +1,99 @@
+{
+  "ma": "KSNK.QT.07.BM.03",
+  "ten": "Bảng kiểm đánh giá kỹ thuật vệ sinh tay ngoại khoa (có mục riêng bước chà cồn)",
+  "ho_form": "BK",
+  "chuyen_de": "Vệ sinh tay",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Tháo trang sức trước khi VST ngoại khoa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Rửa tay thường quy và lau khô hoàn toàn trước khi bắt đầu chà cồn (không chà cồn khi tay còn ướt)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Rửa tay ngoại khoa bằng xà phòng sát khuẩn: vệ sinh móng bằng dụng cụ chuyên dụng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Chà bàn tay theo sáu bước; chà cẳng tay chia ba phần xoay tròn từ cổ tay lên khuỷu 3–5 phút (kỹ thuật xà phòng)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Xả sạch, giữ mũi bàn tay cao hơn khuỷu; lau khô khăn vô khuẩn từ ngón tay xuống khuỷu",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Chà tay ngoại khoa bằng dung dịch cồn — lần 1 và lần 2: chà cẳng tay từ cổ tay lên khuỷu đến khi khô (chấm riêng — HĐKSNK 31/07)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Chà tay ngoại khoa bằng dung dịch cồn — lần 3: chà bàn tay theo sáu bước",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Tổng thời gian chà cồn 1,5–3 phút theo IFU sản phẩm; để khô tự nhiên trước khi mang găng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Không hạ mũi bàn tay trong quá trình VST ngoại khoa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Mang găng vô khuẩn đúng kỹ thuật sau khi tay khô hoàn toàn",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "QT.07 §bảng bước 5–6 (bắt buộc chấm riêng chà cồn) / ipc-updated/QT/KSNK.QT.07.md",
+  "ghi_chu": "",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Ngoại / PT / gây mê / can thiệp",
+      "Phòng mổ / khối mổ",
+      "Phòng can thiệp mạch"
+    ],
+    "ghi_chu": "VST ngoại khoa — quan sát kỹ thuật tại khu mổ/can thiệp. Hub SURF_BM03."
+  },
+  "doi_tuong_goi_y": [
+    "phau_thuat_vien",
+    "gay_me",
+    "dieu_duong_mo",
+    "NVYT_khu_mo"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "surf_ownership": "SURF_BM03",
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "phong_mo|phong_can_thiep",
+  "ly_do_phan_bo": "VST ngoại khoa — quan sát kỹ thuật tại khu mổ/can thiệp. Hub SURF_BM03."
+}

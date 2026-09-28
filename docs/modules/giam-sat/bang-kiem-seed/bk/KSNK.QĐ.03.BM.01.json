@@ -1,0 +1,84 @@
+{
+  "ma": "KSNK.QĐ.03.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ KSNK đối với khách thăm và người nhà",
+  "ho_form": "BK",
+  "chuyen_de": "Khách thăm / người nhà",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Thiết lập quy định và thông báo rõ ràng về khung giờ cho phép khách thăm tại khu vực cửa ra vào",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Cung cấp hướng dẫn, giáo dục KSNK (VST, khẩu trang) cho người nhà ngay khi NB nhập khoa; người chăm sóc có trong mẫu audit VST",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Bố trí dung dịch VST chứa cồn đầy đủ, hoạt động tốt tại các khu vực chờ và lối vào các phòng bệnh",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Niêm yết poster, biển báo hướng dẫn vệ sinh hô hấp và VST trực quan tại các vị trí dễ quan sát",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Ngăn chặn sự hiện diện của khách thăm có triệu chứng hô hấp/truyền nhiễm bên trong khu vực điều trị; hạn chế khách khi sởi / VHF (App A)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Yêu cầu khách thăm và người nhà mang khẩu trang y tế đúng quy định khi ở trong khu vực điều trị và phòng cách ly",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Trang bị đầy đủ PTPH cho người nhà chăm sóc trực tiếp tại phòng cách ly; cùng TBP với NVYT; tháo bỏ trước khi ra hành lang",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Phối hợp kiểm soát lưu lượng người ra vào tại các khu vực nguy cơ cao (ICU); cấm hoa tươi / cây / thực phẩm sống vào PE",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "QĐ.03 Phụ lục BM / ipc-updated/QD/KSNK.QD.03.md",
+  "ghi_chu": "",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Tuân thủ quy định khách thăm tại khoa có thăm — thực hành đơn vị."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "dieu_duong",
+    "khach_tham",
+    "nguoi_nha"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|loi_vao",
+  "ly_do_phan_bo": "Tuân thủ quy định khách thăm tại khoa có thăm — thực hành đơn vị."
+}

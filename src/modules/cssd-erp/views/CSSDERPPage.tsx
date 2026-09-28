@@ -132,6 +132,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
             onConfirm={submitWorkflowQr}
           />
           {showDongGoiGate && dongGoiGate ? (
+            /* Soft Soft Soft-safe L04: Đóng gói luôn gateMode — requireSplit warn only; 0 registerSplitSub */
             <CompositionReconcilePanel
               boDungCuId={dongGoiGate.boDungCuId}
               quyTrinhId={dongGoiGate.quyTrinhId}

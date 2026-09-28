@@ -1,0 +1,95 @@
+{
+  "ma": "KSNK.QT.24.BM.03",
+  "ten": "Bảng kiểm xử lý sự cố",
+  "ho_form": "BK",
+  "chuyen_de": "Xử lý sự cố CSSD",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Nhân viên nhận diện sự cố (gói ướt, rách, máy báo lỗi, CI lỗi, BI dương tính) đúng thời điểm dỡ tải hoặc kiểm soát chất lượng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Dụng cụ / gói lỗi được cách ly ngay tại khu vực cảnh báo riêng; không đưa vào tủ cấp phát hoặc khoa lâm sàng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Biên bản / báo cáo sự cố được lập và gửi Trưởng CSSD trong ca phát hiện",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Trưởng Đơn vị ban hành lệnh thu hồi và thông báo khoa lâm sàng / phòng mổ đang giữ dụng cụ thuộc phạm vi thu hồi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Khoa lâm sàng rà tủ lưu trữ, niêm phong và trả đủ gói thuộc mẻ / lô lỗi; ký biên bản thu hồi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Truy xuất nhật ký tiệt khuẩn và sổ cấp phát xác định danh sách gói đã xuất; ghi rõ đã dùng / chưa dùng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Khi dụng cụ lỗi đã dùng: bác sĩ điều trị và Khoa KSNK được thông báo để theo dõi nguy cơ nhiễm khuẩn cho NB",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Toàn bộ dụng cụ thu hồi được xử lý lại từ đầu như đồ bẩn (làm sạch, đóng gói, tiệt khuẩn)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Máy / thiết bị liên quan được đình chỉ, treo biển «Máy hỏng / Đình chỉ», gọi bảo trì trước khi chạy lại",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Máy chỉ hoạt động trở lại sau khi chạy đủ 3 mẻ test BI liên tiếp đạt kết quả âm tính và có hồ sơ ghi nhận",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.24.BM.03 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.24.docx (+ ipc-updated/QT/KSNK.QT.24.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (pack có appendices).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "CSSD / tiệt khuẩn"
+    ],
+    "ghi_chu": "Quy trình sự cố tại CSSD (cách ly mẻ, thu hồi) — đơn vị thực hành CSSD."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_cssd",
+    "truong_cssd",
+    "NV_ksnk"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cssd",
+  "ly_do_phan_bo": "Quy trình sự cố tại CSSD (cách ly mẻ, thu hồi) — đơn vị thực hành CSSD."
+}

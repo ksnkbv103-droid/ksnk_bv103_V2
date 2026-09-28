@@ -1,0 +1,95 @@
+{
+  "ma": "KSNK.QT.05.BM.04",
+  "ten": "Bảng kiểm giám sát hoạt động Hội đồng Kiểm soát nhiễm khuẩn",
+  "ho_form": "BK",
+  "chuyen_de": "Hội đồng KSNK",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Có quyết định thành lập, kiện toàn Hội đồng còn hiệu lực",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Thành phần Hội đồng có đại diện BGĐ, Khoa KSNK, Vi sinh hoặc Xét nghiệm, Dược và khoa lâm sàng nguy cơ cao",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Có kế hoạch hoạt động năm đã được phê duyệt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Họp định kỳ đúng tần suất theo kế hoạch (tối thiểu 03 tháng/lần)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Chủ tịch hoặc Phó Chủ tịch được ủy quyền chủ trì cuộc họp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Tài liệu họp gửi ủy viên trước tối thiểu 03 ngày làm việc",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Biên bản hoặc Nghị quyết ghi nhận rà soát dữ liệu giám sát và quyết định can thiệp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Biên bản hoặc Nghị quyết có chữ ký Chủ tọa và Thư ký, lưu trữ đầy đủ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Nghị quyết phân công rõ nhiệm vụ, người chịu trách nhiệm và thời hạn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Khoa KSNK báo cáo tiến độ thực thi nghị quyết tại cuộc họp tiếp theo",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.05.BM.04 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.05.docx (+ ipc-updated/QT/KSNK.QT.05.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (pack có appendices).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "Khoa KSNK"
+    ],
+    "ghi_chu": "Hội đồng KSNK — Khoa KSNK là thư ký/cơ quan thường trực. Phiên hệ thống default khoa=KSNK."
+  },
+  "doi_tuong_goi_y": [
+    "thanh_vien_hoi_dong",
+    "NV_ksnk",
+    "BGĐ"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "he_thong",
+  "co_quan_chu_tri": "Hoi_dong_KSNK",
+  "noi_quan_sat": "hoi_dong|van_phong_ksnk",
+  "ly_do_phan_bo": "TC01–TC10 kiểm quyết định thành lập HĐ, thành phần, kế hoạch năm, họp định kỳ, biên bản/nghị quyết và Khoa KSNK báo cáo tiến độ — audit hoạt động Hội đồng cấp viện."
+}

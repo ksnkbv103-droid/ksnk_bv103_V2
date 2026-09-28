@@ -23,6 +23,10 @@ import {
   ssiSbapWindow,
 } from "./nkbv-shared-timeline";
 import {
+  findPriorVaeEventPeriodOwner,
+  isDoeInPriorVaeEventPeriod,
+} from "./nkbv-vae-event-period";
+import {
   bareViSinhIdFromMilestoneId,
   khongDuTcKetLuanLabel,
   resolveViSinhAnalysisStatus,
@@ -117,6 +121,8 @@ export function findPriorRitOwner(
   opts?: { excludeEventIds?: ReadonlySet<string> | string[] },
 ): PriorEventForDisposition | null {
   const sample = dateIso.slice(0, 10);
+  // L01/L11: VAE uses Event Period — not RIT Ch.2
+  if (sampleMajor === "VAE") return null;
   const exclude = opts?.excludeEventIds
     ? new Set([...opts.excludeEventIds].map(String))
     : null;
@@ -136,7 +142,7 @@ function belongsLabel(loai: string, doe: string, nuance: string): string {
   return `Thuộc SK DOE ${dayLabel(doe)} (${loai}) — ${nuance}`;
 }
 
-/** DOE vừa xác định trong IWP nằm trong RIT sự kiện đã có → gom, không tạo SK mới. */
+/** DOE vừa xác định trong IWP nằm trong RIT (hoặc Event Period VAE) → gom, không tạo SK mới. */
 export function resolveDoeBelongsPriorEvent(input: {
   doe: string;
   sampleMajor: NkbvMajorType;
@@ -148,6 +154,39 @@ export function resolveDoeBelongsPriorEvent(input: {
   if (!doe) return null;
   const exclude = new Set((input.excludeEventIds || []).map(String));
   const bare = String(input.excludeIndexViSinhId || "").trim();
+
+  // L11: VAE → Event Period (không RIT Ch.2)
+  if (input.sampleMajor === "VAE") {
+    const priors = input.priorEvents
+      .filter((e) => !exclude.has(String(e.id)))
+      .filter((e) => !(bare && ownsViSinh(e, bare)))
+      .filter((e) => eventMajor(e) === "VAE")
+      .map((e) => ({
+        id: e.id,
+        doe: eventDoe(e),
+        classification: e.loai_ma || e.vi_tri_nhiem_khuan || null,
+      }));
+    const owner = findPriorVaeEventPeriodOwner(doe, priors, {
+      excludeEventIds: exclude,
+    });
+    if (!owner) return null;
+    const prior = input.priorEvents.find((e) => String(e.id) === String(owner.id));
+    const loai = prior ? eventLoaiLabel(prior) : "VAE";
+    return {
+      kind: "BELONGS_PRIOR_EVENT",
+      priorEventId: owner.id,
+      priorDoe: owner.doe,
+      priorLoai: loai,
+      majorType: "VAE",
+      ketLuanLabel: belongsLabel(
+        loai,
+        owner.doe,
+        "DOE ∈ Event Period VAE — không tạo phiếu / sự kiện mới (không RIT Ch.2)",
+      ),
+      reason: `DOE ${dayLabel(doe)} nằm trong Event Period 14 ngày của ca VAE (DOE ${dayLabel(owner.doe)}).`,
+    };
+  }
+
   for (const e of input.priorEvents) {
     if (exclude.has(String(e.id))) continue;
     if (bare && ownsViSinh(e, bare)) continue;
@@ -198,21 +237,31 @@ export function resolveBelongsOpenSessionByDate(input: {
     if (!sameMajorType(input.sampleMajor, panelMajor)) continue;
     const doe = String(s.doe || s.index.date || "").slice(0, 10);
     if (!doe) continue;
-    const diff = daysBetween(doe, sample);
-    if (diff < 0 || diff > 13) continue;
+    // L11: VAE session → Event Period; khác major → RIT 14d
+    const inWindow =
+      input.sampleMajor === "VAE" || panelMajor === "VAE"
+        ? isDoeInPriorVaeEventPeriod(sample, doe)
+        : (() => {
+            const diff = daysBetween(doe, sample);
+            return diff >= 0 && diff <= 13;
+          })();
+    if (!inWindow) continue;
     const loai = (s.indexLabel || s.panel || panelMajor).trim();
+    const nuance =
+      input.sampleMajor === "VAE" || panelMajor === "VAE"
+        ? "mẫu ∈ Event Period VAE — không mở khung phân tích mới"
+        : "mẫu ∈ RIT sự kiện đủ TC — không mở khung phân tích mới";
     return {
       kind: "BELONGS_PRIOR_EVENT",
       priorEventId: `session:${s.index.id}`,
       priorDoe: doe,
       priorLoai: loai,
       majorType: panelMajor,
-      ketLuanLabel: belongsLabel(
-        loai,
-        doe,
-        "mẫu ∈ RIT sự kiện đủ TC — không mở khung phân tích mới",
-      ),
-      reason: "Cùng major với phiên đủ TC; ngày mẫu nằm trong RIT 14 ngày.",
+      ketLuanLabel: belongsLabel(loai, doe, nuance),
+      reason:
+        input.sampleMajor === "VAE" || panelMajor === "VAE"
+          ? "Cùng major VAE; ngày mẫu nằm trong Event Period 14 ngày (không RIT Ch.2)."
+          : "Cùng major với phiên đủ TC; ngày mẫu nằm trong RIT 14 ngày.",
     };
   }
   return null;
@@ -372,9 +421,23 @@ export function resolveIndexEventDisposition(input: {
 
   // —— Đã PT / attributed trên phiếu đủ TC ——
   if (status === "DA_PHAN_TICH" && bareId) {
-    const owner =
-      input.priorEvents.find((e) => ownsViSinh(e, bareId)) ||
-      findPriorRitOwner(indexDate, sampleMajor, input.priorEvents);
+    const owned = input.priorEvents.find((e) => ownsViSinh(e, bareId));
+    let owner = owned || findPriorRitOwner(indexDate, sampleMajor, input.priorEvents);
+    if (!owner && sampleMajor === "VAE") {
+      const vaeOwner = findPriorVaeEventPeriodOwner(
+        indexDate,
+        input.priorEvents
+          .filter((e) => eventMajor(e) === "VAE")
+          .map((e) => ({
+            id: e.id,
+            doe: eventDoe(e),
+            classification: e.loai_ma || null,
+          })),
+      );
+      owner = vaeOwner
+        ? input.priorEvents.find((e) => String(e.id) === String(vaeOwner.id)) || null
+        : null;
+    }
     if (owner) {
       const doe = eventDoe(owner);
       const loai = eventLoaiLabel(owner);

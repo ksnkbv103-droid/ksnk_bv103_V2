@@ -853,6 +853,64 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
     });
   });
 
+
+  it("L11: VAE mới DOE+5d trong Event Period ca VAC trước → EVENT_PERIOD_SUPPRESS", () => {
+    const data = {
+      patient_age: 55,
+      vent_days: 6,
+      has_stable_baseline_peep_fio2: true,
+      peep_increase_ge_3: true,
+      fio2_increase_ge_20: false,
+      temp_fever_or_hypothermia: false,
+      wbc_abnormal: false,
+      new_antimicrobial_ge_4days: false,
+      has_purulent_sputum_and_positive_culture: false,
+      has_quantitative_culture_positive: false,
+      has_respiratory_viral_or_pathogen_test_positive: false,
+      has_chest_imaging_abnormal: false,
+      has_cardiopulmonary_disease_underlying: false,
+      imaging_films_count: 0,
+      fever_or_wbc_abnormal: false,
+      altered_mental_status_ge_70yo: false,
+      respiratory_symptoms_count: 0,
+      microbiology_evidence: "NONE" as const,
+      calculated_doe: "2026-08-06",
+      prior_open_vae_doe: "2026-08-01",
+    };
+    const res = evaluateVaeVap(data as never, "VAE");
+    expect(res.is_positive).toBe(false);
+    expect(res.classification).toBe("EVENT_PERIOD_SUPPRESS");
+    expect(res.reason).toMatch(/Event Period/);
+  });
+
+  it("L11: hết Event Period (DOE+14) → vẫn đánh giá VAC bình thường", () => {
+    const data = {
+      patient_age: 55,
+      vent_days: 6,
+      has_stable_baseline_peep_fio2: true,
+      peep_increase_ge_3: true,
+      fio2_increase_ge_20: false,
+      temp_fever_or_hypothermia: false,
+      wbc_abnormal: false,
+      new_antimicrobial_ge_4days: false,
+      has_purulent_sputum_and_positive_culture: false,
+      has_quantitative_culture_positive: false,
+      has_respiratory_viral_or_pathogen_test_positive: false,
+      has_chest_imaging_abnormal: false,
+      has_cardiopulmonary_disease_underlying: false,
+      imaging_films_count: 0,
+      fever_or_wbc_abnormal: false,
+      altered_mental_status_ge_70yo: false,
+      respiratory_symptoms_count: 0,
+      microbiology_evidence: "NONE" as const,
+      calculated_doe: "2026-08-15",
+      prior_open_vae_doe: "2026-08-01",
+    };
+    const res = evaluateVaeVap(data as never, "VAE");
+    expect(res.is_positive).toBe(true);
+    expect(res.classification).toBe("VAC");
+  });
+
   describe("evaluateUtiCauti", () => {
     it("excludes urine culture with Candida as per CDC guidelines", () => {
       const data: UtiVerificationData = {

@@ -63,8 +63,10 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           machines={w.machines}
           machineId={w.machineId}
           nguoiLoad={w.nguoiLoad}
+          chuongTrinhMa={w.chuongTrinhMa}
           onMachineChange={w.setMachineId}
           onNguoiLoadChange={w.setNguoiLoad}
+          onChuongTrinhMaChange={w.onChuongTrinhMaChange}
           onCancel={() => w.setStep("LIST")}
           onStart={() => void w.createMe()}
         />
@@ -90,6 +92,12 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         hiddenIncompatible={w.hiddenIncompatible}
         chuongTrinh={w.chuongTrinh}
         setChuongTrinh={w.setChuongTrinh}
+        chuongOptions={w.chuongOptions}
+        chuongTrinhMa={w.chuongTrinhMa}
+        onSelectChuongMa={(ma) => {
+          const opt = (w.chuongOptions || []).find((o: { ma: string }) => o.ma === ma) || null;
+          w.onChuongTrinhMaChange(ma, opt);
+        }}
         nhietDo={w.nhietDo}
         setNhietDo={w.setNhietDo}
         apSuat={w.apSuat}

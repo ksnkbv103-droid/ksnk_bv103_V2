@@ -1,0 +1,119 @@
+{
+  "ma": "KSNK.QT.14.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ phòng ngừa dựa trên đường lây truyền",
+  "ho_form": "BK",
+  "chuyen_de": "Phòng ngừa đường lây",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Biển báo cách ly đúng loại hình (tiếp xúc / giọt bắn / không khí) treo rõ bên ngoài cửa phòng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Bố trí phòng riêng, ghép nhóm cùng tác nhân, hoặc phòng áp lực âm phù hợp loại hình cách ly",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Cửa phòng đóng kín khi áp dụng phòng ngừa giọt bắn hoặc phòng ngừa không khí",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Phương tiện phòng hộ đúng loại hình đặt sẵn bên ngoài cửa phòng, đủ số lượng ca",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Dung dịch VST chứa cồn hoặc xà phòng và nước sạch sẵn tại lối ra vào phòng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Thùng hoặc túi chất thải lây nhiễm màu vàng đặt trong phòng, miệng túi không quá đầy",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "NVVS tay trước khi vào phòng và ngay sau khi ra khỏi phòng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Nhân viên mang đúng phương tiện phòng hộ theo biển báo trước khi bước vào phòng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Nhân viên tháo áo choàng, găng và khẩu trang y tế (nếu có) trước khi ra khỏi phòng; khẩu trang N95 tháo sau khi ra khỏi phòng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Dụng cụ y tế dùng riêng cho NB hoặc lau khử khuẩn trước khi dùng cho NB khác",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Khi phòng ngừa không khí: mang khẩu trang N95 (hoặc tương đương) và thực hiện kiểm tra độ khít trước khi vào",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "NB được hướng dẫn ở trong phòng; hạn chế ra ngoài trừ chỉ định lâm sàng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 13,
+      "ma": "TC13",
+      "noi_dung": "Người nhà, khách thăm được hướng dẫn và tuân thủ biển báo, VST, phương tiện phòng hộ (nếu được phép vào)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 14,
+      "ma": "TC14",
+      "noi_dung": "NB đeo khẩu trang y tế khi có chỉ định vận chuyển ra ngoài khu vực cách ly",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.14.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.14.docx (+ ipc-updated/QT/KSNK.QT.14.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Cách ly theo đường lây khi có NB — thực hành tại khoa đang cách ly."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "bac_si",
+    "dieu_duong"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|phong_cach_ly",
+  "ly_do_phan_bo": "Cách ly theo đường lây khi có NB — thực hành tại khoa đang cách ly."
+}

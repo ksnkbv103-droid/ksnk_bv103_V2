@@ -26,6 +26,7 @@ import {
   ssiSbapWindow,
   vaeEventPeriod,
 } from "./nkbv-shared-timeline";
+import { evaluateVaeEventPeriodSuppress } from "./nkbv-vae-event-period";
 import {
   getNhsnOrganSpaceSite,
   getNhsnProcedure,
@@ -272,6 +273,18 @@ function evaluateVaeVapCore(
   }
 
   if (useVaePathway) {
+    // NKBV-L11 · SSOT §C.4.10.4 — Event Period 14d suppress (NOT RIT Ch.2).
+    const epGate = evaluateVaeEventPeriodSuppress({
+      candidateDoe: data.calculated_doe,
+      priorOpenVaeDoe: (data as { prior_open_vae_doe?: string | null }).prior_open_vae_doe,
+    });
+    if (epGate.suppressed) {
+      return {
+        is_positive: false,
+        classification: epGate.classification || "EVENT_PERIOD_SUPPRESS",
+        reason: epGate.reason || "Event Period 14 ngày — không tạo VAE mới chồng.",
+      };
+    }
     // Soft Soft 20f / NKBV-L06 — Domain A (cdc-ch10.txt:126-131 · 1460-1472):
     // - ECMO/HFV full calendar day → out of VAC stretch (day-level via vent grid)
     // - APRV → FiO₂-only (no PEEP-equivalent); NOT whole-day NO_EVENT

@@ -261,13 +261,16 @@ export function useNkbvChecklistModalState({
   };
 
   const handleDeleteStay = (index: number) => {
-    if (treatmentHistory.length <= 1) {
-      toast.error("Phải có ít nhất một khoa điều trị!");
-      return;
-    }
+    // L07 Soft Soft Soft-safe: cho phép lưới trống — không invent stay / LOA
     const updated = treatmentHistory.filter((_, i) => i !== index);
     setTreatmentHistory(updated);
-    toast.success("Đã xóa khoa điều trị!");
+    if (updated.length === 0) {
+      toast.warning(
+        "Đã xóa hết lịch sử khoa — không quy kết LOA cho đến khi nhập lại ba_ngay_khoa.",
+      );
+    } else {
+      toast.success("Đã xóa khoa điều trị!");
+    }
   };
 
   // Live CDC mathematical calculations
@@ -433,6 +436,11 @@ export function useNkbvChecklistModalState({
 
     // 1. Kiểm tra chỉ định xét nghiệm vs Lịch sử nằm khoa
     if (ngayPhatHien && khoaGhiNhanId) {
+      if (!treatmentHistory.length) {
+        toast.warning(
+          "Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.",
+        );
+      } else {
       const hasReportingWardStay = treatmentHistory.some(s => s.khoa_id === khoaGhiNhanId);
       if (!hasReportingWardStay) {
         toast.error(`Lỗi logic nhập liệu: Phiếu xét nghiệm được ghi nhận tại khoa [${khoaGhiNhanLabel}] vào ngày [${ngayPhatHien}], nhưng trong lịch sử điều trị của bệnh nhân không hề có khoa này! Vui lòng bổ sung.`);
@@ -460,6 +468,7 @@ export function useNkbvChecklistModalState({
           );
           return;
         }
+      }
       }
     }
 
@@ -492,6 +501,17 @@ export function useNkbvChecklistModalState({
 
     setSubmitting(true);
     try {
+      // L07 Soft Soft Soft-safe: warn thiếu ba_ngay_khoa — không silent wrong LOA
+      if (!treatmentHistory.length) {
+        toast.warning(
+          "Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.",
+        );
+      } else if (!liveCdcMetrics?.attributedStay) {
+        toast.warning(
+          liveCdcMetrics?.attributionReason ||
+            "Chưa quy kết LOA — kiểm tra ba_ngay_khoa / lưới ngày–khoa.",
+        );
+      }
       const mergedPayload = {
         ...activePayload,
         treatment_history: treatmentHistory,

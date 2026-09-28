@@ -1,0 +1,95 @@
+{
+  "ma": "KSNK.QT.36.BM.03",
+  "ten": "Bảng kiểm giám sát tuân thủ phòng ngừa MDRO (có mục TB dùng chung)",
+  "ho_form": "BK",
+  "chuyen_de": "MDRO",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "NB mang hoặc nhiễm vi khuẩn đa kháng được bố trí phòng riêng đóng kín cửa hoặc ghép nhóm cùng chủng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Biển báo Phòng ngừa tiếp xúc treo rõ trước cửa phòng cách ly",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Áo choàng, găng tay và dung dịch VST chứa cồn sẵn bên ngoài khu vực cách ly",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "NVYT mang găng tay và áo choàng trước khi tiếp xúc NB hoặc bề mặt môi trường xung quanh",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "NVYT tháo PTPH và VST ngay trước khi rời phòng cách ly",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Ống nghe, nhiệt kế, huyết áp kế dùng riêng cho NB cách ly hoặc khử khuẩn ngay sau mỗi lần dùng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Bề mặt tiếp xúc thường xuyên quanh NB được lau khử khuẩn tối thiểu hai lần mỗi ngày",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Phiếu cảnh báo vi khuẩn đa kháng có trong hồ sơ bệnh án; cảnh báo trên HIS còn hiệu lực",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Thông tin tình trạng mang hoặc nhiễm được ghi trong giấy chuyển khoa, chuyển viện hoặc xuất viện",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Bộ dụng cụ vệ sinh mã màu riêng dùng cho khu vực cách ly; không dùng chung với phòng thường",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.36.BM.03 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.36.docx (+ ipc-updated/QT/KSNK.QT.36.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Cách ly tiếp xúc MDRO tại khoa có NB — thực hành đơn vị."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "dieu_duong",
+    "bac_si"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|phong_cach_ly",
+  "ly_do_phan_bo": "Cách ly tiếp xúc MDRO tại khoa có NB — thực hành đơn vị."
+}
