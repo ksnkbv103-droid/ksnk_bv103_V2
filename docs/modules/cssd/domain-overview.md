@@ -15,7 +15,7 @@
 |--------------------------------|-------------------------|------------------|
 | Loại dụng cụ, Bộ dụng cụ, Thành phần trong bộ | Quét QR qua 6 trạm, mẻ tiệt khuẩn, cấp phát | Khoa / nhân sự (MDM tổ chức) |
 | Máy / thiết bị hấp | Kho dụng cụ (xem tồn), bảo trì máy | Giám sát VST/GSC, NKBV (chỉ **liên kết** truy vết) |
-| Hóa chất dùng tại CSSD | Sự cố an toàn (QC/BI+…); 3 cửa biến động dụng cụ; in tem | Vật tư phi-hóa-chất (chưa chốt BRD) |
+| Hóa chất dùng tại CSSD | Sự cố an toàn (QC/BI+…); biến động dụng cụ (Hỏng/Mất · Chuyển); in tem | Vật tư phi-hóa-chất (chưa chốt BRD) |
 
 **Quy tắc vàng:** CRUD danh mục ở **Quản trị danh mục**; quét tem / chạy mẻ / cấp phát ở **CSSD vận hành**.
 
@@ -40,7 +40,7 @@ Ranh giới chi tiết: [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-v
 1. **Quy trình / chu trình bộ** — một vòng đời bộ qua các trạm (hub `cssd_fact_quy_trinh`).
 2. **Mẻ tiệt khuẩn** — phiếu hấp một lô trên một máy (`LOT-*`); nhiều bộ nạp vào một mẻ.
 3. **Sự cố an toàn** — báo cáo quy trình / QC fail / BI+ / hóa chất / thiết bị… (**không** gom Hỏng-Mất-Chuyển dưới nhãn «sự cố dụng cụ» — D1).
-4. **Biến động dụng cụ (3 cửa — D2)** — **Đổi danh mục** · **Hỏng/Mất** · **Chuyển** (kho↔bộ / bộ↔bộ). Sổ `cssd_fact_kho_giao_dich`; move-codes chỉ cửa Chuyển (D3).
+4. **Biến động dụng cụ** — form `/cssd-su-co`: **Hỏng/Mất** · **Chuyển** (kho↔bộ / bộ↔bộ). Đổi danh mục master: `/cssd-dung-cu?tab=DE_NGHI`. Sổ `cssd_fact_kho_giao_dich`; move-codes chỉ cửa Chuyển (D3).
 5. **Phiếu bảo trì máy** — định kỳ hoặc sửa chữa.
 
 ### 2.3 Mã / tem QR
@@ -116,7 +116,7 @@ flowchart LR
 
 **Không phải trạm quét**
 
-- **Tab Kho** (`?tab=kho`) — xem tồn / hạn dùng (FEFO).
+- **Kho dụng cụ** — không còn tab `?tab=kho` trên shell quy trình; bookmark cũ redirect `/cssd-dung-cu`. FEFO hóa chất ở `/cssd-hoa-chat`.
 - **Tab Truy vết** (`?tab=trace`) — timeline chu trình / liên kết SSI.
 - **Thu hồi / Recall** — phản ứng an toàn (QC mẻ fail / sự cố / BI+), **không** phải trạm thứ 7. Bộ chưa dùng lâm sàng: đóng chu kỳ cũ (giữ `lo_tiet_khuan_id`) + mở chu kỳ mới tại **Tiếp nhận**; bộ đã dùng chỉ liệt kê. Không về Đóng gói.
 
@@ -216,7 +216,8 @@ flowchart TD
 
 ## 6. Sự cố an toàn, biến động dụng cụ, kho, bảo trì
 
-> **D1:** «Sự cố an toàn» ≠ «Phiếu đổi danh mục» ≠ «Phiếu chuyển kho/bộ» ≠ «Hỏng/Mất». Không gọi mọi biến động dụng cụ là sự cố. Chi tiết: [`domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md).
+> **D1:** «Sự cố an toàn» ≠ «Phiếu đổi danh mục» ≠ «Phiếu chuyển kho/bộ» ≠ «Hỏng/Mất». Không gọi mọi biến động dụng cụ là sự cố. Chi tiết: [`domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md).  
+> **UI tip:** form `/cssd-su-co` chỉ **Hỏng/Mất** và **Chuyển**. Đổi danh mục master mở `/cssd-dung-cu?tab=DE_NGHI`.
 
 | Nhóm | Hệ quả điển hình |
 |------|------------------|
@@ -239,10 +240,10 @@ Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển
 
 | Màn | Việc |
 |-----|------|
-| `/cssd-quy-trinh` | 6 trạm + tab Mẻ / Kho / Truy vết |
+| `/cssd-quy-trinh` | 6 trạm + tab Chu trình / Mẻ (`?tab=batch`) / Truy vết (`?tab=trace`). `?tab=kho` redirect `/cssd-dung-cu` |
 | `/cssd-erp/batch` | Deep link mẻ tiệt khuẩn |
 | `/cssd-dung-cu` | Xem danh mục + in tem (không CRUD) |
-| `/cssd-su-co` | Sự cố an toàn + **3 cửa** biến động dụng cụ; xác nhận phiếu |
+| `/cssd-su-co` | Sự cố an toàn + biến động dụng cụ (Hỏng/Mất · Chuyển); xác nhận phiếu. Đổi danh mục: `/cssd-dung-cu?tab=DE_NGHI` |
 | `/cssd-thiet-bi` | Bảo trì máy |
 | `/cssd-hoa-chat` | Kho hóa chất |
 | Quản trị → Danh mục dụng cụ | Tab **Bộ · Phiếu · Lịch sử**; sheet **Loại** (`?sheet=loai`, ADMIN). Hard-write master chỉ ADMIN (D5). |

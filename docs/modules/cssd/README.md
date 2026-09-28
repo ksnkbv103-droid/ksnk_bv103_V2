@@ -19,14 +19,15 @@ Rule: `12-cssd-erp-spec-context.mdc`
 
 | Route | Mục đích |
 |-------|----------|
-| `/cssd-quy-trinh` | Workflow 6 trạm + tab mẻ/kho/truy vết (`?tab=batch\|kho\|trace`) |
+| `/cssd-quy-trinh` | Chu trình 6 trạm. Tab: Chu trình (mặc định), Mẻ (`?tab=batch`), Truy vết (`?tab=trace`) |
 | Pilot QA | [`pilot-test-checklist.md`](pilot-test-checklist.md) |
-| `/cssd-dung-cu` | Catalog dụng cụ (read-only) |
-| `/cssd-su-co` | Sự cố an toàn + 3 cửa biến động dụng cụ |
+| `/cssd-dung-cu` | Catalog dụng cụ (read-only). Đề nghị sửa danh mục: `?tab=DE_NGHI` |
+| `/cssd-su-co` | Sự cố an toàn + biến động dụng cụ (Hỏng/Mất · Chuyển kho·bộ) |
 | `/cssd-thiet-bi` | Bảo trì thiết bị |
 | `/cssd-hoa-chat` | Kho hóa chất |
 | `/cssd-erp/batch` | Mẻ tiệt khuẩn (deep link) |
 | `/cssd-erp/report` | **Báo cáo CSSD** — SSOT analytics. Bản in ký (`/bao-cao-tong-hop`) trỏ cùng URL |
+| Phụ lục báo cáo chính thức | `/bao-cao-tong-hop` mục `bc-cssd` — tóm tắt + link Báo cáo CSSD |
 
 ## Pilot checklist
 
@@ -39,4 +40,3 @@ Rule: `12-cssd-erp-spec-context.mdc`
 | Sự cố | [`pilot-checklist-su-co-202606.md`](pilot-checklist-su-co-202606.md) |
 | BRD vật tư phi-hóa-chất | [`brd-vat-tu-intake-202606.md`](brd-vat-tu-intake-202606.md) |
 
-Bookmark cũ (`/cssd-tiep-nhan`, `/cssd-erp/catalog`, …) → redirect trong `next.config.ts`.

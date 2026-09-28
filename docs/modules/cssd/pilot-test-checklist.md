@@ -44,7 +44,7 @@ Quyết định SSOT: [`cap-phat-soft-warning-decision-20260722.md`](./cap-phat-
 
 ## 3. Kho & truy vết
 
-- [ ] Tab `?tab=kho` — FEFO filter.
+- [ ] Bookmark `?tab=kho` redirect `/cssd-dung-cu` (shell không còn tab Kho).
 - [ ] `?tab=trace&qr=<mã>` — timeline lifecycle.
 
 ## 4. NKBV ↔ CSSD
