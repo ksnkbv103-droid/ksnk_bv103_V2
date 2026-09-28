@@ -135,7 +135,7 @@ Neo: bản ký `/bao-cao-tong-hop` chỉ đọc. KPI VST/GSC lấy counts đã c
 
 ## BCTH sâu — đếm khớp nguồn
 
-Neo: cùng lát đọc. VST hiển thị 1 chữ số (`formatPercent1` / `rateFromTotals`). GSC hiển thị 2 chữ số (`formatPercent2` / `gscCompliancePercentFromCounts`). Thêm/sửa/xóa phiên ở form nguồn đổi fact; BCTH lần tải sau đọc lại RPC đã chuẩn hóa — không có cửa ghi trên bản ký. Tiêu đề trang vẫn «Báo cáo chính thức». Không migrate. Không đổi Domain QT. Tip trước lát này: `22246db`.
+Neo: cùng lát đọc. VST hiển thị 1 chữ số (`formatPercent1` / `rateFromTotals`). GSC hiển thị 2 chữ số (`formatPercent2` / `gscCompliancePercentFromCounts`). Thêm/sửa/xóa phiên ở form nguồn đổi fact; BCTH lần tải sau đọc lại RPC đã chuẩn hóa — không có cửa ghi trên bản ký. Tiêu đề trang vẫn «Báo cáo chính thức». Không migrate. Không đổi Domain QT. Tip trước lát này: `22246db`. Commit lát: `fcdc133`.
 
 | | Việc |
 |---|------|
