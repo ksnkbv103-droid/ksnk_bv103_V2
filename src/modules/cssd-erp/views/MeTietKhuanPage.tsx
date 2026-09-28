@@ -33,11 +33,9 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
   const batchColumns = React.useMemo(
     () =>
       buildMeTietKhuanBatchColumns({
-        onPrintBatch: (batchId) => void w.onPrintBatch({ batchId }),
-        isPrinting: w.isCssdPrinting,
         onContinue: w.openRowForProcess,
       }),
-    [w.onPrintBatch, w.isCssdPrinting, w.openRowForProcess],
+    [w.openRowForProcess],
   );
 
   const printPortal = <CssdPrintPortal printState={w.printState} />;

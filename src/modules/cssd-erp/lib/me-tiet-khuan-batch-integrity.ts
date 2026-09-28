@@ -11,6 +11,28 @@ export type PassMemberRow = {
   ma_tram?: string | null;
 };
 
+/**
+ * Bộ còn sống trên phiếu: `is_active = true`.
+ * Thu hồi giữ `lo_tiet_khuan_id` trên chu trình cũ nhưng tắt `is_active` — không tính vào đếm/tồn.
+ */
+export function isLiveBatchMember(row: { is_active?: boolean | null } | null | undefined): boolean {
+  return row?.is_active === true;
+}
+
+/** Đếm bộ còn hiệu lực theo mẻ. Khớp kho (`is_active`) và báo cáo CSSD; in phiếu vẫn liệt kê cả chu trình đã tắt. */
+export function countActiveLinkedMembers(
+  rows: Array<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>,
+): Map<string, number> {
+  const byMe = new Map<string, number>();
+  for (const row of rows) {
+    if (!isLiveBatchMember(row)) continue;
+    const lid = String(row.lo_tiet_khuan_id || "").trim();
+    if (!lid) continue;
+    byMe.set(lid, (byMe.get(lid) || 0) + 1);
+  }
+  return byMe;
+}
+
 /** Danh sách bộ kết luận ĐẠT: server suy từ mẻ, không nhận mảng id từ client. */
 export function derivePassQuyTrinhIds(
   rows: PassMemberRow[],

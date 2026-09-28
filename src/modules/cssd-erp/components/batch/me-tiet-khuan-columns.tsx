@@ -2,7 +2,6 @@
 "use client";
 
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import { Printer } from "lucide-react";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import {
   CSSD_UI_CELL_CODE,
@@ -12,8 +11,6 @@ import {
 import { meListPrimaryAction, meTrangThaiBadge } from "../../lib/me-tiet-khuan-slip-ux";
 
 export function buildMeTietKhuanBatchColumns(opts?: {
-  onPrintBatch?: (batchId: string) => void;
-  isPrinting?: boolean;
   onContinue?: (row: any) => void;
 }): Column<any>[] {
   const cols: Column<any>[] = [
@@ -98,38 +95,6 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     },
   },
   ];
-
-  if (opts?.onPrintBatch) {
-    cols.push({
-      header: "In phiếu",
-      accessorKey: "id",
-      cell: (i: any) => {
-        const trangThai = String(i.trang_thai || "");
-        const canPrint =
-          trangThai === "CHO_BI" ||
-          trangThai === "QC_KHONG_DAT" ||
-          trangThai === "THU_HOI" ||
-          trangThai === "HOAN_THANH" ||
-          i.ket_qua_test === true ||
-          i.ket_qua_test === false;
-        if (!canPrint) return <span className={CSSD_UI_CELL_META}>—</span>;
-        return (
-          <button
-            type="button"
-            disabled={opts.isPrinting}
-            onClick={(e) => {
-              e.stopPropagation();
-              opts.onPrintBatch?.(String(i.id));
-            }}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 bv103-type-label font-semibold text-[var(--primary)] hover:bg-emerald-50 disabled:opacity-50"
-            title="In phiếu mẻ A4"
-          >
-            <Printer size={14} /> Phiếu mẻ
-          </button>
-        );
-      },
-    });
-  }
 
   return cols;
 }

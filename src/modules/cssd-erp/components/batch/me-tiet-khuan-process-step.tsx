@@ -127,6 +127,7 @@ export default function MeTietKhuanProcessStep({
   );
   const canConfirmBatDau = canConfirmBatDauMeSlip({ itemCount: items.length, napLocked });
   const chuongTrinhEmpty = !String(chuongTrinh || "").trim();
+  const maLoMo = String(activeMe?.ma_lo_tiet_khuan || "").trim();
   const canPrint =
     choBi ||
     activeMe?.ket_qua_test === true ||
@@ -135,7 +136,7 @@ export default function MeTietKhuanProcessStep({
 
   const toolbar = (
     <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
-      {onReportIncident ? (
+      {maLoMo && onReportIncident ? (
         <button
           type="button"
           onClick={onReportIncident}

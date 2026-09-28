@@ -69,3 +69,13 @@ Neo: D1 / G-P0-06 (luân chuyển ≠ sự cố) · picker §17.3 / Domain 23 ·
 | P0 | Phiếu luân chuyển (`INSTRUMENT_MOVE/TRANSFER/REPLENISH/RETURN_KHO`) không còn đếm vào tỷ lệ «không sự cố» và không bật `is_red_alert` trên chu trình (cờ đó chặn cấp phát). Nháp vẫn loại khỏi báo cáo; lúc ghi Hỏng/Mất, nháp đang mở vẫn tính để ngưỡng lần 2 không lệch. |
 | P0 | Picker sự cố liệt kê từng chu trình mở (không gộp theo mã bộ). Ghi phiếu gắn chu trình đã chọn, hoặc đúng một chu trình đang mở. Chu trình đã dùng / ngoài 6 trạm không nhận sự cố quy trình. Không có chu trình mở thì Hỏng/Mất vẫn ghi sổ tồn theo bộ, không khóa chu trình lệch. |
 | Park | Đóng/xác nhận phiếu chỉ đổi trạng thái nhật ký — không hoàn tồn (tồn đã trừ lúc ghi). Không có cửa sửa/xóa phiếu đã ghi sổ. Domain 27 không code. `InventoryIssueModal` không caller. M-04 không đụng. |
+
+## ME sâu
+
+Neo: file 18 (phiếu mẻ) · 26 P0-1 (thu hồi một cửa khi phiếu mở + mã lô, hoặc chip PROCESS) · RPC `rpc_cssd_me_*` là cửa ghi. Không đổi Domain QT. Không migrate.
+
+| | Việc |
+|---|------|
+| Cửa | Tạo / nạp / gỡ / bắt đầu / kết thúc / QC-nhả / BI: mỗi việc một hàm → một RPC (kết thúc chu trình là một `UPDATE` trạng thái `CHO_DANH_GIA_QC`, không có cửa thứ hai). Thu hồi ghi một RPC `rpc_cssd_me_thu_hoi`: nút trên phiếu đang mở (có mã lô) hoặc chip Sự cố quy trình; QC không đạt và BI dương gọi cùng RPC (cascade, không phải cửa UI thứ hai). Danh sách không còn Thu hồi và không còn In. In phiếu nằm trên phiếu đang mở. |
+| P0 đếm | «Số bộ trong mẻ» và danh sách bộ trên phiếu chỉ tính `is_active = true`. Chu trình thu hồi giữ `lo_tiet_khuan_id` nhưng `is_active = false` — không cộng vào đếm. Khớp kho (`rpc_cssd_kho_station_counts`) và báo cáo (analytics lọc active). In phiếu vẫn liệt kê cả chu trình đã tắt để có cột hướng xử lý. |
+| Park | L04 `parent_bo_id`: cổng nạp vẫn là vai trò quy trình MAIN/SUB, không chặn catalog mẹ — cột catalog chưa phải cửa ghi (không migrate). M-04 picker MDM → specs → QT21 HD.03 đã đúng; catalog viện đầy đủ vẫn park. Lọc nhiệt app và `fn_cssd_me_ly_do_lech_phuong_phap` cùng luật (hơi nước = mọi dòng chịu nhiệt; Plasma/EO = có dòng không chịu nhiệt, thiếu dữ liệu thì chặn). In từ lịch sử QR là cửa đọc tra cứu, không ghi. Sản lượng trạm bỏ chu trình inactive sau thu hồi — cùng luật active, không sửa `cssd-analytics-core`. |

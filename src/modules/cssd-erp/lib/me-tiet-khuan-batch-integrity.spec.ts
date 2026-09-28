@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { assertSteamKitHeatAllowed } from "./me-tiet-khuan-batch-heat";
 import {
+  countActiveLinkedMembers,
   derivePassQuyTrinhIds,
+  isLiveBatchMember,
   rejectIfMachineHasOpenBatch,
   rejectParentBoWithSub,
   rejectStartMember,
@@ -9,6 +11,22 @@ import {
 
 const BATCH = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
+
+describe("countActiveLinkedMembers", () => {
+  it("bỏ chu trình thu hồi còn gắn mẻ (is_active false) và dòng không rõ hiệu lực", () => {
+    const map = countActiveLinkedMembers([
+      { lo_tiet_khuan_id: BATCH, is_active: true },
+      { lo_tiet_khuan_id: BATCH, is_active: false },
+      { lo_tiet_khuan_id: BATCH, is_active: null },
+      { lo_tiet_khuan_id: OTHER, is_active: true },
+      { lo_tiet_khuan_id: "  ", is_active: true },
+    ]);
+    expect(map.get(BATCH)).toBe(1);
+    expect(map.get(OTHER)).toBe(1);
+    expect(isLiveBatchMember({ is_active: false })).toBe(false);
+    expect(isLiveBatchMember({ is_active: true })).toBe(true);
+  });
+});
 
 describe("derivePassQuyTrinhIds", () => {
   it("suy danh sách bộ từ mẻ: active, đúng mẻ, trạm TIET_KHUAN", () => {

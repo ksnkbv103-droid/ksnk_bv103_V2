@@ -35,6 +35,7 @@ import {
 
 import { usePermission } from "@/hooks/usePermission";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import { isLiveBatchMember } from "../lib/me-tiet-khuan-batch-integrity";
 
 /** Trạng thái sau chốt nạp — không còn panel waiting / heat partition. */
 const ME_NAP_LOCKED_STATUSES = new Set([
@@ -194,7 +195,9 @@ export function useMeTietKhuanWorkflow() {
     ]);
     if (g.success) setBatchGate(g.data);
     else toast.error(g.error || "Không tải trạng thái mẻ");
-    const members = m.success ? ((m.data as any[]) || []) : itemsRef.current;
+    const members = m.success
+      ? ((m.data as any[]) || []).filter((row) => isLiveBatchMember(row))
+      : itemsRef.current;
     if (m.success) setItems(members);
     else toast.error(m.error || "Không tải thành phần mẻ");
     if (napLocked) {

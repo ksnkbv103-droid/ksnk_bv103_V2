@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
+import { countActiveLinkedMembers } from "../lib/me-tiet-khuan-batch-integrity";
 import { getSterilizerMethod } from "./me-tiet-khuan-machine-kind";
 
 const ME_TRANG_THAI = new Set([
@@ -56,17 +57,16 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   ]);
   const raw = (bRes.data || []) as { id: string }[];
   const ids = raw.map((b) => b.id).filter(Boolean);
-  const byMe = new Map<string, number>();
+  let byMe = new Map<string, number>();
   if (ids.length > 0) {
     const { data: qrows } = await supabase
       .from("cssd_fact_quy_trinh")
-      .select("lo_tiet_khuan_id")
-      .in("lo_tiet_khuan_id", ids);
-    for (const r of qrows || []) {
-      const lid = (r as { lo_tiet_khuan_id?: string }).lo_tiet_khuan_id;
-      if (!lid) continue;
-      byMe.set(lid, (byMe.get(lid) || 0) + 1);
-    }
+      .select("lo_tiet_khuan_id, is_active")
+      .in("lo_tiet_khuan_id", ids)
+      .eq("is_active", true);
+    byMe = countActiveLinkedMembers(
+      (qrows || []) as Array<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>,
+    );
   }
   const batches = raw.map((b) => {
     const row = b as Record<string, unknown>;
