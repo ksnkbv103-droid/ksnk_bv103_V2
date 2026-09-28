@@ -59,3 +59,13 @@ PA1: hai hàng tab (Việc / Tra cứu) — tip Dụng cụ đã có, một clic
 File: `QuanLyDungCuPage.tsx`, `SetReconcileHistoryList.tsx`, `src/app/cssd-dung-cu/page.tsx`.
 
 UAT: (1) Tab Rà soát không còn nút «Lập phiếu rà soát». (2) Tab admin kế bên là «Sổ rà soát», không còn «Lịch sử». (3) `/cssd-dung-cu` có hai hàng Việc và Tra cứu; tab kho vẫn «Lịch sử kho». (4) Sidebar vẫn nhóm «CSSD · Tra cứu», không thêm mục. (5) Lập đề nghị vẫn mở từ tab Đề nghị trên Dụng cụ.
+
+## CSSD/SC sâu
+
+Neo: D1 / G-P0-06 (luân chuyển ≠ sự cố) · picker §17.3 / Domain 23 · Domain 27 chỉ nhãn (không đổi IA). Không migrate.
+
+| | Việc |
+|---|------|
+| P0 | Phiếu luân chuyển (`INSTRUMENT_MOVE/TRANSFER/REPLENISH/RETURN_KHO`) không còn đếm vào tỷ lệ «không sự cố» và không bật `is_red_alert` trên chu trình (cờ đó chặn cấp phát). Nháp vẫn loại khỏi báo cáo; lúc ghi Hỏng/Mất, nháp đang mở vẫn tính để ngưỡng lần 2 không lệch. |
+| P0 | Picker sự cố liệt kê từng chu trình mở (không gộp theo mã bộ). Ghi phiếu gắn chu trình đã chọn, hoặc đúng một chu trình đang mở. Chu trình đã dùng / ngoài 6 trạm không nhận sự cố quy trình. Không có chu trình mở thì Hỏng/Mất vẫn ghi sổ tồn theo bộ, không khóa chu trình lệch. |
+| Park | Đóng/xác nhận phiếu chỉ đổi trạng thái nhật ký — không hoàn tồn (tồn đã trừ lúc ghi). Không có cửa sửa/xóa phiếu đã ghi sổ. Domain 27 không code. `InventoryIssueModal` không caller. M-04 không đụng. |

@@ -160,6 +160,7 @@ export default function SuCoReportForm({
     );
   });
   const [maQR, setMaQR] = useState(initialMaQR || "");
+  const [cycleQuyTrinhId, setCycleQuyTrinhId] = useState("");
   const [faultStation, setFaultStation] = useState<Station>(initialStation);
   const [machineId, setMachineId] = useState(initialMachineId || "");
   const [maLo, setMaLo] = useState(initialMaLo || "");
@@ -314,7 +315,10 @@ export default function SuCoReportForm({
     }
     setFaultStation(detectionStation);
     if (incidentGroup === "OTHER" || incidentGroup === "CHEMICAL") {
-      if (!initialMaQR) setMaQR("");
+      if (!initialMaQR) {
+        setMaQR("");
+        setCycleQuyTrinhId("");
+      }
       setMachineId("");
       setMaLo("");
     } else if (incidentGroup === "EQUIPMENT" && initialMachineId) {
@@ -322,6 +326,7 @@ export default function SuCoReportForm({
     }
     if (incidentGroup !== "PROCESS" && incidentGroup !== "INSTRUMENT" && incidentGroup !== "EQUIPMENT") {
       setMaQR("");
+      setCycleQuyTrinhId("");
     }
     if (incidentGroup !== "PROCESS") setCyclePerformers([]);
   }, [incidentGroup, detectionStation, initialTypeId, initialMaQR, initialMachineId, entryMode]);
@@ -404,6 +409,14 @@ export default function SuCoReportForm({
           ? res.maBo
           : res.code;
       setMaQR(setCode);
+      if (entryMode !== "luan-chuyen" && (incidentGroup === "INSTRUMENT" || incidentGroup === "PROCESS")) {
+        const ma = String(res.maBo || setCode).toUpperCase();
+        const hits = boOptions.filter((b) => b.quyTrinhId && b.ma_bo.toUpperCase() === ma);
+        const byWf = hits.find((b) => b.quyTrinhId === res.workflowId);
+        if (byWf?.quyTrinhId) setCycleQuyTrinhId(byWf.quyTrinhId);
+        else if (hits.length === 1 && hits[0].quyTrinhId) setCycleQuyTrinhId(hits[0].quyTrinhId);
+        else setCycleQuyTrinhId("");
+      }
       toast.success(`Đã chọn bộ: ${setCode}`);
       if (incidentGroup === "PROCESS") await runFaultTrace(res.code, faultStation);
     } catch (err: unknown) {
@@ -557,7 +570,7 @@ export default function SuCoReportForm({
             ? {
                 boDungCuId: setReconcileState.boDungCuId,
                 draftIncidentId: setReconcileState.draftIncidentId,
-                quyTrinhId: quyTrinhId || undefined,
+                quyTrinhId: cycleQuyTrinhId || quyTrinhId || undefined,
                 maBo: setReconcileState.maBo,
                 tenBo: setReconcileState.tenBo,
                 lines: setReconcileState.lines,
@@ -568,7 +581,7 @@ export default function SuCoReportForm({
             ? {
                 loTietKhuanId: loTietKhuanId.trim() || undefined,
                 maLo: maLo.trim() || undefined,
-                quyTrinhId: quyTrinhId || undefined,
+                quyTrinhId: cycleQuyTrinhId || quyTrinhId || undefined,
               }
             : undefined,
         confirmDuplicate: confirmDuplicateRef.current,
@@ -739,6 +752,11 @@ export default function SuCoReportForm({
                 onKeyDown={(e) => void handleQrKeyDown(e)}
                 onScanComplete={(code) => void processQrCode(code)}
                 onSelectBo={(code) => void processQrCode(code)}
+                selectedCycleId={cycleQuyTrinhId}
+                onPickCycle={(opt) => {
+                  setMaQR(opt.ma_bo.toUpperCase());
+                  setCycleQuyTrinhId(opt.quyTrinhId || "");
+                }}
                 loading={loading || tracing}
                 maLoHint={maLo.trim() || undefined}
                 qrRequired={!(isBatchLinkedTypeId(typeId) && Boolean(maLo.trim() || loTietKhuanId.trim()))}
@@ -789,6 +807,11 @@ export default function SuCoReportForm({
                   onKeyDown={(e) => void handleQrKeyDown(e)}
                   onScanComplete={(code) => void processQrCode(code)}
                   onSelectBo={(code) => void processQrCode(code)}
+                  selectedCycleId={cycleQuyTrinhId}
+                  onPickCycle={(opt) => {
+                    setMaQR(opt.ma_bo.toUpperCase());
+                    setCycleQuyTrinhId(opt.quyTrinhId || "");
+                  }}
                   loading={loading}
                   layout="stack"
                   compact

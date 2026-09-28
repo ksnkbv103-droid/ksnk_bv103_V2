@@ -5,6 +5,8 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { verifyCssdIncidentCreate, verifyCssdIncidentPrint } from "@/lib/cssd-server-gates";
 import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
+import { isCirculationIncidentTypeCode } from "../domain/cssd-incident-attributes";
+import { passesScPickerWhitelist, resolveScPickerWorkflowId } from "../domain/cssd-used-clinically";
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
 import { executeIncidentReportAndRollback } from "../application/su-co-report.application";
 import { executeConfirmIncidentReport } from "../application/confirm-incident.application";
@@ -98,11 +100,28 @@ export async function createIncidentReport(data: {
     if (parsed.setReconcilePayload && resolved.boDungCuId && !parsed.setReconcilePayload.boDungCuId) {
       parsed.setReconcilePayload.boDungCuId = resolved.boDungCuId;
     }
-    if (resolved.workflowId) {
+    const explicitQt = String(
+      parsed.setReconcilePayload?.quyTrinhId || parsed.processPayload?.quyTrinhId || "",
+    ).trim();
+    const circulation = isCirculationIncidentTypeCode(parsed.typeId);
+    const boId = String(resolved.boDungCuId || parsed.setReconcilePayload?.boDungCuId || "").trim();
+    let workflowId = explicitQt || (resolved.workflowId ? String(resolved.workflowId) : "");
+    if (!circulation && (parsed.incidentGroup === "PROCESS" || parsed.incidentGroup === "INSTRUMENT") && boId) {
+      const picked = resolveScPickerWorkflowId({
+        explicitId: explicitQt,
+        candidates: await listScPickerCandidates(supabase, boId),
+      });
+      if (picked.error) throw new Error(picked.error);
+      if (parsed.incidentGroup === "PROCESS" && !picked.quyTrinhId) {
+        throw new Error("Chu trình này không nhận sự cố (đã dùng lâm sàng hoặc ngoài 6 trạm).");
+      }
+      workflowId = picked.quyTrinhId || "";
+    }
+    if (workflowId) {
       const { data: quyTrinh, error: qReadErr } = await supabase
         .from("v_cssd_quy_trinh_full")
         .select("*")
-        .eq("id", resolved.workflowId)
+        .eq("id", workflowId)
         .maybeSingle();
       if (qReadErr) throw new Error("Lỗi đọc quy trình: " + qReadErr.message);
       if (quyTrinh) q = quyTrinh as Record<string, unknown>;
@@ -269,5 +288,38 @@ export async function getIncidentForPrint(id: string) {
     },
     details,
   };
+}
+
+async function listScPickerCandidates(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  boDungCuId: string,
+) {
+  const { data, error } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select("id, is_active, metadata, tram:cssd_dm_tram!tram_hien_tai_id(ma_tram)")
+    .eq("bo_dung_cu_id", boDungCuId)
+    .eq("is_active", true)
+    .limit(30);
+  if (error) throw new Error(error.message);
+  return (data || [])
+    .map((raw) => {
+      const r = raw as {
+        id?: string;
+        is_active?: boolean;
+        metadata?: unknown;
+        tram?: { ma_tram?: string | null } | { ma_tram?: string | null }[] | null;
+      };
+      const tramObj = Array.isArray(r.tram) ? r.tram[0] : r.tram;
+      const id = String(r.id || "").trim();
+      return {
+        id,
+        ok: passesScPickerWhitelist({
+          isActive: r.is_active === true,
+          tramHienTai: tramObj?.ma_tram,
+          metadata: r.metadata,
+        }),
+      };
+    })
+    .filter((c) => c.id);
 }
 

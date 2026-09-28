@@ -105,6 +105,40 @@ export function buildClearUsedClinicallyMetadataPatch(input: {
   };
 }
 
+export type ScPickerWorkflowCandidate = { id: string; ok: boolean };
+
+/**
+ * Gắn phiếu sự cố vào đúng chu trình picker (mở ∧ 6 trạm ∧ chưa dùng).
+ * Luân chuyển không gắn chu trình. Không có chu trình mở → null (sổ tồn theo bộ, không khóa chu trình lệch).
+ */
+export function resolveScPickerWorkflowId(input: {
+  explicitId?: string | null;
+  candidates: ScPickerWorkflowCandidate[];
+  circulation?: boolean;
+}): { quyTrinhId: string | null; error: string | null } {
+  if (input.circulation) return { quyTrinhId: null, error: null };
+  const explicit = String(input.explicitId || "").trim();
+  const open = input.candidates.filter((c) => c.ok && String(c.id || "").trim());
+  if (explicit) {
+    const hit = input.candidates.find((c) => c.id === explicit);
+    if (!hit?.ok) {
+      return {
+        quyTrinhId: null,
+        error: "Chu trình đã chọn không còn mở (đã dùng lâm sàng hoặc ngoài 6 trạm).",
+      };
+    }
+    return { quyTrinhId: explicit, error: null };
+  }
+  if (open.length === 1) return { quyTrinhId: open[0].id, error: null };
+  if (open.length > 1) {
+    return {
+      quyTrinhId: null,
+      error: "Bộ này có nhiều chu trình đang mở — chọn đúng dòng trong danh sách.",
+    };
+  }
+  return { quyTrinhId: null, error: null };
+}
+
 /** SC picker §17.3: chu trình mở ∧ tram ∈ 6 ∧ ¬used. */
 export function passesScPickerWhitelist(input: {
   isActive?: boolean | null;

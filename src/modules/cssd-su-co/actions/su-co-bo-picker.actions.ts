@@ -50,7 +50,7 @@ export async function listBoForSuCoPickerAction(search?: string) {
 
   const term = String(search || "").trim().toUpperCase();
   const seen = new Set<string>();
-  const rows: { id: string; ten_bo: string; ma_bo: string }[] = [];
+  const rows: { id: string; ten_bo: string; ma_bo: string; quyTrinhId: string; tram: string }[] = [];
 
   for (const raw of data || []) {
     const r = raw as {
@@ -80,16 +80,16 @@ export async function listBoForSuCoPickerAction(search?: string) {
     }
     const maBo = String(boObj?.ma_bo || "").trim();
     const tenBo = String(boObj?.ten_bo || "").trim() || "—";
-    const id = String(boObj?.id || r.id || "").trim();
-    if (!maBo || !id) continue;
+    const id = String(boObj?.id || "").trim();
+    const quyTrinhId = String(r.id || "").trim();
+    if (!maBo || !id || !quyTrinhId) continue;
     if (term) {
-      const hay = `${maBo} ${tenBo} ${r.ma_qr_quy_trinh || ""} ${r.ma_cycle_qr || ""} ${r.ma_qr_bo_vinh_vien || ""}`.toUpperCase();
+      const hay = `${maBo} ${tenBo} ${tram} ${r.ma_qr_quy_trinh || ""} ${r.ma_cycle_qr || ""} ${r.ma_qr_bo_vinh_vien || ""}`.toUpperCase();
       if (!hay.includes(term)) continue;
     }
-    const key = maBo.toUpperCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    rows.push({ id, ma_bo: maBo, ten_bo: tenBo });
+    if (seen.has(quyTrinhId)) continue;
+    seen.add(quyTrinhId);
+    rows.push({ id, ma_bo: maBo, ten_bo: tenBo, quyTrinhId, tram });
     if (rows.length >= 200) break;
   }
 

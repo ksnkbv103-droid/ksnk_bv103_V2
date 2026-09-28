@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildIncidentAttributes,
+  countsTowardCssdSafetyTally,
   readIncidentGroup,
   readIncidentTypeLabel,
   resolveProcessBatchLink,
@@ -89,5 +90,16 @@ describe("cssd-incident-attributes", () => {
     );
     expect(linked.loTietKhuanId).toBe("55555555-5555-5555-5555-555555555555");
     expect(linked.maLo).toBe("LO-A");
+  });
+
+  it("không đếm luân chuyển vào sự cố; nháp chỉ tính khi đang ghi", () => {
+    const move = { INCIDENT_TYPE_CODE: "INSTRUMENT_TRANSFER", SET_RECONCILE_STATUS: "NONE" };
+    const draft = { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "DRAFT" };
+    const hong = { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "NONE" };
+    expect(countsTowardCssdSafetyTally(move)).toBe(false);
+    expect(countsTowardCssdSafetyTally(move, { includeDraft: true })).toBe(false);
+    expect(countsTowardCssdSafetyTally(draft)).toBe(false);
+    expect(countsTowardCssdSafetyTally(draft, { includeDraft: true })).toBe(true);
+    expect(countsTowardCssdSafetyTally(hong)).toBe(true);
   });
 });

@@ -22,7 +22,7 @@ import {
   readIncidentConfirmedByName,
   readIncidentPhieuStatus,
 } from "@/modules/cssd-su-co/domain/cssd-incident-status";
-import { isSetReconcileDraftAttr } from "@/modules/cssd-su-co/domain/cssd-set-reconcile-attrs";
+import { countsTowardCssdSafetyTally } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import { getErrorMessage, tableHasColumn } from "../shared/cssd-db-utils";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import {
@@ -136,7 +136,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     const redQrs = new Set<string>();
     const suCoSource = (resS.data || []).filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
-      return !isSetReconcileDraftAttr(attrs);
+      return countsTowardCssdSafetyTally(attrs);
     });
     for (const sc of suCoSource) {
       if ((sc as { is_red_alert?: boolean }).is_red_alert !== true) continue;
@@ -361,7 +361,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
     });
     const suCoKyCount = (resS.data || []).filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
-      return !isSetReconcileDraftAttr(attrs);
+      return countsTowardCssdSafetyTally(attrs);
     }).length;
     const quyTrinhKyCount = quyTrinh.filter((r) => {
       const day =

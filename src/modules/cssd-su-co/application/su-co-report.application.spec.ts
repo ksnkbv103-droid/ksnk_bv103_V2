@@ -4,7 +4,22 @@ import { executeIncidentReportAndRollback } from "./su-co-report.application";
 
 type RpcResult = { success: boolean; message?: string; su_co_id?: string; idempotent?: boolean };
 
-function client(opts: { rpcResult: RpcResult; quyTrinhUpdateError?: boolean }) {
+const SAFETY_PAIR = [
+  {
+    id: "a",
+    attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "DRAFT" },
+  },
+  {
+    id: "b",
+    attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "NONE" },
+  },
+];
+
+function client(opts: {
+  rpcResult: RpcResult;
+  quyTrinhUpdateError?: boolean;
+  priorRows?: { id: string; attributes: Record<string, unknown> }[];
+}) {
   const ops: string[] = [];
   return {
     ops,
@@ -16,6 +31,7 @@ function client(opts: { rpcResult: RpcResult; quyTrinhUpdateError?: boolean }) {
       let mode = "row";
       const terminal = () => {
         if (mode === "count") return { data: null, error: null, count: 2 };
+        if (mode === "safety") return { data: opts.priorRows ?? SAFETY_PAIR, error: null };
         if (mode === "list") return { data: [], error: null };
         return { data: null, error: null };
       };
@@ -23,7 +39,7 @@ function client(opts: { rpcResult: RpcResult; quyTrinhUpdateError?: boolean }) {
       const chain = () => b;
       b.select = (cols: string, extra?: { head?: boolean }) => {
         if (extra?.head) mode = "count";
-        else if (String(cols).includes("attributes")) mode = "list";
+        else if (String(cols).includes("attributes")) mode = "safety";
         return b;
       };
       b.eq = chain;
@@ -101,5 +117,30 @@ describe("executeIncidentReportAndRollback nháp", () => {
       ),
     ).rejects.toThrow(/fail tram|Loi xu ly su co/);
     expect(supabase.ops.filter((op) => op.startsWith("delete:"))).toEqual([]);
+  });
+
+  it("phiếu luân chuyển không bật cảnh báo đỏ trên chu trình", async () => {
+    const supabase = client({
+      rpcResult: { success: true, su_co_id: "mv-1" },
+      quyTrinhUpdateError: true,
+      priorRows: [
+        { id: "m1", attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_TRANSFER", SET_RECONCILE_STATUS: "NONE" } },
+        { id: "m2", attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_REPLENISH", SET_RECONCILE_STATUS: "NONE" } },
+      ],
+    });
+    const res = await executeIncidentReportAndRollback(
+      supabase as never,
+      {
+        station: "DONG_GOI",
+        incidentGroup: "INSTRUMENT",
+        typeTen: "Luân chuyển",
+        typeId: "INSTRUMENT_TRANSFER",
+        desc: "chuyển kho",
+        maQR: "B01.SET.01",
+      },
+      { id: "qt-1", tram_hien_tai_id: "tram-1" },
+    );
+    expect(res.isRedAlert).toBe(false);
+    expect(res.incident_id).toBe("new-1");
   });
 });

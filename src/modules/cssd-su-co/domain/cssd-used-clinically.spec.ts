@@ -5,6 +5,7 @@ import {
   isCssdCycleUsedClinically,
   parseUsedClinicallyFromMetadata,
   passesScPickerWhitelist,
+  resolveScPickerWorkflowId,
   SC_PICKER_STATIONS,
 } from "./cssd-used-clinically";
 
@@ -64,6 +65,24 @@ describe("cssd-used-clinically Domain 23 A", () => {
     expect(clear.used_clinically).toBe(false);
     expect(clear.used_clinically_cleared_by).toBe("auth-2");
     expect(isCssdCycleUsedClinically({ metadata: clear })).toBe(false);
+  });
+
+  it("gắn đúng một chu trình mở; nhiều chu trình phải chọn; luân chuyển không gắn", () => {
+    const open = { id: "qt-open", ok: true };
+    const used = { id: "qt-used", ok: false };
+    expect(resolveScPickerWorkflowId({ candidates: [used, open] }).quyTrinhId).toBe("qt-open");
+    expect(resolveScPickerWorkflowId({ explicitId: "qt-open", candidates: [used, open] }).quyTrinhId).toBe(
+      "qt-open",
+    );
+    expect(resolveScPickerWorkflowId({ explicitId: "qt-used", candidates: [used, open] }).error).toMatch(/không còn mở/);
+    expect(
+      resolveScPickerWorkflowId({ candidates: [open, { id: "qt-2", ok: true }] }).error,
+    ).toMatch(/nhiều chu trình/);
+    expect(resolveScPickerWorkflowId({ candidates: [used], circulation: true })).toEqual({
+      quyTrinhId: null,
+      error: null,
+    });
+    expect(resolveScPickerWorkflowId({ candidates: [used] })).toEqual({ quyTrinhId: null, error: null });
   });
 
   it("SC picker whitelist: open ∧ tram∈6 ∧ ¬used (CAP_PHAT stays IN until used)", () => {

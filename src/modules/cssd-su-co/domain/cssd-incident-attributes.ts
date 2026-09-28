@@ -1,5 +1,6 @@
 import type { CauseClass, IncidentGroup } from "./cssd-incident-taxonomy";
 import { CAUSE_CLASS_LABEL } from "./cssd-incident-taxonomy";
+import { isSetReconcileDraftAttr } from "./cssd-set-reconcile-attrs";
 
 export type IncidentAttributeInput = {
   incidentGroup: IncidentGroup;
@@ -79,6 +80,33 @@ export function readIncidentTypeCode(attrs: Record<string, unknown>): string | n
   const raw = attrs.INCIDENT_TYPE_CODE ?? attrs.incident_type_code ?? null;
   const text = raw != null ? String(raw).trim() : "";
   return text || null;
+}
+
+/** Phiếu luân chuyển số lượng — không phải sự cố an toàn (D1 / G-P0-06). */
+const CIRCULATION_INCIDENT_TYPE_CODES = new Set([
+  "INSTRUMENT_MOVE",
+  "INSTRUMENT_TRANSFER",
+  "INSTRUMENT_REPLENISH",
+  "INSTRUMENT_RETURN_KHO",
+]);
+
+export function isCirculationIncidentTypeCode(code: string | null | undefined): boolean {
+  return CIRCULATION_INCIDENT_TYPE_CODES.has(String(code || "").trim().toUpperCase());
+}
+
+/**
+ * Tử số «sự cố» và ngưỡng cảnh báo đỏ.
+ * Nháp không vào báo cáo. Phiếu luân chuyển không vào cả hai.
+ * `includeDraft`: lúc ghi phiếu, nháp đang mở của chính lần ghi vẫn tính để ngưỡng «lần 2» không lệch.
+ */
+export function countsTowardCssdSafetyTally(
+  attrs: Record<string, unknown> | null | undefined,
+  opts?: { includeDraft?: boolean },
+): boolean {
+  const row = attrs && typeof attrs === "object" ? attrs : {};
+  if (isCirculationIncidentTypeCode(readIncidentTypeCode(row))) return false;
+  if (!opts?.includeDraft && isSetReconcileDraftAttr(row)) return false;
+  return true;
 }
 
 export function readCauseClass(attrs: Record<string, unknown>): string | null {

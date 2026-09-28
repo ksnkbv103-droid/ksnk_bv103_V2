@@ -18,6 +18,7 @@ import {
 import QrCameraButton from "@/components/shared/QrCameraButton";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
+import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 import {
   DIRECT_INCIDENT_DOORS,
   INCIDENT_GROUP_LABEL,
@@ -36,7 +37,14 @@ import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import IncidentPrintView from "./IncidentPrintView";
 
-export type BoCatalogOption = { id: string; ten_bo: string; ma_bo: string };
+export type BoCatalogOption = {
+  id: string;
+  ten_bo: string;
+  ma_bo: string;
+  /** Chu trình mở — picker sự cố. Luân chuyển không gửi trường này. */
+  quyTrinhId?: string;
+  tram?: string;
+};
 
 const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: string; size?: number }>> = {
   PROCESS: Layers,
@@ -99,6 +107,8 @@ export function BoSourceFields({
   onKeyDown: _onKeyDown,
   onScanComplete,
   onSelectBo,
+  selectedCycleId,
+  onPickCycle,
   loading,
   maLoHint,
   qrRequired = true,
@@ -113,6 +123,9 @@ export function BoSourceFields({
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onScanComplete?: (code: string) => void;
   onSelectBo: (maBo: string) => void;
+  /** Khi picker trả nhiều chu trình của cùng mã bộ. */
+  selectedCycleId?: string;
+  onPickCycle?: (opt: BoCatalogOption) => void;
   loading?: boolean;
   maLoHint?: string;
   qrRequired?: boolean;
@@ -121,17 +134,27 @@ export function BoSourceFields({
   compact?: boolean;
   trailing?: React.ReactNode;
 }) {
+  const cycleMode = boOptions.some((b) => b.quyTrinhId);
   const selectOptions = boOptions.map((b) => ({
-    id: b.ma_bo.toUpperCase(),
-    label: `${b.ma_bo} — ${b.ten_bo}`,
-    keywords: [b.ten_bo, b.ma_bo],
+    id: cycleMode && b.quyTrinhId ? b.quyTrinhId : b.ma_bo.toUpperCase(),
+    label: b.tram ? `${b.ma_bo} — ${b.ten_bo} · ${stationLabel(b.tram)}` : `${b.ma_bo} — ${b.ten_bo}`,
+    keywords: [b.ten_bo, b.ma_bo, b.tram || ""].filter(Boolean),
   }));
   const selected = maQR.trim().toUpperCase();
+  const maHits = boOptions.filter((b) => b.ma_bo.toUpperCase() === selected && b.quyTrinhId);
+  const cycleValue =
+    selectedCycleId || (maHits.length === 1 ? maHits[0].quyTrinhId || "" : "");
   const apply = (raw: string) => {
-    const code = String(raw || "").trim().toUpperCase();
+    const code = String(raw || "").trim();
     if (!code) return;
-    setMaQR(code);
-    onSelectBo(code);
+    const hit = boOptions.find((b) => b.quyTrinhId === code || b.ma_bo.toUpperCase() === code.toUpperCase());
+    if (hit?.quyTrinhId && onPickCycle) {
+      onPickCycle(hit);
+      return;
+    }
+    const upper = code.toUpperCase();
+    setMaQR(upper);
+    onSelectBo(upper);
   };
   const applyScan = (raw: string) => {
     const code = String(raw || "").trim().toUpperCase();
@@ -162,7 +185,7 @@ export function BoSourceFields({
         <SearchableSelect
           inputTrigger
           allowCustom
-          value={selected}
+          value={cycleMode ? cycleValue : selected}
           onChange={apply}
           options={selectOptions}
           placeholder="Tìm tên, mã hoặc quét QR…"

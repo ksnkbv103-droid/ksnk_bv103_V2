@@ -3,7 +3,12 @@ import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "@/modules/cssd-erp/shared/application/cssd-lifecycle-events";
 import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
-import { buildIncidentAttributes, resolveProcessBatchLink } from "../domain/cssd-incident-attributes";
+import {
+  buildIncidentAttributes,
+  countsTowardCssdSafetyTally,
+  isCirculationIncidentTypeCode,
+  resolveProcessBatchLink,
+} from "../domain/cssd-incident-attributes";
 import { resolveIncidentPolicy } from "../domain/cssd-incident-policy";
 import { isBatchQcFailTypeId } from "../domain/cssd-incident-taxonomy";
 import { applyBatchRecallAndHoldMachine } from "./batch-recall-hold.application";
@@ -151,13 +156,20 @@ export async function executeIncidentReportAndRollback(
       : null;
 
   let isRedAlert = false;
-  if (data.maQR) {
-    const { count, error: countErr } = await supabase
+  const circulationSubmit = isCirculationIncidentTypeCode(typeId);
+  if (data.maQR && !circulationSubmit) {
+    const { data: priorRows, error: countErr } = await supabase
       .from("cssd_fact_su_co")
-      .select("*", { count: "exact", head: true })
+      .select("id, attributes")
       .eq("ma_qr_quy_trinh", data.maQR);
     if (countErr) throw new Error("Loi dem su co: " + countErr.message);
-    isRedAlert = (count || 0) >= 2;
+    const prior = (priorRows || []).filter((row) =>
+      countsTowardCssdSafetyTally(
+        (row as { attributes?: Record<string, unknown> | null }).attributes,
+        { includeDraft: true },
+      ),
+    ).length;
+    isRedAlert = prior >= 2;
   }
 
   const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
