@@ -76,7 +76,24 @@ export function filterOutVstHubFromGscGenericList<T extends { ma_bk?: string | n
 }
 
 /**
- * 16 §6.1–6.2 Soft Soft Soft-safe:
+ * `?bk=` trên cửa thực hành được mở BM.02/BM.03 (hub VST), dù list generic đã ẩn.
+ * Lớp `he_thong` không mở từ cửa thực hành; thực hành không mở từ cửa hệ thống.
+ * WHO vẫn khóa — form riêng `/giam-sat-vst`.
+ */
+export function isGscRouteDeepLinkAllowed(bk: BangKiemLopSource, mode?: GscPickerMode | null): boolean {
+  const m = mode ?? "ALL";
+  if (
+    m === "TUAN_THU" &&
+    !isWhoObservationBangKiem(bk.ma_bk) &&
+    isVstHubBangKiemExcludedFromGscGeneric(bk.ma_bk)
+  ) {
+    return true;
+  }
+  return filterBangKiemByLopGiamSatMode([bk], m).length > 0;
+}
+
+/**
+ * 16 §6.1–6.2:
  * - he-thong route → chỉ he_thong
  * - tuan-thu → thuc_hanh_don_vi + hybrid; ẩn he_thong; ẩn VST hub generic
  * - nhat-ky → giữ loai_giam_sat = NHAT_KY (không đụng lop nếu chưa seed)

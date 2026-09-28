@@ -29,7 +29,10 @@ import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
 import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
 import type { GscPatientPrefill } from "../lib/gsc-patient-prefill";
 import { filterOutWhoBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
-import { filterBangKiemByLopGiamSatMode } from "@/lib/domain/gsc-lop-giam-sat-filter";
+import {
+  filterBangKiemByLopGiamSatMode,
+  isGscRouteDeepLinkAllowed,
+} from "@/lib/domain/gsc-lop-giam-sat-filter";
 
 export type { GscLocPrefill };
 
@@ -192,6 +195,10 @@ export default function GscFormView({
           cach_tinh_diem: row.cach_tinh_diem,
           ap_dung_jsonb: (row as { ap_dung_jsonb?: unknown }).ap_dung_jsonb,
         };
+      }
+      if (!isGscRouteDeepLinkAllowed(bk, initialLoaiGiamSat ?? "ALL")) {
+        toast.message(`Bảng kiểm ${maBk} không thuộc cửa đang mở.`);
+        return;
       }
       await handleSelectTemplate(bk);
       if (cancelled) return;

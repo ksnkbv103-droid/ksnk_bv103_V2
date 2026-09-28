@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   filterBangKiemByLopGiamSatMode,
+  isGscRouteDeepLinkAllowed,
   isVstHubBangKiemExcludedFromGscGeneric,
   readLopGiamSatFromBangKiem,
 } from "./gsc-lop-giam-sat-filter";
@@ -39,6 +40,17 @@ describe("gsc-lop-giam-sat-filter 25d residual", () => {
   it("DANH_GIA_HE_THONG picker only he_thong", () => {
     const out = filterBangKiemByLopGiamSatMode([heThong, thucHanh, vstBm02], "DANH_GIA_HE_THONG");
     expect(out.map((r) => r.ma_bk)).toEqual(["KSNK.QT.02.BM.04"]);
+  });
+
+  it("?bk= thực hành mở BM.02/03, không mở lớp hệ thống hay WHO", () => {
+    expect(isGscRouteDeepLinkAllowed({ ma_bk: "BM.07.02" }, "TUAN_THU")).toBe(true);
+    expect(isGscRouteDeepLinkAllowed({ ma_bk: "KSNK.QT.07.BM.03" }, "TUAN_THU")).toBe(true);
+    expect(isGscRouteDeepLinkAllowed(heThong, "TUAN_THU")).toBe(false);
+    expect(isGscRouteDeepLinkAllowed(who, "TUAN_THU")).toBe(false);
+    expect(isGscRouteDeepLinkAllowed(thucHanh, "TUAN_THU")).toBe(true);
+    expect(isGscRouteDeepLinkAllowed(heThong, "DANH_GIA_HE_THONG")).toBe(true);
+    expect(isGscRouteDeepLinkAllowed({ ma_bk: "BM.07.02" }, "DANH_GIA_HE_THONG")).toBe(false);
+    expect(isGscRouteDeepLinkAllowed(thucHanh, "DANH_GIA_HE_THONG")).toBe(false);
   });
 
   it("excludes VST hub BM.02/03 from GSC generic", () => {
