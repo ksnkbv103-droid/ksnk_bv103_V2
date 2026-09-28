@@ -1,6 +1,5 @@
--- GSC-L01 · Domain 14 Lock A: NV biên chế Khoa KSNK luôn stype=KSNK (chuyên trách),
--- kể cả khi khoa được GS = khoa KSNK. Không vào mẫu ty_le_tgs / lệch do_lech.
--- Soft Soft-local draft — Lead/Cloud apply after Nghĩa confirm. Soft does NOT apply prod.
+-- Hotfix: fn_get_session_stype JOIN nhầm dm_khoa_phong (đã DROP alias).
+-- Bảng SSOT: mdm_dm_khoa_phong. Không đụng fact VST/GSC.
 
 CREATE OR REPLACE FUNCTION public.fn_get_session_stype(
   p_nguoi_giam_sat_id uuid,
