@@ -40,6 +40,22 @@ describe("aggregateNkbvDashboard", () => {
     expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(50);
   });
 
+  it("counts CHO_DUYET in dang_va_cho_xn (phiếu đã gửi form, chưa duyệt)", () => {
+    const rows = [
+      {
+        ngay_phat_hien: "2026-01-18",
+        trang_thai_row: { ma_trang_thai: "CHO_DUYET", ten_trang_thai: "Chờ duyệt" },
+        loai_nkbv: { ma_loai: "UTI", ten_loai: "UTI" },
+        khoa_ghi_nhan: { ten_khoa: "Khoa A" },
+      },
+    ];
+    const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
+    expect(out.kpis.tong_phieu).toBe(1);
+    expect(out.kpis.dang_va_cho_xn).toBe(1);
+    expect(out.kpis.da_xac_nhan).toBe(0);
+    expect(out.kpis.loai_tru).toBe(0);
+  });
+
   it("filters by date range on ngay_phat_hien", () => {
     const rows = [
       {

@@ -195,7 +195,7 @@ export default function NkbvDashboardPanel({
           {
             label: "Đang ghi / Chờ XN",
             value: loading ? "…" : String(k?.dang_va_cho_xn ?? 0),
-            sub: "",
+            sub: "Gồm chờ điền form và chờ duyệt",
           },
           {
             label: "Loại trừ",
@@ -248,7 +248,7 @@ export default function NkbvDashboardPanel({
 
             <div className={`${C.inset} bg-white p-5`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
-                Phân bố theo loại HAI/NKBV
+                Phân bố phiếu theo loại
               </h3>
               <Bv103ResponsiveChart className="h-[280px] w-full min-h-[260px] min-w-0">
                   <BarChart layout="vertical" data={payload.by_loai.slice(0, 8)} margin={{ left: 8, right: 16 }}>

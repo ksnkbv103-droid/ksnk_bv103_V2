@@ -18,7 +18,12 @@ import { assertClinicalEvidenceForSubmit } from "../lib/nkbv-clinical-submit-gat
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
-import { clean, validateLoaiTrangAndLyDo, type Payload } from "./giam-sat-nkbv-write.helpers";
+import {
+  clean,
+  releaseViSinhStampsAfterHide,
+  validateLoaiTrangAndLyDo,
+  type Payload,
+} from "./giam-sat-nkbv-write.helpers";
 import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
 import { hydratePriorOpenVaeDoe } from "../lib/nkbv-vae-event-period";
 
@@ -104,11 +109,23 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
 export async function softDeleteGiamSatNkbvCa(id: string) {
   await verifyPermission("GIAM_SAT_NKBV", "delete");
   const supabase = createAdminSupabaseClient();
+  const { data: row, error: loadErr } = await supabase
+    .from("nkbv_fact_su_kien")
+    .select("id, verification_data")
+    .eq("id", id)
+    .maybeSingle();
+  if (loadErr) return { success: false as const, error: loadErr.message };
+  if (!row) return { success: false as const, error: "Không tìm thấy phiếu" };
+
+  const releaseErr = await releaseViSinhStampsAfterHide(supabase, id, row.verification_data);
+  if (releaseErr) return { success: false as const, error: releaseErr };
+
   const { error } = await supabase
     .from("nkbv_fact_su_kien")
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { success: false as const, error: error.message };
+
   revalidatePath("/giam-sat-nkbv");
   return { success: true as const };
 }

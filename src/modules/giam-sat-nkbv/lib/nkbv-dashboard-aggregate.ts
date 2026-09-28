@@ -71,8 +71,16 @@ export type NkbvDashboardPayload = {
   epidemiologyError?: string | null;
 };
 
-/** Trạng thái còn đang ghi / chờ xác nhận — dùng KPI và hàng đợi Tổng quan. */
-export const NKBV_CHO_TAC_STATUS_MAS = ["DANG_GHI_NHAN", "CHO_XAC_NHAN", "CHO_XAC_MINH"] as const;
+/**
+ * Phiếu chưa chốt — KPI «Đang ghi / Chờ XN» và hàng đợi Tổng quan.
+ * CHO_DUYET = khoa đã gửi form, KSNK chưa duyệt (domain §4.1).
+ */
+export const NKBV_CHO_TAC_STATUS_MAS = [
+  "DANG_GHI_NHAN",
+  "CHO_XAC_MINH",
+  "CHO_XAC_NHAN",
+  "CHO_DUYET",
+] as const;
 
 const CHO_TAC = new Set<string>(NKBV_CHO_TAC_STATUS_MAS);
 
