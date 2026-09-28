@@ -124,7 +124,7 @@ Neo: domain §2.1 (tối đa 3 đối tượng; tuân thủ tối đa 2 chỉ đ
 
 ## BCTH sâu
 
-Neo: bản ký `/bao-cao-tong-hop` chỉ đọc. KPI VST/GSC lấy counts đã chuẩn hóa ở lát VST/GSC (`normalizeVstStrategicPercents` / `normalizeGscStrategicPercents`), rồi `computeTyLeVst` (1 chữ số) và `computeTyLeGsc` (2 chữ số). NKBV = `ti_le_xac_nhan_so_voi_pa` nguyên từ aggregate (làm tròn số nguyên). Phụ lục CSSD = `summarizeCssdAnalyticsBrief` cùng bundle `/cssd-erp/report`. Không ghi fact GSC/VST/NKBV. Không migrate. Không đổi Domain QT. Tip trước lát: `925531b`.
+Neo: bản ký `/bao-cao-tong-hop` chỉ đọc. KPI VST/GSC lấy counts đã chuẩn hóa ở lát VST/GSC (`normalizeVstStrategicPercents` / `normalizeGscStrategicPercents`), rồi `computeTyLeVst` (1 chữ số) và `computeTyLeGsc` (2 chữ số). NKBV = `ti_le_xac_nhan_so_voi_pa` nguyên từ aggregate (làm tròn số nguyên). Phụ lục CSSD = `summarizeCssdAnalyticsBrief` cùng bundle `/cssd-erp/report`. Không ghi fact GSC/VST/NKBV. Không migrate. Không đổi Domain QT. Tip trước lát: `925531b`. Commit lát: `4c95c74`.
 
 | | Việc |
 |---|------|
