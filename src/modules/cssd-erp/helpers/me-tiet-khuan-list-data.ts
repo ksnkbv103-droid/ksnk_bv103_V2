@@ -24,7 +24,7 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   batchError?: string;
   machineError?: string;
 }> {
-  const [bRes, mRes, loaiPack] = await Promise.all([
+  const [bRes, mRes, loaiPack, ctRes] = await Promise.all([
     supabase
       .from("cssd_fact_lo_tiet_khuan")
       .select(LO_LIST_SELECT)
@@ -44,6 +44,15 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
         return { rows: [] as { ma: string; ten: string }[] };
       }
     })(),
+    // M-04: catalog theo máy. Lỗi schema/RLS → rỗng, picker rơi QT21 HD.03.
+    supabase
+      .from("cssd_dm_chuong_trinh_may")
+      .select(
+        "thiet_bi_id, ma_chuong_trinh, ten_chuong_trinh, nhiet_do_chuan, ap_suat_chuan, thoi_gian_chuan, is_active, sort_order",
+      )
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .limit(500),
   ]);
   const raw = (bRes.data || []) as { id: string }[];
   const ids = raw.map((b) => b.id).filter(Boolean);
@@ -73,6 +82,16 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
     else if (tkChot) trang_thai = "DANG_TIET_KHUAN";
     return { ...b, so_bo_trong_me: byMe.get(b.id) || 0, trang_thai };
   });
+  const chuongByMay = new Map<string, Record<string, unknown>[]>();
+  if (!ctRes.error) {
+    for (const row of (ctRes.data || []) as Record<string, unknown>[]) {
+      const tid = String(row.thiet_bi_id || "").trim();
+      if (!tid) continue;
+      const list = chuongByMay.get(tid) || [];
+      list.push(row);
+      chuongByMay.set(tid, list);
+    }
+  }
   const loaiMap = new Map(loaiPack.rows.map((r) => [r.ma, r.ten]));
   /** M-04 default = chương trình gần nhất của máy (từ list mẻ vừa tải). */
   const lastChuongByMay = new Map<string, string>();
@@ -96,6 +115,7 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
         loai_thiet_bi: ma,
         phuong_phap,
         chuong_trinh_gan_nhat: lastChuongByMay.get(mid) || null,
+        mdm_chuong_trinh: chuongByMay.get(mid) || [],
       };
     })
     .filter((m) => m.phuong_phap != null);

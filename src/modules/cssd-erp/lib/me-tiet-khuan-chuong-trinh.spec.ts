@@ -5,6 +5,7 @@ import {
   pickDefaultChuongTrinh,
   prefillFromChuongTrinh,
   resolveChuongTrinhOptions,
+  resolveChuongTrinhOptionsForMachine,
   QT21_HD03_CHUONG_TRINH_BY_PP,
 } from "./me-tiet-khuan-chuong-trinh";
 
@@ -27,6 +28,36 @@ describe("me-tiet-khuan-chuong-trinh M-04 thin", () => {
     expect(opts).toHaveLength(1);
     expect(opts[0]?.ma).toBe("P1");
     expect(opts[0]?.nguon).toBe("specs");
+  });
+
+  it("prefers cssd_dm_chuong_trinh_may over specs and QT21", () => {
+    const opts = resolveChuongTrinhOptions({
+      method: "HOI_NUOC",
+      specs: { chuong_trinh_catalog: [{ ma: "P1", ten: "Specs" }] },
+      mdmRows: [
+        {
+          ma_chuong_trinh: "MDM1",
+          ten_chuong_trinh: "Máy A 134",
+          nhiet_do_chuan: "134",
+          is_active: true,
+        },
+        { ma_chuong_trinh: "OFF", ten_chuong_trinh: "Tắt", is_active: false },
+      ],
+    });
+    expect(opts).toHaveLength(1);
+    expect(opts[0]?.ma).toBe("MDM1");
+    expect(opts[0]?.nguon).toBe("mdm");
+    expect(opts[0]?.nhiet_do).toBe("134");
+  });
+
+  it("empty MDM on machine falls through to QT21 HD.03", () => {
+    const opts = resolveChuongTrinhOptionsForMachine({
+      phuong_phap: "PLASMA_H2O2",
+      specs: {},
+      mdm_chuong_trinh: [],
+    });
+    expect(opts.every((o) => o.nguon === "qt21_hd03")).toBe(true);
+    expect(opts.map((o) => o.ma)).toEqual(["PL_NGAN", "PL_DAI"]);
   });
 
   it("falls back to QT21 HD.03 when tip lacks máy catalog", () => {

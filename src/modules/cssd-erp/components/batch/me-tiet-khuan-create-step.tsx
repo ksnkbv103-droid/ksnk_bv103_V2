@@ -8,7 +8,7 @@ import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import { recordSteamDailyBdAction } from "../../actions/cssd-batch.actions";
 import {
   pickDefaultChuongTrinh,
-  resolveChuongTrinhOptions,
+  resolveChuongTrinhOptionsForMachine,
   type ChuongTrinhMayOption,
 } from "../../lib/me-tiet-khuan-chuong-trinh";
 import type { SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
@@ -33,6 +33,7 @@ type Machine = {
   phuong_phap?: SterilizerMethod | string | null;
   specs?: Record<string, unknown> | null;
   chuong_trinh_gan_nhat?: string | null;
+  mdm_chuong_trinh?: Array<Record<string, unknown>> | null;
 };
 
 type Props = {
@@ -64,13 +65,10 @@ export default function MeTietKhuanCreateStep({
   const selected = machines.find((m) => m.id === machineId);
   const showBd = selected?.phuong_phap === "HOI_NUOC";
 
-  const chuongOptions = useMemo(() => {
-    if (!selected) return [] as ChuongTrinhMayOption[];
-    return resolveChuongTrinhOptions({
-      method: (selected.phuong_phap as SterilizerMethod | null) || null,
-      specs: selected.specs || null,
-    });
-  }, [selected]);
+  const chuongOptions = useMemo(
+    () => resolveChuongTrinhOptionsForMachine(selected),
+    [selected],
+  );
 
   const recordBd = (ketQua: "DAT" | "KHONG_DAT") => {
     if (!machineId) {
@@ -100,10 +98,7 @@ export default function MeTietKhuanCreateStep({
       onChuongTrinhMaChange("", null);
       return;
     }
-    const opts = resolveChuongTrinhOptions({
-      method: (m.phuong_phap as SterilizerMethod | null) || null,
-      specs: m.specs || null,
-    });
+    const opts = resolveChuongTrinhOptionsForMachine(m);
     const def = pickDefaultChuongTrinh(opts, m.chuong_trinh_gan_nhat || undefined);
     onChuongTrinhMaChange(def?.ma || "", def);
   };

@@ -204,6 +204,28 @@ export function resolveChuongTrinhOptions(input: {
   return [...QT21_HD03_CHUONG_TRINH_BY_PP[method]];
 }
 
+/** Máy list (M-04): MDM `cssd_dm_chuong_trinh_may` thắng specs, rồi QT21 HD.03. */
+export function resolveChuongTrinhOptionsForMachine(
+  machine:
+    | {
+        phuong_phap?: SterilizerMethod | string | null;
+        specs?: unknown;
+        mdm_chuong_trinh?: Array<Record<string, unknown>> | null;
+      }
+    | null
+    | undefined,
+): ChuongTrinhMayOption[] {
+  if (!machine) return [];
+  const method = machine.phuong_phap;
+  const known =
+    method === "HOI_NUOC" || method === "PLASMA_H2O2" || method === "EO" ? method : null;
+  return resolveChuongTrinhOptions({
+    method: known,
+    specs: machine.specs,
+    mdmRows: machine.mdm_chuong_trinh,
+  });
+}
+
 /** Default = khớp gần nhất (last batch / specs default) trong list; else phần tử đầu. */
 export function pickDefaultChuongTrinh(
   options: readonly ChuongTrinhMayOption[],

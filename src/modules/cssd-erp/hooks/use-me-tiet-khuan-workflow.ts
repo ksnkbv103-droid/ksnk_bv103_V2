@@ -21,11 +21,10 @@ import { isMeMaLoScan } from "../lib/me-tiet-khuan-qc";
 import {
   prefillFromChuongTrinh,
   pickDefaultChuongTrinh,
-  resolveChuongTrinhOptions,
+  resolveChuongTrinhOptionsForMachine,
   type ChuongTrinhMayOption,
   type ChuongTrinhPrefill,
 } from "../lib/me-tiet-khuan-chuong-trinh";
-import type { SterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
 import {
   filterWaitingSetsForSlip,
   meQcDraftStorageKey,
@@ -517,10 +516,7 @@ export function useMeTietKhuanWorkflow() {
     const mid = String(row.thiet_bi_id || "").trim();
     const m = (machines || []).find((x: { id?: string }) => String(x.id || "") === mid);
     if (m) {
-      const opts = resolveChuongTrinhOptions({
-        method: (m.phuong_phap as SterilizerMethod | null) || null,
-        specs: m.specs || null,
-      });
+      const opts = resolveChuongTrinhOptionsForMachine(m);
       const def = pickDefaultChuongTrinh(opts, ct || m.chuong_trinh_gan_nhat || undefined);
       if (def) {
         setChuongTrinhMa(def.ma);
@@ -546,13 +542,10 @@ export function useMeTietKhuanWorkflow() {
     return (machines || []).find((m: { id?: string }) => String(m.id || "") === tid) || null;
   }, [activeMe, machineId, machines]);
 
-  const chuongOptions = useMemo(() => {
-    if (!activeMachine) return [] as ChuongTrinhMayOption[];
-    return resolveChuongTrinhOptions({
-      method: (activeMachine.phuong_phap as SterilizerMethod | null) || null,
-      specs: activeMachine.specs || null,
-    });
-  }, [activeMachine]);
+  const chuongOptions = useMemo(
+    () => resolveChuongTrinhOptionsForMachine(activeMachine),
+    [activeMachine],
+  );
 
 
   return {
