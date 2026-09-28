@@ -21,6 +21,7 @@ import {
   rejectAccountAccessRequest,
 } from "../actions/account-access-request.actions";
 import { isPendingAccountRequest, readAccountRequest } from "../lib/account-access-request";
+import { staffKsnkRoleDisplayLabel } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 import StaffAuthPasswordDialog, {
   type StaffAuthPasswordMode,
 } from "./StaffAuthPasswordDialog";
@@ -65,6 +66,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [pendingOnly, setPendingOnly] = useState(false);
+  const [missingAuthOnly, setMissingAuthOnly] = useState(false);
   const [authDialog, setAuthDialog] = useState<{
     mode: StaffAuthPasswordMode;
     staff: NhanSu;
@@ -73,9 +75,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
 
   useEffect(() => {
     try {
-      if (new URLSearchParams(window.location.search).get("pending") === "1") {
-        setPendingOnly(true);
-      }
+      const q = new URLSearchParams(window.location.search);
+      if (q.get("pending") === "1") setPendingOnly(true);
+      else if (q.get("chuaTk") === "1") setMissingAuthOnly(true);
     } catch {
       /* ignore */
     }
@@ -92,8 +94,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         vaiTroFilter,
         ngheNghiepFilter,
         pendingOnly ? "1" : "0",
+        missingAuthOnly ? "1" : "0",
       ].join("\0"),
-    [search, khoaFilter, toFilter, chucVuFilter, chucDanhFilter, vaiTroFilter, ngheNghiepFilter, pendingOnly],
+    [search, khoaFilter, toFilter, chucVuFilter, chucDanhFilter, vaiTroFilter, ngheNghiepFilter, pendingOnly, missingAuthOnly],
   );
 
   const [syncedFilterKey, setSyncedFilterKey] = useState(filterKey);
@@ -222,18 +225,15 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     setLoading(true);
     try {
       if (pendingOnly) {
-        const res = await listPendingAccountRequests({ page, pageSize: NHAN_SU_PAGE_SIZE });
+        const res = await listPendingAccountRequests({
+          page,
+          pageSize: NHAN_SU_PAGE_SIZE,
+          search,
+        });
         if (res.success) {
           const rows = (res.rows || []) as NhanSu[];
-          const q = search.trim().toLowerCase();
-          const filtered = q
-            ? rows.filter((r) => {
-                const blob = `${r.ma_nv || ""} ${r.ho_ten || ""} ${r.email || ""}`.toLowerCase();
-                return blob.includes(q);
-              })
-            : rows;
-          setData(filtered);
-          setTotalCount(q ? filtered.length : res.total ?? filtered.length);
+          setData(rows);
+          setTotalCount(res.total ?? rows.length);
         } else {
           toast.error(res.error || "Không tải được phiếu chờ duyệt.");
           setData([]);
@@ -249,6 +249,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         chucDanhId: chucDanhFilter,
         vaiTroId: vaiTroFilter,
         ngheNghiepId: ngheNghiepFilter,
+        missingAuth: missingAuthOnly,
         page,
         pageSize: NHAN_SU_PAGE_SIZE,
       });
@@ -269,6 +270,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     ngheNghiepFilter,
     page,
     pendingOnly,
+    missingAuthOnly,
   ]);
 
   useEffect(() => {
@@ -400,7 +402,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
             {i.auth_user_id ? "Đã có TK" : "Chưa TK"}
           </span>
           <span className="text-[11px] font-medium text-slate-600">
-            {i.vai_tro_he_thong_ksnk || "— vai trò —"}
+            {staffKsnkRoleDisplayLabel(i.vai_tro_he_thong_ksnk) || "— vai trò —"}
           </span>
           {isPendingAccountRequest(i.extra_data) ? (
             <div className="mt-0.5 flex flex-col gap-1">
@@ -496,6 +498,18 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           <ClipboardList size={14} aria-hidden />
           {pendingOnly ? "Đang lọc: Chỉ chờ duyệt" : "Chỉ chờ duyệt"}
         </button>
+        {missingAuthOnly ? (
+          <button
+            type="button"
+            onClick={() => {
+              setMissingAuthOnly(false);
+              setPage(1);
+            }}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 text-xs font-semibold text-amber-950"
+          >
+            Đang lọc: Chưa có tài khoản
+          </button>
+        ) : null}
         {(allowImport || allowCreate) ? (
           <div className="flex flex-wrap items-center justify-end gap-2">
             {allowImport ? (

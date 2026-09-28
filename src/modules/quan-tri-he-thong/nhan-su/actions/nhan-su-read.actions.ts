@@ -10,6 +10,11 @@ import { buildNhanSuExportRows } from "./nhan-su-read-export-rows";
 import { errNhanSu } from "./nhan-su-read-errors";
 import { enrichNhanSuListRows } from "./nhan-su-read-list-enrich";
 import { NHAN_SU_EXPORT_VIEW_SELECT } from "../lib/nhan-su-export-view-select";
+import {
+  RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER,
+  selectRolesForStaffKsnkAssignment,
+  staffKsnkRoleDisplayLabel,
+} from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 
 /**
  * Lấy danh sách nhân sự với tìm kiếm và phân trang
@@ -22,13 +27,26 @@ export async function getNhanSus(params: {
   chucDanhId?: string;
   vaiTroId?: string;
   ngheNghiepId?: string;
+  /** Hồ sơ `is_active` và chưa `auth_user_id` — cùng đếm sức khỏe hệ thống. */
+  missingAuth?: boolean;
   page?: number;
   pageSize?: number;
 }) {
   const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("NHAN_SU", "view");
-    const { search, khoaId, toId, chucVuId, chucDanhId, vaiTroId, ngheNghiepId, page = 1, pageSize = 20 } = params;
+    const {
+      search,
+      khoaId,
+      toId,
+      chucVuId,
+      chucDanhId,
+      vaiTroId,
+      ngheNghiepId,
+      missingAuth,
+      page = 1,
+      pageSize = 20,
+    } = params;
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
 
@@ -67,6 +85,9 @@ export async function getNhanSus(params: {
     }
     if (ngheNghiepId && ngheNghiepId !== "Tất cả") {
       query = query.eq("nghe_nghiep_id", ngheNghiepId);
+    }
+    if (missingAuth) {
+      query = query.eq("is_active", true).is("auth_user_id", null);
     }
 
     const { data, error, count } = await query
@@ -150,15 +171,21 @@ export async function getNhanSuFormOptionsAction() {
     await verifyPermission("NHAN_SU", "view");
     
     // Lấy Khoa và Nghề nghiệp từ Cache
-    const [khoaData, ngheData, registryRes] = await Promise.all([
+    const [khoaData, ngheData, registryRes, roleRes] = await Promise.all([
       getCachedDmKhoaPhong(),
       getCachedDmNgheNghiep(),
       supabase.rpc("rpc_get_registry_options", {
-        p_categories: ["CHUC_DANH", "CHUC_VU", "TO_CONG_TAC", "ROLE"],
+        p_categories: ["CHUC_DANH", "CHUC_VU", "TO_CONG_TAC"],
       }),
+      supabase
+        .from("sys_roles")
+        .select("id, name")
+        .eq("is_active", true)
+        .in("name", [...RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER]),
     ]);
 
     if (registryRes.error) throw registryRes.error;
+    if (roleRes.error) throw roleRes.error;
     const registry = registryRes.data as Record<string, any[]>;
 
     return {
@@ -178,9 +205,11 @@ export async function getNhanSuFormOptionsAction() {
           ten_danh_muc: x.ten,
         })),
         tos: (registry.TO_CONG_TAC || []).map((x) => ({ id: x.id, ten_danh_muc: x.ten })),
-        vaiTros: (registry.ROLE || []).map((x) => ({
-          id: x.id,
-          ten_danh_muc: x.ten,
+        vaiTros: selectRolesForStaffKsnkAssignment(
+          (roleRes.data || []) as Array<{ id: string; name: string }>,
+        ).map((r) => ({
+          id: r.id,
+          ten_danh_muc: staffKsnkRoleDisplayLabel(r.name),
         })),
         ngheNghieps: ngheData.map((x) => ({
           id: x.id,

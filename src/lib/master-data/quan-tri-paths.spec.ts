@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { parseDungCuLayer, parseDungCuLoaiSheet, quanTriDungCuHref, quanTriTaiKhoanHref } from "./quan-tri-paths";
+import {
+  parseDungCuLayer,
+  parseDungCuLoaiSheet,
+  quanTriDungCuHref,
+  quanTriNhanSuChuaTkHref,
+  quanTriNhanSuPendingHref,
+  quanTriTaiKhoanHref,
+} from "./quan-tri-paths";
 
 describe("quanTriTaiKhoanHref", () => {
   it("hub tài khoản quản trị", () => {
     expect(quanTriTaiKhoanHref()).toBe("/quan-tri-he-thong/tai-khoan");
+  });
+});
+
+describe("cửa nhân sự tài khoản", () => {
+  it("phiếu chờ và chưa có TK là hai lọc trên Nhân sự", () => {
+    expect(quanTriNhanSuPendingHref()).toBe("/quan-tri-he-thong/nhan-su?pending=1");
+    expect(quanTriNhanSuChuaTkHref()).toBe("/quan-tri-he-thong/nhan-su?chuaTk=1");
   });
 });
 

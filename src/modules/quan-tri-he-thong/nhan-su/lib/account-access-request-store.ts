@@ -189,19 +189,3 @@ export async function lookupAccessRequestFromTable(
   };
 }
 
-export async function countPendingAccessRequests(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-): Promise<number | null> {
-  const available = await isAccountAccessRequestTableAvailable(supabase);
-  if (!available) return null;
-  const { count, error } = await supabase
-    .from("sys_account_access_request")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "CHO_DUYET");
-  if (error) {
-    if (isMissingTableError(error)) tableAvailableCache = false;
-    return null;
-  }
-  return count ?? 0;
-}

@@ -3,6 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { isCssdUnifiedBoMa } from "@/lib/domain/cssd-bo-ma";
+import { quanTriDungCuHref, quanTriNhanSuChuaTkHref } from "@/lib/master-data/quan-tri-paths";
 export type SystemHealthMetric = {
   id: string;
   label: string;
@@ -41,11 +42,16 @@ export async function fetchSystemHealthBrief(): Promise<
   const supabase = createAdminSupabaseClient();
   const metrics: SystemHealthMetric[] = [];
 
-  const [nvRes, khoaRes, boRes, bkRes] = await Promise.all([
+  const [activeNvRes, missingNvRes, khoaRes, boRes, bkRes] = await Promise.all([
     supabase
-      .from("mdm_nhan_su")
-      .select("id, auth_user_id", { count: "exact" })
+      .from("v_mdm_nhan_su_full")
+      .select("id", { count: "exact", head: true })
       .eq("is_active", true),
+    supabase
+      .from("v_mdm_nhan_su_full")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true)
+      .is("auth_user_id", null),
     supabase
       .from("mdm_dm_khoa_phong")
       .select("id, khoi_id", { count: "exact" })
@@ -57,16 +63,16 @@ export async function fetchSystemHealthBrief(): Promise<
       .eq("is_active", true),
   ]);
 
-  if (!nvRes.error && nvRes.data) {
-    const total = nvRes.count ?? nvRes.data.length;
-    const chuaLink = nvRes.data.filter((r) => !r.auth_user_id).length;
+  if (!activeNvRes.error && !missingNvRes.error) {
+    const total = activeNvRes.count ?? 0;
+    const chuaLink = missingNvRes.count ?? 0;
     metrics.push({
       id: "auth-link",
       label: "Nhân sự chưa có tài khoản đăng nhập",
       count: chuaLink,
       total,
-      hint: "Hồ sơ đang dùng chưa tạo đăng nhập — không vào được phần mềm.",
-      href: "/quan-tri-he-thong/tai-khoan-nhan-su",
+      hint: "Hồ sơ đang dùng chưa tạo đăng nhập — danh sách cùng điều kiện.",
+      href: quanTriNhanSuChuaTkHref(),
       severity: chuaLink > 0 ? "warn" : "ok",
     });
   }
@@ -94,7 +100,7 @@ export async function fetchSystemHealthBrief(): Promise<
       count: invalid,
       total,
       hint: "Bộ chưa đủ mã chuẩn thì không vào quy trình CSSD.",
-      href: "/quan-tri-he-thong/danh-muc/dung-cu",
+      href: quanTriDungCuHref("bo"),
       severity: invalid > 0 ? "warn" : "ok",
     });
   }

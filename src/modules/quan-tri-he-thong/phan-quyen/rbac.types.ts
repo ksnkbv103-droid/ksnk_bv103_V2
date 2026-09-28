@@ -80,6 +80,14 @@ export const RBAC_STAFF_ASSIGNABLE_ROLE_LABEL: Record<string, string> = {
   KHACH_THONG_KE_GSTT: "Khách — xem thống kê",
 };
 
+/** Nhãn cột / danh sách — mã `sys_roles.name` hoặc nhãn đã có. */
+export function staffKsnkRoleDisplayLabel(name: string | null | undefined): string {
+  const raw = String(name ?? "").trim();
+  if (!raw) return "";
+  const key = raw.toUpperCase();
+  return RBAC_STAFF_ASSIGNABLE_ROLE_LABEL[key] || RBAC_MATRIX_ROLE_HEADER_LABEL[key] || raw;
+}
+
 /** Map mã vai trò hoặc nhãn tiếng Việt → tên sys_roles gán được cho nhân sự. */
 export function resolveAssignableRoleName(labelOrName: string): string {
   const raw = labelOrName.trim();

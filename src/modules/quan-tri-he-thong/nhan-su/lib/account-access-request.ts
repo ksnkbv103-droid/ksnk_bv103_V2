@@ -46,6 +46,11 @@ export function readAccountRequest(
   return { ...(raw as AccountRequestMeta), status: status as AccountRequestStatus, kind };
 }
 
+/** Cùng lọc với danh sách «Chỉ chờ duyệt» trên Nhân sự (`v_mdm_nhan_su_full.extra_data`). */
+export const PENDING_ACCOUNT_REQUEST_CONTAINS = {
+  account_request: { status: "CHO_DUYET" as const },
+};
+
 export function isPendingAccountRequest(
   extra: Record<string, unknown> | null | undefined,
 ): boolean {

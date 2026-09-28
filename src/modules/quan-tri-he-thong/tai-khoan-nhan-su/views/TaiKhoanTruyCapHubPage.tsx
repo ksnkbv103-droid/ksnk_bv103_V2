@@ -5,7 +5,7 @@ import Link from "next/link";
 import { KeyRound, Users, Shield, BookOpen, ClipboardList } from "lucide-react";
 import { countPendingAccountRequestsAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request.actions";
 import GuestStatsAccountCard from "../components/GuestStatsAccountCard";
-import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
+import { quanTriHubHref, quanTriNhanSuPendingHref } from "@/lib/master-data/quan-tri-paths";
 
 /**
  * Hub nhẹ «Tài khoản & truy cập» — phiếu chờ, lối tắt Nhân sự / Phân quyền / đổi MK.
@@ -33,7 +33,7 @@ export default function TaiKhoanTruyCapHubPage() {
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Link
-          href="/quan-tri-he-thong/nhan-su?pending=1"
+          href={quanTriNhanSuPendingHref()}
           className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm transition hover:border-amber-300 hover:bg-amber-50"
         >
           <div className="flex items-start gap-3">
