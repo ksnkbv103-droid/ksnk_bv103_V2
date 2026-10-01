@@ -93,7 +93,7 @@ export async function executeVoidIncidentReport(
   const plan = planCssdIncidentVoid({
     ticket: {
       id: String(row.id),
-      isActive: row.is_active !== false,
+      isActive: true,
       attributes: row.attributes || {},
       moTa: String(row.mo_ta || ""),
       detectionStation: String(row.ma_tram_phat_hien || ""),

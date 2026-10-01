@@ -171,7 +171,7 @@ export async function getVSTSessionDetail(sessionId: string) {
     if (oErr) throw oErr;
 
     // 3. Prepare Personnel Names for Print/Detail
-    const observerId = String(session.nguoi_giam_sat_id || "");
+    const observerId = String(sessionView.nguoi_giam_sat_id || "");
     const nvIds = toDistinctIds(((observations || []) as { nhan_vien_id?: string }[]).map((o) => o.nhan_vien_id));
     const nhanSuIds = toDistinctIds([observerId, ...nvIds]);
     

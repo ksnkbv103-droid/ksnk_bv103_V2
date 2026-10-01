@@ -256,3 +256,5 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 |---|------|
 | PA | PA1 (chọn): `fetchAllReportRows` cho nhật ký và KPI sự cố (cùng trang 1000 như chu kỳ S-F). Lỗi đọc sự cố trả về, không tính KPI với danh sách rỗng. PA2 nâng `MAX_REPORT_ROWS` — vẫn cắt im khi vượt. |
 | Park | Mẻ tiệt khuẩn và bộ theo khoa trên cùng bundle vẫn `.limit(8000)` / 5000. RP2 công thức tỷ lệ — Domain. |
+
+`npx tsc --noEmit` sau S-H: 6 lỗi kiểu có sẵn (tooltip `percentTooltipFormatter` thiếu `()`, `session.nguoi_giam_sat_id`, `bn_mdro_phenotype` string) cộng so sánh sau early-return vô hiệu — sửa kiểu, commit riêng.

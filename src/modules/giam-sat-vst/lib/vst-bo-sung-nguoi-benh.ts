@@ -16,7 +16,9 @@ export type VstBoSungNbSessionSlice = {
   ma_nguoi_benh?: string | null;
   ten_nguoi_benh?: string | null;
   so_giuong_nguoi_benh?: string | null;
-} & Partial<GscBoSungNbFields>;
+  /** Form phiên gửi chuỗi; `parseGscBoSungNbFromUnknown` mới siết về phenotype. */
+  bn_mdro_phenotype?: string | null;
+} & Omit<Partial<GscBoSungNbFields>, "bn_mdro_phenotype">;
 
 export type VstBoSungNbMetadata = {
   is_bo_sung_nguoi_benh: boolean;
