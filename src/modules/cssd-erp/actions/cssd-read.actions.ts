@@ -184,15 +184,17 @@ export async function getWaitingListByStation(station: Station) {
     ? `id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ${prevCols.nguoiCol}, ${prevCols.thoiGianCol}`
     : "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id";
 
-  const { rows: data, error } = await fetchAllActiveRows<Record<string, unknown>>(async (from, to) =>
-    supabase
+  const { rows: data, error } = await fetchAllActiveRows<Record<string, unknown>>(async (from, to) => {
+    const res = await supabase
       .from("cssd_fact_quy_trinh")
       .select(selectCols)
       .eq("tram_hien_tai_id", prevTramId)
       .eq("is_active", true)
       .order("id", { ascending: true })
-      .range(from, to),
-  );
+      .range(from, to);
+    // select động (cột người/giờ trạm trước) — parser type không đọc được chuỗi template.
+    return { data: res.data as unknown as Record<string, unknown>[] | null, error: res.error };
+  });
   if (error) throw new Error(error);
 
   const raw = (data || []) as Array<Record<string, any>>;

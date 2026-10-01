@@ -207,3 +207,10 @@ Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `072b27e` (S-C/S-D đã commit local)
 | W5 Hỏng/Mất | Một cửa = Báo sự cố CSSD (`/cssd-su-co`: phiếu + sổ tồn + khóa). `recordPackCondition` chỉ ghi bao gói (Bình thường/Ướt/Rách/Bẩn), không đổi `is_active`, chỉ chu kỳ active; HONG/MAT bị từ chối kèm chỉ đường. `PackConditionSelect` bỏ Hỏng/Mất. Message thiếu tinh_trang hết trỏ cửa không tồn tại. `reportInventoryIssue` / `recordInstrumentTransaction` đã 0 trong src. |
 | PA loại | PA-A route Hỏng/Mất nhanh qua `executeIncidentReportAndRollback` = cửa sự cố thứ hai (chồng). PA3 chặn tiếp nhận khi chu kỳ cuối đóng = kẹt nhân viên. RPC bootstrap FOR UPDATE (chống 2 shell đồng thời) — park. |
 | Park | `PackConditionSelect` / `InventoryIssueModal` / `importCSSDData` không caller — chờ Nghĩa cho xóa file. Race 2 quét Tiếp nhận cùng lúc (cần RPC). |
+
+## S-E2 — Hotfix hồi quy `5e92b52` (Mẻ tiệt khuẩn)
+
+| | Việc |
+|---|------|
+| P0 | `fetchCssdBatchMembers` gọi `parseUsedClinicallyFromMetadata` nhưng import bị thay khi phân trang (5e92b52) → mẻ có bộ: ReferenceError, danh sách bộ trong mẻ + in phiếu mẻ trả lỗi. Trả import. |
+| Hygiene | `cssd-read.actions.ts` select động trạm trước: ép kiểu hàng trả về (chỉ type, runtime không đổi). |
