@@ -332,6 +332,18 @@ Neo: tip `b90d956`. PA1 đọc hết trang chỉ khi cửa đếm/tồn/báo cá
 
 Chọn: không có P0 kỹ thuật mỏng chắc (sai ở quy mô hiện tại, không đổi QT). Không vá.
 
+## S-R — Void sự cố và cờ đỏ (không mở)
+
+Neo: tip sau S-Q. PA1 chỉ vá nếu nút vô hiệu chưa gắn hoặc cờ đỏ sau void không đọc `quy_trinh_id`. PA2 RPC một transaction — vẫn park.
+
+| Kiểm | Kết quả |
+|------|---------|
+| Nút | `IncidentVoidButton` trên tab Sự cố, cạnh Xác nhận, khi có quyền tạo phiếu `BAO_SU_CO`. |
+| List / KPI | `VO_HIEU` không vào `countsTowardCssdSafetyTally` nên ra khỏi nhật ký và số sự cố kỳ. |
+| Cờ đỏ | Void tắt `is_active` và `is_red_alert` phiếu; chu kỳ lấy cờ từ phiếu còn lại cùng `quy_trinh_id`. Chip kho (`loadRedAlertKeys`) và báo cáo (`collectReportRedQuyTrinhIds`) chỉ key `quy_trinh_id`. |
+
+Migration `20261001120000_cssd_red_alert_by_quy_trinh.sql` vẫn chỉ file, chưa apply. Không lệch TS. S-R không mở.
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
