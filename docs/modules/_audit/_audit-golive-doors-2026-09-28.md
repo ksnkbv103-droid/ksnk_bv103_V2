@@ -287,3 +287,14 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 |---|------|
 | PA | PA1 (chọn): `fetchAllByIdChunks` — cụm `nhiem_vu_id` 100, trang 1000, `order id`. Lỗi query ném (`formatQlcvDbError`); danh sách nhiệm vụ không trả % thiếu. PA2 nâng trần 5000 — vẫn cắt im khi vượt. |
 | P0 | `%` checklist giữ công thức cũ (`percentFromQlcvChecklist` khi có mục; không thì `phan_tram_hoan_thanh`). |
+
+## S-M — Excel VST/GSC hết cắt im
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): phiên VST/GSC và cơ hội VST trong kỳ + lọc khoa hiện có đọc hết trang (`fetchAllRangeRows`, cơ hội chia cụm `session_id` 100). Lỗi đọc hoặc metadata trả `success: false` — không file thiếu im. PA2 nâng trần 2000/8000/5000 — vẫn cắt im. |
+| Giữ | Không đụng form giám sát ký / RPC WHO. |
+
+## Park — không vá lát này
+
+RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
