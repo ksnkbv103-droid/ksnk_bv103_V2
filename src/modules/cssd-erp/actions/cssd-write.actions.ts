@@ -15,10 +15,7 @@ import {
   appendQuyTrinhException,
 } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
-import {
-  PACK_RECORDABLE_TINH_TRANG,
-  normalizePackTinhTrang,
-} from "@/lib/domain/cssd-pack-issuance";
+import { resolvePackConditionWrite } from "@/lib/domain/cssd-pack-issuance";
 import {
   countCssdKhoImportDeactivations,
   rejectCssdKhoImportSoftDelete,
@@ -26,7 +23,10 @@ import {
 
 type ExistingQrRow = { id?: string; ma_qr_quy_trinh?: string };
 
-/** Ghi tình trạng gói trước CAP_PHAT (QT.22) — BINH_THUONG / ướt / rách / hỏng / mất. */
+/**
+ * Ghi tình trạng bao gói trước CAP_PHAT (QT.22) — Bình thường / ướt / rách / bẩn.
+ * S-E W5: Hỏng / Mất bộ đi một cửa Báo sự cố CSSD; hàm này không đổi is_active, không trừ tồn.
+ */
 export async function recordPackCondition(input: {
   quy_trinh_id: string;
   tinh_trang: string;
@@ -37,23 +37,19 @@ export async function recordPackCondition(input: {
   const quyTrinhId = String(input.quy_trinh_id || "").trim();
   if (!quyTrinhId) throw new Error("Thiếu quy_trinh_id.");
 
-  const tinh = normalizePackTinhTrang(input.tinh_trang);
-  if (!(PACK_RECORDABLE_TINH_TRANG as readonly string[]).includes(tinh)) {
-    throw new Error(
-      `Tình trạng gói không hợp lệ (${input.tinh_trang || "—"}). Chọn BINH_THUONG / UOT / RACH / HONG / MAT.`,
-    );
-  }
+  const write = resolvePackConditionWrite(input.tinh_trang);
+  if (!write.ok) throw new Error(write.message);
+  const tinh = write.tinh_trang;
   const note = String(input.note || "").trim();
 
-  const { error: updateErr } = await supabase
+  const { data: updated, error: updateErr } = await supabase
     .from("cssd_fact_quy_trinh")
-    .update({
-      tinh_trang: tinh,
-      is_active: tinh !== "MAT",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", quyTrinhId);
+    .update({ tinh_trang: tinh, updated_at: new Date().toISOString() })
+    .eq("id", quyTrinhId)
+    .eq("is_active", true)
+    .select("id");
   if (updateErr) throw new Error(mapFkError(updateErr.message));
+  if (!updated?.length) throw new Error("Không tìm thấy quy trình đang hoạt động để ghi tình trạng gói.");
 
   let operator = "CSSD";
   try {
@@ -93,7 +89,11 @@ export async function importCSSDData(
       return { success: false as const, error: softDeleteBlock };
     }
     const supabase = createAdminSupabaseClient();
-    const { data: existing, error: exErr } = await supabase.from("cssd_fact_quy_trinh").select("id, ma_qr_quy_trinh");
+    // S-E W4: chỉ cập nhật chu kỳ active — không bật lại chu kỳ đã đóng (MAT / thu hồi / đã thay).
+    const { data: existing, error: exErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("id, ma_qr_quy_trinh")
+      .eq("is_active", true);
     if (exErr) throw exErr;
     const existingMap = new Map(
       ((existing || []) as ExistingQrRow[])

@@ -19,18 +19,40 @@ export const PACK_NON_ISSUABLE_TINH_TRANG = [
   "MAT",
 ] as const;
 
-/** Giá trị tinh_trang được phép ghi từ kho / kiểm gói trước CAP_PHAT. */
+/** Giá trị tinh_trang bao gói được phép ghi từ kho / kiểm gói trước CAP_PHAT. */
 export const PACK_RECORDABLE_TINH_TRANG = [
   PACK_DEFAULT_ISSUABLE_TINH_TRANG,
   "UOT",
   "GOI_UOT",
   "RACH",
   "BAN",
-  "HONG",
-  "MAT",
 ] as const;
 
 export type PackRecordableTinhTrang = (typeof PACK_RECORDABLE_TINH_TRANG)[number];
+
+/** Hỏng / Mất bộ: chỉ một cửa Báo sự cố CSSD (phiếu + sổ tồn + khóa bộ) — không ghi qua ô tình trạng gói. */
+export const PACK_INCIDENT_ONLY_TINH_TRANG = ["HONG", "MAT"] as const;
+
+export type PackConditionWrite = { ok: true; tinh_trang: PackRecordableTinhTrang } | { ok: false; message: string };
+
+/** S-E W5: kiểm giá trị trước khi ghi tình trạng gói (không bao giờ đổi is_active). */
+export function resolvePackConditionWrite(raw?: string | null): PackConditionWrite {
+  const tinh = normalizePackTinhTrang(raw);
+  if ((PACK_INCIDENT_ONLY_TINH_TRANG as readonly string[]).includes(tinh)) {
+    return {
+      ok: false,
+      message:
+        "Hỏng / Mất bộ ghi tại Báo sự cố CSSD (/cssd-su-co) — phiếu sự cố trừ tồn và khóa bộ. Ô tình trạng gói chỉ ghi bao gói.",
+    };
+  }
+  if (!(PACK_RECORDABLE_TINH_TRANG as readonly string[]).includes(tinh)) {
+    return {
+      ok: false,
+      message: `Tình trạng gói không hợp lệ (${raw || "—"}). Chọn Bình thường / Ướt / Rách / Bẩn.`,
+    };
+  }
+  return { ok: true, tinh_trang: tinh as PackRecordableTinhTrang };
+}
 
 export type PackBatchReleaseGate = {
   /** `trang_thai_me` của mẻ gắn bộ. Thiếu hoặc khác HOAN_THANH → chặn. */
@@ -163,7 +185,7 @@ export function assertPackIssuable(input: PackIssuanceInput): PackIssuanceResult
     return {
       ok: false,
       message:
-        "Thiếu tình trạng gói (tinh_trang) — không cấp phát. Ghi nhận tình trạng tại Kho dụng cụ trước khi CAP_PHAT.",
+        "Thiếu tình trạng gói (tinh_trang) — không cấp phát. Mẻ ĐẠT tự ghi Bình thường; báo quản trị CSSD kiểm tra dữ liệu quy trình.",
     };
   }
   if (tinh === "HONG") {

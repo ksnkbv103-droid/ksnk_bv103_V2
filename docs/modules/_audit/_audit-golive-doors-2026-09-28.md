@@ -196,3 +196,14 @@ Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `2fdacaf` (+ dirty S-C). PA-A: TS cle
 | Park | Update+ngoai_le chưa một transaction (chờ apply RPC). W2/W3 re-scan / CAP_PHAT re-issue. Domino không clear stamp *tại* target (giữ bước còn hiệu lực). |
 
 File S-D: `cssd-station-clear.ts`(+spec), `cssd-workflow-application.ts`, `su-co-report.application.ts`, `cssd-lifecycle-events.ts`, `cssd-quy-trinh-exceptions.ts`, `cssd-workflow.commands.actions.ts`, `cssd-workflow-ops.actions.ts`, migration trên.
+
+## S-E — Bootstrap sau MAT + Hỏng/Mất nhanh (W4/W5)
+
+Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `072b27e` (S-C/S-D đã commit local). PA1 TS mỏng; không migration.
+
+| | Việc |
+|---|------|
+| W4 bootstrap | `bootstrapCssdQuyTrinhFromBoId` (quét Tiếp nhận + in tem): chỉ đồng bộ mã trên chu kỳ **active**. Chu kỳ đã đóng (MAT / thu hồi / đã thay) không bật lại `is_active` → mở shell mới (tram null, tinh_trang mặc định), `suds_count` cũ+1 như RPC chu kỳ mới; ngoai_le `CHU_KY_MOI_SAU_DONG` trỏ chu kỳ trước. Excel kho (`importCSSDData`, không caller) chỉ map chu kỳ active. |
+| W5 Hỏng/Mất | Một cửa = Báo sự cố CSSD (`/cssd-su-co`: phiếu + sổ tồn + khóa). `recordPackCondition` chỉ ghi bao gói (Bình thường/Ướt/Rách/Bẩn), không đổi `is_active`, chỉ chu kỳ active; HONG/MAT bị từ chối kèm chỉ đường. `PackConditionSelect` bỏ Hỏng/Mất. Message thiếu tinh_trang hết trỏ cửa không tồn tại. `reportInventoryIssue` / `recordInstrumentTransaction` đã 0 trong src. |
+| PA loại | PA-A route Hỏng/Mất nhanh qua `executeIncidentReportAndRollback` = cửa sự cố thứ hai (chồng). PA3 chặn tiếp nhận khi chu kỳ cuối đóng = kẹt nhân viên. RPC bootstrap FOR UPDATE (chống 2 shell đồng thời) — park. |
+| Park | `PackConditionSelect` / `InventoryIssueModal` / `importCSSDData` không caller — chờ Nghĩa cho xóa file. Race 2 quét Tiếp nhận cùng lúc (cần RPC). |

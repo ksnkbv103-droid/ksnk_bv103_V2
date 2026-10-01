@@ -13,9 +13,8 @@ const OPTIONS: { value: string; label: string }[] = [
   { value: "UOT", label: "Ướt" },
   { value: "RACH", label: "Rách" },
   { value: "BAN", label: "Bẩn" },
-  { value: "HONG", label: "Hỏng" },
-  { value: "MAT", label: "Mất" },
 ];
+// Hỏng / Mất bộ: Báo sự cố CSSD (/cssd-su-co) — không ghi tại ô này (S-E W5).
 
 type Props = {
   quyTrinhId: string;
