@@ -272,3 +272,11 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 |---|------|
 | PA | PA1 (chọn): `fetchAllReportRows` mọi bộ `is_active` — snapshot sở hữu danh mục, không lọc ngày. Lỗi đọc trả `success: false`. PA2 lọc `created_at` theo kỳ ±1 — đổi «số bộ danh mục» thành bộ tạo trong kỳ, lệch nguồn đang lưu hành. Cấp phát theo khoa nhận đã lấy chu kỳ trong kỳ (S-F). PA3 nâng trần 5000 — vẫn cắt im. |
 | P0 | Bảng «Số bộ theo khoa sở hữu» và `so_bo` brief/BCTH đọc hết bộ active. |
+
+## S-K — Quét P0 còn lại (không vá)
+
+| | Việc |
+|---|------|
+| Quét | Cùng bundle: máy `.limit(500)`, khoa `.limit(2000)`, tên NV `slice(0, 500)` — đếm máy/bộ không lệch ở quy mô khoa; tên NV thiếu khi >500 người. Nhật ký chu kỳ lọc `created_at` (S-F `f01266d2`), sản lượng lọc mốc quét ±1 — hai câu hỏi, đổi nhật ký đổi Excel. |
+| Ngoài CSSD | QLCV `attachTaskRollup` `.limit(5000)` (lỗi query trả % 0). VST xuất Excel `.limit(2000)` phiên + `.limit(8000)` cơ hội; GSC xuất `.limit(5000)` — không phải bản ký RPC. NKBV trọng điểm `.limit(1500)` trên `nkbv_fact_ba_ngay_dung_cu` không lọc dụng cụ đang lưu — Domain. |
+| Chọn | Không có một P0 kỹ thuật mỏng chắc chắn (sai ở quy mô hiện tại, không đổi QT). Không vá. |
