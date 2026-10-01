@@ -249,3 +249,10 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 |---|------|
 | PA | PA1 (chọn): `collectReportRedQuyTrinhIds` — cột đỏ bảng chu kỳ chỉ khi `quy_trinh_id` trùng phiếu còn hiệu lực. PA2 giữ fallback `ma_qr` cho phiếu cũ không gắn chu kỳ — tô đỏ mọi chu kỳ cùng mã bộ (loại). |
 | P0 | Phiếu không có `quy_trinh_id`, phiếu `VO_HIEU`, không còn bật đỏ chu kỳ khác. Cờ trên chính dòng sự cố giữ nguyên. |
+
+## S-H — Đếm sự cố báo cáo hết cắt 8000
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): `fetchAllReportRows` cho nhật ký và KPI sự cố (cùng trang 1000 như chu kỳ S-F). Lỗi đọc sự cố trả về, không tính KPI với danh sách rỗng. PA2 nâng `MAX_REPORT_ROWS` — vẫn cắt im khi vượt. |
+| Park | Mẻ tiệt khuẩn và bộ theo khoa trên cùng bundle vẫn `.limit(8000)` / 5000. RP2 công thức tỷ lệ — Domain. |

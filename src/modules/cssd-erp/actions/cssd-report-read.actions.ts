@@ -172,18 +172,21 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
-      supabase
-        .from("v_cssd_su_co_full")
-        .select("*")
-        .gte("created_at", from)
-        .lte("created_at", `${to}T23:59:59`)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_su_co_full")
+          .select("*")
+          .gte("created_at", from)
+          .lte("created_at", `${to}T23:59:59`)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
     ]);
 
     if (resQ.error) return { success: false as const, error: resQ.error, quyTrinh: [], suCo: [] };
-    if (resS.error) return { success: false as const, error: resS.error.message, quyTrinh: [], suCo: [] };
+    if (resS.error) return { success: false as const, error: resS.error, quyTrinh: [], suCo: [] };
 
-    const suCoSource = (resS.data || []).filter((x) => {
+    const suCoSource = resS.rows.filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
       return countsTowardCssdSafetyTally(attrs);
     });
@@ -354,12 +357,15 @@ export async function fetchCssdAnalyticsBundle(filters: {
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
-      supabase
-        .from("v_cssd_su_co_full")
-        .select("id, attributes")
-        .gte("created_at", from)
-        .lte("created_at", toEnd)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<{ id?: string; attributes?: Record<string, unknown> | null }>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_su_co_full")
+          .select("id, attributes")
+          .gte("created_at", from)
+          .lte("created_at", toEnd)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       supabase
         .from("cssd_dm_bo_dung_cu")
         .select("id, khoa_su_dung_id, is_active")
@@ -381,6 +387,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
     ]);
 
     if (resQ.error) return { success: false, error: resQ.error, data: empty };
+    if (resS.error) return { success: false, error: resS.error, data: empty };
     if (resBo.error) return { success: false, error: resBo.error.message, data: empty };
     if (resMe.error) return { success: false, error: resMe.error.message, data: empty };
 
@@ -403,7 +410,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
       if (compactSoHuu) next.ten_khoa = compactSoHuu;
       return next;
     });
-    const suCoKyCount = (resS.data || []).filter((x) => {
+    const suCoKyCount = resS.rows.filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
       return countsTowardCssdSafetyTally(attrs);
     }).length;
