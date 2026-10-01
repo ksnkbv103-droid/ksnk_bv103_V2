@@ -8,6 +8,7 @@ import { parseBatchQcJson } from "../lib/cssd-print-format";
 import { getErrorMessage, STEPS } from "./cssd-action-common";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
+import { quyTrinhIdsWithEffectiveRedAlert } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 async function fetchAllActiveRows<T>(
@@ -26,34 +27,24 @@ async function fetchAllActiveRows<T>(
   }
 }
 
-/** Cờ đỏ: ưu tiên cột trên view (sau migrate); fallback phiếu sự cố — localhost không migrate vẫn chạy. */
-async function loadRedAlertKeys(supabase: SupabaseClient): Promise<{
-  byQuyTrinhId: Set<string>;
-  byMaQr: Set<string>;
-}> {
-  const byQuyTrinhId = new Set<string>();
-  const byMaQr = new Set<string>();
-  const { rows: data, error } = await fetchAllActiveRows<{
+/** Cờ đỏ kho: phiếu còn hiệu lực, key `quy_trinh_id` — không fallback `ma_qr` (mã bộ dùng chung mọi chu kỳ). */
+async function loadRedAlertKeys(supabase: SupabaseClient): Promise<Set<string>> {
+  const { rows, error } = await fetchAllActiveRows<{
     quy_trinh_id?: string | null;
-    ma_qr_quy_trinh?: string | null;
+    is_active?: boolean | null;
+    is_red_alert?: boolean | null;
+    attributes?: Record<string, unknown> | null;
   }>(async (from, to) =>
     supabase
       .from("cssd_fact_su_co")
-      .select("quy_trinh_id, ma_qr_quy_trinh")
+      .select("quy_trinh_id, is_active, is_red_alert, attributes")
       .eq("is_red_alert", true)
+      .eq("is_active", true)
       .order("id", { ascending: true })
       .range(from, to),
   );
-  if (error) return { byQuyTrinhId, byMaQr };
-  for (const row of data || []) {
-    const id = String((row as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
-    const qr = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
-      .trim()
-      .toUpperCase();
-    if (id) byQuyTrinhId.add(id);
-    if (qr) byMaQr.add(qr);
-  }
-  return { byQuyTrinhId, byMaQr };
+  if (error) return new Set();
+  return quyTrinhIdsWithEffectiveRedAlert(rows);
 }
 
 export async function getWaitingListByStation(station: Station) {
@@ -274,8 +265,7 @@ export async function getCSSDImportExportData() {
         created_at?: string | null;
         updated_at?: string | null;
       }) => {
-        const qr = (x.ma_qr_quy_trinh || "").toUpperCase();
-        const isRed = redKeys.byQuyTrinhId.has(x.id) || (qr ? redKeys.byMaQr.has(qr) : false);
+        const isRed = redKeys.has(x.id);
         return {
           id: x.id,
           ma_vach_qr: x.ma_qr_quy_trinh || "",
@@ -314,13 +304,12 @@ export async function getCssdStationFlowMap(): Promise<
     // Không select is_red_alert trên view — localhost/prod trước migrate sẽ lỗi cột thiếu.
     const { rows: data, error } = await fetchAllActiveRows<{
       id?: string;
-      ma_qr_quy_trinh?: string | null;
       ma_trang_thai_hien_tai?: string | null;
       is_dong_bang?: boolean | null;
     }>(async (from, to) =>
       supabase
         .from("v_cssd_quy_trinh_full")
-        .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_dong_bang")
+        .select("id, ma_trang_thai_hien_tai, is_dong_bang")
         .eq("is_active", true)
         .order("id", { ascending: true })
         .range(from, to),
@@ -344,10 +333,7 @@ export async function getCssdStationFlowMap(): Promise<
       if (!cell) continue;
       cell.count += 1;
       const id = String((row as { id?: string }).id || "");
-      const qr = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
-        .trim()
-        .toUpperCase();
-      if (redKeys.byQuyTrinhId.has(id) || (qr && redKeys.byMaQr.has(qr))) cell.redAlertCount += 1;
+      if (redKeys.has(id)) cell.redAlertCount += 1;
       if ((row as { is_dong_bang?: boolean | null }).is_dong_bang === true) cell.frozenCount += 1;
     }
 

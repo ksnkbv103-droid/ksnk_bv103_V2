@@ -10,7 +10,7 @@ import {
 import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import {
   buildIncidentAttributes,
-  countsTowardCssdSafetyTally,
+  countPriorSafetyIncidentsOnCycle,
   isCirculationIncidentTypeCode,
   resolveProcessBatchLink,
 } from "../domain/cssd-incident-attributes";
@@ -162,18 +162,22 @@ export async function executeIncidentReportAndRollback(
 
   let isRedAlert = false;
   const circulationSubmit = isCirculationIncidentTypeCode(typeId);
-  if (data.maQR && !circulationSubmit) {
+  const cycleId = String(q?.id || "").trim();
+  if (cycleId && !circulationSubmit) {
     const { data: priorRows, error: countErr } = await supabase
       .from("cssd_fact_su_co")
-      .select("id, attributes")
-      .eq("ma_qr_quy_trinh", data.maQR);
+      .select("id, attributes, is_active, quy_trinh_id")
+      .eq("quy_trinh_id", cycleId)
+      .eq("is_active", true);
     if (countErr) throw new Error("Loi dem su co: " + countErr.message);
-    const prior = (priorRows || []).filter((row) =>
-      countsTowardCssdSafetyTally(
-        (row as { attributes?: Record<string, unknown> | null }).attributes,
-        { includeDraft: true },
-      ),
-    ).length;
+    const prior = countPriorSafetyIncidentsOnCycle(
+      (priorRows || []) as {
+        is_active?: boolean | null;
+        quy_trinh_id?: string | null;
+        attributes?: Record<string, unknown> | null;
+      }[],
+      cycleId,
+    );
     isRedAlert = prior >= 2;
   }
 

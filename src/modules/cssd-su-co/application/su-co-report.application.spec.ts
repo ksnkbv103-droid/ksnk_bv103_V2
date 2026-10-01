@@ -7,10 +7,14 @@ type RpcResult = { success: boolean; message?: string; su_co_id?: string; idempo
 const SAFETY_PAIR = [
   {
     id: "a",
+    quy_trinh_id: "qt-1",
+    is_active: true,
     attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "DRAFT" },
   },
   {
     id: "b",
+    quy_trinh_id: "qt-1",
+    is_active: true,
     attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "NONE" },
   },
 ];
@@ -18,7 +22,12 @@ const SAFETY_PAIR = [
 function client(opts: {
   rpcResult: RpcResult;
   quyTrinhUpdateError?: boolean;
-  priorRows?: { id: string; attributes: Record<string, unknown> }[];
+  priorRows?: {
+    id: string;
+    attributes: Record<string, unknown>;
+    quy_trinh_id?: string | null;
+    is_active?: boolean | null;
+  }[];
 }) {
   const ops: string[] = [];
   return {
@@ -142,5 +151,83 @@ describe("executeIncidentReportAndRollback nháp", () => {
     );
     expect(res.isRedAlert).toBe(false);
     expect(res.incident_id).toBe("new-1");
+  });
+
+  it("cờ đỏ chỉ khi đủ hai phiếu còn hiệu lực trên đúng chu kỳ", async () => {
+    const supabase = client({
+      rpcResult: { success: true, su_co_id: "hong-1" },
+      priorRows: [
+        {
+          id: "other-cycle",
+          quy_trinh_id: "qt-khac",
+          is_active: true,
+          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        },
+        {
+          id: "inactive",
+          quy_trinh_id: "qt-1",
+          is_active: false,
+          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        },
+        {
+          id: "a",
+          quy_trinh_id: "qt-1",
+          is_active: true,
+          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        },
+        {
+          id: "b",
+          quy_trinh_id: "qt-1",
+          is_active: true,
+          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        },
+      ],
+    });
+    const res = await executeIncidentReportAndRollback(
+      supabase as never,
+      {
+        station: "DONG_GOI",
+        incidentGroup: "INSTRUMENT",
+        typeTen: "Hỏng",
+        typeId: "INSTRUMENT_BROKEN",
+        desc: "hỏng kẹp",
+        maQR: "B01.SET.01",
+      },
+      { id: "qt-1", tram_hien_tai_id: "tram-1" },
+    );
+    expect(res.isRedAlert).toBe(true);
+  });
+
+  it("chu kỳ mới không đỏ chỉ vì phiếu cũ cùng mã bộ", async () => {
+    const supabase = client({
+      rpcResult: { success: true, su_co_id: "hong-2" },
+      priorRows: [
+        {
+          id: "old-1",
+          quy_trinh_id: "qt-cu",
+          is_active: true,
+          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        },
+        {
+          id: "old-2",
+          quy_trinh_id: "qt-cu",
+          is_active: true,
+          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        },
+      ],
+    });
+    const res = await executeIncidentReportAndRollback(
+      supabase as never,
+      {
+        station: "DONG_GOI",
+        incidentGroup: "INSTRUMENT",
+        typeTen: "Hỏng",
+        typeId: "INSTRUMENT_BROKEN",
+        desc: "hỏng kẹp",
+        maQR: "B01.SET.01",
+      },
+      { id: "qt-moi", tram_hien_tai_id: "tram-1" },
+    );
+    expect(res.isRedAlert).toBe(false);
   });
 });

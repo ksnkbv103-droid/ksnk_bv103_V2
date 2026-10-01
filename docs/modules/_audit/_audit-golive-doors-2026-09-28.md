@@ -222,3 +222,11 @@ Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `072b27e` (S-C/S-D đã commit local)
 | P0 đếm | `fetchCssdAnalyticsBundle` / `fetchCssdReportBundle` lọc `is_active=true` → bộ tiếp nhận lại (chu kỳ cũ đóng) mất sản lượng/cấp phát/NV kỳ trước; «chu trình kỳ» tái sử dụng luôn ≤1. Nay đọc mọi chu kỳ (bỏ tem hex legacy), lọc server theo mốc quét ±1 ngày, phân trang (hết cắt 8000). Ngày bucket = ngày VN (`cssdVnDay`), ca đêm 00–07h không lùi ngày. |
 | Nhãn | Biểu đồ cột «Tổng mẻ» → «Lượt hoàn thành»; chú thích hết ghi sai «tồn hiện tại». Bảng nhật ký thêm cột «Chu kỳ» (Đang lưu hành / Đã đóng). Cờ đỏ bảng: khớp `quy_trinh_id`, chỉ fallback mã khi phiếu không gắn chu kỳ. |
 | Park | SC6 kho: `loadRedAlertKeys` (TS) khớp cả `ma_qr` → bộ đỏ mãi mọi chu kỳ, lệch chip RPC (`quy_trinh_id`). Cần lát S-F2 (TS + RPC cùng luật đóng phiếu, migration file). RP2 công thức «tỷ lệ quy trình không sự cố» (có thể âm) — Domain chốt định nghĩa. |
+
+## S-F2 — Cờ đỏ kho theo chu kỳ (SC6)
+
+| | Việc |
+|---|------|
+| P0 | Chip kho / bản đồ trạm (`loadRedAlertKeys`) và ngưỡng `isRedAlert` chỉ theo `quy_trinh_id` của phiếu còn hiệu lực (`is_active`, không nháp, không luân chuyển). Bỏ fallback `ma_qr` (mã bộ). |
+| RPC file | `20261001120000_cssd_red_alert_by_quy_trinh.sql`: CTE `red` của `rpc_cssd_kho_station_counts` và `rpc_cssd_station_flow_counts`, backfill `cssd_fact_quy_trinh.is_red_alert`, thu hồi mẻ hết đếm đỏ theo `ma_qr`. **Chưa apply.** |
+| Park | Báo cáo nhật ký vẫn fallback `ma_qr` khi phiếu không gắn `quy_trinh_id` (S-F). RP2 «tỷ lệ không sự cố» — Domain. |

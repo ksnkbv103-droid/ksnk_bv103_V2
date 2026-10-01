@@ -109,6 +109,54 @@ export function countsTowardCssdSafetyTally(
   return true;
 }
 
+export type CssdRedAlertSourceRow = {
+  is_active?: boolean | null;
+  is_red_alert?: boolean | null;
+  quy_trinh_id?: string | null;
+  attributes?: Record<string, unknown> | null;
+};
+
+/**
+ * Phiếu còn hiệu lực cho cờ đỏ kho.
+ * Vô hiệu = `is_active` false (không có cột HUY/void riêng).
+ * Nháp và luân chuyển: `countsTowardCssdSafetyTally`.
+ */
+export function isEffectiveCssdRedAlertSource(
+  row: CssdRedAlertSourceRow,
+  opts?: { includeDraft?: boolean },
+): boolean {
+  if (row.is_active === false) return false;
+  return countsTowardCssdSafetyTally(row.attributes, opts);
+}
+
+/** Overlay kho: chỉ `quy_trinh_id` của phiếu đã gắn cờ đỏ và còn hiệu lực. Không key `ma_qr`. */
+export function quyTrinhIdsWithEffectiveRedAlert(rows: readonly CssdRedAlertSourceRow[]): Set<string> {
+  const ids = new Set<string>();
+  for (const row of rows) {
+    if (row.is_red_alert !== true) continue;
+    if (!isEffectiveCssdRedAlertSource(row)) continue;
+    const id = String(row.quy_trinh_id || "").trim();
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
+/** Ngưỡng lần ghi: đếm phiếu còn hiệu lực trên đúng chu kỳ (nháp đang mở vẫn tính). */
+export function countPriorSafetyIncidentsOnCycle(
+  rows: readonly CssdRedAlertSourceRow[],
+  quyTrinhId: string,
+): number {
+  const id = String(quyTrinhId || "").trim();
+  if (!id) return 0;
+  let n = 0;
+  for (const row of rows) {
+    if (String(row.quy_trinh_id || "").trim() !== id) continue;
+    if (!isEffectiveCssdRedAlertSource(row, { includeDraft: true })) continue;
+    n += 1;
+  }
+  return n;
+}
+
 export function readCauseClass(attrs: Record<string, unknown>): string | null {
   const raw = attrs.CAUSE_CLASS ?? attrs.cause_class ?? null;
   const text = raw != null ? String(raw).trim() : "";
