@@ -353,6 +353,14 @@ Neo: tip `257182a`. Cửa duy nhất: `CSSDERPPage` → `useCSSDWorkflow` → `g
 | PA | PA-A (chọn): `fetchAllActiveRows` cho chu kỳ active có trạm và danh mục bộ active (`order id`, `.range`). Lỗi ném `Error` — hook toast, không `setWaitingList` bằng mảng cắt. PA «success: false» loại vì contract hàm là `CSSDWaitingItem[]` (trạm khác cùng hàm cũng ném). PA-B nâng trần — vẫn cắt im. PA-C không vá — không chứng minh được quy mô < 1000. |
 | P0 | Bộ chỉ có ở trang sau vẫn vào hàng chờ; bộ có chu kỳ ở trang sau không hiện nhầm là chờ tiếp nhận. Lọc mã chuẩn và shell `tram=null` giữ nguyên. |
 
+## S-T — Import bộ không tắt khi còn chu kỳ
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): trước upsert/`dryRun`, nếu bảng `cssd_dm_bo_dung_cu` và dòng Excel ghi `is_active=false` trên bộ đã có thì đếm chu kỳ lưu hành (cùng `blockDeactivateForActiveCycles`, cụm `in` 100). Có chu kỳ thì `success: false`, không ghi file. PA2 để import bỏ qua luật form — cửa tắt thứ hai. |
+| P0 | `BoDungCuPage` gọi `smartImportData`. Form/toggle/xóa mềm đã chặn; import thì chưa. Hash sau commit. |
+| Không vá | Hai quét bootstrap — vẫn park RPC. `existingCodes` không được nạp nên đồng bộ đầy đủ không ẩn mã thiếu; không bật lại (sẽ ẩn bộ ngoài file). Unique `ma_bo` giữ. Trần báo cáo máy/khoa, QLCV báo cáo kỳ (cờ cắt, Q-14), NKBV 1500, MDRO 2000, picker/export phụ — không lệch bản ký ở quy mô này. |
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.

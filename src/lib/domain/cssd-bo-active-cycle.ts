@@ -24,3 +24,25 @@ export function blockDeactivateForActiveCycles(cycleCount: number): string | nul
   if (cycleCount < 1) return null;
   return `Không tắt hoặc xóa bộ: còn ${cycleCount} chu kỳ đang lưu hành (hiệu lực, chưa mất). Không ghi thay đổi.`;
 }
+
+/** Id bộ đã có mà import sẽ ghi `is_active=false` (ô Excel hoặc đồng bộ đầy đủ). Bộ mới không có id thì không tắt danh mục cũ. */
+export function cssdBoImportDeactivateIds(input: {
+  existingCodeToId: ReadonlyMap<string, string>;
+  rows: readonly { code: string; isActive: boolean }[];
+  softDeleteMissing: boolean;
+}): string[] {
+  const ids = new Set<string>();
+  const planned = new Set<string>();
+  for (const row of input.rows) {
+    planned.add(row.code);
+    if (row.isActive) continue;
+    const id = input.existingCodeToId.get(row.code);
+    if (id) ids.add(id);
+  }
+  if (input.softDeleteMissing) {
+    for (const [code, id] of input.existingCodeToId) {
+      if (!planned.has(code)) ids.add(id);
+    }
+  }
+  return [...ids];
+}
