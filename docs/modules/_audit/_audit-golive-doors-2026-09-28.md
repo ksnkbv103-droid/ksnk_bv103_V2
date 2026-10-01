@@ -358,7 +358,7 @@ Neo: tip `257182a`. Cửa duy nhất: `CSSDERPPage` → `useCSSDWorkflow` → `g
 | | Việc |
 |---|------|
 | PA | PA1 (chọn): trước upsert/`dryRun`, nếu bảng `cssd_dm_bo_dung_cu` và dòng Excel ghi `is_active=false` trên bộ đã có thì đếm chu kỳ lưu hành (cùng `blockDeactivateForActiveCycles`, cụm `in` 100). Có chu kỳ thì `success: false`, không ghi file. PA2 để import bỏ qua luật form — cửa tắt thứ hai. |
-| P0 | `BoDungCuPage` gọi `smartImportData`. Form/toggle/xóa mềm đã chặn; import thì chưa. Hash sau commit. |
+| P0 | `1ac3c98` — `BoDungCuPage` gọi `smartImportData`. Form/toggle/xóa mềm đã chặn; import thì chưa. |
 | Không vá | Hai quét bootstrap — vẫn park RPC. `existingCodes` không được nạp nên đồng bộ đầy đủ không ẩn mã thiếu; không bật lại (sẽ ẩn bộ ngoài file). Unique `ma_bo` giữ. Trần báo cáo máy/khoa, QLCV báo cáo kỳ (cờ cắt, Q-14), NKBV 1500, MDRO 2000, picker/export phụ — không lệch bản ký ở quy mô này. |
 
 ## Park — không vá lát này
