@@ -6,8 +6,8 @@ import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import { parseBatchQcJson } from "../lib/cssd-print-format";
 import { getErrorMessage, STEPS } from "./cssd-action-common";
-import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
+import { cssdTiepNhanWaitingItems } from "../helpers/cssd-tiep-nhan-waiting";
 import { quyTrinhIdsWithEffectiveRedAlert } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -53,29 +53,34 @@ export async function getWaitingListByStation(station: Station) {
   /** Trạm TK không có «chờ quét» tại trang 6 bước — vào mẻ chỉ trên /cssd-erp/batch. */
   if (station === "TIEP_NHAN") {
     // Chờ tiếp nhận: bộ danh mục chưa có quy trình active CÓ trạm (shell tram=null vẫn chờ quét).
-    const { data: activeFacts } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("bo_dung_cu_id")
-      .eq("is_active", true)
-      .not("tram_hien_tai_id", "is", null);
+    const { rows: activeFacts, error: activeErr } = await fetchAllActiveRows<{ bo_dung_cu_id?: string | null }>(
+      async (from, to) =>
+        supabase
+          .from("cssd_fact_quy_trinh")
+          .select("bo_dung_cu_id")
+          .eq("is_active", true)
+          .not("tram_hien_tai_id", "is", null)
+          .order("id", { ascending: true })
+          .range(from, to),
+    );
+    if (activeErr) throw new Error(activeErr);
     const activeBoIds = new Set((activeFacts || []).map((f) => String(f.bo_dung_cu_id)));
-    
-    const { data: dmBos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo, ten_bo, updated_at").eq("is_active", true);
-    const availableBos = (dmBos || [])
-      .filter((b) => !activeBoIds.has(String(b.id)))
-      .filter((b) => isCssdUnifiedBoMa(b.ma_bo));
 
-    return availableBos.map((b) => ({
-      id: String(b.id),
-      ma_vach_qr: normalizeBoMa(b.ma_bo),
-      updated_at: b.updated_at || new Date().toISOString(),
-      ten_bo: String(b.ten_bo || b.ma_bo || "Bộ dụng cụ"),
-      bo_dung_cu_id: String(b.id),
-      nguoi_tram_truoc: null,
-      sdt_tram_truoc: null,
-      thoi_gian_tram_truoc: null,
-      tram_truoc: null,
-    }));
+    const { rows: dmBos, error: dmErr } = await fetchAllActiveRows<{
+      id: string;
+      ma_bo: string | null;
+      ten_bo?: string | null;
+      updated_at?: string | null;
+    }>(async (from, to) =>
+      supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id, ma_bo, ten_bo, updated_at")
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+    if (dmErr) throw new Error(dmErr);
+    return cssdTiepNhanWaitingItems(activeBoIds, dmBos || []);
   }
 
   /** Mapping trạm hiện tại → cột người xử lý & thời gian của trạm TRƯỚC đó */

@@ -344,6 +344,15 @@ Neo: tip sau S-Q. PA1 chỉ vá nếu nút vô hiệu chưa gắn hoặc cờ đ
 
 Migration `20261001120000_cssd_red_alert_by_quy_trinh.sql` vẫn chỉ file, chưa apply. Không lệch TS. S-R không mở.
 
+## S-S — Hàng chờ Tiếp nhận hết cắt im
+
+Neo: tip `257182a`. Cửa duy nhất: `CSSDERPPage` → `useCSSDWorkflow` → `getWaitingListByStation("TIEP_NHAN")`. Postgres local không chạy; baseline 2026-05 chỉ đếm chi tiết BOM 3960, không chứng minh số bộ / chu kỳ có trạm chắc < 1000 (`buildCssdBoMa` tới 9999/khoa).
+
+| | Việc |
+|---|------|
+| PA | PA-A (chọn): `fetchAllActiveRows` cho chu kỳ active có trạm và danh mục bộ active (`order id`, `.range`). Lỗi ném `Error` — hook toast, không `setWaitingList` bằng mảng cắt. PA «success: false» loại vì contract hàm là `CSSDWaitingItem[]` (trạm khác cùng hàm cũng ném). PA-B nâng trần — vẫn cắt im. PA-C không vá — không chứng minh được quy mô < 1000. |
+| P0 | Bộ chỉ có ở trang sau vẫn vào hàng chờ; bộ có chu kỳ ở trang sau không hiện nhầm là chờ tiếp nhận. Lọc mã chuẩn và shell `tram=null` giữ nguyên. |
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
