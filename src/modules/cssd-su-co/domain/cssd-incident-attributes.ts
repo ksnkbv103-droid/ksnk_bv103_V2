@@ -143,6 +143,27 @@ export function quyTrinhIdsWithEffectiveRedAlert(rows: readonly CssdRedAlertSour
   return ids;
 }
 
+/**
+ * Cột đỏ trên nhật ký báo cáo.
+ * Chỉ `quy_trinh_id`. Phiếu không gắn chu kỳ không tô các chu kỳ cùng mã bộ.
+ */
+export function collectReportRedQuyTrinhIds(
+  rows: readonly {
+    quy_trinh_id?: string | null;
+    is_red_alert?: boolean | null;
+    attributes?: Record<string, unknown> | null;
+  }[],
+): Set<string> {
+  const ids = new Set<string>();
+  for (const row of rows) {
+    if (row.is_red_alert !== true) continue;
+    if (!countsTowardCssdSafetyTally(row.attributes)) continue;
+    const id = String(row.quy_trinh_id || "").trim();
+    if (id) ids.add(id);
+  }
+  return ids;
+}
+
 /** Ngưỡng lần ghi: đếm phiếu còn hiệu lực trên đúng chu kỳ (nháp đang mở vẫn tính). */
 export function countPriorSafetyIncidentsOnCycle(
   rows: readonly CssdRedAlertSourceRow[],

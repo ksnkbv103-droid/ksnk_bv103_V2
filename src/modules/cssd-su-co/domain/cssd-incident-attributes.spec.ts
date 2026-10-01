@@ -5,6 +5,7 @@ import {
   buildIncidentAttributes,
   countPriorSafetyIncidentsOnCycle,
   countsTowardCssdSafetyTally,
+  collectReportRedQuyTrinhIds,
   quyTrinhIdsWithEffectiveRedAlert,
   readIncidentGroup,
   readIncidentTypeLabel,
@@ -138,6 +139,19 @@ describe("cssd-incident-attributes", () => {
         is_red_alert: true,
         is_active: true,
         attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+    ]);
+    expect([...ids]).toEqual(["qt-1"]);
+  });
+
+  it("nhật ký không tô đỏ chu kỳ khác chỉ vì cùng mã bộ", () => {
+    const ids = collectReportRedQuyTrinhIds([
+      { quy_trinh_id: "qt-1", is_red_alert: true, attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" } },
+      { quy_trinh_id: null, is_red_alert: true, attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" } },
+      {
+        quy_trinh_id: "qt-2",
+        is_red_alert: true,
+        attributes: { INCIDENT_STATUS: "VO_HIEU", INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
       },
     ]);
     expect([...ids]).toEqual(["qt-1"]);

@@ -242,3 +242,10 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | P0 cờ đỏ | `is_red_alert` chu kỳ = còn phiếu hiệu lực mang cờ. Phiếu vô hiệu `is_active=false` và `is_red_alert=false`. |
 | P0 đếm | `VO_HIEU` không vào `countsTowardCssdSafetyTally` (báo cáo + KPI). Sổ Hỏng/Mất/bổ sung/nhập của phiếu tắt `is_active` — tồn = SUM dòng còn hiệu lực. Bổ sung cộng lại kho dự phòng; nhập kho trừ lại. |
 | Park | Thu hồi cả mẻ + máy HOLD. Điều chuyển lệch `bom_lines`. Xuất kho hóa chất đã ghi. Duyệt BOM. Một transaction (crash giữa tắt sổ và cộng kho). Không hiện lại phiếu vô hiệu trên nhật ký. |
+
+## S-G — Cờ đỏ nhật ký theo chu kỳ
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): `collectReportRedQuyTrinhIds` — cột đỏ bảng chu kỳ chỉ khi `quy_trinh_id` trùng phiếu còn hiệu lực. PA2 giữ fallback `ma_qr` cho phiếu cũ không gắn chu kỳ — tô đỏ mọi chu kỳ cùng mã bộ (loại). |
+| P0 | Phiếu không có `quy_trinh_id`, phiếu `VO_HIEU`, không còn bật đỏ chu kỳ khác. Cờ trên chính dòng sự cố giữ nguyên. |

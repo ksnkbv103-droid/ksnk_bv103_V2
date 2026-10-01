@@ -22,7 +22,10 @@ import {
   readIncidentConfirmedByName,
   readIncidentPhieuStatus,
 } from "@/modules/cssd-su-co/domain/cssd-incident-status";
-import { countsTowardCssdSafetyTally } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import {
+  collectReportRedQuyTrinhIds,
+  countsTowardCssdSafetyTally,
+} from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import { getErrorMessage, tableHasColumn } from "../shared/cssd-db-utils";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import {
@@ -180,27 +183,17 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     if (resQ.error) return { success: false as const, error: resQ.error, quyTrinh: [], suCo: [] };
     if (resS.error) return { success: false as const, error: resS.error.message, quyTrinh: [], suCo: [] };
 
-    const redIds = new Set<string>();
-    const redQrs = new Set<string>();
     const suCoSource = (resS.data || []).filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
       return countsTowardCssdSafetyTally(attrs);
     });
-    for (const sc of suCoSource) {
-      if ((sc as { is_red_alert?: boolean }).is_red_alert !== true) continue;
-      const qid = String((sc as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
-      const qr = String((sc as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
-        .trim()
-        .toUpperCase();
-      // ma_qr = ma_bo dùng chung mọi chu kỳ — chỉ fallback mã khi phiếu không gắn quy_trinh_id.
-      if (qid) redIds.add(qid);
-      else if (qr) redQrs.add(qr);
-    }
+    const redIds = collectReportRedQuyTrinhIds(
+      suCoSource as { quy_trinh_id?: string | null; is_red_alert?: boolean | null; attributes?: Record<string, unknown> | null }[],
+    );
 
     const quyTrinhRows = resQ.rows.filter((x) => !isLegacyHexCycle(x)).map((x: Record<string, unknown>) => {
       const id = String(x.id || "");
-      const qr = String(x.ma_qr_quy_trinh || "").trim().toUpperCase();
-      const fromSuCo = redIds.has(id) || (qr ? redQrs.has(qr) : false);
+      const fromSuCo = redIds.has(id);
       return {
         ...x,
         is_red_alert: x.is_red_alert === true || fromSuCo,
