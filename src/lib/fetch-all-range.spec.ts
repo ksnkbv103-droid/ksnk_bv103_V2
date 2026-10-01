@@ -107,3 +107,21 @@ describe("attachTaskRollup", () => {
     expect(fn).toContain("throw new Error(formatQlcvDbError");
   });
 });
+
+describe("listCongViecByNhiemVu", () => {
+  it("đọc hết việc con active của một nhiệm vụ, không limit 200", () => {
+    const src = readFileSync(
+      resolve(process.cwd(), "src/modules/quan-ly-cong-viec/actions/nhiem-vu.actions.ts"),
+      "utf8",
+    );
+    const start = src.indexOf("export async function listCongViecByNhiemVu");
+    expect(start).toBeGreaterThan(-1);
+    const fn = src.slice(start);
+    expect(fn).toContain("fetchAllRangeRows");
+    expect(fn).toContain('.eq("nhiem_vu_id", nhiemVuId)');
+    expect(fn).toContain('.eq("is_active", true)');
+    expect(fn).toContain(".range(");
+    expect(fn).not.toContain(".limit(");
+    expect(fn).toContain("throw new Error(formatQlcvDbError");
+  });
+});

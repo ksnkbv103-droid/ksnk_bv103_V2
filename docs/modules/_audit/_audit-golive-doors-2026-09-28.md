@@ -310,6 +310,13 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | PA | PA1 (chọn): bộ active và phiếu INSTRUMENT `is_active` đọc `fetchAllRangeRows` (trang 1000, lọc khoa nếu có), rồi suy `pendingBom` bằng `readSetReconcileStatus` — giữ cả key thường. Worksheet `fetchAllByIdChunks` cụm `bo_dung_cu_id` 100. Lỗi đọc trả `success: false`. Lọc `.contains` attributes loại vì bỏ phiếu key thường. PA2 nâng trần 400/200 — vẫn cắt im. |
 | Giữ | RPC ledger kiểm kê và cửa UI Kiểm kê. |
 
+## S-P — QLCV bảng việc con một nhiệm vụ hết cắt 200
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): `listCongViecByNhiemVu` đọc hết việc con active của một `nhiem_vu_id` bằng `fetchAllRangeRows` (trang 1000, `order` hạn rồi `id`). Lỗi ném `formatQlcvDbError`, không trả mảng cắt. PA2 nâng trần 200 — vẫn cắt im. |
+| Giữ | Không đổi schema và UI panel. |
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
