@@ -280,3 +280,10 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | Quét | Cùng bundle: máy `.limit(500)`, khoa `.limit(2000)`, tên NV `slice(0, 500)` — đếm máy/bộ không lệch ở quy mô khoa; tên NV thiếu khi >500 người. Nhật ký chu kỳ lọc `created_at` (S-F `f01266d2`), sản lượng lọc mốc quét ±1 — hai câu hỏi, đổi nhật ký đổi Excel. |
 | Ngoài CSSD | QLCV `attachTaskRollup` `.limit(5000)` (lỗi query trả % 0). VST xuất Excel `.limit(2000)` phiên + `.limit(8000)` cơ hội; GSC xuất `.limit(5000)` — không phải bản ký RPC. NKBV trọng điểm `.limit(1500)` trên `nkbv_fact_ba_ngay_dung_cu` không lọc dụng cụ đang lưu — Domain. |
 | Chọn | Không có một P0 kỹ thuật mỏng chắc chắn (sai ở quy mô hiện tại, không đổi QT). Không vá. |
+
+## S-L — QLCV rollup việc con hết cắt 5000
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): `fetchAllByIdChunks` — cụm `nhiem_vu_id` 100, trang 1000, `order id`. Lỗi query ném (`formatQlcvDbError`); danh sách nhiệm vụ không trả % thiếu. PA2 nâng trần 5000 — vẫn cắt im khi vượt. |
+| P0 | `%` checklist giữ công thức cũ (`percentFromQlcvChecklist` khi có mục; không thì `phan_tram_hoan_thanh`). |

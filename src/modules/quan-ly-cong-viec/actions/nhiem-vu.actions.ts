@@ -12,6 +12,7 @@ import {
   percentFromQlcvChecklist,
   taskUsesQlcvChecklistForProgress,
 } from "@/lib/domain/qlcv-checklist";
+import { fetchAllByIdChunks } from "@/lib/fetch-all-range";
 
 const NV_TABLE = "qlcv_fact_nhiem_vu";
 
@@ -89,21 +90,24 @@ async function attachTaskRollup(
   rows: NhiemVuRow[],
 ): Promise<NhiemVuRow[]> {
   if (rows.length === 0) return rows;
-  const { data, error } = await supabase
-    .from("v_qlcv_cong_viec_full")
-    .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active,checklist")
-    .in(
-      "nhiem_vu_id",
-      rows.map((r) => r.id),
-    )
-    .eq("is_active", true)
-    .limit(5000);
-  if (error) {
-    console.error("[QLCV] attachTaskRollup", error);
-    return rows;
+  let data: Record<string, unknown>[];
+  try {
+    data = await fetchAllByIdChunks(rows.map((r) => r.id), (idChunk, from, to) =>
+      supabase
+        .from("v_qlcv_cong_viec_full")
+        .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active,checklist")
+        .in("nhiem_vu_id", idChunk)
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+  } catch (error: unknown) {
+    console.error("[QLCV] attachTaskRollup", { module: "QLCV", action: "attachTaskRollup", error });
+    const msg = error instanceof Error ? error.message : "Không tải việc con.";
+    throw new Error(formatQlcvDbError(msg || "Không tải việc con."));
   }
   const byNv = new Map<string, Array<{ pct: number; done: boolean }>>();
-  for (const t of (data || []) as Record<string, unknown>[]) {
+  for (const t of data) {
     const nvId = t.nhiem_vu_id as string | null;
     if (!nvId) continue;
     const list = byNv.get(nvId) || [];
