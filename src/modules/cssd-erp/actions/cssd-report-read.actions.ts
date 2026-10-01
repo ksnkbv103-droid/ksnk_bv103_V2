@@ -49,11 +49,57 @@ import {
   type CssdVolumeBucket,
   type CssdVolumeTrendPoint,
   CSSD_ANALYTICS_STATIONS,
+  cssdVnDay,
   stationLabel,
 } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { addDaysYmd } from "@/lib/format-datetime-vi";
+import { isRejectedLegacyHexBoQr } from "@/lib/domain/cssd-bo-ma";
+import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 
 const MAX_REPORT_ROWS = 8000;
+
+/** Đọc hết các trang PostgREST (không cắt im lặng ở 1000 / 8000 dòng). */
+async function fetchAllReportRows<T>(
+  load: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>,
+): Promise<{ rows: T[]; error: string | null }> {
+  const rows: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await load(from, from + CSSD_ACTIVE_PAGE_SIZE - 1);
+    if (error) return { rows, error: error.message };
+    const chunk = (data ?? []) as T[];
+    rows.push(...chunk);
+    const next = nextActivePageFrom(chunk.length, from);
+    if (next == null) return { rows, error: null };
+    from = next;
+  }
+}
+
+/**
+ * RP1 (S-F): báo cáo lịch sử đọc mọi chu kỳ (kể cả đã đóng khi tiếp nhận lại / thu hồi),
+ * không lọc `is_active` — chỉ bỏ tem hex legacy đã vô hiệu từ cutover A′.
+ * Cửa sổ server nới ±1 ngày; lọc đúng ngày VN ở hàm metric.
+ */
+function quyTrinhHistoryWindowFilter(from: string, to: string): string {
+  const lo = addDaysYmd(from, -1);
+  const hi = `${addDaysYmd(to, 1)}T23:59:59`;
+  return [
+    "created_at",
+    "thoi_gian_tiep_nhan",
+    "thoi_gian_lam_sach",
+    "thoi_gian_qc",
+    "thoi_gian_dong_goi",
+    "thoi_gian_tiet_khuan",
+    "thoi_gian_cap_phat",
+  ]
+    .map((c) => `and(${c}.gte.${lo},${c}.lte.${hi})`)
+    .join(",");
+}
+
+function isLegacyHexCycle(row: { ma_qr_quy_trinh?: unknown }): boolean {
+  return isRejectedLegacyHexBoQr(String(row.ma_qr_quy_trinh || ""));
+}
 
 export type CssdReportFilters = {
   from: string;
@@ -114,13 +160,15 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     const station = String(filters.station || "ALL").trim();
 
     const [resQ, resS] = await Promise.all([
-      supabase
-        .from("v_cssd_quy_trinh_full")
-        .select("*")
-        .eq("is_active", true)
-        .gte("created_at", from)
-        .lte("created_at", `${to}T23:59:59`)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_quy_trinh_full")
+          .select("*")
+          .gte("created_at", from)
+          .lte("created_at", `${to}T23:59:59`)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       supabase
         .from("v_cssd_su_co_full")
         .select("*")
@@ -129,7 +177,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         .limit(MAX_REPORT_ROWS),
     ]);
 
-    if (resQ.error) return { success: false as const, error: resQ.error.message, quyTrinh: [], suCo: [] };
+    if (resQ.error) return { success: false as const, error: resQ.error, quyTrinh: [], suCo: [] };
     if (resS.error) return { success: false as const, error: resS.error.message, quyTrinh: [], suCo: [] };
 
     const redIds = new Set<string>();
@@ -144,11 +192,12 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       const qr = String((sc as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
         .trim()
         .toUpperCase();
+      // ma_qr = ma_bo dùng chung mọi chu kỳ — chỉ fallback mã khi phiếu không gắn quy_trinh_id.
       if (qid) redIds.add(qid);
-      if (qr) redQrs.add(qr);
+      else if (qr) redQrs.add(qr);
     }
 
-    const quyTrinhRows = (resQ.data || []).map((x: Record<string, unknown>) => {
+    const quyTrinhRows = resQ.rows.filter((x) => !isLegacyHexCycle(x)).map((x: Record<string, unknown>) => {
       const id = String(x.id || "");
       const qr = String(x.ma_qr_quy_trinh || "").trim().toUpperCase();
       const fromSuCo = redIds.has(id) || (qr ? redQrs.has(qr) : false);
@@ -157,6 +206,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         is_red_alert: x.is_red_alert === true || fromSuCo,
         ma_vach_qr: x.ma_qr_quy_trinh,
         trang_thai_hien_tai: x.ma_trang_thai_hien_tai,
+        chu_ky_label: x.is_active === false ? "Đã đóng" : "Đang lưu hành",
       };
     });
 
@@ -296,20 +346,21 @@ export async function fetchCssdAnalyticsBundle(filters: {
         : "ALL";
 
     const toEnd = `${to}T23:59:59`;
-    /** Lookback để bắt chu trình tạo trước kỳ nhưng hoàn thành trạm trong kỳ. */
+    /** Lookback mẻ: mẻ tạo trước kỳ nhưng bắt đầu trong kỳ. */
     const lookback = new Date(`${from}T00:00:00Z`);
     lookback.setUTCDate(lookback.getUTCDate() - 90);
     const lookbackFrom = lookback.toISOString().slice(0, 10);
 
-    const quyTrinhSelect = await buildQuyTrinhAnalyticsSelect(supabase);
+    const quyTrinhSelect = `${await buildQuyTrinhAnalyticsSelect(supabase)},ma_qr_quy_trinh`;
     const [resQ, resS, resBo, resMe, resTb, resBt, resKhoa] = await Promise.all([
-      supabase
-        .from("v_cssd_quy_trinh_full")
-        .select(quyTrinhSelect)
-        .eq("is_active", true)
-        .gte("created_at", lookbackFrom)
-        .lte("created_at", toEnd)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<CssdQuyTrinhAnalyticsRow & { ma_qr_quy_trinh?: string | null }>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_quy_trinh_full")
+          .select(quyTrinhSelect)
+          .or(quyTrinhHistoryWindowFilter(from, to))
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       supabase
         .from("v_cssd_su_co_full")
         .select("id, attributes")
@@ -336,7 +387,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
       supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa").limit(2000),
     ]);
 
-    if (resQ.error) return { success: false, error: resQ.error.message, data: empty };
+    if (resQ.error) return { success: false, error: resQ.error, data: empty };
     if (resBo.error) return { success: false, error: resBo.error.message, data: empty };
     if (resMe.error) return { success: false, error: resMe.error.message, data: empty };
 
@@ -349,7 +400,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
       );
     }
 
-    const quyTrinh = ((resQ.data || []) as unknown as CssdQuyTrinhAnalyticsRow[]).map((r) => {
+    const quyTrinh = resQ.rows.filter((r) => !isLegacyHexCycle(r)).map((r) => {
       const next = { ...r };
       const kidNhan = String(r.khoa_nhan_id || "").trim();
       const compactNhan = kidNhan ? khoaMap.get(kidNhan) : undefined;
@@ -364,8 +415,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
       return countsTowardCssdSafetyTally(attrs);
     }).length;
     const quyTrinhKyCount = quyTrinh.filter((r) => {
-      const day =
-        String(r.thoi_gian_tiep_nhan || "").slice(0, 10) || String(r.created_at || "").slice(0, 10);
+      const day = cssdVnDay(r.thoi_gian_tiep_nhan) || cssdVnDay(r.created_at) || "";
       return day >= from && day <= to;
     }).length;
     const tyLe = roundIncidentFreeRate(quyTrinhKyCount, suCoKyCount);

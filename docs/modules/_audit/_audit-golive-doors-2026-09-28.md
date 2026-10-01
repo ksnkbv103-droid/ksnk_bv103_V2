@@ -214,3 +214,11 @@ Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `072b27e` (S-C/S-D đã commit local)
 |---|------|
 | P0 | `fetchCssdBatchMembers` gọi `parseUsedClinicallyFromMetadata` nhưng import bị thay khi phân trang (5e92b52) → mẻ có bộ: ReferenceError, danh sách bộ trong mẻ + in phiếu mẻ trả lỗi. Trả import. |
 | Hygiene | `cssd-read.actions.ts` select động trạm trước: ép kiểu hàng trả về (chỉ type, runtime không đổi). |
+
+## S-F (phần RP1) — Báo cáo CSSD đọc lịch sử chu kỳ
+
+| | Việc |
+|---|------|
+| P0 đếm | `fetchCssdAnalyticsBundle` / `fetchCssdReportBundle` lọc `is_active=true` → bộ tiếp nhận lại (chu kỳ cũ đóng) mất sản lượng/cấp phát/NV kỳ trước; «chu trình kỳ» tái sử dụng luôn ≤1. Nay đọc mọi chu kỳ (bỏ tem hex legacy), lọc server theo mốc quét ±1 ngày, phân trang (hết cắt 8000). Ngày bucket = ngày VN (`cssdVnDay`), ca đêm 00–07h không lùi ngày. |
+| Nhãn | Biểu đồ cột «Tổng mẻ» → «Lượt hoàn thành»; chú thích hết ghi sai «tồn hiện tại». Bảng nhật ký thêm cột «Chu kỳ» (Đang lưu hành / Đã đóng). Cờ đỏ bảng: khớp `quy_trinh_id`, chỉ fallback mã khi phiếu không gắn chu kỳ. |
+| Park | SC6 kho: `loadRedAlertKeys` (TS) khớp cả `ma_qr` → bộ đỏ mãi mọi chu kỳ, lệch chip RPC (`quy_trinh_id`). Cần lát S-F2 (TS + RPC cùng luật đóng phiếu, migration file). RP2 công thức «tỷ lệ quy trình không sự cố» (có thể âm) — Domain chốt định nghĩa. |

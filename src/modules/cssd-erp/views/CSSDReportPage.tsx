@@ -262,8 +262,8 @@ function CSSDReportPageInner() {
           ) : null}
           <ReportCharts pieData={pieData} barData={barData} />
           <p className="text-[11px] text-slate-500">
-            Biểu đồ cột trạm phía trên = <strong>tồn hiện tại</strong> (trạng thái cuối). Cửa «Sản lượng» = hoàn thành
-            trong kỳ theo timestamp quét.
+            Biểu đồ cột trạm = <strong>lượt hoàn thành trong kỳ</strong> theo giờ quét (ngày VN, gồm chu kỳ đã đóng) và
+            sự cố phát hiện tại trạm. Tồn hiện tại xem ở Kho dụng cụ.
           </p>
           <div className="space-y-2 print:hidden">
             <h3 className="text-[11px] font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
@@ -274,6 +274,11 @@ function CSSDReportPageInner() {
                   header: "Trạm cuối",
                   accessorKey: "trang_thai_hien_tai",
                   cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{stationLabel(v.trang_thai_hien_tai)}</span>,
+                },
+                {
+                  header: "Chu kỳ",
+                  accessorKey: "chu_ky_label",
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{v.chu_ky_label}</span>,
                 },
                 {
                   header: "Cảnh báo",

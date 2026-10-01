@@ -8,6 +8,7 @@ import {
   computeStaffScans,
   computeStationVolume,
   computeStationVolumeTrend,
+  cssdVnDay,
   describeCssdCapPhatByKhoaNhan,
   describeCssdKhoaOwnershipProxy,
   pivotVolumeTrendTotals,
@@ -215,5 +216,32 @@ describe("cssd-analytics-core", () => {
     expect(brief.san_luong_cap_phat).toBe(5);
     expect(brief.tong_hoan_thanh_tram).toBe(45);
     expect(brief.ty_le_qc_dat_me).toBe(90);
+  });
+});
+
+describe("S-F RP1 — lịch sử chu kỳ + ngày VN", () => {
+  it("quy timestamptz về ngày lịch VN (ca đêm 00–07h không lùi ngày)", () => {
+    expect(cssdVnDay("2026-09-30T23:00:00+00:00")).toBe("2026-10-01");
+    expect(cssdVnDay("2026-09-30T16:59:00Z")).toBe("2026-09-30");
+    expect(cssdVnDay("2026-09-30")).toBe("2026-09-30");
+    expect(cssdVnDay(null)).toBeNull();
+  });
+
+  it("chu kỳ đã đóng vẫn đếm sản lượng + tái sử dụng trong kỳ", () => {
+    const rows = [
+      { bo_dung_cu_id: "bo-1", thoi_gian_tiep_nhan: "2026-09-02T02:00:00Z", thoi_gian_cap_phat: "2026-09-03T02:00:00Z" },
+      { bo_dung_cu_id: "bo-1", thoi_gian_tiep_nhan: "2026-09-10T02:00:00Z", thoi_gian_cap_phat: null },
+    ];
+    const vol = computeStationVolume(rows as never, "2026-09-01", "2026-09-30");
+    expect(vol.find((v) => v.station === "TIEP_NHAN")?.completed).toBe(2);
+    expect(vol.find((v) => v.station === "CAP_PHAT")?.completed).toBe(1);
+    const reuse = computeReuseFrequency(rows as never, "2026-09-01", "2026-09-30");
+    expect(reuse[0]?.chu_trinh_ky).toBe(2);
+  });
+
+  it("cấp phát 06:00 VN ngày 01/10 thuộc kỳ tháng 10", () => {
+    const rows = [{ bo_dung_cu_id: "bo-1", thoi_gian_cap_phat: "2026-09-30T23:00:00+00:00" }];
+    expect(computeStationVolume(rows as never, "2026-10-01", "2026-10-31").find((v) => v.station === "CAP_PHAT")?.completed).toBe(1);
+    expect(computeStationVolume(rows as never, "2026-09-01", "2026-09-30").find((v) => v.station === "CAP_PHAT")?.completed).toBe(0);
   });
 });
