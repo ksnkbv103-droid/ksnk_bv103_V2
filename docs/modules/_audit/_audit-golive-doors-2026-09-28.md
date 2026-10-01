@@ -317,6 +317,21 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | PA | PA1 (chọn): `listCongViecByNhiemVu` đọc hết việc con active của một `nhiem_vu_id` bằng `fetchAllRangeRows` (trang 1000, `order` hạn rồi `id`). Lỗi ném `formatQlcvDbError`, không trả mảng cắt. PA2 nâng trần 200 — vẫn cắt im. |
 | Giữ | Không đổi schema và UI panel. |
 
+## S-Q — Quét P0 đếm/tồn/báo cáo (không vá)
+
+Neo: tip `b90d956`. PA1 đọc hết trang chỉ khi cửa đếm/tồn/báo cáo cắt im ở quy mô hiện tại. PA2 nâng trần — loại (vẫn cắt im). Không đo được số dòng local (Postgres không chạy).
+
+| Chỗ | Kết luận |
+|-----|----------|
+| `getDungCuGiaoDichLogsAction` `.limit(200)` | Tab «Lịch sử biến động» theo loại trên Quản trị dụng cụ. Tồn là cột/`SUM` sổ, không cộng từ danh sách này. Park. |
+| Báo cáo máy `.limit(500)`, khoa `.limit(2000)`, tên NV `slice(0, 500)` | Đếm máy và nhãn khoa. Cùng kết luận S-K: không lệch ở quy mô khoa. |
+| `listNhiemVuOptions` `.limit(500)` | Dropdown form việc / định kỳ. `%` và panel việc con đã đọc hết trang (S-L, S-P). |
+| NKBV trọng điểm `.limit(1500)` | Park Domain (đã ghi). Hub một bệnh án `.limit(200/800)` không phải bản ký. |
+| Ngoài cửa đếm | MDRO phiên `.limit(2000)` (cờ có phiếu, không phải bản ký). Đào tạo export. Vị trí VST form `.limit(5000)`. Bảo trì `.limit(200)`, nhật ký hóa chất, mẻ list 50, picker sự cố. `getCSSDImportExportData` `.limit(8000)` không có caller. |
+| Hàng chờ Tiếp nhận | `getWaitingListByStation("TIEP_NHAN")` vẫn select danh mục bộ và chu kỳ có trạm, không `range` (các trạm khác đã `fetchAllActiveRows`). Chưa chắc vượt trang 1000. Không vá trần phòng thủ. |
+
+Chọn: không có P0 kỹ thuật mỏng chắc (sai ở quy mô hiện tại, không đổi QT). Không vá.
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
