@@ -11,6 +11,7 @@ import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 const STATUS_LABEL: Record<string, string> = {
   BOM_APPROVED: "Đã duyệt đổi mã · tên · số lượng",
   BOM_REJECTED: "Từ chối đổi mã · tên · số lượng",
+  BOM_APPLY_FAILED: "Ghi bảng thành phần lỗi",
   NONE: "Đã ghi sổ sự cố / khớp",
 };
 

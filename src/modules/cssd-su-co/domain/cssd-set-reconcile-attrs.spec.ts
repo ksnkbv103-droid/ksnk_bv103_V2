@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildSetReconcileAttributePatch, isSetReconcileDraftAttr, parseSetReconcileSnapshot } from "./cssd-set-reconcile-attrs";
+import {
+  buildSetReconcileAttributePatch,
+  isSetReconcileDraftAttr,
+  parseSetReconcileSnapshot,
+  readSetReconcileStatus,
+} from "./cssd-set-reconcile-attrs";
 
 describe("cssd-set-reconcile-attrs", () => {
   it("stores snapshot and pending status when catalog lines exist", () => {
@@ -30,5 +35,10 @@ describe("cssd-set-reconcile-attrs", () => {
   it("marks draft status as draft for journal filters", () => {
     expect(isSetReconcileDraftAttr({ SET_RECONCILE_STATUS: "DRAFT" })).toBe(true);
     expect(isSetReconcileDraftAttr({ SET_RECONCILE_STATUS: "NONE" })).toBe(false);
+  });
+
+  it("reads claim and failed BOM approve tokens", () => {
+    expect(readSetReconcileStatus({ SET_RECONCILE_STATUS: "BOM_APPLYING" })).toBe("BOM_APPLYING");
+    expect(readSetReconcileStatus({ SET_RECONCILE_STATUS: "BOM_APPLY_FAILED" })).toBe("BOM_APPLY_FAILED");
   });
 });

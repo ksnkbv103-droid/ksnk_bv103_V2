@@ -2,6 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "../../types/cssd.types";
 import { buildQuyTrinhTramPatch } from "../../lib/cssd-tram-persist";
 import { previousWorkflowStation, validateStationAdvance } from "../domain/cssd-state-engine";
+import {
+  buildClearAfterKeepPatch,
+  collectStationStampSnapshot,
+  listStationStampSelectColumns,
+} from "../domain/cssd-station-clear";
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
 import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
@@ -244,8 +249,22 @@ export async function executeRejectToPreviousStation(
 
   const fromTram = await buildQuyTrinhTramPatch(supabase, currentStatus);
   const tramPatch = await buildQuyTrinhTramPatch(supabase, prev);
+  const { stations: clearStations, patch: clearPatch } = buildClearAfterKeepPatch(prev, currentStatus);
+  const stampSelect = ["id", ...listStationStampSelectColumns(clearStations)];
+  const { data: beforeRow, error: beforeErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select(stampSelect.join(", "))
+    .eq("id", q.id)
+    .maybeSingle();
+  if (beforeErr) throw new Error(beforeErr.message);
+  const beforeStamps = collectStationStampSnapshot(
+    (beforeRow as Record<string, unknown> | null) ?? null,
+    clearStations,
+  );
+
   const patch: Record<string, unknown> = {
     ...tramPatch,
+    ...clearPatch,
     updated_at: new Date().toISOString(),
   };
   if (clearLoTietKhuan) patch.lo_tiet_khuan_id = null;
@@ -262,17 +281,21 @@ export async function executeRejectToPreviousStation(
     quy_trinh_id: q.id,
     ma_su_kien: "TRA_LUI_VOLUNTARY_ONE_STEP",
     ma_tram: currentStatus,
+    den_tram: prev,
     ghi_chu: `Trả lui ${currentStatus} → ${prev}`,
+    nguoi_thao_tac: operator,
+    soft: false,
     payload: {
       ma_qr_quy_trinh: qr,
       tu: currentStatus,
       den: prev,
       ly_do: lyDo,
       nguoi_thao_tac: operator,
+      clear_stations: clearStations,
+      before: beforeStamps,
     },
   });
   if (!lc.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lc.message)) throw new Error(lc.message);
-
 
   return { from: currentStatus, to: prev };
 }

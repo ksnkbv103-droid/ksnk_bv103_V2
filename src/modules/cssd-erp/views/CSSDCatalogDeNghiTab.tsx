@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { listCatalogDeNghiAction } from "@/modules/cssd-erp/actions/cssd-catalog-de-nghi.actions";
 import {
   CSSD_CATALOG_DE_NGHI_KIND_LABEL,
+  catalogDeNghiStatusLabel,
   summarizeDeNghiAfter,
   normalizeDeNghiItems,
   type CssdCatalogDeNghiRow,
@@ -94,14 +95,12 @@ export function CSSDCatalogDeNghiTab() {
                           ? "font-semibold text-amber-700"
                           : r.status === "APPROVED"
                             ? "font-semibold text-emerald-700"
-                            : "font-semibold text-slate-500"
+                            : r.status === "APPLY_FAILED" || r.status === "APPLYING"
+                              ? "font-semibold text-rose-700"
+                              : "font-semibold text-slate-500"
                       }
                     >
-                      {r.status === "PENDING"
-                        ? "Chờ duyệt"
-                        : r.status === "APPROVED"
-                          ? "Đã duyệt"
-                          : "Từ chối"}
+                      {catalogDeNghiStatusLabel(r.status)}
                     </span>
                   </td>
                 </tr>

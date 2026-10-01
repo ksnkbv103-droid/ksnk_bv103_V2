@@ -169,3 +169,30 @@ Nhánh `cursor/cssd-dong-goi-ton-9e1e` từ `209b5d6`. Không push / migrate. Ch
 |---|------|
 | P0 | `5e92b52` — hết cắt 120/500 (chờ mẻ) và 5000 (bản đồ trạm) và trang 1000 mặc định của hàng chờ. `is_active=false` / thu hồi không vào các query này. |
 | Park | Đổi QT/QĐ/CDC hoặc nới scan-only. Ghi sự cố / tách nhiệt trên trạm Đóng gói. `InventoryIssueModal`. Auth-ban. GSC-L05. RPC kho chip không trả từng trạm — đếm trạm vẫn trên view active, không thêm migration. |
+
+## S-C — Duyệt BOM / đề nghị atomic claim
+
+Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `3250a2e`. PA2 chốt: TypeScript CAS-claim trước `applyApprovedBomLines` / `applyCatalogDeNghiOverwrite`. Không port full apply sang plpgsql RPC (park PA1). Không migrate apply; không commit/push.
+
+| | Việc |
+|---|------|
+| P0 claim BOM | `approveSetReconcileBomAction`: validate → claim `BOM_PENDING`→`BOM_APPLYING` (`.contains` attributes) → apply → `BOM_APPROVED`. Apply lỗi → `BOM_APPLY_FAILED` (không revert PENDING). |
+| P0 claim đề nghị | `approveCatalogDeNghiAction`: `PENDING`→`APPLYING` (update+select) → apply → `APPROVED`. Lỗi → `APPLY_FAILED` (+ `reject_reason` ngắn). Hàng chờ vẫn PENDING-only. |
+| Reject | BOM: `BOM_PENDING` / `BOM_APPLY_FAILED` / `BOM_APPLYING`. Đề nghị: `PENDING` / `APPLY_FAILED`. Không apply. |
+| Migrate file | `20260928150000_cssd_catalog_de_nghi_apply_claim_status.sql` nới CHECK status — **chưa apply**. BOM status nằm jsonb attributes — không cần migrate. |
+| Park | Full SQL RPC idempotent từng dòng THEM_DONG (PA1). Re-approve từ FAILED (cố ý cấm để tránh double). Auth-ban. |
+
+## S-D — Reject / domino clear stamp (consistency W1/W7/W8/W6)
+
+Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `2fdacaf` (+ dirty S-C). PA-A: TS clear-path local-first; migration RPC file-only. Không commit/push/migrate.
+
+| | Việc |
+|---|------|
+| W1 reject | `executeRejectToPreviousStation`: cùng UPDATE null hóa `thoi_gian_*` / `nguoi_*` trạm hủy (+ `ma_cycle_qr` / `bom_kiem_dem_*` nếu Đóng gói); `before` vào ngoai_le qua lifecycle. |
+| W7 domino | `executeIncidentReportAndRollback`: clear stamp các trạm *sau* `targetStation` đến trạm hiện tại; cùng payload `before`. |
+| W8 lifecycle | `insertCssdLifecycleEvent` giữ `payload` → `chi_tiet`; append không nuốt lỗi khi `soft:false`. |
+| W6 freeze/unlock | Freeze ném lỗi UPDATE; unlock resolve QR hub + chặn khi còn phiếu sự cố OPEN. |
+| Migrate file | `20260930140000_cssd_reject_station_clear.sql` (`rpc_cssd_reject_station`) — **chưa apply / chưa wire TS**. |
+| Park | Update+ngoai_le chưa một transaction (chờ apply RPC). W2/W3 re-scan / CAP_PHAT re-issue. Domino không clear stamp *tại* target (giữ bước còn hiệu lực). |
+
+File S-D: `cssd-station-clear.ts`(+spec), `cssd-workflow-application.ts`, `su-co-report.application.ts`, `cssd-lifecycle-events.ts`, `cssd-quy-trinh-exceptions.ts`, `cssd-workflow.commands.actions.ts`, `cssd-workflow-ops.actions.ts`, migration trên.

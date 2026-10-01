@@ -96,7 +96,36 @@ export function doiLoaiHasCatalogEdit(line: SetReconcileLineInput): boolean {
   return doiLoaiIsRelink(line) || doiLoaiIsCatalogRename(line) || doiLoaiIsTenChange(line);
 }
 
-export type SetReconcileStatus = "DRAFT" | "NONE" | "BOM_PENDING" | "BOM_APPROVED" | "BOM_REJECTED";
+export type SetReconcileStatus =
+  | "DRAFT"
+  | "NONE"
+  | "BOM_PENDING"
+  | "BOM_APPLYING"
+  | "BOM_APPLY_FAILED"
+  | "BOM_APPROVED"
+  | "BOM_REJECTED";
+
+/** Claim token trước apply — chỉ một winner từ BOM_PENDING. */
+export const BOM_APPROVE_CLAIM_STATUS: SetReconcileStatus = "BOM_APPLYING";
+export const BOM_APPROVE_FAILED_STATUS: SetReconcileStatus = "BOM_APPLY_FAILED";
+
+export function canClaimBomApprove(status: string | null | undefined): boolean {
+  return status === "BOM_PENDING";
+}
+
+/** Từ chối không apply: chờ duyệt, apply lỗi, hoặc claim kẹt. */
+export function canRejectBomApprove(status: string | null | undefined): boolean {
+  return status === "BOM_PENDING" || status === "BOM_APPLY_FAILED" || status === "BOM_APPLYING";
+}
+
+export function isBomApproveHistoryStatus(status: string | null | undefined): boolean {
+  return (
+    status === "BOM_APPROVED" ||
+    status === "BOM_REJECTED" ||
+    status === "BOM_APPLY_FAILED" ||
+    status === "NONE"
+  );
+}
 
 /** Sự cố vật lý trên phiếu rà soát — chỉ Hỏng/Mất; không gồm lấy kho / trả kho / điều chuyển. */
 export function isPhysicalKind(kind: SetReconcileLineKind): boolean {

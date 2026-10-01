@@ -4,6 +4,9 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import {
+  CATALOG_DE_NGHI_CLAIM_STATUS,
+  CATALOG_DE_NGHI_FAILED_STATUS,
+  canRejectCatalogDeNghi,
   summarizeDeNghiAfter,
   type CssdCatalogDeNghiKind,
   type CssdCatalogDeNghiRow,
@@ -17,6 +20,8 @@ async function requireCatalogApprove() {
     await verifyPermission("BO_DC", "edit");
   }
 }
+
+const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";
 
 function mapRow(r: Record<string, unknown>): CssdCatalogDeNghiRow & { afterSummary: string } {
   const targetKind = String(r.target_kind) as CssdCatalogDeNghiKind;
@@ -72,23 +77,46 @@ export async function approveCatalogDeNghiAction(id: string) {
     const ticketId = String(id || "").trim();
     if (!ticketId) return { success: false as const, error: "Thiếu phiếu." };
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase
+    const now = new Date().toISOString();
+    const { data: claimed, error: claimErr } = await supabase
       .from("cssd_catalog_de_nghi")
-      .select("*")
+      .update({
+        status: CATALOG_DE_NGHI_CLAIM_STATUS,
+        updated_at: now,
+      })
       .eq("id", ticketId)
+      .eq("status", "PENDING")
+      .select("*")
       .maybeSingle();
-    if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
-    if (String(data.status) !== "PENDING") {
-      return { success: false as const, error: "Phiếu không còn PENDING." };
+    if (claimErr) throw new Error(claimErr.message);
+    if (!claimed) {
+      return { success: false as const, error: CLAIMED_MSG };
     }
-    const kind = String(data.target_kind) as CssdCatalogDeNghiKind;
-    await applyCatalogDeNghiOverwrite(supabase, {
-      kind,
-      targetId: data.target_id ? String(data.target_id) : null,
-      targetMa: String(data.target_ma || ""),
-      payloadAfter: (data.payload_after as Record<string, unknown>) || {},
-      payloadBefore: (data.payload_before as Record<string, unknown>) || {},
-    });
+
+    const kind = String(claimed.target_kind) as CssdCatalogDeNghiKind;
+    try {
+      await applyCatalogDeNghiOverwrite(supabase, {
+        kind,
+        targetId: claimed.target_id ? String(claimed.target_id) : null,
+        targetMa: String(claimed.target_ma || ""),
+        payloadAfter: (claimed.payload_after as Record<string, unknown>) || {},
+        payloadBefore: (claimed.payload_before as Record<string, unknown>) || {},
+      });
+    } catch (applyErr: unknown) {
+      const msg = applyErr instanceof Error ? applyErr.message : "Không ghi được danh mục.";
+      const short = msg.slice(0, 400);
+      await supabase
+        .from("cssd_catalog_de_nghi")
+        .update({
+          status: CATALOG_DE_NGHI_FAILED_STATUS,
+          reject_reason: short,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", ticketId)
+        .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
+      return { success: false as const, error: msg };
+    }
+
     let approvedBy: string | null = null;
     try {
       const uc = await createServerSupabaseUserClient();
@@ -102,17 +130,18 @@ export async function approveCatalogDeNghiAction(id: string) {
     } catch {
       /* ignore */
     }
-    const now = new Date().toISOString();
+    const approvedAt = new Date().toISOString();
     const { error: updErr } = await supabase
       .from("cssd_catalog_de_nghi")
       .update({
         status: "APPROVED",
         approved_by_id: approvedBy,
-        approved_at: now,
-        updated_at: now,
+        approved_at: approvedAt,
+        updated_at: approvedAt,
+        reject_reason: null,
       })
       .eq("id", ticketId)
-      .eq("status", "PENDING");
+      .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
     if (updErr) throw new Error(updErr.message);
     revalidateCssdInventorySurfaces();
     return { success: true as const };
@@ -130,8 +159,18 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
     const ticketId = String(id || "").trim();
     if (!ticketId) return { success: false as const, error: "Thiếu phiếu." };
     const supabase = createAdminSupabaseClient();
+    const { data: row, error: loadErr } = await supabase
+      .from("cssd_catalog_de_nghi")
+      .select("id, status")
+      .eq("id", ticketId)
+      .maybeSingle();
+    if (loadErr || !row) return { success: false as const, error: loadErr?.message || "Không thấy phiếu." };
+    const st = String(row.status || "");
+    if (!canRejectCatalogDeNghi(st)) {
+      return { success: false as const, error: CLAIMED_MSG };
+    }
     const now = new Date().toISOString();
-    const { error } = await supabase
+    const { data: rejected, error } = await supabase
       .from("cssd_catalog_de_nghi")
       .update({
         status: "REJECTED",
@@ -139,8 +178,11 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
         updated_at: now,
       })
       .eq("id", ticketId)
-      .eq("status", "PENDING");
+      .in("status", ["PENDING", "APPLY_FAILED"])
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!rejected?.id) return { success: false as const, error: CLAIMED_MSG };
     revalidateCssdInventorySurfaces();
     return { success: true as const };
   } catch (e: unknown) {

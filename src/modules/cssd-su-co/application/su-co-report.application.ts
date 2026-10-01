@@ -2,6 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "@/modules/cssd-erp/shared/application/cssd-lifecycle-events";
+import {
+  buildClearAfterKeepPatch,
+  collectStationStampSnapshot,
+  listStationStampSelectColumns,
+} from "@/modules/cssd-erp/workflow/domain/cssd-station-clear";
 import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import {
   buildIncidentAttributes,
@@ -329,8 +334,29 @@ export async function executeIncidentReportAndRollback(
 
     if (q && rollbackStation) {
       const rollbackPatch = await buildQuyTrinhTramPatch(supabase, rollbackStation.targetStation);
+      const currentStation = String(q.ma_trang_thai_hien_tai || data.station || "").trim() as Station;
+      const { stations: clearStations, patch: clearPatch } = buildClearAfterKeepPatch(
+        rollbackStation.targetStation,
+        currentStation,
+      );
+      let beforeStamps: Record<string, unknown> = {};
+      if (clearStations.length) {
+        const stampSelect = ["id", ...listStationStampSelectColumns(clearStations)];
+        const { data: beforeRow, error: beforeErr } = await supabase
+          .from("cssd_fact_quy_trinh")
+          .select(stampSelect.join(", "))
+          .eq("id", q.id)
+          .maybeSingle();
+        if (beforeErr) throw new Error(beforeErr.message);
+        beforeStamps = collectStationStampSnapshot(
+          (beforeRow as Record<string, unknown> | null) ?? null,
+          clearStations,
+        );
+      }
+
       const quyTrinhUpdate: Record<string, unknown> = {
         ...rollbackPatch,
+        ...clearPatch,
         updated_at: new Date().toISOString(),
       };
       if (rollbackStation.clearSterilizationBatchLink && !rollbackStation.recallEntireBatch) {
@@ -349,11 +375,15 @@ export async function executeIncidentReportAndRollback(
         quy_trinh_id: q.id,
         ma_su_kien: "SU_CO_DOMINO_ROLLBACK",
         ma_tram: data.station,
+        den_tram: rollbackStation.targetStation,
         ghi_chu: `Sự cố: ${data.typeTen} → ${rollbackStation.targetStation} (fault ${rollbackStation.faultStation})`,
+        soft: false,
         payload: {
           ma_qr_quy_trinh: data.maQR,
           tram_phat_hien: data.station,
           rollback: rollbackStation,
+          clear_stations: clearStations,
+          before: beforeStamps,
           mo_ta: data.desc,
           reporter_email: data.reporterEmail,
           reporter_user_id: data.reporterAuthUserId,
@@ -361,13 +391,19 @@ export async function executeIncidentReportAndRollback(
       });
       if (!lc.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lc.message)) throw new Error(lc.message);
 
-      await appendQuyTrinhException(supabase, q.id, {
-        su_kien: "REPORT_INCIDENT",
-        tu_tram: data.station,
-        den_tram: rollbackStation.targetStation,
-        ly_do: `Sự cố ${data.typeTen}. ${data.desc?.slice(0, 160) || ""}`,
-        nguoi_thao_tac: data.faultOperator || data.reporterEmail || "Nhân viên báo cáo",
-      });
+      await appendQuyTrinhException(
+        supabase,
+        q.id,
+        {
+          su_kien: "REPORT_INCIDENT",
+          tu_tram: data.station,
+          den_tram: rollbackStation.targetStation,
+          ly_do: `Sự cố ${data.typeTen}. ${data.desc?.slice(0, 160) || ""}`,
+          nguoi_thao_tac: data.faultOperator || data.reporterEmail || "Nhân viên báo cáo",
+          chi_tiet: { clear_stations: clearStations, before: beforeStamps },
+        },
+        { soft: true },
+      );
     } else if (q && isRedAlert && hasQuyTrinhIsRedAlert) {
       // Không rollback trạm (vd. sự cố dụng cụ) nhưng vẫn gắn cờ đỏ trên quy trình khi DB đã có cột.
       const { error: alertErr } = await supabase
