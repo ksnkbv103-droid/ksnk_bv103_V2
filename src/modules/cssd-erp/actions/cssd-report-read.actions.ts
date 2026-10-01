@@ -367,11 +367,14 @@ export async function fetchCssdAnalyticsBundle(filters: {
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
-      supabase
-        .from("cssd_dm_bo_dung_cu")
-        .select("id, khoa_su_dung_id, is_active")
-        .eq("is_active", true)
-        .limit(5000),
+      fetchAllReportRows<{ id?: string; khoa_su_dung_id?: string | null; is_active?: boolean | null }>((pFrom, pTo) =>
+        supabase
+          .from("cssd_dm_bo_dung_cu")
+          .select("id, khoa_su_dung_id, is_active")
+          .eq("is_active", true)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       fetchAllReportRows<{
         id?: string;
         thiet_bi_id?: string | null;
@@ -398,7 +401,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
 
     if (resQ.error) return { success: false, error: resQ.error, data: empty };
     if (resS.error) return { success: false, error: resS.error, data: empty };
-    if (resBo.error) return { success: false, error: resBo.error.message, data: empty };
+    if (resBo.error) return { success: false, error: resBo.error, data: empty };
     if (resMe.error) return { success: false, error: resMe.error, data: empty };
 
     const khoaMap = new Map<string, string>();
@@ -435,7 +438,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
     const pointsMonth = computeStationVolumeTrend(quyTrinh, from, to, "month", stationFilter);
     const pointsYear = computeStationVolumeTrend(quyTrinh, from, to, "year", stationFilter);
 
-    const boRows = (resBo.data || []).map((b: Record<string, unknown>) => {
+    const boRows = resBo.rows.map((b) => {
       const khoaId = b.khoa_su_dung_id ? String(b.khoa_su_dung_id) : null;
       return {
         id: String(b.id),

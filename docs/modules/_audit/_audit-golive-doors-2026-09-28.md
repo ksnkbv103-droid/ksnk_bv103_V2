@@ -265,3 +265,10 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 |---|------|
 | PA | PA1 (chọn): `fetchAllReportRows` cho `cssd_fact_lo_tiet_khuan` (trang 1000). Cửa sổ server ±1 ngày trên `created_at` và `thoi_gian_bat_dau` (`reportTimestampWindow`, cùng chu kỳ); lọc ngày VN `cssdVnDay`. Lỗi đọc trả `success: false`. PA2 nâng trần 8000 — vẫn cắt im. PA3 giữ lookback 90 ngày `created_at` và `.slice(0, 10)` UTC — lệch ngày VN, bỏ mẻ bắt đầu trong kỳ nếu tạo quá 90 ngày. |
 | P0 | Sản lượng máy và «Mẻ trong kỳ» đọc hết mẻ `is_active` trong kỳ. «Lượt hoàn thành» vẫn từ sản lượng trạm trên chu kỳ (S-F). |
+
+## S-J — Bộ theo khoa hết cắt 5000
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): `fetchAllReportRows` mọi bộ `is_active` — snapshot sở hữu danh mục, không lọc ngày. Lỗi đọc trả `success: false`. PA2 lọc `created_at` theo kỳ ±1 — đổi «số bộ danh mục» thành bộ tạo trong kỳ, lệch nguồn đang lưu hành. Cấp phát theo khoa nhận đã lấy chu kỳ trong kỳ (S-F). PA3 nâng trần 5000 — vẫn cắt im. |
+| P0 | Bảng «Số bộ theo khoa sở hữu» và `so_bo` brief/BCTH đọc hết bộ active. |

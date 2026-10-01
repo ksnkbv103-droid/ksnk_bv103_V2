@@ -35,3 +35,19 @@ describe("báo cáo mẻ tiệt khuẩn không cắt im", () => {
     expect(src).not.toContain("setUTCDate");
   });
 });
+
+describe("báo cáo bộ theo khoa không cắt im", () => {
+  it("đọc hết bộ active, không limit 5000", () => {
+    const src = readFileSync(
+      resolve(process.cwd(), "src/modules/cssd-erp/actions/cssd-report-read.actions.ts"),
+      "utf8",
+    );
+    const idx = src.indexOf('.from("cssd_dm_bo_dung_cu")');
+    expect(idx).toBeGreaterThan(-1);
+    const head = src.slice(idx, src.indexOf("fetchAllReportRows<", idx));
+    expect(head).toContain(".range(");
+    expect(head).toContain('.eq("is_active", true)');
+    expect(head).not.toContain(".limit(");
+    expect(src).not.toContain(".limit(5000)");
+  });
+});
