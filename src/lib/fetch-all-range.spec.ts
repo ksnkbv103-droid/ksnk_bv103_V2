@@ -59,6 +59,35 @@ describe("fetchAllByIdChunks", () => {
   });
 });
 
+describe("kiểm kê campaign không cắt im", () => {
+  it("bộ và phiếu INSTRUMENT đọc hết trang; worksheet chia cụm", () => {
+    const src = readFileSync(
+      resolve(process.cwd(), "src/modules/cssd-su-co/actions/set-reconcile-campaign.actions.ts"),
+      "utf8",
+    );
+    const campaign = src.slice(
+      src.indexOf("export async function listSetReconcileCampaignAction"),
+      src.indexOf("export async function listSetReconcileWorksheetRowsAction"),
+    );
+    expect(campaign).toContain("fetchAllRangeRows");
+    expect(campaign).toContain('.eq("incident_group", "INSTRUMENT")');
+    expect(campaign).toContain("readSetReconcileStatus");
+    expect(campaign).toContain(".range(");
+    expect(campaign).not.toContain(".limit(");
+    expect(campaign).toContain("success: false");
+
+    const worksheet = src.slice(
+      src.indexOf("export async function listSetReconcileWorksheetRowsAction"),
+      src.indexOf("async function selectAllPages"),
+    );
+    expect(worksheet).toContain("fetchAllByIdChunks");
+    expect(worksheet).toContain('.in("bo_dung_cu_id", idChunk)');
+    expect(worksheet).toContain(".range(");
+    expect(worksheet).not.toContain(".limit(");
+    expect(worksheet).toContain("success: false");
+  });
+});
+
 describe("attachTaskRollup", () => {
   it("đọc hết việc con và không nuốt lỗi bằng return rows", () => {
     const src = readFileSync(

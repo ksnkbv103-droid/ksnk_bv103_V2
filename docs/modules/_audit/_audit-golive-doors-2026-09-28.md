@@ -303,6 +303,13 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | P0 | Soft-delete một, soft-delete nhiều, toggle tắt (đang bật), và lưu form khi đang bật sang tắt: còn ≥1 `cssd_fact_quy_trinh` `is_active` và `tinh_trang` khác MAT thì từ chối cả thao tác. Bật lại không chặn. |
 | Park | DM3 allocate RMW `so_luong_hien_tai`; DN3 sync `ma_bo` → quy trình QR; deactivate cascade chi tiết; soft-delete loại; S-H SR2; S-I BOM snapshot; S-J VST; S-K revalidate mở rộng. Import danh mục không đi qua các action trên. |
 
+## S-O — Kiểm kê / set-reconcile campaign hết cắt
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): bộ active và phiếu INSTRUMENT `is_active` đọc `fetchAllRangeRows` (trang 1000, lọc khoa nếu có), rồi suy `pendingBom` bằng `readSetReconcileStatus` — giữ cả key thường. Worksheet `fetchAllByIdChunks` cụm `bo_dung_cu_id` 100. Lỗi đọc trả `success: false`. Lọc `.contains` attributes loại vì bỏ phiếu key thường. PA2 nâng trần 400/200 — vẫn cắt im. |
+| Giữ | RPC ledger kiểm kê và cửa UI Kiểm kê. |
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.

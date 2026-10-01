@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyCssdIncidentPrint, verifyCssdKhoDungCuView } from "@/lib/cssd-server-gates";
+import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { readSetReconcileBoId, readSetReconcileStatus } from "../domain/cssd-set-reconcile-attrs";
 
 async function verifyCampaignRead() {
@@ -25,16 +26,21 @@ export async function listSetReconcileCampaignAction(khoaId?: string) {
   try {
     await verifyCampaignRead();
     const supabase = createAdminSupabaseClient();
-    let q = supabase
-      .from("cssd_dm_bo_dung_cu")
-      .select("id, ma_bo, ten_bo, khoa_su_dung_id, ngay_kiem_ke_gan_nhat, is_active")
-      .eq("is_active", true)
-      .order("ma_bo")
-      .limit(400);
     const khoa = String(khoaId || "").trim();
-    if (khoa) q = q.eq("khoa_su_dung_id", khoa);
-    const { data: bos, error } = await q;
-    if (error) throw new Error(error.message);
+    const bos = await fetchAllRangeRows<{
+      id: string;
+      ma_bo: string | null;
+      ten_bo: string | null;
+      khoa_su_dung_id: string | null;
+      ngay_kiem_ke_gan_nhat: string | null;
+    }>((from, to) => {
+      let q = supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id, ma_bo, ten_bo, khoa_su_dung_id, ngay_kiem_ke_gan_nhat")
+        .eq("is_active", true);
+      if (khoa) q = q.eq("khoa_su_dung_id", khoa);
+      return q.order("ma_bo", { ascending: true }).order("id", { ascending: true }).range(from, to);
+    });
     const { data: khoaRows } = await supabase.from("mdm_dm_khoa_phong").select("id, ma_khoa, ten_khoa");
     const khoaMap = new Map(
       (khoaRows || []).map((k) => [
@@ -42,21 +48,25 @@ export async function listSetReconcileCampaignAction(khoaId?: string) {
         String(k.ma_khoa || "").trim() || String(k.ten_khoa || "").trim(),
       ]),
     );
-    const { data: incidents } = await supabase
-      .from("cssd_fact_su_co")
-      .select("id, attributes")
-      .eq("is_active", true)
-      .eq("incident_group", "INSTRUMENT")
-      .order("created_at", { ascending: false })
-      .limit(200);
+    const incidents = await fetchAllRangeRows<{ id: string; attributes: Record<string, unknown> | null }>(
+      (from, to) =>
+        supabase
+          .from("cssd_fact_su_co")
+          .select("id, attributes")
+          .eq("is_active", true)
+          .eq("incident_group", "INSTRUMENT")
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+    );
     const pending = new Set<string>();
-    for (const row of incidents || []) {
+    for (const row of incidents) {
       const attrs = (row.attributes as Record<string, unknown>) || {};
       if (readSetReconcileStatus(attrs) !== "BOM_PENDING") continue;
       const boId = readSetReconcileBoId(attrs);
       if (boId) pending.add(boId);
     }
-    const data: SetReconcileCampaignRow[] = (bos || []).map((b) => ({
+    const data: SetReconcileCampaignRow[] = bos.map((b) => ({
       id: String(b.id),
       maBo: String(b.ma_bo || ""),
       tenBo: String(b.ten_bo || ""),
@@ -78,15 +88,26 @@ export async function listSetReconcileWorksheetRowsAction(khoaId?: string) {
     if (!camp.success) return camp;
     const boIds = camp.data.map((b) => b.id);
     if (!boIds.length) return { success: true as const, rows: [] as Record<string, string | number>[] };
-    const { data: lines, error } = await supabase
-      .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
-      .select("bo_dung_cu_id, ma_bo, ten_bo, ma_loai_dung_cu, ten_loai_dung_cu, so_luong_tieu_chuan, so_luong_thuc_te")
-      .in("bo_dung_cu_id", boIds)
-      .eq("is_active", true)
-      .order("ma_bo");
-    if (error) throw new Error(error.message);
+    const lines = await fetchAllByIdChunks<{
+      bo_dung_cu_id: string;
+      ma_bo: string | null;
+      ten_bo: string | null;
+      ma_loai_dung_cu: string | null;
+      ten_loai_dung_cu: string | null;
+      so_luong_tieu_chuan: number | null;
+      so_luong_thuc_te: number | null;
+    }>(boIds, (idChunk, from, to) =>
+      supabase
+        .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
+        .select("bo_dung_cu_id, ma_bo, ten_bo, ma_loai_dung_cu, ten_loai_dung_cu, so_luong_tieu_chuan, so_luong_thuc_te")
+        .in("bo_dung_cu_id", idChunk)
+        .eq("is_active", true)
+        .order("ma_bo", { ascending: true })
+        .order("chi_tiet_id", { ascending: true })
+        .range(from, to),
+    );
     const boMap = new Map(camp.data.map((b) => [b.id, b]));
-    const rows = (lines || []).map((r) => {
+    const rows = lines.map((r) => {
       const bo = boMap.get(String(r.bo_dung_cu_id));
       return {
         ma_bo: String(r.ma_bo || bo?.maBo || ""),
