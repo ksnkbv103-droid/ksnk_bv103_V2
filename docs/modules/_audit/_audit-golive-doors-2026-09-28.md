@@ -258,3 +258,10 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | Park | Mẻ tiệt khuẩn và bộ theo khoa trên cùng bundle vẫn `.limit(8000)` / 5000. RP2 công thức tỷ lệ — Domain. |
 
 `npx tsc --noEmit` sau S-H: 6 lỗi kiểu có sẵn (tooltip `percentTooltipFormatter` thiếu `()`, `session.nguoi_giam_sat_id`, `bn_mdro_phenotype` string) cộng so sánh sau early-return vô hiệu — sửa kiểu, commit riêng.
+
+## S-I — Mẻ tiệt khuẩn hết cắt 8000
+
+| | Việc |
+|---|------|
+| PA | PA1 (chọn): `fetchAllReportRows` cho `cssd_fact_lo_tiet_khuan` (trang 1000). Cửa sổ server ±1 ngày trên `created_at` và `thoi_gian_bat_dau` (`reportTimestampWindow`, cùng chu kỳ); lọc ngày VN `cssdVnDay`. Lỗi đọc trả `success: false`. PA2 nâng trần 8000 — vẫn cắt im. PA3 giữ lookback 90 ngày `created_at` và `.slice(0, 10)` UTC — lệch ngày VN, bỏ mẻ bắt đầu trong kỳ nếu tạo quá 90 ngày. |
+| P0 | Sản lượng máy và «Mẻ trong kỳ» đọc hết mẻ `is_active` trong kỳ. «Lượt hoàn thành» vẫn từ sản lượng trạm trên chu kỳ (S-F). |

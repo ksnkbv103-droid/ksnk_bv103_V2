@@ -60,8 +60,6 @@ import { addDaysYmd } from "@/lib/format-datetime-vi";
 import { isRejectedLegacyHexBoQr } from "@/lib/domain/cssd-bo-ma";
 import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 
-const MAX_REPORT_ROWS = 8000;
-
 /** Đọc hết các trang PostgREST (không cắt im lặng ở 1000 / 8000 dòng). */
 async function fetchAllReportRows<T>(
   load: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>,
@@ -79,15 +77,19 @@ async function fetchAllReportRows<T>(
   }
 }
 
+/** Cửa sổ server nới ±1 ngày quanh kỳ; lọc đúng ngày VN ở client (`cssdVnDay`). */
+function reportTimestampWindow(from: string, to: string, columns: readonly string[]): string {
+  const lo = addDaysYmd(from, -1);
+  const hi = `${addDaysYmd(to, 1)}T23:59:59`;
+  return columns.map((c) => `and(${c}.gte.${lo},${c}.lte.${hi})`).join(",");
+}
+
 /**
  * RP1 (S-F): báo cáo lịch sử đọc mọi chu kỳ (kể cả đã đóng khi tiếp nhận lại / thu hồi),
  * không lọc `is_active` — chỉ bỏ tem hex legacy đã vô hiệu từ cutover A′.
- * Cửa sổ server nới ±1 ngày; lọc đúng ngày VN ở hàm metric.
  */
 function quyTrinhHistoryWindowFilter(from: string, to: string): string {
-  const lo = addDaysYmd(from, -1);
-  const hi = `${addDaysYmd(to, 1)}T23:59:59`;
-  return [
+  return reportTimestampWindow(from, to, [
     "created_at",
     "thoi_gian_tiep_nhan",
     "thoi_gian_lam_sach",
@@ -95,9 +97,12 @@ function quyTrinhHistoryWindowFilter(from: string, to: string): string {
     "thoi_gian_dong_goi",
     "thoi_gian_tiet_khuan",
     "thoi_gian_cap_phat",
-  ]
-    .map((c) => `and(${c}.gte.${lo},${c}.lte.${hi})`)
-    .join(",");
+  ]);
+}
+
+/** S-I: mẻ tạo trước kỳ nhưng bắt đầu trong kỳ vẫn vào cửa sổ (cùng ±1 ngày như chu kỳ). */
+function mePeriodWindowFilter(from: string, to: string): string {
+  return reportTimestampWindow(from, to, ["created_at", "thoi_gian_bat_dau"]);
 }
 
 function isLegacyHexCycle(row: { ma_qr_quy_trinh?: unknown }): boolean {
@@ -342,10 +347,6 @@ export async function fetchCssdAnalyticsBundle(filters: {
         : "ALL";
 
     const toEnd = `${to}T23:59:59`;
-    /** Lookback mẻ: mẻ tạo trước kỳ nhưng bắt đầu trong kỳ. */
-    const lookback = new Date(`${from}T00:00:00Z`);
-    lookback.setUTCDate(lookback.getUTCDate() - 90);
-    const lookbackFrom = lookback.toISOString().slice(0, 10);
 
     const quyTrinhSelect = `${await buildQuyTrinhAnalyticsSelect(supabase)},ma_qr_quy_trinh`;
     const [resQ, resS, resBo, resMe, resTb, resBt, resKhoa] = await Promise.all([
@@ -371,13 +372,22 @@ export async function fetchCssdAnalyticsBundle(filters: {
         .select("id, khoa_su_dung_id, is_active")
         .eq("is_active", true)
         .limit(5000),
-      supabase
-        .from("cssd_fact_lo_tiet_khuan")
-        .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
-        .eq("is_active", true)
-        .gte("created_at", lookbackFrom)
-        .lte("created_at", toEnd)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<{
+        id?: string;
+        thiet_bi_id?: string | null;
+        ket_qua_test?: boolean | null;
+        thoi_gian_bat_dau?: string | null;
+        created_at?: string | null;
+        thiet_bi?: { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
+      }>((pFrom, pTo) =>
+        supabase
+          .from("cssd_fact_lo_tiet_khuan")
+          .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
+          .eq("is_active", true)
+          .or(mePeriodWindowFilter(from, to))
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       supabase.from("cssd_dm_thiet_bi").select("id, trang_thai").eq("is_active", true).limit(500),
       supabase
         .from("cssd_fact_bao_tri")
@@ -389,7 +399,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
     if (resQ.error) return { success: false, error: resQ.error, data: empty };
     if (resS.error) return { success: false, error: resS.error, data: empty };
     if (resBo.error) return { success: false, error: resBo.error.message, data: empty };
-    if (resMe.error) return { success: false, error: resMe.error.message, data: empty };
+    if (resMe.error) return { success: false, error: resMe.error, data: empty };
 
     const khoaMap = new Map<string, string>();
     for (const k of resKhoa.data || []) {
@@ -438,12 +448,11 @@ export async function fetchCssdAnalyticsBundle(filters: {
     const capPhatByKhoaNhan = computeCapPhatByKhoaNhan(quyTrinh, from, to);
     const reuseRows = computeReuseFrequency(quyTrinh, from, to, 80);
 
-    const meRows = (resMe.data || [])
-      .map((m: Record<string, unknown>) => {
-        const tb = m.thiet_bi as { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
+    const meRows = resMe.rows
+      .map((m) => {
+        const tb = m.thiet_bi;
         const ten = Array.isArray(tb) ? String(tb[0]?.ten_thiet_bi || "") : String(tb?.ten_thiet_bi || "");
-        const day =
-          String(m.thoi_gian_bat_dau || "").slice(0, 10) || String(m.created_at || "").slice(0, 10);
+        const day = cssdVnDay(m.thoi_gian_bat_dau) || cssdVnDay(m.created_at) || "";
         return {
           thiet_bi_id: m.thiet_bi_id ? String(m.thiet_bi_id) : null,
           ten_thiet_bi: ten || null,
