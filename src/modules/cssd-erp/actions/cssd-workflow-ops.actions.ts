@@ -34,8 +34,9 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   const maQrFact = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || code).trim().toUpperCase();
   const { data: suCoRows, error: suCoErr } = await supabase
     .from("cssd_fact_su_co")
-    .select("id, attributes")
-    .eq("ma_qr_quy_trinh", maQrFact);
+    .select("id, attributes, is_active")
+    .eq("ma_qr_quy_trinh", maQrFact)
+    .eq("is_active", true);
   if (suCoErr) throw new Error(suCoErr.message);
   const openCount = (suCoRows || []).filter(
     (r) =>

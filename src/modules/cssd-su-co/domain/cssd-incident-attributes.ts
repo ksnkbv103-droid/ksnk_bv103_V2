@@ -1,6 +1,7 @@
 import type { CauseClass, IncidentGroup } from "./cssd-incident-taxonomy";
 import { CAUSE_CLASS_LABEL } from "./cssd-incident-taxonomy";
 import { isSetReconcileDraftAttr } from "./cssd-set-reconcile-attrs";
+import { INCIDENT_STATUS_VOID, readIncidentPhieuStatus } from "./cssd-incident-status";
 
 export type IncidentAttributeInput = {
   incidentGroup: IncidentGroup;
@@ -104,6 +105,7 @@ export function countsTowardCssdSafetyTally(
   opts?: { includeDraft?: boolean },
 ): boolean {
   const row = attrs && typeof attrs === "object" ? attrs : {};
+  if (readIncidentPhieuStatus(row) === INCIDENT_STATUS_VOID) return false;
   if (isCirculationIncidentTypeCode(readIncidentTypeCode(row))) return false;
   if (!opts?.includeDraft && isSetReconcileDraftAttr(row)) return false;
   return true;

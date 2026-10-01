@@ -30,6 +30,7 @@ import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
+import IncidentVoidButton from "@/modules/cssd-su-co/components/IncidentVoidButton";
 import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
 import { stationLabel } from "../workflow/domain/cssd-stations";
 
@@ -364,6 +365,12 @@ function CSSDReportPageInner() {
                   cell: (v: any) =>
                     v.id ? (
                       <div className="flex flex-wrap items-center gap-1.5">
+                        {incidentAllowed.create ? (
+                          <IncidentVoidButton
+                            incidentId={String(v.id)}
+                            onVoided={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
                         {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
                           <IncidentConfirmButton
                             incidentId={String(v.id)}

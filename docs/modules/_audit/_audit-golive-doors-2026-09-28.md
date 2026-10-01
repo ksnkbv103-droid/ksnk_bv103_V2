@@ -230,3 +230,15 @@ Neo: tip `cursor/cssd-dong-goi-ton-9e1e` @ `072b27e` (S-C/S-D đã commit local)
 | P0 | Chip kho / bản đồ trạm (`loadRedAlertKeys`) và ngưỡng `isRedAlert` chỉ theo `quy_trinh_id` của phiếu còn hiệu lực (`is_active`, không nháp, không luân chuyển). Bỏ fallback `ma_qr` (mã bộ). |
 | RPC file | `20261001120000_cssd_red_alert_by_quy_trinh.sql`: CTE `red` của `rpc_cssd_kho_station_counts` và `rpc_cssd_station_flow_counts`, backfill `cssd_fact_quy_trinh.is_red_alert`, thu hồi mẻ hết đếm đỏ theo `ma_qr`. **Chưa apply.** |
 | Park | Báo cáo nhật ký vẫn fallback `ma_qr` khi phiếu không gắn `quy_trinh_id` (S-F). RP2 «tỷ lệ không sự cố» — Domain. |
+
+## S-A2 — Vô hiệu phiếu sự cố CSSD
+
+Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ / tồn / đếm. PA1 (chọn): TypeScript `planCssdIncidentVoid` + `executeVoidIncidentReport` trên schema hiện có. PA2 RPC một transaction — chưa viết (park). Không migrate.
+
+| | Việc |
+|---|------|
+| Cửa | Nhật ký sự cố (`/cssd-erp/report` tab Sự cố): nút **Vô hiệu phiếu** cạnh Xác nhận. Cùng quyền tạo phiếu. Thu hồi cả mẻ, nháp, duyệt BOM, điều chuyển, phiếu đã xuất kho hóa chất: từ chối, không ghi một nửa. |
+| P0 bộ | Phiếu này là lần đẩy lui cuối (`SU_CO_DOMINO_ROLLBACK`, khớp `su_co_id` hoặc trạm + mô tả) thì trả `tram_hien_tai_id` về khâu phát hiện và khôi stamp đã xóa. Phiếu sau giữ trạm. Hóa chất/thiết bị hết phiếu còn khóa thì `is_dong_bang=false`. Có `LO_TIET_KHUAN_ID` và phiếu đã gỡ mẻ thì gắn lại khi mẻ đang trống. |
+| P0 cờ đỏ | `is_red_alert` chu kỳ = còn phiếu hiệu lực mang cờ. Phiếu vô hiệu `is_active=false` và `is_red_alert=false`. |
+| P0 đếm | `VO_HIEU` không vào `countsTowardCssdSafetyTally` (báo cáo + KPI). Sổ Hỏng/Mất/bổ sung/nhập của phiếu tắt `is_active` — tồn = SUM dòng còn hiệu lực. Bổ sung cộng lại kho dự phòng; nhập kho trừ lại. |
+| Park | Thu hồi cả mẻ + máy HOLD. Điều chuyển lệch `bom_lines`. Xuất kho hóa chất đã ghi. Duyệt BOM. Một transaction (crash giữa tắt sổ và cộng kho). Không hiện lại phiếu vô hiệu trên nhật ký. |

@@ -383,6 +383,7 @@ export async function executeIncidentReportAndRollback(
         ghi_chu: `Sự cố: ${data.typeTen} → ${rollbackStation.targetStation} (fault ${rollbackStation.faultStation})`,
         soft: false,
         payload: {
+          su_co_id: incident.id,
           ma_qr_quy_trinh: data.maQR,
           tram_phat_hien: data.station,
           rollback: rollbackStation,

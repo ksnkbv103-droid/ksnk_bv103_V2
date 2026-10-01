@@ -10,9 +10,11 @@ import { passesScPickerWhitelist, resolveScPickerWorkflowId } from "../domain/cs
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
 import { executeIncidentReportAndRollback } from "../application/su-co-report.application";
 import { executeConfirmIncidentReport } from "../application/confirm-incident.application";
+import { executeVoidIncidentReport } from "../application/void-incident.application";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import {
   INCIDENT_STATUS_LABEL,
+  INCIDENT_STATUS_VOID,
   readIncidentPhieuStatus,
 } from "../domain/cssd-incident-status";
 import { isSetReconcileDraftAttr } from "../domain/cssd-set-reconcile-attrs";
@@ -191,6 +193,23 @@ export async function confirmIncidentReport(incidentId: string) {
   return { success: true as const };
 }
 
+/** Vô hiệu phiếu đã ghi: trả trạm/cờ đỏ/tồn, bỏ khỏi đếm và báo cáo. */
+export async function voidIncidentReport(incidentId: string) {
+  const supabase = createAdminSupabaseClient();
+  await verifyCssdIncidentCreate();
+  const actorNhanSuId = await getActorNhanSuId();
+  let actorHoTen: string | null = null;
+  if (actorNhanSuId) {
+    const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", actorNhanSuId).maybeSingle();
+    actorHoTen = ns?.ho_ten ? String(ns.ho_ten).trim() : null;
+  }
+  const result = await executeVoidIncidentReport(supabase, { incidentId, actorNhanSuId, actorHoTen });
+  if (!result.ok) return { success: false as const, error: result.error };
+  revalidateCssdIncidentSurfaces();
+  revalidateCssdInventorySurfaces();
+  return { success: true as const, already: Boolean(result.already) };
+}
+
 export async function listRecentSuCoForReporter() {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentPrint();
@@ -217,6 +236,7 @@ export async function listRecentSuCoForReporter() {
     const attrs = (row.attributes as Record<string, unknown>) || {};
     const auth = String(attrs.REPORTER_AUTH_USER_ID || attrs.reporter_auth_user_id || "").trim();
     if (isSetReconcileDraftAttr(attrs)) return false;
+    if (readIncidentPhieuStatus(attrs) === INCIDENT_STATUS_VOID) return false;
     return auth === reporterAuthUserId;
   }).slice(0, 8);
 
