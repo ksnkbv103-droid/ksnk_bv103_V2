@@ -295,6 +295,14 @@ Neo: xác nhận (SC-8) chỉ đóng nhật ký, không hoàn bộ / cờ đỏ 
 | PA | PA1 (chọn): phiên VST/GSC và cơ hội VST trong kỳ + lọc khoa hiện có đọc hết trang (`fetchAllRangeRows`, cơ hội chia cụm `session_id` 100). Lỗi đọc hoặc metadata trả `success: false` — không file thiếu im. PA2 nâng trần 2000/8000/5000 — vẫn cắt im. |
 | Giữ | Không đụng form giám sát ký / RPC WHO. |
 
+## S-N — Summary bộ hết fan-out; chặn tắt/xóa khi còn chu kỳ
+
+| | Việc |
+|---|------|
+| PA | `v_cssd_bo_dung_cu_summary`: gộp chi tiết và phân bổ theo `bo_dung_cu_id` rồi JOIN — `tong_so_luong_dung_cu` / `tong_phan_bo` không nhân chéo. `q_active` giữ active khác MAT. Cột, thứ tự, GRANT giữ nguyên. Migration `20261001160000_cssd_bo_summary_preaggregate.sql` — thêm file, chưa apply remote. |
+| P0 | Soft-delete một, soft-delete nhiều, toggle tắt (đang bật), và lưu form khi đang bật sang tắt: còn ≥1 `cssd_fact_quy_trinh` `is_active` và `tinh_trang` khác MAT thì từ chối cả thao tác. Bật lại không chặn. |
+| Park | DM3 allocate RMW `so_luong_hien_tai`; DN3 sync `ma_bo` → quy trình QR; deactivate cascade chi tiết; soft-delete loại; S-H SR2; S-I BOM snapshot; S-J VST; S-K revalidate mở rộng. Import danh mục không đi qua các action trên. |
+
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
