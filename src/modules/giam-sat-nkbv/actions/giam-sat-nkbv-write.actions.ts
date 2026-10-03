@@ -26,6 +26,10 @@ import {
 } from "./giam-sat-nkbv-write.helpers";
 import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
 import { hydratePriorOpenVaeDoe } from "../lib/nkbv-vae-event-period";
+import {
+  isNkbvTerminalCaseStatus,
+  NKBV_CLINICAL_SUBMIT_LOCKED_VI,
+} from "../lib/nkbv-case-status";
 
 export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
@@ -136,6 +140,17 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
   const supabase = createAdminSupabaseClient();
 
   try {
+    const { data: statusProbe, error: statusProbeErr } = await supabase
+      .from("v_nkbv_su_kien_full")
+      .select("trang_thai_ma")
+      .eq("id", id)
+      .maybeSingle();
+    if (statusProbeErr) throw statusProbeErr;
+    if (!statusProbe) return { success: false as const, error: "Không tìm thấy phiếu" };
+    if (isNkbvTerminalCaseStatus(statusProbe.trang_thai_ma as string | null)) {
+      return { success: false as const, error: NKBV_CLINICAL_SUBMIT_LOCKED_VI };
+    }
+
     if (viTriNhiemKhuan === "LOAI_TRU") {
       const excludeStatus = await supabase
         .from("nkbv_dm_trang_thai_ca")

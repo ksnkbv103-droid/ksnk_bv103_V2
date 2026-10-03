@@ -26,6 +26,7 @@ import { patchSymptomReview } from "../lib/nkbv-symptom-review";
 import { NkbvSymptomReviewProvider } from "./sub-forms/NkbvSymptomReviewContext";
 import { formatNkbvChecklistTypeLabel } from "../lib/nkbv-loai-labels";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { isNkbvTerminalCaseStatus } from "../lib/nkbv-case-status";
 
 export type NkbvClinicalChecklistModalProps = {
   row: Record<string, any>;
@@ -238,20 +239,17 @@ export default function NkbvClinicalChecklistModal({
     return vaeForm as Record<string, unknown> | null;
   }, [checklistType, bsiForm, utiForm, ssiForm, ch17Form, vaeForm]);
 
-  const lockStatus: "DRAFT" | "DA_CHOT" = useMemo(() => {
-    const ma = String(row.trang_thai_ma || "").toUpperCase();
-    const ten = String(row.trang_thai_ten || "").toLowerCase();
-    if (
-      ma.includes("XAC_NHAN") ||
-      ma.includes("CHOT") ||
-      ma.includes("APPROV") ||
-      ten.includes("xác nhận") ||
-      ten.includes("đã chốt")
-    ) {
-      return "DA_CHOT";
-    }
-    return "DRAFT";
-  }, [row.trang_thai_ma, row.trang_thai_ten]);
+  const caseStatusMa = useMemo(() => {
+    const fromRow = String(row.trang_thai_ma || "").trim();
+    if (fromRow) return fromRow.toUpperCase();
+    return String(row.trang_thai_row?.ma_trang_thai || "").trim().toUpperCase();
+  }, [row.trang_thai_ma, row.trang_thai_row?.ma_trang_thai]);
+
+  /** Exact terminal codes — không dùng includes("XAC_NHAN") (sẽ khóa nhầm CHO_XAC_NHAN). */
+  const lockStatus: "DRAFT" | "DA_CHOT" = isNkbvTerminalCaseStatus(caseStatusMa)
+    ? "DA_CHOT"
+    : "DRAFT";
+  const canSubmitClinical = allowedEdit && lockStatus === "DRAFT";
 
   const handlePrintCase = () => {
     window.print();
@@ -596,11 +594,16 @@ export default function NkbvClinicalChecklistModal({
             ) : null}
             <button
               type="button"
-              disabled={submitting || !allowedEdit}
+              disabled={submitting || !canSubmitClinical}
               onClick={onSave}
+              title={
+                lockStatus === "DA_CHOT"
+                  ? "Ca đã chốt — không gửi lại form lâm sàng"
+                  : undefined
+              }
               className={`${C.ctaPrimary} min-h-11 disabled:opacity-50`}
             >
-              {submitting ? "Đang lưu…" : "Lưu nháp / gửi"}
+              {submitting ? "Đang lưu…" : lockStatus === "DA_CHOT" ? "Đã chốt" : "Lưu nháp / gửi"}
             </button>
           </div>
         </div>

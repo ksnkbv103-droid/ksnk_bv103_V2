@@ -365,11 +365,13 @@ Neo: tip `257182a`. Cửa duy nhất: `CSSDERPPage` → `useCSSDWorkflow` → `g
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
 
-## S-U — NKBV KPI/BCTH mẫu số PA−loại trừ
+## S-U — NKBV KPI/BCTH mẫu số PA−loại trừ + khóa gửi lại khi đã chốt
 
-Neo: tip `e55d02d`. Đếm CHO_DUYET/`XAC_NHAN`/`LOAI_TRU`/`soft-delete` đã khớp aggregate + dashboard (lát sâu trước). PA1 (chọn): nhãn BCTH/in hết gắn «N phiếu» cạnh % — N là tổng gồm loại trừ trong khi mẫu số = PA−LT. PA2 chỉ thêm chú thích — vẫn để số sai cạnh %.
+Neo: tip `e55d02d`. Đếm CHO_DUYET/`XAC_NHAN`/`LOAI_TRU`/`soft-delete` đã khớp aggregate + dashboard (lát sâu trước).
 
 | | Việc |
 |---|------|
-| P0 nhãn | Thẻ KPI + topic + bản in: khối lượng `da_xac_nhan/(PA−loại trừ)`; ghi rõ mẫu số. Công thức `ti_le_xac_nhan_so_voi_pa` không đổi. |
-| Không vá | Trạng thái `DA_DONG` không có cửa ghi TS; «Ẩn phiếu» = soft-delete `is_active` (đã ra khỏi KPI). NKBV 1500 — Domain. |
+| P0 nhãn | `24b4705` — thẻ KPI + topic + bản in: khối lượng `da_xac_nhan/(PA−loại trừ)`; hết gắn «N phiếu» cạnh % khi N gồm loại trừ. |
+| P0 trạng thái | Gửi lại form lâm sàng (`submitClinicalVerification`) luôn patch `CHO_DUYET` → ca `XAC_NHAN` tụt KPI/dịch tễ. PA1 (chọn): chặn server + UI khi terminal `XAC_NHAN`/`LOAI_TRU`/`DA_DONG`. PA2 giữ verification và không đổi status — vẫn cho sửa ca đã duyệt im. |
+| Nhãn in | `lockStatus` hết `includes("XAC_NHAN")` (khóa nhầm `CHO_XAC_NHAN`). |
+| Không vá | Cửa list `updateGiamSatNkbvCa` vẫn đổi `trang_thai_id` tự do (transition matrix — Domain). `DA_DONG` không có cửa ghi. NKBV 1500 — Domain. |
