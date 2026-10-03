@@ -28,17 +28,24 @@ describe("isEligibleForNghiemThu", () => {
     ).toBe(true);
   });
 
-  it("TU_CHOI @100% + cờ quá hạn — phiếu mở + hạn/cờ, không phụ thuộc mã QUA_HAN", () => {
+  it("TU_CHOI @100% + quá hạn — đã từ chối NT, ra khỏi cổng (làm lại)", () => {
     expect(
       isEligibleForNghiemThu({
         trang_thai: "TU_CHOI",
         phan_tram_hoan_thanh: 100,
         is_qua_han: true,
       }),
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      isEligibleForNghiemThu({
+        trang_thai: "TU_CHOI",
+        phan_tram_hoan_thanh: 100,
+        han_hoan_thanh: "2020-01-01",
+      }),
+    ).toBe(false);
   });
 
-  it("TU_CHOI @100% chưa quá hạn — chưa vào cổng", () => {
+  it("TU_CHOI @100% chưa quá hạn — không vào cổng", () => {
     expect(isEligibleForNghiemThu({ trang_thai: "TU_CHOI", phan_tram_hoan_thanh: 100 })).toBe(false);
   });
 

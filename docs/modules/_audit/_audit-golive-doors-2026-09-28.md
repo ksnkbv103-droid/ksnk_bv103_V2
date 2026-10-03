@@ -402,6 +402,14 @@ Neo: lát GSC/VST/BCTH sâu + S-M Excel. PA1 quét đếm/toggle NB/BM.02–03. 
 | Không vá | Chip gate RPC toàn viện vs MVP theo lọc — dual SSOT đã ghi chú. BCTH không gộp QLCV (metric-dict). |
 | Park | Q-14/AB-2 báo cáo kỳ truncated. |
 
+## S-X2 — TU_CHOI quá hạn ra khỏi cổng nghiệm thu
+
+| | Việc |
+|---|------|
+| P0 trạng thái | `isEligibleForNghiemThu` loại `TU_CHOI` — từ chối NT + còn 100%/quá hạn không kẹt «Chờ nghiệm thu»; Kanban → đang làm (làm lại). |
+| Migrate file | `20261003170000_qlcv_board_counts_exclude_tu_choi.sql` — RPC `cho_toi`/cột CHO_DUYET hết đếm TU_CHOI. **Chưa apply.** |
+| Park | Import Nhân sự đổi vai trò không sync RBAC; Excel VST thiếu `co_deo_gang` vs KPI lạm dụng găng. |
+
 ## S-Y — Admin Soft: bỏ vai trò hồ sơ ↔ gỡ RBAC
 
 Neo: Admin Soft sâu (pending/chưa TK). Auth-ban / dual-admin vẫn park.
