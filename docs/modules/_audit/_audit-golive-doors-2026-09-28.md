@@ -364,3 +364,12 @@ Neo: tip `257182a`. Cửa duy nhất: `CSSDERPPage` → `useCSSDWorkflow` → `g
 ## Park — không vá lát này
 
 RP2 tỷ lệ không sự cố; SSI SP; GSC-L05; Q-14/AB-2; Auth-ban; dual-admin; thu hồi cả mẻ/máy HOLD; điều chuyển cấu phần; phiếu đã xuất kho hóa chất; duyệt BOM re-approve; crash giữa tắt sổ và cộng kho; RPC một transaction void; PackConditionSelect orphan; NKBV trọng điểm `.limit(1500)` — Domain / Admin P2.
+
+## S-U — NKBV KPI/BCTH mẫu số PA−loại trừ
+
+Neo: tip `e55d02d`. Đếm CHO_DUYET/`XAC_NHAN`/`LOAI_TRU`/`soft-delete` đã khớp aggregate + dashboard (lát sâu trước). PA1 (chọn): nhãn BCTH/in hết gắn «N phiếu» cạnh % — N là tổng gồm loại trừ trong khi mẫu số = PA−LT. PA2 chỉ thêm chú thích — vẫn để số sai cạnh %.
+
+| | Việc |
+|---|------|
+| P0 nhãn | Thẻ KPI + topic + bản in: khối lượng `da_xac_nhan/(PA−loại trừ)`; ghi rõ mẫu số. Công thức `ti_le_xac_nhan_so_voi_pa` không đổi. |
+| Không vá | Trạng thái `DA_DONG` không có cửa ghi TS; «Ẩn phiếu» = soft-delete `is_active` (đã ra khỏi KPI). NKBV 1500 — Domain. |

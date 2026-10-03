@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { aggregateNkbvDashboard } from "./nkbv-dashboard-aggregate";
+import {
+  aggregateNkbvDashboard,
+  formatNkbvXacNhanVolume,
+  nkbvPaMauSo,
+} from "./nkbv-dashboard-aggregate";
 
 describe("aggregateNkbvDashboard", () => {
   it("returns zero KPIs when no rows in range", () => {
@@ -73,6 +77,34 @@ describe("aggregateNkbvDashboard", () => {
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
     expect(out.kpis.tong_phieu).toBe(1);
+  });
+
+  it("formatNkbvXacNhanVolume uses PA−loại trừ, not tong phiếu", () => {
+    const rows = [
+      {
+        ngay_phat_hien: "2026-01-15",
+        trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
+        loai_nkbv: { ma_loai: "UTI" },
+        khoa_ghi_nhan: { ten_khoa: "A" },
+      },
+      {
+        ngay_phat_hien: "2026-01-16",
+        trang_thai_row: { ma_trang_thai: "LOAI_TRU" },
+        loai_nkbv: { ma_loai: "UTI" },
+        khoa_ghi_nhan: { ten_khoa: "A" },
+      },
+      {
+        ngay_phat_hien: "2026-01-17",
+        trang_thai_row: { ma_trang_thai: "CHO_DUYET" },
+        loai_nkbv: { ma_loai: "BSI" },
+        khoa_ghi_nhan: { ten_khoa: "B" },
+      },
+    ];
+    const k = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31").kpis;
+    expect(k.tong_phieu).toBe(3);
+    expect(nkbvPaMauSo(k)).toBe(2);
+    expect(formatNkbvXacNhanVolume(k)).toBe("1/2 (PA−loại trừ)");
+    expect(k.ti_le_xac_nhan_so_voi_pa).toBe(50);
   });
 
   it("top_khoa prefers ma compact", () => {

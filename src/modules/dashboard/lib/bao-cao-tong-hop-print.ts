@@ -23,6 +23,7 @@ import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/g
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
 import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
+import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -137,8 +138,14 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       </thead>
       <tbody>
         <tr>
-          <td class="text-left">Tỷ lệ xác nhận/PA</td>
-          <td>${fmtPct(kpi?.ti_le_xac_nhan_nkbv)} (${kpi?.tong_phieu_nkbv ?? 0} phiếu)</td>
+          <td class="text-left">Tỷ lệ xác nhận/PA−loại trừ</td>
+          <td>${fmtPct(kpi?.ti_le_xac_nhan_nkbv)}${
+            p.payload?.nkbv?.kpis
+              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.kpis)}; ${p.payload.nkbv.kpis.tong_phieu} phiếu gồm loại trừ)`
+              : kpi?.tong_phieu_nkbv != null
+                ? ` (${kpi.tong_phieu_nkbv} phiếu)`
+                : ""
+          }</td>
         </tr>
       </tbody>
     </table>

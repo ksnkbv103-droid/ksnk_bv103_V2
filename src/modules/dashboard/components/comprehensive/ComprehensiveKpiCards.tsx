@@ -7,6 +7,7 @@ import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 
 function prevWeekRate(
   points: BaoCaoTrendPoint[] | undefined,
@@ -129,6 +130,8 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
     payload.gsc?.kpis != null
       ? `${payload.gsc.kpis.tong_dat.toLocaleString()}/${payload.gsc.kpis.tong_quan_sat.toLocaleString()} đạt`
       : null;
+  const nkbvVol =
+    payload.nkbv?.kpis != null ? formatNkbvXacNhanVolume(payload.nkbv.kpis) : null;
   const periodLabel = ky
     ? `vs kỳ trước (${shortDayMonth(ky.tu_ngay)}→${shortDayMonth(ky.den_ngay)})`
     : null;
@@ -162,8 +165,8 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           label="NKBV — tỷ lệ xác nhận"
           digits={1}
           value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}
-          suffix={k?.tong_phieu_nkbv != null ? `(${k.tong_phieu_nkbv} phiếu)` : undefined}
-          note="Kết quả nhiễm khuẩn — tách khỏi tỷ lệ vệ sinh tay / giám sát chung"
+          volumeNote={nkbvVol ? `Xác nhận: ${nkbvVol}` : null}
+          note="Mẫu số = PA − loại trừ (không lấy tổng phiếu gồm loại trừ). Tách khỏi vệ sinh tay / giám sát chung."
         />
       </div>
       <p className="bv103-type-label text-slate-500">

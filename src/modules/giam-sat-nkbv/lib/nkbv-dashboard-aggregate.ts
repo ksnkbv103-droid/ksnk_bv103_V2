@@ -191,3 +191,21 @@ export function aggregateNkbvDashboard(
     top_khoa,
   };
 }
+
+/** Mẫu số tỷ lệ xác nhận = PA − loại trừ (không dùng tổng phiếu gồm loại trừ). */
+export function nkbvPaMauSo(kpis: {
+  tong_phieu: number;
+  loai_tru: number;
+}): number {
+  return Math.max(kpis.tong_phieu - kpis.loai_tru, 0);
+}
+
+/** Nhãn khối lượng BCTH/in: «a/b (PA−loại trừ)» — khớp công thức metric-dictionary. */
+export function formatNkbvXacNhanVolume(kpis: {
+  da_xac_nhan: number;
+  tong_phieu: number;
+  loai_tru: number;
+}): string {
+  const mau = nkbvPaMauSo(kpis);
+  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} (PA−loại trừ)`;
+}
