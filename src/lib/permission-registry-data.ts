@@ -149,7 +149,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "BAO_SU_CO",
-    displayName: "Báo cáo Sự cố",
+    displayName: "Sự cố CSSD",
     actions: ["VIEW", "CREATE"]
   },
   {

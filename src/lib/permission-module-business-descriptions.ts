@@ -31,7 +31,8 @@ const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
   GIAM_SAT_CHUNG: "Phiên giám sát bảng kiểm chung (GSC).",
   GIAM_SAT_NKBV: "Giám sát nhiễm khuẩn bệnh viện / HAI.",
   PHAN_QUYEN: "Cấu hình ma trận phân quyền và tài khoản KSNK.",
-  BAO_SU_CO: "Báo cáo sự cố an toàn / tiệt khuẩn.",
+  BAO_SU_CO:
+    "Phiếu sự cố CSSD (quy trình, dụng cụ, máy, hóa chất) — không phải sự cố y khoa toàn viện.",
 };
 
 export function getPermissionModuleBusinessDescription(code: string): string | undefined {

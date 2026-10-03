@@ -375,3 +375,39 @@ Neo: tip `e55d02d`. Đếm CHO_DUYET/`XAC_NHAN`/`LOAI_TRU`/`soft-delete` đã kh
 | P0 trạng thái | Gửi lại form lâm sàng (`submitClinicalVerification`) luôn patch `CHO_DUYET` → ca `XAC_NHAN` tụt KPI/dịch tễ. PA1 (chọn): chặn server + UI khi terminal `XAC_NHAN`/`LOAI_TRU`/`DA_DONG`. PA2 giữ verification và không đổi status — vẫn cho sửa ca đã duyệt im. |
 | Nhãn in | `lockStatus` hết `includes("XAC_NHAN")` (khóa nhầm `CHO_XAC_NHAN`). |
 | Không vá | Cửa list `updateGiamSatNkbvCa` vẫn đổi `trang_thai_id` tự do (transition matrix — Domain). `DA_DONG` không có cửa ghi. NKBV 1500 — Domain. |
+
+## S-V — Sự cố y khoa / an toàn (ngoài CSSD)
+
+Không có module SCYK/ATBV (route/fact/action). `BAO_SU_CO` = CSSD `/cssd-su-co` (đã audit CSSD). PA1 (chọn): nhãn RBAC hết «an toàn / tiệt khuẩn» mơ hồ → «Sự cố CSSD… không phải sự cố y khoa toàn viện». PA2 không đụng nhãn — chờ Domain mở SCYK.
+
+| | Việc |
+|---|------|
+| P0 nhãn | `displayName` + mô tả ma trận quyền `BAO_SU_CO`. |
+| Park | Module sự cố y khoa toàn viện (luồng báo–xử lý–đóng) — Domain. |
+
+## S-W — GSC + VST leftover
+
+Neo: lát GSC/VST/BCTH sâu + S-M Excel. PA1 quét đếm/toggle NB/BM.02–03. PA2 offline idempotency — hiếm.
+
+| | Việc |
+|---|------|
+| Không vá | `is_bo_sung_nguoi_benh` chỉ metadata — không vào KPI/scoring. BM.02/03 = GSC `saveGiamSatChung` (tách WHO). Sửa/xóa → view live. |
+| Park | Excel GSC không lọc `loai_giam_sat` (GSC-L05). Offline timeout tạo phiên trùng. |
+
+## S-X — QLCV % việc con khớp rollup; BCTH liên module
+
+| | Việc |
+|---|------|
+| P0 đếm | `listCongViecByNhiemVu` dùng cùng luật checklist→% với `attachTaskRollup` (trước đó chỉ cột `phan_tram_hoan_thanh`). |
+| Không vá | Chip gate RPC toàn viện vs MVP theo lọc — dual SSOT đã ghi chú. BCTH không gộp QLCV (metric-dict). |
+| Park | Q-14/AB-2 báo cáo kỳ truncated. |
+
+## S-Y — Admin Soft: bỏ vai trò hồ sơ ↔ gỡ RBAC
+
+Neo: Admin Soft sâu (pending/chưa TK). Auth-ban / dual-admin vẫn park.
+
+| | Việc |
+|---|------|
+| P0 cửa | `afterSaveNhanSuLogin`: có Auth thì luôn `setStaffKsnkRbacRole` — `roleName` rỗng = gỡ. Trước đó bỏ trống FK thì `sys_user_roles` giữ. |
+| Migrate file | `20261003160000_rpc_clear_staff_ksnk_role.sql` — RPC nhận rỗng → DELETE vai trò KSNK. **Chưa apply.** |
+| Park | Auth-ban khi khóa hồ sơ; dual-admin duyệt tự đặt lại MK. |
