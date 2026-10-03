@@ -47,8 +47,12 @@ export async function afterSaveNhanSuLogin(args: AfterSaveArgs): Promise<void> {
     return;
   }
 
-  if (args.canProvision && args.staffId && args.hasAuth && roleName) {
-    const roleRes = await setStaffKsnkRbacRole({ staffId: args.staffId, roleName });
+  // Có Auth: luôn đồng bộ RBAC theo FK vai trò (rỗng = gỡ vai trò KSNK — cần migrate clear).
+  if (args.canProvision && args.staffId && args.hasAuth) {
+    const roleRes = await setStaffKsnkRbacRole({
+      staffId: args.staffId,
+      roleName: roleName || "",
+    });
     if (!roleRes.success) {
       toast.success(args.savedMessage);
       toast.error(roleRes.error || "Hồ sơ đã lưu, chưa đồng bộ vai trò đăng nhập.");

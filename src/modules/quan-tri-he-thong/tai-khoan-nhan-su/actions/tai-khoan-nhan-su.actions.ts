@@ -139,7 +139,7 @@ export async function getAvailableRolesAction() {
 }
 
 
-/** Gán đúng một vai trò KSNK hệ thống (xoá các vai trò KSNK khác của user). */
+/** Gán đúng một vai trò KSNK hệ thống (xoá các vai trò KSNK khác của user). `roleName` rỗng = gỡ hết vai trò KSNK (cần migrate clear). */
 export async function setStaffKsnkRbacRole(params: {
   staffId: string;
   roleName: string;
@@ -149,11 +149,12 @@ export async function setStaffKsnkRbacRole(params: {
     const supabase = createAdminSupabaseClient();
 
     const roleNorm = params.roleName.trim();
-
     const roleUpper = roleNorm.toUpperCase();
-    const canonicalName =
-      RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER.find((x) => x === roleUpper) ?? null;
-    if (!canonicalName) {
+    const canonicalName = roleNorm
+      ? RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER.find((x) => x === roleUpper) ?? null
+      : "";
+
+    if (roleNorm && !canonicalName) {
       return {
         success: false as const,
         error:
@@ -161,26 +162,35 @@ export async function setStaffKsnkRbacRole(params: {
       };
     }
 
-    // Kiểm tra role tồn tại và còn active trong DB
-    const { data: roleExists } = await supabase
-      .from("sys_roles")
-      .select("id")
-      .eq("name", canonicalName)
-      .eq("is_active", true)
-      .maybeSingle();
+    if (canonicalName) {
+      const { data: roleExists } = await supabase
+        .from("sys_roles")
+        .select("id")
+        .eq("name", canonicalName)
+        .eq("is_active", true)
+        .maybeSingle();
 
-    if (!roleExists) {
-      return { success: false as const, error: "Vai trò không hợp lệ hoặc đã ngưng hoạt động." };
+      if (!roleExists) {
+        return { success: false as const, error: "Vai trò không hợp lệ hoặc đã ngưng hoạt động." };
+      }
     }
 
-    // Sử dụng RPC nguyên tử để tránh lỗi mất quyền khi thực hiện nhiều bước
     const { data, error } = await supabase.rpc("rpc_assign_staff_ksnk_role", {
       p_staff_id: params.staffId,
-      p_role_name: canonicalName,
+      p_role_name: canonicalName || "",
     });
 
     if (error) throw error;
-    if (!data?.success) return { success: false as const, error: data?.error || "Lỗi khi gán quyền." };
+    if (!data?.success) {
+      return {
+        success: false as const,
+        error:
+          data?.error ||
+          (canonicalName
+            ? "Lỗi khi gán quyền."
+            : "Chưa gỡ được vai trò đăng nhập — cần apply migrate clear RPC, hoặc gỡ tại Phân quyền."),
+      };
+    }
 
     await invalidateUserPermissionsCache();
     revalidatePath("/quan-tri-he-thong/tai-khoan");
