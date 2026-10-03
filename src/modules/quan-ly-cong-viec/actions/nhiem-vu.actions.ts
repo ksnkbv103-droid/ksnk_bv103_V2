@@ -307,7 +307,9 @@ export async function listCongViecByNhiemVu(nhiemVuId: string): Promise<CongViec
     data = await fetchAllRangeRows((from, to) =>
       supabase
         .from("v_qlcv_cong_viec_full")
-        .select("id,tieu_de,nguoi_phu_trach_ten,han_hoan_thanh,trang_thai,phan_tram_hoan_thanh,is_active")
+        .select(
+          "id,tieu_de,nguoi_phu_trach_ten,han_hoan_thanh,trang_thai,phan_tram_hoan_thanh,is_active,checklist",
+        )
         .eq("nhiem_vu_id", nhiemVuId)
         .eq("is_active", true)
         .neq("trang_thai", "DA_HUY")
@@ -330,6 +332,9 @@ export async function listCongViecByNhiemVu(nhiemVuId: string): Promise<CongViec
     nguoi_phu_trach_ten: (t.nguoi_phu_trach_ten as string) ?? null,
     han_hoan_thanh: t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : null,
     trang_thai: String(t.trang_thai ?? ""),
-    phan_tram_hoan_thanh: Number(t.phan_tram_hoan_thanh ?? 0),
+    // Cùng luật attachTaskRollup: checklist → %; không thì cột phan_tram.
+    phan_tram_hoan_thanh: taskUsesQlcvChecklistForProgress(t.checklist)
+      ? percentFromQlcvChecklist(normalizeQlcvChecklist(t.checklist))
+      : Number(t.phan_tram_hoan_thanh ?? 0),
   }));
 }
