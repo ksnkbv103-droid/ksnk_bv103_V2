@@ -1,12 +1,21 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { verifyCssdBatchView, verifyCssdKhoDungCuView, verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
 import { fetchCssdBatchMembers } from "./cssd-batch.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 import { loadHoTenByAuthUserId, loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
-import { buildCssdBatchTicket, formatBatchMemberRecallXuLy, parseBatchQcJson, parseNguoiLoadFromGhiChu } from "../lib/cssd-print-format";
+import { loadPackBatchReleaseGate } from "../helpers/pack-batch-release-gate";
+import {
+  buildCssdBatchTicket,
+  formatBatchMemberRecallXuLy,
+  mapCapPhatPrintIncidents,
+  parseBatchQcJson,
+  parseNguoiLoadFromGhiChu,
+} from "../lib/cssd-print-format";
 import type {
   CssdBatchPrintData,
   CssdCapPhatPrintData,
@@ -202,18 +211,45 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
     if (!batch) {
       return { success: false as const, error: "Bộ chưa gắn mẻ tiệt khuẩn — không in phiếu cấp phát." };
     }
-    if (batch.ket_qua_test !== true) {
-      return { success: false as const, error: "Mẻ tiệt khuẩn chưa đạt QC — không in phiếu cấp phát." };
+
+    const batchRelease = await loadPackBatchReleaseGate(supabase, {
+      quyTrinhId: id,
+      loTietKhuanId: loId,
+    });
+    const issuable = assertPackIssuable({
+      tinh_trang: (row.tinh_trang as string | null) ?? null,
+      han_su_dung: (row.han_su_dung as string | null) ?? null,
+      ngay_het_han: (row.ngay_het_han as string | null) ?? null,
+      is_red_alert: row.is_red_alert === true,
+      is_dong_bang: row.is_dong_bang === true,
+      batchRelease,
+    });
+    if (!issuable.ok) {
+      return { success: false as const, error: issuable.message };
+    }
+
+    const filters = [`quy_trinh_id.eq.${id}`];
+    if (loId) filters.push(`attributes->>LO_TIET_KHUAN_ID.eq.${loId}`);
+    let suCoRows: Array<{ id?: string | null; attributes?: Record<string, unknown> | null; mo_ta?: string | null }>;
+    try {
+      suCoRows = await fetchAllRangeRows((from, to) =>
+        supabase
+          .from("cssd_fact_su_co")
+          .select("id, attributes, mo_ta")
+          .eq("is_active", true)
+          .or(filters.join(","))
+          .range(from, to),
+      );
+    } catch (e: unknown) {
+      return { success: false as const, error: getErrorMessage(e) };
     }
 
     const qc = parseBatchQcJson(batch.tk_qc_json);
     const instruments = await loadInstrumentsForQuyTrinh(supabase, id);
     const maLo = String(batch.ma_lo_tiet_khuan || "");
     const nguoiCapPhat =
-      (await loadNhanSuHoTen(supabase, row.nguoi_cap_phat_id as string | null)) ||
-      (await loadNhanSuHoTen(supabase, row.nguoi_tiet_khuan_id as string | null)) ||
-      "—";
-    const thoiGianCapPhat = String(row.thoi_gian_cap_phat || row.thoi_gian_tiet_khuan || "").trim() || null;
+      (await loadNhanSuHoTen(supabase, row.nguoi_cap_phat_id as string | null)) || "—";
+    const thoiGianCapPhat = String(row.thoi_gian_cap_phat || "").trim() || null;
 
     const data: CssdCapPhatPrintData = {
       quyTrinhId: id,
@@ -224,7 +260,7 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       hanSuDung: (row.han_su_dung as string | null) ?? null,
       maCaMo: String(row.ma_ca_mo_id || "").trim() || null,
       nguoiCapPhat,
-      thoiGianCapPhat: thoiGianCapPhat || new Date().toISOString(),
+      thoiGianCapPhat,
       thietBi: (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—",
       nguoiLoad: parseNguoiLoadFromGhiChu(String(batch.ghi_chu || "")),
       nguoiUnload: qc.nguoiUnload || "—",
@@ -237,6 +273,7 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       testBowieDick: qc.testBowieDick || "NA",
       thoiGianKetThucMe: (batch.thoi_gian_ket_thuc as string | null) ?? null,
       instruments,
+      suCo: mapCapPhatPrintIncidents(suCoRows),
     };
 
     return { success: true as const, data };

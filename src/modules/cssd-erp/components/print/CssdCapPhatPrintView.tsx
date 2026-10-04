@@ -5,6 +5,7 @@ import PrintLayout from "@/components/shared/PrintLayout";
 import CssdCapPhatQrStrip from "./CssdCapPhatQrStrip";
 import CssdPrintInstrumentTable from "./CssdPrintInstrumentTable";
 import {
+  CAP_PHAT_NO_INCIDENT_LINE,
   formatCssdPrintDate,
   formatCssdPrintDateTime,
   formatCssdTriLabel,
@@ -94,6 +95,21 @@ export default function CssdCapPhatPrintView({
         Danh mục dụng cụ trong bộ cấp phát
       </p>
       <CssdPrintInstrumentTable rows={data.instruments} />
+
+      <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "20px 0 6px" }}>
+        Sự cố mẻ / chu trình
+      </p>
+      {data.suCo.length === 0 ? (
+        <p style={{ margin: "0 0 8px", fontSize: 13 }}>{CAP_PHAT_NO_INCIDENT_LINE}</p>
+      ) : (
+        <ul style={{ margin: "0 0 8px", paddingLeft: 18, fontSize: 12 }}>
+          {data.suCo.map((sc) => (
+            <li key={`${sc.ma}-${sc.trangThai}-${sc.loai}`}>
+              Mã {sc.ma} — {sc.trangThai} — {sc.loai}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <p style={{ marginTop: 16, fontSize: 11, fontStyle: "italic", color: "#444" }}>
         Quét QR bộ ({data.maQrBo}), chu trình ({data.maCycleQr || "—"}) hoặc mẻ ({data.maLo}) để truy vết.

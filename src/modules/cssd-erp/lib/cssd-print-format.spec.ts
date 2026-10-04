@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   buildCssdBatchTicket,
   buildCssdQcProofRows,
+  CAP_PHAT_NO_INCIDENT_LINE,
+  formatCapPhatIncidentStatus,
   formatQcTriWord,
   isCssdPrintImageUrl,
+  mapCapPhatPrintIncidents,
   parseBatchAnhMinhChung,
   formatBatchMemberRecallXuLy,
 } from "./cssd-print-format";
@@ -144,5 +147,23 @@ describe("formatBatchMemberRecallXuLy Domain 23", () => {
       }),
     ).toMatch(/đánh giá KSNK/);
     expect(formatBatchMemberRecallXuLy({ isActive: false })).toMatch(/Tiếp nhận/);
+  });
+});
+
+describe("CSSD-05 cap phát print incidents", () => {
+  it("maps SC rows and skips void; empty → phủ định copy", () => {
+    const rows = mapCapPhatPrintIncidents([
+      {
+        id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        attributes: { INCIDENT_STATUS: "DA_XAC_NHAN", INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL" },
+      },
+      { id: "void-1", attributes: { INCIDENT_STATUS: "VO_HIEU", INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL" } },
+    ]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.ma).toBe("AAAAAAAA");
+    expect(rows[0]?.trangThai).toBe("Đã xác nhận");
+    expect(rows[0]?.loai).toBe("PROCESS_STERILIZATION_FAIL");
+    expect(CAP_PHAT_NO_INCIDENT_LINE).toMatch(/Không có sự cố/);
+    expect(formatCapPhatIncidentStatus({ INCIDENT_STATUS: "DA_DONG" })).toMatch(/Đã đóng/);
   });
 });

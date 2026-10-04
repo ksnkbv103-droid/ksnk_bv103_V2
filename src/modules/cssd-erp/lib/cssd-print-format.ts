@@ -2,7 +2,56 @@
 
 import { isCssdCycleUsedClinically } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
-import type { CssdBatchAnhMinhChung, CssdBatchPrintData, CssdQcProofRow } from "../types/cssd-print.types";
+import type {
+  CssdBatchAnhMinhChung,
+  CssdBatchPrintData,
+  CssdCapPhatPrintIncident,
+  CssdQcProofRow,
+} from "../types/cssd-print.types";
+import {
+  INCIDENT_STATUS_LABEL,
+  INCIDENT_STATUS_VOID,
+  readIncidentPhieuStatus,
+} from "@/modules/cssd-su-co/domain/cssd-incident-status";
+
+/** Dòng phủ định M8-A khi không có SC mẻ/chu trình ghi nhận. */
+export const CAP_PHAT_NO_INCIDENT_LINE = "Không có sự cố mẻ/chu trình ghi nhận";
+
+const INCIDENT_STATUS_PRINT_EXTRA: Record<string, string> = {
+  DA_DONG: "Đã đóng (giải phóng)",
+  CLOSED: "Đã đóng (giải phóng)",
+};
+
+export function formatCapPhatIncidentStatus(attrs: Record<string, unknown> | null | undefined): string {
+  const raw = String(attrs?.INCIDENT_STATUS ?? "").trim().toUpperCase();
+  if (raw === INCIDENT_STATUS_VOID) return INCIDENT_STATUS_LABEL.VO_HIEU;
+  if (INCIDENT_STATUS_PRINT_EXTRA[raw]) return INCIDENT_STATUS_PRINT_EXTRA[raw];
+  const status = readIncidentPhieuStatus(attrs);
+  return INCIDENT_STATUS_LABEL[status] || status;
+}
+
+/** Map hàng SC → dòng in phiếu cấp phát; bỏ phiếu vô hiệu. */
+export function mapCapPhatPrintIncidents(
+  rows: Array<{
+    id?: string | null;
+    attributes?: Record<string, unknown> | null;
+    mo_ta?: string | null;
+  }>,
+): CssdCapPhatPrintIncident[] {
+  const out: CssdCapPhatPrintIncident[] = [];
+  for (const row of rows) {
+    const attrs = row.attributes && typeof row.attributes === "object" ? row.attributes : {};
+    if (readIncidentPhieuStatus(attrs) === INCIDENT_STATUS_VOID) continue;
+    const id = String(row.id || "").trim();
+    const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim();
+    out.push({
+      ma: id ? id.slice(0, 8).toUpperCase() : "—",
+      trangThai: formatCapPhatIncidentStatus(attrs),
+      loai: typeCode || String(row.mo_ta || "").trim() || "—",
+    });
+  }
+  return out;
+}
 
 export function formatCssdPrintDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
