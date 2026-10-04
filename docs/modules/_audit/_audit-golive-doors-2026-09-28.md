@@ -635,6 +635,7 @@ Migration **chưa apply** (file only):
 | `f1d7dc31` | GS-04 nhãn chiều 2 = «Khu vực» |
 | `968071f1` | GS-07 ngưỡng trung tính + min-N đối soát; GS-09 nhãn TGS − KSNK |
 | `48db317a` | GS-05 migration analytics `hinh_thuc_id` (chưa apply) |
+| `73025012` | Audit append + cast tsc GS-01 |
 
 Migration **chưa apply**: `20261005160000_gs05_analytics_hinh_thuc_id_stype.sql`
 
