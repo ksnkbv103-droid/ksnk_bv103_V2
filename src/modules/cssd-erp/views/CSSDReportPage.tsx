@@ -136,7 +136,7 @@ function CSSDReportPageInner() {
       });
       if (!res.success) {
         toast.error(res.error || "Không tải thống kê sản lượng CSSD");
-        setAnalytics(res.data);
+        setAnalytics(null);
       } else {
         setAnalytics(res.data);
       }
@@ -145,13 +145,13 @@ function CSSDReportPageInner() {
   }, [filters]);
 
   const { stats, alerts, pieData, barData, incidentGroupStats, processAccountabilityRows } = useMemo(() => {
-    const volumeByStation = new Map((analytics?.stationVolume ?? []).map((r) => [r.station, r.completed]));
-    const bData = STATIONS.map((s) => {
-      const qCount = volumeByStation.get(s) ?? 0;
-      const sCount = raw.suCo.filter((sc) => sc.tram_phat_hien === s).length;
-      const rate = qCount > 0 ? (sCount / qCount) * 100 : null;
-      return { name: s, batches: qCount, incidents: sCount, rate };
-    });
+    const stationRates = analytics?.stationIncidentRates ?? [];
+    const bData = stationRates.map((r) => ({
+      name: r.station,
+      batches: r.completed,
+      incidents: r.incidentCycles,
+      rate: r.rate,
+    }));
     const ranked = bData.filter((b) => b.rate != null).sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0));
     const pMap = new Map<string, number>();
     raw.suCo.forEach((s) => {
@@ -172,11 +172,14 @@ function CSSDReportPageInner() {
         bestStation: ranked[0] ? stationLabel(ranked[0].name) : "Không áp dụng",
         worstStation: ranked[ranked.length - 1] ? stationLabel(ranked[ranked.length - 1].name) : "Không áp dụng",
       },
-      alerts: bData
-        .filter((b) => b.rate != null && b.rate > 5)
-        .map((b) => ({ name: stationLabel(b.name), rate: (b.rate as number).toFixed(1) })),
+      /** CSSD-06: gỡ ngưỡng 5% tới khi có nguồn QT. */
+      alerts: [] as Array<{ name: string; rate: string }>,
       pieData: Array.from(pMap).map(([name, value]) => ({ name, value })),
-      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: stationLabel(b.name) })),
+      barData: bData.map((b) => ({
+        ...b,
+        rate: b.rate ?? 0,
+        name: stationLabel(b.name),
+      })),
       incidentGroupStats: INCIDENT_GROUPS.map((g) => ({
         group: g,
         label: INCIDENT_GROUP_LABEL[g],

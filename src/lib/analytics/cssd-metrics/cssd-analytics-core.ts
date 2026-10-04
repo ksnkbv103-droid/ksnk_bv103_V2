@@ -447,7 +447,85 @@ export function summarizeCssdAnalyticsBrief(args: {
   };
 }
 
-export function roundIncidentFreeRate(quyTrinhCount: number, suCoCount: number): number | null {
-  if (quyTrinhCount <= 0) return quyTrinhCount === 0 && suCoCount === 0 ? 100 : null;
-  return Math.round((100 - (suCoCount / quyTrinhCount) * 100) * 10) / 10;
+/**
+ * Tỷ lệ quy trình không sự cố (%).
+ * Mẫu = chu trình tiếp nhận trong kỳ; tử = số chu trình có ≥1 SC PROCESS.
+ * 0 mẫu / thiếu số → null (UI «—»), không fallback 100.
+ */
+export function roundIncidentFreeRate(quyTrinhCount: number, cyclesWithIncident: number): number | null {
+  if (quyTrinhCount <= 0) return null;
+  const n = Math.min(Math.max(0, cyclesWithIncident), quyTrinhCount);
+  return Math.round((100 - (n / quyTrinhCount) * 100) * 10) / 10;
+}
+
+export type CssdSafetyIncidentRow = {
+  quy_trinh_id?: string | null;
+  ma_tram_phat_hien?: string | null;
+  attributes?: Record<string, unknown> | null;
+};
+
+/** SC PROCESS còn hiệu lực gắn chu trình — vào tử KPI an toàn (N-CSSD-1). */
+export function isProcessCycleSafetyIncident(row: CssdSafetyIncidentRow): boolean {
+  const quyTrinhId = String(row.quy_trinh_id || "").trim();
+  if (!quyTrinhId) return false;
+  const attrs = row.attributes && typeof row.attributes === "object" ? row.attributes : {};
+  const status = String(attrs.INCIDENT_STATUS ?? attrs.incident_status ?? "OPEN").trim().toUpperCase();
+  if (status === "VO_HIEU") return false;
+  const group = String(attrs.INCIDENT_GROUP ?? attrs.incident_group ?? "").trim().toUpperCase();
+  if (group !== "PROCESS") return false;
+  const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim().toUpperCase();
+  // Luân chuyển / rà soát bộ không vào KPI an toàn quy trình.
+  if (typeCode === "INSTRUMENT_MOVE" || typeCode === "SET_RECONCILE" || typeCode.startsWith("CIRCULATION")) {
+    return false;
+  }
+  if (String(attrs.SET_RECONCILE_DRAFT ?? "") === "1") return false;
+  return true;
+}
+
+/** Số chu trình (unique) có ≥1 SC PROCESS trong danh sách. */
+export function countCyclesWithProcessIncidents(rows: readonly CssdSafetyIncidentRow[]): number {
+  const ids = new Set<string>();
+  for (const row of rows) {
+    if (!isProcessCycleSafetyIncident(row)) continue;
+    ids.add(String(row.quy_trinh_id).trim());
+  }
+  return ids.size;
+}
+
+export type CssdStationIncidentRateRow = {
+  station: CssdAnalyticsStation;
+  label: string;
+  completed: number;
+  /** Số chu trình có ≥1 SC PROCESS phát hiện tại trạm. */
+  incidentCycles: number;
+  /** % SC / sản lượng trạm — null khi không có mẫu. */
+  rate: number | null;
+};
+
+/** Tỷ lệ SC theo trạm — một nguồn trong core (không tính lại trên trang). */
+export function computeStationIncidentRates(
+  stationVolume: readonly CssdStationVolumeRow[],
+  incidents: readonly CssdSafetyIncidentRow[],
+): CssdStationIncidentRateRow[] {
+  const cyclesByStation = new Map<string, Set<string>>();
+  for (const row of incidents) {
+    if (!isProcessCycleSafetyIncident(row)) continue;
+    const tram = String(row.ma_tram_phat_hien || "").trim().toUpperCase();
+    if (!(CSSD_ANALYTICS_STATIONS as readonly string[]).includes(tram)) continue;
+    const set = cyclesByStation.get(tram) ?? new Set<string>();
+    set.add(String(row.quy_trinh_id).trim());
+    cyclesByStation.set(tram, set);
+  }
+  return stationVolume.map((sv) => {
+    const incidentCycles = cyclesByStation.get(sv.station)?.size ?? 0;
+    const rate =
+      sv.completed > 0 ? Math.round((incidentCycles / sv.completed) * 1000) / 10 : null;
+    return {
+      station: sv.station,
+      label: sv.label,
+      completed: sv.completed,
+      incidentCycles,
+      rate,
+    };
+  });
 }

@@ -35,8 +35,10 @@ import {
   computeMeQcSummary,
   computeReuseFrequency,
   computeStaffScans,
+  computeStationIncidentRates,
   computeStationVolume,
   computeStationVolumeTrend,
+  countCyclesWithProcessIncidents,
   pivotVolumeTrendTotals,
   roundIncidentFreeRate,
   summarizeCssdAnalyticsBrief,
@@ -48,6 +50,7 @@ import {
   type CssdQuyTrinhAnalyticsRow,
   type CssdReuseRow,
   type CssdStaffScanRow,
+  type CssdStationIncidentRateRow,
   type CssdStationVolumeRow,
   type CssdVolumeBucket,
   type CssdVolumeTrendPoint,
@@ -295,7 +298,9 @@ export type CssdAnalyticsBundle = {
   brief: ReturnType<typeof summarizeCssdAnalyticsBrief>;
   tyLeQuyTrinhKhongSuCo: number | null;
   quyTrinhKyCount: number;
+  /** Số chu trình có ≥1 SC PROCESS (tử KPI) — không đếm phiếu. */
   suCoKyCount: number;
+  stationIncidentRates: CssdStationIncidentRateRow[];
 };
 
 function emptyAnalyticsBundle(): CssdAnalyticsBundle {
@@ -322,7 +327,7 @@ function emptyAnalyticsBundle(): CssdAnalyticsBundle {
     staffScans: [],
     brief: summarizeCssdAnalyticsBrief({
       stationVolume,
-      tyLeQuyTrinhKhongSuCo: 100,
+      tyLeQuyTrinhKhongSuCo: null,
       soBo: 0,
       meQc,
       mayReady: 0,
@@ -330,9 +335,10 @@ function emptyAnalyticsBundle(): CssdAnalyticsBundle {
       redAlertTotal: 0,
       frozenTotal: 0,
     }),
-    tyLeQuyTrinhKhongSuCo: 100,
+    tyLeQuyTrinhKhongSuCo: null,
     quyTrinhKyCount: 0,
     suCoKyCount: 0,
+    stationIncidentRates: [],
   };
 }
 
@@ -370,10 +376,15 @@ export async function fetchCssdAnalyticsBundle(filters: {
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
-      fetchAllReportRows<{ id?: string; attributes?: Record<string, unknown> | null }>((pFrom, pTo) =>
+      fetchAllReportRows<{
+        id?: string;
+        quy_trinh_id?: string | null;
+        ma_tram_phat_hien?: string | null;
+        attributes?: Record<string, unknown> | null;
+      }>((pFrom, pTo) =>
         supabase
           .from("v_cssd_su_co_full")
-          .select("id, attributes")
+          .select("id, quy_trinh_id, ma_tram_phat_hien, attributes")
           .gte("created_at", from)
           .lte("created_at", toEnd)
           .order("id", { ascending: true })
@@ -450,17 +461,15 @@ export async function fetchCssdAnalyticsBundle(filters: {
       if (compactSoHuu) next.ten_khoa = compactSoHuu;
       return next;
     });
-    const suCoKyCount = resS.rows.filter((x) => {
-      const attrs = (x.attributes as Record<string, unknown>) || {};
-      return countsTowardCssdSafetyTally(attrs);
-    }).length;
     const quyTrinhKyCount = quyTrinh.filter((r) => {
       const day = cssdVnDay(r.thoi_gian_tiep_nhan) || cssdVnDay(r.created_at) || "";
       return day >= from && day <= to;
     }).length;
+    const suCoKyCount = countCyclesWithProcessIncidents(resS.rows);
     const tyLe = roundIncidentFreeRate(quyTrinhKyCount, suCoKyCount);
 
     const stationVolume = computeStationVolume(quyTrinh, from, to);
+    const stationIncidentRates = computeStationIncidentRates(stationVolume, resS.rows);
     const pointsDay = computeStationVolumeTrend(quyTrinh, from, to, "day", stationFilter);
     const pointsMonth = computeStationVolumeTrend(quyTrinh, from, to, "month", stationFilter);
     const pointsYear = computeStationVolumeTrend(quyTrinh, from, to, "year", stationFilter);
@@ -559,6 +568,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
         tyLeQuyTrinhKhongSuCo: tyLe,
         quyTrinhKyCount,
         suCoKyCount,
+        stationIncidentRates,
       },
     };
   } catch (e: unknown) {

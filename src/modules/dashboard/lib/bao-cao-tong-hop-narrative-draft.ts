@@ -143,7 +143,11 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
   if ((payload.nkbv?.kpis?.dang_va_cho_xn ?? 0) > 0) {
     kn.push("Đôn đốc xác nhận phiếu NKBV đang chờ để đóng vòng kết cục lâm sàng.");
   }
-  if (payload.cssd && (payload.cssd.may_repairing > 0 || (payload.cssd.ty_le_quy_trinh_khong_su_co ?? 100) < 95)) {
+  if (
+    payload.cssd &&
+    (payload.cssd.may_repairing > 0 ||
+      (payload.cssd.ty_le_quy_trinh_khong_su_co != null && payload.cssd.ty_le_quy_trinh_khong_su_co < 95))
+  ) {
     kn.push("Rà soát vận hành CSSD (máy sửa / sự cố quy trình) để bảo đảm an toàn dụng cụ.");
   }
   kn.push("Báo cáo này do hệ thống gợi ý từ số liệu — Chủ nhiệm khoa KSNK chỉnh sửa trước khi ký gửi Ban Giám đốc.");

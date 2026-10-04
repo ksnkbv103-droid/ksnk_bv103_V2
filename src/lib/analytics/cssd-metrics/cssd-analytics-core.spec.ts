@@ -6,8 +6,10 @@ import {
   computeMayUsage,
   computeReuseFrequency,
   computeStaffScans,
+  computeStationIncidentRates,
   computeStationVolume,
   computeStationVolumeTrend,
+  countCyclesWithProcessIncidents,
   cssdVnDay,
   describeCssdCapPhatByKhoaNhan,
   describeCssdKhoaOwnershipProxy,
@@ -194,7 +196,8 @@ describe("cssd-analytics-core", () => {
 
   it("roundIncidentFreeRate and brief summary", () => {
     expect(roundIncidentFreeRate(100, 5)).toBe(95);
-    expect(roundIncidentFreeRate(0, 0)).toBe(100);
+    expect(roundIncidentFreeRate(0, 0)).toBeNull();
+    expect(roundIncidentFreeRate(1, 1)).toBe(0);
 
     const brief = summarizeCssdAnalyticsBrief({
       stationVolume: [
@@ -216,6 +219,41 @@ describe("cssd-analytics-core", () => {
     expect(brief.san_luong_cap_phat).toBe(5);
     expect(brief.tong_hoan_thanh_tram).toBe(45);
     expect(brief.ty_le_qc_dat_me).toBe(90);
+  });
+
+  it("CSSD-06: tử = chu trình có ≥1 SC PROCESS; máy không gắn chu trình bỏ", () => {
+    const rows = [
+      {
+        quy_trinh_id: "c1",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: "c1",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: "c1",
+        ma_tram_phat_hien: "DONG_GOI",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: null,
+        ma_tram_phat_hien: "TIET_KHUAN",
+        attributes: { INCIDENT_GROUP: "EQUIPMENT", INCIDENT_STATUS: "OPEN" },
+      },
+    ];
+    expect(countCyclesWithProcessIncidents(rows)).toBe(1);
+    expect(roundIncidentFreeRate(1, 1)).toBe(0);
+    const volume = [
+      { station: "QC" as const, label: "Kiểm bộ", completed: 2 },
+      { station: "DONG_GOI" as const, label: "Đóng gói", completed: 0 },
+    ];
+    const rates = computeStationIncidentRates(volume, rows);
+    expect(rates.find((r) => r.station === "QC")?.incidentCycles).toBe(1);
+    expect(rates.find((r) => r.station === "QC")?.rate).toBe(50);
+    expect(rates.find((r) => r.station === "DONG_GOI")?.rate).toBeNull();
   });
 });
 
