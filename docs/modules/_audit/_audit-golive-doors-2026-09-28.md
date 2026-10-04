@@ -468,3 +468,21 @@ Next 16.3 Turbopack không in bảng First Load JS cổ điển; đo approximate
 | `8058d73` | PERF-C: `20261005020000_perf_rls_initplan_hot_paths.sql` (chưa apply) |
 
 Chưa vá (park): PermissionProvider/StaffSessionGate trùng `getSession`; NKBV dashboard vẫn `fetchAllRangeRows` theo kỳ; QLCV kanban dump toàn board; nhân sự form vẫn full active list (cần async search); BCTH `ssr:false`.
+
+## PERF-2 — tốc độ app (2026-10-05, nhánh `cursor/perf-2`)
+
+Không migration RLS/index. `tsc` + vitest analytics/QLCV + `npm run verify` OK.
+
+| Commit | Việc |
+|--------|------|
+| `80d03d2` | PERF2-auth: hydrate RBAC server→client; proxy `getClaims`; React `cache` getUser |
+| `2882cc0` | PERF2-nkbv-loop: debounce hub reload; prune/persist chỉ khi đổi; deep-link deps ổn định |
+| `cca6d90` | PERF2-dash: cache 90s RPC VST/GSC strategic + TGS hits; bust tag khi ghi |
+| `e87980d` | PERF2-payload/count: NKBV dash cache; QLCV board cắt cột+lọc SQL; NS limit 400; count `planned` UI |
+| `9ff170c` | PERF2-chunks: dynamic CSSD report/history/BK; bỏ `ssr:false` BCTH/VST/GSC analytics |
+
+Ước giảm request/trang: auth −1 `/auth/v1/user` (middleware) + −1 `v_sys_user_permissions` (client mount); dashboard VST/GSC −2 RPC khi cache hit (90s); NKBV hub tránh bão reload; VST list bỏ `count=exact` trên view nặng.
+
+Chunk đo (prod `.next`, Turbopack không in First Load cổ điển): `cssd-erp/report` client-ref ~545KB; `cssd-dung-cu` ~499KB; `bao-cao-tong-hop` ~419KB. Shared exceljs vẫn ~0.9–1.3MB (lazy khi export).
+
+Park còn: StaffSessionGate `getSession`; picker NS async search đầy đủ; exceljs shared chunk; RLS/index Lead.
