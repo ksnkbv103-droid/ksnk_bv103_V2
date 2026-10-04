@@ -47,7 +47,12 @@ export interface IncidentPrintViewProps {
 export function getGoogleDriveDirectLink(url: string): string {
   if (!url || typeof url !== "string") return "";
   const trimmed = url.trim();
-  if (!trimmed.includes("drive.google.com")) return trimmed;
+  try {
+    const host = new URL(trimmed).hostname;
+    if (host !== "drive.google.com") return trimmed;
+  } catch {
+    return trimmed;
+  }
 
   // Hỗ trợ dạng: /file/d/FILE_ID/view?usp=sharing hoặc tương tự
   const fileDMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
