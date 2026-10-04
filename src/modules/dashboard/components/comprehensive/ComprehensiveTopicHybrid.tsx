@@ -63,6 +63,10 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
           title="Vệ sinh tay"
           available={payload?.capabilities.topic_vst}
           deepHref={deep ? buildAnalyticsDeepLink("/thong-ke/vst", deep) : "/thong-ke/vst"}
+          extraDeepLinks={[
+            { href: "/thong-ke/gsc?bk=KSNK.QT.07.BM.02", label: "BM.02" },
+            { href: "/thong-ke/gsc?bk=KSNK.QT.07.BM.03", label: "BM.03" },
+          ]}
           lines={buildVstLines(payload)}
         />
       )}
@@ -94,20 +98,34 @@ function TopicSummary({
   title,
   available,
   deepHref,
+  extraDeepLinks,
   lines,
 }: {
   title: string;
   available?: boolean;
   deepHref: string;
+  extraDeepLinks?: { href: string; label: string }[];
   lines: string[];
 }) {
   return (
     <div className="mb-5 border-b border-slate-100 pb-5 last:mb-0 last:border-0 last:pb-0">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="bv103-type-section text-slate-700">{title}</h3>
-        <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
-          Chi tiết thống kê <ExternalLink size={10} aria-hidden />
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
+            {extraDeepLinks?.length ? "WHO" : "Chi tiết thống kê"}{" "}
+            <ExternalLink size={10} aria-hidden />
+          </Link>
+          {extraDeepLinks?.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="bv103-type-label font-semibold text-emerald-700 hover:underline"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
       </div>
       {!available ? (
         <p className="text-xs text-slate-500">N/A — không có dữ liệu hoặc không có quyền nguồn.</p>

@@ -53,6 +53,26 @@ function ThongKeModeAndModuleTabs() {
           Báo cáo chính thức
         </Link>
         . Nhập và lịch sử phiên ở ModeNav.
+        {isVst ? (
+          <>
+            {" "}
+            Khối Vệ sinh tay ·{" "}
+            <Link
+              href="/thong-ke/gsc?bk=KSNK.QT.07.BM.02"
+              className="font-medium text-[var(--primary)] underline"
+            >
+              BM.02
+            </Link>
+            {" / "}
+            <Link
+              href="/thong-ke/gsc?bk=KSNK.QT.07.BM.03"
+              className="font-medium text-[var(--primary)] underline"
+            >
+              BM.03
+            </Link>
+            .
+          </>
+        ) : null}
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {isVst || isGsc ? (

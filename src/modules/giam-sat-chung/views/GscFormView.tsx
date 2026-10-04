@@ -29,7 +29,10 @@ import type { GscFormProgress } from "../lib/gsc-score-display";
 import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
 import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
 import type { GscPatientPrefill } from "../lib/gsc-patient-prefill";
-import { filterOutWhoBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
+import {
+  filterOutWhoBangKiemRows,
+  VE_SINH_TAY_ENTRIES,
+} from "@/lib/domain/ve-sinh-tay-catalog";
 import {
   filterBangKiemByLopGiamSatMode,
   isGscRouteDeepLinkAllowed,
@@ -71,6 +74,25 @@ function GscSiblingDoors({ current }: { current?: GscLoaiGiamSatRoute }) {
               {d.label}
             </Link>
           )}
+        </React.Fragment>
+      ))}
+    </p>
+  );
+}
+
+/** Lối nhỏ khối Vệ sinh tay (BM.02/03) — không đưa vào picker (R4). */
+function GscVeSinhTayQuietLinks({ show }: { show: boolean }) {
+  if (!show) return null;
+  const gscEntries = VE_SINH_TAY_ENTRIES.filter((e) => e.kind === "gsc");
+  return (
+    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+      Vệ sinh tay:{" "}
+      {gscEntries.map((e, i) => (
+        <React.Fragment key={e.qtMa}>
+          {i > 0 ? " · " : null}
+          <Link href={e.href} className="font-semibold text-[var(--primary)] hover:underline">
+            {e.label}
+          </Link>
         </React.Fragment>
       ))}
     </p>
@@ -332,6 +354,7 @@ export default function GscFormView({
       ) : (
         <div className="space-y-2">
           <GscSiblingDoors current={initialLoaiGiamSat} />
+          <GscVeSinhTayQuietLinks show={initialLoaiGiamSat === "TUAN_THU"} />
           <ChecklistTemplateTable
             data={processedData}
             onSelect={handleSelectTemplate}
