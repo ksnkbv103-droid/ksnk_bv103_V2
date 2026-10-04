@@ -1,5 +1,8 @@
 import { eachMonthOfInterval, format, parseISO, startOfMonth } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+  loaiCodeFromClassification,
+} from "./nkbv-classification-taxonomy";
 import { formatNkbvLoaiDisplay } from "./nkbv-loai-labels";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
@@ -8,6 +11,10 @@ export type NkbvCasRowMinimal = {
   loai_nkbv?: { ma_loai?: string | null; ten_loai?: string | null } | null;
   trang_thai_row?: { ma_trang_thai?: string | null; ten_trang_thai?: string | null } | null;
   khoa_ghi_nhan?: { ma_khoa?: string | null; ten_khoa?: string | null } | null;
+  /** verification_data.classification — nguồn by_loai khi đã xác nhận NKBV. */
+  classification?: string | null;
+  /** verification_data.is_positive — KPI «Đã xác nhận NKBV» = XAC_NHAN ∧ true. */
+  is_positive?: boolean | null;
 };
 
 /**
@@ -113,22 +120,27 @@ export function aggregateNkbvDashboard(
   for (const r of inRange) {
     const ma_tt = String(r.trang_thai_row?.ma_trang_thai || "").trim();
     const ten_tt = String(r.trang_thai_row?.ten_trang_thai || "").trim() || ma_tt;
-    const ma_loai = String(r.loai_nkbv?.ma_loai || "").trim();
-    const ten_loai = formatNkbvLoaiDisplay(ma_loai, r.loai_nkbv?.ten_loai);
+    const portalLoai = String(r.loai_nkbv?.ma_loai || "").trim();
     const tn = parseISO(`${String(r.ngay_phat_hien).slice(0, 10)}T12:00:00`);
 
     const yk = format(tn, "yyyy-MM");
     monthCount[yk] = (monthCount[yk] ?? 0) + 1;
 
-    if (ma_tt === "XAC_NHAN") da_xac_nhan += 1;
+    const confirmedNkbv = ma_tt === "XAC_NHAN" && r.is_positive === true;
+    if (confirmedNkbv) da_xac_nhan += 1;
     else if (ma_tt === "LOAI_TRU") loai_tru += 1;
     else if (ma_tt === "DA_DONG") da_dong += 1;
     else if (CHO_TAC.has(ma_tt)) dang_va_cho_xn += 1;
 
-    const lk = ma_loai || `_null_${ten_loai}`;
-    const curLo = loaiMap.get(lk) ?? { ma: ma_loai || "—", ten: ten_loai, n: 0 };
-    curLo.n += 1;
-    loaiMap.set(lk, curLo);
+    // by_loai: chỉ ca XAC_NHAN ∧ is_positive, nhóm theo classification
+    if (confirmedNkbv) {
+      const ma_loai = loaiCodeFromClassification(r.classification, portalLoai);
+      const ten_loai = formatNkbvLoaiDisplay(ma_loai, r.loai_nkbv?.ten_loai);
+      const lk = ma_loai || `_null_${ten_loai}`;
+      const curLo = loaiMap.get(lk) ?? { ma: ma_loai || "—", ten: ten_loai, n: 0 };
+      curLo.n += 1;
+      loaiMap.set(lk, curLo);
+    }
 
     const tk = ma_tt || "_NONE";
     const curT = ttMap.get(tk) ?? { ma: ma_tt || "—", ten: ten_tt, n: 0 };

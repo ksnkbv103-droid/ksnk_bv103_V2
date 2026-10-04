@@ -8,7 +8,9 @@ import {
   NKBV_VAE_CLASSIFICATIONS,
   isCautiClassification,
   isVapClassification,
+  loaiCodeFromClassification,
   nkbvMajorTypeFromClassification,
+  nkbvNonHaiCloseReason,
 } from "./nkbv-classification-taxonomy";
 
 const MIGRATION = join(
@@ -100,6 +102,17 @@ describe("nkbvMajorTypeFromClassification", () => {
     expect(isCautiClassification("CAUTI_ABUTI")).toBe(true);
     expect(isCautiClassification("SUTI")).toBe(false);
     expect(isCautiClassification("ABUTI")).toBe(false);
+  });
+
+  it("loaiCodeFromClassification: PNU2_VAP → VAP dù cổng PNEU/HAP", () => {
+    expect(loaiCodeFromClassification("PNU2_VAP", "PNEU")).toBe("VAP");
+    expect(loaiCodeFromClassification("PNU1_HAP", "PNEU")).toBe("HAP");
+    expect(loaiCodeFromClassification("POA", "PNEU")).toBe("HAP");
+  });
+
+  it("nkbvNonHaiCloseReason tự sinh theo classification", () => {
+    expect(nkbvNonHaiCloseReason("POA")).toMatch(/POA/);
+    expect(nkbvNonHaiCloseReason("CONTAMINATION")).toMatch(/Ngoại nhiễm/);
   });
 });
 

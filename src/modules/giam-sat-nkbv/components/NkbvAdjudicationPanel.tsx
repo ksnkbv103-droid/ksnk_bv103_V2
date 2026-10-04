@@ -9,22 +9,28 @@ import { toast } from "sonner";
 interface NkbvAdjudicationPanelProps {
   onAdjudicate: (decision: "APPROVE" | "EXCLUDE", reason?: string) => Promise<void>;
   allowedEdit: boolean;
-  simulatedRole?: 'KSNK' | 'LAM_SANG' | 'VI_SINH';
+  simulatedRole?: "KSNK" | "LAM_SANG" | "VI_SINH";
   adjudicating: boolean;
+  /** Chỉ hiện «Xác nhận NKBV» khi engine dương tính. */
+  canConfirmNkbv?: boolean;
+  /** Classification hiện tại — lý do tự sinh khi đóng không-NKBV. */
+  classification?: string | null;
 }
 
 export default function NkbvAdjudicationPanel({
   onAdjudicate,
   allowedEdit,
-  simulatedRole = 'KSNK',
+  simulatedRole = "KSNK",
   adjudicating,
+  canConfirmNkbv = false,
+  classification = null,
 }: NkbvAdjudicationPanelProps) {
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [lyDoLoaiTru, setLyDoLoaiTru] = useState("");
 
   if (!allowedEdit) return null;
 
-  const isRoleLocked = simulatedRole !== 'KSNK';
+  const isRoleLocked = simulatedRole !== "KSNK";
 
   const handleAction = async (decision: "APPROVE" | "EXCLUDE") => {
     if (isRoleLocked) {
@@ -32,13 +38,18 @@ export default function NkbvAdjudicationPanel({
       return;
     }
 
-    if (decision === "EXCLUDE" && !lyDoLoaiTru.trim()) {
+    if (decision === "APPROVE" && !canConfirmNkbv) {
+      toast.error("Kết luận không phải NKBV — không thể xác nhận NKBV.");
+      return;
+    }
+
+    if (decision === "EXCLUDE" && canConfirmNkbv && !lyDoLoaiTru.trim()) {
       toast.error("Vui lòng điền lý do loại trừ ca bệnh!");
       return;
     }
 
-    await onAdjudicate(decision, decision === "EXCLUDE" ? lyDoLoaiTru : undefined);
-    
+    await onAdjudicate(decision, decision === "EXCLUDE" ? lyDoLoaiTru || undefined : undefined);
+
     if (decision === "EXCLUDE") {
       setLyDoLoaiTru("");
       setShowRejectForm(false);
@@ -46,9 +57,11 @@ export default function NkbvAdjudicationPanel({
   };
 
   return (
-    <div className={`relative ${UI.inset} mt-2 flex flex-col gap-3 transition ${
-      isRoleLocked ? "opacity-75 bg-slate-100/80" : ""
-    }`}>
+    <div
+      className={`relative ${UI.inset} mt-2 flex flex-col gap-3 transition ${
+        isRoleLocked ? "opacity-75 bg-slate-100/80" : ""
+      }`}
+    >
       {isRoleLocked && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/10 rounded-[var(--radius-shell)] backdrop-blur-[0.5px]">
           <span className="rounded-full bg-slate-800/95 border border-slate-700 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md flex items-center gap-1.5 animate-in zoom-in-95 duration-250">
@@ -56,7 +69,9 @@ export default function NkbvAdjudicationPanel({
           </span>
         </div>
       )}
-      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${isRoleLocked ? "pointer-events-none select-none" : ""}`}>
+      <div
+        className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${isRoleLocked ? "pointer-events-none select-none" : ""}`}
+      >
         <div className="flex items-center gap-1.5">
           <Award className="h-5 w-5 text-[var(--primary)]" />
           <span className={UI.panelTitle}>
@@ -64,26 +79,40 @@ export default function NkbvAdjudicationPanel({
           </span>
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            disabled={adjudicating || isRoleLocked}
-            onClick={() => handleAction("APPROVE")}
-            className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
-          >
-            <Check className="h-3.5 w-3.5" /> Phê duyệt (Xác nhận NKBV)
-          </button>
-          <button
-            type="button"
-            disabled={adjudicating || isRoleLocked}
-            onClick={() => setShowRejectForm(!showRejectForm)}
-            className="rounded-full bg-red-55 hover:bg-red-100 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-red-655 border border-red-200 transition flex items-center gap-1 disabled:opacity-50"
-          >
-            <Ban className="h-3.5 w-3.5" /> Loại trừ (Từ chối NKBV)
-          </button>
+          {canConfirmNkbv ? (
+            <button
+              type="button"
+              disabled={adjudicating || isRoleLocked}
+              onClick={() => handleAction("APPROVE")}
+              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
+            >
+              <Check className="h-3.5 w-3.5" /> Phê duyệt (Xác nhận NKBV)
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={adjudicating || isRoleLocked}
+              onClick={() => handleAction("EXCLUDE")}
+              className="rounded-full bg-slate-700 hover:bg-slate-800 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
+              title={classification ? `Đóng theo kết luận ${classification}` : undefined}
+            >
+              <Ban className="h-3.5 w-3.5" /> Đóng — không phải NKBV
+            </button>
+          )}
+          {canConfirmNkbv && (
+            <button
+              type="button"
+              disabled={adjudicating || isRoleLocked}
+              onClick={() => setShowRejectForm(!showRejectForm)}
+              className="rounded-full bg-red-55 hover:bg-red-100 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-red-655 border border-red-200 transition flex items-center gap-1 disabled:opacity-50"
+            >
+              <Ban className="h-3.5 w-3.5" /> Loại trừ (Từ chối NKBV)
+            </button>
+          )}
         </div>
       </div>
 
-      {showRejectForm && !isRoleLocked && (
+      {showRejectForm && !isRoleLocked && canConfirmNkbv && (
         <div className="space-y-2 border-t border-slate-200/60 pt-3 animate-in slide-in-from-top-2">
           <label className={`${UI.formLabel} text-red-700`}>
             Lý do loại trừ ca bệnh này khỏi thống kê dịch tễ *

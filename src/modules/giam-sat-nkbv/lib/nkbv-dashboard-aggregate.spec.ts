@@ -14,19 +14,23 @@ describe("aggregateNkbvDashboard", () => {
     expect(out.monthly.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("counts XAC_NHAN and excludes LOAI_TRU from PA denominator for rate", () => {
+  it("counts XAC_NHAN ∧ is_positive; excludes LOAI_TRU from PA denominator", () => {
     const rows = [
       {
         ngay_phat_hien: "2026-01-15",
         trang_thai_row: { ma_trang_thai: "XAC_NHAN", ten_trang_thai: "Đã xác nhận" },
         loai_nkbv: { ma_loai: "UTI", ten_loai: "UTI" },
         khoa_ghi_nhan: { ten_khoa: "Khoa A" },
+        is_positive: true,
+        classification: "CAUTI_SUTI",
       },
       {
         ngay_phat_hien: "2026-01-16",
         trang_thai_row: { ma_trang_thai: "LOAI_TRU", ten_trang_thai: "Loại trừ" },
         loai_nkbv: { ma_loai: "UTI", ten_loai: "UTI" },
         khoa_ghi_nhan: { ten_khoa: "Khoa A" },
+        is_positive: false,
+        classification: "POA",
       },
       {
         ngay_phat_hien: "2026-01-17",
@@ -34,14 +38,44 @@ describe("aggregateNkbvDashboard", () => {
         loai_nkbv: { ma_loai: "BSI", ten_loai: "BSI" },
         khoa_ghi_nhan: { ten_khoa: "Khoa B" },
       },
+      {
+        // XAC_NHAN nhưng không dương tính → không đếm KPI NKBV
+        ngay_phat_hien: "2026-01-18",
+        trang_thai_row: { ma_trang_thai: "XAC_NHAN", ten_trang_thai: "Đã xác nhận" },
+        loai_nkbv: { ma_loai: "UTI", ten_loai: "UTI" },
+        khoa_ghi_nhan: { ten_khoa: "Khoa A" },
+        is_positive: false,
+        classification: "POA",
+      },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
-    expect(out.kpis.tong_phieu).toBe(3);
+    expect(out.kpis.tong_phieu).toBe(4);
     expect(out.kpis.da_xac_nhan).toBe(1);
     expect(out.kpis.loai_tru).toBe(1);
     expect(out.kpis.dang_va_cho_xn).toBe(1);
-    // PA = 3 - 1 loại trừ = 2 → 1/2 = 50%
-    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(50);
+    // PA = 4 - 1 loại trừ = 3 → 1/3 = 33%
+    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(33);
+    expect(out.by_loai).toEqual(
+      expect.arrayContaining([expect.objectContaining({ ma: "UTI", so_phieu: 1 })]),
+    );
+  });
+
+  it("by_loai maps PNU2_VAP → VAP (not HAP portal)", () => {
+    const out = aggregateNkbvDashboard(
+      [
+        {
+          ngay_phat_hien: "2026-01-15",
+          trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
+          loai_nkbv: { ma_loai: "HAP", ten_loai: "HAP" },
+          khoa_ghi_nhan: { ten_khoa: "ICU" },
+          is_positive: true,
+          classification: "PNU2_VAP",
+        },
+      ],
+      "2026-01-01",
+      "2026-01-31",
+    );
+    expect(out.by_loai[0]?.ma).toBe("VAP");
   });
 
   it("counts CHO_DUYET in dang_va_cho_xn (phiếu đã gửi form, chưa duyệt)", () => {
@@ -67,12 +101,14 @@ describe("aggregateNkbvDashboard", () => {
         trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
         loai_nkbv: { ma_loai: "X" },
         khoa_ghi_nhan: { ten_khoa: "K1" },
+        is_positive: true,
       },
       {
         ngay_phat_hien: "2026-01-05",
         trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
         loai_nkbv: { ma_loai: "X" },
         khoa_ghi_nhan: { ten_khoa: "K1" },
+        is_positive: true,
       },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
@@ -86,6 +122,8 @@ describe("aggregateNkbvDashboard", () => {
         trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
         loai_nkbv: { ma_loai: "UTI" },
         khoa_ghi_nhan: { ten_khoa: "A" },
+        is_positive: true,
+        classification: "CAUTI_SUTI",
       },
       {
         ngay_phat_hien: "2026-01-16",
@@ -114,12 +152,14 @@ describe("aggregateNkbvDashboard", () => {
         trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
         loai_nkbv: { ma_loai: "UTI" },
         khoa_ghi_nhan: { ma_khoa: "A05", ten_khoa: "Khoa truyền nhiễm" },
+        is_positive: true,
       },
       {
         ngay_phat_hien: "2026-01-11",
         trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
         loai_nkbv: { ma_loai: "UTI" },
         khoa_ghi_nhan: { ma_khoa: "A05", ten_khoa: "Khoa truyền nhiễm" },
+        is_positive: true,
       },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");

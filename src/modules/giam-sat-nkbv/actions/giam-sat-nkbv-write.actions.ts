@@ -30,6 +30,10 @@ import {
   verifiedSiblingFromCaseRow,
 } from "../lib/nkbv-rit-hard-stop";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
+import {
+  loaiCodeFromClassification,
+  nkbvNonHaiCloseReason,
+} from "../lib/nkbv-classification-taxonomy";
 import { hydratePriorOpenVaeDoe } from "../lib/nkbv-vae-event-period";
 import {
   isNkbvTerminalCaseStatus,
@@ -354,25 +358,30 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       throw new Error(`Vị trí nhiễm khuẩn không hợp lệ: ${viTriNhiemKhuan}`);
     }
 
-    // Map code to Vietnamese label and category code — VAE / VAP / HAP tách riêng
+    // Map loại theo classification engine (cổng PNEU → VAP/HAP theo kết luận)
     let mappedViTri = "";
-    let loaiCode = "";
-    if (viTriNhiemKhuan === "BSI") {
+    let loaiCode = loaiCodeFromClassification(result.classification, viTriNhiemKhuan);
+    if (loaiCode === "BSI" || viTriNhiemKhuan === "BSI") {
       mappedViTri = "Máu";
       loaiCode = "BSI";
-    } else if (viTriNhiemKhuan === "VAE") {
+    } else if (loaiCode === "VAE" || viTriNhiemKhuan === "VAE") {
       mappedViTri = "Đường hô hấp (VAE)";
       loaiCode = "VAE";
-    } else if (viTriNhiemKhuan === "VAP") {
+    } else if (loaiCode === "VAP") {
       mappedViTri = "Đường hô hấp (VAP)";
-      loaiCode = "VAP";
-    } else if (viTriNhiemKhuan === "HAP" || viTriNhiemKhuan === "PNEU") {
-      mappedViTri = "Đường hô hấp (HAP)";
-      loaiCode = "HAP";
-    } else if (viTriNhiemKhuan === "UTI") {
+    } else if (
+      loaiCode === "HAP" ||
+      viTriNhiemKhuan === "HAP" ||
+      viTriNhiemKhuan === "PNEU" ||
+      viTriNhiemKhuan === "VAP"
+    ) {
+      mappedViTri =
+        loaiCode === "VAP" ? "Đường hô hấp (VAP)" : "Đường hô hấp (HAP)";
+      if (loaiCode !== "VAP") loaiCode = "HAP";
+    } else if (loaiCode === "UTI" || viTriNhiemKhuan === "UTI") {
       mappedViTri = "Đường tiết niệu";
       loaiCode = "UTI";
-    } else if (viTriNhiemKhuan === "SSI") {
+    } else if (loaiCode === "SSI" || viTriNhiemKhuan === "SSI") {
       mappedViTri = "Vết mổ";
       loaiCode = "SSI";
     } else if (viTriNhiemKhuan === "CH17") {
@@ -385,21 +394,30 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       loaiCode = site || "CH17";
     }
 
-    // Query loai_nkbv_id based on loaiCode (VAE / VAP / HAP tách; HAP fallback PNEU)
+    // Tra loai_nkbv_id — khớp chính xác mã trước; HAP fallback PNEU
     let loaiNkbvId = undefined;
     if (loaiCode) {
-      const orParts = [`ma_loai.ilike.%${loaiCode}%`, `ma_loai.ilike.%${viTriNhiemKhuan}%`];
-      if (loaiCode === "HAP") orParts.push("ma_loai.ilike.%PNEU%");
-      if (loaiCode === "VAP") orParts.push("ma_loai.ilike.%PEDVAP%");
       const { data: matchedLoai } = await supabase
         .from("nkbv_dm_loai")
         .select("id, ma_loai")
-        .or(orParts.join(","))
         .eq("is_active", true)
-        .limit(5);
+        .in(
+          "ma_loai",
+          loaiCode === "HAP"
+            ? [loaiCode, "PNEU", "HAP"]
+            : [loaiCode],
+        )
+        .limit(10);
 
       const exact =
-        (matchedLoai || []).find((r) => String(r.ma_loai || "").toUpperCase() === loaiCode) ||
+        (matchedLoai || []).find(
+          (r) => String(r.ma_loai || "").toUpperCase() === loaiCode,
+        ) ||
+        (loaiCode === "HAP"
+          ? (matchedLoai || []).find(
+              (r) => String(r.ma_loai || "").toUpperCase() === "PNEU",
+            )
+          : undefined) ||
         (matchedLoai || [])[0];
       if (exact) {
         loaiNkbvId = exact.id;
@@ -505,14 +523,35 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
   }
 }
 
-/** KSNK thẩm định bình duyệt phán quyết cuối cùng (Phê duyệt XAC_NHAN hoặc từ chối LOAI_TRU kèm lý do). */
+/** KSNK thẩm định: APPROVE → XAC_NHAN chỉ khi is_positive; không-NKBV → LOAI_TRU + lý do tự sinh. */
 export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" | "EXCLUDE", lyDoLoaiTru?: string) {
-  await verifyPermission("GIAM_SAT_NKBV", "edit");
+  await verifyPermission("GIAM_SAT_NKBV", "approve");
   const supabase = createAdminSupabaseClient();
 
   try {
+    const { data: ca, error: fetchErr } = await supabase
+      .from("nkbv_fact_su_kien")
+      .select("clinical_notes, verification_data")
+      .eq("id", id)
+      .single();
+    if (fetchErr) throw fetchErr;
+
+    const vd =
+      ca?.verification_data && typeof ca.verification_data === "object"
+        ? (ca.verification_data as Record<string, unknown>)
+        : {};
+    const isPositive = vd.is_positive === true;
+    const classification =
+      typeof vd.classification === "string" ? vd.classification : "";
+
+    if (decision === "APPROVE" && !isPositive) {
+      return {
+        success: false as const,
+        error: "Kết luận không phải NKBV — chỉ phê duyệt khi engine dương tính (HAI đủ tiêu chí).",
+      };
+    }
+
     const statusCode = decision === "APPROVE" ? "XAC_NHAN" : "LOAI_TRU";
-    
     const { data: lookupStatus, error: lErr } = await supabase
       .from("nkbv_dm_trang_thai_ca")
       .select("id")
@@ -522,17 +561,15 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
     if (lErr) throw lErr;
     if (!lookupStatus) throw new Error(`Không tìm thấy trạng thái ${statusCode}.`);
 
-    const { data: ca, error: fetchErr } = await supabase
-      .from("nkbv_fact_su_kien")
-      .select("clinical_notes")
-      .eq("id", id)
-      .single();
-    if (fetchErr) throw fetchErr;
-
-    const existingNotes = ca?.clinical_notes && typeof ca.clinical_notes === "object" ? ca.clinical_notes : {};
+    const existingNotes =
+      ca?.clinical_notes && typeof ca.clinical_notes === "object" ? ca.clinical_notes : {};
+    const autoReason = nkbvNonHaiCloseReason(classification);
     const updatedNotes = {
       ...existingNotes,
-      ly_do_loai_tru: decision === "EXCLUDE" ? (lyDoLoaiTru || "Từ chối bởi KSNK") : null,
+      ly_do_loai_tru:
+        decision === "EXCLUDE"
+          ? (lyDoLoaiTru?.trim() || autoReason)
+          : null,
     };
 
     const { data, error: updateErr } = await supabase

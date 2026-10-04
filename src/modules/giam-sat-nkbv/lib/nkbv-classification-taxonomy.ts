@@ -71,3 +71,42 @@ export function isVapClassification(classification: string | null | undefined): 
 export function isCautiClassification(classification: string | null | undefined): boolean {
   return String(classification || "").trim().toUpperCase().startsWith("CAUTI");
 }
+
+/**
+ * Mã loại MDM từ classification engine (không dùng cổng tạo phiếu).
+ * PNU*_VAP → VAP; PNU*_HAP/NON_VAP → HAP — tránh gắn HAP cho mọi PNEU.
+ */
+export function loaiCodeFromClassification(
+  classification: string | null | undefined,
+  portalFallback?: string | null,
+): string {
+  const cls = String(classification || "").trim().toUpperCase();
+  if (/^PNU[123]_VAP$/.test(cls)) return "VAP";
+  if (/^PNU[123]_(HAP|NON_VAP)$/.test(cls)) return "HAP";
+  if (cls === "VAC" || cls === "IVAC" || cls === "PVAP") return "VAE";
+  if (BSI.has(cls)) return "BSI";
+  if (UTI.has(cls) || cls === "SUTI_2" || cls === "CAUTI_SUTI_2") return "UTI";
+  if (SSI.has(cls) || cls.startsWith("ORGAN_SPACE") || cls.startsWith("SSI:")) return "SSI";
+  if (cls.startsWith("CH17:")) {
+    const site = cls.slice(5).trim();
+    return site || "CH17";
+  }
+  const fb = String(portalFallback || "").trim().toUpperCase();
+  if (fb === "PNEU" || fb === "HAP") return "HAP";
+  if (fb === "VAP") return "VAP";
+  return fb || cls || "—";
+}
+
+/** Lý do tự sinh khi đóng phiếu không phải NKBV (LOAI_TRU tạm). */
+export function nkbvNonHaiCloseReason(classification: string | null | undefined): string {
+  const cls = String(classification || "").trim().toUpperCase();
+  const map: Record<string, string> = {
+    POA: "Kết luận POA — không phải NKBV (HAI).",
+    RIT: "Thuộc RIT ca trước — không tạo tử số NKBV mới.",
+    CONTAMINATION: "Ngoại nhiễm / tạp nhiễm — không phải NKBV.",
+    NO_EVENT: "Không đủ tiêu chí sự kiện NHSN — không phải NKBV.",
+    COMMUNITY_INFECTION: "Nhiễm khuẩn cộng đồng — không phải NKBV.",
+  };
+  if (map[cls]) return map[cls];
+  return `Kết luận ${cls || "không dương tính"} — đóng phiếu không xác nhận NKBV.`;
+}
