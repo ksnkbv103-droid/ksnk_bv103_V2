@@ -1,6 +1,7 @@
 "use client";
 
 /** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại · Lịch sử kho). Hỏng/Mất ở /cssd-su-co. */
+import { Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
@@ -82,7 +83,7 @@ const SetReconcileCampaignPanel = dynamic(
   { ssr: false },
 );
 
-export default function Page() {
+function CssdDungCuPageInner() {
   const s = useCssdCatalogPage();
   const isCatalogTab = s.tab === "BO" || s.tab === "LOAI";
 
@@ -233,5 +234,19 @@ export default function Page() {
       </div>
     </CSSDPageShell>
     </CatalogDeNghiCartProvider>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+        </div>
+      }
+    >
+      <CssdDungCuPageInner />
+    </Suspense>
   );
 }
