@@ -38,6 +38,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("Index CDHA ∈ IWP → có hình ảnh; thiếu LS → NO_EVENT", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -59,6 +60,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("sputum + XQ + LS ≥2 + Vent ≥3d → PNU1_VAP (đờm không đủ Table 2)", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "XN",
       indexXn: sputum({ id: "x1", ngay: ix }),
       indexCdha: null,
@@ -86,6 +88,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("BAL 10^4 + LS + Vent → PNU2_VAP (lab-first từ so_luong)", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "XN",
       indexXn: {
         id: "x1",
@@ -119,6 +122,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("XQ + LS đủ, không Vent → PNU1_NON_VAP", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -143,6 +147,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("không imaging → NO_EVENT", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "XN",
       indexXn: sputum({ id: "x1", ngay: ix }),
       indexCdha: null,
@@ -175,6 +180,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       source: "LIS",
     };
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -203,6 +209,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("tim phổi nền + 1 phim → NO_EVENT; + 2 phim → OK", () => {
     const ix = "2026-07-20";
     const one = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -224,6 +231,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
     expect(one.result.classification).toBe("NO_EVENT");
 
     const two = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -248,6 +256,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("A1: khó thở + thở nhanh = 1 nhóm CDC → không PNU1", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -273,6 +282,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("A2: BAL + 1 nhóm hô hấp → PNU2", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "XN",
       indexXn: {
         id: "x1",
@@ -303,6 +313,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("A4: atom miễn dịch + lab đạt → PNU3 (không cần ho ra máu)", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "XN",
       indexXn: {
         id: "x1",
@@ -334,6 +345,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
   it("A5: người lớn + vent ≥4 ngày → không PNU*_VAP", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexKind: "CDHA",
       indexXn: null,
       indexCdha: xq({ id: "c1", ngay: ix }),
@@ -377,6 +389,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       devicePlacedDate: "2026-07-17",
     };
     const missing = buildPneuTimelineVerdict({ ...base, patientAge: null });
+      admissionDate: "2026-07-01",
     expect(missing.criteriaMet).toBe(false);
     expect(missing.result.is_positive).toBe(false);
     expect(missing.result.classification).toBe("NO_EVENT");
@@ -385,6 +398,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
     expect(String(missing.ketLuanLabel)).toMatch(/Thiếu ngày sinh/);
 
     const omitted = buildPneuTimelineVerdict({ ...base });
+      admissionDate: "2026-07-01",
     expect(omitted.result.classification).toBe("NO_EVENT");
     expect(omitted.result.reason).toMatch(/Thiếu ngày sinh/);
     expect(omitted.criteriaMet).toBe(false);

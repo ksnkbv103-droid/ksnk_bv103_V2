@@ -261,10 +261,30 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       });
     }
 
+    // POA/HAI: hydrate ngày VV từ phiếu/BA — bỏ hai_status client
+    let ngayVaoVienServer = caRow?.ngay_vao_vien
+      ? String(caRow.ngay_vao_vien).slice(0, 10)
+      : "";
+    if (!ngayVaoVienServer && caRow?.ma_benh_an) {
+      const { data: baStay } = await supabase
+        .from("nkbv_fact_benh_an")
+        .select("ngay_vao_vien")
+        .eq("ma_benh_an", caRow.ma_benh_an)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (baStay?.ngay_vao_vien) {
+        ngayVaoVienServer = String(baStay.ngay_vao_vien).slice(0, 10);
+      }
+    }
+
     const evalInput: Record<string, unknown> = {
       ...verificationInput,
       // Không tin danh sách client — luôn ghi đè bằng prior server
       rit_prior_events: ritPriorEvents,
+      // Không tin hai_status client — server tự tính từ ngày VV + DOE
+      hai_status: undefined,
+      ngay_vao_vien: ngayVaoVienServer || undefined,
+      admission_date: ngayVaoVienServer || undefined,
       rit_exclude_event_ids: [
         id,
         ...((verificationInput?.rit_exclude_event_ids as string[] | undefined) || []),

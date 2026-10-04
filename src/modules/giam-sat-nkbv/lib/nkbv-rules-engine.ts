@@ -45,18 +45,29 @@ import {
 } from "./nkbv-mbi-ch4";
 
 
-/** Ch.2 only: DOE POA (HD1–2) → không tính tử số HAI. SSI/VAE không gọi. */
-function applyCh2PoaGate(
-  data: { hai_status?: "HAI" | "POA"; calculated_doe?: string; ngay_vao_vien?: string; admission_date?: string },
+/** Ch.2 only: tự tính POA/HAI từ ngày VV + DOE — không tin hai_status client. SSI/VAE không gọi. */
+export function applyCh2PoaGate(
+  data: {
+    hai_status?: "HAI" | "POA";
+    calculated_doe?: string;
+    ngay_vao_vien?: string;
+    admission_date?: string;
+  },
   result: RuleEvaluationResult,
 ): RuleEvaluationResult {
   if (!result.is_positive) return result;
-  let status = data.hai_status;
-  if (!status) {
-    const adm = (data.ngay_vao_vien || data.admission_date || "").slice(0, 10);
-    const doe = (data.calculated_doe || "").slice(0, 10);
-    if (adm && doe) status = poaOrHai(adm, doe).haiStatus;
+  const adm = (data.ngay_vao_vien || data.admission_date || "").slice(0, 10);
+  const doe = (data.calculated_doe || "").slice(0, 10);
+  if (!adm || !doe || !/^\d{4}-\d{2}-\d{2}$/.test(adm) || !/^\d{4}-\d{2}-\d{2}$/.test(doe)) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      lcbi_type: result.lcbi_type,
+      reason:
+        "Thiếu ngày vào viện / DOE — chưa phân tích HAI (NHSN day-3).",
+    };
   }
+  const status = poaOrHai(adm, doe).haiStatus;
   if (status !== "POA") return result;
   return {
     is_positive: false,

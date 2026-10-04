@@ -340,6 +340,9 @@ export function buildPneuTimelineVerdict(
     has_tachypnea: hasTachypnea,
     microbiology_evidence: "NONE" as const,
     calculated_doe: doe || undefined,
+    ngay_vao_vien: input.admissionDate
+      ? String(input.admissionDate).slice(0, 10)
+      : undefined,
     hai_status:
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus

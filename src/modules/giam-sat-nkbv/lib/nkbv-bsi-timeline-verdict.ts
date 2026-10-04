@@ -259,6 +259,9 @@ export function buildBsiTimelineVerdict(
     calculated_doe: doe || undefined,
     calculated_sbap_start: sbapStart,
     calculated_sbap_end: sbapEnd,
+    ngay_vao_vien: input.admissionDate
+      ? String(input.admissionDate).slice(0, 10)
+      : undefined,
     hai_status:
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus

@@ -98,6 +98,7 @@ describe("nkbv-uti-timeline-verdict", () => {
       "2026-07-23",
     ]);
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20", so_luong: "10^5" }),
       lamSang: { "2026-07-19": [{ key: "fever", label: "Sốt" }] },
       canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
@@ -114,6 +115,7 @@ describe("nkbv-uti-timeline-verdict", () => {
   it("SUTI non-catheter + dysuria", () => {
     const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21"]);
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20" }),
       lamSang: { "2026-07-20": [{ key: "dysuria", label: "Buốt" }] },
       canThiepDates: [],
@@ -128,6 +130,7 @@ describe("nkbv-uti-timeline-verdict", () => {
   it("Foley chỉ 1 ngày + sốt → SUTI (không CAUTI), dù sổ đặt sớm hơn", () => {
     const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21"]);
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20", so_luong: "10^5" }),
       lamSang: { "2026-07-20": [{ key: "fever", label: "Sốt" }] },
       canThiepDates: ["2026-07-20"],
@@ -144,6 +147,7 @@ describe("nkbv-uti-timeline-verdict", () => {
   it("Foley + dysuria bị bỏ → ASB nếu không sx khác", () => {
     const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20"]);
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20" }),
       lamSang: { "2026-07-20": [{ key: "dysuria", label: "Buốt" }] },
       canThiepDates: ["2026-07-18", "2026-07-19", "2026-07-20"],
@@ -167,6 +171,7 @@ describe("nkbv-uti-timeline-verdict", () => {
       source: "LIS",
     };
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20" }),
       lamSang: {},
       canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
@@ -190,6 +195,7 @@ describe("nkbv-uti-timeline-verdict", () => {
       source: "LIS",
     };
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20" }),
       lamSang: {},
       canThiepDates: [],
@@ -211,6 +217,7 @@ describe("nkbv-uti-timeline-verdict", () => {
       source: "LIS",
     };
     const v = buildUtiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: urine({ id: "u", ngay: "2026-07-20" }),
       lamSang: { "2026-07-20": [{ key: "fever", label: "Sốt" }] },
       canThiepDates: [],

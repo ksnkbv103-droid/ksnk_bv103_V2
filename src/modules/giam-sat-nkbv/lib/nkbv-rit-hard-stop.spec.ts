@@ -32,7 +32,7 @@ function utiPositive(overrides: Partial<UtiVerificationData> = {}): UtiVerificat
     has_blood_culture_positive_in_window: false,
     blood_urine_pathogen_matches: false,
     calculated_doe: "2026-07-20",
-    hai_status: "HAI",
+    ngay_vao_vien: "2026-07-01",
     ...overrides,
   };
 }
@@ -199,7 +199,7 @@ describe("nkbv-rit-hard-stop (DoD 20a=A)", () => {
       is_in_sbap_window: false,
       blood_mandatory_for_localized: false,
       calculated_doe: "2026-07-20",
-      hai_status: "HAI",
+      ngay_vao_vien: "2026-07-01",
       rit_prior_events: [{ doe: "2026-07-15", majorType: "BSI" }],
     } as any);
     expect(bsi.is_positive).toBe(false);

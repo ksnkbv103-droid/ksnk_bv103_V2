@@ -235,6 +235,9 @@ export function buildUtiTimelineVerdict(
     calculated_doe: doe || undefined,
     calculated_iwp_start: [...input.iwpDates].sort()[0],
     calculated_iwp_end: [...input.iwpDates].sort().at(-1),
+    ngay_vao_vien: input.admissionDate
+      ? String(input.admissionDate).slice(0, 10)
+      : undefined,
     hai_status:
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
