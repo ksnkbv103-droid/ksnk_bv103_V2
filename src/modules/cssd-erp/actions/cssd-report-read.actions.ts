@@ -310,7 +310,15 @@ function emptyAnalyticsBundle(): CssdAnalyticsBundle {
     label: stationLabel(station),
     completed: 0,
   }));
-  const meQc = { so_me_ky: 0, so_me_da_qc: 0, so_me_dat: 0, ty_le_qc_dat_me: null as number | null };
+  const meQc = {
+    so_me_ky: 0,
+    so_me_da_qc: 0,
+    so_me_dat: 0,
+    ty_le_qc_dat_me: null as number | null,
+    biDuong: 0,
+    bdHong: 0,
+    so_me_thu_hoi_than_trong: 0,
+  };
   return {
     stationVolume,
     volumeTrendDay: [],
@@ -405,11 +413,16 @@ export async function fetchCssdAnalyticsBundle(filters: {
         ket_qua_test?: boolean | null;
         thoi_gian_bat_dau?: string | null;
         created_at?: string | null;
+        trang_thai_me?: string | null;
+        trang_thai_bi?: string | null;
+        tk_qc_json?: Record<string, unknown> | null;
         thiet_bi?: { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
       }>((pFrom, pTo) =>
         supabase
           .from("cssd_fact_lo_tiet_khuan")
-          .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
+          .select(
+            "id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, trang_thai_me, trang_thai_bi, tk_qc_json, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)",
+          )
           .eq("is_active", true)
           .or(mePeriodWindowFilter(from, to))
           .order("id", { ascending: true })
@@ -497,6 +510,12 @@ export async function fetchCssdAnalyticsBundle(filters: {
           thiet_bi_id: m.thiet_bi_id ? String(m.thiet_bi_id) : null,
           ten_thiet_bi: ten || null,
           ket_qua_test: m.ket_qua_test == null ? null : Boolean(m.ket_qua_test),
+          trang_thai_me: m.trang_thai_me != null ? String(m.trang_thai_me) : null,
+          trang_thai_bi: m.trang_thai_bi != null ? String(m.trang_thai_bi) : null,
+          tk_qc_json:
+            m.tk_qc_json && typeof m.tk_qc_json === "object"
+              ? (m.tk_qc_json as Record<string, unknown>)
+              : null,
           _day: day,
         };
       })

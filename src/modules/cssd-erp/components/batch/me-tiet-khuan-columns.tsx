@@ -48,15 +48,25 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     header: "Qc test",
     accessorKey: "ket_qua_test",
     sortable: true,
-    cell: (i: any) => (
-      <span
-        className={`rounded-md px-2 py-1 text-[11px] font-semibold ${
-          i.ket_qua_test === true ? "bg-emerald-50 text-emerald-600" : i.ket_qua_test === false ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
-        }`}
-      >
-        {i.ket_qua_test === true ? "Đạt QC" : i.ket_qua_test === false ? "Lỗi" : "Chưa QC"}
-      </span>
-    ),
+    cell: (i: any) => {
+      const thuHoiThanTrong =
+        i.ket_qua_test === true && String(i.trang_thai || i.trang_thai_me || "").toUpperCase() === "THU_HOI";
+      const label = thuHoiThanTrong
+        ? "Đạt QC · thu hồi thận trọng"
+        : i.ket_qua_test === true
+          ? "Đạt QC"
+          : i.ket_qua_test === false
+            ? "Lỗi"
+            : "Chưa QC";
+      const cls = thuHoiThanTrong
+        ? "bg-amber-50 text-amber-800"
+        : i.ket_qua_test === true
+          ? "bg-emerald-50 text-emerald-600"
+          : i.ket_qua_test === false
+            ? "bg-red-50 text-red-600"
+            : "bg-slate-100 text-slate-500";
+      return <span className={`rounded-md px-2 py-1 text-[11px] font-semibold ${cls}`}>{label}</span>;
+    },
   },
   {
     header: "Trạng thái",

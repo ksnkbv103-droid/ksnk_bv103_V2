@@ -552,13 +552,29 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     if (viTriNhiemKhuan === "SSI") {
       const maQr = String(verificationInput?.ma_qr_cssd_lien_quan || "").trim();
       if (maQr) {
-        const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr);
-        if (link) {
-          patchBase.quy_trinh_id = link.quy_trinh_id;
+        const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr, {
+          surgeryDateYmd: surgeryDate,
+        });
+        if (link && (link.quy_trinh_id || link.lo_tiet_khuan_id)) {
+          if (link.quy_trinh_id) patchBase.quy_trinh_id = link.quy_trinh_id;
           patchBase.lo_tiet_khuan_id = link.lo_tiet_khuan_id;
           patchBase.ma_cycle_qr_lien_quan = link.ma_qr;
+          if (link.chua_xac_dinh_me) {
+            const notes =
+              patchBase.clinical_notes && typeof patchBase.clinical_notes === "object"
+                ? { ...(patchBase.clinical_notes as Record<string, unknown>) }
+                : {};
+            notes.cssd_me_chua_xac_dinh = true;
+            patchBase.clinical_notes = notes;
+          }
         } else {
           patchBase.ma_cycle_qr_lien_quan = maQr.toUpperCase();
+          const notes =
+            patchBase.clinical_notes && typeof patchBase.clinical_notes === "object"
+              ? { ...(patchBase.clinical_notes as Record<string, unknown>) }
+              : {};
+          notes.cssd_me_chua_xac_dinh = true;
+          patchBase.clinical_notes = notes;
         }
       }
     }

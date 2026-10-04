@@ -171,3 +171,76 @@ export async function resolveCssdCodeWithClient(
     code,
   });
 }
+
+/**
+ * ME-06: tra lịch sử SSI — nhận mã mẻ / chu trình inactive (không đổi path trạm `resolveCssdCodeWithClient`).
+ */
+export async function resolveCssdCodeForNkbvHistory(
+  supabase: SupabaseClient,
+  rawCode: string,
+): Promise<CssdQrHubResolved> {
+  const code = normalizeCssdCode(rawCode);
+  if (!code) throw new Error("Thiếu mã quét.");
+  if (isRejectedLegacyHexBoQr(code)) {
+    throw new Error(
+      `Mã ${code} là tem hex cũ — không còn hỗ trợ. In lại tem mã bộ (vd. B01.SET.01) từ danh mục CSSD.`,
+    );
+  }
+  const preClassified = classifyCssdCode(code);
+
+  if (preClassified === "STERILIZATION_BATCH") {
+    const batchResult = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select("id")
+      .eq("ma_lo_tiet_khuan", code)
+      .limit(1)
+      .maybeSingle();
+    if (batchResult.error) throw new Error(batchResult.error.message);
+    if (batchResult.data?.id) {
+      return cssdQrHubResolvedSchema.parse({
+        targetType: "STERILIZATION_BATCH",
+        code,
+        batchId: String(batchResult.data.id),
+      });
+    }
+  }
+
+  const workflowResult = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select("id, bo_dung_cu_id")
+    .or(buildCssdQuyTrinhQrOrFilter(code))
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (workflowResult.error) throw new Error(workflowResult.error.message);
+  if (workflowResult.data?.id) {
+    const boId = workflowResult.data.bo_dung_cu_id
+      ? String(workflowResult.data.bo_dung_cu_id)
+      : undefined;
+    const maBo = await lookupMaBoForBoId(supabase, boId);
+    return cssdQrHubResolvedSchema.parse({
+      targetType: "INSTRUMENT_SET",
+      code,
+      workflowId: String(workflowResult.data.id),
+      boDungCuId: boId,
+      maBo,
+    });
+  }
+
+  const byBo = await resolveInstrumentSetByBoMaCatalog(supabase, code);
+  if (byBo) {
+    const maBo = await lookupMaBoForBoId(supabase, byBo.boDungCuId);
+    return cssdQrHubResolvedSchema.parse({
+      targetType: "INSTRUMENT_SET",
+      code,
+      workflowId: byBo.workflowId,
+      boDungCuId: byBo.boDungCuId,
+      maBo: maBo || normalizeBoMa(code),
+    });
+  }
+
+  return cssdQrHubResolvedSchema.parse({
+    targetType: preClassified,
+    code,
+  });
+}

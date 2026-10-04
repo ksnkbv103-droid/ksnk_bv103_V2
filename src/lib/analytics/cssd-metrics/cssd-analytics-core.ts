@@ -95,6 +95,12 @@ export type CssdMeQcSummary = {
   so_me_da_qc: number;
   so_me_dat: number;
   ty_le_qc_dat_me: number | null;
+  /** ME-10: số mẻ BI dương (trang_thai_bi / qc). */
+  biDuong: number;
+  /** ME-10: số lần BD không đạt (từ input bdHong hoặc qc_json). */
+  bdHong: number;
+  /** Số mẻ THU_HOI vẫn giữ ket_qua_test=true (thu hồi thận trọng). */
+  so_me_thu_hoi_than_trong: number;
 };
 
 export type CssdMayUsageRow = {
@@ -372,20 +378,48 @@ export function computeStaffScans(
 }
 
 export function computeMeQcSummary(
-  mes: { ket_qua_test?: boolean | null }[],
+  mes: {
+    ket_qua_test?: boolean | null;
+    trang_thai_me?: string | null;
+    trang_thai_bi?: string | null;
+    tk_qc_json?: Record<string, unknown> | null;
+    bd_ket_qua?: string | null;
+  }[],
 ): CssdMeQcSummary {
   const so_me_ky = mes.length;
   let so_me_da_qc = 0;
   let so_me_dat = 0;
+  let biDuong = 0;
+  let bdHong = 0;
+  let so_me_thu_hoi_than_trong = 0;
   for (const m of mes) {
     if (m.ket_qua_test === true || m.ket_qua_test === false) {
       so_me_da_qc += 1;
       if (m.ket_qua_test === true) so_me_dat += 1;
     }
+    const bi = String(m.trang_thai_bi || m.tk_qc_json?.trang_thai_bi || "")
+      .trim()
+      .toUpperCase();
+    if (bi === "DUONG") biDuong += 1;
+    const bd = String(m.bd_ket_qua || m.tk_qc_json?.bd_dau_ngay_ket_qua || "")
+      .trim()
+      .toUpperCase();
+    if (bd === "KHONG_DAT") bdHong += 1;
+    if (m.ket_qua_test === true && String(m.trang_thai_me || "").toUpperCase() === "THU_HOI") {
+      so_me_thu_hoi_than_trong += 1;
+    }
   }
   const ty_le_qc_dat_me =
     so_me_da_qc > 0 ? Math.round((so_me_dat / so_me_da_qc) * 1000) / 10 : null;
-  return { so_me_ky, so_me_da_qc, so_me_dat, ty_le_qc_dat_me };
+  return {
+    so_me_ky,
+    so_me_da_qc,
+    so_me_dat,
+    ty_le_qc_dat_me,
+    biDuong,
+    bdHong,
+    so_me_thu_hoi_than_trong,
+  };
 }
 
 export function computeMayUsage(
