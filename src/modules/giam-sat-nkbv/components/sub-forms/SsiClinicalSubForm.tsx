@@ -90,13 +90,14 @@ export default function SsiClinicalSubForm({
     return res.warnings?.length ? res.warnings.join(" · ") : null;
   }, [form]);
   const survStart = form.surgery_date || undefined;
-  const survEnd = form.surgery_date
-    ? (() => {
-        const d = new Date(`${form.surgery_date}T12:00:00`);
-        d.setDate(d.getDate() + limitDays);
-        return d.toISOString().slice(0, 10);
-      })()
-    : undefined;
+  const survEnd =
+    form.surgery_date && limitDays != null
+      ? (() => {
+          const d = new Date(`${form.surgery_date}T12:00:00`);
+          d.setDate(d.getDate() + limitDays);
+          return d.toISOString().slice(0, 10);
+        })()
+      : undefined;
 
   const applyEventType = (code: string) => {
     const d = depthFromSsiEventType(code);

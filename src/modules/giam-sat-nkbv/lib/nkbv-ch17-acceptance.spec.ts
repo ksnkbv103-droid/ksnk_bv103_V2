@@ -67,6 +67,8 @@ describe("Ch.17 acceptance scenarios", () => {
     const r = evaluateCh17({
       ch17_type_code: "MEN",
       chapter17_flags: { micro_csf_positive: true },
+      ngay_vao_vien: "2026-01-01",
+      calculated_doe: "2026-01-10",
     });
     expect(r.is_positive).toBe(true);
     expect(r.classification).toBe("CH17:MEN");

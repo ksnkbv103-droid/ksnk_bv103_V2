@@ -27,6 +27,9 @@ export type NkbvAnalysisIndexFields = {
   rit_prior_events?: RitPriorEvent[];
   /** Loại trừ chính phiếu đang sửa khỏi RIT lookup. */
   rit_exclude_event_ids?: string[];
+  /** Ngày vào viện (server POA gate) — không tin hai_status client. */
+  ngay_vao_vien?: string;
+  admission_date?: string;
 };
 
 export interface BsiVerificationData extends NkbvAnalysisIndexFields {

@@ -388,8 +388,11 @@ describe("nkbv-pneu-timeline-verdict", () => {
       bloodCriterionIds: [] as string[],
       devicePlacedDate: "2026-07-17",
     };
-    const missing = buildPneuTimelineVerdict({ ...base, patientAge: null });
+    const missing = buildPneuTimelineVerdict({
+      ...base,
+      patientAge: null,
       admissionDate: "2026-07-01",
+    });
     expect(missing.criteriaMet).toBe(false);
     expect(missing.result.is_positive).toBe(false);
     expect(missing.result.classification).toBe("NO_EVENT");
@@ -397,8 +400,10 @@ describe("nkbv-pneu-timeline-verdict", () => {
     expect(missing.data.patient_age).not.toBe(45);
     expect(String(missing.ketLuanLabel)).toMatch(/Thiếu ngày sinh/);
 
-    const omitted = buildPneuTimelineVerdict({ ...base });
+    const omitted = buildPneuTimelineVerdict({
+      ...base,
       admissionDate: "2026-07-01",
+    });
     expect(omitted.result.classification).toBe("NO_EVENT");
     expect(omitted.result.reason).toMatch(/Thiếu ngày sinh/);
     expect(omitted.criteriaMet).toBe(false);
