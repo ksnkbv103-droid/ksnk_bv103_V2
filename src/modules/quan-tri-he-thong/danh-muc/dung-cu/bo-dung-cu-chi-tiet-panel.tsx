@@ -347,7 +347,7 @@ export function BoDungCuChiTietPanel({
                   })}
                   className={C.ctaAmber}
                 >
-                  <RefreshCcw className="h-3.5 w-3.5" /> Lập phiếu rà soát
+                  <RefreshCcw className="h-3.5 w-3.5" /> Lập đề nghị danh mục
                 </Link>
               )}
 
