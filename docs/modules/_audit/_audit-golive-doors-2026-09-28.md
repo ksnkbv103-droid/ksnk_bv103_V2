@@ -581,3 +581,45 @@ Migration **chưa apply**: `20261005140000`…`153000` (BI BM.02, nha_implant, B
 `tsc --noEmit` + vitest ME (~97) + `npm run verify` OK. Không push.
 
 Park: N-ME-1 ngoại lệ chịu nhiệt→Plasma/EO; N-ME-2/3 số ngày bao gói + thẩm định 3 BI đầy đủ; N-ME-6 grant tổ trưởng prod; N-ME-4 dung sai chuẩn CT; catalog CT apply prod.
+
+## MOD-ADMIN — cửa Module 11 Quản trị hệ thống (2026-10-05, nhánh `cursor/mod-admin` từ tip `cursor/mod-me`)
+
+### ADM-01 dựng lại lỗ đổi email
+
+| Kết quả | Chi tiết |
+|---------|----------|
+| **Dựng lại được** | Có — cổng thật = `saveNhanSuAction` (`NHAN_SU.edit`) → `syncStaffAuthEmail` (service role, `email_confirm: true`). Không phải `PHAN_QUYEN.*`. |
+| Test | Vitest mock: `nhan-su-login-email.guard.spec.ts` + `nhan-su-write-email.spec.ts` (đỏ→xanh trong lát). |
+| Sửa | Chỉ ADMIN (+ break-glass env) đổi email; bắt `confirmActorPassword`; cấm đổi TK ADMIN khác; cấm đổi sang email khẩn cấp; chặn ngưng hồ sơ ADMIN; ghi `logAdminAction`. |
+
+Số liệu prod (Lead, 05/10, chỉ đọc): 1 TK ADMIN = 1/3 email khẩn cấp; 2 email còn lại chưa có Auth → chuỗi B từng mở; PHAN_QUYEN/NHAN_SU edit/create/delete chỉ ADMIN.
+
+| Commit | Việc |
+|--------|------|
+| `4d739dc5` | ADM-01 gate đổi email + test dựng lại + helper audit stub |
+| `0900c4d7` | ADM-05 break-glass từ `KSNK_BREAK_GLASS_EMAILS` (trống = tắt) |
+| `656d07fc` | ADM-02 `sys_admin_audit` insert-only + nối action |
+| `2b0308ba` | ADM-03 chỉ ADMIN RBAC + RPC ma trận + policy |
+| `89ca1d40` | ADM-04 seed quyền duyệt (ADMIN tạm) |
+| `7adad540` | ADM-06 khóa NGHE_NGHIEP / mã đã dùng + `is_system` server |
+| `2fab7c7b` | ADM-07 vai trò form chỉ xem + cổng yêu cầu TK |
+| `d4df5d64` | ADM-08 Việt hóa nhãn RBAC/QC/LOCK |
+
+Migration **chưa apply** (file only):
+- `20261005154000_sys_admin_audit.sql`
+- `20261005154100_adm03_rbac_admin_only.sql`
+- `20261005154200_adm04_approve_permissions_seed.sql`
+
+`tsc --noEmit` + `npx vitest run` (toàn bộ) OK. Không push. Không sửa `.env` / Vercel env.
+
+### Park
+
+| Mục | Lý do |
+|-----|--------|
+| Multi-role (nền + duyệt) / vai trò TO_TRUONG_CSSD · DUYET_KSNK | RPC `rpc_assign_staff_ksnk_role` vẫn 1 vai trò KSNK/TK — đổi lớn; chờ A1/N-ADM-1 tên |
+| Grant quyền duyệt ngoài ADMIN | A1 chờ Nghĩa đưa tên; seed tạm chỉ ADMIN |
+| Kiểm in BCTH thật (`DASHBOARD_CC_EXPORT`) | Thuộc BCTH-11 — chỉ neo nhãn registry |
+| QLCV-06 / VST-05 gọi `logAdminAction` | Lát module sau; helper đã sẵn |
+| Dọn hồ sơ lệch `vai_tro_he_thong_id` ≠ `sys_user_roles` | Script 1 lần ops (N-ADM-9 c); form đã chỉ đọc |
+| Map 6 nghề ↔ WHO | N-ADM-4 / N-VST-4 — ngoài scope khóa mã |
+| Bỏ break-glass sau go-live | N-ADM-3 phương án A |
