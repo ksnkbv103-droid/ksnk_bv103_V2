@@ -50,7 +50,7 @@ interface GiamSatHeaderFieldsProps {
   showClearStickyHint?: boolean;
   onClearStickyHint?: () => void;
   /**
-   * `essentials` = chỉ Khoa / Chức năng phòng / Vị trí (dải thu gọn).
+   * `essentials` = chỉ Khoa / Khu vực / Vị trí (dải thu gọn).
    * `full` = đủ form phiên (mặc định).
    */
   density?: "essentials" | "full";
@@ -269,7 +269,7 @@ export default function GiamSatHeaderFields({
       {!essentialsOnly && showClearStickyHint && onClearStickyHint ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-slate-50/80 px-3 py-2">
           <p className="text-[11px] font-medium text-slate-600">
-            Đã gợi ý khoa / chức năng phòng / vị trí từ lần giám sát trước trên tab này.
+            Đã gợi ý khoa / khu vực / vị trí từ lần giám sát trước trên tab này.
           </p>
           <button
             type="button"

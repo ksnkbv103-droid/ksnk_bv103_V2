@@ -1,4 +1,4 @@
-/** Helper UI cho dropdown chức năng phòng (KHU_VUC_GIAM_SAT). */
+/** Helper UI cho dropdown khu vực giám sát (KHU_VUC_GIAM_SAT). */
 
 export type KhuVucSelectRow = {
   id: string;
