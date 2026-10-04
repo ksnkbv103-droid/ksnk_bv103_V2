@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { ADMIN_EMAILS } from "@/lib/constants";
 import type { PermissionRow } from "@/hooks/use-permission-api";
 
 export type UserDataProfile = {
@@ -103,12 +102,9 @@ async function fetchRBACOnce(user: User): Promise<RBACSnapshot> {
       }
     : null;
 
+  // ADM-05: không inject break-glass trên client (danh sách chỉ ở env server).
+  // Hydrate từ initialSnapshot (RSC) đã gắn ADMIN khi email khớp env.
   const roles = ((authData?.roles as string[]) || []).slice();
-  const emailNorm = String(user.email || "").toLowerCase().trim();
-  const isAdminEmail = ADMIN_EMAILS.some((a) => a.toLowerCase().trim() === emailNorm);
-  if (isAdminEmail && !roles.includes("ADMIN")) {
-    roles.push("ADMIN");
-  }
 
   return {
     userRoles: roles,

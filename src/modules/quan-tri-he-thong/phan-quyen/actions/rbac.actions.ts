@@ -8,7 +8,7 @@
  *   (policy "<table>_select" và "*_select_all_authenticated_v2" cho phép).
  * - `syncPermissionRegistry`/`saveFullRBACMatrix`: **giữ admin client**
  *   vì bootstrap/seed logic cần bypass RLS (gán 100 perm cho ADMIN, fix-up matrix).
- *   `ensureRbacAdmin()` đã chặt từ tầng app (ADMIN_EMAILS hoặc ADMIN role hoặc PHAN_QUYEN.edit).
+ *   `ensureRbacAdmin()` đã chặt từ tầng app (break-glass env hoặc ADMIN role hoặc PHAN_QUYEN.edit).
  */
 
 import { invalidateUserPermissionsCache } from "@/lib/server-permission";
