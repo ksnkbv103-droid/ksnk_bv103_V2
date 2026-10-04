@@ -8,6 +8,10 @@ import {
   isSteamSterilizerProfile,
   type SterilizerMethod,
 } from "../helpers/me-tiet-khuan-machine-kind";
+import {
+  evaluatePpChiDinhGate,
+  type KitDesignatedLine,
+} from "./me-kit-pp-chi-dinh";
 
 export const MSG_HEAT_UNKNOWN = "Không kiểm tra được chịu nhiệt — đã chặn thao tác.";
 export const MSG_HEAT_STEAM_BLOCK =
@@ -82,7 +86,7 @@ export function assertSteamKitHeatAllowed(input: {
   return { ok: true };
 }
 
-export type KitHeatLine = { is_chiu_nhiet: boolean | null };
+export type KitHeatLine = KitDesignatedLine & { is_chiu_nhiet: boolean | null };
 
 export type KitHeatClass = "CHIU_NHIET" | "KHONG_CHIU_NHIET" | "THIEU_DU_LIEU";
 
@@ -106,34 +110,47 @@ export function classifyKitHeat(input: {
  * Hơi nước chỉ nhận bộ chịu nhiệt cao. Plasma/EO chỉ nhận bộ không chịu nhiệt.
  * Plasma + cellulose: chặn tại nạp mẻ (không hỏi trên Đóng gói).
  */
+export type KitMethodGateResult =
+  | { ok: true; warnings?: string[] }
+  | { ok: false; message: string };
+
 export function assertKitFitsSterilizerMethod(input: {
   method: SterilizerMethod | null;
   lines: KitHeatLine[] | null;
   loadError?: boolean;
   /** Vật liệu đóng gói từ danh mục / PP chỉ định — optional. */
   packMaterial?: string | null;
-}): { ok: true } | { ok: false; message: string } {
+  steamCycle?: "STEAM_121" | "STEAM_134" | null;
+}): KitMethodGateResult {
   const heat = classifyKitHeat(input);
   if (!input.method) return { ok: false, message: MSG_METHOD_UNKNOWN };
   if (heat === "THIEU_DU_LIEU") return { ok: false, message: MSG_HEAT_UNKNOWN };
   if (input.method === "HOI_NUOC") {
     if (heat !== "CHIU_NHIET") return { ok: false, message: MSG_HEAT_STEAM_BLOCK };
-    return { ok: true };
-  }
-  if (heat !== "KHONG_CHIU_NHIET") return { ok: false, message: MSG_HEAT_LOW_TEMP_ONLY };
-  const plasmaMethod =
-    input.method === "PLASMA_H2O2" || String(input.method).toUpperCase() === "PLASMA"
-      ? "PLASMA"
-      : null;
-  if (plasmaMethod) {
-    const plasmaGate = assertPlasmaPackMaterialAllowed({
-      method: plasmaMethod,
-      packMaterial: input.packMaterial,
-    });
-    if (!plasmaGate.ok) {
-      return { ok: false, message: plasmaGate.message || "Plasma cấm vật liệu đóng gói cellulose." };
+  } else {
+    if (heat !== "KHONG_CHIU_NHIET") return { ok: false, message: MSG_HEAT_LOW_TEMP_ONLY };
+    const plasmaMethod =
+      input.method === "PLASMA_H2O2" || String(input.method).toUpperCase() === "PLASMA"
+        ? "PLASMA"
+        : null;
+    if (plasmaMethod) {
+      const plasmaGate = assertPlasmaPackMaterialAllowed({
+        method: plasmaMethod,
+        packMaterial: input.packMaterial,
+      });
+      if (!plasmaGate.ok) {
+        return { ok: false, message: plasmaGate.message || "Plasma cấm vật liệu đóng gói cellulose." };
+      }
     }
   }
+
+  const ppGate = evaluatePpChiDinhGate({
+    method: input.method,
+    lines: input.lines ?? [],
+    steamCycle: input.method === "HOI_NUOC" ? input.steamCycle ?? null : null,
+  });
+  if (!ppGate.ok) return ppGate;
+  if (ppGate.warnings.length) return { ok: true, warnings: ppGate.warnings };
   return { ok: true };
 }
 
@@ -141,12 +158,18 @@ export function partitionWaitingKitsByMethod<T>(
   rows: T[],
   method: SterilizerMethod | null,
   heatOf: (row: T) => { lines: KitHeatLine[] | null; loadError?: boolean },
+  steamCycle?: "STEAM_121" | "STEAM_134" | null,
 ): { visible: T[]; hiddenCount: number } {
   const visible: T[] = [];
   let hiddenCount = 0;
   for (const row of rows) {
     const heat = heatOf(row);
-    const gate = assertKitFitsSterilizerMethod({ method, lines: heat.lines, loadError: heat.loadError });
+    const gate = assertKitFitsSterilizerMethod({
+      method,
+      lines: heat.lines,
+      loadError: heat.loadError,
+      steamCycle,
+    });
     if (gate.ok) visible.push(row);
     else hiddenCount += 1;
   }

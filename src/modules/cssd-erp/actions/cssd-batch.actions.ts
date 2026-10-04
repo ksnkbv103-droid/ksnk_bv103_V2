@@ -18,6 +18,7 @@ import {
   rejectStartMember,
 } from "../lib/me-tiet-khuan-batch-integrity";
 import {
+  loadChuongTrinhChuanForMeFinish,
   loadKitHeatLinesByBoIds,
   persistMeBiResultWithClient,
   persistMeTietKhuanFinishWithClient,
@@ -50,6 +51,9 @@ import {
   partitionWaitingKitsByMethod,
   rejectRemoveKitFromBatch,
 } from "../lib/me-tiet-khuan-batch-heat";
+import { inferSteamCycleFromChuongTrinh } from "../lib/me-kit-pp-chi-dinh";
+import { formatMeNguoiNapGhiChu } from "../lib/me-nguoi-nap-ghi-chu";
+import { loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
 import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 import { parseUsedClinicallyFromMetadata } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 
@@ -141,14 +145,15 @@ export async function fetchCssdTietKhuanWaitingRows(_ignoredCap?: number, batchI
 
     const { data: meRow, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
-      .select("phuong_phap, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
+      .select("phuong_phap, chuong_trinh, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
       .eq("id", meId)
       .maybeSingle();
     if (meErr || !meRow) {
       return { success: true as const, data: [], hiddenIncompatible: eligible.length };
     }
-    const gate = meRow as { phuong_phap?: string | null; thiet_bi?: unknown };
+    const gate = meRow as { phuong_phap?: string | null; chuong_trinh?: string | null; thiet_bi?: unknown };
     const method = getSterilizerMethod({ phuong_phap: gate.phuong_phap }) || getSterilizerMethod(gate.thiet_bi);
+    const steamCycle = inferSteamCycleFromChuongTrinh({ chuongTrinhTen: gate.chuong_trinh });
     const heatIds = eligible.map((row) => String(row.bo_dung_cu_id || ""));
     const heatByBo = new Map<string, { is_chiu_nhiet: boolean | null }[]>();
     for (let i = 0; i < heatIds.length; i += 200) {
@@ -163,11 +168,16 @@ export async function fetchCssdTietKhuanWaitingRows(_ignoredCap?: number, batchI
       }
       for (const [boId, lines] of heat.byBo) heatByBo.set(boId, lines);
     }
-    const part = partitionWaitingKitsByMethod(eligible, method, (row) => {
-      const boId = String(row.bo_dung_cu_id || "").trim();
-      if (!boId) return { lines: [] };
-      return { lines: heatByBo.get(boId) ?? [] };
-    });
+    const part = partitionWaitingKitsByMethod(
+      eligible,
+      method,
+      (row) => {
+        const boId = String(row.bo_dung_cu_id || "").trim();
+        if (!boId) return { lines: [] };
+        return { lines: heatByBo.get(boId) ?? [] };
+      },
+      steamCycle,
+    );
     return { success: true as const, data: part.visible, hiddenIncompatible: part.hiddenCount };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e), data: [] as unknown[], hiddenIncompatible: 0 };
@@ -552,9 +562,31 @@ export async function recordSteamDailyBdAction(input: {
   }
 }
 
+export async function fetchCssdMeNguoiNapPickerOptions() {
+  try {
+    await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase
+      .from("mdm_nhan_su")
+      .select("id, ho_ten, ma_nv")
+      .eq("is_active", true)
+      .order("ho_ten", { ascending: true })
+      .limit(300);
+    if (error) return { success: false as const, error: error.message };
+    const rows = (data || []).map((r) => ({
+      id: String((r as { id: string }).id),
+      hoTen: String((r as { ho_ten?: string }).ho_ten || "").trim(),
+      maNv: String((r as { ma_nv?: string }).ma_nv || "").trim(),
+    }));
+    return { success: true as const, data: rows.filter((r) => r.hoTen) };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}
+
 export async function createCssdSterilizationBatch(
   machineId: string,
-  nguoiLoad: string,
+  nguoiNapId: string,
   chuongTrinh?: string | null,
 ) {
   try {
@@ -562,12 +594,14 @@ export async function createCssdSterilizationBatch(
     const supabase = createAdminSupabaseClient();
     const validated = createSterilizationBatchSchema.parse({
       machineId,
-      nguoiLoad,
+      nguoiNapId,
       chuongTrinh: String(chuongTrinh ?? "").trim(),
     });
     const mid = validated.machineId;
-    const nguoi = validated.nguoiLoad;
+    const napId = validated.nguoiNapId;
     const chuong = validated.chuongTrinh;
+    const hoTen = await loadNhanSuHoTen(supabase, napId);
+    if (!hoTen) return { success: false as const, error: "Không tìm thấy nhân sự nạp mẻ." };
     const mayOk = await assertThietBiSanSangChoMeTietKhuan(supabase, mid);
     if (!mayOk.ok) return { success: false as const, error: mayOk.message };
     const { data: tbRow } = await supabase
@@ -610,7 +644,7 @@ export async function createCssdSterilizationBatch(
     const { data: created, error } = await supabase.rpc("rpc_cssd_me_tao", {
       p_thiet_bi_id: mid,
       p_actor_user_id: actor.userId,
-      p_ghi_chu: `Người load: ${nguoi}`,
+      p_ghi_chu: formatMeNguoiNapGhiChu(hoTen, napId),
       p_chuong_trinh: chuong,
     });
     if (error) {
@@ -623,6 +657,15 @@ export async function createCssdSterilizationBatch(
       return { success: false as const, error: mapFkError(error.message) };
     }
     const createdId = String((created as { id?: string } | null)?.id || "").trim();
+    if (createdId) {
+      const { error: napErr } = await supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .update({ nguoi_nap_id: napId })
+        .eq("id", createdId);
+      if (napErr && !/does not exist|schema cache|Could not find column/i.test(napErr.message)) {
+        return { success: false as const, error: mapFkError(napErr.message) };
+      }
+    }
     const { data: me, error: meErr } = createdId
       ? await supabase.from("cssd_fact_lo_tiet_khuan").select("*").eq("id", createdId).maybeSingle()
       : { data: created, error: null };
@@ -648,7 +691,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
 
     const { data: me, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
-      .select("id, ma_lo_tiet_khuan, thiet_bi_id, tk_chot_nap_at, phuong_phap")
+      .select("id, ma_lo_tiet_khuan, thiet_bi_id, tk_chot_nap_at, phuong_phap, chuong_trinh")
       .eq("id", meId)
       .maybeSingle();
     if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
@@ -702,10 +745,14 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
       getSterilizerMethod(machineProfile);
     const boId = String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim();
     const loadedHeat = await loadKitHeatLinesByBoIds(supabase, boId ? [boId] : []);
+    const steamCycle = inferSteamCycleFromChuongTrinh({
+      chuongTrinhTen: (me as { chuong_trinh?: string | null }).chuong_trinh,
+    });
     const heat = assertKitFitsSterilizerMethod({
       method,
       lines: loadedHeat.ok ? (loadedHeat.byBo.get(boId) ?? []) : null,
       loadError: !loadedHeat.ok,
+      steamCycle,
     });
     if (!heat.ok) {
       return { success: false as const, error: `${heat.message} Bộ ${String(qtNormalized.ma_vach_qr || qr)}.` };
@@ -781,13 +828,26 @@ async function previewFinishNeedsQc(
 ): Promise<{ ok: true; needsQc: boolean } | { ok: false; message: string }> {
   const { data: me, error } = await supabase
     .from("cssd_fact_lo_tiet_khuan")
-    .select("phuong_phap, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
+    .select(
+      "phuong_phap, thiet_bi_id, chuong_trinh, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))",
+    )
     .eq("id", p.activeMeId)
     .maybeSingle();
   if (error) return { ok: false, message: error.message };
   if (!me) return { ok: false, message: "Không tìm thấy mẻ tiệt khuẩn." };
-  const row = me as { phuong_phap?: string | null; thiet_bi?: unknown };
+  const row = me as {
+    phuong_phap?: string | null;
+    thiet_bi_id?: string | null;
+    chuong_trinh?: string | null;
+    thiet_bi?: unknown;
+  };
   const method = getSterilizerMethod({ phuong_phap: row.phuong_phap }) || getSterilizerMethod(row.thiet_bi);
+  const chuongTrinhChuan = await loadChuongTrinhChuanForMeFinish(supabase, {
+    thietBiId: row.thiet_bi_id,
+    phuongPhap: row.phuong_phap,
+    thietBi: row.thiet_bi,
+    chuongTrinh: p.chuongTrinh || row.chuong_trinh,
+  });
   const { data: members } = await supabase
     .from("cssd_fact_quy_trinh")
     .select("bo_dung_cu_id")
@@ -810,6 +870,7 @@ async function previewFinishNeedsQc(
     nhietDo: p.nhietDo,
     apSuat: p.apSuat,
     thoiGianChuKy: p.thoiGianChuKy,
+    chuongTrinhChuan,
   });
   if (!evaluated.ok) return evaluated;
   return {

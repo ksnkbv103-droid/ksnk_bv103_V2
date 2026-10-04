@@ -14,7 +14,13 @@ import { getSterilizerMethod, type SterilizerMethod } from "./me-tiet-khuan-mach
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { applyBatchRecallAndHoldMachine } from "@/modules/cssd-su-co/application/batch-recall-hold.application";
 import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
-import { buildChuongTrinhEditAudit, type ChuongTrinhPrefill } from "../lib/me-tiet-khuan-chuong-trinh";
+import {
+  buildChuongTrinhEditAudit,
+  resolveChuongTrinhChuanFromOptions,
+  resolveChuongTrinhOptions,
+  type ChuongTrinhChuanSpec,
+  type ChuongTrinhPrefill,
+} from "../lib/me-tiet-khuan-chuong-trinh";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -94,6 +100,36 @@ function asHeatFlag(value: unknown): boolean | null {
 }
 
 /** Cờ chịu nhiệt thô theo BOM bộ — null khi thiếu loại, không ép thành false. */
+export async function loadChuongTrinhChuanForMeFinish(
+  client: SupabaseClient,
+  input: {
+    thietBiId?: string | null;
+    phuongPhap?: string | null;
+    thietBi?: unknown;
+    chuongTrinh?: string | null;
+  },
+): Promise<ChuongTrinhChuanSpec | null> {
+  const method =
+    getSterilizerMethod({ phuong_phap: input.phuongPhap }) || getSterilizerMethod(input.thietBi);
+  if (!method) return null;
+  const tbId = String(input.thietBiId || "").trim();
+  let specs: unknown = null;
+  let mdmRows: Array<Record<string, unknown>> | null = null;
+  if (tbId) {
+    const { data: tb } = await client.from("cssd_dm_thiet_bi").select("specs").eq("id", tbId).maybeSingle();
+    specs = (tb as { specs?: unknown } | null)?.specs;
+    const { data: mdm } = await client
+      .from("cssd_dm_chuong_trinh_may")
+      .select(
+        "ma_chuong_trinh, ten_chuong_trinh, nhiet_do_chuan, ap_suat_chuan, thoi_gian_chuan, is_active",
+      )
+      .eq("thiet_bi_id", tbId);
+    mdmRows = (mdm || []) as Array<Record<string, unknown>>;
+  }
+  const options = resolveChuongTrinhOptions({ method, specs, mdmRows });
+  return resolveChuongTrinhChuanFromOptions(options, input.chuongTrinh);
+}
+
 export async function loadKitHeatLinesByBoIds(
   client: SupabaseClient,
   boIds: string[],
@@ -105,7 +141,7 @@ export async function loadKitHeatLinesByBoIds(
 
   const { data, error } = await client
     .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet)")
+    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh)")
     .in("bo_dung_cu_id", ids);
   if (error) return { ok: false, message: error.message };
 
@@ -119,7 +155,12 @@ export async function loadKitHeatLinesByBoIds(
     const boId = String(row.bo_dung_cu_id || "").trim();
     if (!boId || !byBo.has(boId)) continue;
     const loai = unwrapRelation(row.cssd_dm_loai_dung_cu);
-    byBo.get(boId)?.push({ is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null });
+    byBo.get(boId)?.push({
+      is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null,
+      phuong_phap_tiet_khuan_chi_dinh: loai
+        ? (loai as { phuong_phap_tiet_khuan_chi_dinh?: string | null }).phuong_phap_tiet_khuan_chi_dinh
+        : null,
+    });
   }
   return { ok: true, byBo };
 }
@@ -212,7 +253,7 @@ export async function persistMeTietKhuanFinishWithClient(
 
   const { data: gateRow, error: gateErr } = await client
     .from("cssd_fact_lo_tiet_khuan")
-    .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json, phuong_phap, trang_thai_me, thiet_bi_id, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
+    .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json, phuong_phap, trang_thai_me, thiet_bi_id, chuong_trinh, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
     .eq("id", p.activeMeId)
     .maybeSingle();
   if (gateErr) return { ok: false, message: gateErr.message };
@@ -223,6 +264,8 @@ export async function persistMeTietKhuanFinishWithClient(
     tk_qc_json?: unknown;
     phuong_phap?: string | null;
     trang_thai_me?: string | null;
+    thiet_bi_id?: string | null;
+    chuong_trinh?: string | null;
     thiet_bi?: unknown;
   };
   if (!g.tk_mo_form_qc_at) {
@@ -246,6 +289,12 @@ export async function persistMeTietKhuanFinishWithClient(
   }
 
   const method = getSterilizerMethod({ phuong_phap: g.phuong_phap }) || getSterilizerMethod(g.thiet_bi);
+  const chuongTrinhChuan = await loadChuongTrinhChuanForMeFinish(client, {
+    thietBiId: g.thiet_bi_id,
+    phuongPhap: g.phuong_phap,
+    thietBi: g.thiet_bi,
+    chuongTrinh: p.chuongTrinh || g.chuong_trinh,
+  });
   const evaluated = evaluateMeQcRelease({
     thongSoVatLy: p.thongSoVatLy,
     ciNgoaiGoi: p.ciNgoaiGoi,
@@ -256,6 +305,7 @@ export async function persistMeTietKhuanFinishWithClient(
     nhietDo: p.nhietDo,
     apSuat: p.apSuat,
     thoiGianChuKy: p.thoiGianChuKy,
+    chuongTrinhChuan,
   });
   if (!evaluated.ok) return evaluated;
 

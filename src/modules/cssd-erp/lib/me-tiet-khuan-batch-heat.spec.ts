@@ -116,6 +116,22 @@ describe("từ chối quét bộ sai phương pháp", () => {
     expect(assertKitFitsSterilizerMethod({ method: "EO", lines: heatFalse }).ok).toBe(true);
   });
 
+  it("CSSD-10: lệch PP chỉ định Plasma trên EO bị chặn; thiếu PP chỉ cảnh báo", () => {
+    expect(
+      assertKitFitsSterilizerMethod({
+        method: "EO",
+        lines: [{ is_chiu_nhiet: false, phuong_phap_tiet_khuan_chi_dinh: "PLASMA" }],
+      }).ok,
+    ).toBe(false);
+    const warnOnly = assertKitFitsSterilizerMethod({
+      method: "HOI_NUOC",
+      steamCycle: "STEAM_134",
+      lines: [{ is_chiu_nhiet: true, phuong_phap_tiet_khuan_chi_dinh: null }],
+    });
+    expect(warnOnly.ok).toBe(true);
+    if (warnOnly.ok) expect(warnOnly.warnings?.length).toBeGreaterThan(0);
+  });
+
   it("CSSD-03: Plasma + cellulose chặn tại nạp mẻ", () => {
     const blocked = assertKitFitsSterilizerMethod({
       method: "PLASMA_H2O2",
