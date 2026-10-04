@@ -140,14 +140,20 @@ export function usesClinicalIwp(syndrome: NkbvTimelineSyndrome): boolean {
 export function poaOrHai(admissionDate: string, doe: string): {
   dayOfHospitalization: number;
   haiStatus: "HAI" | "POA";
+  /** DOE dùng cho RIT: DOE trước ngày nhập → HD1 (ngày vào viện). */
+  doeForRit: string;
 } {
   const adm = admissionDate.slice(0, 10);
   const d = doe.slice(0, 10);
-  if (!adm || !d) return { dayOfHospitalization: 0, haiStatus: "POA" };
-  const dayOfHospitalization = daysBetween(adm, d) + 1;
+  if (!adm || !d) {
+    return { dayOfHospitalization: 0, haiStatus: "POA", doeForRit: d || adm };
+  }
+  const doeForRit = d < adm ? adm : d;
+  const dayOfHospitalization = daysBetween(adm, doeForRit) + 1;
   return {
     dayOfHospitalization,
     haiStatus: dayOfHospitalization >= 3 ? "HAI" : "POA",
+    doeForRit,
   };
 }
 

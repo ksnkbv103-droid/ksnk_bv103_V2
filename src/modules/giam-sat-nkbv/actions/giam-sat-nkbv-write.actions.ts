@@ -25,7 +25,11 @@ import {
   validateLoaiTrangAndLyDo,
   type Payload,
 } from "./giam-sat-nkbv-write.helpers";
-import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
+import {
+  resolveServerRitPriors,
+  verifiedSiblingFromCaseRow,
+} from "../lib/nkbv-rit-hard-stop";
+import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { hydratePriorOpenVaeDoe } from "../lib/nkbv-vae-event-period";
 import {
   isNkbvTerminalCaseStatus,
@@ -222,14 +226,11 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       return { success: false as const, error: gate.error };
     }
 
-    // Ch.2 RIT hard-stop (DoD 20a=A): load sibling ca cùng BA — SSI/VAE bypass in evaluate*
-    let ritPriorEvents = verificationInput?.rit_prior_events;
-    if (
-      !ritPriorEvents?.length &&
-      caRow?.ma_benh_an &&
-      viTriNhiemKhuan !== "SSI" &&
-      viTriNhiemKhuan !== "VAE"
-    ) {
+    // Ch.2 RIT: server luôn tự nạp sibling cùng ma_benh_an — bỏ qua rit_prior_events client
+    const ritBypass =
+      viTriNhiemKhuan === "SSI" || viTriNhiemKhuan === "VAE";
+    let ritPriorEvents: ReturnType<typeof resolveServerRitPriors> = [];
+    if (!ritBypass && caRow?.ma_benh_an) {
       const siblings = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
         supabase
           .from("v_nkbv_su_kien_full")
@@ -243,41 +244,22 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
           .order("id", { ascending: true })
           .range(from, to),
       );
-      ritPriorEvents = siblings
-        .filter((s) => String(s.trang_thai_ma || "").toUpperCase() !== "LOAI_TRU")
-        .map((s) => {
-          const vd =
-            s.verification_data && typeof s.verification_data === "object"
-              ? (s.verification_data as Record<string, unknown>)
-              : {};
-          const metrics =
-            vd.cdc_metrics && typeof vd.cdc_metrics === "object"
-              ? (vd.cdc_metrics as Record<string, unknown>)
-              : vd;
-          const doe =
-            (metrics.doe as string | undefined) ||
-            (metrics.DOE as string | undefined) ||
-            (vd.calculated_doe as string | undefined) ||
-            (s.ngay_phat_hien as string | null);
-          const ch17 =
-            typeof vd.ch17_type_code === "string" ? vd.ch17_type_code : null;
-          return ritPriorFromCaseLike({
-            id: String(s.id),
-            doe: doe ? String(doe).slice(0, 10) : null,
-            ngay_phat_hien: s.ngay_phat_hien ? String(s.ngay_phat_hien).slice(0, 10) : null,
-            loai_ma: s.loai_ma ? String(s.loai_ma) : null,
-            loai_ten: s.loai_ten ? String(s.loai_ten) : null,
-            vi_tri_nhiem_khuan: s.vi_tri_nhiem_khuan
-              ? String(s.vi_tri_nhiem_khuan)
-              : null,
-            ch17_type_code: ch17,
-          });
-        })
-        .filter((x): x is NonNullable<typeof x> => Boolean(x));
+      ritPriorEvents = resolveServerRitPriors({
+        siblings: siblings.map((s) =>
+          verifiedSiblingFromCaseRow({
+            ...s,
+            ngay_vao_vien: caRow.ngay_vao_vien,
+          }),
+        ),
+        admissionDate: caRow.ngay_vao_vien
+          ? String(caRow.ngay_vao_vien).slice(0, 10)
+          : null,
+      });
     }
 
     const evalInput: Record<string, unknown> = {
       ...verificationInput,
+      // Không tin danh sách client — luôn ghi đè bằng prior server
       rit_prior_events: ritPriorEvents,
       rit_exclude_event_ids: [
         id,
@@ -448,14 +430,27 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       };
     }
 
+    const poaMajor =
+      result.classification === "POA"
+        ? resolveNkbvMajorType({
+            loai_ma: viTriNhiemKhuan,
+            vi_tri_nhiem_khuan: viTriNhiemKhuan,
+          })
+        : null;
+
     const verification_data = stripCopiedStayFieldsFromVerification({
       ...verificationInput,
+      // Không persist prior client — server tự nạp mỗi lần evaluate
+      rit_prior_events: undefined,
       evaluation_result: result,
       classification: result.classification,
       is_positive: result.is_positive,
       is_secondary_bsi: result.is_secondary_bsi || false,
       reason: result.reason,
       ghi_chu_tuy_bien: verificationInput?.ghi_chu_tuy_bien || undefined,
+      ...(poaMajor && poaMajor !== "OTHER" && poaMajor !== "SSI" && poaMajor !== "VAE"
+        ? { poa_major_type: poaMajor }
+        : {}),
       ...(viTriNhiemKhuan === "SSI"
         ? { ssi_reporting: extractSsiReportingSlice(verificationInput) }
         : {}),

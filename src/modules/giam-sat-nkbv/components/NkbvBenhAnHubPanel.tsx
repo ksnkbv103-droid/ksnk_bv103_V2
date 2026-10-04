@@ -705,6 +705,13 @@ export default function NkbvBenhAnHubPanel({
                 index_vi_sinh_id: c.index_vi_sinh_id,
                 tac_nhan_vi_khuan: c.tac_nhan_vi_khuan,
                 attributed_vi_sinh_ids: c.attributed_vi_sinh_ids || [],
+                calculated_doe: c.calculated_doe,
+                classification: c.classification,
+                is_positive: c.is_positive,
+                is_secondary_bsi: c.is_secondary_bsi,
+                analysis_disposition: c.analysis_disposition,
+                trang_thai_ma: c.trang_thai_ma,
+                poa_major_type: c.poa_major_type,
               }))}
               onIndexChange={onGridIndexChange}
               onCreatePhieu={(input) => void createPhieuFromSession(input)}

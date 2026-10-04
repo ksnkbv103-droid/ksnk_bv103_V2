@@ -75,6 +75,13 @@ describe("nkbv-shared-timeline", () => {
     expect(poaOrHai("2026-08-01", "2026-08-03").haiStatus).toBe("HAI");
   });
 
+  it("doeForRit: DOE trước nhập → HD1", () => {
+    const r = poaOrHai("2026-08-01", "2026-07-30");
+    expect(r.doeForRit).toBe("2026-08-01");
+    expect(r.haiStatus).toBe("POA");
+    expect(r.dayOfHospitalization).toBe(1);
+  });
+
   it("device association needs ≥3 placed days and active on DOE/DOE-1", () => {
     const ok = isDeviceAssociated({
       placedDate: "2026-08-01",

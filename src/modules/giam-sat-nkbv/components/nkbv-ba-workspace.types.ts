@@ -78,5 +78,12 @@ export type NkbvBaMultiTimelineWorkspaceProps = {
     index_vi_sinh_id?: string | null;
     tac_nhan_vi_khuan?: string | null;
     attributed_vi_sinh_ids?: string[] | null;
+    calculated_doe?: string | null;
+    classification?: string | null;
+    is_positive?: boolean | null;
+    is_secondary_bsi?: boolean | null;
+    analysis_disposition?: string | null;
+    trang_thai_ma?: string | null;
+    poa_major_type?: string | null;
   }>;
 };

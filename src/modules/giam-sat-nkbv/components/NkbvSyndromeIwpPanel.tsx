@@ -43,7 +43,7 @@ import {
   scanIndexPriorRitAlert,
 } from "../lib/nkbv-ket-luan-smart";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
-import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
+import { ritPriorFromVerifiedSibling } from "../lib/nkbv-rit-hard-stop";
 import {
   priorEventsToSecondarySites,
   resolveDoeBelongsPriorEvent,
@@ -77,6 +77,13 @@ type PriorEvent = {
   index_vi_sinh_id?: string | null;
   tac_nhan_vi_khuan?: string | null;
   attributed_vi_sinh_ids?: string[] | null;
+  calculated_doe?: string | null;
+  classification?: string | null;
+  is_positive?: boolean | null;
+  is_secondary_bsi?: boolean | null;
+  analysis_disposition?: string | null;
+  trang_thai_ma?: string | null;
+  poa_major_type?: string | null;
 };
 
 type Props = {
@@ -329,16 +336,23 @@ export default function NkbvSyndromeIwpPanel({
     () =>
       (priorEvents || [])
         .map((e) =>
-          ritPriorFromCaseLike({
+          ritPriorFromVerifiedSibling({
             id: e.id,
-            ngay_phat_hien: e.ngay_phat_hien,
+            calculated_doe: e.calculated_doe || null,
+            ngay_vao_vien: ngayVaoVien,
+            classification: e.classification,
+            is_positive: e.is_positive,
+            is_secondary_bsi: e.is_secondary_bsi,
+            analysis_disposition: e.analysis_disposition,
+            trang_thai_ma: e.trang_thai_ma,
+            poa_major_type: e.poa_major_type,
             loai_ma: e.loai_ma,
             vi_tri_nhiem_khuan: e.vi_tri_nhiem_khuan,
             loai_ten: e.loai_ten,
           }),
         )
         .filter((x): x is NonNullable<typeof x> => Boolean(x)),
-    [priorEvents],
+    [priorEvents, ngayVaoVien],
   );
 
   const utiVerdictPreview = useMemo(() => {
