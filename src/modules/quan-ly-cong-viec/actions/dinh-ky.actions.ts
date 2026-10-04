@@ -12,7 +12,7 @@ import { assertQlcvTimeRange, normalizeTimeHHmm } from "../lib/qlcv-time";
 
 export type MaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
-export type MucDoUuTienDinhKy = "THAP" | "TRUNG_BINH" | "CAO" | "KHAN_CAP";
+export type MucDoUuTienDinhKy = "THAP" | "TRUNG_BINH" | "CAO";
 
 export interface DinhKyMauRow {
   id: string;
@@ -20,6 +20,7 @@ export interface DinhKyMauRow {
   mo_ta: string | null;
   ma_chu_ky: MaChuKyDinhKy;
   ngay_bat_dau: string;
+  ngay_ket_thuc?: string | null;
   nguoi_phu_trach_id: string | null;
   to_cong_tac_id: string | null;
   /** Thêm migration 20260530150000 */
@@ -56,6 +57,7 @@ export async function upsertDinhKyMau(input: {
   mo_ta?: string | null;
   ma_chu_ky: MaChuKyDinhKy;
   ngay_bat_dau: string;
+  ngay_ket_thuc?: string | null;
   nguoi_phu_trach_id?: string | null;
   to_cong_tac_id?: string | null;
   muc_do_uu_tien?: MucDoUuTienDinhKy | null;
@@ -71,7 +73,11 @@ export async function upsertDinhKyMau(input: {
   const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("edit");
   const actor = await getActorNhanSuId();
   const now = new Date().toISOString();
+  const willActive = input.is_active ?? true;
 
+  if (willActive && !input.nguoi_phu_trach_id) {
+    throw new Error("Mẫu định kỳ đang bật phải có người phụ trách.");
+  }
   if (input.nguoi_phu_trach_id) {
     await validateAssigneeForQlcv(supabase, input.nguoi_phu_trach_id, ksnkKhoaId);
   }
@@ -81,17 +87,17 @@ export async function upsertDinhKyMau(input: {
     await validateAssigneeForQlcv(supabase, sid, ksnkKhoaId);
   }
 
-  if (!input.dia_diem_khoa_id) {
-    throw new Error("Chọn khoa/đơn vị địa điểm thực hiện (danh mục khoa).");
+  // QLCV-08: địa điểm tùy chọn.
+  if (input.dia_diem_khoa_id) {
+    const { data: khoaOk, error: khoaErr } = await supabase
+      .from("mdm_dm_khoa_phong")
+      .select("id")
+      .eq("id", input.dia_diem_khoa_id)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (khoaErr) throwQlcvDbError(khoaErr, "Không kiểm tra được khoa địa điểm.");
+    if (!khoaOk) throw new Error("Khoa/đơn vị địa điểm không hợp lệ hoặc đã ngưng.");
   }
-  const { data: khoaOk, error: khoaErr } = await supabase
-    .from("mdm_dm_khoa_phong")
-    .select("id")
-    .eq("id", input.dia_diem_khoa_id)
-    .eq("is_active", true)
-    .maybeSingle();
-  if (khoaErr) throwQlcvDbError(khoaErr, "Không kiểm tra được khoa địa điểm.");
-  if (!khoaOk) throw new Error("Khoa/đơn vị địa điểm không hợp lệ hoặc đã ngưng.");
 
   const gioBat = normalizeTimeHHmm(input.gio_bat_dau);
   const gioKet = normalizeTimeHHmm(input.gio_ket_thuc);
@@ -101,22 +107,28 @@ export async function upsertDinhKyMau(input: {
     throw new Error("Tài khoản cần gắn hồ sơ nhân sự (mdm_nhan_su) mới tạo được mẫu định kỳ.");
   }
 
+  const ketThuc = input.ngay_ket_thuc ? String(input.ngay_ket_thuc).trim() || null : null;
+  if (ketThuc && ketThuc < input.ngay_bat_dau) {
+    throw new Error("Ngày kết thúc không được trước ngày bắt đầu.");
+  }
+
   const row = {
     tieu_de: input.tieu_de,
     mo_ta: input.mo_ta ?? null,
     ma_chu_ky: input.ma_chu_ky,
     ngay_bat_dau: input.ngay_bat_dau,
+    ngay_ket_thuc: ketThuc,
     nguoi_phu_trach_id: input.nguoi_phu_trach_id ?? null,
     to_cong_tac_id: input.to_cong_tac_id ?? null,
     muc_do_uu_tien: input.muc_do_uu_tien ?? "TRUNG_BINH",
     vi_tri_thuc_hien: input.vi_tri_thuc_hien?.trim() || null,
     gio_bat_dau: gioBat,
     gio_ket_thuc: gioKet,
-    dia_diem_khoa_id: input.dia_diem_khoa_id,
+    dia_diem_khoa_id: input.dia_diem_khoa_id || null,
     nguoi_phoi_hop_ids: phoiHop,
     nguoi_theo_doi_ids: theoDoi,
     nhiem_vu_id: input.nhiem_vu_id ?? null,
-    is_active: input.is_active ?? true,
+    is_active: willActive,
     updated_at: now,
   };
 

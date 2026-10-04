@@ -61,8 +61,7 @@ function labelMucDoUuTien(ma: string | null): { label: string; cls: string } {
     case "CAO":
       return { label: "Cao", cls: "bg-amber-50 text-amber-600" };
     case "KHAN_CAP":
-      // Legacy mẫu ưu tiên = KHAN_CAP (CHECK cũ); tạo mới chỉ THAP/TB/CAO — 19d / W6
-      return { label: "Cao · legacy", cls: "bg-red-50 text-red-600" };
+      return { label: "Cao", cls: "bg-red-50 text-red-600" };
     default:
       return { label: "TB", cls: "bg-blue-50 text-blue-600" };
   }
@@ -88,6 +87,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [checklistItems, setChecklistItems] = useState<QlcvChecklistItem[]>([]);
   const [chuKy, setChuKy] = useState<MaChuKyDinhKy>("MONTHLY");
   const [ngayBatDau, setNgayBatDau] = useState(() => new Date().toISOString().slice(0, 10));
+  const [ngayKetThuc, setNgayKetThuc] = useState("");
   const [nsId, setNsId] = useState("");
   const [toId, setToId] = useState("");
   const [mucDoUuTien, setMucDoUuTien] = useState<MucDoUuTienDinhKy>("TRUNG_BINH");
@@ -109,6 +109,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setChecklistItems([]);
     setChuKy("MONTHLY");
     setNgayBatDau(new Date().toISOString().slice(0, 10));
+    setNgayKetThuc("");
     setNsId("");
     setToId("");
     setMucDoUuTien("TRUNG_BINH");
@@ -127,6 +128,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setChecklistItems(parseMoTaToQlcvChecklist(r.mo_ta));
     setChuKy(r.ma_chu_ky);
     setNgayBatDau(r.ngay_bat_dau);
+    setNgayKetThuc(r.ngay_ket_thuc || "");
     setNsId(r.nguoi_phu_trach_id || "");
     setToId(r.to_cong_tac_id || "");
     setMucDoUuTien(r.muc_do_uu_tien || "TRUNG_BINH");
@@ -181,8 +183,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
       toast.error("Nhập tiêu đề mẫu.");
       return;
     }
-    if (!diaDiemKhoaId) {
-      toast.error("Chọn khoa/đơn vị địa điểm thực hiện.");
+    if (!nsId) {
+      toast.error("Chọn người phụ trách cho mẫu định kỳ.");
       return;
     }
     if (!gioBat || !gioKet) {
@@ -196,13 +198,14 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
         mo_ta: serializeQlcvChecklistToMoTa(checklistItems) || null,
         ma_chu_ky: chuKy,
         ngay_bat_dau: ngayBatDau,
+        ngay_ket_thuc: ngayKetThuc || null,
         nguoi_phu_trach_id: nsId || null,
         to_cong_tac_id: toId || null,
         muc_do_uu_tien: mucDoUuTien,
         vi_tri_thuc_hien: viTri.trim() || null,
         gio_bat_dau: gioBat,
         gio_ket_thuc: gioKet,
-        dia_diem_khoa_id: diaDiemKhoaId,
+        dia_diem_khoa_id: diaDiemKhoaId || null,
         nguoi_phoi_hop_ids: phoiHopIds,
         nguoi_theo_doi_ids: theoDoiIds,
         nhiem_vu_id: nhiemVuId || null,
@@ -334,17 +337,26 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
           />
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Người phụ trách mặc định (tuỳ chọn)</label>
+          <label className={bv103LayoutChrome.labelBlock}>Ngày dừng (tuỳ chọn)</label>
+          <input
+            type="date"
+            className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm"
+            value={ngayKetThuc}
+            onChange={(e) => setNgayKetThuc(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className={bv103LayoutChrome.labelBlock}>Người phụ trách *</label>
           <div className="mt-1.5">
-            <SearchableSelect options={ns} placeholder="—" value={nsId} onChange={setNsId} />
+            <SearchableSelect options={ns} placeholder="Chọn người phụ trách…" value={nsId} onChange={setNsId} />
           </div>
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Khoa / đơn vị địa điểm *</label>
+          <label className={bv103LayoutChrome.labelBlock}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
           <div className="mt-1.5">
             <SearchableSelect
               options={khoaPhong}
-              placeholder="Chọn khoa từ danh mục MDM…"
+              placeholder="Chọn khoa / đơn vị…"
               value={diaDiemKhoaId}
               onChange={setDiaDiemKhoaId}
               searchPlaceholder="Tìm khoa theo tên hoặc mã…"
@@ -526,7 +538,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                         >
                           <Pencil className="h-3 w-3" aria-hidden /> Sửa
                         </button>
-                        <button title="Dừng mẫu = ngừng sinh phiếu mới (19c). Không cần cột ngày_dừng."
+                        <button title="Dừng mẫu = ngừng sinh phiếu mới. Có thể đặt thêm ngày dừng trên form."
                           type="button"
                           className="text-xs font-semibold text-[var(--primary)] hover:underline"
                           onClick={async () => {

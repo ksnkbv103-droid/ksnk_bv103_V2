@@ -45,18 +45,20 @@ export function dinhKyMatchDueOnDate(maChuKy: QlcvMaChuKyDinhKy, ngayBatDauIso: 
     const diff = daysBetweenUtcInclusiveFloor(anchor, d);
     return diff % 7 === 0;
   }
+  // QLCV-08: neo 29–31 → ngày cuối tháng khi tháng ngắn hơn.
+  const lastDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  const targetDay = Math.min(anchor.getUTCDate(), lastDay);
   if (maChuKy === "MONTHLY") {
-    return d.getUTCDate() === anchor.getUTCDate();
+    return d.getUTCDate() === targetDay;
   }
   if (maChuKy === "QUARTERLY") {
-    // Khớp nếu: cùng ngày trong tháng VÀ số tháng chênh lệch chia hết cho 3
-    if (d.getUTCDate() !== anchor.getUTCDate()) return false;
+    if (d.getUTCDate() !== targetDay) return false;
     const anchorMonths = anchor.getUTCFullYear() * 12 + anchor.getUTCMonth();
     const dueMonths = d.getUTCFullYear() * 12 + d.getUTCMonth();
     return (dueMonths - anchorMonths) % 3 === 0;
   }
   if (maChuKy === "YEARLY") {
-    return d.getUTCMonth() === anchor.getUTCMonth() && d.getUTCDate() === anchor.getUTCDate();
+    return d.getUTCMonth() === anchor.getUTCMonth() && d.getUTCDate() === targetDay;
   }
   return false;
 }
