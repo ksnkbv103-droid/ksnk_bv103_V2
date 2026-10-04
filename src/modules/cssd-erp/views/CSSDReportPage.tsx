@@ -16,8 +16,6 @@ import { formatDateVi, formatDateTimeVi } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useImportExport } from "@/hooks/useImportExport";
 import ReportFilters from "../components/report/ReportFilters";
-import ReportDashboard from "../components/report/ReportDashboard";
-import ReportAnalyticsPanels from "../components/report/ReportAnalyticsPanels";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
 import {
   CSSD_UI_ACTION_PRIMARY,
@@ -28,16 +26,34 @@ import {
 } from "../shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
-import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
-import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
-import IncidentVoidButton from "@/modules/cssd-su-co/components/IncidentVoidButton";
 import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
 import { stationLabel } from "../workflow/domain/cssd-stations";
 
+const panelPulse = () => (
+  <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+);
+
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
-  ssr: false,
-  loading: () => <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />,
+  loading: panelPulse,
 });
+const ReportDashboard = dynamic(() => import("../components/report/ReportDashboard"), {
+  loading: panelPulse,
+});
+const ReportAnalyticsPanels = dynamic(() => import("../components/report/ReportAnalyticsPanels"), {
+  loading: panelPulse,
+});
+const IncidentJournalPrintButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentJournalPrintButton"),
+  { loading: () => null },
+);
+const IncidentConfirmButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentConfirmButton"),
+  { loading: () => null },
+);
+const IncidentVoidButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentVoidButton"),
+  { loading: () => null },
+);
 
 const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_PHAT"] as const;
 type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";

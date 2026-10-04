@@ -13,7 +13,6 @@ import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
-  ssr: false,
   loading: () => <div className="h-64 animate-pulse rounded-[var(--radius-shell)] bg-slate-50" />,
 });
 

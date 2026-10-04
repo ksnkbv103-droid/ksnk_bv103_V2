@@ -1,6 +1,5 @@
-// src/app/quan-tri-he-thong/bang-kiem/page.tsx
-import BangKiemView from "@/modules/quan-tri-he-thong/bang-kiem/views/BangKiemView";
 import { Metadata } from "next";
+import BangKiemClient from "./BangKiemClient";
 
 export const metadata: Metadata = {
   title: "Danh mục Bảng kiểm | KSNK BV103",
@@ -8,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <BangKiemView />;
+  return <BangKiemClient />;
 }

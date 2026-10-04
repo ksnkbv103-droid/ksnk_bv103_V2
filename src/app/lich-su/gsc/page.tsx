@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import GscHistoryView from "@/modules/giam-sat-chung/views/GscHistoryView";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import LichSuGscClient from "./LichSuGscClient";
 
 export const metadata = {
   title: "Lịch sử giám sát tổng hợp | KSNK 103",
@@ -10,7 +10,7 @@ export const metadata = {
 export default function LichSuGscPage() {
   return (
     <Suspense fallback={<SupervisionPageSkeleton />}>
-      <GscHistoryView />
+      <LichSuGscClient />
     </Suspense>
   );
 }
