@@ -8,9 +8,12 @@
  *
  * KHÔNG chạy prod migrate từ script này. KHÔNG commit bắt buộc.
  *
+ * GSC-04 (2026-10-05):
+ * - Chỉ alias VST BM.07.02/03 — CẤM BM.19.02 (nhật ký MEC ≠ QT.19.BM.02).
+ * - Bỏ nhánh «tìm short rồi update chính hàng đó» (tránh đổi tên/ghi đè form).
+ * - doi_tuong theo chủ đề; pham_vi nhóm/chuyên khoa → CA_VIEN + KHUYEN_NGH (ids rỗng không ẩn BK).
+ *
  * Counts expected: catalog 66 = 1 WHO (VST module, skip gstt) + 65 BK → gstt.
- * ma_bk: full KSNK.QT|QĐ.*.BM.* (gap 03: không dùng short làm PK mới).
- * Alias short (BM.07.02…) ghi trong ap_dung_jsonb.seed_meta khi có trong gap xref.
  */
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
@@ -30,55 +33,59 @@ const GAP_PATH = path.join(SEED_DIR, "03-gap-vs-canonical36.md");
 const APPLY = String(process.env.APPLY || "").trim() === "1";
 const DRY_RUN = !APPLY;
 
-const WHO_MA = new Set([
-  "KSNK.QT.07.BM.01",
-  "BM.07.01",
-  "VST_WHO",
-]);
+const WHO_MA = new Set(["KSNK.QT.07.BM.01", "BM.07.01", "VST_WHO"]);
 
-/** Known short aliases tip VST / canonical-36 (Soft Soft Soft-safe xref only — no invent). */
+/** Chỉ alias VST hub — không alias nhật ký / form khác chủ đề. */
 const SHORT_ALIAS = {
   "KSNK.QT.07.BM.02": "BM.07.02",
   "KSNK.QT.07.BM.03": "BM.07.03",
-  "KSNK.QT.03.BM.03": "BM.03.03",
-  "KSNK.QT.08.BM.01": "BM.08.01",
-  "KSNK.QT.09.BM.01": "BM.09.01",
-  "KSNK.QT.12.BM.01": "BM.12.01",
-  "KSNK.QT.14.BM.01": "BM.14.01",
-  "KSNK.QT.15.BM.01": "BM.15.01",
-  "KSNK.QT.16.BM.01": "BM.16.01",
-  "KSNK.QT.17.BM.01": "BM.17.01",
-  "KSNK.QT.18.BM.02": "BM.18.02",
-  "KSNK.QT.19.BM.02": "BM.19.02",
 };
 
 function mapCachTinhDiem(raw) {
   const s = String(raw || "").trim().toUpperCase();
   if (s === "TY_LE" || s === "TRON_GOI" || s === "DAT_KHONG_DAT" || s === "NHAT_KY") return s;
-  // Domain DAT_TREN_AP_DUNG = % đạt / tiêu chí áp dụng → TY_LE
   if (s === "DAT_TREN_AP_DUNG") return "TY_LE";
   return "TY_LE";
 }
 
+/** GSC-04: không dùng THEO_KHOI/THEO_KHOA khi ids rỗng (ẩn hết BK). */
 function mapPhamViLoai(loai, lop) {
   if (lop === "he_thong") return "CHI_KSNK";
   switch (String(loai || "").toLowerCase()) {
     case "toan_vien":
       return "CA_VIEN";
     case "nhom_khoa":
-      return "THEO_KHOI";
     case "chuyen_khoa":
     case "don_vi_cu_the":
-      return "THEO_KHOA";
+      // Tạm CA_VIEN + nhãn khuyến nghị trong seed_meta (N-GSC-6 chưa có map MDM).
+      return "CA_VIEN";
     default:
       return "KHUYEN_NGH";
   }
+}
+
+/** GSC-04 / N-GSC-5 — suy đối tượng theo chủ đề. */
+function inferDoiTuong(bk, catalogRow) {
+  const hay = [bk.ma || catalogRow?.ma_qt_bm, bk.ten || catalogRow?.ten, bk.chuyen_de || catalogRow?.chuyen_de, bk.ghi_chu]
+    .map((s) => String(s || "").trim())
+    .filter(Boolean)
+    .join(" | ");
+  if (/\b(QT\.29|QT\.30|QT\.31|QT\.32|BM\.24|BM\.25|BM\.26|BM\.27)\b|SSI|CLABSI|CAUTI|VAP|bundle/i.test(hay)) {
+    return "NGUOI_BENH";
+  }
+  if (/VSMT|vệ sinh môi trường|đồ vải|QT\.11|BM\.11|QT\.13|BM\.13/i.test(hay)) return "MOI_TRUONG";
+  if (/mẻ|tiệt khuẩn|BI\b|QT\.23|QT\.21|BM\.22/i.test(hay)) return "ME_TIET_KHUAN";
+  if (/CSSD|dụng cụ|đóng gói|lưu trữ|cấp phát|KKMĐC|QT\.1[89]|QT\.2[0-8]|BM\.1[89]|BM\.2[0-2]/i.test(hay)) {
+    return "THIET_BI";
+  }
+  return "NHAN_VIEN";
 }
 
 function buildApDung(bk, catalogRow) {
   const pham = bk.pham_vi_khoa || catalogRow?.pham_vi_khoa || {};
   const lop = bk.lop_giam_sat || catalogRow?.lop_giam_sat || null;
   const pham_vi = mapPhamViLoai(pham.loai, lop);
+  const nhomLabel = Array.isArray(pham.nhom) && pham.nhom.length ? `khuyến nghị cho: ${pham.nhom.join(", ")}` : "";
   return {
     pham_vi,
     khoi_ids: [],
@@ -89,7 +96,7 @@ function buildApDung(bk, catalogRow) {
       ksnk_giam_sat: lop === "he_thong" || Boolean(bk.bat_buoc_filter_khoa),
     },
     muc_do: lop === "he_thong" ? "CHI_KSNK" : "KHUYEN_NGH",
-    ghi_chu: String(pham.ghi_chu || bk.ghi_chu || "").slice(0, 500) || undefined,
+    ghi_chu: [pham.ghi_chu || bk.ghi_chu || "", nhomLabel].filter(Boolean).join(" — ").slice(0, 500) || undefined,
     seed_meta: {
       ma_qt_bm: bk.ma || catalogRow?.ma_qt_bm,
       ma_bk_short: SHORT_ALIAS[bk.ma || ""] || null,
@@ -107,14 +114,24 @@ function buildApDung(bk, catalogRow) {
   };
 }
 
+/** Deterministic UUID (v5-like) — tránh orphan khi APPLY lại cùng nội dung. */
+function stableCriterionId(maBk, maTc) {
+  const h = crypto.createHash("sha1").update(`gsc-tc:${maBk}:${maTc}`).digest();
+  h[6] = (h[6] & 0x0f) | 0x50;
+  h[8] = (h[8] & 0x3f) | 0x80;
+  const hex = h.subarray(0, 16).toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 function mapTieuChi(bk) {
   const lua = Array.isArray(bk.lua_chon) ? bk.lua_chon : ["DAT", "KHONG_DAT", "KHONG_AP_DUNG"];
   const list = Array.isArray(bk.tieu_chi) ? bk.tieu_chi : [];
+  const maBk = String(bk.ma || "").trim();
   return list.map((tc, i) => {
     const stt = Number(tc.stt) || i + 1;
     const ma = String(tc.ma || `TC${String(stt).padStart(2, "0")}`).trim();
     return {
-      id: crypto.randomUUID(),
+      id: stableCriterionId(maBk, ma),
       stt,
       ma_tc: ma,
       noi_dung: String(tc.noi_dung || "").trim(),
@@ -137,13 +154,11 @@ function loadCatalog() {
 
 function assertZeroOut() {
   const md = fs.readFileSync(EXCLUDED_PATH, "utf8");
-  // Soft Soft Soft-safe: excluded index is documentation only — never insert those mã.
   const outMas = [...md.matchAll(/`?(KSNK\.(?:QT|QĐ)\.[0-9]+\.BM\.[0-9]+)`?/g)].map((m) => m[1]);
   return new Set(outMas);
 }
 
 function buildRows(catalog) {
-  const byMa = new Map(catalog.map((c) => [c.ma_qt_bm, c]));
   const outExcluded = assertZeroOut();
   const rows = [];
   const skippedWho = [];
@@ -173,7 +188,6 @@ function buildRows(catalog) {
       throw new Error(`Empty tieu_chi for ${ma} — refuse invent`);
     }
     const lop = bk.lop_giam_sat || c.lop_giam_sat || null;
-    // Soft Soft Soft-safe 16 §6: he_thong → DANH_GIA_HE_THONG (picker hệ thống ≠ thực hành)
     const loaiFromLop =
       lop === "he_thong"
         ? "DANH_GIA_HE_THONG"
@@ -188,7 +202,7 @@ function buildRows(catalog) {
       tieu_chi_jsonb,
       loai_giam_sat: loaiFromLop,
       cach_tinh_diem: mapCachTinhDiem(bk.cach_tinh_diem),
-      doi_tuong_giam_sat: "NHAN_VIEN",
+      doi_tuong_giam_sat: inferDoiTuong(bk, c),
       phien_ban: "seed-25d-20260928",
       ap_dung_jsonb: buildApDung(bk, c),
     });
@@ -208,6 +222,7 @@ async function main() {
   console.log("SEED_DIR", SEED_DIR);
   console.log("files: catalog + bk=%d who=%d gap=%s", bkFiles.length, whoFiles.length, fs.existsSync(GAP_PATH));
   console.log("mode:", DRY_RUN ? "DRY_RUN (no DB write)" : "APPLY=1 (upsert Soft Soft Soft-local)");
+  console.log("SHORT_ALIAS keys:", Object.keys(SHORT_ALIAS).join(", "), "(no BM.19.02)");
 
   const catalog = loadCatalog();
   const { rows, skippedWho, missingBk, catalogCount } = buildRows(catalog);
@@ -215,6 +230,11 @@ async function main() {
   console.log("catalog IN-SCOPE:", catalogCount);
   console.log("WHO skip (VST module, not gstt picker):", skippedWho.length, skippedWho);
   console.log("BK rows ready for gstt_dm_bang_kiem:", rows.length);
+  const doiCounts = {};
+  for (const r of rows) {
+    doiCounts[r.doi_tuong_giam_sat] = (doiCounts[r.doi_tuong_giam_sat] || 0) + 1;
+  }
+  console.log("doi_tuong_giam_sat:", doiCounts);
   if (missingBk.length) {
     console.error("Missing BK json:", missingBk);
     process.exit(1);
@@ -239,7 +259,7 @@ async function main() {
     console.log("\nDRY_RUN OK — no DB write. Soft Soft Soft-safe load path:");
     console.log("  APPLY=1 node --env-file=.env.local scripts/seed-gstt-bang-kiem-from-seed.mjs");
     console.log("UAT after apply: SELECT count(*) FROM gstt_dm_bang_kiem WHERE phien_ban='seed-25d-20260928';");
-    console.log("  expect 65 BK; picker filters WHO; Nội A must not show QT.02/05/QĐ.01 he_thong as thuc_hanh list.");
+    console.log("  expect 65 BK; alias match chỉ BM.07.02/03 (không update short row).");
     return;
   }
 
@@ -253,43 +273,35 @@ async function main() {
 
   let upserted = 0;
   for (const row of rows) {
+    // GSC-04: chỉ khớp đúng ma_bk dài — KHÔNG tìm short rồi rename hàng đó.
     const { data: existing, error: findErr } = await supabase
       .from("gstt_dm_bang_kiem")
-      .select("id, ma_bk")
+      .select("id, ma_bk, tieu_chi_jsonb, phien_ban")
       .eq("ma_bk", row.ma_bk)
       .maybeSingle();
     if (findErr) throw findErr;
-    // Soft Soft Soft-safe: also match tip short alias (e.g. BM.07.02) to avoid duplicate
-    let targetId = existing?.id || null;
-    const short = row.ap_dung_jsonb?.seed_meta?.ma_bk_short;
-    if (!targetId && short) {
-      const { data: byShort } = await supabase
-        .from("gstt_dm_bang_kiem")
-        .select("id, ma_bk")
-        .eq("ma_bk", short)
-        .maybeSingle();
-      if (byShort?.id) {
-        targetId = byShort.id;
-        console.log(`alias match ${short} → keep id, set ma_bk=${row.ma_bk}`);
-      }
-    }
-    if (targetId) {
+
+    if (existing?.id) {
+      // Giữ tieu_chi_jsonb nếu đã seed (tránh orphan UUID phiên cũ).
+      const keepTc =
+        existing.phien_ban === "seed-25d-20260928" && Array.isArray(existing.tieu_chi_jsonb)
+          ? existing.tieu_chi_jsonb
+          : row.tieu_chi_jsonb;
       const { error } = await supabase
         .from("gstt_dm_bang_kiem")
         .update({
           ten_bang_kiem: row.ten_bang_kiem,
           mo_ta: row.mo_ta,
           is_active: true,
-          tieu_chi_jsonb: row.tieu_chi_jsonb,
+          tieu_chi_jsonb: keepTc,
           loai_giam_sat: row.loai_giam_sat,
           cach_tinh_diem: row.cach_tinh_diem,
           doi_tuong_giam_sat: row.doi_tuong_giam_sat,
           phien_ban: row.phien_ban,
           ap_dung_jsonb: row.ap_dung_jsonb,
-          ma_bk: row.ma_bk,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", targetId);
+        .eq("id", existing.id);
       if (error) throw error;
     } else {
       const { error } = await supabase.from("gstt_dm_bang_kiem").insert(row);
@@ -297,7 +309,7 @@ async function main() {
     }
     upserted += 1;
   }
-  console.log("Upserted Soft Soft Soft-local:", upserted, "/ 65 BK (0 OUT, WHO skipped)");
+  console.log("Upserted Soft Soft Soft-local:", upserted, "/ 65 BK (0 OUT, WHO skipped; no short-row rename)");
 }
 
 main().catch((e) => {
