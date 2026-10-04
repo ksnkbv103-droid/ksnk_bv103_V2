@@ -293,12 +293,13 @@ export async function saveVSTSession(
       if (process.env.NODE_ENV !== "production") console.error("[VST save] Lỗi insert observations:", obsError.message);
       throw obsError;
     }
-    pendingObservationRestore = false;
 
     if (existingSessionId) {
       const updated = await persistSessionRow("update", existingSessionId);
       if (!updated.ok) throw updated.error;
     }
+    // Chỉ tắt cờ sau khi header phiên cũng OK — lỗi update vẫn khôi phục cơ hội cũ.
+    pendingObservationRestore = false;
 
     logVstSaveDebug("Insert observations xong");
 
