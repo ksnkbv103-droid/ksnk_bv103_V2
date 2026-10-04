@@ -65,10 +65,13 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
     const [registry, nhanSuRows, locationRes, khuVucFallbackRes] = await Promise.all([
       getCachedRegistries(),
       includeNhanSu
-        ? fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+        ? // A) select(*). B) cột form giám sát — chọn B (payload MDM picker).
+          fetchAllRangeRows<Record<string, unknown>>((from, to) =>
             supabase
               .from("v_mdm_nhan_su_full")
-              .select("*")
+              .select(
+                "id, ma_nv, ho_ten, khoa_id, ten_khoa, nghe_nghiep_id, ten_nghe_nghiep, chuc_danh_id, chuc_danh, ten_chuc_danh, chuc_vu_id, chuc_vu, ten_chuc_vu, vai_tro_he_thong_id, vai_tro_he_thong_ksnk, ten_vai_tro, to_id, ten_to, is_active, created_at",
+              )
               .eq("is_active", true)
               .order("created_at", { ascending: false })
               .order("id", { ascending: true })
@@ -134,7 +137,9 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
         try {
           const { data: selfRow, error: selfErr } = await supabase
             .from("v_mdm_nhan_su_full")
-            .select("*")
+            .select(
+              "id, ma_nv, ho_ten, khoa_id, ten_khoa, nghe_nghiep_id, ten_nghe_nghiep, chuc_danh_id, chuc_danh, ten_chuc_danh, chuc_vu_id, chuc_vu, ten_chuc_vu, vai_tro_he_thong_id, vai_tro_he_thong_ksnk, ten_vai_tro, to_id, ten_to, is_active, created_at",
+            )
             .eq("id", selfKey)
             .eq("is_active", true)
             .maybeSingle();

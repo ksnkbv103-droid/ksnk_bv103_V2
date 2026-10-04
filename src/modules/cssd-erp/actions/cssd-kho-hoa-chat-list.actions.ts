@@ -18,10 +18,12 @@ async function aggregateTonTheoLo(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
 ): Promise<{ success: true; data: TonAggregateRow[] } | { success: false; error: string }> {
   try {
+    // A) Đọc hết rồi filter client. B) gt(ton,0) ở SQL — chọn B (đúng comment «chỉ ton > 0»).
     const rawRows = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
       supabase
         .from("v_cssd_kho_hoa_chat_ton_lo")
         .select("dm_hoa_chat_id, ma_lo, han_su_dung, ton_so_luong")
+        .gt("ton_so_luong", 0)
         .order("dm_hoa_chat_id", { ascending: true })
         .order("ma_lo", { ascending: true })
         .order("han_su_dung", { ascending: true })

@@ -90,11 +90,14 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
       setInitialLoading(true);
       setMasterDataFetchFailed(false);
       try {
-        const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true });
+        // A) Bundle rồi header tuần tự. B) Promise.all độc lập — chọn B (TTFD form).
+        const [result, scoped] = await Promise.all([
+          mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true }),
+          getVstHeaderDmDropdowns(),
+        ]);
         if (cancelled) return;
         if (result.success) {
           setMasterDataFetchFailed(false);
-          const scoped = await getVstHeaderDmDropdowns();
           const scopedData = scoped.success ? scoped.data : null;
           const nextKhoas = scopedData?.khoas?.length ? scopedData.khoas : result.data.khoas || [];
           setKhoas(nextKhoas);

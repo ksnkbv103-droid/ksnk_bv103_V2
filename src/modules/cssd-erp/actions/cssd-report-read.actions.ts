@@ -159,6 +159,10 @@ async function buildQuyTrinhAnalyticsSelect(supabase: SupabaseClient): Promise<s
   return cols.join(",");
 }
 
+/** Sự cố báo cáo — đủ cột parse incident; không select(*). */
+const SU_CO_REPORT_SELECT =
+  "id, quy_trinh_id, is_red_alert, ma_loai_su_co, ten_loai_su_co, incident_group, incident_type_label, ma_qr_quy_trinh, ma_tram_phat_hien, ma_tram_gay_loi, mo_ta, attributes, created_at, is_active";
+
 export async function fetchCssdReportBundle(filters: CssdReportFilters) {
   try {
     await verifyCssdReportView();
@@ -167,11 +171,19 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     const to = String(filters.to || "").trim();
     const station = String(filters.station || "ALL").trim();
 
+    // A) select(*). B) analytics/report projection đã có sẵn — chọn B.
+    const quyTrinhSelect = [
+      await buildQuyTrinhAnalyticsSelect(supabase),
+      "ma_qr_quy_trinh",
+      "is_red_alert",
+      "is_active",
+    ].join(",");
+
     const [resQ, resS] = await Promise.all([
       fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
         supabase
           .from("v_cssd_quy_trinh_full")
-          .select("*")
+          .select(quyTrinhSelect)
           .gte("created_at", from)
           .lte("created_at", `${to}T23:59:59`)
           .order("id", { ascending: true })
@@ -180,7 +192,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
         supabase
           .from("v_cssd_su_co_full")
-          .select("*")
+          .select(SU_CO_REPORT_SELECT)
           .gte("created_at", from)
           .lte("created_at", `${to}T23:59:59`)
           .order("id", { ascending: true })

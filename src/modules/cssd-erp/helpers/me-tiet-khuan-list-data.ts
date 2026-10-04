@@ -42,9 +42,12 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
         error: e instanceof Error ? e.message : "Không tải danh sách mẻ",
       })),
     // Form MDM dùng READY/REPAIRING/…; chỉ READY (và mã cũ HOAT_DONG nếu có) được chọn làm máy mẻ TK.
+    // A) select(*). B) cột dropdown mẻ — chọn B.
     supabase
       .from("cssd_dm_thiet_bi")
-      .select("*, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may)")
+      .select(
+        "id, ma_thiet_bi, ten_thiet_bi, trang_thai, loai_may_id, is_active, specs, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may)",
+      )
       .eq("is_active", true)
       .in("trang_thai", ["READY", "HOAT_DONG"]),
     (async () => {

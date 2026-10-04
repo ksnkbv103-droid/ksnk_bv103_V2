@@ -21,6 +21,14 @@ import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
+import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
+
+/** Lọc gần đúng pending đề xuất ở SQL; vẫn `isDeXuatChoDuyet` phía app (legacy alias). */
+function applyPendingDeXuatSqlFilter<T extends { or: (f: string) => T }>(query: T): T {
+  return query.or(
+    "trang_thai.eq.DE_XUAT_CHO_DUYET,and(is_active.eq.false,trang_thai.eq.MOI),and(is_active.eq.false,trang_thai.eq.CHUA_BAT_DAU),and(is_active.eq.false,trang_thai.is.null)",
+  );
+}
 
 interface CreateDeXuatInput {
   tieu_de: string;
@@ -187,21 +195,15 @@ export async function getPendingDeXuat() {
   const { supabase } = await ensureQlcvKsnkAccess("approve");
   const scope = await resolveQlcvListScope(supabase);
 
+  // A) select(*) + filter client. B) cột board + lọc SQL gần đúng — chọn B.
   const data = await fetchAllRangeRows<DeXuatRow>((from, to) => {
     let query = supabase
       .from("v_qlcv_cong_viec_full")
-      .select(
-        `
-      *,
-      nguoi_tao:mdm_nhan_su!nguoi_tao_id(ho_ten),
-      nguoi_phu_trach:mdm_nhan_su!nguoi_phu_trach_id(ho_ten),
-      to_cong_tac:mdm_dm_to_cong_tac!to_cong_tac_id(ten_to)
-    `,
-      )
-      .eq("is_active", false)
+      .select(QLCV_ROOT_TASK_VIEW_SELECT)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true })
       .range(from, to);
+    query = applyPendingDeXuatSqlFilter(query);
     query = applyQlcvListScopeToQuery(query, scope);
     return query;
   });
@@ -219,12 +221,12 @@ export async function getMyPendingDeXuat() {
   const data = await fetchAllRangeRows<DeXuatRow>((from, to) => {
     let query = supabase
       .from("v_qlcv_cong_viec_full")
-      .select("*")
-      .eq("is_active", false)
+      .select(QLCV_ROOT_TASK_VIEW_SELECT)
       .eq("nguoi_tao_id", actorNhanSuId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true })
       .range(from, to);
+    query = applyPendingDeXuatSqlFilter(query);
     query = applyQlcvListScopeToQuery(query, scope);
     return query;
   });

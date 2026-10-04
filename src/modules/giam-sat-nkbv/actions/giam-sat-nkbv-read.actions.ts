@@ -80,9 +80,12 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   if (loai_nkbv_id) countQ = countQ.eq("loai_nkbv_id", loai_nkbv_id);
   if (trang_thai_id) countQ = countQ.eq("trang_thai_id", trang_thai_id);
 
+  // A) select(*). B) cột bảng ca + sort keys — chọn B (payload list).
+  const NKBV_CASE_LIST_SELECT =
+    "id, ma_ca, ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan, ngay_phat_hien, loai_benh_pham, tac_nhan_vi_khuan, so_luong, khoa_ghi_nhan_id, khoa_ma, khoa_ten, loai_nkbv_id, loai_ma, loai_ten, trang_thai_id, trang_thai_ma, trang_thai_ten, clinical_notes, is_active, created_at, updated_at";
   let dataQ = supabase
     .from("v_nkbv_su_kien_full")
-    .select("*")
+    .select(NKBV_CASE_LIST_SELECT)
     .eq("is_active", true)
     .order(sortCol, { ascending })
     .range(from, to);
