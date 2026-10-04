@@ -13,6 +13,9 @@ export type BatchRecallListItem = {
   usedClinicallyAt?: string;
   usedClinicallyBy?: string;
   newQuyTrinhId?: string;
+  khoaNhanId?: string;
+  khoaTen?: string;
+  trangThai?: string;
 };
 
 export type BatchRecallResult = {
@@ -22,7 +25,10 @@ export type BatchRecallResult = {
   machineHeld: boolean;
   machineId: string | null;
   recalled: BatchRecallListItem[];
+  /** SC-01: bộ đã cấp — chờ thu về (migration mới). Rỗng nếu RPC cũ. */
+  holdPending: BatchRecallListItem[];
   listedUsed: BatchRecallListItem[];
+  recallScope?: string | null;
 };
 
 export type BatchRecallArgs = {
@@ -58,6 +64,9 @@ function readItems(raw: unknown): BatchRecallListItem[] {
     const usedBy = String(row.used_clinically_by || "").trim();
     const used =
       row.used_clinically === true || String(row.used_clinically || "").toLowerCase() === "true";
+    const khoaNhanId = String(row.khoa_nhan_id || "").trim();
+    const khoaTen = String(row.khoa_ten || "").trim();
+    const trangThai = String(row.trang_thai || "").trim();
     return {
       quyTrinhId: String(row.quy_trinh_id || ""),
       maBo: String(row.ma_bo || ""),
@@ -69,6 +78,9 @@ function readItems(raw: unknown): BatchRecallListItem[] {
       ...(usedAt ? { usedClinicallyAt: usedAt } : {}),
       ...(usedBy ? { usedClinicallyBy: usedBy } : {}),
       ...(row.new_quy_trinh_id ? { newQuyTrinhId: String(row.new_quy_trinh_id) } : {}),
+      ...(khoaNhanId ? { khoaNhanId } : {}),
+      ...(khoaTen ? { khoaTen } : {}),
+      ...(trangThai ? { trangThai } : {}),
     };
   });
 }
@@ -116,6 +128,8 @@ export async function applyBatchRecallAndHoldMachine(
     machineHeld: body.machine_held === true,
     machineId: body.machine_id ? String(body.machine_id) : null,
     recalled: readItems(body.recalled),
+    holdPending: readItems(body.hold_pending),
     listedUsed: readItems(body.listed_used),
+    recallScope: body.recall_scope ? String(body.recall_scope) : null,
   };
 }
