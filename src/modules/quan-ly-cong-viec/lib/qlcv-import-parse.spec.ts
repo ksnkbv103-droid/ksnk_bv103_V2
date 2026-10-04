@@ -43,4 +43,18 @@ describe("parseQlcvImportRow", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors.some((e) => /Hạn/i.test(e))).toBe(true);
   });
+
+  it("cột loại DINH_KY → vẫn ghi DOT_XUAT (QLCV-05)", () => {
+    const r = parseQlcvImportRow(
+      {
+        tieu_de: "X",
+        ma_nv: "NV001",
+        loai_cong_viec: "DINH_KY",
+        han_hoan_thanh: "2026-12-31",
+      },
+      6,
+    );
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.row.loai_cong_viec).toBe("DOT_XUAT");
+  });
 });
