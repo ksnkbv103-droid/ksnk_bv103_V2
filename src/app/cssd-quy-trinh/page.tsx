@@ -10,6 +10,7 @@ import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHor
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { isRouteInPilotScope } from "@/lib/ksnk-pilot-route-scope";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
 type QuyTrinhTab = "WORKFLOW" | "BATCH" | "TRACE";
@@ -71,15 +72,41 @@ function CssdQuyTrinhPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reportPerm = useModulePermission("CSSD_REPORT");
+  const workflowPerm = useModulePermission("CSSD_WORKFLOW");
+  const mePerm = useModulePermission("CSSD_ME_TIET_KHUAN");
   const tabParam = searchParams.get("tab");
   const qrParam = searchParams.get("qr");
   const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
+  const reportInScope = isRouteInPilotScope(CSSD_ROUTES.report);
+  const showReportLink = reportInScope && !reportPerm.loading && reportPerm.allowed.view;
 
   useEffect(() => {
     if (tabParam === "kho") {
       router.replace(CSSD_ROUTES.dungCu, { scroll: false });
     }
   }, [tabParam, router]);
+
+  // IA-05: chỉ CSSD_REPORT → thẳng báo cáo (không màn từ chối chu trình).
+  useEffect(() => {
+    if (reportPerm.loading || workflowPerm.loading || mePerm.loading) return;
+    if (!reportInScope) return;
+    const onlyReport =
+      reportPerm.allowed.view &&
+      !workflowPerm.allowed.view &&
+      !mePerm.allowed.view;
+    if (onlyReport) {
+      router.replace(CSSD_ROUTES.report, { scroll: false });
+    }
+  }, [
+    reportPerm.loading,
+    reportPerm.allowed.view,
+    workflowPerm.loading,
+    workflowPerm.allowed.view,
+    mePerm.loading,
+    mePerm.allowed.view,
+    reportInScope,
+    router,
+  ]);
 
   const setTab = useCallback(
     (key: QuyTrinhTab) => {
@@ -111,7 +138,7 @@ function CssdQuyTrinhPageInner() {
     <CSSDPageShell
       title="Chu trình xử lý dụng cụ"
       actions={
-        reportPerm.loading || !reportPerm.allowed.view ? null : (
+        !showReportLink ? null : (
           <Link
             href={CSSD_ROUTES.report}
             className={`${bv103LayoutChrome.linkQuiet} gap-1`}

@@ -9,9 +9,8 @@ import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import {
-  isPathBlockedUnderPilotCoreModules,
-  isPilotCoreModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-core-modules-scope";
+  isPathBlockedUnderActivePilot,
+} from "@/lib/ksnk-pilot-route-scope";
 
 export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const monthly = payload?.nkbv?.monthly ?? [];
@@ -32,8 +31,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
 
   if (!payload || payload.sources.nkbv !== "ok" || monthly.length === 0) return null;
 
-  const blocked =
-    isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules("/giam-sat-nkbv");
+  const blocked = isPathBlockedUnderActivePilot("/giam-sat-nkbv");
 
   return (
     <section className={`${D.shellPadded}`}>

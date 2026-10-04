@@ -1,13 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  isPathBlockedUnderPilotCoreModules,
-  isPilotCoreModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-core-modules-scope";
-import {
-  isPathBlockedUnderPilotFourModules,
-  isPilotFourModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-four-modules-scope";
+import { isPathBlockedUnderActivePilot } from "@/lib/ksnk-pilot-route-scope";
 import {
   GUEST_STATS_HOME_PATH,
   isGuestStatsOnlyRole,
@@ -67,13 +60,7 @@ function copyResponseCookies(from: NextResponse, to: NextResponse) {
  */
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  if (isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules(pathname)) {
-    return new NextResponse(null, { status: 404 });
-  } else if (
-    isPilotFourModulesScopeEnabled() &&
-    !isPilotCoreModulesScopeEnabled() &&
-    isPathBlockedUnderPilotFourModules(pathname)
-  ) {
+  if (isPathBlockedUnderActivePilot(pathname)) {
     return new NextResponse(null, { status: 404 });
   }
 
