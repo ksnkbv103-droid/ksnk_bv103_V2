@@ -456,3 +456,15 @@ Migrate file sẵn (chưa apply): `20260928150000_…claim_status`, `20260930140
 | `a1ebe41` | QLCV: skip `fn_qlcv_transition` khi RPC checklist đã để `HOAN_THANH` (DINH_KY@100%). |
 
 Park còn: editor NKBV dual-door TT (Domain); GSC cửa sổ 30 phút; BOM apply atomic RPC; Q-14 báo cáo kỳ; Auth-ban; orphan xóa file.
+
+## PERF-1 — tốc độ load (2026-10-05, nhánh `cursor/perf-1`)
+
+Next 16.3 Turbopack không in bảng First Load JS cổ điển; đo approximate client chunk KB từ `.next` + vá wall-clock query.
+
+| Commit | Việc |
+|--------|------|
+| `4069fe5` | PERF-A: cookie guest 5′ ở proxy; BCTH shell 1× getUser+RBAC |
+| `6bd04a3` | PERF-B: Promise.all VST; cắt cột MDM/CSSD report/mẻ/NKBV list; đề xuất SQL filter; ton HC `gt(0)` |
+| `8058d73` | PERF-C: `20261005020000_perf_rls_initplan_hot_paths.sql` (chưa apply) |
+
+Chưa vá (park): PermissionProvider/StaffSessionGate trùng `getSession`; NKBV dashboard vẫn `fetchAllRangeRows` theo kỳ; QLCV kanban dump toàn board; nhân sự form vẫn full active list (cần async search); BCTH `ssr:false`.
