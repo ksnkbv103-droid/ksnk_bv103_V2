@@ -545,3 +545,19 @@ Migration **chưa apply**: `20261005120000_cssd_incident_status_da_dong.sql`, `2
 `tsc --noEmit` + vitest CSSD (125) + `npm run verify` OK. Không push.
 
 Park: CSSD-09 jargon/URL (đã gộp IA-03 — còn sót message route nếu còn); N-CSSD-3 kiểm kê; N-CSSD-4 tái xử lý chưa cấp phát; N-CSSD-5 Plasma/EO bộ chịu nhiệt (handoff ME).
+
+## MOD-SC — cửa Module 5 Sự cố/Thu hồi (2026-10-05, nhánh `cursor/mod-sc` từ tip `cursor/mod-cssd`)
+
+| Commit | Việc |
+|--------|------|
+| `6fe2a18` | SC-01+06+07 thu hồi 2 pha (CHO_THU_VE) + JSON used + merge scope + QLCV follow-up |
+| `707dd55` | SC-02 báo ≠ ra lệnh thu hồi; một gói lỗi; Bowie-Dick tách |
+| `ca88a06` | SC-03 xác nhận/vô hiệu quyền + lý do; gỡ đóng băng gắn ĐÃ ĐÓNG |
+| `7766271` | SC-04 cờ đỏ chỉ PROCESS; ngưỡng ≥3 (hằng số) |
+| `48a169c` | SC-05+08+09 trách nhiệm / chặn offline thu hồi / BM.01–02 in |
+
+Migration **chưa apply**: `20261005130000_cssd_sc_batch_recall_two_phase.sql` (RPC 2 pha + `cssd_su_co_counts_for_red_alert` PROCESS + backfill). App: JSON/legacy dual-read; nhận lại CHO_THU_VE ở `cssd-scan.actions` không phụ thuộc apply scan RPC.
+
+`tsc --noEmit` + vitest `cssd-su-co` + `npm run verify` OK. Không push.
+
+Park: N-SC-2 ngưỡng cuối; N-SC-3 map Tổ trưởng RBAC prod; N-SC-4 bỏ nhãn chủ quan; N-SC-8 hạn theo dõi NB; gỡ HOLD_QC jargon còn sót ngoài SC (ME); quyền `BAO_SU_CO.approve` nếu seed sau.
