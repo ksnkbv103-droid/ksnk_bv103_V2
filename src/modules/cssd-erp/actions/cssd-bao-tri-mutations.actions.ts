@@ -173,7 +173,10 @@ export async function ketThucBaoTriThietBiAction(input: {
     const prevTt = String(specs.bao_tri_prev_trang_thai || "").trim().toUpperCase();
     const fromHold = prevTt === "HOLD_QC";
     const nextTt = fromHold ? "CHO_THAM_DINH" : "READY";
-    const nextSpecs = { ...specs, bd_hold_bao_tri_xong_at: fromHold ? now : specs.bd_hold_bao_tri_xong_at };
+    const nextSpecs: Record<string, unknown> = {
+      ...specs,
+      bd_hold_bao_tri_xong_at: fromHold ? now : specs.bd_hold_bao_tri_xong_at,
+    };
     delete nextSpecs.bao_tri_prev_trang_thai;
 
     const { error: uPhieu } = await supabase
