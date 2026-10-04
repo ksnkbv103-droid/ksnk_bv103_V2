@@ -16,11 +16,14 @@ type AfterSaveArgs = {
   email?: string | null;
   password: string;
   roleName: string;
+  /** ADM-03: bắt buộc khi gán/đồng bộ vai trò. */
+  confirmActorPassword?: string;
 };
 
 /** Hồ sơ đã lưu — tạo đăng nhập / đồng bộ vai trò nếu có quyền. */
 export async function afterSaveNhanSuLogin(args: AfterSaveArgs): Promise<void> {
   const roleName = resolveAssignableRoleName(args.roleName);
+  const actorPw = String(args.confirmActorPassword || "").trim();
 
   if (args.canProvision && args.staffId && args.createLogin && !args.hasAuth) {
     if (!args.email) {
@@ -40,18 +43,28 @@ export async function afterSaveNhanSuLogin(args: AfterSaveArgs): Promise<void> {
       return;
     }
     if (roleName) {
-      const roleRes = await setStaffKsnkRbacRole({ staffId: args.staffId, roleName });
+      if (!actorPw) {
+        toast.success("Đã lưu hồ sơ và tạo đăng nhập.");
+        toast.error("Chưa gán vai trò — cần nhập lại mật khẩu quản trị (màn Tài khoản).");
+        return;
+      }
+      const roleRes = await setStaffKsnkRbacRole({
+        staffId: args.staffId,
+        roleName,
+        confirmActorPassword: actorPw,
+      });
       if (!roleRes.success) toast.error(roleRes.error || "Đã tạo tài khoản nhưng chưa gán được vai trò.");
     }
     toast.success("Đã lưu hồ sơ và tạo đăng nhập.");
     return;
   }
 
-  // Có Auth: luôn đồng bộ RBAC theo FK vai trò (rỗng = gỡ vai trò KSNK — cần migrate clear).
-  if (args.canProvision && args.staffId && args.hasAuth) {
+  // Có Auth: đồng bộ RBAC khi có mật khẩu xác nhận (ADM-03). ADM-07: ô vai trò form chỉ đọc.
+  if (args.canProvision && args.staffId && args.hasAuth && actorPw) {
     const roleRes = await setStaffKsnkRbacRole({
       staffId: args.staffId,
       roleName: roleName || "",
+      confirmActorPassword: actorPw,
     });
     if (!roleRes.success) {
       toast.success(args.savedMessage);

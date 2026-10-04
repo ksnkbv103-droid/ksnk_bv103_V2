@@ -2,12 +2,10 @@
 
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "../../actions/verify-permission";
 
 /**
- * Quyền cấu hình RBAC đồng bộ SSOT [`permission-registry`]:
- * Email khẩn cấp (env), vai trò ADMIN, hoặc quyền `PHAN_QUYEN` + edit (ghi ma trận / đồng bộ).
- * ADM-03 sẽ siết chỉ ADMIN; tạm giữ PHAN_QUYEN.edit.
+ * ADM-03: chỉ ADMIN (vai trò) hoặc email khẩn cấp (env) được ghi RBAC / tài khoản.
+ * Không còn nhánh PHAN_QUYEN.edit.
  */
 export async function ensureRbacAdmin() {
   const supabase = await createServerSupabaseUserClient();
@@ -42,6 +40,5 @@ export async function ensureRbacAdmin() {
   });
   if (isAdminRole) return user;
 
-  await verifyPermission("PHAN_QUYEN", "edit");
-  return user;
+  throw new Error("Chỉ quản trị hệ thống được thao tác phân quyền / tài khoản.");
 }

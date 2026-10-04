@@ -106,19 +106,38 @@ export async function getRBACData(): Promise<RBACDataResult> {
   }
 }
 
-export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
+export async function saveFullRBACMatrix(
+  matrix: Record<string, string[]>,
+  confirmActorPassword?: string,
+) {
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
+    const { verifyCurrentActorPassword } = await import(
+      "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/lib/admin-reauth"
+    );
+    const reauth = await verifyCurrentActorPassword(String(confirmActorPassword || ""));
+    if (!reauth.ok) return { success: false, error: reauth.error };
+
     const supabase = createAdminSupabaseClient();
-    // 1. Chuẩn bị dữ liệu insert
+
+    const { data: actorRoles, error: arErr } = await supabase
+      .from("sys_user_roles")
+      .select("role_id")
+      .eq("user_id", actor.id);
+    if (arErr) throw arErr;
+    const ownRoleIds = new Set((actorRoles || []).map((r) => String(r.role_id)));
+    const touchedOwn = Object.keys(matrix).some((roleId) => ownRoleIds.has(roleId));
+    if (touchedOwn) {
+      return {
+        success: false,
+        error: "Không được tự sửa quyền của vai trò đang gắn với bạn.",
+      };
+    }
+
     const records: { role_id: string; permission_id: string }[] = [];
-    
     Object.entries(matrix).forEach(([roleId, permissionIds]) => {
-      permissionIds.forEach(pid => {
-        records.push({
-          role_id: roleId,
-          permission_id: pid
-        });
+      permissionIds.forEach((pid) => {
+        records.push({ role_id: roleId, permission_id: pid });
       });
     });
     const { data: adminRole } = await supabase.from("sys_roles").select("id").eq("name", "ADMIN").maybeSingle();
@@ -127,46 +146,63 @@ export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
       allPerms.forEach((p: { id: string }) => records.push({ role_id: adminRole.id, permission_id: p.id }));
     }
 
-    // 2) Delta update để tránh trạng thái mất quyền toàn cục nếu lỗi giữa chừng.
-    const { data: existingRows, error: existingErr } = await supabase
-      .from("sys_role_permissions")
-      .select("role_id, permission_id");
-    if (existingErr) throw existingErr;
-
-    const toKey = (r: { role_id: string; permission_id: string }) => `${r.role_id}:${r.permission_id}`;
-    const existing = new Set((existingRows || []).map((r) => toKey(r as { role_id: string; permission_id: string })));
-    const incoming = new Set(records.map((r) => toKey(r)));
-
-    const inserts = records.filter((r) => !existing.has(toKey(r)));
-    const removals = (existingRows || []).filter(
-      (r) => !incoming.has(toKey(r as { role_id: string; permission_id: string })),
-    ) as Array<{ role_id: string; permission_id: string }>;
-
-    if (inserts.length > 0) {
-      const { error: insertError } = await supabase
-        .from("sys_role_permissions")
-        .upsert(inserts, { onConflict: "role_id,permission_id" });
-      if (insertError) throw insertError;
+    // Ưu tiên RPC nguyên tử (ADM-03); fallback delta khi migration chưa apply.
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_save_rbac_matrix", {
+      p_rows: records,
+    });
+    const rpcMissing =
+      !!rpcErr &&
+      (/could not find the function|rpc_save_rbac_matrix|PGRST202|404/i.test(rpcErr.message || "") ||
+        rpcErr.code === "PGRST202");
+    if (rpcErr && !rpcMissing) {
+      throw new Error(rpcErr.message);
     }
-
-    for (const row of removals) {
-      const { error: delErr } = await supabase
+    if (!rpcMissing) {
+      if (rpcData && typeof rpcData === "object" && (rpcData as { success?: boolean }).success === false) {
+        return {
+          success: false,
+          error: String((rpcData as { error?: string }).error || "Không lưu được ma trận."),
+        };
+      }
+    } else {
+      const { data: existingRows, error: existingErr } = await supabase
         .from("sys_role_permissions")
-        .delete()
-        .eq("role_id", row.role_id)
-        .eq("permission_id", row.permission_id);
-      if (delErr) throw delErr;
+        .select("role_id, permission_id");
+      if (existingErr) throw existingErr;
+
+      const toKey = (r: { role_id: string; permission_id: string }) => `${r.role_id}:${r.permission_id}`;
+      const existing = new Set(
+        (existingRows || []).map((r) => toKey(r as { role_id: string; permission_id: string })),
+      );
+      const incoming = new Set(records.map((r) => toKey(r)));
+      const inserts = records.filter((r) => !existing.has(toKey(r)));
+      const removals = (existingRows || []).filter(
+        (r) => !incoming.has(toKey(r as { role_id: string; permission_id: string })),
+      ) as Array<{ role_id: string; permission_id: string }>;
+
+      if (inserts.length > 0) {
+        const { error: insertError } = await supabase
+          .from("sys_role_permissions")
+          .upsert(inserts, { onConflict: "role_id,permission_id" });
+        if (insertError) throw insertError;
+      }
+      for (const row of removals) {
+        const { error: delErr } = await supabase
+          .from("sys_role_permissions")
+          .delete()
+          .eq("role_id", row.role_id)
+          .eq("permission_id", row.permission_id);
+        if (delErr) throw delErr;
+      }
     }
 
     const { logAdminAction } = await import("@/lib/admin-audit");
     await logAdminAction({
       action: "CHANGE_RBAC_MATRIX",
       targetTable: "sys_role_permissions",
-      after: {
-        insertCount: inserts.length,
-        removeCount: removals.length,
-        roleIds: Object.keys(matrix),
-      },
+      after: { roleIds: Object.keys(matrix), via: rpcMissing ? "delta_fallback" : "rpc" },
+      actorUserId: actor.id,
+      actorEmail: actor.email,
     });
 
     await invalidateUserPermissionsCache();
