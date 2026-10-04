@@ -5,7 +5,7 @@ import { parseGscPatientPrefill } from "@/modules/giam-sat-chung/lib/gsc-patient
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
-  title: "Giám sát Tuân thủ Thực hành KSNK | KSNK 103",
+  title: "Giám sát tuân thủ",
   description:
     "Tab giám sát tuân thủ — Mạng lưới KSNK quan sát hành vi NVYT theo bảng kiểm động (cach_tinh_diem TY_LE/TRON_GOI/DAT_KHONG_DAT).",
 };

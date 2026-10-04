@@ -6,7 +6,7 @@ import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton
 import { pickSearchParam, redirectWithQuery } from "@/lib/nav/redirect-with-query";
 
 export const metadata = {
-  title: "Giám sát tuân thủ",
+  title: "Giám sát chung",
   description: "Mở phiên giám sát chung (sửa phiếu) hoặc chuyển sang cửa tuân thủ.",
 };
 

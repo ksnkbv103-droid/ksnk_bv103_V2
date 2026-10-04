@@ -3,7 +3,7 @@ import GscAnalyticsView from "@/modules/giam-sat-chung/views/GscAnalyticsView";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
-  title: "Thống kê Giám sát chung | KSNK 103",
+  title: "Thống kê khoa",
   description: "Dashboard phân tích giám sát tuân thủ",
 };
 

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
 export const metadata = {
-  title: "Quản lý Mẻ tiệt khuẩn | KSNK 103",
+  title: "Mẻ tiệt khuẩn",
   description: "Hệ thống quản lý thông số kỹ thuật mẻ tiệt khuẩn CSSD",
 };
 

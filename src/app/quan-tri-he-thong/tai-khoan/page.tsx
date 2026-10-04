@@ -2,7 +2,7 @@ import { canAccessTaiKhoanNhanSuRoute } from "@/lib/auth/quan-tri-access";
 import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
 import TaiKhoanTruyCapHubPage from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/views/TaiKhoanTruyCapHubPage";
 
-export const metadata = { title: "Tài khoản & truy cập | BV103" };
+export const metadata = { title: "Tài khoản & truy cập" };
 
 export default async function Page() {
   const allowed = await canAccessTaiKhoanNhanSuRoute();

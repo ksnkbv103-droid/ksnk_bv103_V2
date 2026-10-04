@@ -8,7 +8,7 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const { loai } = await props.params;
   return {
-    title: `Danh mục ${decodeURIComponent(loai)} | Quản trị | KSNK BV103`,
+    title: `Danh mục ${decodeURIComponent(loai)}`,
     description: "Quản lý danh mục master dm_* theo registry",
   };
 }

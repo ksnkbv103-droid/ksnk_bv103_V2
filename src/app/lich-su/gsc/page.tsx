@@ -3,7 +3,7 @@ import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton
 import LichSuGscClient from "./LichSuGscClient";
 
 export const metadata = {
-  title: "Lịch sử giám sát tổng hợp | KSNK 103",
+  title: "Lịch sử giám sát",
   description: "Tra cứu lịch sử phiên giám sát tuân thủ KSNK",
 };
 

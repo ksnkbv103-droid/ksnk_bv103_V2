@@ -4,7 +4,7 @@ import { parseGscLocPrefill } from "@/modules/giam-sat-chung/lib/gsc-loc-prefill
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
-  title: "Đánh giá Hệ thống KSNK | KSNK 103",
+  title: "Đánh giá hệ thống",
   description:
     "Tab đánh giá hệ thống nội bộ — thanh tra JCI/APSIC, review SOP/policy.",
 };

@@ -1,7 +1,7 @@
 import CssdHoaChatClient from "./CssdHoaChatClient";
 
 export const metadata = {
-  title: "Kho hóa chất & vật tư KSNK | BV103",
+  title: "Hóa chất",
   description: "Tồn theo lô, nhập xuất và cảnh báo tồn",
 };
 
