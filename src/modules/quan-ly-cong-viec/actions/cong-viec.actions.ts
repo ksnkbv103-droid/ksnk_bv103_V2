@@ -260,7 +260,7 @@ export async function getCongViecListPaginated(params: {
     const to = from + pageSize - 1;
     let dataQ = supabase
       .from("v_qlcv_cong_viec_full")
-      .select(QLCV_ROOT_TASK_VIEW_SELECT, { count: "planned" })
+      .select(QLCV_ROOT_TASK_VIEW_SELECT, { count: "exact" })
       .eq("is_active", true)
       .order(sortCol, { ascending })
       .range(from, to);

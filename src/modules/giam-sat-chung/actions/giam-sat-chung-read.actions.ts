@@ -74,7 +74,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
     // 1. COUNT UI phân trang — planned; giữ exact ở báo cáo/đếm nghiệp vụ.
     let countQ = supabase
       .from("v_gstt_giam_sat_chung_sessions_full")
-      .select("id", { count: "planned", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("is_active", true);
     if (scope.isMangLuoiKsnk) {
       if (!scope.actorKhoaId) return { success: true as const, data: [], totalCount: 0, page, pageSize: size };

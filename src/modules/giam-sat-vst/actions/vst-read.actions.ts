@@ -72,7 +72,7 @@ export async function getVSTSessionsPaginated(params: {
     // UI phân trang lịch sử — planned đủ; giữ exact ở báo cáo/đếm nghiệp vụ.
     let countQ = supabase
       .from("v_gstt_giam_sat_vst_sessions_full")
-      .select("id", { count: "planned", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("is_active", true);
     countQ = applyVstHistoryReadScope(countQ, scope);
     if (searchFilter) countQ = countQ.or(searchFilter);

@@ -220,7 +220,7 @@ export async function listNkbvMedicalRecords(params: {
   // UI phân trang hàng đợi BA — planned; giữ exact ở đếm nghiệp vụ (chờ XN…).
   let countQ = supabase
     .from("nkbv_fact_benh_an")
-    .select("id", { count: "planned", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("is_active", true);
   const BA_LIST_SELECT =
     "id, ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan, ngay_sinh, gioi_tinh, ngay_vao_vien, ngay_ra_vien, khoa_dieu_tri_id, ket_cuc_dieu_tri, ly_do_tu_vong, tu_vong_lien_quan_nkbv, is_active";
