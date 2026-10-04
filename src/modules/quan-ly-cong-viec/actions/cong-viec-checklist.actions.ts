@@ -24,9 +24,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 
 /**
- * Soft P0 post-Wave3: `fn_qlcv_update_checklist` still validates `p_trang_thai_ma`
- * against dropped `qlcv_dm_trang_thai_cong_viec` (or soft-deactivated lookup).
- * Write checklist/% with null status, then move status via `fn_qlcv_transition`.
+ * Ghi checklist/% qua RPC (null status). Transition chỉ khi RPC chưa tự đóng phiếu
+ * (DINH_KY@100% SQL có thể đã set HOAN_THANH — tránh optimistic lock stale).
  */
 async function persistProgressThenMaybeTransition(
   supabase: SupabaseClient,
@@ -47,9 +46,20 @@ async function persistProgressThenMaybeTransition(
   });
 
   if (params.stMoi) {
+    const { data: afterRow } = await supabase
+      .from("v_qlcv_cong_viec_full")
+      .select("trang_thai")
+      .eq("id", params.congViecId)
+      .maybeSingle();
+    const afterMa = normalizeQlcvTrangThaiToCanonical(
+      afterRow?.trang_thai != null ? String(afterRow.trang_thai) : null,
+    );
+    if (afterMa === params.stMoi) {
+      return result;
+    }
     const { updated } = await updateCongViecTrangThaiByMa(supabase, {
       id: params.congViecId,
-      currentTrangThaiMa: params.currentTrangThaiMa,
+      currentTrangThaiMa: afterMa || params.currentTrangThaiMa,
       nextMa: params.stMoi,
       actorNhanSuId: params.actorNhanSuId,
       activityLyDo:

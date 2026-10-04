@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
@@ -179,10 +180,14 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         ...(ghiChu ? { ghi_chu_tuy_bien: ghiChu } : {}),
       };
 
+      if (!excludeStatus?.id) {
+        return { success: false as const, error: "Thiếu danh mục trạng thái LOAI_TRU — liên hệ quản trị." };
+      }
+
       const { data, error: updateErr } = await supabase
         .from("nkbv_fact_su_kien")
         .update({
-          trang_thai_id: excludeStatus!.id,
+          trang_thai_id: excludeStatus.id,
           clinical_notes: updatedNotes,
           updated_at: new Date().toISOString(),
         })
@@ -225,16 +230,20 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       viTriNhiemKhuan !== "SSI" &&
       viTriNhiemKhuan !== "VAE"
     ) {
-      const { data: siblings } = await supabase
-        .from("v_nkbv_su_kien_full")
-        .select(
-          "id, loai_ma, loai_ten, vi_tri_nhiem_khuan, ngay_phat_hien, trang_thai_ma, verification_data",
-        )
-        .eq("ma_benh_an", caRow.ma_benh_an)
-        .eq("is_active", true)
-        .neq("id", id)
-        .limit(100);
-      ritPriorEvents = (siblings || [])
+      const siblings = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+        supabase
+          .from("v_nkbv_su_kien_full")
+          .select(
+            "id, loai_ma, loai_ten, vi_tri_nhiem_khuan, ngay_phat_hien, trang_thai_ma, verification_data",
+          )
+          .eq("ma_benh_an", caRow.ma_benh_an)
+          .eq("is_active", true)
+          .neq("id", id)
+          .order("ngay_phat_hien", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+      ritPriorEvents = siblings
         .filter((s) => String(s.trang_thai_ma || "").toUpperCase() !== "LOAI_TRU")
         .map((s) => {
           const vd =
@@ -279,16 +288,20 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     // L11 Soft Soft Soft-safe: hydrate prior_open_vae_doe từ prior open VAE cùng BA
     // (không reuse RIT Ch.2; Event Period gate trong evaluateVaeVap).
     if (viTriNhiemKhuan === "VAE" && caRow?.ma_benh_an) {
-      const { data: vaeSiblings } = await supabase
-        .from("v_nkbv_su_kien_full")
-        .select(
-          "id, loai_ma, loai_ten, vi_tri_nhiem_khuan, ngay_phat_hien, trang_thai_ma, verification_data",
-        )
-        .eq("ma_benh_an", caRow.ma_benh_an)
-        .eq("is_active", true)
-        .neq("id", id)
-        .limit(100);
-      const priorCases = (vaeSiblings || [])
+      const vaeSiblings = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+        supabase
+          .from("v_nkbv_su_kien_full")
+          .select(
+            "id, loai_ma, loai_ten, vi_tri_nhiem_khuan, ngay_phat_hien, trang_thai_ma, verification_data",
+          )
+          .eq("ma_benh_an", caRow.ma_benh_an)
+          .eq("is_active", true)
+          .neq("id", id)
+          .order("ngay_phat_hien", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+      const priorCases = vaeSiblings
         .filter((s) => String(s.trang_thai_ma || "").toUpperCase() !== "LOAI_TRU")
         .map((s) => {
           const vd =
@@ -428,6 +441,12 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         .maybeSingle()
         .then((r) => r.data);
     }
+    if (!lookupStatus?.id) {
+      return {
+        success: false as const,
+        error: "Thiếu danh mục trạng thái CHO_DUYET/CHO_XAC_NHAN — liên hệ quản trị.",
+      };
+    }
 
     const verification_data = stripCopiedStayFieldsFromVerification({
       ...verificationInput,
@@ -450,7 +469,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
 
     const patch: Record<string, unknown> = {
       verification_data,
-      trang_thai_id: lookupStatus!.id,
+      trang_thai_id: lookupStatus.id,
       vi_tri_nhiem_khuan: mappedViTri || undefined,
       ...(loaiNkbvId && { loai_nkbv_id: loaiNkbvId }),
       clinical_notes: {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { getCongViecListForBoard } from "../actions/cong-viec.actions";
 import { getPendingDeXuat, getMyPendingDeXuat } from "../actions/dexuat.actions";
 import type { CongViecView } from "../types";
@@ -50,14 +51,10 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
   }, [searchTerm]);
 
   const pullTasks = useCallback(async () => {
-    // Parallel list + pending đề xuất (avoid sequential waterfall).
+    // Parallel list + pending đề xuất — lỗi đề xuất không nuốt thành «không có chờ duyệt».
     const pendingPromise: Promise<CongViecView[]> = canApprove
-      ? getPendingDeXuat()
-          .then((p) => p as CongViecView[])
-          .catch(() => [] as CongViecView[])
-      : getMyPendingDeXuat()
-          .then((p) => p as CongViecView[])
-          .catch(() => [] as CongViecView[]);
+      ? getPendingDeXuat().then((p) => p as CongViecView[])
+      : getMyPendingDeXuat().then((p) => p as CongViecView[]);
 
     const [data, pending] = await Promise.all([getCongViecListForBoard(), pendingPromise]);
     setTasks((data || []) as unknown as CongViecView[]);
@@ -70,6 +67,7 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
       await pullTasks();
     } catch (err) {
       console.error("Lỗi tải kanban:", err);
+      toast.error(err instanceof Error ? err.message : "Không tải được bảng công việc.");
     } finally {
       setLoading(false);
     }
@@ -80,6 +78,7 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
       await pullTasks();
     } catch (err) {
       console.error("Lỗi làm mới kanban:", err);
+      toast.error(err instanceof Error ? err.message : "Không làm mới được bảng công việc.");
     }
   }, [pullTasks]);
 

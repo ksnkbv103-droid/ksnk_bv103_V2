@@ -21,6 +21,7 @@ describe("Excel VST/GSC không cắt im", () => {
     expect(fn).toContain('.lte("ngay_giam_sat", params.den_ngay)');
     expect(fn).toContain(".range(");
     expect(fn).not.toContain(".limit(");
+    expect(fn).toContain("co_deo_gang");
     expect(fn).toContain("success: false");
   });
 

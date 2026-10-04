@@ -2,6 +2,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { parseISO } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
@@ -35,21 +36,30 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
     tuD = parseISO(tuStr);
   }
 
-  let q = supabase
-    .from("v_nkbv_su_kien_full")
-    .select("ngay_phat_hien, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten, khoa_ma")
-    .eq("is_active", true)
-    .gte("ngay_phat_hien", tuStr)
-    .lte("ngay_phat_hien", denStr);
-  const khoaIds = (filters.khoa_ghi_nhan_ids || []).map((x) => String(x || "").trim()).filter(Boolean);
-  if (khoaIds.length > 0) {
-    q = q.in("khoa_ghi_nhan_id", khoaIds);
-  } else if (filters.khoa_ghi_nhan_id?.trim()) {
-    q = q.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id.trim());
+  // PA1: đọc hết trang — hết cắt im PostgREST 1000 làm lệch KPI tab Thống kê.
+  let data: Record<string, unknown>[];
+  try {
+    data = await fetchAllRangeRows<Record<string, unknown>>((from, to) => {
+      let q = supabase
+        .from("v_nkbv_su_kien_full")
+        .select("ngay_phat_hien, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten, khoa_ma")
+        .eq("is_active", true)
+        .gte("ngay_phat_hien", tuStr)
+        .lte("ngay_phat_hien", denStr);
+      const khoaIds = (filters.khoa_ghi_nhan_ids || []).map((x) => String(x || "").trim()).filter(Boolean);
+      if (khoaIds.length > 0) {
+        q = q.in("khoa_ghi_nhan_id", khoaIds);
+      } else if (filters.khoa_ghi_nhan_id?.trim()) {
+        q = q.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id.trim());
+      }
+      return q
+        .order("ngay_phat_hien", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to);
+    });
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không tải được dashboard NKBV" };
   }
-
-  const { data, error } = await q;
-  if (error) return { success: false as const, error: error.message };
 
   // Call the dynamic JCI/CDC epidemiology RPC
   const { data: rpcData, error: rpcError } = await supabase.rpc("fn_nkbv_dich_te_hoc_rates", {
@@ -66,7 +76,7 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
     });
   }
 
-  const rows = ((data || []) as Array<Record<string, unknown>>).map((x) => ({
+  const rows = data.map((x) => ({
     ngay_phat_hien: x.ngay_phat_hien,
     loai_nkbv: { ma_loai: x.loai_ma, ten_loai: x.loai_ten },
     trang_thai_row: { ma_trang_thai: x.trang_thai_ma, ten_trang_thai: x.trang_thai_ten },

@@ -1,5 +1,6 @@
 "use server";
 
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
@@ -16,17 +17,25 @@ type TonAggregateRow = {
 async function aggregateTonTheoLo(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
 ): Promise<{ success: true; data: TonAggregateRow[] } | { success: false; error: string }> {
-  const { data: rawRows, error } = await supabase
-    .from("v_cssd_kho_hoa_chat_ton_lo")
-    .select("dm_hoa_chat_id, ma_lo, han_su_dung, ton_so_luong");
-  if (error) return { success: false, error: mapFkError(error.message) };
-  const data = (rawRows || []).map((row: Record<string, unknown>) => ({
-    dm_hoa_chat_id: String(row.dm_hoa_chat_id || "").trim(),
-    ma_lo: row.ma_lo != null ? String(row.ma_lo).trim() || null : null,
-    han_su_dung: row.han_su_dung != null ? String(row.han_su_dung).slice(0, 10) : null,
-    ton_so_luong: Number(row.ton_so_luong || 0),
-  }));
-  return { success: true, data };
+  try {
+    const rawRows = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+      supabase
+        .from("v_cssd_kho_hoa_chat_ton_lo")
+        .select("dm_hoa_chat_id, ma_lo, han_su_dung, ton_so_luong")
+        .order("dm_hoa_chat_id", { ascending: true })
+        .order("ma_lo", { ascending: true })
+        .range(from, to),
+    );
+    const data = rawRows.map((row) => ({
+      dm_hoa_chat_id: String(row.dm_hoa_chat_id || "").trim(),
+      ma_lo: row.ma_lo != null ? String(row.ma_lo).trim() || null : null,
+      han_su_dung: row.han_su_dung != null ? String(row.han_su_dung).slice(0, 10) : null,
+      ton_so_luong: Number(row.ton_so_luong || 0),
+    }));
+    return { success: true, data };
+  } catch (e: unknown) {
+    return { success: false, error: mapFkError(e instanceof Error ? e.message : "Không đọc tồn lô") };
+  }
 }
 
 /** Tồn theo lô + join danh mục (chỉ dòng ton > 0). */

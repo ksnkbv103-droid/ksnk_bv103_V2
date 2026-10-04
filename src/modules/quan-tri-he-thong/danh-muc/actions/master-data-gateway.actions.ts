@@ -1,5 +1,6 @@
 "use server";
 
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { mapNhanSuViewRow } from "@/lib/nhan-su-view-row";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
@@ -61,16 +62,19 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       { revalidate: 600, tags: ["registries"] }
     );
 
-    const [registry, nhanSuRes, locationRes, khuVucFallbackRes] = await Promise.all([
+    const [registry, nhanSuRows, locationRes, khuVucFallbackRes] = await Promise.all([
       getCachedRegistries(),
       includeNhanSu
-        ? supabase
-            .from("v_mdm_nhan_su_full")
-            .select("*")
-            .eq("is_active", true)
-            .order("created_at", { ascending: false })
-            .limit(1000)
-        : Promise.resolve({ data: [], error: null }),
+        ? fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+            supabase
+              .from("v_mdm_nhan_su_full")
+              .select("*")
+              .eq("is_active", true)
+              .order("created_at", { ascending: false })
+              .order("id", { ascending: true })
+              .range(from, to),
+          )
+        : Promise.resolve([] as Record<string, unknown>[]),
       includeHistory
         ? supabase
             .from("gstt_fact_vst_sessions")
@@ -87,7 +91,6 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
         .order("thu_tu"),
     ]);
 
-    if (nhanSuRes.error) throw nhanSuRes.error;
     if (locationRes.error) throw locationRes.error;
     if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
 
@@ -104,8 +107,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
     }
     const historyLocations = Array.from(new Set(historyLocationRows.map((r) => r.vi_tri_cu_the)));
 
-    const rawNhanSuRows = ((nhanSuRes.data || []) as Record<string, unknown>[]) || [];
-    let nhanSusEnriched = rawNhanSuRows.map((x) => mapNhanSuViewRow(x));
+    let nhanSusEnriched = nhanSuRows.map((x) => mapNhanSuViewRow(x));
 
     let currentHoSoId: string | null = null;
     try {
@@ -122,11 +124,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       }
     } catch { /* Ignore */ }
 
-    /**
-     * Danh sách nhân sự giới hạn 1000 — người đăng nhập có thể không nằm trong trang đó,
-     * khiến in phiếu / tra cứu `ho_ten` theo `nguoi_giam_sat_id` trả về trống hoặc chỉ UUID.
-     * Luôn đưa hồ sơ của actor vào đầu mảng khi thiếu.
-     */
+    /** Đọc hết trang active — vẫn đẩy hồ sơ actor lên đầu nếu thiếu (race / RLS lệch). */
     if (includeNhanSu && currentHoSoId) {
       const selfKey = String(currentHoSoId).trim();
       const hasSelf = nhanSusEnriched.some(

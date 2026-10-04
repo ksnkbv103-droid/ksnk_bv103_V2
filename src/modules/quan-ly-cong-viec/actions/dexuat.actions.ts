@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import { applyQlcvListScopeToQuery, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability } from "../lib/qlcv-rbac";
@@ -186,25 +187,26 @@ export async function getPendingDeXuat() {
   const { supabase } = await ensureQlcvKsnkAccess("approve");
   const scope = await resolveQlcvListScope(supabase);
 
-  let query = supabase
-    .from("v_qlcv_cong_viec_full")
-    .select(
-      `
+  const data = await fetchAllRangeRows<DeXuatRow>((from, to) => {
+    let query = supabase
+      .from("v_qlcv_cong_viec_full")
+      .select(
+        `
       *,
       nguoi_tao:mdm_nhan_su!nguoi_tao_id(ho_ten),
       nguoi_phu_trach:mdm_nhan_su!nguoi_phu_trach_id(ho_ten),
       to_cong_tac:mdm_dm_to_cong_tac!to_cong_tac_id(ten_to)
     `,
-    )
-    .eq("is_active", false)
-    .order("created_at", { ascending: false });
+      )
+      .eq("is_active", false)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(from, to);
+    query = applyQlcvListScopeToQuery(query, scope);
+    return query;
+  });
 
-  query = applyQlcvListScopeToQuery(query, scope);
-
-  const { data, error } = await query;
-
-  if (error) throw new Error(error.message);
-  return ((data || []) as DeXuatRow[]).filter((r) => isDeXuatChoDuyet(r));
+  return data.filter((r) => isDeXuatChoDuyet(r));
 }
 
 export async function getMyPendingDeXuat() {
@@ -214,17 +216,18 @@ export async function getMyPendingDeXuat() {
 
   const scope = await resolveQlcvListScope(supabase);
 
-  let query = supabase
-    .from("v_qlcv_cong_viec_full")
-    .select("*")
-    .eq("is_active", false)
-    .eq("nguoi_tao_id", actorNhanSuId)
-    .order("created_at", { ascending: false });
+  const data = await fetchAllRangeRows<DeXuatRow>((from, to) => {
+    let query = supabase
+      .from("v_qlcv_cong_viec_full")
+      .select("*")
+      .eq("is_active", false)
+      .eq("nguoi_tao_id", actorNhanSuId)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(from, to);
+    query = applyQlcvListScopeToQuery(query, scope);
+    return query;
+  });
 
-  query = applyQlcvListScopeToQuery(query, scope);
-
-  const { data, error } = await query;
-
-  if (error) throw new Error(error.message);
-  return (data || []).filter((r) => isDeXuatChoDuyet(r));
+  return data.filter((r) => isDeXuatChoDuyet(r));
 }

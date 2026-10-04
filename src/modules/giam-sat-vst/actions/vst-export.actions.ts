@@ -19,6 +19,8 @@ export type VstExportRow = {
   hanh_dong: string | null;
   dung_ky_thuat: boolean | null;
   du_thoi_gian: boolean | null;
+  /** Chỉ khi bỏ sót — khớp KPI lạm dụng găng / form / in phiếu */
+  co_deo_gang: boolean | null;
 };
 
 /**
@@ -60,7 +62,7 @@ export async function exportVstOpportunitiesRaw(params: {
       supabase
         .from("v_gstt_giam_sat_vst_full")
         .select(
-          "id, session_id, ten_nhan_vien_ngoai, ten_nghe_nghiep_hien_thi, thoi_diem, hanh_dong, dung_ky_thuat, du_thoi_gian, ngay_giam_sat",
+          "id, session_id, ten_nhan_vien_ngoai, ten_nghe_nghiep_hien_thi, thoi_diem, hanh_dong, dung_ky_thuat, du_thoi_gian, co_deo_gang, ngay_giam_sat",
         )
         .in("session_id", idChunk)
         .order("id", { ascending: true })
@@ -93,6 +95,7 @@ export async function exportVstOpportunitiesRaw(params: {
         hanh_dong: f.hanh_dong != null ? String(f.hanh_dong) : null,
         dung_ky_thuat: typeof f.dung_ky_thuat === "boolean" ? f.dung_ky_thuat : null,
         du_thoi_gian: typeof f.du_thoi_gian === "boolean" ? f.du_thoi_gian : null,
+        co_deo_gang: typeof f.co_deo_gang === "boolean" ? f.co_deo_gang : null,
       };
     });
 

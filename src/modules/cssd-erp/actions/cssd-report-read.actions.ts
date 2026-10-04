@@ -391,21 +391,36 @@ export async function fetchCssdAnalyticsBundle(filters: {
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
-      supabase.from("cssd_dm_thiet_bi").select("id, trang_thai").eq("is_active", true).limit(500),
+      fetchAllReportRows<{ id?: string; trang_thai?: string | null }>((pFrom, pTo) =>
+        supabase
+          .from("cssd_dm_thiet_bi")
+          .select("id, trang_thai")
+          .eq("is_active", true)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       supabase
         .from("cssd_fact_bao_tri")
         .select("id", { count: "exact", head: true })
         .eq("trang_thai", "DANG_THUC_HIEN"),
-      supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa").limit(2000),
+      fetchAllReportRows<{ id?: string; ten_khoa?: string | null; ma_khoa?: string | null }>((pFrom, pTo) =>
+        supabase
+          .from("mdm_dm_khoa_phong")
+          .select("id, ten_khoa, ma_khoa")
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
     ]);
 
     if (resQ.error) return { success: false, error: resQ.error, data: empty };
     if (resS.error) return { success: false, error: resS.error, data: empty };
     if (resBo.error) return { success: false, error: resBo.error, data: empty };
     if (resMe.error) return { success: false, error: resMe.error, data: empty };
+    if (resTb.error) return { success: false, error: resTb.error, data: empty };
+    if (resKhoa.error) return { success: false, error: resKhoa.error, data: empty };
 
     const khoaMap = new Map<string, string>();
-    for (const k of resKhoa.data || []) {
+    for (const k of resKhoa.rows) {
       const row = k as { id: string; ten_khoa?: string; ma_khoa?: string };
       khoaMap.set(
         String(row.id),
@@ -469,7 +484,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
 
     let mayReady = 0;
     let mayRepairing = 0;
-    for (const tb of resTb.data || []) {
+    for (const tb of resTb.rows) {
       const st = String((tb as { trang_thai?: string }).trang_thai || "").toUpperCase();
       if (st === "READY" || st === "HOAT_DONG" || st === "SAN_SANG") mayReady += 1;
       else if (st === "REPAIRING" || st === "BAO_TRI" || st === "BROKEN") mayRepairing += 1;
@@ -479,11 +494,15 @@ export async function fetchCssdAnalyticsBundle(filters: {
     const staffRaw = computeStaffScans(quyTrinh, from, to);
     const staffIds = [...new Set(staffRaw.map((s) => s.nguoi_id))];
     const nameMap = new Map<string, { ho_ten: string; ma_nv: string }>();
-    if (staffIds.length > 0) {
-      const { data: ns } = await supabase
+    // PA1: chunk `.in` mọi id — hết cắt im 500 tên NV trên báo cáo sản lượng.
+    const STAFF_NAME_CHUNK = 200;
+    for (let i = 0; i < staffIds.length; i += STAFF_NAME_CHUNK) {
+      const slice = staffIds.slice(i, i + STAFF_NAME_CHUNK);
+      const { data: ns, error: nsErr } = await supabase
         .from("mdm_nhan_su")
         .select("id, ho_ten, ma_nv")
-        .in("id", staffIds.slice(0, 500));
+        .in("id", slice);
+      if (nsErr) throw nsErr;
       for (const n of ns || []) {
         nameMap.set(String((n as { id: string }).id), {
           ho_ten: String((n as { ho_ten?: string }).ho_ten || "—"),

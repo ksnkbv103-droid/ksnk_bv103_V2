@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
 import type { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
@@ -89,14 +90,17 @@ export async function importCSSDData(
       return { success: false as const, error: softDeleteBlock };
     }
     const supabase = createAdminSupabaseClient();
-    // S-E W4: chỉ cập nhật chu kỳ active — không bật lại chu kỳ đã đóng (MAT / thu hồi / đã thay).
-    const { data: existing, error: exErr } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id, ma_qr_quy_trinh")
-      .eq("is_active", true);
-    if (exErr) throw exErr;
+    // S-E W4: chỉ cập nhật chu kỳ active — đọc hết trang (hết cắt 1000 → insert trùng).
+    const existing = await fetchAllRangeRows<ExistingQrRow>((from, to) =>
+      supabase
+        .from("cssd_fact_quy_trinh")
+        .select("id, ma_qr_quy_trinh")
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
     const existingMap = new Map(
-      ((existing || []) as ExistingQrRow[])
+      existing
         .filter((x) => x.ma_qr_quy_trinh)
         .map((x) => [String(x.ma_qr_quy_trinh).toUpperCase(), String(x.id || "")] as const)
     );

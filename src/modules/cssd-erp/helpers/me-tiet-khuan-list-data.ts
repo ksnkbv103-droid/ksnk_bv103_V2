@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { countActiveLinkedMembers } from "../lib/me-tiet-khuan-batch-integrity";
 import { getSterilizerMethod } from "./me-tiet-khuan-machine-kind";
@@ -25,13 +26,21 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   batchError?: string;
   machineError?: string;
 }> {
-  const [bRes, mRes, loaiPack, ctRes] = await Promise.all([
-    supabase
-      .from("cssd_fact_lo_tiet_khuan")
-      .select(LO_LIST_SELECT)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(50),
+  const [batchPack, mRes, loaiPack, chuongTrinh] = await Promise.all([
+    fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+      supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select(LO_LIST_SELECT)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to),
+    )
+      .then((rows) => ({ rows, error: null as string | null }))
+      .catch((e: unknown) => ({
+        rows: [] as Record<string, unknown>[],
+        error: e instanceof Error ? e.message : "Không tải danh sách mẻ",
+      })),
     // Form MDM dùng READY/REPAIRING/…; chỉ READY (và mã cũ HOAT_DONG nếu có) được chọn làm máy mẻ TK.
     supabase
       .from("cssd_dm_thiet_bi")
@@ -45,17 +54,20 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
         return { rows: [] as { ma: string; ten: string }[] };
       }
     })(),
-    // M-04: catalog theo máy. Lỗi schema/RLS → rỗng, picker rơi QT21 HD.03.
-    supabase
-      .from("cssd_dm_chuong_trinh_may")
-      .select(
-        "thiet_bi_id, ma_chuong_trinh, ten_chuong_trinh, nhiet_do_chuan, ap_suat_chuan, thoi_gian_chuan, is_active, sort_order",
-      )
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true })
-      .limit(500),
+    // M-04: catalog theo máy — đọc hết trang.
+    fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+      supabase
+        .from("cssd_dm_chuong_trinh_may")
+        .select(
+          "thiet_bi_id, ma_chuong_trinh, ten_chuong_trinh, nhiet_do_chuan, ap_suat_chuan, thoi_gian_chuan, is_active, sort_order",
+        )
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .order("thiet_bi_id", { ascending: true })
+        .range(from, to),
+    ).catch(() => [] as Record<string, unknown>[]),
   ]);
-  const raw = (bRes.data || []) as { id: string }[];
+  const raw = batchPack.rows as { id: string }[];
   const ids = raw.map((b) => b.id).filter(Boolean);
   let byMe = new Map<string, number>();
   if (ids.length > 0) {
@@ -68,7 +80,7 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
       (qrows || []) as Array<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>,
     );
   }
-  const batches = raw.map((b) => {
+  const batchRows = raw.map((b) => {
     const row = b as Record<string, unknown>;
     const stored = String(row.trang_thai_me || "").trim();
     const ket = row.ket_qua_test as boolean | null | undefined;
@@ -83,14 +95,12 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
     return { ...b, so_bo_trong_me: byMe.get(b.id) || 0, trang_thai };
   });
   const chuongByMay = new Map<string, Record<string, unknown>[]>();
-  if (!ctRes.error) {
-    for (const row of (ctRes.data || []) as Record<string, unknown>[]) {
-      const tid = String(row.thiet_bi_id || "").trim();
-      if (!tid) continue;
-      const list = chuongByMay.get(tid) || [];
-      list.push(row);
-      chuongByMay.set(tid, list);
-    }
+  for (const row of chuongTrinh) {
+    const tid = String(row.thiet_bi_id || "").trim();
+    if (!tid) continue;
+    const list = chuongByMay.get(tid) || [];
+    list.push(row);
+    chuongByMay.set(tid, list);
   }
   const loaiMap = new Map(loaiPack.rows.map((r) => [r.ma, r.ten]));
   /** M-04 default = chương trình gần nhất của máy (từ list mẻ vừa tải). */
@@ -120,9 +130,9 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
     })
     .filter((m) => m.phuong_phap != null);
   return {
-    batches,
+    batches: batchRows,
     machines,
-    batchError: bRes.error?.message,
+    batchError: batchPack.error || undefined,
     machineError: mRes.error?.message,
   };
 }

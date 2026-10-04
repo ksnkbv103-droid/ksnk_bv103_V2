@@ -1,5 +1,6 @@
 "use server";
 
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
@@ -42,14 +43,23 @@ export async function listPendingBomApprovalsAction() {
   try {
     await requireCatalogRead();
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase
-      .from("v_cssd_su_co_full")
-      .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
-      .eq("incident_group", "INSTRUMENT")
-      .order("created_at", { ascending: false })
-      .limit(80);
-    if (error) throw new Error(error.message);
-    const rows = (data || [])
+    // PA1: đọc hết phiếu INSTRUMENT rồi lọc BOM_PENDING — hết cắt 80 làm mất hàng chờ cũ.
+    const data = await fetchAllRangeRows<{
+      id: string;
+      mo_ta: string | null;
+      created_at: string | null;
+      ma_qr_quy_trinh: string | null;
+      attributes: Record<string, unknown> | null;
+    }>((from, to) =>
+      supabase
+        .from("v_cssd_su_co_full")
+        .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
+        .eq("incident_group", "INSTRUMENT")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+    const rows = data
       .filter((r) => readSetReconcileStatus((r.attributes as Record<string, unknown>) || {}) === "BOM_PENDING")
       .map((r) => {
         const attrs = (r.attributes as Record<string, unknown>) || {};
@@ -75,14 +85,22 @@ export async function listSetReconcileHistoryAction() {
   try {
     await requireCatalogRead();
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase
-      .from("v_cssd_su_co_full")
-      .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
-      .eq("incident_group", "INSTRUMENT")
-      .order("created_at", { ascending: false })
-      .limit(80);
-    if (error) throw new Error(error.message);
-    const rows = (data || [])
+    const data = await fetchAllRangeRows<{
+      id: string;
+      mo_ta: string | null;
+      created_at: string | null;
+      ma_qr_quy_trinh: string | null;
+      attributes: Record<string, unknown> | null;
+    }>((from, to) =>
+      supabase
+        .from("v_cssd_su_co_full")
+        .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
+        .eq("incident_group", "INSTRUMENT")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+    const rows = data
       .map((r) => {
         const attrs = (r.attributes as Record<string, unknown>) || {};
         const status = readSetReconcileStatus(attrs);
