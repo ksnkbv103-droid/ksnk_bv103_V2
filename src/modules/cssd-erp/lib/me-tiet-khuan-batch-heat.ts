@@ -1,4 +1,5 @@
 import {
+  assertPlasmaPackMaterialAllowed,
   evaluateHeatCompatibility,
   type BomItem,
   type HeatEvaluation,
@@ -102,12 +103,15 @@ export function classifyKitHeat(input: {
 
 /**
  * Cổng phương pháp trước khi hiện danh sách chờ hoặc nhận QR.
- * Hơi nước chỉ nhận bộ chịu nhiệt cao. Plasma/EO chỉ nhận bộ nhạy nhiệt.
+ * Hơi nước chỉ nhận bộ chịu nhiệt cao. Plasma/EO chỉ nhận bộ không chịu nhiệt.
+ * Plasma + cellulose: chặn tại nạp mẻ (không hỏi trên Đóng gói).
  */
 export function assertKitFitsSterilizerMethod(input: {
   method: SterilizerMethod | null;
   lines: KitHeatLine[] | null;
   loadError?: boolean;
+  /** Vật liệu đóng gói từ danh mục / PP chỉ định — optional. */
+  packMaterial?: string | null;
 }): { ok: true } | { ok: false; message: string } {
   const heat = classifyKitHeat(input);
   if (!input.method) return { ok: false, message: MSG_METHOD_UNKNOWN };
@@ -117,6 +121,19 @@ export function assertKitFitsSterilizerMethod(input: {
     return { ok: true };
   }
   if (heat !== "NHAY_NHIET") return { ok: false, message: MSG_HEAT_LOW_TEMP_ONLY };
+  const plasmaMethod =
+    input.method === "PLASMA_H2O2" || String(input.method).toUpperCase() === "PLASMA"
+      ? "PLASMA"
+      : null;
+  if (plasmaMethod) {
+    const plasmaGate = assertPlasmaPackMaterialAllowed({
+      method: plasmaMethod,
+      packMaterial: input.packMaterial,
+    });
+    if (!plasmaGate.ok) {
+      return { ok: false, message: plasmaGate.message || "Plasma cấm vật liệu đóng gói cellulose." };
+    }
+  }
   return { ok: true };
 }
 

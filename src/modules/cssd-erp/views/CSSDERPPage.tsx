@@ -13,10 +13,9 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
 import { SCAN_STATIONS, stationLabel } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
-import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
-import CompositionReconcilePanel from "../components/packaging/CompositionReconcilePanel";
 import CssdStationFlowMap from "../components/workflow/CssdStationFlowMap";
 import { usePrint } from "@/hooks/usePrint";
 
@@ -34,11 +33,8 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     loading: workflowLoading,
     lastScan,
     scanSuccess,
-    dongGoiGate,
     selectStation,
     handleQRScan,
-    confirmDongGoiAdvance,
-    cancelDongGoiGate,
   } = useCSSDWorkflow();
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
@@ -46,7 +42,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
 
   const stationParam = searchParams.get("station");
   useEffect(() => {
-    if (dongGoiGate) return;
     const raw = stationParam?.trim().toUpperCase() || "";
     if (!raw || !isValidStation(raw) || raw === "TIET_KHUAN") return;
     if (!(SCAN_STATIONS as readonly string[]).includes(raw)) return;
@@ -98,23 +93,11 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     void handleQRScan(code);
   };
 
-  const showDongGoiGate = currentStation === "DONG_GOI" && !!dongGoiGate;
-  const showScanSuccess = scanSuccess && !showDongGoiGate;
-
-  const requestSelectStation = (station: Station) => {
-    if (showDongGoiGate && station !== currentStation) {
-      toast.message("Đang đối chiếu bộ — bấm «Đóng» trên thẻ bộ trước khi đổi trạm.");
-      return;
-    }
-    selectStation(station);
-  };
-
   const mainContent = (
     <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-500">
       <CssdStationFlowMap
         activeStation={currentStation}
-        onSelectStation={requestSelectStation}
-        gateLocked={showDongGoiGate}
+        onSelectStation={selectStation}
       />
 
       <main className="grid grid-cols-1 items-start gap-[var(--bv103-space-3)] lg:grid-cols-12">
@@ -131,18 +114,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
             disabled={workflowLoading}
             onConfirm={submitWorkflowQr}
           />
-          {showDongGoiGate && dongGoiGate ? (
-            /* Soft Soft Soft-safe L04: Đóng gói luôn gateMode — requireSplit warn only; 0 registerSplitSub */
-            <CompositionReconcilePanel
-              boDungCuId={dongGoiGate.boDungCuId}
-              quyTrinhId={dongGoiGate.quyTrinhId}
-              enabled
-              gateMode
-              advancing={workflowLoading}
-              onConfirmAdvance={(payload) => void confirmDongGoiAdvance(payload)}
-              onCancelGate={cancelDongGoiGate}
-            />
-          ) : showScanSuccess ? (
+          {scanSuccess ? (
             <QRScanSuccessCard
               {...lastScan}
               tramDisplay={currentStation ? stationLabel(currentStation) : "CSSD"}
@@ -185,7 +157,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           href={CSSD_ROUTES.suCo}
           className="bv103-control-h inline-flex items-center text-xs font-semibold text-[var(--primary)] hover:underline"
         >
-          Sự cố & biến động
+          Sự cố / Luân chuyển
         </a>
       }
     >

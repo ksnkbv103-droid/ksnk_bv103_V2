@@ -115,6 +115,23 @@ describe("từ chối quét bộ sai phương pháp", () => {
     expect(assertKitFitsSterilizerMethod({ method: "PLASMA_H2O2", lines: heatFalse }).ok).toBe(true);
     expect(assertKitFitsSterilizerMethod({ method: "EO", lines: heatFalse }).ok).toBe(true);
   });
+
+  it("CSSD-03: Plasma + cellulose chặn tại nạp mẻ", () => {
+    const blocked = assertKitFitsSterilizerMethod({
+      method: "PLASMA_H2O2",
+      lines: heatFalse,
+      packMaterial: "CELLULOSE",
+    });
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) expect(blocked.message).toMatch(/cellulose/i);
+    expect(
+      assertKitFitsSterilizerMethod({
+        method: "PLASMA_H2O2",
+        lines: heatFalse,
+        packMaterial: "NON_CELLULOSE",
+      }).ok,
+    ).toBe(true);
+  });
 });
 
 describe("bỏ bộ khỏi phiếu", () => {
