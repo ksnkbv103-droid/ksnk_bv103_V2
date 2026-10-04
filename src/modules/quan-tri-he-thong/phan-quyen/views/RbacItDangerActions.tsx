@@ -11,32 +11,32 @@ import {
   syncPermissionRegistry,
 } from "../actions/rbac.actions";
 
-/** Registry sync / apply-preset — IT tab only (danger). */
+/** Thao tác nguy hiểm phân quyền — tab quản trị. */
 export default function RbacItDangerActions() {
-  const { isAdmin, loading: permLoading, allowed } = useModulePermission("PHAN_QUYEN");
-  const canConfigureRbac = isAdmin || allowed.edit;
+  const { isAdmin, loading: permLoading } = useModulePermission("PHAN_QUYEN");
+  const canConfigureRbac = isAdmin;
   const [isSyncing, setIsSyncing] = useState(false);
   const [isResettingPresets, setIsResettingPresets] = useState(false);
 
   const handleSync = useCallback(async () => {
     const ok = window.confirm(
-      "Đồng bộ Registry quyền?\n\n" +
+      "Cập nhật danh sách quyền theo phiên bản phần mềm?\n\n" +
         "• Thêm/cập nhật danh sách module × hành động từ mã nguồn\n" +
-        "• Gán đủ quyền cho Quản trị (ADMIN)\n" +
-        "• KHÔNG ghi đè ô đã chỉnh trên Hội đồng / NV KSNK / Mạng lưới / Khách\n\n" +
-        "Muốn đưa các vai trò về preset mặc định → dùng «Áp dụng preset vai trò».",
+        "• Gán đủ quyền cho Quản trị hệ thống\n" +
+        "• Không ghi đè ô đã chỉnh trên Hội đồng / NV KSNK / Mạng lưới / Khách\n\n" +
+        "Muốn đưa các vai trò về quyền mặc định → dùng «Đặt lại quyền mặc định».",
     );
     if (!ok) return;
     setIsSyncing(true);
     try {
       const res = await syncPermissionRegistry();
       if (res.success) {
-        toast.success("Đã đồng bộ Registry (không ghi đè vai trò KSNK).");
+        toast.success("Đã cập nhật danh sách quyền (không ghi đè vai trò KSNK).");
       } else {
-        toast.error("Lỗi đồng bộ Registry: " + (res.error || ""));
+        toast.error("Lỗi cập nhật danh sách quyền: " + (res.error || ""));
       }
     } catch {
-      toast.error("Lỗi đồng bộ Registry.");
+      toast.error("Lỗi cập nhật danh sách quyền.");
     } finally {
       setIsSyncing(false);
     }
@@ -44,22 +44,22 @@ export default function RbacItDangerActions() {
 
   const handleResetPresets = useCallback(async () => {
     const ok = window.confirm(
-      "Áp dụng preset vai trò KSNK?\n\n" +
-        "Sẽ GHI ĐÈ toàn bộ quyền của: Hội đồng, Nhân viên KSNK, Mạng lưới KSNK, Khách theo cấu hình mặc định.\n" +
+      "Đặt lại quyền mặc định cho vai trò KSNK?\n\n" +
+        "Sẽ ghi đè toàn bộ quyền của: Hội đồng, Nhân viên KSNK, Mạng lưới KSNK, Khách theo cấu hình mặc định.\n" +
         "Các chỉnh tay trên 4 vai trò này sẽ mất.\n\n" +
-        "Quản trị (ADMIN) không bị ảnh hưởng.",
+        "Quản trị hệ thống không bị ảnh hưởng.",
     );
     if (!ok) return;
     setIsResettingPresets(true);
     try {
       const res = await resetKsnkRolePermissionPresets();
       if (res.success) {
-        toast.success("Đã áp dụng lại preset vai trò KSNK.");
+        toast.success("Đã đặt lại quyền mặc định cho vai trò KSNK.");
       } else {
-        toast.error("Lỗi áp dụng preset: " + (res.error || ""));
+        toast.error("Lỗi đặt lại quyền mặc định: " + (res.error || ""));
       }
     } catch {
-      toast.error("Lỗi áp dụng preset vai trò.");
+      toast.error("Lỗi đặt lại quyền mặc định.");
     } finally {
       setIsResettingPresets(false);
     }
@@ -69,10 +69,12 @@ export default function RbacItDangerActions() {
 
   return (
     <div className={`${bv103LayoutChrome.noticeAmber} mb-4 space-y-2`} role="note">
-      <p className="text-xs font-semibold text-amber-950">RBAC — thao tác nguy hiểm (IT)</p>
+      <p className="text-xs font-semibold text-amber-950">
+        Phân quyền — thao tác dành cho quản trị hệ thống
+      </p>
       <p className="text-[11px] text-amber-900">
-        Đồng bộ Registry thêm/cập nhật quyền từ mã nguồn (không ghi đè vai trò KSNK). Áp dụng
-        preset ghi đè Hội đồng / NV / Mạng lưới / Khách.
+        Cập nhật danh sách quyền theo phiên bản phần mềm (không ghi đè vai trò KSNK). Đặt lại quyền
+        mặc định ghi đè Hội đồng / NV / Mạng lưới / Khách.
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -83,17 +85,17 @@ export default function RbacItDangerActions() {
           title="Thêm quyền mới từ mã nguồn; không ghi đè vai trò KSNK"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-          {isSyncing ? "Đang đồng bộ…" : "Đồng bộ Registry"}
+          {isSyncing ? "Đang cập nhật…" : "Cập nhật danh sách quyền"}
         </button>
         <button
           type="button"
           onClick={() => void handleResetPresets()}
           disabled={isSyncing || isResettingPresets}
           className={bv103DesignTokens.btnSecondary}
-          title="Ghi đè quyền Hội đồng / NV / Mạng lưới / Khách về preset mặc định"
+          title="Ghi đè quyền Hội đồng / NV / Mạng lưới / Khách về mặc định"
         >
           <RotateCcw className={`h-3.5 w-3.5 ${isResettingPresets ? "animate-spin" : ""}`} />
-          {isResettingPresets ? "Đang áp dụng…" : "Áp dụng preset vai trò"}
+          {isResettingPresets ? "Đang đặt lại…" : "Đặt lại quyền mặc định"}
         </button>
       </div>
     </div>

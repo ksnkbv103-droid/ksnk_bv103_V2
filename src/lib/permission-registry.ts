@@ -75,9 +75,9 @@ export function getFlatPermissions() {
                          action === "CREATE" ? "Thêm" :
                          action === "EDIT" ? "Sửa" :
                          action === "DELETE" ? "Xóa" :
-                         action === "IMPORT" ? "Import" :
-                         action === "QC" ? "Kiểm định chất lượng" :
-                         action === "LOCK" ? "Khóa an toàn" :
+                         action === "IMPORT" ? "Nhập Excel" :
+                         action === "QC" ? "Nhả mẻ cấy ghép / mẻ chờ BI" :
+                         action === "LOCK" ? "Khóa / mở khóa mẻ" :
                          action === "EXPORT" ? "Xuất dữ liệu" :
                          action === "ASSIGN" ? "Phân công xử lý" :
                          action === "CLOSE" ? "Đóng / hoàn tất" :
