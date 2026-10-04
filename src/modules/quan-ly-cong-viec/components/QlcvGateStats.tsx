@@ -101,7 +101,7 @@ export function QlcvGateStats({
     <div className="flex min-w-0 flex-col gap-1.5">
     <div
       className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-50/80 px-2.5 py-1.5 text-[11px] text-slate-700"
-      title="Stats MVP · tính từ danh sách đã tải (rpc_qlcv_board_counts không có tổng/% HT)"
+      title="Số việc mở · % hoàn thành · % quá hạn trong việc đang mở"
     >
       <span>
         <span className="font-medium text-slate-500">Số việc</span>{" "}
@@ -110,12 +110,16 @@ export function QlcvGateStats({
       <span className="text-slate-300">·</span>
       <span>
         <span className="font-medium text-slate-500">% hoàn thành</span>{" "}
-        <strong className="tabular-nums text-emerald-700">{mvp.pctHoanThanh}%</strong>
+        <strong className="tabular-nums text-emerald-700">
+          {mvp.pctHoanThanh == null ? "—" : `${mvp.pctHoanThanh}%`}
+        </strong>
       </span>
       <span className="text-slate-300">·</span>
       <span>
         <span className="font-medium text-slate-500">% quá hạn</span>{" "}
-        <strong className="tabular-nums text-red-700">{mvp.pctQuaHan}%</strong>
+        <strong className="tabular-nums text-red-700">
+          {mvp.pctQuaHan == null ? "—" : `${mvp.pctQuaHan}%`}
+        </strong>
       </span>
     </div>
     <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
