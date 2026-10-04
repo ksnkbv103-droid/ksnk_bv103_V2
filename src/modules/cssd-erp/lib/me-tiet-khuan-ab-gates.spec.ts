@@ -7,6 +7,7 @@ import {
   assertImplantReleaseWithoutBiBlocked,
   isEmergencyImplantReleaseAllowed,
   MSG_NO_EMERGENCY_IMPLANT_RELEASE,
+  requiresNhaImplantRight,
   requiresToTruongReleaseRight,
 } from "./me-tiet-khuan-ab-gates";
 
@@ -100,5 +101,13 @@ describe("18b A×6 Soft gates", () => {
     expect(requiresToTruongReleaseRight({ coImplant: true, outcome: "CHO_BI" })).toBe(false);
     expect(requiresToTruongReleaseRight({ releasingFromChoBi: true })).toBe(true);
     expect(requiresToTruongReleaseRight({ coImplant: false, outcome: "QC_KHONG_DAT" })).toBe(false);
+  });
+
+  it("ME-04: nha_implant for implant/Plasma·EO đạt, ghi CHO_BI, nhập BI âm", () => {
+    expect(requiresNhaImplantRight({ coImplant: false, biBatBuoc: false, outcome: "HOAN_THANH" })).toBe(false);
+    expect(requiresNhaImplantRight({ coImplant: true, outcome: "HOAN_THANH" })).toBe(true);
+    expect(requiresNhaImplantRight({ biBatBuoc: true, outcome: "HOAN_THANH" })).toBe(true);
+    expect(requiresNhaImplantRight({ outcome: "CHO_BI" })).toBe(true);
+    expect(requiresNhaImplantRight({ releasingFromChoBi: true })).toBe(true);
   });
 });

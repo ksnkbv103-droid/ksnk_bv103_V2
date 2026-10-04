@@ -22,7 +22,7 @@ import {
   type PersistMeTietKhuanInput,
 } from "../helpers/persist-me-tiet-khuan";
 import { evaluateMeQcRelease, steamBiWeeklyReminder } from "../lib/me-tiet-khuan-qc";
-import { requiresToTruongReleaseRight } from "../lib/me-tiet-khuan-ab-gates";
+import { requiresNhaImplantRight } from "../lib/me-tiet-khuan-ab-gates";
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
@@ -34,7 +34,11 @@ import {
   removeQuyTrinhFromBatchSchema,
   finishSterilizationBatchSchema,
 } from "@/lib/validations/cssd-erp.validations";
-import { verifyCssdBatchEdit, verifyCssdBatchQc, verifyCssdBatchView } from "@/lib/cssd-server-gates";
+import {
+  verifyCssdBatchEdit,
+  verifyCssdBatchNhaImplant,
+  verifyCssdBatchView,
+} from "@/lib/cssd-server-gates";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
 import {
@@ -782,8 +786,9 @@ async function previewFinishNeedsQc(
   if (!evaluated.ok) return evaluated;
   return {
     ok: true,
-    needsQc: requiresToTruongReleaseRight({
+    needsQc: requiresNhaImplantRight({
       coImplant,
+      biBatBuoc: evaluated.decision.biBatBuoc,
       outcome: evaluated.decision.outcome,
     }),
   };
@@ -808,7 +813,7 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
       await verifyCssdBatchEdit();
       return { success: false as const, error: preview.message };
     }
-    if (preview.needsQc) await verifyCssdBatchQc();
+    if (preview.needsQc) await verifyCssdBatchNhaImplant();
     else await verifyCssdBatchEdit();
     const saved = await persistMeTietKhuanFinishWithClient(supabase, {
       ...validated,
@@ -847,7 +852,8 @@ export async function nhapKetQuaBiMeTietKhuan(
   },
 ) {
   try {
-    await verifyCssdBatchQc();
+    /** ME-04: nhả sau BI âm / ghi BI+ cần nha_implant (fallback qc nếu chưa seed). */
+    await verifyCssdBatchNhaImplant();
     const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };

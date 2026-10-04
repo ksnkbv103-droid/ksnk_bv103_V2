@@ -120,7 +120,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "CSSD_ME_TIET_KHUAN",
     displayName: "CSSD - Mẻ Tiệt khuẩn",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "QC", "LOCK"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "QC", "LOCK", "NHA_IMPLANT"]
   },
   {
     code: "KSNK_KHO_HOACHAT",

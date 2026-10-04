@@ -96,7 +96,8 @@ function isKsnkStaffPerm(p: PermRow): boolean {
       return ["view", "create", "edit", "export"].includes(a);
     }
     if (m === "CSSD_ME_TIET_KHUAN") {
-      return ["view", "create", "edit", "delete", "import", "qc", "lock"].includes(a);
+      // ME-04: bỏ qc / nha_implant khỏi preset NV — nhả implant / sau BI âm chỉ tổ trưởng (grant tay).
+      return ["view", "create", "edit", "delete", "import", "lock"].includes(a);
     }
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }

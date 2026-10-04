@@ -17,4 +17,10 @@ describe("NHAN_VIEN_KSNK preset — master CSSD chỉ xem", () => {
     expect(ksnkStaffAllows("CSSD_WORKFLOW", "edit")).toBe(true);
     expect(ksnkStaffAllows("BAO_SU_CO", "create")).toBe(true);
   });
+
+  it("ME-04: NV KSNK giữ edit mẻ thường; không qc / nha_implant", () => {
+    expect(ksnkStaffAllows("CSSD_ME_TIET_KHUAN", "edit")).toBe(true);
+    expect(ksnkStaffAllows("CSSD_ME_TIET_KHUAN", "qc")).toBe(false);
+    expect(ksnkStaffAllows("CSSD_ME_TIET_KHUAN", "nha_implant")).toBe(false);
+  });
 });
