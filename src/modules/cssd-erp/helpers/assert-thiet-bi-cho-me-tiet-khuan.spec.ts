@@ -48,7 +48,7 @@ describe("assertThietBiSanSangChoMeTietKhuan", () => {
     };
     const r = await assertThietBiSanSangChoMeTietKhuan(client as never, "x");
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.message).toMatch(/HOLD_QC|tạm giữ QC/i);
+    if (!r.ok) expect(r.message).toMatch(/tạm giữ/i);
   });
 
   it("blocks BROKEN", async () => {
