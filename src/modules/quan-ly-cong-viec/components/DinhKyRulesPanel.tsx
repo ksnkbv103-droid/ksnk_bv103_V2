@@ -227,7 +227,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
       await load();
       onAfterSpawn?.();
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Không gọi được RPC (migration / quyền service_role).");
+      toast.error(e instanceof Error ? e.message : "Không sinh được phiếu định kỳ hôm nay.");
     } finally {
       setSpawning(false);
     }

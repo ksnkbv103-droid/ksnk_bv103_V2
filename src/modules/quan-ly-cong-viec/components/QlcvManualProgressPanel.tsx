@@ -10,11 +10,20 @@ type Props = {
   congViecId: string;
   initialPercent: number;
   readOnly?: boolean;
+  /** Việc định kỳ không checklist — bắt kết quả khi đủ 100%. */
+  requireKetQuaAt100?: boolean;
   onUpdated?: () => void;
 };
 
-export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, onUpdated }: Props) {
+export function QlcvManualProgressPanel({
+  congViecId,
+  initialPercent,
+  readOnly,
+  requireKetQuaAt100,
+  onUpdated,
+}: Props) {
   const [pct, setPct] = useState(() => Math.min(100, Math.max(0, Number(initialPercent ?? 0))));
+  const [ketQua, setKetQua] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -24,9 +33,13 @@ export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, 
   const dirty = pct !== Math.min(100, Math.max(0, Number(initialPercent ?? 0)));
 
   const persist = async () => {
+    if (requireKetQuaAt100 && pct >= 100 && !ketQua.trim()) {
+      toast.error("Nhập kết quả khi báo đủ 100%.");
+      return;
+    }
     setSaving(true);
     try {
-      await reportQlcvManualProgress(congViecId, pct);
+      await reportQlcvManualProgress(congViecId, pct, ketQua.trim() || null);
       toast.success("Đã cập nhật tiến độ.");
       onUpdated?.();
     } catch (e: unknown) {
@@ -64,6 +77,18 @@ export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, 
             className="h-2 w-full cursor-pointer accent-[var(--primary)]"
             aria-label="Phần trăm hoàn thành"
           />
+          {requireKetQuaAt100 && pct >= 100 ? (
+            <label className="block text-xs text-slate-600">
+              Kết quả kỳ *
+              <textarea
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                rows={2}
+                value={ketQua}
+                onChange={(e) => setKetQua(e.target.value)}
+                placeholder="Một dòng kết quả khi đóng việc định kỳ"
+              />
+            </label>
+          ) : null}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {[0, 25, 50, 75, 100].map((v) => (
@@ -73,10 +98,10 @@ export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, 
                   disabled={saving}
                   onClick={() => setPct(v)}
                   className={`rounded-lg px-2 py-1 text-[11px] font-medium tabular-nums ${
- pct === v
- ? "bg-[var(--primary)] text-white"
- : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
- }`}
+                    pct === v
+                      ? "bg-[var(--primary)] text-white"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
                 >
                   {v}%
                 </button>

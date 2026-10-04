@@ -173,7 +173,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
               <option value="THAP">Thấp</option>
             </select>
             <p className={`mt-1 ${bv103LayoutChrome.noticeSlate}`}>
-              Urgency qua ưu tiên (CAO). Loại hình ẩn — giữ mã đề xuất ({loaiCongViec === "KHAN_CAP" ? "KHAN_CAP legacy" : "DOT_XUAT"}).
+              Ưu tiên Cao dùng cho việc cần xử lý gấp.
             </p>
           </div>
           <div>

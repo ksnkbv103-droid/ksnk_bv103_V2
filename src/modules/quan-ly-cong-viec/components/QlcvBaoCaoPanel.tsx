@@ -27,12 +27,12 @@ const TABLE_TABS: { id: ReportTableId; label: string; hint: string }[] = [
   {
     id: "NGUOI",
     label: "Theo người",
-    hint: "Người thực hiện · mở · quá hạn · hoàn thành · đúng hạn (theo kỳ)",
+    hint: "Người phụ trách · mở · quá hạn · hoàn thành · đúng hạn (theo kỳ)",
   },
   {
     id: "TRANG_THAI",
     label: "Theo trạng thái",
-    hint: "7 mã canonical + đề xuất (thời điểm trên tập đã tải)",
+    hint: "Theo trạng thái trên tập phiếu của kỳ",
   },
   {
     id: "QUA_HAN",
@@ -216,7 +216,7 @@ export function QlcvBaoCaoPanel() {
         {payload?.truncated ? (
           <p className="rounded-[var(--radius-control)] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
             Đã đạt trần fetch {payload.fetchCap} phiếu (mới cập nhật trước). Báo cáo có thể thiếu việc cũ —
-            cần RPC/mig aggregate nếu volume lớn (chưa áp dụng prod trong task này).
+            khối lượng lớn — cần tổng hợp kỳ riêng nếu vượt trần.
           </p>
         ) : null}
 
@@ -298,7 +298,7 @@ export function QlcvBaoCaoPanel() {
             <table className={bv103TableLayout.tableFixed}>
               <thead>
                 <tr className={bv103TableLayout.theadRow}>
-                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Người thực hiện</th>
+                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Người phụ trách</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>Mở</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>Quá hạn</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>Hoàn thành</th>
@@ -358,7 +358,7 @@ export function QlcvBaoCaoPanel() {
                 <tr className={bv103TableLayout.theadRow}>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Việc</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Hạn</th>
-                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người thực hiện</th>
+                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người phụ trách</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người giao</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>%</th>
                 </tr>
@@ -390,7 +390,7 @@ export function QlcvBaoCaoPanel() {
               <thead>
                 <tr className={bv103TableLayout.theadRow}>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Việc</th>
-                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người thực hiện</th>
+                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người phụ trách</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Hạn</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Hoàn thành lúc</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colStatus}`}>Kết quả</th>

@@ -58,7 +58,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       sortable: true,
     },
     {
-      header: "Người thực hiện",
+      header: "Người phụ trách",
       accessorKey: "nguoi_phu_trach_ten",
       headerClassName: "w-[14%] min-w-[7.5rem]",
       cellClassName: "align-middle",
