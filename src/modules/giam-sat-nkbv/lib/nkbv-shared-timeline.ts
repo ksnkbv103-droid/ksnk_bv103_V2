@@ -3,6 +3,11 @@
  * Pure functions; no I/O.
  */
 
+import {
+  resolveDeviceAssociationDay1,
+  type NkbvDeviceAssociationKind,
+} from "./nkbv-ba-device-timeline";
+
 export type NkbvTimelineSyndrome =
   | "CLABSI"
   | "UTI"
@@ -168,11 +173,16 @@ export type DeviceAssociationResult = {
   episodeStart?: string;
   /** Ngày rút suy ra (null = còn mang tại/qua DOE). */
   episodeRemoved?: string | null;
+  /** CVC đặt trước VV nhưng thiếu ngày tiếp cận nội trú đầu — không clamp VV. */
+  missingInpatientAccessWarn?: boolean;
 };
+
+export type { NkbvDeviceAssociationKind };
 
 /**
  * Device association (CDC/NHSN):
- * - Day 1 = ngày đặt (hoặc đầu đợt liên tục); nếu đặt trước viện → Day 1 = ngày vào viện.
+ * - Day 1 = ngày đặt (hoặc đầu đợt liên tục); Foley/Vent đặt trước viện → Day 1 = VV.
+ * - CVC đặt trước viện → Day 1 = ngày tiếp cận nội trú đầu (xem `deviceKind: "cvc"`).
  * - Đủ điều kiện từ Day 3 (đặt >2 ngày lịch liên tục).
  * - Hiện diện tại DOE hoặc rút đúng DOE−1.
  * - Số ngày chỉ đếm khi dụng cụ còn trên người (không đếm ngày sau khi đã rút).
@@ -182,12 +192,47 @@ export function isDeviceAssociated(input: {
   placedDate: string;
   removedDate?: string | null;
   doe: string;
-  /** Khi có: Day 1 = max(ngày đặt, ngày vào viện). */
+  /** Khi có: Day 1 = max(ngày đặt, ngày vào viện) — trừ CVC (xem deviceKind). */
   admissionDate?: string | null;
+  deviceKind?: NkbvDeviceAssociationKind | null;
+  firstInpatientAccessDate?: string | null;
 }): DeviceAssociationResult {
   const vv = input.admissionDate?.slice(0, 10) || "";
-  let placed = input.placedDate?.slice(0, 10) || "";
-  if (vv && placed && placed < vv) placed = vv;
+  const rawPlaced = input.placedDate?.slice(0, 10) || "";
+  let placed = rawPlaced;
+
+  if (rawPlaced) {
+    if (input.deviceKind === "cvc") {
+      const resolved = resolveDeviceAssociationDay1({
+        kind: "cvc",
+        placedDate: rawPlaced,
+        admissionDate: vv,
+        firstInpatientAccessDate: input.firstInpatientAccessDate,
+      });
+      if (resolved.warnMissingInpatientAccess) {
+        return {
+          placedDays: 0,
+          activeOnEvent: false,
+          associated: false,
+          missingInpatientAccessWarn: true,
+          episodeStart: rawPlaced,
+          episodeRemoved: input.removedDate
+            ? String(input.removedDate).slice(0, 10)
+            : null,
+        };
+      }
+      placed = resolved.day1;
+    } else if (input.deviceKind === "foley" || input.deviceKind === "vent") {
+      placed = resolveDeviceAssociationDay1({
+        kind: input.deviceKind,
+        placedDate: rawPlaced,
+        admissionDate: vv,
+      }).day1;
+    } else if (vv && placed && placed < vv) {
+      placed = vv;
+    }
+  }
+
   const doe = input.doe?.slice(0, 10) || "";
   if (!placed || !doe || doe < placed) {
     return {
@@ -272,6 +317,17 @@ export function deviceEpisodeForDoe(
  * Khi lưới có ngày: SSOT = đợt liên tục ∈ lưới (Gap Rule) — không lấy ngày đặt sổ để phình ≥3d.
  * Ngày ngoài [VV…RV] bị loại trước khi đếm (dữ liệu cũ trước viện không tính).
  */
+function firstInpatientAccessFromOpts(opts?: {
+  firstInpatientAccessDate?: string | null;
+  ngay_access_noi_tru_dau?: string | null;
+}): string {
+  return (
+    opts?.firstInpatientAccessDate ||
+    opts?.ngay_access_noi_tru_dau ||
+    ""
+  ).slice(0, 10);
+}
+
 export function deviceAssociationFromCanThiepDates(
   canThiepDates: string[],
   doe: string,
@@ -280,6 +336,9 @@ export function deviceAssociationFromCanThiepDates(
     removedDate?: string | null;
     admissionDate?: string | null;
     dischargeDate?: string | null;
+    deviceKind?: NkbvDeviceAssociationKind | null;
+    firstInpatientAccessDate?: string | null;
+    ngay_access_noi_tru_dau?: string | null;
   },
 ): DeviceAssociationResult {
   const d = doe.slice(0, 10);
@@ -306,12 +365,51 @@ export function deviceAssociationFromCanThiepDates(
     // Còn mang sau DOE nếu đợt kéo dài quá DOE; rút = cuối đợt khi đợt kết thúc trước/đúng DOE
     const removed =
       ep.end < d || ep.end === subDays(d, 1) ? ep.end : null;
-    const day1 = vv && ep.start < vv ? vv : ep.start;
+    const access = firstInpatientAccessFromOpts(opts);
+    const insertion = (opts?.placedDate || "").slice(0, 10);
+
+    if (opts?.deviceKind === "cvc") {
+      let countStart = ep.start;
+      if (vv && insertion && insertion < vv) {
+        const resolved = resolveDeviceAssociationDay1({
+          kind: "cvc",
+          placedDate: insertion,
+          admissionDate: vv,
+          firstInpatientAccessDate: access,
+        });
+        if (resolved.warnMissingInpatientAccess) {
+          return {
+            placedDays: 0,
+            activeOnEvent: false,
+            associated: false,
+            missingInpatientAccessWarn: true,
+          };
+        }
+        if (resolved.day1 > countStart) countStart = resolved.day1;
+      }
+      return isDeviceAssociated({
+        placedDate: countStart,
+        removedDate: removed,
+        doe: d,
+      });
+    }
+
+    const day1 =
+      opts?.deviceKind === "foley" || opts?.deviceKind === "vent"
+        ? resolveDeviceAssociationDay1({
+            kind: opts.deviceKind,
+            placedDate: ep.start,
+            admissionDate: vv,
+          }).day1
+        : vv && ep.start < vv
+          ? vv
+          : ep.start;
     return isDeviceAssociated({
       placedDate: day1,
       removedDate: removed,
       doe: d,
       admissionDate: vv || null,
+      deviceKind: opts?.deviceKind ?? null,
     });
   }
 
@@ -324,5 +422,7 @@ export function deviceAssociationFromCanThiepDates(
     removedDate: opts?.removedDate || null,
     doe: d,
     admissionDate: vv || null,
+    deviceKind: opts?.deviceKind ?? null,
+    firstInpatientAccessDate: firstInpatientAccessFromOpts(opts) || null,
   });
 }

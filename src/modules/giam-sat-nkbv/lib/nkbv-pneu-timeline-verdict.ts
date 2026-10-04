@@ -212,6 +212,7 @@ export function buildPneuTimelineVerdict(
         removedDate: input.deviceRemovedDate || null,
         admissionDate: input.admissionDate,
         dischargeDate: input.dischargeDate,
+        deviceKind: "vent",
       })
     : { placedDays: 0, activeOnEvent: false, associated: false, episodeStart: undefined, episodeRemoved: null };
   const ventDays = ventAssoc.placedDays;

@@ -208,6 +208,9 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
       placedDate: data.device_placed_date,
       removedDate: data.device_removed_date,
       doe: data.calculated_doe,
+      admissionDate: data.ngay_vao_vien || data.admission_date,
+      deviceKind: "cvc",
+      firstInpatientAccessDate: data.cvc_first_inpatient_access_date,
     }).associated;
   } else {
     hasCvc = data.cvc_placed_days >= 3 && Boolean(data.cvc_active_on_event);
@@ -434,6 +437,8 @@ function evaluateVaeVapCore(
         placedDate: data.device_placed_date,
         removedDate: data.device_removed_date,
         doe: data.calculated_doe || data.device_placed_date,
+        admissionDate: data.ngay_vao_vien || data.admission_date,
+        deviceKind: "vent",
       })
     : null;
   // VAP (PNEU): ≥3 ngày lịch thở máy liên tục + hiện diện DOE/DOE−1
@@ -574,6 +579,8 @@ function evaluateUtiCautiCore(data: UtiVerificationData): RuleEvaluationResult {
       placedDate: data.device_placed_date,
       removedDate: data.device_removed_date,
       doe: data.calculated_doe,
+      admissionDate: data.ngay_vao_vien || data.admission_date,
+      deviceKind: "foley",
     }).associated;
   } else {
     const present =

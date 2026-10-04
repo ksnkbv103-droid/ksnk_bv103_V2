@@ -396,10 +396,24 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   const drDate = activeForm?.device_removed_date;
 
   if (dpDate && doe) {
+    const vv = ngay_vao_vien_clean;
     const assoc = isDeviceAssociated({
       placedDate: dpDate,
       removedDate: drDate,
       doe,
+      admissionDate: vv || null,
+      deviceKind:
+        checklistType === "BSI"
+          ? "cvc"
+          : checklistType === "UTI"
+            ? "foley"
+            : checklistType === "VAP" || checklistType === "HAP" || checklistType === "VAE"
+              ? "vent"
+              : null,
+      firstInpatientAccessDate:
+        checklistType === "BSI"
+          ? activeForm?.cvc_first_inpatient_access_date
+          : undefined,
     });
     device_placed_days = assoc.placedDays;
     // «Hiện diện gắn được» = đủ eligibility NHSN (≥3d + DOE/DOE−1), không chỉ tick 1 ngày
