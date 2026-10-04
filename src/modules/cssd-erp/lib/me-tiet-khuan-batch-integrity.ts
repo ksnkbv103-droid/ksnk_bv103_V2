@@ -86,17 +86,20 @@ export function rejectStartMember(member: StartMemberCheck): string | null {
 }
 
 /**
- * Bộ mẹ đã tách SUB trên quy trình không vào mẻ — chỉ bộ thành phần.
- * Cổng này đọc `ma_vai_tro_bo = MAIN` hoặc quy trình con còn `SUB`.
- * Catalog L04 (`parent_bo_id` / `vai_tro_tach`) là lớp danh mục khác — không chặn nạp tại đây.
+ * Bộ mẹ không vào mẻ — chỉ bộ thành phần.
+ * Catalog L04: `hasChildComponents` (parent_bo_id). Legacy: MAIN / còn SUB.
  */
 export function rejectParentBoWithSub(input: {
   maVaiTroBo?: string | null;
   hasActiveSub?: boolean | null;
+  hasChildComponents?: boolean | null;
 }): string | null {
+  if (input.hasChildComponents === true) {
+    return "Bộ mẹ đã tách thành phần — chỉ nạp bộ thành phần vào mẻ, không nạp bộ mẹ.";
+  }
   const role = String(input.maVaiTroBo || "").trim().toUpperCase();
   if (role === "MAIN" || input.hasActiveSub === true) {
-    return "Bộ mẹ đã có thành phần SUB — chỉ quét bộ thành phần vào mẻ, không quét bộ mẹ.";
+    return "Bộ mẹ đã tách thành phần — chỉ nạp bộ thành phần vào mẻ, không nạp bộ mẹ.";
   }
   return null;
 }

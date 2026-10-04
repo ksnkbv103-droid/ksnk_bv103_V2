@@ -1,7 +1,6 @@
 /**
- * CSSD heat-split (A 2026-09-17): khi loại đổi Chịu nhiệt → Nhạy nhiệt,
- * bộ hỗn hợp phải tách MAIN (chịu nhiệt) / SUB (nhạy nhiệt).
- * Pure — không I/O.
+ * CSSD heat-split Lock A: bộ hỗn hợp → 2 thành phần (chịu nhiệt / không chịu nhiệt)
+ * gắn parent_bo_id. Pure — không I/O.
  */
 
 export type HeatSplitBomLine = {
@@ -19,7 +18,7 @@ export type HeatSplitPlan = {
   reason: string;
 };
 
-/** Chỉ tách khi bộ có CẢ dòng chịu nhiệt VÀ dòng nhạy nhiệt. */
+/** Chỉ tách khi bộ có CẢ dòng chịu nhiệt VÀ dòng không chịu nhiệt. */
 export function planHeatSplitForBo(lines: HeatSplitBomLine[]): HeatSplitPlan {
   const active = (lines || []).filter((l) => String(l.chiTietId || "").trim());
   if (active.length === 0) {
@@ -37,7 +36,7 @@ export function planHeatSplitForBo(lines: HeatSplitBomLine[]): HeatSplitPlan {
       needsSplit: false,
       mainChiTietIds: [],
       subChiTietIds: cold.map((l) => l.chiTietId),
-      reason: "Toàn bộ nhạy nhiệt — không cần tách MAIN/SUB.",
+      reason: "Toàn bộ không chịu nhiệt — không cần tách thành phần.",
     };
   }
   if (cold.length === 0) {
@@ -52,7 +51,7 @@ export function planHeatSplitForBo(lines: HeatSplitBomLine[]): HeatSplitPlan {
     needsSplit: true,
     mainChiTietIds: heat.map((l) => l.chiTietId),
     subChiTietIds: cold.map((l) => l.chiTietId),
-    reason: `Hỗn hợp: ${heat.length} dòng chịu nhiệt · ${cold.length} dòng nhạy nhiệt.`,
+    reason: `Hỗn hợp: ${heat.length} dòng chịu nhiệt · ${cold.length} dòng không chịu nhiệt.`,
   };
 }
 
@@ -69,4 +68,22 @@ export const HEAT_SPLIT_BLOCKED_STATIONS = ["TIET_KHUAN", "CAP_PHAT"] as const;
 export function isHeatSplitBlockedStation(status: string | null | undefined): boolean {
   const s = String(status || "").trim().toUpperCase();
   return (HEAT_SPLIT_BLOCKED_STATIONS as readonly string[]).includes(s);
+}
+
+/** Bộ mẹ (có thành phần) không quét qua trạm / không nạp mẻ. */
+export function rejectParentBoScan(input: {
+  /** Catalog: có ≥1 bộ con parent_bo_id. */
+  hasChildComponents?: boolean | null;
+  /** Legacy quy trình: MAIN hoặc còn SUB. */
+  maVaiTroBo?: string | null;
+  hasActiveSub?: boolean | null;
+}): string | null {
+  if (input.hasChildComponents === true) {
+    return "Bộ mẹ đã tách thành phần — chỉ quét bộ thành phần (chịu nhiệt / không chịu nhiệt).";
+  }
+  const role = String(input.maVaiTroBo || "").trim().toUpperCase();
+  if (role === "MAIN" || input.hasActiveSub === true) {
+    return "Bộ mẹ đã tách thành phần — chỉ quét bộ thành phần, không quét bộ mẹ.";
+  }
+  return null;
 }

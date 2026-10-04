@@ -110,7 +110,8 @@ describe("rejectStartMember", () => {
 });
 
 describe("rejectParentBoWithSub", () => {
-  it("chặn MAIN hoặc khi còn SUB; bộ thường cho nạp", () => {
+  it("chặn mẹ (child components / MAIN / còn SUB); bộ thường cho nạp", () => {
+    expect(rejectParentBoWithSub({ hasChildComponents: true })).toMatch(/thành phần/);
     expect(rejectParentBoWithSub({ maVaiTroBo: "MAIN", hasActiveSub: false })).toMatch(/thành phần/);
     expect(rejectParentBoWithSub({ maVaiTroBo: "SUB", hasActiveSub: true })).toMatch(/thành phần/);
     expect(rejectParentBoWithSub({ maVaiTroBo: null, hasActiveSub: false })).toBeNull();

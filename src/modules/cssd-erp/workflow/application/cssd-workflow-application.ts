@@ -12,11 +12,13 @@ import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { rejectParentBoScan } from "@/lib/domain/cssd-heat-split";
 import { loadPackBatchReleaseGate } from "../../helpers/pack-batch-release-gate";
 import {
   assertLamSachLotSoftGate,
   pickLamSachLotFromPayload,
 } from "@/lib/domain/cssd-lam-sach-lot-gate";
+import { tableHasColumn } from "../../shared/cssd-db-utils";
 
 export type WorkflowQuyTrinhInput = {
   id: string;
@@ -69,6 +71,41 @@ export async function executeWorkflowStationScan(
     tiepNhanPending,
   });
   if (!advance.ok) throw new Error(advance.message);
+
+  // CSSD-04: bộ mẹ (có thành phần / MAIN) không quét qua trạm.
+  {
+    const boId = String(quyTrinh.bo_dung_cu_id || "").trim();
+    let hasChildComponents = false;
+    if (boId && (await tableHasColumn(supabase, "cssd_dm_bo_dung_cu", "parent_bo_id"))) {
+      const { count, error: childErr } = await supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id", { count: "exact", head: true })
+        .eq("parent_bo_id", boId)
+        .eq("is_active", true);
+      if (!childErr && (count ?? 0) > 0) hasChildComponents = true;
+    }
+    let maVaiTroBo = "";
+    let hasActiveSub = false;
+    if (quyTrinh.id && (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "ma_vai_tro_bo"))) {
+      const roleRow = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("ma_vai_tro_bo")
+        .eq("id", quyTrinh.id)
+        .maybeSingle();
+      maVaiTroBo = String((roleRow.data as { ma_vai_tro_bo?: string } | null)?.ma_vai_tro_bo || "");
+      if (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "quy_trinh_cha_id")) {
+        const { count: subCount } = await supabase
+          .from("cssd_fact_quy_trinh")
+          .select("id", { count: "exact", head: true })
+          .eq("quy_trinh_cha_id", quyTrinh.id)
+          .eq("ma_vai_tro_bo", "SUB")
+          .eq("is_active", true);
+        hasActiveSub = (subCount ?? 0) > 0;
+      }
+    }
+    const parentBlock = rejectParentBoScan({ hasChildComponents, maVaiTroBo, hasActiveSub });
+    if (parentBlock) throw new Error(parentBlock);
+  }
 
   // 0b. LAM_SACH (QT.18) — soft-warn lot enzyme / washer (không hard-block)
   // Plasma–cellulose: cổng danh mục + nạp mẻ (không hỏi trên Đóng gói).
