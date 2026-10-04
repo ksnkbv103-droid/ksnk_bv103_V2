@@ -419,3 +419,29 @@ Neo: Admin Soft sâu (pending/chưa TK). Auth-ban / dual-admin vẫn park.
 | P0 cửa | `afterSaveNhanSuLogin`: có Auth thì luôn `setStaffKsnkRbacRole` — `roleName` rỗng = gỡ. Trước đó bỏ trống FK thì `sys_user_roles` giữ. |
 | Migrate file | `20261003160000_rpc_clear_staff_ksnk_role.sql` — RPC nhận rỗng → DELETE vai trò KSNK. **Chưa apply.** |
 | Park | Auth-ban khi khóa hồ sơ; dual-admin duyệt tự đặt lại MK. |
+
+## DA — Deep audit 5-10 (nhánh `cursor/deep-audit-5-10` @ main `6a0f9d1`)
+
+Rà 6 lớp theo module trên tip production đã merge #74/#75. Vá mỏng chắc chắn; không push / migrate apply / xóa file.
+
+| Commit | Module | Việc (PA chọn) |
+|--------|--------|----------------|
+| `6f1bdfb` | VST | Excel thêm `co_deo_gang` (PA1 cột thô khớp KPI; PA2 cột suy diễn `lam_dung_gang` — loại). |
+| `14246c4` | MDM | Gateway nhân sự `fetchAllRangeRows` (PA1 hết cắt 1000; PA2 nâng trần — loại). |
+| `d56c4ce` | QLCV | Kanban toast khi lỗi; đề xuất chờ duyệt đọc hết trang (PA1 không nuốt `[]`; PA2 toast trong `.catch` giữ `[]` — loại). |
+| `7c355d8` | CSSD | Báo cáo tên NV chunk `.in` (PA1 hết cắt 500; PA2 nâng slice — loại). |
+| `8488031` | CSSD | Máy + khoa báo cáo đọc hết trang (PA1; PA2 nâng 500/2000 — loại). |
+| `f40de46` | QLCV | Dropdown NV khoa / tổ công tác đọc hết trang (PA1; PA2 nâng 500 — loại). |
+
+| Module | P0/P1 tìm | Đã vá | Còn / Domain |
+|--------|-----------|-------|--------------|
+| NKBV | 1 P1 list `updateGiamSatNkbvCa` đổi TT tự do; 1 P2 trọng điểm `.limit(1500)` | 0 | Domain transition + 1500 |
+| Giám sát VST | 1 P1 Excel thiếu găng | `6f1bdfb` | Offline trùng phiên (park) |
+| Giám sát GSC | 0 mới chắc | 0 | GSC-L05 Excel/`loai_giam_sat` Domain |
+| CSSD | 2 P1 cắt tên NV / máy+khoa | `7c355d8` `8488031` | RP2 tỷ lệ; void crash; migrate đỏ/claim; orphan modal |
+| QLCV | 2 P1 nuốt lỗi + cắt đề xuất/dropdown | `d56c4ce` `f40de46` | Q-14 báo cáo kỳ cap 2000 Domain |
+| BCTH | 0 mới chắc | 0 | `fetchMucTieuKpiVien` orphan — Nghĩa xóa |
+| Quản trị | 0 mới chắc (S-Y đã) | 0 | Auth-ban; dual-admin; import NS≠RBAC; migrate clear |
+| MDM/shell | 1 P1 gateway 1000 | `14246c4` | Sidebar OK; orphan `TaiKhoanNhanSuPage` — Nghĩa xóa |
+
+Migrate file sẵn (chưa apply): `20260928150000_…claim_status`, `20260930140000_…reject_station_clear`, `20261001120000_…red_alert`, `20261001160000_…bo_summary`, `20261003160000_…clear_staff`, `20261003170000_…exclude_tu_choi`. DA không thêm migration mới.
