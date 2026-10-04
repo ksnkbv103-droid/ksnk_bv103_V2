@@ -9,22 +9,36 @@ import {
 import { formatHoSoNhanSuWriteError } from "./nhan-su-fk-normalize";
 import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";
 import { verifyPermission } from "../../actions/verify-permission";
+import { nhanSuSchema } from "@/lib/validations";
+import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { syncStaffAuthEmail } from "@/lib/auth/staff-auth-email";
+import {
+  assertLoginEmailChangeAllowed,
+  authUserHasAdminRole,
+} from "./nhan-su-login-email.guard";
+import { logAdminAction, maskEmailForAudit } from "@/lib/admin-audit";
 
 function errNhanSuWrite(e: unknown) {
   return e instanceof Error ? e.message : String(e);
 }
 
-import { nhanSuSchema } from "@/lib/validations";
-import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
-import { syncStaffAuthEmail } from "@/lib/auth/staff-auth-email";
+type SaveNhanSuInput = Partial<NhanSu> & { confirmActorPassword?: string };
 
 /**
- * Lưu hồ sơ nhân sự (Thêm hoặc Cập nhật)
+ * Lưu hồ sơ nhân sự (Thêm hoặc Cập nhật).
+ * Đổi email đăng nhập (hồ sơ đã có auth_user_id) → cổng ADM-01 (chỉ ADMIN + mật khẩu).
  */
-export async function saveNhanSuAction(data: Partial<NhanSu>) {
+export async function saveNhanSuAction(data: SaveNhanSuInput) {
   try {
-    const { id, khoa: _k, to: _t, nghe_nghiep: _nn, ...updateData } = data;
-    // 1. Validate permissions
+    const {
+      id,
+      khoa: _k,
+      to: _t,
+      nghe_nghiep: _nn,
+      confirmActorPassword,
+      ...updateData
+    } = data;
+    // 1. Validate permissions (hồ sơ thường); đổi email siết riêng bên dưới.
     await verifyPermission("NHAN_SU", id ? "edit" : "create");
     const supabase = createAdminSupabaseClient();
 
@@ -38,17 +52,16 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
       };
     }
     const validatedData = parsed.data;
-    
-    // Tách các trường động thuộc extra_data ra khỏi payload vật lý
+
     const {
       email,
       so_dien_thoai,
       ngay_sinh,
       gioi_tinh,
       ...physicalFields
-    } = validatedData as any;
+    } = validatedData as Record<string, unknown>;
 
-    let existingExtraData = {};
+    let existingExtraData: Record<string, unknown> = {};
     let current: {
       to_id?: string | null;
       chuc_vu_id?: string | null;
@@ -66,9 +79,28 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
         .maybeSingle();
       if (exErr) throw new Error(exErr.message);
       if (existing) {
-        current = existing as any;
-        existingExtraData = existing.extra_data || {};
+        current = {
+          to_id: existing.to_id,
+          chuc_vu_id: existing.chuc_vu_id,
+          chuc_danh_id: existing.chuc_danh_id,
+          vai_tro_he_thong_id: existing.vai_tro_he_thong_id,
+        };
+        existingExtraData = (existing.extra_data as Record<string, unknown>) || {};
         existingAuthUserId = existing.auth_user_id ?? null;
+      }
+    }
+
+    if (
+      id &&
+      existingAuthUserId &&
+      validatedData.is_active === false
+    ) {
+      const targetAdmin = await authUserHasAdminRole(supabase, existingAuthUserId);
+      if (targetAdmin) {
+        return {
+          success: false,
+          error: "Không được ngưng hồ sơ đang gắn tài khoản quản trị (ADMIN).",
+        };
       }
     }
 
@@ -81,20 +113,40 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
     };
 
     if (id && existingAuthUserId && email !== undefined) {
-      const oldEmail = normalizeEmail(String((existingExtraData as { email?: string }).email || ""));
+      const oldEmail = normalizeEmail(String(existingExtraData.email || ""));
       const newEmail = normalizeEmail(String(email));
       if (newEmail && newEmail !== oldEmail) {
-        const syncRes = await syncStaffAuthEmail(supabase, existingAuthUserId, newEmail);
+        const gate = await assertLoginEmailChangeAllowed({
+          supabase,
+          authUserId: existingAuthUserId,
+          oldEmail,
+          newEmailRaw: newEmail,
+          confirmActorPassword,
+        });
+        const syncRes = await syncStaffAuthEmail(supabase, existingAuthUserId, gate.newEmail);
         if (!syncRes.ok) {
           return {
             success: false,
             error: `Không đồng bộ được email đăng nhập: ${syncRes.error}`,
           };
         }
+        await logAdminAction({
+          action: "CHANGE_LOGIN_EMAIL",
+          targetTable: "mdm_nhan_su",
+          targetId: id,
+          before: { email: maskEmailForAudit(gate.oldEmail) },
+          after: { email: maskEmailForAudit(gate.newEmail) },
+          actorUserId: gate.actor.id,
+          actorEmail: gate.actor.email,
+        });
       }
     }
 
-    const merged = await buildSaveNhanSuMergedFields(supabase, physicalFields, current);
+    const merged = await buildSaveNhanSuMergedFields(
+      supabase,
+      physicalFields as Omit<Partial<NhanSu>, "id" | "khoa" | "to">,
+      current,
+    );
     const payload = {
       ...merged,
       extra_data: mergedExtraData,

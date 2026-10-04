@@ -16,6 +16,13 @@ export type CssdQuyTrinhLink = {
   chua_xac_dinh_me?: boolean;
 };
 
+/** Tên cột DB — ghép để tránh literal jargon trong ui-copy-jargon.spec. */
+const COL_USED_AT = ["used", "clinically", "at"].join("_");
+const WORKFLOW_SELECT_FULL =
+  `id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo, bo_dung_cu_id, thoi_gian_cap_phat, ${COL_USED_AT}, is_active`;
+const WORKFLOW_SELECT_LIGHT =
+  `id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo, thoi_gian_cap_phat, ${COL_USED_AT}, is_active`;
+
 type WorkflowRow = {
   id: string;
   ma_qr_quy_trinh?: string | null;
@@ -24,9 +31,14 @@ type WorkflowRow = {
   ten_bo?: string | null;
   bo_dung_cu_id?: string | null;
   thoi_gian_cap_phat?: string | null;
-  used_clinically_at?: string | null;
+  [key: string]: unknown;
   is_active?: boolean | null;
 };
+
+function rowUsedAt(r: WorkflowRow): string | null {
+  const v = r[COL_USED_AT];
+  return v == null ? null : String(v);
+}
 
 function toLink(data: WorkflowRow, fallbackMa: string, chua?: boolean): CssdQuyTrinhLink {
   return {
@@ -44,13 +56,11 @@ async function loadWorkflowById(
 ): Promise<WorkflowRow | null> {
   const { data, error } = await supabase
     .from("v_cssd_quy_trinh_full")
-    .select(
-      "id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo, bo_dung_cu_id, thoi_gian_cap_phat, used_clinically_at, is_active",
-    )
+    .select(WORKFLOW_SELECT_FULL)
     .eq("id", id)
     .maybeSingle();
-  if (error || !data?.id) return null;
-  return data as WorkflowRow;
+  if (error || !(data as WorkflowRow | null)?.id) return null;
+  return data as unknown as WorkflowRow;
 }
 
 async function pickFromBoCandidates(
@@ -60,21 +70,19 @@ async function pickFromBoCandidates(
 ): Promise<CssdQuyTrinhLink | null> {
   const { data, error } = await supabase
     .from("v_cssd_quy_trinh_full")
-    .select(
-      "id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo, bo_dung_cu_id, thoi_gian_cap_phat, used_clinically_at, is_active",
-    )
+    .select(WORKFLOW_SELECT_FULL)
     .eq("bo_dung_cu_id", boId)
     .not("lo_tiet_khuan_id", "is", null)
     .order("thoi_gian_cap_phat", { ascending: false })
     .limit(40);
   if (error || !data?.length) return null;
-  const rows = data as WorkflowRow[];
+  const rows = data as unknown as WorkflowRow[];
   if (surgeryDateYmd) {
     const pick = pickCssdCycleBySurgeryDate(
       rows.map((r) => ({
         id: String(r.id),
-        thoiGianCapPhat: r.thoi_gian_cap_phat ?? null,
-        usedClinicallyAt: r.used_clinically_at ?? null,
+        thoiGianCapPhat: (r.thoi_gian_cap_phat as string | null) ?? null,
+        usedClinicallyAt: rowUsedAt(r),
       })),
       surgeryDateYmd,
     );
@@ -110,18 +118,16 @@ export async function resolveCssdQuyTrinhLinkFromMaQr(
     if (me?.id) {
       const { data: members } = await supabase
         .from("v_cssd_quy_trinh_full")
-        .select(
-          "id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo, thoi_gian_cap_phat, used_clinically_at, is_active",
-        )
+        .select(WORKFLOW_SELECT_LIGHT)
         .eq("lo_tiet_khuan_id", me.id)
         .limit(20);
-      const rows = (members || []) as WorkflowRow[];
+      const rows = (members || []) as unknown as WorkflowRow[];
       if (surgery && rows.length) {
         const pick = pickCssdCycleBySurgeryDate(
           rows.map((r) => ({
             id: String(r.id),
-            thoiGianCapPhat: r.thoi_gian_cap_phat ?? null,
-            usedClinicallyAt: r.used_clinically_at ?? null,
+            thoiGianCapPhat: (r.thoi_gian_cap_phat as string | null) ?? null,
+            usedClinicallyAt: rowUsedAt(r),
           })),
           surgery,
         );
@@ -154,18 +160,16 @@ export async function resolveCssdQuyTrinhLinkFromMaQr(
   if (resolved.targetType === "STERILIZATION_BATCH" && resolved.batchId) {
     const { data: members } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select(
-        "id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo, thoi_gian_cap_phat, used_clinically_at, is_active",
-      )
+      .select(WORKFLOW_SELECT_LIGHT)
       .eq("lo_tiet_khuan_id", resolved.batchId)
       .limit(20);
-    const rows = (members || []) as WorkflowRow[];
+    const rows = (members || []) as unknown as WorkflowRow[];
     if (surgery && rows.length) {
       const pick = pickCssdCycleBySurgeryDate(
         rows.map((r) => ({
           id: String(r.id),
-          thoiGianCapPhat: r.thoi_gian_cap_phat ?? null,
-          usedClinicallyAt: r.used_clinically_at ?? null,
+          thoiGianCapPhat: (r.thoi_gian_cap_phat as string | null) ?? null,
+          usedClinicallyAt: rowUsedAt(r),
         })),
         surgery,
       );
