@@ -11,10 +11,20 @@ import {
 
 export type SupervisionSourceLens = "ksnk" | "tgs";
 
+/** Mã stype RPC (`p_hinh_thuc_ids`) — khớp filter Dashboard / gap_analysis. */
+export const SUPERVISION_LENS_HINH_THUC_IDS: Record<SupervisionSourceLens, string> = {
+  ksnk: "KSNK",
+  tgs: "TU_GIAM_SAT",
+};
+
 export const SUPERVISION_SOURCE_LENS_LABEL: Record<SupervisionSourceLens, string> = {
   ksnk: "Chuyên trách",
   tgs: "Tự giám sát",
 };
+
+export function hinhThucIdsForLens(lens: SupervisionSourceLens): string[] {
+  return [SUPERVISION_LENS_HINH_THUC_IDS[lens]];
+}
 
 export function otherLens(lens: SupervisionSourceLens): SupervisionSourceLens {
   return lens === "ksnk" ? "tgs" : "ksnk";

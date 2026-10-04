@@ -28,8 +28,13 @@ export function invalidateGscStrategicAnalyticsCache() {
 
 type RpcArgs = Record<string, unknown>;
 
+function hasHinhThucLensFilter(rpcArgs: RpcArgs): boolean {
+  const ids = rpcArgs.p_hinh_thuc_ids;
+  return Array.isArray(ids) && ids.length > 0;
+}
+
 /** Cache ngắn RPC cặp dashboard VST (đã verifyPermission bên ngoài). */
-export function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
+function fetchCachedVstStrategicRpcRaw(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
@@ -51,8 +56,23 @@ export function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
   )();
 }
 
+/**
+ * KPI/trend/matrix theo lens (`p_hinh_thuc_ids`); đối soát (`gap_analysis`) luôn đọc cả 2 lens.
+ * Cache key gồm lens (qua JSON rpcArgs) — PERF-2 TTL 90s.
+ */
+export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
+  const main = await fetchCachedVstStrategicRpcRaw(rpcArgs);
+  if (!main.success || !hasHinhThucLensFilter(rpcArgs)) return main;
+  const gapRes = await fetchCachedVstStrategicRpcRaw({ ...rpcArgs, p_hinh_thuc_ids: null });
+  if (!gapRes.success) return main;
+  return {
+    success: true as const,
+    data: { ...main.data, gap_analysis: gapRes.data.gap_analysis },
+  };
+}
+
 /** Cache ngắn RPC cặp dashboard GSC (đã verifyPermission bên ngoài). */
-export function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
+function fetchCachedGscStrategicRpcRaw(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
@@ -72,6 +92,18 @@ export function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
     [GSC_STRATEGIC_CACHE_TAG, key],
     { revalidate: REVALIDATE_SEC, tags: [GSC_STRATEGIC_CACHE_TAG] },
   )();
+}
+
+/** KPI/trend/matrix theo lens; `gap_analysis` giữ cả 2 lens. Cache key gồm lens. */
+export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
+  const main = await fetchCachedGscStrategicRpcRaw(rpcArgs);
+  if (!main.success || !hasHinhThucLensFilter(rpcArgs)) return main;
+  const gapRes = await fetchCachedGscStrategicRpcRaw({ ...rpcArgs, p_hinh_thuc_ids: null });
+  if (!gapRes.success) return main;
+  return {
+    success: true as const,
+    data: { ...main.data, gap_analysis: gapRes.data.gap_analysis },
+  };
 }
 
 /** Cache ngắn hits TGS theo kỳ/khoa. */

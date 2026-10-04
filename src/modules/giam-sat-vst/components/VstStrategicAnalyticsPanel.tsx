@@ -2,7 +2,7 @@
 
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -31,6 +31,9 @@ type Props = {
   denNgay: string;
   khoaOptions: { id: string; label: string; khoi_id?: string }[];
   selectedKhoaIds: string[];
+  /** GS-02: lens điều khiển fetch RPC; đổi lens → refetch. */
+  sourceLens: SupervisionSourceLens;
+  onSourceLensChange: (lens: SupervisionSourceLens) => void;
 };
 
 /**
@@ -38,7 +41,7 @@ type Props = {
  * Nâng cao: đối soát · KPI · (lỗi/moment nằm phân tích sâu / drill).
  */
 export default function VstStrategicAnalyticsPanel(p: Props) {
-  const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
+  const sourceLens = p.sourceLens;
   const gapKhoaRows = useMemo(
     () =>
       buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
@@ -53,7 +56,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
-      { title: "Theo chức năng phòng", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
+      { title: "Theo khu vực", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
       ...(p.payload?.matrix_cach_thuc?.length
@@ -70,7 +73,11 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       <div id="so-sanh" className="scroll-mt-24 flex flex-wrap items-center justify-between gap-2">
-        <SupervisionSourceLensToggle value={sourceLens} onChange={setSourceLens} disabled={p.loading} />
+        <SupervisionSourceLensToggle
+          value={sourceLens}
+          onChange={p.onSourceLensChange}
+          disabled={p.loading}
+        />
         <p className="text-[11px] text-slate-500">
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>

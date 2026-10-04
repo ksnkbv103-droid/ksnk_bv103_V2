@@ -22,6 +22,8 @@ export type AnalyticsFilterSlice = {
 type Options = {
   /** GSC: loại bỏ VST_WHO hoặc lọc theo loại giám sát. */
   bangKiemMasOverride?: string[];
+  /** GS-02: lens /thong-ke → `p_hinh_thuc_ids` (và cache key 90s). */
+  hinhThucIdsOverride?: string[];
 };
 
 /** Stable ref — inline `[]` mỗi render làm đổi useCallback deps → loop fetch. */
@@ -36,6 +38,7 @@ export function useAnalyticsFilterPayload(filters: AnalyticsFilterSlice, options
       : override.length === 0
         ? STABLE_EMPTY_BANG_KIEM
         : override;
+  const hinhThucIdsOverride = options?.hinhThucIdsOverride;
 
   return useCallback(
     () =>
@@ -52,6 +55,7 @@ export function useAnalyticsFilterPayload(filters: AnalyticsFilterSlice, options
         khoaOptionCount: filters.khoaOptions.length,
         ngheOptionCount: filters.ngheOptions.length,
         khuOptionCount: filters.khuVucOptions.length,
+        hinhThucIdsOverride,
       }),
     [
       filters.tuNgay,
@@ -66,6 +70,7 @@ export function useAnalyticsFilterPayload(filters: AnalyticsFilterSlice, options
       filters.ngheOptions.length,
       filters.khuVucOptions.length,
       bangKiemMas,
+      hinhThucIdsOverride,
     ],
   );
 }

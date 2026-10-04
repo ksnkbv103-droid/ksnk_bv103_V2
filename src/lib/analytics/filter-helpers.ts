@@ -53,7 +53,13 @@ export function buildAnalyticsFilterPayload(args: {
   khoaOptionCount: number;
   ngheOptionCount: number;
   khuOptionCount: number;
+  /** GS-02: lens /thong-ke ghi đè bộ lọc hình thức thủ công (một stype). */
+  hinhThucIdsOverride?: string[];
 }): AnalyticsFilterInput {
+  const hinhThucIds =
+    args.hinhThucIdsOverride && args.hinhThucIdsOverride.length > 0
+      ? args.hinhThucIdsOverride
+      : args.selectedHinhThucIds;
   return {
     tu_ngay: args.tuNgay,
     den_ngay: args.denNgay,
@@ -61,7 +67,7 @@ export function buildAnalyticsFilterPayload(args: {
     khoa_ids: effectiveFilterIds(args.selectedKhoaIds, args.khoaOptionCount) ?? undefined,
     nghe_nghiep_ids: effectiveFilterIds(args.selectedNgheIds, args.ngheOptionCount) ?? undefined,
     khu_vuc_ids: effectiveFilterIds(args.selectedKhuVucIds, args.khuOptionCount) ?? undefined,
-    hinh_thuc_ids: args.selectedHinhThucIds.length > 0 ? args.selectedHinhThucIds : undefined,
+    hinh_thuc_ids: hinhThucIds.length > 0 ? hinhThucIds : undefined,
     bang_kiem_mas: args.selectedBangKiemMas.length > 0 ? args.selectedBangKiemMas : undefined,
   };
 }

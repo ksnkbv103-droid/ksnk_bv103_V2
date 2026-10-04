@@ -3,6 +3,7 @@ import type { GapKhoaRow } from "./supervision-matrix-mappers";
 import {
   comparableGapRows,
   gapRowsWithLensData,
+  hinhThucIdsForLens,
   maskGapRowsForLens,
   tyLeForLens,
 } from "./supervision-source-lens";
@@ -48,5 +49,10 @@ describe("supervision-source-lens", () => {
   it("tyLeForLens returns null without volume", () => {
     expect(tyLeForLens(sample[1]!, "ksnk")).toBeNull();
     expect(tyLeForLens(sample[1]!, "tgs")).toBe(80);
+  });
+
+  it("hinhThucIdsForLens maps lens → stype RPC (GS-02)", () => {
+    expect(hinhThucIdsForLens("ksnk")).toEqual(["KSNK"]);
+    expect(hinhThucIdsForLens("tgs")).toEqual(["TU_GIAM_SAT"]);
   });
 });

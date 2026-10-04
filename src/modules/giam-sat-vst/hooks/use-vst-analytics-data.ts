@@ -1,16 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 import { fetchStrategicAnalytics } from "@/lib/analytics/strategic-analytics-fetch";
 import { useAnalyticsFilterPayload } from "@/lib/analytics/use-analytics-filter-payload";
 import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
+import {
+  hinhThucIdsForLens,
+  type SupervisionSourceLens,
+} from "@/lib/analytics/supervision-source-lens";
 
 export function useVstAnalyticsData() {
   const filters = useAnalyticsFilters("vst");
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [payload, setPayload] = useState<VstStrategicPayload | null>(null);
+  const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
+  const lensHinhThucIds = useMemo(() => hinhThucIdsForLens(sourceLens), [sourceLens]);
 
-  const filterPayload = useAnalyticsFilterPayload(filters);
+  const filterPayload = useAnalyticsFilterPayload(filters, {
+    hinhThucIdsOverride: lensHinhThucIds,
+  });
 
   const loadAnalytics = useCallback(async () => {
     if (!filters.initDone) return;
@@ -40,5 +48,13 @@ export function useVstAnalyticsData() {
     if (filters.initDone) void loadRef.current();
   }, [filters.initDone, loadAnalytics]);
 
-  return { ...filters, loading, loadError, payload, loadAnalytics };
+  return {
+    ...filters,
+    loading,
+    loadError,
+    payload,
+    loadAnalytics,
+    sourceLens,
+    setSourceLens,
+  };
 }

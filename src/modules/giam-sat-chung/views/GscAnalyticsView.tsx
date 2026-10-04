@@ -15,6 +15,7 @@ import { parseGscLoaiParam, type GscLoaiGiamSatRoute } from "../lib/gsc-app-path
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
 import { usePermission } from "@/hooks/usePermission";
+import { hinhThucIdsForLens } from "@/lib/analytics/supervision-source-lens";
 
 function resolveLoaiFromSearchParams(
   initialLoaiGiamSat: GscLoaiGiamSatRoute | undefined,
@@ -85,8 +86,7 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
       khuVucOptions={d.khuVucOptions}
       selectedKhuVucIds={d.selectedKhuVucIds}
       setSelectedKhuVucIds={d.setSelectedKhuVucIds}
-      selectedHinhThucIds={d.selectedHinhThucIds}
-      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
+      hideHinhThuc
     />
   );
 
@@ -118,11 +118,13 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
           selectedNgheIds={d.selectedNgheIds}
           khuVucOptions={d.khuVucOptions}
           selectedKhuVucIds={d.selectedKhuVucIds}
-          selectedHinhThucIds={d.selectedHinhThucIds}
+          selectedHinhThucIds={hinhThucIdsForLens(d.sourceLens)}
           payload={d.payload}
           loading={d.loading}
           loadError={d.loadError}
           bkLabelRecord={d.bkLabelRecord}
+          sourceLens={d.sourceLens}
+          onSourceLensChange={d.setSourceLens}
         />
         {!isGuestStatsOnly ? (
           <details
