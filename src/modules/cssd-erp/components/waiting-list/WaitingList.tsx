@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Clock, User, Phone, ArrowRight, List } from "lucide-react";
-import { CSSDWaitingItem } from "../../types/cssd.types";
+import { Clock, User, Phone, ArrowRight, List, Undo2 } from "lucide-react";
+import { toast } from "sonner";
+import { CSSDWaitingItem, type Station } from "../../types/cssd.types";
 import SetMembersModal from "../inventory/SetMembersModal";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 import { formatDateTimeVi, formatTimeVi } from "@/lib/format-datetime-vi";
@@ -20,10 +21,39 @@ interface Props {
   onAction: (maQR: string) => void;
   /** Optional empty CTA; default focuses station QR entry. */
   emptyAction?: React.ReactNode;
+  /** CSSD-07: chỉ hiện «Trả về Làm sạch» tại Kiểm bộ. */
+  currentStation?: Station | null;
+  onRejectToLamSach?: (maQR: string, lyDo: string) => Promise<void>;
 }
 
-export default function WaitingList({ items, onAction, emptyAction }: Props) {
+export default function WaitingList({
+  items,
+  onAction,
+  emptyAction,
+  currentStation,
+  onRejectToLamSach,
+}: Props) {
   const [detailSet, setDetailSet] = useState<{ bo_dung_cu_id: string; ten_bo?: string | null } | null>(null);
+  const [rejecting, setRejecting] = useState<string | null>(null);
+  const showReject = currentStation === "QC" && typeof onRejectToLamSach === "function";
+
+  const handleReject = async (maQR: string) => {
+    const lyDo = window.prompt("Lý do trả về Làm sạch (bắt buộc):");
+    if (lyDo == null) return;
+    if (!String(lyDo).trim()) {
+      toast.error("Cần nhập lý do trả về Làm sạch.");
+      return;
+    }
+    setRejecting(maQR);
+    try {
+      await onRejectToLamSach?.(maQR, String(lyDo).trim());
+      toast.success("Đã trả bộ về Làm sạch.");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Không trả được về Làm sạch.");
+    } finally {
+      setRejecting(null);
+    }
+  };
 
   return (
     <div className="space-y-[var(--bv103-space-3)]">
@@ -100,6 +130,17 @@ export default function WaitingList({ items, onAction, emptyAction }: Props) {
                   <List size={14} aria-hidden />
                   Chi tiết
                 </button>
+                {showReject ? (
+                  <button
+                    type="button"
+                    disabled={rejecting === item.ma_vach_qr}
+                    onClick={() => void handleReject(item.ma_vach_qr)}
+                    className={CSSD_UI_ACTION_SECONDARY}
+                  >
+                    <Undo2 size={14} aria-hidden />
+                    Trả về Làm sạch
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => onAction(item.ma_vach_qr)}

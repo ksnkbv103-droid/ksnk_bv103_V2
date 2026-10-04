@@ -35,6 +35,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     scanSuccess,
     selectStation,
     handleQRScan,
+    rejectToLamSach,
   } = useCSSDWorkflow();
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
@@ -102,7 +103,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
 
       <main className="grid grid-cols-1 items-start gap-[var(--bv103-space-3)] lg:grid-cols-12">
         <div className="bv103-stack-in lg:col-span-6">
-          {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
+          {currentStation ? (
+            <WaitingList
+              items={waitingList}
+              onAction={submitWorkflowQr}
+              currentStation={currentStation}
+              onRejectToLamSach={rejectToLamSach}
+            />
+          ) : (
             <div className="bv103-layer-inset py-16 text-center bv103-type-label font-semibold text-slate-400">
               Chọn trạm để xem hàng chờ.
             </div>

@@ -36,10 +36,11 @@ const STERILIZATION_METHOD_LABEL_VI: Record<SterilizationMethod, string> = {
   EO: "Ethylene oxide (EO)",
 };
 
+/** QT.18.HD.02 — một map Spaulding duy nhất. */
 const SPAULDING_LABEL_VI: Record<SpauldingClass, string> = {
-  CRITICAL: "Cực kỳ nguy hiểm (Critical)",
-  SEMI_CRITICAL: "Nguy hiểm (Semi-critical)",
-  NON_CRITICAL: "Không nguy hiểm (Non-critical)",
+  CRITICAL: "Thiết yếu (Critical)",
+  SEMI_CRITICAL: "Bán thiết yếu (Semicritical)",
+  NON_CRITICAL: "Không thiết yếu (Noncritical)",
 };
 
 function resolveHighestSpaulding(items: BomItem[]): SpauldingClass {
@@ -86,7 +87,7 @@ export function evaluateHeatCompatibility(items: BomItem[]): HeatEvaluation {
       recommendedMethod,
       spauldingMax,
       methodLabelVi: STERILIZATION_METHOD_LABEL_VI[recommendedMethod],
-      reason: `Bộ dụng cụ hỗn hợp chứa cấu phần nhạy cảm nhiệt (${lowTempItems.map((i) => i.ten).join(", ")}). Spaulding cao nhất: ${SPAULDING_LABEL_VI[spauldingMax]}. Đề xuất ${STERILIZATION_METHOD_LABEL_VI[recommendedMethod]}, hoặc tách túi hấp riêng.`,
+      reason: `Bộ dụng cụ hỗn hợp chứa cấu phần không chịu nhiệt (${lowTempItems.map((i) => i.ten).join(", ")}). Spaulding cao nhất: ${SPAULDING_LABEL_VI[spauldingMax]}. Đề xuất ${STERILIZATION_METHOD_LABEL_VI[recommendedMethod]} — tách thành phần tại danh mục.`,
     };
   }
 

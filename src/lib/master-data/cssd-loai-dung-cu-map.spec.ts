@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyLoaiKhoDuPhongOnImportPayload,
-  applyResolvedTramToLoaiSpecs,
+  applySterileMethodSuggestionToLoaiSpecs,
   buildLoaiPhysicalUpsertPayload,
   mapIsChiuNhietToKhaNang,
   mapKhaNangToIsChiuNhiet,
@@ -9,8 +9,7 @@ import {
   normalizeLoaiDungCuExcelImportRow,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
-  resolveSuggestedTramFromCatalog,
-  suggestCssdStationFromMaster,
+  suggestCssdSterileMethodFromMaster,
   syncLoaiPhysicalColumnsOnImportPayload,
 } from "./cssd-loai-dung-cu-map";
 
@@ -91,52 +90,41 @@ describe("cssd-loai-dung-cu-map heat/Spaulding", () => {
     expect((p.specs as { kha_nang_chiu_nhiet: string }).kha_nang_chiu_nhiet).toBe("Thấp");
   });
 
-  it("suggests CSSD station from Spaulding/heat/PP (D-16)", () => {
+  it("CSSD-10: gợi ý PP chỉ định; Không thiết yếu → null; không ma_tram_goi_y", () => {
     expect(
-      suggestCssdStationFromMaster({
+      suggestCssdSterileMethodFromMaster({
         spaulding: "CRITICAL",
         sterileMethod: "STEAM_134",
         isChiuNhiet: true,
-      }).maTramGoiY,
-    ).toBe("TRAM_HOI_134");
+      }).phuongPhapChiDinh,
+    ).toBe("STEAM_134");
     expect(
-      suggestCssdStationFromMaster({
+      suggestCssdSterileMethodFromMaster({
         sterileMethod: "EO",
         isChiuNhiet: true,
-      }).maTramGoiY,
-    ).toBe("TRAM_EO");
+      }).phuongPhapChiDinh,
+    ).toBe("EO");
     expect(
-      suggestCssdStationFromMaster({
+      suggestCssdSterileMethodFromMaster({
         sterileMethod: "STEAM_134",
         isChiuNhiet: false,
-      }).maTramGoiY,
-    ).toBe("TRAM_PLASMA");
-  });
+      }).phuongPhapChiDinh,
+    ).toBe("PLASMA");
+    expect(
+      suggestCssdSterileMethodFromMaster({
+        spaulding: "NON_CRITICAL",
+        sterileMethod: "STEAM_134",
+        isChiuNhiet: true,
+      }).phuongPhapChiDinh,
+    ).toBeNull();
 
-  it("DM-5: gắn gợi ý với trạm thật trên sổ viện (exact hoặc alias TIET_KHUAN)", () => {
-    const catalog = [
-      { id: "tram-tk", ma: "TIET_KHUAN", ten: "Tiệt khuẩn" },
-      { id: "tram-134", ma: "TRAM_HOI_134", ten: "Hấp 134" },
-    ];
-    const exact = resolveSuggestedTramFromCatalog("TRAM_HOI_134", catalog);
-    expect(exact).toMatchObject({ id: "tram-134", ma: "TRAM_HOI_134", matchedBy: "exact" });
-
-    const alias = resolveSuggestedTramFromCatalog("TRAM_PLASMA", [
-      { id: "tram-tk", ma: "TIET_KHUAN", ten: "Tiệt khuẩn" },
-    ]);
-    expect(alias).toMatchObject({ id: "tram-tk", ma: "TIET_KHUAN", matchedBy: "alias" });
-    if (!alias) throw new Error("expected alias");
-
-    expect(resolveSuggestedTramFromCatalog("TRAM_KHU_TRUNG", catalog)).toBeNull();
-
-    const specs = applyResolvedTramToLoaiSpecs({}, alias, "TRAM_PLASMA");
-    expect(specs.tram_cssd_id).toBe("tram-tk");
-    expect(specs.ma_tram_goi_y).toBe("TRAM_PLASMA");
-    expect(specs.ma_tram_thuc_te).toBe("TIET_KHUAN");
-
-    const cleared = applyResolvedTramToLoaiSpecs(specs, null, "TRAM_KHU_TRUNG");
-    expect(cleared.tram_cssd_id).toBeUndefined();
-    expect(cleared.ma_tram_goi_y).toBe("TRAM_KHU_TRUNG");
+    const specs = applySterileMethodSuggestionToLoaiSpecs(
+      { ma_tram_goi_y: "TRAM_HOI_134", tram_cssd_id: "x" },
+      { phuongPhapChiDinh: "STEAM_134", lyDo: "ok" },
+    );
+    expect(specs.ma_tram_goi_y).toBeUndefined();
+    expect(specs.tram_cssd_id).toBeUndefined();
+    expect(specs.phuong_phap_tiet_khuan_chi_dinh_goi_y).toBe("STEAM_134");
   });
 
   it("DM-4: Excel xuất dùng alias, không lộ ma_loai/ten_loai", () => {

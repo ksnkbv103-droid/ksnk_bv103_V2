@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Station, CSSDWaitingItem } from "../types/cssd.types";
 import { scanQR, getWaitingListByStation, resolveNextScanStation } from "../actions/cssd.actions";
+import { cssdCommandRejectToPrevious } from "../actions/cssd-workflow.commands.actions";
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
 import { SCAN_STATIONS, WORKFLOW_STEPS, nextIsMeHandoff, nextStationLabel } from "../workflow/domain/cssd-stations";
@@ -166,6 +167,17 @@ export function useCSSDWorkflow() {
     }
   }, [currentStation, fetchWaitingList]);
 
+  const rejectToLamSach = useCallback(
+    async (maQR: string, lyDo: string) => {
+      if (currentStation !== "QC") {
+        throw new Error("Chỉ trả về Làm sạch tại trạm Kiểm bộ.");
+      }
+      await cssdCommandRejectToPrevious(maQR, lyDo);
+      if (currentStation) void fetchWaitingList(currentStation);
+    },
+    [currentStation, fetchWaitingList],
+  );
+
   return {
     currentStation,
     scanStations: CSSD_SCAN_STATIONS,
@@ -176,6 +188,7 @@ export function useCSSDWorkflow() {
     scanSuccess: !!lastScan,
     selectStation,
     handleQRScan,
+    rejectToLamSach,
     refresh: () => currentStation && fetchWaitingList(currentStation),
   };
 }

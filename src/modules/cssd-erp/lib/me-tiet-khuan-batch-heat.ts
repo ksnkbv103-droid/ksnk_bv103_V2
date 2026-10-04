@@ -11,7 +11,7 @@ import {
 
 export const MSG_HEAT_UNKNOWN = "Không kiểm tra được chịu nhiệt — đã chặn thao tác.";
 export const MSG_HEAT_STEAM_BLOCK =
-  "Bộ nhạy nhiệt hoặc thiếu dữ liệu chịu nhiệt — không thêm vào mẻ máy hơi nước.";
+  "Bộ không chịu nhiệt hoặc thiếu dữ liệu chịu nhiệt — không thêm vào mẻ máy hơi nước.";
 export const MSG_HEAT_LOW_TEMP_ONLY =
   "Bộ chịu nhiệt cao — chỉ nạp máy hơi nước, không nạp máy Plasma hoặc EO.";
 export const MSG_METHOD_UNKNOWN = "Không xác định được phương pháp máy — đã chặn nạp.";
@@ -43,7 +43,7 @@ export function evaluateBatchSterilizationHeatRisk(
     messages.push(heat.reason);
     if (steam) {
       messages.push(
-        "Máy đang chọn là hấp hơi nước (134°C/121°C) trong khi bộ có cấu phần nhạy nhiệt — cần tách SUB hoặc đổi phương pháp TK.",
+        "Máy đang chọn là hấp hơi nước (134°C/121°C) trong khi bộ có cấu phần không chịu nhiệt — cần tách thành phần tại danh mục hoặc đổi phương pháp TK.",
       );
       return { level: "BLOCK", heat, messages };
     }
@@ -84,11 +84,11 @@ export function assertSteamKitHeatAllowed(input: {
 
 export type KitHeatLine = { is_chiu_nhiet: boolean | null };
 
-export type KitHeatClass = "CHIU_NHIET" | "NHAY_NHIET" | "THIEU_DU_LIEU";
+export type KitHeatClass = "CHIU_NHIET" | "KHONG_CHIU_NHIET" | "THIEU_DU_LIEU";
 
 /**
  * Luật S1: mọi dòng `is_chiu_nhiet === true` → chịu nhiệt cao (hơi nước).
- * Có dòng false, không dòng null → nhạy nhiệt (Plasma/EO).
+ * Có dòng false, không dòng null → không chịu nhiệt (Plasma/EO).
  * Thiếu dòng, null, hoặc lỗi tải → thiếu dữ liệu (fail closed).
  */
 export function classifyKitHeat(input: {
@@ -98,7 +98,7 @@ export function classifyKitHeat(input: {
   if (input.loadError || input.lines == null || input.lines.length === 0) return "THIEU_DU_LIEU";
   if (input.lines.some((line) => line.is_chiu_nhiet == null)) return "THIEU_DU_LIEU";
   if (input.lines.every((line) => line.is_chiu_nhiet === true)) return "CHIU_NHIET";
-  return "NHAY_NHIET";
+  return "KHONG_CHIU_NHIET";
 }
 
 /**
@@ -120,7 +120,7 @@ export function assertKitFitsSterilizerMethod(input: {
     if (heat !== "CHIU_NHIET") return { ok: false, message: MSG_HEAT_STEAM_BLOCK };
     return { ok: true };
   }
-  if (heat !== "NHAY_NHIET") return { ok: false, message: MSG_HEAT_LOW_TEMP_ONLY };
+  if (heat !== "KHONG_CHIU_NHIET") return { ok: false, message: MSG_HEAT_LOW_TEMP_ONLY };
   const plasmaMethod =
     input.method === "PLASMA_H2O2" || String(input.method).toUpperCase() === "PLASMA"
       ? "PLASMA"

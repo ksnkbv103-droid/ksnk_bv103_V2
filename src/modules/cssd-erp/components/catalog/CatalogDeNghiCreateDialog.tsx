@@ -268,7 +268,7 @@ export function CatalogDeNghiCreateDialog({
               Chịu nhiệt
               <select className={inputCls} value={isChiuNhiet} onChange={(e) => setIsChiuNhiet(e.target.value as "true" | "false")}>
                 <option value="true">Chịu nhiệt cao</option>
-                <option value="false">Nhạy nhiệt</option>
+                <option value="false">Không chịu nhiệt</option>
               </select>
             </label>
             <label className={labelCls}>

@@ -278,7 +278,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       .in("quy_trinh_cha_id", memberIds)
       .eq("is_active", true)
       .eq("ma_vai_tro_bo", "SUB");
-    if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/SUB — đã chặn bắt đầu mẻ." };
+    if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/thành phần — đã chặn bắt đầu mẻ." };
     const parentIds = new Set((subs || []).map((s) => String((s as { quy_trinh_cha_id?: string }).quy_trinh_cha_id || "")));
 
     for (const row of rows) {
@@ -645,7 +645,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
       .eq("quy_trinh_cha_id", String(qt.id))
       .eq("is_active", true)
       .eq("ma_vai_tro_bo", "SUB");
-    if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/SUB — đã chặn nạp." };
+    if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/thành phần — đã chặn nạp." };
     const parentMsg = rejectParentBoWithSub({
       maVaiTroBo: (qt as { ma_vai_tro_bo?: string | null }).ma_vai_tro_bo,
       hasActiveSub: (subCount ?? 0) > 0,

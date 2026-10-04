@@ -90,7 +90,7 @@ describe('CSSD Packaging Rules', () => {
     const result = evaluateHeatCompatibility(items);
     expect(result.requireSplit).toBe(true);
     expect(result.recommendedMethod).toBe('PLASMA');
-    expect(result.reason).toContain('Bộ dụng cụ hỗn hợp chứa cấu phần nhạy cảm nhiệt');
+    expect(result.reason).toContain('không chịu nhiệt');
   });
 
   // Scenario 4: Lẫn nhiệt + tất cả NON_CRITICAL -> vẫn requireSplit=true

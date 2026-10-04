@@ -4,19 +4,17 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import { listActiveTramCssdForLoaiAction, saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
+import { saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
-import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import {
   mapIsChiuNhietToKhaNang,
   mapKhaNangToIsChiuNhiet,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
-  resolveSuggestedTramFromCatalog,
-  suggestCssdStationFromMaster,
+  sterileMethodLabel,
+  suggestCssdSterileMethodFromMaster,
   type CssdSpaulding,
   type CssdSterileMethod,
-  type CssdTramCatalogRow,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
 
@@ -87,33 +85,16 @@ export default function LoaiDungCuFormModal({
   const seed = useMemo(() => mapForm(initialData), [initialData]);
   const [form, setForm] = useState<FormData>(seed);
   const [loading, setLoading] = useState(false);
-  const [trams, setTrams] = useState<CssdTramCatalogRow[]>([]);
   const isEdit = Boolean(initialData?.id);
-  const stationHint = useMemo(
+  const methodHint = useMemo(
     () =>
-      suggestCssdStationFromMaster({
+      suggestCssdSterileMethodFromMaster({
         spaulding: form.phan_loai_spaulding,
         sterileMethod: form.phuong_phap_tiet_khuan,
         isChiuNhiet: form.kha_nang_chiu_nhiet === "Cao",
       }),
     [form.phan_loai_spaulding, form.phuong_phap_tiet_khuan, form.kha_nang_chiu_nhiet],
   );
-  const resolvedTram = useMemo(
-    () => resolveSuggestedTramFromCatalog(stationHint.maTramGoiY, trams),
-    [stationHint.maTramGoiY, trams],
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    let live = true;
-    void listActiveTramCssdForLoaiAction().then((res) => {
-      if (!live) return;
-      if (res.success) setTrams(res.data);
-    });
-    return () => {
-      live = false;
-    };
-  }, [open]);
 
   useEffect(() => {
     setForm(seed);
@@ -194,7 +175,7 @@ export default function LoaiDungCuFormModal({
           o={(v) => setForm({ ...form, kha_nang_chiu_nhiet: v === "Thấp" ? "Thấp" : "Cao" })}
           options={[
             { v: "Cao", l: "Chịu nhiệt cao (hấp hơi được)" },
-            { v: "Thấp", l: "Nhạy nhiệt (Plasma/EO)" },
+            { v: "Thấp", l: "Không chịu nhiệt (Plasma/EO)" },
           ]}
         />
       </div>
@@ -244,22 +225,9 @@ export default function LoaiDungCuFormModal({
         )}
       </div>
       <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
-        <strong>Gợi ý trạm CSSD:</strong> {stationHint.maTramGoiY}
-        <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{stationHint.lyDo}</span>
-        {resolvedTram ? (
-          <span className="mt-0.5 block text-[11px] font-semibold text-emerald-900">
-            Trạm thật: {resolvedTram.ten} ({resolvedTram.ma})
-            {resolvedTram.matchedBy === "alias" ? ` — khớp từ ${stationHint.maTramGoiY}` : ""}
-          </span>
-        ) : (
-          <span className="mt-0.5 block text-[11px] font-medium text-amber-800">
-            Chưa có trạm tương ứng trên sổ viện. Khai tại{" "}
-            <a href={getDanhMucAdminPath("TRAM_CSSD")} className="underline">
-              Trạm workflow CSSD
-            </a>
-            . Lưu loại vẫn được — không ghi id trạm giả.
-          </span>
-        )}
+        <strong>Gợi ý PP tiệt khuẩn chỉ định:</strong>{" "}
+        {methodHint.phuongPhapChiDinh ? sterileMethodLabel(methodHint.phuongPhapChiDinh) : "—"}
+        <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{methodHint.lyDo}</span>
       </p>
       <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
     </QuanTriFormDialogShell>
