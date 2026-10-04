@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { assertQlcvHanHoanThanhNotPast, insertQlcvTaskRow } from "../lib/qlcv-create-task";
+import { assertQlcvActiveInvariant } from "../lib/qlcv-active-invariant";
 import { parseQlcvImportRow, type QlcvImportRow } from "../lib/qlcv-import-parse";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
@@ -27,8 +28,9 @@ async function resolveKsnkNhanSuIdByMa(
 
 async function resolveKhoaIdByMa(
   supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
-  maKhoa: string,
-): Promise<string> {
+  maKhoa: string | null,
+): Promise<string | null> {
+  if (!maKhoa) return null;
   const { data, error } = await supabase
     .from("mdm_dm_khoa_phong")
     .select("id")
@@ -66,6 +68,12 @@ async function importOneRow(
   const nguoi_phu_trach_id = await resolveKsnkNhanSuIdByMa(supabase, ksnkKhoaId, row.ma_nv);
   const to_cong_tac_id = await resolveToIdByMa(supabase, row.ma_to);
   const dia_diem_khoa_id = await resolveKhoaIdByMa(supabase, row.ma_khoa);
+  assertQlcvActiveInvariant({
+    tieu_de: row.tieu_de,
+    nguoi_phu_trach_id,
+    han_hoan_thanh: row.han_hoan_thanh,
+    loai_cong_viec: row.loai_cong_viec,
+  });
 
   const data = await insertQlcvTaskRow(supabase, {
     tieu_de: row.tieu_de,

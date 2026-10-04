@@ -13,4 +13,14 @@ describe("resolveQlcvTrangThaiMaForTask", () => {
   it("active chưa giao → MOI", () => {
     expect(resolveQlcvTrangThaiMaForTask({ isActive: true })).toBe("MOI");
   });
+
+  it("chỉ có tổ, không phụ trách → MOI (không DANG_LAM)", () => {
+    expect(
+      resolveQlcvTrangThaiMaForTask({
+        isActive: true,
+        to_cong_tac_id: "to-1",
+        nguoi_phu_trach_id: null,
+      }),
+    ).toBe("MOI");
+  });
 });

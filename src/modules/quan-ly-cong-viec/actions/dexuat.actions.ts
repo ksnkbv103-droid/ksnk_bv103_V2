@@ -13,6 +13,7 @@ import {
   assertQlcvHanHoanThanhChangeAllowed,
   insertQlcvTaskRow,
 } from "../lib/qlcv-create-task";
+import { assertQlcvActiveInvariant } from "../lib/qlcv-active-invariant";
 import { QLCV_FACT_WRITE_TABLE } from "../lib/qlcv-fact-write";
 import { throwQlcvDbError } from "../lib/qlcv-supabase-error";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
@@ -97,13 +98,19 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, lyDo?: string) 
 
   const { data: row, error: fetchErr } = await supabase
     .from("qlcv_fact_cong_viec")
-    .select("nguoi_phu_trach_id, to_cong_tac_id")
+    .select("tieu_de, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, loai_cong_viec")
     .eq("id", id)
     .maybeSingle();
 
   if (fetchErr || !row) throw new Error("Không tìm thấy đề xuất.");
 
   if (duyet) {
+    assertQlcvActiveInvariant({
+      tieu_de: row.tieu_de,
+      nguoi_phu_trach_id: row.nguoi_phu_trach_id,
+      han_hoan_thanh: row.han_hoan_thanh,
+      loai_cong_viec: row.loai_cong_viec,
+    });
     const trangThai = resolveQlcvTrangThaiMaForTask({
       isActive: true,
       nguoi_phu_trach_id: row.nguoi_phu_trach_id,
@@ -152,6 +159,12 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
   assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
   await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
   await assertQlcvDiaDiemKhoaValid(supabase, p.dia_diem_khoa_id, false); // Domain A: optional
+  assertQlcvActiveInvariant({
+    tieu_de: p.tieu_de,
+    nguoi_phu_trach_id: p.nguoi_phu_trach_id,
+    han_hoan_thanh: p.han_hoan_thanh,
+    loai_cong_viec: p.loai_cong_viec,
+  });
 
   const trangThai = resolveQlcvTrangThaiMaForTask({
     isActive: true,

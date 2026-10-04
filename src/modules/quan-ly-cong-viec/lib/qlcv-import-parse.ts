@@ -11,7 +11,7 @@ export type QlcvImportRow = {
   han_hoan_thanh: string | null;
   ma_nv: string;
   ma_to: string | null;
-  ma_khoa: string;
+  ma_khoa: string | null;
 };
 
 export type QlcvImportParseResult =
@@ -57,8 +57,7 @@ export function parseQlcvImportRow(row: Record<string, unknown>, rowIdx: number)
   const ma_nv = cell(row, "ma_nv", "Ma NV", "Mã NV", "MA_NV");
   if (!ma_nv) errors.push("Thiếu mã nhân viên phụ trách KSNK (ma_nv)");
 
-  const ma_khoa = cell(row, "ma_khoa", "Ma khoa", "Mã khoa", "MA_KHOA", "Địa điểm khoa");
-  if (!ma_khoa) errors.push("Thiếu mã khoa địa điểm (ma_khoa)");
+  const ma_khoa = cell(row, "ma_khoa", "Ma khoa", "Mã khoa", "MA_KHOA", "Địa điểm khoa") || null;
 
   const loaiRaw = cell(row, "loai_cong_viec", "Loai", "LOAI_CONG_VIEC").toUpperCase() || "DOT_XUAT";
   if (!LOAI.has(loaiRaw)) errors.push(`Loại công việc không hợp lệ: ${loaiRaw}`);
@@ -69,6 +68,10 @@ export function parseQlcvImportRow(row: Record<string, unknown>, rowIdx: number)
   const hanRaw = cell(row, "han_hoan_thanh", "Han", "HAN_HOAN_THANH");
   const han_hoan_thanh = hanRaw ? normalizeDate(hanRaw) : null;
   if (hanRaw && !han_hoan_thanh) errors.push("Hạn hoàn thành phải dạng YYYY-MM-DD");
+  // QLCV-04: DOT/KHAN bắt hạn; QLCV-05 sẽ khóa loại → DOT_XUAT.
+  if ((loaiRaw === "DOT_XUAT" || loaiRaw === "KHAN_CAP") && !han_hoan_thanh) {
+    errors.push("Hạn hoàn thành bắt buộc với việc đột xuất/khẩn cấp");
+  }
 
   if (errors.length) return { ok: false, rowIdx, errors };
 
