@@ -8,10 +8,16 @@ export type VstStrategicKpis = {
   lam_dung_gang: number;
   dung_ky_thuat: number;
   du_thoi_gian: number;
-  ty_le_tuan_thu: number;
-  ty_le_dung_ky_thuat: number;
-  ty_le_du_thoi_gian: number;
-  ty_le_lam_dung_gang: number;
+  /** VST-01: dòng fact không phải cơ hội hợp lệ (không vào %). */
+  so_dong_khong_hop_le?: number;
+  /** VST-03: mẫu số chỉ ô đã đánh giá (phiếu WHO). */
+  danh_gia_ky_thuat?: number;
+  danh_gia_thoi_gian?: number;
+  danh_gia_gang?: number;
+  ty_le_tuan_thu: number | null;
+  ty_le_dung_ky_thuat: number | null;
+  ty_le_du_thoi_gian: number | null;
+  ty_le_lam_dung_gang: number | null;
 };
 
 export type VstStrategicPayload = {

@@ -50,9 +50,6 @@ export function buildVstObservations(params: {
 export function validateOpportunityInput(opp: ExtendedOpportunity): string | null {
   if (!opp.thoi_diems.length) return "Vui lòng chọn ít nhất 1 thời điểm";
   if (!opp.hanh_dong) return "Vui lòng chọn Hành động";
-  if (opp.hanh_dong === "Bỏ sót" && opp.co_deo_gang === null) return "Vui lòng đánh giá Lạm dụng găng";
-  if (opp.hanh_dong !== "Bỏ sót" && (opp.dung_ky_thuat === null || opp.du_thoi_gian === null)) {
-    return "Vui lòng đánh giá Đúng kỹ thuật và Đủ thời gian";
-  }
+  // VST-03: kỹ thuật / thời gian / găng trên phiếu WHO là tùy chọn.
   return null;
 }

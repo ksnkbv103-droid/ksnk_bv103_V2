@@ -90,11 +90,14 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("reject khi quá 3 đối tượng", () => {
-    const parsed = parse([observation(), observation(), observation(), observation()]);
+  it("Zod trần cứng 8 đối tượng; tạo mới ≤3 enforce ở action", () => {
+    const four = parse([observation(), observation(), observation(), observation()]);
+    expect(four.success).toBe(true);
+    const nine = Array.from({ length: 9 }, () => observation());
+    const parsed = parse(nine);
     expect(parsed.success).toBe(false);
     if (!parsed.success) {
-      expect(parsed.error.issues.some((i) => String(i.message).includes("3 đối tượng"))).toBe(true);
+      expect(parsed.error.issues.some((i) => String(i.message).includes("8 đối tượng"))).toBe(true);
     }
   });
 
@@ -121,7 +124,7 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("reject cơ hội tuân thủ quá 2 chỉ định", () => {
+  it("VST-02: chấp nhận bỏ sót / tuân thủ nhiều thời điểm (≤5)", () => {
     const parsed = parse([
       observation({
         opportunities: [
@@ -131,21 +134,10 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
               "Trước khi tiếp xúc người bệnh",
               "Trước khi làm thủ thuật vô khuẩn",
               "Sau khi tiếp xúc người bệnh",
+              "Sau khi tiếp xúc xung quanh người bệnh",
+              "Sau khi có nguy cơ tiếp xúc với dịch",
             ],
           },
-        ],
-      }),
-    ]);
-    expect(parsed.success).toBe(false);
-    if (!parsed.success) {
-      expect(parsed.error.issues.some((i) => String(i.message).includes("tối đa 2"))).toBe(true);
-    }
-  });
-
-  it("reject cơ hội bỏ sót quá 1 chỉ định", () => {
-    const parsed = parse([
-      observation({
-        opportunities: [
           {
             ...missedOpp,
             thoi_diems: ["Trước khi tiếp xúc người bệnh", "Sau khi tiếp xúc người bệnh"],
@@ -153,43 +145,33 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
         ],
       }),
     ]);
-    expect(parsed.success).toBe(false);
-    if (!parsed.success) {
-      expect(parsed.error.issues.some((i) => String(i.message).includes("1 chỉ định"))).toBe(true);
-    }
+    expect(parsed.success).toBe(true);
   });
 
-  it("reject bỏ sót thiếu đánh giá găng", () => {
+  it("VST-03: chấp nhận tuân thủ / bỏ sót không đánh giá kỹ thuật·găng", () => {
     const parsed = parse([
       observation({
-        opportunities: [{ thoi_diems: missedOpp.thoi_diems, hanh_dong: "Bỏ sót" }],
+        opportunities: [
+          { thoi_diems: compliantOpp.thoi_diems, hanh_dong: "Chà tay bằng cồn" },
+          { thoi_diems: missedOpp.thoi_diems, hanh_dong: "Bỏ sót" },
+        ],
       }),
     ]);
-    expect(parsed.success).toBe(false);
+    expect(parsed.success).toBe(true);
   });
 
-  it("reject tuân thủ thiếu đánh giá kỹ thuật / thời gian", () => {
-    const parsed = parse([
-      observation({
-        opportunities: [{ thoi_diems: compliantOpp.thoi_diems, hanh_dong: "Chà tay bằng cồn" }],
-      }),
-    ]);
-    expect(parsed.success).toBe(false);
-  });
-
-  it("accept tuân thủ 2 chỉ định và bỏ sót 1 chỉ định", () => {
+  it("reject trùng thời điểm trên một cơ hội", () => {
     const parsed = parse([
       observation({
         opportunities: [
           {
             ...compliantOpp,
-            thoi_diems: ["Trước khi tiếp xúc người bệnh", "Trước khi làm thủ thuật vô khuẩn"],
+            thoi_diems: ["Trước khi tiếp xúc người bệnh", "Trước khi tiếp xúc người bệnh"],
           },
-          missedOpp,
         ],
       }),
     ]);
-    expect(parsed.success).toBe(true);
+    expect(parsed.success).toBe(false);
   });
 });
 

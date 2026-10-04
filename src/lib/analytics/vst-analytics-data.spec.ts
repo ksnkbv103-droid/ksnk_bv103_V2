@@ -74,7 +74,7 @@ describe("normalizeVstStrategicPercents", () => {
     expect(out.gap_analysis[0]?.do_lech).toBe(33.4);
   });
 
-  it("kỹ thuật và găng dùng mẫu số RPC, không chia mọi cơ hội", () => {
+  it("VST-03: kỹ thuật / thời gian / găng theo ô đã đánh giá (NULL không vào mẫu)", () => {
     const p = emptyPayload();
     p.kpis = {
       ...p.kpis,
@@ -82,8 +82,11 @@ describe("normalizeVstStrategicPercents", () => {
       da_tuan_thu: 2,
       bo_sot: 1,
       dung_ky_thuat: 1,
-      du_thoi_gian: 2,
+      du_thoi_gian: 1,
       lam_dung_gang: 1,
+      danh_gia_ky_thuat: 2,
+      danh_gia_thoi_gian: 2,
+      danh_gia_gang: 1,
       ty_le_dung_ky_thuat: 33.3,
       ty_le_du_thoi_gian: 66.7,
       ty_le_lam_dung_gang: 33.3,
@@ -91,7 +94,14 @@ describe("normalizeVstStrategicPercents", () => {
     const out = normalizeVstStrategicPercents(p);
     expect(out.kpis.ty_le_tuan_thu).toBe(66.7);
     expect(out.kpis.ty_le_dung_ky_thuat).toBe(50);
-    expect(out.kpis.ty_le_du_thoi_gian).toBe(100);
+    expect(out.kpis.ty_le_du_thoi_gian).toBe(50);
     expect(out.kpis.ty_le_lam_dung_gang).toBe(100);
+  });
+
+  it("VST-06: mẫu 0 → null (không giữ 0% RPC)", () => {
+    const p = emptyPayload();
+    p.kpis.ty_le_tuan_thu = 0;
+    const out = normalizeVstStrategicPercents(p);
+    expect(out.kpis.ty_le_tuan_thu).toBeNull();
   });
 });

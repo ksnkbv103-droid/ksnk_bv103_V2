@@ -42,6 +42,7 @@ import { SupervisionKhoaMasterTable } from "@/lib/analytics/supervision-charts-k
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import {
   DEFAULT_KHOA_CHART_THRESHOLDS,
+  VST_COMPARE_MIN_SAMPLE,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
 import { supervisionPercentDigits } from "@/lib/analytics/supervision-percent";
@@ -98,6 +99,7 @@ function SupervisionKhoaComplianceChart({
 
   const title = "Tỷ lệ tuân thủ theo khoa";
 
+  const minSample = moduleLabel === "VST" ? VST_COMPARE_MIN_SAMPLE : null;
   const chartData = sorted.map((r) => {
     const matrix = matrixById.get(r.id);
     const ty_le = sourceLens
@@ -109,12 +111,14 @@ function SupervisionKhoaComplianceChart({
           tong: sourceLens === "ksnk" ? r.vol_ksnk : r.vol_tgs,
         }
       : resolveKhoaAggregateVol(r, matrix);
+    const thin = minSample != null && vol.tong < minSample;
     return {
       ten: r.label,
-      fullName: r.ten,
+      fullName: thin ? `${r.ten} · mẫu mỏng (${vol.tong})` : r.ten,
       ty_le_tuan_thu: ty_le,
       dat: vol.dat,
       tong: vol.tong,
+      thinSample: thin,
     };
   });
 
@@ -184,7 +188,10 @@ function SupervisionKhoaComplianceChart({
                 {chartData.map((entry) => (
                   <Cell
                     key={`agg-${entry.ten}`}
-                    fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu, thresholds)}
+                    fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu, thresholds, {
+                      sample: entry.tong,
+                      minSample,
+                    })}
                   />
                 ))}
                 <LabelList dataKey="ty_le_tuan_thu" content={barLabelContent} />
@@ -199,6 +206,7 @@ function SupervisionKhoaComplianceChart({
       </KhoaChartViewport>
       <p className="mt-2 text-[11px] text-slate-400">
         Số trên cột: % tuân thủ · đạt/tổng cơ hội. Màu vàng khi tuân thủ &lt;{thresholds.warnPct}%; đỏ khi &lt;{thresholds.redPct}%.
+        {minSample != null ? ` Khoa &lt;${minSample} cơ hội = mẫu mỏng (xám, không tô cảnh báo).` : ""}
         {moduleLabel ? ` · ${moduleLabel}` : ""}
       </p>
     </div>

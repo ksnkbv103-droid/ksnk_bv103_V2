@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { SessionInput } from "../actions/vst-write.helpers";
-import { ActionType, MomentType, VSTObservation, vstMaxIndications } from "../lib/vst-constants";
+import { ActionType, MomentType, VSTObservation, VST_MAX_MOMENTS_PER_OPP } from "../lib/vst-constants";
 import { saveVSTSession } from "../actions/vst-write-save-session.actions";
 import { toast } from "sonner";
 import {
@@ -53,13 +53,13 @@ export function useVSTFormHandlers(
   const toggleMoment = (pIdx: number, oIdx: number, moment: MomentType) => {
     mutatePersons((next) => {
       const opp = next[pIdx].opportunities[oIdx];
-      const limit = vstMaxIndications(opp.hanh_dong);
       if (opp.thoi_diems.includes(moment)) {
         opp.thoi_diems = opp.thoi_diems.filter((m: MomentType) => m !== moment);
         return;
       }
-      const newMoments = [...opp.thoi_diems, moment];
-      opp.thoi_diems = newMoments.length > limit ? newMoments.slice(1) : newMoments;
+      // VST-02 WHO W4: 1–5 thời điểm mọi hành động; chỉ chặn trùng / vượt 5 — không tự cắt im lặng.
+      if (opp.thoi_diems.length >= VST_MAX_MOMENTS_PER_OPP) return;
+      opp.thoi_diems = [...opp.thoi_diems, moment];
     });
   };
 
@@ -71,10 +71,6 @@ export function useVSTFormHandlers(
       if (action === "Bỏ sót") {
         opp.dung_ky_thuat = null;
         opp.du_thoi_gian = null;
-        const max = vstMaxIndications(action);
-        if (opp.thoi_diems.length > max) {
-          opp.thoi_diems = opp.thoi_diems.slice(-max);
-        }
         return;
       }
       opp.co_deo_gang = null;

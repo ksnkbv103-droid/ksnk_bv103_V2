@@ -212,7 +212,7 @@ export default function VSTPersonColumn({
                     else updatePerson(pIdx, "ten_manual", "");
                   }}
                 />
-                <span className="uppercase tracking-wide">Ngoài danh sách</span>
+                <span className="uppercase tracking-wide">Ngoài danh mục</span>
               </label>
             </div>
             {requireKhoa && <p className="text-[11px] font-medium text-amber-700">Chọn khoa trước để lọc danh sách nhân viên.</p>}

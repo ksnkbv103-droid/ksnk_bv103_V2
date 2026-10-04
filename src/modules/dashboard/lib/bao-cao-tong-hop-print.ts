@@ -229,22 +229,23 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           <th>Tổng cơ hội</th>
           <th>Đã tuân thủ</th>
           <th>Tỷ lệ tuân thủ</th>
-          <th>Đúng kỹ thuật</th>
-          <th>Đủ thời gian</th>
-          <th>Lạm dụng găng</th>
+          <th>Kỹ thuật (phiếu WHO)</th>
+          <th>Đủ thời gian (phiếu WHO)</th>
+          <th>Bỏ sót khi đang mang găng</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>${p.vstPayload.kpis.tong_co_hoi.toLocaleString()}</td>
           <td>${p.vstPayload.kpis.da_tuan_thu.toLocaleString()}</td>
-          <td class="text-success">${p.vstPayload.kpis.ty_le_tuan_thu}%</td>
-          <td>${p.vstPayload.kpis.ty_le_dung_ky_thuat}%</td>
-          <td>${p.vstPayload.kpis.ty_le_du_thoi_gian}%</td>
-          <td class="${p.vstPayload.kpis.ty_le_lam_dung_gang > 5 ? "text-danger bg-highlight" : ""}">${p.vstPayload.kpis.ty_le_lam_dung_gang}%</td>
+          <td class="text-success">${p.vstPayload.kpis.ty_le_tuan_thu == null ? "—" : `${p.vstPayload.kpis.ty_le_tuan_thu}%`}</td>
+          <td>${p.vstPayload.kpis.ty_le_dung_ky_thuat == null ? "—" : `${p.vstPayload.kpis.ty_le_dung_ky_thuat}%`}</td>
+          <td>${p.vstPayload.kpis.ty_le_du_thoi_gian == null ? "—" : `${p.vstPayload.kpis.ty_le_du_thoi_gian}%`}</td>
+          <td>${p.vstPayload.kpis.ty_le_lam_dung_gang == null ? "—" : `${p.vstPayload.kpis.ty_le_lam_dung_gang}%`}</td>
         </tr>
       </tbody>
     </table>
+    <p class="text-muted" style="font-size:11px">Chi tiết phiếu WHO — không phải chỉ số BM.02 kỹ thuật thường quy.</p>
     <h3>2. Phân bổ theo 5 thời điểm (Moment)</h3>
     <table>
       <thead>

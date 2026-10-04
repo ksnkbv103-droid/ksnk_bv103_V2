@@ -5,6 +5,8 @@ import { Clock } from "lucide-react";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { KHOA_COMPLIANCE_WARN_PCT } from "@/lib/analytics/supervision-matrix-mappers";
+import { VST_COMPARE_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
+import { momentDisplayLabel } from "@/modules/giam-sat-vst/lib/vst-constants";
 
 /**
  * Góc thời điểm: VST = 5 thời điểm WHO; GSC = khung hình thức/cách thức nếu có mẫu số.
@@ -58,10 +60,12 @@ export function ComprehensiveThoiDiem({ payload }: { payload: BaoCaoTongHopPaylo
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <MomentTable
           title="VST — 5 thời điểm WHO"
+          minSample={VST_COMPARE_MIN_SAMPLE}
           rows={vstMoments.map((m) => ({
-            ten: m.ten,
+            ten: momentDisplayLabel(m.ten),
             ty_le: m.ty_le_tuan_thu,
             sample: `${m.da_tuan_thu}/${m.tong_co_hoi}`,
+            tong: Number(m.tong_co_hoi ?? 0),
           }))}
         />
         <MomentTable
@@ -70,6 +74,7 @@ export function ComprehensiveThoiDiem({ payload }: { payload: BaoCaoTongHopPaylo
             ten: m.ten,
             ty_le: m.ty_le,
             sample: `${m.dat}/${m.tong}`,
+            tong: m.tong,
           }))}
         />
       </div>
@@ -80,9 +85,11 @@ export function ComprehensiveThoiDiem({ payload }: { payload: BaoCaoTongHopPaylo
 function MomentTable({
   title,
   rows,
+  minSample = null,
 }: {
   title: string;
-  rows: { ten: string; ty_le: number; sample: string }[];
+  rows: { ten: string; ty_le: number; sample: string; tong: number }[];
+  minSample?: number | null;
 }) {
   if (rows.length === 0) {
     return (
@@ -103,13 +110,21 @@ function MomentTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {rows.map((r) => (
-            <tr key={r.ten} className={r.ty_le < KHOA_COMPLIANCE_WARN_PCT ? "bg-amber-50/60" : undefined}>
-              <td className="px-3 py-1.5 font-medium text-slate-700">{r.ten}</td>
-              <td className="px-3 py-1.5 text-right font-bold tabular-nums">{r.ty_le}%</td>
-              <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{r.sample}</td>
-            </tr>
-          ))}
+          {rows.map((r) => {
+            const thin = minSample != null && r.tong < minSample;
+            return (
+              <tr
+                key={r.ten}
+                className={thin ? "bg-slate-50" : r.ty_le < KHOA_COMPLIANCE_WARN_PCT ? "bg-amber-50/60" : undefined}
+              >
+                <td className="px-3 py-1.5 font-medium text-slate-700">
+                  {thin ? `${r.ten} · mẫu mỏng (${r.tong})` : r.ten}
+                </td>
+                <td className="px-3 py-1.5 text-right font-bold tabular-nums">{r.ty_le}%</td>
+                <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{r.sample}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

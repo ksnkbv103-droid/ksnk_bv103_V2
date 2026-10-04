@@ -21,6 +21,7 @@ import {
   writeStickyAdminContext,
 } from "@/lib/supervision-admin-context";
 import { createNewOpp } from "../lib/vst-form-model";
+import { qlcvTodayVn } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 
 type NhanSuOption = { id?: string; khoa_id?: string; nghe_nghiep_id?: string; [key: string]: unknown };
 
@@ -43,7 +44,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     hinh_thuc_giam_sat: "Giám sát chuyên trách",
     cach_thuc_giam_sat: "Giám sát trực tiếp tại chỗ",
     nguoi_giam_sat_id: "",
-    ngay_giam_sat: new Date().toISOString().split("T")[0]!,
+    ngay_giam_sat: qlcvTodayVn(),
     thoi_gian_bat_dau: "",
     is_bo_sung_nguoi_benh: false,
     ma_benh_an: "",

@@ -50,12 +50,16 @@ export function normalizeVstStrategicPercents(payload: VstStrategicPayload): Vst
       ? {
           ...kpis,
           ty_le_tuan_thu: rateFromTotals(kpis.da_tuan_thu, tong) ?? (tong > 0 ? kpis.ty_le_tuan_thu : null),
+          // VST-03: mẫu = ô đã đánh giá (không dùng da_tuan_thu / bo_sot).
           ty_le_dung_ky_thuat:
-            rateFromTotals(kpis.dung_ky_thuat, daTuanThu) ?? (daTuanThu > 0 ? kpis.ty_le_dung_ky_thuat : null),
+            rateFromTotals(kpis.dung_ky_thuat, Number(kpis.danh_gia_ky_thuat ?? 0)) ??
+            (Number(kpis.danh_gia_ky_thuat ?? 0) > 0 ? kpis.ty_le_dung_ky_thuat : null),
           ty_le_du_thoi_gian:
-            rateFromTotals(kpis.du_thoi_gian, daTuanThu) ?? (daTuanThu > 0 ? kpis.ty_le_du_thoi_gian : null),
+            rateFromTotals(kpis.du_thoi_gian, Number(kpis.danh_gia_thoi_gian ?? 0)) ??
+            (Number(kpis.danh_gia_thoi_gian ?? 0) > 0 ? kpis.ty_le_du_thoi_gian : null),
           ty_le_lam_dung_gang:
-            rateFromTotals(kpis.lam_dung_gang, boSot) ?? (boSot > 0 ? kpis.ty_le_lam_dung_gang : null),
+            rateFromTotals(kpis.lam_dung_gang, Number(kpis.danh_gia_gang ?? boSot)) ??
+            (Number(kpis.danh_gia_gang ?? boSot) > 0 ? kpis.ty_le_lam_dung_gang : null),
         }
       : kpis,
     trendline: (payload.trendline ?? []).map(withCountsPercent),

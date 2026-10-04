@@ -12,7 +12,7 @@ import {
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
-import { VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
+import { VST_COMPARE_MIN_SAMPLE, VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
@@ -124,6 +124,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
             loading={p.loading}
             defaultOpen={false}
             summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
+            minSample={VST_COMPARE_MIN_SAMPLE}
           />
         </div>
       </details>
@@ -132,7 +133,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát · KPI thô
+            Đối soát · Số liệu gốc
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
@@ -143,7 +144,13 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
               { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
               { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
               { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-              { label: "Đúng kỹ thuật", value: formatPercent1FromRatio(p.payload?.kpis?.dung_ky_thuat ?? 0, p.payload?.kpis?.da_tuan_thu ?? 0) },
+              {
+                label: "Kỹ thuật quan sát nhanh (phiếu WHO)",
+                value: formatPercent1FromRatio(
+                  p.payload?.kpis?.dung_ky_thuat ?? 0,
+                  p.payload?.kpis?.danh_gia_ky_thuat ?? 0,
+                ),
+              },
             ]}
           />
         </div>

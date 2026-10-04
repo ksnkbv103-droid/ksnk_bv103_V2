@@ -92,7 +92,7 @@ export default function VSTAnalyticsView() {
         <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
           Báo cáo chính thức
         </Link>
-        . Nhập và lịch sử phiên qua ModeNav. Không tạo việc từ trang này.
+        . Nhập và lịch sử phiên qua thanh chế độ phía trên. Không tạo việc từ trang này.
       </p>
     </Bv103AnalyticsPageFrame>
   );

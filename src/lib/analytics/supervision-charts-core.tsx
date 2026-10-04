@@ -149,11 +149,14 @@ function SupervisionCompareBarChart({
   rows,
   loading,
   layout = "vertical",
+  minSample = null,
 }: {
   title: string;
   rows: CompareRow[];
   loading?: boolean;
   layout?: "vertical" | "horizontal";
+  /** VST-07: dưới ngưỡng → xám, không tô cảnh báo. */
+  minSample?: number | null;
 }) {
   const data = useMemo(
     () =>
@@ -164,8 +167,18 @@ function SupervisionCompareBarChart({
           const bv = b.ty_le_tuan_thu ?? -1;
           if (av !== bv) return bv - av;
           return String(a.ten).localeCompare(String(b.ten), "vi");
+        })
+        .map((r) => {
+          const tong = Number(r.tong ?? 0);
+          const thin = minSample != null && tong < minSample;
+          return {
+            ...r,
+            ten: thin ? `${r.ten} · mẫu mỏng (${tong})` : r.ten,
+            tong,
+            thinSample: thin,
+          };
         }),
-    [rows],
+    [rows, minSample],
   );
   return (
     <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
@@ -194,7 +207,10 @@ function SupervisionCompareBarChart({
                   {data.map((entry) => (
                     <Cell
                       key={entry.ten}
-                      fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu)}
+                      fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu, undefined, {
+                        sample: entry.tong,
+                        minSample,
+                      })}
                     />
                   ))}
                   <LabelList dataKey="ty_le_tuan_thu" content={KhoaComplianceBarLabel} />
@@ -215,7 +231,10 @@ function SupervisionCompareBarChart({
                   {data.map((entry) => (
                     <Cell
                       key={entry.ten}
-                      fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu)}
+                      fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu, undefined, {
+                        sample: entry.tong,
+                        minSample,
+                      })}
                     />
                   ))}
                 </Bar>
@@ -327,9 +346,11 @@ export function SupervisionMomentsPanel({
 function SupervisionCompareGrid({
   sections,
   loading,
+  minSample = null,
 }: {
   loading?: boolean;
   sections: { title: string; rows: CompareRow[] }[];
+  minSample?: number | null;
 }) {
   const visible = sections.filter((s) => loading || s.rows.length > 0);
   if (!loading && visible.length === 0) return null;
@@ -337,7 +358,13 @@ function SupervisionCompareGrid({
   return (
     <div className="grid grid-cols-1 gap-4">
       {visible.map((s) => (
-        <SupervisionCompareBarChart key={s.title} title={s.title} rows={s.rows} loading={loading} />
+        <SupervisionCompareBarChart
+          key={s.title}
+          title={s.title}
+          rows={s.rows}
+          loading={loading}
+          minSample={minSample}
+        />
       ))}
     </div>
   );
@@ -349,11 +376,14 @@ export function SupervisionCompareAccordion({
   loading,
   summaryLabel = "So sánh theo khối · khu vực · đối tượng · hình thức",
   defaultOpen = false,
+  minSample = null,
 }: {
   loading?: boolean;
   sections: { title: string; rows: CompareRow[] }[];
   summaryLabel?: string;
   defaultOpen?: boolean;
+  /** VST-07: nhóm dưới ngưỡng = mẫu mỏng. */
+  minSample?: number | null;
 }) {
   const visible = sections.filter((s) => loading || s.rows.length > 0);
   if (!loading && visible.length === 0) return null;
@@ -370,7 +400,7 @@ export function SupervisionCompareAccordion({
         </span>
       </summary>
       <div className="border-t border-slate-200 p-4">
-        <SupervisionCompareGrid sections={visible} loading={loading} />
+        <SupervisionCompareGrid sections={visible} loading={loading} minSample={minSample} />
       </div>
     </details>
   );

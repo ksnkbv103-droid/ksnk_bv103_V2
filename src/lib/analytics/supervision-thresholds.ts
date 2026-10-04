@@ -14,6 +14,9 @@ export const DOI_SOAT_MIN_SAMPLE = {
   gsc: 30,
 } as const;
 
+/** VST-07: so sánh khoa/khối/nghề/thời điểm — dưới ngưỡng = «mẫu mỏng», không tô màu. */
+export const VST_COMPARE_MIN_SAMPLE = 20;
+
 /** Ngưỡng tô cột biểu đồ khoa (warn = vàng, red = đỏ). */
 export type KhoaChartThresholds = {
   warnPct: number;

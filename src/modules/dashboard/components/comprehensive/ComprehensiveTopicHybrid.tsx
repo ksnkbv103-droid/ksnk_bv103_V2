@@ -145,7 +145,7 @@ function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
   if (!k) return [];
   const lines = [
     `Tuân thủ: ${formatPercent1(k.ty_le_tuan_thu)} (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
-    `Đúng kỹ thuật: ${k.ty_le_dung_ky_thuat}% · Lạm dụng găng: ${k.ty_le_lam_dung_gang}%`,
+    `Kỹ thuật (phiếu WHO): ${k.ty_le_dung_ky_thuat == null ? "—" : `${k.ty_le_dung_ky_thuat}%`} · Bỏ sót khi đang mang găng: ${k.ty_le_lam_dung_gang == null ? "—" : `${k.ty_le_lam_dung_gang}%`}`,
   ];
   const worstMoment = [...(payload?.vst?.moments ?? [])].sort((a, b) => a.ty_le_tuan_thu - b.ty_le_tuan_thu)[0];
   if (worstMoment) lines.push(`Thời điểm thấp nhất: ${worstMoment.ten} (${formatPercent1(worstMoment.ty_le_tuan_thu)})`);

@@ -4,12 +4,8 @@
  * Cổng ghi trước khi lưu `gstt_fact_vst_sessions` / `gstt_fact_vst`.
  */
 import { z } from "zod";
-import {
-  ACTIONS,
-  MOMENTS,
-  isVstMissedAction,
-  vstMaxIndications,
-} from "@/modules/giam-sat-vst/lib/vst-constants";
+import { ACTIONS, MOMENTS, VST_MAX_MOMENTS_PER_OPP } from "@/modules/giam-sat-vst/lib/vst-constants";
+import { VST_MAX_PERSONS_HARD } from "@/modules/giam-sat-vst/lib/vst-form-model";
 
 /** UUID bắt buộc — chuỗi rỗng "" coi như thiếu (form thường set "" khi chưa chọn). */
 const requiredUuid = (msgMissing: string, msgInvalid: string) =>
@@ -30,7 +26,10 @@ const vstActionSchema = z.enum(ACTIONS, { error: "Hành động vệ sinh tay kh
 
 const vstOpportunitySchema = z
   .object({
-    thoi_diems: z.array(vstMomentSchema).min(1, "Phải có ít nhất 1 thời điểm"),
+    thoi_diems: z
+      .array(vstMomentSchema)
+      .min(1, "Phải có ít nhất 1 thời điểm")
+      .max(VST_MAX_MOMENTS_PER_OPP, "Một cơ hội tối đa 5 thời điểm WHO"),
     hanh_dong: vstActionSchema,
     dung_ky_thuat: z.boolean().nullable().optional(),
     du_thoi_gian: z.boolean().nullable().optional(),
@@ -46,33 +45,7 @@ const vstOpportunitySchema = z
         message: "Không được chọn trùng thời điểm WHO trên một cơ hội",
       });
     }
-    const max = vstMaxIndications(opp.hanh_dong);
-    if (opp.thoi_diems.length > max) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["thoi_diems"],
-        message: isVstMissedAction(opp.hanh_dong)
-          ? "Cơ hội bỏ sót chỉ được 1 chỉ định WHO"
-          : "Cơ hội tuân thủ tối đa 2 chỉ định WHO",
-      });
-    }
-    if (isVstMissedAction(opp.hanh_dong)) {
-      if (opp.co_deo_gang == null) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["co_deo_gang"],
-          message: "Bỏ sót: bắt buộc đánh giá lạm dụng găng",
-        });
-      }
-      return;
-    }
-    if (opp.dung_ky_thuat == null || opp.du_thoi_gian == null) {
-      ctx.addIssue({
-        code: "custom",
-        path: opp.dung_ky_thuat == null ? ["dung_ky_thuat"] : ["du_thoi_gian"],
-        message: "Tuân thủ: bắt buộc đánh giá đúng kỹ thuật và đủ thời gian",
-      });
-    }
+    // VST-03: kỹ thuật / thời gian / găng trên phiếu WHO là tùy chọn.
   });
 
 const vstObservationSchema = z.object({
@@ -123,7 +96,8 @@ export const vstSaveSessionSchema = z
     observations: z
       .array(vstObservationSchema)
       .min(1, "Phải có ít nhất 1 quan sát")
-      .max(3, "Một phiên tối đa 3 đối tượng giám sát"),
+      // VST-05: trần cứng 8 (prod); tạo mới ≤3 / grandfather khi sửa — enforce ở action.
+      .max(VST_MAX_PERSONS_HARD, "Một phiên tối đa 8 đối tượng giám sát"),
   })
   .superRefine((payload, ctx) => {
     const sessionKhoa = String(payload.session.khoa_id);
@@ -144,6 +118,5 @@ export const vstSaveSessionSchema = z
           message: "Khu vực trên dòng quan sát phải khớp khu vực của phiên",
         });
       }
-      // GS-01: tên NV bắt buộc khi tạo mới — enforce ở action (grandfather phiên cũ).
     });
   });

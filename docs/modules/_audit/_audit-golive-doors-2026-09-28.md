@@ -749,3 +749,20 @@ Nguồn Domain §5 CSV (file ngoài repo, chỉ đọc). Áp vào migration chư
 | File | `20261005175000_gsc_mod_orphan_tc_and_bk_map.sql` · `20261005175100_…loai_filter…` · `gsc-orphan-criterion-resolve.ts` + vitest |
 
 Không apply migration / không SCR APPLY / không push. Thứ tự FIX-MIG-ORDER giữ nguyên (`175000` → `175100` → `175200`).
+
+## MOD-VST — Module 9 VST (2026-10-05, nhánh `cursor/mod-vst`)
+
+Neo Domain 09-VST + xác nhận WHO W2 (≤3 NV nhập mới; 32 phiên cũ nạp đủ + cảnh báo). `/thong-ke/vst` không cộng WHO với BM.
+
+| Mã | Kết quả |
+|----|---------|
+| VST-02 | Bỏ `vstMaxIndications` + cắt UI/Zod; edit-load không cắt thời điểm; 1–5 mọi hành động |
+| VST-05 | Xóa mềm + lý do + audit; `rpc_vst_save_session`; nạp đủ người cũ; chặn thêm vượt grandfather |
+| VST-01 | `fn_vst_is_valid_opportunity` + `so_dong_khong_hop_le`; bỏ «Chưa ghi thời điểm» |
+| VST-03 | Nhãn «(phiếu WHO)»; mẫu = ô đã đánh giá; trường phụ tùy chọn |
+| VST-04/06 | Đã có từ GSC (`pickBkRow` alias + normalize null); RPC ELSE NULL trong mig VST |
+| VST-07…11 | min-N 20; nhãn QT.07 (giữ chuỗi DB); jargon; Excel tên/hình thức/vị trí/giờ; ngày VN |
+
+Migration (chưa apply): `20261005180000_vst_mod_soft_delete_save_rpc.sql`, `20261005181000_vst_mod_valid_opp_analytics.sql` (sau `175200`).
+
+Test: `tsc --noEmit` OK; vitest hydrate/Zod/analytics/export/mig-order OK; `npm run verify` OK. Không push / không apply.

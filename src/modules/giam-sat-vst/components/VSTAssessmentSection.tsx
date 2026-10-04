@@ -24,8 +24,8 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
     return (
       <div className={`space-y-3 p-3 ${C.panelInset}`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={C.labelField}>Đúng kỹ thuật?</span>
-          <div className={C.segmentGroup} role="group" aria-label="Đúng kỹ thuật">
+          <span className={C.labelField}>Kỹ thuật quan sát nhanh (phiếu WHO)?</span>
+          <div className={C.segmentGroup} role="group" aria-label="Kỹ thuật quan sát nhanh phiếu WHO">
             <button
               type="button"
               onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", true)}
@@ -43,8 +43,8 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={C.labelField}>Đủ thời gian?</span>
-          <div className={C.segmentGroup} role="group" aria-label="Đủ thời gian">
+          <span className={C.labelField}>Đủ thời gian (phiếu WHO)?</span>
+          <div className={C.segmentGroup} role="group" aria-label="Đủ thời gian phiếu WHO">
             <button
               type="button"
               onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", true)}
@@ -68,8 +68,10 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   if (opp.hanh_dong === "Bỏ sót") {
     return (
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-shell)] border border-rose-200 bg-rose-50/50 p-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-rose-800">Lạm dụng găng?</span>
-        <div className={C.segmentGroup} role="group" aria-label="Lạm dụng găng">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-rose-800">
+          Đang mang găng (khi bỏ sót)?
+        </span>
+        <div className={C.segmentGroup} role="group" aria-label="Đang mang găng khi bỏ sót">
           <button
             type="button"
             onClick={() => updateAssessment(pIdx, oIdx, "co_deo_gang", true)}
