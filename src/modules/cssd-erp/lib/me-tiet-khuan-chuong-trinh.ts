@@ -288,3 +288,72 @@ export function buildChuongTrinhEditAudit(input: {
     },
   };
 }
+
+export type ChuongTrinhChuanSpec = {
+  nhiet_do: string;
+  ap_suat: string;
+  thoi_gian_chu_ky: string;
+};
+
+/** Chỉ so chuẩn khi có catalog viện (MDM/specs) — không invent từ QT21 mẫu. */
+export function chuongTrinhChuanForQc(opt: ChuongTrinhMayOption | null | undefined): ChuongTrinhChuanSpec | null {
+  if (!opt || opt.nguon === "qt21_hd03") return null;
+  const nhiet_do = String(opt.nhiet_do || "").trim();
+  const ap_suat = String(opt.ap_suat || "").trim();
+  const thoi_gian_chu_ky = String(opt.thoi_gian_chu_ky || "").trim();
+  if (!nhiet_do && !ap_suat && !thoi_gian_chu_ky) return null;
+  return { nhiet_do, ap_suat, thoi_gian_chu_ky };
+}
+
+function parseChuanNumber(raw: string): number | null {
+  const s = String(raw || "").trim().replace(",", ".");
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseChuanRange(raw: string): { min: number; max: number } | null {
+  const s = String(raw || "").trim().replace(/\s+/g, "");
+  const m = s.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+  if (!m) return null;
+  const min = Number(m[1]);
+  const max = Number(m[2]);
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+  return min <= max ? { min, max } : { min: max, max: min };
+}
+
+/** null = bỏ qua (không có chuẩn); true = nằm trong chuẩn; false = lệch. */
+export function measuredWithinChuan(measured: number | null, chuanRaw: string): boolean | null {
+  const chuan = String(chuanRaw || "").trim();
+  if (!chuan || measured == null) return null;
+  const range = parseChuanRange(chuan);
+  if (range) return measured >= range.min && measured <= range.max;
+  const exact = parseChuanNumber(chuan);
+  if (exact == null) return null;
+  return Math.abs(measured - exact) < 0.05;
+}
+
+export function evaluatePhysicalOutsideChuongTrinhChuan(input: {
+  nhietDo: number | null;
+  apSuat: number | null;
+  thoiGianChuKy: number | null;
+  chuan: ChuongTrinhChuanSpec | null | undefined;
+}): boolean {
+  const chuan = input.chuan;
+  if (!chuan) return false;
+  const checks = [
+    measuredWithinChuan(input.nhietDo, chuan.nhiet_do),
+    measuredWithinChuan(input.apSuat, chuan.ap_suat),
+    measuredWithinChuan(input.thoiGianChuKy, chuan.thoi_gian_chu_ky),
+  ].filter((v): v is boolean => v !== null);
+  if (!checks.length) return false;
+  return checks.some((ok) => !ok);
+}
+
+export function resolveChuongTrinhChuanFromOptions(
+  options: readonly ChuongTrinhMayOption[],
+  chuongTrinhLabel: string | null | undefined,
+): ChuongTrinhChuanSpec | null {
+  const opt = pickDefaultChuongTrinh(options, chuongTrinhLabel);
+  return chuongTrinhChuanForQc(opt);
+}

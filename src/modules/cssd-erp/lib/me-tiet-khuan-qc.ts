@@ -1,5 +1,9 @@
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import type { SterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
+import {
+  evaluatePhysicalOutsideChuongTrinhChuan,
+  type ChuongTrinhChuanSpec,
+} from "./me-tiet-khuan-chuong-trinh";
 
 export type QcTri = "DAT" | "KHONG_DAT";
 /** DANG_U = đã đặt BI đang ủ (hơi nước tuần) — không chặn nhả khi BI không bắt buộc. */
@@ -19,6 +23,8 @@ export type MeQcInput = {
   nhietDo?: string | number | null;
   apSuat?: string | number | null;
   thoiGianChuKy?: string | number | null;
+  /** Chuẩn từ catalog máy (MDM/specs) — bỏ qua khi null (mẫu QT21). */
+  chuongTrinhChuan?: ChuongTrinhChuanSpec | null;
 };
 
 export type MeQcDecision = {
@@ -110,7 +116,13 @@ export function evaluateMeQcRelease(input: MeQcInput): { ok: true; decision: MeQ
   if (!BI.has(biRaw)) return { ok: false, message: "Kết quả BI không hợp lệ." };
   const trangThaiBi = biRaw as BiTrangThai;
 
-  const physicalFail = norm(input.thongSoVatLy) === "KHONG_DAT";
+  const outsideChuan = evaluatePhysicalOutsideChuongTrinhChuan({
+    nhietDo: nhiet.value,
+    apSuat: ap.value,
+    thoiGianChuKy: chuKy.value,
+    chuan: input.chuongTrinhChuan,
+  });
+  const physicalFail = norm(input.thongSoVatLy) === "KHONG_DAT" || outsideChuan;
   const ciNgoaiFail = norm(input.ciNgoaiGoi) === "KHONG_DAT";
   const ciPcdFail = norm(input.ciPcd) === "KHONG_DAT";
   const bioFail = trangThaiBi === "DUONG";

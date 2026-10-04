@@ -79,6 +79,17 @@ describe("evaluateMeQcRelease", () => {
     expect(plasma.ok && plasma.decision.outcome).toBe("CHO_BI");
   });
 
+  it("ME-08: thông số lệch chuẩn catalog → QC_KHONG_DAT dù chọn Đạt vật lý", () => {
+    const r = evaluateMeQcRelease({
+      ...baseQc,
+      nhietDo: "121",
+      trangThaiBi: "AM",
+      method: "HOI_NUOC",
+      chuongTrinhChuan: { nhiet_do: "134", ap_suat: "2.1", thoi_gian_chu_ky: "18" },
+    });
+    expect(r.ok && r.decision.outcome).toBe("QC_KHONG_DAT");
+  });
+
   it("BI dương is a fail, BI âm releases plasma", () => {
     const pos = evaluateMeQcRelease({ ...baseQc, trangThaiBi: "DUONG", method: "EO", nhietDo: "", apSuat: "", thoiGianChuKy: "" });
     expect(pos.ok && pos.decision.outcome).toBe("QC_KHONG_DAT");

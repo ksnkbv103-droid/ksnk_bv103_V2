@@ -6,6 +6,8 @@ import {
   prefillFromChuongTrinh,
   resolveChuongTrinhOptions,
   resolveChuongTrinhOptionsForMachine,
+  chuongTrinhChuanForQc,
+  evaluatePhysicalOutsideChuongTrinhChuan,
   QT21_HD03_CHUONG_TRINH_BY_PP,
 } from "./me-tiet-khuan-chuong-trinh";
 
@@ -100,5 +102,25 @@ describe("me-tiet-khuan-chuong-trinh M-04 thin", () => {
       nhiet_do_chuan: "134",
     });
     expect(list[0]?.ten).toBe("134 vải");
+  });
+
+  it("ME-08: so chuẩn catalog — lệch nhiệt → outside; QT21 mẫu không so", () => {
+    const mdm = chuongTrinhChuanForQc({
+      ma: "M1",
+      ten: "134",
+      nhiet_do: "134",
+      ap_suat: "2.1",
+      thoi_gian_chu_ky: "18",
+      nguon: "mdm",
+    });
+    expect(
+      evaluatePhysicalOutsideChuongTrinhChuan({
+        nhietDo: 121,
+        apSuat: 2.1,
+        thoiGianChuKy: 18,
+        chuan: mdm,
+      }),
+    ).toBe(true);
+    expect(chuongTrinhChuanForQc(QT21_HD03_CHUONG_TRINH_BY_PP.HOI_NUOC[0])).toBeNull();
   });
 });
