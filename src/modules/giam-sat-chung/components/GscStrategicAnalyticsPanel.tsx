@@ -209,7 +209,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát · bao phủ TGS · KPI thô
+            Đối soát hai nguồn · Bao phủ tự giám sát · Số liệu tổng
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">

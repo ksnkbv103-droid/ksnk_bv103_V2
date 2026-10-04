@@ -10,6 +10,9 @@ const row = (ma: string, tyLe: number, vp: number): GscChecklistOverviewRow =>
     ma_bk: ma,
     ty_le_tuan_thu: tyLe,
     tong_vi_pham: vp,
+    tong_phien: 5,
+    tong_quan_sat: 40,
+    tong_dat: Math.round((tyLe / 100) * 40),
   }) as GscChecklistOverviewRow;
 
 describe("gsc-checklist-intervention", () => {
