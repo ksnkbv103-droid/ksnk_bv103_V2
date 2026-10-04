@@ -14,6 +14,24 @@ export async function verifyCssdIncidentCreate(): Promise<void> {
   await verifyPermission("BAO_SU_CO", "create");
 }
 
+/**
+ * SC-02/03 tạm: xác nhận / ra lệnh thu hồi = Trưởng CSSD|Admin (role)
+ * hoặc Tổ trưởng mẻ (`CSSD_ME_TIET_KHUAN.qc`).
+ */
+export async function verifyCssdIncidentApprove(): Promise<void> {
+  const { getActorRoleNames } = await import("@/lib/server-permission");
+  const { canApproveCssdIncident } = await import(
+    "@/modules/cssd-su-co/domain/cssd-incident-status"
+  );
+  const roles = await getActorRoleNames();
+  if (canApproveCssdIncident(roles)) return;
+  try {
+    await verifyCssdBatchQc();
+  } catch {
+    throw new Error("Chỉ Trưởng CSSD / Admin / Tổ trưởng mẻ được xác nhận hoặc ra lệnh thu hồi.");
+  }
+}
+
 /** In / đọc biên bản — create hoặc view BAO_SU_CO. */
 export async function verifyCssdIncidentPrint(): Promise<void> {
   try {

@@ -1,7 +1,12 @@
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { WORKFLOW_STEPS, stepIndex } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 import { recallTargetStationForLotMember } from "./cssd-batch-recall";
-import { isBatchQcFailTypeId, type IncidentGroup } from "./cssd-incident-taxonomy";
+import {
+  isBatchQcFailTypeId,
+  isBowieDickFailTypeId,
+  isSinglePackPostSterileTypeId,
+  type IncidentGroup,
+} from "./cssd-incident-taxonomy";
 
 /** Mã nội bộ (chi tiết sự cố / tích hợp sau này). */
 export type IncidentKind =
@@ -70,7 +75,33 @@ export function resolveIncidentPolicy(args: {
   const det = args.detectionStation;
   const detIdx = stepIndex(det);
 
-  /** QC mẻ — không áp cho QC trạm (`PROCESS_QC_FAIL`). Không xóa liên kết mẻ. */
+  /** SC-02: một gói lỗi sau TK — chỉ bộ đó về TN, không đụng mẻ/máy. */
+  if (args.incidentGroup === "PROCESS" && isSinglePackPostSterileTypeId(args.typeId)) {
+    return {
+      targetStation: recallTargetStationForLotMember(args.currentStation || det),
+      faultStation: args.faultStation || "TIET_KHUAN",
+      clearSterilizationBatchLink: false,
+      freezeSafetyLock: false,
+      recallEntireBatch: false,
+      holdMachineQc: false,
+      kind: "process_failure",
+    };
+  }
+
+  /** SC-02 / N-SC-5: Bowie-Dick — tạm giữ máy, không thu hồi mẻ. */
+  if (args.incidentGroup === "PROCESS" && isBowieDickFailTypeId(args.typeId)) {
+    return {
+      targetStation: det,
+      faultStation: args.faultStation || "TIET_KHUAN",
+      clearSterilizationBatchLink: false,
+      freezeSafetyLock: false,
+      recallEntireBatch: false,
+      holdMachineQc: true,
+      kind: "process_failure",
+    };
+  }
+
+  /** QC mẻ / BI+ — không áp cho QC trạm (`PROCESS_QC_FAIL`). Không xóa liên kết mẻ. */
   if (args.incidentGroup === "PROCESS" && isBatchQcFailTypeId(args.typeId)) {
     return {
       targetStation: recallTargetStationForLotMember(args.currentStation || det),

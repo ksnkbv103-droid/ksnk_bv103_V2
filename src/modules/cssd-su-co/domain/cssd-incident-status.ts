@@ -37,9 +37,51 @@ export const INCIDENT_CLOSE_NEEDS_FIELDS =
 /** N-CSSD-2 tạm: Trưởng CSSD / Hội đồng KSNK / Admin. */
 export const CSSD_INCIDENT_CLOSE_ROLES = ["ADMIN", "HOI_DONG_KSNK", "TRUONG_CSSD"] as const;
 
+/** SC-02/03 tạm: xác nhận BM.02 / ra lệnh thu hồi mẻ = Trưởng CSSD / Admin. */
+export const CSSD_INCIDENT_APPROVE_ROLES = ["ADMIN", "TRUONG_CSSD"] as const;
+
 export function canCloseSterilizationIncidentRelease(roles: readonly string[]): boolean {
   const set = new Set(roles.map((r) => String(r || "").trim().toUpperCase()).filter(Boolean));
   return (CSSD_INCIDENT_CLOSE_ROLES as readonly string[]).some((r) => set.has(r));
+}
+
+export function canApproveCssdIncident(roles: readonly string[]): boolean {
+  const set = new Set(roles.map((r) => String(r || "").trim().toUpperCase()).filter(Boolean));
+  return (CSSD_INCIDENT_APPROVE_ROLES as readonly string[]).some((r) => set.has(r));
+}
+
+export const INCIDENT_SELF_CONFIRM_FORBIDDEN =
+  "Người báo không được tự xác nhận phiếu của mình — cần Trưởng CSSD / Admin.";
+
+export const INCIDENT_APPROVE_FORBIDDEN =
+  "Chỉ Trưởng CSSD / Admin được xác nhận hoặc ra lệnh thu hồi mẻ.";
+
+/** SC-03: lý do vô hiệu bắt buộc. */
+export const INCIDENT_VOID_REASON_CODES = ["NHAP_NHAM", "TRUNG", "SAI_BO", "KHAC"] as const;
+export type IncidentVoidReasonCode = (typeof INCIDENT_VOID_REASON_CODES)[number];
+
+export const INCIDENT_VOID_REASON_LABEL: Record<IncidentVoidReasonCode, string> = {
+  NHAP_NHAM: "Nhập nhầm",
+  TRUNG: "Trùng phiếu",
+  SAI_BO: "Sai bộ / sai QR",
+  KHAC: "Khác",
+};
+
+export const INCIDENT_VOID_NEEDS_REASON = "Vô hiệu phiếu sự cố cần chọn lý do.";
+
+export function assertIncidentVoidReason(
+  code?: string | null,
+  note?: string | null,
+): { ok: true; code: IncidentVoidReasonCode; note: string } | { ok: false; error: string } {
+  const c = String(code || "").trim().toUpperCase() as IncidentVoidReasonCode;
+  if (!(INCIDENT_VOID_REASON_CODES as readonly string[]).includes(c)) {
+    return { ok: false, error: INCIDENT_VOID_NEEDS_REASON };
+  }
+  const noteText = String(note || "").trim();
+  if (c === "KHAC" && !noteText) {
+    return { ok: false, error: "Lý do «Khác» cần ghi chú." };
+  }
+  return { ok: true, code: c, note: noteText };
 }
 
 export function readIncidentPhieuStatus(attrs: Record<string, unknown> | null | undefined): IncidentPhieuStatus {
