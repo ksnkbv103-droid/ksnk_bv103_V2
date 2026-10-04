@@ -24,6 +24,7 @@ async function aggregateTonTheoLo(
         .select("dm_hoa_chat_id, ma_lo, han_su_dung, ton_so_luong")
         .order("dm_hoa_chat_id", { ascending: true })
         .order("ma_lo", { ascending: true })
+        .order("han_su_dung", { ascending: true })
         .range(from, to),
     );
     const data = rawRows.map((row) => ({

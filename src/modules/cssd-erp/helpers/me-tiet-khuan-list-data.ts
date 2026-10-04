@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fetchAllRangeRows } from "@/lib/fetch-all-range";
+import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { countActiveLinkedMembers } from "../lib/me-tiet-khuan-batch-integrity";
 import { getSterilizerMethod } from "./me-tiet-khuan-machine-kind";
@@ -71,14 +71,20 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   const ids = raw.map((b) => b.id).filter(Boolean);
   let byMe = new Map<string, number>();
   if (ids.length > 0) {
-    const { data: qrows } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("lo_tiet_khuan_id, is_active")
-      .in("lo_tiet_khuan_id", ids)
-      .eq("is_active", true);
-    byMe = countActiveLinkedMembers(
-      (qrows || []) as Array<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>,
+    // Nhiều mẻ: chia .in() + đọc hết trang — tránh cắt im PostgREST.
+    const qrows = await fetchAllByIdChunks<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>(
+      ids,
+      (idChunk, from, to) =>
+        supabase
+          .from("cssd_fact_quy_trinh")
+          .select("lo_tiet_khuan_id, is_active")
+          .in("lo_tiet_khuan_id", idChunk)
+          .eq("is_active", true)
+          .order("lo_tiet_khuan_id", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, to),
     );
+    byMe = countActiveLinkedMembers(qrows);
   }
   const batchRows = raw.map((b) => {
     const row = b as Record<string, unknown>;
