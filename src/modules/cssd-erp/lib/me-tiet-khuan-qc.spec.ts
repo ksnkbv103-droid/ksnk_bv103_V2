@@ -65,6 +65,20 @@ describe("evaluateMeQcRelease", () => {
     }
   });
 
+  it("ME-01: DANG_U không chặn nhả hơi nước thường; vẫn CHO_BI khi BI bắt buộc", () => {
+    const steam = evaluateMeQcRelease({ ...baseQc, trangThaiBi: "DANG_U", method: "HOI_NUOC", coImplant: false });
+    expect(steam.ok && steam.decision.outcome).toBe("HOAN_THANH");
+    const plasma = evaluateMeQcRelease({
+      ...baseQc,
+      trangThaiBi: "DANG_U",
+      method: "PLASMA_H2O2",
+      nhietDo: "",
+      apSuat: "",
+      thoiGianChuKy: "",
+    });
+    expect(plasma.ok && plasma.decision.outcome).toBe("CHO_BI");
+  });
+
   it("BI dương is a fail, BI âm releases plasma", () => {
     const pos = evaluateMeQcRelease({ ...baseQc, trangThaiBi: "DUONG", method: "EO", nhietDo: "", apSuat: "", thoiGianChuKy: "" });
     expect(pos.ok && pos.decision.outcome).toBe("QC_KHONG_DAT");

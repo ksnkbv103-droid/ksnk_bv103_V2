@@ -42,6 +42,11 @@ export const finishSterilizationBatchSchema = z.object({
   ciNgoaiGoi: z.string().min(1, "Thiếu CI ngoài gói"),
   ciPcd: z.string().min(1, "Thiếu CI PCD"),
   trangThaiBi: z.string().min(1, "Thiếu kết quả BI"),
+  ongDoiChung: z.string().optional().default(""),
+  ongThu: z.string().optional().default(""),
+  gioBatDauU: z.string().optional().default(""),
+  gioDoc: z.string().optional().default(""),
+  soLoBi: z.string().optional().default(""),
   anhMinhChung: z.string().optional().default(""),
 });
 

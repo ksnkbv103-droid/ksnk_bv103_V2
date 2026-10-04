@@ -8,7 +8,8 @@ import type { SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind"
 import { CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL } from "../../shared/ui/cssd-ui-chrome";
 
 type Tri = "DAT" | "KHONG_DAT" | "";
-type Bi = "CHUA_CO" | "AM" | "DUONG" | "";
+type Bi = "CHUA_CO" | "DANG_U" | "AM" | "DUONG" | "";
+type Ong = "AM" | "DUONG" | "";
 
 const METHOD_LABEL: Record<SterilizerMethod, string> = {
   HOI_NUOC: "Hơi nước",
@@ -39,9 +40,18 @@ function TriTap({ value, onChange }: { value: Tri; onChange: (v: Tri) => void })
   );
 }
 
-function BiChoice({ value, onChange }: { value: Bi; onChange: (v: Bi) => void }) {
+function BiChoice({
+  value,
+  onChange,
+  allowDangU,
+}: {
+  value: Bi;
+  onChange: (v: Bi) => void;
+  allowDangU: boolean;
+}) {
   const opts: { id: Exclude<Bi, "">; label: string }[] = [
     { id: "CHUA_CO", label: "Chưa có" },
+    ...(allowDangU ? [{ id: "DANG_U" as const, label: "Đã đặt BI – đang ủ" }] : []),
     { id: "AM", label: "Âm" },
     { id: "DUONG", label: "Dương" },
   ];
@@ -63,12 +73,111 @@ function BiChoice({ value, onChange }: { value: Bi; onChange: (v: Bi) => void })
   );
 }
 
+function OngChoice({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: Ong;
+  onChange: (v: Ong) => void;
+}) {
+  return (
+    <label className="block space-y-1">
+      <span className={CSSD_UI_FORM_LABEL}>{label}</span>
+      <div className="flex gap-2">
+        {(
+          [
+            { id: "DUONG", label: "Dương" },
+            { id: "AM", label: "Âm" },
+          ] as const
+        ).map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            className={`h-10 flex-1 rounded-xl border-2 text-xs font-semibold ${
+              value === opt.id ? "border-violet-600 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-600"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </label>
+  );
+}
+
+function BiBm02Fields({
+  ongDoiChung,
+  setOngDoiChung,
+  ongThu,
+  setOngThu,
+  gioBatDauU,
+  setGioBatDauU,
+  gioDoc,
+  setGioDoc,
+  soLoBi,
+  setSoLoBi,
+}: {
+  ongDoiChung: Ong;
+  setOngDoiChung: (v: Ong) => void;
+  ongThu: Ong;
+  setOngThu: (v: Ong) => void;
+  gioBatDauU: string;
+  setGioBatDauU: (v: string) => void;
+  gioDoc: string;
+  setGioDoc: (v: string) => void;
+  soLoBi: string;
+  setSoLoBi: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+      <p className="text-[11px] font-medium text-violet-900">Sổ BI (BM.02) — đối chứng phải dương mới hợp lệ</p>
+      <OngChoice label="Ống đối chứng" value={ongDoiChung} onChange={setOngDoiChung} />
+      <OngChoice label="Ống thử nghiệm" value={ongThu} onChange={setOngThu} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="space-y-1">
+          <span className={CSSD_UI_FORM_LABEL}>Giờ bắt đầu ủ</span>
+          <input
+            type="datetime-local"
+            className={CSSD_UI_CONTROL}
+            value={gioBatDauU}
+            onChange={(e) => setGioBatDauU(e.target.value)}
+          />
+        </label>
+        <label className="space-y-1">
+          <span className={CSSD_UI_FORM_LABEL}>Giờ đọc</span>
+          <input
+            type="datetime-local"
+            className={CSSD_UI_CONTROL}
+            value={gioDoc}
+            onChange={(e) => setGioDoc(e.target.value)}
+          />
+        </label>
+      </div>
+      <label className="block space-y-1">
+        <span className={CSSD_UI_FORM_LABEL}>Số lô BI</span>
+        <input className={CSSD_UI_CONTROL} value={soLoBi} maxLength={80} onChange={(e) => setSoLoBi(e.target.value)} />
+      </label>
+    </div>
+  );
+}
+
+function toIsoFromLocal(value: string): string {
+  const s = String(value || "").trim();
+  if (!s) return "";
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? new Date(t).toISOString() : s;
+}
+
 export default function MeTietKhuanProcessQcPanel({
   showForm,
   method,
   coImplant,
   steamBiReminder,
   choBi,
+  biTuanSauNha,
   chuongTrinh,
   setChuongTrinh,
   chuongOptions = [],
@@ -88,6 +197,16 @@ export default function MeTietKhuanProcessQcPanel({
   setCiPcd,
   trangThaiBi,
   setTrangThaiBi,
+  ongDoiChung,
+  setOngDoiChung,
+  ongThu,
+  setOngThu,
+  gioBatDauU,
+  setGioBatDauU,
+  gioDoc,
+  setGioDoc,
+  soLoBi,
+  setSoLoBi,
   batchId,
   onFinish,
   onSubmitBi,
@@ -97,6 +216,8 @@ export default function MeTietKhuanProcessQcPanel({
   coImplant: boolean;
   steamBiReminder: string | null;
   choBi: boolean;
+  /** ME-01: mẻ hơi nước đã nhả — ghi BI tuần. */
+  biTuanSauNha?: boolean;
   chuongTrinh: string;
   setChuongTrinh: (v: string) => void;
   chuongOptions?: { ma: string; ten: string; nguon_label?: string }[];
@@ -116,28 +237,79 @@ export default function MeTietKhuanProcessQcPanel({
   setCiPcd: (v: Tri) => void;
   trangThaiBi: Bi;
   setTrangThaiBi: (v: Bi) => void;
+  ongDoiChung: Ong;
+  setOngDoiChung: (v: Ong) => void;
+  ongThu: Ong;
+  setOngThu: (v: Ong) => void;
+  gioBatDauU: string;
+  setGioBatDauU: (v: string) => void;
+  gioDoc: string;
+  setGioDoc: (v: string) => void;
+  soLoBi: string;
+  setSoLoBi: (v: string) => void;
   batchId: string;
   onFinish: (isPass: boolean) => void;
-  onSubmitBi?: (ketQua: "AM" | "DUONG") => void;
+  onSubmitBi?: (
+    ketQua: "AM" | "DUONG",
+    biBm02: {
+      ongDoiChung: string;
+      ongThu: string;
+      gioBatDauU: string;
+      gioDoc: string;
+      soLoBi: string;
+    },
+  ) => void;
 }) {
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    if (showForm) setOpen(true);
-  }, [showForm, batchId]);
+    if (showForm || choBi || biTuanSauNha) setOpen(true);
+  }, [showForm, choBi, biTuanSauNha, batchId]);
 
-  if (choBi) {
+  const bm02Payload = () => ({
+    ongDoiChung,
+    ongThu,
+    gioBatDauU: toIsoFromLocal(gioBatDauU),
+    gioDoc: toIsoFromLocal(gioDoc),
+    soLoBi,
+  });
+
+  if (choBi || biTuanSauNha) {
     return (
       <div className="space-y-3 rounded-[var(--radius-shell)] border border-violet-200 bg-violet-50/70 p-6">
-        <p className="text-sm font-semibold text-violet-900">Mẻ đang chờ kết quả BI</p>
-        <p className="text-[11px] font-medium text-violet-800/80">
-          Bộ chưa sang kho vô khuẩn. Âm thì nhả mẻ, dương thì lập sự cố.
+        <p className="text-sm font-semibold text-violet-900">
+          {biTuanSauNha ? "Ghi BI tuần (mẻ đã nhả)" : "Mẻ đang chờ kết quả BI"}
         </p>
+        <p className="text-[11px] font-medium text-violet-800/80">
+          {biTuanSauNha
+            ? "Ghi sổ BM.02 — âm chỉ cập nhật mốc tuần; dương thì thu hồi."
+            : "Ống đối chứng phải dương. Âm → nhả mẻ; dương → lập sự cố."}
+        </p>
+        <BiBm02Fields
+          ongDoiChung={ongDoiChung}
+          setOngDoiChung={setOngDoiChung}
+          ongThu={ongThu}
+          setOngThu={setOngThu}
+          gioBatDauU={gioBatDauU}
+          setGioBatDauU={setGioBatDauU}
+          gioDoc={gioDoc}
+          setGioDoc={setGioDoc}
+          soLoBi={soLoBi}
+          setSoLoBi={setSoLoBi}
+        />
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="h-11 rounded-xl bg-emerald-700 px-4 text-xs font-semibold text-white" onClick={() => onSubmitBi?.("AM")}>
-            Nhả mẻ
+          <button
+            type="button"
+            className="h-11 rounded-xl bg-emerald-700 px-4 text-xs font-semibold text-white"
+            onClick={() => onSubmitBi?.("AM", bm02Payload())}
+          >
+            {biTuanSauNha ? "Ghi BI âm" : "Nhả mẻ (BI âm)"}
           </button>
-          <button type="button" className="h-11 rounded-xl border border-red-300 bg-white px-4 text-xs font-semibold text-red-700" onClick={() => onSubmitBi?.("DUONG")}>
+          <button
+            type="button"
+            className="h-11 rounded-xl border border-red-300 bg-white px-4 text-xs font-semibold text-red-700"
+            onClick={() => onSubmitBi?.("DUONG", bm02Payload())}
+          >
             BI dương
           </button>
         </div>
@@ -148,7 +320,9 @@ export default function MeTietKhuanProcessQcPanel({
   if (!showForm) return null;
 
   const biBatBuoc = coImplant || method === "PLASMA_H2O2" || method === "EO";
-  const anyFail = thongSoVatLy === "KHONG_DAT" || ciNgoaiGoi === "KHONG_DAT" || ciPcd === "KHONG_DAT" || trangThaiBi === "DUONG";
+  const needsBm02 = trangThaiBi === "AM" || trangThaiBi === "DUONG";
+  const anyFail =
+    thongSoVatLy === "KHONG_DAT" || ciNgoaiGoi === "KHONG_DAT" || ciPcd === "KHONG_DAT" || trangThaiBi === "DUONG";
 
   const handleFinish = (isPass: boolean) => {
     if (!thongSoVatLy || !ciNgoaiGoi || !ciPcd) {
@@ -156,7 +330,11 @@ export default function MeTietKhuanProcessQcPanel({
       return;
     }
     if (!trangThaiBi) {
-      toast.error("Chọn kết quả BI: chưa có, âm hoặc dương.");
+      toast.error("Chọn kết quả BI: chưa có, đang ủ, âm hoặc dương.");
+      return;
+    }
+    if (needsBm02 && (!ongDoiChung || !ongThu || !soLoBi || !gioBatDauU || !gioDoc)) {
+      toast.error("Nhập đủ sổ BI BM.02 (đối chứng, ống thử, giờ ủ/đọc, số lô).");
       return;
     }
     if (isPass && anyFail) {
@@ -250,8 +428,22 @@ export default function MeTietKhuanProcessQcPanel({
             </div>
             <div className="space-y-2">
               <p className="text-xs font-semibold text-slate-700">BI</p>
-              <BiChoice value={trangThaiBi} onChange={setTrangThaiBi} />
+              <BiChoice value={trangThaiBi} onChange={setTrangThaiBi} allowDangU={!biBatBuoc && method === "HOI_NUOC"} />
             </div>
+            {needsBm02 ? (
+              <BiBm02Fields
+                ongDoiChung={ongDoiChung}
+                setOngDoiChung={setOngDoiChung}
+                ongThu={ongThu}
+                setOngThu={setOngThu}
+                gioBatDauU={gioBatDauU}
+                setGioBatDauU={setGioBatDauU}
+                gioDoc={gioDoc}
+                setGioDoc={setGioDoc}
+                soLoBi={soLoBi}
+                setSoLoBi={setSoLoBi}
+              />
+            ) : null}
             <div className="flex gap-2 pb-2">
               <button
                 type="button"

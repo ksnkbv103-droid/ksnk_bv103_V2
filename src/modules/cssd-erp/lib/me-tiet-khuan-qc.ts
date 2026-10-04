@@ -2,11 +2,12 @@ import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import type { SterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
 
 export type QcTri = "DAT" | "KHONG_DAT";
-export type BiTrangThai = "CHUA_CO" | "AM" | "DUONG";
+/** DANG_U = đã đặt BI đang ủ (hơi nước tuần) — không chặn nhả khi BI không bắt buộc. */
+export type BiTrangThai = "CHUA_CO" | "DANG_U" | "AM" | "DUONG";
 export type MeQcOutcome = "HOAN_THANH" | "CHO_BI" | "QC_KHONG_DAT";
 
 const TRI = new Set(["DAT", "KHONG_DAT"]);
-const BI = new Set(["CHUA_CO", "AM", "DUONG"]);
+const BI = new Set(["CHUA_CO", "DANG_U", "AM", "DUONG"]);
 
 export type MeQcInput = {
   thongSoVatLy?: string | null;
@@ -104,7 +105,7 @@ export function evaluateMeQcRelease(input: MeQcInput): { ok: true; decision: MeQ
 
   const biRaw = norm(input.trangThaiBi);
   if (!biRaw || biRaw === "CHUA_DANH_GIA" || biRaw === "NA") {
-    return { ok: false, message: "Chọn kết quả BI: chưa có, âm hoặc dương." };
+    return { ok: false, message: "Chọn kết quả BI: chưa có, đang ủ, âm hoặc dương." };
   }
   if (!BI.has(biRaw)) return { ok: false, message: "Kết quả BI không hợp lệ." };
   const trangThaiBi = biRaw as BiTrangThai;
@@ -117,10 +118,12 @@ export function evaluateMeQcRelease(input: MeQcInput): { ok: true; decision: MeQ
   const ketQuaCi = ciNgoaiFail || ciPcdFail ? false : true;
   const ketQuaBi = trangThaiBi === "AM" ? true : trangThaiBi === "DUONG" ? false : null;
   const biBatBuoc = biRequiredForBatch(input.method, input.coImplant);
+  /** DANG_U / CHUA_CO đều = chưa đọc — BI bắt buộc → CHO_BI. */
+  const biChuaDoc = trangThaiBi === "CHUA_CO" || trangThaiBi === "DANG_U";
 
   let outcome: MeQcOutcome = "HOAN_THANH";
   if (anyFail) outcome = "QC_KHONG_DAT";
-  else if (biBatBuoc && trangThaiBi === "CHUA_CO") outcome = "CHO_BI";
+  else if (biBatBuoc && biChuaDoc) outcome = "CHO_BI";
 
   return {
     ok: true,

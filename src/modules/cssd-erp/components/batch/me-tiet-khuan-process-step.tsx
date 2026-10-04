@@ -49,6 +49,16 @@ export default function MeTietKhuanProcessStep({
   setCiPcd,
   trangThaiBi,
   setTrangThaiBi,
+  ongDoiChung,
+  setOngDoiChung,
+  ongThu,
+  setOngThu,
+  gioBatDauU,
+  setGioBatDauU,
+  gioDoc,
+  setGioDoc,
+  soLoBi,
+  setSoLoBi,
   onBackToList,
   onAddItemByCode,
   onRemoveItem,
@@ -83,15 +93,34 @@ export default function MeTietKhuanProcessStep({
   setCiNgoaiGoi: (v: "DAT" | "KHONG_DAT" | "") => void;
   ciPcd: "DAT" | "KHONG_DAT" | "";
   setCiPcd: (v: "DAT" | "KHONG_DAT" | "") => void;
-  trangThaiBi: "CHUA_CO" | "AM" | "DUONG" | "";
-  setTrangThaiBi: (v: "CHUA_CO" | "AM" | "DUONG" | "") => void;
+  trangThaiBi: "CHUA_CO" | "DANG_U" | "AM" | "DUONG" | "";
+  setTrangThaiBi: (v: "CHUA_CO" | "DANG_U" | "AM" | "DUONG" | "") => void;
+  ongDoiChung: "AM" | "DUONG" | "";
+  setOngDoiChung: (v: "AM" | "DUONG" | "") => void;
+  ongThu: "AM" | "DUONG" | "";
+  setOngThu: (v: "AM" | "DUONG" | "") => void;
+  gioBatDauU: string;
+  setGioBatDauU: (v: string) => void;
+  gioDoc: string;
+  setGioDoc: (v: string) => void;
+  soLoBi: string;
+  setSoLoBi: (v: string) => void;
   onBackToList: () => void;
   onAddItemByCode: (code: string) => void;
   onRemoveItem: (quyTrinhId: string) => void;
   onConfirmBatDau: () => void | Promise<void>;
   onConfirmKetThucChuTrinh: () => void | Promise<void>;
   onFinishQc: (isPass: boolean) => void | Promise<void>;
-  onSubmitBi: (ketQua: "AM" | "DUONG") => void | Promise<void>;
+  onSubmitBi: (
+    ketQua: "AM" | "DUONG",
+    biBm02: {
+      ongDoiChung: string;
+      ongThu: string;
+      gioBatDauU: string;
+      gioDoc: string;
+      soLoBi: string;
+    },
+  ) => void | Promise<void>;
   onPrintBatch?: () => void;
   isPrintBusy?: boolean;
   onReportIncident?: () => void;
@@ -105,6 +134,10 @@ export default function MeTietKhuanProcessStep({
   );
   const trangThai = String(activeMe?.trang_thai || (batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || "");
   const choBi = trangThai === "CHO_BI";
+  const biTuanSauNha =
+    !choBi &&
+    method === "HOI_NUOC" &&
+    (activeMe?.ket_qua_test === true || trangThai === "HOAN_THANH");
   const coImplant = Boolean((batchGate as { co_implant?: boolean | null } | null)?.co_implant);
   const steamBiReminder = (batchGate as { steamBiReminder?: string | null } | null)?.steamBiReminder || null;
   const slipStep = currentMeSlipStep({
@@ -296,13 +329,14 @@ export default function MeTietKhuanProcessStep({
           </div>
         ) : null}
 
-        {qcOpen || choBi ? (
+        {qcOpen || choBi || biTuanSauNha ? (
           <MeTietKhuanProcessQcPanel
-            showForm={qcOpen}
+            showForm={qcOpen && !biTuanSauNha}
             method={method}
             coImplant={coImplant}
             steamBiReminder={steamBiReminder}
             choBi={choBi}
+            biTuanSauNha={biTuanSauNha}
             chuongTrinh={chuongTrinh}
             setChuongTrinh={setChuongTrinh}
             chuongOptions={chuongOptions}
@@ -322,9 +356,19 @@ export default function MeTietKhuanProcessStep({
             setCiPcd={setCiPcd}
             trangThaiBi={trangThaiBi}
             setTrangThaiBi={setTrangThaiBi}
+            ongDoiChung={ongDoiChung}
+            setOngDoiChung={setOngDoiChung}
+            ongThu={ongThu}
+            setOngThu={setOngThu}
+            gioBatDauU={gioBatDauU}
+            setGioBatDauU={setGioBatDauU}
+            gioDoc={gioDoc}
+            setGioDoc={setGioDoc}
+            soLoBi={soLoBi}
+            setSoLoBi={setSoLoBi}
             batchId={activeMe?.id || ""}
             onFinish={(isPass) => void onFinishQc(isPass)}
-            onSubmitBi={(ketQua) => void onSubmitBi(ketQua)}
+            onSubmitBi={(ketQua, biBm02) => void onSubmitBi(ketQua, biBm02)}
           />
         ) : null}
       </div>

@@ -834,8 +834,18 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
   }
 }
 
-/** Nhập BI. Âm chỉ khi đang chờ BI. Dương cả mẻ đã nhả — thu hồi cửa sổ cùng máy. */
-export async function nhapKetQuaBiMeTietKhuan(batchId: string, ketQua: "AM" | "DUONG") {
+/** Nhập BI BM.02. Âm: chờ BI → nhả; mẻ đã nhả → chỉ ghi sổ (BI tuần). Dương → thu hồi. */
+export async function nhapKetQuaBiMeTietKhuan(
+  batchId: string,
+  ketQua: "AM" | "DUONG",
+  biBm02?: {
+    ongDoiChung?: string;
+    ongThu?: string;
+    gioBatDauU?: string;
+    gioDoc?: string;
+    soLoBi?: string;
+  },
+) {
   try {
     await verifyCssdBatchQc();
     const supabase = createAdminSupabaseClient();
@@ -860,6 +870,11 @@ export async function nhapKetQuaBiMeTietKhuan(batchId: string, ketQua: "AM" | "D
       operatorAuthUserId: actor.userId,
       operatorEmail,
       nguoiLabel: operatorEmail || "CSSD",
+      ongDoiChung: biBm02?.ongDoiChung,
+      ongThu: biBm02?.ongThu,
+      gioBatDauU: biBm02?.gioBatDauU,
+      gioDoc: biBm02?.gioDoc,
+      soLoBi: biBm02?.soLoBi,
     });
     if (!saved.ok) return { success: false as const, error: saved.message };
     revalidateCssdBatchSurfaces();
