@@ -30,7 +30,8 @@ import {
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { QLCV_BOARD_FETCH_MAX_PAGES, QLCV_BOARD_FETCH_PAGE_SIZE } from "../lib/qlcv-query-limits";
-import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
+import { QLCV_BOARD_TASK_VIEW_SELECT, QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
+import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
@@ -105,20 +106,35 @@ export async function createCongViec(input: CongViecInput) {
 async function fetchAllActiveRootTasksInScope(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
   scope: Awaited<ReturnType<typeof resolveQlcvListScope>>,
+  opts?: { boardFilter?: QlcvBoardFilter | null; actorStaffId?: string | null },
 ) {
   const rows: Record<string, unknown>[] = [];
+  const actor = opts?.actorStaffId ? String(opts.actorStaffId) : "";
+  const lens = opts?.boardFilter ?? null;
+
   for (let page = 0; page < QLCV_BOARD_FETCH_MAX_PAGES; page++) {
     const from = page * QLCV_BOARD_FETCH_PAGE_SIZE;
     const to = from + QLCV_BOARD_FETCH_PAGE_SIZE - 1;
 
     let query = supabase
       .from("v_qlcv_cong_viec_full")
-      .select(QLCV_ROOT_TASK_VIEW_SELECT)
+      .select(QLCV_BOARD_TASK_VIEW_SELECT)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .range(from, to);
 
     query = applyQlcvListScopeToQuery(query, scope);
+
+    // A) Dump full board rồi filter client. B) Lọc SQL theo lens mặc định — chọn B.
+    if (lens === "MY_TASKS" && actor) {
+      query = query
+        .eq("nguoi_phu_trach_id", actor)
+        .not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
+    } else if (lens === "IN_PROGRESS") {
+      query = query.eq("trang_thai", "DANG_THUC_HIEN");
+    } else if (lens === "OVERDUE") {
+      query = query.eq("is_qua_han", true).not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
+    }
 
     const { data, error } = await query;
     if (error) {
@@ -134,11 +150,14 @@ async function fetchAllActiveRootTasksInScope(
   return rows;
 }
 
-/** Toàn bộ việc active trong phạm vi — dùng Kanban + thẻ cổng (fetch phân trang). */
-export async function getCongViecListForBoard() {
+/** Việc active trong phạm vi — Kanban (cắt cột + lọc SQL theo lens). */
+export async function getCongViecListForBoard(opts?: {
+  boardFilter?: QlcvBoardFilter | null;
+  actorStaffId?: string | null;
+}) {
   const { supabase } = await ensureQlcvKsnkAccess("view");
   const scope = await resolveQlcvListScope(supabase);
-  return fetchAllActiveRootTasksInScope(supabase, scope);
+  return fetchAllActiveRootTasksInScope(supabase, scope, opts);
 }
 
 export async function getCongViecList() {
@@ -241,7 +260,7 @@ export async function getCongViecListPaginated(params: {
     const to = from + pageSize - 1;
     let dataQ = supabase
       .from("v_qlcv_cong_viec_full")
-      .select(QLCV_ROOT_TASK_VIEW_SELECT, { count: "exact" })
+      .select(QLCV_ROOT_TASK_VIEW_SELECT, { count: "planned" })
       .eq("is_active", true)
       .order(sortCol, { ascending })
       .range(from, to);

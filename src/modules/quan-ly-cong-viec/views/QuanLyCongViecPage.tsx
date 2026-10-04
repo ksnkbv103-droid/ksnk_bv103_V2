@@ -153,7 +153,7 @@ export default function QuanLyCongViecPage() {
   const canApprove = canShowQlcvApproveActions(qlcvUi);
   const canManageDinhKy = isAdmin || allowed.edit;
 
-  const kanban = useQlcvKanban({ canApprove });
+  const kanban = useQlcvKanban({ canApprove, actorStaffId: userData?.id ?? null });
 
   const mergedTasks = useMemo(
     () => mergeQlcvKanbanTasks(kanban.tasks, kanban.pendingKanbanExtras),
@@ -174,14 +174,6 @@ export default function QuanLyCongViecPage() {
     actorStaffId: userData?.id ?? null,
     mergedTasks,
   });
-
-  useEffect(() => {
-    void kanban.fetchTasksInitial();
-  }, [kanban.fetchTasksInitial]);
-
-  useEffect(() => {
-    if (userData?.id) kanban.setBoardFilter("MY_TASKS");
-  }, [userData?.id, kanban.setBoardFilter]);
 
   useEffect(() => {
     const openId = searchParams.get("id")?.trim();

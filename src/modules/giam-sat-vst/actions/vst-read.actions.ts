@@ -69,9 +69,10 @@ export async function getVSTSessionsPaginated(params: {
     ]);
 
     // 1. COUNT
+    // UI phân trang lịch sử — planned đủ; giữ exact ở báo cáo/đếm nghiệp vụ.
     let countQ = supabase
       .from("v_gstt_giam_sat_vst_sessions_full")
-      .select("id", { count: "exact", head: true })
+      .select("id", { count: "planned", head: true })
       .eq("is_active", true);
     countQ = applyVstHistoryReadScope(countQ, scope);
     if (searchFilter) countQ = countQ.or(searchFilter);
@@ -214,9 +215,10 @@ export async function getVstHeaderDmDropdowns() {
       }),
       getCachedDmKhoaPhong(),
       (() => {
+        // A) Full active list. B) limit 400 (+ filter khoa mạng lưới) — chọn B.
         let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
         if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
-        return q.order("ho_ten");
+        return q.order("ho_ten").limit(400);
       })(),
       supabase
         .from("gstt_dm_khu_vuc_giam_sat")

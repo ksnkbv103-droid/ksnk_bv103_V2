@@ -9,6 +9,7 @@ import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
 
 interface UseQlcvKanbanOptions {
   canApprove: boolean;
+  actorStaffId?: string | null;
 }
 
 export interface UseQlcvKanbanReturn {
@@ -34,11 +35,11 @@ export interface UseQlcvKanbanReturn {
  * - Đề xuất chờ duyệt (pendingKanbanExtras)
  * - Board filter, search debounce, focus nonce
  */
-export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanbanReturn {
+export function useQlcvKanban({ canApprove, actorStaffId = null }: UseQlcvKanbanOptions): UseQlcvKanbanReturn {
   const [tasks, setTasks] = useState<CongViecView[]>([]);
   const [pendingKanbanExtras, setPendingKanbanExtras] = useState<CongViecView[]>([]);
   const [kanbanApproveRow, setKanbanApproveRow] = useState<CongViecView | null>(null);
-  const [boardFilter, setBoardFilter] = useState<QlcvBoardFilter | null>(null);
+  const [boardFilter, setBoardFilter] = useState<QlcvBoardFilter | null>("MY_TASKS");
   const [kanbanFocusNonce, setKanbanFocusNonce] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [kanbanSearchDebounced, setKanbanSearchDebounced] = useState("");
@@ -51,17 +52,24 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
   }, [searchTerm]);
 
   const pullTasks = useCallback(async () => {
+    // Chờ actor khi lens MY_TASKS — tránh dump full board trước khi biết user.
+    if (boardFilter === "MY_TASKS" && !actorStaffId) return;
+
     // Parallel list + pending đề xuất — lỗi đề xuất không nuốt thành «không có chờ duyệt».
     const pendingPromise: Promise<CongViecView[]> = canApprove
       ? getPendingDeXuat().then((p) => p as CongViecView[])
       : getMyPendingDeXuat().then((p) => p as CongViecView[]);
 
-    const [data, pending] = await Promise.all([getCongViecListForBoard(), pendingPromise]);
+    const [data, pending] = await Promise.all([
+      getCongViecListForBoard({ boardFilter, actorStaffId }),
+      pendingPromise,
+    ]);
     setTasks((data || []) as unknown as CongViecView[]);
     setPendingKanbanExtras(pending);
-  }, [canApprove]);
+  }, [actorStaffId, boardFilter, canApprove]);
 
   const fetchTasksInitial = useCallback(async () => {
+    if (boardFilter === "MY_TASKS" && !actorStaffId) return;
     setLoading(true);
     try {
       await pullTasks();
@@ -71,7 +79,11 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
     } finally {
       setLoading(false);
     }
-  }, [pullTasks]);
+  }, [actorStaffId, boardFilter, pullTasks]);
+
+  useEffect(() => {
+    void fetchTasksInitial();
+  }, [fetchTasksInitial]);
 
   const refreshTasks = useCallback(async () => {
     try {
