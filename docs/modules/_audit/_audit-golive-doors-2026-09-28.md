@@ -486,3 +486,22 @@ Không migration RLS/index. `tsc` + vitest analytics/QLCV + `npm run verify` OK.
 Chunk đo (prod `.next`, Turbopack không in First Load cổ điển): `cssd-erp/report` client-ref ~545KB; `cssd-dung-cu` ~499KB; `bao-cao-tong-hop` ~419KB. Shared exceljs vẫn ~0.9–1.3MB (lazy khi export).
 
 Park còn: StaffSessionGate `getSession`; picker NS async search đầy đủ; exceljs shared chunk; RLS/index Lead.
+
+## MOD-IA — cửa Module 1 (2026-10-05, nhánh `cursor/mod-ia`)
+
+Trước IA: revert `8058d73` (migration PERF-1 sai bảng `dao_tao_lan_thi_cau`); PERF-2 không sinh migration RLS/index khác. Trả `count: 'exact'` (PERF2-fix). Prod không set `KSNK_PILOT_*` — default code = toàn module; IA-06 PA B (một nguồn phạm vi).
+
+| Commit | Việc |
+|--------|------|
+| `2890faf` | Revert PERF-C migration RLS initplan hot paths |
+| `4b6dc22` | PERF2-fix: count exact (GSC/VST/NKBV/QLCV) |
+| `7ba3df7` | IA-01: `/giam-sat-chung` → tuan-thu; Nhập `?loai`; QR LOC → tuan-thu |
+| `8d0c858` | IA-02: lối BM.02/03 tuan-thu + lịch sử/thống kê/BCTH; header `bk` |
+| `de783eb` | IA-03 jargon + vitest; IA-04 bỏ Báo nhanh / «Nhật ký sự cố» |
+| `ea083c6` | IA-06 pilot scope SSOT; IA-05 sáng Quy trình + redirect CSSD_REPORT |
+| `1d44377` | IA-07 title theo header + layout segment client |
+| `d63a6ab` | IA-08 nhãn đề nghị / Quản trị SSOT / BCTH WHO |
+
+`tsc --noEmit` + vitest IA + `npm run verify` OK. Không push.
+
+Park: N-3 nhãn Việc/Tra cứu TB·HC; N-5 lối Hồ sơ Header; GscHistoryView `?bk=` filter (drill lịch sử BM đã link); số liệu 3 chỉ số WHO vs BM trên `/thong-ke/vst` (rà VST/BCTH).
