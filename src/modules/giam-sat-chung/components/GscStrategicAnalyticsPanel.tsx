@@ -167,7 +167,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
-            Tab tỷ lệ hoặc khối lượng — khoa dưới 80% tô cảnh báo.
+            Tab tỷ lệ hoặc khối lượng — dưới mốc tham chiếu tô cảnh báo.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
           </p>
         </header>

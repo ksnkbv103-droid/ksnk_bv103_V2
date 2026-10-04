@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import type { GapKhoaRow } from "@/lib/analytics/supervision-matrix-mappers";
 import { comparableGapRows } from "@/lib/analytics/supervision-source-lens";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { DOI_SOAT_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
 import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 type Props = {
@@ -18,17 +19,20 @@ function fmt(source: "vst" | "gsc", n: number | null): string {
 }
 
 /**
- * Lớp 2 — chỉ khoa có cả TGS và chuyên trách trong kỳ.
+ * Lớp 2 — chỉ khoa đủ min-N cả TGS và chuyên trách (GS-07).
+ * Chênh = TGS − KSNK (GS-09) — không đảo dấu.
  */
 export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
+  const minN = DOI_SOAT_MIN_SAMPLE[source];
   const data = useMemo(() => {
-    return comparableGapRows(rows)
+    return comparableGapRows(rows, { source })
       .map((r) => ({
         ...r,
+        // GS-09: chênh = tự giám sát trừ chuyên trách (TGS − KSNK)
         delta: (r.ty_le_tgs ?? 0) - (r.ty_le_ksnk ?? 0),
       }))
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-  }, [rows]);
+  }, [rows, source]);
 
   if (loading) {
     return <div className="h-24 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />;
@@ -40,10 +44,15 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
         Đối soát tự giám sát vs chuyên trách
       </h4>
       <p className="bv103-type-label mt-1 text-slate-500">
-        Chỉ khoa có <span className="font-medium">cả hai</span> nguồn trong kỳ. Dương = tự báo cao hơn chuyên trách.
+        Chỉ khoa đủ mẫu cả hai nguồn (tối thiểu {minN}{" "}
+        {source === "vst" ? "cơ hội" : "khảo sát"} / nguồn). Lệch ={" "}
+        <span className="font-medium">TGS − KSNK</span> (tự giám sát trừ chuyên trách) — không đảo
+        dấu. Dương = tự báo cao hơn chuyên trách.
       </p>
       {data.length === 0 ? (
-        <p className={`mt-3 ${P.emptyBody}`}>Chưa có khoa comparable trong phạm vi lọc.</p>
+        <p className={`mt-3 ${P.emptyBody}`}>
+          Thiếu mẫu đối soát — chưa có khoa đủ min-N cả hai nguồn trong phạm vi lọc.
+        </p>
       ) : (
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[28rem] text-left text-xs">
@@ -52,7 +61,7 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
                 <th className="py-2 pr-2 font-medium">Khoa</th>
                 <th className="py-2 px-2 font-medium text-right">Tự GS %</th>
                 <th className="py-2 px-2 font-medium text-right">Chuyên trách %</th>
-                <th className="py-2 pl-2 font-medium text-right">Lệch</th>
+                <th className="py-2 pl-2 font-medium text-right">TGS − KSNK</th>
               </tr>
             </thead>
             <tbody>
