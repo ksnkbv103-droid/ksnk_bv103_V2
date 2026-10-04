@@ -297,7 +297,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           role="status"
           className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
         >
-          Người thực hiện đã ngừng hoạt động trong danh mục nhân sự. Nên giao lại việc hoặc hủy phiếu để tránh
+          Người phụ trách đã ngừng hoạt động trong danh mục nhân sự. Nên giao lại việc hoặc hủy phiếu để tránh
           việc mở bị bỏ quên.
         </div>
       )}
@@ -333,6 +333,34 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           ) : null}
           {data.mo_ta ? (
             <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{data.mo_ta}</p>
+          ) : null}
+          {data.nguon_lien_ket?.module ? (
+            <p className="text-xs text-slate-600">
+              Nguồn:{" "}
+              {data.nguon_lien_ket.href || data.nguon_lien_ket.id ? (
+                <a
+                  href={
+                    data.nguon_lien_ket.href ||
+                    (data.nguon_lien_ket.module === "CSSD_SU_CO"
+                      ? `/cssd-su-co?id=${encodeURIComponent(String(data.nguon_lien_ket.id))}`
+                      : data.nguon_lien_ket.module === "GIAM_SAT"
+                        ? `/giam-sat-chung?session=${encodeURIComponent(String(data.nguon_lien_ket.id))}`
+                        : data.nguon_lien_ket.module === "NKBV"
+                          ? `/giam-sat-nkbv?id=${encodeURIComponent(String(data.nguon_lien_ket.id))}`
+                          : "#")
+                  }
+                  className="font-semibold text-sky-800 hover:underline"
+                >
+                  {data.nguon_lien_ket.label ||
+                    data.nguon_lien_ket.ma ||
+                    data.nguon_lien_ket.module}
+                </a>
+              ) : (
+                <span className="font-medium">
+                  {data.nguon_lien_ket.label || data.nguon_lien_ket.ma || data.nguon_lien_ket.module}
+                </span>
+              )}
+            </p>
           ) : null}
         </div>
 
@@ -433,6 +461,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               congViecId={data.id}
               initialPercent={Number(data.phan_tram_hoan_thanh ?? 0)}
               readOnly={checklistReadOnly}
+              requireKetQuaAt100={data.loai_cong_viec === "DINH_KY"}
               onUpdated={() => {
                 fetchDetail();
                 onRefreshList?.();
@@ -454,7 +483,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                     ? `${data.nguoi_tao.ho_ten} (tạo việc)`
                     : "—"),
             },
-            { label: "Người thực hiện", val: data.nguoi_phu_trach?.ho_ten || "—" },
+            { label: "Người phụ trách", val: data.nguoi_phu_trach?.ho_ten || "—" },
             { label: "Tổ công tác", val: data.to_cong_tac?.ten_to || "—" },
             {
               label: "Hạn chót",

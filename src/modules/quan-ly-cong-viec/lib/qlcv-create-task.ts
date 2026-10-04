@@ -32,6 +32,13 @@ export type QlcvInsertTaskPayload = {
     ky_do_lai?: string | null;
     gia_tri_luc_tao?: number | null;
   } | null;
+  nguon_lien_ket?: {
+    module: string;
+    id?: string | null;
+    ma?: string | null;
+    label?: string | null;
+    href?: string | null;
+  } | null;
 };
 
 function qlcvTodayDateStr(): string {
@@ -131,6 +138,18 @@ export async function insertQlcvTaskRow(
         }
       : {};
 
+  const nguon = payload.nguon_lien_ket;
+  const nguon_lien_ket =
+    nguon && nguon.module
+      ? {
+          module: String(nguon.module),
+          ...(nguon.id ? { id: String(nguon.id) } : {}),
+          ...(nguon.ma ? { ma: String(nguon.ma) } : {}),
+          ...(nguon.label ? { label: String(nguon.label) } : {}),
+          ...(nguon.href ? { href: String(nguon.href) } : {}),
+        }
+      : null;
+
   const { data, error } = await supabase
     .from(QLCV_FACT_WRITE_TABLE)
     .insert({
@@ -153,6 +172,7 @@ export async function insertQlcvTaskRow(
       is_active: payload.is_active,
       nhat_ky: [],
       analytics_meta,
+      ...(nguon_lien_ket ? { nguon_lien_ket } : {}),
     })
     .select()
     .single();

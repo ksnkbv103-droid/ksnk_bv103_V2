@@ -21,6 +21,7 @@ interface Props {
     id?: string;
     is_active?: boolean;
     analytics_meta?: CongViecInput["analytics_meta"];
+    nguon_lien_ket?: CongViecInput["nguon_lien_ket"];
   };
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -132,11 +133,12 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       nguoi_phoi_hop_ids: phoiHopIds,
       nguoi_theo_doi_ids: theoDoiIds,
       analytics_meta: !initialData?.id ? initialData?.analytics_meta ?? undefined : undefined,
+      nguon_lien_ket: !initialData?.id ? initialData?.nguon_lien_ket ?? undefined : undefined,
     };
 
     if (!initialData?.id && !String(selectedNhanSu || "").trim()) {
       setLoading(false);
-      toast.error("Chọn người thực hiện — việc được giao ngay khi tạo.");
+      toast.error("Chọn người phụ trách — việc được giao ngay khi tạo.");
       return;
     }
     const loai = String(rawPayload.loai_cong_viec || "DOT_XUAT");
@@ -219,7 +221,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
 
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
-            <label className={labelStyles}>Người thực hiện{!initialData?.id ? " *" : ""}</label>
+            <label className={labelStyles}>Người phụ trách{!initialData?.id ? " *" : ""}</label>
             <SearchableSelect
               options={assigneeOptions}
               placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}
@@ -284,7 +286,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
             <SearchableSelect
               options={khoaPhongOptions}
-              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa / đơn vị…"}
               value={selectedKhoa}
               onChange={setSelectedKhoa}
               disabled={optionsLoading}

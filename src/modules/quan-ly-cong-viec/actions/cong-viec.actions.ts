@@ -89,6 +89,7 @@ export async function createCongViec(input: CongViecInput) {
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,
     analytics_meta: payload.analytics_meta ?? null,
+    nguon_lien_ket: payload.nguon_lien_ket ?? null,
   });
 
   await appendQlcvNhatKy(supabase, {

@@ -2,8 +2,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import Link from "next/link";
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildQlcvSourceDeepLink } from "@/lib/analytics/qlcv-source-deep-link";
 import { usePermission } from "@/hooks/usePermission";
 import {
   fetchSuCoFormCatalog,
@@ -733,6 +735,42 @@ export default function SuCoReportForm({
             <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-2" data-testid="batch-recall-group-lock">
               <span className="text-[12px] font-semibold text-amber-900">Sự cố quy trình · Thu hồi theo mẻ</span>
               <span className="text-[11px] text-slate-500">(không mở cửa Hỏng/Mất)</span>
+              <Link
+                href={buildQlcvSourceDeepLink({
+                  from: "CSSD_SU_CO",
+                  tieuDe: "Theo dõi NB sau thu hồi bộ đã dùng",
+                  moTa: [
+                    maQR.trim() ? `Mã QR/bộ: ${maQR.trim()}` : null,
+                    "QT.24: theo dõi NB khi dụng cụ lỗi đã được sử dụng; RCA/khắc phục khi cần.",
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                  sourceMa: maQR.trim() || undefined,
+                  sourceLabel: "Thu hồi mẻ / sự cố CSSD",
+                  sourceHref: "/cssd-su-co",
+                })}
+                className="text-[11px] font-semibold text-sky-800 underline-offset-2 hover:underline"
+              >
+                Tạo việc theo dõi NB
+              </Link>
+              <Link
+                href={buildQlcvSourceDeepLink({
+                  from: "CSSD_SU_CO",
+                  tieuDe: "RCA / khắc phục sự cố CSSD",
+                  moTa: [
+                    maQR.trim() ? `Mã QR/bộ: ${maQR.trim()}` : null,
+                    "QT.24: tổ chức RCA và đề xuất biện pháp.",
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                  sourceMa: maQR.trim() || undefined,
+                  sourceLabel: "RCA sự cố CSSD",
+                  sourceHref: "/cssd-su-co",
+                })}
+                className="text-[11px] font-semibold text-sky-800 underline-offset-2 hover:underline"
+              >
+                Tạo việc RCA / khắc phục
+              </Link>
             </div>
           ) : (
             <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
