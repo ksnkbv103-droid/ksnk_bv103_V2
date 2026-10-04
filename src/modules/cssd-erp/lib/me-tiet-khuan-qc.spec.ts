@@ -113,7 +113,13 @@ describe("assertPackIssuable batch release", () => {
   it("detects sterilization incidents OPEN or confirmed on the batch or set", () => {
     expect(
       isBlockingSterilizationIncident(
-        { quy_trinh_id: "qt-1", attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" } },
+        {
+          quy_trinh_id: "qt-1",
+          attributes: {
+            INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL",
+            INCIDENT_STATUS: "OPEN",
+          },
+        },
         { quyTrinhId: "qt-1", loTietKhuanId: "me-1" },
       ),
     ).toBe(true);
@@ -121,7 +127,11 @@ describe("assertPackIssuable batch release", () => {
       isBlockingSterilizationIncident(
         {
           quy_trinh_id: "other",
-          attributes: { LO_TIET_KHUAN_ID: "me-1", INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "DA_XAC_NHAN" },
+          attributes: {
+            LO_TIET_KHUAN_ID: "me-1",
+            INCIDENT_GROUP: "PROCESS",
+            INCIDENT_STATUS: "DA_XAC_NHAN",
+          },
         },
         { quyTrinhId: "qt-1", loTietKhuanId: "me-1" },
       ),
@@ -132,6 +142,44 @@ describe("assertPackIssuable batch release", () => {
         { quyTrinhId: "qt-1" },
       ),
     ).toBe(false);
+  });
+
+  it("does not block Kiểm bộ fail (PROCESS_QC_FAIL) without batch / TIET_KHUAN", () => {
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "qt-1",
+          attributes: {
+            INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL",
+            INCIDENT_GROUP: "PROCESS",
+            INCIDENT_STATUS: "OPEN",
+          },
+        },
+        { quyTrinhId: "qt-1", loTietKhuanId: "me-1" },
+      ),
+    ).toBe(false);
+  });
+
+  it("blocks batch recall and TIET_KHUAN detection station", () => {
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "qt-1",
+          attributes: { BATCH_RECALL: "1", INCIDENT_STATUS: "OPEN" },
+        },
+        { quyTrinhId: "qt-1" },
+      ),
+    ).toBe(true);
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "qt-1",
+          ma_tram_phat_hien: "TIET_KHUAN",
+          attributes: { INCIDENT_TYPE_CODE: "PROCESS_MISSTEP", INCIDENT_STATUS: "OPEN" },
+        },
+        { quyTrinhId: "qt-1" },
+      ),
+    ).toBe(true);
   });
 });
 

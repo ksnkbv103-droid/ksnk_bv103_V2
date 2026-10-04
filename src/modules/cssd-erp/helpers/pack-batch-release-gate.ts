@@ -3,10 +3,19 @@ import {
   isBlockingSterilizationIncident,
   type PackBatchReleaseGate,
 } from "@/lib/domain/cssd-pack-issuance";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 
 type MeRow = {
   trang_thai_me?: string | null;
   ket_qua_test?: boolean | null;
+};
+
+type IncidentRow = {
+  quy_trinh_id?: string | null;
+  ma_tram_phat_hien?: string | null;
+  ma_tram_gay_loi?: string | null;
+  attributes?: Record<string, unknown> | null;
+  is_active?: boolean | null;
 };
 
 function resolveTrangThaiMe(me: MeRow | null): string | null {
@@ -39,26 +48,21 @@ export async function loadPackBatchReleaseGate(
 
   const filters = [`quy_trinh_id.eq.${quyTrinhId}`];
   if (loId) filters.push(`attributes->>LO_TIET_KHUAN_ID.eq.${loId}`);
-  const { data: incidents, error: incErr } = await client
-    .from("cssd_fact_su_co")
-    .select("quy_trinh_id, ma_tram_phat_hien, ma_tram_gay_loi, attributes, is_active")
-    .eq("is_active", true)
-    .or(filters.join(","))
-    .limit(40);
-  if (incErr) {
+  let incidents: IncidentRow[];
+  try {
+    incidents = await fetchAllRangeRows<IncidentRow>((from, to) =>
+      client
+        .from("cssd_fact_su_co")
+        .select("quy_trinh_id, ma_tram_phat_hien, ma_tram_gay_loi, attributes, is_active")
+        .eq("is_active", true)
+        .or(filters.join(","))
+        .range(from, to),
+    );
+  } catch {
     return { trangThaiMe, hasOpenSterilizationIncident: true };
   }
-  const blocked = (incidents || []).some((row) =>
-    isBlockingSterilizationIncident(
-      row as {
-        quy_trinh_id?: string | null;
-        ma_tram_phat_hien?: string | null;
-        ma_tram_gay_loi?: string | null;
-        attributes?: Record<string, unknown> | null;
-        is_active?: boolean | null;
-      },
-      { quyTrinhId, loTietKhuanId: loId || null },
-    ),
+  const blocked = incidents.some((row) =>
+    isBlockingSterilizationIncident(row, { quyTrinhId, loTietKhuanId: loId || null }),
   );
   return { trangThaiMe, hasOpenSterilizationIncident: blocked };
 }

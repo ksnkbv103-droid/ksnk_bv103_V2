@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assertPackIssuable,
+  isBlockingSterilizationIncident,
   isSterilePackExpired,
   isWetOrDamagedPackTinhTrang,
   resolvePackConditionWrite,
@@ -116,5 +117,42 @@ describe("cssd-pack-issuance", () => {
     expect(resolvePackConditionWrite("BINH_THUONG")).toEqual({ ok: true, tinh_trang: "BINH_THUONG" });
     expect(resolvePackConditionWrite("XYZ").ok).toBe(false);
     expect(resolvePackConditionWrite("").ok).toBe(false);
+  });
+
+  it("CSSD-01: PROCESS_QC_FAIL không chặn; QC mẻ fail / BI+ chặn", () => {
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "c1",
+          attributes: {
+            INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL",
+            INCIDENT_GROUP: "PROCESS",
+            INCIDENT_STATUS: "OPEN",
+          },
+        },
+        { quyTrinhId: "c1", loTietKhuanId: "me-1" },
+      ),
+    ).toBe(false);
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "c1",
+          attributes: {
+            INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL",
+            INCIDENT_STATUS: "OPEN",
+          },
+        },
+        { quyTrinhId: "c1" },
+      ),
+    ).toBe(true);
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "c1",
+          attributes: { INCIDENT_TYPE_CODE: "PROCESS_BI_POSITIVE", INCIDENT_STATUS: "DA_XAC_NHAN" },
+        },
+        { quyTrinhId: "c1" },
+      ),
+    ).toBe(true);
   });
 });
