@@ -285,6 +285,8 @@ export async function saveGiamSatChung(
 
     const sessionPayload = {
       bang_kiem_id: bangKiem.bang_kiem_id,
+      // GSC-01: chụp loại lúc lưu (cột migration 20261005080100 — chưa apply thì insert có thể bỏ qua nếu schema cũ).
+      loai_giam_sat: bangKiem.loai_giam_sat || null,
       khoa_id: khoaNorm,
       khu_vuc_id: sessionData.khu_vuc_id || null,
       vi_tri: sessionData.vi_tri,
@@ -330,21 +332,47 @@ export async function saveGiamSatChung(
     };
 
     let sessionId: string;
+    const isMissingLoaiCol = (err: unknown) =>
+      /loai_giam_sat|schema cache/i.test(
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message?: unknown }).message ?? "")
+          : String(err ?? ""),
+      );
+    const payloadWithoutLoai = (() => {
+      const { loai_giam_sat: _omit, ...rest } = sessionPayload as typeof sessionPayload & {
+        loai_giam_sat?: string | null;
+      };
+      return rest;
+    })();
 
     if (existingSessionId) {
-      const { error: upErr } = await supabase
-        .from("gstt_fact_chung_sessions")
-        .update({
-          ...sessionPayload,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingSessionId);
+      let upErr = (
+        await supabase
+          .from("gstt_fact_chung_sessions")
+          .update({
+            ...sessionPayload,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingSessionId)
+      ).error;
+      if (upErr && isMissingLoaiCol(upErr)) {
+        upErr = (
+          await supabase
+            .from("gstt_fact_chung_sessions")
+            .update({
+              ...payloadWithoutLoai,
+              is_active: true,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingSessionId)
+        ).error;
+      }
       if (upErr) throw upErr;
 
       sessionId = existingSessionId;
     } else {
-      const { data: session, error: sError } = await supabase
+      let insertRes = await supabase
         .from("gstt_fact_chung_sessions")
         .insert({
           ...sessionPayload,
@@ -352,8 +380,18 @@ export async function saveGiamSatChung(
         })
         .select()
         .single();
-      if (sError) throw sError;
-      sessionId = session.id;
+      if (insertRes.error && isMissingLoaiCol(insertRes.error)) {
+        insertRes = await supabase
+          .from("gstt_fact_chung_sessions")
+          .insert({
+            ...payloadWithoutLoai,
+            is_active: true,
+          })
+          .select()
+          .single();
+      }
+      if (insertRes.error) throw insertRes.error;
+      sessionId = insertRes.data.id;
     }
 
     revalidateGscPaths();
