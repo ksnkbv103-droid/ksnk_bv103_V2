@@ -6,6 +6,7 @@ import { resolveQlcvTrangThaiMaForTask } from "./qlcv-initial-trang-thai";
 import { validateAssigneeForQlcv } from "./qlcv-ksnk-server";
 import { resolveQlcvNhiemVuId } from "./qlcv-nhiem-vu-chain";
 import { normalizeQlcvStaffIdList } from "./qlcv-staff-ids";
+import { qlcvTodayVn } from "./qlcv-today-vn";
 
 export type QlcvInsertTaskPayload = {
   tieu_de: string;
@@ -34,7 +35,7 @@ export type QlcvInsertTaskPayload = {
 };
 
 function qlcvTodayDateStr(): string {
-  return new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
+  return qlcvTodayVn();
 }
 
 export function normalizeQlcvHanDate(han: string | null | undefined): string | null {

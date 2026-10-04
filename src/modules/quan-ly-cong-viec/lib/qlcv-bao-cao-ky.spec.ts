@@ -131,6 +131,20 @@ describe("listQuaHanMo / listDongHanTrongKy", () => {
     expect(d.find((x) => x.id === "1")?.ket_qua).toBe("DUNG_HAN");
     expect(d.find((x) => x.id === "2")?.ket_qua).toBe("TRE");
   });
+
+  it("hoàn thành 20:00Z ngày 18 (= 03:00 VN ngày 19) vs hạn 18 → TRE", () => {
+    const rows = [
+      row({
+        id: "3",
+        tieu_de: "vn late",
+        trang_thai: "HOAN_THANH",
+        han_hoan_thanh: "2026-09-18",
+        hoan_thanh_luc: "2026-09-18T20:00:00Z",
+      }),
+    ];
+    const d = listDongHanTrongKy(rows, period);
+    expect(d.find((x) => x.id === "3")?.ket_qua).toBe("TRE");
+  });
 });
 
 describe("rowsToCsv", () => {

@@ -7,6 +7,16 @@
 import { isQlcvLoaiDinhKy } from "./dinh-ky-auto-complete";
 import { normalizeQlcvTrangThaiToCanonical } from "./trang-thai-canonical";
 
+/** Ngày lịch VN — trùng `qlcvTodayVn` (tránh import module I/O; giữ domain thuần). */
+function todayVn(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
 export type QlcvNghiemThuGateInput = {
   trang_thai?: string | null;
   phan_tram_hoan_thanh?: number | null;
@@ -17,12 +27,10 @@ export type QlcvNghiemThuGateInput = {
 
 function isHanHoanThanhDaQua(han: string | null | undefined): boolean {
   if (!han) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const d = new Date(String(han));
-  if (Number.isNaN(d.getTime())) return false;
-  d.setHours(0, 0, 0, 0);
-  return d.getTime() < today.getTime();
+  const s = String(han).trim();
+  const h = /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : "";
+  if (!h) return false;
+  return h < todayVn();
 }
 
 /** Phiếu mở đang làm — kể cả quá hạn theo hạn/cờ; `QUA_HAN` = alias đang làm. */

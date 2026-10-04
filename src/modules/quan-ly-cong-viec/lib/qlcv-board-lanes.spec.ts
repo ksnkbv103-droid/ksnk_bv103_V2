@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { getBoardLaneId, boardLaneToKanbanColumn } from "./qlcv-board-lanes";
+import { getBoardLaneId, boardLaneToKanbanColumn, isQlcvBoardOverdue } from "./qlcv-board-lanes";
 
 describe("getBoardLaneId (§4.3 QLCV)", () => {
   afterEach(() => {
@@ -170,6 +170,23 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     expect(
       getBoardLaneId({ trang_thai: "MOI", is_active: true, nguoi_phu_trach_id: "00000000-0000-4000-8000-000000000001" }),
     ).toBe("lane_dang_lam");
+  });
+});
+
+describe("isQlcvBoardOverdue (ngày VN)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("TZ máy UTC, 17:30Z ngày 5/10, hạn 2026-10-05 → quá hạn", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-05T17:30:00Z"));
+    expect(
+      isQlcvBoardOverdue({
+        trang_thai: "DANG_LAM",
+        han_hoan_thanh: "2026-10-05",
+      }),
+    ).toBe(true);
   });
 });
 

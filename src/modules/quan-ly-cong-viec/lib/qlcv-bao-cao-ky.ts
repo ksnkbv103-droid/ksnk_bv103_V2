@@ -7,6 +7,7 @@ import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-
 import { isQlcvBoardOverdue } from "./qlcv-board-lanes";
 import { isDeXuatChoDuyet } from "./qlcv-workflow-display";
 import type { QlcvPeriodKind, QlcvPeriodRange } from "./qlcv-period-range";
+import { qlcvDateVnFromInstant } from "./qlcv-today-vn";
 
 /** Cap fetch báo cáo — pilot/small volume; UI cảnh báo khi truncated. */
 export const QLCV_BAO_CAO_FETCH_CAP = 2000;
@@ -98,10 +99,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export function isoDateOnly(raw: string | null | undefined): string {
-  if (!raw) return "";
-  const s = String(raw).trim();
-  if (!s) return "";
-  return s.length >= 10 ? s.slice(0, 10) : s;
+  return qlcvDateVnFromInstant(raw);
 }
 
 function inPeriod(iso: string, period: QlcvPeriodRange): boolean {
