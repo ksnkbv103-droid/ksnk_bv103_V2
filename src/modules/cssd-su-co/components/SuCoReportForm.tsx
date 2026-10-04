@@ -610,19 +610,31 @@ export default function SuCoReportForm({
             },
           });
         } else if (res.isRedAlert) {
-          toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ đã sự cố từ 2 lần trở lên.", { duration: 8000 });
+          toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ đã có ≥3 phiếu sự cố quy trình trên chu trình.", {
+            duration: 8000,
+          });
+        } else if (res.batchRecallDeferred) {
+          toast.message(
+            "Đã ghi nhận — bộ đang báo đã cách ly. Thu hồi cả mẻ cần Trưởng CSSD / Admin ra lệnh.",
+            { duration: 8000 },
+          );
         } else {
           toast.success("Đã ghi nhận báo cáo sự cố!");
         }
         if (!luanChuyen) {
-          if (res.recalledCount || res.machineHeld) {
-            const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ về Tiếp nhận` : "";
-            const holdBit = res.machineHeld ? "máy tạm giữ QC (HOLD_QC)" : "";
+          if (res.recalledCount || res.machineHeld || res.holdPendingCount) {
+            const recallBit = res.recalledCount
+              ? `đã xử lý thu hồi ${res.recalledCount} bộ (trong CSSD về TN / chờ thu từ khoa)`
+              : "";
+            const holdPendingBit = res.holdPendingCount
+              ? `${res.holdPendingCount} bộ chờ thu về từ khoa`
+              : "";
+            const holdBit = res.machineHeld ? "máy tạm giữ QC" : "";
             const listed = res.listedUsed || [];
             const listedBit = listed.length
-              ? `${listed.length} bộ đã dùng chỉ liệt kê: ${listed.map((row) => row.maBo).filter(Boolean).join(", ")}`
+              ? `${listed.length} bộ đã dùng — đã tạo việc theo dõi KSNK: ${listed.map((row) => row.maBo).filter(Boolean).join(", ")}`
               : "";
-            toast.message([recallBit, holdBit, listedBit].filter(Boolean).join(" — ") + ".");
+            toast.message([recallBit, holdPendingBit, holdBit, listedBit].filter(Boolean).join(" — ") + ".");
           }
           if (res.incident_id) {
             const printData = await getIncidentForPrint(res.incident_id);
@@ -635,7 +647,16 @@ export default function SuCoReportForm({
         }
       } catch (err: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
-        if (isNetworkError(err)) {
+        // SC-08: thu hồi / BI+ không xếp hàng ngoại tuyến.
+        const batchUnsafe =
+          payload.incidentGroup === "PROCESS" &&
+          (payload.typeId === "PROCESS_BI_POSITIVE" ||
+            payload.typeId === "PROCESS_STERILIZATION_FAIL" ||
+            payload.typeId === "PROCESS_STERILE_QC_FAIL" ||
+            Boolean((payload as { processPayload?: { loTietKhuanId?: string } }).processPayload?.loTietKhuanId));
+        if (isNetworkError(err) && batchUnsafe) {
+          toast.error("Chưa thu hồi — mất mạng. Thử lại hoặc báo Tổ trưởng CSSD.");
+        } else if (isNetworkError(err)) {
           await pushOfflineTask("REPORT_INCIDENT", payload);
           toast.info("Đã lưu ngoại tuyến — sẽ đồng bộ khi có mạng.");
           onSubmitted?.();
