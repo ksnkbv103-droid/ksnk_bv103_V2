@@ -144,7 +144,7 @@ So với [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md
 **Phù hợp**
 
 - RPC strategic, metric dictionary, decision queue, CCS hạ khỏi bề mặt vận hành — đúng “glance → drill → báo cáo”.
-- Cầu QLCV từ gap (VST/GSC/CSSD đỏ/NKBV chờ XN) qua [`src/lib/analytics/decision-queue.ts`](../../../src/lib/analytics/decision-queue.ts), [`qlcv-analytics-deep-link.ts`](../../../src/lib/analytics/qlcv-analytics-deep-link.ts), [`pdca-remeasure.ts`](../../../src/lib/analytics/pdca-remeasure.ts).
+- Cầu QLCV từ gap (VST/GSC/CSSD đỏ/NKBV chờ XN) qua decision-queue.ts (đã gỡ), [`qlcv-analytics-deep-link.ts`](../../../src/lib/analytics/qlcv-analytics-deep-link.ts), [`pdca-remeasure.ts`](../../../src/lib/analytics/pdca-remeasure.ts).
 
 **Khiếm khuyết**
 

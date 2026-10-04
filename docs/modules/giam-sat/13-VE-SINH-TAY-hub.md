@@ -4,7 +4,7 @@
 |--------|---------|
 | Mã | `13-VE-SINH-TAY-hub` |
 | Phiên bản | 2026-09-22 |
-| Domain lock | [`11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md`](./11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md) § PO 18:51 |
+| Domain lock | 11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md § PO 18:51 |
 | Inventory | [`12-BANG-KIEM-inventory-from-KSNK-final.md`](./12-BANG-KIEM-inventory-from-KSNK-final.md) § QT.07 |
 
 ## Điều hướng (nhập liệu)
