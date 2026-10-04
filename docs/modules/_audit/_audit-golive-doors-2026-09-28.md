@@ -734,3 +734,18 @@ Migration **chưa apply**: `…170000` … `…174000`. `tsc` + vitest QLCV + `n
 `120000` SC incident → `121000` heat → `130000` SC batch recall → `140000` ME-01 → `141000` ME-04 → `142000` ME-02 → `143000` ME-03 → `144000` ME-10 → `145000` ME-05 → `150000` ME-07 → `152000` ME-08 → `153000` ME-09 → `154000` sys audit → `154100` ADM-03 → `154200` ADM-04 → **`160000` GS-05** → `170000`…`174000` QLCV → **`175000` orphan map → `175100` loai/orphan views (gộp) → `175200` seed MEC**.
 
 Verify: `src/lib/domain/fix-mig-order-unapplied.spec.ts` (timestamp tăng dần; định nghĩa cuối 4 view GSC có `loai_giam_sat` + `hinh_thuc_id`). Không apply DB trong lát này.
+
+## GSC-MAP-DUYET — Domain duyệt 165 map orphan TC (2026-10-05, nhánh `cursor/mod-qlcv`)
+
+Nguồn Domain §5 CSV (file ngoài repo, chỉ đọc). Áp vào migration chưa apply; không sửa `results_jsonb`.
+
+| Mục | Kết quả |
+|-----|---------|
+| Map | **56** (exact 34 + fuzzy 22); **legacy 109** (bỏ; gồm BM.11.01, BM.19.01, mặc định N-GHEP/N-TIEM/N-MDRO) |
+| `match_confidence` | Chỉ còn `exact` \| `fuzzy` \| `legacy` (bỏ `uncertain`/`none`) |
+| Resolve UPDATE | Chỉ `new_ma_tc` + confidence ∈ exact/fuzzy; **bỏ** nhánh `stt` và fallback `noi_dung` / none→fuzzy |
+| `fn_gsc_resolve_criterion_id` + `resolveCriterionIdForAgg` | Lớp chặn exact/fuzzy — legacy không nhận id mới |
+| UI/báo cáo TC | Nhóm «Tiêu chí cũ (không quy đổi)» cho legacy; tỷ lệ phiên không đổi |
+| File | `20261005175000_gsc_mod_orphan_tc_and_bk_map.sql` · `20261005175100_…loai_filter…` · `gsc-orphan-criterion-resolve.ts` + vitest |
+
+Không apply migration / không SCR APPLY / không push. Thứ tự FIX-MIG-ORDER giữ nguyên (`175000` → `175100` → `175200`).

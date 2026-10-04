@@ -39,9 +39,13 @@ RETURNS uuid
 LANGUAGE sql
 STABLE
 AS $$
+  -- GSC-MAP-DUYET: chỉ quy đổi khi exact/fuzzy (legacy giữ id cũ).
   SELECT COALESCE(
     (SELECT m.new_criterion_id FROM public.gstt_map_tieu_chi_orphan m
-      WHERE m.old_criterion_id = p_criterion_id AND m.new_criterion_id IS NOT NULL LIMIT 1),
+      WHERE m.old_criterion_id = p_criterion_id
+        AND m.new_criterion_id IS NOT NULL
+        AND m.match_confidence IN ('exact', 'fuzzy')
+      LIMIT 1),
     p_criterion_id
   );
 $$;
