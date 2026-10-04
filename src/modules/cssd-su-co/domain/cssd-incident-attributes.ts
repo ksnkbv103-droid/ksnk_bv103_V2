@@ -96,9 +96,8 @@ export function isCirculationIncidentTypeCode(code: string | null | undefined): 
 }
 
 /**
- * Tử số «sự cố» và ngưỡng cảnh báo đỏ.
- * Nháp không vào báo cáo. Phiếu luân chuyển không vào cả hai.
- * `includeDraft`: lúc ghi phiếu, nháp đang mở của chính lần ghi vẫn tính để ngưỡng «lần 2» không lệch.
+ * Tử số «sự cố» báo cáo (mọi nhóm an toàn trừ luân chuyển/nháp/vô hiệu).
+ * `includeDraft`: lúc ghi phiếu, nháp đang mở của chính lần ghi vẫn tính.
  */
 export function countsTowardCssdSafetyTally(
   attrs: Record<string, unknown> | null | undefined,
@@ -109,6 +108,21 @@ export function countsTowardCssdSafetyTally(
   if (isCirculationIncidentTypeCode(readIncidentTypeCode(row))) return false;
   if (!opts?.includeDraft && isSetReconcileDraftAttr(row)) return false;
   return true;
+}
+
+/**
+ * SC-04: cờ đỏ chỉ đếm phiếu PROCESS gắn chu trình.
+ * Ngưỡng: prior ≥ CSSD_RED_ALERT_PRIOR_THRESHOLD → bật ở phiếu thứ (threshold+1) = ≥3.
+ */
+export const CSSD_RED_ALERT_PRIOR_THRESHOLD = 2;
+export const CSSD_RED_ALERT_DISPLAY_MIN = CSSD_RED_ALERT_PRIOR_THRESHOLD + 1;
+
+export function countsTowardCssdRedAlert(
+  attrs: Record<string, unknown> | null | undefined,
+  opts?: { includeDraft?: boolean },
+): boolean {
+  if (!countsTowardCssdSafetyTally(attrs, opts)) return false;
+  return readIncidentGroup(attrs && typeof attrs === "object" ? attrs : {}) === "PROCESS";
 }
 
 export type CssdRedAlertSourceRow = {
@@ -128,7 +142,7 @@ export function isEffectiveCssdRedAlertSource(
   opts?: { includeDraft?: boolean },
 ): boolean {
   if (row.is_active === false) return false;
-  return countsTowardCssdSafetyTally(row.attributes, opts);
+  return countsTowardCssdRedAlert(row.attributes, opts);
 }
 
 /** Overlay kho: chỉ `quy_trinh_id` của phiếu đã gắn cờ đỏ và còn hiệu lực. Không key `ma_qr`. */
@@ -164,7 +178,7 @@ export function collectReportRedQuyTrinhIds(
   return ids;
 }
 
-/** Ngưỡng lần ghi: đếm phiếu còn hiệu lực trên đúng chu kỳ (nháp đang mở vẫn tính). */
+/** SC-04: đếm phiếu PROCESS còn hiệu lực trên đúng chu kỳ (nháp đang mở vẫn tính). */
 export function countPriorSafetyIncidentsOnCycle(
   rows: readonly CssdRedAlertSourceRow[],
   quyTrinhId: string,
@@ -178,6 +192,10 @@ export function countPriorSafetyIncidentsOnCycle(
     n += 1;
   }
   return n;
+}
+
+export function shouldRaiseRedAlert(priorCount: number): boolean {
+  return priorCount >= CSSD_RED_ALERT_PRIOR_THRESHOLD;
 }
 
 export function readCauseClass(attrs: Record<string, unknown>): string | null {
