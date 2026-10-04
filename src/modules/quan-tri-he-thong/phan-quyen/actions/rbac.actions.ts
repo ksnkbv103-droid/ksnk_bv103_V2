@@ -158,6 +158,17 @@ export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
       if (delErr) throw delErr;
     }
 
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    await logAdminAction({
+      action: "CHANGE_RBAC_MATRIX",
+      targetTable: "sys_role_permissions",
+      after: {
+        insertCount: inserts.length,
+        removeCount: removals.length,
+        roleIds: Object.keys(matrix),
+      },
+    });
+
     await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());

@@ -70,11 +70,12 @@ export async function saveNhanSuAction(data: SaveNhanSuInput) {
     } | null = null;
 
     let existingAuthUserId: string | null = null;
+    let existingIsActive: boolean | null = null;
 
     if (id) {
       const { data: existing, error: exErr } = await supabase
         .from("mdm_nhan_su")
-        .select("khoa_id, to_id, chuc_vu_id, chuc_danh_id, vai_tro_he_thong_id, extra_data, auth_user_id")
+        .select("khoa_id, to_id, chuc_vu_id, chuc_danh_id, vai_tro_he_thong_id, extra_data, auth_user_id, is_active")
         .eq("id", id)
         .maybeSingle();
       if (exErr) throw new Error(exErr.message);
@@ -87,6 +88,7 @@ export async function saveNhanSuAction(data: SaveNhanSuInput) {
         };
         existingExtraData = (existing.extra_data as Record<string, unknown>) || {};
         existingAuthUserId = existing.auth_user_id ?? null;
+        existingIsActive = existing.is_active !== false;
       }
     }
 
@@ -155,6 +157,19 @@ export async function saveNhanSuAction(data: SaveNhanSuInput) {
 
     const result = await upsertMasterRow("mdm_nhan_su", id || "", payload as Record<string, unknown>);
     if (!result.success) throw new Error(formatHoSoNhanSuWriteError(result.error) || result.error);
+
+    if (id && existingAuthUserId && validatedData.is_active !== undefined && existingIsActive !== null) {
+      const nextActive = validatedData.is_active !== false;
+      if (existingIsActive !== nextActive) {
+        await logAdminAction({
+          action: "LOCK_UNLOCK_ACCOUNT",
+          targetTable: "mdm_nhan_su",
+          targetId: id,
+          before: { is_active: existingIsActive },
+          after: { is_active: nextActive },
+        });
+      }
+    }
 
     const maNv = String(payload.ma_nv || "").trim();
     let savedId = id || "";

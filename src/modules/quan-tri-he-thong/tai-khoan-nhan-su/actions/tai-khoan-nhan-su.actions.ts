@@ -192,6 +192,14 @@ export async function setStaffKsnkRbacRole(params: {
       };
     }
 
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    await logAdminAction({
+      action: "CHANGE_RBAC_ROLE",
+      targetTable: "mdm_nhan_su",
+      targetId: params.staffId,
+      after: { roleName: canonicalName || null },
+    });
+
     await invalidateUserPermissionsCache();
     revalidatePath("/quan-tri-he-thong/tai-khoan");
     revalidatePath("/quan-tri-he-thong/nhan-su");
