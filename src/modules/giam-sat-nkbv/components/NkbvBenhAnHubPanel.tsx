@@ -140,39 +140,72 @@ export default function NkbvBenhAnHubPanel({
       a.date < b.date ? -1 : a.date > b.date ? 1 : a.id.localeCompare(b.id),
     );
 
+  const reloadInFlightRef = React.useRef(false);
+  const reloadQueuedRef = React.useRef<{ silent?: boolean } | null>(null);
+  const reloadTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const reload = useCallback(async (opts?: { silent?: boolean }) => {
-    if (!opts?.silent) setLoading(true);
-    const res = await getNkbvBenhAnHub(maBenhAn);
-    if (!opts?.silent) setLoading(false);
-    if (!res.success || !res.data) {
-      toast.error(res.error || "Không tải được hub bệnh án");
-      return;
-    }
-    setStay(res.data.stay as Record<string, unknown>);
-    setCases(res.data.cases);
-    // Luôn xếp sớm → muộn theo ngày (rồi id) để timeline ổn định khi thêm yếu tố
-    const tlSorted = sortTimeline(res.data.timeline || []);
-    setTimeline(tlSorted);
-    setDevices(res.data.devices || []);
-    setLocationDays(res.data.locationDays || []);
-    setDeviceDays(res.data.deviceDays || []);
-    setAlerts(res.data.windowAlerts);
-    setMdroCount(res.data.mdroCount);
-    setHasActiveVent(Boolean(res.data.hasActiveVent));
-    setChuaPhanTichCount(Number(res.data.chuaPhanTichCount || 0));
-    setAnalysisDispositions(
-      (res.data.analysisDispositions || []) as ViSinhAnalysisDispositionRow[],
-    );
-    setSelectedId((prev) => {
-      if (prev && tlSorted.some((m) => m.id === prev)) return prev;
-      const firstIndex = tlSorted.find((m) => isBaIndexMilestone(m));
-      return firstIndex?.id || tlSorted[0]?.id || null;
-    });
-    setIndexMilestoneId((prev) => {
-      if (prev && tlSorted.some((m) => m.id === prev && isBaIndexMilestone(m))) return prev;
-      return tlSorted.find((m) => isBaIndexMilestone(m))?.id || null;
-    });
+    // A) Gọi hub mỗi lần onReload. B) Coalesce + debounce 120ms — chọn B (chống bão RPC).
+    const prevQ = reloadQueuedRef.current;
+    reloadQueuedRef.current = {
+      silent: Boolean(opts?.silent) && Boolean(prevQ?.silent ?? true),
+    };
+    if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    reloadTimerRef.current = setTimeout(() => {
+      void (async () => {
+        if (reloadInFlightRef.current) return;
+        const queued = reloadQueuedRef.current;
+        reloadQueuedRef.current = null;
+        reloadInFlightRef.current = true;
+        const silent = queued?.silent ?? false;
+        if (!silent) setLoading(true);
+        try {
+          const res = await getNkbvBenhAnHub(maBenhAn);
+          if (!res.success || !res.data) {
+            toast.error(res.error || "Không tải được hub bệnh án");
+            return;
+          }
+          setStay(res.data.stay as Record<string, unknown>);
+          setCases(res.data.cases);
+          const tlSorted = sortTimeline(res.data.timeline || []);
+          setTimeline(tlSorted);
+          setDevices(res.data.devices || []);
+          setLocationDays(res.data.locationDays || []);
+          setDeviceDays(res.data.deviceDays || []);
+          setAlerts(res.data.windowAlerts);
+          setMdroCount(res.data.mdroCount);
+          setHasActiveVent(Boolean(res.data.hasActiveVent));
+          setChuaPhanTichCount(Number(res.data.chuaPhanTichCount || 0));
+          setAnalysisDispositions(
+            (res.data.analysisDispositions || []) as ViSinhAnalysisDispositionRow[],
+          );
+          setSelectedId((prev) => {
+            if (prev && tlSorted.some((m) => m.id === prev)) return prev;
+            const firstIndex = tlSorted.find((m) => isBaIndexMilestone(m));
+            return firstIndex?.id || tlSorted[0]?.id || null;
+          });
+          setIndexMilestoneId((prev) => {
+            if (prev && tlSorted.some((m) => m.id === prev && isBaIndexMilestone(m))) return prev;
+            return tlSorted.find((m) => isBaIndexMilestone(m))?.id || null;
+          });
+        } finally {
+          if (!silent) setLoading(false);
+          reloadInFlightRef.current = false;
+          if (reloadQueuedRef.current) {
+            const again = reloadQueuedRef.current;
+            reloadQueuedRef.current = null;
+            void reload(again);
+          }
+        }
+      })();
+    }, 120);
   }, [maBenhAn]);
+
+  useEffect(() => {
+    return () => {
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    };
+  }, []);
 
   /** Patch nhẹ sau tick CĐHA/TC — không gọi lại cả hub (tránh lag). */
   const upsertTimelineLocal = useCallback((row: {
