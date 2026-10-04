@@ -97,7 +97,7 @@ export async function insertQlcvTaskRow(
   if (!payload.ksnkKhoaId) {
     throw new Error("Thiếu cấu hình khoa KSNK.");
   }
-  await assertQlcvDiaDiemKhoaValid(supabase, payload.dia_diem_khoa_id, true);
+  await assertQlcvDiaDiemKhoaValid(supabase, payload.dia_diem_khoa_id, false); // Domain A: optional FE
   const nhiemVuId = await resolveQlcvNhiemVuId(supabase, payload.nhiem_vu_id || null);
   await validateAssigneeForQlcv(supabase, payload.nguoi_phu_trach_id, payload.ksnkKhoaId);
   const phoiHop = normalizeQlcvStaffIdList(payload.nguoi_phoi_hop_ids);

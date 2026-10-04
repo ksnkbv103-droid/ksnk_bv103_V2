@@ -45,6 +45,11 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     nguoi_giam_sat_id: "",
     ngay_giam_sat: new Date().toISOString().split("T")[0]!,
     thoi_gian_bat_dau: "",
+    is_bo_sung_nguoi_benh: false,
+    ma_benh_an: "",
+    ma_nguoi_benh: "",
+    ten_nguoi_benh: "",
+    so_giuong_nguoi_benh: "",
   });
 
   const [persons, setPersons] = useState<VSTFormPerson[]>(createDefaultVSTFormPersons());

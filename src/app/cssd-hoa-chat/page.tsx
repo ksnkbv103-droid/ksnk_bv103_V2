@@ -1,4 +1,4 @@
-import { CSSDChemicalInventoryPage } from "@/modules/cssd-erp/contexts/inventory-chemical/entrypoint";
+import CssdHoaChatClient from "./CssdHoaChatClient";
 
 export const metadata = {
   title: "Kho hóa chất & vật tư KSNK | BV103",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <CSSDChemicalInventoryPage />;
+  return <CssdHoaChatClient />;
 }

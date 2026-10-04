@@ -1,11 +1,13 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 import { CSSD_BATCH_QR_PREFIX, classifyCssdCode } from "../shared/domain/cssd-qr-core";
 import { fetchCssdBatchPrintDataByMaLo } from "./cssd-print.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
+import { markCssdUsedClinically } from "@/modules/cssd-su-co/application/mark-used-clinically.application";
+import { parseUsedClinicallyFromMetadata } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 
 export async function fetchCssdQrHistory(maQr: string) {
   try {
@@ -63,7 +65,8 @@ export async function fetchCssdQrHistory(maQr: string) {
     // Sort by created_at descending (newest first)
     combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    const maCaMoFromMeta = metadata.ma_ca_mo_id != null ? String(metadata.ma_ca_mo_id).trim() : "";
+    const usedState = parseUsedClinicallyFromMetadata(metadata);
+    const maCaMoFromMeta = usedState.maCaMoId || (metadata.ma_ca_mo_id != null ? String(metadata.ma_ca_mo_id).trim() : "");
     const process = {
       ...q,
       ma_vach_qr: q.ma_qr_quy_trinh || q.ma_qr_bo_vinh_vien || qr,
@@ -71,6 +74,10 @@ export async function fetchCssdQrHistory(maQr: string) {
       ma_cycle_qr: q.ma_cycle_qr || null,
       ma_qr_bo_vinh_vien: q.ma_qr_bo_vinh_vien || null,
       ma_ca_mo_id: maCaMoFromMeta || null,
+      used_clinically: usedState.usedClinically,
+      used_clinically_at: usedState.usedClinicallyAt,
+      used_clinically_by: usedState.usedClinicallyBy,
+      used_clinically_source: usedState.usedClinicallySource,
       qr_kind_matched:
         String(q.ma_cycle_qr || "").toUpperCase() === qr
           ? "CYCLE"
@@ -85,7 +92,10 @@ export async function fetchCssdQrHistory(maQr: string) {
   }
 }
 
-/** Gán ca mổ / bệnh nhân khi truy vết (không nhập tại trạm Cấp phát workflow). */
+/**
+ * Gán ca mổ / bệnh nhân khi truy vết = sự kiện lâm sàng Domain 23 A
+ * (used_clinically + actor + timestamp). Không silent trên print CAP_PHAT.
+ */
 export async function assignCssdCaMoTrace(quyTrinhId: string, maCaMoId: string) {
   try {
     await verifyCssdWorkflowView();
@@ -95,20 +105,17 @@ export async function assignCssdCaMoTrace(quyTrinhId: string, maCaMoId: string) 
     if (!id) return { success: false as const, error: "Thiếu mã quy trình" };
     if (!val) return { success: false as const, error: "Nhập mã ca mổ hoặc tên bệnh nhân" };
 
-    const { data: row, error: readErr } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("metadata")
-      .eq("id", id)
-      .maybeSingle();
-    if (readErr) return { success: false as const, error: readErr.message };
-    if (!row) return { success: false as const, error: "Không tìm thấy quy trình" };
+    const uc = await createServerSupabaseUserClient();
+    const { data: authData } = await uc.auth.getUser();
+    const actor = String(authData.user?.id || authData.user?.email || "").trim();
+    if (!actor) return { success: false as const, error: "Không xác định được người thực hiện (actor)." };
 
-    const meta = (row as { metadata?: Record<string, unknown> }).metadata || {};
-    const { error } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({ metadata: { ...meta, ma_ca_mo_id: val } })
-      .eq("id", id);
-    if (error) return { success: false as const, error: error.message };
+    await markCssdUsedClinically(supabase, {
+      quyTrinhId: id,
+      actor,
+      source: "CLINICAL",
+      maCaMoId: val,
+    });
 
     return { success: true as const };
   } catch (e: unknown) {

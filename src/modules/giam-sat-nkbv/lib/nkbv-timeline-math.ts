@@ -85,6 +85,106 @@ export function isHaiSuspectByDay3Rule(
 /**
  * DOE, IWP/EventPeriod, SBAP, location attribution — SSOT §3 + deltas.
  */
+
+/**
+ * LOA / Transfer Rule — SSOT §B.2.5 · DoD 20c Domain A (calendar day, không 48h đồng hồ).
+ * - LOA = khoa BN đang nằm vào DOE, trừ Transfer Rule.
+ * - Transfer: DOE = ngày chuyển hoặc ngày sau → khoa chuyển đi.
+ * - ≥2 khoa trong cửa sổ 24h lịch trước DOE → khoa **đầu** của ngày lịch trước DOE (không longest-stay).
+ * - Grid trống / không khớp DOE → không gán LOA im lặng; warn (khớp L07).
+ */
+export function attributeLocationOfAttribution(
+  treatmentHistory: DepartmentStay[],
+  doeRaw: string,
+): { attributedStay: DepartmentStay | null; attributionReason: string } {
+  const doe = doeRaw ? doeRaw.slice(0, 10) : "";
+  if (!doe) {
+    return {
+      attributedStay: null,
+      attributionReason: "Không xác định được ngày sự kiện — không quy kết LOA.",
+    };
+  }
+
+  const stays = [...treatmentHistory]
+    .filter((s) => s && String(s.ngay_vao || "").slice(0, 10))
+    .sort((a, b) => a.ngay_vao.localeCompare(b.ngay_vao));
+
+  if (stays.length === 0) {
+    return {
+      attributedStay: null,
+      attributionReason:
+        "Thiếu lịch sử khoa (ba_ngay_khoa trống) — không quy kết LOA. Nhập đủ ngày–khoa trước khi chốt ca.",
+    };
+  }
+
+  const dayBefore = subDays(doe, 1);
+
+  let activeIndex = -1;
+  for (let i = stays.length - 1; i >= 0; i--) {
+    const s = stays[i];
+    const v = String(s.ngay_vao).slice(0, 10);
+    const r = s.ngay_ra ? String(s.ngay_ra).slice(0, 10) : "9999-12-31";
+    if (doe >= v && doe <= r) {
+      activeIndex = i;
+      break;
+    }
+  }
+
+  /** Khoa chạm cửa sổ calendar [ngày trước DOE … DOE]: overlap day-before hoặc bắt đầu trong cửa sổ. */
+  const windowKhoaIds = new Set<string>();
+  const staysOnDayBefore: DepartmentStay[] = [];
+  for (const s of stays) {
+    const v = String(s.ngay_vao).slice(0, 10);
+    const r = s.ngay_ra ? String(s.ngay_ra).slice(0, 10) : "9999-12-31";
+    const overlapsDayBefore = v <= dayBefore && dayBefore <= r;
+    const startsInWindow = v >= dayBefore && v <= doe;
+    if (overlapsDayBefore || startsInWindow) {
+      windowKhoaIds.add(s.khoa_id);
+    }
+    if (overlapsDayBefore) {
+      staysOnDayBefore.push(s);
+    }
+  }
+
+  if (windowKhoaIds.size >= 2) {
+    const firstOfDayBefore =
+      staysOnDayBefore.length > 0
+        ? [...staysOnDayBefore].sort((a, b) => a.ngay_vao.localeCompare(b.ngay_vao))[0]
+        : stays.find((s) => String(s.ngay_vao).slice(0, 10) === dayBefore) || null;
+    if (firstOfDayBefore) {
+      return {
+        attributedStay: firstOfDayBefore,
+        attributionReason: `Quy kết multi-khoa 24h → khoa đầu ngày trước DOE [${formatKhoaCompactLabel(firstOfDayBefore)}] (DOE=${doe}, ngày trước=${dayBefore}).`,
+      };
+    }
+  }
+
+  if (activeIndex !== -1) {
+    const activeStay = stays[activeIndex];
+    const activeVao = String(activeStay.ngay_vao).slice(0, 10);
+    const isTransferDay = activeVao === doe;
+    const isDayAfterTransfer = activeVao === dayBefore;
+
+    if ((isTransferDay || isDayAfterTransfer) && activeIndex > 0) {
+      const prev = stays[activeIndex - 1];
+      return {
+        attributedStay: prev,
+        attributionReason: `Quy kết cho khoa chuyển đi [${formatKhoaCompactLabel(prev)}] do ngày sự kiện (${doe}) trùng với ngày chuyển khoa hoặc ngày kế tiếp.`,
+      };
+    }
+    return {
+      attributedStay: activeStay,
+      attributionReason: `Quy kết cho khoa đang điều trị [${formatKhoaCompactLabel(activeStay)}] do ngày sự kiện xảy ra từ ngày thứ 2 sau chuyển khoa trở đi.`,
+    };
+  }
+
+  return {
+    attributedStay: null,
+    attributionReason:
+      "Không tìm thấy khoa khớp với ngày sự kiện trong lịch sử điều trị — không quy kết LOA im lặng. Kiểm tra ba_ngay_khoa / lưới ngày–khoa.",
+  };
+}
+
 export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   const { ngay_phat_hien, ngay_vao_vien, checklistType, activeForm, symptomDates, treatmentHistory } =
     input;
@@ -230,39 +330,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   const { dayOfHospitalization, haiStatus } = poaOrHai(ngay_vao_vien_clean, doe);
 
   const stays = [...treatmentHistory].sort((a, b) => a.ngay_vao.localeCompare(b.ngay_vao));
-  let attributedStay: DepartmentStay | null = null;
-  let attributionReason = "";
-
-  if (doe && stays.length > 0) {
-    let activeIndex = -1;
-    for (let i = stays.length - 1; i >= 0; i--) {
-      const s = stays[i];
-      const v = s.ngay_vao;
-      const r = s.ngay_ra || "9999-12-31";
-      if (doe >= v && doe <= r) {
-        activeIndex = i;
-        break;
-      }
-    }
-
-    if (activeIndex !== -1) {
-      const activeStay = stays[activeIndex];
-      const isTransferDay = activeStay.ngay_vao === doe;
-      const isDayAfterTransfer = activeStay.ngay_vao === subDays(doe, 1);
-
-      if ((isTransferDay || isDayAfterTransfer) && activeIndex > 0) {
-        attributedStay = stays[activeIndex - 1];
-        attributionReason = `Quy kết cho khoa chuyển đi [${formatKhoaCompactLabel(attributedStay)}] do ngày sự kiện (${doe}) trùng với ngày chuyển khoa hoặc ngày kế tiếp.`;
-      } else {
-        attributedStay = activeStay;
-        attributionReason = `Quy kết cho khoa đang điều trị [${formatKhoaCompactLabel(attributedStay)}] do ngày sự kiện xảy ra từ ngày thứ 2 sau chuyển khoa trở đi.`;
-      }
-    } else {
-      attributedStay = stays[stays.length - 1];
-      attributionReason =
-        "Không tìm thấy khoa khớp với ngày sự kiện trong lịch sử điều trị. Quy kết mặc định theo khoa hiện tại.";
-    }
-  }
+  const { attributedStay, attributionReason } = attributeLocationOfAttribution(stays, doe);
 
   let device_placed_days = 0;
   let device_active_on_event = false;

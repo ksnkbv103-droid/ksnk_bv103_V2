@@ -1,0 +1,109 @@
+{
+  "ma": "KSNK.QT.07.BM.02",
+  "ten": "Bảng kiểm đánh giá kỹ thuật vệ sinh tay thường quy",
+  "ho_form": "BK",
+  "chuyen_de": "Vệ sinh tay",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Tháo trang sức, móng ngắn trước khi VST thường quy",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Chọn đúng phương pháp: ABHR mặc định; xà phòng–nước khi tay bẩn nhìn thấy / sau vệ sinh / C. difficile / norovirus",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Bước 1 — Chà hai lòng bàn tay (≥5 lần / bước)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Bước 2 — Lòng bàn tay này lên mu bàn tay kia và ngược lại",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Bước 3 — Chà kẽ ngón",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Bước 4 — Mu các ngón khum vào lòng bàn tay đối diện",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Bước 5 — Xoay ngón cái trong lòng bàn tay đối diện",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Bước 6 — Chà đầu ngón tay vào lòng bàn tay đối diện",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Đủ thể tích (3–5 ml) và đủ thời gian (ABHR 20–30 giây / xà phòng 40–60 giây)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "ABHR: để khô tự nhiên, không lau khăn, không vẫy tay; không dùng ABHR trên tay ướt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Xà phòng: xả mũi bàn tay xuôi xuống; lau khăn giấy dùng một lần; khóa vòi bằng khăn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Có găng: VST trước mang và ngay sau tháo; không rửa găng, không dùng găng kéo dài",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "QT.07 §sáu bước kỹ thuật + bảng bước 3–4,7 / ipc-updated/QT/KSNK.QT.07.md",
+  "ghi_chu": "",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "TC kỹ thuật 6 bước ABHR/xà phòng — quan sát tay nghề tại điểm chăm sóc. Hub SURF_BM02."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "bac_si",
+    "dieu_duong",
+    "ky_thuat_vien"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "surf_ownership": "SURF_BM02",
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|diem_cham_soc",
+  "ly_do_phan_bo": "TC kỹ thuật 6 bước ABHR/xà phòng — quan sát tay nghề tại điểm chăm sóc. Hub SURF_BM02."
+}

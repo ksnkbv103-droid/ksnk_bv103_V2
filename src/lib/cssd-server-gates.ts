@@ -54,6 +54,11 @@ export async function verifyCssdBatchEdit(): Promise<void> {
   await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
 }
 
+/** AB-6 A: tổ trưởng CSSD — Soft maps to RBAC `CSSD_ME_TIET_KHUAN.qc` (implant HOAN_THANH / nhả từ CHO_BI). */
+export async function verifyCssdBatchQc(): Promise<void> {
+  await verifyPermission("CSSD_ME_TIET_KHUAN", "qc");
+}
+
 export async function verifyCssdQrHubView(): Promise<void> {
   try {
     await verifyCssdWorkflowView();

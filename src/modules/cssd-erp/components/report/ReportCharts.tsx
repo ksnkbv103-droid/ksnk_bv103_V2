@@ -37,9 +37,9 @@ export default function ReportCharts({ pieData, barData }: Props) {
         </div>
       </div>
 
-      {/* 2. Biểu đồ cột chồng: So sánh mẻ tiệt khuẩn và sự cố */}
+      {/* 2. Lượt hoàn thành trạm trong kỳ vs sự cố phát hiện tại trạm */}
       <div className="bg-white p-8 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm space-y-8">
-        <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Hiệu suất mẻ tiệt khuẩn vs Sự cố</h3>
+        <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Lượt hoàn thành trạm vs Sự cố (kỳ lọc)</h3>
         <div className="h-[320px] w-full min-w-0">
           <Bv103ResponsiveChart className="h-full w-full">
             <BarChart data={barData}>
@@ -48,7 +48,7 @@ export default function ReportCharts({ pieData, barData }: Props) {
               <YAxis axisLine={false} tickLine={false} fontSize={9} />
               <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{borderRadius: '24px', border: 'none'}} />
               <Legend verticalAlign="top" align="right" height={36} iconType="circle" wrapperStyle={{fontSize: '9px', fontWeight: 'bold'}} />
-              <Bar dataKey="batches" name="Tổng mẻ" fill="var(--primary)" radius={[8, 8, 0, 0]} barSize={24} />
+              <Bar dataKey="batches" name="Lượt hoàn thành" fill="var(--primary)" radius={[8, 8, 0, 0]} barSize={24} />
               <Bar dataKey="incidents" name="Sự cố" fill="#dc2626" radius={[8, 8, 0, 0]} barSize={24} />
             </BarChart>
           </Bv103ResponsiveChart>

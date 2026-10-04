@@ -192,3 +192,29 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+describe("vstSaveSessionSchema — Bổ sung người bệnh optional", () => {
+  it("accept khi tắt NB (default / gan_nb=false)", () => {
+    const parsed = parse([observation()], {
+      ...baseSession,
+      is_bo_sung_nguoi_benh: false,
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("accept khi thiếu hẳn field NB (không reject)", () => {
+    expect(parse([observation()], baseSession).success).toBe(true);
+  });
+
+  it("accept khi bật NB kèm mã/tên/giường", () => {
+    const parsed = parse([observation()], {
+      ...baseSession,
+      is_bo_sung_nguoi_benh: true,
+      ma_benh_an: "BA-1",
+      ma_nguoi_benh: "NB-1",
+      ten_nguoi_benh: "Nguyễn A",
+      so_giuong_nguoi_benh: "G1",
+    });
+    expect(parsed.success).toBe(true);
+  });
+});

@@ -39,7 +39,9 @@ export default function ReportDashboard({ stats, alerts }: Props) {
           title="100 − (sự cố ÷ quy trình) × 100 trong kỳ lọc. Chỉ số CSSD riêng — không phải tuân thủ giám sát VST–GSC."
         >
           Không sự cố{" "}
-          <span className="font-semibold tabular-nums">{stats.tyLeQuyTrinhKhongSuCo}%</span>
+          <span className="font-semibold tabular-nums">
+            {stats.tyLeQuyTrinhKhongSuCo === "—" ? "—" : `${stats.tyLeQuyTrinhKhongSuCo}%`}
+          </span>
         </span>
         <span className="text-slate-300" aria-hidden>
           ·
@@ -74,7 +76,7 @@ export default function ReportDashboard({ stats, alerts }: Props) {
                 key={i}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-white px-2 py-1 text-[11px]"
               >
-                <span className="font-semibold text-slate-800">{a.name.replace("_", " ")}</span>
+                <span className="font-semibold text-slate-800">{a.name}</span>
                 <span className="font-medium text-red-700">{a.rate}%</span>
               </span>
             ))}

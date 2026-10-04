@@ -1,3 +1,5 @@
+import type { RitPriorEvent } from "../lib/nkbv-rit-hard-stop";
+
 export interface DepartmentStay {
   khoa_id: string;
   ten_khoa: string;
@@ -18,6 +20,13 @@ export type NkbvAnalysisIndexFields = {
   ruled_out?: boolean;
   ruled_out_reasons?: string[];
   ruled_out_note?: string;
+  /**
+   * Ca trước cùng BA cho Ch.2 RIT hard-stop (DoD 20a=A).
+   * SSI/VAE bỏ qua. Bridge/write inject — evaluate* no-op nếu thiếu.
+   */
+  rit_prior_events?: RitPriorEvent[];
+  /** Loại trừ chính phiếu đang sửa khỏi RIT lookup. */
+  rit_exclude_event_ids?: string[];
 };
 
 export interface BsiVerificationData extends NkbvAnalysisIndexFields {
@@ -36,12 +45,26 @@ export interface BsiVerificationData extends NkbvAnalysisIndexFields {
   cvc_active_on_event: boolean; // CVC còn lưu trong ngày DOE hoặc ngày ngay trước đó
   device_placed_date?: string; // Ngày đặt CVC (Mới)
   device_removed_date?: string; // Ngày rút CVC (Mới, nếu có)
-  is_neutropenia: boolean; // ANC < 500 hoặc ghép tế bào gốc
+  is_neutropenia: boolean; // Legacy tick — KHÔNG đủ MBI một mình (BSI-P0-1)
+  /** Soft 20e — Ch.4 criterion 1a attest: allo HSCT ≤1y + GI GVHD III/IV (cite cdc-ch4.txt:415-418). */
   has_hsct_or_gvhd?: boolean;
+  /**
+   * Soft 20e — Ch.4 neutropenia attest: ≥2 separate days ANC and/or WBC <500 cells/mm³
+   * in blood collection ±3 calendar days (cite cdc-ch4.txt:425-427 · 896-897). Flag PO G.1#1.
+   */
   anc_wbc_lt_500_ge_2d?: boolean;
-  /** MBI-LCBI — tiêu chảy nặng ≥1L/24h (hoặc ≥20 mL/kg/24h) trong 7 ngày trước cấy máu (+) */
+  /**
+   * Soft 20e — Ch.4 criterion 1b diarrhea (≥1 L/24h or ≥20 mL/kg/24h; onset ≤7d before blood).
+   * Alone ≠ barrier — requires allo HSCT (cite 415-421).
+   */
   has_severe_diarrhea_mbi?: boolean;
-  is_intestinal_pathogen: boolean; // Tác nhân đường ruột (Candida, Enterococcus, Bacteroides...)
+  /**
+   * Optional raw ANC/WBC series for Soft Soft window eval (cite 425-427).
+   * When present with blood_collection_date, engine may meet neutropenia without boolean tick.
+   */
+  anc_wbc_samples?: Array<{ date: string; anc?: number | null; wbc?: number | null }>;
+  /** Interim MBI-eligible organism proxy — G.1#5 NHSN Terminology Browser still open (no closed hard-code). */
+  is_intestinal_pathogen: boolean;
   has_localized_infection: boolean; // Có ổ nhiễm trùng tại chỗ khác đạt chuẩn CDC (VAP, CAUTI, SSI...)
   localized_pathogen_matches: boolean; // Vi khuẩn trong máu trùng với vi khuẩn tại ổ nhiễm trùng tại chỗ
   is_in_sbap_window: boolean; // Cấy máu được lấy trong khung SBAP 14 ngày của ca bệnh tại chỗ
@@ -65,11 +88,17 @@ export interface BsiVerificationData extends NkbvAnalysisIndexFields {
   hai_status?: 'HAI' | 'POA';
 }
 
-/** Một ngày theo dõi máy thở (PEEP/FiO2 tối thiểu). */
+/** Một ngày theo dõi máy thở (PEEP/FiO2 tối thiểu) + mode Ch.10 (20f). */
 export type VaeVentDailyParam = {
   date: string;
   peep_min: number | null;
   fio2_min: number | null;
+  /** ECMO/ECLS trọn ngày lịch — loại khỏi VAC stretch (cdc-ch10.txt:126-131). */
+  on_ecmo?: boolean;
+  /** HFV trọn ngày lịch — loại khỏi VAC stretch (cdc-ch10.txt:126-131). */
+  on_hfv?: boolean;
+  /** APRV / related — FiO₂-only, không PEEP-equivalent (cdc-ch10.txt:1466-1472). */
+  on_aprv?: boolean;
 };
 
 export interface VaeVerificationData extends NkbvAnalysisIndexFields {
@@ -79,6 +108,11 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   device_removed_date?: string; // Ngày dừng thở máy (Mới, nếu có)
   /** Bảng PEEP/FiO2 min theo ngày — cò súng VAE (vent-first). */
   vent_daily_params?: VaeVentDailyParam[];
+  /**
+   * NKBV-L11 — DOE ca VAE đang mở cùng BA (hydrate từ prior events).
+   * calculated_doe ∈ Event Period 14d → EVENT_PERIOD_SUPPRESS. Không dùng RIT Ch.2.
+   */
+  prior_open_vae_doe?: string | null;
   has_stable_baseline_peep_fio2: boolean; // Có giai đoạn ổn định: PEEP/FiO2 tối thiểu ổn định hoặc giảm trong >= 2 ngày
   peep_increase_ge_3: boolean; // PEEP tối thiểu tăng >= 3 cmH2O trong >= 2 ngày liên tiếp ngay sau đó
   fio2_increase_ge_20: boolean; // FiO2 tối thiểu tăng >= 0.20 (20%) trong >= 2 ngày liên tiếp ngay sau đó
@@ -92,9 +126,17 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   has_purulent_sputum_and_positive_culture: boolean; // Đờm mủ (Gram >= 25 BCĐN và <= 10 tb vảy) + Cấy dịch hô hấp (+)
   has_quantitative_culture_positive: boolean; // Cấy định lượng đạt ngưỡng (BAL >= 10^4, ETA >= 10^5 CFU/ml)
   has_respiratory_viral_or_pathogen_test_positive: boolean; // Test virus/Legionella (+) hoặc sinh thiết phổi phù hợp
-  /** Ngày trên APRV/HFV — loại khỏi VAC eligibility (NHSN). */
+  /**
+   * Legacy combined APRV/HFV checkbox.
+   * Soft Soft 20f: map → APRV FiO₂-only (NOT HFV exclude). Prefer on_aprv / on_hfv.
+   * Flag PO G.1#2.
+   */
   on_aprv_or_hfv?: boolean;
-  /** Ngày trên ECMO — loại khỏi giám sát VAE. */
+  /** APRV / related mode — FiO₂-only VAC (Ch.10). */
+  on_aprv?: boolean;
+  /** HFV full calendar day — excluded from VAE VAC stretch (Ch.10). */
+  on_hfv?: boolean;
+  /** ECMO/ECLS full calendar day — excluded from VAE VAC stretch (Ch.10). */
   on_ecmo?: boolean;
   
   // Non-ventilated adult / pediatric PNEU criteria (VAP lâm sàng / HAP)

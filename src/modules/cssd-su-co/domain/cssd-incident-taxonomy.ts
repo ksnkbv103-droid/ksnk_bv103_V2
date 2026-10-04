@@ -1,3 +1,4 @@
+import { STATION_LABEL, WORKFLOW_STEPS } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import {
   INSTRUMENT_MOVE_TYPE_ID,
@@ -43,13 +44,23 @@ export function isAccountabilityCause(code?: string | null): boolean {
   return code === "SC_QUY_TRINH" || code === "SC_CHU_QUAN";
 }
 
+/** Nhãn cửa trực tiếp (IA A 2026-09-27) — không còn shell An toàn / Biến động. */
 export const INCIDENT_GROUP_LABEL: Record<IncidentGroup, string> = {
-  PROCESS: "Quy trình (an toàn QT)",
-  INSTRUMENT: "Biến động dụng cụ",
-  CHEMICAL: "Hóa chất (an toàn HC)",
-  EQUIPMENT: "Máy (an toàn thiết bị)",
-  OTHER: "Khác",
+  PROCESS: "Sự cố quy trình",
+  INSTRUMENT: "Hỏng/Mất",
+  CHEMICAL: "Sự cố hóa chất",
+  EQUIPMENT: "Sự cố máy",
+  OTHER: "Sự cố khác",
 };
+
+/** Thứ tự 5 cửa picker type-first (Hỏng/Mất trước — tần suất kho). */
+export const DIRECT_INCIDENT_DOORS: IncidentGroup[] = [
+  "INSTRUMENT",
+  "PROCESS",
+  "CHEMICAL",
+  "EQUIPMENT",
+  "OTHER",
+];
 
 const PROCESS_HINTS = [
   "quy trình",
@@ -96,16 +107,15 @@ export type IncidentPreset = { code: string; label: string };
 export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   PROCESS: [
     { code: "PROCESS_MISSTEP", label: "Sai thao tác quy trình tại khâu" },
-    { code: "PROCESS_QC_FAIL", label: "Không đạt kiểm tra chất lượng tại khâu" },
+    { code: "PROCESS_QC_FAIL", label: "Không đạt Kiểm bộ tại khâu" },
     { code: "PROCESS_STERILIZATION_FAIL", label: "Chất lượng tiệt khuẩn / mẻ không đạt" },
     { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
-  /** D2: chỉ 3 cửa UI. D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */
-  /** A 2026-09-18: chỉ Hỏng/Mất + Chuyển. Đổi danh mục master → /cssd-dung-cu DE_NGHI. */
+  /** D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */
+  /** G-P0-06: sự cố dụng cụ chỉ Hỏng/Mất. Luân chuyển số lượng → /cssd-dung-cu tab LUAN_CHUYEN. Đề nghị danh mục → DE_NGHI. */
   INSTRUMENT: [
     { code: INSTRUMENT_PHYSICAL_DOOR_ID, label: "Hỏng/Mất" },
-    { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển kho·bộ" },
   ],
   CHEMICAL: [
     { code: "CHEMICAL_STOCK_OUT", label: "Thiếu hóa chất / vật tư" },
@@ -120,31 +130,15 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   OTHER: [{ code: "OTHER_CUSTOM", label: "Khác — mô tả chi tiết ở phần dưới" }],
 };
 
-export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> = [
-  { value: "TIEP_NHAN", label: "Tiếp nhận" },
-  { value: "LAM_SACH", label: "Làm sạch" },
-  { value: "QC", label: "Kiểm tra chất lượng (QC)" },
-  { value: "DONG_GOI", label: "Đóng gói" },
-  { value: "TIET_KHUAN", label: "Tiệt khuẩn" },
-  { value: "CAP_PHAT", label: "Cấp phát" },
-];
+export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> = WORKFLOW_STEPS.map(
+  (value) => ({ value, label: STATION_LABEL[value] }),
+);
 
-/** Biến động: 2 cửa (A 2026-09-18). Legacy SET_RECONCILE không còn picker. */
+/** Sự cố dụng cụ: chỉ Hỏng/Mất. Luân chuyển không nằm picker này. */
 export function instrumentFormTypeOptions(): IncidentPreset[] {
   return INCIDENT_TYPE_PRESETS.INSTRUMENT;
 }
 
-export const SAFETY_INCIDENT_GROUPS: IncidentGroup[] = ["PROCESS", "CHEMICAL", "EQUIPMENT", "OTHER"];
-
-export type SuCoHub = "SAFETY" | "INSTRUMENT";
-
-export function hubOfIncidentGroup(group: IncidentGroup): SuCoHub {
-  return group === "INSTRUMENT" ? "INSTRUMENT" : "SAFETY";
-}
-
-export function defaultGroupForHub(hub: SuCoHub): IncidentGroup {
-  return hub === "INSTRUMENT" ? "INSTRUMENT" : "PROCESS";
-}
 
 /** Deep-link / bookmark legacy type ids — coerce → 3 cửa; không xóa mã lịch sử sổ. */
 export const LEGACY_INSTRUMENT_TYPE_IDS = [

@@ -7,6 +7,16 @@ export function quanTriTaiKhoanHref(): string {
   return QUAN_TRI_TAI_KHOAN_PATH;
 }
 
+/** Phiếu chờ trên Nhân sự — cùng tập `PENDING_ACCOUNT_REQUEST_CONTAINS`. */
+export function quanTriNhanSuPendingHref(): string {
+  return "/quan-tri-he-thong/nhan-su?pending=1";
+}
+
+/** Hồ sơ đang dùng, chưa gắn Auth — cùng lọc sức khỏe «chưa có tài khoản». */
+export function quanTriNhanSuChuaTkHref(): string {
+  return "/quan-tri-he-thong/nhan-su?chuaTk=1";
+}
+
 export type QuanTriHubTab = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
 
 const TAB_QUERY: Record<QuanTriHubTab, string> = {

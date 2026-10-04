@@ -26,7 +26,15 @@ export function parseSetReconcileSnapshot(raw: unknown): SetReconcileSnapshot | 
 
 export function readSetReconcileStatus(attrs: Record<string, unknown>): SetReconcileStatus | null {
   const raw = String(attrs.SET_RECONCILE_STATUS ?? attrs.set_reconcile_status ?? "").trim();
-  if (raw === "DRAFT" || raw === "NONE" || raw === "BOM_PENDING" || raw === "BOM_APPROVED" || raw === "BOM_REJECTED") {
+  if (
+    raw === "DRAFT" ||
+    raw === "NONE" ||
+    raw === "BOM_PENDING" ||
+    raw === "BOM_APPLYING" ||
+    raw === "BOM_APPLY_FAILED" ||
+    raw === "BOM_APPROVED" ||
+    raw === "BOM_REJECTED"
+  ) {
     return raw;
   }
   return null;

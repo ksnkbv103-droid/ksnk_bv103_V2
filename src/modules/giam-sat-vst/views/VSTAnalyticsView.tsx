@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useVstAnalyticsData } from "../hooks/use-vst-analytics-data";
 import {
@@ -86,9 +87,12 @@ export default function VSTAnalyticsView() {
         loading={d.loading}
         loadError={d.loadError}
       />
-      <p className="px-1 text-[11px] text-slate-500">
-        Chỉ thống kê khoa. Nhập / lịch sử phiên qua ModeNav. Không tạo việc từ trang này —
-        Báo cáo chính thức dùng để in/điều hành, không thay trang thống kê.
+      <p className="px-1 text-[11px] leading-snug text-slate-500">
+        Chỉ thống kê khoa — không phải bản ký gửi Ban Giám đốc. Bản ký nằm ở{" "}
+        <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
+          Báo cáo chính thức
+        </Link>
+        . Nhập và lịch sử phiên qua ModeNav. Không tạo việc từ trang này.
       </p>
     </Bv103AnalyticsPageFrame>
   );

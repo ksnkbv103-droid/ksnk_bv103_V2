@@ -182,6 +182,8 @@ export function prepopulateVaeData(row: Record<string, any>, existing: Record<st
     has_blood_culture_in_event_period: existing.has_blood_culture_in_event_period ?? false,
     blood_respiratory_pathogen_matches: existing.blood_respiratory_pathogen_matches ?? false,
     on_aprv_or_hfv: existing.on_aprv_or_hfv ?? false,
+    on_aprv: existing.on_aprv ?? false,
+    on_hfv: existing.on_hfv ?? false,
     on_ecmo: existing.on_ecmo ?? false,
   };
   return applyPneuLabDerivedFlags(base);

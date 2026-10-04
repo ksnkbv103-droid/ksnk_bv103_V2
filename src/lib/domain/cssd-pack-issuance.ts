@@ -19,18 +19,47 @@ export const PACK_NON_ISSUABLE_TINH_TRANG = [
   "MAT",
 ] as const;
 
-/** Giá trị tinh_trang được phép ghi từ kho / kiểm gói trước CAP_PHAT. */
+/** Giá trị tinh_trang bao gói được phép ghi từ kho / kiểm gói trước CAP_PHAT. */
 export const PACK_RECORDABLE_TINH_TRANG = [
   PACK_DEFAULT_ISSUABLE_TINH_TRANG,
   "UOT",
   "GOI_UOT",
   "RACH",
   "BAN",
-  "HONG",
-  "MAT",
 ] as const;
 
 export type PackRecordableTinhTrang = (typeof PACK_RECORDABLE_TINH_TRANG)[number];
+
+/** Hỏng / Mất bộ: chỉ một cửa Báo sự cố CSSD (phiếu + sổ tồn + khóa bộ) — không ghi qua ô tình trạng gói. */
+export const PACK_INCIDENT_ONLY_TINH_TRANG = ["HONG", "MAT"] as const;
+
+export type PackConditionWrite = { ok: true; tinh_trang: PackRecordableTinhTrang } | { ok: false; message: string };
+
+/** S-E W5: kiểm giá trị trước khi ghi tình trạng gói (không bao giờ đổi is_active). */
+export function resolvePackConditionWrite(raw?: string | null): PackConditionWrite {
+  const tinh = normalizePackTinhTrang(raw);
+  if ((PACK_INCIDENT_ONLY_TINH_TRANG as readonly string[]).includes(tinh)) {
+    return {
+      ok: false,
+      message:
+        "Hỏng / Mất bộ ghi tại Báo sự cố CSSD (/cssd-su-co) — phiếu sự cố trừ tồn và khóa bộ. Ô tình trạng gói chỉ ghi bao gói.",
+    };
+  }
+  if (!(PACK_RECORDABLE_TINH_TRANG as readonly string[]).includes(tinh)) {
+    return {
+      ok: false,
+      message: `Tình trạng gói không hợp lệ (${raw || "—"}). Chọn Bình thường / Ướt / Rách / Bẩn.`,
+    };
+  }
+  return { ok: true, tinh_trang: tinh as PackRecordableTinhTrang };
+}
+
+export type PackBatchReleaseGate = {
+  /** `trang_thai_me` của mẻ gắn bộ. Thiếu hoặc khác HOAN_THANH → chặn. */
+  trangThaiMe?: string | null;
+  /** Sự cố tiệt khuẩn OPEN hoặc đã xác nhận gắn mẻ/bộ. */
+  hasOpenSterilizationIncident?: boolean | null;
+};
 
 export type PackIssuanceInput = {
   han_su_dung?: string | null;
@@ -40,6 +69,11 @@ export type PackIssuanceInput = {
   is_dong_bang?: boolean | null;
   /** YYYY-MM-DD — mặc định hôm nay theo lịch VN (Asia/Ho_Chi_Minh). */
   todayYmd?: string;
+  /**
+   * Cổng mẻ khi cấp phát thật. Bỏ qua chỉ với lời gọi cũ không đụng mẻ.
+   * Khi có: mẻ phải HOAN_THANH, không CHO_BI, không sự cố tiệt khuẩn mở/đã xác nhận.
+   */
+  batchRelease?: PackBatchReleaseGate | null;
 };
 
 function normalizeHanYmd(raw?: string | null): string | null {
@@ -78,6 +112,41 @@ export function isWetOrDamagedPackTinhTrang(raw?: string | null): boolean {
   return false;
 }
 
+const BLOCKING_INCIDENT_STATUS = new Set(["OPEN", "CONFIRMED", "DA_XAC_NHAN"]);
+
+function incidentStatus(attrs: Record<string, unknown> | null | undefined): string {
+  const raw = String(attrs?.INCIDENT_STATUS ?? attrs?.incident_status ?? "OPEN").trim().toUpperCase();
+  return raw || "OPEN";
+}
+
+/** Sự cố tiệt khuẩn còn mở hoặc đã xác nhận, gắn đúng bộ hoặc đúng mẻ. */
+export function isBlockingSterilizationIncident(
+  row: {
+    quy_trinh_id?: string | null;
+    ma_tram_phat_hien?: string | null;
+    ma_tram_gay_loi?: string | null;
+    attributes?: Record<string, unknown> | null;
+    is_active?: boolean | null;
+  },
+  scope: { quyTrinhId: string; loTietKhuanId?: string | null },
+): boolean {
+  if (row.is_active === false) return false;
+  const attrs = row.attributes && typeof row.attributes === "object" ? row.attributes : {};
+  const status = incidentStatus(attrs);
+  if (!BLOCKING_INCIDENT_STATUS.has(status)) return false;
+
+  const loId = String(scope.loTietKhuanId || "").trim();
+  const linkedLo = String(attrs.LO_TIET_KHUAN_ID ?? attrs.lo_tiet_khuan_id ?? "").trim();
+  const linkedSet = String(row.quy_trinh_id || "").trim() === String(scope.quyTrinhId || "").trim();
+  const linkedBatch = Boolean(loId) && linkedLo === loId;
+  if (!linkedSet && !linkedBatch) return false;
+
+  const group = String(attrs.INCIDENT_GROUP ?? attrs.incident_group ?? "").trim().toUpperCase();
+  const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim().toUpperCase();
+  const tram = `${row.ma_tram_phat_hien || ""} ${row.ma_tram_gay_loi || ""}`.toUpperCase();
+  return group === "PROCESS" || typeCode.startsWith("PROCESS_") || tram.includes("TIET_KHUAN");
+}
+
 export type PackIssuanceResult = { ok: true } | { ok: false; message: string };
 
 /**
@@ -95,13 +164,28 @@ export function assertPackIssuable(input: PackIssuanceInput): PackIssuanceResult
       message: "Bộ đang cảnh báo đỏ (sự cố) — không cấp phát cho đến khi xử lý.",
     };
   }
+  if (input.batchRelease) {
+    const trang = String(input.batchRelease.trangThaiMe || "").trim().toUpperCase();
+    if (trang === "CHO_BI") {
+      return { ok: false, message: "Mẻ đang chờ kết quả BI — bộ chưa được nhả, không cấp phát." };
+    }
+    if (trang !== "HOAN_THANH") {
+      return { ok: false, message: "Mẻ của bộ chưa hoàn thành — không cấp phát." };
+    }
+    if (input.batchRelease.hasOpenSterilizationIncident) {
+      return {
+        ok: false,
+        message: "Mẻ hoặc bộ đang có sự cố tiệt khuẩn chưa đóng — không cấp phát.",
+      };
+    }
+  }
 
   const tinh = normalizePackTinhTrang(input.tinh_trang);
   if (!tinh) {
     return {
       ok: false,
       message:
-        "Thiếu tình trạng gói (tinh_trang) — không cấp phát. Ghi nhận tình trạng tại Kho dụng cụ trước khi CAP_PHAT.",
+        "Thiếu tình trạng gói (tinh_trang) — không cấp phát. Mẻ ĐẠT tự ghi Bình thường; báo quản trị CSSD kiểm tra dữ liệu quy trình.",
     };
   }
   if (tinh === "HONG") {

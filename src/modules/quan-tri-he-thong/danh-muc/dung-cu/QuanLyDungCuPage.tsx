@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClipboardList, Database, History } from "lucide-react";
 import { BoDungCuPageContent } from "./BoDungCuPage";
@@ -16,7 +15,6 @@ import {
   quanTriDungCuHref,
   type DungCuLayer,
 } from "@/lib/master-data/quan-tri-paths";
-import { cssdCatalogEditProposalHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
@@ -29,7 +27,7 @@ const dungCuTabBtn = (active: boolean) =>
 const LAYERS: { id: DungCuLayer; label: string; icon: typeof Database }[] = [
   { id: "bo", label: "Bộ", icon: Database },
   { id: "phieu", label: "Rà soát", icon: ClipboardList },
-  { id: "lich-su", label: "Lịch sử", icon: History },
+  { id: "lich-su", label: "Sổ rà soát", icon: History },
 ];
 
 export default function QuanLyDungCuPage() {
@@ -82,6 +80,8 @@ export default function QuanLyDungCuPage() {
     );
   }
 
+  const showsBo = layer === "bo" || layer === "loai";
+
   return (
     <div className="space-y-3">
       <KsnkPageChrome
@@ -89,33 +89,29 @@ export default function QuanLyDungCuPage() {
         title="Quản lý dụng cụ"
         tabs={
           <div className={`${C.navTabStrip} w-full max-sm:rounded-xl sm:w-fit`} role="tablist" aria-label="Quản lý dụng cụ">
-            {(isAdmin ? LAYERS : LAYERS.filter((t) => t.id !== "phieu")).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={layer === t.id}
-                onClick={() => selectLayer(t.id)}
-                className={dungCuTabBtn(layer === t.id)}
-              >
-                <t.icon size={14} aria-hidden /> {t.label}
-              </button>
-            ))}
+            {(isAdmin ? LAYERS : LAYERS.filter((t) => t.id !== "phieu")).map((t) => {
+              const selected = t.id === "bo" ? showsBo : layer === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => selectLayer(t.id)}
+                  className={dungCuTabBtn(selected)}
+                >
+                  <t.icon size={14} aria-hidden /> {t.label}
+                </button>
+              );
+            })}
           </div>
-        }
-        actions={
-          layer === "phieu" ? (
-            <Link href={cssdCatalogEditProposalHref({ kind: "BOM" })} className={C.btnPrimary}>
-              Lập phiếu rà soát
-            </Link>
-          ) : null
         }
       />
 
       {isAdmin ? (
         <p className="text-[11px] text-slate-500">
           Duyệt đổi danh mục tại tab <span className="font-semibold text-slate-700">Rà soát</span>
-          {" "}(phiếu chờ). Điều chuyển / lấy kho / trả kho ở sự cố CSSD — cửa <span className="font-semibold text-slate-700">Chuyển</span>.
+          {" "}(phiếu chờ). Luân chuyển ở Dụng cụ, tab <span className="font-semibold text-slate-700">Luân chuyển</span>.
         </p>
       ) : (
         <p className="text-[11px] text-slate-500">
@@ -123,7 +119,7 @@ export default function QuanLyDungCuPage() {
         </p>
       )}
 
-      {layer === "bo" ? (
+      {showsBo ? (
         boAllowed.view || leAllowed.view ? (
           <BoDungCuPageContent onOpenLoaiSheet={isAdmin ? () => router.replace(quanTriDungCuHref("loai"), { scroll: false }) : undefined} />
         ) : (
@@ -138,12 +134,14 @@ export default function QuanLyDungCuPage() {
         </div>
       ) : layer === "phieu" ? (
         <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chỉ quản trị duyệt phiếu rà soát danh mục.</p>
-      ) : (
+      ) : layer === "lich-su" ? (
         <SetReconcileHistoryList />
-      )}
+      ) : null}
 
       {loaiSheet && isAdmin ? (
-        <DungCuLoaiSheet onClose={() => router.replace(quanTriDungCuHref(layer), { scroll: false })} />
+        <DungCuLoaiSheet
+          onClose={() => router.replace(quanTriDungCuHref(layer === "loai" ? "bo" : layer), { scroll: false })}
+        />
       ) : null}
     </div>
   );

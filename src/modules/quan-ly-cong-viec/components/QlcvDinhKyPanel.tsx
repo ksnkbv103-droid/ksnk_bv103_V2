@@ -10,13 +10,18 @@ import type { QlcvPeriodKind } from "../lib/qlcv-period-range";
 type Props = {
   highlightMauId?: string | null;
   onRequestPrintPlan?: (period: QlcvPeriodKind) => void;
+  onAfterSpawn?: () => void;
 };
 
 /** Tab mẫu định kỳ — chỉ danh sách/form; không banner giải thích. */
-export function QlcvDinhKyPanel({ highlightMauId, onRequestPrintPlan }: Props) {
+export function QlcvDinhKyPanel({ highlightMauId, onRequestPrintPlan, onAfterSpawn }: Props) {
   return (
     <KsnkSupervisionPanel className={UI.sectionGap}>
-      <DinhKyRulesPanel highlightMauId={highlightMauId} onRequestPrintPlan={onRequestPrintPlan} />
+      <DinhKyRulesPanel
+        highlightMauId={highlightMauId}
+        onRequestPrintPlan={onRequestPrintPlan}
+        onAfterSpawn={onAfterSpawn}
+      />
     </KsnkSupervisionPanel>
   );
 }

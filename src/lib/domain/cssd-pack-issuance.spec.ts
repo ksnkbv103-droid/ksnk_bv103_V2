@@ -3,6 +3,7 @@ import {
   assertPackIssuable,
   isSterilePackExpired,
   isWetOrDamagedPackTinhTrang,
+  resolvePackConditionWrite,
 } from "./cssd-pack-issuance";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 
@@ -99,5 +100,21 @@ describe("cssd-pack-issuance", () => {
   it("blocks HONG / MAT", () => {
     expect(assertPackIssuable({ tinh_trang: "HONG", han_su_dung: "2026-12-01" }).ok).toBe(false);
     expect(assertPackIssuable({ tinh_trang: "MAT", han_su_dung: "2026-12-01" }).ok).toBe(false);
+  });
+
+  it("S-E W5: Hỏng/Mất không ghi qua ô tình trạng gói — một cửa Báo sự cố", () => {
+    for (const v of ["HONG", "MAT", "Mất", "hỏng"]) {
+      const r = resolvePackConditionWrite(v);
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.message).toMatch(/Báo sự cố CSSD/);
+    }
+  });
+
+  it("S-E W5: bao gói hợp lệ (gồm Bẩn) được ghi; giá trị lạ bị chặn", () => {
+    expect(resolvePackConditionWrite("ướt")).toEqual({ ok: true, tinh_trang: "UOT" });
+    expect(resolvePackConditionWrite("BAN")).toEqual({ ok: true, tinh_trang: "BAN" });
+    expect(resolvePackConditionWrite("BINH_THUONG")).toEqual({ ok: true, tinh_trang: "BINH_THUONG" });
+    expect(resolvePackConditionWrite("XYZ").ok).toBe(false);
+    expect(resolvePackConditionWrite("").ok).toBe(false);
   });
 });

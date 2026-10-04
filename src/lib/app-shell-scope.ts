@@ -31,21 +31,48 @@ export type KsnkHeaderBreadcrumb = {
 /** Context bar — zone + trang hiện tại. */
 export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderBreadcrumb {
   const p = normalizePath(pathname);
-  if (p === "/" || p === "") return { zone: "Điều hành", page: "Tổng quan KSNK" };
+  // H2: `/` redirects → BCTH; keep breadcrumb one-door if ever rendered before redirect.
+  if (p === "/" || p === "") return { zone: "Điều hành", page: "Báo cáo chính thức" };
   if (p === "/bao-cao-tong-hop" || p.startsWith("/bao-cao-tong-hop/")) {
     return { zone: "Điều hành", page: "Báo cáo chính thức" };
   }
   if (p.startsWith("/giam-sat-vst")) return { zone: "Giám sát", page: "Vệ sinh tay" };
+  if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Form giám sát chung" };
+  if (p.startsWith("/giam-sat-chung/nhat-ky")) return { zone: "Giám sát", page: "Nhật ký vận hành" };
+  if (p.startsWith("/giam-sat-chung/he-thong")) return { zone: "Giám sát", page: "Đánh giá hệ thống" };
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };
   if (p.startsWith("/giam-sat-nkbv")) return { zone: "Giám sát", page: "NKBV" };
   if (p === "/giam-sat") return { zone: "Giám sát", page: "Cổng giám sát" };
   if (p === "/qr" || p.startsWith("/qr/")) return { zone: "Giám sát", page: "Quét QR truy vết" };
   if (p.startsWith("/lich-su")) return { zone: "Tra cứu", page: "Lịch sử giám sát" };
-  if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê giám sát" };
+  if (p.startsWith("/thong-ke/cssd")) return { zone: "CSSD", page: "Báo cáo CSSD" };
+  if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê khoa" };
   if (p.startsWith("/quan-ly-cong-viec")) return { zone: "Vận hành", page: "Công việc" };
   if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Thi KSNK" };
+  // CSSD — per-route page name (nav clinical short labels); Header SSOT (P0-1).
+  if (p === "/cssd-quy-trinh" || p.startsWith("/cssd-quy-trinh/")) {
+    return { zone: "CSSD", page: "Quy trình" };
+  }
+  if (p === "/cssd-dung-cu" || p.startsWith("/cssd-dung-cu/")) {
+    return { zone: "CSSD", page: "Dụng cụ" };
+  }
+  if (p === "/cssd-su-co" || p.startsWith("/cssd-su-co/")) {
+    return { zone: "CSSD", page: "Sự cố" };
+  }
+  if (p === "/cssd-thiet-bi" || p.startsWith("/cssd-thiet-bi/")) {
+    return { zone: "CSSD", page: "Thiết bị" };
+  }
+  if (p === "/cssd-hoa-chat" || p.startsWith("/cssd-hoa-chat/")) {
+    return { zone: "CSSD", page: "Hóa chất" };
+  }
+  if (p.startsWith("/cssd-erp/batch")) {
+    return { zone: "CSSD", page: "Mẻ tiệt khuẩn" };
+  }
+  if (p.startsWith("/cssd-erp/report")) {
+    return { zone: "CSSD", page: "Báo cáo CSSD" };
+  }
   if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
-    return { zone: "CSSD", page: "Quản lý CSSD" };
+    return { zone: "CSSD", page: "Quy trình" };
   }
   if (p.startsWith("/quan-tri-he-thong")) {
     if (p.startsWith("/quan-tri-he-thong/phan-quyen")) return { zone: "Quản trị", page: "Ma trận phân quyền" };

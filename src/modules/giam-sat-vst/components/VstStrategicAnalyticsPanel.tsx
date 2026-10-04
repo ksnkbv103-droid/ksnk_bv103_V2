@@ -136,7 +136,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
               { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
               { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
               { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-              { label: "Đúng kỹ thuật", value: formatPercent1FromRatio(p.payload?.kpis?.dung_ky_thuat ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
+              { label: "Đúng kỹ thuật", value: formatPercent1FromRatio(p.payload?.kpis?.dung_ky_thuat ?? 0, p.payload?.kpis?.da_tuan_thu ?? 0) },
             ]}
           />
         </div>

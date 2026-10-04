@@ -16,7 +16,11 @@ import {
   khoaChartTone,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
-import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
+import {
+  formatGapDeltaPercent,
+  formatSupervisionPercent,
+  type SupervisionPercentDigits,
+} from "@/lib/analytics/supervision-percent";
 import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import type { CSSProperties, ReactElement } from "react";
@@ -103,19 +107,28 @@ function gapPctTone(
   return khoaChartTone(pct, thresholds);
 }
 
-function formatGapPctWithDatTong(pct: number | null, dat: number, tong: number): string {
+function formatGapPctWithDatTong(
+  pct: number | null,
+  dat: number,
+  tong: number,
+  digits: SupervisionPercentDigits = 2,
+): string {
   if (pct == null || tong === 0) return "—";
-  return `${formatPercent2(pct)} (${dat.toLocaleString()}/${tong.toLocaleString()})`;
+  return `${formatSupervisionPercent(pct, digits)} (${dat.toLocaleString()}/${tong.toLocaleString()})`;
 }
 
-function gapCompareStatus(row: GapKhoaRow): { label: string; tone: ComplianceTone } {
+function gapCompareStatus(
+  row: GapKhoaRow,
+  digits: SupervisionPercentDigits = 2,
+): { label: string; tone: ComplianceTone } {
   if (isGapComparable(row)) {
+    const label = formatGapDeltaPercent(row.ty_le_ksnk, row.ty_le_tgs, digits);
     const delta =
       row.ty_le_ksnk != null && row.ty_le_tgs != null
-        ? Math.abs(roundPercent2(row.ty_le_ksnk - row.ty_le_tgs))
+        ? Math.abs(row.ty_le_ksnk - row.ty_le_tgs)
         : null;
     return {
-      label: delta != null ? `Δ ${formatPercent2(delta)}` : COVERAGE_STATUS_LABELS.comparable,
+      label: label ?? COVERAGE_STATUS_LABELS.comparable,
       tone: delta != null && delta >= 20 ? "yellow" : "green",
     };
   }
@@ -203,15 +216,17 @@ function GapSortToolbar({
   );
 }
 
-function percentTooltipFormatter(value: unknown, name: unknown, item?: { payload?: Record<string, unknown> }) {
+function percentTooltipFormatter(digits: SupervisionPercentDigits = 2) {
+  return (value: unknown, name: unknown, item?: { payload?: Record<string, unknown> }) => {
   const payload = item?.payload;
   const dat = payload?.dat ?? payload?.ksnk_dat ?? payload?.tgs_dat;
   const tong = payload?.tong ?? payload?.vol_ksnk ?? payload?.vol_tgs;
-  const pct = formatPercent2(value);
+  const pct = formatSupervisionPercent(value, digits);
   if (dat != null && tong != null && Number(tong) > 0) {
     return [`${Number(dat).toLocaleString()}/${Number(tong).toLocaleString()} (${pct})`, String(name ?? "Tuân thủ")];
   }
   return [pct, String(name ?? "Tuân thủ")];
+  };
 }
 
 /** Chỉ số cột % thấp nhất (mặc định 3) — tô đậm can thiệp. */
@@ -301,6 +316,7 @@ type KhoaBarLabelProps = {
   value?: number | string | null;
   payload?: KhoaBarLabelPayload | Record<string, unknown>;
   thresholds?: KhoaChartThresholds;
+  digits?: SupervisionPercentDigits;
 };
 
 function labelCoord(value: number | string | undefined): number {
@@ -341,7 +357,7 @@ function KhoaComplianceBarLabel(rawProps: unknown) {
     );
   }
 
-  const pctText = pct != null ? formatPercent2(pct) : "—";
+  const pctText = pct != null ? formatSupervisionPercent(pct, props.digits ?? 2) : "—";
   const ratioText = formatDatTongLabel(dat, tong);
   const tone = gapPctTone(pct, thresholds);
   const outsideFill = complianceLabelToneFill[tone];
@@ -459,9 +475,12 @@ function khoaVolumeBarLabelContent(variant: "ksnk" | "tgs") {
 }
 
 
-function khoaComplianceBarLabelContent(thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS) {
+function khoaComplianceBarLabelContent(
+  thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
+  digits: SupervisionPercentDigits = 2,
+) {
   return function KhoaComplianceBarLabelBound(rawProps: unknown) {
-    return KhoaComplianceBarLabel({ ...(rawProps as KhoaBarLabelProps), thresholds });
+    return KhoaComplianceBarLabel({ ...(rawProps as KhoaBarLabelProps), thresholds, digits });
   };
 }
 

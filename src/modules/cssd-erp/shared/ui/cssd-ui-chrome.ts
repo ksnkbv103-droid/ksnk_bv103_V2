@@ -31,3 +31,7 @@ export const CSSD_UI_TAB_ACTIVE = "bg-[var(--primary)] text-white shadow-sm";
 export const CSSD_UI_TAB_IDLE = "bg-transparent text-slate-600 hover:bg-white/80";
 export const CSSD_UI_ACTION_PRIMARY = `${bv103LayoutChrome.btnPrimary} ${touch}`;
 export const CSSD_UI_ACTION_SECONDARY = `${bv103LayoutChrome.btnSecondary} ${touch}`;
+export const CSSD_UI_LINK_QUIET = bv103LayoutChrome.linkQuiet;
+export const CSSD_UI_TOOLBAR_ROW = bv103LayoutChrome.toolbarRow;
+export const CSSD_UI_TOOLBAR_PRIMARY = bv103LayoutChrome.toolbarPrimaryCluster;
+export const CSSD_UI_TOOLBAR_QUIET = bv103LayoutChrome.toolbarQuietCluster;

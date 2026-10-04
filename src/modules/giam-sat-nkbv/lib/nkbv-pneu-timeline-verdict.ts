@@ -4,6 +4,7 @@
 
 import type { VaeVerificationData } from "../types/nkbv-verification";
 import { evaluateVaeVap, type RuleEvaluationResult } from "./nkbv-rules-engine";
+import type { RitPriorEvent } from "./nkbv-rit-hard-stop";
 import {
   criteriaKeyToSymptomDateKey,
   type BaGridCdhaCell,
@@ -17,8 +18,12 @@ import {
   labFactsFromXnCell,
 } from "./nkbv-pneu-lab-tier";
 import { countPneuRespiratoryCdcGroupsFromKeys } from "./nkbv-clinical-symptom-catalog";
-import { deviceAssociationFromCanThiepDates } from "./nkbv-shared-timeline";
+import { deviceAssociationFromCanThiepDates, poaOrHai } from "./nkbv-shared-timeline";
 import { ageYearsFromNgaySinh } from "./nkbv-uti-timeline-verdict";
+import {
+  isKnownPatientAge,
+  MISSING_DOB_NO_EVENT_REASON,
+} from "./nkbv-pneu-vae-route";
 import type { PneuLabFacts } from "./nkbv-pneu-lab-tier";
 
 /** Criteria key hô hấp — map nhóm CDC qua catalog `pneu_resp_line`. */
@@ -143,6 +148,9 @@ export type BuildPneuTimelineVerdictInput = {
     | "pneu_ic_steroid_ge_14d"
     | "pneu_is_immunocompromised"
   >;
+  /** Ca trước cùng BA — Ch.2 RIT hard-stop (DoD 20a). */
+  ritPriorEvents?: RitPriorEvent[];
+  ritExcludeEventIds?: string[];
 };
 
 export type PneuTimelineGate = {
@@ -257,7 +265,56 @@ export function buildPneuTimelineVerdict(
     }
   }
 
-  const age = input.patientAge != null && input.patientAge >= 0 ? input.patientAge : 45;
+  // L02/20b: cấm default age=45 — thiếu DOB/tuổi → NO_EVENT, không evaluate dương tính
+  if (!isKnownPatientAge(input.patientAge)) {
+    const warnings: string[] = [MISSING_DOB_NO_EVENT_REASON];
+    if (!hasImaging) warnings.push("Thiếu CĐHA ngực bất thường ∈ IWP");
+    if (!hasSystemic) warnings.push("Thiếu triệu chứng toàn thân (sốt/WBC hoặc AMS ≥70)");
+    if (!hasLocalRespiratory) {
+      warnings.push(
+        `Thiếu triệu chứng hô hấp tại chỗ (cần ≥2 nhóm CDC, hiện ${respiratoryCount})`,
+      );
+    }
+    const stubData = {
+      ...baseVaeStub(),
+      patient_age: 0,
+      vent_days: ventDays,
+      device_placed_date: placed || undefined,
+      device_removed_date: removed || undefined,
+      pneu_trigger: input.indexKind === "CDHA" ? ("IMAGING" as const) : ("CULTURE" as const),
+      has_chest_imaging_abnormal: hasImaging,
+      has_cardiopulmonary_disease_underlying: Boolean(input.hasCardiopulmonaryDisease),
+      imaging_films_count: imagingCount,
+      fever_or_wbc_abnormal: hasFeverOrWbc,
+      altered_mental_status_ge_70yo: hasAms,
+      respiratory_symptoms_count: respiratoryCount,
+      microbiology_evidence: "NONE" as const,
+      calculated_doe: doe || undefined,
+      rit_prior_events: input.ritPriorEvents,
+      rit_exclude_event_ids: input.ritExcludeEventIds,
+    } as VaeVerificationData;
+    return {
+      gate: {
+        imagingCount,
+        hasImaging,
+        hasSystemic,
+        hasLocalRespiratory,
+        respiratoryCount,
+        microbiology: "NONE",
+        warnings,
+      },
+      result: {
+        is_positive: false,
+        classification: "NO_EVENT",
+        reason: MISSING_DOB_NO_EVENT_REASON,
+      },
+      criteriaMet: false,
+      ketLuanLabel: `NO_EVENT · ${MISSING_DOB_NO_EVENT_REASON}`,
+      data: stubData,
+    };
+  }
+
+  const age = input.patientAge;
   const cardio = Boolean(input.hasCardiopulmonaryDisease);
   const needsTwo = cardio;
   const filmsForEngine = needsTwo ? imagingCount : Math.max(imagingCount, hasImaging ? 1 : 0);
@@ -283,6 +340,12 @@ export function buildPneuTimelineVerdict(
     has_tachypnea: hasTachypnea,
     microbiology_evidence: "NONE" as const,
     calculated_doe: doe || undefined,
+    hai_status:
+      input.admissionDate && doe
+        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        : undefined,
+    rit_prior_events: input.ritPriorEvents,
+    rit_exclude_event_ids: input.ritExcludeEventIds,
     respiratory_organism: input.indexXn?.vi_khuan || undefined,
     ...labPatch,
     ...(input.pneuIcAtoms || {}),

@@ -1,0 +1,96 @@
+{
+  "ma": "KSNK.QT.35.BM.04",
+  "ten": "Bảng kiểm giám sát tuân thủ xử lý vụ dịch",
+  "ho_form": "BK",
+  "chuyen_de": "Xử lý vụ dịch",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Áp dụng ngay biện pháp cách ly đối với NB nghi ngờ hoặc xác định",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Ghép nhóm NB cùng tác nhân gây bệnh; bố trí nhân sự chăm sóc riêng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Đình chỉ sử dụng vật tư, thiết bị hoặc lô nghi ngờ nguồn lây theo chỉ đạo",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "NVYT thực hiện VST đúng thời điểm tại khu vực vụ dịch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "NVYT mang PTPH đúng chỉ định đường lây",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Tăng tần suất vệ sinh môi trường bằng hóa chất khử khuẩn đặc hiệu",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cung cấp đủ hồ sơ bệnh án và thông tin dịch tễ cho Nhóm điều tra",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Hạn chế di chuyển NB ra khỏi khu vực cách ly khi chưa có lệnh",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Cập nhật danh sách ca bệnh (Line-list) khi có ca mới hoặc thay đổi trạng thái",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Thông tin nội bộ chỉ qua đầu mối phát ngôn đã chỉ định",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.35.BM.04 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.35.docx (+ ipc-updated/QT/KSNK.QT.35.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "Khoa KSNK"
+    ],
+    "ghi_chu": "v1=toan_vien → v2=he_thong. Điều phối xử lý vụ dịch cấp viện do Khoa KSNK chủ trì; điểm quan sát = khu vụ dịch được chỉ định. Default phiên=KSNK."
+  },
+  "doi_tuong_goi_y": [
+    "NV_ksnk",
+    "can_bo_quan_ly",
+    "thanh_vien_mang_luoi",
+    "NVYT"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "he_thong",
+  "co_quan_chu_tri": "Khoa_KSNK",
+  "noi_quan_sat": "van_phong_ksnk|khu_vu_dich",
+  "ly_do_phan_bo": "Xử lý vụ dịch là hoạt động chương trình cấp viện do Khoa KSNK điều phối (cách ly, cohort, đình chỉ vật tư, line-list, đầu mối phát ngôn TC01–TC10) — đánh giá hệ thống đáp ứng dịch, không phải bundle thường quy tại một khoa."
+}

@@ -2,11 +2,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "../../types/cssd.types";
 import { buildQuyTrinhTramPatch } from "../../lib/cssd-tram-persist";
 import { previousWorkflowStation, validateStationAdvance } from "../domain/cssd-state-engine";
+import {
+  buildClearAfterKeepPatch,
+  collectStationStampSnapshot,
+  listStationStampSelectColumns,
+} from "../domain/cssd-station-clear";
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
 import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { loadPackBatchReleaseGate } from "../../helpers/pack-batch-release-gate";
 import { assertPlasmaPackMaterialAllowed } from "@/lib/domain/cssd-packaging-rules";
 import {
   assertLamSachLotSoftGate,
@@ -120,12 +126,17 @@ export async function executeWorkflowStationScan(
       if (qt.is_dong_bang) {
         throw new Error("Bộ dụng cụ này đang bị KHÓA AN TOÀN do sự cố cấu phần hoặc quy trình.");
       }
+      const batchRelease = await loadPackBatchReleaseGate(supabase, {
+        quyTrinhId: String(qt.id),
+        loTietKhuanId: qt.lo_tiet_khuan_id,
+      });
       const packGate = assertPackIssuable({
         han_su_dung: qt.han_su_dung,
         ngay_het_han: qt.ngay_het_han,
         tinh_trang: qt.tinh_trang,
         is_red_alert: qt.is_red_alert,
         is_dong_bang: qt.is_dong_bang,
+        batchRelease,
       });
       if (!packGate.ok) throw new Error(packGate.message);
       if (!qt.lo_tiet_khuan_id) {
@@ -174,16 +185,13 @@ export async function executeWorkflowStationScan(
     throw new Error(result.message || "Không thể thực hiện quét trạm.");
   }
 
-  // 3. Xử lý extraPayload (Ví dụ: Truy vết ca mổ tại trạm Cấp phát)
+  // 3. CAP_PHAT may patch ma_ca_mo_id for trace — Domain 23: do NOT set used_clinically here.
   if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id && quyTrinh.id) {
-    await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({
-        metadata: {
-          ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id),
-        },
-      })
-      .eq("id", quyTrinh.id);
+    const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
+      p_id: quyTrinh.id,
+      p_patch: { ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id) },
+    });
+    if (metaErr) throw new Error(metaErr.message);
   }
 
   return { tenBoDungCu: qr, ledgerWarning };
@@ -219,31 +227,75 @@ export async function executeRejectToPreviousStation(
   const lyDo = String(opts.lyDo || "").trim();
   if (!lyDo) throw new Error("Vui lòng nhập lý do trả lui.");
 
+  let clearLoTietKhuan = false;
+  if (currentStatus === "DONG_GOI") {
+    const { data: qtRow, error: qtErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("lo_tiet_khuan_id")
+      .eq("id", q.id)
+      .maybeSingle();
+    if (qtErr) throw new Error(qtErr.message);
+    const loId = String((qtRow as { lo_tiet_khuan_id?: string | null } | null)?.lo_tiet_khuan_id || "").trim();
+    if (loId) {
+      const { data: me, error: meErr } = await supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select("tk_chot_nap_at")
+        .eq("id", loId)
+        .maybeSingle();
+      if (meErr) throw new Error(meErr.message);
+      if (!(me as { tk_chot_nap_at?: string | null } | null)?.tk_chot_nap_at) clearLoTietKhuan = true;
+    }
+  }
+
+  const fromTram = await buildQuyTrinhTramPatch(supabase, currentStatus);
   const tramPatch = await buildQuyTrinhTramPatch(supabase, prev);
-  const { error: upErr } = await supabase
+  const { stations: clearStations, patch: clearPatch } = buildClearAfterKeepPatch(prev, currentStatus);
+  const stampSelect = ["id", ...listStationStampSelectColumns(clearStations)];
+  const { data: beforeRow, error: beforeErr } = await supabase
     .from("cssd_fact_quy_trinh")
-    .update({
-      ...tramPatch,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", q.id);
+    .select(stampSelect.join(", "))
+    .eq("id", q.id)
+    .maybeSingle();
+  if (beforeErr) throw new Error(beforeErr.message);
+  const beforeStamps = collectStationStampSnapshot(
+    (beforeRow as Record<string, unknown> | null) ?? null,
+    clearStations,
+  );
+
+  const patch: Record<string, unknown> = {
+    ...tramPatch,
+    ...clearPatch,
+    updated_at: new Date().toISOString(),
+  };
+  if (clearLoTietKhuan) patch.lo_tiet_khuan_id = null;
+  const { data: updatedRows, error: upErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .update(patch)
+    .eq("id", q.id)
+    .eq("tram_hien_tai_id", fromTram.tram_hien_tai_id)
+    .select("id");
   if (upErr) throw new Error(upErr.message);
+  if (!updatedRows?.length) throw new Error("Bộ đã đổi trạm — không trả lui.");
 
   const lc = await insertCssdLifecycleEvent(supabase, {
     quy_trinh_id: q.id,
     ma_su_kien: "TRA_LUI_VOLUNTARY_ONE_STEP",
     ma_tram: currentStatus,
+    den_tram: prev,
     ghi_chu: `Trả lui ${currentStatus} → ${prev}`,
+    nguoi_thao_tac: operator,
+    soft: false,
     payload: {
       ma_qr_quy_trinh: qr,
       tu: currentStatus,
       den: prev,
       ly_do: lyDo,
       nguoi_thao_tac: operator,
+      clear_stations: clearStations,
+      before: beforeStamps,
     },
   });
   if (!lc.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lc.message)) throw new Error(lc.message);
-
 
   return { from: currentStatus, to: prev };
 }

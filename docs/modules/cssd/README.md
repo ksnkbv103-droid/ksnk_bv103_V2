@@ -26,7 +26,7 @@ Rule: `12-cssd-erp-spec-context.mdc`
 | `/cssd-thiet-bi` | Bảo trì thiết bị |
 | `/cssd-hoa-chat` | Kho hóa chất |
 | `/cssd-erp/batch` | Mẻ tiệt khuẩn (deep link) |
-| `/cssd-erp/report` | Báo cáo tổng hợp |
+| `/cssd-erp/report` | **Báo cáo CSSD** — SSOT analytics. Bản in ký (`/bao-cao-tong-hop`) trỏ cùng URL |
 
 ## Pilot checklist
 

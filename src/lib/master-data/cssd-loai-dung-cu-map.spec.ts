@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyLoaiKhoDuPhongOnImportPayload,
   applyResolvedTramToLoaiSpecs,
   buildLoaiPhysicalUpsertPayload,
   mapIsChiuNhietToKhaNang,
@@ -32,6 +33,48 @@ describe("cssd-loai-dung-cu-map heat/Spaulding", () => {
     expect(bom.normalizeSteamMethod("Hơi nước")).toBe("STEAM_134");
     expect(bom.normalizeSteamMethod("121")).toBe("STEAM_121");
     expect(bom.normalizeSpaulding("semi_critical")).toBe("SEMI_CRITICAL");
+  });
+
+  it("CREATE loại ghi so_luong_kho_du_phong; thiếu thì 0", () => {
+    const withQty = buildLoaiPhysicalUpsertPayload(
+      { ma_danh_muc: "KEO-01", ten_danh_muc: "Kéo", so_luong_kho_du_phong: 4 },
+      "create",
+    );
+    expect(withQty.so_luong_kho_du_phong).toBe(4);
+
+    const omitted = buildLoaiPhysicalUpsertPayload(
+      { ma_danh_muc: "KEO-02", ten_danh_muc: "Kéo 2" },
+      "create",
+    );
+    expect(omitted.so_luong_kho_du_phong).toBe(0);
+  });
+
+  it("UPDATE loại không gửi so_luong_kho_du_phong kể cả khi form còn số cũ", () => {
+    const p = buildLoaiPhysicalUpsertPayload(
+      {
+        id: "loai-1",
+        ma_danh_muc: "KEO-01",
+        ten_danh_muc: "Kéo Mayo đổi tên",
+        so_luong_kho_du_phong: 0,
+      },
+      "update",
+    );
+    expect(p.ten_loai).toBe("Kéo Mayo đổi tên");
+    expect(p).not.toHaveProperty("so_luong_kho_du_phong");
+  });
+
+  it("Excel nạp: update xóa kho, create vẫn set", () => {
+    const updating: Record<string, unknown> = { ten_loai: "Kéo", so_luong_kho_du_phong: 0 };
+    applyLoaiKhoDuPhongOnImportPayload(updating, true);
+    expect(updating).not.toHaveProperty("so_luong_kho_du_phong");
+
+    const creating: Record<string, unknown> = { ten_loai: "Panh", so_luong_kho_du_phong: 3 };
+    applyLoaiKhoDuPhongOnImportPayload(creating, false);
+    expect(creating.so_luong_kho_du_phong).toBe(3);
+
+    const creatingBlank: Record<string, unknown> = { ten_loai: "Panh" };
+    applyLoaiKhoDuPhongOnImportPayload(creatingBlank, false);
+    expect(creatingBlank.so_luong_kho_du_phong).toBe(0);
   });
 
   it("writes physical domain columns on upsert payload", () => {

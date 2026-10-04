@@ -22,7 +22,10 @@ import {
   readIncidentConfirmedByName,
   readIncidentPhieuStatus,
 } from "@/modules/cssd-su-co/domain/cssd-incident-status";
-import { isSetReconcileDraftAttr } from "@/modules/cssd-su-co/domain/cssd-set-reconcile-attrs";
+import {
+  collectReportRedQuyTrinhIds,
+  countsTowardCssdSafetyTally,
+} from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import { getErrorMessage, tableHasColumn } from "../shared/cssd-db-utils";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import {
@@ -49,10 +52,62 @@ import {
   type CssdVolumeBucket,
   type CssdVolumeTrendPoint,
   CSSD_ANALYTICS_STATIONS,
+  cssdVnDay,
+  stationLabel,
 } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { addDaysYmd } from "@/lib/format-datetime-vi";
+import { isRejectedLegacyHexBoQr } from "@/lib/domain/cssd-bo-ma";
+import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 
-const MAX_REPORT_ROWS = 8000;
+/** Đọc hết các trang PostgREST (không cắt im lặng ở 1000 / 8000 dòng). */
+async function fetchAllReportRows<T>(
+  load: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>,
+): Promise<{ rows: T[]; error: string | null }> {
+  const rows: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await load(from, from + CSSD_ACTIVE_PAGE_SIZE - 1);
+    if (error) return { rows, error: error.message };
+    const chunk = (data ?? []) as T[];
+    rows.push(...chunk);
+    const next = nextActivePageFrom(chunk.length, from);
+    if (next == null) return { rows, error: null };
+    from = next;
+  }
+}
+
+/** Cửa sổ server nới ±1 ngày quanh kỳ; lọc đúng ngày VN ở client (`cssdVnDay`). */
+function reportTimestampWindow(from: string, to: string, columns: readonly string[]): string {
+  const lo = addDaysYmd(from, -1);
+  const hi = `${addDaysYmd(to, 1)}T23:59:59`;
+  return columns.map((c) => `and(${c}.gte.${lo},${c}.lte.${hi})`).join(",");
+}
+
+/**
+ * RP1 (S-F): báo cáo lịch sử đọc mọi chu kỳ (kể cả đã đóng khi tiếp nhận lại / thu hồi),
+ * không lọc `is_active` — chỉ bỏ tem hex legacy đã vô hiệu từ cutover A′.
+ */
+function quyTrinhHistoryWindowFilter(from: string, to: string): string {
+  return reportTimestampWindow(from, to, [
+    "created_at",
+    "thoi_gian_tiep_nhan",
+    "thoi_gian_lam_sach",
+    "thoi_gian_qc",
+    "thoi_gian_dong_goi",
+    "thoi_gian_tiet_khuan",
+    "thoi_gian_cap_phat",
+  ]);
+}
+
+/** S-I: mẻ tạo trước kỳ nhưng bắt đầu trong kỳ vẫn vào cửa sổ (cùng ±1 ngày như chu kỳ). */
+function mePeriodWindowFilter(from: string, to: string): string {
+  return reportTimestampWindow(from, to, ["created_at", "thoi_gian_bat_dau"]);
+}
+
+function isLegacyHexCycle(row: { ma_qr_quy_trinh?: unknown }): boolean {
+  return isRejectedLegacyHexBoQr(String(row.ma_qr_quy_trinh || ""));
+}
 
 export type CssdReportFilters = {
   from: string;
@@ -113,49 +168,46 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     const station = String(filters.station || "ALL").trim();
 
     const [resQ, resS] = await Promise.all([
-      supabase
-        .from("v_cssd_quy_trinh_full")
-        .select("*")
-        .eq("is_active", true)
-        .gte("created_at", from)
-        .lte("created_at", `${to}T23:59:59`)
-        .limit(MAX_REPORT_ROWS),
-      supabase
-        .from("v_cssd_su_co_full")
-        .select("*")
-        .gte("created_at", from)
-        .lte("created_at", `${to}T23:59:59`)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_quy_trinh_full")
+          .select("*")
+          .gte("created_at", from)
+          .lte("created_at", `${to}T23:59:59`)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
+      fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_su_co_full")
+          .select("*")
+          .gte("created_at", from)
+          .lte("created_at", `${to}T23:59:59`)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
     ]);
 
-    if (resQ.error) return { success: false as const, error: resQ.error.message, quyTrinh: [], suCo: [] };
-    if (resS.error) return { success: false as const, error: resS.error.message, quyTrinh: [], suCo: [] };
+    if (resQ.error) return { success: false as const, error: resQ.error, quyTrinh: [], suCo: [] };
+    if (resS.error) return { success: false as const, error: resS.error, quyTrinh: [], suCo: [] };
 
-    const redIds = new Set<string>();
-    const redQrs = new Set<string>();
-    const suCoSource = (resS.data || []).filter((x) => {
+    const suCoSource = resS.rows.filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
-      return !isSetReconcileDraftAttr(attrs);
+      return countsTowardCssdSafetyTally(attrs);
     });
-    for (const sc of suCoSource) {
-      if ((sc as { is_red_alert?: boolean }).is_red_alert !== true) continue;
-      const qid = String((sc as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
-      const qr = String((sc as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
-        .trim()
-        .toUpperCase();
-      if (qid) redIds.add(qid);
-      if (qr) redQrs.add(qr);
-    }
+    const redIds = collectReportRedQuyTrinhIds(
+      suCoSource as { quy_trinh_id?: string | null; is_red_alert?: boolean | null; attributes?: Record<string, unknown> | null }[],
+    );
 
-    const quyTrinhRows = (resQ.data || []).map((x: Record<string, unknown>) => {
+    const quyTrinhRows = resQ.rows.filter((x) => !isLegacyHexCycle(x)).map((x: Record<string, unknown>) => {
       const id = String(x.id || "");
-      const qr = String(x.ma_qr_quy_trinh || "").trim().toUpperCase();
-      const fromSuCo = redIds.has(id) || (qr ? redQrs.has(qr) : false);
+      const fromSuCo = redIds.has(id);
       return {
         ...x,
         is_red_alert: x.is_red_alert === true || fromSuCo,
         ma_vach_qr: x.ma_qr_quy_trinh,
         trang_thai_hien_tai: x.ma_trang_thai_hien_tai,
+        chu_ky_label: x.is_active === false ? "Đã đóng" : "Đang lưu hành",
       };
     });
 
@@ -237,7 +289,7 @@ export type CssdAnalyticsBundle = {
 function emptyAnalyticsBundle(): CssdAnalyticsBundle {
   const stationVolume = CSSD_ANALYTICS_STATIONS.map((station) => ({
     station,
-    label: station.replace(/_/g, " "),
+    label: stationLabel(station),
     completed: 0,
   }));
   const meQc = { so_me_ky: 0, so_me_da_qc: 0, so_me_dat: 0, ty_le_qc_dat_me: null as number | null };
@@ -295,38 +347,50 @@ export async function fetchCssdAnalyticsBundle(filters: {
         : "ALL";
 
     const toEnd = `${to}T23:59:59`;
-    /** Lookback để bắt chu trình tạo trước kỳ nhưng hoàn thành trạm trong kỳ. */
-    const lookback = new Date(`${from}T00:00:00Z`);
-    lookback.setUTCDate(lookback.getUTCDate() - 90);
-    const lookbackFrom = lookback.toISOString().slice(0, 10);
 
-    const quyTrinhSelect = await buildQuyTrinhAnalyticsSelect(supabase);
+    const quyTrinhSelect = `${await buildQuyTrinhAnalyticsSelect(supabase)},ma_qr_quy_trinh`;
     const [resQ, resS, resBo, resMe, resTb, resBt, resKhoa] = await Promise.all([
-      supabase
-        .from("v_cssd_quy_trinh_full")
-        .select(quyTrinhSelect)
-        .eq("is_active", true)
-        .gte("created_at", lookbackFrom)
-        .lte("created_at", toEnd)
-        .limit(MAX_REPORT_ROWS),
-      supabase
-        .from("v_cssd_su_co_full")
-        .select("id, attributes")
-        .gte("created_at", from)
-        .lte("created_at", toEnd)
-        .limit(MAX_REPORT_ROWS),
-      supabase
-        .from("cssd_dm_bo_dung_cu")
-        .select("id, khoa_su_dung_id, is_active")
-        .eq("is_active", true)
-        .limit(5000),
-      supabase
-        .from("cssd_fact_lo_tiet_khuan")
-        .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
-        .eq("is_active", true)
-        .gte("created_at", lookbackFrom)
-        .lte("created_at", toEnd)
-        .limit(MAX_REPORT_ROWS),
+      fetchAllReportRows<CssdQuyTrinhAnalyticsRow & { ma_qr_quy_trinh?: string | null }>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_quy_trinh_full")
+          .select(quyTrinhSelect)
+          .or(quyTrinhHistoryWindowFilter(from, to))
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
+      fetchAllReportRows<{ id?: string; attributes?: Record<string, unknown> | null }>((pFrom, pTo) =>
+        supabase
+          .from("v_cssd_su_co_full")
+          .select("id, attributes")
+          .gte("created_at", from)
+          .lte("created_at", toEnd)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
+      fetchAllReportRows<{ id?: string; khoa_su_dung_id?: string | null; is_active?: boolean | null }>((pFrom, pTo) =>
+        supabase
+          .from("cssd_dm_bo_dung_cu")
+          .select("id, khoa_su_dung_id, is_active")
+          .eq("is_active", true)
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
+      fetchAllReportRows<{
+        id?: string;
+        thiet_bi_id?: string | null;
+        ket_qua_test?: boolean | null;
+        thoi_gian_bat_dau?: string | null;
+        created_at?: string | null;
+        thiet_bi?: { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
+      }>((pFrom, pTo) =>
+        supabase
+          .from("cssd_fact_lo_tiet_khuan")
+          .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
+          .eq("is_active", true)
+          .or(mePeriodWindowFilter(from, to))
+          .order("id", { ascending: true })
+          .range(pFrom, pTo),
+      ),
       supabase.from("cssd_dm_thiet_bi").select("id, trang_thai").eq("is_active", true).limit(500),
       supabase
         .from("cssd_fact_bao_tri")
@@ -335,9 +399,10 @@ export async function fetchCssdAnalyticsBundle(filters: {
       supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa").limit(2000),
     ]);
 
-    if (resQ.error) return { success: false, error: resQ.error.message, data: empty };
-    if (resBo.error) return { success: false, error: resBo.error.message, data: empty };
-    if (resMe.error) return { success: false, error: resMe.error.message, data: empty };
+    if (resQ.error) return { success: false, error: resQ.error, data: empty };
+    if (resS.error) return { success: false, error: resS.error, data: empty };
+    if (resBo.error) return { success: false, error: resBo.error, data: empty };
+    if (resMe.error) return { success: false, error: resMe.error, data: empty };
 
     const khoaMap = new Map<string, string>();
     for (const k of resKhoa.data || []) {
@@ -348,7 +413,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
       );
     }
 
-    const quyTrinh = ((resQ.data || []) as unknown as CssdQuyTrinhAnalyticsRow[]).map((r) => {
+    const quyTrinh = resQ.rows.filter((r) => !isLegacyHexCycle(r)).map((r) => {
       const next = { ...r };
       const kidNhan = String(r.khoa_nhan_id || "").trim();
       const compactNhan = kidNhan ? khoaMap.get(kidNhan) : undefined;
@@ -358,13 +423,12 @@ export async function fetchCssdAnalyticsBundle(filters: {
       if (compactSoHuu) next.ten_khoa = compactSoHuu;
       return next;
     });
-    const suCoKyCount = (resS.data || []).filter((x) => {
+    const suCoKyCount = resS.rows.filter((x) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
-      return !isSetReconcileDraftAttr(attrs);
+      return countsTowardCssdSafetyTally(attrs);
     }).length;
     const quyTrinhKyCount = quyTrinh.filter((r) => {
-      const day =
-        String(r.thoi_gian_tiep_nhan || "").slice(0, 10) || String(r.created_at || "").slice(0, 10);
+      const day = cssdVnDay(r.thoi_gian_tiep_nhan) || cssdVnDay(r.created_at) || "";
       return day >= from && day <= to;
     }).length;
     const tyLe = roundIncidentFreeRate(quyTrinhKyCount, suCoKyCount);
@@ -374,7 +438,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
     const pointsMonth = computeStationVolumeTrend(quyTrinh, from, to, "month", stationFilter);
     const pointsYear = computeStationVolumeTrend(quyTrinh, from, to, "year", stationFilter);
 
-    const boRows = (resBo.data || []).map((b: Record<string, unknown>) => {
+    const boRows = resBo.rows.map((b) => {
       const khoaId = b.khoa_su_dung_id ? String(b.khoa_su_dung_id) : null;
       return {
         id: String(b.id),
@@ -387,12 +451,11 @@ export async function fetchCssdAnalyticsBundle(filters: {
     const capPhatByKhoaNhan = computeCapPhatByKhoaNhan(quyTrinh, from, to);
     const reuseRows = computeReuseFrequency(quyTrinh, from, to, 80);
 
-    const meRows = (resMe.data || [])
-      .map((m: Record<string, unknown>) => {
-        const tb = m.thiet_bi as { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
+    const meRows = resMe.rows
+      .map((m) => {
+        const tb = m.thiet_bi;
         const ten = Array.isArray(tb) ? String(tb[0]?.ten_thiet_bi || "") : String(tb?.ten_thiet_bi || "");
-        const day =
-          String(m.thoi_gian_bat_dau || "").slice(0, 10) || String(m.created_at || "").slice(0, 10);
+        const day = cssdVnDay(m.thoi_gian_bat_dau) || cssdVnDay(m.created_at) || "";
         return {
           thiet_bi_id: m.thiet_bi_id ? String(m.thiet_bi_id) : null,
           ten_thiet_bi: ten || null,

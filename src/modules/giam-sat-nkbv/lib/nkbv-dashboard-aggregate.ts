@@ -71,8 +71,16 @@ export type NkbvDashboardPayload = {
   epidemiologyError?: string | null;
 };
 
-/** Trạng thái còn đang ghi / chờ xác nhận — dùng KPI và hàng đợi Tổng quan. */
-export const NKBV_CHO_TAC_STATUS_MAS = ["DANG_GHI_NHAN", "CHO_XAC_NHAN", "CHO_XAC_MINH"] as const;
+/**
+ * Phiếu chưa chốt — KPI «Đang ghi / Chờ XN» và hàng đợi Tổng quan.
+ * CHO_DUYET = khoa đã gửi form, KSNK chưa duyệt (domain §4.1).
+ */
+export const NKBV_CHO_TAC_STATUS_MAS = [
+  "DANG_GHI_NHAN",
+  "CHO_XAC_MINH",
+  "CHO_XAC_NHAN",
+  "CHO_DUYET",
+] as const;
 
 const CHO_TAC = new Set<string>(NKBV_CHO_TAC_STATUS_MAS);
 
@@ -182,4 +190,22 @@ export function aggregateNkbvDashboard(
     by_trang_thai,
     top_khoa,
   };
+}
+
+/** Mẫu số tỷ lệ xác nhận = PA − loại trừ (không dùng tổng phiếu gồm loại trừ). */
+export function nkbvPaMauSo(kpis: {
+  tong_phieu: number;
+  loai_tru: number;
+}): number {
+  return Math.max(kpis.tong_phieu - kpis.loai_tru, 0);
+}
+
+/** Nhãn khối lượng BCTH/in: «a/b (PA−loại trừ)» — khớp công thức metric-dictionary. */
+export function formatNkbvXacNhanVolume(kpis: {
+  da_xac_nhan: number;
+  tong_phieu: number;
+  loai_tru: number;
+}): string {
+  const mau = nkbvPaMauSo(kpis);
+  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} (PA−loại trừ)`;
 }

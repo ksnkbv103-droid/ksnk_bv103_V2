@@ -13,6 +13,7 @@ import { useBaoCaoTongHopData } from "../hooks/useBaoCaoTongHopData";
 import { ComprehensiveKpiCards } from "../components/comprehensive/ComprehensiveKpiCards";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
 import { ReportSection, ReportSectionNav } from "../components/comprehensive/ReportSectionNav";
+import { VeSinhTayKpiTriptych } from "../components/comprehensive/VeSinhTayKpiTriptych";
 import { AnalyticsKhoaScopeBanner } from "../components/AnalyticsKhoaScopeBanner";
 import { buildPhanIiiDraft } from "../lib/bao-cao-tong-hop-narrative-draft";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
@@ -225,6 +226,7 @@ export function BaoCaoTongHopPage() {
           <ComprehensiveKpiCards payload={d.payload} />
         </ReportSection>
         <ReportSection id="bc-vst" title="Giám sát vệ sinh tay">
+          <VeSinhTayKpiTriptych payload={d.payload} />
           <ComprehensiveCompare
             payload={d.payload}
             selectedKhoaIds={d.selectedKhoaIds}

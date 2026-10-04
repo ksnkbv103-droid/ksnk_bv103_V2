@@ -7,7 +7,16 @@ import { verifyCssdQrHubView } from "@/lib/cssd-server-gates";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 
 type ResolveCssdCodeResult =
-  | { success: true; targetType: CssdQrTargetType; code: string; machineId?: string; machineCode?: string; workflowId?: string }
+  | {
+      success: true;
+      targetType: CssdQrTargetType;
+      code: string;
+      machineId?: string;
+      machineCode?: string;
+      workflowId?: string;
+      boDungCuId?: string;
+      maBo?: string;
+    }
   | { success: false; error: string };
 
 async function verifyCanResolveCssdCode(): Promise<void> {

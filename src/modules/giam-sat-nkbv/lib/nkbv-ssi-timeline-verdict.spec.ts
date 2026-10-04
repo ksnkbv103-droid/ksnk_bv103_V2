@@ -36,7 +36,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
       ssiDepth: "SUPERFICIAL",
       ssiEventType: "SIP",
     });
-    expect(lastIn.result.classification).toBe("SIP");
+    expect(lastIn.result.classification).toBe("DIP"); // 20d deepest: shared mủ → Deep
     expect(lastIn.criteriaMet).toBe(true);
 
     const day31 = buildSsiTimelineVerdict({
@@ -79,7 +79,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
     expect(resolveSsiDoe({ surgeryDate: surgery, diagnosticDatesInSp: [] })).toBeNull();
   });
 
-  it("Surgery + purulent ∈ 30d → SIP; DOE = ngày mủ; SBAP 17d", () => {
+  it("Surgery + purulent ∈ 30d → DIP (20d deepest); DOE = ngày mủ; SBAP 17d", () => {
     const surgery = "2026-07-01";
     const pus = "2026-07-10";
     const v = buildSsiTimelineVerdict({
@@ -93,7 +93,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
       ssiEventType: "SIP",
       procedureCode: "COLO",
     });
-    expect(v.result.classification).toBe("SIP");
+    expect(v.result.classification).toBe("DIP"); // 20d deepest
     expect(v.criteriaMet).toBe(true);
     expect(v.gate.doe).toBe(pus);
     expect(v.gate.spDates.has(pus)).toBe(true);
@@ -157,7 +157,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
       ssiEventType: "SIP",
       procedureCode: "COLO",
     });
-    expect(v.result.classification).toBe("SIP");
+    expect(v.result.classification).toBe("DIP"); // 20d deepest
     expect(v.result.is_secondary_bsi).toBe(true);
     expect(v.gate.sbapDates.has("2026-07-12")).toBe(true);
   });

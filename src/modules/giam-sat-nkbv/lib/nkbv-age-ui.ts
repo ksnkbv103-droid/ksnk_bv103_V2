@@ -1,5 +1,6 @@
 /**
  * Cổng tuổi NKBV — BV103 chỉ giám sát người lớn.
+ * L02/20b: không invent age=45 khi thiếu DOB/tuổi.
  */
 
 import type { Ch17Node } from "./nkbv-ch17-criteria";
@@ -11,14 +12,18 @@ export function pneuAgeUiBranchFromAge(_ageYears?: number | null): NkbvPneuAgeUi
   return "ADULT";
 }
 
+/**
+ * Trả tuổi người lớn đã biết, hoặc null nếu thiếu DOB/tuổi hợp lệ.
+ * Không còn default 45 (DoD 20b).
+ */
 export function coerceAdultPatientAge(
   ageYearsFromDob: number | null | undefined,
   patientAge: number | null | undefined,
-): number {
+): number | null {
   if (ageYearsFromDob != null && ageYearsFromDob > 12) return ageYearsFromDob;
-  const n = Number(patientAge) || 0;
-  if (n > 12) return n;
-  return 45;
+  const n = Number(patientAge);
+  if (Number.isFinite(n) && n > 12) return n;
+  return null;
 }
 
 /** Ch.17 ageGate: chỉ còn OVER_1Y (người lớn). */

@@ -11,9 +11,16 @@ import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart
 import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
+import {
+  blockDeactivateForActiveCycles,
+  CSSD_ACTIVE_CIRCULATION_TINH_TRANG_OR,
+  cssdBoImportDeactivateIds,
+} from "@/lib/domain/cssd-bo-active-cycle";
+import { RANGE_IN_CHUNK } from "@/lib/fetch-all-range";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { randomUUID } from "crypto";
 import {
+  applyLoaiKhoDuPhongOnImportPayload,
   normalizeLoaiDungCuExcelImportRow,
   syncLoaiPhysicalColumnsOnImportPayload,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
@@ -42,6 +49,31 @@ export type SmartImportAudit = {
 
 function errSmartImport(e: unknown) {
   return e instanceof Error ? e.message : String(e);
+}
+
+/** Cùng luật form/xóa mềm: còn chu kỳ lưu hành thì không tắt bộ, và không ghi file. */
+async function blockCssdBoImportIfCirculating(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  boIds: readonly string[],
+): Promise<{ success: false; error: string } | null> {
+  if (boIds.length === 0) return null;
+  let total = 0;
+  for (let i = 0; i < boIds.length; i += RANGE_IN_CHUNK) {
+    const chunk = boIds.slice(i, i + RANGE_IN_CHUNK);
+    const { count, error } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("id", { count: "exact", head: true })
+      .in("bo_dung_cu_id", chunk)
+      .eq("is_active", true)
+      .or(CSSD_ACTIVE_CIRCULATION_TINH_TRANG_OR);
+    if (error) {
+      console.error({ module: "BO_DC", action: "blockCssdBoImportIfCirculating", error: error.message });
+      return { success: false, error: error.message };
+    }
+    total += count ?? 0;
+  }
+  const message = blockDeactivateForActiveCycles(total);
+  return message ? { success: false, error: message } : null;
 }
 
 function formatSmartImportDbError(tableName: string, message: string) {
@@ -273,6 +305,7 @@ export async function smartImportData(
         delete payload[config.uniqueKey];
         if (config.tableName === "cssd_dm_loai_dung_cu") {
           syncLoaiPhysicalColumnsOnImportPayload(payload, finalCode);
+          applyLoaiKhoDuPhongOnImportPayload(payload, Boolean(existingId));
         }
       }
 
@@ -314,6 +347,17 @@ export async function smartImportData(
         success: false,
         error: buildImportErrorMessage(rowErrors, dbErrors),
       };
+    }
+
+    if (config.tableName === "cssd_dm_bo_dung_cu") {
+      const deactivateIds = cssdBoImportDeactivateIds({
+        existingCodeToId,
+        rows: preparedRows.map((r) => ({ code: r.code, isActive: r.payload.is_active !== false })),
+        // existingCodes không được nạp — nhánh ẩn mã thiếu hiện không ghi. Chỉ chặn ô is_active=false trên bộ đã có.
+        softDeleteMissing: false,
+      });
+      const blocked = await blockCssdBoImportIfCirculating(supabase, deactivateIds);
+      if (blocked) return blocked;
     }
 
     const updateCount = preparedRows.filter((r) => existingCodeToId.has(r.code)).length;

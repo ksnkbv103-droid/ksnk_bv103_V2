@@ -104,4 +104,13 @@ export const bv103LayoutChrome = {
     "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 bv103-pad-inset bv103-type-body leading-relaxed text-slate-700",
   noticeViolet:
     "rounded-[var(--radius-shell)] border border-violet-100 bg-violet-50/90 bv103-pad-inset bv103-type-body text-violet-900",
+
+  /** Ops toolbar row — primary cluster (scan / main CTA) vs quiet secondaries (P1-4 / X6). */
+  toolbarRow: "flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5",
+  toolbarPrimaryCluster: "flex min-w-0 flex-1 items-center gap-2",
+  toolbarQuietCluster:
+    "flex shrink-0 flex-wrap items-center gap-x-2.5 gap-y-1 border-l border-slate-200/80 pl-3 max-sm:w-full max-sm:border-l-0 max-sm:pl-0",
+  /** Secondary nav / docs / reconcile — lighter than primary-colored CTA links. */
+  linkQuiet:
+    "inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-500 transition-colors hover:bg-slate-100/80 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50",
 } as const;

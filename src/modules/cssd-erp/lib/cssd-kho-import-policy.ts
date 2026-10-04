@@ -1,5 +1,5 @@
 /**
- * Policy import fact quy trình kho — khớp UI `disableSyncFull` trên KhoDungCuPage.
+ * Policy import fact quy trình kho — disableSyncFull (legacy KhoDungCuPage đã gỡ; giữ policy cho import path).
  * Soft-delete hàng loạt tem đang chạy bị chặn phía server (không chỉ UI).
  */
 export const CSSD_KHO_IMPORT_SOFT_DELETE_BLOCKED_MESSAGE =

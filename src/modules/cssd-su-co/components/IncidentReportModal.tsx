@@ -8,6 +8,7 @@ import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import SuCoReportForm from "./SuCoReportForm";
+import { INCIDENT_GROUP_LABEL } from "../domain/cssd-incident-taxonomy";
 
 interface Props {
   isOpen: boolean;
@@ -45,11 +46,12 @@ export default function IncidentReportModal({
   if (!isOpen || !allowed.create) return null;
 
   const st = (station || "TIEP_NHAN") as Station;
+  const resolvedGroup = defaultGroup || (initialMaQR ? "INSTRUMENT" : undefined);
   const title = batchRecallEntry
     ? "Thu hồi theo mẻ"
-    : defaultGroup === "INSTRUMENT"
-      ? "Biến động dụng cụ"
-      : "Sự cố an toàn";
+    : resolvedGroup
+      ? INCIDENT_GROUP_LABEL[resolvedGroup]
+      : "Báo cáo sự cố";
 
   return (
     <Dialog
@@ -72,10 +74,10 @@ export default function IncidentReportModal({
             </div>
             <p className={`mt-0.5 truncate ${UI.panelSubtitle}`}>
               {batchRecallEntry
-                ? "Sự cố an toàn QT.24 — không phải biến động dụng cụ"
-                : defaultGroup === "INSTRUMENT"
-                  ? "Biến động: Hỏng/Mất · Chuyển kho·bộ"
-                  : "Ghi nhận sự cố an toàn tại trạm (quy trình / HC / máy)"}
+                ? "Sự cố quy trình — thu hồi theo mẻ (không phải Hỏng/Mất)"
+                : resolvedGroup === "INSTRUMENT"
+                  ? "Chỉ Hỏng/Mất. Luân chuyển số lượng mở tại Dụng cụ."
+                  : "Ghi nhận tại trạm (quy trình / hóa chất / máy / khác)"}
             </p>
           </div>
         </div>
@@ -84,7 +86,7 @@ export default function IncidentReportModal({
           <SuCoReportForm
             layout="modal"
             initialStation={st}
-            initialGroup={defaultGroup || (initialMaQR ? "INSTRUMENT" : undefined)}
+            initialGroup={resolvedGroup}
             initialMaQR={initialMaQR}
             initialChiTietId={initialChiTietId}
             initialLoaiDungCuId={initialLoaiDungCuId}

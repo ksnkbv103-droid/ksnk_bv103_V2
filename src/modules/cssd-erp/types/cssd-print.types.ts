@@ -8,6 +8,8 @@ export type CssdBatchPrintMember = {
   stt: number;
   maQrBo: string;
   tenBo: string;
+  /** Thu hồi / không đạt: hướng xử lý từng bộ. */
+  xuLyLabel?: string;
 };
 
 /** Ảnh minh chứng QC — lưu trong `tk_qc_json.anhMinhChung`. */
@@ -29,8 +31,25 @@ export type CssdQcProofRow = {
 export type CssdBatchPrintData = {
   batchId: string;
   maLo: string;
+  trangThaiLabel: string;
   ketQuaDat: boolean;
+  coTheIn: boolean;
   thietBi: string;
+  phuongPhap: string;
+  chuongTrinh: string;
+  nhietDo: string;
+  apSuat: string;
+  thoiGianChuKy: string;
+  nguoiNap: string;
+  nguoiDo: string;
+  nguoiNha: string;
+  thoiGianKetThucChuTrinh: string | null;
+  thoiGianNha: string | null;
+  qcVatLy: string;
+  qcCiNgoai: string;
+  qcCiPcd: string;
+  biLabel: string;
+  coImplantLabel: string;
   nguoiLoad: string;
   nguoiUnload: string;
   nhietDoApSuat: string;

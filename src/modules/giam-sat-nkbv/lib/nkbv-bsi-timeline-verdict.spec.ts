@@ -72,7 +72,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
     expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
   });
 
-  it("CVC tick trước vào viện bị loại — không phình CLABSI", () => {
+  it("CVC tick trước vào viện bị loại — không phình CLABSI (HD2=POA → không tử số)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
       indexXn: blood({ id: "b1", ngay: ix }),
@@ -81,9 +81,25 @@ describe("nkbv-bsi-timeline-verdict", () => {
       canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
       iwpDates: iwpAround(ix),
       nsk: ix,
-      admissionDate: "2026-07-19",
+      admissionDate: "2026-07-19", // DOE HD2 → POA (v4.0 day-3); vẫn clamp CVC
     });
     expect(v.gate.cvcPlacedDays).toBe(2);
+    expect(v.gate.cvcAssociated).toBe(false);
+    expect(v.result.classification).toBe("POA");
+    expect(v.result.is_positive).toBe(false);
+  });
+
+  it("CVC tick trước vào viện + DOE HD≥3 → PRIMARY_BSI_NON_CLABSI (không CLABSI)", () => {
+    const ix = "2026-07-22";
+    const v = buildBsiTimelineVerdict({
+      indexXn: blood({ id: "b1", ngay: ix }),
+      bloodXn: [blood({ id: "b1", ngay: ix })],
+      lamSang: { "2026-07-22": [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-21", "2026-07-22"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      admissionDate: "2026-07-19", // HD4; pre-admit ticks + gap → <3 continuous
+    });
     expect(v.gate.cvcAssociated).toBe(false);
     expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
   });

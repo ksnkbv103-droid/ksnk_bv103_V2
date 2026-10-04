@@ -8,7 +8,7 @@ import { listNhiemVuOptions, type NhiemVuSelectOption } from "../actions/nhiem-v
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import SearchableMultiSelect from "@/components/shared/SearchableMultiSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
+import { congViecSchema, congViecCreateSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { CongViecView } from "../types";
@@ -28,8 +28,14 @@ interface Props {
 
 /** Tạo / sửa phiếu active — phê duyệt đề xuất dùng `DeXuatApproveForm`. Form chung năm/tuần/đột xuất. */
 export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
-  /** Phiếu sinh từ mẫu định kỳ: giữ loại DINH_KY, không cho đổi sang đột xuất trên form này. */
+  /** loai_cong_viec = cách sinh (DINH_KY từ mẫu / DOT_XUAT tạo tay); muc_do_uu_tien = urgency. */
+  /** Phiếu sinh từ mẫu định kỳ: giữ DINH_KY; tạo mới luôn DOT_XUAT (không chọn Khẩn). KHAN_CAP chỉ giữ khi sửa phiếu legacy. */
   const isSpawnedDinhKy = initialData?.loai_cong_viec === "DINH_KY";
+  const resolvedLoai: QlcvLoaiCongViec = isSpawnedDinhKy
+    ? "DINH_KY"
+    : initialData?.id && initialData?.loai_cong_viec === "KHAN_CAP"
+      ? "KHAN_CAP"
+      : "DOT_XUAT";
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
@@ -115,9 +121,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     const rawPayload = {
       tieu_de: formData.get("tieu_de") as string,
       mo_ta: (formData.get("mo_ta") as string) || null,
-      loai_cong_viec: isSpawnedDinhKy
-        ? "DINH_KY"
-        : ((formData.get("loai_cong_viec") as QlcvLoaiCongViec) || "DOT_XUAT"),
+      loai_cong_viec: resolvedLoai,
       muc_do_uu_tien: (formData.get("muc_do_uu_tien") as QlcvMucDoUuTien) || "TRUNG_BINH",
       han_hoan_thanh: hanRaw ? String(hanRaw) : null,
       nguoi_phu_trach_id: selectedNhanSu || null,
@@ -132,16 +136,21 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
 
     if (!initialData?.id && !String(selectedNhanSu || "").trim()) {
       setLoading(false);
-      toast.error("Chọn người phụ trách — việc được giao ngay khi tạo.");
+      toast.error("Chọn người thực hiện — việc được giao ngay khi tạo.");
       return;
     }
-    if (!selectedKhoa) {
+    const loai = String(rawPayload.loai_cong_viec || "DOT_XUAT");
+    if (
+      !initialData?.id
+      && (loai === "DOT_XUAT" || loai === "KHAN_CAP")
+      && !String(rawPayload.han_hoan_thanh || "").trim()
+    ) {
       setLoading(false);
-      toast.error("Chọn khoa/đơn vị địa điểm thực hiện.");
+      toast.error("Nhập hạn hoàn thành.");
       return;
     }
 
-    const validation = congViecSchema.safeParse(rawPayload);
+    const validation = (initialData?.id ? congViecSchema : congViecCreateSchema).safeParse(rawPayload);
     if (!validation.success) {
       setLoading(false);
       toast.error(validation.error.issues[0]?.message || "Dữ liệu không hợp lệ");
@@ -188,26 +197,29 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
 
           <div>
-            <label className={labelStyles}>Khoa / đơn vị địa điểm *</label>
-            <SearchableSelect
-              options={khoaPhongOptions}
-              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
-              value={selectedKhoa}
-              onChange={setSelectedKhoa}
-              disabled={optionsLoading}
-              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
-            />
+            <label className={labelStyles}>Mức độ ưu tiên</label>
+            <select
+              name="muc_do_uu_tien"
+              defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
+              className={inputStyles}
+            >
+              <option value="CAO">Cao</option>
+              <option value="TRUNG_BINH">Trung bình</option>
+              <option value="THAP">Thấp</option>
+            </select>
           </div>
 
           <div>
-            <label className={labelStyles}>Hạn hoàn thành</label>
+            <label className={labelStyles}>Hạn hoàn thành *</label>
             <input type="date" name="han_hoan_thanh" className={inputStyles} defaultValue={defaultHanHoanThanh} />
           </div>
+          {/* loai_cong_viec ẩn: cách sinh — không chọn Đột xuất/Khẩn trên form */}
+          <input type="hidden" name="loai_cong_viec" value={resolvedLoai} />
         </div>
 
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
-            <label className={labelStyles}>Người phụ trách{!initialData?.id ? " *" : ""}</label>
+            <label className={labelStyles}>Người thực hiện{!initialData?.id ? " *" : ""}</label>
             <SearchableSelect
               options={assigneeOptions}
               placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}
@@ -220,6 +232,27 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
                 Không có nhân sự gắn tổ đã chọn; đang hiển thị toàn roster KSNK.
               </p>
             ) : null}
+          </div>
+          <div>
+            <SearchableMultiSelect
+              label="Phối hợp (tuỳ chọn)"
+              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={phoiHopIds}
+              onChange={setPhoiHopIds}
+              disabled={optionsLoading}
+              minWidthClassName="w-full"
+            />
+          </div>
+          <div>
+            <label className={labelStyles}>Gắn Nhiệm vụ/Kế hoạch (tuỳ chọn)</label>
+            <SearchableSelect
+              options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              placeholder={optionsLoading ? "Đang tải..." : "— Không gắn —"}
+              value={selectedNhiemVu}
+              onChange={setSelectedNhiemVu}
+              disabled={optionsLoading}
+              searchPlaceholder="Tìm nhiệm vụ/kế hoạch…"
+            />
           </div>
         </div>
       </div>
@@ -248,6 +281,17 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             />
           </div>
           <div>
+            <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
+            <SearchableSelect
+              options={khoaPhongOptions}
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
+              value={selectedKhoa}
+              onChange={setSelectedKhoa}
+              disabled={optionsLoading}
+              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
+            />
+          </div>
+          <div>
             <label className={labelStyles}>Vị trí chi tiết (tuỳ chọn)</label>
             <input
               className={inputStyles}
@@ -256,55 +300,8 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               placeholder="VD: Phòng 302 · Kho thuốc · Hành lang tầng 2"
             />
           </div>
-          <div>
-            <label className={labelStyles}>Nhiệm vụ (tuỳ chọn)</label>
-            <SearchableSelect
-              options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              placeholder={optionsLoading ? "Đang tải..." : "— Không gắn nhiệm vụ —"}
-              value={selectedNhiemVu}
-              onChange={setSelectedNhiemVu}
-              disabled={optionsLoading}
-              searchPlaceholder="Tìm nhiệm vụ…"
-            />
-          </div>
-          <div>
-            <label className={labelStyles}>Mức độ ưu tiên</label>
-            <select
-              name="muc_do_uu_tien"
-              defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
-              className={inputStyles}
-            >
-              <option value="CAO">Cao</option>
-              <option value="TRUNG_BINH">Trung bình</option>
-              <option value="THAP">Thấp</option>
-            </select>
-          </div>
         </div>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-          <div>
-            <label className={labelStyles}>Loại hình</label>
-            {isSpawnedDinhKy ? (
-              <>
-                <input type="hidden" name="loai_cong_viec" value="DINH_KY" />
-                <p className={`${inputStyles} flex items-center bg-emerald-50/80 text-emerald-900`}>
-                  Định kỳ (từ mẫu)
-                </p>
-              </>
-            ) : (
-              <select
-                name="loai_cong_viec"
-                required
-                className={inputStyles}
-                defaultValue={
-                  initialData?.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT"
-                }
-              >
-                <option value="DOT_XUAT">Đột xuất</option>
-                <option value="KHAN_CAP">Khẩn cấp</option>
-              </select>
-            )}
-          </div>
-
           <div>
             <label className={labelStyles}>Tổ công tác chuyên trách</label>
             <SearchableSelect
@@ -319,18 +316,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
 
           <div>
             <SearchableMultiSelect
-              label="Người phối hợp"
-              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              selected={phoiHopIds}
-              onChange={setPhoiHopIds}
-              disabled={optionsLoading}
-              minWidthClassName="w-full"
-            />
-          </div>
-
-          <div>
-            <SearchableMultiSelect
-              label="Người theo dõi / giám sát"
+              label="Theo dõi (tuỳ chọn)"
               options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
               selected={theoDoiIds}
               onChange={setTheoDoiIds}
@@ -341,19 +327,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         </div>
       </div>
       ) : (
-        <>
-          <input type="hidden" name="mo_ta" defaultValue={initialData?.mo_ta || ""} />
-          <input type="hidden" name="muc_do_uu_tien" defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"} />
-          {isSpawnedDinhKy ? (
-            <input type="hidden" name="loai_cong_viec" value="DINH_KY" />
-          ) : (
-            <input
-              type="hidden"
-              name="loai_cong_viec"
-              value={initialData?.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT"}
-            />
-          )}
-        </>
+        <input type="hidden" name="mo_ta" defaultValue={initialData?.mo_ta || ""} />
       )}
 
       <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:flex-wrap sm:items-center">

@@ -1,0 +1,71 @@
+{
+  "ma": "KSNK.QT.11.BM.01",
+  "ten": "Phiếu phân công và bảng kiểm công việc vệ sinh",
+  "ho_form": "BK",
+  "chuyen_de": "Vệ sinh môi trường",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Thu gom rác thải đúng giờ, thay túi nilon mới",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Lau bề mặt tiếp xúc thường xuyên (bàn, thành giường, tay nắm)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Lau sàn buồng bệnh, hành lang bằng hóa chất đúng nồng độ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Cọ rửa bồn cầu, lavabo, gương soi nhà vệ sinh",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Bổ sung giấy vệ sinh, xà phòng tại các bồn rửa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Vệ sinh xe đẩy; giặt, phơi khăn và chổi lau sau ca",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.11.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.11.docx (+ ipc-updated/QT/KSNK.QT.11.md tên BM)",
+  "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co. Form giấy là lưới ngày T2–CN (hạng mục công việc); seed map 6 hạng mục → tieu_chi DAT/KHONG_DAT/KHONG_AP_DUNG (bỏ dòng chữ ký).",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Phân công/checklist công việc vệ sinh theo khoa/khu — thực hành đơn vị."
+  },
+  "doi_tuong_goi_y": [
+    "NV_ve_sinh",
+    "ho_ly",
+    "dieu_duong"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls",
+  "ly_do_phan_bo": "Phân công/checklist công việc vệ sinh theo khoa/khu — thực hành đơn vị."
+}

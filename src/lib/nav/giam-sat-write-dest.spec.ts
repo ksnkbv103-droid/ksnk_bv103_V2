@@ -44,6 +44,14 @@ describe("giam-sat-write-dest", () => {
   it("isGiamSatNavPath covers hub + module deep-links", () => {
     expect(isGiamSatNavPath("/giam-sat")).toBe(true);
     expect(isGiamSatNavPath("/giam-sat-vst")).toBe(true);
+    expect(isGiamSatNavPath("/lich-su/vst")).toBe(true);
+    expect(isGiamSatNavPath("/lich-su/gsc")).toBe(true);
+    expect(isGiamSatNavPath("/thong-ke")).toBe(true);
+    expect(isGiamSatNavPath("/thong-ke/vst")).toBe(true);
+    expect(isGiamSatNavPath("/thong-ke/gsc")).toBe(true);
+    expect(isGiamSatNavPath("/thong-ke/gsc?loai=TUAN_THU")).toBe(true);
+    expect(isGiamSatNavPath("/thong-ke/cssd")).toBe(false);
+    expect(isGiamSatNavPath("/qr")).toBe(true);
     expect(isGiamSatNavPath("/cssd-quy-trinh")).toBe(false);
   });
 });

@@ -16,14 +16,24 @@ export default async function ThongKeCssdPage({
     return Array.isArray(v) ? v[0] : v;
   };
   const tabRaw = String(pick("tab") || "volume").trim();
-  const tab =
-    tabRaw === "sets" ||
-    tabRaw === "equipment" ||
-    tabRaw === "staff" ||
-    tabRaw === "incident" ||
-    tabRaw === "overview"
-      ? tabRaw
-      : "volume";
+  // W3A flat doors + legacy aliases; unknown → volume
+  const ALLOWED = new Set([
+    "volume",
+    "sets",
+    "equipment",
+    "staff",
+    "incident",
+    "overview",
+    "accountability",
+  ]);
+  const tab = (ALLOWED.has(tabRaw) ? tabRaw : "volume") as
+    | "volume"
+    | "sets"
+    | "equipment"
+    | "staff"
+    | "incident"
+    | "overview"
+    | "accountability";
   redirect(
     cssdReportAnalyticsHref({
       tab,

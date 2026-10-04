@@ -1,8 +1,8 @@
 "use server";
 
-import { verifyPermission } from "@/lib/server-permission";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options";
+import { getQlcvTrangThaiMauSacMap } from "../lib/qlcv-labels";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
@@ -43,18 +43,6 @@ async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
-  const { supabase } = await ensureQlcvKsnkAccess("view");
-  const query = supabase.from("qlcv_dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
-  const { data, error } = await query;
-
-  if (error) throw error;
-  return (data || []).map((item) => ({
-    id: String(item.ma ?? item.id),
-    label: String(item.ten ?? item.ma ?? ""),
-  }));
-}
-
 async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   const rows = await getCachedDmKhoaPhong();
   return rows.map((item) => ({
@@ -63,35 +51,56 @@ async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-/** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm + loại + màu trạng thái. */
+/** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm; màu trạng thái hardcode (Wave 3). */
 export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
   const { ksnkKhoaId } = await ensureQlcvKsnkAccess("view");
-  const [nhanSu, toCongTac, khoaPhong, loaiCongViec, trangThaiMauSac] = await Promise.all([
+  const [nhanSu, toCongTac, khoaPhong] = await Promise.all([
     getKsnkNhanSuOptions(ksnkKhoaId),
     getToCongTacOptions(),
     getKhoaPhongOptions(),
-    getLoaiCongViecOptions(),
-    getTrangThaiMauSacMap(),
   ]);
-  return { nhanSu, toCongTac, khoaPhong, loaiCongViec, trangThaiMauSac };
+  return { nhanSu, toCongTac, khoaPhong, trangThaiMauSac: getQlcvTrangThaiMauSacMap() };
 }
 
-/** Map mã trạng thái → mau_sac từ MDM (qlcv_dm_trang_thai_cong_viec). */
+/**
+ * Map mã trạng thái → mau_sac (hardcode SSOT — không đọc qlcv_dm_trang_thai_cong_viec).
+ * Giữ async export cho caller cũ; Wave 3 FE nên import sync từ qlcv-labels.
+ */
 export async function getTrangThaiMauSacMap(): Promise<Record<string, string>> {
-  await verifyPermission("CONG_VIEC", "view");
-  const { supabase } = await ensureQlcvKsnkAccess("view");
-  const { data, error } = await supabase
-    .from("qlcv_dm_trang_thai_cong_viec")
-    .select("ma, mau_sac")
-    .eq("is_active", true)
-    .limit(MAX_DM_OPTIONS);
+  return getQlcvTrangThaiMauSacMap();
+}
 
+/** SSOT gate counts from `rpc_qlcv_board_counts` (global — no loai/period args on RPC). */
+export type QlcvBoardGateCounts = {
+  myTasks: number;
+  inProgress: number;
+  overdue: number;
+  choToi: number;
+};
+
+export async function getQlcvBoardCounts(
+  actorStaffId?: string | null,
+): Promise<QlcvBoardGateCounts> {
+  const { supabase } = await ensureQlcvKsnkAccess("view");
+  const { data, error } = await supabase.rpc("rpc_qlcv_board_counts", {
+    p_actor_staff_id: actorStaffId ?? null,
+  });
   if (error) throw error;
-  const map: Record<string, string> = {};
-  for (const row of data || []) {
-    const ma = String(row.ma ?? "").trim();
-    const color = String(row.mau_sac ?? "").trim();
-    if (ma && color) map[ma] = color;
-  }
-  return map;
+
+  const gates =
+    data && typeof data === "object" && "gates" in (data as object)
+      ? ((data as { gates?: Record<string, unknown> }).gates ?? {})
+      : {};
+
+  const n = (v: unknown) => {
+    const x = Number(v);
+    return Number.isFinite(x) ? x : 0;
+  };
+
+  return {
+    myTasks: n(gates.my_tasks),
+    inProgress: n(gates.in_progress),
+    overdue: n(gates.overdue),
+    choToi: n(gates.cho_toi),
+  };
 }

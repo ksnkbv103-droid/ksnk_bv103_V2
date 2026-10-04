@@ -80,16 +80,11 @@ function asRecord(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 }
 
-async function applyLoai(
-  supabase: SupabaseClient,
-  targetId: string | null,
-  targetMa: string,
+/** Patch UPDATE loại từ đề nghị. Không gồm kho dự phòng — cột đó chỉ ledger/RPC được ghi. */
+export function buildLoaiCatalogUpdatePatch(
   payloadAfter: Record<string, unknown>,
   now: string,
-): Promise<void> {
-  const id = String(targetId || "").trim();
-  const ma = String(targetMa || asRecord(payloadAfter).ma_loai || "").trim();
-  if (!id && !ma) throw new Error("Thiếu loại đích (id hoặc mã).");
+): Record<string, unknown> {
   const after = asRecord(payloadAfter);
   const patch: Record<string, unknown> = { updated_at: now };
   if (after.ma_loai != null) patch.ma_loai = String(after.ma_loai).trim().toUpperCase();
@@ -101,10 +96,22 @@ async function applyLoai(
   }
   if (after.phan_loai_spaulding != null) patch.phan_loai_spaulding = String(after.phan_loai_spaulding);
   if (after.phan_loai != null) patch.phan_loai = String(after.phan_loai);
-  if (after.so_luong_kho_du_phong != null) {
-    patch.so_luong_kho_du_phong = Math.max(0, Math.floor(Number(after.so_luong_kho_du_phong) || 0));
-  }
   if (typeof after.is_active === "boolean") patch.is_active = after.is_active;
+  return patch;
+}
+
+async function applyLoai(
+  supabase: SupabaseClient,
+  targetId: string | null,
+  targetMa: string,
+  payloadAfter: Record<string, unknown>,
+  now: string,
+): Promise<void> {
+  const id = String(targetId || "").trim();
+  const ma = String(targetMa || asRecord(payloadAfter).ma_loai || "").trim();
+  if (!id && !ma) throw new Error("Thiếu loại đích (id hoặc mã).");
+  const after = asRecord(payloadAfter);
+  const patch = buildLoaiCatalogUpdatePatch(after, now);
 
   // specs: hinh_dang / kich_thuoc / cong_dung
   const specsPatch: Record<string, unknown> = {};

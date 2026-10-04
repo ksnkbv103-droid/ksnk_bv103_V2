@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, Plus, RefreshCw, Trash2 } from "lucide-react
 import { toast } from "sonner";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import {
   deleteOrHuyNhiemVu,
@@ -305,7 +306,7 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
           <input className={inp} value={nvTen} onChange={(e) => setNvTen(e.target.value)} placeholder="VD: Giám sát VST…" />
         </label>
         <label className="sm:col-span-3 space-y-1">
-          <span className={lbl}>Người phụ trách *</span>
+          <span className={lbl}>Người thực hiện *</span>
           <SearchableSelect options={nhanSu} value={nvChuTri} onChange={setNvChuTri} placeholder="Chọn…" />
         </label>
         <label className="sm:col-span-1 space-y-1">
@@ -337,7 +338,14 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
       {loading ? (
         <p className="text-sm text-slate-500">Đang tải…</p>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-slate-500">Chưa có nhiệm vụ trong kỳ — thêm bằng form bên trên.</p>
+        <Bv103EmptyState
+          title="Chưa có nhiệm vụ trong kỳ."
+          action={
+            <button type="button" className={bv103LayoutChrome.btnSecondary} onClick={() => void load()}>
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Tải lại
+            </button>
+          }
+        />
       ) : (
         <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
           {filtered.map((nv) => {

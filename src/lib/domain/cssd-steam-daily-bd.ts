@@ -53,7 +53,7 @@ export function assertSteamDailyBdForLoad(input: SteamDailyBdGateInput): SteamDa
     return {
       ok: false,
       message:
-        "Bowie–Dick đầu ngày KHÔNG ĐẠT trên máy steam — không được nạp mẻ. Xử lý máy / BD lại trước khi nạp.",
+        "Bowie–Dick đầu ngày KHÔNG ĐẠT trên máy hơi nước — không được tạo mẻ cho đến khi có BD đạt mới.",
     };
   }
 
@@ -63,14 +63,14 @@ export function assertSteamDailyBdForLoad(input: SteamDailyBdGateInput): SteamDa
     return {
       ok: false,
       message:
-        "Máy steam chưa có Bowie–Dick đầu ngày ĐẠT hôm nay — ghi nhận BD trước khi nạp mẻ (QT.21).",
+        "Máy hơi nước chưa có Bowie–Dick đầu ngày ĐẠT hôm nay — ghi nhận BD trước khi tạo mẻ.",
     };
   }
 
   return {
     ok: true,
     warning:
-      "Máy steam chưa ghi BD đầu ngày hôm nay trên hồ sơ máy — nên ghi nhận BD ĐẠT trước khi nạp (QT.21).",
+      "Máy hơi nước chưa ghi BD đầu ngày hôm nay trên hồ sơ máy — nên ghi nhận BD đạt trước khi nạp.",
   };
 }
 
@@ -78,11 +78,15 @@ export function buildSteamDailyBdSpecsPatch(args: {
   ymd: string;
   ketQua: "DAT" | "KHONG_DAT";
   existing?: Record<string, unknown> | null;
+  actorUserId?: string | null;
+  atIso?: string | null;
 }): Record<string, unknown> {
   const base = args.existing && typeof args.existing === "object" ? { ...args.existing } : {};
   return {
     ...base,
     bd_dau_ngay_ymd: String(args.ymd).slice(0, 10),
     bd_dau_ngay_ket_qua: args.ketQua,
+    bd_dau_ngay_at: args.atIso || new Date().toISOString(),
+    bd_dau_ngay_nguoi_id: args.actorUserId ? String(args.actorUserId) : null,
   };
 }

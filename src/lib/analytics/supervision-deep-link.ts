@@ -52,6 +52,16 @@ export function buildAnalyticsUrlQuery(seed: AnalyticsUrlSeed): string {
   return q.toString();
 }
 
+/** So sánh đa chiều trên thống kê — giữ kỳ lọc của bản ký. */
+export function buildSupervisionCompareDeepLink(
+  source: "vst" | "gsc",
+  seed?: AnalyticsUrlSeed,
+): string {
+  const path = source === "vst" ? "/thong-ke/vst" : "/thong-ke/gsc";
+  const q = seed ? buildAnalyticsUrlQuery(seed) : "";
+  return `${path}${q ? `?${q}` : ""}#so-sanh`;
+}
+
 export function buildGscAnalyticsDeepLink(
   seed: { tu_ngay?: string; den_ngay?: string; khoa_ids?: string[] },
   maBk?: string,

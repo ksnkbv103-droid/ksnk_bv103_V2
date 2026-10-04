@@ -3,6 +3,7 @@ import {
   formatDateTimeVi,
   formatDateVi,
   formatTimeVi,
+  formatTimeHmVi,
   parseDateTimeInput,
   todayYmdInVn,
 } from "./format-datetime-vi";
@@ -37,5 +38,11 @@ describe("format-datetime-vi", () => {
   it("todayYmdInVn follows Asia/Ho_Chi_Minh calendar", () => {
     expect(todayYmdInVn(new Date("2026-09-03T17:00:00.000Z"))).toBe("2026-09-04");
     expect(todayYmdInVn(new Date("2026-09-03T16:59:00.000Z"))).toBe("2026-09-03");
+  });
+});
+
+describe("formatTimeHmVi (CSSD-L02 scan short)", () => {
+  it("returns HH:mm without seconds", () => {
+    expect(formatTimeHmVi("2026-08-05T00:30:45.000Z")).toBe("07:30");
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAccountRequestTicketCode } from "./account-access-request";
+import { formatAccountRequestTicketCode, PENDING_ACCOUNT_REQUEST_CONTAINS } from "./account-access-request";
 
 describe("formatAccountRequestTicketCode", () => {
   it("rút UUID thành mã YC-8 ký tự", () => {
@@ -9,5 +9,13 @@ describe("formatAccountRequestTicketCode", () => {
   it("bỏ qua id quá ngắn", () => {
     expect(formatAccountRequestTicketCode("abc")).toBeNull();
     expect(formatAccountRequestTicketCode(null)).toBeNull();
+  });
+});
+
+describe("PENDING_ACCOUNT_REQUEST_CONTAINS", () => {
+  it("lọc extra_data hồ sơ status CHO_DUYET", () => {
+    expect(PENDING_ACCOUNT_REQUEST_CONTAINS).toEqual({
+      account_request: { status: "CHO_DUYET" },
+    });
   });
 });

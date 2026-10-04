@@ -1,0 +1,94 @@
+{
+  "ma": "KSNK.QT.13.BM.02",
+  "ten": "Bảng kiểm giám sát quy trình tại Đơn vị Giặt là",
+  "ho_form": "BK",
+  "chuyen_de": "Đồ vải / Giặt là",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Luồng công việc một chiều từ khu bẩn (tiếp nhận, giặt) sang khu sạch (sấy, là, gấp, lưu)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Nhân viên khu bẩn mang đủ phương tiện phòng hộ khi mở túi và phân loại thứ cấp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Đồ vải lây nhiễm giặt ưu tiên, lồng riêng, không trộn với đồ vải thông thường cùng mẻ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Chu trình giặt nhiệt đạt tối thiểu 71°C duy trì liên tục 25 phút hoặc chu trình hóa chất đúng định mức máy",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Tháo bỏ phương tiện phòng hộ và vệ sinh tay trước khi sang khu sạch (sấy, là, gấp)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Soi đồ vải phẫu thuật trên bàn hắt sáng; loại đồ thủng lỗ hoặc còn vết ố bẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Gấp và đóng gói đồ vải phẫu thuật hai lớp đúng kỹ thuật ngoại khoa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Đặt CI đa thông số vào trung tâm gói đồ vải phẫu thuật trước bàn giao tiệt khuẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Kệ kho sạch: cách sàn 20 cm, cách tường 5 cm, cách trần 50 cm; đồ sạch có phủ hoặc tủ kín",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Xe cấp phát đồ sạch riêng biệt, có bạt phủ; không đi chung tuyến giờ với xe đồ bẩn",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.13.BM.02 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.13.docx (+ ipc-updated/QT/KSNK.QT.13.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "Đơn vị Giặt là"
+    ],
+    "ghi_chu": "Thao tác tại ĐV Giặt là — đơn vị thực hành."
+  },
+  "doi_tuong_goi_y": [
+    "NV_giat_la",
+    "ky_thuat_vien_giat"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "don_vi_giat_la",
+  "ly_do_phan_bo": "Thao tác tại ĐV Giặt là — đơn vị thực hành."
+}

@@ -1,12 +1,15 @@
 "use client";
 
+import { CSSD_UI_LINK_QUIET } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 /**
  * D-19 — phân biệt tem bộ vĩnh viễn vs tem chu trình túi hấp (mặc định thu gọn).
+ * Quiet docs chrome in ops toolbars (P1-4 / X6) — not equal to primary scan.
  */
 export function CssdQrLabelKindsNotice({ className = "" }: { className?: string }) {
   return (
     <details className={className}>
-      <summary className="cursor-pointer text-[11px] font-semibold text-slate-500 hover:text-slate-800">
+      <summary className={`cursor-pointer list-none ${CSSD_UI_LINK_QUIET}`}>
         Phân biệt tem QR
       </summary>
       <p className="mt-1.5 max-w-xl text-[11px] leading-snug text-slate-500">

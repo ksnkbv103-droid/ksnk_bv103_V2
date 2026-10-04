@@ -151,8 +151,10 @@ export default function NkbvStayHistoryTable({
             ))}
             {treatmentHistory.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-2.5 py-4 text-center text-slate-400">
-                  Chưa khai báo lịch sử điều trị.
+                <td colSpan={4} className="px-2.5 py-4 text-center">
+                  <p className="text-amber-800 text-[11px] font-medium">
+                    Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.
+                  </p>
                 </td>
               </tr>
             ) : null}

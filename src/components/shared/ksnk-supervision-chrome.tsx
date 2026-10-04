@@ -27,6 +27,9 @@ const tabStrip = C.navTabStrip;
 /**
  * Hero Ops — wrapper `KsnkPageChrome` (page-chrome-contract).
  * `density` giữ API tương thích; luôn compact.
+ *
+ * Title policy (P0-2): exactly one visible page name — App Header **xor** `showTitle`.
+ * Prefer Header SSOT (`getKsnkAppHeaderBreadcrumb`); leave `showTitle` false when Header names the route.
  */
 export function KsnkSupervisionHero({
   eyebrow,
@@ -47,7 +50,7 @@ export function KsnkSupervisionHero({
   trailing?: React.ReactNode;
   /** @deprecated Luôn compact theo page-chrome-contract. */
   density?: "default" | "compact";
-  /** false (mặc định) = App Header đã có tên trang. */
+  /** false (mặc định) = App Header SSOT đã có tên trang; true chỉ khi Header còn generic. */
   showTitle?: boolean;
   /** Đồng bộ sticky L1 với `/thong-ke` (ModeNav / tab không cuộn mất). */
   sticky?: boolean;

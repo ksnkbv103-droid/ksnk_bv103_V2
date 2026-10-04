@@ -2,16 +2,20 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "@/modules/cssd-erp/shared/application/cssd-lifecycle-events";
+import {
+  buildClearAfterKeepPatch,
+  collectStationStampSnapshot,
+  listStationStampSelectColumns,
+} from "@/modules/cssd-erp/workflow/domain/cssd-station-clear";
 import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import {
   buildIncidentAttributes,
-  readIncidentTypeCode,
-  readLoTietKhuanId,
+  countPriorSafetyIncidentsOnCycle,
+  isCirculationIncidentTypeCode,
   resolveProcessBatchLink,
 } from "../domain/cssd-incident-attributes";
 import { resolveIncidentPolicy } from "../domain/cssd-incident-policy";
 import { isBatchQcFailTypeId } from "../domain/cssd-incident-taxonomy";
-import { buildBatchRecallAttributePatch } from "../domain/cssd-batch-recall";
 import { applyBatchRecallAndHoldMachine } from "./batch-recall-hold.application";
 import {
   CAUSE_CLASS_LABEL,
@@ -21,15 +25,19 @@ import {
 } from "../domain/cssd-incident-taxonomy";
 import { resolveCssdOperatorNhanSuId } from "@/modules/cssd-erp/shared/application/cssd-operator-resolve";
 import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions";
-import { applyInstrumentIncidentLedger } from "./instrument-incident.application";
-import type { InstrumentIncidentPayload } from "./instrument-incident.application";
+import {
+  commitInstrumentReportRpc,
+  prepareInstrumentLedgerLine,
+  type InstrumentIncidentPayload,
+  type SuCoCommitPayload,
+} from "./instrument-incident.application";
 import {
   SET_RECONCILE_TYPE_ID,
   validateInstrumentDoorLines,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
 import { buildSetReconcileAttributePatch } from "../domain/cssd-set-reconcile-attrs";
-import { applySubmittedSetReconcile } from "./set-reconcile-incident.application";
+import { collectSubmittedSetReconcileWrite } from "./set-reconcile-incident.application";
 
 type QuyRow = Record<string, unknown> & {
   id: string;
@@ -78,6 +86,8 @@ export async function executeIncidentReportAndRollback(
   deduped?: boolean;
   recalledCount?: number;
   machineHeld?: boolean;
+  recalled?: { quyTrinhId: string; maBo: string; tenBo: string; maLo: string }[];
+  listedUsed?: { quyTrinhId: string; maBo: string; tenBo: string; maLo: string; maCaMoId?: string }[];
 }> {
   const q = quyTrinhRow;
   const causeClass = data.causeClass || defaultCauseClass(data.incidentGroup);
@@ -108,17 +118,36 @@ export async function executeIncidentReportAndRollback(
     maLo,
   };
 
-  if (q && processPayload.loTietKhuanId && typeId && !data.confirmDuplicate) {
-    const existingId = await findDuplicateBatchIncident(supabase, {
-      quyTrinhId: q.id,
-      loTietKhuanId: processPayload.loTietKhuanId,
-      typeId,
+  const batchFail = data.incidentGroup === "PROCESS" && isBatchQcFailTypeId(typeId);
+  if (batchFail && loTietKhuanId) {
+    const nguoiBaoId = await resolveCssdOperatorNhanSuId(supabase, {
+      authUserId: data.reporterAuthUserId,
+      email: data.reporterEmail,
     });
-    if (existingId) return { incident_id: existingId, isRedAlert: false, deduped: true };
+    const rec = await applyBatchRecallAndHoldMachine(supabase, {
+      loTietKhuanId,
+      mode: typeId === "PROCESS_BI_POSITIVE" ? "BI_DUONG" : "QC_FAIL",
+      actorUserId: data.reporterAuthUserId,
+      nguoiNhanSuId: nguoiBaoId,
+      typeId: typeId || "PROCESS_STERILIZATION_FAIL",
+      typeTen: data.typeTen,
+      moTa: data.desc,
+      reporterEmail: data.reporterEmail,
+      maQr: data.maQR,
+      quyTrinhId: q?.id ?? processPayload.quyTrinhId ?? null,
+    });
+    return {
+      incident_id: rec.incidentId,
+      isRedAlert: rec.isRedAlert,
+      deduped: !rec.incidentCreated,
+      recalledCount: rec.recalled.length,
+      machineHeld: rec.machineHeld,
+      recalled: rec.recalled,
+      listedUsed: rec.listedUsed,
+    };
   }
 
   const skipWorkflowRollback = data.incidentGroup === "INSTRUMENT";
-  const batchFail = data.incidentGroup === "PROCESS" && isBatchQcFailTypeId(typeId);
   const rollbackStation =
     !skipWorkflowRollback && (q || batchFail)
       ? resolveIncidentPolicy({
@@ -132,13 +161,24 @@ export async function executeIncidentReportAndRollback(
       : null;
 
   let isRedAlert = false;
-  if (data.maQR) {
-    const { count, error: countErr } = await supabase
+  const circulationSubmit = isCirculationIncidentTypeCode(typeId);
+  const cycleId = String(q?.id || "").trim();
+  if (cycleId && !circulationSubmit) {
+    const { data: priorRows, error: countErr } = await supabase
       .from("cssd_fact_su_co")
-      .select("*", { count: "exact", head: true })
-      .eq("ma_qr_quy_trinh", data.maQR);
+      .select("id, attributes, is_active, quy_trinh_id")
+      .eq("quy_trinh_id", cycleId)
+      .eq("is_active", true);
     if (countErr) throw new Error("Loi dem su co: " + countErr.message);
-    isRedAlert = (count || 0) >= 2;
+    const prior = countPriorSafetyIncidentsOnCycle(
+      (priorRows || []) as {
+        is_active?: boolean | null;
+        quy_trinh_id?: string | null;
+        attributes?: Record<string, unknown> | null;
+      }[],
+      cycleId,
+    );
+    isRedAlert = prior >= 2;
   }
 
   const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
@@ -216,27 +256,24 @@ export async function executeIncidentReportAndRollback(
   }
 
   const draftId = String(setReconcile?.draftIncidentId || "").trim();
+  const commitPayload: SuCoCommitPayload = {
+    ma_qr_quy_trinh: data.maQR || null,
+    ma_tram_phat_hien: data.station,
+    mo_ta: data.desc,
+    is_red_alert: isRedAlert,
+    ma_tram_gay_loi: (suCoPayload.ma_tram_gay_loi as string | null) ?? null,
+    attributes,
+    quy_trinh_id: q?.id ?? null,
+    loai_su_co_id: loaiSuCo?.id ?? null,
+    nguoi_bao_id: nguoiBaoId,
+  };
   let incident: { id: string } | null = null;
-  if (draftId) {
-    const { data: updated, error: updErr } = await supabase
-      .from("cssd_fact_su_co")
-      .update(suCoPayload)
-      .eq("id", draftId)
-      .select("id")
-      .maybeSingle();
-    if (updErr) throw new Error("Lỗi cập nhật phiếu rà soát: " + updErr.message);
-    if (!updated?.id) throw new Error("Không tìm thấy phiếu nháp để gửi.");
-    incident = { id: String(updated.id) };
-  } else {
-    const inserted = await supabase.from("cssd_fact_su_co").insert(suCoPayload).select("id").single();
-    if (inserted.error || !inserted.data) throw new Error("Lỗi lưu báo cáo: " + inserted.error?.message);
-    incident = { id: String(inserted.data.id) };
-  }
-  if (!incident) throw new Error("Không lưu được phiếu sự cố.");
+  let atomicWrite = false;
 
   try {
     if (setReconcile) {
-      await applySubmittedSetReconcile(supabase, incident.id, {
+      atomicWrite = true;
+      const prepared = await collectSubmittedSetReconcileWrite(supabase, draftId, {
         boDungCuId: setReconcile.boDungCuId,
         quyTrinhId: setReconcile.quyTrinhId || (q?.id as string | undefined) || null,
         maQr: data.maQR,
@@ -250,22 +287,85 @@ export async function executeIncidentReportAndRollback(
         },
         existingAttrs: attributes,
       });
+      const committed = await commitInstrumentReportRpc(supabase, {
+        draftId: draftId || null,
+        suCo: { ...commitPayload, attributes: prepared.attributes },
+        lines: prepared.lines,
+        boDungCuId: setReconcile.boDungCuId,
+        touchNgayKiemKe: true,
+        nguoiThucHienId: nguoiBaoId,
+      });
+      incident = { id: String(committed.su_co_id) };
     } else if (data.incidentGroup === "INSTRUMENT" && data.instrumentPayload) {
-      await applyInstrumentIncidentLedger(supabase, incident.id, {
+      const line = prepareInstrumentLedgerLine({
         ...data.instrumentPayload,
         typeId: data.instrumentPayload.typeId,
         note: data.instrumentPayload.note || data.desc,
         maQrNguon: data.instrumentPayload.maQrNguon || data.maQR,
       });
+      if (line) {
+        atomicWrite = true;
+        const committed = await commitInstrumentReportRpc(supabase, {
+          draftId: null,
+          suCo: commitPayload,
+          lines: [line],
+          boDungCuId: data.instrumentPayload.boDungCuId,
+          touchNgayKiemKe: false,
+          nguoiThucHienId: nguoiBaoId,
+        });
+        incident = { id: String(committed.su_co_id) };
+      }
     }
+
+    if (!incident) {
+      if (draftId) {
+        const { data: updated, error: updErr } = await supabase
+          .from("cssd_fact_su_co")
+          .update(suCoPayload)
+          .eq("id", draftId)
+          .select("id")
+          .maybeSingle();
+        if (updErr) throw new Error("Lỗi cập nhật phiếu rà soát: " + updErr.message);
+        if (!updated?.id) throw new Error("Không tìm thấy phiếu nháp để gửi.");
+        incident = { id: String(updated.id) };
+      } else {
+        const inserted = await supabase.from("cssd_fact_su_co").insert(suCoPayload).select("id").single();
+        if (inserted.error || !inserted.data) throw new Error("Lỗi lưu báo cáo: " + inserted.error?.message);
+        incident = { id: String(inserted.data.id) };
+      }
+    }
+    if (!incident) throw new Error("Không lưu được phiếu sự cố.");
 
     if (q && rollbackStation) {
       const rollbackPatch = await buildQuyTrinhTramPatch(supabase, rollbackStation.targetStation);
+      const currentStation = String(q.ma_trang_thai_hien_tai || data.station || "").trim() as Station;
+      const { stations: clearStations, patch: clearPatch } = buildClearAfterKeepPatch(
+        rollbackStation.targetStation,
+        currentStation,
+      );
+      let beforeStamps: Record<string, unknown> = {};
+      if (clearStations.length) {
+        const stampSelect = ["id", ...listStationStampSelectColumns(clearStations)];
+        const { data: beforeRow, error: beforeErr } = await supabase
+          .from("cssd_fact_quy_trinh")
+          .select(stampSelect.join(", "))
+          .eq("id", q.id)
+          .maybeSingle();
+        if (beforeErr) throw new Error(beforeErr.message);
+        beforeStamps = collectStationStampSnapshot(
+          (beforeRow as Record<string, unknown> | null) ?? null,
+          clearStations,
+        );
+      }
+
       const quyTrinhUpdate: Record<string, unknown> = {
         ...rollbackPatch,
+        ...clearPatch,
         updated_at: new Date().toISOString(),
       };
-      if (rollbackStation.clearSterilizationBatchLink) quyTrinhUpdate.lo_tiet_khuan_id = null;
+      if (rollbackStation.clearSterilizationBatchLink && !rollbackStation.recallEntireBatch) {
+        quyTrinhUpdate.lo_tiet_khuan_id = null;
+      }
 
       if (rollbackStation.freezeSafetyLock && hasDongBang) {
         quyTrinhUpdate.is_dong_bang = true;
@@ -279,11 +379,16 @@ export async function executeIncidentReportAndRollback(
         quy_trinh_id: q.id,
         ma_su_kien: "SU_CO_DOMINO_ROLLBACK",
         ma_tram: data.station,
+        den_tram: rollbackStation.targetStation,
         ghi_chu: `Sự cố: ${data.typeTen} → ${rollbackStation.targetStation} (fault ${rollbackStation.faultStation})`,
+        soft: false,
         payload: {
+          su_co_id: incident.id,
           ma_qr_quy_trinh: data.maQR,
           tram_phat_hien: data.station,
           rollback: rollbackStation,
+          clear_stations: clearStations,
+          before: beforeStamps,
           mo_ta: data.desc,
           reporter_email: data.reporterEmail,
           reporter_user_id: data.reporterAuthUserId,
@@ -291,13 +396,19 @@ export async function executeIncidentReportAndRollback(
       });
       if (!lc.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lc.message)) throw new Error(lc.message);
 
-      await appendQuyTrinhException(supabase, q.id, {
-        su_kien: "REPORT_INCIDENT",
-        tu_tram: data.station,
-        den_tram: rollbackStation.targetStation,
-        ly_do: `Sự cố ${data.typeTen}. ${data.desc?.slice(0, 160) || ""}`,
-        nguoi_thao_tac: data.faultOperator || data.reporterEmail || "Nhân viên báo cáo",
-      });
+      await appendQuyTrinhException(
+        supabase,
+        q.id,
+        {
+          su_kien: "REPORT_INCIDENT",
+          tu_tram: data.station,
+          den_tram: rollbackStation.targetStation,
+          ly_do: `Sự cố ${data.typeTen}. ${data.desc?.slice(0, 160) || ""}`,
+          nguoi_thao_tac: data.faultOperator || data.reporterEmail || "Nhân viên báo cáo",
+          chi_tiet: { clear_stations: clearStations, before: beforeStamps },
+        },
+        { soft: true },
+      );
     } else if (q && isRedAlert && hasQuyTrinhIsRedAlert) {
       // Không rollback trạm (vd. sự cố dụng cụ) nhưng vẫn gắn cờ đỏ trên quy trình khi DB đã có cột.
       const { error: alertErr } = await supabase
@@ -307,37 +418,7 @@ export async function executeIncidentReportAndRollback(
       if (alertErr) throw new Error(mapFkError(alertErr.message));
     }
 
-    let recalledCount = 0;
-    let machineHeld = false;
-    if (rollbackStation?.recallEntireBatch && processPayload.loTietKhuanId) {
-      const rec = await applyBatchRecallAndHoldMachine(supabase, {
-        loTietKhuanId: processPayload.loTietKhuanId,
-        skipQuyTrinhId: q?.id ?? null,
-        holdMachineQc: rollbackStation.holdMachineQc,
-        detectionStation: data.station,
-        typeTen: data.typeTen,
-        desc: data.desc,
-        reporterEmail: data.reporterEmail,
-        reporterAuthUserId: data.reporterAuthUserId,
-      });
-      recalledCount = rec.recalledIds.length + (q && rollbackStation ? 1 : 0);
-      machineHeld = rec.machineHeld;
-      Object.assign(
-        attributes,
-        buildBatchRecallAttributePatch({
-          recalledCount,
-          machineHeld,
-          machineId: rec.machineId || data.machineId,
-        }),
-      );
-      const { error: attrErr } = await supabase
-        .from("cssd_fact_su_co")
-        .update({ attributes, updated_at: new Date().toISOString() })
-        .eq("id", incident.id);
-      if (attrErr) throw new Error("Lỗi ghi thu hồi mẻ lên phiếu: " + attrErr.message);
-    }
-
-    return { incident_id: incident.id as string, isRedAlert, recalledCount, machineHeld };
+    return { incident_id: incident.id as string, isRedAlert };
   } catch (e: unknown) {
     if (q && originalState) {
       const rollbackPayload: Record<string, unknown> = {
@@ -349,7 +430,10 @@ export async function executeIncidentReportAndRollback(
       if (hasDongBang) rollbackPayload.is_dong_bang = originalState.is_dong_bang;
       await supabase.from("cssd_fact_quy_trinh").update(rollbackPayload).eq("id", q.id);
     }
-    await supabase.from("cssd_fact_su_co").delete().eq("id", incident.id);
+    // Nháp và phiếu đã ghi sổ atomic không xóa ở đây — Postgres rollback cả transaction RPC.
+    if (!draftId && !atomicWrite && incident?.id) {
+      await supabase.from("cssd_fact_su_co").delete().eq("id", incident.id);
+    }
     throw new Error(getErrorMessage(e) || "Loi xu ly su co");
   }
 }
@@ -369,24 +453,4 @@ async function resolveLoaiSuCoLookup(
   return { id: String(data.id), name: String(data.name || "") };
 }
 
-async function findDuplicateBatchIncident(
-  supabase: SupabaseClient,
-  args: { quyTrinhId: string; loTietKhuanId: string; typeId: string },
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("cssd_fact_su_co")
-    .select("id, attributes")
-    .eq("quy_trinh_id", args.quyTrinhId)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(30);
-  if (error || !data?.length) return null;
-  for (const row of data) {
-    const attrs = (row.attributes as Record<string, unknown>) || {};
-    const loId = readLoTietKhuanId(attrs);
-    const code = readIncidentTypeCode(attrs);
-    if (loId === args.loTietKhuanId && code === args.typeId) return String(row.id);
-  }
-  return null;
-}
 

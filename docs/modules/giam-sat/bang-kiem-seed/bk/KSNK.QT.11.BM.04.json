@@ -1,0 +1,96 @@
+{
+  "ma": "KSNK.QT.11.BM.04",
+  "ten": "Bảng kiểm vệ sinh môi trường khu vực phẫu thuật",
+  "ho_form": "BK",
+  "chuyen_de": "Vệ sinh môi trường",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Đầu ngày: lau bụi tĩnh đèn mổ, bàn mổ, tủ thuốc, xe đẩy bằng khăn tẩm hóa chất khử khuẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Giữa ca: thu gom hết chất thải, đồ vải bẩn và vật sắc nhọn ra khỏi phòng mổ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Giữa ca: lau khử khuẩn bàn mổ, đệm lót, đèn mổ bằng hóa chất nồng độ phù hợp khu mổ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Giữa ca: lau sàn quanh bàn mổ bán kính 1–2 m bằng hóa chất khử khuẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Chờ bề mặt khô hoàn toàn tối thiểu 10 phút trước khi tiếp nhận NB ca sau",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Cuối ngày: lau toàn bộ sàn phòng mổ, bồn vệ sinh tay ngoại khoa và hành lang liên quan",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cuối ngày: cọ rửa bánh xe thiết bị, chân bàn mổ, chân truyền dịch đến hết vết máu khô",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Cuối ngày: lau tường phòng mổ độ cao tối thiểu 2 mét",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Dụng cụ và hóa chất đúng mã màu khu vực yêu cầu vô khuẩn cao hoặc nguy cơ cao",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Mang trang phục phòng mổ và PTPH đúng quy định khi làm vệ sinh khu mổ",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.11.BM.04 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.11.docx (+ ipc-updated/QT/KSNK.QT.11.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Phòng mổ / khối mổ",
+      "Ngoại / PT / gây mê / can thiệp"
+    ],
+    "ghi_chu": "VSMT riêng khối mổ — quan sát tại phòng mổ."
+  },
+  "doi_tuong_goi_y": [
+    "NV_ve_sinh_khu_mo",
+    "dieu_duong_mo",
+    "NV_ksnk"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "phong_mo",
+  "ly_do_phan_bo": "VSMT riêng khối mổ — quan sát tại phòng mổ."
+}

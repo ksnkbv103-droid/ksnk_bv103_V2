@@ -139,7 +139,7 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   const id = String(input.id || "").trim();
   await verifyPermission("LOAI_DC", id ? "edit" : "create");
   await requireCssdCatalogMasterWrite();
-  const payload = buildLoaiPhysicalUpsertPayload(input);
+  const payload = buildLoaiPhysicalUpsertPayload(input, id ? "update" : "create");
   const ma = String(payload.ma_loai || "");
   const ten = String(payload.ten_loai || "");
   if (!ma || !ten) {

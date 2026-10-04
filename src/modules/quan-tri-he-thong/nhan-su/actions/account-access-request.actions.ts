@@ -7,15 +7,16 @@ import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 import { verifyPermission } from "../../actions/verify-permission";
 import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
+import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import {
   formatAccountRequestTicketCode,
   isPendingAccountRequest,
   mergeAccountRequest,
+  PENDING_ACCOUNT_REQUEST_CONTAINS,
   readAccountRequest,
   type AccountRequestMeta,
 } from "../lib/account-access-request";
 import {
-  countPendingAccessRequests,
   decideAccessRequestRow,
   insertAccessRequestRow,
   lookupAccessRequestFromTable,
@@ -496,20 +497,16 @@ export async function lookupAccountAccessRequestStatusAction(input: {
   }
 }
 
-/** Admin: số phiếu chờ duyệt (hub Tài khoản). Soft count nếu chưa có bảng. */
+/** Admin: số hồ sơ chờ duyệt — cùng lọc danh sách `?pending=1`, không đếm bảng phiếu. */
 export async function countPendingAccountRequestsAction() {
   try {
     // Hub Tài khoản requires PHAN_QUYEN edit / ADMIN — same gate as provision.
     await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
-    const fromTable = await countPendingAccessRequests(supabase);
-    if (fromTable != null) {
-      return { success: true as const, count: fromTable };
-    }
     const { count, error } = await supabase
       .from("v_mdm_nhan_su_full")
       .select("id", { count: "exact", head: true })
-      .contains("extra_data", { account_request: { status: "CHO_DUYET" } });
+      .contains("extra_data", PENDING_ACCOUNT_REQUEST_CONTAINS);
     if (error) throw error;
     return { success: true as const, count: count ?? 0 };
   } catch (e: unknown) {
@@ -518,7 +515,11 @@ export async function countPendingAccountRequestsAction() {
 }
 
 /** Admin: danh sách hồ sơ đang chờ duyệt TK / RESET. */
-export async function listPendingAccountRequests(params?: { page?: number; pageSize?: number }) {
+export async function listPendingAccountRequests(params?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}) {
   try {
     await verifyPermission("NHAN_SU", "view");
     const supabase = createAdminSupabaseClient();
@@ -527,13 +528,17 @@ export async function listPendingAccountRequests(params?: { page?: number; pageS
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from("v_mdm_nhan_su_full")
       .select(
         "id, ma_nv, ho_ten, email, so_dien_thoai, khoa_id, ten_khoa, chuc_danh_id, ten_chuc_danh, auth_user_id, is_active, extra_data, created_at",
         { count: "exact" },
       )
-      .contains("extra_data", { account_request: { status: "CHO_DUYET" } })
+      .contains("extra_data", PENDING_ACCOUNT_REQUEST_CONTAINS);
+    const searchFilter = buildSupabaseSearchFilter(params?.search, ["ho_ten", "ma_nv", "email"]);
+    if (searchFilter) query = query.or(searchFilter);
+
+    const { data, error, count } = await query
       .order("created_at", { ascending: false })
       .range(start, end);
 
@@ -642,8 +647,8 @@ export async function approveAccountAccessRequest(params: {
 }
 
 /**
- * Admin duyệt RESET: chỉ đánh dấu DUYET trên phiếu — caller đã/ sẽ gọi adminResetStaffPasswordAction.
- * Hoặc gộp: truyền password + confirmActorPassword để reset luôn.
+ * Admin duyệt RESET: xác nhận phiếu CHO_DUYET + kind=RESET (fail closed) →
+ * adminResetStaffPasswordAction → đánh dấu DUYET.
  */
 export async function approveForgotResetRequest(params: {
   staffId: string;
@@ -652,6 +657,27 @@ export async function approveForgotResetRequest(params: {
   secondApproverEmail?: string;
 }) {
   try {
+    // Fail closed: phiếu RESET phải CHO_DUYET trước khi đụng mật khẩu (UI gate không đủ).
+    const actor = await ensureRbacAdmin();
+    const supabase = createAdminSupabaseClient();
+    const { data: staff, error: sErr } = await supabase
+      .from("mdm_nhan_su")
+      .select("id, extra_data")
+      .eq("id", params.staffId)
+      .maybeSingle();
+    if (sErr || !staff) return { success: false as const, error: "Không tìm thấy hồ sơ." };
+
+    const req = readAccountRequest(staff.extra_data as Record<string, unknown> | null);
+    if (!req || req.status !== "CHO_DUYET") {
+      return { success: false as const, error: "Không có phiếu RESET chờ duyệt." };
+    }
+    if ((req.kind || "REQUEST") !== "RESET") {
+      return {
+        success: false as const,
+        error: "Đây không phải phiếu đặt lại MK — dùng duyệt tạo TK.",
+      };
+    }
+
     const { adminResetStaffPasswordAction } = await import(
       "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions"
     );
@@ -663,32 +689,27 @@ export async function approveForgotResetRequest(params: {
     });
     if (!reset.success) return reset;
 
-    const actor = await ensureRbacAdmin();
-    const supabase = createAdminSupabaseClient();
-    const { data: staff } = await supabase
+    const { data: fresh } = await supabase
       .from("mdm_nhan_su")
-      .select("id, extra_data")
+      .select("extra_data")
       .eq("id", params.staffId)
       .maybeSingle();
-    const req = readAccountRequest(staff?.extra_data as Record<string, unknown> | null);
-    if (req && req.status === "CHO_DUYET" && (req.kind || "REQUEST") === "RESET") {
-      const extra = mergeAccountRequest(staff?.extra_data as Record<string, unknown> | null, {
-        ...req,
-        status: "DUYET",
-        approved_at: new Date().toISOString(),
-        approved_by: actor.email ?? actor.id,
-      });
-      await supabase
-        .from("mdm_nhan_su")
-        .update({ extra_data: extra, updated_at: new Date().toISOString() })
-        .eq("id", params.staffId);
-      await decideAccessRequestRow(supabase, {
-        ticketId: req.ticket_id,
-        staffId: params.staffId,
-        status: "DUYET",
-        decidedBy: actor.email ?? actor.id,
-      });
-    }
+    const extra = mergeAccountRequest(fresh?.extra_data as Record<string, unknown> | null, {
+      ...req,
+      status: "DUYET",
+      approved_at: new Date().toISOString(),
+      approved_by: actor.email ?? actor.id,
+    });
+    await supabase
+      .from("mdm_nhan_su")
+      .update({ extra_data: extra, updated_at: new Date().toISOString() })
+      .eq("id", params.staffId);
+    await decideAccessRequestRow(supabase, {
+      ticketId: req.ticket_id,
+      staffId: params.staffId,
+      status: "DUYET",
+      decidedBy: actor.email ?? actor.id,
+    });
 
     revalidatePath("/quan-tri-he-thong/nhan-su");
     revalidatePath("/quan-tri-he-thong/tai-khoan");

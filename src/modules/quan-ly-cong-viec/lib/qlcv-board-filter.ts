@@ -1,6 +1,7 @@
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "./qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan, type KanbanColumnId } from "./qlcv-board-lanes";
+import { normalizeQlcvStaffIdList } from "./qlcv-staff-ids";
 
 export type QlcvBoardFilter = "TOTAL" | "MY_TASKS" | "IN_PROGRESS" | "OVERDUE" | "GATE_CHO_TOI";
 
@@ -38,8 +39,29 @@ export function isMyQlcvTask(
   return false;
 }
 
-export function isQlcvChoToiDuyet(t: Record<string, unknown>): boolean {
-  return isDeXuatChoDuyet(t) || isChoNghiemThuHoanThanh(t);
+/**
+ * Domain 24=A actor lens: phiếu ở cổng đề xuất / chờ nghiệm thu
+ * **và** current user ∈ phụ trách ∨ phối hợp ∨ người giao.
+ * Không đụng semantic 7 TT; không lọc theo người duyệt cuối (AB-2 park).
+ */
+export function isQlcvChoToiActor(
+  t: Record<string, unknown>,
+  actorStaffId: string | null | undefined,
+): boolean {
+  if (!actorStaffId) return false;
+  const me = String(actorStaffId);
+  if (String(t.nguoi_phu_trach_id ?? "") === me) return true;
+  if (String(t.nguoi_giao_viec_id ?? "") === me) return true;
+  const phoiHop = normalizeQlcvStaffIdList(t.nguoi_phoi_hop_ids);
+  return phoiHop.includes(me);
+}
+
+export function isQlcvChoToiDuyet(
+  t: Record<string, unknown>,
+  actorStaffId?: string | null,
+): boolean {
+  if (!(isDeXuatChoDuyet(t) || isChoNghiemThuHoanThanh(t))) return false;
+  return isQlcvChoToiActor(t, actorStaffId);
 }
 
 export function formatBoardFilterHint(f: QlcvBoardFilter): string {
@@ -67,7 +89,7 @@ export function matchesQlcvBoardFilter(
 ): boolean {
   if (!filter || filter === "TOTAL") return true;
   if (filter === "MY_TASKS") return isMyQlcvTask(t, ctx?.actorStaffId);
-  if (filter === "GATE_CHO_TOI") return isQlcvChoToiDuyet(t);
+  if (filter === "GATE_CHO_TOI") return isQlcvChoToiDuyet(t, ctx?.actorStaffId);
   if (filter === "OVERDUE") return isBoardLaneQuaHan(t);
   if (filter === "IN_PROGRESS") return isBoardLaneDangLam(t);
   return true;

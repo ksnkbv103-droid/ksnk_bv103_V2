@@ -79,6 +79,7 @@ export function mapTieuChiJsonbToCriterion(c: TieuChiJsonbRaw): ChecklistCriteri
 export async function loadGscTemplateOptions(): Promise<GscTemplateOption[]> {
   const res = await getBangKiemsForGiamSat();
   if (!res.success) return [];
+  // getBangKiemsForGiamSat đã loại WHO/BM.01; map thẳng.
   return (res.data || []).map((b) => ({
     id: b.id,
     ma_bk: b.ma_bk || "",

@@ -237,7 +237,7 @@ export default function BsiClinicalSubForm({
             
           </NkbvFormSection>
 
-          <NkbvFormSection title="MBI-LCBI" hint="Chỉ khi có ANC/WBC <500 ≥2 ngày trong cửa sổ nhiễm khuẩn, hoặc HSCT/GVHD, hoặc tiêu chảy nặng. Tick giảm bạch cầu đơn không đủ.">
+          <NkbvFormSection title="MBI-LCBI" hint="Ch.4 Soft 20e (cite cdc-ch4): neutropenia = ANC/WBC <500 ≥2 ngày riêng trong cửa sổ máu±3 ngày; hoặc allo HSCT ≤1 năm + (GVHD GI III/IV hoặc tiêu chảy nặng). Tiêu chảy đơn / ung thư / tick giảm BC đơn ≠ MBI. PO G.1#1.">
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"
@@ -254,7 +254,7 @@ export default function BsiClinicalSubForm({
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, has_hsct_or_gvhd: e.target.checked })}
               />
-              HSCT / GVHD
+              Allo HSCT ≤1 năm + GVHD GI III/IV (Ch.4 criterion 1a)
             </label>
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
@@ -263,7 +263,7 @@ export default function BsiClinicalSubForm({
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, anc_wbc_lt_500_ge_2d: e.target.checked })}
               />
-              ANC/WBC &lt; 500 ≥ 2 ngày trong cửa sổ nhiễm khuẩn
+              ANC/WBC &lt;500 ≥2 ngày riêng trong cửa sổ máu (+) ±3 ngày (Ch.4)
             </label>
             <NkbvCatalogSymptomRows
               rows={mbiDiarrheaRows}

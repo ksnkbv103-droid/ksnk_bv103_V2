@@ -14,6 +14,8 @@ export const cssdQrHubResolvedSchema = z.object({
   workflowId: z.string().trim().min(1).optional(),
   /** Bộ danh mục — có khi resolve từ quy trình hoặc fallback `ma_bo`. */
   boDungCuId: z.string().trim().min(1).optional(),
+  /** Mã bộ danh mục (tem vĩnh viễn) — dùng load composition / LUAN_CHUYEN khi scan cycle QR. */
+  maBo: z.string().trim().min(1).optional(),
   batchId: z.string().trim().min(1).optional(),
   machineId: z.string().trim().min(1).optional(),
   machineCode: z.string().trim().min(1).optional(),

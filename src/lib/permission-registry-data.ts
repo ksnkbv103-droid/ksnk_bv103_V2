@@ -9,27 +9,27 @@ import { ModuleConfig } from "./permission-registry";
 export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "DASHBOARD",
-    displayName: "Command Center — quyền tổng (tương thích trước khi tách widget)",
+    displayName: "Báo cáo chính thức — quyền tổng (mã DASHBOARD; tương thích widget CC cũ)",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_OVERVIEW",
-    displayName: "Command Center — Tab Cơ cấu nguồn & tổng hợp",
+    displayName: "Báo cáo chính thức — Widget cơ cấu nguồn & tổng hợp",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_SUPERVISION",
-    displayName: "Command Center — Tab Chuyên trách / Chéo / Tự giám sát",
+    displayName: "Báo cáo chính thức — Widget chuyên trách / chéo / tự giám sát",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_GAP",
-    displayName: "Command Center — Tab Đối soát & Lệch",
+    displayName: "Báo cáo chính thức — Widget đối soát & lệch",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_EXPORT",
-    displayName: "Command Center — Xuất / in báo cáo PDF",
+    displayName: "Báo cáo chính thức — Xuất / in báo cáo PDF",
     actions: ["EXPORT"],
   },
   {
@@ -149,7 +149,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "BAO_SU_CO",
-    displayName: "Báo cáo Sự cố",
+    displayName: "Sự cố CSSD",
     actions: ["VIEW", "CREATE"]
   },
   {

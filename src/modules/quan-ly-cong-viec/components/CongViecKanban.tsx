@@ -8,7 +8,9 @@ import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-l
 import { getKanbanColumnIdForTask, isQlcvBoardOverdue, type KanbanColumnId } from "../lib/qlcv-board-lanes";
 import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
+import { formatQlcvPhoiHopChips, qlcvAssigneeInitials } from "../lib/qlcv-staff-ids";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
+import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 
 type KanbanColId = KanbanColumnId;
 
@@ -20,6 +22,10 @@ interface Props {
   /** Cuộn tới cột tương ứng khi người dùng chọn thẻ thống kê (kèm `focusNonce` đổi mỗi lần bấm). */
   focusColumnId?: KanbanColumnId | null;
   focusNonce?: number;
+  /** Optional staff map to resolve C/I names in card tooltip. */
+  staffLabelOpts?: { id: string; label: string }[];
+  /** Empty board — one sentence + CTA (Bv103EmptyState). */
+  emptyAction?: React.ReactNode;
 }
 
 /** Ẩn dòng trạng thái khi trùng ý nghĩa với tiêu đề cột Kanban. */
@@ -40,6 +46,8 @@ export default function CongViecKanban({
   showProposalColumn = false,
   focusColumnId = null,
   focusNonce = 0,
+  staffLabelOpts = [],
+  emptyAction,
 }: Props) {
   const columnEls = useRef<Partial<Record<KanbanColId, HTMLDivElement | null>>>({});
 
@@ -74,6 +82,15 @@ export default function CongViecKanban({
         return "text-blue-600 bg-blue-50";
     }
   };
+
+  if (tasks.length === 0) {
+    return (
+      <Bv103EmptyState
+        title="Chưa có công việc trên bảng điều hành."
+        action={emptyAction}
+      />
+    );
+  }
 
   return (
     <div className="space-y-1.5">
@@ -151,11 +168,43 @@ export default function CongViecKanban({
 
                     <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
-                        <span className="text-[11px] font-medium text-slate-400">Phụ trách / Tổ</span>
-                        <p className="truncate text-[11px] font-semibold text-slate-600">
-                          {task.nguoi_phu_trach_ten || "Chưa phân công"}
-                          {task.to_cong_tac_ten ? ` · ${task.to_cong_tac_ten}` : ""}
-                        </p>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span
+                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[10px] font-bold text-sky-800"
+                            aria-hidden
+                            title={task.to_cong_tac_ten ? `Tổ: ${task.to_cong_tac_ten}` : undefined}
+                          >
+                            {qlcvAssigneeInitials(task.nguoi_phu_trach_ten)}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-[12px] font-semibold text-slate-700">
+                              {task.nguoi_phu_trach_ten || "Chưa giao người thực hiện"}
+                            </p>
+                            {(() => {
+                              const ph = formatQlcvPhoiHopChips(
+                                task.nguoi_phoi_hop_ids,
+                                staffLabelOpts,
+                                2,
+                              );
+                              if (ph.empty) return null;
+                              return (
+                                <div className="mt-0.5 flex flex-wrap gap-0.5" title={ph.title}>
+                                  {ph.chips.map((c) => (
+                                    <span
+                                      key={c.id}
+                                      className="inline-flex max-w-[4.5rem] truncate rounded-full border border-slate-200 bg-slate-50 px-1 py-px text-[9px] font-medium text-slate-500"
+                                    >
+                                      {c.label}
+                                    </span>
+                                  ))}
+                                  {ph.extra > 0 ? (
+                                    <span className="text-[9px] font-semibold text-slate-400">+{ph.extra}</span>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex shrink-0 items-center gap-1">

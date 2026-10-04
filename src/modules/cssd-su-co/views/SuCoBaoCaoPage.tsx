@@ -3,11 +3,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { FileBarChart, ExternalLink, Zap, Undo2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FileBarChart, ExternalLink, Zap } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_ROUTES, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import { CSSD_ROUTES, cssdLuanChuyenHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import {
   coerceInstrumentFormTypeId,
@@ -17,10 +17,8 @@ import {
 } from "../domain/cssd-incident-taxonomy";
 import { resolveBatchRecallReason } from "../domain/cssd-batch-recall";
 import { listRecentSuCoForReporter } from "../actions/su-co-report.actions";
-import IncidentJournalPrintButton from "../components/IncidentJournalPrintButton";
-import IncidentConfirmButton from "../components/IncidentConfirmButton";
 import SuCoReportForm from "../components/SuCoReportForm";
-import { INCIDENT_STATUS_CONFIRMED, type IncidentPhieuStatus } from "../domain/cssd-incident-status";
+import { type IncidentPhieuStatus } from "../domain/cssd-incident-status";
 
 const INSTRUMENT_TYPES = new Set([
   "INSTRUMENT_SET_RECONCILE",
@@ -31,7 +29,9 @@ const INSTRUMENT_TYPES = new Set([
 
 export default function SuCoBaoCaoPage() {
   const { loading, allowed } = useModulePermission("BAO_SU_CO");
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const luanChuyenBookmark = isLuanChuyenTypeId(searchParams.get("type"));
   const prefill = useMemo(() => {
     const groupRaw = String(searchParams.get("group") || "").trim().toUpperCase();
     const typeRaw = String(searchParams.get("type") || "").trim().toUpperCase();
@@ -64,6 +64,7 @@ export default function SuCoBaoCaoPage() {
       chiTiet: String(searchParams.get("chiTiet") || "").trim() || undefined,
       maLo: String(searchParams.get("maLo") || searchParams.get("lo") || "").trim().toUpperCase() || undefined,
       loTietKhuanId: String(searchParams.get("loTietKhuanId") || "").trim() || undefined,
+      machineId: String(searchParams.get("machine") || "").trim() || undefined,
       batchRecallEntry,
     };
   }, [searchParams]);
@@ -91,13 +92,32 @@ export default function SuCoBaoCaoPage() {
   };
 
   useEffect(() => {
-    if (loading || (!allowed.create && !allowed.view)) return;
+    if (!luanChuyenBookmark) return;
+    router.replace(
+      cssdLuanChuyenHref({
+        ma: searchParams.get("ma"),
+        loai: searchParams.get("loai"),
+        chiTiet: searchParams.get("chiTiet"),
+      }),
+    );
+  }, [luanChuyenBookmark, router, searchParams]);
+
+  useEffect(() => {
+    if (loading || (!allowed.create && !allowed.view) || luanChuyenBookmark) return;
     reloadRecent();
-  }, [loading, allowed.create, allowed.view]);
+  }, [loading, allowed.create, allowed.view, luanChuyenBookmark]);
+
+  if (luanChuyenBookmark) {
+    return (
+      <CSSDPageShell title="Sự cố">
+        <p className="px-2 py-6 text-sm text-slate-600">Đang mở Luân chuyển trên Dụng cụ…</p>
+      </CSSDPageShell>
+    );
+  }
 
   if (loading) {
     return (
-      <CSSDPageShell title="Sự cố an toàn / Biến động dụng cụ">
+      <CSSDPageShell title="Sự cố">
         <div className="flex h-[40vh] items-center justify-center text-sm text-slate-500">Đang tải…</div>
       </CSSDPageShell>
     );
@@ -105,7 +125,7 @@ export default function SuCoBaoCaoPage() {
 
   if (!allowed.view && !allowed.create) {
     return (
-      <CSSDPageShell title="Sự cố an toàn / Biến động dụng cụ">
+      <CSSDPageShell title="Sự cố">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
           Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
         </div>
@@ -117,17 +137,9 @@ export default function SuCoBaoCaoPage() {
 
   return (
     <CSSDPageShell
-      title="Sự cố an toàn / Biến động dụng cụ"
+      title="Sự cố"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
-          <Link
-            href={cssdSuCoBatchRecallHref()}
-            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
-            title="Thu hồi theo mẻ — sự cố an toàn QT.24"
-          >
-            <Undo2 size={14} aria-hidden />
-            Thu hồi theo mẻ
-          </Link>
           <Link
             href={CSSD_ROUTES.quyTrinh}
             className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
@@ -164,6 +176,7 @@ export default function SuCoBaoCaoPage() {
             initialChiTietId={prefill.chiTiet}
             initialMaLo={prefill.maLo}
             initialLoTietKhuanId={prefill.loTietKhuanId}
+            initialMachineId={prefill.machineId}
             batchRecallEntry={prefill.batchRecallEntry}
           />
         )}
@@ -184,18 +197,6 @@ export default function SuCoBaoCaoPage() {
                       {row.incident_status_label} · {formatDateTimeVi(row.created_at)}{" "}
                       {row.mo_ta ? `— ${row.mo_ta}` : ""}
                     </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {allowed.create && row.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
-                      <IncidentConfirmButton incidentId={row.id} onConfirmed={reloadRecent} />
-                    ) : null}
-                    <IncidentJournalPrintButton incidentId={row.id} />
-                    <Link
-                      href={cssdSuCoIncidentJournalHref(row.id)}
-                      className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
-                    >
-                      Nhật ký
-                    </Link>
                   </div>
                 </li>
               ))}

@@ -158,12 +158,6 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   gstt_dm_cach_thuc_giam_sat: {
     orderedFields: ["ma_cach_thuc", "ten_cach_thuc", "is_active"],
   },
-  qlcv_dm_loai_cong_viec: {
-    orderedFields: ["ma_loai", "ten_loai", "is_active"],
-  },
-  qlcv_dm_trang_thai_cong_viec: {
-    orderedFields: ["ma_trang_thai", "ten_trang_thai", "is_active"],
-  },
   cssd_dm_loai_su_co: {
     orderedFields: ["ma_loai_su_co", "ten_loai_su_co", "is_active"],
   },

@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, Wrench, Activity, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
@@ -21,7 +22,7 @@ import { listSuCoEquipmentGanDayAction } from "../actions/cssd-bao-tri-su-co.act
 import type { FactBaoTriRow, LoaiPhieuBaoTri, SuCoEquipmentRow } from "../actions/cssd-bao-tri.types";
 import type { BaoTriMachineOption } from "../actions/cssd-bao-tri-list.actions";
 import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checklist";
-import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
+import { cssdSuCoEquipmentHref } from "@/lib/cssd-routes";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
 const MODULE_THIET_BI = "THIET_BI";
@@ -52,7 +53,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   const [ketQuaById, setKetQuaById] = useState<Record<string, string>>({});
   const [checklistById, setChecklistById] = useState<Record<string, CssdPmChecklistItem[]>>({});
   const [suCoRows, setSuCoRows] = useState<SuCoEquipmentRow[]>([]);
-  const [isIncidentOpen, setIsIncidentOpen] = useState(false);
+  const incidentHref = cssdSuCoEquipmentHref({ machineId: selTb });
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -209,13 +210,12 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
           <Wrench size={16} /> Mở phiếu bảo trì
         </button>
       )}
-      <button
-        type="button"
+      <Link
+        href={incidentHref}
         className="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold text-red-600 shadow-sm transition-all hover:bg-red-100 active:scale-[0.98]"
-        onClick={() => setIsIncidentOpen(true)}
       >
         ⚠️ Báo sự cố
-      </button>
+      </Link>
     </div>
   );
 
@@ -301,14 +301,6 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
           setMaMayHoacQr("");
         }}
         onSubmit={() => void onBatDau()}
-      />
-
-      <IncidentReportModal
-        isOpen={isIncidentOpen}
-        onClose={() => setIsIncidentOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="EQUIPMENT"
-        onSuccess={() => void reload()}
       />
     </div>
   );

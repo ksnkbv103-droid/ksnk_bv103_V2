@@ -6,31 +6,45 @@ import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import { parseBatchQcJson } from "../lib/cssd-print-format";
 import { getErrorMessage, STEPS } from "./cssd-action-common";
-import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
+import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
+import { cssdTiepNhanWaitingItems } from "../helpers/cssd-tiep-nhan-waiting";
+import { quyTrinhIdsWithEffectiveRedAlert } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-/** Cờ đỏ: ưu tiên cột trên view (sau migrate); fallback phiếu sự cố — localhost không migrate vẫn chạy. */
-async function loadRedAlertKeys(supabase: SupabaseClient): Promise<{
-  byQuyTrinhId: Set<string>;
-  byMaQr: Set<string>;
-}> {
-  const byQuyTrinhId = new Set<string>();
-  const byMaQr = new Set<string>();
-  const { data, error } = await supabase
-    .from("cssd_fact_su_co")
-    .select("quy_trinh_id, ma_qr_quy_trinh")
-    .eq("is_red_alert", true)
-    .limit(5000);
-  if (error) return { byQuyTrinhId, byMaQr };
-  for (const row of data || []) {
-    const id = String((row as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
-    const qr = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
-      .trim()
-      .toUpperCase();
-    if (id) byQuyTrinhId.add(id);
-    if (qr) byMaQr.add(qr);
+async function fetchAllActiveRows<T>(
+  load: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+): Promise<{ rows: T[]; error: string | null }> {
+  const rows: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await load(from, from + CSSD_ACTIVE_PAGE_SIZE - 1);
+    if (error) return { rows, error: error.message };
+    const chunk = data ?? [];
+    rows.push(...chunk);
+    const next = nextActivePageFrom(chunk.length, from);
+    if (next == null) return { rows, error: null };
+    from = next;
   }
-  return { byQuyTrinhId, byMaQr };
+}
+
+/** Cờ đỏ kho: phiếu còn hiệu lực, key `quy_trinh_id` — không fallback `ma_qr` (mã bộ dùng chung mọi chu kỳ). */
+async function loadRedAlertKeys(supabase: SupabaseClient): Promise<Set<string>> {
+  const { rows, error } = await fetchAllActiveRows<{
+    quy_trinh_id?: string | null;
+    is_active?: boolean | null;
+    is_red_alert?: boolean | null;
+    attributes?: Record<string, unknown> | null;
+  }>(async (from, to) =>
+    supabase
+      .from("cssd_fact_su_co")
+      .select("quy_trinh_id, is_active, is_red_alert, attributes")
+      .eq("is_red_alert", true)
+      .eq("is_active", true)
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
+  if (error) return new Set();
+  return quyTrinhIdsWithEffectiveRedAlert(rows);
 }
 
 export async function getWaitingListByStation(station: Station) {
@@ -39,29 +53,34 @@ export async function getWaitingListByStation(station: Station) {
   /** Trạm TK không có «chờ quét» tại trang 6 bước — vào mẻ chỉ trên /cssd-erp/batch. */
   if (station === "TIEP_NHAN") {
     // Chờ tiếp nhận: bộ danh mục chưa có quy trình active CÓ trạm (shell tram=null vẫn chờ quét).
-    const { data: activeFacts } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("bo_dung_cu_id")
-      .eq("is_active", true)
-      .not("tram_hien_tai_id", "is", null);
+    const { rows: activeFacts, error: activeErr } = await fetchAllActiveRows<{ bo_dung_cu_id?: string | null }>(
+      async (from, to) =>
+        supabase
+          .from("cssd_fact_quy_trinh")
+          .select("bo_dung_cu_id")
+          .eq("is_active", true)
+          .not("tram_hien_tai_id", "is", null)
+          .order("id", { ascending: true })
+          .range(from, to),
+    );
+    if (activeErr) throw new Error(activeErr);
     const activeBoIds = new Set((activeFacts || []).map((f) => String(f.bo_dung_cu_id)));
-    
-    const { data: dmBos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo, ten_bo, updated_at").eq("is_active", true);
-    const availableBos = (dmBos || [])
-      .filter((b) => !activeBoIds.has(String(b.id)))
-      .filter((b) => isCssdUnifiedBoMa(b.ma_bo));
 
-    return availableBos.map((b) => ({
-      id: String(b.id),
-      ma_vach_qr: normalizeBoMa(b.ma_bo),
-      updated_at: b.updated_at || new Date().toISOString(),
-      ten_bo: String(b.ten_bo || b.ma_bo || "Bộ dụng cụ"),
-      bo_dung_cu_id: String(b.id),
-      nguoi_tram_truoc: null,
-      sdt_tram_truoc: null,
-      thoi_gian_tram_truoc: null,
-      tram_truoc: null,
-    }));
+    const { rows: dmBos, error: dmErr } = await fetchAllActiveRows<{
+      id: string;
+      ma_bo: string | null;
+      ten_bo?: string | null;
+      updated_at?: string | null;
+    }>(async (from, to) =>
+      supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id, ma_bo, ten_bo, updated_at")
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+    if (dmErr) throw new Error(dmErr);
+    return cssdTiepNhanWaitingItems(activeBoIds, dmBos || []);
   }
 
   /** Mapping trạm hiện tại → cột người xử lý & thời gian của trạm TRƯỚC đó */
@@ -78,17 +97,20 @@ export async function getWaitingListByStation(station: Station) {
     if (!capTramId) return [];
 
     const prevCols = PREV_STATION_COLS.CAP_PHAT;
-    const { data, error } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select(
-        "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, ma_ca_mo_id, lo_tiet_khuan_id",
-      )
-      .eq("tram_hien_tai_id", capTramId)
-      .eq("is_active", true)
-      .is("ma_ca_mo_id", null)
-      .not("lo_tiet_khuan_id", "is", null)
-      .order("updated_at", { ascending: true });
-    if (error) throw new Error(error.message);
+    const { rows: data, error } = await fetchAllActiveRows<Record<string, unknown>>(async (from, to) =>
+      supabase
+        .from("v_cssd_quy_trinh_full")
+        .select(
+          "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, ma_ca_mo_id, lo_tiet_khuan_id",
+        )
+        .eq("tram_hien_tai_id", capTramId)
+        .eq("is_active", true)
+        .is("ma_ca_mo_id", null)
+        .not("lo_tiet_khuan_id", "is", null)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+    if (error) throw new Error(error);
 
     const raw = (data || []) as Array<Record<string, unknown>>;
     const loIds = [...new Set(raw.map((x) => String(x.lo_tiet_khuan_id || "").trim()).filter(Boolean))];
@@ -158,13 +180,18 @@ export async function getWaitingListByStation(station: Station) {
     ? `id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ${prevCols.nguoiCol}, ${prevCols.thoiGianCol}`
     : "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id";
 
-  const { data, error } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .select(selectCols)
-    .eq("tram_hien_tai_id", prevTramId)
-    .eq("is_active", true)
-    .order("updated_at", { ascending: true });
-  if (error) throw new Error(error.message);
+  const { rows: data, error } = await fetchAllActiveRows<Record<string, unknown>>(async (from, to) => {
+    const res = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select(selectCols)
+      .eq("tram_hien_tai_id", prevTramId)
+      .eq("is_active", true)
+      .order("id", { ascending: true })
+      .range(from, to);
+    // select động (cột người/giờ trạm trước) — parser type không đọc được chuỗi template.
+    return { data: res.data as unknown as Record<string, unknown>[] | null, error: res.error };
+  });
+  if (error) throw new Error(error);
 
   const raw = (data || []) as Array<Record<string, any>>;
 
@@ -243,8 +270,7 @@ export async function getCSSDImportExportData() {
         created_at?: string | null;
         updated_at?: string | null;
       }) => {
-        const qr = (x.ma_qr_quy_trinh || "").toUpperCase();
-        const isRed = redKeys.byQuyTrinhId.has(x.id) || (qr ? redKeys.byMaQr.has(qr) : false);
+        const isRed = redKeys.has(x.id);
         return {
           id: x.id,
           ma_vach_qr: x.ma_qr_quy_trinh || "",
@@ -281,18 +307,24 @@ export async function getCssdStationFlowMap(): Promise<
     await verifyPermission("CSSD_WORKFLOW", "view");
     const supabase = createAdminSupabaseClient();
     // Không select is_red_alert trên view — localhost/prod trước migrate sẽ lỗi cột thiếu.
-    const { data, error } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_dong_bang")
-      .eq("is_active", true)
-      .limit(5000);
+    const { rows: data, error } = await fetchAllActiveRows<{
+      id?: string;
+      ma_trang_thai_hien_tai?: string | null;
+      is_dong_bang?: boolean | null;
+    }>(async (from, to) =>
+      supabase
+        .from("v_cssd_quy_trinh_full")
+        .select("id, ma_trang_thai_hien_tai, is_dong_bang")
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
     if (error) {
-      const em = String(error.message || "");
-      // Triệt để: không bao giờ trả thông báo SQL cột thiếu ra UI.
+      const em = String(error);
       if (/is_red_alert|42703|does not exist/i.test(em)) {
         return { success: true, cells: emptyCells(), fetchedAt: new Date().toISOString() };
       }
-      throw error;
+      throw new Error(em);
     }
 
     const redKeys = await loadRedAlertKeys(supabase);
@@ -306,10 +338,7 @@ export async function getCssdStationFlowMap(): Promise<
       if (!cell) continue;
       cell.count += 1;
       const id = String((row as { id?: string }).id || "");
-      const qr = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
-        .trim()
-        .toUpperCase();
-      if (redKeys.byQuyTrinhId.has(id) || (qr && redKeys.byMaQr.has(qr))) cell.redAlertCount += 1;
+      if (redKeys.has(id)) cell.redAlertCount += 1;
       if ((row as { is_dong_bang?: boolean | null }).is_dong_bang === true) cell.frozenCount += 1;
     }
 

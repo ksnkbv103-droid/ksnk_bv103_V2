@@ -27,7 +27,7 @@ interface CreateDeXuatInput {
   han_hoan_thanh?: string;
   loai_cong_viec?: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
   muc_do_uu_tien?: "CAO" | "TRUNG_BINH" | "THAP";
-  dia_diem_khoa_id: string;
+  dia_diem_khoa_id?: string | null;
 }
 
 type DeXuatRow = CongViecLike & {
@@ -142,7 +142,7 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
 
   assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
   await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
-  await assertQlcvDiaDiemKhoaValid(supabase, p.dia_diem_khoa_id, true);
+  await assertQlcvDiaDiemKhoaValid(supabase, p.dia_diem_khoa_id, false); // Domain A: optional
 
   const trangThai = resolveQlcvTrangThaiMaForTask({
     isActive: true,

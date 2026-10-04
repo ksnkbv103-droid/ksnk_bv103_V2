@@ -89,7 +89,9 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
       <GenericDmHubRedirectBanner registryKey={m.key} />
       {locked ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-900">
-          Đây là danh mục hệ thống (mã máy). Chỉ xem — không thêm, sửa, xóa hay nạp Excel.
+          {loaiDanhMuc === "LOAI_NKBV"
+            ? "Loại ca nhiễm khuẩn bệnh viện là danh mục hệ thống. Chỉ xem — không thêm, sửa, xóa hay nạp Excel."
+            : "Đây là danh mục hệ thống (mã máy). Chỉ xem — không thêm, sửa, xóa hay nạp Excel."}
         </p>
       ) : null}
       <GenericDmMasterHeader

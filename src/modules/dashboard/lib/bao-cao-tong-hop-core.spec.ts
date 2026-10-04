@@ -131,6 +131,53 @@ describe("bao-cao-tong-hop-core", () => {
     ).toBe(10);
   });
 
+  it("deltaFromPeriodPoints keeps GSC at two decimals", () => {
+    expect(
+      deltaFromPeriodPoints(
+        [
+          {
+            label: "T1",
+            min_date: "2026-06-01",
+            ty_le_vst: null,
+            ty_le_gsc: 33.33,
+            gsc_tong: 3,
+            gsc_dat: 1,
+          },
+          {
+            label: "T2",
+            min_date: "2026-06-08",
+            ty_le_vst: null,
+            ty_le_gsc: 66.67,
+            gsc_tong: 3,
+            gsc_dat: 2,
+          },
+        ],
+        "ty_le_gsc",
+      ),
+    ).toBe(33.34);
+  });
+
+  it("ky_truoc GSC delta stays two decimals after each rate is rounded", () => {
+    const payload = composeBaoCaoTongHopPayload({
+      filters: { tu_ngay: "2026-06-08", den_ngay: "2026-06-14", chuyen_de: "ALL" },
+      vst: { kpis: { tong_co_hoi: 3, da_tuan_thu: 2, ty_le_tuan_thu: 66.67 } } as never,
+      gsc: { kpis: { tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 66.7 } } as never,
+      nkbv: null,
+      sources: { vst: "ok", gsc: "ok", nkbv: "skipped" },
+      errors: {},
+      kyTruoc: {
+        tu_ngay: "2026-06-01",
+        den_ngay: "2026-06-07",
+        ty_le_vst: 33.3,
+        ty_le_gsc: 33.33,
+      },
+    });
+    expect(payload.kpis.ty_le_vst).toBe(66.7);
+    expect(payload.kpis.ty_le_gsc).toBe(66.67);
+    expect(payload.ky_truoc?.delta_vst).toBe(33.4);
+    expect(payload.ky_truoc?.delta_gsc).toBe(33.34);
+  });
+
   it("bucketTrendByMonth keeps GSC at two decimals for 2/3", () => {
     const month = bucketTrendByMonth([
       {
@@ -358,6 +405,10 @@ describe("bao-cao-tong-hop-core", () => {
     expect(shouldFetchSource("ALL", "VST")).toBe(true);
     expect(shouldFetchSource("GSC", "VST")).toBe(false);
     expect(shouldFetchSource("NKBV", "NKBV")).toBe(true);
+    // Vệ sinh tay tab: WHO + BM.02/03 (GSC engine)
+    expect(shouldFetchSource("VST", "VST")).toBe(true);
+    expect(shouldFetchSource("VST", "GSC")).toBe(true);
+    expect(shouldFetchSource("VST", "NKBV")).toBe(false);
   });
 
   it("compose capabilities flags compare dimensions from source matrices", () => {

@@ -4,9 +4,14 @@
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getBangKiemsForGiamSat, getTieuChisForGiamSatChung } from "@/lib/mdm-read-gateway";
+import {
+  getBangKiemByMaOrIdForGscLookup,
+  getBangKiemsForGiamSat,
+  getTieuChisForGiamSatChung,
+} from "@/lib/mdm-read-gateway";
 import GiamSatChungForm from "../components/GiamSatChungForm";
 import ChecklistTemplateTable from "../components/ChecklistTemplateTable";
 import { useDataTable } from "@/hooks/useDataTable";
@@ -19,11 +24,16 @@ import {
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
 import { markSupervisionHistoryStale, SUPERVISION_HISTORY_PATHS } from "@/lib/supervision-form-nav";
-import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { GSC_ROUTE_CHROME, type GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import type { GscFormProgress } from "../lib/gsc-score-display";
 import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
 import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
 import type { GscPatientPrefill } from "../lib/gsc-patient-prefill";
+import { filterOutWhoBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
+import {
+  filterBangKiemByLopGiamSatMode,
+  isGscRouteDeepLinkAllowed,
+} from "@/lib/domain/gsc-lop-giam-sat-filter";
 
 export type { GscLocPrefill };
 
@@ -35,18 +45,45 @@ type BangKiemListRow = {
   loai_giam_sat?: string | null;
   doi_tuong_giam_sat?: string | null;
   cach_tinh_diem?: string | null;
+  ap_dung_jsonb?: unknown;
 };
+
+const GSC_SIBLING_DOORS: { loai: GscLoaiGiamSatRoute; label: string }[] = [
+  { loai: "TUAN_THU", label: "Giám sát tuân thủ" },
+  { loai: "NHAT_KY_VAN_HANH", label: "Nhật ký vận hành" },
+  { loai: "DANH_GIA_HE_THONG", label: "Đánh giá hệ thống" },
+];
+
+function GscSiblingDoors({ current }: { current?: GscLoaiGiamSatRoute }) {
+  return (
+    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+      Cửa GSC:{" "}
+      {GSC_SIBLING_DOORS.map((d, i) => (
+        <React.Fragment key={d.loai}>
+          {i > 0 ? " · " : null}
+          {d.loai === current ? (
+            <span className="font-semibold text-slate-700">{d.label}</span>
+          ) : (
+            <Link
+              href={GSC_ROUTE_CHROME[d.loai].href}
+              className="font-semibold text-[var(--primary)] hover:underline"
+            >
+              {d.label}
+            </Link>
+          )}
+        </React.Fragment>
+      ))}
+    </p>
+  );
+}
 
 function filterBangKiemByLoai(
   all: BangKiemListRow[],
   initialLoaiGiamSat?: GscLoaiGiamSatRoute,
 ): BangKiemListRow[] {
-  if (!initialLoaiGiamSat) return all;
-  return all.filter((bk) => {
-    const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
-    if (initialLoaiGiamSat === "TUAN_THU") return !lg || lg === "TUAN_THU";
-    return lg === initialLoaiGiamSat;
-  });
+  // Defense-in-depth WHO + 25d lop_giam_sat / seed_meta (16 §6) + VST hub R4.
+  const base = filterOutWhoBangKiemRows(all);
+  return filterBangKiemByLopGiamSatMode(base, initialLoaiGiamSat ?? "ALL");
 }
 
 interface GscFormViewProps {
@@ -162,17 +199,39 @@ export default function GscFormView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editSessionId]);
 
-  /** Prefill BK + BN từ deep-link MDRO (không có edit session). */
+  /** Prefill BK + BN từ deep-link MDRO / VST hub (không có edit session). */
   useEffect(() => {
-    if (editSessionId || !patientPrefill || selectedTemplate || dbTemplates.length === 0) return;
+    if (editSessionId || !patientPrefill || selectedTemplate) return;
     const maBk = String(patientPrefill.bangKiemMa || "").trim().toUpperCase();
     if (!maBk) return;
-    const bk = dbTemplates.find((t) => String(t.ma_bk || "").trim().toUpperCase() === maBk);
-    if (!bk) {
-      toast.message(`Không tìm thấy bảng kiểm ${maBk} trong danh mục`);
-      return;
-    }
-    void handleSelectTemplate(bk).then(() => {
+    // Đợi list load xong (kể cả list rỗng sau filter) — vẫn cho lookup ?bk=
+    if (loadingTemplates) return;
+    let cancelled = false;
+    void (async () => {
+      let bk = dbTemplates.find((t) => String(t.ma_bk || "").trim().toUpperCase() === maBk) || null;
+      if (!bk) {
+        const looked = await getBangKiemByMaOrIdForGscLookup(maBk);
+        if (cancelled) return;
+        if (!looked.success || !looked.data) {
+          toast.message(`Không tìm thấy bảng kiểm ${maBk} trong danh mục`);
+          return;
+        }
+        const row = looked.data as BangKiemListRow;
+        bk = {
+          id: String(row.id || ""),
+          ma_bk: row.ma_bk,
+          ten_bang_kiem: row.ten_bang_kiem,
+          loai_giam_sat: row.loai_giam_sat,
+          cach_tinh_diem: row.cach_tinh_diem,
+          ap_dung_jsonb: (row as { ap_dung_jsonb?: unknown }).ap_dung_jsonb,
+        };
+      }
+      if (!isGscRouteDeepLinkAllowed(bk, initialLoaiGiamSat ?? "ALL")) {
+        toast.message(`Bảng kiểm ${maBk} không thuộc cửa đang mở.`);
+        return;
+      }
+      await handleSelectTemplate(bk);
+      if (cancelled) return;
       setEditPayload({
         session: {
           khoa_id: patientPrefill.khoaId || "",
@@ -183,10 +242,12 @@ export default function GscFormView({
         },
         results: [],
       });
-      toast.success(`Đã mở ${maBk} với bệnh nhân được gắn`);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot deep-link
-  }, [patientPrefill, dbTemplates, editSessionId, selectedTemplate]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patientPrefill, dbTemplates, editSessionId, selectedTemplate, loadingTemplates]);
 
   if (editHydrating) {
     return (
@@ -261,14 +322,22 @@ export default function GscFormView({
           />
         </div>
       ) : (
-        <ChecklistTemplateTable
-          data={processedData}
-          onSelect={handleSelectTemplate}
-          onSearch={handleSearch}
-          onSort={(key) => handleSort(key as keyof BangKiemListRow)}
-          searchTerm={searchTerm}
-          loading={loadingTemplates}
-        />
+        <div className="space-y-2">
+          {!initialLoaiGiamSat ? (
+            <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+              Form gốc: mọi loại bảng kiểm. Chọn một cửa riêng bên dưới.
+            </p>
+          ) : null}
+          <GscSiblingDoors current={initialLoaiGiamSat} />
+          <ChecklistTemplateTable
+            data={processedData}
+            onSelect={handleSelectTemplate}
+            onSearch={handleSearch}
+            onSort={(key) => handleSort(key as keyof BangKiemListRow)}
+            searchTerm={searchTerm}
+            loading={loadingTemplates}
+          />
+        </div>
       )}
     </KsnkSupervisionPanel>
   );

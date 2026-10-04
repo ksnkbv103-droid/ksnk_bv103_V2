@@ -1,0 +1,89 @@
+{
+  "ma": "KSNK.QĐ.05.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ KSNK tại Khoa Cấp cứu",
+  "ho_form": "BK",
+  "chuyen_de": "Khoa Cấp cứu",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Bố trí bàn tiếp đón và nhân sự thực hiện sàng lọc nhanh hội chứng (hô hấp, sốt+phát ban, tiêu chảy, vết thương chảy) cho NB ngay từ cửa vào.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Thiết lập luồng di chuyển riêng và buồng cách ly tạm thời có cửa đóng kín, thông khí tốt cho NB nghi ngờ lây nhiễm.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Cấp phát khẩu trang y tế miễn phí và hướng dẫn đeo đúng cách cho NB có triệu chứng ho, sốt ngay tại khâu tiếp đón.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Trang bị đầy đủ bồn rửa tay có xà phòng, khăn lau tay dùng một lần và chai dung dịch VST nhanh chứa cồn tại các giường bệnh.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Đặt CVC: hàng rào vô khuẩn tối đa (mũ, khẩu trang, áo choàng dài, săng toàn thân) + CHG-cồn da + bộ dụng cụ vô khuẩn.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "NVYT tuân thủ mang PTPH phù hợp với đánh giá nguy cơ văng bắn máu, dịch tiết của NB.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Thực hiện lau khử khuẩn bề mặt thiết bị (monitor, máy thở, xe tiêm, xe cáng) bằng hóa chất đạt chuẩn ngay sau mỗi ca cấp cứu.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Phân loại chất thải y tế lây nhiễm, chất thải sắc nhọn và chất thải thông thường chính xác vào thùng có mã màu ngay tại nguồn; hộp kháng thủng tại xe tiêm.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Khoa có phương án mở rộng phân luồng / cách ly khi có tình huống dịch (PCI.07.02), biết đầu mối QT.17.",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "QĐ.05 Phụ lục BM / ipc-updated/QD/KSNK.QD.05.md",
+  "ghi_chu": "",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "chuyen_khoa",
+    "nhom": [
+      "Khoa Cấp cứu"
+    ],
+    "ghi_chu": "QĐ chuyên khoa Cấp cứu — thực hành tại CC."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "bac_si",
+    "dieu_duong"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cap_cuu",
+  "ly_do_phan_bo": "QĐ chuyên khoa Cấp cứu — thực hành tại CC."
+}

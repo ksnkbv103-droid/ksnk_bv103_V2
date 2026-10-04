@@ -223,7 +223,7 @@ describe("nkbv-uti-timeline-verdict", () => {
     expect(v.result.is_secondary_bsi).toBe(true);
   });
 
-  it("ageYearsFromNgaySinh ≤1 → infant", () => {
+  it("ageYearsFromNgaySinh ≤1 → age 1 (BV103 không mở nhánh infant)", () => {
     expect(ageYearsFromNgaySinh("2025-06-01", "2026-07-20")).toBe(1);
     expect(ageYearsFromNgaySinh("2020-01-01", "2026-07-20")).toBeGreaterThan(1);
   });

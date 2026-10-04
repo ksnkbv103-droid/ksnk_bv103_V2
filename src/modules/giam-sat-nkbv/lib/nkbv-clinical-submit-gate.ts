@@ -3,6 +3,10 @@ import {
   doeFormFieldsForSsiDepth,
 } from "./nkbv-clinical-symptom-catalog";
 import { addDays, subDays } from "./nkbv-timeline-math";
+import {
+  isKnownPatientAge,
+  MISSING_DOB_NO_EVENT_REASON,
+} from "./nkbv-pneu-vae-route";
 
 export type ClinicalSubmitGateResult =
   | { ok: true }
@@ -118,6 +122,10 @@ export function assertClinicalEvidenceForSubmit(
   }
 
   if (type === "VAE" || type === "VAP" || type === "HAP" || type === "PNEU") {
+    // L02/20b: thiếu tuổi/DOB → chặn submit (không classify dương tính với tuổi giả)
+    if (!isKnownPatientAge(verificationInput?.patient_age)) {
+      return { ok: false, error: MISSING_DOB_NO_EVENT_REASON };
+    }
     const catalogKeys =
       type === "VAE"
         ? ["temp_fever_or_hypothermia", "wbc_abnormal"]
@@ -156,7 +164,7 @@ export function assertClinicalEvidenceForSubmit(
         if (!inVae && !dateInWindow(shared, vStart, vEnd)) {
           return {
             ok: false,
-            error: `Dấu hiệu hô hấp có chọn nhưng ngày ngoài khung IWP/VAE (${iwpStart} → ${iwpEnd}).`,
+            error: `Dấu hiệu hô hấp có chọn nhưng ngày ngoài khung giám sát (${iwpStart} → ${iwpEnd}; VAE dùng cửa sổ Ch.10, không IWP±3 Ch.2).`,
           };
         }
       }

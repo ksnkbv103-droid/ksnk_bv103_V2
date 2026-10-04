@@ -1,0 +1,111 @@
+{
+  "ma": "KSNK.QĐ.07.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ quy định kiểm soát lây nhiễm lao",
+  "ho_form": "BK",
+  "chuyen_de": "Lao",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Tổ chức phân luồng và khu vực chờ riêng dành cho NB nghi ngờ lao ngay từ khâu tiếp đón (gồm Trung tâm Hô hấp).",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Cấp phát khẩu trang y tế và hướng dẫn vệ sinh hô hấp cho NB nghi lao kịp thời.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Bố trí buồng cách ly áp lực âm (AIIR) hoặc phòng thông khí tốt cho NB lao phổi tiến triển.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Trang bị thiết bị đo áp suất phòng AIIR và duy trì ghi chép sổ theo dõi áp suất hàng ngày (BM.02).",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Hạn chế thủ thuật tạo khí dung, chỉ thực hiện trong phòng cách ly có thông khí đạt chuẩn.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "NVYT trang bị khẩu trang N95, Seal-check mỗi lần đeo; tháo N95 sau khi ra AIIR.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cập nhật hồ sơ minh chứng tổ chức Fit-test khẩu trang N95 định kỳ cho NVYT.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Duy trì danh sách và hồ sơ sàng lọc lao định kỳ hằng năm cho NVYT tại khu vực nguy cơ (gồm Trung tâm Hô hấp).",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "NB đeo khẩu trang nguồn khi ra khỏi AIIR / vận chuyển nội viện.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Ngừng cách ly theo QĐ 162/2024 (không dùng mốc 2 tuần generic); y lệnh ghi hồ sơ.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "UVGI nếu có: chỉ bổ trợ sau lau + thông khí; không thay ACH.",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Trung tâm Hô hấp: có tiến độ triển khai KSNK lao theo lộ trình QIII–IV/2026.",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "QĐ.07 Phụ lục BM / ipc-updated/QD/KSNK.QD.07.md",
+  "ghi_chu": "",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Đơn vị / khu Lao",
+      "Khoa Truyền nhiễm",
+      "Khoa Khám bệnh – Ngoại trú",
+      "Khoa Cấp cứu"
+    ],
+    "ghi_chu": "Thực hành sàng lọc/cách ly lao tại điểm tiếp đón và đơn vị Lao."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "bac_si",
+    "dieu_duong",
+    "NV_tiep_don"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "khu_lao|tn|kham_benh|cap_cuu",
+  "ly_do_phan_bo": "Thực hành sàng lọc/cách ly lao tại điểm tiếp đón và đơn vị Lao."
+}

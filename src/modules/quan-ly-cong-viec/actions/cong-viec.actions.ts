@@ -14,7 +14,7 @@ import {
   verifyQlcvDeleteCapability,
   verifyQlcvNghiemThuCapability,
 } from "../lib/qlcv-rbac";
-import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
+import { congViecSchema, congViecCreateSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import {
   assigneeBlockedFromTaskCrud,
 } from "../lib/qlcv-access";
@@ -35,6 +35,11 @@ import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import {
+  hasQlcvChecklistFullResult,
+  normalizeQlcvKetQuaText,
+  validateQlcvCloseRequiresResult,
+} from "@/lib/domain/qlcv/close-requires-result";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
@@ -45,7 +50,7 @@ import { getPendingDeXuat } from "./dexuat.actions";
 // ==================== CREATE ====================
 export async function createCongViec(input: CongViecInput) {
   const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("create");
-  const parsed = congViecSchema.safeParse(input);
+  const parsed = congViecCreateSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error("Dữ liệu không hợp lệ: " + parsed.error.issues.map((i) => i.message).join(", "));
   }
@@ -570,7 +575,7 @@ export async function getCongViecDetail(id: string) {
 }
 
 // ==================== XÁC NHẬN HOÀN THÀNH ====================
-export async function xacNhanHoanThanh(id: string) {
+export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   await verifyQlcvNghiemThuCapability();
   const { supabase } = await ensureQlcvKsnkAccess("approve");
   const actorNhanSuId = await getActorNhanSuId();
@@ -579,7 +584,7 @@ export async function xacNhanHoanThanh(id: string) {
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, phan_tram_hoan_thanh, nguoi_phu_trach_id, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+      "id, trang_thai, phan_tram_hoan_thanh, nguoi_phu_trach_id, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han, checklist",
     )
     .eq("id", id)
     .maybeSingle();
@@ -605,11 +610,39 @@ export async function xacNhanHoanThanh(id: string) {
     throw new Error("Chỉ nghiệm thu khi việc đã báo 100% (cổng chờ nghiệm thu).");
   }
 
+  // 19c TAC-3A: đóng việc bắt buộc 1 dòng kết quả (hoặc checklist 100%).
+  const closeErr = validateQlcvCloseRequiresResult({
+    checklist: cur.checklist,
+    ketQuaText: ketQua,
+  });
+  if (closeErr) throw new Error(closeErr);
+
   await invokeQlcvTransition(supabase, {
     congViecId: id,
     action: "NGHIEM_THU",
     actorNhanSuId: actorNhanSuId,
   });
+
+  const ketQuaNorm = normalizeQlcvKetQuaText(ketQua);
+  if (ketQuaNorm) {
+    await appendQlcvNhatKy(supabase, {
+      congViecId: id,
+      loaiHoatDong: "HOAN_THANH",
+      nguoiThucHienId: actorNhanSuId,
+      noiDung: `Kết quả: ${ketQuaNorm}`,
+      trangThai: "HOAN_THANH",
+      phanTramHoanThanh: Number(cur.phan_tram_hoan_thanh ?? 100),
+    });
+  } else if (hasQlcvChecklistFullResult(cur.checklist)) {
+    await appendQlcvNhatKy(supabase, {
+      congViecId: id,
+      loaiHoatDong: "HOAN_THANH",
+      nguoiThucHienId: actorNhanSuId,
+      noiDung: "Kết quả: checklist đủ 100%.",
+      trangThai: "HOAN_THANH",
+      phanTramHoanThanh: 100,
+    });
+  }
 
   revalidatePath("/quan-ly-cong-viec");
   return { success: true };

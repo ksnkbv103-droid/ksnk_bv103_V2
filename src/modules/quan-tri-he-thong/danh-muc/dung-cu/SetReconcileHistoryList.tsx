@@ -11,6 +11,7 @@ import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 const STATUS_LABEL: Record<string, string> = {
   BOM_APPROVED: "Đã duyệt đổi mã · tên · số lượng",
   BOM_REJECTED: "Từ chối đổi mã · tên · số lượng",
+  BOM_APPLY_FAILED: "Ghi bảng thành phần lỗi",
   NONE: "Đã ghi sổ sự cố / khớp",
 };
 
@@ -44,7 +45,7 @@ export function SetReconcileHistoryList() {
     };
   }, []);
 
-  if (loading) return <p className="text-[11px] text-slate-500">Đang tải lịch sử phiếu…</p>;
+  if (loading) return <p className="text-[11px] text-slate-500">Đang tải sổ rà soát…</p>;
   if (!rows.length) {
     return <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chưa có phiếu rà soát đã xử lý.</p>;
   }

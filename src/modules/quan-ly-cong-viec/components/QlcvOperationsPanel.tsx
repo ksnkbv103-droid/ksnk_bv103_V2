@@ -8,11 +8,15 @@ import { KsnkSupervisionPanel, KsnkSupervisionTabList, type SupervisionTabDef } 
 import SearchBar from "@/components/shared/SearchBar";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { canShowDirectCreateTask } from "../lib/qlcv-access";
 import { QlcvGateStats } from "./QlcvGateStats";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { deleteCongViec } from "../actions/cong-viec.actions";
+import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import {
   formatBoardFilterHint,
   getKanbanFocusColumnForFilter,
@@ -66,11 +70,15 @@ export type QlcvOperationsPanelProps = {
   onEditTask: (row: CongViecView) => void;
   onRefreshAll: () => Promise<void>;
   onBoardFilter: (f: QlcvBoardFilter) => void;
+  /** Empty board CTA — mở form tạo việc (header «Tạo công việc»). */
+  onCreateTask?: () => void;
   /** Lọc loại — client trên danh sách điều hành. */
   loaiFilter?: QlcvLoaiFilter;
   /** Khi set: chỉ phiếu có hạn trong kỳ (client). */
   periodKindFilter?: QlcvPeriodKind | null;
   summarySlot?: React.ReactNode;
+  /** Bump after mutate so GateStats refetches rpc_qlcv_board_counts. */
+  gateCountsRefreshKey?: number;
 };
 
 export function QlcvOperationsPanel({
@@ -87,12 +95,27 @@ export function QlcvOperationsPanel({
   onEditTask,
   onRefreshAll,
   onBoardFilter,
+  onCreateTask,
   mauSacByMa,
   loaiFilter = "ALL",
   periodKindFilter = null,
   summarySlot,
+  gateCountsRefreshKey = 0,
 }: QlcvOperationsPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);
+  const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
+
+  useEffect(() => {
+    void getQlcvFormCatalog()
+      .then((c) => setNhanSuOptions(c.nhanSu))
+      .catch(() => setNhanSuOptions([]));
+  }, []);
+
+  const staffLabelOpts = useMemo(
+    () => nhanSuOptions.map((o) => ({ id: o.id, label: o.label })),
+    [nhanSuOptions],
+  );
+
   const scopedTasks = useMemo(
     () => mergedTasks.filter((t) => matchesLoaiFilter(t, loaiFilter) && matchesPeriodHan(t, periodKindFilter)),
     [mergedTasks, loaiFilter, periodKindFilter],
@@ -178,8 +201,15 @@ export function QlcvOperationsPanel({
   }, [deleteTarget, onRefreshAll]);
 
   const columns = useMemo(
-    () => buildQlcvCommandTableColumns({ qlcvUi, mauSacByMa, onEdit: onEditTask, onDelete: handleDelete }),
-    [qlcvUi, mauSacByMa, onEditTask, handleDelete],
+    () =>
+      buildQlcvCommandTableColumns({
+        qlcvUi,
+        mauSacByMa,
+        staffLabelOpts,
+        onEdit: onEditTask,
+        onDelete: handleDelete,
+      }),
+    [qlcvUi, mauSacByMa, staffLabelOpts, onEditTask, handleDelete],
   );
 
   const tableData = useClientLoaiPeriod ? scopedTasks : table.tableRows;
@@ -211,6 +241,7 @@ export function QlcvOperationsPanel({
         activeFilter={kanban.boardFilter}
         onFilterChange={onBoardFilter}
         actorStaffId={actorStaffId}
+        refreshKey={gateCountsRefreshKey}
       />
 
       <div className={`min-w-0 ${UI.shell} space-y-3 p-3 sm:p-4`}>
@@ -227,7 +258,7 @@ export function QlcvOperationsPanel({
           <SearchBar
             value={kanban.searchTerm}
             onChange={kanban.setSearchTerm}
-            placeholder="Tìm tên việc, người phụ trách…"
+            placeholder="Tìm tên việc, người thực hiện…"
           />
         ) : null}
 
@@ -237,6 +268,30 @@ export function QlcvOperationsPanel({
             showProposalColumn={canApprove}
             focusColumnId={kanbanFocusColumn}
             focusNonce={kanban.kanbanFocusNonce}
+            staffLabelOpts={staffLabelOpts}
+            emptyAction={
+              canShowDirectCreateTask(qlcvUi) && onCreateTask ? (
+                <button type="button" className={bv103LayoutChrome.btnPrimary} onClick={onCreateTask}>
+                  Tạo công việc
+                </button>
+              ) : kanban.boardFilter ? (
+                <button
+                  type="button"
+                  className={bv103LayoutChrome.btnPrimary}
+                  onClick={() => onBoardFilter("TOTAL")}
+                >
+                  Hiện tất cả việc
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={bv103LayoutChrome.btnSecondary}
+                  onClick={() => void onRefreshAll()}
+                >
+                  Tải lại bảng
+                </button>
+              )
+            }
             onTaskClick={(task) => {
               if (canApprove && isDeXuatChoDuyet(task)) {
                 onApproveFromKanban(task);
@@ -252,10 +307,11 @@ export function QlcvOperationsPanel({
               data={tableData}
               loading={table.tableLoading || kanban.loading}
               onRowClick={(item) => onSelectTask(item.id)}
+              emptyMessage="Chưa có công việc phù hợp."
               tableClassName="w-full min-w-0 table-fixed border-collapse text-sm"
               searchValue={table.tableSearchInput}
               onSearch={table.handleTableSearch}
-              searchPlaceholder="Tìm tiêu đề, người giao, phụ trách…"
+              searchPlaceholder="Tìm tiêu đề, người giao, thực hiện…"
               onSort={table.handleTableSort}
               serverPagination={
                 useClientLoaiPeriod

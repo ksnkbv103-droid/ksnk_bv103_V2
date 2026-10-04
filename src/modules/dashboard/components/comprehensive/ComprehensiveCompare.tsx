@@ -44,6 +44,14 @@ export function ComprehensiveCompare({
     return maskGapRowsForLens(gapRowsWithLensData(rows, gscLens), gscLens);
   }, [payload?.gsc?.gap_analysis, selectedKhoaIds, khoaOptions, gscLens]);
 
+  const compareSeed = payload
+    ? {
+        tu_ngay: payload.filters.tu_ngay,
+        den_ngay: payload.filters.den_ngay,
+        khoa_ids: payload.filters.khoa_ids,
+      }
+    : undefined;
+
   const showVst = (module === "all" || module === "vst") && payload?.sources.vst === "ok";
   const showGsc = (module === "all" || module === "gsc") && payload?.sources.gsc === "ok";
   const hasVstChart = showVst && vstChartRows.length > 0;
@@ -67,7 +75,7 @@ export function ComprehensiveCompare({
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <SupervisionSourceLensToggle value={vstLens} onChange={setVstLens} />
-            <SupervisionActionDeepLink source="vst" />
+            <SupervisionActionDeepLink source="vst" seed={compareSeed} />
           </div>
           {hasVstChart ? (
             <ModuleKhoaDashboard
@@ -92,7 +100,7 @@ export function ComprehensiveCompare({
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <SupervisionSourceLensToggle value={gscLens} onChange={setGscLens} />
-            <SupervisionActionDeepLink source="gsc" />
+            <SupervisionActionDeepLink source="gsc" seed={compareSeed} />
           </div>
           {hasGscChart ? (
             <ModuleKhoaDashboard

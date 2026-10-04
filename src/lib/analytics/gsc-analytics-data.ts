@@ -1,5 +1,7 @@
+import { roundPercent2 } from "@/lib/analytics/supervision-percent";
 import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
 import type {
+  GscChecklistCriterionKhoaRow,
   GscChecklistDetailPayload,
   GscChecklistOverviewRow,
   GscStrategicPayload,
@@ -12,12 +14,32 @@ function withCountsPercent<T extends { tong_quan_sat?: number; tong_dat?: number
   return pct == null ? row : { ...row, ty_le_tuan_thu: pct };
 }
 
+function withViolationPercent<T extends { tong_quan_sat?: number; so_vi_pham?: number; tong_vi_pham?: number; ty_le_vi_pham?: number }>(
+  row: T,
+): T {
+  const violations = row.so_vi_pham ?? row.tong_vi_pham;
+  const pct = gscCompliancePercentFromCounts(row.tong_quan_sat, violations);
+  return pct == null ? row : { ...row, ty_le_vi_pham: pct };
+}
+
+/** Chênh tự GS − chuyên trách sau khi cả hai % đã làm tròn 2 chữ số từ đếm. */
+export function gscGapDoLech(tyLeTgs: number | null | undefined, tyLeKsnk: number | null | undefined): number | null {
+  if (tyLeTgs == null || tyLeKsnk == null) return null;
+  if (!Number.isFinite(tyLeTgs) || !Number.isFinite(tyLeKsnk)) return null;
+  return roundPercent2(tyLeTgs - tyLeKsnk);
+}
+
 function remapGscGapRows(rows: GscStrategicPayload["gap_analysis"] | undefined) {
-  return (rows ?? []).map((row) => ({
-    ...row,
-    ty_le_tgs: gscCompliancePercentFromCounts(row.tgs_quan_sat, row.tgs_dat) ?? row.ty_le_tgs,
-    ty_le_ksnk: gscCompliancePercentFromCounts(row.ksnk_quan_sat, row.ksnk_dat) ?? row.ty_le_ksnk,
-  }));
+  return (rows ?? []).map((row) => {
+    const tyLeTgs = gscCompliancePercentFromCounts(row.tgs_quan_sat, row.tgs_dat) ?? row.ty_le_tgs;
+    const tyLeKsnk = gscCompliancePercentFromCounts(row.ksnk_quan_sat, row.ksnk_dat) ?? row.ty_le_ksnk;
+    return {
+      ...row,
+      ty_le_tgs: tyLeTgs,
+      ty_le_ksnk: tyLeKsnk,
+      do_lech: gscGapDoLech(tyLeTgs, tyLeKsnk),
+    };
+  });
 }
 
 /** GSC-2: % thống kê = Đạt/áp dụng, 2 chữ số — không dùng ROUND 1 số từ RPC. */
@@ -34,6 +56,7 @@ export function normalizeGscStrategicPercents(payload: GscStrategicPayload): Gsc
     matrix_cach_thuc: payload.matrix_cach_thuc?.map(withCountsPercent),
     checklist_overview: payload.checklist_overview?.map(withCountsPercent),
     dynamic_checklists: (payload.dynamic_checklists ?? []).map(withCountsPercent),
+    top_violations: (payload.top_violations ?? []).map(withViolationPercent),
     gap_analysis: remapGscGapRows(payload.gap_analysis),
   };
 }
@@ -52,6 +75,7 @@ export function normalizeGscChecklistDetailPercents(
     matrix_hinh_thuc: payload.matrix_hinh_thuc?.map(withCountsPercent),
     matrix_cach_thuc: payload.matrix_cach_thuc?.map(withCountsPercent),
     matrix_criterion: (payload.matrix_criterion ?? []).map(withCountsPercent),
+    criterion_khoa: (payload.criterion_khoa ?? []).map(withViolationPercent) as GscChecklistCriterionKhoaRow[],
     gap_analysis: remapGscGapRows(payload.gap_analysis),
   };
 }

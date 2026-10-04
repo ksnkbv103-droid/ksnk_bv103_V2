@@ -1,14 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  mapInstrumentPresetToLedgerType,
-  validateIssueQuantityAgainstThucTe,
-} from "@/lib/domain/cssd-instrument-incident";
-import {
-  appendChiTietIssueNoteCore,
-  type InstrumentIssueType,
-} from "@/lib/master-data/instrument-issue-core";
-import { replenishSetInstrumentCore, returnSetInstrumentToKhoCore } from "@/lib/master-data/cssd-set-replenish-core";
-import { transferBomLineBetweenQuyTrinh } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-bom";
+import { mapInstrumentPresetToLedgerType } from "@/lib/domain/cssd-instrument-incident";
 
 export type InstrumentIncidentPayload = {
   typeId: string;
@@ -23,65 +14,64 @@ export type InstrumentIncidentPayload = {
   note?: string;
 };
 
-type RpcLedgerResult = { success?: boolean; message?: string };
+export type CssdLedgerLine = {
+  loai_dung_cu_id?: string;
+  bo_dung_cu_id?: string;
+  quy_trinh_id?: string | null;
+  loai_giao_dich?: string;
+  so_luong_thay_doi?: number;
+  ghi_chu?: string | null;
+  bo_dung_cu_id_den?: string | null;
+  chi_tiet_id?: string | null;
+  issue_type?: "HONG" | "MAT" | null;
+  ten_dung_cu_le?: string | null;
+  ma_qr_nguon?: string | null;
+  ma_qr_den?: string | null;
+  ma_khac?: string | null;
+  ma_khac_goc?: string | null;
+  skip_ledger?: boolean;
+};
 
-async function readRealtimeQty(
-  supabase: SupabaseClient,
-  boDungCuId: string,
-  loaiDungCuId: string,
-): Promise<number> {
-  const { data, error } = await supabase
-    .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
-    .select("so_luong_thuc_te")
-    .eq("bo_dung_cu_id", boDungCuId)
-    .eq("loai_dung_cu_id", loaiDungCuId)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+type RpcLedgerResult = {
+  success?: boolean;
+  message?: string;
+  su_co_id?: string;
+  idempotent?: boolean;
+};
+
+export type SuCoCommitPayload = {
+  ma_qr_quy_trinh?: string | null;
+  ma_tram_phat_hien: string;
+  mo_ta?: string | null;
+  is_red_alert?: boolean;
+  ma_tram_gay_loi?: string | null;
+  attributes?: Record<string, string>;
+  quy_trinh_id?: string | null;
+  loai_su_co_id?: string | null;
+  nguoi_bao_id?: string | null;
+};
+
+function assertRpcOk(data: unknown, error: { message: string } | null, fallback: string): RpcLedgerResult {
   if (error) throw new Error(error.message);
-  return Math.max(0, Number((data as { so_luong_thuc_te?: number } | null)?.so_luong_thuc_te ?? 0) || 0);
+  const parsed = (data ?? null) as RpcLedgerResult | null;
+  if (!parsed?.success) throw new Error(parsed?.message || fallback);
+  return parsed;
 }
 
-async function applyLedgerViaRpc(
-  supabase: SupabaseClient,
-  params: {
-    suCoId: string;
-    loaiDungCuId: string;
-    boDungCuId: string;
-    quyTrinhId?: string | null;
-    loaiGiaoDich: string;
-    soLuongThayDoi: number;
-    ghiChu?: string;
-    boDungCuIdDen?: string;
-  },
-) {
-  const { data, error } = await supabase.rpc("rpc_cssd_apply_instrument_ledger", {
-    p_su_co_id: params.suCoId,
-    p_loai_dung_cu_id: params.loaiDungCuId,
-    p_bo_dung_cu_id: params.boDungCuId,
-    p_quy_trinh_id: params.quyTrinhId || null,
-    p_loai_giao_dich: params.loaiGiaoDich,
-    p_so_luong_thay_doi: params.soLuongThayDoi,
-    p_ghi_chu: params.ghiChu || null,
-    p_bo_dung_cu_id_den: params.boDungCuIdDen || null,
-    p_nguoi_thuc_hien_id: null,
-  });
-  if (error) throw new Error(error.message);
-  const parsed = data as RpcLedgerResult | null;
-  if (!parsed?.success) throw new Error(parsed?.message || "Không ghi sổ giao dịch dụng cụ.");
-}
-
-/** Sau khi lưu biên bản INSTRUMENT — cập nhật sổ + danh mục, không rollback quy trình. */
-export async function applyInstrumentIncidentLedger(
-  supabase: SupabaseClient,
-  suCoId: string,
-  payload: InstrumentIncidentPayload,
-): Promise<void> {
+/** Một dòng sổ từ payload sự cố dụng cụ. null = không có biến động sổ. */
+export function prepareInstrumentLedgerLine(payload: InstrumentIncidentPayload): CssdLedgerLine | null {
   const ledgerType = mapInstrumentPresetToLedgerType(payload.typeId);
-  if (!ledgerType) return;
+  if (!ledgerType) return null;
 
   const qty = Math.max(1, Math.floor(Number(payload.quantity ?? 1) || 1));
-  const note = String(payload.note || "").trim() || undefined;
+  const note = String(payload.note || "").trim() || null;
+  if (!payload.loaiDungCuId || !payload.boDungCuId) {
+    throw new Error(
+      ledgerType === "DIEU_CHUYEN"
+        ? "Thiếu thông tin bộ nguồn / loại dụng cụ."
+        : "Thiếu loại dụng cụ / bộ dụng cụ.",
+    );
+  }
 
   if (ledgerType === "DIEU_CHUYEN") {
     const maQrNguon = String(payload.maQrNguon || "").trim().toUpperCase();
@@ -91,122 +81,102 @@ export async function applyInstrumentIncidentLedger(
       throw new Error("Điều chuyển cần hai QR nguồn/đích khác nhau.");
     }
     if (!ten) throw new Error("Điều chuyển cần tên dụng cụ.");
-    if (!payload.loaiDungCuId || !payload.boDungCuId) {
-      throw new Error("Thiếu thông tin bộ nguồn / loại dụng cụ.");
-    }
-
-    const thucTe = await readRealtimeQty(supabase, payload.boDungCuId, payload.loaiDungCuId);
-    const qtyErr = validateIssueQuantityAgainstThucTe(qty, thucTe);
-    if (qtyErr) throw new Error(qtyErr);
-
-    const { data: boDen, error: boErr } = await supabase
-      .from("cssd_dm_bo_dung_cu")
-      .select("id")
-      .eq("ma_bo", maQrDen)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (boErr) throw new Error(boErr.message);
-    const boDenId = String((boDen as { id?: string } | null)?.id || "").trim();
-    if (!boDenId) throw new Error("Không tìm thấy bộ đích theo QR.");
-
-    const { data: qtTu, error: eTu } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id")
-      .eq("ma_qr_quy_trinh", maQrNguon)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const { data: qtDen, error: eDen } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id")
-      .eq("ma_qr_quy_trinh", maQrDen)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (eTu || eDen) throw new Error((eTu || eDen)?.message || "Lỗi đọc quy trình.");
-    if (qtTu && qtDen) {
-      const moved = await transferBomLineBetweenQuyTrinh(supabase, {
-        tuQuyTrinhId: String((qtTu as { id: string }).id),
-        denQuyTrinhId: String((qtDen as { id: string }).id),
-        tenDungCuLe: ten,
-        soLuong: qty,
-      });
-      if (!moved.ok) throw new Error(moved.message);
-    }
-
-    await applyLedgerViaRpc(supabase, {
-      suCoId,
-      loaiDungCuId: payload.loaiDungCuId,
-      boDungCuId: payload.boDungCuId,
-      quyTrinhId: payload.quyTrinhId,
-      loaiGiaoDich: "DIEU_CHUYEN",
-      soLuongThayDoi: -qty,
-      ghiChu: note,
-      boDungCuIdDen: boDenId,
-    });
-    return;
+    return {
+      loai_dung_cu_id: payload.loaiDungCuId,
+      bo_dung_cu_id: payload.boDungCuId,
+      quy_trinh_id: payload.quyTrinhId || null,
+      loai_giao_dich: "DIEU_CHUYEN",
+      so_luong_thay_doi: -qty,
+      ghi_chu: note,
+      ten_dung_cu_le: ten,
+      ma_qr_nguon: maQrNguon,
+      ma_qr_den: maQrDen,
+    };
   }
 
-  if (ledgerType === "BO_SUNG") {
-    if (!payload.loaiDungCuId || !payload.boDungCuId) {
-      throw new Error("Thiếu loại dụng cụ / bộ dụng cụ.");
-    }
-    const res = await replenishSetInstrumentCore(supabase, {
-      loaiDungCuId: payload.loaiDungCuId,
-      boDungCuId: payload.boDungCuId,
-      quyTrinhId: payload.quyTrinhId,
-      quantity: qty,
-      note,
-      suCoId,
-    });
-    if (!res.success) throw new Error(res.error);
-    return;
+  if (ledgerType === "BAO_HONG" || ledgerType === "BAO_MAT") {
+    if (!payload.chiTietId) throw new Error("Thiếu dòng chi tiết / loại dụng cụ / bộ dụng cụ.");
+    return {
+      loai_dung_cu_id: payload.loaiDungCuId,
+      bo_dung_cu_id: payload.boDungCuId,
+      quy_trinh_id: payload.quyTrinhId || null,
+      loai_giao_dich: ledgerType,
+      so_luong_thay_doi: -qty,
+      ghi_chu: note,
+      chi_tiet_id: payload.chiTietId,
+      issue_type: ledgerType === "BAO_HONG" ? "HONG" : "MAT",
+    };
   }
 
-  if (ledgerType === "NHAP_KHO") {
-    if (!payload.loaiDungCuId || !payload.boDungCuId) {
-      throw new Error("Thiếu loại dụng cụ / bộ dụng cụ.");
-    }
-    const res = await returnSetInstrumentToKhoCore(supabase, {
-      loaiDungCuId: payload.loaiDungCuId,
-      boDungCuId: payload.boDungCuId,
-      quyTrinhId: payload.quyTrinhId,
-      quantity: qty,
-      note,
-      suCoId,
-    });
-    if (!res.success) throw new Error(res.error);
-    return;
-  }
+  return {
+    loai_dung_cu_id: payload.loaiDungCuId,
+    bo_dung_cu_id: payload.boDungCuId,
+    quy_trinh_id: payload.quyTrinhId || null,
+    loai_giao_dich: ledgerType,
+    so_luong_thay_doi: ledgerType === "BO_SUNG" ? qty : -qty,
+    ghi_chu: note,
+  };
+}
 
-  if (!payload.chiTietId || !payload.loaiDungCuId || !payload.boDungCuId) {
-    throw new Error("Thiếu dòng chi tiết / loại dụng cụ / bộ dụng cụ.");
-  }
-
-  const thucTe = await readRealtimeQty(supabase, payload.boDungCuId, payload.loaiDungCuId);
-  const qtyErr = validateIssueQuantityAgainstThucTe(qty, thucTe);
-  if (qtyErr) throw new Error(qtyErr);
-
-  // BAO_HONG / BAO_MAT — cùng RPC SSOT với DIEU_CHUYEN (rpc_cssd_apply_instrument_ledger).
-  // RPC đã check tồn thực tế; app vẫn validate trước + ghi chú chi tiết (không detach BOM).
-  const issueType: InstrumentIssueType = ledgerType === "BAO_HONG" ? "HONG" : "MAT";
-  const noteResult = await appendChiTietIssueNoteCore(supabase, {
-    chiTietId: payload.chiTietId,
-    issueType,
-    note,
-    quantity: qty,
+export async function applyInstrumentLinesRpc(
+  supabase: SupabaseClient,
+  args: {
+    suCoId: string;
+    lines: CssdLedgerLine[];
+    boDungCuId?: string | null;
+    touchNgayKiemKe?: boolean;
+    attributes?: Record<string, string> | null;
+    nguoiThucHienId?: string | null;
+  },
+): Promise<RpcLedgerResult> {
+  const { data, error } = await supabase.rpc("rpc_cssd_apply_instrument_lines", {
+    p_lines: args.lines,
+    p_su_co_id: args.suCoId,
+    p_bo_dung_cu_id: args.boDungCuId || null,
+    p_touch_ngay_kiem_ke: Boolean(args.touchNgayKiemKe),
+    p_attributes: args.attributes ?? null,
+    p_nguoi_thuc_hien_id: args.nguoiThucHienId || null,
   });
-  if (!noteResult.success) throw new Error(noteResult.error);
+  return assertRpcOk(data, error, "Không ghi sổ giao dịch dụng cụ.");
+}
 
-  await applyLedgerViaRpc(supabase, {
+/** Insert/xác nhận phiếu + sổ + metadata + ghi chú trong một transaction Postgres. */
+export async function commitInstrumentReportRpc(
+  supabase: SupabaseClient,
+  args: {
+    draftId?: string | null;
+    suCo: SuCoCommitPayload;
+    lines: CssdLedgerLine[];
+    boDungCuId?: string | null;
+    touchNgayKiemKe?: boolean;
+    nguoiThucHienId?: string | null;
+  },
+): Promise<RpcLedgerResult> {
+  const { data, error } = await supabase.rpc("rpc_cssd_commit_instrument_report", {
+    p_draft_id: args.draftId || null,
+    p_su_co: args.suCo,
+    p_lines: args.lines,
+    p_bo_dung_cu_id: args.boDungCuId || null,
+    p_touch_ngay_kiem_ke: Boolean(args.touchNgayKiemKe),
+    p_nguoi_thuc_hien_id: args.nguoiThucHienId || null,
+  });
+  const parsed = assertRpcOk(data, error, "Không lưu được phiếu sự cố.");
+  if (!parsed.su_co_id) throw new Error("Không lưu được phiếu sự cố.");
+  return parsed;
+}
+
+/** Sau khi đã có phiếu — ghi sổ atomic (ghi chú, metadata điều chuyển, dòng ledger). */
+export async function applyInstrumentIncidentLedger(
+  supabase: SupabaseClient,
+  suCoId: string,
+  payload: InstrumentIncidentPayload,
+): Promise<void> {
+  const line = prepareInstrumentLedgerLine(payload);
+  if (!line) return;
+  await applyInstrumentLinesRpc(supabase, {
     suCoId,
-    loaiDungCuId: payload.loaiDungCuId,
+    lines: [line],
     boDungCuId: payload.boDungCuId,
-    quyTrinhId: payload.quyTrinhId,
-    loaiGiaoDich: ledgerType, // BAO_HONG | BAO_MAT
-    soLuongThayDoi: -qty,
-    ghiChu: note,
+    touchNgayKiemKe: false,
   });
 }

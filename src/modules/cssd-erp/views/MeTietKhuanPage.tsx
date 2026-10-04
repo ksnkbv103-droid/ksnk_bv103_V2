@@ -3,7 +3,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { Plus } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
@@ -14,20 +13,29 @@ import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
-import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
+import { MeTietKhuanConfirmDialog } from "../components/batch/me-tiet-khuan-slip-stepper";
 
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
-  const [isIncidentOpen, setIsIncidentOpen] = React.useState(false);
   const [isBatchRecallOpen, setIsBatchRecallOpen] = React.useState(false);
+  const confirmDialog = (
+    <MeTietKhuanConfirmDialog
+      open={Boolean(w.confirmAsk)}
+      title={w.confirmAsk?.title || ""}
+      body={w.confirmAsk?.body || ""}
+      confirmLabel={w.confirmAsk?.confirmLabel || "Xác nhận"}
+      danger={w.confirmAsk?.danger}
+      onConfirm={() => w.settleConfirm(true)}
+      onCancel={() => w.settleConfirm(false)}
+    />
+  );
 
   const batchColumns = React.useMemo(
     () =>
       buildMeTietKhuanBatchColumns({
-        onPrintBatch: (batchId) => void w.onPrintBatch({ batchId }),
-        isPrinting: w.isCssdPrinting,
+        onContinue: w.openRowForProcess,
       }),
-    [w.onPrintBatch, w.isCssdPrinting],
+    [w.openRowForProcess],
   );
 
   const printPortal = <CssdPrintPortal printState={w.printState} />;
@@ -50,8 +58,10 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           machines={w.machines}
           machineId={w.machineId}
           nguoiLoad={w.nguoiLoad}
+          chuongTrinhMa={w.chuongTrinhMa}
           onMachineChange={w.setMachineId}
           onNguoiLoadChange={w.setNguoiLoad}
+          onChuongTrinhMaChange={w.onChuongTrinhMaChange}
           onCancel={() => w.setStep("LIST")}
           onStart={() => void w.createMe()}
         />
@@ -74,43 +84,43 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         batchGate={w.batchGate}
         items={w.items}
         waitingRows={w.waitingRows}
-        nguoiUnload={w.nguoiUnload}
-        setNguoiUnload={w.setNguoiUnload}
+        hiddenIncompatible={w.hiddenIncompatible}
+        chuongTrinh={w.chuongTrinh}
+        setChuongTrinh={w.setChuongTrinh}
+        chuongOptions={w.chuongOptions}
+        chuongTrinhMa={w.chuongTrinhMa}
+        onSelectChuongMa={(ma) => {
+          const opt = (w.chuongOptions || []).find((o: { ma: string }) => o.ma === ma) || null;
+          w.onChuongTrinhMaChange(ma, opt);
+        }}
         nhietDo={w.nhietDo}
         setNhietDo={w.setNhietDo}
-        thongSoMay={w.thongSoMay}
-        setThongSoMay={w.setThongSoMay}
-        chiThiTiepXuc={w.chiThiTiepXuc}
-        setChiThiTiepXuc={w.setChiThiTiepXuc}
-        chiThiDaThongSo={w.chiThiDaThongSo}
-        setChiThiDaThongSo={w.setChiThiDaThongSo}
-        testSinhHoc={w.testSinhHoc}
-        setTestSinhHoc={w.setTestSinhHoc}
-        testCI={w.testCI}
-        setTestCI={w.setTestCI}
-        testBD={w.testBD}
-        setTestBD={w.setTestBD}
-        anhMay={w.anhMay}
-        setAnhMay={w.setAnhMay}
-        anhTiepXuc={w.anhTiepXuc}
-        setAnhTiepXuc={w.setAnhTiepXuc}
-        anhDaThongSo={w.anhDaThongSo}
-        setAnhDaThongSo={w.setAnhDaThongSo}
-        anhSinhHoc={w.anhSinhHoc}
-        setAnhSinhHoc={w.setAnhSinhHoc}
-        anhBowieDick={w.anhBowieDick}
-        setAnhBowieDick={w.setAnhBowieDick}
+        apSuat={w.apSuat}
+        setApSuat={w.setApSuat}
+        thoiGianChuKy={w.thoiGianChuKy}
+        setThoiGianChuKy={w.setThoiGianChuKy}
+        thongSoVatLy={w.thongSoVatLy}
+        setThongSoVatLy={w.setThongSoVatLy}
+        ciNgoaiGoi={w.ciNgoaiGoi}
+        setCiNgoaiGoi={w.setCiNgoaiGoi}
+        ciPcd={w.ciPcd}
+        setCiPcd={w.setCiPcd}
+        trangThaiBi={w.trangThaiBi}
+        setTrangThaiBi={w.setTrangThaiBi}
         onBackToList={w.backToList}
         onAddItemByCode={(code) => void w.addItem(code)}
+        onRemoveItem={(id) => void w.removeItem(id)}
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
-        onFinishQc={(isPass, overrideThongSoMay) => void w.finishQc(isPass, overrideThongSoMay)}
+        onFinishQc={(isPass) => void w.finishQc(isPass)}
+        onSubmitBi={(ketQua) => void w.submitBi(ketQua)}
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
         onReportIncident={() => setIsBatchRecallOpen(true)}
         suppressShell={suppressShell}
       />
       {printPortal}
+      {confirmDialog}
       <IncidentReportModal
         isOpen={isBatchRecallOpen}
         onClose={() => setIsBatchRecallOpen(false)}
@@ -121,15 +131,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         initialLoTietKhuanId={w.activeMe?.id}
         batchRecallEntry
       />
-      <IncidentReportModal
-        isOpen={isIncidentOpen}
-        onClose={() => setIsIncidentOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="PROCESS"
-        initialTypeId="PROCESS_STERILIZATION_FAIL"
-        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
-        initialLoTietKhuanId={w.activeMe?.id}
-      />
       </>
     );
 
@@ -139,12 +140,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-slate-700">Danh sách mẻ tiệt khuẩn</h3>
           <div className="flex flex-wrap gap-2">
-            <Link
-              href={cssdSuCoBatchRecallHref()}
-              className="inline-flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900 hover:bg-amber-100"
-            >
-              Thu hồi theo mẻ
-            </Link>
             <button
               type="button"
               onClick={() => w.setStep("CREATE")}
@@ -193,44 +188,11 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           >
             <Plus size={18} /> Mở mẻ mới
           </button>
-          <Link
-            href={cssdSuCoBatchRecallHref()}
-            className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-5 text-[11px] font-semibold text-amber-900 shadow-sm hover:bg-amber-100 active:scale-[0.98] transition-all"
-            title="Thu hồi theo mẻ — sự cố an toàn QT.24"
-          >
-            Thu hồi theo mẻ
-          </Link>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
-            onClick={() => setIsIncidentOpen(true)}
-          >
-            ⚠️ Báo sự cố
-          </button>
         </div>
       }
     >
       {listContent}
       {printPortal}
-      <IncidentReportModal
-        isOpen={isIncidentOpen}
-        onClose={() => setIsIncidentOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="PROCESS"
-        initialTypeId="PROCESS_STERILIZATION_FAIL"
-        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
-        initialLoTietKhuanId={w.activeMe?.id}
-      />
-      <IncidentReportModal
-        isOpen={isBatchRecallOpen}
-        onClose={() => setIsBatchRecallOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="PROCESS"
-        initialTypeId="PROCESS_BI_POSITIVE"
-        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
-        initialLoTietKhuanId={w.activeMe?.id}
-        batchRecallEntry
-      />
     </CSSDPageShell>
   );
 }

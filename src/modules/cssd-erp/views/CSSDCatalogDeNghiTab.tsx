@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { listCatalogDeNghiAction } from "@/modules/cssd-erp/actions/cssd-catalog-de-nghi.actions";
 import {
   CSSD_CATALOG_DE_NGHI_KIND_LABEL,
+  catalogDeNghiStatusLabel,
   summarizeDeNghiAfter,
   normalizeDeNghiItems,
   type CssdCatalogDeNghiRow,
@@ -34,9 +35,10 @@ export function CSSDCatalogDeNghiTab() {
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-[12px] text-slate-600">
-        Sửa nhanh bằng <span className="font-semibold">Đề nghị sửa</span> trên từng dòng Loại / Bộ /
-        Thành phần. Tab này chỉ xem lịch sử phiếu (ngày giờ · trạng thái). Admin duyệt tại Quản trị →
-        Rà soát.
+        Chỉ đề nghị tạo hoặc sửa danh mục (Loại, Bộ, Thành phần) — chờ admin duyệt. Không ghi
+        luân chuyển số lượng và không ghi hỏng/mất. Sửa nhanh bằng{" "}
+        <span className="font-semibold">Đề nghị sửa</span> trên từng dòng. Đây là lịch sử phiếu đề
+        nghị, không phải lịch sử kho. Admin duyệt tại Quản trị → Rà soát.
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -93,14 +95,12 @@ export function CSSDCatalogDeNghiTab() {
                           ? "font-semibold text-amber-700"
                           : r.status === "APPROVED"
                             ? "font-semibold text-emerald-700"
-                            : "font-semibold text-slate-500"
+                            : r.status === "APPLY_FAILED" || r.status === "APPLYING"
+                              ? "font-semibold text-rose-700"
+                              : "font-semibold text-slate-500"
                       }
                     >
-                      {r.status === "PENDING"
-                        ? "Chờ duyệt"
-                        : r.status === "APPROVED"
-                          ? "Đã duyệt"
-                          : "Từ chối"}
+                      {catalogDeNghiStatusLabel(r.status)}
                     </span>
                   </td>
                 </tr>

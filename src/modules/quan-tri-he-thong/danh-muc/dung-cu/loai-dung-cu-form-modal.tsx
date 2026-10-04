@@ -134,7 +134,7 @@ export default function LoaiDungCuFormModal({
       phuong_phap_tiet_khuan: form.phuong_phap_tiet_khuan,
       phan_loai_spaulding: form.phan_loai_spaulding,
       phan_loai: form.phan_loai,
-      so_luong_kho_du_phong: form.so_luong_kho_du_phong,
+      ...(isEdit ? {} : { so_luong_kho_du_phong: form.so_luong_kho_du_phong }),
       is_active: form.is_active,
     });
     setLoading(false);
@@ -222,13 +222,26 @@ export default function LoaiDungCuFormModal({
       </div>
       <div className="space-y-1">
         <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
-        <input
-          type="number"
-          min="0"
-          value={form.so_luong_kho_du_phong}
-          onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })}
-          className={C.controlInput}
-        />
+        {isEdit ? (
+          <>
+            <input
+              type="number"
+              value={form.so_luong_kho_du_phong}
+              readOnly
+              disabled
+              className={C.controlInput}
+            />
+            <p className="text-[11px] text-slate-500 ml-1">Điều chỉnh tại Kho dự phòng</p>
+          </>
+        ) : (
+          <input
+            type="number"
+            min="0"
+            value={form.so_luong_kho_du_phong}
+            onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })}
+            className={C.controlInput}
+          />
+        )}
       </div>
       <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
         <strong>Gợi ý trạm CSSD:</strong> {stationHint.maTramGoiY}

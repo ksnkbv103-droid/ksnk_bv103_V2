@@ -88,6 +88,16 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     ).toBe("lane_dang_lam");
   });
 
+  it("TU_CHOI @100% + quá hạn → vẫn đang làm, không kẹt chờ nghiệm thu", () => {
+    expect(
+      getBoardLaneId({
+        trang_thai: "TU_CHOI",
+        phan_tram_hoan_thanh: 100,
+        is_qua_han: true,
+      }),
+    ).toBe("lane_dang_lam");
+  });
+
   it("hạn đã qua vẫn đang làm — quá hạn không đổi cột", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-10T12:00:00Z"));

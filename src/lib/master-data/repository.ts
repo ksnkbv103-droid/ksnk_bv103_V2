@@ -47,13 +47,11 @@ export async function getDanhMucItemById(
     "CHUC_DANH",
     "CHUC_VU",
     "HINH_THUC_GIAM_SAT",
-    "LOAI_CONG_VIEC",
     "LOAI_MAY_TIET_KHUAN",
     "LOAI_NKBV",
     "LOAI_SU_CO",
     "NGHE_NGHIEP",
     "TO_CONG_TAC",
-    "TRANG_THAI_CONG_VIEC",
     "TRANG_THAI_NKBV_CA",
   ]);
 

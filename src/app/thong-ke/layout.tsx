@@ -48,9 +48,11 @@ function ThongKeModeAndModuleTabs() {
   return (
     <div className="flex flex-col gap-2">
       <p className="no-print px-0.5 text-[11px] leading-snug text-slate-500">
-        Trang này chỉ <span className="font-medium text-slate-600">thống kê khoa</span>. Đổi
-        nhập / lịch sử / thống kê bằng ModeNav — Báo cáo chính thức là báo cáo in, không phải
-        trang thống kê.
+        Thống kê khoa — không phải bản ký gửi Ban Giám đốc. Bản ký nằm ở{" "}
+        <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
+          Báo cáo chính thức
+        </Link>
+        . Nhập và lịch sử phiên ở ModeNav.
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {isVst || isGsc ? (

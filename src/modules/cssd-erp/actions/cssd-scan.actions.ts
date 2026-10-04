@@ -6,6 +6,7 @@ import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
 import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { loadPackBatchReleaseGate } from "../helpers/pack-batch-release-gate";
 import { isRejectedLegacyHexBoQr, isCssdUnifiedBoMa } from "@/lib/domain/cssd-bo-ma";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { bootstrapCssdQuyTrinhFromMaBo } from "../shared/application/cssd-bo-bootstrap";
@@ -64,12 +65,17 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
 
   /** Bộ đã ở kho sạch (CAP_PHAT): quét lại = xác nhận cấp phát + in phiếu, ghi audit người/giờ cấp phát. */
   if (station === "CAP_PHAT" && preRow?.id && String(preRow.ma_trang_thai_hien_tai || "") === "CAP_PHAT") {
+    const batchRelease = await loadPackBatchReleaseGate(supabase, {
+      quyTrinhId: String(preRow.id),
+      loTietKhuanId: preRow.lo_tiet_khuan_id as string | null | undefined,
+    });
     const packGate = assertPackIssuable({
       han_su_dung: preRow.han_su_dung as string | null | undefined,
       ngay_het_han: preRow.ngay_het_han as string | null | undefined,
       tinh_trang: preRow.tinh_trang as string | null | undefined,
       is_red_alert: Boolean(preRow.is_red_alert),
       is_dong_bang: Boolean(preRow.is_dong_bang),
+      batchRelease,
     });
     if (!packGate.ok) {
       throw new Error(packGate.message);
@@ -86,9 +92,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       updated_at: nowCap,
     };
     if (operatorId) capUpdate.nguoi_cap_phat_id = operatorId;
-    if (extraPayload?.ma_ca_mo_id) {
-      capUpdate.metadata = { ma_ca_mo_id: String(extraPayload.ma_ca_mo_id) };
-    }
+    const maCaMoId = String(extraPayload?.ma_ca_mo_id || "").trim();
     // SSOT khoa nhận: ưu tiên payload; không có thì giữ sẵn có / bootstrap từ khoa sở hữu bộ.
     const khoaNhanPayload = String(extraPayload?.khoa_nhan_id || "").trim();
     if (khoaNhanPayload) {
@@ -102,7 +106,17 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
       if (kid) capUpdate.khoa_nhan_id = kid;
     }
-    await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+    const { error: capErr } = await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+    if (capErr) throw new Error(capErr.message);
+    // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
+    // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
+    if (maCaMoId) {
+      const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
+        p_id: preRow.id,
+        p_patch: { ma_ca_mo_id: maCaMoId },
+      });
+      if (metaErr) throw new Error(metaErr.message);
+    }
     let maLoTietKhuan = "";
     const loId = String(preRow.lo_tiet_khuan_id || "").trim();
     if (loId) {

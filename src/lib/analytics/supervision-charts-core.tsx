@@ -130,7 +130,7 @@ export function SupervisionTrendChart({
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 10 }} />
               <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-              <Tooltip formatter={percentTooltipFormatter} />
+              <Tooltip formatter={percentTooltipFormatter()} />
               <Line type="monotone" dataKey={dataKey} stroke={stroke} strokeWidth={2} name="Tuân thủ (%)" />
             </LineChart>
           </SupervisionResponsiveChart>
@@ -178,7 +178,7 @@ function SupervisionCompareBarChart({
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
                 <YAxis {...khoaCategoryYAxis} />
-                <Tooltip formatter={percentTooltipFormatter} />
+                <Tooltip formatter={percentTooltipFormatter()} />
                 <ReferenceLine
                   x={KHOA_COMPLIANCE_WARN_PCT}
                   stroke="#94a3b8"
@@ -205,7 +205,7 @@ function SupervisionCompareBarChart({
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="ten" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={56} interval={0} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Tooltip formatter={percentTooltipFormatter} />
+                <Tooltip formatter={percentTooltipFormatter()} />
                 <ReferenceLine
                   y={KHOA_COMPLIANCE_WARN_PCT}
                   stroke="#94a3b8"
@@ -262,7 +262,7 @@ export function SupervisionMomentsPanel({
                 <PolarGrid />
                 <PolarAngleAxis dataKey="ten" tick={{ fontSize: 9 }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                <Tooltip formatter={percentTooltipFormatter} />
+                <Tooltip formatter={percentTooltipFormatter()} />
                 <Radar
                   name="Tuân thủ %"
                   dataKey="ty_le_tuan_thu"

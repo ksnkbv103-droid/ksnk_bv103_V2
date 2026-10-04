@@ -127,13 +127,13 @@ describe("canShowHuyKhiNghiemThuKhongDat", () => {
     ).toBe(false);
   });
 
-  it("hiện khi có quyền xóa — từ chối + quá hạn 100%", () => {
+  it("ẩn khi đã TU_CHOI — không còn cổng nghiệm thu dù quá hạn 100%", () => {
     expect(
       canShowHuyKhiNghiemThuKhongDat(
         { trang_thai: "TU_CHOI", phan_tram_hoan_thanh: 100, is_qua_han: true, is_active: true },
         { ...baseFlags, hasDelete: true },
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 

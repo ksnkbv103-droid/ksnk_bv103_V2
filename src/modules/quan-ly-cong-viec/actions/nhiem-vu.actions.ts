@@ -12,6 +12,7 @@ import {
   percentFromQlcvChecklist,
   taskUsesQlcvChecklistForProgress,
 } from "@/lib/domain/qlcv-checklist";
+import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
 
 const NV_TABLE = "qlcv_fact_nhiem_vu";
 
@@ -89,21 +90,24 @@ async function attachTaskRollup(
   rows: NhiemVuRow[],
 ): Promise<NhiemVuRow[]> {
   if (rows.length === 0) return rows;
-  const { data, error } = await supabase
-    .from("v_qlcv_cong_viec_full")
-    .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active,checklist")
-    .in(
-      "nhiem_vu_id",
-      rows.map((r) => r.id),
-    )
-    .eq("is_active", true)
-    .limit(5000);
-  if (error) {
-    console.error("[QLCV] attachTaskRollup", error);
-    return rows;
+  let data: Record<string, unknown>[];
+  try {
+    data = await fetchAllByIdChunks(rows.map((r) => r.id), (idChunk, from, to) =>
+      supabase
+        .from("v_qlcv_cong_viec_full")
+        .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active,checklist")
+        .in("nhiem_vu_id", idChunk)
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+  } catch (error: unknown) {
+    console.error("[QLCV] attachTaskRollup", { module: "QLCV", action: "attachTaskRollup", error });
+    const msg = error instanceof Error ? error.message : "Không tải việc con.";
+    throw new Error(formatQlcvDbError(msg || "Không tải việc con."));
   }
   const byNv = new Map<string, Array<{ pct: number; done: boolean }>>();
-  for (const t of (data || []) as Record<string, unknown>[]) {
+  for (const t of data) {
     const nvId = t.nhiem_vu_id as string | null;
     if (!nvId) continue;
     const list = byNv.get(nvId) || [];
@@ -298,24 +302,39 @@ export type CongViecNhiemVuLite = {
 export async function listCongViecByNhiemVu(nhiemVuId: string): Promise<CongViecNhiemVuLite[]> {
   const { supabase } = await ensureQlcvKsnkAccess("view");
   await resolveQlcvNhiemVuId(supabase, nhiemVuId);
-  const { data, error } = await supabase
-    .from("v_qlcv_cong_viec_full")
-    .select("id,tieu_de,nguoi_phu_trach_ten,han_hoan_thanh,trang_thai,phan_tram_hoan_thanh,is_active")
-    .eq("nhiem_vu_id", nhiemVuId)
-    .eq("is_active", true)
-    .neq("trang_thai", "DA_HUY")
-    .order("han_hoan_thanh", { ascending: true, nullsFirst: false })
-    .limit(200);
-  if (error) {
-    console.error("[QLCV] listCongViecByNhiemVu", error);
-    throw new Error(formatQlcvDbError(error.message || "Không tải việc con."));
+  let data: Record<string, unknown>[];
+  try {
+    data = await fetchAllRangeRows((from, to) =>
+      supabase
+        .from("v_qlcv_cong_viec_full")
+        .select(
+          "id,tieu_de,nguoi_phu_trach_ten,han_hoan_thanh,trang_thai,phan_tram_hoan_thanh,is_active,checklist",
+        )
+        .eq("nhiem_vu_id", nhiemVuId)
+        .eq("is_active", true)
+        .neq("trang_thai", "DA_HUY")
+        .order("han_hoan_thanh", { ascending: true, nullsFirst: false })
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+  } catch (error: unknown) {
+    console.error("[QLCV] listCongViecByNhiemVu", {
+      module: "QLCV",
+      action: "listCongViecByNhiemVu",
+      error,
+    });
+    const msg = error instanceof Error ? error.message : "Không tải việc con.";
+    throw new Error(formatQlcvDbError(msg || "Không tải việc con."));
   }
-  return ((data || []) as Record<string, unknown>[]).map((t) => ({
+  return data.map((t) => ({
     id: String(t.id),
     tieu_de: String(t.tieu_de ?? ""),
     nguoi_phu_trach_ten: (t.nguoi_phu_trach_ten as string) ?? null,
     han_hoan_thanh: t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : null,
     trang_thai: String(t.trang_thai ?? ""),
-    phan_tram_hoan_thanh: Number(t.phan_tram_hoan_thanh ?? 0),
+    // Cùng luật attachTaskRollup: checklist → %; không thì cột phan_tram.
+    phan_tram_hoan_thanh: taskUsesQlcvChecklistForProgress(t.checklist)
+      ? percentFromQlcvChecklist(normalizeQlcvChecklist(t.checklist))
+      : Number(t.phan_tram_hoan_thanh ?? 0),
   }));
 }

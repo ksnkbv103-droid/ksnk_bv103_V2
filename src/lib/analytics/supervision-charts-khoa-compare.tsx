@@ -44,6 +44,7 @@ import {
   DEFAULT_KHOA_CHART_THRESHOLDS,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
+import { supervisionPercentDigits } from "@/lib/analytics/supervision-percent";
 import { tyLeForLens, type SupervisionSourceLens } from "@/lib/analytics/supervision-source-lens";
 
 function defaultVolumeTitle(moduleLabel?: string): string {
@@ -88,7 +89,11 @@ function SupervisionKhoaComplianceChart({
     }
     return map;
   }, [matrixKhoaRows]);
-  const barLabelContent = React.useMemo(() => khoaComplianceBarLabelContent(thresholds), [thresholds]);
+  const percentDigits = supervisionPercentDigits(moduleLabel);
+  const barLabelContent = React.useMemo(
+    () => khoaComplianceBarLabelContent(thresholds, percentDigits),
+    [thresholds, percentDigits],
+  );
   if (!loading && sorted.length === 0) return null;
 
   const title = "Tỷ lệ tuân thủ theo khoa";
@@ -136,7 +141,7 @@ function SupervisionKhoaComplianceChart({
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
               <YAxis {...khoaCategoryYAxis} />
-              <Tooltip formatter={percentTooltipFormatter} labelFormatter={labelTooltip} />
+              <Tooltip formatter={percentTooltipFormatter(percentDigits)} labelFormatter={labelTooltip} />
               {thresholds.warnPct === DEFAULT_KHOA_CHART_THRESHOLDS.warnPct ? (
                 <ReferenceLine
                   x={KHOA_COMPLIANCE_WARN_PCT}
@@ -227,7 +232,7 @@ function SupervisionKhoaVolumeChart({
   const title = chartTitle ?? defaultVolumeTitle(moduleLabel);
 
   const chartData = sorted.map((r) => {
-    const compare = gapCompareStatus(r);
+    const compare = gapCompareStatus(r, supervisionPercentDigits(moduleLabel));
     return {
       ten: r.label,
       fullName: r.ten,

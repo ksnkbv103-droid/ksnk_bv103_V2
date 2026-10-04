@@ -3,38 +3,30 @@
 import React from "react";
 import { Box, Clock, Microscope, Truck, WashingMachine } from "lucide-react";
 import type { Station } from "../../types/cssd.types";
-import { SCAN_STATIONS } from "../../workflow/domain/cssd-stations";
-import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE } from "../../shared/ui/cssd-ui-chrome";
+import { SCAN_STATIONS, STATION_LABEL } from "../../workflow/domain/cssd-stations";
+import { CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 import CssdBatchMeLinkChip from "./cssd-batch-me-link-chip";
 
-const STATION_LABEL: Record<Station, string> = {
-  TIEP_NHAN: "Tiếp nhận",
-  LAM_SACH: "Làm sạch",
-  QC: "Kiểm bộ",
-  DONG_GOI: "Đóng gói",
-  TIET_KHUAN: "Tiệt khuẩn",
-  CAP_PHAT: "Cấp phát",
-};
-
-/** Helper QT.19 — tách QC trạm vs QC mẻ (domain). */
+/** Helper QT.19 — tách Kiểm bộ (trạm) vs QC mẻ (domain). */
 const STATION_HINT: Partial<Record<Station, string>> = {
-  QC: "QC trước đóng gói (QT.19) ≠ QC mẻ",
+  QC: "Kiểm bộ trước đóng gói (QT.19) ≠ QC mẻ",
 };
 
 const STATION_ICON: Record<Exclude<Station, "TIET_KHUAN">, React.ReactNode> = {
-  TIEP_NHAN: <Clock size={16} aria-hidden />,
-  LAM_SACH: <WashingMachine size={16} aria-hidden />,
-  QC: <Microscope size={16} aria-hidden />,
-  DONG_GOI: <Box size={16} aria-hidden />,
-  CAP_PHAT: <Truck size={16} aria-hidden />,
+  TIEP_NHAN: <Clock size={14} aria-hidden />,
+  LAM_SACH: <WashingMachine size={14} aria-hidden />,
+  QC: <Microscope size={14} aria-hidden />,
+  DONG_GOI: <Box size={14} aria-hidden />,
+  CAP_PHAT: <Truck size={14} aria-hidden />,
 };
 
 /** 4 trạm quét → phiếu mẻ → cấp phát (không chọn TK bằng quét). */
 const SCAN_BEFORE_CAP = SCAN_STATIONS.slice(0, 4) as Station[];
 const CAP_STATION = SCAN_STATIONS[4] as Station;
 
+/** Calm ambient cell — clear current; no poster fill / shadow / lecture titles. */
 const CELL_BASE =
-  "group relative flex h-14 w-full flex-col items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-center transition-all touch-manipulation sm:h-16 sm:px-2.5";
+  "group relative flex min-h-[2.75rem] w-full flex-col items-center justify-center gap-0.5 rounded-[var(--radius-control)] border px-1.5 py-1.5 text-center transition-colors touch-manipulation sm:min-h-12 sm:px-2";
 
 type Props = {
   activeStation?: Station | null;
@@ -59,17 +51,19 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation, gat
         title={STATION_HINT[station] || STATION_LABEL[station]}
         className={`${CELL_BASE} ${
           isActive
-            ? "border-emerald-600 bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/30"
+            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] ring-1 ring-[var(--primary)]/25"
             : locked
               ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-              : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50/40"
+              : "border-slate-200/90 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
         }`}
       >
-        <span className={`shrink-0 ${isActive ? "text-amber-300" : "text-slate-400 group-hover:text-emerald-600"}`}>
+        <span className={`shrink-0 ${isActive ? "text-[var(--primary)]" : "text-slate-400"}`}>
           {STATION_ICON[station as Exclude<Station, "TIET_KHUAN">]}
         </span>
         <span
-          className={`truncate bv103-type-label font-semibold leading-tight ${isActive ? "text-white" : "text-slate-700"}`}
+          className={`truncate bv103-type-label font-semibold leading-tight ${
+            isActive ? "text-[var(--primary)]" : "text-slate-700"
+          }`}
         >
           {STATION_LABEL[station]}
         </span>
@@ -78,11 +72,14 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation, gat
   };
 
   return (
-    <section className={`space-y-2 p-2.5 sm:p-3 ${CSSD_UI_PANEL}`} aria-label="Xem hàng chờ theo trạm">
+    <section
+      className={`space-y-1.5 p-2 sm:p-2.5 ${CSSD_UI_PANEL}`}
+      aria-label="Trạm chu trình"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
-        <h2 className={`${CSSD_UI_SECTION_TITLE} max-sm:text-sm`}>Xem hàng chờ</h2>
+        <p className="bv103-type-label text-slate-500">Trạm</p>
         {activeStation ? (
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
             {STATION_LABEL[activeStation]}
           </span>
         ) : null}

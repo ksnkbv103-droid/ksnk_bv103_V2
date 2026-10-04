@@ -8,7 +8,7 @@ import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
-import { updateCongViecTrangThaiByMa } from "../lib/qlcv-workflow-mutate";
+import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
 
 /** Đóng phiếu `DA_HUY` khi không đạt (không xóa bản ghi). */
 export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
@@ -57,18 +57,24 @@ export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
   };
   const inGate = isEligibleForNghiemThu(rowSnapshot);
 
-  const { updated } = await updateCongViecTrangThaiByMa(supabase, {
-    id,
-    currentTrangThaiMa: cur.trang_thai ? String(cur.trang_thai) : null,
-    nextMa: "DA_HUY",
-    actorNhanSuId: actorNhanSuId,
-    activityLyDo: inGate
-      ? `Hủy do không đạt khi nghiệm thu: ${reason}`
-      : `Hủy công việc: ${reason}`,
-    extra: { phan_tram_hoan_thanh: pct },
-  });
-
-  if (!updated) throw new Error("Không cập nhật được (trạng thái đã đổi).");
+  // Soft: dùng action HUY (Q-08) — không SET_TRANG_THAI generic.
+  try {
+    await invokeQlcvTransition(supabase, {
+      congViecId: id,
+      action: "HUY",
+      actorNhanSuId: actorNhanSuId,
+      lyDo: inGate
+        ? `Hủy do không đạt khi nghiệm thu: ${reason}`
+        : `Hủy công việc: ${reason}`,
+      patch: { phan_tram_hoan_thanh: pct },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/đã thay đổi|không cập nhật được/i.test(msg)) {
+      throw new Error("Không cập nhật được (trạng thái đã đổi).");
+    }
+    throw err;
+  }
 
   revalidatePath("/quan-ly-cong-viec");
   return { success: true as const };

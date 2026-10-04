@@ -47,6 +47,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       iwpDates: iwpAround(ix),
       nsk: ix,
       bloodCriterionIds: [],
+      patientAge: 40,
     });
     expect(v.gate.hasImaging).toBe(true);
     expect(v.gate.imagingCount).toBeGreaterThanOrEqual(1);
@@ -74,6 +75,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       nsk: "2026-07-20",
       bloodCriterionIds: [],
       devicePlacedDate: "2026-07-18",
+      patientAge: 40,
     });
     expect(v.gate.microbiology).toBe("NONE");
     expect(v.result.classification).toBe("PNU1_VAP");
@@ -107,6 +109,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       nsk: "2026-07-20",
       bloodCriterionIds: [],
       devicePlacedDate: "2026-07-18",
+      patientAge: 40,
     });
     expect(v.gate.microbiology).toBe("PNU2");
     expect(v.result.classification).toBe("PNU2_VAP");
@@ -131,6 +134,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       iwpDates: iwpAround(ix),
       nsk: ix,
       bloodCriterionIds: [],
+      patientAge: 40,
     });
     expect(v.result.classification).toBe("PNU1_NON_VAP");
     expect(v.criteriaMet).toBe(true);
@@ -154,6 +158,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       iwpDates: iwpAround(ix),
       nsk: ix,
       bloodCriterionIds: [],
+      patientAge: 40,
     });
     expect(v.gate.hasImaging).toBe(false);
     expect(v.result.classification).toBe("NO_EVENT");
@@ -186,6 +191,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       nsk: ix,
       bloodCriterionIds: ["b1"],
       bloodXn: [blood],
+      patientAge: 40,
     });
     expect(v.result.classification).toBe("PNU2_NON_VAP");
 
@@ -213,6 +219,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       nsk: ix,
       bloodCriterionIds: [],
       hasCardiopulmonaryDisease: true,
+      patientAge: 40,
     });
     expect(one.result.classification).toBe("NO_EVENT");
 
@@ -233,6 +240,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       nsk: ix,
       bloodCriterionIds: [],
       hasCardiopulmonaryDisease: true,
+      patientAge: 40,
     });
     expect(two.result.classification).toBe("PNU1_NON_VAP");
   });
@@ -255,6 +263,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       iwpDates: iwpAround(ix),
       nsk: ix,
       bloodCriterionIds: [],
+      patientAge: 40,
     });
     expect(v.gate.respiratoryCount).toBe(1);
     expect(v.result.classification).toBe("NO_EVENT");
@@ -285,6 +294,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       iwpDates: iwpAround(ix),
       nsk: "2026-07-19",
       bloodCriterionIds: [],
+      patientAge: 40,
     });
     expect(v.gate.respiratoryCount).toBe(1);
     expect(v.result.classification).toBe("PNU2_NON_VAP");
@@ -316,6 +326,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
       nsk: "2026-07-19",
       bloodCriterionIds: [],
       pneuIcAtoms: { pneu_ic_neutropenia: true },
+      patientAge: 40,
     });
     expect(v.result.classification).toBe("PNU3_NON_VAP");
   });
@@ -344,4 +355,39 @@ describe("nkbv-pneu-timeline-verdict", () => {
     expect(v.result.classification).toBe("NO_EVENT");
     expect(v.result.reason).toMatch(/VAE/);
   });
+
+  it("L02/20b: DOB/age null → NO_EVENT, không PNU/VAC dương tính (cấm default 45)", () => {
+    const ix = "2026-07-20";
+    const base = {
+      indexKind: "CDHA" as const,
+      indexXn: null,
+      indexCdha: xq({ id: "c1", ngay: ix }),
+      cdha: [xq({ id: "c1", ngay: ix })],
+      lamSang: {
+        "2026-07-20": [
+          { key: "fever", label: "Sốt" },
+          { key: "cough", label: "Ho" },
+          { key: "rales", label: "Ran" },
+        ],
+      },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      bloodCriterionIds: [] as string[],
+      devicePlacedDate: "2026-07-17",
+    };
+    const missing = buildPneuTimelineVerdict({ ...base, patientAge: null });
+    expect(missing.criteriaMet).toBe(false);
+    expect(missing.result.is_positive).toBe(false);
+    expect(missing.result.classification).toBe("NO_EVENT");
+    expect(missing.result.reason).toMatch(/Thiếu ngày sinh/);
+    expect(missing.data.patient_age).not.toBe(45);
+    expect(String(missing.ketLuanLabel)).toMatch(/Thiếu ngày sinh/);
+
+    const omitted = buildPneuTimelineVerdict({ ...base });
+    expect(omitted.result.classification).toBe("NO_EVENT");
+    expect(omitted.result.reason).toMatch(/Thiếu ngày sinh/);
+    expect(omitted.criteriaMet).toBe(false);
+  });
+
 });

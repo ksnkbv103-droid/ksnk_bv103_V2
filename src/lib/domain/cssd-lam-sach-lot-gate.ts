@@ -12,9 +12,9 @@ export type LamSachLotGateResult =
   | { ok: true; warning: string };
 
 /**
- * Soft-warn Q2-style: thiếu lot enzyme **và** washer vẫn cho quét LAM_SACH.
- * Domain SSOT (`domain-overview` §8): tracing enzyme/washer = P1 / optional `washer_machine_id`
- * — **không** hard-block (khác QT.21 BD/CAP_PHAT expiry). QT.18 process detail ≠ require lot cứng.
+ * Soft-allow QT.18: thiếu lot enzyme **và** washer vẫn cho quét LAM_SACH (ok:true).
+ * CSSD-L02 / 17b: `warning` chỉ cho lifecycle audit — FE **không** banner soft-warn.
+ * Domain SSOT: tracing enzyme/washer = P1 / optional — **không** hard-block.
  */
 export function assertLamSachLotSoftGate(input: LamSachLotGateInput): LamSachLotGateResult {
   const enzyme = String(input.enzymeLot || "").trim();

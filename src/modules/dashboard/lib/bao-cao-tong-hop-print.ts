@@ -1,8 +1,8 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
-import { buildGapKhoaRows, mergeMasterGapRows } from "@/lib/analytics/supervision-matrix-mappers";
+import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { mergeKhoaRankWithSelected } from "./bao-cao-tong-hop-core";
-import { escHtml, fmtDelta, fmtIsoDate, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
+import { escHtml, fmtDelta, fmtIsoDate, fmtKyTruocDelta, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
 import {
   renderChecklistTrends,
   renderComparableGapTable,
@@ -22,6 +22,8 @@ import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
+import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
+import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -73,7 +75,24 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     p.khoaOptions,
     p.khoaOptions.length,
   );
-  const masterGapRows = mergeMasterGapRows(vstGapRows, gscGapRows);
+  const ky = p.payload?.ky_truoc;
+  const weekAndPrior = (
+    week: number | null | undefined,
+    prior: number | null | undefined,
+    digits: 1 | 2,
+  ) => {
+    const priorLine =
+      ky && prior != null
+        ? `<div>${escHtml(fmtKyTruocDelta(prior, ky.tu_ngay, ky.den_ngay, digits))}</div>`
+        : "";
+    return `${escHtml(fmtDelta(week, digits))}${priorLine}`;
+  };
+
+  const cssdAnalyticsHref = cssdReportAnalyticsHref({
+    tab: "volume",
+    from: p.tuNgay,
+    to: p.denNgay,
+  });
 
   const dieuHanhSection = `
     <h2>ĐIỀU HÀNH TỔNG HỢP (PROCESS)</h2>
@@ -91,12 +110,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
         <tr>
           <td class="text-left"><strong>Vệ sinh tay (VST)</strong></td>
           <td class="text-success"><strong>${fmtPct(kpi?.ty_le_vst)}</strong></td>
-          <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_vst))}</td>
+          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_vst, ky?.delta_vst, 1)}</td>
         </tr>
         <tr>
           <td class="text-left"><strong>Giám sát chung (GSC)</strong></td>
           <td class="text-success"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
-          <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_gsc))}</td>
+          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_gsc, ky?.delta_gsc, 2)}</td>
         </tr>
       </tbody>
     </table>
@@ -106,8 +125,9 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     <h3>3. So sánh theo khoa (VST · GSC — thấp → cao)</h3>
     ${renderKhoaGscBarChartSvg(fullKhoaRank)}
     ${renderFullKhoaRankSection(fullKhoaRank)}
-    <h3>3b. Tuân thủ & khối lượng theo khoa (gộp VST · GSC)</h3>
-    ${renderKhoaGapModulePrint("Gộp VST + GSC", masterGapRows)}
+    <h3>3b. Tuân thủ và khối lượng theo khoa — từng nguồn</h3>
+    ${renderKhoaGapModulePrint("VST", vstGapRows, 30, 1)}
+    ${renderKhoaGapModulePrint("GSC", gscGapRows, 30, 2)}
     <h3>4. Kết quả NKBV (lâm sàng — tách khỏi tuân thủ process)</h3>
     <table>
       <thead>
@@ -118,8 +138,14 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       </thead>
       <tbody>
         <tr>
-          <td class="text-left">Tỷ lệ xác nhận/PA</td>
-          <td>${fmtPct(kpi?.ti_le_xac_nhan_nkbv)} (${kpi?.tong_phieu_nkbv ?? 0} phiếu)</td>
+          <td class="text-left">Tỷ lệ xác nhận/PA−loại trừ</td>
+          <td>${fmtPct(kpi?.ti_le_xac_nhan_nkbv)}${
+            p.payload?.nkbv?.kpis
+              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.kpis)}; ${p.payload.nkbv.kpis.tong_phieu} phiếu gồm loại trừ)`
+              : kpi?.tong_phieu_nkbv != null
+                ? ` (${kpi.tong_phieu_nkbv} phiếu)`
+                : ""
+          }</td>
         </tr>
       </tbody>
     </table>
@@ -176,7 +202,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           )
           .join("")}
       </tbody>
-    </table>`
+    </table>
+    <p class="muted">Phụ lục và bản ký dùng cùng lõi Báo cáo CSSD: ${escHtml(cssdAnalyticsHref)}</p>`
         : ""
     }
   `;

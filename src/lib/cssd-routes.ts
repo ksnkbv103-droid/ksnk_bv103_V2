@@ -24,9 +24,9 @@ export function cssdQuyTrinhBatchTabHref(): string {
 }
 
 /**
- * Deep-link một cửa sự cố dụng cụ (`/cssd-su-co`).
- * D4 SSOT: legacy TRANSFER/REPLENISH/BROKEN/MISSING chỉ coerce → 3 cửa (SET_RECONCILE / PHYSICAL / MOVE).
- * URL mới không emit legacy; mã lịch sử sổ vẫn qua submit bridge.
+ * Deep-link cửa dụng cụ.
+ * Hỏng/Mất → `/cssd-su-co`. Đề nghị danh mục và luân chuyển số lượng → `/cssd-dung-cu`.
+ * D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không emit lên URL; mã sổ giữ qua submit bridge.
  */
 export function cssdCatalogEditProposalHref(params: {
   kind: "LOAI" | "BO" | "BOM";
@@ -48,6 +48,49 @@ export function cssdCatalogEditProposalHref(params: {
   const hint = String(params.hint || "").trim();
   if (hint) q.set("note", hint);
   return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
+}
+
+const LUAN_CHUYEN_TYPE_IDS = new Set([
+  "INSTRUMENT_MOVE",
+  "INSTRUMENT_TRANSFER",
+  "INSTRUMENT_REPLENISH",
+  "INSTRUMENT_RETURN_KHO",
+]);
+
+/** Bookmark cũ của cửa Chuyển — mở tab Luân chuyển, không mở form sự cố. */
+export function isLuanChuyenTypeId(typeId?: string | null): boolean {
+  return LUAN_CHUYEN_TYPE_IDS.has(String(typeId || "").trim().toUpperCase());
+}
+
+/** Cửa luân chuyển số lượng (kho ↔ bộ / bộ ↔ bộ) trên /cssd-dung-cu. */
+export function cssdLuanChuyenHref(params?: {
+  ma?: string | null;
+  loai?: string | null;
+  chiTiet?: string | null;
+}): string {
+  const q = new URLSearchParams();
+  q.set("tab", "LUAN_CHUYEN");
+  const ma = String(params?.ma || "").trim();
+  if (ma) q.set("ma", ma);
+  const loai = String(params?.loai || "").trim();
+  if (loai) q.set("loai", loai);
+  const chiTiet = String(params?.chiTiet || "").trim();
+  if (chiTiet) q.set("chiTiet", chiTiet);
+  return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
+}
+
+/** Deep-link báo sự cố hóa chất (group CHEMICAL) — CTA từ /cssd-hoa-chat. */
+export function cssdSuCoChemicalHref(): string {
+  return `${CSSD_ROUTES.suCo}?group=CHEMICAL`;
+}
+
+/** Deep-link sự cố máy — CTA từ bảo dưỡng. `machine` = id thiết bị nếu đang chọn. */
+export function cssdSuCoEquipmentHref(params?: { machineId?: string | null }): string {
+  const q = new URLSearchParams();
+  q.set("group", "EQUIPMENT");
+  const machineId = String(params?.machineId || "").trim();
+  if (machineId) q.set("machine", machineId);
+  return `${CSSD_ROUTES.suCo}?${q.toString()}`;
 }
 
 export function cssdSuCoInstrumentHref(params?: {
@@ -73,6 +116,14 @@ export function cssdSuCoInstrumentHref(params?: {
       hint: params?.chiTiet,
     });
   }
+  // G-P0-06: luân chuyển số lượng ở /cssd-dung-cu, không mở cửa sự cố.
+  if (isLuanChuyenTypeId(rawType)) {
+    return cssdLuanChuyenHref({
+      ma: params?.ma,
+      loai: params?.loai,
+      chiTiet: params?.chiTiet,
+    });
+  }
   const q = new URLSearchParams();
   q.set("group", "INSTRUMENT");
   if (params?.type) q.set("type", coerceInstrumentFormTypeId(params.type));
@@ -86,8 +137,8 @@ export function cssdSuCoInstrumentHref(params?: {
 }
 
 /**
- * Deep-link thu hồi theo mẻ (QT.24) — sự cố an toàn PROCESS + lo_tiet_khuan_id.
- * D1: không dùng group INSTRUMENT / 3 cửa biến động dụng cụ.
+ * Deep-link thu hồi theo mẻ (QT.24) — sự cố quy trình PROCESS + lo_tiet_khuan_id.
+ * D1: không dùng group INSTRUMENT / Hỏng/Mất.
  */
 export function cssdSuCoBatchRecallHref(params?: {
   loTietKhuanId?: string | null;
@@ -117,7 +168,7 @@ export function cssdSuCoIncidentJournalHref(incidentId?: string | null): string 
 
 /** Deep-link báo cáo CSSD (sản lượng / bộ / máy / NV) với kỳ lọc tùy chọn. */
 export function cssdReportAnalyticsHref(params?: {
-  tab?: "overview" | "volume" | "sets" | "equipment" | "staff" | "incident";
+  tab?: "overview" | "volume" | "sets" | "equipment" | "staff" | "incident" | "accountability";
   from?: string | null;
   to?: string | null;
   station?: string | null;

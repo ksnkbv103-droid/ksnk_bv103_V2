@@ -70,16 +70,25 @@ export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR.");
 
-  await supabase
+  const quyId = String((row as { id?: string }).id || "").trim();
+  const { data: frozenRows, error: freezeErr } = await supabase
     .from("cssd_fact_quy_trinh")
     .update({ is_dong_bang: true, updated_at: new Date().toISOString() })
-    .eq("id", String((row as { id?: string }).id));
+    .eq("id", quyId)
+    .select("id");
+  if (freezeErr) throw new Error(freezeErr.message);
+  if (!frozenRows?.length) throw new Error("Không khóa được bộ — bản ghi không còn hoặc đã đổi.");
   const op = await cssdOperatorLabel();
-  await appendQuyTrinhException(supabase, String((row as { id?: string }).id), {
-    su_kien: "DONG_BANG_THU_CONG",
-    ly_do: `Khóa an toàn thủ công. ${String(lyDo || "").trim().slice(0, 280)}`,
-    nguoi_thao_tac: op,
-  });
+  await appendQuyTrinhException(
+    supabase,
+    quyId,
+    {
+      su_kien: "DONG_BANG_THU_CONG",
+      ly_do: `Khóa an toàn thủ công. ${String(lyDo || "").trim().slice(0, 280)}`,
+      nguoi_thao_tac: op,
+    },
+    { soft: true },
+  );
 
   revalidateCssdWorkflowSurfaces();
   return { success: true as const };

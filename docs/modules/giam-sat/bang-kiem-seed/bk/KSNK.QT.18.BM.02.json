@@ -1,0 +1,109 @@
+{
+  "ma": "KSNK.QT.18.BM.02",
+  "ten": "Bảng kiểm giám sát quy trình làm sạch",
+  "ho_form": "BK",
+  "chuyen_de": "Làm sạch dụng cụ",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Lau sạch máu, dịch thô và làm ẩm bề mặt dụng cụ ngay sau thủ thuật tại khoa lâm sàng; không để bẩn khô lâu",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Không ngâm dụng cụ trong dung dịch muối natri clorid 0,9%; loại bỏ vật sắc nhọn dùng một lần vào hộp kháng thủng tại nguồn trước khi gửi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Đặt dụng cụ bẩn vào thùng kín chống thấm, đậy nắp, dán nhãn «DỤNG CỤ BẨN» hoặc ký hiệu nguy cơ sinh học; ghi BM.01 — Sổ giao nhận dụng cụ tái xử lý",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Nhân viên khu bẩn mang đủ PTPH: tạp dề chống thấm, găng cao su dày, khẩu trang, kính hoặc tấm che mặt, ủng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Phân loại theo Spaulding và theo chịu nhiệt / tinh vi / sắc nhọn / nòng ống; tháo rời khớp, ốc, khóa theo IFU trước khi ngâm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Pha dung dịch enzyme bằng nước ấm 30 °C–45 °C đúng tỷ lệ nhà sản xuất; không dùng nước trên 55 °C",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Ngâm ngập hoàn toàn; bơm đầy dung dịch vào lòng ống hẹp, loại bỏ bọt khí; thời gian ngâm 5–15 phút (kéo dài khi máu khô theo HD.01 — Pha dung dịch làm sạch enzyme)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Cọ rửa hoàn toàn dưới mặt nước; dùng bàn chải mềm tại khe kẽ và chổi cọ nòng xuyên suốt lòng ống; không cọ trên mặt nước tạo khí dung",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Siêu âm hoặc máy rửa tự động chỉ khi phù hợp loại dụng cụ theo IFU; không đưa thấu kính, dây dẫn sáng, động cơ vào bể siêu âm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Tráng sạch dưới nước chảy rồi tráng cuối bằng RO hoặc nước siêu lọc; không còn bọt hóa chất nhìn thấy",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Thổi khô lòng ống và khớp bằng khí nén y tế; lau bề mặt khăn không xơ hoặc sấy 70 °C–90 °C với dụng cụ chịu nhiệt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Quan sát trực quan bề mặt, khớp, lòng ống: không còn máu, dịch, cặn nhìn thấy; loại riêng dụng cụ hỏng trước khi chuyển khu sạch",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.18.BM.02 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.18.docx (+ ipc-updated/QT/KSNK.QT.18.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Khoa lâm sàng chung",
+      "Ngoại / PT / gây mê / can thiệp",
+      "CSSD / tiệt khuẩn"
+    ],
+    "ghi_chu": "Làm sạch điểm sử dụng + CSSD — thao tác thực hành."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "dieu_duong",
+    "ky_thuat_vien_cssd"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|cssd",
+  "ly_do_phan_bo": "Làm sạch điểm sử dụng + CSSD — thao tác thực hành."
+}

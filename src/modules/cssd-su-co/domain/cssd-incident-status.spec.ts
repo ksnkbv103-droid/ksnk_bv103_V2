@@ -24,6 +24,11 @@ describe("cssd-incident-status", () => {
     });
   });
 
+  it("refuses confirm after void", () => {
+    expect(readIncidentPhieuStatus({ INCIDENT_STATUS: "VO_HIEU" })).toBe("VO_HIEU");
+    expect(assertIncidentPhieuCanConfirm({ INCIDENT_STATUS: "VO_HIEU" }).ok).toBe(false);
+  });
+
   it("allows confirm when open and stamps confirm fields", () => {
     expect(assertIncidentPhieuCanConfirm({})).toEqual({ ok: true });
     const patch = buildIncidentConfirmAttributePatch(

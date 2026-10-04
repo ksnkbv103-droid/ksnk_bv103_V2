@@ -9,7 +9,9 @@ import { useEntityQrImage } from "@/hooks/useEntityQr";
 import { buildPrintFileTitle, pickSuCoPrintMa } from "@/lib/print/print-file-title";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import { parseSetReconcileSnapshot } from "../domain/cssd-set-reconcile-attrs";
+import { parseRecallMemberListText } from "../domain/cssd-batch-recall";
 import { SET_RECONCILE_KIND_LABEL, formatLoaiDungCuLabel, type SetReconcileLineKind } from "@/lib/domain/cssd-set-reconcile";
+import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
 export interface IncidentDetailRow {
   id: string;
@@ -61,21 +63,11 @@ export function getGoogleDriveDirectLink(url: string): string {
 
   return trimmed;
 }
-
-const STATION_LABEL_MAP: Record<string, string> = {
-  TIEP_NHAN: "Tiếp nhận",
-  LAM_SACH: "Làm sạch",
-  QC: "Kiểm tra chất lượng (QC)",
-  DONG_GOI: "Đóng gói",
-  TIET_KHUAN: "Tiệt khuẩn",
-  CAP_PHAT: "Cấp phát",
-};
-
 const GROUP_LABEL_MAP: Record<string, string> = {
-  PROCESS: "Quy trình xử lý",
-  INSTRUMENT: "Hỏng hóc dụng cụ",
-  CHEMICAL: "Hóa chất / Vật tư",
-  EQUIPMENT: "Thiết bị / Máy móc",
+  PROCESS: "Sự cố quy trình",
+  INSTRUMENT: "Hỏng/Mất",
+  CHEMICAL: "Sự cố hóa chất",
+  EQUIPMENT: "Sự cố máy",
   OTHER: "Sự cố khác",
 };
 
@@ -130,9 +122,13 @@ export default function IncidentPrintView({
       if (batchRecalled) {
         const n = batchRecallCount ? ` (${batchRecallCount} bộ)` : "";
         const hold = machineHoldQc ? " Máy mẻ tạm giữ QC (HOLD_QC)." : "";
-        return `Thu hồi cả mẻ${n}: bộ đã cấp phát về Tiếp nhận; bộ còn trong chu trình về Đóng gói và khóa.${hold}`;
+        const listed = detailsMap["RECALL_LISTED_USED"];
+        const moved = detailsMap["RECALL_MOVED"];
+        const listedBit = listed ? ` Đã dùng lâm sàng, không đổi trạng thái: ${listed}.` : "";
+        const movedBit = moved ? ` Về Tiếp nhận: ${moved}.` : " Bộ chưa dùng về Tiếp nhận.";
+        return `Thu hồi mẻ${n}.${movedBit}${listedBit}${hold}`;
       }
-      const target = rollbackTarget ? STATION_LABEL_MAP[rollbackTarget] || rollbackTarget : "Làm sạch";
+      const target = rollbackTarget ? stationLabel(rollbackTarget) : "Làm sạch";
       return `Rollback domino: Tự động chuyển bộ dụng cụ về trạm [${target}] để xử lý lại từ đầu.`;
     }
     if (incident.incident_group === "EQUIPMENT") {
@@ -142,7 +138,7 @@ export default function IncidentPrintView({
       return "Niêm phong và loại bỏ lô hóa chất/vật tư kém chất lượng. Thay thế lô mới đạt chuẩn.";
     }
     return "Tự động ghi nhận thông tin sự cố chung phục vụ đánh giá KPI & quy trình.";
-  }, [incident.incident_group, rollbackTarget, batchRecalled, batchRecallCount, machineHoldQc]);
+  }, [incident.incident_group, rollbackTarget, batchRecalled, batchRecallCount, machineHoldQc, detailsMap]);
 
   return (
     <PrintLayout
@@ -196,7 +192,7 @@ export default function IncidentPrintView({
           </div>
           <div>
             <strong>Trạm phát hiện:</strong>{" "}
-            {STATION_LABEL_MAP[incident.ma_tram_phat_hien] || incident.ma_tram_phat_hien}
+            {stationLabel(incident.ma_tram_phat_hien)}
           </div>
           <div>
             <strong>Người lập biên bản:</strong> {reporterEmail || "Nhân viên KSNK"}
@@ -364,7 +360,7 @@ export default function IncidentPrintView({
             {incident.ma_tram_gay_loi ? (
               <div>
                 <strong>Trạm gây lỗi:</strong>{" "}
-                {STATION_LABEL_MAP[incident.ma_tram_gay_loi] || incident.ma_tram_gay_loi}
+                {stationLabel(incident.ma_tram_gay_loi)}
               </div>
             ) : null}
 
@@ -375,6 +371,63 @@ export default function IncidentPrintView({
             ) : null}
           </div>
         </div>
+
+        {batchRecalled ? (
+          <div style={{ marginBottom: "14px" }}>
+            <p style={{ margin: "0 0 6px", fontSize: "12px", fontWeight: 800, textTransform: "uppercase" }}>
+              Danh sách bộ trong mẻ cần thu hồi / xử lý
+            </p>
+            {(() => {
+              const movedRows = parseRecallMemberListText(detailsMap["RECALL_MOVED"]);
+              const listedRows = parseRecallMemberListText(detailsMap["RECALL_LISTED_USED"]);
+              const renderTable = (
+                title: string,
+                rows: ReturnType<typeof parseRecallMemberListText>,
+                emptyHint: string,
+              ) => (
+                <div style={{ marginBottom: 10 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700 }}>{title}</p>
+                  {rows.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: 11, fontStyle: "italic" }}>{emptyHint}</p>
+                  ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ border: "1px solid #000", padding: 4, width: "10%" }}>STT</th>
+                          <th style={{ border: "1px solid #000", padding: 4, width: "30%" }}>Mã bộ</th>
+                          <th style={{ border: "1px solid #000", padding: 4, width: "60%" }}>Ghi chú</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((row, i) => (
+                          <tr key={`${title}-${row.maBo}-${i}`}>
+                            <td style={{ border: "1px solid #000", padding: 4, textAlign: "center" }}>{i + 1}</td>
+                            <td style={{ border: "1px solid #000", padding: 4, fontFamily: "monospace" }}>{row.maBo}</td>
+                            <td style={{ border: "1px solid #000", padding: 4 }}>{row.ghiChu || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              );
+              return (
+                <>
+                  {renderTable(
+                    "A. Về Tiếp nhận (xử lý lại như dụng cụ bẩn)",
+                    movedRows,
+                    "Không có bộ về Tiếp nhận.",
+                  )}
+                  {renderTable(
+                    "B. Đã dùng lâm sàng — giữ nguyên trạng thái, cần đánh giá / thu hồi tại khoa",
+                    listedRows,
+                    "Không có bộ đã dùng lâm sàng.",
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        ) : null}
 
         <div style={{ marginBottom: "16px" }}>
           <strong>Phương án khắc phục / Trạng thái xử lý:</strong>

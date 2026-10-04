@@ -1,7 +1,7 @@
 /**
  * Nhãn hiển thị loại NKBV — từng hội chứng hô hấp **tách riêng** theo domain CDC:
  * - VAE: người lớn thở máy (tầng VAC → IVAC → PVAP), không dùng X-quang
- * - VAP: viêm phổi liên quan thở máy theo tiêu chuẩn PNEU (PedVAP / giám sát VAP)
+ * - VAP: viêm phổi liên quan thở máy theo tiêu chuẩn PNEU (người lớn; PedVAP ngoài phạm vi BV103)
  * - HAP: viêm phổi bệnh viện không do thở máy (PNEU non-vent)
  * Không gộp VAE với VAP/HAP.
  */
@@ -36,7 +36,7 @@ export const NKBV_CHECKLIST_TYPE_PICKER_LABELS: Record<NkbvChecklistTypeCode, st
   UTI: "🚰 Tiết niệu (UTI)",
   SSI: "✂️ Vết mổ (SSI)",
   VAE: "🫁 VAE (VAC→IVAC→PVAP)",
-  VAP: "🫁 VAP / PedVAP",
+  VAP: "🫁 VAP — viêm phổi liên quan thở máy",
   HAP: "🏥 HAP (PNEU không thở máy)",
   CH17: "📋 Chương 17 (site)",
   LOAI_TRU: "🚫 Loại trừ / Không",
@@ -125,6 +125,29 @@ export const NKBV_MDM_CODE_CANDIDATES: Record<
     "USI",
   ],
 };
+
+/** Mã MDM được phép gắn ca (canonical CDC + alias seed + LOAI_TRU + KHAC legacy). không mở CRUD hub. */
+export const NKBV_ALLOWED_MDM_LOAI_CODES: ReadonlySet<string> = new Set([
+  ...Object.values(NKBV_MDM_CODE_CANDIDATES).flat(),
+  "LOAI_TRU",
+  "RULED_OUT",
+  "KHAC",
+]);
+
+export function isAllowedNkbvMdmLoaiCode(ma: string | null | undefined): boolean {
+  const raw = String(ma || "").trim().toUpperCase();
+  if (!raw) return false;
+  return NKBV_ALLOWED_MDM_LOAI_CODES.has(raw);
+}
+
+/** Lọc dropdown registry theo allowlist Strategy B. */
+export function filterAllowedNkbvLoaiRows<T extends { ma?: string | null; ma_loai?: string | null }>(
+  rows: T[] | null | undefined,
+): T[] {
+  if (!rows?.length) return [];
+  return rows.filter((r) => isAllowedNkbvMdmLoaiCode(r.ma ?? r.ma_loai));
+}
+
 
 /** Suy loại từ bệnh phẩm / vị trí — không đọc loai_ma. */
 export function inferChecklistTypeFromSpecimen(input: {

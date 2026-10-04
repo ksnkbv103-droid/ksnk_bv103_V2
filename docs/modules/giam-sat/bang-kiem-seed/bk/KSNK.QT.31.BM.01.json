@@ -1,0 +1,114 @@
+{
+  "ma": "KSNK.QT.31.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ gói phòng ngừa CAUTI",
+  "ho_form": "BK",
+  "chuyen_de": "CAUTI",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "BS ghi rõ chỉ định đặt ống thông tiểu hợp lý vào hồ sơ bệnh án",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Đã dùng máy siêu âm bàng quang hoặc phương pháp thay thế (thông ngoài / thông ngắt quãng) trước khi ra y lệnh đặt ống lưu khi điều kiện lâm sàng cho phép",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "ĐD VST và mang găng tay vô khuẩn trước khi đặt ống thông tiểu",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Sử dụng bộ dụng cụ đặt thông tiểu đóng gói sẵn vô khuẩn và gel bôi trơn vô khuẩn dùng một lần cho từng NB",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Sát khuẩn vùng sinh dục và lỗ niệu đạo trước khi đưa ống thông vào bàng quang",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Ống thông được cố định chắc chắn vào mặt trong đùi hoặc bụng dưới sau khi đặt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Hệ thống dẫn lưu kín hoàn toàn; không có điểm ngắt kết nối giữa ống thông và túi chứa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Túi dẫn lưu nằm thấp hơn bàng quang và không chạm mặt sàn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Dây dẫn lưu thông suốt, không gập góc, xoắn vặn hoặc bị NB nằm đè lên",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Vệ sinh vùng sinh dục và phần ngoài ống thông hàng ngày bằng xà phòng thường và nước sạch (không dùng hóa chất sát khuẩn thường quy)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Xả túi bằng bình hứng sạch dùng riêng; vòi xả không chạm thành bình hứng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Hồ sơ có minh chứng BS đánh giá sự cần thiết của ống thông trong ngày giám sát",
+      "bat_buoc": true
+    },
+    {
+      "stt": 13,
+      "ma": "TC13",
+      "noi_dung": "Ống thông được rút đúng kỹ thuật ngay khi không còn chỉ định lâm sàng",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.31.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.31.docx (+ ipc-updated/QT/KSNK.QT.31.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Khoa lâm sàng chung",
+      "Nội / ICU / HSTC",
+      "Khoa Cấp cứu"
+    ],
+    "ghi_chu": "Đặt/chăm sóc ống thông tiểu — thực hành khoa."
+  },
+  "doi_tuong_goi_y": [
+    "dieu_duong",
+    "bac_si"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|icu|cap_cuu",
+  "ly_do_phan_bo": "Đặt/chăm sóc ống thông tiểu — thực hành khoa."
+}

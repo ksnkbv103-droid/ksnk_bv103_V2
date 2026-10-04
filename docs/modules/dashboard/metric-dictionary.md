@@ -23,7 +23,9 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 ### `ty_le_vst` / `ty_le_gsc`
 
 - **Công thức:** `round((đạt / tổng) × 100, 1 chữ số thập phân)` — **VST**
-- **VST mẫu số:** `tong_co_hoi`
+- **VST mẫu số:** `tong_co_hoi` (một dòng `gstt_fact_vst` = một cơ hội, không tách chỉ định WHO)
+- **Đúng kỹ thuật / đủ thời gian:** mẫu số `da_tuan_thu` (đã rửa hoặc chà). Bỏ sót không vào mẫu.
+- **Lạm dụng găng:** mẫu số `bo_sot`.
 - **GSC mẫu số:** `tong_quan_sat` — **2 chữ số thập phân** (`Đạt ÷ tiêu chí có áp dụng`, loại NA). Nhật ký không hiện %.
 - **Spec change 2026-08-24:** `ty_le_gsc` trên form / lịch sử / in / thống kê GSC / BCTH thống nhất 2 chữ số từ counts; `ty_le_vst` giữ 1 chữ số.
 - **Spec change 2026-08-22:** `ty_le_gsc` trên điều hành / BCTH / thống kê mặc định **chỉ** bảng kiểm loại tuân thủ (`TUAN_THU` hoặc `loai_giam_sat` trống). Nhật ký vận hành và đánh giá hệ thống không vào mẫu số trừ khi người dùng chọn đúng chuyên đề / `?loai=`.
@@ -52,7 +54,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 | **TGS** | Tự giám sát khoa lâm sàng (`vol_tgs`, `ty_le_tgs`) — **nhãn UI/in:** tự giám sát |
 | **Comparable** | `vol_tgs > 0` **và** `vol_ksnk > 0` trong cùng kỳ/lọc |
 | **Loại trừ** | Mã RPC «Chưa TGS» / «Chưa KSNK» / «Chưa triển khai» — UI: «Chưa tự giám sát» / «Chưa chuyên trách» |
-| **`do_lech`** | Từ RPC `gap_analysis` — chênh % tự giám sát vs chuyên trách (mã `ty_le_tgs` / `ty_le_ksnk`) |
+| **`do_lech`** | Tự giám sát − chuyên trách, sau khi mỗi tỷ lệ đã làm tròn từ đếm (VST 1 chữ số, GSC 2 chữ số) |
 
 ---
 
@@ -106,18 +108,18 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
 | Lớp | Định nghĩa | Code |
 |-----|------------|------|
-| Hàng đợi quyết định ngày | Tối đa 10 dòng derive từ gap comparable · BK yếu · CSSD đỏ/đóng băng · NKBV chờ XN · QLCV quá hạn | `decision-queue.ts` · UI `/` |
-| QLCV CC brief | Quá hạn trên «Việc hôm nay» (mẫu bật, đến hạn tuần, phiếu mở tuần) | `getQlcvQuaHanBrief` · `CommandCenterDecisionQueue` |
-| PDCA metadata | Khi tạo việc từ analytics: `analytics_meta` = `{ chi_so, khoa_id, ky_do_lai, gia_tri_luc_tao }` trên `qlcv_fact_cong_viec` | deep-link + `insertQlcvTaskRow` |
-| Can thiệp đang mở | Việc mở có `chi_so`; sau `ky_do_lai` hiện Δ = hiện tại − lúc tạo (cùng khóa chỉ số). UI dùng `labelAnalyticsChiSo` — **không** mono raw key | Không còn khối riêng trên `/` (2026-08-22) |
-| Định mức nguồn lực | Đã gỡ khỏi Tổng quan (2026-08-23) — không còn bảng NV / cảnh báo phiên/NV | — |
+| Hàng đợi quyết định ngày | **REMOVED H2 (2026-09-17)** — không UI `/` / decision-queue | — |
+| QLCV CC brief / «Việc hôm nay» | **REMOVED H2** — không brief QLCV trên điều hành; `qlcv-brief.actions` xóa Soft 2026-09-27 | Công việc = sidebar riêng |
+| PDCA metadata | Khi tạo việc **trong module Công việc**: `analytics_meta` = `{ chi_so, khoa_id, ky_do_lai, gia_tri_luc_tao }` | QLCV insert (không deep-link từ TGS/BCTH) |
+| Can thiệp đang mở | Việc mở có `chi_so`; Δ sau `ky_do_lai` | Không surface trên BCTH |
+| Định mức nguồn lực | Đã gỡ (2026-08-23) | — |
 
 ### Nhãn cảnh báo CSSD (Management Control)
 
 | Tín hiệu | Định nghĩa | UI |
 |----------|------------|-----|
-| **Đỏ** (`is_red_alert` / trạm rate sự cố `> 5%`) | Trạm/khoảng có tỷ lệ sự cố vượt ngưỡng banner | Command Center hàng đợi · CSSD report |
-| **Đóng băng** | Máy/`trang_thai` bảo trì hoặc quy trình bị khóa vận hành theo domain CSSD (không phải %) | Việc hôm nay · CSSD report |
+| **Đỏ** (`is_red_alert` / trạm rate sự cố `> 5%`) | Trạm/khoảng có tỷ lệ sự cố vượt ngưỡng banner | CSSD report (không hàng đợi CC — H2) |
+| **Đóng băng** | Máy/`trang_thai` bảo trì hoặc quy trình bị khóa vận hành theo domain CSSD (không phải %) | CSSD report |
 
 ### PDCA `chi_so` → nhãn nghiệp vụ
 

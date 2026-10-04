@@ -2,23 +2,22 @@
 
 import Link from "next/link";
 import { FlameKindling } from "lucide-react";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
 /**
- * Ô phiếu mẻ — mở tab Mẻ tiệt khuẩn (không quét tại trang chu trình).
- * Cùng khung với ô chọn trạm.
+ * One primary mẻ CTA on the station strip (P2-1).
+ * Opens tab Mẻ tiệt khuẩn — sterilisation handoff; not a scan target.
+ * Uses toolbar-primary visual weight (solid primary), not equal dashed station cell.
  */
 export default function CssdBatchMeLinkChip() {
   return (
     <Link
-      href={`${CSSD_ROUTES.quyTrinh}?tab=batch`}
-      aria-label="Mở tab phiếu mẻ tiệt khuẩn"
-      className="app-shell-focus group relative flex h-14 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/80 px-2 py-1.5 text-center transition-colors touch-manipulation hover:border-amber-500 hover:bg-amber-50 sm:h-16 sm:px-2.5"
+      href={cssdQuyTrinhBatchTabHref()}
+      aria-label="Mở phiếu mẻ tiệt khuẩn"
+      className="app-shell-focus bv103-control-h inline-flex min-h-[2.75rem] w-full flex-col items-center justify-center gap-0.5 rounded-[var(--radius-control)] bg-[var(--primary)] px-1.5 py-1.5 text-center text-xs font-semibold text-white shadow-sm transition-colors touch-manipulation hover:bg-[var(--primary-hover)] sm:min-h-12 sm:px-2"
     >
-      <span className="shrink-0 text-amber-600">
-        <FlameKindling size={16} aria-hidden />
-      </span>
-      <span className="truncate bv103-type-label font-semibold leading-tight text-amber-900">Phiếu mẻ</span>
+      <FlameKindling size={14} aria-hidden className="shrink-0" />
+      <span className="truncate bv103-type-label font-semibold leading-tight">Phiếu mẻ</span>
     </Link>
   );
 }

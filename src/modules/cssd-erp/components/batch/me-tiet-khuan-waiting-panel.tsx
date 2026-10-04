@@ -6,7 +6,7 @@ import {
 } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 import React, { useState } from "react";
-import { ArrowRight, List, ListChecks } from "lucide-react";
+import { ArrowRight, List } from "lucide-react";
 import SetMembersModal from "../inventory/SetMembersModal";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 
@@ -24,11 +24,13 @@ export default function MeTietKhuanWaitingPanel({
   rows,
   onProcess,
   napLocked,
+  hiddenIncompatible = 0,
 }: {
   rows: MeTkWaitingRow[];
   /** Nạp bộ vào mẻ đang mở (ghi DB). */
   onProcess: (code: string) => void;
   napLocked?: boolean;
+  hiddenIncompatible?: number;
 }) {
   const [detailSet, setDetailSet] = useState<{ bo_dung_cu_id: string; ten_bo: string } | null>(null);
 
@@ -71,7 +73,7 @@ export default function MeTietKhuanWaitingPanel({
                 className={`${CSSD_UI_ACTION_PRIMARY} !h-11 !min-h-[44px] !px-3`}
               >
                 <ArrowRight size={16} aria-hidden />
-                Xử lý
+                Nạp vào mẻ
               </button>
             </div>
           );
@@ -81,6 +83,11 @@ export default function MeTietKhuanWaitingPanel({
             Không có bộ chờ
           </div>
         )}
+        {hiddenIncompatible > 0 ? (
+          <p className="px-1 pt-2 text-[11px] font-medium text-slate-500">
+            {hiddenIncompatible} bộ không hợp máy này đã ẩn
+          </p>
+        ) : null}
       </div>
 
       <SetMembersModal

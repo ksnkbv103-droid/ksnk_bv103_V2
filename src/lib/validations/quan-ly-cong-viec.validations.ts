@@ -29,12 +29,11 @@ export const congViecSchema = z.object({
   loai_cong_viec: z.enum(["DINH_KY", "DOT_XUAT", "KHAN_CAP"]).default("DOT_XUAT"),
   muc_do_uu_tien: z.enum(["THAP", "TRUNG_BINH", "CAO"]).default("TRUNG_BINH"),
 
-  nguoi_phu_trach_id: optionalUuid("Người phụ trách"),
+  /** Domain A: Người thực hiện — form create bắt buộc; schema optional để dùng chung update/đề xuất. */
+  nguoi_phu_trach_id: optionalUuid("Người thực hiện"),
   to_cong_tac_id: optionalUuid("Tổ công tác"),
-  dia_diem_khoa_id: z.preprocess(
-    qlcvEmptyToNull,
-    z.string().uuid("Chọn khoa/đơn vị địa điểm"),
-  ),
+  /** Domain A FE-first: địa điểm optional (cột DB giữ soft-optional). */
+  dia_diem_khoa_id: optionalUuid("Khoa/đơn vị địa điểm"),
   nhiem_vu_id: optionalUuid("Nhiệm vụ"),
 
   vi_tri_thuc_hien: z.preprocess(qlcvEmptyToNull, z.union([z.string(), z.null()]).optional()),
@@ -67,4 +66,30 @@ export const congViecSchema = z.object({
     .nullable(),
 });
 
+
+/** Hạn bắt buộc với đột xuất/khẩn (Domain A / SSOT Q-04). */
+export const congViecSchemaWithHanRule = congViecSchema.superRefine((data, ctx) => {
+  if (data.loai_cong_viec === "DOT_XUAT" || data.loai_cong_viec === "KHAN_CAP") {
+    if (!data.han_hoan_thanh) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Hạn hoàn thành bắt buộc với việc đột xuất/khẩn cấp",
+        path: ["han_hoan_thanh"],
+      });
+    }
+  }
+});
+
+/** Tạo việc active: tiêu đề + người thực hiện (+ hạn theo rule trên). */
+export const congViecCreateSchema = congViecSchemaWithHanRule.superRefine((data, ctx) => {
+  if (!data.nguoi_phu_trach_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Chọn người thực hiện",
+      path: ["nguoi_phu_trach_id"],
+    });
+  }
+});
+
 export type CongViecInput = z.infer<typeof congViecSchema>;
+

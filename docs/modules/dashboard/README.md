@@ -19,8 +19,7 @@ Rule: `18-dashboard-analytics-spec-context.mdc` · Skill: `@dashboard-pilot`
 
 | Màn hình (nhãn UI) | Path app |
 |--------------------|----------|
-| Tổng quan KSNK | `/` (command center — 4 trụ) |
-| Báo cáo chính thức | `/bao-cao-tong-hop` (có phụ lục CSSD) |
+| Báo cáo chính thức | `/bao-cao-tong-hop` (có phụ lục CSSD); `/` → redirect (H2 one door) |
 | Thống kê / analytics | `/thong-ke/vst`, `/thong-ke/gsc`; `/thong-ke/cssd` → `/cssd-erp/report` |
 | Báo cáo CSSD (SSOT vận hành) | `/cssd-erp/report` (sản lượng · bộ · máy · NV) |
 | Giám sát (hub nhập) | `/giam-sat` |

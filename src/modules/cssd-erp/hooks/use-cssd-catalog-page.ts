@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getKhoCatalogPayloadAction, lookupBoDungCuIdByQrAction } from "../actions/cssd-catalog.actions";
 import {
@@ -13,21 +13,35 @@ import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai } from "../types/catalog.ty
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
 
+const CATALOG_TABS = new Set(["DE_NGHI", "LOAI", "HISTORY", "BO", "LUAN_CHUYEN"]);
+
+function tabFromQuery(raw: string | null): CatalogTab | null {
+  const t = String(raw || "").toUpperCase();
+  // Legacy bookmark: CHI_TIET → BO; HOA_CHAT → ignored (route /cssd-hoa-chat).
+  if (t === "CHI_TIET") return "BO";
+  return CATALOG_TABS.has(t) ? (t as CatalogTab) : null;
+}
+
 export function useCssdCatalogPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [tab, setTabState] = useState<CatalogTab>(() => {
-    const t = String(searchParams.get("tab") || "").toUpperCase();
-    if (t === "DE_NGHI" || t === "LOAI" || t === "HISTORY" || t === "BO") return t as CatalogTab;
-    return "BO";
-  });
+  const [tab, setTabState] = useState<CatalogTab>(() => tabFromQuery(searchParams.get("tab")) || "BO");
   const setTab = useCallback((next: CatalogTab) => {
-    setTabState(next === "CHI_TIET" ? "BO" : next);
-  }, []);
+    setTabState(next);
+    const q = new URLSearchParams(searchParams.toString());
+    if (next === "BO") q.delete("tab");
+    else q.set("tab", next);
+    const qs = q.toString();
+    router.replace(qs ? `/cssd-dung-cu?${qs}` : "/cssd-dung-cu", { scroll: false });
+  }, [router, searchParams]);
+
+  useEffect(() => {
+    setTabState(tabFromQuery(searchParams.get("tab")) || "BO");
+  }, [searchParams]);
   const [catalog, setCatalog] = useState<Catalog>({ bo: [], chi_tiet: [], loai: [], hoa_chat: [] });
   const [q, setQ] = useState("");
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
-  const [selectedChiTietId, setSelectedChiTietId] = useState<string | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
   const [boBySelectedLoai, setBoBySelectedLoai] = useState<CSSDBo[]>([]);
 
@@ -131,12 +145,11 @@ export function useCssdCatalogPage() {
     } catch {
       toast.error("Đã xảy ra lỗi khi tìm kiếm mã QR.", { id: toastId });
     }
-  }, [catalog.bo]);
+  }, [catalog.bo, setTab]);
 
-  const { boRows, hoaChatRows } = useMemo(() => filterCatalogRows(catalog, q), [catalog, q]);
+  const { boRows } = useMemo(() => filterCatalogRows(catalog, q), [catalog, q]);
 
   const selectedBo = selectedBoId ? catalog.bo.find((x) => x.id === selectedBoId) || null : null;
-  const selectedChiTiet = selectedChiTietId ? catalog.chi_tiet.find((x) => x.id === selectedChiTietId) || null : null;
   const selectedLoai = selectedLoaiId ? catalog.loai.find((x) => x.id === selectedLoaiId) || null : null;
 
   return {
@@ -148,21 +161,14 @@ export function useCssdCatalogPage() {
     setQ,
     selectedBoId,
     setSelectedBoId,
-    selectedChiTietId,
-    setSelectedChiTietId,
     selectedLoaiId,
     setSelectedLoaiId,
     reload,
     boRows,
-    chiTietRows: catalog.chi_tiet,
     loaiRows: catalog.loai,
-    hoaChatRows,
     selectedBo,
-    selectedChiTiet,
     selectedLoai,
-    chiTietBySelectedBo: [] as CSSDChiTiet[],
     boBySelectedLoai,
-    boBySelectedChiTietLoai: boBySelectedLoai,
     handleScan,
   };
 }

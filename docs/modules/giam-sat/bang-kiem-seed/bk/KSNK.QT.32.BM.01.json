@@ -1,0 +1,97 @@
+{
+  "ma": "KSNK.QT.32.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ gói phòng ngừa VAP (gồm mục cuff / ấm-ẩm / chủ sở hữu Trang bị)",
+  "ho_form": "BK",
+  "chuyen_de": "VAP / VPLQTM",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Hồ sơ bệnh án có y lệnh ngừng hoặc giảm thuốc an thần để đánh giá SAT trong ngày giám sát",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Hồ sơ bệnh án có ghi nhận thực hiện SBT trong ngày khi NB đã vượt qua thử nghiệm thức tỉnh",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Góc đầu giường NB thở máy được duy trì nâng cao từ 30 đến 45 độ (trừ chống chỉ định đã ghi)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Bảng theo dõi ghi nhận chải răng cơ học bằng bàn chải mềm tối thiểu 2 lần trong 24 giờ gần nhất",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Ống NKQ của NB dự kiến thở máy trên 48 đến 72 giờ có cổng hút dịch dưới thanh môn (khi khoa có trang bị)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Áp lực bóng chèn ống NKQ hoặc mở khí quản được đo bằng đồng hồ chuyên dụng và duy trì 20 đến 30 cmH2O",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Nước ngưng tụ trong bẫy nước được xả đúng kỹ thuật, không đổ ngược vào bình làm ẩm hoặc ống NKQ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Bộ dây máy thở chỉ được thay khi bẩn, hư hỏng hoặc sự cố — không thay theo lịch định kỳ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "ĐD VST và mang găng tay trước khi hút đờm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Hút đờm dùng hệ thống hút kín hoặc ống hút vô khuẩn dùng một lần theo chỉ định lâm sàng",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.32.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.32.docx (+ ipc-updated/QT/KSNK.QT.32.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "nhom_khoa",
+    "nhom": [
+      "Nội / ICU / HSTC",
+      "Khoa Hồi sức nội",
+      "Khoa Hồi sức ngoại"
+    ],
+    "ghi_chu": "Gói VAP tại đơn vị thở máy."
+  },
+  "doi_tuong_goi_y": [
+    "dieu_duong",
+    "bac_si",
+    "ky_thuat_vien_ho_hap"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "icu|hs",
+  "ly_do_phan_bo": "Gói VAP tại đơn vị thở máy."
+}

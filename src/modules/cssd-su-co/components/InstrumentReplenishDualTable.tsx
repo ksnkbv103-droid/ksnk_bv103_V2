@@ -259,6 +259,7 @@ export default function InstrumentReplenishDualTable({
       </div>
       <div className="grid items-stretch gap-3 lg:grid-cols-2">
           <DualPaneScroll
+            paneLabel={khoOnLeft ? "Nguồn · Kho" : "Đích · Kho"}
             className={khoOnLeft ? undefined : "lg:order-2"}
             toolbar={
               <MovePaneToolbar
@@ -309,6 +310,7 @@ export default function InstrumentReplenishDualTable({
           </DualPaneScroll>
 
           <DualPaneScroll
+            paneLabel={khoOnLeft ? "Đích · Bộ" : "Nguồn · Bộ"}
             className={khoOnLeft ? undefined : "lg:order-1"}
             toolbar={
               <MovePaneToolbar

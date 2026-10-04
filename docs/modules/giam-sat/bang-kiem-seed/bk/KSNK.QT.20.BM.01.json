@@ -1,0 +1,105 @@
+{
+  "ma": "KSNK.QT.20.BM.01",
+  "ten": "Bảng kiểm giám sát đóng gói",
+  "ho_form": "BK",
+  "chuyen_de": "Đóng gói",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Nhân viên mang trang phục khu sạch (mũ trùm tóc, khẩu trang, quần áo sạch) và vệ sinh tay trước khi tiếp xúc dụng cụ sạch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Chọn vật liệu đóng gói tương thích phương pháp tiệt khuẩn; không dùng túi giấy cellulose hoặc vải cotton cho máy plasma hydrogen peroxide",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Đặt CI loại 4, 5 hoặc 6 vào tâm khối hoặc vị trí khó tiếp cận nhất của mỗi gói / khay / hộp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Bảo vệ đầu dụng cụ sắc nhọn bằng nút silicon hoặc gạc chuyên dụng trước khi gói",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Áp dụng kỹ thuật gói kép (hai lớp) cho khay dụng cụ đóng bằng giấy hoặc vải",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Tạo vạt lật tại các góc gấp giấy / vải để mở vô khuẩn tại điểm sử dụng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Cố định gói giấy / vải bằng băng keo chỉ thị nhiệt; không dùng ghim bấm, đinh ốc, kim băng hoặc dây thun",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Khống chế dụng cụ chiếm tối đa ba phần tư thể tích túi ép; đuổi khí dư trước khi ép nhiệt",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Đường hàn túi ép phẳng, liên tục, rộng tối thiểu 6 mm; không nếp nhăn, không cháy sém, không bọt khí",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Gioăng cao su hộp cứng kín khít; màng lọc còn hạn; chốt seal có CI đã khóa",
+      "bat_buoc": true
+    },
+    {
+      "stt": 11,
+      "ma": "TC11",
+      "noi_dung": "Ghi nhãn trên mặt nilon túi ép hoặc băng keo ngoài; không viết lên mặt giấy / màng lọc; đủ tên bộ, ngày đóng, hạn, mã thao tác, số máy, số mẻ",
+      "bat_buoc": true
+    },
+    {
+      "stt": 12,
+      "ma": "TC12",
+      "noi_dung": "Loại bỏ vật liệu đóng gói rách, xước, thủng, ố vàng trước khi đưa dụng cụ vào gói",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.20.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.20.docx (+ ipc-updated/QT/KSNK.QT.20.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "CSSD / tiệt khuẩn"
+    ],
+    "ghi_chu": "Thao tác đóng gói CSSD."
+  },
+  "doi_tuong_goi_y": [
+    "ky_thuat_vien_cssd"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "cssd",
+  "ly_do_phan_bo": "Thao tác đóng gói CSSD."
+}

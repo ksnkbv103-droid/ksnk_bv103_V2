@@ -20,6 +20,10 @@ import {
   normalizeBoMa,
 } from "@/lib/domain/cssd-bo-ma";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import {
+  blockDeactivateForActiveCycles,
+  CSSD_ACTIVE_CIRCULATION_TINH_TRANG_OR,
+} from "@/lib/domain/cssd-bo-active-cycle";
 
 type BoDungCuRow = {
   id: string;
@@ -225,11 +229,25 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
     ngay_kiem_ke_gan_nhat: input.ngay_kiem_ke_gan_nhat || null,
     phan_loai_bo: String(input.phan_loai_bo || "PHAU_THUAT"),
     co_ma_dinh_danh_rieng: input.co_ma_dinh_danh_rieng !== false,
+    is_implant: input.is_implant === true,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };
   if (!payload.ma_bo || !payload.ten_bo) {
     return { success: false, error: "Thiếu mã bộ hoặc tên bộ." };
+  }
+
+  if (id && payload.is_active === false) {
+    const { data: current, error: currentErr } = await supabase
+      .from("cssd_dm_bo_dung_cu")
+      .select("is_active")
+      .eq("id", id)
+      .maybeSingle();
+    if (currentErr) return { success: false, error: currentErr.message };
+    if (current?.is_active === true) {
+      const blocked = await blockBoDeactivateIfCirculating(supabase, [id]);
+      if (blocked) return blocked;
+    }
   }
 
   const res = await upsertMasterRow("cssd_dm_bo_dung_cu", id, payload);
@@ -266,21 +284,49 @@ export async function getBoDungCuMaBoHealthAction() {
   };
 }
 
+async function blockBoDeactivateIfCirculating(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  boIds: string[],
+): Promise<{ success: false; error: string } | null> {
+  const ids = [...new Set(boIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return null;
+  const { count, error } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select("id", { count: "exact", head: true })
+    .in("bo_dung_cu_id", ids)
+    .eq("is_active", true)
+    .or(CSSD_ACTIVE_CIRCULATION_TINH_TRANG_OR);
+  if (error) {
+    console.error({ module: "BO_DC", action: "blockBoDeactivateIfCirculating", error: error.message });
+    return { success: false, error: error.message };
+  }
+  const message = blockDeactivateForActiveCycles(count ?? 0);
+  return message ? { success: false, error: message } : null;
+}
+
 export async function toggleBoDungCuStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("BO_DC", "edit");
   await requireCssdCatalogMasterWrite();
+  if (currentStatus) {
+    const blocked = await blockBoDeactivateIfCirculating(createAdminSupabaseClient(), [id]);
+    if (blocked) return blocked;
+  }
   return toggleMasterStatus("cssd_dm_bo_dung_cu", id, currentStatus);
 }
 
 export async function softDeleteBoDungCuAction(id: string) {
   await verifyPermission("BO_DC", "delete");
   await requireCssdCatalogMasterWrite();
+  const blocked = await blockBoDeactivateIfCirculating(createAdminSupabaseClient(), [id]);
+  if (blocked) return blocked;
   return softDeleteMasterRow("cssd_dm_bo_dung_cu", id);
 }
 
 export async function softDeleteManyBoDungCuAction(ids: string[]) {
   await verifyPermission("BO_DC", "delete");
   await requireCssdCatalogMasterWrite();
+  const blocked = await blockBoDeactivateIfCirculating(createAdminSupabaseClient(), ids);
+  if (blocked) return blocked;
   return softDeleteManyMasterRows("cssd_dm_bo_dung_cu", ids);
 }
 

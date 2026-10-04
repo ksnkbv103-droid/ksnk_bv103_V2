@@ -1,0 +1,97 @@
+{
+  "ma": "KSNK.QT.10.BM.04",
+  "ten": "Bảng kiểm giám sát tuân thủ hệ thống xử lý phơi nhiễm",
+  "ho_form": "BK",
+  "chuyen_de": "Phơi nhiễm nghề nghiệp",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Sơ cứu dưới nước chảy liên tục ≥5 phút; không nặn, bóp vết thương",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Niêm mạc mắt, mũi, miệng được xối rửa NaCl 0,9% 5–10 phút khi có chỉ định",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Sự cố được báo cáo và đăng ký khám đúng luồng (Khoa Khám bệnh trong giờ / Khoa Cấp cứu ngoài giờ)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "NB nguồn được định danh; lấy mẫu xét nghiệm HIV, HBsAg, Anti-HCV khi chưa có kết quả lưu",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Nhân viên bị phơi nhiễm được lấy máu xét nghiệm nền (baseline) khẩn cấp",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Tiền sử tiêm chủng viêm gan B và Anti-HBs được đánh giá trước chỉ định dự phòng viêm gan B",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "PEP HIV được khởi động trong khung giờ vàng (ưu tiên ≤2–6 giờ; tối đa 72 giờ) khi có chỉ định",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Vắc xin và/hoặc huyết thanh kháng viêm gan B được cấp phát đúng chỉ định chuyên môn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Lịch theo dõi xét nghiệm 1 tháng, 3 tháng (và mốc bổ sung theo chỉ định) được ghi nhận và nhắc lịch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Hồ sơ sự cố được lưu bảo mật tại Ban Quân y / Khoa KSNK",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.10.BM.04 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.10.docx (+ ipc-updated/QT/KSNK.QT.10.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "don_vi_cu_the",
+    "nhom": [
+      "Khoa KSNK"
+    ],
+    "ghi_chu": "v1=toan_vien → v2=he_thong. Hệ thống xử lý PN do KSNK chủ trì; quan sát luồng KB (trong giờ)/CC (ngoài giờ) + hồ sơ tại Ban Quân y/KSNK. Default filter Khoa KSNK."
+  },
+  "doi_tuong_goi_y": [
+    "NV_ksnk",
+    "NVYT",
+    "bac_si",
+    "dieu_duong",
+    "can_bo_quan_ly"
+  ],
+  "bat_buoc_filter_khoa": true,
+  "lop_giam_sat": "he_thong",
+  "co_quan_chu_tri": "Khoa_KSNK",
+  "noi_quan_sat": "van_phong_ksnk|khoa_kham_benh|cap_cuu",
+  "ly_do_phan_bo": "Tên «hệ thống xử lý phơi nhiễm»; TC03–TC10 kiểm luồng báo cáo tổ chức (KB/CC), PEP khung giờ vàng, lịch theo dõi và hồ sơ lưu tại Ban Quân y/Khoa KSNK — quy trình tổ chức chương trình, không phải quan sát tay nghề tại giường."
+}

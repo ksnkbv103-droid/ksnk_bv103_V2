@@ -24,10 +24,6 @@ const CATEGORY_TYPES = [
   { value: "NGHE_NGHIEP", label: "Nghề nghiệp" },
   { value: "LOAI_SU_CO", label: "Loại sự cố" },
   { value: "LOAI_MAY_TIET_KHUAN", label: "Loại máy tiệt khuẩn" },
-  { value: "LOAI_NKBV", label: "Loại ca NKBV" },
-  { value: "TRANG_THAI_NKBV_CA", label: "Trạng thái ca NKBV" },
-  { value: "TRANG_THAI_CONG_VIEC", label: "Trạng thái công việc" },
-  { value: "LOAI_CONG_VIEC", label: "Loại công việc" },
   { value: "CACH_THUC_GIAM_SAT", label: "Cách thức giám sát" },
   { value: "HINH_THUC_GIAM_SAT", label: "Hình thức giám sát" }
 ];

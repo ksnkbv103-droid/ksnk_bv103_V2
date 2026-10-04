@@ -1,6 +1,7 @@
 import { addWeeks, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from "date-fns";
 import { vi } from "date-fns/locale";
 import { khoaChartLabel } from "@/lib/analytics/supervision-matrix-mappers";
+import { roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import {
   computeTyLeGsc,
   computeTyLeVst,
@@ -89,7 +90,8 @@ export function deltaFromPeriodPoints(
 
   const prevRate = prev[metric] as number;
   const curRate = cur[metric] as number;
-  return Math.round((curRate - prevRate) * 10) / 10;
+  const round = metric === "ty_le_gsc" ? roundPercent2 : roundPercent1;
+  return round(curRate - prevRate);
 }
 
 function mergeTrendMaps(
@@ -419,6 +421,8 @@ export function buildBaoCaoReportNo(tuNgay: string, denNgay: string): string {
 
 export function shouldFetchSource(chuyenDe: BaoCaoChuyenDe, source: "VST" | "GSC" | "NKBV"): boolean {
   if (chuyenDe === "ALL") return true;
+  // Khối Vệ sinh tay = WHO (VST) + BM.02/03 (GSC) — cùng tab chuyên đề, không gộp %.
+  if (chuyenDe === "VST" && (source === "VST" || source === "GSC")) return true;
   return chuyenDe === source;
 }
 
@@ -451,11 +455,11 @@ export function composeBaoCaoTongHopPayload(args: {
         ...kyTruocBase,
         delta_vst:
           tyLeVst != null && kyTruocBase.ty_le_vst != null
-            ? Math.round((tyLeVst - kyTruocBase.ty_le_vst) * 10) / 10
+            ? roundPercent1(tyLeVst - kyTruocBase.ty_le_vst)
             : null,
         delta_gsc:
           tyLeGsc != null && kyTruocBase.ty_le_gsc != null
-            ? Math.round((tyLeGsc - kyTruocBase.ty_le_gsc) * 10) / 10
+            ? roundPercent2(tyLeGsc - kyTruocBase.ty_le_gsc)
             : null,
       }
     : null;

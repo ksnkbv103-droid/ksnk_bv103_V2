@@ -1,0 +1,124 @@
+{
+  "ma": "KSNK.QT.07.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ vệ sinh tay năm thời điểm (WHO)",
+  "ho_form": "WHO",
+  "schema": "WHO_LUOI_5_THOI_DIEM",
+  "ghi_chu": "Không dùng schema BK Đạt/KĐ/NA. Module A — lưới cột tích 5 moments. PO: bỏ khỏi picker BK.",
+  "moments": [
+    {
+      "id": "T_NB",
+      "ten_vi": "Trước khi tiếp xúc người bệnh",
+      "thu_tu": 1,
+      "byt_short": "T-NB"
+    },
+    {
+      "id": "T_VK",
+      "ten_vi": "Trước khi làm thủ thuật vô khuẩn",
+      "thu_tu": 2,
+      "byt_short": "T-VK"
+    },
+    {
+      "id": "S_DCT",
+      "ten_vi": "Sau khi có nguy cơ tiếp xúc với dịch",
+      "thu_tu": 3,
+      "byt_short": "S-DCT"
+    },
+    {
+      "id": "S_NB",
+      "ten_vi": "Sau khi tiếp xúc người bệnh",
+      "thu_tu": 4,
+      "byt_short": "S-NB"
+    },
+    {
+      "id": "S_XQ_NB",
+      "ten_vi": "Sau khi tiếp xúc xung quanh người bệnh",
+      "thu_tu": 5,
+      "byt_short": "S-XQ NB"
+    }
+  ],
+  "hanh_dong_lua_chon": [
+    "Rửa tay bằng nước",
+    "Chà tay bằng cồn",
+    "Bỏ sót"
+  ],
+  "header_phien_6_chieu": [
+    {
+      "field": "khoa_id",
+      "ten_vi": "Khoa / đơn vị",
+      "bat_buoc": true
+    },
+    {
+      "field": "khu_vuc_id",
+      "ten_vi": "Khu vực",
+      "bat_buoc": true
+    },
+    {
+      "field": "vi_tri",
+      "ten_vi": "Vị trí",
+      "bat_buoc": true
+    },
+    {
+      "field": "doi_tuong_loai",
+      "ten_vi": "Loại đối tượng",
+      "bat_buoc": true
+    },
+    {
+      "field": "doi_tuong_ten",
+      "ten_vi": "Tên đối tượng (MDM hoặc ngoài danh mục)",
+      "bat_buoc": true
+    },
+    {
+      "field": "gan_nb",
+      "ten_vi": "Gắn người bệnh (khi áp dụng)",
+      "bat_buoc": true
+    }
+  ],
+  "header_bo_sung": [
+    {
+      "field": "nguoi_giam_sat_id",
+      "ten_vi": "Người giám sát"
+    },
+    {
+      "field": "ngay_giam_sat",
+      "ten_vi": "Ngày giám sát"
+    },
+    {
+      "field": "thoi_gian_bat_dau",
+      "ten_vi": "Thời gian bắt đầu"
+    },
+    {
+      "field": "thoi_gian_ket_thuc",
+      "ten_vi": "Thời gian kết thúc"
+    },
+    {
+      "field": "hinh_thuc_id",
+      "ten_vi": "Hình thức giám sát"
+    },
+    {
+      "field": "cach_thuc_id",
+      "ten_vi": "Cách thức giám sát"
+    }
+  ],
+  "nguon": "QT.07 §năm thời điểm + domain 11-GIAM-SAT §B + vst-constants MOMENTS",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "WHO 5 thời điểm — quan sát thực hành VST tại mọi điểm chăm sóc. Hub SURF_WHO."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "bac_si",
+    "dieu_duong",
+    "ky_thuat_vien",
+    "ho_ly"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "surf_ownership": "SURF_WHO",
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls|diem_cham_soc",
+  "ly_do_phan_bo": "WHO 5 thời điểm — quan sát thực hành VST tại mọi điểm chăm sóc. Hub SURF_WHO."
+}

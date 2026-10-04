@@ -2,11 +2,11 @@
  * Mô tả nghiệp vụ tiếng Việt cho ma trận RBAC — giúp PO/IT duyệt quyền.
  */
 const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
-  DASHBOARD: "Xem Tổng quan KSNK (nhìn nhanh KPI và khoảng trống giám sát).",
-  DASHBOARD_CC_OVERVIEW: "Tab cơ cấu nguồn và tổng hợp trên Command Center.",
-  DASHBOARD_CC_SUPERVISION: "Tab giám sát chuyên trách / chéo / tự giám sát.",
-  DASHBOARD_CC_GAP: "Tab đối soát và phát hiện lệch dữ liệu giám sát.",
-  DASHBOARD_CC_EXPORT: "Xuất hoặc in báo cáo PDF từ Command Center.",
+  DASHBOARD: "Xem Báo cáo chính thức (KPI giám sát, xu hướng, in A4).",
+  DASHBOARD_CC_OVERVIEW: "Quyền widget tổng hợp trên Báo cáo chính thức (tương thích mã CC cũ).",
+  DASHBOARD_CC_SUPERVISION: "Quyền widget giám sát chuyên trách / chéo / tự giám sát trên Báo cáo chính thức.",
+  DASHBOARD_CC_GAP: "Quyền widget đối soát / lệch dữ liệu trên Báo cáo chính thức.",
+  DASHBOARD_CC_EXPORT: "Xuất hoặc in báo cáo PDF từ Báo cáo chính thức.",
   DANH_MUC: "Quản trị danh mục lookup chung (tổ chức, trạm CSSD, khu vực…).",
   DANH_MUC_ORG: "Danh mục tổ chức: khối khoa, tổ công tác, chức vụ, chức danh, nghề nghiệp.",
   DANH_MUC_GSTT: "Lookup giám sát: khu vực, hình thức, cách thức giám sát.",
@@ -31,7 +31,8 @@ const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
   GIAM_SAT_CHUNG: "Phiên giám sát bảng kiểm chung (GSC).",
   GIAM_SAT_NKBV: "Giám sát nhiễm khuẩn bệnh viện / HAI.",
   PHAN_QUYEN: "Cấu hình ma trận phân quyền và tài khoản KSNK.",
-  BAO_SU_CO: "Báo cáo sự cố an toàn / tiệt khuẩn.",
+  BAO_SU_CO:
+    "Phiếu sự cố CSSD (quy trình, dụng cụ, máy, hóa chất) — không phải sự cố y khoa toàn viện.",
 };
 
 export function getPermissionModuleBusinessDescription(code: string): string | undefined {

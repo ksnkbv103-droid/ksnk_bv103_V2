@@ -45,19 +45,19 @@ Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [
 | Design tokens | `src/lib/bv103-design-tokens.ts` |
 | Panel / form | `src/lib/bv103-layout-chrome.ts` |
 | Page shell | `KsnkPageShell.tsx` — **chỉ** trong `ClientLayoutWrapper` |
-| Analytics frame | `Bv103AnalyticsPageFrame.tsx` — Command Center, Báo cáo tổng hợp |
+| Analytics frame | `Bv103AnalyticsPageFrame.tsx` — Báo cáo chính thức / thống kê |
 | Supervision | `ksnk-supervision-chrome.tsx` |
 | Admin title | `KsnkPageHeader` — RBAC, MDM, danh mục |
 | CSSD chrome | `cssd-ui-chrome.ts` (extends layout chrome) |
 
 Doc chi tiết: [`modules/giam-sat/layout-primitives.md`](../modules/giam-sat/layout-primitives.md).
 
-**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — cổng vào module/workspace. **Điều hành:** «Tổng quan KSNK» → `/` + «Báo cáo chính thức» → `/bao-cao-tong-hop`. **Giám sát:** một mục «Giám sát» → `/giam-sat` (QR / lịch sử / thống kê vào từ hub; bookmark `/qr` vẫn sống). Deep-link VST/GSC/NKBV mở từ hub. Lịch sử / Thống kê VST·GSC: `/lich-su/*`, `/thong-ke/*`. **CSSD:** sidebar tách «Vận hành» vs «Tra cứu» là **cổng chuyển màn duy nhất** (không ModeNav trùng trên hero). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts). Ai thấy mục nào = `NavGate`. Chương trình giản hóa: [`simplification-program-20260726.md`](../reference/architecture/simplification-program-20260726.md).
+**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — cổng vào module/workspace. **Điều hành (H2):** chỉ «Báo cáo chính thức» → `/bao-cao-tong-hop` (`/` redirect cùng cửa). **Giám sát:** một mục «Giám sát» → `/giam-sat` (QR / lịch sử / thống kê vào từ hub; bookmark `/qr` vẫn sống). Deep-link VST/GSC/NKBV mở từ hub. Lịch sử / Thống kê VST·GSC: `/lich-su/*`, `/thong-ke/*`. **CSSD:** sidebar tách «Vận hành» vs «Tra cứu» là **cổng chuyển màn duy nhất** (không ModeNav trùng trên hero). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts). Ai thấy mục nào = `NavGate`. Chương trình giản hóa: [`simplification-program-20260726.md`](../reference/architecture/simplification-program-20260726.md).
 
 1. `rounded-2xl` / `xl` — `npm run layout:drift-check`
 2. Label tối thiểu `text-[11px]` — `npm run layout:typography-check`
 3. Tối đa: hero → một panel → bảng (không card lồng card)
-4. Dashboard `/`: dùng `Bv103AnalyticsPageFrame` — **không** `max-w-[1400px]` lồng shell
+4. Báo cáo chính thức `/bao-cao-tong-hop`: dùng `Bv103AnalyticsPageFrame` — **không** `max-w-[1400px]` lồng shell (`/` chỉ redirect H2)
 
 ---
 

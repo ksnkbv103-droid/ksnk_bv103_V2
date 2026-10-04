@@ -103,6 +103,15 @@ export function formatTimeVi(value: DateTimeInput, empty = "—"): string {
   return `${p.hour}:${p.minute}:${p.second}`;
 }
 
+/** Chỉ giờ ngắn → `hh:mm` (CSSD-L02 / 17b thẻ quét; không giây). */
+export function formatTimeHmVi(value: DateTimeInput, empty = "—"): string {
+  const d = parseDateTimeInput(value);
+  if (!d) return empty;
+  const p = partsInVn(d);
+  if (!p) return empty;
+  return `${p.hour}:${p.minute}`;
+}
+
 /** Ngày + giờ gần nhau → `hh:mm:ss, dd/mm/yyyy`. */
 export function formatDateTimeVi(value: DateTimeInput, empty = "—"): string {
   const d = parseDateTimeInput(value);

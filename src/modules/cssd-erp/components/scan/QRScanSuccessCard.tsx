@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { CheckCircle2, User, Clock, ArrowRight, Printer } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, User, Clock, Printer, FlameKindling } from "lucide-react";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
@@ -14,12 +15,15 @@ interface Props {
   /** Trạm hiện tại (từ trang cha; tránh gọi hook trùng state). */
   tramDisplay?: string;
   maLoTietKhuan?: string;
+  /** @deprecated CSSD-L02 / 17b — soft-allow silent; FE không render. */
   ledgerWarning?: string;
   /** Tem chu trình túi hấp (khác tem bộ vĩnh viễn). */
   maCycleQr?: string | null;
   /** Trạm cấp phát: in phiếu A4 (QR mã mẻ). */
   onPrintCapPhat?: () => void;
   isPrintBusy?: boolean;
+  /** Sterilisation handoff — one primary CTA to phiếu mẻ (P2-1). */
+  meHandoffHref?: string;
 }
 
 /**
@@ -33,10 +37,10 @@ export default function QRScanSuccessCard({
   buocTiepTheo,
   tramDisplay = "CSSD",
   maLoTietKhuan,
-  ledgerWarning,
   maCycleQr,
   onPrintCapPhat,
   isPrintBusy,
+  meHandoffHref,
 }: Props) {
   const tramKey = tramDisplay.replace(/\s+/g, "_").toUpperCase();
   const isCapPhat = tramKey === "CAP_PHAT" || tramDisplay === "Cấp phát";
@@ -130,23 +134,17 @@ export default function QRScanSuccessCard({
               </div>
             ) : null}
 
-            {ledgerWarning ? (
-              <div className={`${C.noticeDanger} text-left`}>
-                <p className="text-[11px] font-semibold">Thiếu dụng cụ — vẫn cấp</p>
-                <p className="mt-0.5 text-[11px] font-medium leading-relaxed">{ledgerWarning}</p>
-              </div>
-            ) : null}
+            {/* CSSD-L02 / 17b: soft-allow D8 silent — không banner ledgerWarning */}
           </div>
 
-          <div className="mt-4 flex w-full items-center justify-between gap-3 bv103-layer-inset bv103-pad-inset text-left">
-            <div>
-              <p className={T.labelBlock}>Bước tiếp theo</p>
-              <p className="text-sm font-semibold text-slate-800">{buocTiepTheo}</p>
-            </div>
-            <div className="rounded-full bg-[var(--primary)] p-2 text-white">
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </div>
-          </div>
+          {meHandoffHref ? (
+            <Link href={meHandoffHref} className={`${C.btnPrimaryBlock} mt-4`}>
+              <FlameKindling className="h-4 w-4" aria-hidden />
+              Mở phiếu mẻ
+            </Link>
+          ) : buocTiepTheo && buocTiepTheo !== "—" ? (
+            <p className="mt-3 text-[11px] font-medium text-slate-500">Tiếp: {buocTiepTheo}</p>
+          ) : null}
 
           {isCapPhat && onPrintCapPhat ? (
             <button

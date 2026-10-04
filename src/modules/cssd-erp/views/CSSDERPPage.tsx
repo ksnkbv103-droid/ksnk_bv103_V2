@@ -11,7 +11,7 @@ import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
-import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
+import { SCAN_STATIONS, stationLabel } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
 import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 import { useCssdPrint } from "../hooks/use-cssd-print";
@@ -91,7 +91,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     const code = raw.trim().toUpperCase();
     if (!code) return;
     if (currentStation === "TIET_KHUAN") {
-      toast.error(`Không quét trạm Tiệt khuẩn tại đây. Dùng tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}).`, { duration: 9000 });
+      toast.error(`Không quét trạm Tiệt khuẩn tại đây — mở tab Mẻ (${cssdQuyTrinhBatchTabHref()}).`, { duration: 6000 });
       return;
     }
 
@@ -132,6 +132,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
             onConfirm={submitWorkflowQr}
           />
           {showDongGoiGate && dongGoiGate ? (
+            /* Soft Soft Soft-safe L04: Đóng gói luôn gateMode — requireSplit warn only; 0 registerSplitSub */
             <CompositionReconcilePanel
               boDungCuId={dongGoiGate.boDungCuId}
               quyTrinhId={dongGoiGate.quyTrinhId}
@@ -144,8 +145,8 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           ) : showScanSuccess ? (
             <QRScanSuccessCard
               {...lastScan}
-              tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
-              ledgerWarning={lastScan?.ledgerWarning}
+              tramDisplay={currentStation ? stationLabel(currentStation) : "CSSD"}
+              meHandoffHref={lastScan?.meHandoffHref}
               onPrintCapPhat={
                 lastScan?.quyTrinhId
                   ? () =>

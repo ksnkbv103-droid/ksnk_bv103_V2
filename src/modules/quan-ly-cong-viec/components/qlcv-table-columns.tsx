@@ -7,12 +7,15 @@ import { formatMucDoUuTienLabel } from "../lib/qlcv-labels";
 import { canShowDeleteTask, canShowEditTaskMetadata, type QlcvUiAccessFlags } from "../lib/qlcv-access";
 import type { CongViecView } from "../types";
 import { qlcvTableChrome as Q } from "../lib/qlcv-table-chrome";
+import { formatQlcvPhoiHopChips, qlcvAssigneeInitials } from "../lib/qlcv-staff-ids";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type QlcvTableColumnHandlers = {
   qlcvUi: QlcvUiAccessFlags;
   mauSacByMa?: Record<string, string | null | undefined>;
+  /** KSNK staff roster for resolving phối hợp / theo dõi names (C/I). */
+  staffLabelOpts?: { id: string; label: string }[];
   onEdit: (row: CongViecView) => void;
   onDelete: (row: CongViecView) => Promise<void>;
 };
@@ -27,13 +30,18 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cell: (row: CongViecView) => (
         <div className="flex flex-col gap-0.5 py-1 text-left">
           <span className={Q.cellTitle}>{row.tieu_de}</span>
+          {row.nhiem_vu_ten ? (
+            <span className={`${Q.cellMeta} block truncate`}>NV/KH: {row.nhiem_vu_ten}</span>
+          ) : null}
           <QlcvDinhKyMauChip
             loaiCongViec={row.loai_cong_viec}
             dinhKyMauId={row.dinh_ky_mau_id}
             className={Q.cellMeta}
           />
-          {row.vi_tri_thuc_hien ? (
-            <span className={`${Q.cellMeta} block truncate`}>Vị trí: {row.vi_tri_thuc_hien}</span>
+          {row.trang_thai === "HOAN_THANH" ? (
+            <span className={`${Q.cellMeta} block truncate text-emerald-700`}>
+              Kết quả: đã đóng
+            </span>
           ) : null}
         </div>
       ),
@@ -50,14 +58,60 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       sortable: true,
     },
     {
-      header: "Phụ trách",
+      header: "Người thực hiện",
       accessorKey: "nguoi_phu_trach_ten",
-      headerClassName: "w-[12%] min-w-[6.5rem]",
+      headerClassName: "w-[14%] min-w-[7.5rem]",
       cellClassName: "align-middle",
-      cell: (row: CongViecView) => (
-        <span className={Q.cellTitle}>{row.nguoi_phu_trach_ten || "—"}</span>
-      ),
+      cell: (row: CongViecView) => {
+        const name = row.nguoi_phu_trach_ten || "";
+        const initials = qlcvAssigneeInitials(name);
+        return (
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[10px] font-bold text-sky-800"
+              aria-hidden
+            >
+              {initials}
+            </span>
+            <span className={`${Q.cellTitle} truncate`}>{name || "—"}</span>
+          </div>
+        );
+      },
       sortable: true,
+    },
+    {
+      header: "Phối hợp",
+      accessorKey: "nguoi_phoi_hop_ids",
+      headerClassName: "w-[12%] min-w-[5.5rem]",
+      cellClassName: "align-middle",
+      cell: (row: CongViecView) => {
+        const { chips, extra, empty, title } = formatQlcvPhoiHopChips(
+          row.nguoi_phoi_hop_ids,
+          h.staffLabelOpts ?? [],
+          2,
+        );
+        if (empty) {
+          return <span className={`${Q.cellBody} text-slate-400`}>—</span>;
+        }
+        return (
+          <div className="flex max-w-[11rem] flex-wrap gap-1" title={title}>
+            {chips.map((c) => (
+              <span
+                key={c.id}
+                className="inline-flex max-w-[5.5rem] truncate rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-600"
+              >
+                {c.label}
+              </span>
+            ))}
+            {extra > 0 ? (
+              <span className="rounded-full border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+                +{extra}
+              </span>
+            ) : null}
+          </div>
+        );
+      },
+      sortable: false,
     },
     {
       header: "Cổng / Trách nhiệm",

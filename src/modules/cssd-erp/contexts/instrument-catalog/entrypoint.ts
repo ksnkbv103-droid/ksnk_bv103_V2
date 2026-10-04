@@ -1,10 +1,5 @@
 /**
  * Bounded context entrypoint: Instrument catalog / physical label registration.
+ * Catalog tab views + useCssdCatalogPage are imported directly by /cssd-dung-cu (dynamic).
  */
 export { registerPhysicalBoLabelFromDmAction } from "../../actions/cssd-register-label.actions";
-export { useCssdCatalogPage } from "../../hooks/use-cssd-catalog-page";
-export { CSSDCatalogBoTab } from "../../views/CSSDCatalogBoTab";
-export { CSSDCatalogLoaiTab } from "../../views/CSSDCatalogLoaiTab";
-export { CSSDCatalogChiTietTab } from "../../views/CSSDCatalogChiTietTab";
-export { CSSDCatalogQuickActions } from "../../views/CSSDCatalogQuickActions";
-export { CSSDCatalogDeNghiTab } from "../../views/CSSDCatalogDeNghiTab";

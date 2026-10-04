@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import QrCameraButton from "./QrCameraButton";
 
 type Props = {
+  id?: string;
   disabled?: boolean;
   placeholder?: string;
   autoFocus?: boolean;
@@ -21,6 +22,7 @@ type Props = {
 
 /** Một ô: gõ tên/mã hoặc quét QR (camera + Enter). */
 export default function QrScanInput({
+  id,
   disabled,
   placeholder = "Tìm tên, mã hoặc quét QR…",
   autoFocus,
@@ -50,6 +52,7 @@ export default function QrScanInput({
   return (
     <div className={`flex w-full items-center gap-2 ${className}`}>
       <input
+        id={id}
         ref={inputRef}
         type="text"
         disabled={disabled}

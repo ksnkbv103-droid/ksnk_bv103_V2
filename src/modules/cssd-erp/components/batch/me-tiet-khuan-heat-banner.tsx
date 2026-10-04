@@ -60,7 +60,7 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
       }
       summary={
         <span className="font-semibold">
-          {isBlock ? "Chặn an toàn Spaulding / nhiệt" : "Cảnh báo Spaulding / nhiệt"}
+          Cảnh báo dự phòng — Spaulding / nhiệt
         </span>
       }
       detail={

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   buildIncidentAttributes,
+  countPriorSafetyIncidentsOnCycle,
+  countsTowardCssdSafetyTally,
+  collectReportRedQuyTrinhIds,
+  quyTrinhIdsWithEffectiveRedAlert,
   readIncidentGroup,
   readIncidentTypeLabel,
   resolveProcessBatchLink,
@@ -89,5 +95,110 @@ describe("cssd-incident-attributes", () => {
     );
     expect(linked.loTietKhuanId).toBe("55555555-5555-5555-5555-555555555555");
     expect(linked.maLo).toBe("LO-A");
+  });
+
+  it("không đếm luân chuyển vào sự cố; nháp chỉ tính khi đang ghi", () => {
+    const move = { INCIDENT_TYPE_CODE: "INSTRUMENT_TRANSFER", SET_RECONCILE_STATUS: "NONE" };
+    const draft = { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "DRAFT" };
+    const hong = { INCIDENT_TYPE_CODE: "INSTRUMENT_SET_RECONCILE", SET_RECONCILE_STATUS: "NONE" };
+    expect(countsTowardCssdSafetyTally(move)).toBe(false);
+    expect(countsTowardCssdSafetyTally(move, { includeDraft: true })).toBe(false);
+    expect(countsTowardCssdSafetyTally(draft)).toBe(false);
+    expect(countsTowardCssdSafetyTally(draft, { includeDraft: true })).toBe(true);
+    expect(countsTowardCssdSafetyTally(hong)).toBe(true);
+  });
+
+  it("cờ đỏ kho chỉ theo quy_trinh_id của phiếu còn hiệu lực", () => {
+    const ids = quyTrinhIdsWithEffectiveRedAlert([
+      {
+        quy_trinh_id: "qt-1",
+        is_red_alert: true,
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+      {
+        quy_trinh_id: "qt-2",
+        is_red_alert: true,
+        is_active: false,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+      {
+        quy_trinh_id: "qt-3",
+        is_red_alert: true,
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN", SET_RECONCILE_STATUS: "DRAFT" },
+      },
+      {
+        quy_trinh_id: "qt-4",
+        is_red_alert: true,
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_TRANSFER" },
+      },
+      {
+        quy_trinh_id: "",
+        is_red_alert: true,
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+    ]);
+    expect([...ids]).toEqual(["qt-1"]);
+  });
+
+  it("nhật ký không tô đỏ chu kỳ khác chỉ vì cùng mã bộ", () => {
+    const ids = collectReportRedQuyTrinhIds([
+      { quy_trinh_id: "qt-1", is_red_alert: true, attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" } },
+      { quy_trinh_id: null, is_red_alert: true, attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" } },
+      {
+        quy_trinh_id: "qt-2",
+        is_red_alert: true,
+        attributes: { INCIDENT_STATUS: "VO_HIEU", INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+    ]);
+    expect([...ids]).toEqual(["qt-1"]);
+  });
+
+  it("ngưỡng đỏ đếm đúng chu kỳ, bỏ phiếu tắt và chu kỳ khác", () => {
+    const rows = [
+      {
+        quy_trinh_id: "qt-khac",
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+      {
+        quy_trinh_id: "qt-1",
+        is_active: false,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+      {
+        quy_trinh_id: "qt-1",
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_TRANSFER" },
+      },
+      {
+        quy_trinh_id: "qt-1",
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN", SET_RECONCILE_STATUS: "DRAFT" },
+      },
+      {
+        quy_trinh_id: "qt-1",
+        is_active: true,
+        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+      },
+    ];
+    expect(countPriorSafetyIncidentsOnCycle(rows, "qt-1")).toBe(2);
+    expect(countPriorSafetyIncidentsOnCycle(rows, "")).toBe(0);
+  });
+
+  it("migration S-F2 khóa CTE đỏ theo quy_trinh và phiếu còn hiệu lực", () => {
+    const sql = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/20261001120000_cssd_red_alert_by_quy_trinh.sql"),
+      "utf8",
+    );
+    expect(sql).toContain("cssd_su_co_counts_for_red_alert");
+    expect(sql).toContain("sc.quy_trinh_id");
+    expect(sql).not.toMatch(/where\s+ma_qr_quy_trinh/i);
+    for (const code of ["INSTRUMENT_MOVE", "INSTRUMENT_TRANSFER", "INSTRUMENT_REPLENISH", "INSTRUMENT_RETURN_KHO"]) {
+      expect(sql).toContain(code);
+    }
   });
 });

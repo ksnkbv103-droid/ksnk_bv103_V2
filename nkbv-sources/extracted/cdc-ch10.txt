@@ -1,0 +1,1709 @@
+                                                                                                                                                      January 2025
+
+
+       Ventilator-Associated Event (VAE)
+       For use in adult locations only
+
+                                                                      Table of Contents
+       Introduction .................................................................................................................................................. 1
+       Settings ......................................................................................................................................................... 2
+       Inclusion and Exclusion Criteria…………………………………………………………………………………………………………………………..3
+       Definitions ..................................................................................................................................................... 3
+       Table 1: Definitions of routes of administration ......................................................................................... 13
+       Table 2: Instructions for using the purulent respiratory secretions criterion, based on laboratory
+                 reporting of respiratory secretion direct examination results..................................................... 15
+       Reporting Instructions ................................................................................................................................ 17
+       Table 3: Threshold values for cultured specimens used in the PVAP definition ........................................ 19
+       Figure 1: Ventilator-Associated Events (VAE) Surveillance Algorithm ........................................................ 19
+       Numerator and Denominator Data............................................................................................................. 22
+       Data Analyses .............................................................................................................................................. 24
+       Table 4: VAE Measures Available in NHSN ................................................................................................. 27
+       References .................................................................................................................................................. 28
+       Appendix. List of Antimicrobial Agents Eligible for IVAC, PVAP.................................................................. 29
+       VAE Frequently Asked Questions (FAQs) .................................................................................................... 31
+
+
+       Introduction
+       Mechanical ventilation is an essential, life-saving therapy for patients with critical illness and respiratory
+       failure. Studies have estimated that more than 300,000 patients receive mechanical ventilation in the
+       United States each year [1-3]. These patients are at high risk for complications and poor outcomes,
+       including death [1-5]. Ventilator-associated pneumonia (VAP), sepsis, acute respiratory distress
+       syndrome (ARDS), pulmonary embolism, barotrauma, and pulmonary edema are among the
+       complications that can occur in patients receiving mechanical ventilation. Such complications can lead to
+       longer duration of mechanical ventilation, longer stays in the intensive care unit (ICU) and hospital,
+       increased healthcare costs, and increased risk of disability and death. Mortality in patients with acute
+       lung injury on mechanical ventilation has been estimated to range from 24% in persons 15-19 years of
+       age to 60% for patients 85 years and older [4].
+       Surveillance for ventilator-associated events in the National Healthcare Safety Network (NHSN) prior to
+       2013 was limited to VAP. For the year 2012, VAP incidence for various types of hospital units ranged
+       from 0.0-4.4 per 1,000 ventilator days [6]. However, there is currently no valid, reliable definition for
+       VAP, and even the most widely used VAP criteria and definitions are neither sensitive nor specific [7-10].
+       A particular difficulty with many commonly used VAP definitions, including the NHSN PNEU definitions
+       (revised in 2002), is that they require radiographic findings of pneumonia. Evidence suggests that chest
+       radiograph findings do not accurately identify VAP. The subjectivity and variability inherent in chest
+       radiograph technique, interpretation, and reporting make chest imaging ill-suited for inclusion in a
+
+
+10-1
+       January 2025                                                                      Device-associated Module
+                                                                                                             VAE
+
+
+       definition algorithm to be used for the potential purposes of public reporting, inter-facility comparisons,
+       and pay-for-reporting and pay-for-performance programs. Another major limitation of the available VAP
+       definitions is their reliance on specific clinical signs or symptoms, which are subjective and may be
+       poorly or inconsistently documented in the medical record. The NHSN PNEU protocol includes multiple
+       definition pathways and special criteria for selected patient populations (for example, children,
+       immunocompromised patients), increasing its complexity.
+       The limitations of VAP surveillance definitions have implications for prevention. Valid and reliable
+       surveillance data are necessary for assessing the effectiveness of prevention strategies. It is notable that
+       some of the most effective measures for improving outcomes of patients on mechanical ventilation do
+       not specifically target pneumonia prevention [11-14].
+       In 2011, CDC convened a Working Group composed of members of several stakeholder organizations to
+       address the limitations of the NHSN PNEU definitions and propose a new approach to surveillance for
+       Ventilator-Associated Events (VAE) for NHSN [15]. The organizations represented in the Working Group
+       include: the Critical Care Societies Collaborative (the American Association of Critical-Care Nurses, the
+       American College of Chest Physicians, the American Thoracic Society, and the Society for Critical Care
+       Medicine), the American Association for Respiratory Care, the Association of Professionals in Infection
+       Control and Epidemiology, the Council of State and Territorial Epidemiologists, the Healthcare Infection
+       Control Practices Advisory Committee’s Surveillance Working Group, the Infectious Diseases Society of
+       America, and the Society for Healthcare Epidemiology of America.
+       The VAE surveillance definition algorithm developed by the Working Group and implemented in the
+       NHSN in January 2013 is based on objective, streamlined, and potentially automatable criteria that
+       identify a broad range of conditions and complications occurring in mechanically ventilated adult
+       patients [16]. Several modifications to the VAE definitions have been made since January 2013. These
+       modifications address issues raised by NHSN users and discussed with the Working Group. There are
+       three definition tiers within the VAE algorithm: 1) Ventilator-Associated Condition (VAC); 2) Infection-
+       related Ventilator-Associated Complication (IVAC); and 3) Possible VAP (PVAP). Data indicate that
+       streamlined, objective algorithms to detect ventilator-associated complications (similar to the VAC tier
+       of the VAE algorithm) are easily implemented, can make use of electronic health record systems to
+       automate event detection, and identify events that are clinically important and associated with
+       outcomes such as ICU and hospital length of stay and mortality [16,17]. Research suggests that most
+       VACs are due to pneumonia, ARDS, atelectasis, and pulmonary edema [16]. These are significant clinical
+       conditions that may be preventable. VAE rates and event characteristics in adult inpatient locations
+       reporting data to NHSN in 2014 have been published [18].
+       NOTE: The VAE definition algorithm is for use in surveillance. It is not a clinical definition algorithm and
+       is not intended for use in the clinical management of patients. Examples provided throughout this
+       protocol and in the VAE “Frequently Asked Questions” are for illustration purposes only and are not
+       intended to represent actual clinical scenarios.
+
+
+       Settings
+       Inpatient locations eligible to participate in VAE surveillance are those adult locations in acute care
+       hospitals, long term acute care hospitals, and inpatient rehabilitation facilities where denominator data
+
+
+10-2
+       January 2025                                                                      Device-associated Module
+                                                                                                             VAE
+
+
+       (ventilator and patient days) can be collected for patients. Such locations may include critical/intensive
+       care units (ICU), specialty care areas (SCA), step-down units, and wards. A complete listing of adult
+       inpatient locations can be found in Chapter 15 CDC Locations and Descriptions.
+       Non-acute care mapped locations in acute care facilities (chronic care units in acute care facilities) are
+       not eligible to participate in VAE surveillance.
+       It is not required to monitor for VAEs after discharge if a patient is transferred to another facility while
+       still on mechanical ventilation. However, if discovered, any VAE with a date of event on the day of
+       discharge or the day after discharge is attributed to the discharging location and should be included in
+       any VAEs reported to NHSN by the discharging location. No additional ventilator days are reported.
+
+
+       Inclusion and Exclusion Criteria
+       Patients INCLUDED in VAE surveillance:
+           •   All patients in the adult inpatient locations found in Chapter 15, regardless of patient’s age
+           •   Patients on a ventilator (as defined below) who are receiving:
+                    o a conventional mode of mechanical ventilation (for example, synchronized intermittent
+                        mandatory ventilation)
+                    o Airway Pressure Release Ventilation (APRV) or related modes (see “Frequently Asked
+                        Questions [FAQ]” numbers [nos.] 18 and 19 at the end of this protocol)
+           •   Patients on a ventilator (as defined below) who are receiving a conventional mode of
+               mechanical ventilation, or APRV or related modes:
+                    o while in the prone position
+                    o while receiving nitric oxide therapy, helium-oxygen mixtures (heliox), or epoprostenol
+                        therapy
+
+       Patients EXCLUDED from VAE surveillance:
+           •   All patients in the neonatal and pediatric inpatient locations found in Chapter 15, regardless of
+               patient’s age
+           •   Patients on high-frequency ventilation, extracorporeal life support, or paracorporeal membrane
+               oxygenation are excluded from VAE surveillance during periods of time when the support is in
+               place for the entire calendar day (see FAQ no. 18 at the end of this protocol)
+
+
+       Definitions
+       Ventilator: A device used to support, assist, or control respiration (inclusive of the weaning period)
+       through the application of positive pressure to the airway when delivered via an artificial airway,
+       specifically oral/nasal endotracheal or tracheostomy tube.
+       Ventilation and lung expansion devices that deliver positive pressure to the airway (for example, CPAP,
+       BiPAP, Bi-level, IPPB, and PEEP) via non-invasive means (for example, nasal prongs, nasal mask, full face
+       mask, total mask, etc.) are not considered ventilators unless positive pressure is delivered via an
+       artificial airway (oral/nasal endotracheal or tracheostomy tube).
+
+
+
+10-3
+       January 2025                                                                    Device-associated Module
+                                                                                                           VAE
+
+
+       VAE: VAEs are identified by using a combination of objective criteria: deterioration in respiratory status
+       after a period of stability or improvement on the ventilator, evidence of infection or inflammation, and
+       laboratory evidence of respiratory infection, and are categorized into the following 3 tiers: ventilator-
+       associated condition (VAC), infection-related ventilator-associated complication (IVAC), and possible
+       ventilator-associated pneumonia (PVAP). The following pages outline the criteria that must be used for
+       meeting each of the VAE surveillance definitions (Figure 1).
+       Patients must be mechanically ventilated for at least 4 calendar days to fulfill VAE criteria (where the
+       day of intubation and initiation of mechanical ventilation is day 1). The earliest date of event for VAE
+       (the date of onset of worsening oxygenation) is day 3 of mechanical ventilation. Line lists of VAE data
+       elements demonstrating scenarios that meet and do not meet the VAE definitions are presented in FAQ
+       no. 2 at the end of this protocol.
+
+       Positive End-Expiratory Pressure (PEEP): “A technique used in respiratory therapy in which airway
+       pressure greater than atmospheric pressure is achieved at the end of exhalation by the introduction of a
+       mechanical impedance to exhalation” [19]. In patients on mechanical ventilation, PEEP is one of the key
+       parameters that can be adjusted depending on the patient’s oxygenation needs and is typically in the
+       range of 0 to 15 cmH2O. A sustained increase in the daily minimum PEEP of ≥ 3 cmH2O following a period
+       of stability or improvement on the ventilator is one of two criteria that can be used in meeting the VAC
+       definition. For the purposes of VAE surveillance, PEEP values from 0 to 5 cmH2O are considered
+       equivalent.
+
+       Fraction of Inspired Oxygen (FiO2): The fraction of oxygen in inspired gas. For example, the FiO2 of
+       ambient air is 0.21; the oxygen concentration of ambient air is 21%. In patients on mechanical
+       ventilation, the FiO2 is one of the key parameters that can be adjusted depending on the patient’s
+       oxygenation needs and is typically in the range of 0.30 (oxygen concentration of 30%) to 1.0 (oxygen
+       concentration of 100%). A sustained increase in the daily minimum FiO2 of ≥ 0.20 (20 points) following a
+       period of stability or improvement on the ventilator is one of the two criteria that can be used in
+       meeting the VAC definition.
+
+       Daily Minimum PEEP: The lowest value of PEEP during a calendar day that is set on the ventilator and
+       maintained for > 1 hour. This requirement that the daily minimum PEEP be the lowest setting
+       maintained for > 1 hour will ensure that units monitoring and recording PEEP settings hourly or more
+       frequently than once per hour are able to apply the VAE surveillance PEEP criterion in a standardized
+       way.
+       If ventilator settings are monitored and recorded less frequently than once per hour (for example, every
+       2 hours or every 4 hours), the daily minimum PEEP is simply the lowest value of PEEP set on the
+       ventilator during the calendar day.
+               EXAMPLE: PEEP is set at the following values through the course of a calendar day:
+               Time               00:00        04:00        08:00        12:00        16:00        20:00
+               PEEP (cmH2O)       5            8            5            8            8            10
+
+
+
+
+10-4
+       January 2025                                                                   Device-associated Module
+                                                                                                          VAE
+
+
+               In this example, the daily minimum PEEP is 5 cmH2O. PEEP settings are being monitored and
+               recorded every 4 hours; therefore, the lowest recorded PEEP setting for the calendar day is the
+               value used in VAE surveillance.
+       If there is no documentation of values maintained for > 1 hour (for example, the lowest value of PEEP is
+       set late in the calendar day, mechanical ventilation is discontinued early in the calendar day, PEEP
+       settings are changed very frequently throughout the calendar day), the daily minimum PEEP will default
+       to the lowest value of PEEP set on the ventilator during the calendar day (regardless of how long that
+       setting was maintained).
+           •   For example, a patient who is intubated and started on mechanical ventilation at 23:30 on June
+               1, with a PEEP setting of 10 cmH2O from 23:30 to 00:00, would have a daily minimum PEEP of 10
+               cmH2O on June 1 for the purposes of VAE surveillance.
+       In units tracking PEEP settings every hour or more frequently than every hour, there must be sufficient
+       consecutive recordings of a specific PEEP setting to meet the minimum required duration of > 1 hour.
+           •   In units tracking PEEP every 15 minutes, 5 consecutive recordings of PEEP at a certain level
+               would be needed to meet the required > 1 hour minimum duration (for example, at 09:00,
+               09:15, 09:30, 09:45, and 10:00).
+           •   In units tracking PEEP every 30 minutes, 3 consecutive recordings of PEEP at a certain level
+               would be needed to meet the required > 1 hour minimum duration (for example, at 09:00,
+               09:30, and 10:00).
+           •   In units tracking PEEP every hour, 2 consecutive recordings of PEEP at a certain level would be
+               needed to meet the required > 1 hour minimum duration (for example, at 09:00 and 10:00).
+               EXAMPLE: The patient is intubated at 18:00. PEEP is set at the following values through the
+               remainder of the calendar day:
+                Time             18:00        19:00        20:00        21:00        22:00        23:00
+                PEEP (cmH2O)     10           8            5            5            8            8
+               In this example, the daily minimum PEEP for the purposes of VAE surveillance is 5 cmH2O. PEEP
+               settings are being monitored and recorded every hour. There are two consecutive hours where
+               the PEEP setting is noted to be 5 cmH2O (20:00 and 21:00), and therefore required minimum
+               duration of > 1 hour is met.
+               EXAMPLE: The patient is intubated at 18:00. PEEP is set at the following values through the
+               remainder of the calendar day:
+                Time             18:00        19:00        20:00        21:00        22:00        23:00
+                PEEP (cmH2O)     8            8            5            8            5            8
+               In this example, the daily minimum PEEP for the purposes of VAE surveillance is 8 cmH2O. PEEP
+               settings are being monitored and recorded every hour. Although the lowest PEEP is 5 cmH2O, it
+               is recorded at two non-consecutive time points only (20:00, then 22:00), and so the required > 1
+               hour minimum duration is not met. There are two consecutive hours where the PEEP setting is
+               noted to be 8 cmH2O (18:00 and 19:00), and therefore the required minimum duration of > 1
+               hour is met to allow use of this setting as the daily minimum value for VAE surveillance.
+
+
+10-5
+       January 2025                                                                 Device-associated Module
+                                                                                                        VAE
+
+
+              EXAMPLE: You are reviewing a patient’s ventilator settings on Wednesday morning to determine
+              the daily minimum PEEP values for Monday and Tuesday. The MICU monitors and records PEEP
+              settings for mechanically ventilated patients every 30 minutes. You see that the lowest PEEP
+              setting on Monday (5 cmH2O) was recorded at 23:30 when the episode of mechanical
+              ventilation was initiated for this patient. The patient remained at this PEEP setting for an
+              additional 30 minutes on Tuesday morning and was then maintained on PEEP 10 cmH2O for the
+              rest of the day on Tuesday. What do you record as the daily minimum PEEP for Monday and for
+              Tuesday? In this example, the only PEEP setting recorded on Monday was 5 cmH2O. Because
+              there is no value on Monday that has been maintained for > 1 hour, the lowest (and only)
+              setting of 5 cmH20 is recorded as the daily minimum PEEP for that calendar day. On Tuesday, the
+              daily minimum PEEP should be recorded as 10 cmH2O, which is the lowest PEEP setting
+              maintained for > 1 hour on Tuesday.
+                 Day             Time                       PEEP (cmH2O)
+                 Monday          23:30                      5
+                 Tuesday         00:00                      5
+                 Tuesday         00:30                      5
+                 Tuesday         01:00                      10
+                 Tuesday         01:30                      10
+                 Tuesday         02:00 through 23:30        10
+       Note: For the purposes of VAE surveillance, PEEP values between 0 cmH2O and 5 cmH2O will be
+       considered equivalent. This means that patients with daily minimum PEEP values from 0 to 5 cmH2O
+       must then have an increase in the daily minimum PEEP to at least 8 cmH2O, sustained for at least 2
+       calendar days, to meet the VAC definition.
+       Daily minimum PEEP determinations are made using documented PEEP settings specific to the calendar
+       day and independently of the PEEP settings recorded on the previous calendar day or the next calendar
+       day.
+              EXAMPLE: You are reviewing a patient’s ventilator data on Thursday morning to determine the
+              daily minimum PEEP values for Tuesday and Wednesday. The medical ICU (MICU) monitors and
+              records PEEP every 8 hours. You see that the lowest PEEP on Tuesday is 5 cmH20, last recorded
+              at 23:30. The first recorded PEEP on Wednesday, at 07:30, is 8 cmH20 and the patient remains at
+              that PEEP for the remainder of the calendar day on Wednesday. What do you record as the daily
+              minimum PEEP for Tuesday and for Wednesday? On Tuesday, the daily minimum PEEP is 5
+              cmH20, as it is the lowest value recorded on that calendar day. On Wednesday, the daily
+              minimum PEEP is 8 cmH20, as it is the lowest value recorded on that calendar day. Only PEEP
+              values documented during the given calendar day are taken into consideration when
+              determining the daily minimum PEEP for that calendar day.
+                           Day            Time                       PEEP (cmH2O)
+                           Tuesday        07:30                      8
+                           Tuesday        15:30                      5
+                           Tuesday        23:30                      5
+                           Wednesday      07:30                      8
+
+
+10-6
+       January 2025                                                                    Device-associated Module
+                                                                                                           VAE
+
+
+                           Day             Time                         PEEP (cmH2O)
+                           Wednesday       15:30                        8
+                           Wednesday       23:30                        8
+
+       Daily Minimum FiO2: The lowest value of FiO2 during a calendar day that is set on the ventilator and
+       maintained for > 1 hour. This requirement that the daily minimum FiO2 be the lowest setting maintained
+       for > 1 hour will ensure that units monitoring and recording FiO2 settings hourly or more frequently than
+       once per hour are able to apply the VAE surveillance FiO2 criterion in a standardized way.
+       If ventilator settings are monitored and recorded less frequently than once per hour (for example, every
+       2 hours or every 4 hours), the daily minimum FiO2 is simply the lowest value of FiO2 set on the ventilator
+       during the calendar day.
+               EXAMPLE: FiO2 is set at the following values through the course of a calendar day:
+                 Time             14:00        16:00        18:00        20:00        22:00         00:00
+                 FiO2             1.0          0.60         0.40         0.50         0.55          0.60
+               In this example, the patient was intubated at 14:00. The daily minimum FiO2 is 0.40. FiO2
+               settings are being monitored and recorded every 2 hours; therefore, the lowest recorded FiO2
+               setting for the calendar day is the value used in VAE surveillance.
+       If there is no documentation of values maintained for > 1 hour (for example, the lowest value of FiO2 is
+       set late in the calendar day, mechanical ventilation is discontinued early in the calendar day, FiO2
+       settings are changed very frequently throughout the calendar day), the daily minimum FiO2 will default
+       to the lowest FiO2 set on the ventilator during the calendar day (regardless of how long that setting was
+       maintained).
+           •   For example, a patient who is intubated and started on mechanical ventilation at 23:30 on June
+               1, with a FiO2 setting of 0.30 from 23:30 to 00:00, would have a daily minimum FiO2 of 0.30 on
+               June 1 for the purposes of VAE surveillance.
+       In units tracking FiO2 settings every hour or more frequently than every hour, there must be sufficient
+       consecutive recordings of a specific FiO2 setting to meet the minimum required duration of > 1 hour.
+           •   In units tracking FiO2 every 15 minutes, 5 consecutive recordings of FiO2 at a certain level would
+               be needed to meet the required > 1 hour minimum duration (for example, 09:00, 09:15, 09:30,
+               09:45, and 10:00).
+           •   In units tracking FiO2 every 30 minutes, 3 consecutive recordings of FiO2 at a certain level would
+               be needed to meet the required > 1 hour minimum duration (for example, 09:00, 09:30, and
+               10:00).
+           •   In units tracking FiO2 every hour, 2 consecutive recordings of FiO2 at a certain level would be
+               needed to meet the required > 1 hour minimum duration (for example, 09:00 and 10:00).
+               EXAMPLE: The patient is intubated at 18:00. FiO2 is set at the following values through the
+               remainder of the calendar day:
+                 Time             18:00        19:00        20:00        21:00        22:00         23:00
+                 FiO2             1.0          0.8          0.5          0.5          0.8           0.8
+
+
+10-7
+       January 2025                                                                  Device-associated Module
+                                                                                                         VAE
+
+
+              In this example, the daily minimum FiO2 for the purposes of VAE surveillance is 0.5. FiO2 settings
+              are being monitored and recorded every hour. There are two consecutive hours where the FiO2
+              setting is noted to be 0.5 (20:00 and 21:00), and therefore the required minimum duration of >
+              1 hour is met.
+              EXAMPLE: The patient is intubated at 18:00. FiO2 is set at the following values through the
+              remainder of the calendar day:
+                 Time            18:00       19:00        20:00         21:00       22:00        23:00
+                 FiO2            0.8         0.8          0.5           0.8         0.5          0.8
+              In this example, the daily minimum FiO2 for the purposes of VAE surveillance is 0.8. FiO2 settings
+              are being monitored and recorded every hour. Although the lowest FiO2 is 0.5, it is recorded at
+              two non-consecutive time points only (20:00, and then 22:00), and so the required > 1 hour
+              minimum duration is not met. There are two consecutive hours where the FiO2 setting is noted
+              to be 0.8 (18:00 and 19:00), and therefore the required minimum duration of > 1 hour is met to
+              allow use of this setting as the daily minimum value for VAE surveillance.
+              EXAMPLE: You are reviewing a patient’s ventilator settings on Friday morning to determine the
+              daily minimum FiO2 value for Thursday. The patient was intubated and initiated on mechanical
+              ventilation at 21:45 hours on Thursday. The ICU monitored and recorded FiO2 settings for the
+              patient every 15 minutes during the remainder of the day on Thursday. Based on the
+              information recorded in the table below, what should you record as the daily minimum FiO2 for
+              Thursday? In this example, since there is no setting that is maintained for > 1 hour during the
+              calendar day, the daily minimum FiO2 for Thursday is 0.70 (70%). This is the lowest value of FiO2
+              set on the ventilator during the calendar day.
+                 Day             Time                  FiO2
+                 Thursday        21:45                 Intubated; 1.0
+                                 22:00                 1.0
+                                 22:15                 0.90
+                                 22:30                 0.90
+                                 22:45                 0.70
+                                 23:00                 0.80
+                                 23:15                 0.85
+                                 23:30                 0.85
+                                 23:45                 0.85
+
+
+       Daily minimum FiO2 determinations are made using documented FiO2 settings specific to the calendar
+       day and independently of the FiO2 settings recorded on the previous calendar day or the next calendar
+       day.
+              EXAMPLE: You are reviewing a patient’s ventilator data on Thursday morning to determine the
+              daily minimum FiO2 values for Tuesday and Wednesday. The medical ICU (MICU) monitors and
+              records FiO2 every 8 hours. You see that the lowest FiO2 on Tuesday is 0.70 (70%), last recorded
+              at 23:30. The first recorded FiO2 on Wednesday, at 07:30, is 0.90 (90%) and the patient remains
+
+
+10-8
+       January 2025                                                                      Device-associated Module
+                                                                                                             VAE
+
+
+              at that FiO2 for the remainder of the calendar day on Wednesday. What do you record as the
+              daily minimum FiO2 for Tuesday and for Wednesday? On Tuesday, the daily minimum FiO2 is
+              0.70 (70%), as it is the lowest value recorded on that calendar day. On Wednesday, the daily
+              minimum FiO2 is 0.90 (90%), as it is the lowest value recorded on that calendar day. Only FiO2
+              values documented during the given calendar day are taken into consideration when
+              determining the daily minimum FiO2 for that calendar day.
+                            Day           Time                            FiO2
+                            Tuesday       07:30                           0.75
+                            Tuesday       15:30                           0.70
+                            Tuesday       23:30                           0.70
+                            Wednesday     07:30                           0.90
+                            Wednesday     15:30                           0.90
+                            Wednesday     23:30                           0.90
+
+       Baseline Period: The baseline period of stability or improvement on the ventilator is defined as the 2
+       calendar days immediately preceding the first day of increased daily minimum PEEP or FiO2, and must be
+       characterized by ≥ 2 calendar days of stable or decreasing daily minimum FiO2 or PEEP values
+       (specifically the daily minimum PEEP or FiO2 on the second day of the baseline period of stability or
+       improvement must be equal to or less than the daily minimum PEEP or FiO2 on the first day of the
+       baseline period of stability or improvement). Note that the minimum daily PEEP or FiO2 used for VAE
+       surveillance is the lowest setting during a calendar day that was maintained for > 1 hour (see daily
+       minimum PEEP and FiO2 definitions for exception to 1 hour requirement).
+
+       Period of Worsening Oxygenation: The period of worsening oxygenation is defined as an increase in the
+       daily minimum FiO2 of at least 0.20 (20 points) over the daily minimum FiO2 of the first day in the
+       baseline period or an increase in the daily minimum PEEP values of at least 3 cmH2O over the daily
+       minimum PEEP of the first day in the baseline period, that immediately follows the baseline period and
+       is sustained for at least 2 or more calendar days.
+              EXAMPLE: In the example below, the baseline period is defined by mechanical ventilation (MV)
+              days 1 through 4 (shaded in light gray), and the period of worsening oxygenation by MV days 5
+              and 6 (shaded in darker gray), where the daily minimum PEEP is ≥ 3 cmH2O greater than the
+              daily minimum PEEP of the first day in the baseline period. Note that there is no VAC on MV day
+              3, because PEEP values 0-5 cmH2O are considered equivalent for the purposes of this
+              surveillance.
+
+                                     Daily minimum              Daily minimum
+                      MV Day                                                             VAE
+                                     PEEP (cmH2O)       FiO2 (oxygen concentration, %)
+                        1                  0 (5)                  1.00 (100%)             -
+                        2                  0 (5)                   0.50 (50%)             -
+                        3                   5                      0.50 (50%)             -
+                        4                   5                      0.50 (50%)             -
+                        5                   8                      0.50 (50%)            VAC
+                        6                   8                      0.50 (50%)             -
+
+
+
+
+10-9
+    January 2025                                                                        Device-associated Module
+                                                                                                            VAE
+
+
+            EXAMPLE: In the example below, the baseline period is defined by mechanical ventilation (MV)
+            days 1 through 4 (shaded in light gray), and the period of worsening oxygenation by MV days 5
+            and 6 (shaded in darker gray), where the daily minimum PEEP is ≥ 3 cmH2O greater than the
+            daily minimum PEEP of the first day in the baseline period. In this example, note that MV days 1-
+            4 are considered a baseline period even though the daily minimum PEEP increases from 0 to 3 to
+            5 cmH2O during this time period - because PEEP values from 0-5 cmH2O are considered
+            equivalent for the purposes of this surveillance.
+
+                                   Daily minimum              Daily minimum
+                   MV Day                                                                VAE
+                                   PEEP (cmH2O)       FiO2 (oxygen concentration, %)
+                     1                    0 (5)                 1.00 (100%)               -
+                     2                    0 (5)                  0.50 (50%)               -
+                     3                    3 (5)                  0.50 (50%)               -
+                     4                    5                      0.50 (50%)               -
+                     5                    8                      0.50 (50%)              VAC
+                     6                    8                      0.50 (50%)               -
+
+
+            EXAMPLE: In the example below, the baseline period is defined by mechanical ventilation (MV)
+            days 3 and 4 (shaded in light gray), and the period of worsening oxygenation by MV days 5 and 6
+            (shaded in darker gray), where the daily minimum FiO2 is ≥ 0.20 (20 points) over the daily
+            minimum FiO2 of the first day in the baseline period.
+
+                                   Daily minimum              Daily minimum
+                   MV Day                                                                VAE
+                                   PEEP (cmH2O)       FiO2 (oxygen concentration, %)
+                     1                    8                     1.00 (100%)               -
+                     2                    6                      0.50 (50%)               -
+                     3                    5                     0.40 (40%)                -
+                     4                    5                     0.40 (40%)                -
+                     5                    6                     0.70 (70%)               VAC
+                     6                    6                     0.70 (70%)                -
+
+
+            EXAMPLE: In the example below, there is no VAC, because the FiO2 on MV day 4 is higher than
+            the FiO2 on MV day 3 (and therefore not stable or decreasing) – even though the FiO2 on MV
+            days 3 and 4 meets the 20-point threshold when compared with the daily minimum FiO2 on MV
+            days 5 and 6.
+
+                                   Daily minimum              Daily minimum
+                   MV Day                                                                VAE
+                                   PEEP (cmH2O)       FiO2 (oxygen concentration, %)
+                     1                    8                     1.0 (100%)                 -
+                     2                    6                     0.50 (50%)                 -
+                     3                    5                     0.35 (35%)                 -
+                     4                    5                     0.40 (40%)                 -
+                     5                    6                     0.70 (70%)             No event
+                     6                    6                     0.70 (70%)                 -
+
+
+
+    Date of Event: The date of onset of worsening oxygenation. This is defined as the first calendar day in
+    which the daily minimum PEEP or FiO2 increases above the thresholds outlined in the VAE definition
+    algorithm (specifically day 1 of the required ≥ 2-day period of worsening oxygenation following a ≥ 2-day
+    period of stability or improvement on the ventilator).
+
+
+
+10-10
+    January 2025                                                                     Device-associated Module
+                                                                                                         VAE
+
+
+    The date of event is NOT the date on which all VAE criteria have been met. It is the first day (of a ≥ 2-day
+    period) on which either of the worsening oxygenation thresholds (for PEEP or FiO2) is met.
+            EXAMPLE: A patient is intubated in the Emergency Room for severe community-acquired
+            pneumonia and admitted (day 1) to the medical ICU (MICU). The patient stabilizes and improves
+            on days 2-5, with a daily minimum FiO2 of 0.35 (35%) on days 4 and 5. On day 6, the patient
+            experiences respiratory deterioration, and requires a minimum FiO2 of 0.60 (60%) on days 6 and
+            7, meeting the criteria for a VAC. The VAC date of event is day 6.
+
+    VAE Window Period: This is the period of days around the date of event (specifically the day of onset of
+    worsening oxygenation) within which other VAE criteria must be met. It is usually a 5-day period and
+    includes the 2 days before, the day of, and the 2 days after the VAE date of event. There is an exception,
+    however, in which the VAE Window Period is only 3 or 4 days, as follows:
+    In cases where the VAE date of event corresponds to mechanical ventilation (MV) day 3 or day 4, the
+    window period described above may only be a 3-day or a 4-day window, because it can NOT include any
+    days before the third day of MV. For example, if the VAE date of event is MV day 3, then the window
+    period includes only the VAE date of event and the 2 days after the VAE date of event (because the 2
+    days before the VAE date of event are before the third day of MV).
+
+    14-day Event Period: VAEs are defined by a 14-day period, starting on the day of onset of worsening
+    oxygenation (the date of event, day 1). While patients may have multiple VAEs during a single
+    hospitalization, a new VAE cannot be identified or reported until this 14-day period has elapsed. VAE
+    criteria met during the 14-day period are attributed to the current VAE.
+            EXAMPLE: Patient is intubated, and mechanical ventilation (MV) is initiated in the MICU (MV day
+            1). The patient is stable during the following 4 calendar days (MV days 2 through 5). On MV days
+            6 and 7 the patient’s minimum daily PEEP is increased more than 3 cmH2O over the first day in
+            the baseline period, therefore meeting the VAC PEEP threshold. The VAC episode is defined by
+            the period encompassing MV days 6 through 19 (14 days, starting on day 1 of worsening
+            oxygenation, which in this case is MV day 6). If the patient were to experience a period of
+            stability or improvement on the ventilator on MV days 18 and 19, followed by another 2-day
+            period of worsening on MV days 20 and 21, a new VAE would be reported, since the second
+            period of worsening oxygenation has occurred more than 14 days after the start of the initial
+            period of worsening oxygenation.
+
+    Episode of Mechanical Ventilation: Defined as a period of days during which the patient was
+    mechanically ventilated for some portion of each consecutive day.
+    A break in mechanical ventilation of at least one full calendar day, followed by reintubation and/or
+    reinitiation of mechanical ventilation during the same hospitalization, defines a new episode of
+    mechanical ventilation.
+            EXAMPLE: A patient is intubated, and mechanical ventilation is initiated at 23:00 on hospital day
+            1. The patient remains intubated and mechanically ventilated from hospital days 2-10. The
+            patient is extubated at 09:00 on hospital day 11 and remains extubated on hospital day 12. The
+
+
+
+10-11
+    January 2025                                                                     Device-associated Module
+                                                                                                         VAE
+
+
+            patient is reintubated and mechanical ventilation is reinitiated on hospital day 13. The patient
+            remains intubated and mechanically ventilated from hospital day 14-18. This patient has had
+            two episodes of mechanical ventilation (days 1-11 and days 13-18), separated by at least one full
+            calendar day off of mechanical ventilation.
+
+    New Antimicrobial Agent: Defined as any agent listed in the Appendix that is initiated on or after the
+    third calendar day of mechanical ventilation AND in the VAE Window Period (specifically, the period
+    typically defined by the 2 calendar days before, the day of, and the 2 calendar days after the onset date
+    of the VAE). The agent is considered new for the purposes of this definition if it was NOT given to the
+    patient on either of the 2 days preceding the current start date.
+            EXAMPLE: A patient is intubated and mechanically ventilated on hospital day 1 in the surgical
+            ICU (SICU). Ceftriaxone and azithromycin are started on day 1 and administered daily. After 3
+            days of improving respiratory status, the patient’s oxygenation deteriorates on days 4 and 5,
+            with a daily minimum PEEP that is 4 cmH2O higher than it was on days 2 and 3. Criteria for the
+            VAC definition are met; the date of the event is hospital day 4. Ceftriaxone is discontinued and
+            meropenem is started on day 5. Azithromycin is continued. In this case, meropenem is a new
+            antimicrobial agent: 1) it was started on day 5 of mechanical ventilation, and 2) within the VAE
+            Window Period (on the day after VAE date of event), and 3) it was not given to the patient on
+            either of the 2 days preceding the current start date. By contrast, ceftriaxone and azithromycin
+            would not be considered new antimicrobial agents since they were started on day 1 of
+            mechanical ventilation and continued daily into the VAE Window Period.
+             Hosp Day No.         1               2               3               4             5
+             MV Day No.           1               2               3               4             5
+             VAE Day                              -2              -1              1             2
+             VAE Criterion                    Day 1 of        Day 2 of        Day 1 of       Day 2 of
+                                  --         stability or    stability or    worsening      worsening
+                                            improvement     improvement     oxygenation    oxygenation
+             Antimicrobial    Ceftriaxone    Ceftriaxone     Ceftriaxone     Ceftriaxone   Meropenem
+             agent                 &              &               &               &             &
+                             Azithromycin   Azithromycin    Azithromycin    Azithromycin   Ceftriaxone
+
+    The antimicrobial agent(s) must have been given by one of the routes of administration outlined in Table
+    1, and therapy with one or more new antimicrobial agents must be continued for at least 4 calendar
+    days (referred to as 4 “qualifying antimicrobial days” or “QADs”). For further guidance on identification
+    of new antimicrobial agents and on how to determine whether the requirement for 4 QADs is met, refer
+    to FAQs nos. 4-7 at the end of this protocol.
+
+
+
+
+10-12
+    January 2025                                                                                         Device-associated Module
+                                                                                                                             VAE
+
+
+
+    Table 1: Definitions of routes of administration
+        Route of Administrationa             Definitionb
+        Intravenous                          An intravascular route that begins with a vein.
+        Intramuscular                        A route that begins within a muscle.
+        Digestive Tract                      A route that begins anywhere in the digestive tract extending
+                                             from the mouth through rectum.
+        Respiratory Tract                    A route that begins within the respiratory tract, including the
+                                             oropharynx and nasopharynx.
+    aOther routes of administration are excluded (for example, antibiotic locks, intraperitoneal, intraventricular, irrigation, topical).
+
+    bDefinitions per SNOMED Reference Terminology
+
+
+
+
+    Qualifying Antimicrobial Day (QAD): A day on which the patient was administered an antimicrobial
+    agent determined to be “new” within the VAE Window Period. Four consecutive QADs are needed to
+    meet the IVAC antimicrobial criterion—starting within the VAE Window Period.
+          •    Days on which a new antimicrobial agent is administered count as QADs.
+          •    Days between administrations of the same new antimicrobial agent also count as QADs as long
+               as there is a gap of no more than 1 calendar day between administrations.
+                   o For example, if levofloxacin is given on VAE Day 1, has not been given in the 2 preceding
+                       calendar days, and is given again on VAE Days 3, 5, and 7, there are 7 QADs - because
+                       the days between the levofloxacin doses also count as QADs.
+
+          VAE Day         -2        -1          1             2            3            4            5             6            7
+        Antimicrobial                     Levofloxacin              Levofloxacin               Levofloxacin              Levofloxacin
+           Agent
+         QAD (Y/N)        N         N           Y             Y            Y            Y            Y             Y            Y
+
+
+          •    Days between administrations of different new antimicrobial agents do NOT count as QADs.
+                  o For example, if levofloxacin is given to the patient on VAE Days -2 and -1 only, no
+                      antimicrobials are given on VAE Day 1, and meropenem is given only on VAE Day 2
+                      (remember there is no VAE Day 0), then there are not 4 consecutive QADs. VAE Days -2
+                      and -1 count as 2 consecutive QADs, but VAE Day 1 cannot be counted as a QAD
+                      because it is a day between different antimicrobial agents.
+
+          VAE Day              -2                   -1                1                  2                  3                  4
+        Antimicrobial    Levofloxacin       Levofloxacin                          Meropenem
+           Agent
+         QAD (Y/N)              Y                   Y                 N                  Y                  N                  N
+
+
+    For further guidance on identification of new antimicrobial agents and on how to determine whether
+    the requirement for 4 QADs is met, refer to FAQ nos. 4-7 at the end of this protocol.
+
+
+
+
+10-13
+    January 2025                                                                     Device-associated Module
+                                                                                                         VAE
+
+
+    Purulent Respiratory Secretions: Defined as secretions from the lungs, bronchi, or trachea that contain
+    ≥ 25 neutrophils and ≤ 10 squamous epithelial cells per low power field [lpf, x100].
+    Some clinical laboratories may use different results reporting formats for direct examinations of
+    respiratory secretions. Additional instructions for using the purulent respiratory secretions criterion are
+    provided in Table 2, below (see also FAQ no. 15 at the end of this protocol).
+
+
+
+
+10-14
+    January 2025                                                                     Device-associated Module
+                                                                                                         VAE
+
+
+
+    Table 2: Instructions for using the purulent respiratory secretions criterion,
+    based on laboratory reporting of respiratory secretion direct examination
+    results.
+        How do I use the purulent respiratory              Instruction
+        secretions criterion if …
+        My laboratory reports counts of “white blood       Assume that counts of cells identified by these
+        cells” or “polymorphonuclear leukocytes” or        other descriptors (for example, “white blood
+        “leukocytes” rather than counts of                 cells”) are equivalent to counts of neutrophils,
+        “neutrophils”?                                     unless the laboratory tells you this is not the
+                                                           case.
+        My laboratory reports semi-quantitative results    Check with the laboratory to get information
+        (not quantitative results) for numbers of          about what quantitative ranges the semi-
+        neutrophils and squamous epithelial cells?         quantitative reports correspond to.
+        My laboratory cannot provide additional            Use the following direct examination results to
+        information on how its semi-quantitative           meet the purulent respiratory secretions
+        reporting corresponds to quantitative reporting    criterion: many, heavy, numerous, 4+, or ≥ 25
+        ranges for neutrophils and squamous epithelial     neutrophils per low power field (lpf) [x100], AND
+        cells?                                             no, rare, occasional, few, 1+ or 2+, or ≤ 10
+                                                           squamous epithelial cells per lpf [x100] [20].
+        My laboratory reports only the numbers of          In this situation, the purulent secretions criterion
+        neutrophils present, without reporting the         may be met using the specified quantitative and
+        number of squamous epithelial cells?               semi-quantitative thresholds for neutrophils
+                                                           alone (specifically many, heavy, numerous, 4+, or
+                                                           ≥ 25 neutrophils per lpf [x100]).
+        My laboratory uses different reporting             In this situation, the purulent secretions criterion
+        thresholds for neutrophils and squamous            may be met using the laboratory’s specified
+        epithelial cells (for example, maximum report of   maximum quantitative threshold for neutrophils,
+        ≥ 20 neutrophils per low power field [x100], or    and/or minimum quantitative threshold for
+        minimum report of ≤ 15 squamous epithelial         squamous epithelial cells.
+        cells per low power field [x100])?
+        My laboratory processes respiratory specimens      In this situation, a report indicating the presence
+        such as bronchoalveolar lavage fluid using a       of white blood cells, without quantitation, is
+        centrifugation procedure (for example,             sufficient to meet the purulent secretions
+        “cytospin”), and there is no quantitation or       criterion.
+        semi-quantitation of neutrophils or white blood
+        cells in the direct examination report?
+
+
+
+
+10-15
+    January 2025                                                                      Device-associated Module
+                                                                                                          VAE
+
+
+    Location of Attribution: The inpatient location where the patient was assigned on the date of the VAE,
+    which is further defined as the date of onset of worsening oxygenation.
+            EXAMPLE: Patient is intubated and ventilated in the Operating Room on hospital day 1, and then
+            is admitted post-operatively to the SICU on hospital day 1, still on the ventilator. On hospital day
+            3, the patient experiences the onset of worsening oxygenation, manifested by an increase in the
+            daily minimum FiO2 of ≥ 0.20 (20 points). On hospital day 4 (also day 4 of mechanical ventilation)
+            the patient meets criteria for a VAC. This is reported to NHSN as a VAC for the SICU.
+            EXCEPTION: Transfer Rule: If a VAE develops on the day of transfer or the day following transfer
+            from one inpatient location to another in the same facility or to a new facility (where the day of
+            transfer is day 1), the event is attributed to the transferring location. This is called the Transfer
+            Rule. If the patient was in multiple locations within the transfer rule time frame, attribute the
+            VAE to the first location in which the patient was housed the day before the VAE date of event.
+            See Transfer Rule examples below.
+            EXAMPLE: Patient on a ventilator in the SICU who has had stable oxygenation for 3 days is
+            transferred to the MICU, still on the ventilator. On the evening of transfer, after the patient has
+            arrived in the MICU, the patient begins to experience respiratory decompensation, requiring an
+            increase of 0.30 (30 points) in FiO2 that persists during the following two calendar days. VAC
+            criteria are met on calendar day 3 in the MICU. Because the date of event occurred the day after
+            transfer to the MICU, the VAC event is attributed to the SICU.
+                                            Daily Minimum FiO2                                       Location of
+             SICU Day     MICU Day                                    VAE DOE        Location
+                                         (oxygen concentration, %)                                   Attribution
+                   2                             0.30 (30%)                            SICU
+                   3           1                 0.30 (30%)                        SICU -> MICU
+                               2                 0.60 (60%)                           MICU               SICU
+                               3                 0.60 (60%)                            MICU
+
+            EXAMPLE: On hospital day 6, the patient is extubated in the MICU and transferred to the
+            stepdown unit. The next day, while in the stepdown unit (hospital day 7), the patient
+            experiences worsening oxygenation and is reintubated and transferred back to the MICU.
+            Criteria for VAC are met the next day (hospital day 8). In this case, the day prior to extubation
+            and the day of extubation (hospital days 5 and 6) count as the required 2-day period of stability
+            or improvement. The day of reintubation (hospital day 7) and the following day (hospital day 8)
+            count as the required 2-day period of worsening oxygenation. Because the date of event
+            occurred on the day following transfer out of the MICU, the event is reported as a VAC for the
+            MICU.
+              Hospital                     Daily Minimum FiO2                                             Location of
+                           MV Day                                    VAE DOE           Location
+                Day                     (oxygen concentration, %)                                         Attribution
+                 5            5                 0.30 (30%)                               MICU
+                                                0.30 (30%)                         MICU -> Stepdown
+                   6          6
+                                           (extubated at 09:00)                  (transferred at 18:00)
+                                                0.60 (60%)                         Stepdown -> MICU
+                   7          7                                                                             MICU
+                                          (reintubated at 10:00)                 (transferred at 10:15)
+                   8          8                 0.60 (60%)                               MICU
+
+
+
+10-16
+    January 2025                                                                         Device-associated Module
+                                                                                                             VAE
+
+
+               EXAMPLE: Patient intubated and mechanically ventilated for 8 days in the SICU of Hospital A.
+               The patient was stable on the ventilator in Hospital A from days 3-6. In the evening on day 7 the
+               patient began to have episodes of desaturation and on day 8 the patient was transferred to
+               Hospital B (day 1 in Hospital B). The patient’s respiratory status continues to worsen on the day
+               after transfer (day 2 in Hospital B), and the patient meets criteria for VAC on day 2 in Hospital B.
+               The date of the event, the first day of the period of worsening oxygenation meeting VAE PEEP or
+               FiO2 thresholds, is day 1 in Hospital B. The infection preventionist (IP) from Hospital B calls the IP
+               from Hospital A to report that this patient was admitted to Hospital B with a VAC. This VAC
+               should be reported by Hospital A and attributed to the Hospital A SICU. No additional ventilator
+               days are reported by Hospital A.
+        Hospital Day for   Hospital Day for      Daily Minimum FiO2        VAE                         Location of
+                                                                                       Location
+          Hospital A         Hospital B       (oxygen concentration, %)    DOE                         Attribution
+               6                                      0.30 (30%)                      Hospital A
+               7                                      0.30 (30%)                      Hospital A
+                                                                                     Hospital A ->
+               8                  1                  0.60 (60%)                                        Hospital A
+                                                                                      Hospital B
+                                  2                  0.60 (60%)                       Hospital B
+
+
+
+
+    Reporting Instructions
+    (additional guidance may be found in the FAQs at the end of this protocol)
+    1. Conducting in-plan VAE surveillance means assessing patients for the presence of ALL events
+       included in the algorithm - from VAC to IVAC to PVAP. At this time, a unit conducting in-plan VAE
+       surveillance cannot decide, for example, that only surveillance for VAC (and not for IVAC or PVAP)
+       will be performed.
+    2. There is a hierarchy of definitions within VAE:
+          a. If a patient meets criteria for VAC and IVAC, report as IVAC.
+          b. If a patient meets criteria for VAC, IVAC, and PVAP, report PVAP.
+    3. Do not upgrade an event using findings that occur outside the VAE Window Period.
+    4. If the date of event (date of onset of worsening oxygenation) is on or after the date of
+       documentation of evidence of consent AND the patient is being supported for organ donation
+       purposes, the event should not be reported as a VAE.
+    5. Pathogens are not reported for VAC or IVAC events.
+    6. Secondary BSIs are not reported for VAC or IVAC events (see FAQ no. 8 at the end of this protocol).
+    7. Pathogens may be reported for PVAP events, provided they are isolated or identified from
+       appropriate specimen types according to the requirements of the algorithm and are NOT on the list
+       of excluded organisms and culture or non-culture based microbiologic testing method results:
+               a. Excluded organisms and culture or non-culture based microbiologic testing method results
+                  that cannot be used to meet the PVAP definition are as follows:
+                     i.   “Normal respiratory flora,” “normal oral flora,” “mixed respiratory flora,” “mixed
+                          oral flora,” “altered oral flora” or other similar results indicating isolation of
+
+
+10-17
+    January 2025                                                                    Device-associated Module
+                                                                                                        VAE
+
+
+                         commensal flora of the oral cavity or upper respiratory tract. NOTE: A report of
+                         “flora” does not exclude the use of an eligible organism isolated or identified from
+                         the specimen. Only the “flora” is excluded from use.
+                   ii.   Any Candida species or yeast not otherwise specified; any coagulase-negative
+                         Staphylococcus species; and any Enterococcus species, when identified from
+                         sputum, endotracheal aspirates, bronchoalveolar lavage, or protected specimen
+                         brushings specimens. These organisms can be reported as PVAP pathogens if
+                         identified from lung tissue or pleural fluid (where specimen was obtained during
+                         thoracentesis or within 24 hours of chest tube placement; pleural fluid specimens
+                         collected after a chest tube is repositioned or from a chest tube in place > 24 hours
+                         are not eligible for PVAP).
+            b. Additionally, because organisms belonging to the following genera are typically causes of
+               community-associated respiratory infections and are rarely or are not known to be causes of
+               healthcare-associated infections, they are also excluded, and cannot be used to meet the
+               PVAP definition when isolated from any eligible specimen type (to include lung tissue and
+               pleural fluid): Blastomyces, Histoplasma, Coccidioides, Paracoccidioides, Cryptococcus, and
+               Pneumocystis.
+    8. There are three criteria that can be used to meet the PVAP definition (Figure 1):
+            a. Criterion 1: Positive culture meeting specific quantitative or semi-quantitative threshold
+               (Table 3);
+            b. Criterion 2: Purulent respiratory secretions AND identification of organisms NOT meeting
+               the quantitative or semi-quantitative thresholds specified in Table 3;
+            c. Criterion 3: (one of the following)
+                  i.   Organisms identified from pleural fluid specimen (where specimen was obtained
+                       during thoracentesis or within 24 hours of chest tube placement; pleural fluid
+                       specimens collected after a chest tube is repositioned or from a chest tube in place
+                       > 24 hours are not eligible for PVAP)
+                 ii.   Positive lung histopathology
+                iii.   Lower respiratory specimen cytology findings suggestive of infection
+                iv.    Positive diagnostic test for Legionella species or selected respiratory viruses
+    9. See Table 3 for the required quantitative culture thresholds meeting the PVAP definition (Criterion
+       1). Note that if your laboratory reports semi-quantitative culture results, you should check with your
+       laboratory to confirm that semi-quantitative results match the quantitative thresholds noted in
+       Table 3 (see also FAQ no. 20 at the end of this protocol).
+
+
+
+
+10-18
+    January 2025                                                                    Device-associated Module
+                                                                                                        VAE
+
+
+
+    Table 3: Threshold values for cultured specimens used in the PVAP definition
+          Specimen collection/technique                              Values
+          Lung tissue                                                ≥ 104 CFU/g tissue*
+          Bronchoscopically (B) obtained specimens
+            Bronchoalveolar lavage (B-BAL)                           ≥ 104 CFU/ml*
+            Protected BAL (B-PBAL)                                   ≥ 104 CFU/ml*
+            Protected specimen brushing (B-PSB)                      ≥ 103 CFU/ml*
+          Nonbronchoscopically (NB) obtained (blind) specimens
+            NB-BAL                                                   ≥ 104 CFU/ml*
+            NB-PSB                                                   ≥ 103 CFU/ml*
+          Endotracheal aspirate (ETA)                                ≥ 105 CFU/ml*
+         CFU = colony forming units, g = gram, ml = milliliter
+         *Or corresponding semi-quantitative result (see FAQ no. 20 at the end of this protocol)
+
+    10. Secondary BSIs may be reported for PVAP events, provided that at least one organism identified
+        from the blood matches an organism isolated from an appropriate respiratory tract specimen
+        (including respiratory secretions, pleural fluid, and lung tissue). The respiratory tract specimen must
+        have been collected on or after the 3rd day of mechanical ventilation and within 2 calendar days
+        before or after the day of onset of worsening oxygenation to be considered for use in meeting the
+        PVAP definition. In addition, the organisms identified from blood must have been collected during
+        the 14-day event period, where day 1 is the day of onset of worsening oxygenation (See FAQ no. 10
+        at the end of this protocol).
+            a. In cases where PVAP is met with only the histopathology criterion and no culture or non-
+               culture based testing is performed on an eligible respiratory specimen, and there is also a
+               positive blood specimen, a secondary BSI is not reported.
+            b. In cases where a culture or non-culture based testing of respiratory secretions, pleural fluid,
+               or lung tissue is performed and does not identify an organism that matches an organism
+               identified from blood, a secondary BSI is not reported.
+            c. A matching organism is defined as one of the following:
+                   i.    If genus and species are identified in both specimens, they must be the same.
+                              1. EXAMPLE: A blood specimen resulted with Enterobacter cloacae and a BAL
+                                  specimen resulted with Enterobacter cloacae are matching organisms.
+                              2. EXAMPLE: A blood specimen resulted with Enterobacter cloacae and a BAL
+                                  specimen resulted with Enterobacter agglomerans are NOT matching
+                                  organisms as the species are different.
+                   ii.   If the organism is less definitively identified in one specimen than the other, the
+                         lesser identified organism must be identified to at least the genus level and at that
+                         level the organisms must be the same.
+                              1. EXAMPLE: A BAL resulted with Pseudomonas spp. And a blood specimen
+                                  resulted with Pseudomonas aeruginosa are considered a match at the genus
+                                  level and therefore the BSI can be reported as secondary BSI to VAE.
+                                 EXCEPTION: In cases where an organism is identified only as “yeast” or
+                                 “yeast not otherwise specified,” the organism can be considered a match to
+
+
+10-19
+    January 2025                                                        Device-associated Module
+                                                                                            VAE
+
+
+                   other yeasts, when collected during the required timeframe, whether more
+                   fully identified or not.
+                   EXAMPLE: A blood specimen reported as Candida albicans and a lung tissue
+                   resulted with yeast not otherwise specified are considered to have matching
+                   organisms. In this example the two organisms are considered matching
+                   organisms because the organisms are complementary (specifically Candida
+                   is a type of yeast).
+                   NOTE:
+                   This exception is limited to yeast. It does not apply to identification of
+                   organisms as Gram positive cocci, Gram negative rods, etc.
+                   Any Candida species or yeast not otherwise specified, any coagulase-
+                   negative Staphylococcus species, and any Enterococcus species identified
+                   from blood cannot be deemed secondary to a PVAP, unless the organism
+                   was also identified from pleural fluid or lung tissue.
+
+
+
+
+10-20
+January 2025                                                                                                                            Device-associated Module
+                                                                                                                                                            VAE
+
+Figure 1: Ventilator-Associated Events (VAE) Surveillance Algorithm
+ Patient has a baseline period of stability or improvement on the ventilator, defined by ≥ 2 calendar days of stable or decreasing daily minimum*
+ FiO2 or PEEP values. The baseline period is defined as the 2 calendar days immediately preceding the first day of increased daily minimum PEEP or
+ FiO2.
+ *
+     Daily minimum defined by lowest value of FiO2 or PEEP during a calendar day that is maintained for > 1 hour.
+
+
+ After a period of stability or improvement on the ventilator, the patient has at least one of the following indicators of worsening oxygenation:
+ 1) Increase in daily minimum* FiO2 of ≥ 0.20 (20 points) over the daily minimum FiO2 of the first day in the baseline period, sustained for ≥ 2
+    calendar days.
+ 2) Increase in daily minimum* PEEP values of ≥ 3 cmH2O over the daily minimum PEEP of the first day in the baseline period†, sustained for ≥ 2
+    calendar days.
+ Daily minimum defined by lowest value of FiO2 or PEEP during a calendar day that is maintained for > 1 hour.
+ *
+
+ Daily minimum PEEP values of 0-5 cmH2O are considered equivalent for the purposes of VAE surveillance.
+ †
+
+
+
+
+                                                                  Ventilator-Associated Condition (VAC)
+
+On or after calendar day 3 of mechanical ventilation and within 2 calendar days before or after the onset of worsening oxygenation, the patient
+meets both of the following criteria:
+1) Temperature > 38 °C or < 36°C, OR white blood cell count ≥ 12,000 cells/mm3 or ≤ 4,000 cells/mm3.
+AND
+2) A new antimicrobial agent(s) (see Appendix for eligible antimicrobial agents) is started and is continued for ≥ 4 qualifying antimicrobial days
+   (QAD).
+
+                                                     Infection-related Ventilator-Associated Complication (IVAC)
+
+On or after calendar day 3 of mechanical ventilation and within 2 calendar days before or after the onset of worsening oxygenation, ONE of the
+following criteria is met (taking into account organism exclusions specified in the protocol):
+         1)     Criterion 1: Positive culture of one of the following specimens, meeting quantitative or semi-quantitative thresholds† as outlined in
+                protocol, without requirement for purulent respiratory secretions:
+                     •    Endotracheal aspirate, ≥ 105 CFU/ml or corresponding semi-quantitative result
+                     •    Bronchoalveolar lavage, ≥ 104 CFU/ml or corresponding semi-quantitative result
+                     •    Lung tissue, ≥ 104 CFU/g or corresponding semi-quantitative result
+                     •    Protected specimen brush, ≥ 103 CFU/ml or corresponding semi-quantitative result
+         2)     Criterion 2: Purulent respiratory secretions (defined as secretions from the lungs, bronchi, or trachea that contain ≥ 25 neutrophils and
+                ≤ 10 squamous epithelial cells per low power field [lpf, x100])† PLUS organism identified from one of the following specimens (to include
+                qualitative culture, or quantitative/semi-quantitative culture without sufficient growth to meet Criterion #1):
+                     •    Sputum
+                     •    Endotracheal aspirate
+                     •    Bronchoalveolar lavage
+                     •    Lung tissue
+                     •    Protected specimen brush
+         3)     Criterion 3: One of the following positive tests:
+                     •    Organism identified from pleural fluid (where specimen was obtained during thoracentesis or within 24 hours of chest tube
+                          placement; pleural fluid specimens collected after a chest tube is repositioned or from a chest tube in place > 24 hours are not
+                          eligible for PVAP)
+                     •    Lung histopathology, defined as: 1) abscess formation or foci of consolidation with intense neutrophil accumulation in
+                          bronchioles and alveoli; 2) evidence of lung parenchyma invasion by fungi (hyphae, pseudohyphae, or yeast forms); 3) evidence
+                          of infection with the viral pathogens listed below based on results of immunohistochemical assays, cytology, or microscopy
+                          performed on lung tissue
+                     •    Diagnostic test for Legionella species
+                     •    Diagnostic test on respiratory secretions for influenza virus, respiratory syncytial virus, adenovirus, parainfluenza virus,
+                          rhinovirus, human metapneumovirus, coronavirus
+         †
+             If the laboratory reports semi-quantitative results, those results must correspond to the quantitative thresholds. Refer to Table 2 and 3.
+
+
+                                                            Possible Ventilator-Associated Pneumonia (PVAP)
+
+
+10-21
+    January 2025                                                                      Device-associated Module
+                                                                                                          VAE
+
+
+
+    Numerator and Denominator Data
+    Numerator Data: The Ventilator-Associated Event (VAE) form (CDC 57.112) is used to collect and report
+    each VAE that is identified during the month selected for surveillance. The Instructions for Completion of
+    Ventilator-Associated Event Form includes brief instructions for collection and entry of each data element
+    on the form. The VAE form includes patient demographic information and information on the start date
+    and location of initiation of mechanical ventilation. Additional data include the specific criteria met for
+    identifying VAE, whether the patient developed a secondary bloodstream infection, whether the patient
+    died, and, where applicable, the organisms detected and their antimicrobial susceptibilities.
+    Reporting Instruction: If no VAEs are identified during the month of surveillance, the “Report No Events”
+    box must be checked on the appropriate denominator summary screen, for example, Denominators for
+    Intensive Care Unit (ICU)/Other Locations (Not NICU or SCA), etc.
+
+    Denominator Data: Device days and patient days are used for denominators (see Chapter 16 General Key
+    Terms). Ventilator days, which are the numbers of patients managed with ventilatory devices, are
+    collected daily, at the same time each day, according to the chosen location using the appropriate form
+    (CDC 57.117 [Specialty Care Areas] or 57.118 [ICU/Other Locations]). These daily counts are summed and
+    only the total for the month is entered into NHSN. Ventilator and patient days are collected for each of
+    the locations monitored. When denominator data are available from electronic sources, these sources
+    may be used as long as the counts are within +/- 5% of manually collected counts, validated for a
+    minimum of 3 consecutive months. Validation of electronic counts should be performed separately for
+    each location conducting VAE surveillance.
+    All ventilator days are counted, including ventilator days for patients on mechanical ventilation for < 3
+    days, and patients on high frequency ventilation and other therapies excluded from VAE surveillance.
+    Patients with tracheostomies who are undergoing weaning from mechanical ventilation using
+    tracheostomy collar trials are included in ventilator day counts if they are on mechanical ventilation at the
+    time when the daily ventilator day count is performed. Patients who are not receiving mechanical
+    ventilation via an artificial airway at the time of the daily ventilator day count are not included.
+    When converting from one electronic counting system to another electronic counting system, the new
+    electronic system should be validated against manual counts as above. If electronic counts for the new
+    electronic system are not within 5% of manual counts, resume manual counting and continue working
+    with IT staff to improve design of electronic denominator data extraction (while reporting manual counts)
+    until concurrent counts are within 5% for 3 consecutive months.
+    This guideline is important because validating a new electronic counting system against an existing
+    electronic system can magnify errors and result in inaccurate denominator counts.
+    In addition to the total number of patients on ventilators on each day of surveillance, the number of
+    patients on ventilators who are on the APRV mode of mechanical ventilation or related modes (which is a
+    subset of all patients on ventilators) can optionally be indicated on the appropriate form (CDC 57.117 and
+    57.118). See FAQ nos. 18 and 19 at the end of this protocol.
+
+
+
+
+10-22
+    January 2025                                                                        Device-associated Module
+                                                                                                            VAE
+
+
+    Collection of an additional denominator, episodes of mechanical ventilation (EMV), is optionally available
+    for VAE surveillance. The EMV denominator represents the sum of the number of episodes of mechanical
+    ventilation that occurred in that location during the month. A single episode of mechanical ventilation for
+    each patient is to be counted only once per month. Do note, it is possible for a patient to have more than
+    one episode of ventilation occur during a month (for example, discontinuation of mechanical ventilation
+    for greater than 1 calendar day followed by re-initiation of mechanical ventilation).
+    The EMV denominator is determined by counting all patients in the location who are on mechanical
+    ventilation on the first day of the month regardless of eligibility for inclusion in VAE surveillance. Then, on
+    each subsequent day of the month, count each additional patient that is started on mechanical
+    ventilation. This would include those that are admitted to the location already on mechanical ventilation,
+    those that are newly ventilated, and any previously ventilated patients who have new episodes of
+    mechanical ventilation occurring during the same month. The sum of the count for the first day and each
+    subsequent day of the month is entered in NHSN.
+            EXAMPLE: On January 1, there are 5 patients on mechanical ventilation in the MICU (2 patients
+            were started on mechanical ventilation on December 24, 2 patients on December 31, and 1
+            patient on January 1). During the rest of the month, the following are noted: 1 patient is started
+            on mechanical ventilation on January 8; 2 patients are transferred to the MICU on mechanical
+            ventilation on January 15, and 1 patient who was previously ventilated (from January 1 through
+            January 12) goes back on mechanical ventilation on January 20. No other patients are on
+            mechanical ventilation during the month of January. The number of EMV for January is nine. This
+            is calculated as follows: 5 patients (on mechanical ventilation on the first day of the month) + 4
+            patients who were either started on mechanical ventilation, transferred into the MICU on
+            mechanical ventilation, or re-initiated on mechanical ventilation after being off of the ventilator
+            for at least 1 calendar day = 9 EMV.
+
+
+
+
+10-23
+    January 2025                                                                                 Device-associated Module
+                                                                                                                     VAE
+
+
+    Data Analyses
+    All data that is entered into NHSN can be analyzed at event or summary level. The data in NHSN can be
+    visualized and analyzed in various ways, specifically, descriptive analysis reports for both the denominator
+    and numerator data.
+
+                                          Types of VAE Analysis Reports
+
+    The Standardized Infection Ratio
+    The Standardized Infection Ratio (SIR) is a summary measure used to track HAIs at a national, state, or
+    local level over time. The SIR adjusts for various facility and/or patient-level factors that contribute to HAI
+    risk within each facility. In HAI data analysis, the SIR compares the actual number of HAIs reported to the
+    number that would be predicted, given the standard population (specifically, the 2015 NHSN baseline),
+    adjusting for several risk factors that have been found to be significantly associated with differences in
+    event incidence. The number of predicted events in NHSN is calculated using probabilities estimated from
+    statistical models constructed from national NHSN data, which represents the baseline population. NHSN
+    uses negative binomial regression model to perform the VAE SIR calculations.
+
+                                             𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂 (𝑂𝑂)𝐻𝐻𝐻𝐻𝐻𝐻𝑂𝑂
+                                     SIR =
+                                             𝑃𝑃𝑂𝑂𝑂𝑂𝑂𝑂𝑃𝑃𝑃𝑃𝑃𝑃𝑂𝑂𝑂𝑂 (𝑃𝑃)𝐻𝐻𝐻𝐻𝐻𝐻𝑂𝑂
+
+    A SIR will be created for each VAE Category, IVAC Plus, and Total VAE.
+
+                                                               𝑉𝑉𝐻𝐻𝑉𝑉+𝐻𝐻𝑉𝑉𝐻𝐻𝑉𝑉+𝑃𝑃𝑉𝑉𝐻𝐻𝑃𝑃
+                                     Total VAE SIR =
+                                                            𝑁𝑁𝑁𝑁𝑁𝑁 𝑃𝑃𝑂𝑂𝑂𝑂𝑂𝑂𝑃𝑃𝑃𝑃𝑃𝑃𝑂𝑂𝑂𝑂 𝑉𝑉𝐻𝐻𝑉𝑉𝑂𝑂
+
+
+                                                                    𝐻𝐻𝑉𝑉𝐻𝐻𝑉𝑉+𝑃𝑃𝑉𝑉𝐻𝐻𝑃𝑃
+                                     IVAC Plus SIR =
+                                                            𝑁𝑁𝑁𝑁𝑁𝑁 𝑃𝑃𝑂𝑂𝑂𝑂𝑂𝑂𝑃𝑃𝑃𝑃𝑃𝑃𝑂𝑂𝑂𝑂 𝑉𝑉𝐻𝐻𝑉𝑉𝑂𝑂
+
+
+    A SIR greater than 1.0 indicates that more HAIs were observed than predicted; conversely, a SIR less than
+    1.0 indicates that fewer HAIs were observed than predicted.
+    More information regarding the VAE SIR model and the parameter estimates can be found in The NHSN
+    Guide to the SIR.
+            NOTE: The SIR will be calculated only if the number of predicted VAEs (numPred) is ≥ 1 to help
+            enforce a minimum precision criterion. This rule was instituted to avoid the calculation and
+            interpretation of statistically imprecise SIRs, which typically have extreme values.
+    While the VAE SIR can be calculated for single locations, the measure also allows you to summarize your
+    data by multiple locations, adjusting for differences in the incidence of VAEs among the location types.
+    For example, you can calculate one VAE SIR adjusting for all locations reported. Similarly, you can
+    calculate one VAE SIR for all specialty care areas in your facility.
+
+
+
+
+10-24
+    January 2025                                                                                                Device-associated Module
+                                                                                                                                    VAE
+
+
+    The Standardized Utilization Ratio
+    The Standardized Utilization Ratio (SUR) is a summary measure used to track device use at a national,
+    state, or local, or facility level over time. The SUR adjusts for various facility and/or location-level factors
+    that contribute to device use. The method of calculating a SUR is similar to the method used to calculate
+    the Standardized Infection Ratio (SIR), a summary statistic used in NHSN to track HAIs. In device-
+    associated HAI data analysis, the SUR compares the actual number of device days reported to what would
+    be predicted, given the standard population (specifically, the 2015 NHSN baseline), adjusting for several
+    factors that have been found to be significantly associated with differences in device utilization.
+
+                                              𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂𝑂 (𝑂𝑂) 𝑉𝑉𝑂𝑂𝑉𝑉𝑃𝑃𝑃𝑃𝑉𝑉𝑉𝑉𝑃𝑃𝑉𝑉𝑂𝑂 𝐷𝐷𝑉𝑉𝐷𝐷𝑂𝑂
+                                      SUR =
+                                              𝑃𝑃𝑂𝑂𝑂𝑂𝑂𝑂𝑃𝑃𝑃𝑃𝑃𝑃𝑂𝑂𝑂𝑂 (𝑃𝑃) 𝑉𝑉𝑂𝑂𝑉𝑉𝑃𝑃𝑃𝑃𝑉𝑉𝑉𝑉𝑃𝑃𝑉𝑉𝑂𝑂 𝐷𝐷𝑉𝑉𝐷𝐷𝑂𝑂
+
+    In other words, a SUR greater than 1.0 indicates that more device days were observed than predicted;
+    conversely, a SUR less than 1.0 indicates that fewer device days were observed than predicted. SURs are
+    currently calculated in NHSN for the following device types: central lines, urinary catheters, and
+    ventilators.
+    More information regarding the VAE SUR model and the parameter estimates can be found at
+    The NHSN Guide to the SUR
+    How to Run and Interpret SUR Reports in NHSN
+
+
+    VAE Rate
+    The VAE rate per 1000 ventilator days is calculated by dividing the number of VAEs by the number of
+    ventilator days and multiplying the result by 1000 (ventilator days).
+
+                                                                                           𝑁𝑁𝑉𝑉.𝑉𝑉𝑜𝑜 𝑉𝑉𝐻𝐻𝑉𝑉𝑂𝑂
+                             VAE Rate per 1000 ventilator days =                                                           * 1000
+                                                                                 𝑁𝑁𝑉𝑉.𝑉𝑉𝑜𝑜 𝑉𝑉𝑂𝑂𝑉𝑉𝑃𝑃𝑃𝑃𝑉𝑉𝑉𝑉𝑃𝑃𝑉𝑉𝑂𝑂 𝐷𝐷𝑉𝑉𝐷𝐷𝑂𝑂
+
+    The VAE rate per 100 episodes of mechanical ventilation (EMV) is calculated by dividing the number of
+    VAEs by the number of EMV and multiplying the result by 100 (episodes of mechanical ventilation).
+
+                                                              𝑁𝑁𝑉𝑉.𝑉𝑉𝑜𝑜 𝑉𝑉𝐻𝐻𝑉𝑉𝑂𝑂
+                             VAE Rate per 100 EMV =                                * 100
+                                                               𝑁𝑁𝑉𝑉.𝑉𝑉𝑜𝑜 𝑉𝑉𝐸𝐸𝑉𝑉
+
+    Rates and SIRs that may be appropriate for use in public reporting, inter-facility comparisons, and pay-for-
+    reporting/pay-for-performance programs are the overall VAE rate (where the numerator consists of all
+    events meeting at least the VAC definition). Rates and SIRs that may be appropriate for internal use within
+    an individual unit or facility include the “IVAC-plus” rate (where the numerator consists of all events
+    meeting at least the IVAC definition), and rates of specific event types (for example, events meeting only
+    the VAC definition, events meeting only the IVAC definition, events meeting only the PVAP definition).
+    The Ventilator Utilization Ratio is calculated by dividing the number of ventilator days by the number of
+
+
+
+10-25
+    January 2025                                                                      Device-associated Module
+                                                                                                          VAE
+
+
+    patient days. These calculations will be performed separately for the different types of ICUs, SCAs, and
+    other locations in the institution.
+
+    Device Utilization Ratio
+    The Ventilator or Device Utilization Ratio (DUR) is calculated by dividing the number of ventilator days by
+    the number of patient days. These calculations will be performed separately for the different types of
+    ICUs, SCAs, and other locations in the institution.
+
+                                            𝑁𝑁𝑉𝑉.𝑉𝑉𝑜𝑜 𝑉𝑉𝑂𝑂𝑉𝑉𝑃𝑃𝑃𝑃𝑉𝑉𝑉𝑉𝑃𝑃𝑉𝑉𝑂𝑂 𝐷𝐷𝑉𝑉𝐷𝐷𝑂𝑂
+                                    DUR =
+                                              𝑁𝑁𝑉𝑉.𝑉𝑉𝑜𝑜 𝑃𝑃𝑉𝑉𝑃𝑃𝑃𝑃𝑂𝑂𝑉𝑉𝑃𝑃 𝐷𝐷𝑉𝑉𝐷𝐷𝑂𝑂
+
+
+    Descriptive Analysis Output Options
+    Descriptive analysis output options of numerator and denominator data, such as line listings, frequency
+    tables, and bar and pie charts are available in the NHSN application. SIRs, SURs and VAE rates and run
+    charts are also available.
+    Line List: Creating a Creating a Line List
+    Frequency Tables: Creating a Frequency Table
+    Bar Chart: Creating a Bar Chart
+    Pie Chart: Creating a Pie Chart
+    Rate Table: Creating a Rate Table
+
+    Analysis Resources Links
+    Analysis Resources Website
+    Analysis Quick Reference Guides
+    Reporting of VAE and PedVAE
+    VAE Analysis Training
+    SIR Guide
+    SUR Guide
+
+    Data Quality Resources Links
+    Data Quality Website
+    Data Quality Manual
+    Data Quality Training
+
+
+
+
+10-26
+    January 2025                                                                   Device-associated Module
+                                                                                                       VAE
+
+
+    Table 4. VAE Measures Available in NHSN
+          Measure                                  Calculation                                 Application
+
+                                                                                              Both location
+                                         The number of Observed VAEs                           specific and
+           VAE SIR
+                                         The number of Predicted VAEs                         summarized
+                                                                                                measure
+
+
+                                  The number of VAEs for a location
+       VAE Rates                                                          𝑋𝑋 1000            Location specific
+                             The number of Ventilator Days for a location
+    (Ventilator Days)                                                                         measure only
+
+
+
+                                   The number of VAEs for a location
+          VAE Rates                                                  𝑋𝑋 100                  Location specific
+                                   The number of EMV for a location
+           (EMV)                                                                              measure only
+
+
+                                                                                              Both location
+                                   The number of Observed Ventilator Days                      specific and
+        Ventilator SUR
+                                   The number of Predicted Ventilator Days                    summarized
+                                                                                                measure
+
+
+                                                                                             Location specific
+            DUR                   The number of Ventilator Days for a location
+                                                                                              measure only
+                                  The number of Patient Days for that location
+
+
+    NHSN Group Analysis
+    NHSN Group Users can perform the same analysis as facility level users in NHSN. A few helpful tools in
+    NHSN for groups are listed in the resources below. These tools are guides on how to start and join a
+    Group; how to create a template to request data from facilities; how to determine the level of access
+    granted by the facility following the previous steps; and how to analyze the facilities data.
+
+    Group Analysis Resources
+    NHSN Group Users Page:
+    https://www.cdc.gov/nhsn/group-users/index.html
+    Group User’s Guide to the Membership Rights Report:
+    https://www.cdc.gov/nhsn/pdfs/ps-analysis-resources/GroupAnalysisWebinar.pdf
+    Group User’s Guide to the Line Listing- Participation Alerts:
+    https://www.cdc.gov/nhsn/pdfs/ps-analysis-resources/group-alerts.pdf
+
+
+
+10-27
+    January 2025                                                                      Device-associated Module
+                                                                                                          VAE
+
+
+    References
+    1) Behrendt CE. Acute respiratory failure in the United States: incidence and 31-day survival. Chest
+        2000;118:1100-5.
+    2) Kahn JM, Goss CH, Heagerty PJ, et al. Hospital volume and the outcomes of mechanical ventilation. N
+        Engl J Med 2006;355:41-50.
+    3) Wunsch H, Linde-Zwirble WT, Angus DC, Hartman ME, Milbrandt EB, Kahn JM. The epidemiology of
+        mechanical ventilation use in the United States. Crit Care Med 2010;38:1947-53.
+    4) Rubenfeld GD, Caldwell E, Peabody E, et al. Incidence and outcomes of acute lung injury. N Engl J Med
+        2005;353:1685-93.
+    5) Esteban A, Anzueto A, Frutos F, et al. Characteristics and outcomes in adult patients receiving
+        mechanical ventilation: a 28-day international study. JAMA 2002;287:345-55.
+    6) Dudeck MA, Weiner LM, Allen-Bridson K, et al. National Healthcare Safety Network (NHSN) Report,
+        Data Summary for 2012, Device-associated Module. Am J Infect Control 2013;41:1148-66.
+    7) Klompas M. Does this patient have ventilator-associated pneumonia? JAMA 2007;297:1583-93.
+    8) Klompas M. Interobserver variability in ventilator-associated pneumonia surveillance. Am J Infect
+        Control 2010;38:237-9.
+    9) Klompas M, Kulldorff M, Platt R. Risk of misleading ventilator-associated pneumonia rates with use of
+        standard clinical and microbiological criteria. Clin Infect Dis 2008;46:1443-6.
+    10) Zilberberg MD, Shorr AF. Ventilator-associated pneumonia: the clinical pulmonary infection score as a
+        surrogate for diagnostics and outcome. Clin Infect Dis 2010;51 Suppl 1:S131-5.
+    11) Girard T, Kress JP, Fuchs BD, et al. Efficacy and safety of a paired sedation and ventilator weaning
+        protocol for mechanically ventilated patients in intensive care (Awakening and Breathing Controlled
+        trial): a 28andomized controlled trial. Lancet 2008;371:126-34.
+    12) Strøm T, Martinussen T, Toft P. A protocol of no sedation for critically ill patients receiving mechanical
+        ventilation. Lancet 2010;375:475-80.
+    13) The Acute Respiratory Distress Syndrome Network. Ventilation with lower tidal volumes as compared
+        with traditional tidal volumes for acute lung injury and the acute respiratory distress syndrome. N
+        Engl J Med 2000;342:1301-8.
+    14) Schweickert WD, Pohlman MC, Pohlman AS, et al. Early physical and occupational therapy in
+        mechanically ventilated, critically ill patients: a 28andomized controlled trial. Lancet 2009;373:1874-
+        82.
+    15) Magill SS, Klompas M, Balk R, et al. Developing a new, national approach to surveillance for ventilator-
+        associated events. Crit Care Med 2013;41:2467-75.
+    16) Klompas M, Khan Y, Kleinman K, et al. Multicenter evaluation of a novel surveillance paradigm for
+        complications of mechanical ventilation. PloS One 2011;6:e18062.
+    17) Klompas M, Magill S, Robicsek A, et al. Objective surveillance definitions for ventilator-associated
+        pneumonia. Crit Care Med 2012;40(12):3154-61.
+    18) Magill SS, Li Q, Gross C, et al. Incidence and characteristics of ventilator-associated events reported to
+        the National Healthcare Safety Network in 2014. Crit Care Med 2016;44(12):2154-62.,
+    19) Stedman’s medical dictionary. (28th ed). (2005). Philadelphia: Lippincott, Williams, & Wilkins.
+    20) Garcia, LS (Ed.). (2010). Clinical Microbiology Procedures Handbook. Herndon, VA: ASM Press, page
+        3.2.1.16
+
+
+
+
+10-28
+    January 2025                                                    Device-associated Module
+                                                                                        VAE
+
+
+
+
+        Appendix. List of Antimicrobial Agents Eligible for IVAC,
+        PVAP
+        Antimicrobial Agent
+        AMIKACIN
+        AMPHOTERICIN B
+        AMPHOTERICIN B LIPOSOMAL
+        AMPICILLIN
+        AMPICILLIN/SULBACTAM
+        ANIDULAFUNGIN
+        AZITHROMYCIN
+        AZTREONAM
+        BALOXAVIR MARBOXIL
+        CASPOFUNGIN
+        CEFAZOLIN
+        CEFEPIME
+        CEFEPIME/ENMETAZOBACTAM
+        CEFIDEROCOL
+        CEFOTAXIME
+        CEFOTETAN
+        CEFOXITIN
+        CEFTAROLINE
+        CEFTAZIDIME
+        CEFTAZIDIME/AVIBACTAM
+        CEFTOBIPROLE MEDOCARIL
+        CEFTOLOZANE/TAZOBACTAM
+        CEFTRIAXONE
+        CEFUROXIME
+        CIPROFLOXACIN
+        CLARITHROMYCIN
+        CLINDAMYCIN
+        COLISTIMETHATE
+        DALBAVANCIN
+        DELAFLOXACIN
+        DOXYCYCLINE
+        ERAVACYCLINE
+        ERTAPENEM
+        FLUCONAZOLE
+        FOSFOMYCIN
+        GENTAMICIN
+
+
+10-29
+    January 2025                                         Device-associated Module
+                                                                             VAE
+
+
+        IMIPENEM/CILASTATIN
+        IMIPENEM/CILASTATIN/RELEBACTAM
+        ISAVUCONAZONIUM
+        ITRACONAZOLE
+        LEFAMULIN
+        LEVOFLOXACIN
+        LINEZOLID
+        MEROPENEM
+        MEROPENEM/VABORBACTAM
+        METRONIDAZOLE
+        MICAFUNGIN
+        MINOCYCLINE
+        MOLNUPIRAVIR
+        MOXIFLOXACIN
+        NAFCILLIN
+        NIRMATRELVIR (includes NIRMATRELVIR/RITONAVIR)
+        OMADACYCLINE
+        ORITAVANCIN
+        OSELTAMIVIR
+        OXACILLIN
+        PENICILLIN G
+        PERAMIVIR
+        PIPERACILLIN/TAZOBACTAM
+        PLAZOMICIN
+        POLYMYXIN B
+        POSACONAZOLE
+        REMDESIVIR
+        REZAFUNGIN
+        RIFAMPIN
+        SULBACTAM/DURLOBACTAM
+        SULFAMETHOXAZOLE/TRIMETHOPRIM
+        TEDIZOLID
+        TELAVANCIN
+        TETRACYCLINE
+        TIGECYCLINE
+        TOBRAMYCIN
+        VANCOMYCIN, intravenous only
+        VORICONAZOLE
+        ZANAMIVIR
+
+
+
+
+10-30
+    January 2025                                                                     Device-associated Module
+                                                                                                         VAE
+
+
+    VAE Frequently Asked Questions (FAQs)
+    1) When should I use VAE? Are there circumstances in which I should still use PNEU?
+       • VAE surveillance is location based and restricted to adult inpatient units only.
+        •   Pediatric and neonatal units are excluded from VAE surveillance (even in circumstances where a
+            pediatric unit may occasionally care for patients who are 18 years of age and older).
+        •   Locations mapped to mixed age CDC location codes are excluded from VAE surveillance.
+        •   Ventilated patients who are 18 years of age and older and who are cared for in pediatric units
+            should be included in any in-plan PedVAP and/or PedVAE surveillance for that location.
+            It is NOT recommended to include in VAE surveillance young children housed in adult ICU
+            locations who are not thought to be physiologically similar to the location’s adult patient
+            population. Facilities may want to evaluate their location mapping to be sure that locations are
+            mapped appropriately to the correct CDC location codes. In circumstances where the populations
+            of adults and children cared for in the same physical location is more mixed (for example, 50%
+            adult patients and 50% pediatric patients), it is recommended that facilities weigh the possibility
+            of establishing a virtual pediatric location for the purposes of surveillance. More information on
+            virtual locations and location mapping can be found here: Chapter 15 CDC Locations and
+            Descriptions
+        •   While on high frequency ventilation, extracorporeal life support, or paracorporeal membrane
+            oxygenation, patients are EXCLUDED from VAE surveillance.
+            Patients who are receiving a conventional mode of mechanical ventilation while in the prone
+            position and patients who are receiving a conventional mode of mechanical ventilation while
+            receiving nitric oxide therapy, helium-oxygen mixtures (heliox), or epoprostenol therapy are
+            INCLUDED.
+            Patients on Airway Pressure Release Ventilation (APRV) and related modes of mechanical
+            ventilation (see FAQ nos. 18 and 19) are INCLUDED; however, during periods of time while the
+            patient is on APRV, the VAE period of stability or improvement on the ventilator and the period of
+            worsening oxygenation should be determined by changes in FiO2 only, since changes in PEEP as
+            indicated in this surveillance algorithm may not be applicable to APRV. In addition, patients with
+            VAE who are on APRV or a related mode of mechanical ventilation at the time of VAE onset can
+            be optionally indicated as such on the VAE Form (CDC 57.112).
+        •   In-plan surveillance for ventilator-associated PNEU may still be conducted for pediatric patients
+            ONLY (“PedVAP” surveillance).
+        •   The PNEU definitions are still available for those units seeking to conduct off-plan PNEU/VAP
+            surveillance for patients of any age and for assignment of a secondary BSI.
+
+
+
+
+10-31
+             January 2025                                                                                          Device-associated Module
+                                                                                                                                       VAE
+
+
+             2) I am having difficulty visualizing how to arrange the VAE data elements to facilitate easy identification
+                of events. Can you provide some additional guidance?
+                • For units in which VAE surveillance will be conducted manually, we recommend that you organize
+                    the necessary data elements in a table or spreadsheet to assist in identifying VAEs. There are
+                    several different ways in which to organize the data – you may consider limiting your spreadsheet
+                    to just include the daily minimum PEEP and FiO2 values, and then, if a VAC event is identified,
+                    utilize other data sources to gather information on the data elements included in the IVAC and
+                    PVAP definitions. Alternatively, you may choose to include columns for all data elements (from
+                    VAC through PVAP) in a single spreadsheet.
+                       For most patients under surveillance for VAE, the only data elements you will need to record are
+                       the ventilator days, minimum daily PEEP, and minimum daily FiO2. The maximum and minimum
+                       daily temperatures and white blood cell counts only need to be recorded for those patients who
+                       are identified as having met criteria for VAC. The antimicrobial criterion only needs to be assessed
+                       for those patients with VAC and with an abnormal temperature or white blood cell count that
+                       meets the criteria within the IVAC definition. Microbiology and related data elements included as
+                       criteria in the PVAP definition only need to be assessed for those patients who have met the IVAC
+                       definition.
+                       EXAMPLE: In the table below, the data elements used to meet VAC, IVAC, and PVAP definition are
+                       organized in a fashion that facilitates identification of an event, highlighted in the shaded region.
+                       In this example, MV days 3 and 4 constitute the baseline period, with stable minimum PEEP of 5
+                       cmH2O on each day. On MV days 5 and 6, the daily minimum PEEP is 8 cmH2O, which meets the
+                       VAC criterion for worsening oxygenation. If we scan across the table, we can see that the IVAC
+                       temperature/white blood cell count criterion is not met (there are no temperatures < 36°C or >
+                       38°C, and no white blood cell counts ≤ 4,000 cells/mm3 or ≥ 12,000 cells/mm3) – so even though
+                       the patient was started on a new antimicrobial agent and continued on that agent for 4 calendar
+                       days, IVAC is not met. Therefore, this event would be reported as a VAC, with the date of event
+                       being MV day 5.
+
+   Patient    MV Day     PEEPmin    FiO2min    Tempmin     Tempmax     WBCmin      WBCmax      Abx     Specimen     Polys / Epis   Organism     VAE
+      1          1         10         1.0        37.1        37.6        4.3         4.3      None         --            --           --         --
+      1          2          5        0.60        36.8        37.2        4.6         4.6      None         --            --           --         --
+      1          3          5        0.40        37.0        37.9        5.4         5.4      None         --            --           --         --
+      1          4          5        0.40        36.5        37.3        9.2         9.2       Yes         --            --           --         --
+      1          5          8        0.50        36.3        36.9        8.4         8.4       Yes        ETA       ≥ 25 / ≤ 10    S. aureus    VAC
+      1          6          8        0.40        37.2        37.5        8.5         8.8       Yes         --            --           --          -
+      1          7          5        0.40        37.8        37.9        7.6         7.6       Yes         --            --           --          -
+MV = mechanical ventilation. PEEPmin = Daily minimum PEEP. FiO2min = Daily minimum FiO2. Tempmin = Daily minimum temperature. Tempmax = Daily
+maximum temperature. WBCmin = Daily minimum white blood cell count. WBCmax = Daily maximum white blood cell count. Abx = antimicrobial agents. Polys
+/ epis = Polymorphonuclear leukocytes and squamous epithelial cells from respiratory specimen.
+
+
+                       EXAMPLE: In the table below, by scanning across the data elements, you can see that there are no
+                       periods in which there is a stable, 2-day baseline period followed by a 2-day period where the
+                       PEEP or FiO2 are increased 3 cmH2O or 20 points over the first day in the baseline period. On MV
+                       days 2 and 3, the PEEP values are 7 cmH2O and 6 cmH2O respectively, and then increase to 9
+                       cmH2O on MV days 4 and 5 – but the difference between day 4 or day 5 and day 2 is only 2
+
+
+     10-32
+          January 2025                                                                                                         Device-associated Module
+                                                                                                                                                   VAE
+
+
+                    cmH2O, rather than the required 3 cmH2O. Also, the gradual increase in FiO2 from the time of
+                    initiation of mechanical ventilation means that there are not two days on which the FiO2 is at least
+                    20 points higher than on the 2 previous days. Therefore, although the temperature and white
+                    blood cell counts exceed the required thresholds for IVAC on several occasions, and the patient
+                    appears to have received a new antimicrobial agent for several days in the setting of a positive
+                    blood culture, the VAC definition is not met, and so no VAE is reported.
+
+Patient    MV Day       PEEPmin       FiO2min       Tempmin       Tempmax     WBCmin        WBCmax        Abx      Specimen      Polys / Epis   Organism       VAE
+  2           1           5            0.30          37.1          37.6        4.3            4.3        None             --          --             --         --
+  2           2           7            0.30          36.8          37.2        4.6            4.6        None             --          --             --         --
+  2           3           6            0.45          37.0          37.9        5.4            5.4        None             --          --             --         --
+  2           4           9            0.45          36.5          37.3        9.2            9.2        None             --          --             --         --
+  2           5           9            0.60          36.3          36.9        8.4            8.4        None         ETA        ≥ 25 / ≤ 10     S. aureus      --
+  2           6           8            0.60          37.2          37.5        8.5            8.8        None             --          --             --         --
+  2           7           6            0.75          37.8          37.9        7.6            7.6        None             --          --             --         --
+  2           8           6            0.75          38.2          38.4        10.5          11.9         Yes        Blood            --         S. aureus      --
+  2           9           5            0.80          38.5          38.9        12.7          12.7         Yes             --          --             --         --
+  2          10           5            0.75          37.4          38.1        12.9          12.9         Yes             --          --             --         --
+  2          11           5            0.70          37.2          37.9        9.4            9.4         Yes             --          --             --         --
+  2          12           5            0.60          37.3          37.5        9.5            9.5         Yes             --          --             --         --
+  2          13           7            0.60          37.2          37.8        8.2            8.2         Yes             --          --             --         --
+  2          14           8            0.60          37.0          37.7        8.6            8.6         Yes             --          --             --         --
+
+
+
+
+          3) Sometimes patients are intubated, extubated, and reintubated several times during a single
+             hospitalization. How do I define an episode of mechanical ventilation, and can a VAE occur in a patient
+             who has recently been extubated?
+              •     An episode of mechanical ventilation is defined as a period of days during which the patient was
+                    mechanically ventilated for some portion of each consecutive day during the period.
+                    EXAMPLE: A patient is intubated and mechanically ventilated on hospital day 1. The patient
+                    remains on mechanical ventilation from hospital day 2 through 12:00on hospital day 6. At noon
+                    on hospital day 6, the patient is extubated. The patient remains extubated on hospital day 7 and
+                    is then reintubated on hospital day 8. In this case, the first episode of mechanical ventilation is
+                    defined by hospital days 1 through 6. Since the patient was extubated on hospital day 6 and
+                    remained extubated for a full calendar day on hospital day 7, the reintubation of the patient on
+                    hospital day 8 defines the start of a second episode of mechanical ventilation. See figure, below.
+           Hosp Day No.           1             2             3           4           5              6               7                8              9           10
+           MV Episode             1             1             1           1           1              1               --               2              2           2
+                                                                                               6—extubated
+           MV Day No.             1             2             3           4           5                              --        1--reintubated        2           3
+                                                                                                 at 12:00
+
+
+
+                                                                                          1 full calendar day off mechanical ventilation, followed by reintubation,
+                                                                                                      defines a new episode of mechanical ventilation.
+
+
+                    EXAMPLE: A patient is intubated and mechanically ventilated on hospital day 1. The patient
+                    remains on mechanical ventilation from hospital day 2 through hospital day 6 at 12:00. At 12:00
+
+  10-33
+    January 2025                                                                                               Device-associated Module
+                                                                                                                                   VAE
+
+
+                  on hospital day 6, the patient is extubated. The patient is reintubated at 21:00 on hospital day 7
+                  and remains intubated and mechanically ventilated till 14:00 on hospital day 10. The patient is
+                  extubated at 14:00 on hospital day 10 and remains extubated until hospital discharge on day 15.
+                  In this case, there is only a single episode of mechanical ventilation, defined by hospital days 1
+                  through 10, because the patient was extubated on hospital day 6 but reintubated the next
+                  calendar day (hospital day 7). See figure, below.
+        Hosp Day No.        1         2        3          4          5              6                     7             8          9           10
+        MV Episode          1         1        1          1          1              1                     1             1          1            1
+                                                                              6—extubated at        7—reintubated                         10—extubated
+        MV Day No.          1         2        3          4          5                                                  8          9
+                                                                                  12:00               at 21:00                              at 14:00
+
+
+
+                                                   Patient was reintubated on the calendar day following extubation (days 6-7). Because there is not 1
+                                                        calendar day off mechanical ventilation, there is only 1 episode of mechanical ventilation.
+
+
+           •      A VAE can occur in a patient who has been extubated and is then reintubated, subject to the
+                  amount of time the patient was off the ventilator, as noted in the examples below.
+                  EXAMPLE: A patient is intubated and mechanically ventilated on hospital day 1. The patient
+                  remains on mechanical ventilation from hospital day 2 through 12:00 on hospital day 6. At noon
+                  on hospital day 6, the patient is extubated. The patient remains extubated on hospital day 7 and
+                  is then reintubated on hospital day 8. In this case, because the patient has been extubated for 1
+                  full calendar day (hospital day 7), the “VAE clock” starts over with reintubation on hospital day 8.
+                  To meet VAE during this second episode of mechanical ventilation, the patient would have to
+                  have at least 2 days of stability or improvement and at least 2 days of worsening oxygenation on
+                  the ventilator; therefore, the earliest date on which the patient could meet VAE criteria would be
+                  hospital day 11 (stable or improving settings on hospital days 8 and 9, period of worsening
+                  oxygenation on hospital days 10 and 11). The VAE date of event would be reported as hospital
+                  day 10—the first day of worsening oxygenation meeting VAE criteria. See figure, below.
+  Hosp Day No.         1        2    3    4        5             6           7            8                9                10               11
+  MV Episode           1        1    1    1        1             1           --           2                2                 2               2
+                                                          6 - extubated                  1-
+  MV Day No.           1        2    3    4        5                         --                            2                3                4
+                                                             at 12:00               reintubated
+                                                                                      Day 1 of          Day 2 of        Day 1 of          Day 2 of
+  VAE Criterion        --       --   --   --       --           --           --      stability or      stability or    worsening         worsening
+                                                                                   improvement        improvement     oxygenation       oxygenation
+
+
+                  EXAMPLE: A patient is intubated and mechanically ventilated on hospital day 1. The patient
+                  remains on mechanical ventilation from hospital day 2 through 12:00 on hospital day 6, when the
+                  patient is extubated. The patient is reintubated at 21:00 on hospital day 7. In this case, there is no
+                  “new” episode of mechanical ventilation, since there was not a full, ventilator-free calendar day.
+                  Therefore, the period of worsening oxygenation may be determined to have started on hospital
+                  day 7, the day of reintubation, as long as PEEP or FiO2 criteria are met. PEEP and FiO2 data from
+                  hospital days 5 and 6 (through the time of extubation) may be used to determine whether a
+                  period of stability and improvement occurred, and these data may be compared to PEEP and FiO2
+                  data obtained from the time of reintubation on hospital day 7 and beyond to determine whether
+
+
+10-34
+    January 2025                                                                                                       Device-associated Module
+                                                                                                                                           VAE
+
+
+                at least 2 days of worsening oxygenation occurred. The earliest that the patient could meet VAE
+                criteria would be hospital day 8 (assuming stable or improving ventilator settings on hospital days
+                5 and 6, and two days of worsening oxygenation meeting criteria on hospital days 7 and 8). The
+                VAE date of event would be reported as hospital day 7—the first day of worsening oxygenation
+                meeting VAE criteria. See figure, below.
+        Hosp Day No.     1         2    3     4             5                     6                  7                  8                9                  10
+        MV Episode       1         1    1     1             1                     1                  1                  1                1                  1
+                                                                          6 - extubated at   7 - reintubated
+        MV Day No.       1         2    3     4             5                                                           8                9                  10
+                                                                                12:00            at 21:00
+                                                         Day 1 of              Day 2 of          Day 1 of           Day 2 of
+        VAE Criterion    --        --   --    --        stability or         stability or       worsening          worsening             --                 --
+                                                       improvement         improvement        oxygenation         oxygenation
+
+
+           •    A patient may also meet criteria for VAC while intubated, and then meet criteria for IVAC (or
+                PVAP) following extubation.
+                EXAMPLE: A patient is intubated and mechanically ventilated on hospital day 1. The patient
+                remains on mechanical ventilation till 11:00 on hospital day 10, when the patient is extubated.
+                Criteria for VAC are met during the episode of mechanical ventilation, based on 2 days of stability
+                or improvement (MV days 5 and 6) followed by 2 days of worsening oxygenation (MV days 7 and
+                8). The date of the event is MV day 7, the day of onset of worsening oxygenation. Within the 2
+                days before and 2 days after the day of onset of worsening oxygenation, the patient has a
+                temperature of 38.4°C, and a new antimicrobial agent is started (meropenem, on MV day 9—see
+                FAQ nos. 4-7). The new antimicrobial agent is continued for at least 4 days (hospital days 8
+                through 11). Therefore, even though the patient was extubated on hospital day 10 and remained
+                extubated on hospital day 11 (the day on which all IVAC criteria were fulfilled), the event should
+                be reported as an IVAC. See figure, below.
+        Hosp Day No.          4              5                   6                 7              8                9               10                 11
+        MV Day No.            4              5                   6                 7              8                9          Extubated at            --
+                                                                                                                                 11:00
+        VAE Criterion                     Day 1 of           Day 2 of           Day 1 of       Day 2 of
+                              --         stability or       stability or       worsening      worsening        Temp 38.4°C          --                 --
+                                        improvement        improvement        oxygenation    oxygenation
+        Antimicrobial
+                        Ceftriaxone      Ceftriaxone        Ceftriaxone       Ceftriaxone    Meropenem         Meropenem      Meropenem         Meropenem
+        agent
+
+
+
+                                                                                                                        Patient has fulfilled all IVAC criteria, and
+                                                                                                                         IVAC should be reported. Date of the
+                                                                                                                          IVAC event is hospital day/MV day 7.
+
+
+    4) How do I figure out if an antimicrobial agent is “new” for the IVAC definition?
+       • A new antimicrobial agent is defined as any agent listed in the Appendix that is initiated on or
+          after 3 days of mechanical ventilation AND in the VAE Window Period (defined by the two days
+          before, the day of, and the two days after the onset date of the VAE—as long as all of these days
+          are on or after the 3rd day of mechanical ventilation). The agent is considered new for the
+          purposes of this definition if it was NOT given to the patient on either of the 2 days preceding the
+          current start date. The agent must be administered via one of the routes listed in Table 1.
+
+
+10-35
+

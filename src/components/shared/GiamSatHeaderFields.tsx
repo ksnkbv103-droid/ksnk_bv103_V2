@@ -11,6 +11,7 @@ import {
   HINH_THUC_CHUYEN_TRACH,
   HINH_THUC_GIAM_SAT_CHEO,
   HINH_THUC_TU_GIAM_SAT,
+  deriveHinhThucGiamSat,
 } from "@/lib/supervision-policy";
 import {
   combineLocalNgayAndTime,
@@ -66,7 +67,6 @@ const isKsnkDepartment = (khoaName: string | null | undefined) => {
   return n.includes("kiem soat nhiem khuan") || n.includes("ksnk");
 };
 
-const isNetworkRoleLabel = (roleName: string | null | undefined) => normalize(roleName).includes("mang luoi");
 
 export default function GiamSatHeaderFields({
   session,
@@ -103,11 +103,6 @@ export default function GiamSatHeaderFields({
     return isKsnkDepartment(khoa?.ten_danh_muc);
   }, [supervisorProfile, khoas]);
 
-  const isNetworkStaff = useMemo(() => {
-    if (!supervisorProfile) return false;
-    return isNetworkRoleLabel(supervisorProfile.vai_tro_he_thong_ksnk as string);
-  }, [supervisorProfile]);
-
   // === Tự động derive hình thức giám sát ===
   const derivedHinhThuc = useMemo((): { label: string; dmRow: (typeof hinhThucGiamSats)[number] | undefined } => {
     const supervisorKhoaId = String(supervisorProfile?.khoa_id || "").trim();
@@ -115,21 +110,15 @@ export default function GiamSatHeaderFields({
     const isCrossKhoa = Boolean(
       selectedKhoaId && supervisorKhoaId && supervisorKhoaId !== selectedKhoaId,
     );
-    const isNetworkAtKhoa = Boolean(isNetworkStaff && selectedKhoaId && supervisorKhoaId === selectedKhoaId);
-
-    let label: string;
-    if (isNetworkAtKhoa) {
-      label = HINH_THUC_TU_GIAM_SAT;
-    } else if (isKsnkStaff) {
-      label = isCrossKhoa ? HINH_THUC_CHUYEN_TRACH : HINH_THUC_TU_GIAM_SAT;
-    } else if (isCrossKhoa) {
-      label = HINH_THUC_GIAM_SAT_CHEO;
-    } else {
-      label = HINH_THUC_TU_GIAM_SAT;
-    }
+    // Domain 14 Lock A — cùng logic resolveSupervisorPolicy / deriveHinhThucGiamSat.
+    // (Mạng lưới cùng khoa → TGS vì !isKsnkStaff && !isCrossKhoa.)
+    const label = deriveHinhThucGiamSat({
+      isKsnkDept: isKsnkStaff,
+      crossKhoa: isCrossKhoa,
+    });
     const dmRow = hinhThucGiamSats.find((h) => h.ten_danh_muc === label);
     return { label, dmRow };
-  }, [supervisorProfile, session.khoa_id, isKsnkStaff, isNetworkStaff, hinhThucGiamSats]);
+  }, [supervisorProfile, session.khoa_id, isKsnkStaff, hinhThucGiamSats]);
 
   const locationPoolByKhoa = useMemo(() => {
     const kid = String(session.khoa_id || "").trim();

@@ -1,0 +1,96 @@
+{
+  "ma": "KSNK.QT.13.BM.01",
+  "ten": "Bảng kiểm giám sát tuân thủ thu gom đồ vải",
+  "ho_form": "BK",
+  "chuyen_de": "Đồ vải / Giặt là",
+  "loai_giam_sat": "TUAN_THU",
+  "cach_tinh_diem": "DAT_TREN_AP_DUNG",
+  "tieu_chi": [
+    {
+      "stt": 1,
+      "ma": "TC01",
+      "noi_dung": "Phân loại đồ vải ngay tại giường bệnh hoặc phòng thủ thuật (không để dồn rồi phân loại lại)",
+      "bat_buoc": true
+    },
+    {
+      "stt": 2,
+      "ma": "TC02",
+      "noi_dung": "Loại bỏ hết vật sắc nhọn, gạc, bỉm và rác rắn khỏi đồ vải trước khi cho vào túi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 3,
+      "ma": "TC03",
+      "noi_dung": "Đồ vải lây nhiễm vào túi màu vàng; đồ vải thông thường vào túi màu xanh hoặc trắng",
+      "bat_buoc": true
+    },
+    {
+      "stt": 4,
+      "ma": "TC04",
+      "noi_dung": "Cuộn đồ vải nhẹ nhàng; không giũ, không tung; phần dính máu hoặc dịch nằm trong lõi cuộn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 5,
+      "ma": "TC05",
+      "noi_dung": "Túi buộc kín khi đầy 3/4 thể tích; không nhồi nhét vượt miệng túi",
+      "bat_buoc": true
+    },
+    {
+      "stt": 6,
+      "ma": "TC06",
+      "noi_dung": "Túi đồ vải bẩn không đặt trực tiếp trên sàn nhà hoặc bỏ ngoài hành lang",
+      "bat_buoc": true
+    },
+    {
+      "stt": 7,
+      "ma": "TC07",
+      "noi_dung": "Xe đẩy đồ bẩn có nắp đậy kín; không chung xe với đồ vải sạch",
+      "bat_buoc": true
+    },
+    {
+      "stt": 8,
+      "ma": "TC08",
+      "noi_dung": "Nhân viên thu gom mang găng dày, tạp dề chống thấm, khẩu trang khi tiếp xúc đồ bẩn",
+      "bat_buoc": true
+    },
+    {
+      "stt": 9,
+      "ma": "TC09",
+      "noi_dung": "Tủ hoặc kệ đồ vải sạch tại khoa đóng kín, khô ráo, cách sàn tối thiểu 20 cm",
+      "bat_buoc": true
+    },
+    {
+      "stt": 10,
+      "ma": "TC10",
+      "noi_dung": "Sổ giao nhận đồ vải khoa–ĐVGL ghi đủ số lượng bẩn đi và sạch về trong ca",
+      "bat_buoc": true
+    }
+  ],
+  "lua_chon": [
+    "DAT",
+    "KHONG_DAT",
+    "KHONG_AP_DUNG"
+  ],
+  "nguon": "KSNK.QT.13.BM.01 Phụ lục BM / Drive folder 10_190H0LJ… / KSNK.QT.13.docx (+ ipc-updated/QT/KSNK.QT.13.md tên BM)",
+  "ghi_chu": "Tiêu chí trích từ bảng Phụ lục BM trong docx Drive (bản pack có appendices). Local ipc-updated MD 1.1 thường chỉ còn tên BM.",
+  "status": "draft_from_qt",
+  "pham_vi_khoa": {
+    "loai": "toan_vien",
+    "nhom": [
+      "Toàn viện"
+    ],
+    "ghi_chu": "Thu gom tại giường/phòng thủ thuật — thực hành đơn vị."
+  },
+  "doi_tuong_goi_y": [
+    "NVYT",
+    "NV_ve_sinh",
+    "ho_ly",
+    "dieu_duong"
+  ],
+  "bat_buoc_filter_khoa": false,
+  "lop_giam_sat": "thuc_hanh_don_vi",
+  "co_quan_chu_tri": "Don_vi_thuc_hanh",
+  "noi_quan_sat": "tai_khoa_ls",
+  "ly_do_phan_bo": "Thu gom tại giường/phòng thủ thuật — thực hành đơn vị."
+}

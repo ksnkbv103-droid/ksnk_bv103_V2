@@ -1,0 +1,1923 @@
+[
+  {
+    "ma_qt_bm": "KSNK.QT.01.BM.03",
+    "ten": "Bảng kiểm giám sát tuân thủ quy trình kiểm soát văn bản",
+    "qt_qd": "QT.01",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Quản trị văn bản",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.01.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "TC01–TC05 neo «tài liệu tại khoa», phiên bản tại khoa, dấu bản sao tại khoa — giám sát tuân thủ tại đơn vị thực hành, KHÔNG phải audit master list/ban hành cấp "
+    },
+    "doi_tuong_goi_y": [
+      "thu_ky_khoa",
+      "thanh_vien_mang_luoi",
+      "dieu_duong",
+      "can_bo_quan_ly"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls",
+    "ly_do_phan_bo": "TC01–TC05 neo «tài liệu tại khoa», phiên bản tại khoa, dấu bản sao tại khoa — giám sát tuân thủ tại đơn vị thực hành, KHÔNG phải audit master list/ban hành cấp viện tại văn phòng KSNK."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.02.BM.04",
+    "ten": "Bảng kiểm giám sát tuân thủ quy trình đánh giá rủi ro",
+    "qt_qd": "QT.02",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Đánh giá rủi ro",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.02.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa KSNK"
+      ],
+      "ghi_chu": "Phiên hệ thống mặc định gắn Khoa KSNK (thư ký HĐ). Quan sát tại họp Hội đồng / văn phòng KSNK — không phải quan sát tại khoa LS."
+    },
+    "doi_tuong_goi_y": [
+      "thanh_vien_hoi_dong",
+      "NV_ksnk",
+      "can_bo_quan_ly"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Hoi_dong_KSNK",
+    "noi_quan_sat": "hoi_dong|van_phong_ksnk",
+    "ly_do_phan_bo": "Tiêu chí TC01–TC07 neo BM.01 biên bản HĐ, chấm điểm rủi ro HD.01, kế hoạch BM.02 và báo cáo tiến độ tại họp HĐ.KSNK — đánh giá rủi ro cấp viện do Hội đồng/KSNK chủ trì."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.03.BM.03",
+    "ten": "Bảng kiểm giám sát tuân thủ ICRA",
+    "qt_qd": "QT.03",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "ICRA / Xây dựng",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.03.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa KSNK",
+        "Khu vực xây dựng / cải tạo (ICRA)"
+      ],
+      "ghi_chu": "Chương trình ICRA do Khoa KSNK điều phối/chấm. Quan sát thực địa tại công trường active; phiên hệ thống default khoa=KSNK."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ksnk",
+      "NV_xay_dung",
+      "can_bo_quan_ly",
+      "NVYT_khu_lan_can"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Khoa_KSNK",
+    "noi_quan_sat": "khu_xay_dung|cong_truong_icra",
+    "ly_do_phan_bo": "ICRA là chương trình kiểm soát nhiễm khuẩn khi xây dựng/cải tạo do Khoa KSNK chủ trì điều phối; TC01–TC11 là checklist tuân thủ biện pháp ICRA tại công trường thuộc chương trình đó."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.05.BM.04",
+    "ten": "Bảng kiểm giám sát hoạt động Hội đồng Kiểm soát nhiễm khuẩn",
+    "qt_qd": "QT.05",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Hội đồng KSNK",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.05.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa KSNK"
+      ],
+      "ghi_chu": "Hội đồng KSNK — Khoa KSNK là thư ký/cơ quan thường trực. Phiên hệ thống default khoa=KSNK."
+    },
+    "doi_tuong_goi_y": [
+      "thanh_vien_hoi_dong",
+      "NV_ksnk",
+      "BGĐ"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Hoi_dong_KSNK",
+    "noi_quan_sat": "hoi_dong|van_phong_ksnk",
+    "ly_do_phan_bo": "TC01–TC10 kiểm quyết định thành lập HĐ, thành phần, kế hoạch năm, họp định kỳ, biên bản/nghị quyết và Khoa KSNK báo cáo tiến độ — audit hoạt động Hội đồng cấp viện."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.06.BM.03",
+    "ten": "Bảng kiểm giám sát hoạt động của Mạng lưới kiểm soát nhiễm khuẩn",
+    "qt_qd": "QT.06",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Mạng lưới KSNK",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.06.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "HYBRID: (A) thực hành thành viên tại từng khoa — quan sát tại khoa; (B) điều phối/họp mạng lưới/phản hồi số liệu do Khoa KSNK chủ trì. Picker: hiện mọi khoa; phiên có thể gắn khoa quan sát HOẶC KSNK khi audit điều phối. Ưu tiên tách khái niệm trong báo cáo dù một form BM."
+    },
+    "doi_tuong_goi_y": [
+      "thanh_vien_mang_luoi",
+      "NV_ksnk"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "hybrid",
+    "co_quan_chu_tri": "Mang_luoi",
+    "noi_quan_sat": "tai_khoa_ls|hop_mang_luoi|van_phong_ksnk",
+    "ly_do_phan_bo": "TC01–TC04/TC07 quan sát tại khoa (cử thành viên, GS tại khoa, khắc phục); TC05–TC06 neo họp mạng lưới và báo cáo về Khoa KSNK — vừa thực hành đơn vị vừa điều phối hệ thống."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.07.BM.01",
+    "ten": "Phiếu quan sát VST 5 thời điểm (WHO)",
+    "qt_qd": "QT.07",
+    "ho_form": "WHO",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh tay",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "who_moments_file",
+    "source_file": "ipc-updated/QT/KSNK.QT.07.md",
+    "ghi_chu": "Không schema BK Đạt/KĐ/NA — xem who/KSNK.QT.07.BM.01-moments.json",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "WHO 5 thời điểm — quan sát thực hành VST tại mọi điểm chăm sóc. Hub SURF_WHO."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong",
+      "ky_thuat_vien",
+      "ho_ly"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|diem_cham_soc",
+    "ly_do_phan_bo": "WHO 5 thời điểm — quan sát thực hành VST tại mọi điểm chăm sóc. Hub SURF_WHO."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.07.BM.02",
+    "ten": "Bảng kiểm đánh giá kỹ thuật vệ sinh tay thường quy",
+    "qt_qd": "QT.07",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh tay",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.07.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "TC kỹ thuật 6 bước ABHR/xà phòng — quan sát tay nghề tại điểm chăm sóc. Hub SURF_BM02."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong",
+      "ky_thuat_vien"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|diem_cham_soc",
+    "ly_do_phan_bo": "TC kỹ thuật 6 bước ABHR/xà phòng — quan sát tay nghề tại điểm chăm sóc. Hub SURF_BM02."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.07.BM.03",
+    "ten": "Bảng kiểm đánh giá kỹ thuật vệ sinh tay ngoại khoa (có mục riêng bước chà cồn)",
+    "qt_qd": "QT.07",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh tay",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.07.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Ngoại / PT / gây mê / can thiệp",
+        "Phòng mổ / khối mổ",
+        "Phòng can thiệp mạch"
+      ],
+      "ghi_chu": "VST ngoại khoa — quan sát kỹ thuật tại khu mổ/can thiệp. Hub SURF_BM03."
+    },
+    "doi_tuong_goi_y": [
+      "phau_thuat_vien",
+      "gay_me",
+      "dieu_duong_mo",
+      "NVYT_khu_mo"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "phong_mo|phong_can_thiep",
+    "ly_do_phan_bo": "VST ngoại khoa — quan sát kỹ thuật tại khu mổ/can thiệp. Hub SURF_BM03."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.08.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ chỉ định sử dụng PTPH",
+    "qt_qd": "QT.08",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "PTPH",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.08.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Chỉ định PTPH theo nguy cơ — quan sát thực hành tại điểm chăm sóc."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|diem_cham_soc",
+    "ly_do_phan_bo": "Chỉ định PTPH theo nguy cơ — quan sát thực hành tại điểm chăm sóc."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.08.BM.02",
+    "ten": "Bảng kiểm đánh giá kỹ thuật mặc và cởi PTPH (quan sát doffing)",
+    "qt_qd": "QT.08",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "PTPH",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.08.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Quan sát doffing/donning PTPH — tay nghề tại đơn vị dùng PTPH."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|diem_cham_soc",
+    "ly_do_phan_bo": "Quan sát doffing/donning PTPH — tay nghề tại đơn vị dùng PTPH."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.09.BM.01",
+    "ten": "Bảng kiểm giám sát thực hành tiêm an toàn",
+    "qt_qd": "QT.09",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Tiêm an toàn",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.09.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa lâm sàng chung",
+        "Khoa Cấp cứu",
+        "Khoa Khám bệnh – Ngoại trú",
+        "Nội / ICU / HSTC"
+      ],
+      "ghi_chu": "Thực hành tiêm–truyền tại khoa/đơn vị có tiêm."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "bac_si",
+      "NVYT"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|cap_cuu|kham_benh",
+    "ly_do_phan_bo": "Thực hành tiêm–truyền tại khoa/đơn vị có tiêm."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.10.BM.04",
+    "ten": "Bảng kiểm giám sát tuân thủ hệ thống xử lý phơi nhiễm",
+    "qt_qd": "QT.10",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Phơi nhiễm nghề nghiệp",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.10.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa KSNK"
+      ],
+      "ghi_chu": "v1=toan_vien → v2=he_thong. Hệ thống xử lý PN do KSNK chủ trì; quan sát luồng KB (trong giờ)/CC (ngoài giờ) + hồ sơ tại Ban Quân y/KSNK. Default filter Khoa KSNK."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ksnk",
+      "NVYT",
+      "bac_si",
+      "dieu_duong",
+      "can_bo_quan_ly"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Khoa_KSNK",
+    "noi_quan_sat": "van_phong_ksnk|khoa_kham_benh|cap_cuu",
+    "ly_do_phan_bo": "Tên «hệ thống xử lý phơi nhiễm»; TC03–TC10 kiểm luồng báo cáo tổ chức (KB/CC), PEP khung giờ vàng, lịch theo dõi và hồ sơ lưu tại Ban Quân y/Khoa KSNK — quy trình tổ chức chương trình, không phải quan sát tay nghề tại giường."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.11.BM.01",
+    "ten": "Phiếu phân công và bảng kiểm công việc vệ sinh",
+    "qt_qd": "QT.11",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh môi trường",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.11.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Phân công/checklist công việc vệ sinh theo khoa/khu — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ve_sinh",
+      "ho_ly",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls",
+    "ly_do_phan_bo": "Phân công/checklist công việc vệ sinh theo khoa/khu — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.11.BM.02",
+    "ten": "Bảng kiểm giám sát thực hành vệ sinh môi trường bề mặt",
+    "qt_qd": "QT.11",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh môi trường",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.11.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Kỹ thuật lau/pha hóa chất — quan sát tại đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ve_sinh",
+      "ho_ly"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls",
+    "ly_do_phan_bo": "Kỹ thuật lau/pha hóa chất — quan sát tại đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.11.BM.03",
+    "ten": "Bảng kiểm giám sát chất lượng vệ sinh môi trường bề mặt",
+    "qt_qd": "QT.11",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh môi trường",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.11.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Audit kết quả bề mặt tại khoa/khu — thực hành/đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ve_sinh",
+      "NV_ksnk",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls",
+    "ly_do_phan_bo": "Audit kết quả bề mặt tại khoa/khu — thực hành/đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.11.BM.04",
+    "ten": "Bảng kiểm vệ sinh môi trường khu vực phẫu thuật",
+    "qt_qd": "QT.11",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vệ sinh môi trường",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.11.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Phòng mổ / khối mổ",
+        "Ngoại / PT / gây mê / can thiệp"
+      ],
+      "ghi_chu": "VSMT riêng khối mổ — quan sát tại phòng mổ."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ve_sinh_khu_mo",
+      "dieu_duong_mo",
+      "NV_ksnk"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "phong_mo",
+    "ly_do_phan_bo": "VSMT riêng khối mổ — quan sát tại phòng mổ."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.12.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ quản lý chất thải y tế",
+    "qt_qd": "QT.12",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Chất thải y tế",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.12.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Phân loại/thu gom tại điểm phát sinh — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "NV_ve_sinh",
+      "ho_ly",
+      "NV_van_chuyen_chat_thai"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|diem_phat_sinh",
+    "ly_do_phan_bo": "Phân loại/thu gom tại điểm phát sinh — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.13.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ thu gom đồ vải",
+    "qt_qd": "QT.13",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Đồ vải / Giặt là",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.13.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Thu gom tại giường/phòng thủ thuật — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "NV_ve_sinh",
+      "ho_ly",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls",
+    "ly_do_phan_bo": "Thu gom tại giường/phòng thủ thuật — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.13.BM.02",
+    "ten": "Bảng kiểm giám sát quy trình tại Đơn vị Giặt là",
+    "qt_qd": "QT.13",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Đồ vải / Giặt là",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.13.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Đơn vị Giặt là"
+      ],
+      "ghi_chu": "Thao tác tại ĐV Giặt là — đơn vị thực hành."
+    },
+    "doi_tuong_goi_y": [
+      "NV_giat_la",
+      "ky_thuat_vien_giat"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "don_vi_giat_la",
+    "ly_do_phan_bo": "Thao tác tại ĐV Giặt là — đơn vị thực hành."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.14.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ phòng ngừa dựa trên đường lây truyền",
+    "qt_qd": "QT.14",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Phòng ngừa đường lây",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.14.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Cách ly theo đường lây khi có NB — thực hành tại khoa đang cách ly."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|phong_cach_ly",
+    "ly_do_phan_bo": "Cách ly theo đường lây khi có NB — thực hành tại khoa đang cách ly."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.15.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ quy trình vận chuyển NB",
+    "qt_qd": "QT.15",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vận chuyển NB",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.15.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Vận chuyển liên khoa — thực hành tại điểm bàn giao/hành trình."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "ho_ly",
+      "NV_van_chuyen",
+      "bac_si"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "hanh_lang|thang_may|tai_khoa_ls",
+    "ly_do_phan_bo": "Vận chuyển liên khoa — thực hành tại điểm bàn giao/hành trình."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.16.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ KSNK trong xử lý tử thi",
+    "qt_qd": "QT.16",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Xử lý tử thi",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.16.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa lâm sàng chung",
+        "Khoa Cấp cứu",
+        "Nội / ICU / HSTC",
+        "Khoa Truyền nhiễm"
+      ],
+      "ghi_chu": "Thực hành xử lý tử thi tại khoa có tử vong / nhà tang."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "dieu_duong",
+      "bac_si",
+      "NV_nha_tang"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|nha_tang",
+    "ly_do_phan_bo": "Thực hành xử lý tử thi tại khoa có tử vong / nhà tang."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.17.BM.01",
+    "ten": "Bảng kiểm giám sát chéo mặc/cởi PTPH cấp cao",
+    "qt_qd": "QT.17",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "PTPH cấp cao / Bệnh truyền nhiễm",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.17.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa Truyền nhiễm",
+        "Đơn vị / khu Lao",
+        "Khoa Cấp cứu"
+      ],
+      "ghi_chu": "Quan sát mặc/cởi PTPH cấp cao tại khu cách ly cao."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "dieu_duong",
+      "bac_si",
+      "NV_ksnk"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "khoa_truyen_nhiem|khu_lao|cap_cuu",
+    "ly_do_phan_bo": "Quan sát mặc/cởi PTPH cấp cao tại khu cách ly cao."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.18.BM.02",
+    "ten": "Bảng kiểm giám sát quy trình làm sạch",
+    "qt_qd": "QT.18",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Làm sạch dụng cụ",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.18.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa lâm sàng chung",
+        "Ngoại / PT / gây mê / can thiệp",
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Làm sạch điểm sử dụng + CSSD — thao tác thực hành."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "dieu_duong",
+      "ky_thuat_vien_cssd"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|cssd",
+    "ly_do_phan_bo": "Làm sạch điểm sử dụng + CSSD — thao tác thực hành."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.19.BM.02",
+    "ten": "Bảng kiểm giám sát kiểm tra và bảo dưỡng",
+    "qt_qd": "QT.19",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Kiểm tra bảo dưỡng dụng cụ",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.19.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Thao tác khu sạch CSSD."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd",
+    "ly_do_phan_bo": "Thao tác khu sạch CSSD."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.20.BM.01",
+    "ten": "Bảng kiểm giám sát đóng gói",
+    "qt_qd": "QT.20",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Đóng gói",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.20.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Thao tác đóng gói CSSD."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd",
+    "ly_do_phan_bo": "Thao tác đóng gói CSSD."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.21.BM.01",
+    "ten": "Bảng kiểm vận hành TK + **sổ IUSS**",
+    "qt_qd": "QT.21",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vận hành tiệt khuẩn",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.21.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Vận hành máy TK / IUSS — thao tác CSSD (IUSS tại OR: [PO])."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd",
+    "ly_do_phan_bo": "Vận hành máy TK / IUSS — thao tác CSSD (IUSS tại OR: [PO])."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.22.BM.04",
+    "ten": "Bảng kiểm lưu trữ–cấp phát (có mục hết hạn tại khoa)",
+    "qt_qd": "QT.22",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Lưu trữ – cấp phát",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.22.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "CSSD / tiệt khuẩn",
+        "Khoa lâm sàng chung",
+        "Ngoại / PT / gây mê / can thiệp"
+      ],
+      "ghi_chu": "Kho vô khuẩn CSSD + tủ hết hạn tại khoa — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd",
+      "dieu_duong",
+      "NVYT"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd|tai_khoa_ls",
+    "ly_do_phan_bo": "Kho vô khuẩn CSSD + tủ hết hạn tại khoa — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.23.BM.04",
+    "ten": "Bảng kiểm QC",
+    "qt_qd": "QT.23",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "QC CSSD",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.23.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "QC Bowie-Dick/BI/CI — thao tác/vận hành CSSD."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd",
+      "NV_ksnk"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd",
+    "ly_do_phan_bo": "QC Bowie-Dick/BI/CI — thao tác/vận hành CSSD."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.24.BM.03",
+    "ten": "Bảng kiểm xử lý sự cố",
+    "qt_qd": "QT.24",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Xử lý sự cố CSSD",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.24.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Quy trình sự cố tại CSSD (cách ly mẻ, thu hồi) — đơn vị thực hành CSSD."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd",
+      "truong_cssd",
+      "NV_ksnk"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd",
+    "ly_do_phan_bo": "Quy trình sự cố tại CSSD (cách ly mẻ, thu hồi) — đơn vị thực hành CSSD."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.25.BM.01",
+    "ten": "Bảng kiểm KKMĐC",
+    "qt_qd": "QT.25",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "KKMĐC",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.25.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Thao tác KKMĐC tại khu xử lý CSSD."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd",
+    "ly_do_phan_bo": "Thao tác KKMĐC tại khu xử lý CSSD."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.26.BM.02",
+    "ten": "Bảng kiểm KKMĐC PTNS (có mục «không ngâm PM»)",
+    "qt_qd": "QT.26",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "KKMĐC nội soi",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.26.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Đơn vị Nội soi",
+        "CSSD / tiệt khuẩn"
+      ],
+      "ghi_chu": "Thao tác KKMĐC dụng cụ PTNS tại nội soi/CSSD."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_noi_soi",
+      "ky_thuat_vien_cssd",
+      "NV_noi_soi"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "noi_soi|cssd",
+    "ly_do_phan_bo": "Thao tác KKMĐC dụng cụ PTNS tại nội soi/CSSD."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.27.BM.03",
+    "ten": "Bảng kiểm PCI.03.01",
+    "qt_qd": "QT.27",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "PCI / Dụng cụ",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.27.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "CSSD / tiệt khuẩn",
+        "Ngoại / PT / gây mê / can thiệp",
+        "Khoa lâm sàng chung"
+      ],
+      "ghi_chu": "Tuân thủ tái xử lý SUD tại CSSD + khoa dùng — thực hành đơn vị (TC10 KSNK thu thập dữ liệu là hỗ trợ, không đổi lớp)."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd",
+      "bac_si",
+      "dieu_duong",
+      "NV_trang_bi"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd|tai_khoa_ls|phong_mo",
+    "ly_do_phan_bo": "Tuân thủ tái xử lý SUD tại CSSD + khoa dùng — thực hành đơn vị (TC10 KSNK thu thập dữ liệu là hỗ trợ, không đổi lớp)."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.28.BM.02",
+    "ten": "Bảng kiểm loaner",
+    "qt_qd": "QT.28",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Loaner",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.28.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "CSSD / tiệt khuẩn",
+        "Ngoại / PT / gây mê / can thiệp",
+        "Phòng mổ / khối mổ"
+      ],
+      "ghi_chu": "Tiếp nhận/làm sạch/tiệt khuẩn dụng cụ mượn — thao tác CSSD + OR."
+    },
+    "doi_tuong_goi_y": [
+      "ky_thuat_vien_cssd",
+      "NV_trang_bi",
+      "nha_cung_cap"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cssd|phong_mo",
+    "ly_do_phan_bo": "Tiếp nhận/làm sạch/tiệt khuẩn dụng cụ mượn — thao tác CSSD + OR."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.29.BM.01",
+    "ten": "Bảng kiểm an toàn phẫu thuật (SSI / QĐ 7482)",
+    "qt_qd": "QT.29",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "SSI",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.29.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Ngoại / PT / gây mê / can thiệp",
+        "Phòng mổ / khối mổ"
+      ],
+      "ghi_chu": "Bundle SSI trước/trong mổ — thực hành khối mổ/ngoại."
+    },
+    "doi_tuong_goi_y": [
+      "phau_thuat_vien",
+      "gay_me",
+      "dieu_duong_mo",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "phong_mo|tai_khoa_ls",
+    "ly_do_phan_bo": "Bundle SSI trước/trong mổ — thực hành khối mổ/ngoại."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.29.BM.02",
+    "ten": "Bảng kiểm giám sát tuân thủ gói phòng ngừa SSI",
+    "qt_qd": "QT.29",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "SSI",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.29.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Ngoại / PT / gây mê / can thiệp",
+        "Phòng mổ / khối mổ",
+        "Khoa Hồi sức ngoại"
+      ],
+      "ghi_chu": "Gói SSI chu phẫu/hậu phẫu — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "phau_thuat_vien",
+      "dieu_duong_mo",
+      "dieu_duong",
+      "bac_si"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "phong_mo|hs_ngoai|tai_khoa_ls",
+    "ly_do_phan_bo": "Gói SSI chu phẫu/hậu phẫu — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.30.BM.01",
+    "ten": "Bảng kiểm an toàn đặt CVC (Insertion Bundle)",
+    "qt_qd": "QT.30",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "CLABSI / CVC",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.30.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Nội / ICU / HSTC",
+        "Khoa Hồi sức nội",
+        "Khoa Hồi sức ngoại",
+        "Khoa Cấp cứu",
+        "Ngoại / PT / gây mê / can thiệp"
+      ],
+      "ghi_chu": "Insertion bundle — quan sát tại nơi đặt CVC."
+    },
+    "doi_tuong_goi_y": [
+      "bac_si",
+      "dieu_duong",
+      "phau_thuat_vien"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "icu|hs|cap_cuu|phong_mo",
+    "ly_do_phan_bo": "Insertion bundle — quan sát tại nơi đặt CVC."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.30.BM.02",
+    "ten": "Bảng kiểm giám sát tuân thủ chăm sóc CVC (Maintenance Bundle)",
+    "qt_qd": "QT.30",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "CLABSI / CVC",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.30.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Nội / ICU / HSTC",
+        "Khoa Hồi sức nội",
+        "Khoa Hồi sức ngoại",
+        "Khoa lâm sàng chung"
+      ],
+      "ghi_chu": "Maintenance bundle tại khoa đang lưu CVC."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "bac_si"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|icu|hs",
+    "ly_do_phan_bo": "Maintenance bundle tại khoa đang lưu CVC."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.31.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ gói phòng ngừa CAUTI",
+    "qt_qd": "QT.31",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "CAUTI",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.31.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa lâm sàng chung",
+        "Nội / ICU / HSTC",
+        "Khoa Cấp cứu"
+      ],
+      "ghi_chu": "Đặt/chăm sóc ống thông tiểu — thực hành khoa."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "bac_si"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|icu|cap_cuu",
+    "ly_do_phan_bo": "Đặt/chăm sóc ống thông tiểu — thực hành khoa."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.32.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ gói phòng ngừa VAP (gồm mục cuff / ấm-ẩm / chủ sở hữu Trang bị)",
+    "qt_qd": "QT.32",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "VAP / VPLQTM",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.32.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Nội / ICU / HSTC",
+        "Khoa Hồi sức nội",
+        "Khoa Hồi sức ngoại"
+      ],
+      "ghi_chu": "Gói VAP tại đơn vị thở máy."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "bac_si",
+      "ky_thuat_vien_ho_hap"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "icu|hs",
+    "ly_do_phan_bo": "Gói VAP tại đơn vị thở máy."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.32.BM.02",
+    "ten": "Bảng kiểm thực hành hằng ngày phòng ngừa VPLQTM",
+    "qt_qd": "QT.32",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "VAP / VPLQTM",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.32.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Nội / ICU / HSTC",
+        "Khoa Hồi sức nội",
+        "Khoa Hồi sức ngoại"
+      ],
+      "ghi_chu": "Checklist ca trực VPLQTM — thực hành ICU/HS."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "bac_si",
+      "ky_thuat_vien_ho_hap"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "icu|hs",
+    "ly_do_phan_bo": "Checklist ca trực VPLQTM — thực hành ICU/HS."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.35.BM.04",
+    "ten": "Bảng kiểm giám sát tuân thủ xử lý vụ dịch",
+    "qt_qd": "QT.35",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Xử lý vụ dịch",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.35.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa KSNK"
+      ],
+      "ghi_chu": "v1=toan_vien → v2=he_thong. Điều phối xử lý vụ dịch cấp viện do Khoa KSNK chủ trì; điểm quan sát = khu vụ dịch được chỉ định. Default phiên=KSNK."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ksnk",
+      "can_bo_quan_ly",
+      "thanh_vien_mang_luoi",
+      "NVYT"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Khoa_KSNK",
+    "noi_quan_sat": "van_phong_ksnk|khu_vu_dich",
+    "ly_do_phan_bo": "Xử lý vụ dịch là hoạt động chương trình cấp viện do Khoa KSNK điều phối (cách ly, cohort, đình chỉ vật tư, line-list, đầu mối phát ngôn TC01–TC10) — đánh giá hệ thống đáp ứng dịch, không phải bundle thường quy tại một khoa."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.36.BM.03",
+    "ten": "Bảng kiểm giám sát tuân thủ phòng ngừa MDRO (có mục TB dùng chung)",
+    "qt_qd": "QT.36",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "MDRO",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.36.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Cách ly tiếp xúc MDRO tại khoa có NB — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "dieu_duong",
+      "bac_si"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|phong_cach_ly",
+    "ly_do_phan_bo": "Cách ly tiếp xúc MDRO tại khoa có NB — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.37.BM.03",
+    "ten": "Bảng kiểm giám sát tuân thủ quy trình lấy mẫu vi sinh môi trường",
+    "qt_qd": "QT.37",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Vi sinh môi trường",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.37.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Khoa KSNK",
+        "Cận lâm sàng",
+        "Khoa Xét nghiệm"
+      ],
+      "ghi_chu": "TC kỹ thuật lấy mẫu KK/bề mặt/nước — thực hành kỹ thuật do KSNK/XN thực hiện tại khu được chỉ định (không phải đánh giá hệ thống quản trị)."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ksnk",
+      "NV_xet_nghiem",
+      "ky_thuat_vien"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khu_lay_mau|van_phong_ksnk|xn",
+    "ly_do_phan_bo": "TC kỹ thuật lấy mẫu KK/bề mặt/nước — thực hành kỹ thuật do KSNK/XN thực hiện tại khu được chỉ định (không phải đánh giá hệ thống quản trị)."
+  },
+  {
+    "ma_qt_bm": "KSNK.QT.38.BM.03",
+    "ten": "Bảng kiểm giám sát tuân thủ quản lý và sử dụng hóa chất",
+    "qt_qd": "QT.38",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Hóa chất",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QT/KSNK.QT.38.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Lưu/pha/dùng hóa chất tại đơn vị — thực hành."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "NV_ve_sinh",
+      "ky_thuat_vien_cssd",
+      "NV_pha_che"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|cssd|pha_che",
+    "ly_do_phan_bo": "Lưu/pha/dùng hóa chất tại đơn vị — thực hành."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.01.BM.01",
+    "ten": "Bảng kiểm đánh giá mức độ thiết lập và vận hành Hệ thống KSNK",
+    "qt_qd": "QĐ.01",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Hệ thống KSNK",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.01.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa KSNK"
+      ],
+      "ghi_chu": "Đánh giá thiết lập/vận hành Hệ thống KSNK cấp viện — audit chương trình. Default khoa=KSNK."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ksnk",
+      "thanh_vien_hoi_dong",
+      "can_bo_quan_ly"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Khoa_KSNK",
+    "noi_quan_sat": "van_phong_ksnk|hoi_dong",
+    "ly_do_phan_bo": "Tên «mức độ thiết lập và vận hành Hệ thống KSNK»; TC01–TC11 kiểm HĐ/Khoa/Mạng lưới, kế hoạch năm, bộ QT/QĐ, FTE, giám sát NKBV, KPI — đánh giá hệ thống cấp viện do Khoa KSNK chủ trì."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.02.BM.01",
+    "ten": "Bảng kiểm đánh giá hoạt động bảo đảm an toàn nghề nghiệp",
+    "qt_qd": "QĐ.02",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "An toàn nghề nghiệp",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.02.md",
+    "ghi_chu": "PO Nghĩa chốt 2026-09-22: đưa vào phạm vi GS tuân thủ (đồng bộ QT); digital=co.",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa KSNK"
+      ],
+      "ghi_chu": "v1=toan_vien → v2=he_thong. Chương trình ATNN (tiêm chủng, Fit-test, PEP 24/7, hồ sơ miễn dịch) — audit quản trị do KSNK/Ban Quân y; không quan sát tay nghề tại giường."
+    },
+    "doi_tuong_goi_y": [
+      "NV_ksnk",
+      "can_bo_quan_ly",
+      "NV_hanh_chinh"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "he_thong",
+    "co_quan_chu_tri": "Khoa_KSNK",
+    "noi_quan_sat": "van_phong_ksnk|ban_quan_y",
+    "ly_do_phan_bo": "TC01–TC09 kiểm ngân sách khám SK, chương trình tiêm chủng, hạn chế công việc, hệ thống báo cáo PN 24/7, tủ PEP, Fit-test N95 — đánh giá chương trình ATNN cấp viện, không phải tuân thủ thực hành tại khoa LS."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.03.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ KSNK đối với khách thăm và người nhà",
+    "qt_qd": "QĐ.03",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Khách thăm / người nhà",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.03.md",
+    "pham_vi_khoa": {
+      "loai": "toan_vien",
+      "nhom": [
+        "Toàn viện"
+      ],
+      "ghi_chu": "Tuân thủ quy định khách thăm tại khoa có thăm — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "dieu_duong",
+      "khach_tham",
+      "nguoi_nha"
+    ],
+    "bat_buoc_filter_khoa": false,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "tai_khoa_ls|loi_vao",
+    "ly_do_phan_bo": "Tuân thủ quy định khách thăm tại khoa có thăm — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.04.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ kiểm soát nhiễm khuẩn tại Khoa Khám bệnh và Ngoại trú",
+    "qt_qd": "QĐ.04",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Khoa Khám bệnh – Ngoại trú",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.04.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Khoa Khám bệnh – Ngoại trú"
+      ],
+      "ghi_chu": "QĐ chuyên khoa — quan sát tại KB–Ngoại trú."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong",
+      "NV_tiep_don"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "kham_benh",
+    "ly_do_phan_bo": "QĐ chuyên khoa — quan sát tại KB–Ngoại trú."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.05.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ KSNK tại Khoa Cấp cứu",
+    "qt_qd": "QĐ.05",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Khoa Cấp cứu",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.05.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Khoa Cấp cứu"
+      ],
+      "ghi_chu": "QĐ chuyên khoa Cấp cứu — thực hành tại CC."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "cap_cuu",
+    "ly_do_phan_bo": "QĐ chuyên khoa Cấp cứu — thực hành tại CC."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.06.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ KSNK tại Khoa Truyền nhiễm",
+    "qt_qd": "QĐ.06",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Khoa Truyền nhiễm",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.06.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Khoa Truyền nhiễm"
+      ],
+      "ghi_chu": "QĐ chuyên khoa Truyền nhiễm."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "khoa_truyen_nhiem",
+    "ly_do_phan_bo": "QĐ chuyên khoa Truyền nhiễm."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.07.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ quy định kiểm soát lây nhiễm lao",
+    "qt_qd": "QĐ.07",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Lao",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.07.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Đơn vị / khu Lao",
+        "Khoa Truyền nhiễm",
+        "Khoa Khám bệnh – Ngoại trú",
+        "Khoa Cấp cứu"
+      ],
+      "ghi_chu": "Thực hành sàng lọc/cách ly lao tại điểm tiếp đón và đơn vị Lao."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong",
+      "NV_tiep_don"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "khu_lao|tn|kham_benh|cap_cuu",
+    "ly_do_phan_bo": "Thực hành sàng lọc/cách ly lao tại điểm tiếp đón và đơn vị Lao."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.08.BM.01",
+    "ten": "Bảng kiểm KSNK phòng mổ (gồm lệnh cấm HĐ 31/07, hạn kệ, VSMT 4290)",
+    "qt_qd": "QĐ.08",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Phòng mổ",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.08.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Phòng mổ / khối mổ"
+      ],
+      "ghi_chu": "Thực hành KSNK tại khối phòng mổ (dù tên có «hệ thống» khu vực — tiêu chí là quan sát tại OR)."
+    },
+    "doi_tuong_goi_y": [
+      "phau_thuat_vien",
+      "gay_me",
+      "dieu_duong_mo",
+      "NV_ve_sinh_khu_mo"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "phong_mo",
+    "ly_do_phan_bo": "Thực hành KSNK tại khối phòng mổ (dù tên có «hệ thống» khu vực — tiêu chí là quan sát tại OR)."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.09.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ kiểm soát nhiễm khuẩn tại phòng can thiệp mạch",
+    "qt_qd": "QĐ.09",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Can thiệp mạch",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.09.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Phòng can thiệp mạch"
+      ],
+      "ghi_chu": "Thực hành tại phòng can thiệp mạch."
+    },
+    "doi_tuong_goi_y": [
+      "bac_si",
+      "dieu_duong",
+      "ky_thuat_vien",
+      "NVYT_can_thiep"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "phong_can_thiep",
+    "ly_do_phan_bo": "Thực hành tại phòng can thiệp mạch."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.10.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ kiểm soát nhiễm khuẩn tại nha khoa",
+    "qt_qd": "QĐ.10",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Nha khoa",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.10.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Nha khoa"
+      ],
+      "ghi_chu": "Thực hành tại nha khoa."
+    },
+    "doi_tuong_goi_y": [
+      "bac_si_nha_khoa",
+      "NV_nha_khoa",
+      "tro_ly_nha_khoa"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "nha_khoa",
+    "ly_do_phan_bo": "Thực hành tại nha khoa."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.11.BM.01",
+    "ten": "Bảng kiểm an toàn KSNK phòng nội soi (preclean phút, cấm ngâm PM, MEC, sấy, tủ, PPE, tiêm)",
+    "qt_qd": "QĐ.11",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Nội soi",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.11.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Đơn vị Nội soi"
+      ],
+      "ghi_chu": "Thực hành tại đơn vị nội soi."
+    },
+    "doi_tuong_goi_y": [
+      "bac_si_noi_soi",
+      "ky_thuat_vien_noi_soi",
+      "NV_noi_soi"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "noi_soi",
+    "ly_do_phan_bo": "Thực hành tại đơn vị nội soi."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.12.BM.01",
+    "ten": "Bảng kiểm giám sát chính sách kiểm soát nhiễm khuẩn tại Khoa Hồi sức nội",
+    "qt_qd": "QĐ.12",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Hồi sức nội",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.12.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Khoa Hồi sức nội"
+      ],
+      "ghi_chu": "Chính sách/thực hành tại HS nội — tiêu chí bundle tại giường (CVC/CAUTI/VAP/MDRO), không phải audit hệ thống viện."
+    },
+    "doi_tuong_goi_y": [
+      "bac_si",
+      "dieu_duong",
+      "ky_thuat_vien_ho_hap"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "hs_noi",
+    "ly_do_phan_bo": "Chính sách/thực hành tại HS nội — tiêu chí bundle tại giường (CVC/CAUTI/VAP/MDRO), không phải audit hệ thống viện."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.13.BM.01",
+    "ten": "Bảng kiểm giám sát hệ thống kiểm soát nhiễm khuẩn tại Khoa Hồi sức ngoại",
+    "qt_qd": "QĐ.13",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Hồi sức ngoại",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.13.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Khoa Hồi sức ngoại"
+      ],
+      "ghi_chu": "Dù tên «hệ thống KSNK tại Khoa HS ngoại» — TC01–TC09 là thực hành tại khoa (VST giường, MDRO, băng vết mổ, KSDP) → thuc_hanh_don_vi, không phải lớp đánh giá hệ "
+    },
+    "doi_tuong_goi_y": [
+      "bac_si",
+      "dieu_duong",
+      "phau_thuat_vien"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "hs_ngoai",
+    "ly_do_phan_bo": "Dù tên «hệ thống KSNK tại Khoa HS ngoại» — TC01–TC09 là thực hành tại khoa (VST giường, MDRO, băng vết mổ, KSDP) → thuc_hanh_don_vi, không phải lớp đánh giá hệ thống viện."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.14.BM.01",
+    "ten": "Bảng kiểm vệ sinh lồng ấp và giường sưởi",
+    "qt_qd": "QĐ.14",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Lồng ấp / giường sưởi",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.14.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Nhi / Sản / khu lồng ấp",
+        "Nội / ICU / HSTC"
+      ],
+      "ghi_chu": "Thao tác vệ sinh thiết bị tại Nhi/Sản/ICU."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "NV_ve_sinh",
+      "bac_si"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "nhi_san|icu",
+    "ly_do_phan_bo": "Thao tác vệ sinh thiết bị tại Nhi/Sản/ICU."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.15.BM.01",
+    "ten": "Bảng kiểm giám sát KSNK tại Đơn vị Lọc máu",
+    "qt_qd": "QĐ.15",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Lọc máu",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.15.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Đơn vị Lọc máu"
+      ],
+      "ghi_chu": "Thực hành tại ĐV Lọc máu."
+    },
+    "doi_tuong_goi_y": [
+      "dieu_duong",
+      "bac_si",
+      "ky_thuat_vien_loc_mau"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "loc_mau",
+    "ly_do_phan_bo": "Thực hành tại ĐV Lọc máu."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.16.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ môi trường bảo vệ (PE)",
+    "qt_qd": "QĐ.16",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Môi trường bảo vệ (PE)",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.16.md",
+    "pham_vi_khoa": {
+      "loai": "nhom_khoa",
+      "nhom": [
+        "Trung tâm / Khoa Ung bướu",
+        "Đơn vị Ghép tạng",
+        "Nội / ICU / HSTC",
+        "Khoa Hồi sức nội"
+      ],
+      "ghi_chu": "Thực hành PE tại khoa có NB giảm BC."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "dieu_duong",
+      "bac_si",
+      "khach_tham"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "ung_buou|ghep|icu|hs",
+    "ly_do_phan_bo": "Thực hành PE tại khoa có NB giảm BC."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.17.BM.01",
+    "ten": "Bảng kiểm giám sát an toàn KSNK tại Trung tâm Ung bướu",
+    "qt_qd": "QĐ.17",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Ung bướu",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.17.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Trung tâm / Khoa Ung bướu"
+      ],
+      "ghi_chu": "Thực hành tại TT/Khoa Ung bướu."
+    },
+    "doi_tuong_goi_y": [
+      "NVYT",
+      "bac_si",
+      "dieu_duong"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "ung_buou",
+    "ly_do_phan_bo": "Thực hành tại TT/Khoa Ung bướu."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.18.BM.01",
+    "ten": "Bảng kiểm sàng lọc KSNK và giám sát an toàn môi trường ghép tạng",
+    "qt_qd": "QĐ.18",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Ghép tạng",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.18.md",
+    "pham_vi_khoa": {
+      "loai": "chuyen_khoa",
+      "nhom": [
+        "Đơn vị Ghép tạng"
+      ],
+      "ghi_chu": "Sàng lọc/an toàn môi trường tại ĐV Ghép tạng — thực hành đơn vị."
+    },
+    "doi_tuong_goi_y": [
+      "bac_si",
+      "dieu_duong",
+      "NV_ksnk",
+      "NV_xet_nghiem"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "ghep_tang",
+    "ly_do_phan_bo": "Sàng lọc/an toàn môi trường tại ĐV Ghép tạng — thực hành đơn vị."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.19.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ an toàn sinh học tại Khoa Xét nghiệm",
+    "qt_qd": "QĐ.19",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Xét nghiệm / ATSB",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.19.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khoa Xét nghiệm"
+      ],
+      "ghi_chu": "Thực hành ATSB tại Khoa XN."
+    },
+    "doi_tuong_goi_y": [
+      "NV_xet_nghiem",
+      "ky_thuat_vien_xn",
+      "bac_si_xn"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "xn",
+    "ly_do_phan_bo": "Thực hành ATSB tại Khoa XN."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.20.BM.01",
+    "ten": "Bảng kiểm giám sát tuân thủ KSNK tại khu vực pha chế",
+    "qt_qd": "QĐ.20",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Pha chế",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.20.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Khu vực pha chế / Dược"
+      ],
+      "ghi_chu": "Thực hành tại khu pha chế."
+    },
+    "doi_tuong_goi_y": [
+      "NV_pha_che",
+      "duoc_si",
+      "ky_thuat_vien_duoc"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "pha_che",
+    "ly_do_phan_bo": "Thực hành tại khu pha chế."
+  },
+  {
+    "ma_qt_bm": "KSNK.QĐ.21.BM.02",
+    "ten": "Bảng kiểm giám sát an toàn KSNK tại bếp ăn",
+    "qt_qd": "QĐ.21",
+    "ho_form": "BK",
+    "digital": "co",
+    "chuyen_de": "Bếp ăn",
+    "loai_giam_sat_de_xuat": "TUAN_THU",
+    "status": "draft_from_qt",
+    "source_file": "ipc-updated/QD/KSNK.QD.21.md",
+    "pham_vi_khoa": {
+      "loai": "don_vi_cu_the",
+      "nhom": [
+        "Bếp ăn"
+      ],
+      "ghi_chu": "Thực hành an toàn KSNK tại bếp."
+    },
+    "doi_tuong_goi_y": [
+      "NV_bep",
+      "NV_dinh_duong"
+    ],
+    "bat_buoc_filter_khoa": true,
+    "lop_giam_sat": "thuc_hanh_don_vi",
+    "co_quan_chu_tri": "Don_vi_thuc_hanh",
+    "noi_quan_sat": "bep_an",
+    "ly_do_phan_bo": "Thực hành an toàn KSNK tại bếp."
+  }
+]

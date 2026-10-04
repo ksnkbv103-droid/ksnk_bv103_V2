@@ -4,13 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { listSetReconcileWorksheetRowsAction } from "@/modules/cssd-su-co/actions/set-reconcile-campaign.actions";
-import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { CSSD_UI_LINK_QUIET } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
-const TEXT_ACTION = `${UI.formLabel} font-semibold text-[var(--primary)] hover:underline disabled:opacity-50`;
-
-/** Xuất phiếu kiểm kê + lối vào duyệt rà soát (quản trị). */
+/** Xuất phiếu kiểm kê + lối vào duyệt rà soát (quản trị) — quiet chrome (P1-4). */
 export default function SetReconcileCampaignPanel() {
   const { isAdmin } = useModulePermission("BO_DC");
   const [exporting, setExporting] = useState(false);
@@ -62,12 +60,12 @@ export default function SetReconcileCampaignPanel() {
   };
 
   return (
-    <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
-      <button type="button" disabled={exporting} onClick={() => void exportExcel()} className={TEXT_ACTION}>
+    <span className="inline-flex flex-wrap items-center gap-x-2.5 gap-y-1">
+      <button type="button" disabled={exporting} onClick={() => void exportExcel()} className={CSSD_UI_LINK_QUIET}>
         {exporting ? "Đang xuất…" : "Xuất phiếu kiểm kê"}
       </button>
       {isAdmin ? (
-        <Link href={quanTriDungCuHref("phieu")} className={TEXT_ACTION}>
+        <Link href={quanTriDungCuHref("phieu")} className={CSSD_UI_LINK_QUIET}>
           Phiếu đổi danh mục (chờ duyệt)
         </Link>
       ) : null}

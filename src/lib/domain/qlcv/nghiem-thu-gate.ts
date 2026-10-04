@@ -34,7 +34,8 @@ function isPhieuMoDangLam(st: string, input: QlcvNghiemThuGateInput): boolean {
 export function isEligibleForNghiemThu(input: QlcvNghiemThuGateInput): boolean {
   if (isQlcvLoaiDinhKy(input.loai_cong_viec)) return false;
   const st = normalizeQlcvTrangThaiToCanonical(input.trang_thai);
-  if (st === "HOAN_THANH" || st === "DA_HUY") return false;
+  // TU_CHOI = đã từ chối NT → «làm lại», không giữ cổng chờ nghiệm thu dù vẫn 100%/quá hạn.
+  if (st === "HOAN_THANH" || st === "DA_HUY" || st === "TU_CHOI") return false;
   const pct = Number(input.phan_tram_hoan_thanh ?? 0);
   if (st === "CHO_DUYET") return true;
   if (pct < 100) return false;

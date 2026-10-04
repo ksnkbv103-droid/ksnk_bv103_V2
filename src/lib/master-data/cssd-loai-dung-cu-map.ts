@@ -217,8 +217,19 @@ export function missingTramCssdSeedMessage(maTramGoiY: string): string {
   return `Chưa gắn được trạm thật cho gợi ý ${maTramGoiY}. Kiểm tra danh mục «Trạm workflow CSSD». Loại dụng cụ đã lưu — chưa ghi id trạm.`;
 }
 
-/** Ghi bảng vật lý từ form MDM (alias UI → ma_loai/ten_loai + specs + cột domain). */
-export function buildLoaiPhysicalUpsertPayload(input: Record<string, unknown>): Record<string, unknown> {
+function khoDuPhongBanDau(value: unknown): number {
+  const n = Math.floor(Number(value) || 0);
+  return n > 0 ? n : 0;
+}
+
+/**
+ * Ghi bảng vật lý từ form MDM (alias UI → ma_loai/ten_loai + specs + cột domain).
+ * CREATE ghi `so_luong_kho_du_phong` (thiếu → 0). UPDATE không gửi cột — chỉ ledger/RPC được đổi kho.
+ */
+export function buildLoaiPhysicalUpsertPayload(
+  input: Record<string, unknown>,
+  mode: "create" | "update" = String(input.id ?? "").trim() ? "update" : "create",
+): Record<string, unknown> {
   const ma = String(
     input.ma_danh_muc ?? input.ma_loai_dung_cu ?? input.ma_loai ?? "",
   )
@@ -267,11 +278,10 @@ export function buildLoaiPhysicalUpsertPayload(input: Record<string, unknown>): 
     }
   }
 
-  return {
+  const payload: Record<string, unknown> = {
     ma_loai: ma,
     ten_loai: ten,
     phan_loai: String(input.phan_loai || "PHAU_THUAT"),
-    so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
     specs,
@@ -279,6 +289,10 @@ export function buildLoaiPhysicalUpsertPayload(input: Record<string, unknown>): 
     phan_loai_spaulding: spaulding,
     phuong_phap_tiet_khuan_chi_dinh: sterile,
   };
+  if (mode === "create") {
+    payload.so_luong_kho_du_phong = khoDuPhongBanDau(input.so_luong_kho_du_phong);
+  }
+  return payload;
 }
 
 /** Excel xuất: luôn alias UI, không lộ cột vật lý `ma_loai`/`ten_loai`. */
@@ -358,4 +372,16 @@ export function syncLoaiPhysicalColumnsOnImportPayload(
   delete payload.ten_loai_dung_cu;
   delete payload.kha_nang_chiu_nhiet;
   delete payload.phuong_phap_tiet_khuan;
+}
+
+/** Excel nạp loại: CREATE ghi kho ban đầu; UPDATE xóa cột khỏi payload upsert. */
+export function applyLoaiKhoDuPhongOnImportPayload(
+  payload: Record<string, unknown>,
+  isUpdate: boolean,
+): void {
+  if (isUpdate) {
+    delete payload.so_luong_kho_du_phong;
+    return;
+  }
+  payload.so_luong_kho_du_phong = khoDuPhongBanDau(payload.so_luong_kho_du_phong);
 }

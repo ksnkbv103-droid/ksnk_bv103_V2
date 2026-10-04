@@ -4,15 +4,14 @@
  */
 
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
+import {
+  WORKFLOW_STEPS,
+  stationLabel as cssdStationLabel,
+} from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
-export const CSSD_ANALYTICS_STATIONS = [
-  "TIEP_NHAN",
-  "LAM_SACH",
-  "QC",
-  "DONG_GOI",
-  "TIET_KHUAN",
-  "CAP_PHAT",
-] as const;
+/** Mirror Domain WORKFLOW_STEPS — do not diverge to a 7th station. */
+export const CSSD_ANALYTICS_STATIONS = WORKFLOW_STEPS;
 
 export type CssdAnalyticsStation = (typeof CSSD_ANALYTICS_STATIONS)[number];
 
@@ -104,11 +103,21 @@ export type CssdMayUsageRow = {
   so_lan_dung: number;
 };
 
-function parseIsoDatePart(raw: unknown): string | null {
+/**
+ * Ngày lịch VN của mốc quét. Timestamptz có múi (Z / +00:00) quy về Asia/Ho_Chi_Minh:
+ * 06:00 VN ngày 01/10 = 23:00Z 30/09 vẫn thuộc 01/10. Chuỗi ngày trơn giữ nguyên.
+ */
+export function cssdVnDay(raw: unknown): string | null {
   const s = String(raw || "").trim();
-  if (!s) return null;
   const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
-  return m?.[1] ?? null;
+  if (!m) return null;
+  if (!/T\d{2}:\d{2}.*(Z|[+-]\d{2}(:?\d{2})?)$/i.test(s)) return m[1];
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? todayYmdInVn(new Date(t)) : m[1];
+}
+
+function parseIsoDatePart(raw: unknown): string | null {
+  return cssdVnDay(raw);
 }
 
 function inInclusiveDateRange(isoDay: string, from: string, to: string): boolean {
@@ -124,7 +133,7 @@ export function stationTimeBucketKey(isoTs: string, bucket: CssdVolumeBucket): s
 }
 
 export function stationLabel(station: CssdAnalyticsStation): string {
-  return station.replace(/_/g, " ");
+  return cssdStationLabel(station);
 }
 
 /** Sản lượng hoàn thành theo trạm trong kỳ (theo timestamp trạm). */

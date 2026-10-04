@@ -47,7 +47,7 @@ export function QlcvPeriodExecPrintView({ period, tasks }: Props) {
               <th style={{ ...th, width: "28%" }}>Tiêu đề</th>
               <th style={{ ...th, width: "12%" }}>Loại</th>
               <th style={{ ...th, width: "14%" }}>Vị trí</th>
-              <th style={{ ...th, width: "14%" }}>Phụ trách</th>
+              <th style={{ ...th, width: "14%" }}>Người thực hiện</th>
               <th style={{ ...th, width: "12%" }}>Hạn</th>
               <th style={{ ...th, width: "8%" }}>TT</th>
               <th style={{ ...th, width: "6%" }}>%</th>

@@ -13,6 +13,7 @@ import {
   resolveSsiSurveillanceDays,
   secondaryIncisionMismatchWarning,
 } from "../../lib/nkbv-ssi-nhsn-catalog";
+import { evaluateSsi } from "../../lib/nkbv-rules-engine";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import type { SsiVerificationData } from "../../types/nkbv-verification";
 import NkbvCh17CriteriaChecklist from "../NkbvCh17CriteriaChecklist";
@@ -84,6 +85,10 @@ export default function SsiClinicalSubForm({
     form.ssi_event_type,
     form.loai_phau_thuat_nhsn,
   );
+  const depthEngineWarn = useMemo(() => {
+    const res = evaluateSsi(form);
+    return res.warnings?.length ? res.warnings.join(" · ") : null;
+  }, [form]);
   const survStart = form.surgery_date || undefined;
   const survEnd = form.surgery_date
     ? (() => {
@@ -327,6 +332,11 @@ export default function SsiClinicalSubForm({
           {secondaryWarn ? (
             <p className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] text-amber-950">
               {secondaryWarn}
+            </p>
+          ) : null}
+          {depthEngineWarn ? (
+            <p className="mt-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] text-amber-950">
+              <strong>Sâu nhất thắng:</strong> {depthEngineWarn}
             </p>
           ) : null}
           {depth === "ORGAN_SPACE" ? (

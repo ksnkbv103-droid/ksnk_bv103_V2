@@ -6,11 +6,14 @@ import { Search, History, CheckCircle2, AlertTriangle, Clock, User, QrCode } fro
 import QrScanInput from "@/components/shared/QrScanInput";
 import { toast } from "sonner";
 import { fetchCssdQrHistory, assignCssdCaMoTrace } from "../../actions/cssd-qr-history.actions";
+import { markCssdUsedClinicallyAction } from "@/modules/cssd-su-co/actions/cssd-used-clinically.actions";
+import { isCssdCycleUsedClinically } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 import { useCssdPrint } from "../../hooks/use-cssd-print";
 import CssdPrintPortal from "../print/CssdPrintPortal";
 import type { CssdBatchPrintData } from "../../types/cssd-print.types";
-import { formatCssdPrintDateTime, formatCssdTriLabel } from "../../lib/cssd-print-format";
+import { formatCssdPrintDateTime } from "../../lib/cssd-print-format";
 import { normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
+import { stationLabel } from "../../workflow/domain/cssd-stations";
 
 interface HistoryLog {
   id: string;
@@ -37,6 +40,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
   const [batchTrace, setBatchTrace] = useState<CssdBatchPrintData | null>(null);
   const [assigningCaMo, setAssigningCaMo] = useState(false);
   const [caMoInput, setCaMoInput] = useState("");
+  const [togglingUsed, setTogglingUsed] = useState(false);
   const autoFetched = useRef<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
   const { printState, onPrintBatch, isPrinting } = useCssdPrint();
@@ -85,12 +89,37 @@ export default function QRHistoryViewer({ initialQr }: Props) {
     try {
       const res = await assignCssdCaMoTrace(String(process.id), val);
       if (!res.success) throw new Error(res.error);
-      toast.success("Đã gán truy vết ca mổ / bệnh nhân");
+      toast.success("Đã ghi nhận dùng lâm sàng (ca mổ) — actor + timestamp");
       await fetchHistory(code);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Không gán được ca mổ");
     } finally {
       setAssigningCaMo(false);
+    }
+  };
+
+  /** Manual fallback Domain 23 — khi thiếu event khoa/PM; không thay event A. */
+  const toggleUsedClinicallyManual = async () => {
+    if (!process?.id) return;
+    const currentlyUsed = isCssdCycleUsedClinically({
+      usedClinically: process.used_clinically,
+      usedClinicallyAt: process.used_clinically_at,
+      usedClinicallyBy: process.used_clinically_by,
+    });
+    setTogglingUsed(true);
+    try {
+      const res = await markCssdUsedClinicallyAction({
+        quyTrinhId: String(process.id),
+        source: "MANUAL",
+        clear: currentlyUsed,
+      });
+      if (!res.success) throw new Error(res.error);
+      toast.success(currentlyUsed ? "Đã gỡ cờ used_clinically (manual)" : "Đã ghi nhận used_clinically (manual)");
+      await fetchHistory(code);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Không cập nhật used_clinically");
+    } finally {
+      setTogglingUsed(false);
     }
   };
 
@@ -129,20 +158,20 @@ export default function QRHistoryViewer({ initialQr }: Props) {
         <div className="bv103-layer-panel bv103-pad-panel bv103-stack-in animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h3 className="bv103-type-title text-slate-900 mb-1">Mẻ tiệt khuẩn: {batchTrace.maLo}</h3>
-            <p className="text-sm text-emerald-700 font-medium">
-              {batchTrace.ketQuaDat ? "Đạt QC — sẵn sàng cấp phát" : "Không đạt QC"}
-            </p>
+            <p className="text-sm text-emerald-700 font-medium">Trạng thái: {batchTrace.trangThaiLabel}</p>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
               <span><strong>Thiết bị:</strong> {batchTrace.thietBi}</span>
-              <span><strong>Người load:</strong> {batchTrace.nguoiLoad}</span>
-              <span><strong>Người dỡ:</strong> {batchTrace.nguoiUnload}</span>
-              <span><strong>Kết thúc:</strong> {formatCssdPrintDateTime(batchTrace.thoiGianKetThuc)}</span>
-              <span><strong>CI:</strong> {formatCssdTriLabel(batchTrace.testCI)}</span>
-              <span><strong>BI:</strong> {formatCssdTriLabel(batchTrace.testSinhHoc)}</span>
+              <span><strong>Phương pháp:</strong> {batchTrace.phuongPhap}</span>
+              <span><strong>Người nạp:</strong> {batchTrace.nguoiNap}</span>
+              <span><strong>Người dỡ:</strong> {batchTrace.nguoiDo}</span>
+              <span><strong>Người nhả:</strong> {batchTrace.nguoiNha}</span>
+              <span><strong>Kết thúc chu trình:</strong> {formatCssdPrintDateTime(batchTrace.thoiGianKetThucChuTrinh)}</span>
+              <span><strong>CI ngoài gói:</strong> {batchTrace.qcCiNgoai}</span>
+              <span><strong>BI:</strong> {batchTrace.biLabel}</span>
             </div>
             <button
               type="button"
-              disabled={isPrinting || !batchTrace.ketQuaDat}
+              disabled={isPrinting || !batchTrace.coTheIn}
               onClick={() => void onPrintBatch({ batchId: batchTrace.batchId })}
               className="bv103-control-h mt-4 w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >
@@ -167,7 +196,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               <h3 className="bv103-type-title mb-1 font-mono">{process.ma_vach_qr}</h3>
               <p className="text-[11px] font-medium text-[var(--primary)] flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" /> Trạng thái:{" "}
-                {String(process.trang_thai_hien_tai || "").replace(/_/g, " ")}
+                {stationLabel(String(process.trang_thai_hien_tai || ""))}
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {process.ma_qr_bo_vinh_vien ? (
@@ -205,11 +234,28 @@ export default function QRHistoryViewer({ initialQr }: Props) {
 
           <div className="bg-emerald-50 border border-emerald-100 rounded-[var(--radius-shell)] p-5 space-y-3">
             <h4 className="text-xs font-semibold tracking-wide text-emerald-800">
-              Truy vết ca mổ / bệnh nhân
+              Truy vết ca mổ / bệnh nhân · used_clinically
             </h4>
             <p className="text-[11px] text-emerald-700">
-              Gán sau khi cấp phát — không nhập tại trạm quét workflow.
+              Sự kiện lâm sàng sau cấp phát (Domain 23 A): gắn ca mổ = set used kèm actor + timestamp.
+              Không silent khi in CAP_PHAT.
             </p>
+            {isCssdCycleUsedClinically({
+              usedClinically: process.used_clinically,
+              usedClinicallyAt: process.used_clinically_at,
+              usedClinicallyBy: process.used_clinically_by,
+            }) ? (
+              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[11px] text-emerald-900">
+                Đã dùng lâm sàng
+                {process.used_clinically_source ? ` · nguồn ${process.used_clinically_source}` : ""}
+                {process.used_clinically_at ? ` · ${formatCssdPrintDateTime(process.used_clinically_at)}` : ""}
+                {process.used_clinically_by ? ` · actor ${String(process.used_clinically_by).slice(0, 8)}…` : ""}
+              </p>
+            ) : (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
+                Chưa used_clinically — CAP_PHAT còn trong SC picker / có thể thu hồi BI+.
+              </p>
+            )}
             <input
               value={caMoInput}
               onChange={(e) => setCaMoInput(e.target.value)}
@@ -222,7 +268,24 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               onClick={() => void saveCaMoTrace()}
               className="bv103-control-h w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >
-              {assigningCaMo ? "Đang lưu…" : "Lưu truy vết ca mổ"}
+              {assigningCaMo ? "Đang lưu…" : "Lưu ca mổ = ghi nhận used (CLINICAL)"}
+            </button>
+            <button
+              type="button"
+              disabled={togglingUsed}
+              onClick={() => void toggleUsedClinicallyManual()}
+              className="bv103-control-h w-full rounded-[var(--radius-control)] border border-emerald-300 bg-white text-xs font-semibold text-emerald-900 disabled:opacity-50"
+              data-testid="used-clinically-manual-toggle"
+            >
+              {togglingUsed
+                ? "Đang cập nhật…"
+                : isCssdCycleUsedClinically({
+                      usedClinically: process.used_clinically,
+                      usedClinicallyAt: process.used_clinically_at,
+                      usedClinicallyBy: process.used_clinically_by,
+                    })
+                  ? "Gỡ used (manual fallback)"
+                  : "Đánh dấu used (manual fallback)"}
             </button>
           </div>
 
@@ -239,7 +302,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                 <div className={`p-4 rounded-[var(--radius-shell)] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100' : 'bg-white border-slate-200'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <span className={`text-[11px] font-semibold ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
-                      Trạm {String(log.tram || "").replace(/_/g, " ")}
+                      Trạm {stationLabel(String(log.tram || ""))}
                     </span>
                     <span className="bv103-type-label font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
                       {formatCssdPrintDateTime(log.created_at)}

@@ -5,7 +5,14 @@ import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { applyApprovedBomLines } from "@/lib/master-data/cssd-set-bom-apply-core";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
-import { rejectMoveOnlyKindsOnReconcile } from "@/lib/domain/cssd-set-reconcile";
+import {
+  BOM_APPROVE_CLAIM_STATUS,
+  BOM_APPROVE_FAILED_STATUS,
+  canClaimBomApprove,
+  canRejectBomApprove,
+  isBomApproveHistoryStatus,
+  rejectMoveOnlyKindsOnReconcile,
+} from "@/lib/domain/cssd-set-reconcile";
 import { formatCatalogApprovalDiff } from "@/lib/domain/cssd-catalog-master-write";
 import {
   parseSetReconcileSnapshot,
@@ -28,6 +35,8 @@ async function requireCatalogApprove() {
     await verifyPermission("BO_DC", "edit");
   }
 }
+
+const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";
 
 export async function listPendingBomApprovalsAction() {
   try {
@@ -87,7 +96,7 @@ export async function listSetReconcileHistoryAction() {
           status: status || "",
         };
       })
-      .filter((r) => r.status === "BOM_APPROVED" || r.status === "BOM_REJECTED" || r.status === "NONE");
+      .filter((r) => isBomApproveHistoryStatus(r.status));
     return { success: true as const, data: rows };
   } catch (e: unknown) {
     return { success: false as const, error: e instanceof Error ? e.message : "Không tải lịch sử phiếu." };
@@ -103,15 +112,41 @@ export async function approveSetReconcileBomAction(incidentId: string) {
     const { data, error } = await supabase.from("cssd_fact_su_co").select("id, attributes").eq("id", id).maybeSingle();
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
-    if (readSetReconcileStatus(attrs) !== "BOM_PENDING") {
-      return { success: false as const, error: "Phiếu không còn chờ duyệt đổi mã · tên · số lượng." };
+    if (!canClaimBomApprove(readSetReconcileStatus(attrs))) {
+      return { success: false as const, error: CLAIMED_MSG };
     }
     const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
     const boId = readSetReconcileBoId(attrs) || snap?.boDungCuId;
     if (!snap || !boId) return { success: false as const, error: "Thiếu ảnh bảng thành phần." };
     const moveErr = rejectMoveOnlyKindsOnReconcile(snap.lines);
     if (moveErr) return { success: false as const, error: moveErr };
-    await applyApprovedBomLines(supabase, boId, catalogLinesOf(snap.lines));
+
+    const claimAttrs = { ...attrs, SET_RECONCILE_STATUS: BOM_APPROVE_CLAIM_STATUS };
+    const { data: claimed, error: claimErr } = await supabase
+      .from("cssd_fact_su_co")
+      .update({ attributes: claimAttrs, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .contains("attributes", { SET_RECONCILE_STATUS: "BOM_PENDING" })
+      .select("id")
+      .maybeSingle();
+    if (claimErr) throw new Error(claimErr.message);
+    if (!claimed?.id) return { success: false as const, error: CLAIMED_MSG };
+
+    try {
+      await applyApprovedBomLines(supabase, boId, catalogLinesOf(snap.lines));
+    } catch (applyErr: unknown) {
+      const failAttrs = { ...claimAttrs, SET_RECONCILE_STATUS: BOM_APPROVE_FAILED_STATUS };
+      await supabase
+        .from("cssd_fact_su_co")
+        .update({ attributes: failAttrs, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .contains("attributes", { SET_RECONCILE_STATUS: BOM_APPROVE_CLAIM_STATUS });
+      return {
+        success: false as const,
+        error: applyErr instanceof Error ? applyErr.message : "Không áp dụng được bảng thành phần.",
+      };
+    }
+
     let nguoiXacNhanId: string | null = null;
     try {
       const uc = await createServerSupabaseUserClient();
@@ -125,10 +160,14 @@ export async function approveSetReconcileBomAction(incidentId: string) {
     } catch {
       /* không gắn người duyệt nếu không map được nhân sự */
     }
-    const nextAttrs = { ...attrs, SET_RECONCILE_STATUS: "BOM_APPROVED" };
+    const nextAttrs = { ...claimAttrs, SET_RECONCILE_STATUS: "BOM_APPROVED" };
     const patch: Record<string, unknown> = { attributes: nextAttrs, updated_at: new Date().toISOString() };
     if (nguoiXacNhanId) patch.nguoi_xac_nhan_id = nguoiXacNhanId;
-    const { error: updErr } = await supabase.from("cssd_fact_su_co").update(patch).eq("id", id);
+    const { error: updErr } = await supabase
+      .from("cssd_fact_su_co")
+      .update(patch)
+      .eq("id", id)
+      .contains("attributes", { SET_RECONCILE_STATUS: BOM_APPROVE_CLAIM_STATUS });
     if (updErr) throw new Error(updErr.message);
     revalidateCssdIncidentSurfaces();
     revalidateCssdInventorySurfaces();
@@ -147,17 +186,22 @@ export async function rejectSetReconcileBomAction(incidentId: string) {
     const { data, error } = await supabase.from("cssd_fact_su_co").select("id, attributes").eq("id", id).maybeSingle();
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
-    if (readSetReconcileStatus(attrs) !== "BOM_PENDING") {
-      return { success: false as const, error: "Phiếu không còn chờ duyệt đổi mã · tên · số lượng." };
+    const st = readSetReconcileStatus(attrs);
+    if (!canRejectBomApprove(st)) {
+      return { success: false as const, error: CLAIMED_MSG };
     }
-    const { error: updErr } = await supabase
+    const { data: rejected, error: updErr } = await supabase
       .from("cssd_fact_su_co")
       .update({
         attributes: { ...attrs, SET_RECONCILE_STATUS: "BOM_REJECTED" },
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id);
+      .eq("id", id)
+      .contains("attributes", { SET_RECONCILE_STATUS: st })
+      .select("id")
+      .maybeSingle();
     if (updErr) throw new Error(updErr.message);
+    if (!rejected?.id) return { success: false as const, error: CLAIMED_MSG };
     revalidateCssdIncidentSurfaces();
     return { success: true as const };
   } catch (e: unknown) {

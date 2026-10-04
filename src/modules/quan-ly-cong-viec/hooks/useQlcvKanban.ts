@@ -50,26 +50,18 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
   }, [searchTerm]);
 
   const pullTasks = useCallback(async () => {
-    const data = await getCongViecListForBoard();
-    setTasks((data || []) as unknown as CongViecView[]);
+    // Parallel list + pending đề xuất (avoid sequential waterfall).
+    const pendingPromise: Promise<CongViecView[]> = canApprove
+      ? getPendingDeXuat()
+          .then((p) => p as CongViecView[])
+          .catch(() => [] as CongViecView[])
+      : getMyPendingDeXuat()
+          .then((p) => p as CongViecView[])
+          .catch(() => [] as CongViecView[]);
 
-    if (canApprove) {
-      // Người có quyền duyệt → thấy tất cả đề xuất chờ
-      try {
-        const p = await getPendingDeXuat();
-        setPendingKanbanExtras(p as CongViecView[]);
-      } catch {
-        setPendingKanbanExtras([]);
-      }
-    } else {
-      // Nhân viên → chỉ thấy đề xuất của chính mình
-      try {
-        const p = await getMyPendingDeXuat();
-        setPendingKanbanExtras(p as CongViecView[]);
-      } catch {
-        setPendingKanbanExtras([]);
-      }
-    }
+    const [data, pending] = await Promise.all([getCongViecListForBoard(), pendingPromise]);
+    setTasks((data || []) as unknown as CongViecView[]);
+    setPendingKanbanExtras(pending);
   }, [canApprove]);
 
   const fetchTasksInitial = useCallback(async () => {

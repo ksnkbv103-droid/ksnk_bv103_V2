@@ -153,14 +153,8 @@ export function useNkbvChecklistModalState({
     if (existing.treatment_history && existing.treatment_history.length > 0) {
       setTreatmentHistory(existing.treatment_history);
     } else {
-      const defaultStay: DepartmentStay = {
-        khoa_id: row.khoa_ghi_nhan_id || row.khoa_ghi_nhan?.id || "",
-        ten_khoa: row.khoa_ghi_nhan?.ten_khoa || "Khoa hiện tại",
-        ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
-        ngay_vao: row.ngay_vao_vien ? row.ngay_vao_vien.slice(0, 10) : "",
-        ngay_ra: undefined,
-      };
-      setTreatmentHistory([defaultStay]);
+      // 20c / L07: không silent default single-stay từ khoa ghi nhận — chờ Hub ba_ngay_khoa / BA nhập
+      setTreatmentHistory([]);
     }
 
     setBsiForm(prepopulateBsiData(row, existing));
@@ -267,13 +261,16 @@ export function useNkbvChecklistModalState({
   };
 
   const handleDeleteStay = (index: number) => {
-    if (treatmentHistory.length <= 1) {
-      toast.error("Phải có ít nhất một khoa điều trị!");
-      return;
-    }
+    // L07 Soft Soft Soft-safe: cho phép lưới trống — không invent stay / LOA
     const updated = treatmentHistory.filter((_, i) => i !== index);
     setTreatmentHistory(updated);
-    toast.success("Đã xóa khoa điều trị!");
+    if (updated.length === 0) {
+      toast.warning(
+        "Đã xóa hết lịch sử khoa — không quy kết LOA cho đến khi nhập lại ba_ngay_khoa.",
+      );
+    } else {
+      toast.success("Đã xóa khoa điều trị!");
+    }
   };
 
   // Live CDC mathematical calculations
@@ -439,6 +436,11 @@ export function useNkbvChecklistModalState({
 
     // 1. Kiểm tra chỉ định xét nghiệm vs Lịch sử nằm khoa
     if (ngayPhatHien && khoaGhiNhanId) {
+      if (!treatmentHistory.length) {
+        toast.warning(
+          "Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.",
+        );
+      } else {
       const hasReportingWardStay = treatmentHistory.some(s => s.khoa_id === khoaGhiNhanId);
       if (!hasReportingWardStay) {
         toast.error(`Lỗi logic nhập liệu: Phiếu xét nghiệm được ghi nhận tại khoa [${khoaGhiNhanLabel}] vào ngày [${ngayPhatHien}], nhưng trong lịch sử điều trị của bệnh nhân không hề có khoa này! Vui lòng bổ sung.`);
@@ -466,6 +468,7 @@ export function useNkbvChecklistModalState({
           );
           return;
         }
+      }
       }
     }
 
@@ -498,6 +501,17 @@ export function useNkbvChecklistModalState({
 
     setSubmitting(true);
     try {
+      // L07 Soft Soft Soft-safe: warn thiếu ba_ngay_khoa — không silent wrong LOA
+      if (!treatmentHistory.length) {
+        toast.warning(
+          "Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.",
+        );
+      } else if (!liveCdcMetrics?.attributedStay) {
+        toast.warning(
+          liveCdcMetrics?.attributionReason ||
+            "Chưa quy kết LOA — kiểm tra ba_ngay_khoa / lưới ngày–khoa.",
+        );
+      }
       const mergedPayload = {
         ...activePayload,
         treatment_history: treatmentHistory,
@@ -509,25 +523,24 @@ export function useNkbvChecklistModalState({
         calculated_iwp_end: liveCdcMetrics?.iwp_end,
         calculated_sbap_start: liveCdcMetrics?.sbap_start,
         calculated_sbap_end: liveCdcMetrics?.sbap_end,
-        attributed_khoa_id: liveCdcMetrics?.attributedStay?.khoa_id || row.khoa_ghi_nhan_id || "",
-        attributed_khoa_name: formatKhoaCompactLabel(
-          liveCdcMetrics?.attributedStay || {
-            ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
-            ten_khoa: row.khoa_ghi_nhan?.ten_khoa,
-          },
-        ),
+        // 20c / L07: không silent fallback khoa ghi nhận khi metrics chưa quy kết LOA
+        attributed_khoa_id: liveCdcMetrics?.attributedStay?.khoa_id || "",
+        attributed_khoa_name: liveCdcMetrics?.attributedStay
+          ? formatKhoaCompactLabel(liveCdcMetrics.attributedStay)
+          : "",
         hai_status: liveCdcMetrics?.haiStatus,
         
         ...(checklistType === 'BSI' && {
-          cvc_placed_days: liveCdcMetrics?.device_placed_days || 0,
-          cvc_active_on_event: liveCdcMetrics?.device_active_on_event || false,
+          // ?? — không silent-default 0/false khi liveCdcMetrics thiếu device (khớp preview)
+          cvc_placed_days: liveCdcMetrics?.device_placed_days ?? (activePayload as any).cvc_placed_days,
+          cvc_active_on_event: liveCdcMetrics?.device_active_on_event ?? (activePayload as any).cvc_active_on_event,
         }),
         ...(checklistType === 'UTI' && {
-          foley_placed_days: liveCdcMetrics?.device_placed_days || 0,
-          foley_active_on_event: liveCdcMetrics?.device_active_on_event || false,
+          foley_placed_days: liveCdcMetrics?.device_placed_days ?? (activePayload as any).foley_placed_days,
+          foley_active_on_event: liveCdcMetrics?.device_active_on_event ?? (activePayload as any).foley_active_on_event,
         }),
         ...(checklistType === "VAE" || checklistType === "VAP" || checklistType === "HAP"
-          ? { vent_days: liveCdcMetrics?.device_placed_days || 0 }
+          ? { vent_days: liveCdcMetrics?.device_placed_days ?? (activePayload as any).vent_days }
           : {}),
       };
 

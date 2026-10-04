@@ -22,11 +22,18 @@ import {
   validateVstModeFields,
   vstWriteErrorMessage,
 } from "./vst-write.helpers";
+import {
+  buildVstBoSungNbMetadata,
+  isVstSessionsMetadataColumnMissing,
+} from "../lib/vst-bo-sung-nguoi-benh";
 
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { vstSaveSessionSchema } from "@/lib/validations/giam-sat-vst.validations";
 
 type SaveVSTSessionOpts = { existingSessionId?: string | null };
+
+const VST_OBS_RESTORE_COLUMNS =
+  "id, session_id, nhan_vien_id, khoa_id, vi_tri, ngay_giam_sat, thoi_diem, hanh_dong, dung_ky_thuat, du_thoi_gian, co_deo_gang, thoi_gian_ghi_nhan, ghi_chu, khu_vuc_id, nghe_nghiep_id, metadata, created_at";
 
 /** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) — chỉ chủ phiên, trong 30 phút. */
 export async function saveVSTSession(
@@ -37,6 +44,8 @@ export async function saveVSTSession(
   const supabase = createAdminSupabaseClient();
   const existingSessionId = String(opts?.existingSessionId ?? "").trim();
   let createdSessionId: string | null = null;
+  let pendingObservationRestore = false;
+  let previousObservationRows: Record<string, unknown>[] | null = null;
   try {
     // 1. Validate permissions
     await verifyPermission("GIAM_SAT_VST", existingSessionId ? "edit" : "create");
@@ -120,7 +129,8 @@ export async function saveVSTSession(
       existingSessionId: existingSessionId || null,
     });
 
-    const sessionRowPayload = {
+    const patientMetadata = buildVstBoSungNbMetadata(sessionData);
+    const sessionRowBase = {
       khoa_id: khoaSessionNorm,
       khu_vuc_id: lockedKhuVucId,
       vi_tri_cu_the: sessionData.vi_tri,
@@ -130,6 +140,51 @@ export async function saveVSTSession(
       ngay_giam_sat: ngayGiamSat,
       thoi_gian_bat_dau: sessionData.thoi_gian_bat_dau || null,
       thoi_gian_ket_thuc: sessionData.thoi_gian_ket_thuc || null,
+    };
+    /** Soft-safe: ghi metadata khi cột đã migrate; nếu thiếu cột → bỏ metadata, không reject. */
+    let sessionRowPayload: Record<string, unknown> = {
+      ...sessionRowBase,
+      metadata: patientMetadata,
+    };
+    let omitSessionMetadata = false;
+
+    const persistSessionRow = async (mode: "insert" | "update", sessionIdForUpdate?: string) => {
+      const payload = omitSessionMetadata
+        ? { ...sessionRowBase }
+        : { ...sessionRowBase, metadata: patientMetadata };
+      sessionRowPayload = payload;
+      if (mode === "insert") {
+        const { data: session, error: sessionError } = await supabase
+          .from("gstt_fact_vst_sessions")
+          .insert(payload)
+          .select()
+          .single();
+        if (sessionError) {
+          if (!omitSessionMetadata && isVstSessionsMetadataColumnMissing(sessionError)) {
+            omitSessionMetadata = true;
+            logVstSaveDebug("metadata column missing — retry insert without metadata");
+            return persistSessionRow("insert");
+          }
+          return { ok: false as const, error: sessionError };
+        }
+        return { ok: true as const, session };
+      }
+      const { error: upErr } = await supabase
+        .from("gstt_fact_vst_sessions")
+        .update({
+          ...payload,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", sessionIdForUpdate!);
+      if (upErr) {
+        if (!omitSessionMetadata && isVstSessionsMetadataColumnMissing(upErr)) {
+          omitSessionMetadata = true;
+          logVstSaveDebug("metadata column missing — retry update without metadata");
+          return persistSessionRow("update", sessionIdForUpdate);
+        }
+        return { ok: false as const, error: upErr };
+      }
+      return { ok: true as const };
     };
 
     let sessionId: string;
@@ -157,32 +212,17 @@ export async function saveVSTSession(
         }
       }
 
-      const { error: delObsErr } = await supabase.from("gstt_fact_vst").delete().eq("session_id", existingSessionId);
-      if (delObsErr) throw delObsErr;
-
-      const { error: upErr } = await supabase
-        .from("gstt_fact_vst_sessions")
-        .update({
-          ...sessionRowPayload,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingSessionId);
-      if (upErr) throw upErr;
-
       sessionId = existingSessionId;
     } else {
-      const { data: session, error: sessionError } = await supabase
-        .from("gstt_fact_vst_sessions")
-        .insert(sessionRowPayload)
-        .select()
-        .single();
-
-      if (sessionError) {
-        if (process.env.NODE_ENV !== "production") console.error("[VST save] Lỗi insert session:", sessionError.message);
-        throw sessionError;
+      const inserted = await persistSessionRow("insert");
+      if (!inserted.ok) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("[VST save] Lỗi insert session:", (inserted.error as { message?: string })?.message);
+        }
+        throw inserted.error;
       }
-      createdSessionId = session.id;
-      sessionId = session.id;
+      createdSessionId = inserted.session.id;
+      sessionId = inserted.session.id;
     }
 
     logVstSaveDebug("Đã có session id", { sessionId });
@@ -235,11 +275,29 @@ export async function saveVSTSession(
 
     logVstSaveDebug(`Chuẩn bị insert ${recordsToInsert.length} cơ hội`);
 
+    if (existingSessionId) {
+      const { data: prevRows, error: prevErr } = await supabase
+        .from("gstt_fact_vst")
+        .select(VST_OBS_RESTORE_COLUMNS)
+        .eq("session_id", existingSessionId);
+      if (prevErr) throw prevErr;
+      previousObservationRows = (prevRows ?? []) as Record<string, unknown>[];
+      const { error: delObsErr } = await supabase.from("gstt_fact_vst").delete().eq("session_id", existingSessionId);
+      if (delObsErr) throw delObsErr;
+      pendingObservationRestore = true;
+    }
+
     const { error: obsError } = await supabase.from("gstt_fact_vst").insert(recordsToInsert);
 
     if (obsError) {
       if (process.env.NODE_ENV !== "production") console.error("[VST save] Lỗi insert observations:", obsError.message);
       throw obsError;
+    }
+    pendingObservationRestore = false;
+
+    if (existingSessionId) {
+      const updated = await persistSessionRow("update", existingSessionId);
+      if (!updated.ok) throw updated.error;
     }
 
     logVstSaveDebug("Insert observations xong");
@@ -250,6 +308,12 @@ export async function saveVSTSession(
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {
       console.error("[VST save] Lỗi:", error instanceof Error ? error.message : error);
+    }
+    if (pendingObservationRestore && previousObservationRows?.length) {
+      const { error: restoreErr } = await supabase.from("gstt_fact_vst").insert(previousObservationRows);
+      if (restoreErr && process.env.NODE_ENV !== "production") {
+        console.error("[VST save] Không khôi phục được cơ hội cũ:", restoreErr.message);
+      }
     }
     if (createdSessionId && !existingSessionId) {
       await supabase.from("gstt_fact_vst_sessions").delete().eq("id", createdSessionId);

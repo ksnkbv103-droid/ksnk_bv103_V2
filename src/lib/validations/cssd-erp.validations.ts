@@ -6,6 +6,8 @@ import { z } from "zod";
 export const createSterilizationBatchSchema = z.object({
   machineId: z.string().uuid("ID máy không hợp lệ"),
   nguoiLoad: z.string().min(2, "Tên người load quá ngắn"),
+  /** M-04: bắt chọn chương trình (không free-text-only create). */
+  chuongTrinh: z.string().trim().min(1, "Chọn chương trình máy").max(80),
 });
 
 /**
@@ -16,28 +18,31 @@ export const addQuyTrinhToBatchSchema = z.object({
   code: z.string().min(3, "Mã QR không hợp lệ"),
 });
 
+/** Gỡ một bộ khỏi phiếu khi mẻ còn đang nạp. Người thực hiện lấy từ phiên, không nhận từ client. */
+export const removeQuyTrinhFromBatchSchema = z.object({
+  activeMeId: z.string().uuid("ID mẻ không hợp lệ"),
+  quyTrinhId: z.string().uuid("ID bộ không hợp lệ"),
+});
+
 /**
  * Schema cho việc kết thúc mẻ tiệt khuẩn
  */
 export const finishSterilizationBatchSchema = z.object({
   activeMeId: z.string().uuid("ID mẻ không hợp lệ"),
   maLo: z.string().min(1, "Thiếu mã lô"),
-  quyTrinhIds: z.array(z.string().uuid()),
+  /** Bỏ qua khi kết luận — server tự suy bộ trong mẻ. Giữ optional để client cũ không vỡ parse. */
+  quyTrinhIds: z.array(z.string().uuid()).optional().default([]),
   isPass: z.boolean(),
   nguoiUnload: z.string().min(2, "Tên người dỡ quá ngắn"),
+  chuongTrinh: z.string().max(80).optional().default(""),
   nhietDo: z.string().optional().default(""),
-  testBI: z.string().optional().default(""),
-  testCI: z.string().optional().default(""),
-  testBD: z.string().optional().default(""),
-  thongSoMay: z.string().optional().default(""),
-  chiThiTiepXuc: z.string().optional().default(""),
-  chiThiDaThongSo: z.string().optional().default(""),
-  testSinhHoc: z.string().optional().default(""),
-  anhMinhChungMay: z.string().optional().default(""),
-  anhMinhChungTiepXuc: z.string().optional().default(""),
-  anhMinhChungDaThongSo: z.string().optional().default(""),
-  anhMinhChungSinhHoc: z.string().optional().default(""),
-  anhMinhChungBowieDick: z.string().optional().default(""),
+  apSuat: z.string().optional().default(""),
+  thoiGianChuKy: z.string().optional().default(""),
+  thongSoVatLy: z.string().min(1, "Thiếu thông số vật lý"),
+  ciNgoaiGoi: z.string().min(1, "Thiếu CI ngoài gói"),
+  ciPcd: z.string().min(1, "Thiếu CI PCD"),
+  trangThaiBi: z.string().min(1, "Thiếu kết quả BI"),
+  anhMinhChung: z.string().optional().default(""),
 });
 
 /**

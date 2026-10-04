@@ -15,11 +15,7 @@ import {
   appendQuyTrinhException,
 } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
-import {
-  PACK_RECORDABLE_TINH_TRANG,
-  normalizePackTinhTrang,
-} from "@/lib/domain/cssd-pack-issuance";
-import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
+import { resolvePackConditionWrite } from "@/lib/domain/cssd-pack-issuance";
 import {
   countCssdKhoImportDeactivations,
   rejectCssdKhoImportSoftDelete,
@@ -27,53 +23,10 @@ import {
 
 type ExistingQrRow = { id?: string; ma_qr_quy_trinh?: string };
 
-export async function reportInventoryIssue(input: {
-  quy_trinh_id: string;
-  ma_vach_qr?: string | null;
-  reason: "HONG" | "MAT";
-  note?: string | null;
-}) {
-  await verifyPermission("CSSD_KHO_DUNGCU", "edit");
-  const supabase = createAdminSupabaseClient();
-  const quyTrinhId = String(input.quy_trinh_id || "").trim();
-  if (!quyTrinhId) throw new Error("Thiếu quy_trinh_id.");
-
-  const reason = input.reason === "MAT" ? "MAT" : "HONG";
-  const note = String(input.note || "").trim();
-
-  const { error: updateErr } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .update({
-      tinh_trang: reason,
-      is_active: reason !== "MAT",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", quyTrinhId);
-  if (updateErr) throw new Error(mapFkError(updateErr.message));
-
-  let operator = "CSSD";
-  try {
-    const uc = await createServerSupabaseUserClient();
-    const { data: userData } = await uc.auth.getUser();
-    if (userData.user?.email) {
-      operator = userData.user.email.trim();
-    }
-  } catch {
-    // Fail-soft: keep "CSSD"
-  }
-
-  await appendQuyTrinhException(supabase, quyTrinhId, {
-    su_kien: reason === "MAT" ? "BAO_MAT" : "BAO_HONG",
-    tu_tram: "QC",
-    ly_do: `${reason === "MAT" ? "Báo mất" : "Báo hỏng"}. ${note}`.trim(),
-    nguoi_thao_tac: operator,
-  });
-
-  revalidateCssdWorkflowSurfaces();
-  return { success: true as const };
-}
-
-/** Ghi tình trạng gói trước CAP_PHAT (QT.22) — BINH_THUONG / ướt / rách / hỏng / mất. */
+/**
+ * Ghi tình trạng bao gói trước CAP_PHAT (QT.22) — Bình thường / ướt / rách / bẩn.
+ * S-E W5: Hỏng / Mất bộ đi một cửa Báo sự cố CSSD; hàm này không đổi is_active, không trừ tồn.
+ */
 export async function recordPackCondition(input: {
   quy_trinh_id: string;
   tinh_trang: string;
@@ -84,23 +37,19 @@ export async function recordPackCondition(input: {
   const quyTrinhId = String(input.quy_trinh_id || "").trim();
   if (!quyTrinhId) throw new Error("Thiếu quy_trinh_id.");
 
-  const tinh = normalizePackTinhTrang(input.tinh_trang);
-  if (!(PACK_RECORDABLE_TINH_TRANG as readonly string[]).includes(tinh)) {
-    throw new Error(
-      `Tình trạng gói không hợp lệ (${input.tinh_trang || "—"}). Chọn BINH_THUONG / UOT / RACH / HONG / MAT.`,
-    );
-  }
+  const write = resolvePackConditionWrite(input.tinh_trang);
+  if (!write.ok) throw new Error(write.message);
+  const tinh = write.tinh_trang;
   const note = String(input.note || "").trim();
 
-  const { error: updateErr } = await supabase
+  const { data: updated, error: updateErr } = await supabase
     .from("cssd_fact_quy_trinh")
-    .update({
-      tinh_trang: tinh,
-      is_active: tinh !== "MAT",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", quyTrinhId);
+    .update({ tinh_trang: tinh, updated_at: new Date().toISOString() })
+    .eq("id", quyTrinhId)
+    .eq("is_active", true)
+    .select("id");
   if (updateErr) throw new Error(mapFkError(updateErr.message));
+  if (!updated?.length) throw new Error("Không tìm thấy quy trình đang hoạt động để ghi tình trạng gói.");
 
   let operator = "CSSD";
   try {
@@ -140,7 +89,11 @@ export async function importCSSDData(
       return { success: false as const, error: softDeleteBlock };
     }
     const supabase = createAdminSupabaseClient();
-    const { data: existing, error: exErr } = await supabase.from("cssd_fact_quy_trinh").select("id, ma_qr_quy_trinh");
+    // S-E W4: chỉ cập nhật chu kỳ active — không bật lại chu kỳ đã đóng (MAT / thu hồi / đã thay).
+    const { data: existing, error: exErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("id, ma_qr_quy_trinh")
+      .eq("is_active", true);
     if (exErr) throw exErr;
     const existingMap = new Map(
       ((existing || []) as ExistingQrRow[])
@@ -254,90 +207,3 @@ export async function importCSSDData(
     return { success: false, error: getErrorMessage(error) };
   }
 }
-
-export async function recordInstrumentTransaction(input: {
-  bo_dung_cu_id: string;
-  loai_dung_cu_id: string;
-  loai_giao_dich: "BAO_HONG" | "BAO_MAT" | "BO_SUNG" | "DIEU_CHUYEN";
-  so_luong_thay_doi: number;
-  ghi_chu?: string;
-  quy_trinh_id?: string;
-}) {
-  await verifyPermission("CSSD_KHO_DUNGCU", "edit");
-  const supabase = createAdminSupabaseClient();
-
-  let operatorId: string | null = null;
-  let operatorEmail = "CSSD";
-  try {
-    const uc = await createServerSupabaseUserClient();
-    const { data: userData } = await uc.auth.getUser();
-    if (userData.user) {
-      operatorEmail = userData.user.email || "CSSD";
-      operatorId = await resolveCssdOperatorNhanSuId(supabase, {
-        authUserId: userData.user.id,
-        email: userData.user.email,
-      });
-    }
-  } catch {
-    // Fail-soft — ghi ledger với nguoi_thuc_hien_id null nếu chưa map MDM
-  }
-
-  // Phân giải quy_trinh_id sang UUID thực tế nếu truyền mã QR
-  let quyTrinhUuid: string | null = null;
-  if (input.quy_trinh_id) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.quy_trinh_id);
-    if (isUuid) {
-      quyTrinhUuid = input.quy_trinh_id;
-    } else {
-      const { data: qt } = await supabase
-        .from("cssd_fact_quy_trinh")
-        .select("id")
-        .eq("ma_qr_quy_trinh", input.quy_trinh_id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (qt) {
-        quyTrinhUuid = qt.id;
-      }
-    }
-  }
-
-  // 1. Ghi nhận giao dịch vào Transaction Log
-  const { error: txErr } = await supabase
-    .from("cssd_fact_kho_giao_dich")
-    .insert({
-      loai_dung_cu_id: input.loai_dung_cu_id,
-      bo_dung_cu_id: input.bo_dung_cu_id || null,
-      quy_trinh_id: quyTrinhUuid,
-      loai_giao_dich: input.loai_giao_dich,
-      so_luong_thay_doi: input.so_luong_thay_doi,
-      ghi_chu: input.ghi_chu || null,
-      nguoi_thuc_hien_id: operatorId,
-    });
-
-  if (txErr) throw new Error("Lỗi ghi nhận biến động: " + txErr.message);
-
-  // 2. Ghi chép exception quy trình nếu có liên kết quyTrinhUuid
-  if (quyTrinhUuid) {
-    const labelMap = {
-      BAO_HONG: "Báo hỏng dụng cụ",
-      BAO_MAT: "Báo mất dụng cụ",
-      BO_SUNG: "Bổ sung dụng cụ rời từ kho lẻ",
-      DIEU_CHUYEN: "Điều chuyển mượn từ bộ khác"
-    };
-
-    await appendQuyTrinhException(supabase, quyTrinhUuid, {
-      su_kien: input.loai_giao_dich,
-      tu_tram: "QC",
-      ly_do: `${labelMap[input.loai_giao_dich]} (SL: ${input.so_luong_thay_doi}). ${input.ghi_chu || ""}`.trim(),
-      nguoi_thao_tac: operatorEmail,
-    });
-  }
-
-
-  revalidateCssdInventorySurfaces();
-  revalidateCssdWorkflowSurfaces();
-  return { success: true as const };
-}
-

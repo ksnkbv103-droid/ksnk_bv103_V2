@@ -7,6 +7,7 @@ import CssdTraceLink from "./CssdTraceLink";
 import { fetchCssdRcaBundle, type CssdRcaBundle } from "../actions/nkbv-cssd-rca.actions";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
 import { nkbvFormChrome as UI } from "@/modules/giam-sat-nkbv/lib/nkbv-form-chrome";
+import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
 type Props = {
   maQr?: string | null;
@@ -86,7 +87,7 @@ export default function NkbvCssdRcaPanel({ maQr, quyTrinhId, showEmptyHint = fal
         <div className="space-y-2 text-xs text-slate-800">
           <p>
             <span className="font-semibold">Bộ:</span> {data.tenBo || "—"} · QR {data.maQr}
-            {data.tramHienTai ? ` · Trạm ${data.tramHienTai.replace(/_/g, " ")}` : ""}
+            {data.tramHienTai ? ` · Trạm ${stationLabel(data.tramHienTai)}` : ""}
           </p>
           <p>
             <span className="font-semibold">Mẻ TK:</span>{" "}

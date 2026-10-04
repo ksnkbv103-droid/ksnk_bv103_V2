@@ -18,9 +18,10 @@ import {
 import QrCameraButton from "@/components/shared/QrCameraButton";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
+import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 import {
+  DIRECT_INCIDENT_DOORS,
   INCIDENT_GROUP_LABEL,
-  INCIDENT_GROUPS,
   INCIDENT_STATION_OPTIONS,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
@@ -36,7 +37,14 @@ import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import IncidentPrintView from "./IncidentPrintView";
 
-export type BoCatalogOption = { id: string; ten_bo: string; ma_bo: string };
+export type BoCatalogOption = {
+  id: string;
+  ten_bo: string;
+  ma_bo: string;
+  /** Chu trình mở — picker sự cố. Luân chuyển không gửi trường này. */
+  quyTrinhId?: string;
+  tram?: string;
+};
 
 const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: string; size?: number }>> = {
   PROCESS: Layers,
@@ -99,6 +107,8 @@ export function BoSourceFields({
   onKeyDown: _onKeyDown,
   onScanComplete,
   onSelectBo,
+  selectedCycleId,
+  onPickCycle,
   loading,
   maLoHint,
   qrRequired = true,
@@ -113,6 +123,9 @@ export function BoSourceFields({
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onScanComplete?: (code: string) => void;
   onSelectBo: (maBo: string) => void;
+  /** Khi picker trả nhiều chu trình của cùng mã bộ. */
+  selectedCycleId?: string;
+  onPickCycle?: (opt: BoCatalogOption) => void;
   loading?: boolean;
   maLoHint?: string;
   qrRequired?: boolean;
@@ -121,17 +134,27 @@ export function BoSourceFields({
   compact?: boolean;
   trailing?: React.ReactNode;
 }) {
+  const cycleMode = boOptions.some((b) => b.quyTrinhId);
   const selectOptions = boOptions.map((b) => ({
-    id: b.ma_bo.toUpperCase(),
-    label: `${b.ma_bo} — ${b.ten_bo}`,
-    keywords: [b.ten_bo, b.ma_bo],
+    id: cycleMode && b.quyTrinhId ? b.quyTrinhId : b.ma_bo.toUpperCase(),
+    label: b.tram ? `${b.ma_bo} — ${b.ten_bo} · ${stationLabel(b.tram)}` : `${b.ma_bo} — ${b.ten_bo}`,
+    keywords: [b.ten_bo, b.ma_bo, b.tram || ""].filter(Boolean),
   }));
   const selected = maQR.trim().toUpperCase();
+  const maHits = boOptions.filter((b) => b.ma_bo.toUpperCase() === selected && b.quyTrinhId);
+  const cycleValue =
+    selectedCycleId || (maHits.length === 1 ? maHits[0].quyTrinhId || "" : "");
   const apply = (raw: string) => {
-    const code = String(raw || "").trim().toUpperCase();
+    const code = String(raw || "").trim();
     if (!code) return;
-    setMaQR(code);
-    onSelectBo(code);
+    const hit = boOptions.find((b) => b.quyTrinhId === code || b.ma_bo.toUpperCase() === code.toUpperCase());
+    if (hit?.quyTrinhId && onPickCycle) {
+      onPickCycle(hit);
+      return;
+    }
+    const upper = code.toUpperCase();
+    setMaQR(upper);
+    onSelectBo(upper);
   };
   const applyScan = (raw: string) => {
     const code = String(raw || "").trim().toUpperCase();
@@ -162,7 +185,7 @@ export function BoSourceFields({
         <SearchableSelect
           inputTrigger
           allowCustom
-          value={selected}
+          value={cycleMode ? cycleValue : selected}
           onChange={apply}
           options={selectOptions}
           placeholder="Tìm tên, mã hoặc quét QR…"
@@ -273,7 +296,7 @@ export function TypePicker({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố an toàn</label>
+      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố</label>
       <div className="relative">
         <select
           value={typeId}
@@ -301,74 +324,42 @@ export function IncidentGroupPicker({
   onSelect: (group: IncidentGroup) => void;
   compact?: boolean;
 }) {
+  const isInstrument = incidentGroup === "INSTRUMENT";
+
   return (
-    <div className="space-y-1 border-b border-slate-200 pb-2">
-      <div className="flex flex-wrap items-center gap-1">
-        {INCIDENT_GROUPS.map((g) => {
+    <div className="space-y-2 border-b border-slate-200 pb-2" data-testid="incident-direct-doors">
+      <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Cửa sự cố">
+        {DIRECT_INCIDENT_DOORS.map((g) => {
           const IconComp = GROUP_ICONS[g];
           const isSelected = incidentGroup === g;
           return (
             <button
               key={g}
               type="button"
+              role="tab"
+              aria-selected={isSelected}
               onClick={() => onSelect(g)}
-              className={`inline-flex h-8 touch-manipulation items-center gap-1.5 px-2 text-[12px] font-semibold ${
+              className={`inline-flex h-8 touch-manipulation items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold ${
                 isSelected
-                  ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
               }`}
             >
-              <IconComp size={14} className="shrink-0 opacity-80" />
-              <span className="whitespace-nowrap">
-                {g === "INSTRUMENT"
-                  ? "Biến động dụng cụ"
-                  : INCIDENT_GROUP_LABEL[g].split(" (")[0]}
-              </span>
+              <IconComp size={14} className="shrink-0 opacity-80" aria-hidden />
+              <span className="whitespace-nowrap">{INCIDENT_GROUP_LABEL[g]}</span>
             </button>
           );
         })}
       </div>
-      {incidentGroup === "INSTRUMENT" ? (
+      {isInstrument ? (
         <p className="px-1 text-[11px] text-slate-500">
-          Cửa Hỏng/Mất hoặc Chuyển. Sửa danh mục Loại/Bộ/Thành phần tại{" "}
-          <Link href="/cssd-dung-cu?tab=DE_NGHI" className="font-semibold text-[var(--primary)] hover:underline">
-            Đề nghị danh mục
+          Luân chuyển số lượng (kho ↔ bộ, bộ ↔ bộ) mở tại{" "}
+          <Link href="/cssd-dung-cu?tab=LUAN_CHUYEN" className="font-semibold text-[var(--primary)] hover:underline">
+            Dụng cụ · Luân chuyển
           </Link>
           .
         </p>
       ) : null}
-    </div>
-  );
-}
-
-export function InstrumentDoorTabs({
-  typeId,
-  options,
-  onChange,
-}: {
-  typeId: string;
-  options: Array<{ code: string; label: string }>;
-  onChange: (id: string, ten: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-1">
-      {options.map((opt) => {
-        const selected = typeId === opt.code;
-        return (
-          <button
-            key={opt.code}
-            type="button"
-            onClick={() => onChange(opt.code, opt.label)}
-            className={`inline-flex h-8 items-center px-2 text-[12px] font-semibold ${
-              selected
-                ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -405,12 +396,15 @@ export function SubmittedSuccessView({
   details,
   onReset,
   onClose,
+  tone = "incident",
 }: {
   incident: any;
   details: any[];
   onReset: () => void;
   onClose?: () => void;
+  tone?: "incident" | "luan-chuyen";
 }) {
+  const luanChuyen = tone === "luan-chuyen";
   const incidentId = incident && typeof incident === "object" ? String(incident.id || "") : "";
   const journalHref = incidentId ? cssdSuCoIncidentJournalHref(incidentId) : cssdSuCoIncidentJournalHref();
   return (
@@ -418,19 +412,26 @@ export function SubmittedSuccessView({
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
         <CheckCircle2 size={28} />
       </div>
-      <h3 className={UI.modalTitle}>Ghi nhận thành công!</h3>
+      <h3 className={UI.modalTitle}>{luanChuyen ? "Đã ghi luân chuyển" : "Ghi nhận thành công!"}</h3>
       <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
-        Biên bản đã lưu — in hoặc mở nhật ký để xem lại.
+        {luanChuyen
+          ? "Số lượng đã chuyển kho ↔ bộ hoặc bộ ↔ bộ. Xem sổ tại Lịch sử kho."
+          : "Biên bản đã lưu — in hoặc mở nhật ký để xem lại."}
       </p>
       <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row sm:flex-wrap">
-        <button type="button" onClick={() => window.print()} className={`${T.btnPrimary} w-full justify-center sm:w-auto`}>
-          <Printer size={16} /> In biên bản
-        </button>
-        <Link href={journalHref} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
-          Xem nhật ký
+        {luanChuyen ? null : (
+          <button type="button" onClick={() => window.print()} className={`${T.btnPrimary} w-full justify-center sm:w-auto`}>
+            <Printer size={16} /> In biên bản
+          </button>
+        )}
+        <Link
+          href={luanChuyen ? "/cssd-dung-cu?tab=HISTORY" : journalHref}
+          className={`${T.btnSecondary} w-full justify-center sm:w-auto`}
+        >
+          {luanChuyen ? "Xem lịch sử kho" : "Xem nhật ký"}
         </Link>
         <button type="button" onClick={onReset} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
-          <PlusCircle size={16} /> Báo cáo mới
+          <PlusCircle size={16} /> {luanChuyen ? "Ghi tiếp" : "Báo cáo mới"}
         </button>
         {onClose ? (
           <button type="button" onClick={onClose} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
@@ -438,7 +439,7 @@ export function SubmittedSuccessView({
           </button>
         ) : null}
       </div>
-      <IncidentPrintView incident={incident} details={details} />
+      {luanChuyen ? null : <IncidentPrintView incident={incident} details={details} />}
     </div>
   );
 }

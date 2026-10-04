@@ -1,18 +1,45 @@
 "use client";
 
 import React, { Suspense, useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExternalLink, List, Wrench } from "lucide-react";
-import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/entrypoint";
-import ThietBiFleetPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-fleet-panel";
-import ThietBiVanHanhPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-van-hanh-panel";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 type ThietBiTab = "FLEET" | "MAINTENANCE" | "VAN_HANH";
+
+/** Lazy per active tab — keep shell light (Perf P1 / W5). */
+function TabPanelSkeleton() {
+  return (
+    <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+    </div>
+  );
+}
+
+const panelFallback = <TabPanelSkeleton />;
+
+const ThietBiFleetPanel = dynamic(
+  () => import("@/modules/cssd-erp/components/equipment/thiet-bi-fleet-panel"),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const CSSDMaintenancePage = dynamic(
+  () =>
+    import("@/modules/cssd-erp/contexts/maintenance/entrypoint").then((m) => ({
+      default: m.CSSDMaintenancePage,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const ThietBiVanHanhPanel = dynamic(
+  () => import("@/modules/cssd-erp/components/equipment/thiet-bi-van-hanh-panel"),
+  { ssr: false, loading: () => panelFallback },
+);
 
 function resolveTab(tabParam: string | null): ThietBiTab {
   if (tabParam === "maintenance" || tabParam === "bao-tri") return "MAINTENANCE";
@@ -51,10 +78,10 @@ function CssdThietBiPageInner() {
       actions={
         <Link
           href="/quan-tri-he-thong/danh-muc/thiet-bi"
-          className={`${bv103LayoutChrome.btnSecondary} gap-1.5 px-2.5`}
+          className={`${bv103LayoutChrome.linkQuiet} gap-1`}
         >
           Sửa tại Quản trị
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+          <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden />
         </Link>
       }
     >

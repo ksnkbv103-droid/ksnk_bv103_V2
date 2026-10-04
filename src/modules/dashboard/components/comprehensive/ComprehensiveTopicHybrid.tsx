@@ -8,6 +8,7 @@ import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-in
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
+import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 
 type Props = {
   payload: BaoCaoTongHopPayload | null;
@@ -151,7 +152,7 @@ function buildNkbvLines(payload: BaoCaoTongHopPayload | null): string[] {
   const k = payload?.nkbv?.kpis;
   if (!k) return [];
   const lines = [
-    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận/PA: ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
+    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận/PA−LT: ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,
     `Đang ghi/ chờ XN: ${k.dang_va_cho_xn} · Loại trừ: ${k.loai_tru}`,
   ];
   const topLoai = payload?.nkbv?.by_loai?.[0];

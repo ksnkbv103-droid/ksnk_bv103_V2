@@ -111,14 +111,14 @@ flowchart LR
 |----------------------|-----------------|
 | Rewash / làm lại làm sạch | Status về `LAM_SACH` (hoặc `TIEP_NHAN` nếu cần vòng bẩn) trên `cssd_fact_quy_trinh` |
 | `Quarantine_BI` | Metadata / trạng thái mẻ (implant chờ BI−) — **không** trạm mới; chặn `HOAN_THANH` / cấp phát |
-| Reprocess_from_start | Quay `TIEP_NHAN` (hoặc `DONG_GOI` khi rollback QC mẻ fail) + sự cố nếu cần |
+| Reprocess_from_start | Quay `TIEP_NHAN` (thu hồi mẻ / làm lại từ đầu chuỗi bẩn) + sự cố nếu cần |
 | Wet pack (= bẩn) | Về `LAM_SACH` — làm lại từ làm sạch |
 
 **Không phải trạm quét**
 
 - **Tab Kho** (`?tab=kho`) — xem tồn / hạn dùng (FEFO).
 - **Tab Truy vết** (`?tab=trace`) — timeline chu trình / liên kết SSI.
-- **Thu hồi / Recall** — phản ứng an toàn (QC mẻ fail / sự cố / BI+), **không** phải trạm thứ 7. Quay lại CSSD = `Cấp phát → Tiếp nhận`. QC mẻ không đạt → rollback về Đóng gói + có thể **đóng băng** bộ.
+- **Thu hồi / Recall** — phản ứng an toàn (QC mẻ fail / sự cố / BI+), **không** phải trạm thứ 7. Bộ chưa dùng lâm sàng: đóng chu kỳ cũ (giữ `lo_tiet_khuan_id`) + mở chu kỳ mới tại **Tiếp nhận**; bộ đã dùng chỉ liệt kê. Không về Đóng gói.
 
 ---
 
@@ -160,7 +160,7 @@ flowchart TD
 **BI (+):**
 
 - Mở **sự cố** (`cssd_fact_su_co`, vd. `PROCESS_STERILIZATION_FAIL` / BI+).
-- **Recall toàn mẻ** theo `lo_tiet_khuan_id` (mọi bộ cùng mẻ): đã **Cấp phát** → **Tiếp nhận**; còn trong chu trình → **Đóng gói** + đóng băng.
+- **Recall toàn mẻ** theo `lo_tiet_khuan_id` (mọi bộ cùng mẻ chưa dùng lâm sàng) → **Tiếp nhận**; đã dùng lâm sàng (`ma_ca_mo_id`) chỉ liệt kê trên sự cố.
 - Máy mẻ `READY` / `HOAT_DONG` → `HOLD_QC` (không đè `REPAIRING` / đã `HOLD_QC`). **Chưa** tự đếm 3× BI (−) để mở máy.
 
 **Chỉ thị QC (UI):** Đạt / Không đạt / Không áp dụng (tiếp xúc, đa thông số, BI, CI, Bowie–Dick).
@@ -199,7 +199,7 @@ flowchart TD
 
 1. Thiếu cấu phần lúc đóng gói / cấp phát → **cảnh báo + tem**, **không chặn cứng** (QLDCPT Q2).
 2. Bộ lẫn chịu nhiệt / không chịu nhiệt → **bắt tách SUB** trước khi đạt đóng gói / khóa steam 134.
-3. QC mẻ không đạt → **rollback về Đóng gói + sự cố** (+ đóng băng nếu cần).
+3. QC mẻ / BI+ không đạt → **thu hồi về Tiếp nhận + sự cố** (chu kỳ cũ giữ `lo_tiet_khuan_id`; bộ đã dùng lâm sàng chỉ liệt kê; máy READY → HOLD_QC). Không về Đóng gói.
 4. Tiệt khuẩn chỉ qua **phiếu mẻ**, không quét trạm «Tiệt khuẩn» trên shell 6 bước.
 5. Master CRUD ≠ vận hành quét; hard-write loại/bộ/BOM chỉ **ADMIN**; `BO_DC.edit` = duyệt phiếu (D5). BOM **1 bộ×1 loại** unique active (D6).
 6. Cấp phát khi chưa có mẻ / mẻ chưa QC → **lỗi** (chặn).

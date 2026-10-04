@@ -5,21 +5,29 @@
 
 export const INCIDENT_STATUS_OPEN = "OPEN" as const;
 export const INCIDENT_STATUS_CONFIRMED = "DA_XAC_NHAN" as const;
+export const INCIDENT_STATUS_VOID = "VO_HIEU" as const;
 
-export type IncidentPhieuStatus = typeof INCIDENT_STATUS_OPEN | typeof INCIDENT_STATUS_CONFIRMED;
+export type IncidentPhieuStatus =
+  | typeof INCIDENT_STATUS_OPEN
+  | typeof INCIDENT_STATUS_CONFIRMED
+  | typeof INCIDENT_STATUS_VOID;
 
 export const INCIDENT_STATUS_LABEL: Record<IncidentPhieuStatus, string> = {
   OPEN: "Chưa xác nhận",
   DA_XAC_NHAN: "Đã xác nhận",
+  VO_HIEU: "Đã vô hiệu",
 };
 
 export const INCIDENT_ALREADY_CONFIRMED =
   "Phiếu sự cố đã được xác nhận. Không xác nhận lại.";
 
+export const INCIDENT_ALREADY_VOID = "Phiếu sự cố đã bị vô hiệu.";
+
 export function readIncidentPhieuStatus(attrs: Record<string, unknown> | null | undefined): IncidentPhieuStatus {
   const raw = String(attrs?.INCIDENT_STATUS ?? attrs?.incident_status ?? "")
     .trim()
     .toUpperCase();
+  if (raw === INCIDENT_STATUS_VOID) return INCIDENT_STATUS_VOID;
   if (raw === INCIDENT_STATUS_CONFIRMED) return INCIDENT_STATUS_CONFIRMED;
   return INCIDENT_STATUS_OPEN;
 }
@@ -31,6 +39,9 @@ export function isIncidentPhieuConfirmed(attrs: Record<string, unknown> | null |
 export function assertIncidentPhieuCanConfirm(
   attrs: Record<string, unknown> | null | undefined,
 ): { ok: true } | { ok: false; error: string } {
+  if (readIncidentPhieuStatus(attrs) === INCIDENT_STATUS_VOID) {
+    return { ok: false, error: INCIDENT_ALREADY_VOID };
+  }
   if (isIncidentPhieuConfirmed(attrs)) {
     return { ok: false, error: INCIDENT_ALREADY_CONFIRMED };
   }

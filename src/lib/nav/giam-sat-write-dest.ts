@@ -67,7 +67,9 @@ export function pickSoleWriteHrefForMode(
   return visibleWriteHrefs.length === 1 ? visibleWriteHrefs[0] : null;
 }
 
-/** Active sidebar «Giám sát» trên hub hoặc deep-link module. */
+/** Active sidebar «Giám sát» trên hub, form, ModeNav Lịch sử/Thống kê VST·GSC, QR.
+ * Không gồm `/thong-ke/cssd` (CSSD report mirror — sidebar CSSD riêng).
+ */
 export function isGiamSatNavPath(pathname: string): boolean {
   return (
     pathname === GIAM_SAT_HUB_HREF ||
@@ -76,6 +78,9 @@ export function isGiamSatNavPath(pathname: string): boolean {
     pathname.startsWith("/giam-sat-nkbv") ||
     pathname.startsWith("/lich-su/vst") ||
     pathname.startsWith("/lich-su/gsc") ||
+    pathname === "/thong-ke" ||
+    pathname.startsWith("/thong-ke/vst") ||
+    pathname.startsWith("/thong-ke/gsc") ||
     pathname === "/qr"
   );
 }

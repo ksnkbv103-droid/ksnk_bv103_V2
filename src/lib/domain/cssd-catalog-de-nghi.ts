@@ -3,8 +3,43 @@
 export const CSSD_CATALOG_DE_NGHI_KINDS = ["LOAI", "BO", "BOM", "MIXED"] as const;
 export type CssdCatalogDeNghiKind = (typeof CSSD_CATALOG_DE_NGHI_KINDS)[number];
 
-export const CSSD_CATALOG_DE_NGHI_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
+export const CSSD_CATALOG_DE_NGHI_STATUSES = [
+  "PENDING",
+  "APPLYING",
+  "APPLY_FAILED",
+  "APPROVED",
+  "REJECTED",
+] as const;
 export type CssdCatalogDeNghiStatus = (typeof CSSD_CATALOG_DE_NGHI_STATUSES)[number];
+
+/** Claim trước apply — chỉ winner từ PENDING. */
+export const CATALOG_DE_NGHI_CLAIM_STATUS: CssdCatalogDeNghiStatus = "APPLYING";
+export const CATALOG_DE_NGHI_FAILED_STATUS: CssdCatalogDeNghiStatus = "APPLY_FAILED";
+
+export function canClaimCatalogDeNghi(status: string | null | undefined): boolean {
+  return status === "PENDING";
+}
+
+export function canRejectCatalogDeNghi(status: string | null | undefined): boolean {
+  return status === "PENDING" || status === "APPLY_FAILED";
+}
+
+export function catalogDeNghiStatusLabel(status: string | null | undefined): string {
+  switch (String(status || "").trim()) {
+    case "PENDING":
+      return "Chờ duyệt";
+    case "APPLYING":
+      return "Đang ghi danh mục";
+    case "APPLY_FAILED":
+      return "Ghi danh mục lỗi";
+    case "APPROVED":
+      return "Đã duyệt";
+    case "REJECTED":
+      return "Từ chối";
+    default:
+      return String(status || "—");
+  }
+}
 
 export const CSSD_CATALOG_DE_NGHI_KIND_LABEL: Record<CssdCatalogDeNghiKind, string> = {
   LOAI: "Loại dụng cụ",

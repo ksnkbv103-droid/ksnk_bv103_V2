@@ -2,10 +2,9 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Download, Printer, Undo2 } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -31,8 +30,9 @@ import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
+import IncidentVoidButton from "@/modules/cssd-su-co/components/IncidentVoidButton";
 import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
-import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
+import { stationLabel } from "../workflow/domain/cssd-stations";
 
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
   ssr: false,
@@ -43,20 +43,17 @@ const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_
 type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";
 
 function parseReportTab(tabParam: string | null, highlightIncidentId: string): ReportTab {
+  // W3A: flat doors; legacy nested hub aliases (`phan-tich`) → VOLUME
   if (tabParam === "incident" || tabParam === "su-co" || highlightIncidentId) return "INCIDENT";
-  if (tabParam === "accountability") return "ACCOUNTABILITY";
+  if (tabParam === "accountability" || tabParam === "trach-nhiem") return "ACCOUNTABILITY";
   if (tabParam === "volume" || tabParam === "san-luong" || tabParam === "phan-tich") return "VOLUME";
   if (tabParam === "sets" || tabParam === "bo") return "SETS";
   if (tabParam === "equipment" || tabParam === "may") return "EQUIPMENT";
   if (tabParam === "staff" || tabParam === "nhan-su") return "STAFF";
-  if (tabParam === "van-hanh") return "OVERVIEW";
+  if (tabParam === "van-hanh" || tabParam === "overview" || tabParam === "tong-quan") return "OVERVIEW";
   return "OVERVIEW";
 }
 
-const ANALYTICS_TABS: ReportTab[] = ["VOLUME", "SETS", "EQUIPMENT", "STAFF", "ACCOUNTABILITY"];
-function isAnalyticsTab(tab: ReportTab): boolean {
-  return ANALYTICS_TABS.includes(tab);
-}
 
 function CSSDReportPageInner() {
   const searchParams = useSearchParams();
@@ -148,24 +145,22 @@ function CSSDReportPageInner() {
     const tyLe =
       analytics?.tyLeQuyTrinhKhongSuCo != null
         ? analytics.tyLeQuyTrinhKhongSuCo.toFixed(1)
-        : raw.quyTrinh.length
-          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
-          : "—";
+        : "—";
 
     return {
       stats: {
-        total: raw.quyTrinh.length,
-        incidents: raw.suCo.length,
+        total: analytics?.quyTrinhKyCount ?? 0,
+        incidents: analytics?.suCoKyCount ?? 0,
         /** Chỉ số CSSD riêng — không gộp tuân thủ VST–GSC. */
         tyLeQuyTrinhKhongSuCo: tyLe,
-        bestStation: ranked[0]?.name.replace(/_/g, " ") || "Không áp dụng",
-        worstStation: ranked[ranked.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
+        bestStation: ranked[0] ? stationLabel(ranked[0].name) : "Không áp dụng",
+        worstStation: ranked[ranked.length - 1] ? stationLabel(ranked[ranked.length - 1].name) : "Không áp dụng",
       },
       alerts: bData
         .filter((b) => b.rate != null && b.rate > 5)
-        .map((b) => ({ name: b.name, rate: (b.rate as number).toFixed(1) })),
+        .map((b) => ({ name: stationLabel(b.name), rate: (b.rate as number).toFixed(1) })),
       pieData: Array.from(pMap).map(([name, value]) => ({ name, value })),
-      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: b.name.replace(/_/g, " ") })),
+      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: stationLabel(b.name) })),
       incidentGroupStats: INCIDENT_GROUPS.map((g) => ({
         group: g,
         label: INCIDENT_GROUP_LABEL[g],
@@ -183,7 +178,7 @@ function CSSDReportPageInner() {
     return (
       <CSSDPageShell title="Báo cáo CSSD">
         <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-12 text-center text-sm font-semibold text-slate-400 shadow-sm">
-          Bạn không có quyền xem báo cáo tổng hợp
+          Bạn không có quyền xem Báo cáo CSSD
         </div>
       </CSSDPageShell>
     );
@@ -211,27 +206,20 @@ function CSSDReportPageInner() {
       }
     >
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
-      <div className="space-y-2">
-        <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Vận hành" />
-          <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố" />
-          <CssdHorizTabButton
-            active={isAnalyticsTab(tab)}
-            onClick={() => {
-              if (!isAnalyticsTab(tab)) setTab("VOLUME");
-            }}
-            label="Phân tích"
-          />
-        </div>
-        {isAnalyticsTab(tab) ? (
-          <div className={CSSD_UI_TAB_GROUP}>
-            <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
-            <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
-            <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy và bảo trì" mobileLabel="Máy" />
-            <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
-            <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi và người lỗi" mobileLabel="Trách nhiệm" />
-          </div>
-        ) : null}
+      {/* W3A: one flat door — no nested «Phân tích» hub (north-star: Vận hành · Sự cố · Sản lượng · Bộ · Máy · NV · Trách nhiệm) */}
+      <div className={CSSD_UI_TAB_GROUP} data-testid="cssd-report-flat-tabs">
+        <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Vận hành" />
+        <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố" />
+        <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
+        <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
+        <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy và bảo trì" mobileLabel="Máy" />
+        <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" mobileLabel="NV" />
+        <CssdHorizTabButton
+          active={tab === "ACCOUNTABILITY"}
+          onClick={() => setTab("ACCOUNTABILITY")}
+          label="Khâu lỗi và người lỗi"
+          mobileLabel="Trách nhiệm"
+        />
       </div>
 
       {tab === "OVERVIEW" && (
@@ -275,8 +263,8 @@ function CSSDReportPageInner() {
           ) : null}
           <ReportCharts pieData={pieData} barData={barData} />
           <p className="text-[11px] text-slate-500">
-            Biểu đồ cột trạm phía trên = <strong>tồn hiện tại</strong> (trạng thái cuối). Tab «Sản lượng» = hoàn thành
-            trong kỳ theo timestamp quét.
+            Biểu đồ cột trạm = <strong>lượt hoàn thành trong kỳ</strong> theo giờ quét (ngày VN, gồm chu kỳ đã đóng) và
+            sự cố phát hiện tại trạm. Tồn hiện tại xem ở Kho dụng cụ.
           </p>
           <div className="space-y-2 print:hidden">
             <h3 className="text-[11px] font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
@@ -286,7 +274,12 @@ function CSSDReportPageInner() {
                 {
                   header: "Trạm cuối",
                   accessorKey: "trang_thai_hien_tai",
-                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{stationLabel(v.trang_thai_hien_tai)}</span>,
+                },
+                {
+                  header: "Chu kỳ",
+                  accessorKey: "chu_ky_label",
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{v.chu_ky_label}</span>,
                 },
                 {
                   header: "Cảnh báo",
@@ -313,20 +306,6 @@ function CSSDReportPageInner() {
 
       {tab === "INCIDENT" && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 print:hidden">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-amber-950">Thu hồi theo mẻ (QT.24)</p>
-              <p className="text-[11px] text-amber-900">
-                Sự cố an toàn BI+/ướt/lỗi máy — không lẫn 3 cửa biến động dụng cụ.
-              </p>
-            </div>
-            <Link
-              href={cssdSuCoBatchRecallHref()}
-              className={`${CSSD_UI_ACTION_SECONDARY} border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}
-            >
-              <Undo2 size={16} aria-hidden /> Thu hồi theo mẻ
-            </Link>
-          </div>
           {highlightIncidentId ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-950">
               {raw.suCo.some((x) => String(x.id) === highlightIncidentId) ? (
@@ -378,14 +357,20 @@ function CSSDReportPageInner() {
                     </span>
                   ),
                 },
-                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
-                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
+                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
                 {
                   header: "In",
                   accessorKey: "id",
                   cell: (v: any) =>
                     v.id ? (
                       <div className="flex flex-wrap items-center gap-1.5">
+                        {incidentAllowed.create ? (
+                          <IncidentVoidButton
+                            incidentId={String(v.id)}
+                            onVoided={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
                         {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
                           <IncidentConfirmButton
                             incidentId={String(v.id)}
@@ -424,8 +409,8 @@ function CSSDReportPageInner() {
               { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
               { header: "Bản chất", accessorKey: "cause_label", cell: (v: any) => <span className="text-[11px] font-medium">{v.cause_label || "Chưa phân loại"}</span> },
               { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
-              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
-              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
+              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
               { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },
               { header: "Thời gian", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
             ]}
