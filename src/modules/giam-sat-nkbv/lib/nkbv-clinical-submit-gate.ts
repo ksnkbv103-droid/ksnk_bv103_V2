@@ -206,6 +206,15 @@ export function assertClinicalEvidenceForSubmit(
         error: "Chưa khai báo ngày phẫu thuật hoặc dấu hiệu lâm sàng vết mổ.",
       };
     }
+    const procCode = String(
+      verificationInput?.loai_phau_thuat_nhsn || "",
+    ).trim();
+    if (!procCode) {
+      return {
+        ok: false,
+        error: "Thiếu nhóm thủ thuật NHSN — không xác định SP.",
+      };
+    }
     if (!hasAnsweredBoolean(verificationInput?.is_patos)) {
       return {
         ok: false,

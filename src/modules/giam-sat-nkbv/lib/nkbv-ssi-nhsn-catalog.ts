@@ -246,21 +246,22 @@ export function isSecondaryIncisionalEvent(eventTypeCode?: string | null): boole
  * Khung giám sát SSI (ngày lịch):
  * - Nông (SIP/SIS) hoặc SUPERFICIAL: luôn 30
  * - DIS (deep secondary): luôn 30
- * - DIP / Organ: theo mã PT NHSN; không có mã → fallback implant (dữ liệu cũ)
+ * - DIP / Organ: theo mã PT NHSN; thiếu mã → null (chặn submit, không fallback implant)
  */
 export function resolveSsiSurveillanceDays(input: {
   depth: NhsnSsiEventDepth | "NONE";
   procedureCode?: string | null;
+  /** @deprecated Không dùng — thiếu mã PT → null. */
   hasImplantFallback?: boolean;
   eventTypeCode?: string | null;
-}): number {
+}): number | null {
   const event = getNhsnSsiEventType(input.eventTypeCode);
   const depth = event?.depth || input.depth;
   if (depth === "SUPERFICIAL" || depth === "NONE") return 30;
   if (isSecondaryIncisionalEvent(input.eventTypeCode)) return 30;
   const proc = getNhsnProcedure(input.procedureCode);
   if (proc) return proc.deep_organ_surveillance_days;
-  return input.hasImplantFallback ? 90 : 30;
+  return null;
 }
 
 export function surveillanceNoteForSsi(input: {
@@ -270,6 +271,9 @@ export function surveillanceNoteForSsi(input: {
   eventTypeCode?: string | null;
 }): string {
   const days = resolveSsiSurveillanceDays(input);
+  if (days == null) {
+    return "Thiếu nhóm thủ thuật NHSN — không xác định SP Deep/Organ";
+  }
   if (isSecondaryIncisionalEvent(input.eventTypeCode)) {
     return `SP đường mổ phụ (${String(input.eventTypeCode).toUpperCase()}) = 30 ngày`;
   }
@@ -282,9 +286,7 @@ export function surveillanceNoteForSsi(input: {
   if (proc) {
     return `SP Deep/Organ = ${days} ngày theo mã PT ${proc.code}`;
   }
-  return input.hasImplantFallback
-    ? "SP Deep/Organ = 90 ngày (fallback implant — chưa chọn mã PT NHSN)"
-    : "SP Deep/Organ = 30 ngày (chưa chọn mã PT NHSN)";
+  return "Thiếu nhóm thủ thuật NHSN — không xác định SP Deep/Organ";
 }
 
 /** Cảnh báo mềm khi chọn SIS/DIS trên loại mổ thường không có đường mổ phụ. */

@@ -70,10 +70,10 @@ export default function SsiClinicalSubForm({
   const limitDays = resolveSsiSurveillanceDays({
     depth,
     procedureCode: form.loai_phau_thuat_nhsn,
-    hasImplantFallback: form.has_implant,
     eventTypeCode: form.ssi_event_type,
   });
-  const isTimeframeExpired = form.days_since_surgery > limitDays;
+  const isTimeframeExpired =
+    limitDays == null || form.days_since_surgery > limitDays;
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
   const siteOptions = useMemo(

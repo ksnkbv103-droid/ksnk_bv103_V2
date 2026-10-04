@@ -63,7 +63,7 @@ function applyCh2PoaGate(
     classification: "POA",
     lcbi_type: result.lcbi_type,
     reason:
-      "DOE thuộc khung POA (ngày viện 1–2 / trước nhập theo Ch.2). Không tính HAI/NKBV — cấm định nghĩa 48 giờ; dùng NHSN day-3.",
+      "DOE thuộc khung POA (ngày viện 1–2 / trước nhập theo Ch.2). Không tính HAI/NKBV — HAI theo NHSN day-3 (DOE từ ngày lịch thứ 3).",
   };
 }
 
@@ -764,9 +764,9 @@ function ssiDepthWithinSp(
   const limitDays = resolveSsiSurveillanceDays({
     depth,
     procedureCode: data.loai_phau_thuat_nhsn,
-    hasImplantFallback: data.has_implant,
     eventTypeCode,
   });
+  if (limitDays == null) return false;
   return days < limitDays;
 }
 
@@ -807,16 +807,21 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
   const userLimitDays = resolveSsiSurveillanceDays({
     depth: userDepth === "NONE" ? "SUPERFICIAL" : userDepth,
     procedureCode: data.loai_phau_thuat_nhsn,
-    hasImplantFallback: data.has_implant,
     eventTypeCode: userEventCode,
   });
+  if (userLimitDays == null) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason:
+        "Thiếu nhóm thủ thuật NHSN — không xác định SP. Chọn mã PT trước khi đánh giá SSI.",
+    };
+  }
   const limitHint = isSecondaryIncisionalEvent(data.ssi_event_type)
     ? "đường mổ phụ SIS/DIS luôn 30 ngày"
     : proc
       ? `mã PT ${proc.code} · Deep/Organ ${proc.deep_organ_surveillance_days} ngày (nông/SIS/DIS luôn 30)`
-      : data.has_implant
-        ? "fallback implant 90 ngày (chưa chọn mã PT NHSN)"
-        : "30 ngày (chưa chọn mã PT NHSN hoặc nông)";
+      : "SP nông 30 ngày";
 
   if (data.is_patos) {
     return {

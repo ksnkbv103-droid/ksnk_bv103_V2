@@ -90,14 +90,26 @@ describe("assertClinicalEvidenceForSubmit", () => {
     const res = assertClinicalEvidenceForSubmit("SSI", {
       ngay_phat_hien: "2026-05-21",
       ngay_phau_thuat: "2026-05-10",
+      loai_phau_thuat_nhsn: "COLO",
     });
     expect(res.ok).toBe(false);
+  });
+
+  it("SSI thiếu mã PT NHSN → chặn", () => {
+    const res = assertClinicalEvidenceForSubmit("SSI", {
+      ngay_phat_hien: "2026-05-21",
+      ngay_phau_thuat: "2026-05-10",
+      is_patos: false,
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toMatch(/thủ thuật NHSN/);
   });
 
   it("SSI đã trả lời PATOS không → cho qua", () => {
     const res = assertClinicalEvidenceForSubmit("SSI", {
       ngay_phat_hien: "2026-05-21",
       ngay_phau_thuat: "2026-05-10",
+      loai_phau_thuat_nhsn: "COLO",
       is_patos: false,
     });
     expect(res.ok).toBe(true);

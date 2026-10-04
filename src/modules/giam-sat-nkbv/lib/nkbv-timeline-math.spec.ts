@@ -64,7 +64,7 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.attributedStay?.khoa_id).toBe("ICU");
   });
 
-  it("LOA Transfer Rule: DOE = ngày chuyển hoặc ngày sau → khoa chuyển đi (calendar day, không 48h)", () => {
+  it("LOA Transfer Rule: DOE = ngày chuyển hoặc ngày sau → khoa chuyển đi (ngày lịch NHSN)", () => {
     const treatmentHistory: DepartmentStay[] = [
       { khoa_id: "CC", ten_khoa: "Cấp cứu", ngay_vao: "2026-05-10", ngay_ra: "2026-05-12" },
       { khoa_id: "ICU", ten_khoa: "ICU", ngay_vao: "2026-05-12" }
@@ -91,7 +91,7 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.attributionReason).toMatch(/khoa chuyển đi|multi-khoa 24h/);
   });
 
-  it("LOA: DOE từ ngày thứ 2 sau chuyển trở đi → khoa đang điều trị (calendar day, không 48h)", () => {
+  it("LOA: DOE từ ngày thứ 2 sau chuyển trở đi → khoa đang điều trị (ngày lịch NHSN)", () => {
     const treatmentHistory: DepartmentStay[] = [
       { khoa_id: "CC", ten_khoa: "Cấp cứu", ngay_vao: "2026-05-10", ngay_ra: "2026-05-12" },
       { khoa_id: "ICU", ten_khoa: "ICU", ngay_vao: "2026-05-12" }
@@ -192,7 +192,7 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.sbap_end).toBe("2026-05-25"); // DOE+13
   });
 
-  it("SSI SBAP vẫn [DOE−3, DOE+13]", () => {
+  it("SSI SBAP vẫn [DOE−3, DOE+13]; DOE ∈ SP từ ngày mổ (không ±3 Index)", () => {
     const metrics = calculateCdcMetrics({
       ngay_phat_hien: "2026-05-15",
       ngay_vao_vien: "2026-05-01",
@@ -200,13 +200,73 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
       activeForm: {
         ssi_depth: "SUPERFICIAL",
         superficial_purulent_drainage: true,
+        ngay_phau_thuat: "2026-05-01",
+        loai_phau_thuat_nhsn: "COLO",
       },
       symptomDates: { superficial_purulent_drainage: "2026-05-14" },
       treatmentHistory: [],
     });
     expect(metrics.doe).toBe("2026-05-14");
+    expect(metrics.iwp_start).toBe("2026-05-01");
+    expect(metrics.iwp_end).toBe("2026-05-30");
     expect(metrics.sbap_start).toBe("2026-05-11");
     expect(metrics.sbap_end).toBe("2026-05-27");
+  });
+
+  it("SSI DOE: mủ nông ngày 20, Index 26, COLO → DOE 20 trong SP 30", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-01-26",
+      ngay_vao_vien: "2025-12-20",
+      checklistType: "SSI",
+      indexDateOverride: "2026-01-26",
+      activeForm: {
+        ssi_depth: "SUPERFICIAL",
+        superficial_purulent_drainage: true,
+        ngay_phau_thuat: "2026-01-01",
+        loai_phau_thuat_nhsn: "COLO",
+      },
+      symptomDates: { superficial_purulent_drainage: "2026-01-20" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-01-20");
+  });
+
+  it("SSI DOE: Deep HPRO ngày 80, Index 85 → DOE 80 trong SP 90", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-03-26",
+      ngay_vao_vien: "2025-12-20",
+      checklistType: "SSI",
+      indexDateOverride: "2026-03-26",
+      activeForm: {
+        ssi_depth: "DEEP",
+        deep_abscess_imaging_pathology: true,
+        ngay_phau_thuat: "2026-01-01",
+        loai_phau_thuat_nhsn: "HPRO",
+      },
+      symptomDates: { deep_abscess_imaging_pathology: "2026-03-21" },
+      treatmentHistory: [],
+    });
+    // surgery 01/01 + 80d = 03/21; Index 03/26 (= day 85)
+    expect(metrics.doe).toBe("2026-03-21");
+    expect(metrics.iwp_end).toBe("2026-03-31"); // SP 90: day 1..90 → end = surgery+89
+  });
+
+  it("SSI DOE: yếu tố ngày 29 Index 34 COLO → DOE 29 (không bị ±3 Index đẩy ra)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-02-03",
+      ngay_vao_vien: "2025-12-20",
+      checklistType: "SSI",
+      indexDateOverride: "2026-02-03",
+      activeForm: {
+        ssi_depth: "SUPERFICIAL",
+        superficial_purulent_drainage: true,
+        ngay_phau_thuat: "2026-01-01",
+        loai_phau_thuat_nhsn: "COLO",
+      },
+      symptomDates: { superficial_purulent_drainage: "2026-01-29" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-01-29");
   });
 
   it("CH17 IWP ±3 và uses_clinical_iwp", () => {
