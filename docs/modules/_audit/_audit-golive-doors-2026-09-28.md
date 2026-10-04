@@ -505,3 +505,24 @@ Trước IA: revert `8058d73` (migration PERF-1 sai bảng `dao_tao_lan_thi_cau`
 `tsc --noEmit` + vitest IA + `npm run verify` OK. Không push.
 
 Park: N-3 nhãn Việc/Tra cứu TB·HC; N-5 lối Hồ sơ Header; GscHistoryView `?bk=` filter (drill lịch sử BM đã link); số liệu 3 chỉ số WHO vs BM trên `/thong-ke/vst` (rà VST/BCTH).
+
+## MOD-NKBV — cửa Module 4 (2026-10-05, nhánh `cursor/mod-nkbv` từ tip `cursor/mod-ia`)
+
+| Commit | Việc |
+|--------|------|
+| `13f8ed3` | NKBV-01 RIT prior chỉ sự kiện đủ tiêu chí (server tự nạp) |
+| `71437c9` | NKBV-02 chặn XAC_NHAN khi không dương tính; KPI/by_loai |
+| `c15f872` | NKBV-05 DOE SSI ∈ SP; thiếu mã PT → chặn |
+| `4cb4e0c` | NKBV-04 ẩn SIR/SUR + NKBV-09 bỏ JCI/top khoa |
+| `42a213f` | NKBV-07 thay «48 giờ» → day-3 NHSN |
+| `56e4de2` | NKBV-06 POA gate server tự tính VV+DOE |
+| `27487da` | NKBV-03 cột DOE/LOA/ngày mổ + RPC (file only) |
+| `126df36` | NKBV-08 gỡ nhi; migration fn_major_type (file only) |
+| `43d1338` | NKBV-10 CVC Day 1 = access nội trú đầu |
+| `d7602d6` | fixup tsc/vitest |
+
+Migration **chưa apply**: `20261005033000_nkbv_fn_major_type_ped_out.sql`, `20261005034000_nkbv_doe_loa_report_cols.sql`. App fallback JSON khi cột chưa có.
+
+`tsc --noEmit` + vitest `src/modules/giam-sat-nkbv` (549) + `npm run verify` OK. Không push.
+
+Park: N-NKBV-3 VAE vs VAP thẻ chính; N-NKBV-4 SIR NHSN thật; N-NKBV-6 SSI rate theo nhóm PT; quyền `approve` gán RBAC prod; rà phiếu `XAC_NHAN ∧ is_positive=false` lịch sử (không sửa prod).
