@@ -501,16 +501,14 @@ export function useNkbvChecklistModalState({
 
     setSubmitting(true);
     try {
-      // L07 Soft Soft Soft-safe: warn thiếu ba_ngay_khoa — không silent wrong LOA
-      if (!treatmentHistory.length) {
-        toast.warning(
-          "Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.",
-        );
-      } else if (!liveCdcMetrics?.attributedStay) {
-        toast.warning(
+      // NKBV-03: chặn submit khi thiếu LOA (server cũng chặn)
+      if (!treatmentHistory.length || !liveCdcMetrics?.attributedStay?.khoa_id) {
+        toast.error(
           liveCdcMetrics?.attributionReason ||
-            "Chưa quy kết LOA — kiểm tra ba_ngay_khoa / lưới ngày–khoa.",
+            "Thiếu lưới ngày–khoa — chưa quy kết LOA. Nhập đủ trước khi gửi chờ duyệt.",
         );
+        setSubmitting(false);
+        return;
       }
       const mergedPayload = {
         ...activePayload,

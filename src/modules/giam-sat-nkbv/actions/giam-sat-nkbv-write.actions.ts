@@ -476,6 +476,41 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
           })
         : null;
 
+    // NKBV-03: CHO_DUYET bắt buộc LOA (Transfer Rule) — không silent fallback
+    const loaKhoaId = String(
+      (verificationInput as { attributed_khoa_id?: string } | null | undefined)
+        ?.attributed_khoa_id || "",
+    ).trim();
+    if (!loaKhoaId) {
+      return {
+        success: false as const,
+        error:
+          "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
+      };
+    }
+
+    const calculatedDoe = String(
+      (verificationInput as { calculated_doe?: string } | null | undefined)
+        ?.calculated_doe || "",
+    )
+      .slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(calculatedDoe)) {
+      return {
+        success: false as const,
+        error: "Thiếu DOE (calculated_doe) — chưa đủ để đưa phiếu chờ duyệt.",
+      };
+    }
+
+    const surgeryDate =
+      viTriNhiemKhuan === "SSI"
+        ? String(
+            (verificationInput as { ngay_phau_thuat?: string; surgery_date?: string })
+              ?.ngay_phau_thuat ||
+              (verificationInput as { surgery_date?: string })?.surgery_date ||
+              "",
+          ).slice(0, 10)
+        : "";
+
     const verification_data = stripCopiedStayFieldsFromVerification({
       ...verificationInput,
       // Không persist prior client — server tự nạp mỗi lần evaluate
@@ -486,6 +521,8 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       is_secondary_bsi: result.is_secondary_bsi || false,
       reason: result.reason,
       ghi_chu_tuy_bien: verificationInput?.ghi_chu_tuy_bien || undefined,
+      calculated_doe: calculatedDoe,
+      attributed_khoa_id: loaKhoaId,
       ...(poaMajor && poaMajor !== "OTHER" && poaMajor !== "SSI" && poaMajor !== "VAE"
         ? { poa_major_type: poaMajor }
         : {}),
@@ -500,7 +537,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         : {};
     const ghiChu = String(verificationInput?.ghi_chu_tuy_bien || "").trim();
 
-    const patch: Record<string, unknown> = {
+    const patchBase: Record<string, unknown> = {
       verification_data,
       trang_thai_id: lookupStatus.id,
       vi_tri_nhiem_khuan: mappedViTri || undefined,
@@ -517,21 +554,47 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       if (maQr) {
         const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr);
         if (link) {
-          patch.quy_trinh_id = link.quy_trinh_id;
-          patch.lo_tiet_khuan_id = link.lo_tiet_khuan_id;
-          patch.ma_cycle_qr_lien_quan = link.ma_qr;
+          patchBase.quy_trinh_id = link.quy_trinh_id;
+          patchBase.lo_tiet_khuan_id = link.lo_tiet_khuan_id;
+          patchBase.ma_cycle_qr_lien_quan = link.ma_qr;
         } else {
-          patch.ma_cycle_qr_lien_quan = maQr.toUpperCase();
+          patchBase.ma_cycle_qr_lien_quan = maQr.toUpperCase();
         }
       }
     }
 
-    const { data, error: updateErr } = await supabase
+    // Cột báo cáo (migration 20261005034000) — fallback nếu chưa apply
+    const reportCols: Record<string, unknown> = {
+      doe: calculatedDoe,
+      loa_khoa_id: loaKhoaId,
+      ...(surgeryDate && /^\d{4}-\d{2}-\d{2}$/.test(surgeryDate)
+        ? { ngay_phau_thuat: surgeryDate }
+        : {}),
+    };
+
+    let { data, error: updateErr } = await supabase
       .from("nkbv_fact_su_kien")
-      .update(patch)
+      .update({ ...patchBase, ...reportCols })
       .eq("id", id)
       .select()
       .single();
+
+    if (
+      updateErr &&
+      /doe|loa_khoa_id|ngay_phau_thuat|schema cache|Could not find/i.test(
+        updateErr.message || "",
+      )
+    ) {
+      // Migration chưa apply — vẫn lưu JSON; giữ Index ở ngay_phat_hien
+      const retry = await supabase
+        .from("nkbv_fact_su_kien")
+        .update(patchBase)
+        .eq("id", id)
+        .select()
+        .single();
+      data = retry.data;
+      updateErr = retry.error;
+    }
 
     if (updateErr) throw updateErr;
 

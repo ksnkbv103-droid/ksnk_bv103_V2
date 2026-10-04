@@ -98,12 +98,31 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
       x.verification_data && typeof x.verification_data === "object"
         ? (x.verification_data as Record<string, unknown>)
         : {};
+    const calculatedDoe =
+      typeof vd.calculated_doe === "string" ? vd.calculated_doe.slice(0, 10) : null;
+    const surgeryDate =
+      typeof vd.ngay_phau_thuat === "string"
+        ? vd.ngay_phau_thuat.slice(0, 10)
+        : typeof vd.surgery_date === "string"
+          ? vd.surgery_date.slice(0, 10)
+          : null;
+    const cls = typeof vd.classification === "string" ? vd.classification : null;
+    const isSsi =
+      cls &&
+      (/^(SIP|SIS|DIP|DIS)$/i.test(cls) ||
+        cls.toUpperCase().startsWith("ORGAN_SPACE") ||
+        cls.toUpperCase().startsWith("SSI:"));
+    // Fallback khi migration chưa apply: DOE từ JSON; SSI kỳ theo ngày mổ
+    const report_date = isSsi
+      ? surgeryDate || calculatedDoe || (x.ngay_phat_hien as string | null)
+      : calculatedDoe || (x.ngay_phat_hien as string | null);
     return {
       ngay_phat_hien: x.ngay_phat_hien,
+      report_date,
       loai_nkbv: { ma_loai: x.loai_ma, ten_loai: x.loai_ten },
       trang_thai_row: { ma_trang_thai: x.trang_thai_ma, ten_trang_thai: x.trang_thai_ten },
       khoa_ghi_nhan: { ma_khoa: x.khoa_ma, ten_khoa: x.khoa_ten },
-      classification: typeof vd.classification === "string" ? vd.classification : null,
+      classification: cls,
       is_positive: typeof vd.is_positive === "boolean" ? vd.is_positive : null,
     };
   }) as NkbvCasRowMinimal[];

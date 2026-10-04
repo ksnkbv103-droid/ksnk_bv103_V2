@@ -8,6 +8,8 @@ import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 export type NkbvCasRowMinimal = {
   ngay_phat_hien?: string | null;
+  /** DOE báo cáo (cột doe hoặc calculated_doe) — kỳ theo DOE; fallback Index. */
+  report_date?: string | null;
   loai_nkbv?: { ma_loai?: string | null; ten_loai?: string | null } | null;
   trang_thai_row?: { ma_trang_thai?: string | null; ten_trang_thai?: string | null } | null;
   khoa_ghi_nhan?: { ma_khoa?: string | null; ten_khoa?: string | null } | null;
@@ -16,6 +18,12 @@ export type NkbvCasRowMinimal = {
   /** verification_data.is_positive — KPI «Đã xác nhận NKBV» = XAC_NHAN ∧ true. */
   is_positive?: boolean | null;
 };
+
+/** Ngày kỳ báo cáo phiếu: report_date → DOE → Index. */
+export function nkbvReportDate(row: NkbvCasRowMinimal): string | null {
+  const d = row.report_date || row.ngay_phat_hien;
+  return d ? String(d).slice(0, 10) : null;
+}
 
 /**
  * Một dòng kết quả `fn_nkbv_dich_te_hoc_rates`.
@@ -101,9 +109,9 @@ export function aggregateNkbvDashboard(
   const denEnd = parseISO(`${denNgayISO}T23:59:59`);
 
   const inRange = rows.filter((r) => {
-    const d = r.ngay_phat_hien;
+    const d = nkbvReportDate(r);
     if (!d) return false;
-    const t = parseISO(String(d).length > 10 ? String(d) : `${d}T12:00:00`);
+    const t = parseISO(`${d}T12:00:00`);
     return t >= tuStart && t <= denEnd;
   });
 
@@ -121,7 +129,8 @@ export function aggregateNkbvDashboard(
     const ma_tt = String(r.trang_thai_row?.ma_trang_thai || "").trim();
     const ten_tt = String(r.trang_thai_row?.ten_trang_thai || "").trim() || ma_tt;
     const portalLoai = String(r.loai_nkbv?.ma_loai || "").trim();
-    const tn = parseISO(`${String(r.ngay_phat_hien).slice(0, 10)}T12:00:00`);
+    const reportDay = nkbvReportDate(r) || String(r.ngay_phat_hien).slice(0, 10);
+    const tn = parseISO(`${reportDay}T12:00:00`);
 
     const yk = format(tn, "yyyy-MM");
     monthCount[yk] = (monthCount[yk] ?? 0) + 1;

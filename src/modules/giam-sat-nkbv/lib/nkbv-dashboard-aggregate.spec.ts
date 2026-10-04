@@ -3,6 +3,7 @@ import {
   aggregateNkbvDashboard,
   formatNkbvXacNhanVolume,
   nkbvPaMauSo,
+  nkbvReportDate,
 } from "./nkbv-dashboard-aggregate";
 
 describe("aggregateNkbvDashboard", () => {
@@ -57,6 +58,28 @@ describe("aggregateNkbvDashboard", () => {
     expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(33);
     expect(out.by_loai).toEqual(
       expect.arrayContaining([expect.objectContaining({ ma: "UTI", so_phieu: 1 })]),
+    );
+  });
+
+  it("kỳ báo cáo theo report_date/DOE (không Index)", () => {
+    const out = aggregateNkbvDashboard(
+      [
+        {
+          ngay_phat_hien: "2026-11-02",
+          report_date: "2026-10-30",
+          trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
+          loai_nkbv: { ma_loai: "UTI" },
+          khoa_ghi_nhan: { ten_khoa: "A" },
+          is_positive: true,
+          classification: "CAUTI_SUTI",
+        },
+      ],
+      "2026-10-01",
+      "2026-10-31",
+    );
+    expect(out.kpis.tong_phieu).toBe(1);
+    expect(nkbvReportDate({ ngay_phat_hien: "2026-11-02", report_date: "2026-10-30" })).toBe(
+      "2026-10-30",
     );
   });
 
