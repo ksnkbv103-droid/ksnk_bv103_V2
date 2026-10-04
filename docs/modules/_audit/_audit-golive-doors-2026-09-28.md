@@ -623,3 +623,27 @@ Migration **chưa apply** (file only):
 | Dọn hồ sơ lệch `vai_tro_he_thong_id` ≠ `sys_user_roles` | Script 1 lần ops (N-ADM-9 c); form đã chỉ đọc |
 | Map 6 nghề ↔ WHO | N-ADM-4 / N-VST-4 — ngoài scope khóa mã |
 | Bỏ break-glass sau go-live | N-ADM-3 phương án A |
+
+## MOD-GIAM-SAT — cửa Module 3 Giám sát khung VST+GSC (2026-10-05, nhánh `cursor/mod-giam-sat` từ tip `cursor/mod-admin`)
+
+| Commit | Việc |
+|--------|------|
+| `afee945e` | GS-02 lens → `p_hinh_thuc_ids`; refetch; gap 2 lens; bỏ «(gộp)»; cache key có lens |
+| `9fac76df` | GS-01 validator 6 chiều server (create); grandfather sửa; khu vực allowed |
+| `e6ff950f` | GS-03 gan_nb = đúng bool khi bật trống |
+| `d21ab41e` | GS-06 hình thức RO + cách thức thu thập + replay `CT_CAMERA_LAI` |
+| `f1d7dc31` | GS-04 nhãn chiều 2 = «Khu vực» |
+| `968071f1` | GS-07 ngưỡng trung tính + min-N đối soát; GS-09 nhãn TGS − KSNK |
+| `48db317a` | GS-05 migration analytics `hinh_thuc_id` (chưa apply) |
+
+Migration **chưa apply**: `20261005160000_gs05_analytics_hinh_thuc_id_stype.sql`
+
+`tsc --noEmit` + vitest (analytics/validations/GS) + `npm run verify` OK. Không push.
+
+### Park
+
+| Mục | Lý do |
+|-----|--------|
+| GS-08 Nhật ký vận hành khỏi `ty_le_gsc` / vị trí card hub | Handoff module GSC (N-GS-5); action /thong-ke đã lọc BK `TUAN_THU` mặc định |
+| BCTH ComprehensiveCompare lens như GS-02 | Handoff BCTH |
+| N-GS-2/3/4/7 | Chờ Nghĩa chốt; làm tròn % giữ nguyên |

@@ -102,8 +102,8 @@ export async function saveVSTSession(
       }
       await assertKhuVucAllowedForKhoa({
         supabase,
-        khoaId: khoaSessionNorm,
-        khuVucId: String(lockedKhuVucId),
+        khoaId: String(khoaSessionNorm ?? "").trim(),
+        khuVucId: String(lockedKhuVucId ?? "").trim(),
       });
     }
     for (const obs of observations) {

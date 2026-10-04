@@ -147,10 +147,12 @@ export async function saveGiamSatChung(
 
     // GS-01: 6 chiều — chỉ siết khi tạo mới (grandfather phiên cũ khi sửa).
     if (!existingSessionId) {
+      const khoaIdForDim = String(khoaNorm ?? "").trim();
+      const khuVucIdForDim = String(sessionData.khu_vuc_id ?? "").trim();
       const dimErr = validateSixSessionDimensions({
-        khoa_id: khoaNorm,
-        khu_vuc_id: sessionData.khu_vuc_id,
-        vi_tri: sessionData.vi_tri,
+        khoa_id: khoaIdForDim,
+        khu_vuc_id: khuVucIdForDim,
+        vi_tri: String(sessionData.vi_tri ?? ""),
         doi_tuong_loai: bangKiem.doi_tuong_giam_sat,
         nhan_vien_id: nhanVienNorm,
         is_manual_nhan_vien: isManualNv,
@@ -160,8 +162,8 @@ export async function saveGiamSatChung(
       if (dimErr) return { success: false, error: dimErr };
       await assertKhuVucAllowedForKhoa({
         supabase,
-        khoaId: khoaNorm,
-        khuVucId: String(sessionData.khu_vuc_id),
+        khoaId: khoaIdForDim,
+        khuVucId: khuVucIdForDim,
       });
     }
     const ngayGs = parseNgayGiamSatOrNull(sessionData.ngay_giam_sat);
