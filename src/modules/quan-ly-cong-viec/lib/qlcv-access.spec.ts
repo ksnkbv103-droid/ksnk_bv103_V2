@@ -153,28 +153,40 @@ describe("canShowDeleteTask", () => {
       ),
     ).toBe(false);
   });
-  it("là quản trị viên → được xóa", () => {
+  it("quản trị + phiếu trống %0 → được xóa", () => {
     expect(
       canShowDeleteTask(
         {
           trang_thai: "DANG_LAM",
-          han_hoan_thanh: "2020-01-01",
+          han_hoan_thanh: "2099-01-01",
           is_active: true,
           nguoi_phu_trach_id: "other",
-          phan_tram_hoan_thanh: 50,
+          phan_tram_hoan_thanh: 0,
         },
         { ...baseFlags, isRBACAdmin: true },
       ),
     ).toBe(true);
   });
-  it("quyền DELETE (không admin) → được xóa", () => {
+  it("HOAN_THANH → không hiện nút xóa (QLCV-07)", () => {
     expect(
       canShowDeleteTask(
         {
-          trang_thai: "DANG_LAM",
+          trang_thai: "HOAN_THANH",
           is_active: true,
-          nguoi_phu_trach_id: "other",
-          phan_tram_hoan_thanh: 50,
+          phan_tram_hoan_thanh: 100,
+        },
+        { ...baseFlags, isRBACAdmin: true, hasDelete: true },
+      ),
+    ).toBe(false);
+  });
+  it("quyền DELETE + đề xuất → được xóa", () => {
+    expect(
+      canShowDeleteTask(
+        {
+          trang_thai: "MOI",
+          is_active: false,
+          nguoi_phu_trach_id: null,
+          phan_tram_hoan_thanh: 0,
         },
         { ...baseFlags, hasDelete: true },
       ),

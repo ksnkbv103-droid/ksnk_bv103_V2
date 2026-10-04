@@ -432,9 +432,17 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   // Sử dụng kiểm tra undefined để cho phép cập nhật null
   if (updates.tieu_de !== undefined) dbUpdates.tieu_de = updates.tieu_de;
   if (updates.mo_ta !== undefined) dbUpdates.mo_ta = updates.mo_ta;
+  // QLCV-05: không đổi loại sau tạo (trừ legacy KHAN_CAP → DOT_XUAT).
   if (updates.loai_cong_viec !== undefined) {
-    const loai = normalizeQlcvDmFields({ loai_cong_viec: updates.loai_cong_viec });
-    dbUpdates.loai_cong_viec = loai.loai_cong_viec;
+    const nextLoai = String(updates.loai_cong_viec).toUpperCase();
+    const curLoai = String(curMa.loai_cong_viec ?? "").toUpperCase();
+    if (nextLoai === curLoai) {
+      /* noop */
+    } else if (curLoai === "KHAN_CAP" && nextLoai === "DOT_XUAT") {
+      dbUpdates.loai_cong_viec = "DOT_XUAT";
+    } else {
+      throw new Error("Không được đổi loại công việc sau khi tạo.");
+    }
   }
   if (updates.muc_do_uu_tien !== undefined) dbUpdates.muc_do_uu_tien = updates.muc_do_uu_tien;
   if (updates.han_hoan_thanh !== undefined) dbUpdates.han_hoan_thanh = updates.han_hoan_thanh;
@@ -780,12 +788,7 @@ export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
 }
 
 // ==================== XÓA ====================
-/**
- * - Quản trị (ADMIN / email tin cậy): xóa được mọi trạng thái (trừ khi policy khác).
- * - HOAN_THANH: cần quyền CONG_VIEC delete (hoặc admin).
- * - Khác: chỉ người tạo/đề xuất trong phạm vi an toàn, hoặc quyền CONG_VIEC delete.
- * - Người phụ trách sau khi đã giao: không được xóa.
- */
+/** QLCV-07: chỉ đề xuất / phiếu trống; còn lại dùng Hủy. */
 export async function deleteCongViec(id: string) {
   const { supabase } = await ensureQlcvKsnkAccess("delete");
   await verifyQlcvDeleteCapability();
@@ -793,7 +796,9 @@ export async function deleteCongViec(id: string) {
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_tao_id, nguoi_phu_trach_id, han_hoan_thanh, phan_tram_hoan_thanh")
+    .select(
+      "id, trang_thai, is_active, nguoi_tao_id, nguoi_phu_trach_id, han_hoan_thanh, phan_tram_hoan_thanh, nhat_ky",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -806,6 +811,9 @@ export async function deleteCongViec(id: string) {
     },
     scope,
   );
+
+  const { assertQlcvHardDeleteAllowed } = await import("../lib/qlcv-hard-delete");
+  assertQlcvHardDeleteAllowed(cur);
 
   const { error } = await supabase.from("qlcv_fact_cong_viec").delete().eq("id", id);
 

@@ -48,12 +48,18 @@ export type QlcvUiAccessFlags = {
 };
 
 /**
- * Xóa: quản trị / quyền `CONG_VIEC` delete luôn được.
- * Việc **quá hạn**: không cho xóa “nháp” theo người tạo — cần quyền xóa hoặc quản trị (chỉ huy vận hành qua RBAC).
+ * Xóa cứng (QLCV-07): chỉ đề xuất / phiếu trống — và có quyền delete hoặc quản trị.
+ * HOAN_THANH / đã có tiến độ: ẩn nút (dùng Hủy).
  */
 export function canShowDeleteTask(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
+  if (!(f.isRBACAdmin || f.hasDelete)) return false;
+  const st = normalizeQlcvTrangThaiToCanonical(row.trang_thai);
+  if (st === "HOAN_THANH" || st === "CHO_DUYET" || st === "DA_HUY") return false;
   if (isQlcvTaskOverdue(row) && !f.isRBACAdmin && !f.hasDelete) return false;
-  return f.isRBACAdmin || f.hasDelete;
+  const pct = Number(row.phan_tram_hoan_thanh ?? 0);
+  if (isDeXuatChoDuyet(row)) return true;
+  if ((st === "MOI" || st === "DANG_LAM") && pct === 0) return true;
+  return false;
 }
 
 /** Sửa metadata form: người phụ trách đã nhận việc không được sửa nội dung gốc; chờ nghiệm thu vẫn sửa được (hạn/mô tả) nếu có quyền edit và không bị chặn phụ trách. */

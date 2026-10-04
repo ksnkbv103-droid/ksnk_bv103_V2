@@ -605,13 +605,9 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
       <QlcvConfirmDialog
         open={confirmDeleteOpen}
         onOpenChange={setConfirmDeleteOpen}
-        title={st === "HOAN_THANH" ? "Xóa công việc đã hoàn thành" : "Xác nhận xóa công việc"}
-        description={
-          st === "HOAN_THANH"
-            ? "Xóa vĩnh viễn công việc đã hoàn thành. Chỉ quản trị viên hoặc người có quyền xóa mới thực hiện được."
-            : "Công việc sẽ bị xóa vĩnh viễn khỏi hệ thống."
-        }
-        confirmLabel="Xóa vĩnh viễn"
+        title="Xác nhận xóa công việc"
+        description="Chỉ xóa đề xuất hoặc phiếu trống. Việc đã có tiến độ hãy dùng Hủy."
+        confirmLabel="Xóa"
         variant="danger"
         onConfirm={async () => {
           try {

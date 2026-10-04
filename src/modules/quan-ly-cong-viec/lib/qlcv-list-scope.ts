@@ -41,10 +41,17 @@ export function applyQlcvListScopeToQuery<T>(query: T, _scope: QlcvListScope, se
   return (query as unknown as ScopedQuery).or(search) as T;
 }
 
+/** KSNK-only: mọi phiếu trong module đều trong phạm vi sau ensureQlcvKsnkAccess. */
 export function qlcvRowMatchesListScope(_row: QlcvScopeRow, _scope: QlcvListScope): boolean {
   return true;
 }
 
-export function assertQlcvRowInListScope(_row: QlcvScopeRow, _scope: QlcvListScope): void {
-  // no-op — ranh giới module tại ensureQlcvKsnkAccess
+/**
+ * Xác nhận phiếu thuộc module (sau ensureQlcvKsnkAccess).
+ * QLCV-07: không còn no-op im lặng — vẫn pass KSNK-wide; xóa cứng dùng `assertQlcvHardDeleteAllowed`.
+ */
+export function assertQlcvRowInListScope(row: QlcvScopeRow, scope: QlcvListScope): void {
+  if (!qlcvRowMatchesListScope(row, scope)) {
+    throw new Error("Công việc ngoài phạm vi Khoa KSNK.");
+  }
 }
