@@ -526,3 +526,22 @@ Migration **chưa apply**: `20261005033000_nkbv_fn_major_type_ped_out.sql`, `202
 `tsc --noEmit` + vitest `src/modules/giam-sat-nkbv` (549) + `npm run verify` OK. Không push.
 
 Park: N-NKBV-3 VAE vs VAP thẻ chính; N-NKBV-4 SIR NHSN thật; N-NKBV-6 SSI rate theo nhóm PT; quyền `approve` gán RBAC prod; rà phiếu `XAC_NHAN ∧ is_positive=false` lịch sử (không sửa prod).
+
+## MOD-CSSD — cửa Module 2 (2026-10-05, nhánh `cursor/mod-cssd` từ tip `cursor/mod-nkbv`)
+
+| Commit | Việc |
+|--------|------|
+| `ce3c765` | CSSD-01 gate CAP_PHAT chỉ SC tiệt khuẩn (QC mẻ/BI+/thu hồi/mẻ/TIET_KHUAN) |
+| `d6555cc` | CSSD-05 phiếu cấp phát khối SC + assertPackIssuable; «—» khi thiếu |
+| `a68c81a` | CSSD-03 Đóng gói scan-only; plasma–cellulose → nạp mẻ |
+| `e49b6dd` | CSSD-06 báo cáo «—»; tử=chu trình ≥1 SC PROCESS; gỡ ngưỡng 5% |
+| `d27e303` | CSSD-02 Đã đóng (giải phóng) + quyền Hội đồng/Admin |
+| `af28149` | CSSD-04 parent_bo_id + bỏ merge-gate; dual-path khi cột chưa có |
+| `863f920` | CSSD-07/08/10 Trả QC + Spaulding QT.18 + PP chỉ định |
+| `685e826` | fixup tsc |
+
+Migration **chưa apply**: `20261005120000_cssd_incident_status_da_dong.sql`, `20261005121000_cssd_heat_split_parent_backfill.sql` (phụ thuộc `20260928065100` parent_bo_id). CSSD-02 chạy attributes-only không cần apply; CSSD-04 dual-path fallback MAIN/SUB nếu cột thiếu.
+
+`tsc --noEmit` + vitest CSSD (125) + `npm run verify` OK. Không push.
+
+Park: CSSD-09 jargon/URL (đã gộp IA-03 — còn sót message route nếu còn); N-CSSD-3 kiểm kê; N-CSSD-4 tái xử lý chưa cấp phát; N-CSSD-5 Plasma/EO bộ chịu nhiệt (handoff ME).
