@@ -7,7 +7,11 @@ export function roundPercent1(value: unknown): number {
 }
 
 export function formatPercent1(value: unknown, { suffix = true }: { suffix?: boolean } = {}): string {
-  const text = roundPercent1(value).toFixed(1);
+  // GSC-07 / VST-06: mẫu 0 → null → «—» (không = 0.0% giả).
+  if (value == null || value === "") return "—";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  const text = roundPercent1(n).toFixed(1);
   return suffix ? `${text}%` : text;
 }
 
@@ -23,7 +27,10 @@ export function roundPercent2(value: unknown): number {
 }
 
 export function formatPercent2(value: unknown, { suffix = true }: { suffix?: boolean } = {}): string {
-  const rounded = roundPercent2(value);
+  if (value == null || value === "") return "—";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  const rounded = roundPercent2(n);
   const text = rounded.toFixed(2);
   return suffix ? `${text}%` : text;
 }

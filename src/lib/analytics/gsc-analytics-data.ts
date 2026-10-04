@@ -11,7 +11,11 @@ function withCountsPercent<T extends { tong_quan_sat?: number; tong_dat?: number
   row: T,
 ): T {
   const pct = gscCompliancePercentFromCounts(row.tong_quan_sat, row.tong_dat);
-  return pct == null ? row : { ...row, ty_le_tuan_thu: pct };
+  // GSC-07: mẫu 0 → null («—»), không giữ 0% giả từ RPC ELSE 0.
+  if (pct == null) {
+    return Number(row.tong_quan_sat ?? 0) > 0 ? row : { ...row, ty_le_tuan_thu: null };
+  }
+  return { ...row, ty_le_tuan_thu: pct };
 }
 
 function withViolationPercent<T extends { tong_quan_sat?: number; so_vi_pham?: number; tong_vi_pham?: number; ty_le_vi_pham?: number }>(

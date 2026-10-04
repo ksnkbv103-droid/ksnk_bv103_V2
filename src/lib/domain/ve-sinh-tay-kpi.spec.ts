@@ -113,4 +113,33 @@ describe("buildVeSinhTayKpiCards", () => {
     const cards = buildVeSinhTayKpiCards({ vst: minimalVst(), gsc });
     expect(cards[1]!.tyLe).toBe(80);
   });
+
+  it("VST-04: thẻ BM.03 cộng mọi BK cùng nhóm alias short+dài", () => {
+    const gsc = {
+      checklist_overview: [
+        {
+          ma_bk: "BM.07.03",
+          ten_bang_kiem: "short",
+          tong_phien: 1,
+          tong_quan_sat: 8,
+          tong_dat: 8,
+          tong_vi_pham: 0,
+          ty_le_tuan_thu: 100,
+        },
+        {
+          ma_bk: "KSNK.QT.07.BM.03",
+          ten_bang_kiem: "long",
+          tong_phien: 1,
+          tong_quan_sat: 10,
+          tong_dat: 5,
+          tong_vi_pham: 5,
+          ty_le_tuan_thu: 50,
+        },
+      ],
+    } as unknown as GscStrategicPayload;
+    const cards = buildVeSinhTayKpiCards({ vst: null, gsc });
+    const bm03 = cards.find((c) => c.qtMa === "BM.03");
+    expect(bm03?.volumeNote).toContain("2 phiên");
+    expect(bm03?.tyLe).toBe(72.22);
+  });
 });

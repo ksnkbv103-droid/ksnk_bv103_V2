@@ -648,3 +648,33 @@ Migration **chưa apply**: `20261005160000_gs05_analytics_hinh_thuc_id_stype.sql
 | GS-08 Nhật ký vận hành khỏi `ty_le_gsc` / vị trí card hub | Handoff module GSC (N-GS-5); action /thong-ke đã lọc BK `TUAN_THU` mặc định |
 | BCTH ComprehensiveCompare lens như GS-02 | Handoff BCTH |
 | N-GS-2/3/4/7 | Chờ Nghĩa chốt; làm tròn % giữ nguyên |
+
+## MOD-GSC — cửa Module 7 GSC + VST-04/06 (2026-10-05, nhánh `cursor/mod-gsc` từ tip `cursor/mod-giam-sat`)
+
+Neo Lead SELECT prod 05/10: 89 BK active (65 KSNK.* + 24 short); orphan TC ~5384 KQ; MEC nhật ký đã mất (SCR alias BM.19.02).
+
+| ID | Việc (file chính) |
+|----|-------------------|
+| DoD orphan | `20261005080000_gsc_mod_orphan_tc_and_bk_map.sql` + `gsc-orphan-criterion-resolve.ts` + vitest |
+| GSC-01 | `20261005080100_…loai_filter…sql` (cột phiên + view/RPC patch) · W ghi `loai_giam_sat` (fallback nếu chưa apply) · `gsc-loai-compliance-filter` |
+| GSC-08 | `gsc-lop-giam-sat-filter.ts` — NHAT_KY không vào `/tuan-thu` |
+| GSC-04 | SCR bỏ alias BM.19.02 + bỏ rename short · `doi_tuong` theo chủ đề · pham_vi ids rỗng · `bang-kiem-ap-dung` · gap 25/41 · MEC `NK.QT.19.MEC` trong `20261005080200_…` |
+| GSC-03 | soft-delete 3 TC rác BM.19.01 (cùng 80200); tiêu chí 10 TC QT.07.BM.03 đã trên prod |
+| GSC-05/10 | `GscChecklistNavigator` min-N + mẫu mỏng + bỏ «Khoa yếu nhất» · jargon |
+| GSC-09 | `?bk=` lịch sử server + alias group |
+| GSC-02 | map short↔dài + inactive short (80200); SCR upsert idempotent (không nhúng 65 JSON — tránh orphan UUID) |
+| GSC-06/07 | RPC patch min-N 5 + ELSE NULL · `scoreTyLe` null · `formatPercent*` «—» |
+| VST-04/06 | hub gộp alias · normalize mẫu 0 → «—» · map TC dùng chung |
+
+Migration **chưa apply**: `20261005080000_*`, `20261005080100_*`, `20261005080200_*` (+ GS-05 `20261005160000` từ lát trước).
+
+`tsc --noEmit` + vitest (GSC/VST domain/analytics) + `npm run verify` OK. Không push. Không SCR APPLY.
+
+### Park / Domain duyệt
+
+| Mục | Ghi chú |
+|-----|---------|
+| Cặp map TC `uncertain`/`none` | ~118 cặp (nhiều ở BM.12/11/31…) — liệt kê trong migration `match_confidence`; Domain tick |
+| Khối UI «Đánh giá hệ thống» riêng | RPC chưa trả payload riêng (N-GSC-7) — đã lọc khỏi % |
+| Nạp 65 BK vào DB mới | SCR DRY_RUN OK; APPLY chỉ local sau khi Nghĩa chốt |
+| N-GSC-6 map nhóm→khoa MDM | Tạm CA_VIEN + nhãn khuyến nghị |
