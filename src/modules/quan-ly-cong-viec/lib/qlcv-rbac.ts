@@ -1,20 +1,23 @@
-import { verifyAnyPermission, verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
+import { verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
 
-/** Phê duyệt đề xuất / nghiệm thu — `approve` hoặc tương thích `edit`. */
+/** Phê duyệt đề xuất — chỉ `approve` (QLCV-06: không suy từ edit). */
 export async function verifyQlcvApproveCapability(): Promise<void> {
-  await verifyAnyPermission([
-    { moduleKey: "CONG_VIEC", action: "approve" },
-    { moduleKey: "CONG_VIEC", action: "edit" },
-  ]);
+  await verifyPermission("CONG_VIEC", "approve");
 }
 
-/** Nghiệm thu hoàn thành / từ chối khi chờ duyệt xong. */
+/** Nghiệm thu hoàn thành / từ chối — chỉ `approve`. */
 export async function verifyQlcvNghiemThuCapability(): Promise<void> {
-  await verifyQlcvApproveCapability();
+  await verifyPermission("CONG_VIEC", "approve");
 }
 
 /** Xóa hoặc hủy cứng — `delete`, hoặc quản trị giám sát. */
 export async function verifyQlcvDeleteCapability(): Promise<void> {
   if (await hasRBACAdminSupervisionBypass()) return;
   await verifyPermission("CONG_VIEC", "delete");
+}
+
+/** Quản trị chỉnh trạng thái qua transition (có lý do). */
+export async function verifyQlcvAdminStatusCapability(): Promise<void> {
+  if (await hasRBACAdminSupervisionBypass()) return;
+  throw new Error("Chỉ quản trị được chỉnh trạng thái trực tiếp.");
 }

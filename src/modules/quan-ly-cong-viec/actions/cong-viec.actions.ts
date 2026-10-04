@@ -550,9 +550,11 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
       dbUpdates.trang_thai = tt.trang_thai;
     }
   }
+  // QLCV-06: cấm ghi trang_thai qua form sửa (kể cả quản trị) — dùng adminSetTrangThaiCongViec.
   if (updates.trang_thai !== undefined) {
-    const tt = normalizeQlcvDmFields({ trang_thai: updates.trang_thai });
-    dbUpdates.trang_thai = tt.trang_thai;
+    throw new Error(
+      "Không cập nhật trạng thái qua form sửa. Dùng nút thao tác hoặc chỉnh trạng thái có lý do (quản trị).",
+    );
   }
   if (
     updates.phan_tram_hoan_thanh !== undefined &&
@@ -659,6 +661,15 @@ export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   if (!isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Chỉ nghiệm thu khi việc đã báo 100% (cổng chờ nghiệm thu).");
   }
+  // N-QLCV-5 / QLCV-06: cấm tự nghiệm thu (trừ quản trị / Chủ nhiệm).
+  if (
+    actorNhanSuId &&
+    cur.nguoi_phu_trach_id &&
+    actorNhanSuId === cur.nguoi_phu_trach_id &&
+    !(await hasRBACAdminSupervisionBypass())
+  ) {
+    throw new Error("Không được tự nghiệm thu việc mình phụ trách.");
+  }
 
   // 19c TAC-3A: đóng việc bắt buộc 1 dòng kết quả (hoặc checklist 100%).
   const closeErr = validateQlcvCloseRequiresResult({
@@ -667,32 +678,56 @@ export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   });
   if (closeErr) throw new Error(closeErr);
 
+  const ketQuaNorm = normalizeQlcvKetQuaText(ketQua);
+  const lyDoNt = ketQuaNorm
+    ? `Kết quả: ${ketQuaNorm}`
+    : hasQlcvChecklistFullResult(cur.checklist)
+      ? "Đã nghiệm thu — checklist đủ."
+      : "Đã nghiệm thu và đóng công việc.";
+
   await invokeQlcvTransition(supabase, {
     congViecId: id,
     action: "NGHIEM_THU",
     actorNhanSuId: actorNhanSuId,
+    lyDo: lyDoNt,
   });
 
-  const ketQuaNorm = normalizeQlcvKetQuaText(ketQua);
-  if (ketQuaNorm) {
-    await appendQlcvNhatKy(supabase, {
-      congViecId: id,
-      loaiHoatDong: "HOAN_THANH",
-      nguoiThucHienId: actorNhanSuId,
-      noiDung: `Kết quả: ${ketQuaNorm}`,
-      trangThai: "HOAN_THANH",
-      phanTramHoanThanh: Number(cur.phan_tram_hoan_thanh ?? 100),
-    });
-  } else if (hasQlcvChecklistFullResult(cur.checklist)) {
-    await appendQlcvNhatKy(supabase, {
-      congViecId: id,
-      loaiHoatDong: "HOAN_THANH",
-      nguoiThucHienId: actorNhanSuId,
-      noiDung: "Kết quả: checklist đủ 100%.",
-      trangThai: "HOAN_THANH",
-      phanTramHoanThanh: 100,
-    });
-  }
+  revalidatePath("/quan-ly-cong-viec");
+  return { success: true };
+}
+
+/** Quản trị chỉnh trạng thái qua SET_TRANG_THAI — bắt lý do, ghi nhật ký (QLCV-06). */
+export async function adminSetTrangThaiCongViec(
+  id: string,
+  nextTrangThai: string,
+  lyDo: string,
+) {
+  const { verifyQlcvAdminStatusCapability } = await import("../lib/qlcv-rbac");
+  await verifyQlcvAdminStatusCapability();
+  const { supabase } = await ensureQlcvKsnkAccess("edit");
+  const actorNhanSuId = await getActorNhanSuId();
+  const reason = String(lyDo || "").trim();
+  if (!reason) throw new Error("Nhập lý do khi chỉnh trạng thái.");
+
+  const { data: cur, error: fetchErr } = await supabase
+    .from("qlcv_fact_cong_viec")
+    .select("id, trang_thai, phan_tram_hoan_thanh")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchErr || !cur) throw new Error("Không tìm thấy công việc.");
+
+  await invokeQlcvTransition(supabase, {
+    congViecId: id,
+    action: "SET_TRANG_THAI",
+    actorNhanSuId: actorNhanSuId,
+    lyDo: reason,
+    patch: {
+      next_trang_thai: nextTrangThai,
+      current_trang_thai: cur.trang_thai,
+      phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh,
+      loai_hoat_dong: "CAP_NHAT",
+    },
+  });
 
   revalidatePath("/quan-ly-cong-viec");
   return { success: true };
