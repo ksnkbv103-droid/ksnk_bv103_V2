@@ -5,6 +5,8 @@
  * BM.01 = WHO → `/giam-sat-vst` (không picker BK).
  */
 
+import { resolveBangKiemGroupMas } from "./gsc-bk-short-long-map";
+
 export const VE_SINH_TAY_TOPIC_ID = "ve-sinh-tay" as const;
 
 /** Mã QT trên giấy (KSNK.QT.07.BM.0x) — neo nghiệp vụ. */
@@ -51,6 +53,11 @@ export function resolveBangKiemMaCandidates(raw: string | null | undefined): str
     const l = long.toUpperCase();
     if (ma === s && !out.includes(l)) out.push(l);
     if (ma === l && !out.includes(s)) out.push(s);
+  }
+  // GSC-09 / VST-04: nhóm short↔dài cùng chủ đề (03-gap), ngoài alias VST.
+  for (const m of resolveBangKiemGroupMas(raw)) {
+    const u = normalizeBangKiemMa(m);
+    if (u && !out.includes(u)) out.push(u);
   }
   return out;
 }

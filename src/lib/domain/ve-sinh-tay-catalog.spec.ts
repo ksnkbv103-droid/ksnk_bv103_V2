@@ -39,7 +39,10 @@ describe("ve-sinh-tay-catalog", () => {
       "KSNK.QT.07.BM.03",
       "BM.07.03",
     ]);
-    expect(resolveBangKiemMaCandidates("BM.08.01")).toEqual(["BM.08.01"]);
+    expect(resolveBangKiemMaCandidates("BM.08.01")).toEqual([
+      "BM.08.01",
+      "KSNK.QT.08.BM.01",
+    ]);
     expect(resolveBangKiemMaCandidates("  ")).toEqual([]);
   });
 

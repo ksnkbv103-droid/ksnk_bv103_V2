@@ -23,11 +23,13 @@ export type { GscHistoryRow } from "../lib/gsc-read-utils";
 export function useGscHistoryTable(
   onEditBundle?: (bundle: GscViewBundle, row: GscHistoryRow) => void,
   loaiGiamSat?: GscLoaiGiamSatRoute,
+  maBk?: string | null,
 ) {
   const { allowed } = useModulePermission(MODULE_KEY);
   const [dbTemplates, setDbTemplates] = useState<Record<string, unknown>[]>([]);
   const { printingBundle, onPrint, buildBundle } = useGscPrint(dbTemplates);
   const [viewingBundle, setViewingBundle] = useState<GscViewBundle | null>(null);
+  const maBkFilter = String(maBk || "").trim() || undefined;
 
   const fetchAction = useCallback(async (params: ServerPaginationParams) => {
     const res = await getGiamSatChungHistoryPaginated({
@@ -37,13 +39,14 @@ export function useGscHistoryTable(
       sortKey: params.sortKey,
       sortDir: params.sortDir,
       loaiGiamSat,
+      maBk: maBkFilter,
     });
     if (!res.success) {
       toast.error("Lỗi tải lịch sử: " + res.error);
       return { success: false, data: [], totalCount: 0, error: res.error };
     }
     return { success: true, data: enrichGscHistoryRows(res.data || []), totalCount: res.totalCount };
-  }, [loaiGiamSat]);
+  }, [loaiGiamSat, maBkFilter]);
 
   const {
     data: processedData,

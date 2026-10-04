@@ -16,9 +16,11 @@ import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
 export default function HistoryTable({
   onEditBundle,
   loaiGiamSat,
+  maBk,
 }: {
   onEditBundle?: (bundle: GscViewBundle, row: GscHistoryRow) => void;
   loaiGiamSat?: GscLoaiGiamSatRoute;
+  maBk?: string | null;
 }) {
   const router = useRouter();
   const {
@@ -40,7 +42,7 @@ export default function HistoryTable({
     pageSize,
     totalCount,
     totalPages,
-  } = useGscHistoryTable(onEditBundle, loaiGiamSat);
+  } = useGscHistoryTable(onEditBundle, loaiGiamSat, maBk);
 
   return (
     <div className="space-y-[var(--bv103-space-3)]">
