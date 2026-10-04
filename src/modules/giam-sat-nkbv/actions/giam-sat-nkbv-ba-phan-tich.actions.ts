@@ -58,6 +58,16 @@ export async function replaceNkbvBaPhanTichSessions(input: {
   const supabase = createAdminSupabaseClient();
   const now = new Date().toISOString();
 
+  // PA-B: giữ id nháp cũ để bật lại nếu insert fail (chưa có RPC transaction).
+  const { data: prevActive, error: prevErr } = await supabase
+    .from("nkbv_fact_ba_phan_tich")
+    .select("id")
+    .eq("ma_benh_an", ma)
+    .eq("analysis_mode", mode)
+    .eq("is_active", true);
+  if (prevErr) return { success: false as const, error: prevErr.message };
+  const prevIds = (prevActive || []).map((r) => String((r as { id?: string }).id || "")).filter(Boolean);
+
   const { error: offErr } = await supabase
     .from("nkbv_fact_ba_phan_tich")
     .update({ is_active: false, updated_at: now })
@@ -79,7 +89,15 @@ export async function replaceNkbvBaPhanTichSessions(input: {
   }));
 
   const { error: insErr } = await supabase.from("nkbv_fact_ba_phan_tich").insert(rows);
-  if (insErr) return { success: false as const, error: insErr.message };
+  if (insErr) {
+    if (prevIds.length > 0) {
+      await supabase
+        .from("nkbv_fact_ba_phan_tich")
+        .update({ is_active: true, updated_at: now })
+        .in("id", prevIds);
+    }
+    return { success: false as const, error: insErr.message };
+  }
 
   revalidatePath("/giam-sat-nkbv");
   return { success: true as const };
