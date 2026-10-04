@@ -655,10 +655,10 @@ Neo Lead SELECT prod 05/10: 89 BK active (65 KSNK.* + 24 short); orphan TC ~5384
 
 | ID | Việc (file chính) |
 |----|-------------------|
-| DoD orphan | `20261005080000_gsc_mod_orphan_tc_and_bk_map.sql` + `gsc-orphan-criterion-resolve.ts` + vitest |
-| GSC-01 | `20261005080100_…loai_filter…sql` (cột phiên + view/RPC patch) · W ghi `loai_giam_sat` (fallback nếu chưa apply) · `gsc-loai-compliance-filter` |
+| DoD orphan | `20261005175000_gsc_mod_orphan_tc_and_bk_map.sql` (+ rename FIX-MIG-ORDER từ `080000`) + `gsc-orphan-criterion-resolve.ts` + vitest |
+| GSC-01 | `20261005175100_…loai_filter…sql` (cột phiên + view/RPC patch) · W ghi `loai_giam_sat` (fallback nếu chưa apply) · `gsc-loai-compliance-filter` |
 | GSC-08 | `gsc-lop-giam-sat-filter.ts` — NHAT_KY không vào `/tuan-thu` |
-| GSC-04 | SCR bỏ alias BM.19.02 + bỏ rename short · `doi_tuong` theo chủ đề · pham_vi ids rỗng · `bang-kiem-ap-dung` · gap 25/41 · MEC `NK.QT.19.MEC` trong `20261005080200_…` |
+| GSC-04 | SCR bỏ alias BM.19.02 + bỏ rename short · `doi_tuong` theo chủ đề · pham_vi ids rỗng · `bang-kiem-ap-dung` · gap 25/41 · MEC `NK.QT.19.MEC` trong `20261005175200_…` |
 | GSC-03 | soft-delete 3 TC rác BM.19.01 (cùng 80200); tiêu chí 10 TC QT.07.BM.03 đã trên prod |
 | GSC-05/10 | `GscChecklistNavigator` min-N + mẫu mỏng + bỏ «Khoa yếu nhất» · jargon |
 | GSC-09 | `?bk=` lịch sử server + alias group |
@@ -666,7 +666,7 @@ Neo Lead SELECT prod 05/10: 89 BK active (65 KSNK.* + 24 short); orphan TC ~5384
 | GSC-06/07 | RPC patch min-N 5 + ELSE NULL · `scoreTyLe` null · `formatPercent*` «—» |
 | VST-04/06 | hub gộp alias · normalize mẫu 0 → «—» · map TC dùng chung |
 
-Migration **chưa apply**: `20261005080000_*`, `20261005080100_*`, `20261005080200_*` (+ GS-05 `20261005160000` từ lát trước).
+Migration **chưa apply** (sau FIX-MIG-ORDER): `20261005175000_*`, `20261005175100_*`, `20261005175200_*` (+ GS-05 `20261005160000` từ lát trước; chạy trước GSC).
 
 `tsc --noEmit` + vitest (GSC/VST domain/analytics) + `npm run verify` OK. Không push. Không SCR APPLY.
 
@@ -704,3 +704,33 @@ Migration **chưa apply**: `…170000` … `…174000`. `tsc` + vitest QLCV + `n
 | UI «Tạo việc KSNK» trên NKBV (QT.24/33) | Deep-link helper sẵn; nút UI mỏng — chờ wiring form NKBV |
 | N-QLCV (TU_CHOI / tự NT / hạn nguồn) | Chờ Nghĩa chốt chính thức |
 | Apply 5 migration local | Chỉ khi PO lệnh `mdm:migrate` |
+
+## FIX-MIG-ORDER — thứ tự migration chưa apply chuỗi 05/10 (2026-10-05, nhánh `cursor/mod-qlcv`)
+
+**Vấn đề:** 3 file GSC mang timestamp `080000–080200` < ME/ADM/GS-05/QLCV → khi apply theo version, `20261005160000_gs05_*` CREATE OR REPLACE lại 4 view GSC **mất** `loai_giam_sat` + resolve orphan của GSC-01.
+
+### Ma trận chồng lấn (CREATE OR REPLACE ≥2 file trong chuỗi chưa apply)
+
+| Đối tượng | File định nghĩa (theo version cũ → sau rename) | Bản cuối phải giữ |
+|-----------|-----------------------------------------------|-------------------|
+| `gstt_fact_gsc_dashboard_summary` | GS-05 `160000` → GSC-01 `175100` (ex `080100`) | `fn_session_analytics_stype(hinh_thuc_id…)` + `loai_giam_sat` |
+| `gstt_fact_gsc_violations_summary` | GS-05 `160000` → GSC-01 `175100` | stype/hinh_thuc + loai + `fn_gsc_resolve_criterion_*` + `is_orphan_criterion` |
+| `fact_gsc_dashboard_summary` | GS-05 `160000` → GSC-01 `175100` | alias → `gstt_fact_gsc_dashboard_summary` |
+| `fact_gsc_violations_summary` | GS-05 `160000` → GSC-01 `175100` | alias → `gstt_fact_gsc_violations_summary` |
+| `cssd_su_co_counts_for_red_alert` / `rpc_cssd_me_thu_hoi` | SC `130000` → ME-10 `144000` | ME-10 (preserve QC + two-phase) |
+| `rpc_cssd_me_nhap_bi_am` / `rpc_cssd_me_ket_luan_dat` | ME-01 `140000` → ME-04 `141000` | ME-04 (+ BM02 + nha_implant) |
+| `v_qlcv_cong_viec_full` / `v_qlcv_cong_viec_qua_han` | QLCV-02 `170000` → QLCV-12 `174000` | `fn_qlcv_today_vn` + `nguon_lien_ket` |
+
+### Đổi tên (git mv)
+
+| Cũ | Mới |
+|----|-----|
+| `20261005080000_gsc_mod_orphan_tc_and_bk_map.sql` | `20261005175000_gsc_mod_orphan_tc_and_bk_map.sql` |
+| `20261005080100_gsc_mod_loai_filter_orphan_views.sql` | `20261005175100_gsc_mod_loai_filter_orphan_views.sql` |
+| `20261005080200_gsc_mod_seed_doi_tuong_mec_inactive.sql` | `20261005175200_gsc_mod_seed_doi_tuong_mec_inactive.sql` |
+
+### Thứ tự apply cuối (mọi `20261005*` sau `20261005034000`)
+
+`120000` SC incident → `121000` heat → `130000` SC batch recall → `140000` ME-01 → `141000` ME-04 → `142000` ME-02 → `143000` ME-03 → `144000` ME-10 → `145000` ME-05 → `150000` ME-07 → `152000` ME-08 → `153000` ME-09 → `154000` sys audit → `154100` ADM-03 → `154200` ADM-04 → **`160000` GS-05** → `170000`…`174000` QLCV → **`175000` orphan map → `175100` loai/orphan views (gộp) → `175200` seed MEC**.
+
+Verify: `src/lib/domain/fix-mig-order-unapplied.spec.ts` (timestamp tăng dần; định nghĩa cuối 4 view GSC có `loai_giam_sat` + `hinh_thuc_id`). Không apply DB trong lát này.

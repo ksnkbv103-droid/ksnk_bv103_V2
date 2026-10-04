@@ -1,4 +1,7 @@
 -- Soft local MOD-GSC — GSC-01/06/07/VST-04 views + RPC patch (FILE ONLY, chưa apply).
+-- FIX-MIG-ORDER: chạy SAU GS-05 (160000) + QLCV (174000) — bản cuối 4 view GSC
+-- gộp stype/hinh_thuc_id (GS-05) + loai_giam_sat + resolve orphan (GSC-01).
+-- Phụ thuộc: 175000 (map orphan), 160000 (fn_session_analytics_stype).
 -- 1) Cột loai_giam_sat trên phiên + backfill
 -- 2) Summary view lộ loai; violations resolve criterion qua map orphan
 -- 3) Patch _impl: lọc TUAN_THU; top lỗi min-N 5; ELSE NULL tỷ lệ

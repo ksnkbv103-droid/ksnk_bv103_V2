@@ -1,4 +1,5 @@
 -- Soft local MOD-GSC — GSC-02/03/04 data (FILE ONLY, chưa apply).
+-- FIX-MIG-ORDER: rename từ 20261005080200 → sau 175100 (views/map).
 -- Idempotent: upsert meta theo ma_bk; KHÔNG ghi đè tieu_chi_jsonb nếu đã seed-25d (tránh orphan mới).
 -- Inactive short; tạo lại nhật ký MEC mã NK.QT.19.MEC; soft-delete 3 TC rác BM.19.01.
 

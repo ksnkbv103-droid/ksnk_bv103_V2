@@ -78,6 +78,7 @@ WHERE s.hinh_thuc_id IS NULL
   END;
 
 -- --- GSC summary views (strategic + compare matrices) ---
+-- FIX-MIG-ORDER: bản cuối GSC (loai_giam_sat + orphan) ở 20261005175100_* — file này chỉ nền stype.
 -- GSC strategic stats: tong_quan_sat = tiêu chí áp dụng (value <> 'NA'), không đếm toàn bộ mẫu form.
 -- Khớp form (`gsc-score-display`, `giam-sat-scoring` TY_LE) và in ấn "trên tiêu chí có áp dụng".
 

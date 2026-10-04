@@ -285,7 +285,7 @@ export async function saveGiamSatChung(
 
     const sessionPayload = {
       bang_kiem_id: bangKiem.bang_kiem_id,
-      // GSC-01: chụp loại lúc lưu (cột migration 20261005080100 — chưa apply thì insert có thể bỏ qua nếu schema cũ).
+      // GSC-01: chụp loại lúc lưu (cột migration 20261005175100 — chưa apply thì insert có thể bỏ qua nếu schema cũ).
       loai_giam_sat: bangKiem.loai_giam_sat || null,
       khoa_id: khoaNorm,
       khu_vuc_id: sessionData.khu_vuc_id || null,

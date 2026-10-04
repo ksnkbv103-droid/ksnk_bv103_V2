@@ -1,4 +1,5 @@
 -- Soft local MOD-GSC — map tiêu chí mồ côi + short↔dài (FILE ONLY, chưa apply).
+-- FIX-MIG-ORDER: rename từ 20261005080000 → sau GS-05/QLCV (phụ thuộc trước 175100).
 -- Lead SELECT 05/10: 5384 KQ orphan sau SCR 28/9. Không sửa results_jsonb.
 -- new_criterion_id resolve lúc APPLY theo ma_bk_long + new_ma_tc/stt/noi_dung.
 
