@@ -48,7 +48,7 @@ type Props = {
   onStart: () => void;
 };
 
-/** Form tạo mẻ tiệt khuẩn — M-04 bắt chọn chương trình (Domain A thin). */
+/** Form tạo mẻ tiệt khuẩn — bắt chọn chương trình theo máy. */
 export default function MeTietKhuanCreateStep({
   machines,
   machineId,
@@ -164,12 +164,12 @@ export default function MeTietKhuanCreateStep({
                   {chuongOptions.map((o) => (
                     <option key={o.ma} value={o.ma}>
                       {o.ten}
-                      {o.nguon_label ? ` · ${o.nguon_label}` : o.nguon === "qt21_hd03" ? " · QT21 HD.03" : ""}
+                      {o.nguon_label ? ` · ${o.nguon_label}` : o.nguon === "qt21_hd03" ? " · mẫu mặc định" : ""}
                     </option>
                   ))}
                 </select>
                 <p className="pl-4 text-[11px] font-medium text-slate-500">
-                  Bắt buộc chọn chương trình (M-04). Danh mục theo máy trống → mẫu QT21 HD.03 theo PP (không invent catalog viện).
+                  Bắt buộc chọn chương trình. Danh mục theo máy trống → dùng mẫu mặc định theo phương pháp.
                 </p>
               </div>
             ) : null}
@@ -204,10 +204,10 @@ export default function MeTietKhuanCreateStep({
               </div>
             ) : null}
             <div className="space-y-2">
-              <label className={`ml-4 ${CSSD_UI_FORM_LABEL}`}>Người load mẻ</label>
+              <label className={`ml-4 ${CSSD_UI_FORM_LABEL}`}>Người nạp mẻ</label>
               <input
                 className={CSSD_UI_CONTROL}
-                placeholder="Nhập tên người load..."
+                placeholder="Nhập tên người nạp..."
                 value={nguoiLoad}
                 onChange={(e) => onNguoiLoadChange(e.target.value)}
               />
@@ -221,7 +221,7 @@ export default function MeTietKhuanCreateStep({
               type="button"
               onClick={() => {
                 if (!canStart) {
-                  toast.error("Chọn máy, chương trình và người load.");
+                  toast.error("Chọn máy, chương trình và người nạp.");
                   return;
                 }
                 onStart();

@@ -15,7 +15,7 @@ import {
   buildCssdBatchTicket,
   formatBatchMemberRecallXuLy,
   mapCapPhatPrintIncidents,
-  parseBatchQcJson,
+  mapCapPhatQcFromBatch,
   parseNguoiLoadFromGhiChu,
 } from "../lib/cssd-print-format";
 import type {
@@ -259,7 +259,13 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       return { success: false as const, error: getErrorMessage(e) };
     }
 
-    const qc = parseBatchQcJson(batch.tk_qc_json);
+    const qc = mapCapPhatQcFromBatch({
+      tk_qc_json: batch.tk_qc_json,
+      trang_thai_bi: (batch.trang_thai_bi as string | null) ?? null,
+      nhiet_do: batch.nhiet_do as number | null,
+      ap_suat: batch.ap_suat as number | null,
+      thoi_gian_chu_ky: batch.thoi_gian_chu_ky as number | null,
+    });
     const instruments = await loadInstrumentsForQuyTrinh(supabase, id);
     const maLo = String(batch.ma_lo_tiet_khuan || "");
     const nguoiCapPhat =
@@ -278,14 +284,14 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       thoiGianCapPhat,
       thietBi: (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—",
       nguoiLoad: parseNguoiLoadFromGhiChu(String(batch.ghi_chu || "")),
-      nguoiUnload: qc.nguoiUnload || "—",
-      nhietDoApSuat: qc.nhietDoApSuat || "—",
-      thongSoMay: qc.thongSoMay || "—",
-      chiThiTiepXuc: qc.chiThiTiepXuc || "—",
-      chiThiDaThongSo: qc.chiThiDaThongSo || "—",
-      testSinhHoc: qc.testSinhHoc || "NA",
-      testCI: qc.testCI || "—",
-      testBowieDick: qc.testBowieDick || "NA",
+      nguoiUnload: qc.nguoiUnload,
+      nhietDoApSuat: qc.nhietDoApSuat,
+      thongSoMay: qc.thongSoMay,
+      chiThiTiepXuc: qc.chiThiTiepXuc,
+      chiThiDaThongSo: qc.chiThiDaThongSo,
+      testSinhHoc: qc.testSinhHoc,
+      testCI: qc.testCI,
+      testBowieDick: qc.testBowieDick,
       thoiGianKetThucMe: (batch.thoi_gian_ket_thuc as string | null) ?? null,
       instruments,
       suCo: mapCapPhatPrintIncidents(suCoRows),

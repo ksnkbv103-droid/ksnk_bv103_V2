@@ -305,9 +305,9 @@ export function useMeTietKhuanWorkflow() {
   };
 
   const createMe = async () => {
-    if (!machineId || !nguoiLoad) return toast.error("Vui lòng chọn Máy và Người load");
+    if (!machineId || !nguoiLoad) return toast.error("Vui lòng chọn máy và người nạp");
     if (!chuongTrinhMa || !String(chuongTrinh || "").trim()) {
-      return toast.error("Chọn chương trình máy trước khi tạo mẻ (M-04).");
+      return toast.error("Chọn chương trình máy trước khi tạo mẻ.");
     }
     const r = await createCssdSterilizationBatch(machineId, nguoiLoad, chuongTrinh);
     if (!r.success) return toast.error(r.error);

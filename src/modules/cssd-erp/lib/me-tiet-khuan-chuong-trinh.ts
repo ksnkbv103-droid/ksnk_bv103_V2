@@ -39,7 +39,7 @@ export const QT21_HD03_CHUONG_TRINH_BY_PP: Record<SterilizerMethod, readonly Chu
       ap_suat: "",
       thoi_gian_chu_ky: "4-18",
       nguon: "qt21_hd03",
-      nguon_label: "QT21 HD.03 · 134 °C 4–18 phút",
+      nguon_label: "mẫu mặc định · 134 °C 4–18 phút",
     },
     {
       ma: "HN_121",
@@ -48,7 +48,7 @@ export const QT21_HD03_CHUONG_TRINH_BY_PP: Record<SterilizerMethod, readonly Chu
       ap_suat: "",
       thoi_gian_chu_ky: "20-30",
       nguon: "qt21_hd03",
-      nguon_label: "QT21 HD.03 · 121 °C 20–30 phút",
+      nguon_label: "mẫu mặc định · 121 °C 20–30 phút",
     },
   ],
   PLASMA_H2O2: [
@@ -59,7 +59,7 @@ export const QT21_HD03_CHUONG_TRINH_BY_PP: Record<SterilizerMethod, readonly Chu
       ap_suat: "",
       thoi_gian_chu_ky: "28-35",
       nguon: "qt21_hd03",
-      nguon_label: "QT21 HD.03 · plasma ngắn 28–35 phút",
+      nguon_label: "mẫu mặc định · plasma ngắn 28–35 phút",
     },
     {
       ma: "PL_DAI",
@@ -68,7 +68,7 @@ export const QT21_HD03_CHUONG_TRINH_BY_PP: Record<SterilizerMethod, readonly Chu
       ap_suat: "",
       thoi_gian_chu_ky: "45-75",
       nguon: "qt21_hd03",
-      nguon_label: "QT21 HD.03 · plasma dài 45–75 phút",
+      nguon_label: "mẫu mặc định · plasma dài 45–75 phút",
     },
   ],
   EO: [
@@ -79,7 +79,7 @@ export const QT21_HD03_CHUONG_TRINH_BY_PP: Record<SterilizerMethod, readonly Chu
       ap_suat: "",
       thoi_gian_chu_ky: "60-240",
       nguon: "qt21_hd03",
-      nguon_label: "QT21 HD.03 · EO ấm 55 °C 1–4 giờ",
+      nguon_label: "mẫu mặc định · EO ấm 55 °C 1–4 giờ",
     },
     {
       ma: "EO_LANH",
@@ -88,7 +88,7 @@ export const QT21_HD03_CHUONG_TRINH_BY_PP: Record<SterilizerMethod, readonly Chu
       ap_suat: "",
       thoi_gian_chu_ky: "120-360",
       nguon: "qt21_hd03",
-      nguon_label: "QT21 HD.03 · EO lạnh 37 °C 2–6 giờ",
+      nguon_label: "mẫu mặc định · EO lạnh 37 °C 2–6 giờ",
     },
   ],
 };

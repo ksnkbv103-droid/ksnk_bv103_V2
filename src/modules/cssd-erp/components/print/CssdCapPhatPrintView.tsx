@@ -8,6 +8,7 @@ import {
   CAP_PHAT_NO_INCIDENT_LINE,
   formatCssdPrintDate,
   formatCssdPrintDateTime,
+  formatBiPrintLabel,
   formatCssdTriLabel,
 } from "../../lib/cssd-print-format";
 import type { CssdCapPhatPrintData } from "../../types/cssd-print.types";
@@ -64,7 +65,7 @@ export default function CssdCapPhatPrintView({
         <div>
           {labelRow("Mã mẻ tiệt khuẩn", data.maLo)}
           {labelRow("Thiết bị TK", data.thietBi)}
-          {labelRow("Người load mẻ", data.nguoiLoad)}
+          {labelRow("Người nạp mẻ", data.nguoiLoad)}
           {labelRow("Người dỡ mẻ", data.nguoiUnload)}
           {labelRow("Kết thúc mẻ TK", formatCssdPrintDateTime(data.thoiGianKetThucMe))}
         </div>
@@ -87,7 +88,7 @@ export default function CssdCapPhatPrintView({
         <span><strong>CI:</strong> {formatCssdTriLabel(data.testCI)}</span>
         <span><strong>Chỉ thị TX:</strong> {formatCssdTriLabel(data.chiThiTiepXuc)}</span>
         <span><strong>Chỉ thị ĐTS:</strong> {formatCssdTriLabel(data.chiThiDaThongSo)}</span>
-        <span><strong>BI:</strong> {formatCssdTriLabel(data.testSinhHoc)}</span>
+        <span><strong>BI:</strong> {formatBiPrintLabel(data.testSinhHoc)}</span>
         <span><strong>Bowie–Dick:</strong> {formatCssdTriLabel(data.testBowieDick)}</span>
       </div>
 

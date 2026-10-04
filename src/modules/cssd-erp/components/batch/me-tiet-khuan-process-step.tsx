@@ -262,7 +262,7 @@ export default function MeTietKhuanProcessStep({
               )}
               {chuongTrinhEmpty && items.length > 0 ? (
                 <span className="block text-[11px] font-medium text-amber-700">
-                  Bắt buộc chọn chương trình trước khi kết luận QC (M-04).
+                  Bắt buộc chọn chương trình trước khi kết luận QC.
                 </span>
               ) : null}
             </label>
