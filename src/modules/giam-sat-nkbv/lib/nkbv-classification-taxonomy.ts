@@ -52,9 +52,6 @@ export function nkbvMajorTypeFromClassification(
   if (!cls) return "OTHER";
   if (BSI.has(cls)) return "BSI";
   if (UTI.has(cls)) return "UTI";
-  // Legacy ped UTI labels (không còn emit)
-  if (cls === "SUTI_2" || cls === "CAUTI_SUTI_2") return "UTI";
-  if (cls === "LCBI_3") return "BSI";
   if (VAE.has(cls)) return "VAE";
   if (NKBV_PNEU_CLASSIFICATION_PATTERN.test(cls)) return "PNEU";
   if (SSI.has(cls) || cls.startsWith("ORGAN_SPACE") || cls.startsWith("SSI:")) return "SSI";
@@ -85,7 +82,7 @@ export function loaiCodeFromClassification(
   if (/^PNU[123]_(HAP|NON_VAP)$/.test(cls)) return "HAP";
   if (cls === "VAC" || cls === "IVAC" || cls === "PVAP") return "VAE";
   if (BSI.has(cls)) return "BSI";
-  if (UTI.has(cls) || cls === "SUTI_2" || cls === "CAUTI_SUTI_2") return "UTI";
+  if (UTI.has(cls)) return "UTI";
   if (SSI.has(cls) || cls.startsWith("ORGAN_SPACE") || cls.startsWith("SSI:")) return "SSI";
   if (cls.startsWith("CH17:")) {
     const site = cls.slice(5).trim();

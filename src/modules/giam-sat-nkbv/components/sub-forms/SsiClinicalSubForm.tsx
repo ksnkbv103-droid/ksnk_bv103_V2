@@ -367,7 +367,6 @@ export default function SsiClinicalSubForm({
                 typeCode={form.organ_space_site}
                 flags={form.chapter17_flags || {}}
                 procedureCode={form.loai_phau_thuat_nhsn}
-                isInfantLe1={false}
                 allowedEdit={allowedEdit && !isTimeframeExpired}
                 onFlagsChange={(chapter17_flags) => onChange({ ...form, chapter17_flags })}
               />

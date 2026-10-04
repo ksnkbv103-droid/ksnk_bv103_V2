@@ -27,7 +27,7 @@ export function coerceAdultPatientAge(
 }
 
 /** Ch.17 ageGate: chỉ còn OVER_1Y (người lớn). */
-export function ch17CriterionVisibleForAge(node: Ch17Node, _isInfantLe1?: boolean): boolean {
+export function ch17CriterionVisibleForAge(node: Ch17Node): boolean {
   if (node.kind !== "ageGate") return true;
   return node.age === "OVER_1Y";
 }

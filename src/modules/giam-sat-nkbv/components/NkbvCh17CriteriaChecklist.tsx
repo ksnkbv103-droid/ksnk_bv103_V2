@@ -17,7 +17,6 @@ type Props = {
   typeCode: string | null | undefined;
   flags: Record<string, boolean>;
   procedureCode?: string | null;
-  isInfantLe1?: boolean;
   allowedEdit: boolean;
   onFlagsChange: (flags: Record<string, boolean>) => void;
 };
@@ -26,7 +25,6 @@ export default function NkbvCh17CriteriaChecklist({
   typeCode,
   flags,
   procedureCode,
-  isInfantLe1,
   allowedEdit,
   onFlagsChange,
 }: Props) {
@@ -40,17 +38,16 @@ export default function NkbvCh17CriteriaChecklist({
     ) : null;
   }
 
-  const infant = !!isInfantLe1;
   const summary = ch17CriteriaSummaryForType(def.code).filter((c) => {
     const crit = def.criteria.find((x) => x.code === c.code);
     if (!crit) return true;
-    return ch17CriterionVisibleForAge(crit.node, infant);
+    return ch17CriterionVisibleForAge(crit.node);
   });
   const evidence = normalizeCh17EvidenceFlags(flags);
-  const ctx = { evidence, procedureCode, isInfantLe1: infant };
   const status = evaluateCh17Type({
     typeCode: def.code,
-    ...ctx,
+    evidence,
+    procedureCode,
   });
 
   const toggle = (key: string, checked: boolean) => {
@@ -78,7 +75,9 @@ export default function NkbvCh17CriteriaChecklist({
       </div>
       {summary.map((c) => {
         const crit = def.criteria.find((x) => x.code === c.code);
-        const thisMet = crit ? evalCh17Node(crit.node, ctx).ok : false;
+        const thisMet = crit
+          ? evalCh17Node(crit.node, { evidence, procedureCode }).ok
+          : false;
         return (
           <div key={c.code} className="rounded-lg border border-violet-100/80 bg-white/80 p-2 space-y-1.5">
             <p className="text-[11px] font-semibold text-slate-800">

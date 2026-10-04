@@ -28,21 +28,14 @@ describe("nkbv-ch17-criteria", () => {
     expect(r.missing).toEqual([]);
   });
 
-  it("infant gate chặn nhánh người lớn", () => {
+  it("ageGate OVER_1Y đánh giá nhánh người lớn", () => {
     const node = {
       kind: "ageGate" as const,
       age: "OVER_1Y" as const,
       of: ev("sx_fever_gt38"),
     };
-    const blocked = evalCh17Node(node, {
-      evidence: { sx_fever_gt38: true },
-      isInfantLe1: true,
-    });
-    expect(blocked.ok).toBe(false);
-
     const ok = evalCh17Node(node, {
       evidence: { sx_fever_gt38: true },
-      isInfantLe1: false,
     });
     expect(ok.ok).toBe(true);
   });

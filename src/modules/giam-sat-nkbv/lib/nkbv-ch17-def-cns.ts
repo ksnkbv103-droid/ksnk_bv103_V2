@@ -64,28 +64,6 @@ const menAdultSigns: Ch17Node = any(
   all(ev("sx_cranial_nerve"), any(ev("sx_fever_gt38"), ev("sx_headache"))),
 );
 
-const menInfantSigns: Ch17Node = any(
-  all(ev("sx_meningeal_signs"), ev("sx_cranial_nerve")),
-  all(
-    ev("sx_meningeal_signs"),
-    any(
-      ev("sx_fever_gt38"),
-      ev("sx_hypothermia_lt36"),
-      ev("sx_apnea"),
-      ev("sx_bradycardia"),
-    ),
-  ),
-  all(
-    ev("sx_cranial_nerve"),
-    any(
-      ev("sx_fever_gt38"),
-      ev("sx_hypothermia_lt36"),
-      ev("sx_apnea"),
-      ev("sx_bradycardia"),
-    ),
-  ),
-);
-
 export const CH17_DEF_MEN: Ch17TypeDef = {
   code: "MEN",
   group: "CNS",

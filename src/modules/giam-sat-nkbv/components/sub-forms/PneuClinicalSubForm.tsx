@@ -67,7 +67,7 @@ interface PneuClinicalSubFormProps {
 
 function syncRespCount(form: VaeVerificationData, patch: Partial<VaeVerificationData>): VaeVerificationData {
   const next = { ...form, ...patch };
-  // Chỉ đếm dòng hô hấp catalog (pneu_resp_line) — PNU3/infant phụ không nâng local count
+  // Chỉ đếm dòng hô hấp catalog (pneu_resp_line) — PNU3 phụ không nâng local count
   next.respiratory_symptoms_count = countPneuRespiratoryLines(
     next as unknown as Record<string, unknown>,
   );

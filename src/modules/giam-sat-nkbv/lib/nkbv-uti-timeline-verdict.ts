@@ -175,6 +175,7 @@ export function buildUtiTimelineVerdict(
         removedDate: input.deviceRemovedDate || null,
         admissionDate: input.admissionDate,
         dischargeDate: input.dischargeDate,
+        deviceKind: "foley",
       })
     : { placedDays: 0, activeOnEvent: false, associated: false };
   const foleyPlacedDays = assoc.placedDays;
@@ -297,11 +298,6 @@ export function ageYearsFromNgaySinh(
   const m = ref.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) age -= 1;
   return age >= 0 ? age : null;
-}
-
-/** @deprecated BV103 người lớn — luôn false. */
-export function isInfantLe1FromAge(_ageYears: number | null): boolean {
-  return false;
 }
 
 export { UTI_VOIDING_CRITERIA_KEYS };

@@ -1,7 +1,7 @@
 /**
  * Nhãn hiển thị loại NKBV — từng hội chứng hô hấp **tách riêng** theo domain CDC:
  * - VAE: người lớn thở máy (tầng VAC → IVAC → PVAP), không dùng X-quang
- * - VAP: viêm phổi liên quan thở máy theo tiêu chuẩn PNEU (người lớn; PedVAP ngoài phạm vi BV103)
+ * - VAP: viêm phổi liên quan thở máy theo tiêu chuẩn PNEU (người lớn)
  * - HAP: viêm phổi bệnh viện không do thở máy (PNEU non-vent)
  * Không gộp VAE với VAP/HAP.
  */
@@ -64,7 +64,6 @@ const CODE_ALIASES: Record<string, NkbvChecklistTypeCode> = {
   IVAC: "VAE",
   PVAP: "VAE",
   VAP: "VAP",
-  PEDVAP: "VAP",
   HAP: "HAP",
   PNEU: "HAP",
   PNU1: "HAP",
@@ -99,7 +98,7 @@ export const NKBV_MDM_CODE_CANDIDATES: Record<
   UTI: ["UTI", "CAUTI", "UTI_NKBV"],
   SSI: ["SSI"],
   VAE: ["VAE", "VAC", "IVAC", "PVAP"],
-  VAP: ["VAP", "PEDVAP"],
+  VAP: ["VAP"],
   HAP: ["HAP", "PNEU", "VAP", "PNU1", "PNU2", "PNU3"],
   CH17: [
     "CH17",
