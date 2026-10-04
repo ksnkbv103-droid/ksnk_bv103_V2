@@ -1094,7 +1094,7 @@ HAI, IWP, DOE, POA, RIT, SBAP, LOA, CLABSI, LCBI, MBI-LCBI, CAUTI, SUTI, ABUTI, 
 
 | Mã CDC | KSNK BV103 | Định nghĩa giám sát | Ch. | Cấm nhầm | BV103 |
 |--------|------------|---------------------|-----|----------|-------|
-| **Calendar day** | Ngày lịch | 00:00–23:59. Mọi “ngày” protocol = ngày lịch, không phải 24 giờ tròn từ giờ đặt. | 2, 16 | Không đếm “đủ 48 giờ” theo giờ đồng hồ trừ khi protocol nói rõ. | Dùng |
+| **Calendar day** | Ngày lịch | 00:00–23:59. Mọi “ngày” protocol = ngày lịch, không phải 24 giờ tròn từ giờ đặt. | 2, 16 | Không quy đổi cửa sổ case-def sang giờ đồng hồ trừ khi protocol nói rõ. | Dùng |
 | **Index / first diagnostic test** | Xét nghiệm đặt IWP | Ngày mẫu/chẩn đoán **đầu** dùng làm yếu tố tiêu chí để **mở** IWP 7 ngày. | 2 | Sốt **không** đặt IWP (không khu trú). Không = DOE. | Dùng |
 | **IWP** | IWP (cửa sổ nhiễm 7 ngày) | Index + 3 ngày trước + 3 ngày sau. Mọi yếu tố tiêu chí phải nằm trong IWP. | 2, 16 | **Không** áp SSI, VAE. ENDO = IWP 21 ngày. | Dùng |
 | **DOE** | DOE (ngày sự kiện) | Ngày phần tử **đầu tiên** thỏa tiêu chí **lần đầu** trong IWP. | 2, 16 | SSI: DOE trong Surveillance Period. VAE: ngày đầu worsening. Không = ngày nhập / ngày cấy dương nếu yếu tố khác sớm hơn. | Dùng |
@@ -1106,7 +1106,7 @@ HAI, IWP, DOE, POA, RIT, SBAP, LOA, CLABSI, LCBI, MBI-LCBI, CAUTI, SUTI, ABUTI, 
 | **Matching organism** | Matching organism | Cùng loài nếu cả hai có loài; nếu một mẫu chỉ chi thì khớp ở chi. Kháng sinh đồ **không** phải khớp. | 2, 17 | Không gộp “họ” lỏng (*Enterococcus faecium* ≠ *E. faecalis*). | Dùng |
 | **LOA** | LOA (khoa quy kết) | Khoa BN đang nằm **vào DOE**, trừ Transfer Rule. | 2, 16 | Không = khoa lấy mẫu / khoa mổ (trừ SSI protocol). | Dùng |
 | **Transfer Rule** | Transfer Rule | DOE = ngày chuyển khoa **hoặc** ngày sau chuyển → quy kết **khoa chuyển đi**. | 2, 10 | Không áp dụng cảm tính “khoa nằm lâu hơn”. | Dùng |
-| **Device-associated** | Gắn dụng cụ | HAI + dụng cụ tại chỗ **>2 ngày lịch** vào DOE **và** còn DOE hoặc ngày trước DOE. | 2, 16 | “>2 ngày lịch” ≠ 48 giờ. | Dùng |
+| **Device-associated** | Gắn dụng cụ | HAI + dụng cụ tại chỗ **>2 ngày lịch** vào DOE **và** còn DOE hoặc ngày trước DOE. | 2, 16 | Dùng ngày lịch NHSN, không quy đổi giờ đồng hồ. | Dùng |
 | **Device Day 1** | Device Day 1 | Ngày đặt (và ngày rút cũng 1 Device Day). CVC sẵn lúc nhập: ngày **access nội trú đầu**. Foley/máy sẵn trước nhập: ngày nhập nội trú đầu. | 2, 4, 7, 10 | Ngắt ≥1 ngày lịch đầy đủ → Device Day 1 mới (break rule). | Dùng |
 
 ---

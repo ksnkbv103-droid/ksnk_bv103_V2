@@ -16,7 +16,7 @@ import {
 describe("CDC/NHSN 2023 Rules Engine tests", () => {
   
   describe("evaluateBsiClabsi", () => {
-    it("hai_status POA → không CLABSI (NHSN day-3 / cấm 48h)", () => {
+    it("hai_status POA → không CLABSI (NHSN day-3 / DOE từ ngày lịch thứ 3)", () => {
       const data = {
         is_fungi_respiratory: false,
         pathogen_name: "E. coli",

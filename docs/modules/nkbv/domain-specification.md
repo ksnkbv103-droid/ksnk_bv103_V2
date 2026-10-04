@@ -5,7 +5,7 @@
 > **Quy trình ca + dữ liệu:** [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) (LIS tạo BA nếu chưa có mã; copy HIS/gõ tay; triệu chứng timeline = BA).  
 > **Thuật toán + từ điển:** [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (v3.3).  
 > **Workspace phân tích:** [`ba-centric-timeline.md`](ba-centric-timeline.md) — **Bệnh án trung tâm**; cổng vi sinh chỉ nạp timeline.  
-> §3 form “48 giờ” bên dưới là **legacy field list** — runtime dùng device **>2 ngày lịch** và split VAE/PNEU (SSOT Ch.2 §2.8).  
+> §3 form legacy bên dưới — runtime dùng device **>2 ngày lịch** và split VAE/PNEU (Ch.2 §2.8).  
 > **Không API HIS/LIS.** Vi sinh = copy LIS (tạo BA nếu chưa có mã). Bệnh án cũng copy HIS hoặc gõ tay.  
 > **Chiến lược sản phẩm:** [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md).
 
@@ -63,7 +63,7 @@ Pilot: **không** hard auto-map. Máy gợi ý; IP chốt trên bảng phân tí
 
 ### 3.1 Form Giám sát VAP (Viêm phổi thở máy)
 Dành cho bệnh phẩm hô hấp (đờm, BAL).
-* **`had_ventilator` (Có thở máy $\ge 2$ ngày):** Bệnh nhân có thở máy xâm nhập liên tục trong vòng 48 giờ trước thời điểm cấy bệnh phẩm? (Có/Không)
+* **`had_ventilator` (Có thở máy $\ge 2$ ngày):** Bệnh nhân có thở máy xâm nhập liên tục **>2 ngày lịch** trước DOE (hiện diện ngày sự kiện hoặc ngày trước)? (Có/Không)
 * **`fever_hypothermia` (Biến động thân nhiệt):** Sốt $> 38^\circ\text{C}$ hoặc hạ thân nhiệt $< 36^\circ\text{C}$? (Có/Không)
 * **`leukocytosis_leukopenia` (Biến động bạch cầu):** Số lượng bạch cầu máu $\ge 12,000/\mu\text{L}$ hoặc $< 4,000/\mu\text{L}$? (Có/Không)
 * **`purulent_sputum` (Tính chất đờm mủ):** Đờm đục, đờm mủ mới xuất hiện, hoặc thay đổi tính chất đờm (tăng lượng đờm, tăng mùi hôi)? (Có/Không)
@@ -71,7 +71,7 @@ Dành cho bệnh phẩm hô hấp (đờm, BAL).
 
 ### 3.2 Form Giám sát BSI (Nhiễm khuẩn huyết / LCBI)
 Dành cho cấy máu dương tính.
-* **`had_central_line` (Có đường truyền trung tâm):** Bệnh nhân có đặt catheter tĩnh mạch trung tâm (Central Line) trong vòng 48 giờ trước ngày cấy máu? (Có/Không)
+* **`had_central_line` (Có đường truyền trung tâm):** Bệnh nhân có đặt catheter tĩnh mạch trung tâm (Central Line) **>2 ngày lịch** trước DOE (hiện diện ngày sự kiện hoặc ngày trước)? (Có/Không)
 * **`symptoms` (Triệu chứng lâm sàng nhiễm độc):** Có ít nhất 1 trong các dấu hiệu: sốt $> 38^\circ\text{C}$, rét run, hoặc tụt huyết áp (HA tối đa $< 90\text{ mmHg}$)? (Có/Không)
 * **`pathogen_type` (Phân loại tác nhân phân lập):** Tác nhân phân lập được thuộc nhóm:
   - `recognized_pathogen`: Vi khuẩn gây bệnh chính rõ ràng (vd. *S. aureus*, *P. aeruginosa*, *E. coli*, *Klebsiella*...). Chỉ cần **1 mẫu** dương tính để chẩn đoán.
@@ -80,7 +80,7 @@ Dành cho cấy máu dương tính.
 
 ### 3.3 Form Giám sát CAUTI (Nhiễm khuẩn tiết niệu)
 Dành cho cấy nước tiểu dương tính.
-* **`had_urinary_catheter` (Có đặt sonde tiểu):** Bệnh nhân có lưu sonde tiểu liên tục trong vòng 48 giờ trước ngày cấy nước tiểu? (Có/Không)
+* **`had_urinary_catheter` (Có đặt sonde tiểu):** Bệnh nhân có lưu sonde tiểu liên tục **>2 ngày lịch** trước DOE (hiện diện ngày sự kiện hoặc ngày trước)? (Có/Không)
 * **`symptoms` (Lâm sàng tiết niệu):** Có ít nhất 1 trong các dấu hiệu: sốt $> 38^\circ\text{C}$, đau vùng thượng vị/hông lưng, tiểu buốt, tiểu rắt, ấn đau vùng hạ vị? (Có/Không)
 * **`urine_colony_count` (Định lượng khuẩn lạc):** Kết quả cấy nước tiểu có số lượng khuẩn lạc $\ge 10^5\text{ CFU/ml}$ và không quá 2 loại tác nhân vi khuẩn phân lập được? (Có/Không)
 
