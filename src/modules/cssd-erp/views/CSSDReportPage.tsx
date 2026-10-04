@@ -54,6 +54,10 @@ const IncidentVoidButton = dynamic(
   () => import("@/modules/cssd-su-co/components/IncidentVoidButton"),
   { loading: () => null },
 );
+const IncidentCloseReleaseButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentCloseReleaseButton"),
+  { loading: () => null },
+);
 
 const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_PHAT"] as const;
 type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";
@@ -390,10 +394,16 @@ function CSSDReportPageInner() {
                             onVoided={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
-                        {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
+                        {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED && v.incident_status !== "DA_DONG" ? (
                           <IncidentConfirmButton
                             incidentId={String(v.id)}
                             onConfirmed={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
+                        {incidentAllowed.create && v.incident_status === INCIDENT_STATUS_CONFIRMED ? (
+                          <IncidentCloseReleaseButton
+                            incidentId={String(v.id)}
+                            onClosed={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
                         <IncidentJournalPrintButton incidentId={String(v.id)} />

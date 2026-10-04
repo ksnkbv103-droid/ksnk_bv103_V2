@@ -80,6 +80,15 @@ export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   return roles.includes("ADMIN");
 }
 
+/** Tên vai trò RBAC của actor hiện tại (trusted email → ADMIN). */
+export async function getActorRoleNames(): Promise<string[]> {
+  const user = await getRequestAuthUser();
+  if (!user?.id) return [];
+  if (isTrustedAdminEmail(user.email)) return ["ADMIN"];
+  const { roles } = await getPermissionsRequestScope(user.id);
+  return roles.map((r) => String(r || "").trim()).filter(Boolean);
+}
+
 /** Ít nhất một cặp (module, action) phải khớp — OR. Dùng cho đọc danh mục dùng chung nhiều module. */
 export async function verifyAnyPermission(alternatives: readonly PermissionCheck[]) {
   if (!alternatives.length) return;

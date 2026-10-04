@@ -10,8 +10,10 @@ import { passesScPickerWhitelist, resolveScPickerWorkflowId } from "../domain/cs
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
 import { executeIncidentReportAndRollback } from "../application/su-co-report.application";
 import { executeConfirmIncidentReport } from "../application/confirm-incident.application";
+import { executeCloseIncidentRelease } from "../application/close-incident-release.application";
 import { executeVoidIncidentReport } from "../application/void-incident.application";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
+import { getActorRoleNames } from "@/lib/server-permission";
 import {
   INCIDENT_STATUS_LABEL,
   INCIDENT_STATUS_VOID,
@@ -184,6 +186,35 @@ export async function confirmIncidentReport(incidentId: string) {
   }
   const result = await executeConfirmIncidentReport(supabase, {
     incidentId,
+    actorNhanSuId,
+    actorAuthUserId,
+    actorHoTen,
+  });
+  if (!result.ok) return { success: false as const, error: result.error };
+  revalidateCssdIncidentSurfaces();
+  return { success: true as const };
+}
+
+/** CSSD-02: đóng (giải phóng) SC TK đã xác nhận — biên bản + lý do; quyền Trưởng/Hội đồng/Admin. */
+export async function closeIncidentRelease(
+  incidentId: string,
+  opts: { lyDo: string; soBienBan: string },
+) {
+  const supabase = createAdminSupabaseClient();
+  await verifyCssdIncidentCreate();
+  const actorAuthUserId = await getActorAuthUserId();
+  const actorNhanSuId = await getActorNhanSuId();
+  const actorRoles = await getActorRoleNames();
+  let actorHoTen: string | null = null;
+  if (actorNhanSuId) {
+    const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", actorNhanSuId).maybeSingle();
+    actorHoTen = ns?.ho_ten ? String(ns.ho_ten).trim() : null;
+  }
+  const result = await executeCloseIncidentRelease(supabase, {
+    incidentId,
+    lyDo: opts.lyDo,
+    soBienBan: opts.soBienBan,
+    actorRoles,
     actorNhanSuId,
     actorAuthUserId,
     actorHoTen,
