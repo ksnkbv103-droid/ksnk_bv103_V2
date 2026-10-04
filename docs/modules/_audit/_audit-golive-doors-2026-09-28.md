@@ -561,3 +561,23 @@ Migration **chưa apply**: `20261005130000_cssd_sc_batch_recall_two_phase.sql` (
 `tsc --noEmit` + vitest `cssd-su-co` + `npm run verify` OK. Không push.
 
 Park: N-SC-2 ngưỡng cuối; N-SC-3 map Tổ trưởng RBAC prod; N-SC-4 bỏ nhãn chủ quan; N-SC-8 hạn theo dõi NB; gỡ HOLD_QC jargon còn sót ngoài SC (ME); quyền `BAO_SU_CO.approve` nếu seed sau.
+
+## MOD-ME — cửa Module 6 Mẻ tiệt khuẩn (2026-10-05, nhánh `cursor/mod-me` từ tip `cursor/mod-sc`)
+
+| Commit | Việc |
+|--------|------|
+| `aabc0c8` | ME-01 P0 BI BM.02 đối chứng + BI tuần sau nhả |
+| `dafcfa1` | ME-04 `nha_implant` + FE/RPC fallback `qc` |
+| `2267f5c` | ME-02+03 BD events HOLD + merge specs + chờ thẩm định |
+| `a922b342` / `b5b4b44` | ME-07 gate PP chỉ định (+ wire app) |
+| `95db7a7` | ME-11 phiếu cấp phát QC + bỏ jargon QT21/HOLD_QC |
+| `f3d4e794` | ME-05 HSD bao gói (msg nhãn ME-10 lịch sử race — nội dung HSD) |
+| `f6007eb` | ME-08 chương trình máy so chuẩn |
+| `a2dc044` | ME-09 Người nạp từ danh mục |
+| `cc9a36d` | ME-06+10 SSI ↔ mẻ + thu hồi giữ QC / KPI BI·BD |
+
+Migration **chưa apply**: `20261005140000`…`153000` (BI BM.02, nha_implant, BD events, CHO_THAM_DINH, ME-10 recall, HSD bao gói, PP gate, chuong_trinh_id, nguoi_nap_id). FE: `nha_implant` fallback `qc` khi permission chưa seed; BD insert bỏ qua nếu bảng chưa có.
+
+`tsc --noEmit` + vitest ME (~97) + `npm run verify` OK. Không push.
+
+Park: N-ME-1 ngoại lệ chịu nhiệt→Plasma/EO; N-ME-2/3 số ngày bao gói + thẩm định 3 BI đầy đủ; N-ME-6 grant tổ trưởng prod; N-ME-4 dung sai chuẩn CT; catalog CT apply prod.
