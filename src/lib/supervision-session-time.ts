@@ -1,8 +1,18 @@
 /** Chỉ “giám sát lại qua camera” — mới cần block Ngày + Từ giờ + Đến giờ ở đầu phiên (GSC + VST). */
 const REPLAY_CAMERA_CACH_THUC_GIAM_SAT = "Giám sát lại qua camera";
+/** Domain 14 O5 — nhận diện theo mã danh mục, không theo nhãn. */
+export const REPLAY_CAMERA_CACH_THUC_MA = "CT_CAMERA_LAI";
 
-export function isReplayCameraSupervisionCachThuc(cachThuc: string | null | undefined): boolean {
-  return String(cachThuc ?? "").trim() === REPLAY_CAMERA_CACH_THUC_GIAM_SAT;
+/**
+ * GS-06: ưu tiên `ma` (= CT_CAMERA_LAI); fallback nhãn legacy khi caller chưa có mã.
+ */
+export function isReplayCameraSupervisionCachThuc(
+  cachThucOrMa: string | null | undefined,
+): boolean {
+  const t = String(cachThucOrMa ?? "").trim();
+  if (!t) return false;
+  if (t.toUpperCase() === REPLAY_CAMERA_CACH_THUC_MA) return true;
+  return t === REPLAY_CAMERA_CACH_THUC_GIAM_SAT;
 }
 
 function pad2(n: number): string {

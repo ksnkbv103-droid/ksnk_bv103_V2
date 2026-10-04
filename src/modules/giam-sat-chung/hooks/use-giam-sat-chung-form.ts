@@ -340,7 +340,12 @@ export function useGiamSatChungForm(
       );
       return;
     }
-    if (isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat)) {
+    const cachDm = cachThucGiamSats.find((c) => c.id === session.cach_thuc_id);
+    if (
+      isReplayCameraSupervisionCachThuc(
+        cachDm?.ma_danh_muc || cachDm?.ten_danh_muc || session.cach_thuc_giam_sat,
+      )
+    ) {
       const bd = String(session.thoi_gian_bat_dau ?? "").trim();
       const kt = String(session.thoi_gian_ket_thuc ?? "").trim();
       if (!bd || !kt) {

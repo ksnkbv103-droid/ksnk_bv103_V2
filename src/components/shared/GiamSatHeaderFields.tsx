@@ -315,14 +315,14 @@ export default function GiamSatHeaderFields({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className={C.labelField}>{essentialsOnly ? "Chức năng phòng" : "2. Chức năng phòng"}</label>
+            <label className={C.labelField}>{essentialsOnly ? "Khu vực" : "2. Khu vực"}</label>
             <RegistrySelect
               loaiDanhMuc="KHU_VUC_GIAM_SAT"
               value={session.khu_vuc_id}
               onChange={(nextKhuVucId: string) => setSession((prev: GiamSatSession) => ({ ...prev, khu_vuc_id: nextKhuVucId }))}
               staticOptions={khuVucSelectOptions}
-              placeholder={loading ? "Đang tải..." : "Chọn chức năng phòng..."}
-              searchPlaceholder="Tìm chức năng phòng..."
+              placeholder={loading ? "Đang tải..." : "Chọn khu vực..."}
+              searchPlaceholder="Tìm khu vực..."
               disabled={loading}
               searchable={true}
             />
@@ -357,30 +357,53 @@ export default function GiamSatHeaderFields({
           </div>
 
           {!essentialsOnly ? (
-            <div className="flex min-h-0 min-w-0 flex-col gap-1">
-              <label className={C.labelField}>4. Cách thức</label>
-              <RegistrySelect
-                loaiDanhMuc="CACH_THUC_GIAM_SAT"
-                value={session.cach_thuc_id || ""}
-                onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, cach_thuc_id: nextId }))}
-                staticOptions={cachThucGiamSats.map((ct) => ({
-                  id: ct.id,
-                  label: ct.ten_danh_muc,
-                  ma: ct.ma_danh_muc,
-                  keywords: [ct.ten_danh_muc.replaceAll("Giám sát", "").trim()],
-                }))}
-                placeholder="Chọn cách thức..."
-                disabled={loading}
-                searchable
-              />
-            </div>
+            <>
+              <div className="flex min-h-0 min-w-0 flex-col gap-1">
+                <label
+                  className={C.labelField}
+                  title="Tự suy từ khoa người giám sát và khoa được giám sát — không chọn tay."
+                >
+                  Hình thức giám sát (ai quan sát)
+                </label>
+                <div
+                  className={`${C.controlInput} flex items-center bg-slate-50 text-slate-700`}
+                  title="Chuyên trách = nhân sự Khoa KSNK · Tự giám sát = cùng khoa · Chéo = khác khoa"
+                >
+                  {derivedHinhThuc.label === HINH_THUC_CHUYEN_TRACH
+                    ? "Chuyên trách"
+                    : derivedHinhThuc.label === HINH_THUC_TU_GIAM_SAT
+                      ? "Tự giám sát"
+                      : derivedHinhThuc.label === HINH_THUC_GIAM_SAT_CHEO
+                        ? "Chéo"
+                        : derivedHinhThuc.label || "—"}
+                </div>
+              </div>
+              <div className="flex min-h-0 min-w-0 flex-col gap-1">
+                <label className={C.labelField}>4. Cách thức thu thập</label>
+                <RegistrySelect
+                  loaiDanhMuc="CACH_THUC_GIAM_SAT"
+                  value={session.cach_thuc_id || ""}
+                  onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, cach_thuc_id: nextId }))}
+                  staticOptions={cachThucGiamSats.map((ct) => ({
+                    id: ct.id,
+                    label: ct.ten_danh_muc,
+                    ma: ct.ma_danh_muc,
+                    keywords: [ct.ten_danh_muc.replaceAll("Giám sát", "").trim()],
+                  }))}
+                  placeholder="Chọn cách thức thu thập..."
+                  disabled={loading}
+                  searchable
+                />
+              </div>
+            </>
           ) : null}
         </div>
       </div>
 
       {!essentialsOnly &&
       isReplayCameraSupervisionCachThuc(
-        cachThucGiamSats.find(c => c.id === session.cach_thuc_id)?.ten_danh_muc
+        cachThucGiamSats.find((c) => c.id === session.cach_thuc_id)?.ma_danh_muc ||
+          cachThucGiamSats.find((c) => c.id === session.cach_thuc_id)?.ten_danh_muc,
       ) && (
         <div className="space-y-3 rounded-lg border border-amber-200/70 bg-amber-50/40 p-3 md:grid md:grid-cols-3 md:gap-4 md:space-y-0">
           <p className={`md:col-span-3 ${T.sectionTitle} text-amber-900`}>

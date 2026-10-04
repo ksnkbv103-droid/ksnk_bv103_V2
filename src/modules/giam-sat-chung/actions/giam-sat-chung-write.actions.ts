@@ -111,7 +111,17 @@ export async function saveGiamSatChung(
     const hinh = policy.derivedHinhThuc;
     validateGscModeFields(hinh, cach);
     const modeIds = await resolveGscModeIds(supabase, { hinh, cach, hinh_id, cach_id });
-    if (isReplayCameraSupervisionCachThuc(cach)) {
+    let cachMa: string | null = null;
+    if (modeIds.cach_thuc_id) {
+      const { data: cachRow } = await supabase
+        .from("gstt_dm_cach_thuc_giam_sat")
+        .select("ma_cach_thuc")
+        .eq("id", modeIds.cach_thuc_id)
+        .maybeSingle();
+      cachMa = cachRow?.ma_cach_thuc ? String(cachRow.ma_cach_thuc) : null;
+    }
+    const isReplayCamera = isReplayCameraSupervisionCachThuc(cachMa || cach);
+    if (isReplayCamera) {
       const bd = String(sessionData.thoi_gian_bat_dau ?? "").trim();
       const kt = String(sessionData.thoi_gian_ket_thuc ?? "").trim();
       if (!bd || !kt) {
@@ -156,7 +166,7 @@ export async function saveGiamSatChung(
     }
     const ngayGs = parseNgayGiamSatOrNull(sessionData.ngay_giam_sat);
     await assertSupervisionNotLockedForDate(supabase, "GSC", ngayGs);
-    const thoiGianGhiNhan = isReplayCameraSupervisionCachThuc(cach)
+    const thoiGianGhiNhan = isReplayCamera
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
       : new Date().toISOString();
 
