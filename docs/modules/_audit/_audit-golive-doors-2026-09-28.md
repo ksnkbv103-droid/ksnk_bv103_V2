@@ -678,3 +678,29 @@ Migration **chưa apply**: `20261005080000_*`, `20261005080100_*`, `202610050802
 | Khối UI «Đánh giá hệ thống» riêng | RPC chưa trả payload riêng (N-GSC-7) — đã lọc khỏi % |
 | Nạp 65 BK vào DB mới | SCR DRY_RUN OK; APPLY chỉ local sau khi Nghĩa chốt |
 | N-GSC-6 map nhóm→khoa MDM | Tạm CA_VIEN + nhãn khuyến nghị |
+
+## MOD-QLCV — cửa Module 8 QLCV (2026-10-05, nhánh `cursor/mod-qlcv` từ tip `cursor/mod-gsc`)
+
+Neo Lead SELECT: DB UTC; cron overdue `5 17 * * *`; spawn `0 1 * * *`; `qlcv_fact_cong_viec` 0 dòng; chưa có `fn_qlcv_today_vn`. N-QLCV tạm: TU_CHOI mở; cấm tự NT; hạn nguồn do người tạo nhập.
+
+| ID | Việc (file chính) |
+|----|-------------------|
+| QLCV-02/01 | `20261005170000_qlcv_mod_today_vn_overdue.sql` · `qlcv-today-vn.ts` · cron chỉ MOI/DANG_LAM |
+| QLCV-04 | `qlcv-active-invariant` + phê đề xuất / vô hạn / chỉ gán tổ |
+| QLCV-06 | `20261005171000_qlcv_mod_transition_gate.sql` · quyền NT riêng · cấm tự NT · admin nhật ký |
+| QLCV-07 | `qlcv-hard-delete.ts` — đề xuất/phiếu trống; còn lại Hủy |
+| QLCV-05 | `20261005172000_qlcv_mod_loai_dinh_ky_check.sql` · khóa loại / import |
+| QLCV-03 | `qlcv-mvp-stats.ts` — mở / % QH / mẫu 0 → — |
+| QLCV-08 | `20261005173000_qlcv_mod_dinh_ky_spawn.sql` · ngay_ket_thuc · phụ trách · EOM 29–31 |
+| QLCV-12 | `20261005174000_qlcv_mod_nguon_lien_ket.sql` · deep-link SC/GSC (+ NKBV sẵn) |
+| P2 09/10/11 | kết quả đóng · BCA lọc kỳ · bỏ jargon / CHO_DUYET «Chờ nghiệm thu» / Người phụ trách |
+
+Migration **chưa apply**: `…170000` … `…174000`. `tsc` + vitest QLCV + `npm run verify` OK. Không push.
+
+### Park
+
+| Mục | Ghi chú |
+|-----|---------|
+| UI «Tạo việc KSNK» trên NKBV (QT.24/33) | Deep-link helper sẵn; nút UI mỏng — chờ wiring form NKBV |
+| N-QLCV (TU_CHOI / tự NT / hạn nguồn) | Chờ Nghĩa chốt chính thức |
+| Apply 5 migration local | Chỉ khi PO lệnh `mdm:migrate` |
