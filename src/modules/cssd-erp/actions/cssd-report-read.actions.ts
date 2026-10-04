@@ -479,11 +479,15 @@ export async function fetchCssdAnalyticsBundle(filters: {
     const staffRaw = computeStaffScans(quyTrinh, from, to);
     const staffIds = [...new Set(staffRaw.map((s) => s.nguoi_id))];
     const nameMap = new Map<string, { ho_ten: string; ma_nv: string }>();
-    if (staffIds.length > 0) {
-      const { data: ns } = await supabase
+    // PA1: chunk `.in` mọi id — hết cắt im 500 tên NV trên báo cáo sản lượng.
+    const STAFF_NAME_CHUNK = 200;
+    for (let i = 0; i < staffIds.length; i += STAFF_NAME_CHUNK) {
+      const slice = staffIds.slice(i, i + STAFF_NAME_CHUNK);
+      const { data: ns, error: nsErr } = await supabase
         .from("mdm_nhan_su")
         .select("id, ho_ten, ma_nv")
-        .in("id", staffIds.slice(0, 500));
+        .in("id", slice);
+      if (nsErr) throw nsErr;
       for (const n of ns || []) {
         nameMap.set(String((n as { id: string }).id), {
           ho_ten: String((n as { ho_ten?: string }).ho_ten || "—"),
