@@ -240,13 +240,16 @@ export async function saveGiamSatChung(
       throw new Error("Không chốt được nội dung bảng kiểm. Vui lòng thử lại.");
     }
 
+    // GS-03: gan_nb = đúng bool toggle; trường NB null nếu trống (không ép false).
     const boSungRaw = Boolean(sessionData.is_bo_sung_nguoi_benh);
-    const maBa = String((sessionData as { ma_benh_an?: string }).ma_benh_an ?? "").trim() || null;
-    const maNb = String(sessionData.ma_nguoi_benh ?? "").trim() || null;
-    const tenNb = String(sessionData.ten_nguoi_benh ?? "").trim() || null;
-    const giuongNb = String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null;
+    const maBa = boSungRaw
+      ? String((sessionData as { ma_benh_an?: string }).ma_benh_an ?? "").trim() || null
+      : null;
+    const maNb = boSungRaw ? String(sessionData.ma_nguoi_benh ?? "").trim() || null : null;
+    const tenNb = boSungRaw ? String(sessionData.ten_nguoi_benh ?? "").trim() || null : null;
+    const giuongNb = boSungRaw ? String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null : null;
     const boSungNbSnap = parseGscBoSungNbFromUnknown(sessionData);
-    const boSungEffective = boSungRaw && Boolean(maBa || maNb || tenNb || giuongNb);
+    const boSungEffective = boSungRaw;
 
     const thoiGianBatDauNorm = String(sessionData.thoi_gian_bat_dau ?? "").trim() || null;
     const thoiGianKetThucNorm = String(sessionData.thoi_gian_ket_thuc ?? "").trim() || null;

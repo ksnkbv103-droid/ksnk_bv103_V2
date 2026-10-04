@@ -15,9 +15,10 @@ describe("buildVstBoSungNbMetadata", () => {
     expect(meta.so_giuong_nguoi_benh).toBeNull();
   });
 
-  it("toggle on nhưng thiếu mã/tên/giường → vẫn false (không gắn NB rỗng)", () => {
+  it("GS-03: toggle on để trống → true + trường NB null", () => {
     const meta = buildVstBoSungNbMetadata({ is_bo_sung_nguoi_benh: true });
-    expect(meta.is_bo_sung_nguoi_benh).toBe(false);
+    expect(meta.is_bo_sung_nguoi_benh).toBe(true);
+    expect(meta.ma_benh_an).toBeNull();
     expect(meta.ten_nguoi_benh).toBeNull();
   });
 
