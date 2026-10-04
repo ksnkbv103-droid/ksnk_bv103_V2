@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { BarChart2, ClipboardList, History, Stethoscope } from "lucide-react";
 import {
   KsnkSupervisionTabLinks,
@@ -16,6 +16,7 @@ import {
 import {
   gscLichSuHref,
   gscThongKeHref,
+  parseGscLoaiParam,
   resolveGscLoaiFromPathname,
 } from "@/modules/giam-sat-chung/lib/gsc-app-paths";
 
@@ -28,11 +29,17 @@ type Props = {
 
 export default function SupervisionModeNav({ module, formHref, ariaLabel }: Props) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const tabs = useMemo((): SupervisionTabLinkDef[] => {
+    const loaiFromQuery = parseGscLoaiParam(searchParams.get("loai"));
     const form =
-      formHref ?? (module === "vst" ? "/giam-sat-vst" : resolveGscFormHref(pathname));
-    const gscLoai = module === "gsc" ? resolveGscLoaiFromPathname(pathname) : undefined;
+      formHref ??
+      (module === "vst" ? "/giam-sat-vst" : resolveGscFormHref(pathname, loaiFromQuery));
+    const gscLoai =
+      module === "gsc"
+        ? resolveGscLoaiFromPathname(pathname) ?? loaiFromQuery
+        : undefined;
     const history = module === "gsc" ? gscLichSuHref(gscLoai) : SUPERVISION_HISTORY_PATHS[module];
     const analytics = module === "gsc" ? gscThongKeHref(gscLoai) : SUPERVISION_ANALYTICS_PATHS[module];
     const FormIcon = module === "vst" ? Stethoscope : ClipboardList;
@@ -42,7 +49,7 @@ export default function SupervisionModeNav({ module, formHref, ariaLabel }: Prop
       { id: "history", label: "Lịch sử", mobileLabel: "Lịch sử", icon: History, href: history },
       { id: "analytics", label: "Thống kê", mobileLabel: "Thống kê", icon: BarChart2, href: analytics },
     ];
-  }, [module, formHref, pathname]);
+  }, [module, formHref, pathname, searchParams]);
 
   return <KsnkSupervisionTabLinks tabs={tabs} ariaLabel={ariaLabel ?? "Chế độ giám sát"} />;
 }

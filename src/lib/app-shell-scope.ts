@@ -37,7 +37,7 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
     return { zone: "Điều hành", page: "Báo cáo chính thức" };
   }
   if (p.startsWith("/giam-sat-vst")) return { zone: "Giám sát", page: "Vệ sinh tay" };
-  if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Form giám sát chung" };
+  if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Giám sát chung" };
   if (p.startsWith("/giam-sat-chung/nhat-ky")) return { zone: "Giám sát", page: "Nhật ký vận hành" };
   if (p.startsWith("/giam-sat-chung/he-thong")) return { zone: "Giám sát", page: "Đánh giá hệ thống" };
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };

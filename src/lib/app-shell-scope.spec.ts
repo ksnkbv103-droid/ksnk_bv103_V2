@@ -33,7 +33,7 @@ describe("getKsnkAppHeaderBreadcrumb — CSSD per-route (P0-1)", () => {
   it("keeps non-CSSD fine-grained labels", () => {
     expect(getKsnkAppHeaderBreadcrumb("/giam-sat-chung")).toEqual({
       zone: "Giám sát",
-      page: "Form giám sát chung",
+      page: "Giám sát chung",
     });
     expect(getKsnkAppHeaderBreadcrumb("/giam-sat-chung/tuan-thu")).toEqual({
       zone: "Giám sát",

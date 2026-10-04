@@ -95,11 +95,11 @@ function qlcvTaskHref(taskId: string): string {
 }
 
 function locKhoaHref(maKhoa: string): string {
-  return `/giam-sat-chung?loc=khoa&ma=${encodeURIComponent(maKhoa)}`;
+  return `/giam-sat-chung/tuan-thu?loc=khoa&ma=${encodeURIComponent(maKhoa)}`;
 }
 
 function locKhuHref(maKhu: string): string {
-  return `/giam-sat-chung?loc=khu&ma=${encodeURIComponent(maKhu)}`;
+  return `/giam-sat-chung/tuan-thu?loc=khu&ma=${encodeURIComponent(maKhu)}`;
 }
 
 /**

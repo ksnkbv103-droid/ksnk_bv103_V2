@@ -1,5 +1,7 @@
 /** Điều hướng Form / Lịch sử / Thống kê — route canonical sau tái cấu trúc 2026-06. */
 
+import { gscFormHrefForLoaiGiamSat } from "@/modules/giam-sat-chung/lib/gsc-app-paths";
+
 export type SupervisionHistoryModule = "vst" | "gsc";
 
 const HISTORY_REFRESH_KEY: Record<SupervisionHistoryModule, string> = {
@@ -41,10 +43,13 @@ export function consumeSupervisionHistoryStale(module: SupervisionHistoryModule)
   }
 }
 
-/** Route form GSC theo pathname hiện tại (giữ sub-loại tuân thủ / nhật ký / hệ thống). */
-export function resolveGscFormHref(pathname: string): string {
+/**
+ * Route form GSC theo pathname (giữ cửa tuân thủ / nhật ký / hệ thống).
+ * Từ lịch sử/thống kê: đọc `loai` → đúng 1 cửa; mặc định tuân thủ (không còn form gốc trộn lớp).
+ */
+export function resolveGscFormHref(pathname: string, loai?: string | null): string {
   if (pathname.startsWith("/giam-sat-chung/tuan-thu")) return "/giam-sat-chung/tuan-thu";
   if (pathname.startsWith("/giam-sat-chung/nhat-ky")) return "/giam-sat-chung/nhat-ky";
   if (pathname.startsWith("/giam-sat-chung/he-thong")) return "/giam-sat-chung/he-thong";
-  return "/giam-sat-chung";
+  return gscFormHrefForLoaiGiamSat(loai);
 }
