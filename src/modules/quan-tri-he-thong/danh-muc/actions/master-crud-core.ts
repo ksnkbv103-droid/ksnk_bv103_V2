@@ -179,6 +179,52 @@ export async function listMasterRows(tableName: string, orderBy: string) {
   return { success: true as const, data: data || [] };
 }
 
+/** ADM-06: chặn đổi mã khi dòng đã được tham chiếu (khoa có phiên giám sát, …). */
+async function assertCodeChangeAllowed(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  tableName: string,
+  id: string,
+  nextCode: string,
+): Promise<string | null> {
+  if (!id || !nextCode) return null;
+
+  if (tableName === "mdm_dm_khoa_phong") {
+    const { data: cur } = await supabase
+      .from("mdm_dm_khoa_phong")
+      .select("ma_khoa")
+      .eq("id", id)
+      .maybeSingle();
+    const oldCode = String(cur?.ma_khoa || "").trim();
+    if (!oldCode || oldCode === nextCode) return null;
+    const { count } = await supabase
+      .from("gstt_fact_vst")
+      .select("id", { count: "exact", head: true })
+      .eq("khoa_id", id);
+    if ((count || 0) > 0) {
+      return "Không được sửa mã khoa đã có phiên giám sát — chỉ sửa tên.";
+    }
+    const { count: gscCount } = await supabase
+      .from("gstt_fact_chung_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("khoa_id", id);
+    if ((gscCount || 0) > 0) {
+      return "Không được sửa mã khoa đã có phiên giám sát — chỉ sửa tên.";
+    }
+    return null;
+  }
+
+  const config = CONSOLIDATED_MAPS[tableName];
+  if (!config) return null;
+  const { data: cur } = await supabase
+    .from("sys_lookup_value")
+    .select("code")
+    .eq("id", id)
+    .maybeSingle();
+  const oldCode = String(cur?.code || "").trim();
+  if (!oldCode || oldCode === nextCode) return null;
+  return "Không được sửa mã danh mục đã tồn tại — chỉ sửa tên (hoặc dùng migration).";
+}
+
 export async function upsertMasterRow(tableName: string, id: string, payload: Record<string, unknown>) {
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
@@ -186,15 +232,27 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
   const config = CONSOLIDATED_MAPS[tableName];
 
   if (config) {
-    // Intercept tác vụ ghi và điều hướng sang sys_lookup_value (SSOT post 25/05; `sys_lookup_value` là view).
     const lookupPayload = convertToLookupPayload(tableName, payload, config.categoryType);
+    if (id) {
+      const codeErr = await assertCodeChangeAllowed(
+        supabase,
+        tableName,
+        id,
+        String(lookupPayload.code || ""),
+      );
+      if (codeErr) return { success: false as const, error: codeErr };
+    }
     const { error } = id
       ? await supabase.from("sys_lookup_value").update(lookupPayload).eq("id", id)
       : await supabase.from("sys_lookup_value").insert([lookupPayload]);
 
     if (error) return { success: false as const, error: error.message };
   } else {
-    // Luồng CRUD vật lý thông thường cho các bảng cốt lõi (cssd_dm_thiet_bi, cssd_dm_hoa_chat, v.v.)
+    if (id && tableName === "mdm_dm_khoa_phong") {
+      const nextCode = String(payload.ma_khoa || payload.ma || "").trim();
+      const codeErr = await assertCodeChangeAllowed(supabase, tableName, id, nextCode);
+      if (codeErr) return { success: false as const, error: codeErr };
+    }
     const { error } = id
       ? await supabase.from(tableName).update(payload).eq("id", id)
       : await supabase.from(tableName).insert([payload]);

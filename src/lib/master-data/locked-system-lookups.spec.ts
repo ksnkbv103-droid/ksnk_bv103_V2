@@ -9,6 +9,7 @@ describe("isLockedSystemLookup", () => {
     expect(isLockedSystemLookup("TRANG_THAI_NKBV_CA")).toBe(true);
     expect(isLockedSystemLookup("LOAI_NKBV")).toBe(true);
     expect(isLockedSystemLookup("VAI_TRO_HE_THONG_KSNK")).toBe(true);
+    expect(isLockedSystemLookup("NGHE_NGHIEP")).toBe(true);
   });
 
   it("không khóa danh mục viện sửa hàng ngày", () => {

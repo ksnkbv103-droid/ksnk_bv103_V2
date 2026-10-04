@@ -8,6 +8,8 @@ export const LOCKED_SYSTEM_LOOKUP_LOAI = [
   "LOAI_NKBV",
   "TRAM_CSSD",
   "VAI_TRO_HE_THONG_KSNK",
+  /** ADM-06: 6 mã nghề chuẩn — không thêm/đổi mã qua hub. */
+  "NGHE_NGHIEP",
 ] as const;
 
 export type LockedSystemLookupLoai = (typeof LOCKED_SYSTEM_LOOKUP_LOAI)[number];
