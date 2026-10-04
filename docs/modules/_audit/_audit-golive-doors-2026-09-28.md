@@ -445,3 +445,14 @@ Rà 6 lớp theo module trên tip production đã merge #74/#75. Vá mỏng ch�
 | MDM/shell | 1 P1 gateway 1000 | `14246c4` | Sidebar OK; orphan `TaiKhoanNhanSuPage` — Nghĩa xóa |
 
 Migrate file sẵn (chưa apply): `20260928150000_…claim_status`, `20260930140000_…reject_station_clear`, `20261001120000_…red_alert`, `20261001160000_…bo_summary`, `20261003160000_…clear_staff`, `20261003170000_…exclude_tu_choi`. DA không thêm migration mới.
+
+### DA follow-up (agent explore → vá mỏng)
+
+| Commit | Việc |
+|--------|------|
+| `debc3fb` | NKBV: dashboard `fetchAllRangeRows`; nháp BA hoàn `is_active` khi insert lỗi; guard DM LOAI_TRU/CHO_DUYET; RIT/VAE siblings hết `.limit(100)`. |
+| `21adff2` | VST: `pendingObservationRestore` chỉ tắt sau update header. |
+| `e4cd119` | CSSD: void `undoKho` sau lỗi quy_trinh/su_co; tồn HC + list ton + import QT + BOM chờ/lịch sử + list mẻ hết cắt; scan ném lỗi cycle QR / khoa_nhan. |
+| `a1ebe41` | QLCV: skip `fn_qlcv_transition` khi RPC checklist đã để `HOAN_THANH` (DINH_KY@100%). |
+
+Park còn: editor NKBV dual-door TT (Domain); GSC cửa sổ 30 phút; BOM apply atomic RPC; Q-14 báo cáo kỳ; Auth-ban; orphan xóa file.
