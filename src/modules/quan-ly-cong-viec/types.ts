@@ -66,7 +66,7 @@ export interface CongViec {
   nhat_ky?: unknown;
   /** QLCV-12: nguồn liên kết module khác. */
   nguon_lien_ket?: {
-    module?: string;
+    module: "CSSD_SU_CO" | "GIAM_SAT" | "NKBV" | "analytics";
     id?: string | null;
     ma?: string | null;
     label?: string | null;

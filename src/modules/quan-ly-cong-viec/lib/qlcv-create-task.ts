@@ -33,7 +33,7 @@ export type QlcvInsertTaskPayload = {
     gia_tri_luc_tao?: number | null;
   } | null;
   nguon_lien_ket?: {
-    module: string;
+    module: "CSSD_SU_CO" | "GIAM_SAT" | "NKBV" | "analytics";
     id?: string | null;
     ma?: string | null;
     label?: string | null;
