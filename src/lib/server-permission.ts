@@ -1,7 +1,8 @@
 "use server";
 
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { getRequestAuthUser } from "@/lib/auth/rbac-request";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 
@@ -42,9 +43,8 @@ const getPermissionsRequestScope = cache(async (userId: string) => {
 export async function verifyPermissions(required: readonly PermissionCheck[]) {
   if (!required.length) return;
 
-  const userSb = await createServerSupabaseUserClient();
-  // getUser() xác minh JWT server-side (ngăn JWT spoofing), thay vì getSession() chỉ đọc cookie.
-  const { data: { user } } = await userSb.auth.getUser();
+  // getUser() xác minh JWT server-side (ngăn JWT spoofing) — dedup qua React cache().
+  const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   // Trusted Super Admin bypass
@@ -73,10 +73,7 @@ export async function verifyPermission(moduleKey: string, action: string) {
  * bỏ qua ràng buộc chủ phiên và cửa sổ 30 phút ở tầng server action.
  */
 export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
-  const userSb = await createServerSupabaseUserClient();
-  const {
-    data: { user },
-  } = await userSb.auth.getUser();
+  const user = await getRequestAuthUser();
   if (!user?.id) return false;
   if (isTrustedAdminEmail(user.email)) return true;
   const { roles } = await getPermissionsRequestScope(user.id);
@@ -87,10 +84,7 @@ export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
 export async function verifyAnyPermission(alternatives: readonly PermissionCheck[]) {
   if (!alternatives.length) return;
 
-  const userSb = await createServerSupabaseUserClient();
-  const {
-    data: { user },
-  } = await userSb.auth.getUser();
+  const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   if (isTrustedAdminEmail(user.email)) return;
@@ -118,10 +112,7 @@ export async function verifyAllAnyPermissionGroups(
 ) {
   if (!groups.length) return;
 
-  const userSb = await createServerSupabaseUserClient();
-  const {
-    data: { user },
-  } = await userSb.auth.getUser();
+  const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   if (isTrustedAdminEmail(user.email)) return;

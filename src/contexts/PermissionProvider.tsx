@@ -5,18 +5,9 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_EMAILS } from "@/lib/constants";
 import type { PermissionRow } from "@/hooks/use-permission-api";
+import type { ServerRbacSnapshot, UserDataProfile } from "@/lib/auth/rbac-snapshot.types";
 
-export type UserDataProfile = {
-  id: string | null;
-  ma_nv: string | null;
-  ho_ten: string | null;
-  email: string | null;
-  khoa_id: string | null;
-  khoa: {
-    ma_khoa: string | null;
-    ten_khoa: string | null;
-  } | null;
-};
+export type { UserDataProfile };
 
 type RBACSnapshot = {
   userRoles: string[];
@@ -24,6 +15,15 @@ type RBACSnapshot = {
   userEmail: string;
   userData: UserDataProfile | null;
 };
+
+function toClientSnapshot(s: ServerRbacSnapshot): RBACSnapshot {
+  return {
+    userRoles: s.userRoles,
+    permissions: s.permissions,
+    userEmail: s.userEmail,
+    userData: s.userData,
+  };
+}
 
 const V_AUTH_USER_PERMISSIONS_SELECT =
   "staff_id,auth_user_id,ho_ten,ma_nv,email,khoa_id,is_active,ten_khoa_phong,ma_khoa_phong,roles,permissions" as const;
@@ -132,15 +132,31 @@ async function fetchRBAC(user: User): Promise<RBACSnapshot> {
   throw lastError;
 }
 
-export function PermissionProvider({ children }: { children: React.ReactNode }) {
-  const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [permissions, setPermissions] = useState<PermissionRow[]>([]);
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [userData, setUserData] = useState<UserDataProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+export function PermissionProvider({
+  children,
+  initialSnapshot = null,
+}: {
+  children: React.ReactNode;
+  /** Hydrate từ RSC — bỏ lần fetch client trùng middleware/layout. */
+  initialSnapshot?: ServerRbacSnapshot | null;
+}) {
+  const seeded = initialSnapshot ? toClientSnapshot(initialSnapshot) : null;
+  const [userRoles, setUserRoles] = useState<string[]>(() => seeded?.userRoles ?? []);
+  const [permissions, setPermissions] = useState<PermissionRow[]>(() => seeded?.permissions ?? []);
+  const [userEmail, setUserEmail] = useState<string>(() => seeded?.userEmail ?? "");
+  const [userData, setUserData] = useState<UserDataProfile | null>(() => seeded?.userData ?? null);
+  const [loading, setLoading] = useState(() => !seeded);
 
   useEffect(() => {
     let mounted = true;
+
+    if (initialSnapshot) {
+      rbacCache = {
+        userId: initialSnapshot.authUserId,
+        snapshot: toClientSnapshot(initialSnapshot),
+        cachedAt: Date.now(),
+      };
+    }
 
     function applySnapshot(snapshot: RBACSnapshot) {
       if (!mounted) return;
@@ -151,7 +167,7 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
       setLoading(false);
     }
 
-    async function loadRBAC(user: User | null) {
+    async function loadRBAC(user: User | null, opts?: { force?: boolean }) {
       if (!user) {
         rbacCache = null;
         rbacInFlight = null;
@@ -165,7 +181,12 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
       try {
         const now = Date.now();
-        if (rbacCache && rbacCache.userId === user.id && now - rbacCache.cachedAt < RBAC_CACHE_TTL_MS) {
+        if (
+          !opts?.force &&
+          rbacCache &&
+          rbacCache.userId === user.id &&
+          now - rbacCache.cachedAt < RBAC_CACHE_TTL_MS
+        ) {
           applySnapshot(rbacCache.snapshot);
           return;
         }
@@ -210,20 +231,27 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
       }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      void loadRBAC(session?.user ?? null);
-    });
+    // Đã hydrate từ server → bỏ getSession+view lần đầu; chỉ refetch khi auth đổi / invalidate.
+    if (!initialSnapshot) {
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        void loadRBAC(session?.user ?? null);
+      });
+    }
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION" && initialSnapshot) {
+        const sid = session?.user?.id;
+        if (sid && sid === initialSnapshot.authUserId) return;
+      }
       void loadRBAC(session?.user ?? null);
     });
 
     const onRbacInvalidate = () => {
       invalidateClientRbacCache();
       void supabase.auth.getSession().then(({ data: { session } }) => {
-        void loadRBAC(session?.user ?? null);
+        void loadRBAC(session?.user ?? null, { force: true });
       });
     };
     window.addEventListener("rbac:invalidate", onRbacInvalidate);
@@ -233,7 +261,7 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
       subscription.unsubscribe();
       window.removeEventListener("rbac:invalidate", onRbacInvalidate);
     };
-  }, []);
+  }, [initialSnapshot]);
 
   const value = useMemo(
     () => ({ loading, userRoles, permissions, userEmail, userData }),

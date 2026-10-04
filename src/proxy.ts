@@ -149,14 +149,20 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // IMPORTANT: getUser() xác minh JWT qua Supabase Auth API (server-side),
-  // không chỉ đọc cookie như getSession() — ngăn JWT spoofing.
+  // A) getUser() → /auth/v1/user mỗi navigation. B) getClaims() verify JWT/JWKS local — chọn B.
+  // Fallback getUser nếu claims lỗi (symmetric JWT / WebCrypto thiếu).
   let user: { id: string } | null = null;
   try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
+    const claimsRes = await supabase.auth.getClaims();
+    const sub = claimsRes.data?.claims?.sub;
+    if (typeof sub === "string" && sub.length > 0) {
+      user = { id: sub };
+    } else if (claimsRes.error) {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    }
   } catch (err) {
-    console.error("[proxy] Supabase auth.getUser failed:", err);
+    console.error("[proxy] Supabase auth.getClaims/getUser failed:", err);
     if (!onLoginRoute) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = "/login";
