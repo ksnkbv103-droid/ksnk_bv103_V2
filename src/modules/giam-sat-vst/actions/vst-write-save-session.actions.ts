@@ -305,6 +305,10 @@ export async function saveVSTSession(
 
     revalidatePath("/giam-sat-vst");
     revalidatePath("/lich-su/vst");
+    const { invalidateVstStrategicAnalyticsCache } = await import(
+      "@/lib/analytics/strategic-analytics-cache"
+    );
+    invalidateVstStrategicAnalyticsCache();
     return { success: true, sessionId, message: "Lưu phiên giám sát thành công" };
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {

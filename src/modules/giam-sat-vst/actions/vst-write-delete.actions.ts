@@ -75,6 +75,10 @@ export async function deleteVSTSessions(sessionIds: string[]) {
     const { error: sessionErr } = await supabase.from("gstt_fact_vst_sessions").delete().in("id", ids);
     if (sessionErr) throw sessionErr;
     revalidatePath("/giam-sat-vst");
+    const { invalidateVstStrategicAnalyticsCache } = await import(
+      "@/lib/analytics/strategic-analytics-cache"
+    );
+    invalidateVstStrategicAnalyticsCache();
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };
