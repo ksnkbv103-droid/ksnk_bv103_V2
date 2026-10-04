@@ -179,24 +179,33 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       if (kid) patch.khoa_nhan_id = kid;
     }
     if (Object.keys(patch).length > 0) {
-      await supabase.from("cssd_fact_quy_trinh").update(patch).eq("id", String(fullQt.id));
+      const { error: khoaErr } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .update(patch)
+        .eq("id", String(fullQt.id));
+      if (khoaErr) throw khoaErr;
     }
   }
 
   if (station === "DONG_GOI" && fullQt?.id) {
     const qtId = String(fullQt.id);
-    const { data: cycleRes } = await supabase.rpc("rpc_cssd_assign_cycle_qr", {
+    const { data: cycleRes, error: cycleErr } = await supabase.rpc("rpc_cssd_assign_cycle_qr", {
       p_quy_trinh_id: qtId,
     });
+    if (cycleErr) throw cycleErr;
     maCycleQr = String((cycleRes as { ma_cycle_qr?: string | null } | null)?.ma_cycle_qr || "").trim() || null;
 
     if (!maCycleQr) {
-      const { data: refreshed } = await supabase
+      const { data: refreshed, error: refErr } = await supabase
         .from("cssd_fact_quy_trinh")
         .select("ma_cycle_qr")
         .eq("id", qtId)
         .maybeSingle();
+      if (refErr) throw refErr;
       maCycleQr = String((refreshed as { ma_cycle_qr?: string | null } | null)?.ma_cycle_qr || "").trim() || null;
+    }
+    if (!maCycleQr) {
+      throw new Error("Đóng gói đã ghi nhưng chưa gán được mã chu trình — thử quét lại hoặc báo quản trị.");
     }
   }
 

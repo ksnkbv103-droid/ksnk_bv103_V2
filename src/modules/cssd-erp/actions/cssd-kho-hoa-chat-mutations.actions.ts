@@ -1,6 +1,7 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { assertLotExportable } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
@@ -13,16 +14,20 @@ function maPhieu(loai: "NHAP" | "XUAT" | "DIEU_CHINH"): string {
 }
 
 async function tonTaiLo(client: SupabaseClient, dmId: string, maLo: string | null, han: string | null): Promise<number> {
-  const { data } = await client
-    .from("cssd_fact_kho_hoa_chat_giao_dich")
-    .select("ma_lo, han_su_dung, so_luong_co_dau, is_active")
-    .eq("dm_hoa_chat_id", dmId);
-  const rows = (data || []) as Array<{
+  // PA1: đọc hết giao dịch của dm — hết cắt im 1000 làm undercount tồn lô.
+  const rows = await fetchAllRangeRows<{
     ma_lo?: string | null;
     han_su_dung?: string | null;
     so_luong_co_dau?: unknown;
     is_active?: boolean | null;
-  }>;
+  }>((from, to) =>
+    client
+      .from("cssd_fact_kho_hoa_chat_giao_dich")
+      .select("ma_lo, han_su_dung, so_luong_co_dau, is_active")
+      .eq("dm_hoa_chat_id", dmId)
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
   const tl = normalizeMaLo(maLo);
   const th = normalizeHanIso(han);
   let s = 0;

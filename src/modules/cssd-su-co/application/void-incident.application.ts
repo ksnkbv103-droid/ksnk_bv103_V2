@@ -193,7 +193,10 @@ export async function executeVoidIncidentReport(
     }
     if (plan.cycle.restoreLoId) patch.lo_tiet_khuan_id = plan.cycle.restoreLoId;
     const { error: qErr } = await supabase.from("cssd_fact_quy_trinh").update(patch).eq("id", quyId);
-    if (qErr) return { ok: false, error: qErr.message };
+    if (qErr) {
+      await undoKho();
+      return { ok: false, error: qErr.message };
+    }
     await appendQuyTrinhException(
       supabase,
       quyId,
@@ -218,6 +221,9 @@ export async function executeVoidIncidentReport(
     })
     .eq("id", id)
     .eq("is_active", true);
-  if (updErr) return { ok: false, error: updErr.message };
+  if (updErr) {
+    await undoKho();
+    return { ok: false, error: updErr.message };
+  }
   return { ok: true };
 }
