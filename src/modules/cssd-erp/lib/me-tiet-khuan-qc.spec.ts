@@ -206,3 +206,21 @@ describe("release SQL", () => {
     expect(release).toMatch(/tram_hien_tai_id = v_cap/);
   });
 });
+
+describe("ME-05 release HSD SQL", () => {
+  it("uses batch end mốc and packaging days without coalesce 30", () => {
+    const sql = readFileSync(
+      "supabase/migrations/20261005145000_cssd_me05_hsd_bao_goi.sql",
+      "utf8",
+    );
+    const fn = sql.slice(
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.fn_cssd_me_chuyen_bo_kho_vo_khuan"),
+      sql.indexOf("COMMENT ON FUNCTION public.fn_cssd_me_chuyen_bo_kho_vo_khuan"),
+    );
+    expect(fn).toMatch(/coalesce\(m\.thoi_gian_ket_thuc, m\.tk_mo_form_qc_at\)/);
+    expect(fn).toMatch(/thoi_gian_tiet_khuan = v_moc/);
+    expect(fn).toMatch(/cssd_dm_loai_bao_goi/);
+    expect(fn).not.toMatch(/coalesce\(src\.so_ngay,\s*30\)/);
+    expect(fn).not.toMatch(/dm_loai_dung_cu/);
+  });
+});
