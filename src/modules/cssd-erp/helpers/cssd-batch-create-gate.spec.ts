@@ -39,7 +39,11 @@ describe("createCssdSterilizationBatch (Phase 5.4 T3)", () => {
       }),
     });
 
-    const r = await createCssdSterilizationBatch(machineId, "tester@bv103.vn", "HN_134");
+    const r = await createCssdSterilizationBatch(
+      machineId,
+      "22222222-2222-4222-8222-222222222222",
+      "HN_134",
+    );
     expect(r.success).toBe(false);
     if (!r.success) expect(r.error).toMatch(/bảo trì/i);
   });

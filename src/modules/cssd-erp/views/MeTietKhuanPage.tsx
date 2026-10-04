@@ -57,10 +57,11 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         <MeTietKhuanCreateStep
           machines={w.machines}
           machineId={w.machineId}
-          nguoiLoad={w.nguoiLoad}
+          nguoiNapId={w.nguoiNapId}
+          nguoiNapOptions={w.nguoiNapOptions}
           chuongTrinhMa={w.chuongTrinhMa}
           onMachineChange={w.setMachineId}
-          onNguoiLoadChange={w.setNguoiLoad}
+          onNguoiNapIdChange={w.setNguoiNapId}
           onChuongTrinhMaChange={w.onChuongTrinhMaChange}
           onCancel={() => w.setStep("LIST")}
           onStart={() => void w.createMe()}

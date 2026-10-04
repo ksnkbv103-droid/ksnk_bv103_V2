@@ -9,7 +9,12 @@ import { getSterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
 import { fetchCssdBatchMembers } from "./cssd-batch.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { getErrorMessage } from "../shared/cssd-db-utils";
-import { loadHoTenByAuthUserId, loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
+import {
+  loadHoTenByAuthUserId,
+  loadNhanSuHoTen,
+  resolveMeNguoiNapHoTen,
+} from "../shared/application/cssd-operator-resolve";
+import { parseNguoiNapIdFromGhiChu } from "../lib/me-nguoi-nap-ghi-chu";
 import { loadPackBatchReleaseGate } from "../helpers/pack-batch-release-gate";
 import {
   buildCssdBatchTicket,
@@ -77,7 +82,7 @@ async function loadBatchRow(
   let q = supabase
     .from("cssd_fact_lo_tiet_khuan")
     .select(
-      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may))",
+      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_nap_id, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may))",
     )
     .eq("is_active", true);
   if (opts.batchId) q = q.eq("id", opts.batchId);
@@ -101,7 +106,16 @@ async function mapBatchPrintData(
   members: Array<Record<string, unknown>>,
 ): Promise<CssdBatchPrintData> {
   const [nguoiNap, nguoiDo, nguoiNha] = await Promise.all([
-    loadHoTenByAuthUserId(supabase, batch.nguoi_bat_dau_id as string | null),
+    resolveMeNguoiNapHoTen(
+      supabase,
+      {
+        nguoi_nap_id: batch.nguoi_nap_id as string | null,
+        ghi_chu: batch.ghi_chu as string | null,
+        nguoi_bat_dau_id: batch.nguoi_bat_dau_id as string | null,
+      },
+      parseNguoiNapIdFromGhiChu,
+      parseNguoiLoadFromGhiChu,
+    ),
     loadHoTenByAuthUserId(supabase, batch.nguoi_ket_thuc_id as string | null),
     loadHoTenByAuthUserId(supabase, batch.nguoi_nha_id as string | null),
   ]);
@@ -271,6 +285,16 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
     const nguoiCapPhat =
       (await loadNhanSuHoTen(supabase, row.nguoi_cap_phat_id as string | null)) || "—";
     const thoiGianCapPhat = String(row.thoi_gian_cap_phat || "").trim() || null;
+    const nguoiNapMe = await resolveMeNguoiNapHoTen(
+      supabase,
+      {
+        nguoi_nap_id: batch.nguoi_nap_id as string | null,
+        ghi_chu: batch.ghi_chu as string | null,
+        nguoi_bat_dau_id: batch.nguoi_bat_dau_id as string | null,
+      },
+      parseNguoiNapIdFromGhiChu,
+      parseNguoiLoadFromGhiChu,
+    );
 
     const data: CssdCapPhatPrintData = {
       quyTrinhId: id,
@@ -283,7 +307,7 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       nguoiCapPhat,
       thoiGianCapPhat,
       thietBi: (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—",
-      nguoiLoad: parseNguoiLoadFromGhiChu(String(batch.ghi_chu || "")),
+      nguoiLoad: nguoiNapMe,
       nguoiUnload: qc.nguoiUnload,
       nhietDoApSuat: qc.nhietDoApSuat,
       thongSoMay: qc.thongSoMay,

@@ -5,7 +5,7 @@ import { z } from "zod";
  */
 export const createSterilizationBatchSchema = z.object({
   machineId: z.string().uuid("ID máy không hợp lệ"),
-  nguoiLoad: z.string().min(2, "Tên người load quá ngắn"),
+  nguoiNapId: z.string().uuid("Chọn người nạp từ danh mục"),
   /** M-04: bắt chọn chương trình (không free-text-only create). */
   chuongTrinh: z.string().trim().min(1, "Chọn chương trình máy").max(80),
 });

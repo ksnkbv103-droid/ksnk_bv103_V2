@@ -9,6 +9,7 @@ import {
   confirmBatDauTietKhuanBatch,
   confirmKetThucChuTrinhTietKhuan,
   createCssdSterilizationBatch,
+  fetchCssdMeNguoiNapPickerOptions,
   fetchCssdBatchMembers,
   fetchCssdBatchWorkflowState,
   fetchCssdMeListData,
@@ -56,7 +57,8 @@ export function useMeTietKhuanWorkflow() {
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<"LIST" | "CREATE" | "PROCESS">("LIST");
   const [machineId, setMachineId] = useState("");
-  const [nguoiLoad, setNguoiLoad] = useState("");
+  const [nguoiNapId, setNguoiNapId] = useState("");
+  const [nguoiNapOptions, setNguoiNapOptions] = useState<Array<{ id: string; hoTen: string; maNv: string }>>([]);
   const [activeMe, setActiveMe] = useState<any>(null);
   const [batchGate, setBatchGate] = useState<any>(null);
   const [waitingRows, setWaitingRows] = useState<any[]>([]);
@@ -70,11 +72,16 @@ export function useMeTietKhuanWorkflow() {
   }, [items]);
 
   useEffect(() => {
-    if (userData?.ho_ten) {
-      if (!nguoiLoad) setNguoiLoad(userData.ho_ten);
-      if (!nguoiUnload) setNguoiUnload(userData.ho_ten);
-    }
-  }, [userData, nguoiLoad, nguoiUnload]);
+    if (userData?.ho_ten && !nguoiUnload) setNguoiUnload(userData.ho_ten);
+    if (userData?.id && !nguoiNapId) setNguoiNapId(String(userData.id));
+  }, [userData, nguoiNapId, nguoiUnload]);
+
+  useEffect(() => {
+    if (step !== "CREATE") return;
+    void fetchCssdMeNguoiNapPickerOptions().then((r) => {
+      if (r.success) setNguoiNapOptions(r.data);
+    });
+  }, [step]);
   const [chuongTrinh, setChuongTrinh] = useState("");
   const [chuongTrinhMa, setChuongTrinhMa] = useState("");
   const chuongPrefillRef = useRef<ChuongTrinhPrefill | null>(null);
@@ -305,11 +312,11 @@ export function useMeTietKhuanWorkflow() {
   };
 
   const createMe = async () => {
-    if (!machineId || !nguoiLoad) return toast.error("Vui lòng chọn máy và người nạp");
+    if (!machineId || !nguoiNapId) return toast.error("Vui lòng chọn máy và người nạp");
     if (!chuongTrinhMa || !String(chuongTrinh || "").trim()) {
       return toast.error("Chọn chương trình máy trước khi tạo mẻ.");
     }
-    const r = await createCssdSterilizationBatch(machineId, nguoiLoad, chuongTrinh);
+    const r = await createCssdSterilizationBatch(machineId, nguoiNapId, chuongTrinh);
     if (!r.success) return toast.error(r.error);
     setActiveMe(r.data);
     setStep("PROCESS");
@@ -613,8 +620,9 @@ export function useMeTietKhuanWorkflow() {
     setStep,
     machineId,
     setMachineId,
-    nguoiLoad,
-    setNguoiLoad,
+    nguoiNapId,
+    setNguoiNapId,
+    nguoiNapOptions,
     activeMe,
     batchGate,
     waitingRows,

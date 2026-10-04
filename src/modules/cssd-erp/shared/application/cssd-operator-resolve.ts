@@ -91,3 +91,30 @@ export async function loadNhanSuHoTen(
   const name = String((data as { ho_ten?: string } | null)?.ho_ten || "").trim();
   return name || null;
 }
+
+/** Người nạp mẻ: cột nguoi_nap_id → ghi_chu structured → fallback auth user bắt đầu. */
+export async function resolveMeNguoiNapHoTen(
+  client: SupabaseClient,
+  batch: {
+    nguoi_nap_id?: string | null;
+    ghi_chu?: string | null;
+    nguoi_bat_dau_id?: string | null;
+  },
+  parseNguoiNapIdFromGhiChu: (ghiChu: string | null | undefined) => string | null,
+  parseNguoiLoadFromGhiChu: (ghiChu: string | null | undefined) => string,
+): Promise<string> {
+  const colId = String(batch.nguoi_nap_id || "").trim();
+  if (colId) {
+    const name = await loadNhanSuHoTen(client, colId);
+    if (name) return name;
+  }
+  const fromGhiChu = parseNguoiNapIdFromGhiChu(batch.ghi_chu);
+  if (fromGhiChu) {
+    const name = await loadNhanSuHoTen(client, fromGhiChu);
+    if (name) return name;
+  }
+  const legacy = parseNguoiLoadFromGhiChu(batch.ghi_chu);
+  if (legacy && legacy !== "—") return legacy;
+  const fromAuth = await loadHoTenByAuthUserId(client, batch.nguoi_bat_dau_id);
+  return fromAuth || "—";
+}
