@@ -39,7 +39,11 @@ export default function CompositionReconcilePanel({
     setLoading(true);
     try {
       const res = await loadBoCompositionReconcile(id);
-      if (!res.success) throw new Error(res.error);
+      if (!res || !("success" in res) || !res.success) {
+        throw new Error(
+          res && "error" in res && typeof res.error === "string" ? res.error : "Không tải được cấu phần bộ.",
+        );
+      }
       setData(res.data);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Không tải được cấu phần bộ.");

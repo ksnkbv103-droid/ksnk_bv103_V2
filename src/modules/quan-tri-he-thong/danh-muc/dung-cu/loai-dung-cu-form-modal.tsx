@@ -120,7 +120,6 @@ export default function LoaiDungCuFormModal({
     });
     setLoading(false);
     if (!result.success) return toast.error(result.error || "Không lưu được loại dụng cụ.");
-    if ("warning" in result && result.warning) toast.warning(result.warning);
     if ("heatSplitNote" in result && result.heatSplitNote) {
       const note = String(result.heatSplitNote);
       if (note.includes("lỗi")) toast.error(note);
