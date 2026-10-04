@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
-import { useCssdCatalogPage } from "@/modules/cssd-erp/hooks/use-cssd-catalog-page";
+import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
   CSSD_UI_TAB_GROUP,
