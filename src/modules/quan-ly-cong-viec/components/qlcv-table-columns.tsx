@@ -68,7 +68,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
         return (
           <div className="flex min-w-0 items-center gap-2">
             <span
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[10px] font-bold text-sky-800"
+              className="bv103-type-label inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 font-bold text-sky-800"
               aria-hidden
             >
               {initials}
@@ -98,13 +98,13 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             {chips.map((c) => (
               <span
                 key={c.id}
-                className="inline-flex max-w-[5.5rem] truncate rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-600"
+                className="bv103-type-label inline-flex max-w-[5.5rem] truncate rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-medium text-slate-600"
               >
                 {c.label}
               </span>
             ))}
             {extra > 0 ? (
-              <span className="rounded-full border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+              <span className="bv103-type-label rounded-full border border-slate-200 bg-white px-1.5 py-0.5 font-semibold text-slate-500">
                 +{extra}
               </span>
             ) : null}

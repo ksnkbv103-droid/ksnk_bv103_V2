@@ -406,7 +406,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           </span>
           {isPendingAccountRequest(i.extra_data) ? (
             <div className="mt-0.5 flex flex-col gap-1">
-              <span className="w-fit rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+              <span className="bv103-type-label w-fit rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 font-semibold text-amber-900">
                 Chờ duyệt
               </span>
               {allowEdit ? (
