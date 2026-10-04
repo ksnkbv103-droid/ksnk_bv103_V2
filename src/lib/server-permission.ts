@@ -109,3 +109,36 @@ export async function verifyAnyPermission(alternatives: readonly PermissionCheck
   }
 }
 
+/**
+ * AND của các nhóm OR — một getUser + một đọc RBAC (tránh gọi verifyAnyPermission tuần tự).
+ * Mỗi nhóm: cần ≥1 quyền khớp; mọi nhóm phải đạt.
+ */
+export async function verifyAllAnyPermissionGroups(
+  groups: readonly (readonly PermissionCheck[])[],
+) {
+  if (!groups.length) return;
+
+  const userSb = await createServerSupabaseUserClient();
+  const {
+    data: { user },
+  } = await userSb.auth.getUser();
+  if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
+
+  if (isTrustedAdminEmail(user.email)) return;
+
+  const { roles, permissions } = await getPermissionsRequestScope(user.id);
+  if (roles.includes("ADMIN")) return;
+
+  const has = (moduleKey: string, action: string) =>
+    permissions.some((p) => p.module === moduleKey && p.action === action);
+
+  for (const alternatives of groups) {
+    if (!alternatives.length) continue;
+    const ok = alternatives.some((a) => has(a.moduleKey, a.action));
+    if (!ok) {
+      const keys = alternatives.map((a) => `${a.moduleKey}:${a.action}`).join(", ");
+      throw new Error(`Cần ít nhất một quyền phù hợp (${keys}).`);
+    }
+  }
+}
+
