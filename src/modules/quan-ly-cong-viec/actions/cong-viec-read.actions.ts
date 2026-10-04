@@ -1,26 +1,31 @@
 "use server";
 
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options";
 import { getQlcvTrangThaiMauSacMap } from "../lib/qlcv-labels";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
-const MAX_NHAN_SU_OPTIONS = 500;
-const MAX_DM_OPTIONS = 500;
-
 async function getKsnkNhanSuOptions(ksnkKhoaId: string): Promise<QlcvSelectOption[]> {
   const { supabase } = await ensureQlcvKsnkAccess("view");
-  const { data, error } = await supabase
-    .from("v_mdm_nhan_su_full")
-    .select("id, ho_ten, chuc_vu, to_id")
-    .eq("is_active", true)
-    .eq("khoa_id", ksnkKhoaId)
-    .order("ho_ten")
-    .limit(MAX_NHAN_SU_OPTIONS);
-
-  if (error) throw error;
-  return (data || []).map((item) => ({
+  // PA1: đọc hết NV active cùng khoa KSNK — hết cắt im 500 trên dropdown giao việc.
+  const data = await fetchAllRangeRows<{
+    id: string;
+    ho_ten: string | null;
+    chuc_vu: string | null;
+    to_id: string | null;
+  }>((from, to) =>
+    supabase
+      .from("v_mdm_nhan_su_full")
+      .select("id, ho_ten, chuc_vu, to_id")
+      .eq("is_active", true)
+      .eq("khoa_id", ksnkKhoaId)
+      .order("ho_ten", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
+  return data.map((item) => ({
     id: String(item.id),
     label: `${item.ho_ten ?? ""} (${String(item.chuc_vu || "Nhân viên")})`.trim(),
     to_id: item.to_id != null ? String(item.to_id) : null,
@@ -29,15 +34,17 @@ async function getKsnkNhanSuOptions(ksnkKhoaId: string): Promise<QlcvSelectOptio
 
 async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   const { supabase } = await ensureQlcvKsnkAccess("view");
-  const { data, error } = await supabase
-    .from("mdm_dm_to_cong_tac")
-    .select("id, ten_to, ma_to")
-    .eq("is_active", true)
-    .order("ten_to")
-    .limit(MAX_DM_OPTIONS);
-
-  if (error) throw error;
-  return (data || []).map((item) => ({
+  const data = await fetchAllRangeRows<{ id: string; ten_to: string | null; ma_to: string | null }>(
+    (from, to) =>
+      supabase
+        .from("mdm_dm_to_cong_tac")
+        .select("id, ten_to, ma_to")
+        .eq("is_active", true)
+        .order("ten_to", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to),
+  );
+  return data.map((item) => ({
     id: String(item.id),
     label: String(item.ten_to ?? item.ma_to ?? "").trim() || String(item.id),
   }));
