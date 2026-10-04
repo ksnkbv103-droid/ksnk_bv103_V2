@@ -1,68 +1,76 @@
 import { describe, expect, it } from "vitest";
-import { assertSteamDailyBdForLoad, buildSteamDailyBdSpecsPatch } from "./cssd-steam-daily-bd";
+import {
+  assertSteamDailyBdForLoad,
+  buildSteamDailyBdSpecsPatch,
+  readSteamDailyBdFromSpecs,
+  shouldHoldMachineAfterBdFail,
+  steamBdClientYmdAllowed,
+} from "./cssd-steam-daily-bd";
 
-describe("cssd-steam-daily-bd", () => {
-  it("skips non-steam", () => {
-    expect(assertSteamDailyBdForLoad({ isSteam: false }).ok).toBe(true);
+describe("cssd-steam-daily-bd ME-02", () => {
+  it("blocks KHONG_DAT today and missing DAT", () => {
+    expect(
+      assertSteamDailyBdForLoad({
+        isSteam: true,
+        todayYmd: "2026-10-05",
+        specs: { bd_dau_ngay_ymd: "2026-10-05", bd_dau_ngay_ket_qua: "KHONG_DAT" },
+      }).ok,
+    ).toBe(false);
+    expect(
+      assertSteamDailyBdForLoad({
+        isSteam: true,
+        todayYmd: "2026-10-05",
+        specs: { bd_dau_ngay_ymd: "2026-10-04", bd_dau_ngay_ket_qua: "DAT" },
+      }).ok,
+    ).toBe(false);
   });
 
-  it("blocks KHONG_DAT today", () => {
+  it("blocks DAT recorded before bảo trì hoàn thành (M-11)", () => {
     const r = assertSteamDailyBdForLoad({
       isSteam: true,
-      todayYmd: "2026-09-04",
-      specs: { bd_dau_ngay_ymd: "2026-09-04", bd_dau_ngay_ket_qua: "KHONG_DAT" },
+      todayYmd: "2026-10-05",
+      specs: {
+        bd_dau_ngay_ymd: "2026-10-05",
+        bd_dau_ngay_ket_qua: "DAT",
+        bd_dau_ngay_at: "2026-10-05T08:00:00.000Z",
+      },
+      baoTriCompletedAt: "2026-10-05T09:00:00.000Z",
+      machineHeldForBd: true,
     });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.message).toMatch(/KHÔNG ĐẠT/i);
+    expect(String((r as { message?: string }).message || "")).toMatch(/bảo trì/i);
   });
 
-  it("allows DAT today (hard-block contract pass)", () => {
+  it("allows DAT after bảo trì hoàn thành", () => {
     const r = assertSteamDailyBdForLoad({
       isSteam: true,
-      todayYmd: "2026-09-04",
-      specs: { bd_dau_ngay_ymd: "2026-09-04", bd_dau_ngay_ket_qua: "DAT" },
-      requireRecorded: true,
+      todayYmd: "2026-10-05",
+      specs: {
+        bd_dau_ngay_ymd: "2026-10-05",
+        bd_dau_ngay_ket_qua: "DAT",
+        bd_dau_ngay_at: "2026-10-05T10:00:00.000Z",
+      },
+      baoTriCompletedAt: "2026-10-05T09:00:00.000Z",
+      machineHeldForBd: true,
     });
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.warning).toBeUndefined();
   });
 
-  it("QT.21 hard-block: missing BD → fail by default", () => {
-    const hard = assertSteamDailyBdForLoad({
-      isSteam: true,
-      todayYmd: "2026-09-04",
-      specs: {},
-    });
-    expect(hard.ok).toBe(false);
-    if (!hard.ok) expect(hard.message).toMatch(/BD trước khi nạp|ĐẠT hôm nay/i);
-
-    const stale = assertSteamDailyBdForLoad({
-      isSteam: true,
-      todayYmd: "2026-09-04",
-      specs: { bd_dau_ngay_ymd: "2026-09-03", bd_dau_ngay_ket_qua: "DAT" },
-      requireRecorded: true,
-    });
-    expect(stale.ok).toBe(false);
+  it("rejects client ymd khác ngày server", () => {
+    expect(steamBdClientYmdAllowed("2026-10-04", "2026-10-05")).toBe(false);
+    expect(steamBdClientYmdAllowed("2026-10-05", "2026-10-05")).toBe(true);
+    expect(steamBdClientYmdAllowed(undefined, "2026-10-05")).toBe(true);
   });
 
-  it("soft-warning only when requireRecorded=false", () => {
-    const soft = assertSteamDailyBdForLoad({
-      isSteam: true,
-      todayYmd: "2026-09-04",
-      specs: {},
-      requireRecorded: false,
-    });
-    expect(soft.ok).toBe(true);
-    if (soft.ok) expect(soft.warning).toMatch(/BD đầu ngày/);
-  });
-
-  it("patches specs", () => {
-    const p = buildSteamDailyBdSpecsPatch({
-      ymd: "2026-09-04",
+  it("HOLD after BD fail; merge specs keeps catalog keys", () => {
+    expect(shouldHoldMachineAfterBdFail("KHONG_DAT")).toBe(true);
+    expect(shouldHoldMachineAfterBdFail("DAT")).toBe(false);
+    const patch = buildSteamDailyBdSpecsPatch({
+      ymd: "2026-10-05",
       ketQua: "DAT",
-      existing: { model: "X" },
+      existing: { chuong_trinh_catalog: [{ ma: "A" }], hang_san_xuat: "X" },
     });
-    expect(p.bd_dau_ngay_ket_qua).toBe("DAT");
-    expect(p.model).toBe("X");
+    expect(patch.chuong_trinh_catalog).toEqual([{ ma: "A" }]);
+    expect(readSteamDailyBdFromSpecs(patch).ketQua).toBe("DAT");
   });
 });

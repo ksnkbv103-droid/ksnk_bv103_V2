@@ -70,6 +70,7 @@ export default function CssdBatchPrintView({
         {labelRow("CI ngoài gói", data.qcCiNgoai)}
         {labelRow("CI PCD", data.qcCiPcd)}
         {labelRow("BI", data.biLabel)}
+        {labelRow("Bowie-Dick", data.bowieDickLine || "—")}
         {labelRow("Implant", data.coImplantLabel)}
       </div>
 

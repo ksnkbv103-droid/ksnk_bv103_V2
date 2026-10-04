@@ -178,6 +178,7 @@ export type CssdBatchTicketSource = {
   qcCiNgoai?: string | null;
   qcCiPcd?: string | null;
   ghiChuQc?: string | null;
+  bowieDickLine?: string | null;
   members: { maBo: string; tenBo: string; xuLyLabel?: string }[];
 };
 
@@ -216,6 +217,7 @@ export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPr
     qcCiPcd,
     biLabel,
     coImplantLabel: source.coImplant ? "Có" : "Không",
+    bowieDickLine: String(source.bowieDickLine || "").trim() || "—",
     members: source.members.map((member, idx) => ({
       stt: idx + 1,
       maQrBo: member.maBo || "—",

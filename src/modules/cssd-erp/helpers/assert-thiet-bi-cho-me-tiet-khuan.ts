@@ -17,18 +17,20 @@ export async function assertThietBiSanSangChoMeTietKhuan(
   const st = String((tb as { trang_thai?: string }).trang_thai || "").trim();
   if (!SAN_SANG_CHO_ME.has(st)) {
     const human =
-      st === "REPAIRING"
+      st === "REPAIRING" || st === "BAO_TRI"
         ? "đang bảo trì"
         : st === "HOLD_QC"
-          ? "tạm giữ QC (HOLD_QC)"
-          : st === "BROKEN"
-            ? "hỏng / ngưng dùng"
-            : st === "RETIRED"
-              ? "đã thải"
-              : "không sẵn sàng";
+          ? "tạm giữ"
+          : st === "CHO_THAM_DINH"
+            ? "chờ thẩm định sau bảo trì"
+            : st === "BROKEN"
+              ? "hỏng / ngưng dùng"
+              : st === "RETIRED"
+                ? "đã thải"
+                : "không sẵn sàng";
     return {
       ok: false,
-      message: `Thiết bị ${human}. Không thể thao tác mẻ tiệt khuẩn trên máy này (${st || "—"}).`,
+      message: `Thiết bị ${human}. Không thể thao tác mẻ tiệt khuẩn trên máy này.`,
     };
   }
   return { ok: true, ten_thiet_bi: String((tb as { ten_thiet_bi?: string }).ten_thiet_bi || "") };

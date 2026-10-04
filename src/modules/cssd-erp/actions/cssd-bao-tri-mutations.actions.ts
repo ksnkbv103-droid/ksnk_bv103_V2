@@ -65,8 +65,9 @@ export async function batDauBaoTriThietBiAction(input: {
       .maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
     const st = String((tb as { trang_thai?: string })?.trang_thai || "").trim();
-    if (!["READY", "HOAT_DONG"].includes(st)) {
-      return { success: false as const, error: `Thiết bị không ở trạng thái sẵn sàng (${st || "—"}).` };
+    /** ME-03: cho mở bảo trì từ tạm giữ (HOLD_QC). */
+    if (!["READY", "HOAT_DONG", "HOLD_QC"].includes(st)) {
+      return { success: false as const, error: `Thiết bị không mở được bảo trì (${st || "—"}).` };
     }
 
     const lm = (tb as { loai_may?: { ma_loai_may?: string } | { ma_loai_may?: string }[] | null }).loai_may;
@@ -94,7 +95,19 @@ export async function batDauBaoTriThietBiAction(input: {
       .single();
     if (insErr) return { success: false as const, error: mapFkError(insErr.message) };
 
-    const { error: upErr } = await supabase.from("cssd_dm_thiet_bi").update({ trang_thai: "REPAIRING", updated_at: now }).eq("id", tid);
+    const { data: tbFull } = await supabase.from("cssd_dm_thiet_bi").select("specs").eq("id", tid).maybeSingle();
+    const prevSpecs = (tbFull?.specs && typeof tbFull.specs === "object" ? tbFull.specs : {}) as Record<
+      string,
+      unknown
+    >;
+    const { error: upErr } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .update({
+        trang_thai: "REPAIRING",
+        specs: { ...prevSpecs, bao_tri_prev_trang_thai: st },
+        updated_at: now,
+      })
+      .eq("id", tid);
     if (upErr) {
       const insId = String((ins as { id?: string })?.id || "");
       if (insId) await supabase.from("cssd_fact_bao_tri").delete().eq("id", insId);
@@ -108,7 +121,7 @@ export async function batDauBaoTriThietBiAction(input: {
   }
 }
 
-/** Hoàn thành bảo trì: phiếu HOAN_THANH + cssd_dm_thiet_bi READY + cập nhật ngày bảo trì kế. */
+/** Hoàn thành bảo trì: phiếu HOAN_THANH; máy HOLD trước đó → CHO_THAM_DINH (ME-03), còn lại READY. */
 export async function ketThucBaoTriThietBiAction(input: {
   id: string;
   ket_qua_ghi_nhan: string;
@@ -149,13 +162,19 @@ export async function ketThucBaoTriThietBiAction(input: {
 
     const { data: tb, error: tbErr } = await supabase
       .from("cssd_dm_thiet_bi")
-      .select("chu_ky_bao_tri_ngay")
+      .select("chu_ky_bao_tri_ngay, specs")
       .eq("id", thietBiId)
       .maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
 
     const cycle = Math.max(1, Number((tb as { chu_ky_bao_tri_ngay?: number })?.chu_ky_bao_tri_ngay) || 180);
     const ngayTiepTheo = addDaysIso(today, cycle);
+    const specs = ((tb as { specs?: Record<string, unknown> | null })?.specs || {}) as Record<string, unknown>;
+    const prevTt = String(specs.bao_tri_prev_trang_thai || "").trim().toUpperCase();
+    const fromHold = prevTt === "HOLD_QC";
+    const nextTt = fromHold ? "CHO_THAM_DINH" : "READY";
+    const nextSpecs = { ...specs, bd_hold_bao_tri_xong_at: fromHold ? now : specs.bd_hold_bao_tri_xong_at };
+    delete nextSpecs.bao_tri_prev_trang_thai;
 
     const { error: uPhieu } = await supabase
       .from("cssd_fact_bao_tri")
@@ -172,22 +191,23 @@ export async function ketThucBaoTriThietBiAction(input: {
     const { error: uTb } = await supabase
       .from("cssd_dm_thiet_bi")
       .update({
-        trang_thai: "READY",
+        trang_thai: nextTt,
         ngay_bao_tri_gan_nhat: today,
         ngay_bao_tri_tiep_theo: ngayTiepTheo,
+        specs: nextSpecs,
         updated_at: now,
       })
       .eq("id", thietBiId);
     if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
 
     revalidateCssdMaintenanceSurfaces();
-    return { success: true as const };
+    return { success: true as const, trangThaiMay: nextTt };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }
 }
 
-/** Hủy phiếu đang mở: trả máy về READY (không cập nhật lịch bảo trì). */
+/** Hủy phiếu đang mở: trả máy về trạng thái trước khi mở (ME-03), mặc định READY. */
 export async function huyBaoTriThietBiAction(input: { id: string }) {
   try {
     await verifyCssdMaintenanceEdit();
@@ -209,6 +229,11 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
 
     const thietBiId = String((ph as { thiet_bi_id?: string }).thiet_bi_id || "");
     const now = new Date().toISOString();
+    const { data: tb } = await supabase.from("cssd_dm_thiet_bi").select("specs").eq("id", thietBiId).maybeSingle();
+    const specs = (tb?.specs && typeof tb.specs === "object" ? tb.specs : {}) as Record<string, unknown>;
+    const restore = String(specs.bao_tri_prev_trang_thai || "READY").trim() || "READY";
+    const nextSpecs = { ...specs };
+    delete nextSpecs.bao_tri_prev_trang_thai;
 
     const { error: uPhieu } = await supabase
       .from("cssd_fact_bao_tri")
@@ -220,9 +245,64 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
       .eq("id", id);
     if (uPhieu) return { success: false as const, error: mapFkError(uPhieu.message) };
 
-    const { error: uTb } = await supabase.from("cssd_dm_thiet_bi").update({ trang_thai: "READY", updated_at: now }).eq("id", thietBiId);
+    const { error: uTb } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .update({ trang_thai: restore, specs: nextSpecs, updated_at: now })
+      .eq("id", thietBiId);
     if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
 
+    revalidateCssdMaintenanceSurfaces();
+    return { success: true as const };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}
+
+/**
+ * ME-03: xác nhận thẩm định sau bảo trì (quyền qc) — cần đủ 3 kết quả BI âm trong hồ sơ máy.
+ * N-ME-3: hình thức ghi chú 3 mẻ cho tới khi mở park M-17 đầy đủ.
+ */
+export async function xacNhanThamDinhThietBiAction(input: {
+  thietBiId: string;
+  biKetQua: { ngay: string; maMeThu: string; ketQua: "AM" }[];
+  ghiChu?: string;
+}) {
+  try {
+    const { verifyCssdBatchQc } = await import("@/lib/cssd-server-gates");
+    await verifyCssdBatchQc();
+    const supabase = createAdminSupabaseClient();
+    const id = String(input.thietBiId || "").trim();
+    if (!id) return { success: false as const, error: "Thiếu máy." };
+    const rows = Array.isArray(input.biKetQua) ? input.biKetQua : [];
+    if (rows.length < 3 || rows.some((r) => r.ketQua !== "AM" || !String(r.ngay || "").trim() || !String(r.maMeThu || "").trim())) {
+      return { success: false as const, error: "Cần đủ 3 kết quả BI âm (ngày + số mẻ thử) trước khi sẵn sàng." };
+    }
+    const { data: tb, error } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .select("trang_thai, specs")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) return { success: false as const, error: error.message };
+    if (!tb) return { success: false as const, error: "Không tìm thấy máy." };
+    if (String(tb.trang_thai || "") !== "CHO_THAM_DINH") {
+      return { success: false as const, error: "Máy không ở trạng thái chờ thẩm định." };
+    }
+    const specs = (tb.specs && typeof tb.specs === "object" ? tb.specs : {}) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    const { error: upErr } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .update({
+        trang_thai: "READY",
+        specs: {
+          ...specs,
+          tham_dinh_bi: rows.slice(0, 3),
+          tham_dinh_at: now,
+          tham_dinh_ghi_chu: String(input.ghiChu || "").trim() || null,
+        },
+        updated_at: now,
+      })
+      .eq("id", id);
+    if (upErr) return { success: false as const, error: upErr.message };
     revalidateCssdMaintenanceSurfaces();
     return { success: true as const };
   } catch (e: unknown) {

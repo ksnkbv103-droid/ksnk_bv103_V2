@@ -2,8 +2,10 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { formatSteamBdPrintLine } from "@/lib/domain/cssd-steam-daily-bd";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { verifyCssdBatchView, verifyCssdKhoDungCuView, verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
+import { getSterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
 import { fetchCssdBatchMembers } from "./cssd-batch.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { getErrorMessage } from "../shared/cssd-db-utils";
@@ -75,7 +77,7 @@ async function loadBatchRow(
   let q = supabase
     .from("cssd_fact_lo_tiet_khuan")
     .select(
-      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)",
+      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may))",
     )
     .eq("is_active", true);
   if (opts.batchId) q = q.eq("id", opts.batchId);
@@ -103,12 +105,25 @@ async function mapBatchPrintData(
     loadHoTenByAuthUserId(supabase, batch.nguoi_ket_thuc_id as string | null),
     loadHoTenByAuthUserId(supabase, batch.nguoi_nha_id as string | null),
   ]);
-  const thietBi = (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—";
+  const thietBiRel = batch.thiet_bi as {
+    ten_thiet_bi?: string;
+    specs?: Record<string, unknown> | null;
+    loai_may?: { ma_loai_may?: string } | { ma_loai_may?: string }[] | null;
+  } | null;
+  const thietBi = thietBiRel?.ten_thiet_bi?.trim() || "—";
+  const method =
+    getSterilizerMethod({ phuong_phap: batch.phuong_phap as string | null }) ||
+    getSterilizerMethod(thietBiRel);
+  const bowieDickLine = formatSteamBdPrintLine({
+    isSteam: method === "HOI_NUOC",
+    specs: thietBiRel?.specs || null,
+  });
   return buildCssdBatchTicket({
     id: String(batch.id),
     maLo: String(batch.ma_lo_tiet_khuan || ""),
     tenMay: thietBi,
     phuongPhap: (batch.phuong_phap as string | null) ?? null,
+    bowieDickLine,
     chuongTrinh: (batch.chuong_trinh as string | null) ?? null,
     nhietDo: batch.nhiet_do as number | null,
     apSuat: batch.ap_suat as number | null,

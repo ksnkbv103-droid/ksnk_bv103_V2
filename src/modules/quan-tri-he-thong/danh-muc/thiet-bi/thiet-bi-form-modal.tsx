@@ -111,21 +111,28 @@ export default function ThietBiFormModal({
           <label className="ml-1 text-[11px] font-medium text-slate-400">Trạng thái</label>
           <select
             value={form.trang_thai}
-            disabled={form.trang_thai === "REPAIRING" || form.trang_thai === "BAO_TRI" || form.trang_thai === "BROKEN"}
+            disabled={
+              form.trang_thai === "REPAIRING" ||
+              form.trang_thai === "BAO_TRI" ||
+              form.trang_thai === "BROKEN" ||
+              form.trang_thai === "HOLD_QC" ||
+              form.trang_thai === "CHO_THAM_DINH"
+            }
             onChange={(e) => setForm({ ...form, trang_thai: e.target.value })}
             className={C.controlInput}
           >
             <option value="READY">Sẵn sàng</option>
             <option value="HOAT_DONG">Hoạt động</option>
-            <option value="HOLD_QC">Tạm giữ QC</option>
             <option value="RETIRED">Ngừng sử dụng</option>
+            {form.trang_thai === "HOLD_QC" ? <option value="HOLD_QC">Tạm giữ</option> : null}
+            {form.trang_thai === "CHO_THAM_DINH" ? <option value="CHO_THAM_DINH">Chờ thẩm định</option> : null}
             {form.trang_thai === "REPAIRING" || form.trang_thai === "BAO_TRI" ? (
               <option value={form.trang_thai}>Đang sửa (phiếu bảo trì)</option>
             ) : null}
             {form.trang_thai === "BROKEN" ? <option value="BROKEN">Hỏng (phiếu bảo trì)</option> : null}
           </select>
           <p className="ml-1 text-[11px] text-slate-500">
-            Đang sửa / hỏng: chỉ qua phiếu bảo trì. HOLD_QC = tạm giữ sau sự cố QC — không nạp mẻ.
+            Đang sửa / hỏng / tạm giữ / chờ thẩm định: chỉ qua phiếu bảo trì hoặc thẩm định — không đổi tay.
           </p>
         </div>
         <BoDungCuTextField label="Hãng sản xuất" value={form.hang_san_xuat} onChange={(v) => setForm({ ...form, hang_san_xuat: v })} />

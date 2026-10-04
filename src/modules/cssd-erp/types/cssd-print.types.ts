@@ -50,6 +50,8 @@ export type CssdBatchPrintData = {
   qcCiPcd: string;
   biLabel: string;
   coImplantLabel: string;
+  /** ME-02: dòng Bowie-Dick đầu ngày (hơi nước) hoặc «Không áp dụng». */
+  bowieDickLine?: string;
   nguoiLoad: string;
   nguoiUnload: string;
   nhietDoApSuat: string;

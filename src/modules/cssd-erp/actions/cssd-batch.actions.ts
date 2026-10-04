@@ -7,6 +7,8 @@ import { getSterilizerMethod, isSteamSterilizerProfile } from "../helpers/me-tie
 import {
   assertSteamDailyBdForLoad,
   buildSteamDailyBdSpecsPatch,
+  shouldHoldMachineAfterBdFail,
+  steamBdClientYmdAllowed,
 } from "@/lib/domain/cssd-steam-daily-bd";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { getBatchAddRejectionReason } from "../helpers/me-tiet-khuan-batch-trace";
@@ -473,7 +475,7 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
 }
 
 
-/** QT.21 — ghi BD đầu ngày lên `cssd_dm_thiet_bi.specs` (ngày lịch VN). */
+/** QT.21 / ME-02 — ghi BD đầu ngày (specs + sự kiện khi bảng có); KHONG_DAT → tạm giữ máy. */
 export async function recordSteamDailyBdAction(input: {
   thietBiId: string;
   ketQua: "DAT" | "KHONG_DAT";
@@ -485,15 +487,16 @@ export async function recordSteamDailyBdAction(input: {
     const id = String(input.thietBiId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu máy." };
     const ketQua = input.ketQua === "KHONG_DAT" ? "KHONG_DAT" : "DAT";
-    const ymd = String(input.ymd || todayYmdInVn()).slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
-      return { success: false as const, error: "Ngày BD không hợp lệ." };
+    const serverYmd = todayYmdInVn();
+    if (!steamBdClientYmdAllowed(input.ymd, serverYmd)) {
+      return { success: false as const, error: "Ngày BD phải là ngày hôm nay (theo lịch Việt Nam)." };
     }
+    const ymd = serverYmd;
     const actor = await requireSessionActorId();
     if (!actor.ok) return { success: false as const, error: actor.message };
     const { data: tb, error: tbErr } = await supabase
       .from("cssd_dm_thiet_bi")
-      .select("id, specs, loai_may:cssd_dm_loai_may(ma_loai_may)")
+      .select("id, specs, trang_thai, loai_may:cssd_dm_loai_may(ma_loai_may)")
       .eq("id", id)
       .maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
@@ -505,20 +508,45 @@ export async function recordSteamDailyBdAction(input: {
       string,
       unknown
     > | null;
+    const atIso = new Date().toISOString();
+    const holdAt = String(existing?.bd_hold_bao_tri_xong_at || "").trim() || null;
+    const clearHold =
+      ketQua === "DAT" &&
+      Boolean(holdAt) &&
+      Number.isFinite(Date.parse(holdAt!)) &&
+      Date.parse(atIso) >= Date.parse(holdAt!);
     const specs = buildSteamDailyBdSpecsPatch({
       ymd,
       ketQua,
       existing,
       actorUserId: actor.userId,
-      atIso: new Date().toISOString(),
+      atIso,
+      clearHoldBaoTriXongAt: clearHold,
+      keepHoldBaoTriXongAt: clearHold ? null : holdAt,
     });
-    const { error: upErr } = await supabase
-      .from("cssd_dm_thiet_bi")
-      .update({ specs, updated_at: new Date().toISOString() })
-      .eq("id", id);
+    const holdMachine = shouldHoldMachineAfterBdFail(ketQua);
+    const patch: Record<string, unknown> = { specs, updated_at: atIso };
+    if (holdMachine) patch.trang_thai = "HOLD_QC";
+    else if (clearHold && String((tb as { trang_thai?: string }).trang_thai || "") === "HOLD_QC") {
+      patch.trang_thai = "READY";
+    }
+    const { error: upErr } = await supabase.from("cssd_dm_thiet_bi").update(patch).eq("id", id);
     if (upErr) return { success: false as const, error: mapFkError(upErr.message) };
+
+    /** ME-02: ghi sự kiện — bỏ qua nếu bảng chưa apply. */
+    const { error: bdEvtErr } = await supabase.from("cssd_fact_bowie_dick").insert({
+      thiet_bi_id: id,
+      ngay_ymd: ymd,
+      ket_qua: ketQua,
+      nguoi_id: actor.userId,
+      recorded_at: atIso,
+    });
+    if (bdEvtErr && !/does not exist|schema cache|Could not find/i.test(bdEvtErr.message)) {
+      return { success: false as const, error: mapFkError(bdEvtErr.message) };
+    }
+
     revalidateCssdBatchSurfaces();
-    return { success: true as const, ymd, ketQua };
+    return { success: true as const, ymd, ketQua, machineHeld: holdMachine };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }
