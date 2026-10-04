@@ -6,7 +6,8 @@ import { verifyPermission } from "../../actions/verify-permission";
 
 /**
  * Quyền cấu hình RBAC đồng bộ SSOT [`permission-registry`]:
- * Email tin cậy, vai trò ADMIN, hoặc quyền `PHAN_QUYEN` + edit (ghi ma trận / đồng bộ).
+ * Email khẩn cấp (env), vai trò ADMIN, hoặc quyền `PHAN_QUYEN` + edit (ghi ma trận / đồng bộ).
+ * ADM-03 sẽ siết chỉ ADMIN; tạm giữ PHAN_QUYEN.edit.
  */
 export async function ensureRbacAdmin() {
   const supabase = await createServerSupabaseUserClient();
@@ -14,7 +15,18 @@ export async function ensureRbacAdmin() {
   const user = auth?.user;
   if (!user?.id) throw new Error("Bạn chưa đăng nhập");
 
-  if (isTrustedAdminEmail(user.email)) return user;
+  if (isTrustedAdminEmail(user.email)) {
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    void logAdminAction({
+      action: "BREAK_GLASS_USED",
+      targetTable: "rbac",
+      targetId: user.id,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      reason: "ensureRbacAdmin",
+    });
+    return user;
+  }
 
   const admin = createAdminSupabaseClient();
   const { data: roleRows, error } = await admin

@@ -17,6 +17,15 @@ async function getServerAccessSnapshot(): Promise<AccessSnapshot | null> {
   if (!user?.id) return null;
 
   if (isTrustedAdminEmail(user.email)) {
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    void logAdminAction({
+      action: "BREAK_GLASS_USED",
+      targetTable: "rbac",
+      targetId: user.id,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      reason: "quan_tri_access",
+    });
     return {
       isAdmin: true,
       canView: () => true,

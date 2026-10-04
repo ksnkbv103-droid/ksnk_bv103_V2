@@ -47,8 +47,20 @@ export async function verifyPermissions(required: readonly PermissionCheck[]) {
   const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
-  // Trusted Super Admin bypass
-  if (isTrustedAdminEmail(user.email)) return;
+  // Break-glass (env KSNK_BREAK_GLASS_EMAILS) — ghi nhật ký mỗi lần dùng.
+  if (isTrustedAdminEmail(user.email)) {
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    void logAdminAction({
+      action: "BREAK_GLASS_USED",
+      targetTable: "rbac",
+      targetId: user.id,
+      after: { checks: required.map((r) => `${r.moduleKey}:${r.action}`) },
+      actorUserId: user.id,
+      actorEmail: user.email,
+      reason: "verifyPermissions",
+    });
+    return;
+  }
 
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
   
@@ -75,7 +87,18 @@ export async function verifyPermission(moduleKey: string, action: string) {
 export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   const user = await getRequestAuthUser();
   if (!user?.id) return false;
-  if (isTrustedAdminEmail(user.email)) return true;
+  if (isTrustedAdminEmail(user.email)) {
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    void logAdminAction({
+      action: "BREAK_GLASS_USED",
+      targetTable: "rbac",
+      targetId: user.id,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      reason: "supervision_bypass",
+    });
+    return true;
+  }
   const { roles } = await getPermissionsRequestScope(user.id);
   return roles.includes("ADMIN");
 }
