@@ -46,7 +46,8 @@ export function readLopGiamSatFromBangKiem(bk: BangKiemLopSource): LopGiamSatV2 
 
 /**
  * Suy lớp khi tip chưa có seed_meta (pre-25d):
- * DANH_GIA_HE_THONG → he_thong; còn lại → thuc_hanh_don_vi (null nếu không suy được).
+ * DANH_GIA_HE_THONG → he_thong; TUAN_THU/rỗng → thuc_hanh_don_vi.
+ * GSC-08: NHAT_KY_VAN_HANH → null (không thuộc thực hành).
  */
 export function inferLopGiamSatFallback(bk: BangKiemLopSource): LopGiamSatV2 | null {
   const fromMeta = readLopGiamSatFromBangKiem(bk);
@@ -55,7 +56,8 @@ export function inferLopGiamSatFallback(bk: BangKiemLopSource): LopGiamSatV2 | n
     .trim()
     .toUpperCase();
   if (lg === "DANH_GIA_HE_THONG") return "he_thong";
-  if (lg === "TUAN_THU" || lg === "NHAT_KY_VAN_HANH" || !lg) return "thuc_hanh_don_vi";
+  if (lg === "NHAT_KY_VAN_HANH") return null;
+  if (lg === "TUAN_THU" || !lg) return "thuc_hanh_don_vi";
   return null;
 }
 
@@ -117,12 +119,13 @@ export function filterBangKiemByLopGiamSatMode<T extends BangKiemLopSource>(
     return base.filter((bk) => String(bk.loai_giam_sat || "").trim().toUpperCase() === "NHAT_KY_VAN_HANH");
   }
 
-  // TUAN_THU = giám sát thực hành
+  // TUAN_THU = giám sát thực hành — GSC-08: loại nhật ký vận hành
   return base.filter((bk) => {
+    const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
+    if (lg === "NHAT_KY_VAN_HANH") return false;
     const lop = inferLopGiamSatFallback(bk);
     if (lop === "he_thong") return false;
     if (lop === "thuc_hanh_don_vi" || lop === "hybrid") return true;
-    const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
     return !lg || lg === "TUAN_THU";
   });
 }

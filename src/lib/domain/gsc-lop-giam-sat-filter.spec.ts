@@ -58,4 +58,16 @@ describe("gsc-lop-giam-sat-filter 25d residual", () => {
     expect(isVstHubBangKiemExcludedFromGscGeneric("KSNK.QT.07.BM.03")).toBe(true);
     expect(isVstHubBangKiemExcludedFromGscGeneric("KSNK.QT.01.BM.03")).toBe(false);
   });
+
+  it("GSC-08: TUAN_THU bỏ BK nhật ký (fallback không gán thuc_hanh)", () => {
+    const nhatKy = { ma_bk: "BM.QĐ.08.01", loai_giam_sat: "NHAT_KY_VAN_HANH" };
+    expect(filterBangKiemByLopGiamSatMode([nhatKy, thucHanh], "TUAN_THU").map((r) => r.ma_bk)).toEqual([
+      "KSNK.QT.01.BM.03",
+    ]);
+    expect(filterBangKiemByLopGiamSatMode([nhatKy], "TUAN_THU")).toEqual([]);
+    expect(filterBangKiemByLopGiamSatMode([nhatKy], "NHAT_KY_VAN_HANH").map((r) => r.ma_bk)).toEqual([
+      "BM.QĐ.08.01",
+    ]);
+  });
 });
+
