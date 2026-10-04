@@ -32,10 +32,12 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
   const [chucVus, setChucVus] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [loginPassword, setLoginPassword] = useState("");
+  const [confirmActorPassword, setConfirmActorPassword] = useState("");
   const [createLogin, setCreateLogin] = useState(() => !initialData?.id);
   const { isAdmin, canEdit } = usePermission();
   const canProvision = isAdmin || canEdit("PHAN_QUYEN");
   const hasAuth = Boolean(initialData?.auth_user_id);
+  const initialEmail = String(initialData?.email || "").trim().toLowerCase();
   
   const defaults: Partial<NhanSu> = {
     ma_nv: "",
@@ -60,6 +62,12 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
   const [formData, setFormData] = useState<Partial<NhanSu>>(() =>
     initialData ? { ...defaults, ...initialData, is_active: initialData.is_active ?? true } : defaults
   );
+
+  const emailChangedWithAuth =
+    hasAuth &&
+    Boolean(initialData?.id) &&
+    String(formData.email || "").trim().toLowerCase() !== initialEmail &&
+    Boolean(String(formData.email || "").trim());
 
   useEffect(() => {
     async function loadCategories() {
@@ -113,6 +121,10 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
       toast.error("Vui lòng nhập đầy đủ Mã NV và Họ tên");
       return;
     }
+    if (emailChangedWithAuth && !confirmActorPassword.trim()) {
+      toast.error("Đổi email đăng nhập cần nhập lại mật khẩu của bạn (chỉ quản trị).");
+      return;
+    }
 
     setLoading(true);
 
@@ -133,7 +145,10 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
     for (const key of Object.keys(cleaned)) {
       if (cleaned[key] === "") cleaned[key] = null;
     }
-    const res = await saveNhanSuAction(cleaned as Partial<NhanSu>);
+    const res = await saveNhanSuAction({
+      ...(cleaned as Partial<NhanSu>),
+      ...(emailChangedWithAuth ? { confirmActorPassword } : {}),
+    });
     if (!res.success) {
       setLoading(false);
       toast.error(res.error || "Có lỗi xảy ra khi lưu dữ liệu");
@@ -208,6 +223,23 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
           onCreateLogin={setCreateLogin}
           disabled={loading}
         />
+      ) : null}
+
+      {emailChangedWithAuth ? (
+        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50/80 px-3 py-2">
+          <label className="block text-xs font-medium text-amber-900 mb-1">
+            Xác nhận mật khẩu quản trị (đổi email đăng nhập)
+          </label>
+          <input
+            type="password"
+            className="input w-full bg-white"
+            autoComplete="current-password"
+            value={confirmActorPassword}
+            onChange={(e) => setConfirmActorPassword(e.target.value)}
+            disabled={loading}
+            placeholder="Mật khẩu tài khoản đang đăng nhập"
+          />
+        </div>
       ) : null}
     </QuanTriFormDialogShell>
   );
