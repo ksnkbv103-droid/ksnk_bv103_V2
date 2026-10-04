@@ -2,6 +2,7 @@
 -- FIX-MIG-ORDER: rename từ 20261005080000 → sau GS-05/QLCV (phụ thuộc trước 175100).
 -- Lead SELECT 05/10: 5384 KQ orphan sau SCR 28/9. Không sửa results_jsonb.
 -- GSC-MAP-DUYET: new_criterion_id resolve lúc APPLY chỉ exact/fuzzy theo ma_bk_long + new_ma_tc.
+-- GSC-MAP-2DONG: N-TIEM 1504→TC06 fuzzy; N-MDRO 3601→TC01 fuzzy (1-1: 34 exact / 24 fuzzy).
 
 BEGIN;
 
@@ -97,7 +98,7 @@ INSERT INTO public.gstt_map_tieu_chi_orphan (
 ('2b0ac75b-2f93-42d6-b4b4-20a21afbb9e4'::uuid, 'BM.12.01', 'KSNK.QT.12.BM.01', 14, '3314', 'Tuân thủ vận chuyển rác đúng luồng, đúng giờ quy định của Bệnh viện?', NULL, NULL, 'legacy'),
 ('9005afd7-27d6-46c2-ae93-0999ecb4c26b'::uuid, 'BM.12.01', 'KSNK.QT.12.BM.01', 15, '3315', 'Khu lưu giữ rác tập trung có sạch sẽ, có khóa, phân chia khu vực rõ ràng?', NULL, NULL, 'legacy'),
 ('f7cedf2e-20d0-4b37-8fe1-2553688523e4'::uuid, 'BM.12.01', 'KSNK.QT.12.BM.01', 16, '3316', 'Khu lưu giữ chất thải lây nhiễm đảm bảo thời gian (<48h) hoặc có kho lạnh?', NULL, NULL, 'legacy'),
-('4178b6f0-4e3a-465c-a169-5291ab94e004'::uuid, 'BM.31.03', 'KSNK.QT.36.BM.03', 1, '3601', 'NB được bố trí nằm phòng riêng hoặc ghép nhóm (Cohort) với NB cùng loại MDROs?', NULL, NULL, 'legacy'),
+('4178b6f0-4e3a-465c-a169-5291ab94e004'::uuid, 'BM.31.03', 'KSNK.QT.36.BM.03', 1, '3601', 'NB được bố trí nằm phòng riêng hoặc ghép nhóm (Cohort) với NB cùng loại MDROs?', 'TC01', 1, 'fuzzy'),
 ('71792854-957c-4d89-b391-449d10ce0acd'::uuid, 'BM.31.03', 'KSNK.QT.36.BM.03', 2, '3602', 'Có biển báo Cách ly tiếp xúc (Màu vàng) treo trước cửa phòng?', 'TC02', 2, 'exact'),
 ('c1848744-1305-4cf8-8f40-81f4260e4604'::uuid, 'BM.31.03', 'KSNK.QT.36.BM.03', 3, '3603', 'Có sẵn phương tiện vệ sinh tay và PTPH (găng, áo choàng) ngay trước cửa phòng?', 'TC03', 3, 'fuzzy'),
 ('22b2be3b-9521-4725-b891-bed8dd5053cc'::uuid, 'BM.31.03', 'KSNK.QT.36.BM.03', 4, '3604', 'NVYT tuân thủ VST và mặc áo choàng, mang găng TRƯỚC KHI tiếp xúc NB/môi trường xung quanh?', NULL, NULL, 'legacy'),
@@ -152,7 +153,7 @@ INSERT INTO public.gstt_map_tieu_chi_orphan (
 ('3f4e6a71-7f25-41d8-899e-d54870fc2914'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 1, '1501', 'Thực hiện vệ sinh tay trước khi chuẩn bị thuốc/dụng cụ', 'TC03', 3, 'exact'),
 ('f6f8a21e-0162-4bcc-89df-155d321e281f'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 2, '1502', 'Xe tiêm/khay tiêm sạch sẽ, gọn gàng', NULL, NULL, 'legacy'),
 ('c7ec58e2-a125-4614-af2d-eab3a3d08272'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 3, '1503', 'Sát khuẩn nắp lọ thuốc bằng cồn 70° trước khi rút thuốc', 'TC05', 5, 'fuzzy'),
-('93112c7a-1aaa-428a-acc8-052c292d9a87'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 4, '1504', 'Sử dụng 1 bơm tiêm, 1 kim tiêm vô khuẩn cho 1 lần tiêm', NULL, NULL, 'legacy'),
+('93112c7a-1aaa-428a-acc8-052c292d9a87'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 4, '1504', 'Sử dụng 1 bơm tiêm, 1 kim tiêm vô khuẩn cho 1 lần tiêm', 'TC06', 6, 'fuzzy'),
 ('33ab68fd-2752-4b5b-99c5-7cf7a846f1fb'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 5, '1505', 'Không để kim tiêm cắm lưu trên nắp lọ thuốc đa liều', NULL, NULL, 'legacy'),
 ('9f53308f-bee4-4556-ab43-c59d05d9919e'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 6, '1506', 'Thực hiện vệ sinh tay trước khi tiêm cho người bệnh', NULL, NULL, 'legacy'),
 ('1c60e72a-d28b-4a70-b425-0899fea4d100'::uuid, 'BM.09.01', 'KSNK.QT.09.BM.01', 7, '1507', 'Mang găng tay (nếu có chỉ định)', NULL, NULL, 'legacy'),

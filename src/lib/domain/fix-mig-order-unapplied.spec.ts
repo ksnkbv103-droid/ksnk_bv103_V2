@@ -52,12 +52,13 @@ describe("FIX-MIG-ORDER — chuỗi migration chưa apply 05/10", () => {
     }
   });
 
-  it("3 file GSC nằm sau GS-05 và sau mọi QLCV mod", () => {
+  it("4 file GSC nằm sau GS-05 và sau mọi QLCV mod", () => {
     const gsc = files.filter((f) => /_gsc_mod_/.test(f));
     expect(gsc.map((f) => f.replace(/^\d+_/, ""))).toEqual([
       "gsc_mod_orphan_tc_and_bk_map.sql",
       "gsc_mod_loai_filter_orphan_views.sql",
       "gsc_mod_seed_doi_tuong_mec_inactive.sql",
+      "gsc_mod_orphan_merge_map.sql",
     ]);
     const gs05 = files.find((f) => f.includes("gs05_analytics_hinh_thuc_id_stype"));
     const qlcv = files.filter((f) => /_qlcv_mod_/.test(f));
@@ -65,6 +66,11 @@ describe("FIX-MIG-ORDER — chuỗi migration chưa apply 05/10", () => {
     expect(qlcv.length).toBeGreaterThan(0);
     expect(gsc[0]! > gs05!).toBe(true);
     expect(gsc[0]! > qlcv[qlcv.length - 1]!).toBe(true);
+    // Merge sau seed MEC (175200) và trước VST mod.
+    expect(gsc[3]!).toMatch(/175300/);
+    const vst = files.find((f) => f.includes("vst_mod_soft_delete"));
+    expect(vst).toBeTruthy();
+    expect(gsc[3]! < vst!).toBe(true);
   });
 
   it("định nghĩa cuối 4 view GSC có loai_giam_sat và hinh_thuc_id", () => {

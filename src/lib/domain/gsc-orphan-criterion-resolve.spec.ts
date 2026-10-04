@@ -128,13 +128,61 @@ describe("GSC-MAP-DUYET — migration map invariants", () => {
   const resolved = simulateResolve(rows);
   const byOldMa = new Map(rows.map((r) => [r.old_ma_tc, r]));
 
-  it("165 dòng; chỉ exact|fuzzy|legacy; 34/22/109", () => {
+  it("165 dòng; chỉ exact|fuzzy|legacy; 34/24/107 (GSC-MAP-2DONG)", () => {
     expect(rows).toHaveLength(165);
     const confs = new Set(rows.map((r) => r.match_confidence));
     expect([...confs].sort()).toEqual(["exact", "fuzzy", "legacy"]);
     expect(rows.filter((r) => r.match_confidence === "exact")).toHaveLength(34);
-    expect(rows.filter((r) => r.match_confidence === "fuzzy")).toHaveLength(22);
-    expect(rows.filter((r) => r.match_confidence === "legacy")).toHaveLength(109);
+    expect(rows.filter((r) => r.match_confidence === "fuzzy")).toHaveLength(24);
+    expect(rows.filter((r) => r.match_confidence === "legacy")).toHaveLength(107);
+  });
+
+  it("N-TIEM 1504→TC06 fuzzy; N-MDRO 3601→TC01 fuzzy; đích 1-1 chưa bị chiếm trước khi gán", () => {
+    const tiem = byOldMa.get("1504");
+    expect(tiem?.ma_bk_short).toBe("BM.09.01");
+    expect(tiem?.old_criterion_id).toBe("93112c7a-1aaa-428a-acc8-052c292d9a87");
+    expect(tiem?.new_ma_tc).toBe("TC06");
+    expect(tiem?.match_confidence).toBe("fuzzy");
+
+    const mdro = byOldMa.get("3601");
+    expect(mdro?.ma_bk_short).toBe("BM.31.03");
+    expect(mdro?.new_ma_tc).toBe("TC01");
+    expect(mdro?.match_confidence).toBe("fuzzy");
+
+    const dest0906 = rows.filter(
+      (r) =>
+        r.ma_bk_short === "BM.09.01" &&
+        r.new_ma_tc === "TC06" &&
+        isMappedOrphanConfidence(r.match_confidence),
+    );
+    expect(dest0906).toHaveLength(1);
+    expect(dest0906[0]?.old_ma_tc).toBe("1504");
+
+    const dest3101 = rows.filter(
+      (r) =>
+        r.ma_bk_short === "BM.31.03" &&
+        r.new_ma_tc === "TC01" &&
+        isMappedOrphanConfidence(r.match_confidence),
+    );
+    expect(dest3101).toHaveLength(1);
+    expect(dest3101[0]?.old_ma_tc).toBe("3601");
+  });
+
+  it("17 dòng N-GHEP vẫn legacy trong map 1-1 (ghép bảng riêng)", () => {
+    const mergeOldMa = [
+      "1102", "1112", "1109", "1110", "1111",
+      "1506", "1507", "1509", "1511", "1510", "1513",
+      "1807", "1811", "1906", "1907", "2006", "2007",
+    ];
+    expect(mergeOldMa).toHaveLength(17);
+    for (const ma of mergeOldMa) {
+      const r = byOldMa.get(ma);
+      expect(r?.match_confidence, ma).toBe("legacy");
+      expect(r?.new_ma_tc, ma).toBeNull();
+    }
+    // Không gộp BM.07.03 TC04
+    expect(byOldMa.get("1204")?.match_confidence).toBe("legacy");
+    expect(byOldMa.get("1205")?.match_confidence).toBe("legacy");
   });
 
   it("sau resolve: không 2 TC cũ trùng 1 đích trong cùng BK; legacy không có id mới", () => {

@@ -763,6 +763,23 @@ Neo Domain 09-VST + xác nhận WHO W2 (≤3 NV nhập mới; 32 phiên cũ nạ
 | VST-04/06 | Đã có từ GSC (`pickBkRow` alias + normalize null); RPC ELSE NULL trong mig VST |
 | VST-07…11 | min-N 20; nhãn QT.07 (giữ chuỗi DB); jargon; Excel tên/hình thức/vị trí/giờ; ngày VN |
 
-Migration (chưa apply): `20261005180000_vst_mod_soft_delete_save_rpc.sql`, `20261005181000_vst_mod_valid_opp_analytics.sql` (sau `175200`).
+Migration (chưa apply): `20261005180000_vst_mod_soft_delete_save_rpc.sql`, `20261005181000_vst_mod_valid_opp_analytics.sql` (sau `175300` merge).
 
 Test: `tsc --noEmit` OK; vitest hydrate/Zod/analytics/export/mig-order OK; `npm run verify` OK. Không push / không apply.
+
+## GSC-MAP-2DONG — 3 chốt Nghĩa §7 (2026-10-05, nhánh `cursor/mod-vst`)
+
+Áp vào migration map chưa apply; không sửa `results_jsonb`; không SCR APPLY / không apply DB / không push.
+
+| Mục | Kết quả |
+|-----|---------|
+| N-TIEM | `1504` (BM.09.01) → **TC06** fuzzy — đích chưa bị chiếm |
+| N-MDRO | `3601` (BM.31.03) → **TC01** fuzzy — đích chưa bị chiếm |
+| Map 1-1 | **58** (exact **34** + fuzzy **24**); legacy **107** (trong đó **17** thuộc N-GHEP, vẫn legacy ở bảng 1-1) |
+| Seed BM.31.03 | TC01 bỏ «đóng kín cửa» → «…phòng riêng hoặc ghép nhóm cùng chủng» (`KSNK.QT.36.BM.03.json`); TC02 giữ; rg câu cũ chỉ còn chỗ không liên quan MDRO |
+| N-GHEP PA | **Migration riêng** `20261005175300_gsc_mod_orphan_merge_map.sql` (sau 175200) — bảng `gstt_map_tieu_chi_merge` + `fn_gsc_expand_session_results_for_tc` (mirror TS `expandSessionResultsForTcAgg`); **không** nhét vào 175000 để giữ map 1-1 mỏng; view violations dùng expand; dashboard_summary (tỷ lệ phiên) **không** đổi |
+| 8 nhóm | BM.07.02 TC09←1102+1112; TC11←1109+1110+1111; BM.09.01 TC08←1506+1507; TC11←1509+1511; TC12←1510+1513; BM.16.01 TC11←1807+1811; BM.17.01 TC06←1906+1907; BM.18.02 TC08←2006+2007. **Không** gộp BM.07.03 TC04 (1204+1205). 8 đích không trùng map 1-1 |
+| Quy tắc ghép | Đạt+Đạt→Đạt; ≥1 Không đạt→Không đạt; thiếu/N/A→legacy; ≤1 kết quả TC đích / phiên |
+| File | `175000` (2 dòng fuzzy) · `175300` merge · `gsc-orphan-criterion-merge.ts` + vitest · seed JSON |
+
+Thứ tự: `175000` → `175100` → `175200` → **`175300` merge** → `180000` VST…
