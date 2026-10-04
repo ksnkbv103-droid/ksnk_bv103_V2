@@ -456,7 +456,7 @@ export async function smartImportData(
           : undefined,
     };
   } catch (error: unknown) {
-    console.error(`[SMART SYNC ERROR - ${config.tableName}]`, error);
+    console.error("[SMART SYNC ERROR]", config.tableName, error);
     return { success: false, error: errSmartImport(error) };
   }
 }

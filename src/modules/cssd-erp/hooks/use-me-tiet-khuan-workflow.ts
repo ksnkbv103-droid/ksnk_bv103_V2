@@ -168,7 +168,9 @@ export function useMeTietKhuanWorkflow() {
 
   /** DANG_TIET_KHUAN trở đi / đã chốt nạp → không còn nạp bộ, bỏ fetch waiting. */
   const batchGateRef = useRef(batchGate);
-  batchGateRef.current = batchGate;
+  useEffect(() => {
+    batchGateRef.current = batchGate;
+  }, [batchGate]);
 
   const isProcessNapLocked = useCallback(() => {
     const gate = batchGateRef.current as { tk_chot_nap_at?: string | null; trang_thai_me?: string | null } | null;

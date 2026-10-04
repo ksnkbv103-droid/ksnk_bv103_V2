@@ -8,7 +8,7 @@
 | Cross-check | `/workspace/ipc-updated/QT/*.md` + `QD/*.md` |
 | Phạm vi file này | **Chỉ** mẫu bảng kiểm / phiếu quan sát phục vụ **công tác giám sát tuân thủ** (digital GS) — **không** mọi BM trong QT/QĐ |
 | Ngoài phạm vi | Không sửa seed `gstt_dm_bang_kiem` · không sửa Word QT/QĐ · không invent BM |
-| Liên kết domain | [`11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md`](./11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md) §L |
+| Liên kết domain | 11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md §L |
 
 > **Mục đích:** danh sách **seed giám sát** (catalog WHO + GSC). Corpus đầy đủ 135 BM QT/QĐ vẫn tồn tại trong QT extracts — file này chỉ giữ **subset đã lọc**.
 >

@@ -170,7 +170,7 @@ export default function CongViecKanban({
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-2">
                           <span
-                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[10px] font-bold text-sky-800"
+                            className="bv103-type-label inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 font-bold text-sky-800"
                             aria-hidden
                             title={task.to_cong_tac_ten ? `Tổ: ${task.to_cong_tac_ten}` : undefined}
                           >
@@ -192,13 +192,13 @@ export default function CongViecKanban({
                                   {ph.chips.map((c) => (
                                     <span
                                       key={c.id}
-                                      className="inline-flex max-w-[4.5rem] truncate rounded-full border border-slate-200 bg-slate-50 px-1 py-px text-[9px] font-medium text-slate-500"
+                                      className="bv103-type-label inline-flex max-w-[4.5rem] truncate rounded-full border border-slate-200 bg-slate-50 px-1 py-px font-medium text-slate-500"
                                     >
                                       {c.label}
                                     </span>
                                   ))}
                                   {ph.extra > 0 ? (
-                                    <span className="text-[9px] font-semibold text-slate-400">+{ph.extra}</span>
+                                    <span className="bv103-type-label font-semibold text-slate-400">+{ph.extra}</span>
                                   ) : null}
                                 </div>
                               );

@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import type { GapKhoaRow } from "@/lib/analytics/supervision-matrix-mappers";
 import { comparableGapRows } from "@/lib/analytics/supervision-source-lens";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 type Props = {
   rows: GapKhoaRow[];
@@ -34,20 +35,20 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+    <div className={`${P.shell} p-4`}>
+      <h4 className={`${P.panelTitle} text-slate-600`}>
         Đối soát tự giám sát vs chuyên trách
       </h4>
-      <p className="mt-1 text-[11px] text-slate-500">
+      <p className="bv103-type-label mt-1 text-slate-500">
         Chỉ khoa có <span className="font-medium">cả hai</span> nguồn trong kỳ. Dương = tự báo cao hơn chuyên trách.
       </p>
       {data.length === 0 ? (
-        <p className="mt-3 text-xs text-slate-500">Chưa có khoa comparable trong phạm vi lọc.</p>
+        <p className={`mt-3 ${P.emptyBody}`}>Chưa có khoa comparable trong phạm vi lọc.</p>
       ) : (
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[28rem] text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-100 text-[11px] uppercase text-slate-500">
+              <tr className={`border-b border-slate-100 ${P.innerTableHead} text-slate-500`}>
                 <th className="py-2 pr-2 font-medium">Khoa</th>
                 <th className="py-2 px-2 font-medium text-right">Tự GS %</th>
                 <th className="py-2 px-2 font-medium text-right">Chuyên trách %</th>

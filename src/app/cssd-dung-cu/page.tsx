@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
-import { useCssdCatalogPage } from "@/modules/cssd-erp/hooks/use-cssd-catalog-page";
+import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
   CSSD_UI_TAB_GROUP,
@@ -133,7 +133,7 @@ function CssdDungCuPageInner() {
 
         <div className="space-y-2">
           <div className="space-y-1">
-            <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            <p className="bv103-type-label px-1 font-semibold uppercase tracking-wide text-slate-400">
               Việc
             </p>
             <div className={CSSD_UI_TAB_GROUP} role="tablist" aria-label="Việc dụng cụ">
@@ -155,7 +155,7 @@ function CssdDungCuPageInner() {
           </div>
 
           <div className="space-y-1">
-            <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            <p className="bv103-type-label px-1 font-semibold uppercase tracking-wide text-slate-400">
               Tra cứu
             </p>
             <div className={`${CSSD_UI_TAB_GROUP} opacity-95`} role="tablist" aria-label="Tra cứu dụng cụ">

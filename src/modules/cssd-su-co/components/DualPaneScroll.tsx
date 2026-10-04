@@ -21,7 +21,7 @@ export default function DualPaneScroll({
       className={`flex h-[min(42dvh,22rem)] min-h-[12rem] flex-col overflow-hidden rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90 md:h-[min(52dvh,30rem)] md:min-h-[16rem] lg:h-[min(62dvh,36rem)] lg:min-h-[18rem] ${className}`.trim()}
     >
       {paneLabel ? (
-        <div className="sticky top-0 z-[1] shrink-0 border-b border-slate-200 bg-slate-100/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+        <div className="bv103-type-label sticky top-0 z-[1] shrink-0 border-b border-slate-200 bg-slate-100/95 px-2.5 py-1 font-bold uppercase tracking-wide text-slate-600">
           {paneLabel}
         </div>
       ) : null}
