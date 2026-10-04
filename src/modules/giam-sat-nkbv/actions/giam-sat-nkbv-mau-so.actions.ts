@@ -164,31 +164,10 @@ export async function saveNkbvMauSoPhauThuat(payload: SurgeryPayload) {
   const supabase = createAdminSupabaseClient();
 
   try {
-    // Tự động tính ssi probability nếu chưa có dựa trên logistic logic đơn giản
-    // expected ssi prob = base prob + penalty
-    let calculatedProb = payload.expected_ssi_prob;
-    if (calculatedProb === undefined || calculatedProb === null) {
-      calculatedProb = 0.01500; // base probability
-      // 1. Phân loại vết mổ
-      if (payload.phan_loai_vet_mo === "SACH_NHIEM") calculatedProb += 0.01000;
-      else if (payload.phan_loai_vet_mo === "NHIEM") calculatedProb += 0.02500;
-      else if (payload.phan_loai_vet_mo === "BAN") calculatedProb += 0.04000;
-
-      // 2. Điểm ASA >= 3
-      if (payload.asa_score && payload.asa_score >= 3) calculatedProb += 0.01000;
-
-      // 3. Thời gian mổ vượt ngưỡng
-      const threshold = payload.thoi_gian_nguong_nhsn ?? 120;
-      if (payload.thoi_gian_mo_phut > threshold) calculatedProb += 0.00800;
-
-      // 4. Implant
-      if (payload.co_dat_implant) calculatedProb += 0.00500;
-
-      // 5. Nội soi (Laparoscopic) làm giảm xác suất nhiễm khuẩn
-      if (payload.is_laparoscopic) calculatedProb = Math.max(0.00500, calculatedProb - 0.00500);
-
-      calculatedProb = parseFloat(calculatedProb.toFixed(5));
-    }
+    const expectedSsiProb =
+      payload.expected_ssi_prob === undefined || payload.expected_ssi_prob === null
+        ? null
+        : payload.expected_ssi_prob;
 
     const row = {
       khoa_id: payload.khoa_id,
@@ -203,7 +182,7 @@ export async function saveNkbvMauSoPhauThuat(payload: SurgeryPayload) {
       thoi_gian_mo_phut: payload.thoi_gian_mo_phut,
       thoi_gian_nguong_nhsn: payload.thoi_gian_nguong_nhsn ?? 120,
       is_laparoscopic: payload.is_laparoscopic,
-      expected_ssi_prob: calculatedProb,
+      expected_ssi_prob: expectedSsiProb,
       is_active: true,
       updated_at: new Date().toISOString(),
       metadata: payload.metadata ?? {}

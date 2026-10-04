@@ -19,8 +19,8 @@ export type NkbvCasRowMinimal = {
 
 /**
  * Một dòng kết quả `fn_nkbv_dich_te_hoc_rates`.
- * SIR/SUR/DUR là `null` khi không tính được (chưa cấu hình baseline CDC,
- * predicted < 1 theo SSOT §18.4, hoặc mẫu số bằng 0) — **không** phải 0.
+ * DUR và các trường tỷ suất RPC: mẫu số bằng 0 → hiển thị «—» (không phải 0).
+ * Trường SIR/SUR từ RPC không dùng trên dashboard pilot.
  */
 export type NkbvEpidemiologyRate = {
   khoa_id: string;
