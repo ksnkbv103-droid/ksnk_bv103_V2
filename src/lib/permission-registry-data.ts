@@ -9,27 +9,27 @@ import { ModuleConfig } from "./permission-registry";
 export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "DASHBOARD",
-    displayName: "Báo cáo chính thức — quyền tổng (mã DASHBOARD; tương thích widget CC cũ)",
+    displayName: "Báo cáo tổng hợp — quyền tổng",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_OVERVIEW",
-    displayName: "Báo cáo chính thức — Widget cơ cấu nguồn & tổng hợp",
+    displayName: "Báo cáo tổng hợp — cơ cấu nguồn và tổng hợp",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_SUPERVISION",
-    displayName: "Báo cáo chính thức — Widget chuyên trách / chéo / tự giám sát",
+    displayName: "Báo cáo tổng hợp — chuyên trách / chéo / tự giám sát",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_GAP",
-    displayName: "Báo cáo chính thức — Widget đối soát & lệch",
+    displayName: "Báo cáo tổng hợp — đối soát và lệch",
     actions: ["VIEW"],
   },
   {
     code: "DASHBOARD_CC_EXPORT",
-    displayName: "Báo cáo chính thức — Xuất / in báo cáo PDF",
+    displayName: "Báo cáo tổng hợp — Xuất / in PDF (BCTH-11)",
     actions: ["EXPORT"],
   },
   {
@@ -114,12 +114,12 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "CSSD_WORKFLOW",
-    displayName: "CSSD - Quy trình (Luân chuyển QR)",
+    displayName: "CSSD — Quy trình luân chuyển",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE"]
   },
   {
     code: "CSSD_ME_TIET_KHUAN",
-    displayName: "CSSD - Mẻ Tiệt khuẩn",
+    displayName: "CSSD — Mẻ tiệt khuẩn",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "QC", "LOCK", "NHA_IMPLANT"]
   },
   {
@@ -139,12 +139,12 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "GIAM_SAT_NKBV",
-    displayName: "Giám sát Nhiễm khuẩn BV (NKBV / HAI)",
+    displayName: "Giám sát nhiễm khuẩn bệnh viện",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "PHAN_QUYEN",
-    displayName: "Quản trị Phân quyền",
+    displayName: "Quản trị phân quyền",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE"]
   },
   {
@@ -154,7 +154,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "DAO_TAO",
-    displayName: "Thi KSNK",
+    displayName: "Đào tạo — Thi KSNK",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
 ];

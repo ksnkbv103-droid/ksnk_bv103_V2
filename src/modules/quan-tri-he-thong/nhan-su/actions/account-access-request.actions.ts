@@ -521,7 +521,8 @@ export async function listPendingAccountRequests(params?: {
   search?: string;
 }) {
   try {
-    await verifyPermission("NHAN_SU", "view");
+    // ADM-07: cùng cổng với duyệt / đếm (ensureRbacAdmin), không mở PII cho NHAN_SU.view.
+    await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
     const page = params?.page ?? 1;
     const pageSize = params?.pageSize ?? 50;

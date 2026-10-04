@@ -11,7 +11,8 @@ type Props = {
   setFormData: (data: Record<string, unknown>) => void;
   loading: boolean;
   tos: Opt[];
-  vaiTros: Opt[];
+  /** Giữ prop để caller cũ không gãy; ADM-07 không còn chọn vai trò trên form. */
+  vaiTros?: Opt[];
   chucVus: Opt[];
   /** Chỉ hiện chọn vai trò KSNK (+ active) — form Thêm người ngắn. */
   compactRoleOnly?: boolean;
@@ -23,27 +24,21 @@ export default function NhanSuFormFieldsOrg({
   setFormData,
   loading,
   tos,
-  vaiTros,
   chucVus,
   compactRoleOnly = false,
 }: Props) {
+  // ADM-07: chỉ xem — nguồn thật = sys_user_roles (màn Tài khoản).
+  const roleLabel =
+    String(formData.vai_tro_he_thong_ksnk || formData.ten_vai_tro || "").trim() || "— chưa gán —";
   const roleBlock = (
     <div className="space-y-2">
       <label className={F.formLabelInset}>Vai trò trong hệ thống KSNK</label>
-      <SearchableSelect
-        value={String(formData.vai_tro_he_thong_id ?? "")}
-        onChange={(id) => {
-          const row = vaiTros.find((v) => v.id === id);
-          setFormData({
-            ...formData,
-            vai_tro_he_thong_id: id,
-            vai_tro_he_thong_ksnk: row?.ten_danh_muc ?? "",
-          });
-        }}
-        options={vaiTros.map((v) => ({ id: v.id, label: v.ten_danh_muc }))}
-        placeholder="-- Chọn vai trò --"
-        disabled={loading}
-      />
+      <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        {roleLabel}
+      </p>
+      <p className="text-[11px] text-slate-500">
+        Chỉ xem. Gán/gỡ vai trò tại màn Tài khoản nhân sự (nguồn thật: phân quyền đăng nhập).
+      </p>
     </div>
   );
 
