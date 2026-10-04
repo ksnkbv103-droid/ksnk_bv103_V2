@@ -93,6 +93,7 @@ const vstSessionSchema = z.object({
   khu_vuc_id: requiredUuid("Khu vực giám sát là bắt buộc", "Khu vực không hợp lệ"),
   nguoi_giam_sat_id: z.string().uuid("Người giám sát không hợp lệ").nullable().optional(),
   ngay_giam_sat: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày YYYY-MM-DD"),
+  /** GS-01: bắt buộc khi tạo mới (action); optional grandfather khi sửa. */
   vi_tri: z.string().optional(),
   hinh_thuc_id: z.string().uuid("Hình thức giám sát không hợp lệ").nullable().optional(),
   cach_thuc_id: z.string().uuid("Cách thức giám sát không hợp lệ").nullable().optional(),
@@ -100,8 +101,8 @@ const vstSessionSchema = z.object({
   thoi_gian_ket_thuc: z.string().nullable().optional(),
   ghi_chu: z.string().optional(),
   is_active: z.boolean().default(true),
-  /** Soft: Bổ sung NB tùy chọn — tắt mặc định, không reject khi off. */
-  is_bo_sung_nguoi_benh: z.boolean().optional(),
+  /** GS-01/03: gan_nb bool luôn ghi — mặc định false. */
+  is_bo_sung_nguoi_benh: z.boolean().default(false),
   ma_benh_an: z.string().max(200).optional(),
   ma_nguoi_benh: z.string().max(200).optional(),
   ten_nguoi_benh: z.string().max(300).optional(),
@@ -143,5 +144,6 @@ export const vstSaveSessionSchema = z
           message: "Khu vực trên dòng quan sát phải khớp khu vực của phiên",
         });
       }
+      // GS-01: tên NV bắt buộc khi tạo mới — enforce ở action (grandfather phiên cũ).
     });
   });

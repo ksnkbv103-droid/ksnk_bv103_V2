@@ -12,6 +12,8 @@ import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-pe
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
+import { assertKhuVucAllowedForKhoa } from "@/lib/khu-vuc-giam-sat-server";
+import { validateSixSessionDimensions } from "@/lib/validations/giam-sat-session-dimensions";
 import { resolveBkApDungChoKhoa } from "@/lib/domain/bang-kiem-ap-dung";
 import {
   GscSessionInput,
@@ -132,6 +134,26 @@ export async function saveGiamSatChung(
           "Đối tượng (nhân viên)",
         );
     const bangKiem = await resolveBangKiemPersistFields(supabase, sessionData.loai_bang_kiem);
+
+    // GS-01: 6 chiều — chỉ siết khi tạo mới (grandfather phiên cũ khi sửa).
+    if (!existingSessionId) {
+      const dimErr = validateSixSessionDimensions({
+        khoa_id: khoaNorm,
+        khu_vuc_id: sessionData.khu_vuc_id,
+        vi_tri: sessionData.vi_tri,
+        doi_tuong_loai: bangKiem.doi_tuong_giam_sat,
+        nhan_vien_id: nhanVienNorm,
+        is_manual_nhan_vien: isManualNv,
+        ten_manual_nhan_vien: tenManualNv,
+        gan_nb: Boolean(sessionData.is_bo_sung_nguoi_benh),
+      });
+      if (dimErr) return { success: false, error: dimErr };
+      await assertKhuVucAllowedForKhoa({
+        supabase,
+        khoaId: khoaNorm,
+        khuVucId: String(sessionData.khu_vuc_id),
+      });
+    }
     const ngayGs = parseNgayGiamSatOrNull(sessionData.ngay_giam_sat);
     await assertSupervisionNotLockedForDate(supabase, "GSC", ngayGs);
     const thoiGianGhiNhan = isReplayCameraSupervisionCachThuc(cach)

@@ -7,6 +7,7 @@
 
 export * from "./giam-sat-chung.validations";
 export * from "./giam-sat-vst.validations";
+export * from "./giam-sat-session-dimensions";
 export * from "./nhan-su.validations";
 export * from "./giam-sat-nkbv.validations";
 export * from "./cssd-erp.validations";

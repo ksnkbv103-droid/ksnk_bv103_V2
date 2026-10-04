@@ -28,6 +28,11 @@ import {
 } from "../lib/vst-bo-sung-nguoi-benh";
 
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
+import { assertKhuVucAllowedForKhoa } from "@/lib/khu-vuc-giam-sat-server";
+import {
+  validateSixSessionDimensions,
+  validateVstObservationNhanVien,
+} from "@/lib/validations/giam-sat-session-dimensions";
 import { vstSaveSessionSchema } from "@/lib/validations/giam-sat-vst.validations";
 
 type SaveVSTSessionOpts = { existingSessionId?: string | null };
@@ -76,6 +81,31 @@ export async function saveVSTSession(
       maLoai: "KHU_VUC_GIAM_SAT",
       fieldLabel: "Khu vực giám sát",
     });
+    // GS-01: 6 chiều — chỉ siết khi tạo mới (grandfather phiên cũ khi sửa).
+    if (!existingSessionId) {
+      const firstObs = observations[0];
+      const dimErr = validateSixSessionDimensions({
+        khoa_id: khoaSessionNorm,
+        khu_vuc_id: lockedKhuVucId,
+        vi_tri: lockedSession.vi_tri,
+        doi_tuong_loai: "NHAN_VIEN",
+        nhan_vien_id: firstObs?.nhan_vien_id,
+        ten_nhan_vien_ngoai: firstObs?.ten_nhan_vien_ngoai,
+        gan_nb: Boolean(lockedSession.is_bo_sung_nguoi_benh),
+      });
+      if (dimErr) return { success: false, error: dimErr };
+      for (let i = 0; i < observations.length; i++) {
+        const nvErr = validateVstObservationNhanVien(observations[i]!);
+        if (nvErr) {
+          return { success: false, error: `Đối tượng ${i + 1}: ${nvErr}` };
+        }
+      }
+      await assertKhuVucAllowedForKhoa({
+        supabase,
+        khoaId: khoaSessionNorm,
+        khuVucId: String(lockedKhuVucId),
+      });
+    }
     for (const obs of observations) {
       const ngheId = String(obs.nghe_nghiep_id || "").trim();
       if (!ngheId) {

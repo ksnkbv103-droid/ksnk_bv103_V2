@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { filterKhuVucsForKhoa, type KhuVucSelectRow } from "./khu-vuc-giam-sat-ui";
+import {
+  filterKhuVucsForKhoa,
+  isKhuVucAllowedForKhoa,
+  type KhuVucSelectRow,
+} from "./khu-vuc-giam-sat-ui";
 
 const rows: KhuVucSelectRow[] = [
   { id: "1", ten_danh_muc: "ICU", ma_danh_muc: "ICU_DO", metadata: null },
@@ -24,5 +28,11 @@ describe("filterKhuVucsForKhoa", () => {
   it("matches codes case-insensitively", () => {
     const out = filterKhuVucsForKhoa(rows, ["HL_XA"]);
     expect(out.map((r) => r.ma_danh_muc)).toEqual(["HL_XA", "CHUNG"]);
+  });
+
+  it("isKhuVucAllowedForKhoa (GS-01)", () => {
+    expect(isKhuVucAllowedForKhoa(rows[0]!, ["ICU_DO"])).toBe(true);
+    expect(isKhuVucAllowedForKhoa(rows[1]!, ["ICU_DO"])).toBe(false);
+    expect(isKhuVucAllowedForKhoa(rows[2]!, ["ICU_DO"])).toBe(true);
   });
 });

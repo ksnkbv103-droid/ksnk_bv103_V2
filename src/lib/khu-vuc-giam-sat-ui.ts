@@ -25,6 +25,14 @@ export function filterKhuVucsForKhoa(
   });
 }
 
+/** GS-01: khu vực có thuộc allowed (hoặc is_common) của khoa không. */
+export function isKhuVucAllowedForKhoa(
+  khuVuc: KhuVucSelectRow,
+  allowedKhuVucCodes: string[] | null | undefined,
+): boolean {
+  return filterKhuVucsForKhoa([khuVuc], allowedKhuVucCodes).length > 0;
+}
+
 export function buildKhuVucFlatSelectOptions(rows: KhuVucSelectRow[]) {
   const sorted = [...rows].sort((a, b) => {
     const thu = (a.thu_tu ?? 999) - (b.thu_tu ?? 999);
