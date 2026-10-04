@@ -77,7 +77,7 @@ export function evaluateVaeEventPeriodSuppress(input: {
   return {
     suppressed: true,
     classification: VAE_EVENT_PERIOD_SUPPRESS_CLASSIFICATION,
-    reason: `${VAE_EVENT_PERIOD_SUPPRESS_REASON_PREFIX} (DOE ${prior}, Event Period ${ep.start}→${ep.end}, Δ=${diff}d) — không tạo VAE mới chồng (SSOT §C.4.10.4). Không dùng RIT Ch.2.`,
+    reason: `${VAE_EVENT_PERIOD_SUPPRESS_REASON_PREFIX} (DOE ${prior}, Event Period ${ep.start}→${ep.end}, Δ=${diff}d) — không tạo VAE mới chồng trong cửa sổ 14 ngày.`,
   };
 }
 

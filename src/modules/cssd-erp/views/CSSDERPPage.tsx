@@ -91,7 +91,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     const code = raw.trim().toUpperCase();
     if (!code) return;
     if (currentStation === "TIET_KHUAN") {
-      toast.error(`Không quét trạm Tiệt khuẩn tại đây — mở tab Mẻ (${cssdQuyTrinhBatchTabHref()}).`, { duration: 6000 });
+      toast.error("Không quét trạm Tiệt khuẩn tại đây — mở tab Mẻ trên Quy trình.", { duration: 6000 });
       return;
     }
 
@@ -103,7 +103,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
 
   const requestSelectStation = (station: Station) => {
     if (showDongGoiGate && station !== currentStation) {
-      toast.message("Đang kiểm bộ — bấm «Đóng» trên thẻ bộ trước khi đổi trạm.");
+      toast.message("Đang đối chiếu bộ — bấm «Đóng» trên thẻ bộ trước khi đổi trạm.");
       return;
     }
     selectStation(station);

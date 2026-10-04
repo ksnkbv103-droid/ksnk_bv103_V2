@@ -232,7 +232,7 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
       is_positive: true,
       classification: "MBI_LCBI",
       lcbi_type: lcbiType,
-      reason: `${mbiBarrier.reason} Không tính lỗi CLABSI. (MBI organism = tip is_intestinal_pathogen proxy — G.1#5 browser còn mở.)`,
+      reason: `${mbiBarrier.reason} Không tính lỗi CLABSI (MBI-LCBI).`,
     };
   }
 
@@ -896,7 +896,7 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     ssiDepthRank(userDepth) < ssiDepthRank(engineDepth)
   ) {
     warnings.push(
-      `Độ sâu form (${userDepth}) nông hơn kết luận engine (${engineDepth}) — báo cáo theo ${engineDepth} (sâu nhất thắng SSOT C.5.3).`,
+      `Độ sâu form (${userDepth}) nông hơn kết luận engine (${engineDepth}) — báo cáo theo ${engineDepth} (sâu nhất thắng).`,
     );
   }
 

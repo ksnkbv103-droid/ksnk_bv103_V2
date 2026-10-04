@@ -15,6 +15,7 @@ import {
   canSeeNavGate,
 } from "@/lib/nav/ksnk-nav-gates";
 import { pickSoleWriteHrefForMode } from "@/lib/nav/giam-sat-write-dest";
+import { isRouteInPilotScope } from "@/lib/ksnk-pilot-route-scope";
 import { GSC_ROUTE_CHROME } from "@/modules/giam-sat-chung/lib/gsc-app-paths";
 import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 
@@ -88,7 +89,10 @@ export default function GiamSatHubPage() {
   const { loading, isAdmin, canView } = usePermission(undefined, "view");
   const seeVst = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_VST);
   const seeGsc = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_GSC);
-  const seeNkbv = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_NKBV);
+  const seeNkbv =
+    !loading &&
+    canSeeNavGate(isAdmin, canView, NAV_GATE_NKBV) &&
+    isRouteInPilotScope("/giam-sat-nkbv");
 
   /** Khối Vệ sinh tay = 3 mẫu riêng (WHO + BM.07.02 + BM.07.03). */
   const veSinhTayLinks: HubLink[] = useMemo(
@@ -148,10 +152,10 @@ export default function GiamSatHubPage() {
     const out: { href: string; label: string; show: boolean }[] = [
       { href: "/lich-su/vst", label: "Lịch sử VST", show: seeVst },
       { href: "/thong-ke/vst", label: "Thống kê VST", show: seeVst },
-      { href: "/lich-su/gsc", label: "Lịch sử GSC", show: seeGsc },
-      { href: "/thong-ke/gsc", label: "Thống kê GSC", show: seeGsc },
+      { href: "/lich-su/gsc", label: "Lịch sử giám sát chung", show: seeGsc },
+      { href: "/thong-ke/gsc", label: "Thống kê giám sát chung", show: seeGsc },
       { href: "/qr", label: "Quét QR", show: seeVst || seeGsc || seeNkbv },
-      { href: "/giam-sat-nkbv?tab=cases", label: "Danh sách NKBV", show: seeNkbv },
+      { href: "/giam-sat-nkbv?tab=cases", label: "Danh sách phiếu NKBV", show: seeNkbv },
     ];
     return out.filter((l) => l.show);
   }, [seeVst, seeGsc, seeNkbv]);
@@ -212,7 +216,7 @@ export default function GiamSatHubPage() {
         <section className="space-y-2">
           <h2 className="bv103-type-label">Nhập giám sát khác</h2>
           <p className="text-[11px] text-slate-500">
-            Ba cửa GSC: tuân thủ, nhật ký vận hành, đánh giá hệ thống.
+            Ba loại giám sát chung: tuân thủ, nhật ký vận hành, đánh giá hệ thống.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {visiblePrimary.map((link) => (

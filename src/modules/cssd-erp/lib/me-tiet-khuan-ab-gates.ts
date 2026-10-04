@@ -10,7 +10,7 @@ export const AB1_FAIL_TARGET_STATION = "TIEP_NHAN" as const;
 
 /** AB-2 A: Soft không có nhả khẩn implant khi chưa BI âm. */
 export const MSG_NO_EMERGENCY_IMPLANT_RELEASE =
-  "Mẻ implant / chờ BI: Soft chặn nhả khẩn — chỉ nhả sau BI âm (tổ trưởng).";
+  "Mẻ có implant / chờ BI: không được nhả khẩn — chỉ nhả sau BI âm (tổ trưởng).";
 
 /** Soft never allows emergency implant release (AB-2 A). */
 export function isEmergencyImplantReleaseAllowed(): false {

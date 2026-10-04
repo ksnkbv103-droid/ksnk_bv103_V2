@@ -222,7 +222,7 @@ export default function BsiClinicalSubForm({
 
           <NkbvFormSection
             title="Triệu chứng trong cửa sổ nhiễm khuẩn"
-            hint="SSOT catalog · bắt buộc cho LCBI 2 (commensal). Mỗi tick gắn ngày thuộc cửa sổ nhiễm khuẩn."
+            hint="Theo danh mục dấu hiệu · bắt buộc cho LCBI 2 (commensal). Mỗi tick gắn ngày thuộc cửa sổ nhiễm khuẩn."
           >
             <NkbvCatalogSymptomRows
               rows={lcbi2Rows}
@@ -237,7 +237,7 @@ export default function BsiClinicalSubForm({
             
           </NkbvFormSection>
 
-          <NkbvFormSection title="MBI-LCBI" hint="Ch.4 Soft 20e (cite cdc-ch4): neutropenia = ANC/WBC <500 ≥2 ngày riêng trong cửa sổ máu±3 ngày; hoặc allo HSCT ≤1 năm + (GVHD GI III/IV hoặc tiêu chảy nặng). Tiêu chảy đơn / ung thư / tick giảm BC đơn ≠ MBI. PO G.1#1.">
+          <NkbvFormSection title="MBI-LCBI" hint="CDC NHSN 2025, Ch.4: giảm bạch cầu ANC/WBC <500 ≥2 ngày riêng trong cửa sổ máu±3 ngày; hoặc ghép tủy ≤1 năm + (GVHD đường tiêu hóa III/IV hoặc tiêu chảy nặng). Tiêu chảy đơn / ung thư / tick giảm BC đơn không đủ MBI.">
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"

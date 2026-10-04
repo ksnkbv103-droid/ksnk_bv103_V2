@@ -43,7 +43,7 @@ export type CssdQuyTrinhAnalyticsRow = Record<string, unknown> & {
   ten_khoa?: string | null;
   /** Khoa sở hữu danh mục bộ (join). */
   khoa_su_dung_id?: string | null;
-  /** Khoa nhận lúc cấp phát (SSOT destination). */
+  /** Khoa nhận lúc cấp phát (khoa nhận lúc cấp phát). */
   khoa_nhan_id?: string | null;
   ten_khoa_nhan?: string | null;
   suds_count?: number | null;
@@ -285,7 +285,7 @@ export function describeCssdCapPhatByKhoaNhan(
   }));
   const chuaGhi = rows.find((r) => r.khoa_key === "__CHUA_GHI__")?.so_cap_phat ?? 0;
   const disclaimer =
-    "Cấp phát theo khoa nhận lúc xuất (`khoa_nhan_id`) — SSOT destination; khác khoa sở hữu danh mục bộ.";
+    "Cấp phát theo khoa nhận lúc xuất (`khoa_nhan_id`) — khác khoa sở hữu danh mục bộ.";
   let summary =
     top.length === 0
       ? "Chưa có lượt cấp phát có khoa nhận trong kỳ."

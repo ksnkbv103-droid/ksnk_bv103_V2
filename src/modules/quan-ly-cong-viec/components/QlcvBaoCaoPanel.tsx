@@ -160,7 +160,7 @@ export function QlcvBaoCaoPanel() {
             <h2 className="bv103-type-section text-slate-900">Báo cáo kỳ · người–việc–tiến độ</h2>
             <p className="bv103-type-body text-slate-600">
               Quan sát rõ <strong>ai phụ trách</strong>, <strong>việc gì</strong>,{" "}
-              <strong>mở / quá hạn / hoàn thành đúng hạn</strong> theo tuần · tháng · quý (SSOT §6).
+              <strong>mở / quá hạn / hoàn thành đúng hạn</strong> theo tuần · tháng · quý.
             </p>
           </div>
           <button

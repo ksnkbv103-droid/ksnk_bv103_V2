@@ -221,7 +221,7 @@ export function buildCriteriaGatePreview(input: {
   const checklistHints = criteriaRows.map((r) => r.label);
 
   if (gate === "UTI" && /candida|yeast|nấm men/i.test(String(input.milestone.tac_nhan || ""))) {
-    gaps.unshift("Tác nhân nấm — không dùng làm pathogen UTI (SSOT §7)");
+    gaps.unshift("Tác nhân nấm — không dùng làm pathogen UTI");
   }
 
   let bloodRoutingHint: CriteriaGatePreview["bloodRoutingHint"] = null;

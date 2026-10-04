@@ -49,7 +49,8 @@ describe("18b A×6 Soft gates", () => {
         outcome: "HOAN_THANH",
       }).ok,
     ).toBe(true);
-    expect(MSG_NO_EMERGENCY_IMPLANT_RELEASE).toMatch(/không có nhả khẩn|chặn nhả khẩn/i);
+    expect(MSG_NO_EMERGENCY_IMPLANT_RELEASE).toMatch(/không được nhả khẩn/i);
+    expect(MSG_NO_EMERGENCY_IMPLANT_RELEASE).not.toMatch(/Soft/);
   });
 
   it("AB-3: BI+ recall window is machine-scoped for any PP (no method filter)", () => {

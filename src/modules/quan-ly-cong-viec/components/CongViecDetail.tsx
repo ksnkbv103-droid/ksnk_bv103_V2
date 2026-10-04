@@ -585,7 +585,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           open={confirmNghiemThuOpen}
           onOpenChange={setConfirmNghiemThuOpen}
           title="Nghiệm thu & đóng — ghi kết quả"
-          description="Domain 19c: đóng việc cần 1 dòng kết quả đạt được (hoặc checklist đủ 100%)."
+          description="Đóng việc cần 1 dòng kết quả đạt được (hoặc checklist đủ 100%)."
           placeholder="Kết quả đạt được (1 dòng)…"
           confirmLabel="Nghiệm thu & Đóng"
           minLength={1}

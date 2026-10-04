@@ -115,7 +115,7 @@ export default function QuanLyDungCuPage() {
         </p>
       ) : (
         <p className="text-[11px] text-slate-500">
-          Chỉ quản trị sửa danh mục. Nhân viên lập đề nghị tại /cssd-dung-cu → tab Đề nghị danh mục; admin duyệt tại đây.
+          Chỉ quản trị sửa danh mục. Nhân viên lập đề nghị tại Dụng cụ › Đề nghị danh mục; admin duyệt tại đây.
         </p>
       )}
 

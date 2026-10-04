@@ -127,7 +127,7 @@ function CssdDungCuPageInner() {
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
             Hỏng/Mất
           </Link>
-          {" chỉ tại Sự cố (không MOVE trên cửa sự cố)."}
+          {" chỉ tại Sự cố. Luân chuyển số lượng ở tab Luân chuyển."}
         </p>
 
         <div className="space-y-2">

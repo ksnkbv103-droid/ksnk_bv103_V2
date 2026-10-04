@@ -451,7 +451,7 @@ export default function PneuClinicalSubForm({
 
           <NkbvFormSection
             title="Triệu chứng trong IWP"
-            hint="SSOT catalog · toàn thân ≥1 + hô hấp ≥2 dòng. Mỗi dấu hiệu dương tính gắn ngày ∈ IWP."
+            hint="Theo danh mục dấu hiệu · toàn thân ≥1 + hô hấp ≥2 dòng. Mỗi dấu hiệu dương tính gắn ngày ∈ IWP."
           >
             <p className="bv103-type-label text-slate-400">
               Toàn thân (tách sốt / hạ thân nhiệt / WBC)

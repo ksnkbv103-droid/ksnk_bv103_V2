@@ -35,7 +35,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
   /** TK chỉ qua phiếu/mẻ (/cssd-erp/batch): không có quét «trạm tiệt khuẩn» trên luồng 6 trạm. */
   if (station === "TIET_KHUAN") {
     throw new Error(
-      "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào CSSD → Mẻ tiệt khuẩn (/cssd-erp/batch): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
+      "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào Quy trình → tab Mẻ: tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
     );
   }
 

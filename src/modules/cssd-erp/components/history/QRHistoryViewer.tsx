@@ -89,7 +89,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
     try {
       const res = await assignCssdCaMoTrace(String(process.id), val);
       if (!res.success) throw new Error(res.error);
-      toast.success("Đã ghi nhận dùng lâm sàng (ca mổ) — actor + timestamp");
+      toast.success("Đã ghi nhận dùng trên người bệnh (ca mổ)");
       await fetchHistory(code);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Không gán được ca mổ");
@@ -114,10 +114,10 @@ export default function QRHistoryViewer({ initialQr }: Props) {
         clear: currentlyUsed,
       });
       if (!res.success) throw new Error(res.error);
-      toast.success(currentlyUsed ? "Đã gỡ cờ used_clinically (manual)" : "Đã ghi nhận used_clinically (manual)");
+      toast.success(currentlyUsed ? "Đã gỡ ghi nhận dùng trên người bệnh" : "Đã ghi nhận dùng trên người bệnh");
       await fetchHistory(code);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Không cập nhật used_clinically");
+      toast.error(err instanceof Error ? err.message : "Không cập nhật trạng thái dùng trên người bệnh");
     } finally {
       setTogglingUsed(false);
     }
@@ -234,11 +234,11 @@ export default function QRHistoryViewer({ initialQr }: Props) {
 
           <div className="bg-emerald-50 border border-emerald-100 rounded-[var(--radius-shell)] p-5 space-y-3">
             <h4 className="text-xs font-semibold tracking-wide text-emerald-800">
-              Truy vết ca mổ / bệnh nhân · used_clinically
+              Truy vết ca mổ / người bệnh
             </h4>
             <p className="text-[11px] text-emerald-700">
-              Sự kiện lâm sàng sau cấp phát (Domain 23 A): gắn ca mổ = set used kèm actor + timestamp.
-              Không silent khi in CAP_PHAT.
+              Ghi nhận sử dụng trên người bệnh sau cấp phát: gắn ca mổ kèm người ghi và thời điểm.
+              Không tự ghi khi in phiếu cấp phát.
             </p>
             {isCssdCycleUsedClinically({
               usedClinically: process.used_clinically,
@@ -249,11 +249,11 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                 Đã dùng lâm sàng
                 {process.used_clinically_source ? ` · nguồn ${process.used_clinically_source}` : ""}
                 {process.used_clinically_at ? ` · ${formatCssdPrintDateTime(process.used_clinically_at)}` : ""}
-                {process.used_clinically_by ? ` · actor ${String(process.used_clinically_by).slice(0, 8)}…` : ""}
+                {process.used_clinically_by ? ` · người ghi ${String(process.used_clinically_by).slice(0, 8)}…` : ""}
               </p>
             ) : (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
-                Chưa used_clinically — CAP_PHAT còn trong SC picker / có thể thu hồi BI+.
+                Chưa dùng trên người bệnh — bộ sau cấp phát vẫn chọn được trên Sự cố; có thể thu hồi khi BI dương (nếu chưa dùng).
               </p>
             )}
             <input
@@ -268,7 +268,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               onClick={() => void saveCaMoTrace()}
               className="bv103-control-h w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >
-              {assigningCaMo ? "Đang lưu…" : "Lưu ca mổ = ghi nhận used (CLINICAL)"}
+              {assigningCaMo ? "Đang lưu…" : "Lưu ca mổ = ghi nhận dùng trên người bệnh"}
             </button>
             <button
               type="button"
@@ -284,8 +284,8 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                       usedClinicallyAt: process.used_clinically_at,
                       usedClinicallyBy: process.used_clinically_by,
                     })
-                  ? "Gỡ used (manual fallback)"
-                  : "Đánh dấu used (manual fallback)"}
+                  ? "Gỡ ghi nhận dùng trên người bệnh"
+                  : "Ghi nhận dùng trên người bệnh"}
             </button>
           </div>
 

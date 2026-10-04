@@ -148,13 +148,13 @@ export function evaluateMbiMucosalBarrier(input: MbiBarrierInput): MbiBarrierRes
       "Thiếu bằng chứng hàng rào Ch.4: cần neutropenia (ANC/WBC <500 ≥2 ngày riêng trong cửa sổ máu±3 ngày) hoặc allo HSCT ≤1 năm + (GVHD GI III/IV hoặc tiêu chảy nặng). Tiêu chảy đơn / ung thư đơn không đủ MBI.";
   } else if (arms.includes("NEUTROPENIA")) {
     reason =
-      "MBI barrier Ch.4: neutropenia — ANC/WBC <500 cells/mm³ ≥2 ngày lịch riêng trong cửa sổ ngày cấy máu (+) ±3 ngày (cite cdc-ch4.txt:425-427).";
+      "Rào MBI (CDC NHSN 2025, Ch.4): giảm bạch cầu ANC/WBC <500 ≥2 ngày lịch riêng trong cửa sổ ngày cấy máu (+) ±3 ngày.";
   } else if (arms.includes("ALLO_HSCT_DIARRHEA")) {
     reason =
-      "MBI barrier Ch.4: allo HSCT ≤1 năm + tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h) khởi phát trong 7 ngày trước cấy máu (+) (cite cdc-ch4.txt:415-421).";
+      "Rào MBI (CDC NHSN 2025, Ch.4): ghép tủy ≤1 năm + tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h) khởi phát trong 7 ngày trước cấy máu (+).";
   } else {
     reason =
-      "MBI barrier Ch.4: allo HSCT ≤1 năm + GVHD GI độ III/IV cùng đợt nằm viện (cite cdc-ch4.txt:415-418).";
+      "Rào MBI (CDC NHSN 2025, Ch.4): ghép tủy ≤1 năm + GVHD đường tiêu hóa độ III/IV cùng đợt nằm viện.";
   }
 
   return { met, arms, reason };

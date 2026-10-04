@@ -193,7 +193,7 @@ export default function MeTietKhuanProcessQcPanel({
               {biBatBuoc ? (
                 <span className="text-[11px] font-medium text-violet-700">
                   BI bắt buộc trước khi nhả
-                  {coImplant ? " · Soft không nhả khẩn implant" : ""}
+                  {coImplant ? " · không nhả khẩn mẻ có implant" : ""}
                 </span>
               ) : null}
             </div>
