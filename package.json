@@ -106,6 +106,7 @@
     "audit:legacy-rpc": "node scripts/audit-legacy-rpc.mjs",
     "audit:views": "node scripts/audit-view-usage.mjs",
     "gstt:gap:backfill": "node scripts/gstt-gap-backfill.mjs",
+    "seed:gstt-bang-kiem": "node --env-file=.env.local scripts/seed-gstt-bang-kiem-from-seed.mjs",
     "brand:logo-circular-alpha": "node scripts/brand-circular-alpha-logo.mjs",
     "admin:health:check": "node scripts/admin-health-check.mjs",
     "admin:rbac:sync": "npx tsx scripts/admin-rbac-sync.ts",
