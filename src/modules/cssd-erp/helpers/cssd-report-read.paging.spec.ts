@@ -26,13 +26,30 @@ describe("báo cáo mẻ tiệt khuẩn không cắt im", () => {
     );
     const idx = src.indexOf('.from("cssd_fact_lo_tiet_khuan")');
     expect(idx).toBeGreaterThan(-1);
-    const head = src.slice(idx, src.indexOf("supabase.from(", idx));
+    const head = src.slice(idx, src.indexOf('.from("cssd_dm_thiet_bi")'));
     expect(head).toContain(".range(");
     expect(head).toContain("mePeriodWindowFilter");
     expect(head).not.toContain(".limit(");
     expect(src).not.toContain("MAX_REPORT_ROWS");
     expect(src).toContain("cssdVnDay(m.thoi_gian_bat_dau) || cssdVnDay(m.created_at)");
     expect(src).not.toContain("setUTCDate");
+  });
+});
+
+describe("báo cáo máy và khoa không cắt im", () => {
+  it("thiết bị active và khoa đọc hết trang range", () => {
+    const src = readFileSync(
+      resolve(process.cwd(), "src/modules/cssd-erp/actions/cssd-report-read.actions.ts"),
+      "utf8",
+    );
+    expect(src).not.toContain(".limit(500)");
+    expect(src).not.toContain(".limit(2000)");
+    const tb = src.indexOf('.from("cssd_dm_thiet_bi")');
+    const khoa = src.indexOf('.from("mdm_dm_khoa_phong")');
+    expect(tb).toBeGreaterThan(-1);
+    expect(khoa).toBeGreaterThan(-1);
+    expect(src.slice(tb, tb + 220)).toContain(".range(");
+    expect(src.slice(khoa, khoa + 220)).toContain(".range(");
   });
 });
 
