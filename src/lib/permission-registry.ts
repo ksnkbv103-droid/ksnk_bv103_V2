@@ -81,6 +81,10 @@ export function getFlatPermissions() {
                          action === "EXPORT" ? "Xuất dữ liệu" :
                          action === "ASSIGN" ? "Phân công xử lý" :
                          action === "CLOSE" ? "Đóng / hoàn tất" :
+                         action === "CONFIRM" ? "Xác nhận phiếu" :
+                         action === "RECALL" ? "Ra lệnh thu hồi" :
+                         action === "APPROVE" ? "Duyệt" :
+                         action === "NHA_IMPLANT" ? "Nhả mẻ cấy ghép / chờ BI" :
                          action === "SYSTEM_OVERRIDE" ? "Ghi đè bản ghi hệ thống" : action;
       
       perms.push({

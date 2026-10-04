@@ -140,7 +140,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "GIAM_SAT_NKBV",
     displayName: "Giám sát Nhiễm khuẩn BV (NKBV / HAI)",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "PHAN_QUYEN",
@@ -150,7 +150,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "BAO_SU_CO",
     displayName: "Sự cố CSSD",
-    actions: ["VIEW", "CREATE"]
+    actions: ["VIEW", "CREATE", "CONFIRM", "RECALL", "CLOSE"]
   },
   {
     code: "DAO_TAO",
