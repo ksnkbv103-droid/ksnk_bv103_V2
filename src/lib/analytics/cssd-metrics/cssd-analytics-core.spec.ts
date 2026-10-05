@@ -265,6 +265,16 @@ describe("cssd-analytics-core", () => {
         ma_tram_phat_hien: "TIET_KHUAN",
         attributes: { INCIDENT_GROUP: "EQUIPMENT", INCIDENT_STATUS: "OPEN" },
       },
+      {
+        quy_trinh_id: "c2",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "DA_DONG" },
+      },
+      {
+        quy_trinh_id: "c3",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "VO_HIEU" },
+      },
     ];
     expect(countCyclesWithProcessIncidents(rows)).toBe(1);
     expect(roundIncidentFreeRate(1, 1)).toBe(0);

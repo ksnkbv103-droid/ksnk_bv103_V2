@@ -530,7 +530,16 @@ export async function fetchCssdAnalyticsBundle(filters: {
     for (const tb of resTb.rows) {
       const st = String((tb as { trang_thai?: string }).trang_thai || "").toUpperCase();
       if (st === "READY" || st === "HOAT_DONG" || st === "SAN_SANG") mayReady += 1;
-      else if (st === "REPAIRING" || st === "BAO_TRI" || st === "BROKEN") mayRepairing += 1;
+      // ME-03: HOLD_QC / CHO_THAM_DINH = chưa sẵn sàng vận hành (gộp bucket «đang sửa/giữ»).
+      else if (
+        st === "REPAIRING" ||
+        st === "BAO_TRI" ||
+        st === "BROKEN" ||
+        st === "HOLD_QC" ||
+        st === "CHO_THAM_DINH"
+      ) {
+        mayRepairing += 1;
+      }
     }
     const phieuBaoTriMo = resBt.count ?? 0;
 

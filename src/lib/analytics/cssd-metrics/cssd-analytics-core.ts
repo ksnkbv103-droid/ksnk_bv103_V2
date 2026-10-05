@@ -504,7 +504,8 @@ export function isProcessCycleSafetyIncident(row: CssdSafetyIncidentRow): boolea
   if (!quyTrinhId) return false;
   const attrs = row.attributes && typeof row.attributes === "object" ? row.attributes : {};
   const status = String(attrs.INCIDENT_STATUS ?? attrs.incident_status ?? "OPEN").trim().toUpperCase();
-  if (status === "VO_HIEU") return false;
+  // DA_DONG = đã giải phóng — không còn tính vào tử KPI «chu trình có SC».
+  if (status === "VO_HIEU" || status === "DA_DONG") return false;
   const group = String(attrs.INCIDENT_GROUP ?? attrs.incident_group ?? "").trim().toUpperCase();
   if (group !== "PROCESS") return false;
   const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim().toUpperCase();
