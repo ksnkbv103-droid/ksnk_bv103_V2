@@ -50,7 +50,7 @@ export async function verifyPermissions(required: readonly PermissionCheck[]) {
   // Break-glass (env KSNK_BREAK_GLASS_EMAILS) — ghi nhật ký mỗi lần dùng.
   if (isTrustedAdminEmail(user.email)) {
     const { logAdminAction } = await import("@/lib/admin-audit");
-    void logAdminAction({
+    await logAdminAction({
       action: "BREAK_GLASS_USED",
       targetTable: "rbac",
       targetId: user.id,
@@ -92,7 +92,7 @@ export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   if (!user?.id) return false;
   if (isTrustedAdminEmail(user.email)) {
     const { logAdminAction } = await import("@/lib/admin-audit");
-    void logAdminAction({
+    await logAdminAction({
       action: "BREAK_GLASS_USED",
       targetTable: "rbac",
       targetId: user.id,

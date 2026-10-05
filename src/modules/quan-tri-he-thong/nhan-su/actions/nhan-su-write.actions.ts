@@ -11,6 +11,7 @@ import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";
 import { verifyPermission } from "../../actions/verify-permission";
 import { nhanSuSchema } from "@/lib/validations";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { syncStaffAuthEmail } from "@/lib/auth/staff-auth-email";
 import {
   assertLoginEmailChangeAllowed,
@@ -96,7 +97,10 @@ export async function saveNhanSuAction(data: SaveNhanSuInput) {
       validatedData.is_active === false
     ) {
       const targetAdmin = await authUserHasAdminRole(supabase, existingAuthUserId);
-      if (targetAdmin) {
+      const isTargetBreakGlass = isTrustedAdminEmail(
+        String(existingExtraData.email || ""),
+      );
+      if (targetAdmin || isTargetBreakGlass) {
         return {
           success: false,
           error: "Không được ngưng hồ sơ đang gắn tài khoản quản trị (ADMIN).",

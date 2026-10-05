@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   createAdminSupabaseClient: vi.fn(),
   from: vi.fn(),
   authUserHasAdminRole: vi.fn(),
+  isTrustedAdminEmail: vi.fn(),
 }));
 
 vi.mock("../../actions/verify-permission", () => ({
@@ -40,6 +41,10 @@ vi.mock("./nhan-su-login-email.guard", async () => {
 vi.mock("@/lib/admin-audit", () => ({
   logAdminAction: mocks.logAdminAction,
   maskEmailForAudit: (e: string) => e,
+}));
+
+vi.mock("@/lib/auth/trusted-admin-email", () => ({
+  isTrustedAdminEmail: mocks.isTrustedAdminEmail,
 }));
 
 vi.mock("./nhan-su-write.helpers", () => ({
@@ -77,6 +82,7 @@ describe("saveNhanSuAction ADM-01 email gate", () => {
     mocks.syncStaffAuthEmail.mockResolvedValue({ ok: true });
     mocks.logAdminAction.mockResolvedValue(undefined);
     mocks.authUserHasAdminRole.mockResolvedValue(false);
+    mocks.isTrustedAdminEmail.mockReturnValue(false);
     mocks.buildSaveNhanSuMergedFields.mockResolvedValue({
       ma_nv: "NV001",
       ho_ten: "Test User",
@@ -175,6 +181,24 @@ describe("saveNhanSuAction ADM-01 email gate", () => {
 
     expect(res.success).toBe(false);
     expect(String(res.error)).toMatch(/quản trị|ADMIN|ngưng/i);
+    expect(mocks.upsertMasterRow).not.toHaveBeenCalled();
+  });
+
+  it("blocks deactivating a break-glass profile even without ADMIN role", async () => {
+    mocks.authUserHasAdminRole.mockResolvedValue(false);
+    mocks.isTrustedAdminEmail.mockImplementation(
+      (email: string | null | undefined) =>
+        String(email || "").toLowerCase() === "old@example.test",
+    );
+
+    const res = await saveNhanSuAction({
+      ...basePayload,
+      is_active: false,
+    } as never);
+
+    expect(res.success).toBe(false);
+    expect(String(res.error)).toMatch(/quản trị|ADMIN|ngưng/i);
+    expect(mocks.isTrustedAdminEmail).toHaveBeenCalledWith("old@example.test");
     expect(mocks.upsertMasterRow).not.toHaveBeenCalled();
   });
 });

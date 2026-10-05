@@ -17,7 +17,7 @@ export async function ensureRbacAdmin() {
 
   if (isTrustedAdminEmail(user.email)) {
     const { logAdminAction } = await import("@/lib/admin-audit");
-    void logAdminAction({
+    await logAdminAction({
       action: "BREAK_GLASS_USED",
       targetTable: "rbac",
       targetId: user.id,
