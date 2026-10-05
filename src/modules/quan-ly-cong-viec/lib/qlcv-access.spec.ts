@@ -115,6 +115,20 @@ describe("canShowQlcvApproveActions / nghiệm thu", () => {
     ).toBe(false);
   });
 
+  it("ADMIN vẫn hiện nghiệm thu khi là người phụ trách (N-QLCV-5)", () => {
+    expect(
+      canShowQlcvNghiemThuActions(
+        {
+          trang_thai: "CHO_DUYET",
+          phan_tram_hoan_thanh: 100,
+          is_active: true,
+          nguoi_phu_trach_id: "actor-1",
+        },
+        { ...baseFlags, hasApprove: true, isRBACAdmin: true },
+      ),
+    ).toBe(true);
+  });
+
   it("hiện nghiệm thu khi có approve và không phải phụ trách", () => {
     expect(
       canShowQlcvNghiemThuActions(

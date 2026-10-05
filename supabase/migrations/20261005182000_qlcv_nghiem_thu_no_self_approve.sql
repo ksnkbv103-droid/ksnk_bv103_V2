@@ -1,6 +1,7 @@
--- Soft-local MOD-QLCV · QLCV-06 (CHƯA apply).
--- SET_TRANG_THAI: bảng chuyển hợp lệ; HOAN_THANH chỉ DINH_KY@100 hoặc qua NGHIEM_THU.
--- fn_qlcv_update_checklist: từ chối HOAN_THANH khi loại ≠ DINH_KY.
+-- QLCV N-QLCV-5: cứng hóa cấm tự nghiệm thu trong fn_qlcv_transition (defense-in-depth).
+-- Soft-local — CHƯA apply. Timestamp > 20261005181000.
+-- Không dùng auth.uid(): RPC chỉ GRANT service_role; app gọi admin client → auth.uid() NULL.
+-- Bypass: actor có vai trò ADMIN (mdm_nhan_su.auth_user_id → v_sys_user_permissions).
 
 CREATE OR REPLACE FUNCTION public.fn_qlcv_transition(
   p_cong_viec_id uuid,
@@ -43,8 +44,6 @@ BEGIN
       ) THEN
         RAISE EXCEPTION 'Chỉ nghiệm thu khi việc đã báo 100%%';
       END IF;
-      -- N-QLCV-5: cấm tự nghiệm thu (trừ ADMIN). Dùng nhan_su→roles — không auth.uid()
-      -- (RPC chỉ GRANT service_role; auth.uid() NULL khi app gọi admin client).
       IF p_actor_nhan_su_id IS NOT NULL
          AND p_actor_nhan_su_id IS NOT DISTINCT FROM v_cv.nguoi_phu_trach_id
          AND NOT EXISTS (
@@ -116,7 +115,6 @@ BEGIN
     WHEN 'SET_TRANG_THAI' THEN
       v_next := upper(nullif(p_patch->>'next_trang_thai', ''));
       IF v_next IS NULL THEN RAISE EXCEPTION 'Thiếu next_trang_thai'; END IF;
-      -- QLCV-06: chuyển hợp lệ theo 19:57-67
       IF upper(coalesce(v_cv.loai_cong_viec, '')) = 'DINH_KY' THEN
         IF v_next = 'CHO_DUYET' THEN
           RAISE EXCEPTION 'Việc định kỳ (DINH_KY) không vào CHO_DUYET — dùng HOAN_THANH khi đủ 100%%.';
@@ -161,88 +159,5 @@ $function$;
 
 COMMENT ON FUNCTION public.fn_qlcv_transition(uuid, text, uuid, text, jsonb) IS
   'QLCV-06: NGHIEM_THU cấm tự nghiệm thu (trừ ADMIN qua nhan_su); SET_TRANG_THAI hợp lệ; DINH_KY không CHO_DUYET.';
-
-CREATE OR REPLACE FUNCTION public.fn_qlcv_update_checklist(
-  p_cong_viec_id uuid,
-  p_checklist jsonb,
-  p_phan_tram_hoan_thanh integer DEFAULT NULL,
-  p_trang_thai_ma text DEFAULT NULL
-) RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO public
-AS $function$
-DECLARE
-  v_pct integer;
-  v_tt text;
-  v_loai text;
-BEGIN
-  IF p_cong_viec_id IS NULL THEN
-    RAISE EXCEPTION 'p_cong_viec_id bắt buộc';
-  END IF;
-
-  SELECT loai_cong_viec INTO v_loai FROM public.qlcv_fact_cong_viec WHERE id = p_cong_viec_id;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Không tìm thấy công việc %', p_cong_viec_id;
-  END IF;
-
-  v_pct := COALESCE(p_phan_tram_hoan_thanh, 0);
-
-  IF p_trang_thai_ma IS NOT NULL AND btrim(p_trang_thai_ma) <> '' THEN
-    v_tt := upper(btrim(p_trang_thai_ma));
-    v_tt := CASE v_tt
-      WHEN 'CHUA_BAT_DAU' THEN 'MOI'
-      WHEN 'CHO_NHAN_VIEC' THEN 'DANG_LAM'
-      WHEN 'DANG_THUC_HIEN' THEN 'DANG_LAM'
-      WHEN 'CHO_XAC_NHAN_HOAN_THANH' THEN 'CHO_DUYET'
-      ELSE v_tt
-    END;
-    IF upper(coalesce(v_loai, '')) = 'DINH_KY' THEN
-      IF v_pct >= 100 OR v_tt = 'CHO_DUYET' OR v_tt = 'HOAN_THANH' THEN
-        IF v_pct >= 100 THEN
-          v_tt := 'HOAN_THANH';
-        ELSIF v_tt = 'CHO_DUYET' THEN
-          RAISE EXCEPTION 'Việc định kỳ (DINH_KY) không vào CHO_DUYET.';
-        END IF;
-      END IF;
-    ELSE
-      -- QLCV-06: DOT/KHAN không đóng HOAN_THANH qua checklist
-      IF v_tt = 'HOAN_THANH' THEN
-        RAISE EXCEPTION 'DOT/KHAN không đặt HOAN_THANH qua checklist — dùng nghiệm thu.';
-      END IF;
-    END IF;
-    IF v_tt <> ALL (ARRAY[
-      'MOI'::text,
-      'DANG_LAM'::text,
-      'CHO_DUYET'::text,
-      'HOAN_THANH'::text,
-      'TU_CHOI'::text,
-      'QUA_HAN'::text,
-      'DA_HUY'::text
-    ]) THEN
-      RAISE EXCEPTION 'Trạng thái không hợp lệ: %', p_trang_thai_ma;
-    END IF;
-  ELSIF upper(coalesce(v_loai, '')) = 'DINH_KY' AND v_pct >= 100 THEN
-    v_tt := 'HOAN_THANH';
-  END IF;
-
-  UPDATE public.qlcv_fact_cong_viec
-     SET checklist = COALESCE(p_checklist, '[]'::jsonb),
-         phan_tram_hoan_thanh = v_pct,
-         trang_thai = COALESCE(v_tt, trang_thai),
-         updated_at = now()
-   WHERE id = p_cong_viec_id;
-
-  RETURN jsonb_build_object(
-    'id', p_cong_viec_id,
-    'phan_tram_hoan_thanh', v_pct,
-    'checklist', COALESCE(p_checklist, '[]'::jsonb),
-    'trang_thai', v_tt
-  );
-END;
-$function$;
-
-COMMENT ON FUNCTION public.fn_qlcv_update_checklist(uuid, jsonb, integer, text) IS
-  'QLCV-06: DINH_KY@100→HOAN_THANH; DOT/KHAN cấm HOAN_THANH qua checklist.';
 
 NOTIFY pgrst, 'reload schema';
