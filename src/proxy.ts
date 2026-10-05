@@ -17,27 +17,6 @@ function hasSupabaseAuthCookies(request: NextRequest): boolean {
   return request.cookies.getAll().some((c) => c.name.includes("auth-token") || c.name.startsWith("sb-"));
 }
 
-/** Cache cờ guest-stats trên cookie ngắn hạn — tránh query `v_sys_user_permissions` mỗi điều hướng. */
-const GUEST_FLAG_COOKIE = "ksnk_guest_stats";
-const GUEST_FLAG_MAX_AGE_SEC = 300;
-
-function readGuestFlagCookie(request: NextRequest): boolean | null {
-  const raw = request.cookies.get(GUEST_FLAG_COOKIE)?.value;
-  if (raw === "1") return true;
-  if (raw === "0") return false;
-  return null;
-}
-
-function writeGuestFlagCookie(response: NextResponse, guestOnly: boolean) {
-  response.cookies.set(GUEST_FLAG_COOKIE, guestOnly ? "1" : "0", {
-    path: "/",
-    maxAge: GUEST_FLAG_MAX_AGE_SEC,
-    sameSite: "lax",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-}
-
 function copyResponseCookies(from: NextResponse, to: NextResponse) {
   from.cookies.getAll().forEach((c) => {
     to.cookies.set(c.name, c.value, {
@@ -171,26 +150,19 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user) {
-    // BE-GUEST-01: enforce allowlist guest ở proxy (không chỉ client guard).
-    // A) Query roles mỗi request. B) Cookie TTL 5 phút + refresh khi hết hạn — chọn B (không cache fact).
-    let guestOnly = readGuestFlagCookie(request);
-    let guestFlagFromDb = false;
-    if (guestOnly === null) {
-      guestOnly = false;
-      try {
-        const { data: permRow } = await supabase
-          .from("v_sys_user_permissions")
-          .select("roles")
-          .eq("auth_user_id", user.id)
-          .maybeSingle();
-        const roles = Array.isArray(permRow?.roles)
-          ? (permRow.roles as string[])
-          : [];
-        guestOnly = isGuestStatsOnlyRole(roles);
-        guestFlagFromDb = true;
-      } catch (err) {
-        console.error("[proxy] guest role lookup failed:", err);
-      }
+    // BE-GUEST-01: allowlist guest chỉ theo roles từ DB — không tin cookie client (unsigned
+    // `ksnk_guest_stats=0` từng cho phép vượt allowlist).
+    let guestOnly = false;
+    try {
+      const { data: permRow } = await supabase
+        .from("v_sys_user_permissions")
+        .select("roles")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      const roles = Array.isArray(permRow?.roles) ? (permRow.roles as string[]) : [];
+      guestOnly = isGuestStatsOnlyRole(roles);
+    } catch (err) {
+      console.error("[proxy] guest role lookup failed:", err);
     }
 
     if (guestOnly) {
@@ -200,21 +172,16 @@ export async function proxy(request: NextRequest) {
         homeUrl.search = "";
         const redirectResponse = NextResponse.redirect(homeUrl);
         copyResponseCookies(supabaseResponse, redirectResponse);
-        if (guestFlagFromDb) writeGuestFlagCookie(redirectResponse, true);
         return redirectResponse;
       }
-      if (guestFlagFromDb) writeGuestFlagCookie(supabaseResponse, true);
       return supabaseResponse;
     }
-
-    if (guestFlagFromDb) writeGuestFlagCookie(supabaseResponse, false);
 
     if (onLoginRoute) {
       const homeUrl = request.nextUrl.clone();
       homeUrl.pathname = "/";
       const redirectResponse = NextResponse.redirect(homeUrl);
       copyResponseCookies(supabaseResponse, redirectResponse);
-      if (guestFlagFromDb) writeGuestFlagCookie(redirectResponse, false);
       return redirectResponse;
     }
   }
