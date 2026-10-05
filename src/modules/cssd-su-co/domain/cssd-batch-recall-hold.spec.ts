@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildBm01RecallTotals,
+  buildHoldReturnedAttributePatch,
   isIssuedToWard,
   markHoldMemberReturned,
   mergeRecallIncidentAttributes,
@@ -86,6 +87,25 @@ describe("recall JSON + merge (SC-06/07)", () => {
     );
     expect(next[0]?.trangThai).toBe("DA_THU_VE");
     expect(next[0]?.newQuyTrinhId).toBe("q2");
+  });
+
+  it("pha 2 nhận lại: chỉ cập nhật HOLD_PENDING, không đẩy sang RECALL_MOVED", () => {
+    const movedBefore = [{ quyTrinhId: "q0", maBo: "B00", trangThai: "DA_THU_VE" }];
+    const { nextAttrs, pendingLeft } = buildHoldReturnedAttributePatch(
+      {
+        RECALL_HOLD_PENDING: [{ quyTrinhId: "q1", maBo: "B01", trangThai: "CHO_THU_VE" }],
+        RECALL_MOVED: movedBefore,
+        RECALL_ISSUED_COUNT: "1",
+        RECALL_RETURNED_COUNT: "0",
+      },
+      { oldQuyTrinhId: "q1", newQuyTrinhId: "q2", operatorLabel: "NV CSSD" },
+    );
+    const hold = nextAttrs.RECALL_HOLD_PENDING as Array<{ trangThai?: string; newQuyTrinhId?: string }>;
+    expect(hold[0]?.trangThai).toBe("DA_THU_VE");
+    expect(hold[0]?.newQuyTrinhId).toBe("q2");
+    expect(nextAttrs.RECALL_MOVED).toEqual(movedBefore);
+    expect(nextAttrs.RECALL_RETURNED_COUNT).toBe("1");
+    expect(pendingLeft).toBe(0);
   });
 
   it("BM.01 tổng và scope", () => {

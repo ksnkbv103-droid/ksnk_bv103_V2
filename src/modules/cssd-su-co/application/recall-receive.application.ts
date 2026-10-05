@@ -5,12 +5,10 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  buildHoldReturnedAttributePatch,
   isChoThuVeCycle,
-  markHoldMemberReturned,
-  readRecallMemberJson,
   readThuHoiMeta,
   THU_HOI_STATUS_DA_THU_VE,
-  type RecallMemberStructured,
 } from "../domain/cssd-batch-recall-hold";
 
 export async function tryReceiveChoThuVeAtTiepNhan(
@@ -120,36 +118,11 @@ async function patchIncidentHoldReturned(
     string,
     unknown
   >;
-  const holdRaw = attrs.RECALL_HOLD_PENDING;
-  const hold = readRecallMemberJson(holdRaw) || [];
-  const nextHold = markHoldMemberReturned(hold, opts.oldQuyTrinhId, {
+  const { nextAttrs, pendingLeft, issued } = buildHoldReturnedAttributePatch(attrs, {
+    oldQuyTrinhId: opts.oldQuyTrinhId,
     newQuyTrinhId: opts.newQuyTrinhId,
-    nguoiNhanCssd: opts.operatorLabel,
+    operatorLabel: opts.operatorLabel,
   });
-
-  const moved = (readRecallMemberJson(attrs.RECALL_MOVED) || []) as RecallMemberStructured[];
-  const returned = hold.find((h) => String(h.quyTrinhId || "") === opts.oldQuyTrinhId);
-  if (returned) {
-    moved.push({
-      ...returned,
-      trangThai: THU_HOI_STATUS_DA_THU_VE,
-      newQuyTrinhId: opts.newQuyTrinhId,
-      nguoiNhanCssd: opts.operatorLabel,
-    });
-  }
-
-  const returnedCount =
-    nextHold.filter((h) => h.trangThai === THU_HOI_STATUS_DA_THU_VE).length +
-    moved.filter((m) => m.trangThai === THU_HOI_STATUS_DA_THU_VE).length;
-  const pendingLeft = nextHold.filter((h) => h.trangThai === "CHO_THU_VE").length;
-  const issued = Number(attrs.RECALL_ISSUED_COUNT || nextHold.length || 0);
-
-  const nextAttrs: Record<string, unknown> = {
-    ...attrs,
-    RECALL_HOLD_PENDING: nextHold,
-    RECALL_MOVED: moved,
-    RECALL_RETURNED_COUNT: String(Math.max(0, Number(attrs.RECALL_RETURNED_COUNT || 0) + 1)),
-  };
 
   const note = `Đã thu về ${Math.min(issued, Number(nextAttrs.RECALL_RETURNED_COUNT))} / ${issued} gói đã xuất (còn chờ ${pendingLeft}).`;
   const moTa = String((data as { mo_ta?: string }).mo_ta || "");

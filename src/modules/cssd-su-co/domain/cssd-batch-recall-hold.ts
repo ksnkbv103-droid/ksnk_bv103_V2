@@ -239,3 +239,29 @@ export function markHoldMemberReturned(
     };
   });
 }
+
+/**
+ * SC-01 pha 2: cập nhật phiếu khi quét nhận bộ chờ thu về.
+ * Chỉ sửa RECALL_HOLD_PENDING (+ đếm); không đẩy sang RECALL_MOVED (tránh trùng bảng A/A2).
+ */
+export function buildHoldReturnedAttributePatch(
+  attrs: Record<string, unknown>,
+  opts: { oldQuyTrinhId: string; newQuyTrinhId: string; operatorLabel: string },
+): { nextAttrs: Record<string, unknown>; pendingLeft: number; issued: number } {
+  const hold = readRecallMemberJson(attrs.RECALL_HOLD_PENDING) || [];
+  const nextHold = markHoldMemberReturned(hold, opts.oldQuyTrinhId, {
+    newQuyTrinhId: opts.newQuyTrinhId,
+    nguoiNhanCssd: opts.operatorLabel,
+  });
+  const pendingLeft = nextHold.filter((h) => h.trangThai === THU_HOI_STATUS_CHO_THU_VE).length;
+  const issued = Number(attrs.RECALL_ISSUED_COUNT || nextHold.length || 0);
+  return {
+    nextAttrs: {
+      ...attrs,
+      RECALL_HOLD_PENDING: nextHold,
+      RECALL_RETURNED_COUNT: String(Math.max(0, Number(attrs.RECALL_RETURNED_COUNT || 0) + 1)),
+    },
+    pendingLeft,
+    issued,
+  };
+}

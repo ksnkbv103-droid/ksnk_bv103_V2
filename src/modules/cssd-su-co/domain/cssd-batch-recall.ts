@@ -7,6 +7,18 @@ import {
   isCssdCycleUsedClinically as isUsedFromEvent,
 } from "./cssd-used-clinically";
 import { readRecallMemberJson } from "./cssd-batch-recall-hold";
+import { isBatchQcFailTypeId } from "./cssd-incident-taxonomy";
+import { INCIDENT_STATUS_VOID, readIncidentPhieuStatus } from "./cssd-incident-status";
+
+/** SC-02: phiếu nghi mẻ đã báo — chờ Tổ trưởng/Admin ra lệnh thu hồi theo mẻ. */
+export function isBatchRecallCommandPending(attrs: Record<string, unknown> | null | undefined): boolean {
+  const a = attrs || {};
+  if (String(a.BATCH_RECALL_REQUESTED || "") !== "1") return false;
+  if (String(a.BATCH_RECALL || "") === "1") return false;
+  if (readIncidentPhieuStatus(a) === INCIDENT_STATUS_VOID) return false;
+  if (!isBatchQcFailTypeId(String(a.INCIDENT_TYPE_CODE || ""))) return false;
+  return String(a.LO_TIET_KHUAN_ID || "").trim().length > 0;
+}
 
 export function recallTargetStationForLotMember(_currentStation?: string | null): "TIEP_NHAN" {
   return "TIEP_NHAN";

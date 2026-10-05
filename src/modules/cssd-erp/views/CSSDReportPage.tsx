@@ -31,6 +31,7 @@ import {
   canApproveCssdIncident,
   canCloseSterilizationIncidentRelease,
 } from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { isBatchRecallCommandPending } from "@/modules/cssd-su-co/domain/cssd-batch-recall";
 import { stationLabel } from "../workflow/domain/cssd-stations";
 
 const panelPulse = () => (
@@ -60,6 +61,10 @@ const IncidentVoidButton = dynamic(
 );
 const IncidentCloseReleaseButton = dynamic(
   () => import("@/modules/cssd-su-co/components/IncidentCloseReleaseButton"),
+  { loading: () => null },
+);
+const IncidentBatchRecallButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentBatchRecallButton"),
   { loading: () => null },
 );
 
@@ -410,6 +415,15 @@ function CSSDReportPageInner() {
                           <IncidentConfirmButton
                             incidentId={String(v.id)}
                             onConfirmed={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
+                        {canConfirmIncident &&
+                        isBatchRecallCommandPending(
+                          (v.attributes as Record<string, unknown> | null | undefined) || null,
+                        ) ? (
+                          <IncidentBatchRecallButton
+                            incidentId={String(v.id)}
+                            onOrdered={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
                         {canCloseIncidentRelease && v.incident_status === INCIDENT_STATUS_CONFIRMED ? (
