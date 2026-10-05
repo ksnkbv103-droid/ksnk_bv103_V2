@@ -1,12 +1,12 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { getActorAuthUser } from "@/lib/actor-auth-server";
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
-import { getRequestAuthUser } from "@/lib/auth/rbac-request";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { verifyCurrentActorPassword } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/lib/admin-reauth";
 
 /** Chỉ ADMIN (vai trò hoặc email khẩn cấp) được đổi email đăng nhập. */
 export async function ensureAdminForLoginEmailChange(): Promise<User> {
-  const user = await getRequestAuthUser();
+  const user = await getActorAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   if (isTrustedAdminEmail(user.email)) return user;
@@ -63,7 +63,7 @@ export async function assertLoginEmailChangeAllowed(
   const oldEmail = normalizeEmail(input.oldEmail);
   if (!newEmail) throw new Error("Email không hợp lệ.");
   if (newEmail === oldEmail) {
-    const actor = await getRequestAuthUser();
+    const actor = await getActorAuthUser();
     if (!actor?.id) throw new Error("Bạn chưa đăng nhập.");
     return { actor, newEmail, oldEmail };
   }

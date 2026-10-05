@@ -1,5 +1,5 @@
+import { getActorAuthUser } from "@/lib/actor-auth-server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { getRequestAuthUser } from "@/lib/auth/rbac-request";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 
 export type AdminAuditAction =
@@ -41,7 +41,7 @@ export async function logAdminAction(input: LogAdminActionInput): Promise<void> 
   try {
     const user = input.actorUserId
       ? { id: input.actorUserId, email: input.actorEmail }
-      : await getRequestAuthUser();
+      : await getActorAuthUser();
     const actorId = user?.id ? String(user.id) : null;
     if (!actorId) return;
 

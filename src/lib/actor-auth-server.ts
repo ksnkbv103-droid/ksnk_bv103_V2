@@ -1,12 +1,19 @@
+import type { User } from "@supabase/supabase-js";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 
-/** `auth.users.id` của phiên hiện tại — chỉ import từ Server Actions / RSC. */
-export async function getActorAuthUserId(): Promise<string | null> {
+/** User phiên hiện tại — chỉ import từ Server Actions / RSC. */
+export async function getActorAuthUser(): Promise<User | null> {
   const sb = await createServerSupabaseUserClient();
   // getUser() xác minh JWT server-side — không chỉ đọc cookie.
   const {
     data: { user },
   } = await sb.auth.getUser();
+  return user ?? null;
+}
+
+/** `auth.users.id` của phiên hiện tại — chỉ import từ Server Actions / RSC. */
+export async function getActorAuthUserId(): Promise<string | null> {
+  const user = await getActorAuthUser();
   return user?.id ?? null;
 }
 

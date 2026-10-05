@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  getRequestAuthUser: vi.fn(),
+  getActorAuthUser: vi.fn(),
   isTrustedAdminEmail: vi.fn(),
   verifyCurrentActorPassword: vi.fn(),
   createAdminSupabaseClient: vi.fn(),
   from: vi.fn(),
 }));
 
-vi.mock("@/lib/auth/rbac-request", () => ({
-  getRequestAuthUser: mocks.getRequestAuthUser,
+vi.mock("@/lib/actor-auth-server", () => ({
+  getActorAuthUser: mocks.getActorAuthUser,
 }));
 
 vi.mock("@/lib/auth/trusted-admin-email", () => ({
@@ -58,7 +58,7 @@ describe("ADM-01 login email change gate", () => {
   });
 
   it("rejects non-admin actor (reproduces NHAN_SU.edit hole)", async () => {
-    mocks.getRequestAuthUser.mockResolvedValue({
+    mocks.getActorAuthUser.mockResolvedValue({
       id: "staff-user",
       email: "staff@example.test",
     });
@@ -70,7 +70,7 @@ describe("ADM-01 login email change gate", () => {
   });
 
   it("rejects email change to break-glass address", async () => {
-    mocks.getRequestAuthUser.mockResolvedValue({
+    mocks.getActorAuthUser.mockResolvedValue({
       id: "admin-user",
       email: "admin@example.test",
     });
@@ -96,7 +96,7 @@ describe("ADM-01 login email change gate", () => {
   });
 
   it("rejects changing another ADMIN account email", async () => {
-    mocks.getRequestAuthUser.mockResolvedValue({
+    mocks.getActorAuthUser.mockResolvedValue({
       id: "admin-actor",
       email: "admin@example.test",
     });
@@ -122,7 +122,7 @@ describe("ADM-01 login email change gate", () => {
   });
 
   it("allows ADMIN changing own email after password reauth", async () => {
-    mocks.getRequestAuthUser.mockResolvedValue({
+    mocks.getActorAuthUser.mockResolvedValue({
       id: "admin-actor",
       email: "admin@example.test",
     });
@@ -148,7 +148,7 @@ describe("ADM-01 login email change gate", () => {
   });
 
   it("rejects when confirm password missing", async () => {
-    mocks.getRequestAuthUser.mockResolvedValue({
+    mocks.getActorAuthUser.mockResolvedValue({
       id: "admin-actor",
       email: "admin@example.test",
     });
