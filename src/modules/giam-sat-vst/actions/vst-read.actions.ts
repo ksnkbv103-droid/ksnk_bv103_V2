@@ -143,6 +143,11 @@ export async function getVSTSessionDetail(sessionId: string) {
     }
     if (!sessionView) throw new Error("Không tìm thấy phiên giám sát.");
 
+    // VST soft-delete: list ẩn is_active=false — detail cũng không mở lại.
+    if (sessionView.is_active === false) {
+      return { success: false as const, error: "Phiên giám sát đã vô hiệu (xóa mềm)." };
+    }
+
     if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {
       const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
       const myNs = scope.actorNhanSuId ? String(scope.actorNhanSuId) : null;
