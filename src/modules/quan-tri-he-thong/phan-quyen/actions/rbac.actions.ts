@@ -16,6 +16,7 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { revalidatePath } from "next/cache";
 import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
 import { ensureRbacAdmin } from "./rbac-auth.helpers";
+import { hasSelfRolePermissionEdits } from "./rbac-matrix-self-edit";
 import {
   applyKsnkRolePermissionPresets,
   upsertRegistryPermissionsAndAdminMappings,
@@ -126,12 +127,35 @@ export async function saveFullRBACMatrix(
       .eq("user_id", actor.id);
     if (arErr) throw arErr;
     const ownRoleIds = new Set((actorRoles || []).map((r) => String(r.role_id)));
-    const touchedOwn = Object.keys(matrix).some((roleId) => ownRoleIds.has(roleId));
-    if (touchedOwn) {
-      return {
-        success: false,
-        error: "Không được tự sửa quyền của vai trò đang gắn với bạn.",
-      };
+    const { data: adminRole } = await supabase.from("sys_roles").select("id").eq("name", "ADMIN").maybeSingle();
+    const adminRoleId = adminRole?.id ? String(adminRole.id) : null;
+
+    // UI luôn gửi ma trận tổng (gồm ADMIN). Chỉ chặn khi thật sự đổi quyền vai trò non-ADMIN đang gắn với actor.
+    const ownNonAdmin = [...ownRoleIds].filter((id) => id !== adminRoleId);
+    if (ownNonAdmin.length > 0) {
+      const { data: existingOwnRows, error: eoErr } = await supabase
+        .from("sys_role_permissions")
+        .select("role_id, permission_id")
+        .in("role_id", ownNonAdmin);
+      if (eoErr) throw eoErr;
+      const existingByRole: Record<string, string[]> = {};
+      for (const row of existingOwnRows || []) {
+        const rid = String((row as { role_id: string }).role_id);
+        (existingByRole[rid] ||= []).push(String((row as { permission_id: string }).permission_id));
+      }
+      if (
+        hasSelfRolePermissionEdits({
+          matrix,
+          ownRoleIds: ownNonAdmin,
+          adminRoleId,
+          existingByRole,
+        })
+      ) {
+        return {
+          success: false,
+          error: "Không được tự sửa quyền của vai trò đang gắn với bạn.",
+        };
+      }
     }
 
     const records: { role_id: string; permission_id: string }[] = [];
@@ -140,10 +164,9 @@ export async function saveFullRBACMatrix(
         records.push({ role_id: roleId, permission_id: pid });
       });
     });
-    const { data: adminRole } = await supabase.from("sys_roles").select("id").eq("name", "ADMIN").maybeSingle();
     const { data: allPerms } = await supabase.from("sys_permissions").select("id");
-    if (adminRole?.id && allPerms?.length) {
-      allPerms.forEach((p: { id: string }) => records.push({ role_id: adminRole.id, permission_id: p.id }));
+    if (adminRoleId && allPerms?.length) {
+      allPerms.forEach((p: { id: string }) => records.push({ role_id: adminRoleId, permission_id: p.id }));
     }
 
     // Ưu tiên RPC nguyên tử (ADM-03); fallback delta khi migration chưa apply.
