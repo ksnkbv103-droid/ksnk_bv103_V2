@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { PermissionRow } from "@/hooks/use-permission-api";
+import { isCurrentUserBreakGlassAdmin } from "@/lib/auth/break-glass-client.actions";
 
 export type UserDataProfile = {
   id: string | null;
@@ -102,9 +103,12 @@ async function fetchRBACOnce(user: User): Promise<RBACSnapshot> {
       }
     : null;
 
-  // ADM-05: không inject break-glass trên client (danh sách chỉ ở env server).
-  // Hydrate từ initialSnapshot (RSC) đã gắn ADMIN khi email khớp env.
+  // ADM-05: danh sách email chỉ ở env server — hỏi server action, không hardcode trên FE.
+  // Refetch (rbac:invalidate) phải giữ ADMIN khi env còn khớp; env trống = tắt.
   const roles = ((authData?.roles as string[]) || []).slice();
+  if (!roles.includes("ADMIN") && (await isCurrentUserBreakGlassAdmin())) {
+    roles.push("ADMIN");
+  }
 
   return {
     userRoles: roles,
