@@ -85,6 +85,18 @@ export function rejectStartMember(member: StartMemberCheck): string | null {
   return null;
 }
 
+/** Tập `parent_bo_id` có ≥1 bộ con active (từ hàng `cssd_dm_bo_dung_cu`). */
+export function collectParentBoIdsWithActiveChildren(
+  rows: Array<{ parent_bo_id?: string | null }>,
+): Set<string> {
+  const out = new Set<string>();
+  for (const row of rows) {
+    const parentId = String(row.parent_bo_id || "").trim();
+    if (parentId) out.add(parentId);
+  }
+  return out;
+}
+
 /**
  * Bộ mẹ không vào mẻ — chỉ bộ thành phần.
  * Catalog L04: `hasChildComponents` (parent_bo_id). Legacy: MAIN / còn SUB.

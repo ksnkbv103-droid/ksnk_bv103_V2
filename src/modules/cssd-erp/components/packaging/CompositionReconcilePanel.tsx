@@ -11,7 +11,6 @@ import {
 } from "../../actions/cssd-composition-reconcile.actions";
 import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import { registerSplitSubQrFromMainMaAction } from "../../actions/cssd-register-label.actions";
 import { formatSetQtyLine, summarizeSetComposition } from "../../shared/domain/cssd-set-composition";
 
 type Props = {
@@ -28,7 +27,6 @@ export default function CompositionReconcilePanel({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
-  const [splitting, setSplitting] = useState(false);
 
   const fetchData = useCallback(async () => {
     const id = String(boDungCuId || "").trim();
@@ -91,25 +89,20 @@ export default function CompositionReconcilePanel({
               {data.heat.methodLabelVi ? (
                 <p className="bv103-type-label font-semibold text-rose-800">Gợi ý: {data.heat.methodLabelVi}</p>
               ) : null}
-              <button
-                type="button"
-                disabled={splitting || !data.maBo}
-                onClick={() => {
-                  setSplitting(true);
-                  void registerSplitSubQrFromMainMaAction(data.maBo)
-                    .then((res) => {
-                      if (!res.success) throw new Error(res.error);
-                      toast.success(`Đã tách gói phụ: ${res.ma_vach_qr_phu}`);
-                    })
-                    .catch((e: unknown) => {
-                      toast.error(e instanceof Error ? e.message : "Không tách được gói phụ.");
-                    })
-                    .finally(() => setSplitting(false));
-                }}
-                className="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-rose-800 disabled:opacity-50"
+              <p className="text-[11px] font-medium leading-relaxed text-rose-800">
+                Tách nhiệt làm tại Quản trị → Danh mục dụng cụ (bộ thành phần chịu nhiệt / không chịu nhiệt). Không tách trên panel đối chiếu.
+              </p>
+              <Link
+                href={cssdCatalogEditProposalHref({
+                  kind: "BOM",
+                  ma: data.maBo,
+                  ten: data.tenBo,
+                  targetId: boDungCuId,
+                })}
+                className="inline-flex touch-manipulation items-center justify-center rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-rose-800 hover:bg-rose-50"
               >
-                {splitting ? "Đang tách…" : "Tách gói không chịu nhiệt"}
-              </button>
+                Mở danh mục bộ dụng cụ
+              </Link>
             </div>
           </div>
         ) : null}

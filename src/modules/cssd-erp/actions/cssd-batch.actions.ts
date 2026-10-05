@@ -13,6 +13,7 @@ import {
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { getBatchAddRejectionReason } from "../helpers/me-tiet-khuan-batch-trace";
 import {
+  collectParentBoIdsWithActiveChildren,
   rejectIfMachineHasOpenBatch,
   rejectParentBoWithSub,
   rejectStartMember,
@@ -26,7 +27,13 @@ import {
 } from "../helpers/persist-me-tiet-khuan";
 import { evaluateMeQcRelease, steamBiWeeklyReminder } from "../lib/me-tiet-khuan-qc";
 import { requiresNhaImplantRight } from "../lib/me-tiet-khuan-ab-gates";
-import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
+import {
+  getErrorMessage,
+  mapFkError,
+  revalidateCssdBatchSurfaces,
+  revalidateCssdWorkflowSurfaces,
+  tableHasColumn,
+} from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { loadBomLinesWithLoaiSpec } from "../shared/application/cssd-quy-trinh-bom";
@@ -274,7 +281,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
 
     const { data: members, error: memErr } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_active, is_dong_bang, ma_vai_tro_bo")
+      .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_active, is_dong_bang, ma_vai_tro_bo, bo_dung_cu_id")
       .eq("lo_tiet_khuan_id", id);
     if (memErr) return { success: false as const, error: mapFkError(memErr.message) };
     const rows = (members || []) as Array<{
@@ -284,6 +291,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       is_active?: boolean | null;
       is_dong_bang?: boolean | null;
       ma_vai_tro_bo?: string | null;
+      bo_dung_cu_id?: string | null;
     }>;
     if (!rows.length) return { success: false as const, error: "Chưa có bộ nào trong mẻ — không thể bắt đầu tiệt khuẩn." };
 
@@ -297,6 +305,28 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/thành phần — đã chặn bắt đầu mẻ." };
     const parentIds = new Set((subs || []).map((s) => String((s as { quy_trinh_cha_id?: string }).quy_trinh_cha_id || "")));
 
+    // Lock A (catalog): bộ mẹ = có con parent_bo_id — không phụ thuộc ma_vai_tro_bo/SUB legacy.
+    let parentBoWithChildren = new Set<string>();
+    const memberBoIds = [
+      ...new Set(rows.map((row) => String(row.bo_dung_cu_id || "").trim()).filter(Boolean)),
+    ];
+    if (
+      memberBoIds.length > 0 &&
+      (await tableHasColumn(supabase, "cssd_dm_bo_dung_cu", "parent_bo_id"))
+    ) {
+      const { data: childBos, error: childErr } = await supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("parent_bo_id")
+        .in("parent_bo_id", memberBoIds)
+        .eq("is_active", true);
+      if (childErr) {
+        return { success: false as const, error: "Không kiểm tra được bộ mẹ/thành phần — đã chặn bắt đầu mẻ." };
+      }
+      parentBoWithChildren = collectParentBoIdsWithActiveChildren(
+        (childBos || []) as Array<{ parent_bo_id?: string | null }>,
+      );
+    }
+
     for (const row of rows) {
       const code = String(row.ma_qr_quy_trinh || "").trim() || String(row.id);
       const startReject = rejectStartMember({
@@ -306,9 +336,11 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
         isDongBang: row.is_dong_bang === true,
       });
       if (startReject) return { success: false as const, error: startReject };
+      const boId = String(row.bo_dung_cu_id || "").trim();
       const parentMsg = rejectParentBoWithSub({
         maVaiTroBo: row.ma_vai_tro_bo,
         hasActiveSub: parentIds.has(String(row.id)),
+        hasChildComponents: boId ? parentBoWithChildren.has(boId) : false,
       });
       if (parentMsg) return { success: false as const, error: `${parentMsg} Bộ ${code}.` };
       const loaded = await loadBomLinesWithLoaiSpec(supabase, String(row.id));
@@ -721,9 +753,23 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
       .eq("is_active", true)
       .eq("ma_vai_tro_bo", "SUB");
     if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/thành phần — đã chặn nạp." };
+
+    const boId = String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim();
+    let hasChildComponents = false;
+    if (boId && (await tableHasColumn(supabase, "cssd_dm_bo_dung_cu", "parent_bo_id"))) {
+      const { count: childCount, error: childErr } = await supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id", { count: "exact", head: true })
+        .eq("parent_bo_id", boId)
+        .eq("is_active", true);
+      if (childErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/thành phần — đã chặn nạp." };
+      hasChildComponents = (childCount ?? 0) > 0;
+    }
+
     const parentMsg = rejectParentBoWithSub({
       maVaiTroBo: (qt as { ma_vai_tro_bo?: string | null }).ma_vai_tro_bo,
       hasActiveSub: (subCount ?? 0) > 0,
+      hasChildComponents,
     });
     if (parentMsg) {
       return { success: false as const, error: `${parentMsg} Bộ ${String(qtNormalized.ma_vach_qr || qr)}.` };
@@ -743,7 +789,6 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     const method =
       getSterilizerMethod({ phuong_phap: (me as { phuong_phap?: string | null }).phuong_phap }) ||
       getSterilizerMethod(machineProfile);
-    const boId = String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim();
     const loadedHeat = await loadKitHeatLinesByBoIds(supabase, boId ? [boId] : []);
     const steamCycle = inferSteamCycleFromChuongTrinh({
       chuongTrinhTen: (me as { chuong_trinh?: string | null }).chuong_trinh,
