@@ -1,3 +1,7 @@
+-- SKIP-PROD: already applied on prod as 20261004183253_security_p0_rls_cleanup_20261005
+--   (commit 10e30c9f «đã apply prod 05/10 01:32»; header name security_p0_rls_cleanup_20261005).
+--   Re-apply risks CREATE POLICY name clash (not IF NOT EXISTS). Safe: exclude from apply batch;
+--   đề xuất: move → supabase/migrations/archive_legacy/…SKIP-PROD.sql hoặc migration repair applied.
 -- Migration: security_p0_rls_cleanup_20261005
 -- Prod: cvzwslpxwgqiugzzhqej (KSNK BV103). Order from Trinh Nghia 01:20 05/10/2026 (UTC+7).
 -- Scope: 5 P0 RLS holes + P1-a/b/c. NO data changes, NO index/CASCADE changes.

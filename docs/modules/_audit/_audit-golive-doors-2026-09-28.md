@@ -943,3 +943,33 @@ Rà 6 trục: (a) số liệu ≥2 nơi; (b) trạng thái vòng 1 bỏ sót rea
 
 `tsc --noEmit` (src) · `vitest run` 287 files / 1685 tests · `npm run verify` · build trong verify — **xanh**. Migration mới: không.
 
+---
+
+## GO-LIVE-PILOT — UAT 1–2 khoa (nhân viên thật)
+
+Nhánh: `cursor/r3-debate`. **Không push / không apply prod.** Mục tiêu: một vòng tay đủ cửa ghi→đếm→báo cáo trước mở viện.
+
+### Khoa gợi ý (từ seed/tài liệu repo — không đoán ngoài)
+
+| # | Khoa | Căn cứ trong repo |
+|---|------|-------------------|
+| 1 | **Nội A** | UAT seed GSC L03 (`25d-GSC-L03-SEED-AB` / `_audit-soft-25d`): picker khoa Nội A; file 16: NV KSNK quan sát VST tại Nội A = phiên `thuc_hanh_don_vi`. |
+| 2 | **Khoa Hồi sức nội** | Seed BK `KSNK.QĐ.12.BM.01` + catalog `00-catalog.json` / `02-chuyen-de-map`; phủ CVC/VAP/CAUTI (`QT.30`/`QT.31`/`QT.32`) — đủ GSC + NKBV + VST bedside. |
+
+*(Nếu chỉ 1 khoa: ưu tiên Hồi sức nội; Nội A dùng để đối chiếu picker/tuân thủ.)*
+
+### 10 bước UAT
+
+| # | Bước | Cửa UI | Kết quả đúng |
+|---|------|--------|--------------|
+| 1 | Đăng nhập | `/login` → shell | Vào đúng tài khoản NV pilot; không kẹt redirect vòng. |
+| 2 | Quyền | Sidebar + `/quan-tri` (hoặc thẻ NV) | Menu khớp role (CSSD / GSC / VST / NKBV / QLCV / BCTH); không thấy nút vượt quyền; thao tác cấm → toast/403, không ghi. |
+| 3 | CSSD 1 chu trình | `/cssd-quy-trinh` (quét → trạm → mẻ nếu cần) | Trạng thái chu trình đổi đúng trạm; tồn kho / đếm trạm (`rpc_cssd_kho_station_counts` trên UI) khớp sau mỗi bước; không cờ đỏ oan. |
+| 4 | SC 1 phiếu | `/cssd-su-co` (chip quy trình hoặc form) | Phiếu `OPEN`/`DA_XAC_NHAN` đúng nhóm; chu trình gắn đúng; tỷ lệ «không sự cố» / list SC + tồn (Hỏng/Mất) khớp — không đếm phiếu luân chuyển. |
+| 5 | NKBV 1 ca | `/giam-sat-nkbv` tab cases / tạo ca | Ca lưu đủ loại; DOE/LOA/khoa (nếu có cột) hiện đúng; đếm «chưa phân tích» / tab Thống kê khớp ±0 với vừa ghi. |
+| 6 | QLCV 1 việc | `/quan-ly-cong-viec` Kanban | Tạo việc → cột đúng trạng thái; đếm board (MOI/DANG_LAM/…) khớp; không self-NT nếu là phụ trách. |
+| 7 | GSC 1 phiên | Hub → `/giam-sat-chung/tuan-thu` (BK khoa pilot) | Lưu phiên gắn đúng khoa; lịch sử + `/thong-ke/gsc` đếm +1; tiêu chí orphan không làm mất tên/tỷ lệ. |
+| 8 | VST 1 phiên | `/giam-sat-vst` (WHO, khoa pilot) | Lưu ≥1 cơ hội hợp lệ; lịch sử + `/thong-ke/vst` mẫu số/tử số khớp phiên vừa tạo. |
+| 9 | BCTH in 1 báo cáo | `/bao-cao-tong-hop` → chọn kỳ + khoa pilot → In | Bản in mở; KPI VST/GSC/NKBV khớp thống kê khoa cùng kỳ; phụ lục CSSD (nếu xem) cùng bundle report — không lệch UTC biên đêm. |
+| 10 | Đối soát đóng vòng | Cùng kỳ: thống kê khoa ↔ BCTH ↔ (CSSD report nếu có quyền) | Số đếm phiên/ca/việc/SC không lệch giữa cửa ghi và cửa in; trạng thái phiếu sau bước 3–8 vẫn đúng khi reload. |
+
