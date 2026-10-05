@@ -800,3 +800,99 @@ Neo Domain `10-BCTH.md`. Không migration mới. Không push / không apply.
 | BCTH-09/10/11 | Bìa VST/GSC khoa riêng; gap «30/N»; jargon; gate `DASHBOARD_CC_EXPORT` (client+server) |
 
 Test: `tsc --noEmit` OK; vitest BCTH/NKBV/GSC filter OK; `npm run verify` OK.
+
+## CHAIN-VERIFY — chuỗi lát 05/10 trước push/apply (2026-10-05, nhánh `cursor/mod-bcth` tip)
+
+Mốc prod (chỉ đọc file / tip `cursor/perf-db-20261005`): schema_migrations đến **`20261004194907`**. Không gọi Supabase / không apply / không push trong lát này.
+
+### 1) Lệnh verify (tip `mod-bcth`)
+
+| Lệnh | Kết quả |
+|------|---------|
+| `npx tsc --noEmit` | OK (exit 0) |
+| `npx vitest run` (toàn bộ) | OK — 287 files / 1682 tests |
+| `npm run verify` | OK (exit 0; eslint 0 errors / 76 warnings sẵn có; layout/engineering/cssd/build OK) |
+| `npm run build` | OK — Next.js 16.3.5 Turbopack |
+
+`fix-mig-order-unapplied.spec.ts`: 3/3 xanh (sau soft-fix mốc prod → `20261004194907`).
+
+### 2) Nhánh theo tầng (ancestry ⊆ tip)
+
+| Tầng | Nhánh | Tip (short) |
+|------|-------|-------------|
+| 0 (base chain) | `cursor/mod-nkbv` | `893c035b` |
+| 1 | `cursor/mod-cssd` | `71165c70` |
+| 2 | `cursor/mod-sc` | `b81e00c8` |
+| 3 | `cursor/mod-me` | `a0c5b32c` |
+| 4 | `cursor/mod-admin` | `4f68444a` |
+| 5 | `cursor/mod-giam-sat` | `e065ec83` |
+| 6 | `cursor/mod-gsc` | `7d3df6c6` |
+| 7 | `cursor/mod-qlcv` | `c82804c3` |
+| 8 | `cursor/mod-vst` | `cb2c4a58` |
+| 9 (tip verify) | `cursor/mod-bcth` | `4e7a26a7` |
+| **Riêng** (đã apply prod; **không** ⊆ `mod-bcth`) | `cursor/perf-db-20261005` | `6bc94f80` |
+
+Ancestry: `mod-nkbv ⊆ … ⊆ mod-bcth` OK. `perf-db-20261005` tách — chỉ neo mốc prod `20261004194907`.
+
+### 3) Thứ tự apply cuối (`20261005*` sau `20261004194907`)
+
+`010000` security P0 RLS *(ngoài bảng rủi ro CHAIN-VERIFY theo intake từ 033000; vẫn nằm trong hàng đợi migrate)* → **`033000` NKBV major type** → **`034000` NKBV DOE/LOA** → `120000` SC incident → `121000` heat parent → `130000` SC batch recall → `140000` ME-01 → `141000` ME-04 → `142000` ME-02 → `143000` ME-03 → `144000` ME-10 → `145000` ME-05 → `150000` ME-07 → `152000` ME-08 → `153000` ME-09 → `154000` sys audit → `154100` ADM-03 → `154200` ADM-04 → **`160000` GS-05** → `170000`…`174000` QLCV → **`175000` orphan map → `175100` loai/orphan views → `175200` seed MEC → `175300` merge N-GHEP** → **`180000` VST soft-delete → `181000` VST valid-opp**.
+
+### 4) Object chồng lấn (≥2 định nghĩa) — bản cuối đủ logic
+
+| Đối tượng | Bản cuối | Giữ |
+|-----------|----------|-----|
+| `gstt_fact_gsc_dashboard_summary` (+ alias `fact_*`) | `175100` | `fn_session_analytics_stype` + `loai_giam_sat` |
+| `gstt_fact_gsc_violations_summary` (+ alias) | `175300` | stype + loai + resolve orphan + `fn_gsc_expand_session_results_for_tc` |
+| `gstt_fact_vst_opportunities/moments_summary` (+ alias) + `rpc_dashboard_vst_strategic_analytics_impl` | `181000` | stype/`hinh_thuc_id` (GS-05) + `fn_vst_is_valid_opportunity` |
+| `cssd_su_co_counts_for_red_alert` / `rpc_cssd_me_thu_hoi` | `144000` | PROCESS red-alert + two-phase + preserve QC |
+| `rpc_cssd_me_nhap_bi_am` / `rpc_cssd_me_ket_luan_dat` | `141000` | BM.02 + `nha_implant` |
+| `v_qlcv_cong_viec_full` / `qua_han` | `174000` | `fn_qlcv_today_vn` + `nguon_lien_ket` (qua_han = filter full) |
+
+### 5) Bảng rủi ro migration (từ `033000`; file → mức → lý do)
+
+| File | Mục đích | Idempotent | DROP/DELETE/TRUNCATE/UPDATE | CHECK/NOT NULL/UNIQUE FAIL? | RLS khóa nhầm? | Phụ thuộc | Rủi ro |
+|------|----------|------------|----------------------------------|------------------------------|----------------|-----------|--------|
+| `033000_nkbv_fn_major_type_ped_out` | OR REPLACE fn major type bỏ ped | OR REPLACE | không | không | không | — | **thấp** — chỉ fn |
+| `034000_nkbv_doe_loa_report_cols` | Cột DOE/LOA/ngày mổ + backfill + RPC | IF NOT EXISTS + OR REPLACE | UPDATE backfill active | không CHECK mới; cast date/uuid đã bọc regex (CHAIN-VERIFY) | không | 033000 (cùng lát NKBV) | **vừa** — backfill + RPC lớn; FK loa → mdm |
+| `120000_cssd_incident_status_da_dong` | COMMENT attributes ĐÃ ĐÓNG | n/a | không | không | không | — | **thấp** — comment only |
+| `121000_cssd_heat_split_parent_backfill` | Backfill parent_bo_id *-SUB | n/a | UPDATE dm bộ | không | không | `20260928065100` parent_bo_id | **vừa** — sửa master bộ; scope *-SUB |
+| `130000_cssd_sc_batch_recall_two_phase` | RPC thu hồi 2 pha + red-alert PROCESS | OR REPLACE | UPDATE trong RPC (runtime) | không | không | CSSD SC/ME base | **vừa** — RPC nghiệp vụ lớn |
+| `140000_cssd_me01_bi_bm02` | CHECK trang_thai_bi +BM.02 RPC | DROP IF EXISTS + ADD CHECK; OR REPLACE; DROP FUNCTION cũ | DROP CONSTRAINT/FUNCTION | CHECK nới (thêm DANG_U) — không FAIL giá trị cũ hợp lệ | không | — | **thấp** — CHECK rộng hơn |
+| `141000_cssd_me04_nha_implant_perm` | Seed perm + RPC nhả implant | ON CONFLICT; OR REPLACE | không data wipe | không | không (seed ADMIN) | 140000 (RPC chồng) | **thấp** — grant tạm ADMIN |
+| `142000_cssd_me02_bowie_dick_events` | Bảng BD events | IF NOT EXISTS | không | CHECK trên bảng mới | không | cssd_dm_thiet_bi | **thấp** |
+| `143000_cssd_me03_cho_tham_dinh` | DROP CHECK trang_thai máy + comment | DROP CONSTRAINT IF EXISTS | DROP CONSTRAINT | không ADD CHECK mới | không | — | **thấp** — nới ràng buộc |
+| `144000_cssd_me10_recall_preserve_qc` | OR REPLACE thu hồi giữ QC | OR REPLACE | UPDATE runtime | không | không | 130000 | **vừa** — bản cuối thu hồi |
+| `145000_cssd_me05_hsd_bao_goi` | DM loại bao gói + HSD fn | IF NOT EXISTS; DROP/CREATE POLICY | không fact wipe | CHECK trên bảng mới | write = CSSD.edit — đúng phạm vi | — | **thấp** |
+| `150000_cssd_me07_pp_chi_dinh_gate` | DROP NOT NULL PP chỉ định + gate RPC | OR REPLACE | DROP NOT NULL (nới) | không siết | không | ME RPC | **thấp** — nới cột |
+| `152000_cssd_me08_chuong_trinh_id` | ADD COLUMN + FK nullable | IF NOT EXISTS | không | FK cột mới NULL — không scan fail | không | cssd_dm_chuong_trinh_may | **thấp** |
+| `153000_cssd_me09_nguoi_nap_id` | ADD COLUMN + FK nullable | IF NOT EXISTS | không | FK cột mới NULL | không | mdm_nhan_su | **thấp** |
+| `154000_sys_admin_audit` | Bảng audit insert-only + RLS SELECT admin | IF NOT EXISTS; DROP/CREATE POLICY | trigger chặn UPDATE/DELETE | không trên data cũ | SELECT chỉ admin — đúng | fn_sys_is_admin | **thấp** |
+| `154100_adm03_rbac_admin_only` | Policy RBAC chỉ ADMIN + RPC | DROP/CREATE POLICY; OR REPLACE | DELETE trong RPC runtime (gán vai trò) | không | **siết ghi** roles/perms → non-admin mất cửa PostgREST (đúng DoD) | 154000 (audit liền trước) | **vừa** — RLS siết; intentional |
+| `154200_adm04_approve_permissions_seed` | Seed quyền duyệt → ADMIN | ON CONFLICT | không | không | không khóa user; chỉ seed | 154100 / sys_* | **thấp** |
+| `160000_gs05_analytics_hinh_thuc_id_stype` | fn stype + OR REPLACE view GSC/VST + RPC | OR REPLACE | không | không | không | — (bản giữa; GSC/VST ghi đè sau) | **vừa** — view lớn; phải apply trước 175100/181000 |
+| `170000_qlcv_mod_today_vn_overdue` | today VN + overdue + views | OR REPLACE | không wipe | không | không | qlcv base | **thấp** (prod 0 việc) |
+| `171000_qlcv_mod_transition_gate` | Gate chuyển trạng thái / checklist | OR REPLACE | UPDATE runtime | không | không | 170000 | **thấp** |
+| `172000_qlcv_mod_loai_dinh_ky_check` | CHECK loại⇔mẫu | DROP/ADD CONSTRAINT; backfill 2 chiều | UPDATE chuẩn hóa trước CHECK | CHECK sau backfill — an toàn (0 dòng / đã normalize) | không | 170000 | **thấp** |
+| `173000_qlcv_mod_dinh_ky_spawn` | Spawn định kỳ | OR REPLACE; ON CONFLICT | INSERT spawn | không | không | 172000 | **thấp** |
+| `174000_qlcv_mod_nguon_lien_ket` | Cột/view nguồn liên kết | IF NOT EXISTS; OR REPLACE | không | không | không | 170000 views | **thấp** |
+| `175000_gsc_mod_orphan_tc_and_bk_map` | Bảng map orphan + short↔dài + seed | IF NOT EXISTS; ON CONFLICT | UPDATE resolve id map | không trên fact | không | sau QLCV (FIX-MIG-ORDER) | **vừa** — seed map lớn; không sửa results_jsonb |
+| `175100_gsc_mod_loai_filter_orphan_views` | Cột loai + view gộp + resolve fn | IF NOT EXISTS; OR REPLACE | UPDATE backfill loai | không | không | 160000 + 175000 | **vừa** — bản cuối dashboard |
+| `175200_gsc_mod_seed_doi_tuong_mec_inactive` | UPDATE doi_tuong / inactive short / MEC | n/a (UPDATE idempotent-ish) | UPDATE dm BK + soft-delete TC | không | không | 175000 (short map) | **vừa** — sửa master BK prod |
+| `175300_gsc_mod_orphan_merge_map` | Merge N-GHEP + expand + violations | IF NOT EXISTS; ON CONFLICT; OR REPLACE | UPDATE resolve merge ids | không | không | 175000–175200 | **vừa** — bản cuối violations |
+| `180000_vst_mod_soft_delete_save_rpc` | Cột xóa mềm + `rpc_vst_save_session` | IF NOT EXISTS; OR REPLACE | DELETE obs khi save (runtime, theo session) | không | không | VST fact | **vừa** — RPC thay obs nguyên tử |
+| `181000_vst_mod_valid_opp_analytics` | valid-opp + OR REPLACE view/RPC VST | OR REPLACE | không | không | không | 160000 + 180000 | **vừa** — bản cuối analytics VST |
+
+**Cao:** không có (không DROP TABLE/TRUNCATE; không CHECK siết dữ liệu cũ không backfill).
+
+### 6) Soft-fix trong CHAIN-VERIFY
+
+| Việc | File |
+|------|------|
+| Mốc prod test → `20261004194907` | `fix-mig-order-unapplied.spec.ts` |
+| Backfill CHECK QLCV 2 chiều trước ADD CONSTRAINT | `20261005172000_qlcv_mod_loai_dinh_ky_check.sql` |
+| Backfill NKBV DOE/LOA cast date/uuid an toàn | `20261005034000_nkbv_doe_loa_report_cols.sql` |
+
+### 7) Kết luận
+
+Chuỗi code tip `mod-bcth` xanh 4 lệnh. Thứ tự migrate tăng dần + gộp view/fn cuối OK. Rủi ro apply chủ yếu **vừa** (RPC/view lớn, UPDATE master GSC/CSSD heat, RLS ADM siết intentional). Sẵn sàng xin Nghĩa **push nhánh** rồi **apply local/prod** theo thứ tự mục 3 — không tự push/apply trong lát này.

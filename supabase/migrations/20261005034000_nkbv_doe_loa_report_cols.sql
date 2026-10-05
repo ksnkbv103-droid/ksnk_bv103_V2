@@ -16,21 +16,42 @@ COMMENT ON COLUMN public.nkbv_fact_su_kien.loa_khoa_id IS
 COMMENT ON COLUMN public.nkbv_fact_su_kien.ngay_phau_thuat IS
   'Ngày mổ SSI — kỳ tử số SSI theo ngày mổ (NHSN Ch.9).';
 
--- Backfill từ verification_data (không đoán Index)
+-- Backfill từ verification_data (không đoán Index).
+-- Cast an toàn: chuỗi lệch ISO date/UUID → bỏ qua (không FAIL cả transaction).
 UPDATE public.nkbv_fact_su_kien s
 SET
   doe = COALESCE(
     s.doe,
-    NULLIF(btrim(s.verification_data->>'calculated_doe'), '')::date
+    CASE
+      WHEN NULLIF(btrim(s.verification_data->>'calculated_doe'), '')
+        ~ '^\d{4}-\d{2}-\d{2}$'
+      THEN (NULLIF(btrim(s.verification_data->>'calculated_doe'), ''))::date
+      ELSE NULL
+    END
   ),
   loa_khoa_id = COALESCE(
     s.loa_khoa_id,
-    NULLIF(btrim(s.verification_data->>'attributed_khoa_id'), '')::uuid
+    CASE
+      WHEN NULLIF(btrim(s.verification_data->>'attributed_khoa_id'), '')
+        ~ '^[0-9a-fA-F-]{36}$'
+      THEN (NULLIF(btrim(s.verification_data->>'attributed_khoa_id'), ''))::uuid
+      ELSE NULL
+    END
   ),
   ngay_phau_thuat = COALESCE(
     s.ngay_phau_thuat,
-    NULLIF(btrim(s.verification_data->>'ngay_phau_thuat'), '')::date,
-    NULLIF(btrim(s.verification_data->>'surgery_date'), '')::date
+    CASE
+      WHEN NULLIF(btrim(s.verification_data->>'ngay_phau_thuat'), '')
+        ~ '^\d{4}-\d{2}-\d{2}$'
+      THEN (NULLIF(btrim(s.verification_data->>'ngay_phau_thuat'), ''))::date
+      ELSE NULL
+    END,
+    CASE
+      WHEN NULLIF(btrim(s.verification_data->>'surgery_date'), '')
+        ~ '^\d{4}-\d{2}-\d{2}$'
+      THEN (NULLIF(btrim(s.verification_data->>'surgery_date'), ''))::date
+      ELSE NULL
+    END
   )
 WHERE s.is_active = true
   AND (

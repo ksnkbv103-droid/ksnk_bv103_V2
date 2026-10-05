@@ -2,8 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-/** Prod đã apply đến 20261005034000 — chuỗi chưa apply = mọi 20261005* sau mốc đó. */
-const PROD_APPLIED_THROUGH = "20261005034000";
+/** Prod tip schema_migrations = 20261004194907 (perf-db 05/10) — chuỗi chưa apply = mọi 20261005*. */
+const PROD_APPLIED_THROUGH = "20261004194907";
 const MIG_DIR = join(process.cwd(), "supabase/migrations");
 
 const GSC_VIEWS = [

@@ -2,11 +2,17 @@
 -- CHECK: loai_cong_viec = 'DINH_KY' ⇔ dinh_ky_mau_id IS NOT NULL.
 -- An toàn khi bảng trống (prod 0 dòng). Nếu có vi phạm cũ: sửa trước khi apply.
 
--- Chuẩn hóa nhẹ dữ liệu cũ (nếu có): DINH_KY không mẫu → DOT_XUAT.
+-- Chuẩn hóa nhẹ dữ liệu cũ (nếu có) trước CHECK:
+-- DINH_KY không mẫu → DOT_XUAT; không-DINH_KY mà còn mẫu → gỡ mẫu.
 UPDATE public.qlcv_fact_cong_viec
 SET loai_cong_viec = 'DOT_XUAT', updated_at = now()
 WHERE loai_cong_viec = 'DINH_KY'
   AND dinh_ky_mau_id IS NULL;
+
+UPDATE public.qlcv_fact_cong_viec
+SET dinh_ky_mau_id = NULL, updated_at = now()
+WHERE loai_cong_viec IS DISTINCT FROM 'DINH_KY'
+  AND dinh_ky_mau_id IS NOT NULL;
 
 ALTER TABLE public.qlcv_fact_cong_viec
   DROP CONSTRAINT IF EXISTS qlcv_fact_cong_viec_loai_dinh_ky_mau_chk;
