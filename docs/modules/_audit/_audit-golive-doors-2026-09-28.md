@@ -928,16 +928,16 @@ Rà 6 trục: (a) số liệu ≥2 nơi; (b) trạng thái vòng 1 bỏ sót rea
 | R2-D6 | ADM-04 `BAO_SU_CO.close` vs role close | Seed perm ≠ server role check | Thống nhất perm | Thống nhất role | Multi-role park | **Chờ Domain** |
 | R2-D7 | BCTH CSSD appendix luôn toàn viện | Filter khoa không áp CSSD | Scope CSSD theo filter | Giữ + copy rõ | Scope CSSD ≠ khoa NB | **Chờ Domain** (copy đã có) |
 
-### Commits Soft local (hash điền sau)
+### Commits Soft local
 
-| Commit | Nội dung |
-|--------|----------|
-| R2-01 | KPI `DA_DONG` + máy HOLD/CHO_THAM_DINH |
-| R2-02 | Cổng quyền FE=server (approve/NT/NKBV/SC) |
-| R2-03 | Ngày VN (QLCV/NKBV/TB) |
-| R2-04 | Nhãn jargon VN |
-| R2-05 | VST soft-delete detail |
-| R2-06 | Append mục ROUND2 này |
+| Commit | Hash | Nội dung |
+|--------|------|----------|
+| R2-01 | `ab1591a2` | KPI `DA_DONG` + máy HOLD/CHO_THAM_DINH |
+| R2-02 | `8b1cf142` | Cổng quyền FE=server (approve/NT/NKBV/SC) |
+| R2-03 | `c8eddb08` | Ngày VN (QLCV/NKBV/TB) |
+| R2-04 | `278e90bc` | Nhãn jargon VN |
+| R2-05 | `839ace1d` | VST soft-delete detail |
+| R2-06 | `92c5d8d4` | Append mục ROUND2 (bảng hash cập nhật working tree nếu lệch tip) |
 
 ### Verify
 
