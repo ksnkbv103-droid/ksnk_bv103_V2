@@ -896,3 +896,50 @@ Ancestry: `mod-nkbv ⊆ … ⊆ mod-bcth` OK. `perf-db-20261005` tách — chỉ
 ### 7) Kết luận
 
 Chuỗi code tip `mod-bcth` xanh 4 lệnh. Thứ tự migrate tăng dần + gộp view/fn cuối OK. Rủi ro apply chủ yếu **vừa** (RPC/view lớn, UPDATE master GSC/CSSD heat, RLS ADM siết intentional). Sẵn sàng xin Nghĩa **push nhánh** rồi **apply local/prod** theo thứ tự mục 3 — không tự push/apply trong lát này.
+
+---
+
+## ROUND2 — Cross-audit toàn app (2026-10-05)
+
+Nhánh: `cursor/round2-audit` ← tip `cursor/mod-bcth` (`ed0be31e`). Cursor tự rà-chéo sau chuỗi 11 module. **Không push / không apply / không Supabase.** Migration mới: **không**.
+
+### Phương pháp
+
+Rà 6 trục: (a) số liệu ≥2 nơi; (b) trạng thái vòng 1 bỏ sót reader; (c) cổng quyền FE≠server; (d) ngày UTC vs VN; (e) jargon; (f) park/dead — **không xóa file** (luật lát).
+
+### Phát hiện → PA → chốt
+
+| ID | Nơi | Lỗi | PA1 | PA2 | Phản biện ngắn | Chốt |
+|----|-----|-----|-----|-----|----------------|------|
+| R2-01 | `cssd-analytics-core` `isProcessCycleSafetyIncident` | `DA_DONG` vẫn vào tử KPI chu trình có SC | Loại `DA_DONG` (+`VO_HIEU`) | Giữ đếm «lịch sử SC» riêng bucket | PA2 cần UI mới | **Sửa PA1** |
+| R2-02 | `cssd-report-read` máy ready/repairing | `HOLD_QC`/`CHO_THAM_DINH` không vào mẫu số | Gộp vào `may_repairing` | Bucket `may_hold` riêng | PA2 đổi contract BCTH | **Sửa PA1** |
+| R2-03 | `useModulePermission` approve = edit | FE hiện duyệt khi chỉ edit; server `approve` | `approve` = `canApprove` only | Nới server cho edit | PA2 phá ADM-04 | **Sửa PA1** |
+| R2-04 | QLCV `canShowQlcvApproveActions` + tự NT | edit mở NT; phụ trách tự thấy nút NT | Chỉ approve + ẩn self-NT | Cho self-NT nếu admin | Self-NT cấm server | **Sửa PA1** |
+| R2-05 | NKBV `NkbvAdjudicationPanel` | Gate `edit` vs server `approve` | Hook `allowed.approve` trong panel | Thread prop `allowedApprove` | Prop cascade rộng | **Sửa PA1** (hook) |
+| R2-06 | CSSD report Confirm/Close | Nút theo `create`; server role Trưởng/Hội đồng/Admin | Gate `canApprove`/`canClose` roles | Dùng perm ADM-04 `confirm`/`close` | Server vẫn role — khớp role trước | **Sửa PA1** |
+| R2-07 | QLCV in kỳ / định kỳ / NKBV tạo stay / TB parseDate | `toISOString().slice(0,10)` UTC | `todayYmdInVn` / `qlcvDateVnFromInstant` | Giữ UTC | Lệch biên đêm VN | **Sửa PA1** |
+| R2-08 | Print SC / sổ BOM / TB columns / Đối soát / Catalog queue | Mã BOM, soft BOM, min-N, SET_RECONCILE | Nhãn VN SSOT | Giữ mã + tooltip | Staff in phiếu | **Sửa PA1** |
+| R2-09 | `getVSTSessionDetail` | Soft-delete vẫn mở deep-link | Chặn `is_active===false` | Admin xem thùng rác | Chưa có UI thùng rác | **Sửa PA1** |
+| R2-D1 | BCTH print CSSD «máy» | Print `ready/repairing`; CSSD report `ready/(ready+repairing)` | Thống nhất mẫu số | Đổi nhãn print «sẵn / sửa» | Đổi công thức metric dictionary | **Chờ Domain** |
+| R2-D2 | NKBV dashboard fetch | Prefilter `ngay_phat_hien`; KPI theo DOE/SSI | Fetch theo report-date | Giữ + ghi chú UI | Đổi cửa sổ tải | **Chờ Domain** |
+| R2-D3 | QLCV gate `%` vs RPC quá hạn | % từ slice board; chip từ RPC global | Một nguồn RPC | Ghi chú «% trên bảng đang xem» | RPC chưa đủ field % | **Chờ Domain** |
+| R2-D4 | ME `nha_implant` FE | QC/BI UI không ẩn khi thiếu `nha_implant` | Gate FE theo `hasPermission` | Chỉ toast server | Cần map outcome→nút | **Chờ Domain** |
+| R2-D5 | Park Action board / DimensionCompare | `@park` không consumer | Giữ park | Archive folder | Cấm xóa file lát này | **Chờ Domain** (giữ park) |
+| R2-D6 | ADM-04 `BAO_SU_CO.close` vs role close | Seed perm ≠ server role check | Thống nhất perm | Thống nhất role | Multi-role park | **Chờ Domain** |
+| R2-D7 | BCTH CSSD appendix luôn toàn viện | Filter khoa không áp CSSD | Scope CSSD theo filter | Giữ + copy rõ | Scope CSSD ≠ khoa NB | **Chờ Domain** (copy đã có) |
+
+### Commits Soft local (hash điền sau)
+
+| Commit | Nội dung |
+|--------|----------|
+| R2-01 | KPI `DA_DONG` + máy HOLD/CHO_THAM_DINH |
+| R2-02 | Cổng quyền FE=server (approve/NT/NKBV/SC) |
+| R2-03 | Ngày VN (QLCV/NKBV/TB) |
+| R2-04 | Nhãn jargon VN |
+| R2-05 | VST soft-delete detail |
+| R2-06 | Append mục ROUND2 này |
+
+### Verify
+
+`tsc --noEmit` (src) · `vitest run` 287 files / 1685 tests · `npm run verify` · build trong verify — **xanh**. Migration mới: không.
+
