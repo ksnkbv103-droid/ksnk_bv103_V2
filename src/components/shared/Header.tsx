@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { getKsnkAppHeaderBreadcrumb } from "@/lib/app-shell-scope";
@@ -12,7 +12,8 @@ import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
-  const breadcrumb = getKsnkAppHeaderBreadcrumb(pathname);
+  const searchParams = useSearchParams();
+  const breadcrumb = getKsnkAppHeaderBreadcrumb(pathname, { bk: searchParams.get("bk") });
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [sessionResolved, setSessionResolved] = useState(false);
 

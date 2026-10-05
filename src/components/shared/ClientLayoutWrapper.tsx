@@ -1,7 +1,7 @@
 // src/components/shared/ClientLayoutWrapper.tsx
 "use client";
 
-import React, { useEffect, useState, startTransition } from "react";
+import React, { Suspense, useEffect, useState, startTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -110,7 +110,9 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       <Sidebar isOpen={isOpen} onClose={closeSidebar} />
 
       <div className="flex min-h-0 flex-1 flex-col min-w-0 max-md:overflow-hidden md:min-h-screen">
-        <Header onMenuClick={toggleSidebar} />
+        <Suspense fallback={<div className="sticky top-0 z-50 min-h-11 border-b border-slate-200/90 bg-[var(--bg-panel)]" />}>
+          <Header onMenuClick={toggleSidebar} />
+        </Suspense>
         <main
           data-bv103-app-scroll
           className="relative z-0 flex-1 min-h-0 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-3 sm:py-2.5 md:px-4 md:py-3 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"

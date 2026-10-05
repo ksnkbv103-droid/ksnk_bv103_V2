@@ -1,12 +1,28 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { formatSteamBdPrintLine } from "@/lib/domain/cssd-steam-daily-bd";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { verifyCssdBatchView, verifyCssdKhoDungCuView, verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
+import { getSterilizerMethod } from "../helpers/me-tiet-khuan-machine-kind";
 import { fetchCssdBatchMembers } from "./cssd-batch.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { getErrorMessage } from "../shared/cssd-db-utils";
-import { loadHoTenByAuthUserId, loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
-import { buildCssdBatchTicket, formatBatchMemberRecallXuLy, parseBatchQcJson, parseNguoiLoadFromGhiChu } from "../lib/cssd-print-format";
+import {
+  loadHoTenByAuthUserId,
+  loadNhanSuHoTen,
+  resolveMeNguoiNapHoTen,
+} from "../shared/application/cssd-operator-resolve";
+import { parseNguoiNapIdFromGhiChu } from "../lib/me-nguoi-nap-ghi-chu";
+import { loadPackBatchReleaseGate } from "../helpers/pack-batch-release-gate";
+import {
+  buildCssdBatchTicket,
+  formatBatchMemberRecallXuLy,
+  mapCapPhatPrintIncidents,
+  mapCapPhatQcFromBatch,
+  parseNguoiLoadFromGhiChu,
+} from "../lib/cssd-print-format";
 import type {
   CssdBatchPrintData,
   CssdCapPhatPrintData,
@@ -66,7 +82,7 @@ async function loadBatchRow(
   let q = supabase
     .from("cssd_fact_lo_tiet_khuan")
     .select(
-      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)",
+      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_nap_id, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may))",
     )
     .eq("is_active", true);
   if (opts.batchId) q = q.eq("id", opts.batchId);
@@ -90,16 +106,38 @@ async function mapBatchPrintData(
   members: Array<Record<string, unknown>>,
 ): Promise<CssdBatchPrintData> {
   const [nguoiNap, nguoiDo, nguoiNha] = await Promise.all([
-    loadHoTenByAuthUserId(supabase, batch.nguoi_bat_dau_id as string | null),
+    resolveMeNguoiNapHoTen(
+      supabase,
+      {
+        nguoi_nap_id: batch.nguoi_nap_id as string | null,
+        ghi_chu: batch.ghi_chu as string | null,
+        nguoi_bat_dau_id: batch.nguoi_bat_dau_id as string | null,
+      },
+      parseNguoiNapIdFromGhiChu,
+      parseNguoiLoadFromGhiChu,
+    ),
     loadHoTenByAuthUserId(supabase, batch.nguoi_ket_thuc_id as string | null),
     loadHoTenByAuthUserId(supabase, batch.nguoi_nha_id as string | null),
   ]);
-  const thietBi = (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—";
+  const thietBiRel = batch.thiet_bi as {
+    ten_thiet_bi?: string;
+    specs?: Record<string, unknown> | null;
+    loai_may?: { ma_loai_may?: string } | { ma_loai_may?: string }[] | null;
+  } | null;
+  const thietBi = thietBiRel?.ten_thiet_bi?.trim() || "—";
+  const method =
+    getSterilizerMethod({ phuong_phap: batch.phuong_phap as string | null }) ||
+    getSterilizerMethod(thietBiRel);
+  const bowieDickLine = formatSteamBdPrintLine({
+    isSteam: method === "HOI_NUOC",
+    specs: thietBiRel?.specs || null,
+  });
   return buildCssdBatchTicket({
     id: String(batch.id),
     maLo: String(batch.ma_lo_tiet_khuan || ""),
     tenMay: thietBi,
     phuongPhap: (batch.phuong_phap as string | null) ?? null,
+    bowieDickLine,
     chuongTrinh: (batch.chuong_trinh as string | null) ?? null,
     nhietDo: batch.nhiet_do as number | null,
     apSuat: batch.ap_suat as number | null,
@@ -202,18 +240,61 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
     if (!batch) {
       return { success: false as const, error: "Bộ chưa gắn mẻ tiệt khuẩn — không in phiếu cấp phát." };
     }
-    if (batch.ket_qua_test !== true) {
-      return { success: false as const, error: "Mẻ tiệt khuẩn chưa đạt QC — không in phiếu cấp phát." };
+
+    const batchRelease = await loadPackBatchReleaseGate(supabase, {
+      quyTrinhId: id,
+      loTietKhuanId: loId,
+    });
+    const issuable = assertPackIssuable({
+      tinh_trang: (row.tinh_trang as string | null) ?? null,
+      han_su_dung: (row.han_su_dung as string | null) ?? null,
+      ngay_het_han: (row.ngay_het_han as string | null) ?? null,
+      is_red_alert: row.is_red_alert === true,
+      is_dong_bang: row.is_dong_bang === true,
+      batchRelease,
+    });
+    if (!issuable.ok) {
+      return { success: false as const, error: issuable.message };
     }
 
-    const qc = parseBatchQcJson(batch.tk_qc_json);
+    const filters = [`quy_trinh_id.eq.${id}`];
+    if (loId) filters.push(`attributes->>LO_TIET_KHUAN_ID.eq.${loId}`);
+    let suCoRows: Array<{ id?: string | null; attributes?: Record<string, unknown> | null; mo_ta?: string | null }>;
+    try {
+      suCoRows = await fetchAllRangeRows((from, to) =>
+        supabase
+          .from("cssd_fact_su_co")
+          .select("id, attributes, mo_ta")
+          .eq("is_active", true)
+          .or(filters.join(","))
+          .range(from, to),
+      );
+    } catch (e: unknown) {
+      return { success: false as const, error: getErrorMessage(e) };
+    }
+
+    const qc = mapCapPhatQcFromBatch({
+      tk_qc_json: batch.tk_qc_json,
+      trang_thai_bi: (batch.trang_thai_bi as string | null) ?? null,
+      nhiet_do: batch.nhiet_do as number | null,
+      ap_suat: batch.ap_suat as number | null,
+      thoi_gian_chu_ky: batch.thoi_gian_chu_ky as number | null,
+    });
     const instruments = await loadInstrumentsForQuyTrinh(supabase, id);
     const maLo = String(batch.ma_lo_tiet_khuan || "");
     const nguoiCapPhat =
-      (await loadNhanSuHoTen(supabase, row.nguoi_cap_phat_id as string | null)) ||
-      (await loadNhanSuHoTen(supabase, row.nguoi_tiet_khuan_id as string | null)) ||
-      "—";
-    const thoiGianCapPhat = String(row.thoi_gian_cap_phat || row.thoi_gian_tiet_khuan || "").trim() || null;
+      (await loadNhanSuHoTen(supabase, row.nguoi_cap_phat_id as string | null)) || "—";
+    const thoiGianCapPhat = String(row.thoi_gian_cap_phat || "").trim() || null;
+    const nguoiNapMe = await resolveMeNguoiNapHoTen(
+      supabase,
+      {
+        nguoi_nap_id: batch.nguoi_nap_id as string | null,
+        ghi_chu: batch.ghi_chu as string | null,
+        nguoi_bat_dau_id: batch.nguoi_bat_dau_id as string | null,
+      },
+      parseNguoiNapIdFromGhiChu,
+      parseNguoiLoadFromGhiChu,
+    );
 
     const data: CssdCapPhatPrintData = {
       quyTrinhId: id,
@@ -224,19 +305,20 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       hanSuDung: (row.han_su_dung as string | null) ?? null,
       maCaMo: String(row.ma_ca_mo_id || "").trim() || null,
       nguoiCapPhat,
-      thoiGianCapPhat: thoiGianCapPhat || new Date().toISOString(),
+      thoiGianCapPhat,
       thietBi: (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—",
-      nguoiLoad: parseNguoiLoadFromGhiChu(String(batch.ghi_chu || "")),
-      nguoiUnload: qc.nguoiUnload || "—",
-      nhietDoApSuat: qc.nhietDoApSuat || "—",
-      thongSoMay: qc.thongSoMay || "—",
-      chiThiTiepXuc: qc.chiThiTiepXuc || "—",
-      chiThiDaThongSo: qc.chiThiDaThongSo || "—",
-      testSinhHoc: qc.testSinhHoc || "NA",
-      testCI: qc.testCI || "—",
-      testBowieDick: qc.testBowieDick || "NA",
+      nguoiLoad: nguoiNapMe,
+      nguoiUnload: qc.nguoiUnload,
+      nhietDoApSuat: qc.nhietDoApSuat,
+      thongSoMay: qc.thongSoMay,
+      chiThiTiepXuc: qc.chiThiTiepXuc,
+      chiThiDaThongSo: qc.chiThiDaThongSo,
+      testSinhHoc: qc.testSinhHoc,
+      testCI: qc.testCI,
+      testBowieDick: qc.testBowieDick,
       thoiGianKetThucMe: (batch.thoi_gian_ket_thuc as string | null) ?? null,
       instruments,
+      suCo: mapCapPhatPrintIncidents(suCoRows),
     };
 
     return { success: true as const, data };

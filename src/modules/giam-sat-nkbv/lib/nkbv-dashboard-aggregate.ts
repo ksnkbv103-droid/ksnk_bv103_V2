@@ -1,19 +1,129 @@
 import { eachMonthOfInterval, format, parseISO, startOfMonth } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+  loaiCodeFromClassification,
+} from "./nkbv-classification-taxonomy";
 import { formatNkbvLoaiDisplay } from "./nkbv-loai-labels";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { addDays, subDays } from "./nkbv-timeline-math";
 
 export type NkbvCasRowMinimal = {
   ngay_phat_hien?: string | null;
+  /** DOE báo cáo (cột doe hoặc calculated_doe) — kỳ theo DOE; fallback Index. */
+  report_date?: string | null;
   loai_nkbv?: { ma_loai?: string | null; ten_loai?: string | null } | null;
   trang_thai_row?: { ma_trang_thai?: string | null; ten_trang_thai?: string | null } | null;
   khoa_ghi_nhan?: { ma_khoa?: string | null; ten_khoa?: string | null } | null;
+  /** verification_data.classification — nguồn by_loai khi đã xác nhận NKBV. */
+  classification?: string | null;
+  /** verification_data.is_positive — KPI «Đã xác nhận NKBV» = XAC_NHAN ∧ true. */
+  is_positive?: boolean | null;
+  /** LOA (Transfer Rule) — ưu tiên lọc khoa dashboard; fallback khoa ghi nhận. */
+  loa_khoa_id?: string | null;
+  khoa_ghi_nhan_id?: string | null;
 };
+
+/** Ngày kỳ báo cáo phiếu: report_date → DOE → Index. */
+export function nkbvReportDate(row: NkbvCasRowMinimal): string | null {
+  const d = row.report_date || row.ngay_phat_hien;
+  return d ? String(d).slice(0, 10) : null;
+}
+
+/** Pad Index fetch: SSI SP tối đa 90d — Index có thể lệch kỳ so với DOE/ngày mổ. */
+export const NKBV_DASHBOARD_INDEX_PAD_DAYS = 90;
+
+/** Biên truy vấn theo Index (ngay_phat_hien) rộng hơn kỳ báo cáo (DOE/ngày mổ). */
+export function nkbvDashboardFetchBounds(
+  tuStr: string,
+  denStr: string,
+  padDays = NKBV_DASHBOARD_INDEX_PAD_DAYS,
+): { fetchTu: string; fetchDen: string } {
+  return {
+    fetchTu: subDays(tuStr.slice(0, 10), padDays),
+    fetchDen: addDays(denStr.slice(0, 10), padDays),
+  };
+}
+
+/** Map hàng view → cas tối thiểu; report_date = DOE (SSI = ngày mổ). */
+export function mapNkbvDashboardCasFromViewRow(
+  x: Record<string, unknown>,
+): NkbvCasRowMinimal {
+  const vd =
+    x.verification_data && typeof x.verification_data === "object"
+      ? (x.verification_data as Record<string, unknown>)
+      : {};
+  const calculatedDoe =
+    typeof vd.calculated_doe === "string"
+      ? vd.calculated_doe.slice(0, 10)
+      : typeof x.doe === "string"
+        ? String(x.doe).slice(0, 10)
+        : null;
+  const surgeryDate =
+    typeof vd.ngay_phau_thuat === "string"
+      ? vd.ngay_phau_thuat.slice(0, 10)
+      : typeof vd.surgery_date === "string"
+        ? vd.surgery_date.slice(0, 10)
+        : typeof x.ngay_phau_thuat === "string"
+          ? String(x.ngay_phau_thuat).slice(0, 10)
+          : null;
+  const cls = typeof vd.classification === "string" ? vd.classification : null;
+  const isSsi =
+    cls &&
+    (/^(SIP|SIS|DIP|DIS)$/i.test(cls) ||
+      cls.toUpperCase().startsWith("ORGAN_SPACE") ||
+      cls.toUpperCase().startsWith("SSI:"));
+  const report_date = isSsi
+    ? surgeryDate || calculatedDoe || (x.ngay_phat_hien as string | null)
+    : calculatedDoe || (x.ngay_phat_hien as string | null);
+  const loaFromCol =
+    typeof x.loa_khoa_id === "string" ? x.loa_khoa_id.trim() : "";
+  const loaFromJson =
+    typeof vd.attributed_khoa_id === "string"
+      ? vd.attributed_khoa_id.trim()
+      : "";
+  const khoaGhi =
+    typeof x.khoa_ghi_nhan_id === "string" ? x.khoa_ghi_nhan_id.trim() : "";
+  return {
+    ngay_phat_hien: x.ngay_phat_hien as string | null,
+    report_date,
+    loai_nkbv: { ma_loai: x.loai_ma as string | null, ten_loai: x.loai_ten as string | null },
+    trang_thai_row: {
+      ma_trang_thai: x.trang_thai_ma as string | null,
+      ten_trang_thai: x.trang_thai_ten as string | null,
+    },
+    khoa_ghi_nhan: {
+      ma_khoa: x.khoa_ma as string | null,
+      ten_khoa: x.khoa_ten as string | null,
+    },
+    classification: cls,
+    is_positive: typeof vd.is_positive === "boolean" ? vd.is_positive : null,
+    loa_khoa_id: loaFromCol || loaFromJson || null,
+    khoa_ghi_nhan_id: khoaGhi || null,
+  };
+}
+
+/** NKBV-03: lọc khoa theo LOA; thiếu LOA → fallback khoa ghi nhận (phiếu nháp). */
+export function matchNkbvDashboardLoaKhoa(
+  row: NkbvCasRowMinimal,
+  khoaId: string | null,
+  khoaIds: string[],
+): boolean {
+  const targets = khoaIds.length > 0
+    ? khoaIds
+    : khoaId
+      ? [khoaId]
+      : [];
+  if (targets.length === 0) return true;
+  const loa = String(row.loa_khoa_id || "").trim();
+  const ghi = String(row.khoa_ghi_nhan_id || "").trim();
+  const key = loa || ghi;
+  return Boolean(key && targets.includes(key));
+}
 
 /**
  * Một dòng kết quả `fn_nkbv_dich_te_hoc_rates`.
- * SIR/SUR/DUR là `null` khi không tính được (chưa cấu hình baseline CDC,
- * predicted < 1 theo SSOT §18.4, hoặc mẫu số bằng 0) — **không** phải 0.
+ * DUR và các trường tỷ suất RPC: mẫu số bằng 0 → hiển thị «—» (không phải 0).
+ * Trường SIR/SUR từ RPC không dùng trên dashboard pilot.
  */
 export type NkbvEpidemiologyRate = {
   khoa_id: string;
@@ -59,7 +169,9 @@ export type NkbvDashboardPayload = {
     dang_va_cho_xn: number;
     loai_tru: number;
     da_dong: number;
-    /** 0–100, làm tròn số nguyên; null khi mẫu số = 0 */
+    /** Phiếu trạng thái XAC_NHAN (mọi kết cục) — mẫu số kết luận cùng loại trừ. */
+    phieu_xac_nhan_trang_thai: number;
+    /** 0–100, làm tròn 1 chữ số; null khi mẫu số = 0 */
     ti_le_xac_nhan_so_voi_pa: number | null;
   };
   monthly: { ky: string; label: string; so_phieu: number }[];
@@ -94,13 +206,14 @@ export function aggregateNkbvDashboard(
   const denEnd = parseISO(`${denNgayISO}T23:59:59`);
 
   const inRange = rows.filter((r) => {
-    const d = r.ngay_phat_hien;
+    const d = nkbvReportDate(r);
     if (!d) return false;
-    const t = parseISO(String(d).length > 10 ? String(d) : `${d}T12:00:00`);
+    const t = parseISO(`${d}T12:00:00`);
     return t >= tuStart && t <= denEnd;
   });
 
   let da_xac_nhan = 0;
+  let phieu_xac_nhan_trang_thai = 0;
   let loai_tru = 0;
   let da_dong = 0;
   let dang_va_cho_xn = 0;
@@ -113,22 +226,29 @@ export function aggregateNkbvDashboard(
   for (const r of inRange) {
     const ma_tt = String(r.trang_thai_row?.ma_trang_thai || "").trim();
     const ten_tt = String(r.trang_thai_row?.ten_trang_thai || "").trim() || ma_tt;
-    const ma_loai = String(r.loai_nkbv?.ma_loai || "").trim();
-    const ten_loai = formatNkbvLoaiDisplay(ma_loai, r.loai_nkbv?.ten_loai);
-    const tn = parseISO(`${String(r.ngay_phat_hien).slice(0, 10)}T12:00:00`);
+    const portalLoai = String(r.loai_nkbv?.ma_loai || "").trim();
+    const reportDay = nkbvReportDate(r) || String(r.ngay_phat_hien).slice(0, 10);
+    const tn = parseISO(`${reportDay}T12:00:00`);
 
     const yk = format(tn, "yyyy-MM");
     monthCount[yk] = (monthCount[yk] ?? 0) + 1;
 
-    if (ma_tt === "XAC_NHAN") da_xac_nhan += 1;
+    const confirmedNkbv = ma_tt === "XAC_NHAN" && r.is_positive === true;
+    if (confirmedNkbv) da_xac_nhan += 1;
+    if (ma_tt === "XAC_NHAN") phieu_xac_nhan_trang_thai += 1;
     else if (ma_tt === "LOAI_TRU") loai_tru += 1;
     else if (ma_tt === "DA_DONG") da_dong += 1;
     else if (CHO_TAC.has(ma_tt)) dang_va_cho_xn += 1;
 
-    const lk = ma_loai || `_null_${ten_loai}`;
-    const curLo = loaiMap.get(lk) ?? { ma: ma_loai || "—", ten: ten_loai, n: 0 };
-    curLo.n += 1;
-    loaiMap.set(lk, curLo);
+    // by_loai: chỉ ca XAC_NHAN ∧ is_positive, nhóm theo classification
+    if (confirmedNkbv) {
+      const ma_loai = loaiCodeFromClassification(r.classification, portalLoai);
+      const ten_loai = formatNkbvLoaiDisplay(ma_loai, r.loai_nkbv?.ten_loai);
+      const lk = ma_loai || `_null_${ten_loai}`;
+      const curLo = loaiMap.get(lk) ?? { ma: ma_loai || "—", ten: ten_loai, n: 0 };
+      curLo.n += 1;
+      loaiMap.set(lk, curLo);
+    }
 
     const tk = ma_tt || "_NONE";
     const curT = ttMap.get(tk) ?? { ma: ma_tt || "—", ten: ten_tt, n: 0 };
@@ -170,9 +290,11 @@ export function aggregateNkbvDashboard(
     .slice(0, 12);
 
   const tong_phieu = inRange.length;
-  const pa_denominator = tong_phieu - loai_tru;
+  const ket_luan_mau_so = phieu_xac_nhan_trang_thai + loai_tru;
   const ti_le_xac_nhan_so_voi_pa =
-    pa_denominator > 0 ? Math.round((da_xac_nhan / pa_denominator) * 100) : null;
+    ket_luan_mau_so > 0
+      ? Math.round((da_xac_nhan / ket_luan_mau_so) * 1000) / 10
+      : null;
 
   return {
     tu_ngay: tuNgayISO,
@@ -180,6 +302,7 @@ export function aggregateNkbvDashboard(
     kpis: {
       tong_phieu,
       da_xac_nhan,
+      phieu_xac_nhan_trang_thai,
       dang_va_cho_xn,
       loai_tru,
       da_dong,
@@ -192,20 +315,20 @@ export function aggregateNkbvDashboard(
   };
 }
 
-/** Mẫu số tỷ lệ xác nhận = PA − loại trừ (không dùng tổng phiếu gồm loại trừ). */
+/** Mẫu số tỷ lệ xác nhận = phiếu XAC_NHAN + LOAI_TRU (đã kết luận). */
 export function nkbvPaMauSo(kpis: {
-  tong_phieu: number;
+  phieu_xac_nhan_trang_thai: number;
   loai_tru: number;
 }): number {
-  return Math.max(kpis.tong_phieu - kpis.loai_tru, 0);
+  return Math.max(kpis.phieu_xac_nhan_trang_thai + kpis.loai_tru, 0);
 }
 
-/** Nhãn khối lượng BCTH/in: «a/b (PA−loại trừ)» — khớp công thức metric-dictionary. */
+/** Nhãn khối lượng BCTH/in — khớp metric-dictionary. */
 export function formatNkbvXacNhanVolume(kpis: {
   da_xac_nhan: number;
-  tong_phieu: number;
+  phieu_xac_nhan_trang_thai: number;
   loai_tru: number;
 }): string {
   const mau = nkbvPaMauSo(kpis);
-  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} (PA−loại trừ)`;
+  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} đã kết luận`;
 }

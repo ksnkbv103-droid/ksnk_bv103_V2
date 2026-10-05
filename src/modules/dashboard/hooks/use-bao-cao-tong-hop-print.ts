@@ -6,6 +6,7 @@ import { printHtmlDocument } from "@/lib/print-html";
 import { getGscChecklistDetail } from "@/modules/giam-sat-chung/actions/gsc-checklist-detail.actions";
 import type { GscChecklistDetailPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
+import { assertBaoCaoTongHopExport } from "../actions/bao-cao-tong-hop.actions";
 import { buildBaoCaoReportNo } from "../lib/bao-cao-tong-hop-core";
 import { getBaoCaoTongHopPrintHtml } from "../lib/bao-cao-tong-hop-print";
 import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
@@ -26,6 +27,9 @@ export function useBaoCaoTongHopPrint(args: {
   khuVucOptions: OptionRow[];
   selectedKhoiIds: string[];
   selectedHinhThucIds: string[];
+  selectedHinhThucIdsGsc?: string[];
+  vstLensLabel?: string;
+  gscLensLabel?: string;
   selectedBangKiemMas: string[];
   khoiOptionCount: number;
   khoaOptionCount: number;
@@ -36,13 +40,24 @@ export function useBaoCaoTongHopPrint(args: {
   gscPayload: GscStrategicPayload | null;
   nhanXetDanhGia: string;
   kienNghiDeXuat: string;
+  /** BCTH-11: chỉ in khi có quyền EXPORT. */
+  canExport?: boolean;
 }) {
   const [printing, setPrinting] = useState(false);
 
   const print = useCallback(async () => {
+    if (args.canExport === false) {
+      toast.error("Bạn không có quyền xuất hoặc in báo cáo tổng hợp.");
+      return;
+    }
     setPrinting(true);
     const toastId = toast.loading("Đang chuẩn bị bản in…");
     try {
+      // BCTH-11: kiểm quyền EXPORT phía server trước khi mở bản ký.
+      const exportGate = await assertBaoCaoTongHopExport();
+      if (!exportGate.success) {
+        throw new Error(exportGate.error || "Không có quyền xuất/in báo cáo tổng hợp");
+      }
       const base = buildAnalyticsFilterPayload({
         tuNgay: args.tuNgay,
         denNgay: args.denNgay,
@@ -86,6 +101,12 @@ export function useBaoCaoTongHopPrint(args: {
         ngheOptions: args.ngheOptions,
         selectedKhuVucIds: args.selectedKhuVucIds,
         khuVucOptions: args.khuVucOptions,
+        vstLensLabel: args.vstLensLabel,
+        gscLensLabel: args.gscLensLabel,
+        bangKiemLabel:
+          args.selectedBangKiemMas.length > 0
+            ? `${args.selectedBangKiemMas.length} bảng kiểm`
+            : "Tất cả (GSC generic)",
         payload: args.payload,
         vstPayload: args.vstPayload,
         gscPayload: args.gscPayload,

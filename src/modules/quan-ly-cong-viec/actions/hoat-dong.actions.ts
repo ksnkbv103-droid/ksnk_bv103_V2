@@ -13,17 +13,8 @@ import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
 
 interface CreateHoatDongInput {
   id_cong_viec: string;
-  loai_hoat_dong:
-    | "PHAN_CONG"
-    | "DE_XUAT"
-    | "BAO_CAO_TIEN_DO"
-    | "PHE_DUYET"
-    | "CAP_NHAT"
-    | "HOAN_THANH"
-    | "XAC_NHAN_NHAN"
-    | "DUYET_HOAN_THANH"
-    | "TU_CHOI_HOAN_THANH"
-    | "GIA_HAN";
+  /** QLCV-09: chỉ ghi chú / báo tiến độ — không nhận loại «duyệt». */
+  loai_hoat_dong: "BAO_CAO_TIEN_DO" | "CAP_NHAT";
   noi_dung?: string;
 }
 
@@ -34,6 +25,10 @@ export async function createHoatDong(input: CreateHoatDongInput) {
   const { supabase } = await ensureQlcvKsnkAccess("view");
   const scope = await resolveQlcvListScope(supabase);
   const actorNhanSuId = await getActorNhanSuId();
+
+  if (input.loai_hoat_dong !== "BAO_CAO_TIEN_DO" && input.loai_hoat_dong !== "CAP_NHAT") {
+    throw new Error("Loại hoạt động không hợp lệ — chỉ ghi chú hoặc báo cáo tiến độ.");
+  }
 
   const { data: task, error: te } = await supabase
     .from("v_qlcv_cong_viec_full")

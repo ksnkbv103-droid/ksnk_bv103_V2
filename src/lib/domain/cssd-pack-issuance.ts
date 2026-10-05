@@ -114,12 +114,23 @@ export function isWetOrDamagedPackTinhTrang(raw?: string | null): boolean {
 
 const BLOCKING_INCIDENT_STATUS = new Set(["OPEN", "CONFIRMED", "DA_XAC_NHAN"]);
 
+/** Khớp BATCH_QC_FAIL_TYPE_IDS (taxonomy) — không import module từ lib/domain. */
+const BATCH_QC_FAIL_TYPE_IDS = new Set([
+  "PROCESS_STERILIZATION_FAIL",
+  "PROCESS_STERILE_QC_FAIL",
+  "PROCESS_BI_POSITIVE",
+]);
+
 function incidentStatus(attrs: Record<string, unknown> | null | undefined): string {
   const raw = String(attrs?.INCIDENT_STATUS ?? attrs?.incident_status ?? "OPEN").trim().toUpperCase();
   return raw || "OPEN";
 }
 
-/** Sự cố tiệt khuẩn còn mở hoặc đã xác nhận, gắn đúng bộ hoặc đúng mẻ. */
+/**
+ * Sự cố tiệt khuẩn còn mở/đã xác nhận gắn bộ hoặc mẻ.
+ * Chỉ chặn QC mẻ fail / BI+ / thu hồi theo mẻ / SC gắn mẻ / phát hiện tại Tiệt khuẩn —
+ * không chặn Kiểm bộ fail (PROCESS_QC_FAIL) đã làm lại.
+ */
 export function isBlockingSterilizationIncident(
   row: {
     quy_trinh_id?: string | null;
@@ -141,10 +152,15 @@ export function isBlockingSterilizationIncident(
   const linkedBatch = Boolean(loId) && linkedLo === loId;
   if (!linkedSet && !linkedBatch) return false;
 
-  const group = String(attrs.INCIDENT_GROUP ?? attrs.incident_group ?? "").trim().toUpperCase();
   const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim().toUpperCase();
-  const tram = `${row.ma_tram_phat_hien || ""} ${row.ma_tram_gay_loi || ""}`.toUpperCase();
-  return group === "PROCESS" || typeCode.startsWith("PROCESS_") || tram.includes("TIET_KHUAN");
+  const isBatchRecall = String(attrs.BATCH_RECALL ?? "") === "1";
+  const tramPhatHien = String(row.ma_tram_phat_hien || "").trim().toUpperCase();
+  return (
+    BATCH_QC_FAIL_TYPE_IDS.has(typeCode) ||
+    isBatchRecall ||
+    Boolean(linkedLo) ||
+    tramPhatHien === "TIET_KHUAN"
+  );
 }
 
 export type PackIssuanceResult = { ok: true } | { ok: false; message: string };

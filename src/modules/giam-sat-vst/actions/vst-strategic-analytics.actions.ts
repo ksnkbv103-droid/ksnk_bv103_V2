@@ -1,12 +1,11 @@
 "use server";
 
 import { z } from "zod";
-import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
-import { normalizeVstStrategicPercents } from "@/lib/analytics/vst-analytics-data";
-import type { VstStrategicFilters, VstStrategicPayload } from "../types/vst-strategic.types";
+import { getCachedVstStrategicRpc } from "@/lib/analytics/strategic-analytics-cache";
+import type { VstStrategicFilters } from "../types/vst-strategic.types";
 
 const vstStrategicFiltersSchema = z.object({
   tu_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "tu_ngay YYYY-MM-DD"),
@@ -30,7 +29,6 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
 
   await verifyPermission("GIAM_SAT_VST", "view");
 
-  const supabase = await createServerSupabaseUserClient();
   const scope = await getActorKsnkScope();
   const rpcFilters = resolveAnalyticsRpcFilters(scope, f, "vst");
 
@@ -40,18 +38,6 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
     ...rpcFilters,
   };
 
-  const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([
-    supabase.rpc("rpc_dashboard_vst_strategic_analytics", rpcArgs),
-    supabase.rpc("rpc_vst_compare_matrices", rpcArgs),
-  ]);
-
-  if (error) return { success: false as const, error: error.message };
-  if (matrixErr) return { success: false as const, error: matrixErr.message };
-
-  const merged = {
-    ...(data as VstStrategicPayload),
-    ...(matrices as Record<string, unknown>),
-  } as VstStrategicPayload;
-
-  return { success: true as const, data: normalizeVstStrategicPercents(merged) };
+  // A) Gọi RPC mỗi mở dashboard. B) Promise.all + unstable_cache 90s — chọn B.
+  return getCachedVstStrategicRpc(rpcArgs);
 }

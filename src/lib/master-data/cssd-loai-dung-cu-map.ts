@@ -104,54 +104,71 @@ export function spauldingLabel(code: unknown): string {
   }
 }
 
-/** Mã trạm CSSD gợi ý (lookup TRAM_CSSD) từ Spaulding + chịu nhiệt + PP tiệt khuẩn — D-16. */
-export type CssdStationSuggestion = {
-  maTramGoiY: string;
+/**
+ * CSSD-10: gợi ý PP tiệt khuẩn chỉ định (17 §3) — không còn «trạm gợi ý» ngoài 6 trạm.
+ * Không thiết yếu → không gợi ý PP TK.
+ */
+export type CssdSterileMethodSuggestion = {
+  phuongPhapChiDinh: CssdSterileMethod | null;
   lyDo: string;
 };
 
-export function suggestCssdStationFromMaster(input: {
+export function suggestCssdSterileMethodFromMaster(input: {
   spaulding?: unknown;
   sterileMethod?: unknown;
   isChiuNhiet?: unknown;
-}): CssdStationSuggestion {
-  const method = normalizeSterileMethodForMaster(input.sterileMethod);
+}): CssdSterileMethodSuggestion {
   const spaulding = normalizeSpauldingForMaster(input.spaulding);
+  if (spaulding === "NON_CRITICAL") {
+    return {
+      phuongPhapChiDinh: null,
+      lyDo: "Không thiết yếu — không gợi ý PP tiệt khuẩn (khử khuẩn mức thấp/trung bình ngoài 6 trạm).",
+    };
+  }
+  const method = normalizeSterileMethodForMaster(input.sterileMethod);
   const chiuNhiet =
     input.isChiuNhiet !== undefined && input.isChiuNhiet !== null
       ? Boolean(input.isChiuNhiet)
       : mapKhaNangToIsChiuNhiet(input.isChiuNhiet);
 
   if (method === "EO") {
-    return {
-      maTramGoiY: "TRAM_EO",
-      lyDo: "PP chỉ định EO → trạm khí EO",
-    };
+    return { phuongPhapChiDinh: "EO", lyDo: "PP chỉ định EO." };
   }
   if (method === "PLASMA" || !chiuNhiet) {
     return {
-      maTramGoiY: "TRAM_PLASMA",
-      lyDo: !chiuNhiet
-        ? "Nhạy nhiệt → ưu tiên Plasma (không hấp hơi)"
-        : "PP chỉ định Plasma → trạm Plasma",
+      phuongPhapChiDinh: "PLASMA",
+      lyDo: !chiuNhiet ? "Không chịu nhiệt → gợi ý Plasma." : "PP chỉ định Plasma.",
     };
   }
   if (method === "STEAM_121") {
-    return {
-      maTramGoiY: "TRAM_HOI_121",
-      lyDo: "PP hơi 121°C → trạm hấp 121",
-    };
+    return { phuongPhapChiDinh: "STEAM_121", lyDo: "PP hơi 121°C." };
   }
-  if (spaulding === "NON_CRITICAL") {
-    return {
-      maTramGoiY: "TRAM_KHU_TRUNG",
-      lyDo: "Non-critical → trạm khử trùng / mức thấp hơn tiệt khuẩn",
-    };
+  return { phuongPhapChiDinh: "STEAM_134", lyDo: "Thiết yếu/Bán thiết yếu + chịu nhiệt → hơi 134°C." };
+}
+
+/** @deprecated CSSD-10 — giữ compat test cũ; map PP → mã máy ảo (không ghi specs). */
+export type CssdStationSuggestion = {
+  maTramGoiY: string;
+  lyDo: string;
+};
+
+/** @deprecated Dùng suggestCssdSterileMethodFromMaster. */
+export function suggestCssdStationFromMaster(input: {
+  spaulding?: unknown;
+  sterileMethod?: unknown;
+  isChiuNhiet?: unknown;
+}): CssdStationSuggestion {
+  const s = suggestCssdSterileMethodFromMaster(input);
+  if (!s.phuongPhapChiDinh) {
+    return { maTramGoiY: "", lyDo: s.lyDo };
   }
-  return {
-    maTramGoiY: "TRAM_HOI_134",
-    lyDo: "Critical/Semi + chịu nhiệt + hơi 134°C → trạm hấp 134",
+  const map: Record<CssdSterileMethod, string> = {
+    STEAM_134: "TRAM_HOI_134",
+    STEAM_121: "TRAM_HOI_121",
+    PLASMA: "TRAM_PLASMA",
+    EO: "TRAM_EO",
   };
+  return { maTramGoiY: map[s.phuongPhapChiDinh], lyDo: s.lyDo };
 }
 
 /** Gợi ý máy/PP → mã trạm quy trình đang có trên sổ `TRAM_CSSD` của viện. */
@@ -192,29 +209,40 @@ export function resolveSuggestedTramFromCatalog(
   return null;
 }
 
-export function applyResolvedTramToLoaiSpecs(
+/** CSSD-10: gỡ ma_tram_goi_y khỏi specs; có thể gắn PP chỉ định. */
+export function applySterileMethodSuggestionToLoaiSpecs(
   specs: Record<string, unknown>,
-  resolved: ResolvedCssdTram | null,
-  maTramGoiY: string,
+  suggestion: CssdSterileMethodSuggestion,
 ): Record<string, unknown> {
   const next = { ...specs };
-  const goiY = maTramGoiY.trim().toUpperCase();
-  if (goiY) next.ma_tram_goi_y = goiY;
-  else delete next.ma_tram_goi_y;
-  if (resolved) {
-    next.tram_cssd_id = resolved.id;
-    next.ma_tram_thuc_te = resolved.ma;
-    next.ten_tram_thuc_te = resolved.ten;
+  delete next.ma_tram_goi_y;
+  delete next.tram_cssd_id;
+  delete next.ma_tram_thuc_te;
+  delete next.ten_tram_thuc_te;
+  if (suggestion.phuongPhapChiDinh) {
+    next.phuong_phap_tiet_khuan_chi_dinh_goi_y = suggestion.phuongPhapChiDinh;
   } else {
-    delete next.tram_cssd_id;
-    delete next.ma_tram_thuc_te;
-    delete next.ten_tram_thuc_te;
+    delete next.phuong_phap_tiet_khuan_chi_dinh_goi_y;
   }
   return next;
 }
 
-export function missingTramCssdSeedMessage(maTramGoiY: string): string {
-  return `Chưa gắn được trạm thật cho gợi ý ${maTramGoiY}. Kiểm tra danh mục «Trạm workflow CSSD». Loại dụng cụ đã lưu — chưa ghi id trạm.`;
+/** @deprecated CSSD-10 — không còn gắn trạm gợi ý. */
+export function applyResolvedTramToLoaiSpecs(
+  specs: Record<string, unknown>,
+  _resolved: ResolvedCssdTram | null,
+  _maTramGoiY: string,
+): Record<string, unknown> {
+  const next = { ...specs };
+  delete next.ma_tram_goi_y;
+  delete next.tram_cssd_id;
+  delete next.ma_tram_thuc_te;
+  delete next.ten_tram_thuc_te;
+  return next;
+}
+
+export function missingTramCssdSeedMessage(_maTramGoiY: string): string {
+  return "";
 }
 
 function khoDuPhongBanDau(value: unknown): number {

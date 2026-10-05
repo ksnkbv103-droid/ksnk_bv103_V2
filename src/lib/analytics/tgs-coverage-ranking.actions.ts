@@ -109,7 +109,7 @@ export async function getTgsCoverageRankingAction(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Không tải được xếp hạng bao phủ TGS",
+      error: err instanceof Error ? err.message : "Không tải được bảng bao phủ tự giám sát",
     };
   }
 }

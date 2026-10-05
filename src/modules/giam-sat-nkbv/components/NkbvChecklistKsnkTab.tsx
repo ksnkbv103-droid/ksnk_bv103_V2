@@ -131,6 +131,8 @@ export default function NkbvChecklistKsnkTab({
           allowedEdit={allowedEdit}
           simulatedRole={simulatedRole}
           adjudicating={adjudicating}
+          canConfirmNkbv={liveEvaluation.is_positive === true}
+          classification={liveEvaluation.classification}
         />
       </div>
 

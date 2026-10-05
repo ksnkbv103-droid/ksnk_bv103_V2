@@ -1,11 +1,8 @@
-import { ADMIN_EMAILS } from "@/lib/constants";
-
 export type PermissionRow = { module: string; action: string };
 
-export function createPermissionApi(permissions: PermissionRow[], userRoles: string[], userEmail: string) {
-  const emailNorm = String(userEmail || "").toLowerCase().trim();
-  const finalIsAdmin =
-    userRoles.includes("ADMIN") || ADMIN_EMAILS.some((email) => email.toLowerCase().trim() === emailNorm);
+export function createPermissionApi(permissions: PermissionRow[], userRoles: string[], _userEmail: string) {
+  // ADM-05: break-glass chỉ ở server (env). Client dựa vai trò ADMIN đã hydrate từ RSC.
+  const finalIsAdmin = userRoles.includes("ADMIN");
 
   const checkPermission = (module: string, action: string) => {
     if (finalIsAdmin) return true;

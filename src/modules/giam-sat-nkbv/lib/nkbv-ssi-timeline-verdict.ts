@@ -35,11 +35,11 @@ export type SsiSurveillanceOpts = {
   eventTypeCode?: string | null;
 };
 
-/** Superficial/SIS/DIS luôn 30; DIP/Organ theo mã PT NHSN (fallback implant nếu thiếu mã). */
+/** Superficial/SIS/DIS luôn 30; DIP/Organ theo mã PT NHSN; thiếu mã Deep/Organ → null. */
 export function ssiSurveillancePeriodDays(
   depth: SsiDepth | "NONE",
   hasImplantOrOpts: boolean | SsiSurveillanceOpts = false,
-): number {
+): number | null {
   const opts: SsiSurveillanceOpts =
     typeof hasImplantOrOpts === "boolean"
       ? { hasImplantFallback: hasImplantOrOpts }
@@ -62,6 +62,7 @@ export function ssiSpEndDate(
   hasImplantOrOpts: boolean | SsiSurveillanceOpts = false,
 ): string {
   const n = ssiSurveillancePeriodDays(depth, hasImplantOrOpts);
+  if (n == null) return "";
   return addDays(surgeryDate.slice(0, 10), Math.max(0, n - 1));
 }
 
@@ -73,6 +74,7 @@ export function ssiSpDateSet(
   const start = surgeryDate.slice(0, 10);
   const end = ssiSpEndDate(start, depth, hasImplantOrOpts);
   const out = new Set<string>();
+  if (!end) return out;
   let c = start;
   let g = 0;
   while (c <= end && g < 120) {
@@ -238,7 +240,7 @@ export type BuildSsiTimelineVerdictInput = {
 export type SsiTimelineGate = {
   surgeryDate: string | null;
   doe: string | null;
-  spDays: number;
+  spDays: number | null;
   spEnd: string | null;
   spDates: Set<string>;
   sbapDates: Set<string>;
@@ -286,7 +288,7 @@ export function buildSsiTimelineVerdict(
     warnings.push("Thiếu ngày mổ (Day 1 SP)");
   }
   if (depth !== "SUPERFICIAL" && !getNhsnProcedure(procedureCode)) {
-    warnings.push("Chưa chọn mã phẫu thuật NHSN — SP Deep/Organ dùng fallback implant");
+    warnings.push("Thiếu nhóm thủ thuật NHSN — không xác định SP Deep/Organ");
   }
   if (!ssiEventType) {
     warnings.push("Chưa chọn mã loại sự kiện NHSN (SIP/SIS/DIP/DIS/ORGAN_SPACE)");

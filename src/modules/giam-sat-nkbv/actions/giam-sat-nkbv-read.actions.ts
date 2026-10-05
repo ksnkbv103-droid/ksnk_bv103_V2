@@ -80,9 +80,12 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   if (loai_nkbv_id) countQ = countQ.eq("loai_nkbv_id", loai_nkbv_id);
   if (trang_thai_id) countQ = countQ.eq("trang_thai_id", trang_thai_id);
 
+  // A) select(*). B) cột bảng ca + sort keys — chọn B (payload list).
+  const NKBV_CASE_LIST_SELECT =
+    "id, ma_ca, ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan, ngay_phat_hien, loai_benh_pham, tac_nhan_vi_khuan, so_luong, khoa_ghi_nhan_id, khoa_ma, khoa_ten, loai_nkbv_id, loai_ma, loai_ten, trang_thai_id, trang_thai_ma, trang_thai_ten, clinical_notes, is_active, created_at, updated_at";
   let dataQ = supabase
     .from("v_nkbv_su_kien_full")
-    .select("*")
+    .select(NKBV_CASE_LIST_SELECT)
     .eq("is_active", true)
     .order(sortCol, { ascending })
     .range(from, to);
@@ -214,6 +217,7 @@ export async function listNkbvMedicalRecords(params: {
 
   const searchFilter = buildSupabaseSearchFilter(search, ["ma_benh_an", "ma_benh_nhan", "ho_ten_benh_nhan"]);
 
+  // UI phân trang hàng đợi BA — planned; giữ exact ở đếm nghiệp vụ (chờ XN…).
   let countQ = supabase
     .from("nkbv_fact_benh_an")
     .select("id", { count: "exact", head: true })
@@ -484,6 +488,12 @@ export type NkbvBenhAnHubCase = {
   vi_tri_nhiem_khuan: string | null;
   tac_nhan_vi_khuan: string | null;
   doe: string | null;
+  /** DOE engine — nguồn RIT prior (không dùng Index). */
+  calculated_doe: string | null;
+  classification: string | null;
+  is_positive: boolean | null;
+  is_secondary_bsi: boolean;
+  poa_major_type: string | null;
   poa_hai: string | null;
   major_type: string;
   /** Index XN gắn phiếu (hàng đợi chưa PT) */
@@ -615,7 +625,13 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       vd.cdc_metrics && typeof vd.cdc_metrics === "object"
         ? (vd.cdc_metrics as Record<string, unknown>)
         : vd;
-    const doe = metrics.doe || metrics.DOE || c.ngay_phat_hien || null;
+    const calculatedDoe =
+      typeof vd.calculated_doe === "string" ? vd.calculated_doe.slice(0, 10) : null;
+    const doe =
+      calculatedDoe ||
+      (metrics.doe ? String(metrics.doe).slice(0, 10) : null) ||
+      (metrics.DOE ? String(metrics.DOE).slice(0, 10) : null) ||
+      (c.ngay_phat_hien ? String(c.ngay_phat_hien).slice(0, 10) : null);
     const poaHai = metrics.poa_hai || metrics.POA_HAI || metrics.hai_poa || null;
     const loaiMa = c.loai_ma ? String(c.loai_ma) : null;
     const disp = vd.analysis_disposition === "BO_QUA" ? ("BO_QUA" as const) : null;
@@ -623,6 +639,10 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     const attributed = Array.isArray(vd.attributed_vi_sinh_ids)
       ? (vd.attributed_vi_sinh_ids as unknown[]).map((x) => String(x)).filter(Boolean)
       : [];
+    const classification =
+      typeof vd.classification === "string" ? vd.classification : null;
+    const isPositive =
+      typeof vd.is_positive === "boolean" ? vd.is_positive : null;
     return {
       id: String(c.id),
       ma_ca: c.ma_ca ? String(c.ma_ca) : null,
@@ -634,6 +654,12 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       vi_tri_nhiem_khuan: c.vi_tri_nhiem_khuan ? String(c.vi_tri_nhiem_khuan) : null,
       tac_nhan_vi_khuan: c.tac_nhan_vi_khuan ? String(c.tac_nhan_vi_khuan) : null,
       doe: doe ? String(doe).slice(0, 10) : null,
+      calculated_doe: calculatedDoe,
+      classification,
+      is_positive: isPositive,
+      is_secondary_bsi: Boolean(vd.is_secondary_bsi),
+      poa_major_type:
+        typeof vd.poa_major_type === "string" ? vd.poa_major_type : null,
       poa_hai: poaHai ? String(poaHai) : null,
       major_type: resolveNkbvMajorType({
         loai_ma: loaiMa,

@@ -47,7 +47,6 @@ export function evaluateCh17Type(input: {
   typeCode: string | null | undefined;
   evidence: Record<string, boolean>;
   procedureCode?: string | null;
-  isInfantLe1?: boolean;
 }): Ch17EvalResult {
   const def = ch17TypeDef(input.typeCode);
   if (!def) {
@@ -62,7 +61,6 @@ export function evaluateCh17Type(input: {
   const ctx: Ch17EvalContext = {
     evidence: input.evidence || {},
     procedureCode: input.procedureCode,
-    isInfantLe1: input.isInfantLe1,
   };
   return evaluateCh17TypeDef(def, ctx);
 }

@@ -88,6 +88,18 @@ export async function saveBangKiem(data: Record<string, unknown>) {
     const apErr = validateApDungForSave(apDung);
     if (apErr) throw new Error(apErr);
 
+    const id = typeof idRaw === "string" ? idRaw : "";
+    // ADM-06: is_system do server giữ — bỏ giá trị client.
+    let isSystem = false;
+    if (id) {
+      const admin = createAdminSupabaseClient();
+      const { data: existing } = await admin
+        .from("gstt_dm_bang_kiem")
+        .select("is_system")
+        .eq("id", id)
+        .maybeSingle();
+      isSystem = existing?.is_system === true;
+    }
     const payload = {
       ma_bk: str(data, "ma_bk", "ma_bang_kiem"),
       ten_bang_kiem: str(data, "ten_bang_kiem", "ten_bk"),
@@ -98,10 +110,9 @@ export async function saveBangKiem(data: Record<string, unknown>) {
       loai_hinh_giam_sat: str(data, "loai_hinh_giam_sat") || "TRUC_TIEP",
       ap_dung_jsonb: apDung,
       is_active: typeof data.is_active === "boolean" ? data.is_active : true,
-      is_system: typeof data.is_system === "boolean" ? data.is_system : false,
+      is_system: isSystem,
       updated_at: new Date().toISOString(),
     };
-    const id = typeof idRaw === "string" ? idRaw : "";
     const result = await upsertMasterRow("gstt_dm_bang_kiem", id, payload);
     if (!result.success) throw new Error(result.error);
     revalidatePath("/quan-tri-he-thong");

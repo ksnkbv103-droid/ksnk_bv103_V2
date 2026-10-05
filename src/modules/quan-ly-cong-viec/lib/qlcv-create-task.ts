@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeQlcvNguonHref } from "@/lib/analytics/qlcv-source-deep-link";
 import { normalizeQlcvDmFields } from "./qlcv-persist-dm-fields";
 import { QLCV_FACT_WRITE_TABLE } from "./qlcv-fact-write";
 import { throwQlcvDbError } from "./qlcv-supabase-error";
@@ -6,6 +7,7 @@ import { resolveQlcvTrangThaiMaForTask } from "./qlcv-initial-trang-thai";
 import { validateAssigneeForQlcv } from "./qlcv-ksnk-server";
 import { resolveQlcvNhiemVuId } from "./qlcv-nhiem-vu-chain";
 import { normalizeQlcvStaffIdList } from "./qlcv-staff-ids";
+import { qlcvTodayVn } from "./qlcv-today-vn";
 
 export type QlcvInsertTaskPayload = {
   tieu_de: string;
@@ -31,10 +33,17 @@ export type QlcvInsertTaskPayload = {
     ky_do_lai?: string | null;
     gia_tri_luc_tao?: number | null;
   } | null;
+  nguon_lien_ket?: {
+    module: "CSSD_SU_CO" | "GIAM_SAT" | "NKBV" | "analytics";
+    id?: string | null;
+    ma?: string | null;
+    label?: string | null;
+    href?: string | null;
+  } | null;
 };
 
 function qlcvTodayDateStr(): string {
-  return new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
+  return qlcvTodayVn();
 }
 
 export function normalizeQlcvHanDate(han: string | null | undefined): string | null {
@@ -130,6 +139,19 @@ export async function insertQlcvTaskRow(
         }
       : {};
 
+  const nguon = payload.nguon_lien_ket;
+  const safeNguonHref = sanitizeQlcvNguonHref(nguon?.href);
+  const nguon_lien_ket =
+    nguon && nguon.module
+      ? {
+          module: String(nguon.module),
+          ...(nguon.id ? { id: String(nguon.id) } : {}),
+          ...(nguon.ma ? { ma: String(nguon.ma) } : {}),
+          ...(nguon.label ? { label: String(nguon.label) } : {}),
+          ...(safeNguonHref ? { href: safeNguonHref } : {}),
+        }
+      : null;
+
   const { data, error } = await supabase
     .from(QLCV_FACT_WRITE_TABLE)
     .insert({
@@ -152,6 +174,7 @@ export async function insertQlcvTaskRow(
       is_active: payload.is_active,
       nhat_ky: [],
       analytics_meta,
+      ...(nguon_lien_ket ? { nguon_lien_ket } : {}),
     })
     .select()
     .single();

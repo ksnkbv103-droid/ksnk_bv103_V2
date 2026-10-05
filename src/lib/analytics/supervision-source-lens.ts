@@ -8,13 +8,24 @@ import {
   type MomentLike,
   type TopViolationLike,
 } from "@/lib/analytics/supervision-action-board";
+import { DOI_SOAT_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
 
 export type SupervisionSourceLens = "ksnk" | "tgs";
+
+/** Mã stype RPC (`p_hinh_thuc_ids`) — khớp filter Dashboard / gap_analysis. */
+export const SUPERVISION_LENS_HINH_THUC_IDS: Record<SupervisionSourceLens, string> = {
+  ksnk: "KSNK",
+  tgs: "TU_GIAM_SAT",
+};
 
 export const SUPERVISION_SOURCE_LENS_LABEL: Record<SupervisionSourceLens, string> = {
   ksnk: "Chuyên trách",
   tgs: "Tự giám sát",
 };
+
+export function hinhThucIdsForLens(lens: SupervisionSourceLens): string[] {
+  return [SUPERVISION_LENS_HINH_THUC_IDS[lens]];
+}
 
 export function otherLens(lens: SupervisionSourceLens): SupervisionSourceLens {
   return lens === "ksnk" ? "tgs" : "ksnk";
@@ -53,9 +64,25 @@ export function gapRowsWithLensData(rows: GapKhoaRow[], lens: SupervisionSourceL
   return rows.filter((r) => (lens === "ksnk" ? r.vol_ksnk > 0 : r.vol_tgs > 0));
 }
 
-/** Đối soát comparable — cả hai nguồn > 0. */
-export function comparableGapRows(rows: GapKhoaRow[]): GapKhoaRow[] {
-  return rows.filter((r) => r.vol_ksnk > 0 && r.vol_tgs > 0 && r.ty_le_ksnk != null && r.ty_le_tgs != null);
+/** Đối soát comparable — cả hai nguồn đủ min-N (GS-07); mặc định > 0 nếu không truyền source. */
+export function comparableGapRows(
+  rows: GapKhoaRow[],
+  opts?: { source?: "vst" | "gsc"; minSample?: number },
+): GapKhoaRow[] {
+  const min =
+    opts?.minSample ??
+    (opts?.source === "vst"
+      ? DOI_SOAT_MIN_SAMPLE.vst
+      : opts?.source === "gsc"
+        ? DOI_SOAT_MIN_SAMPLE.gsc
+        : 1);
+  return rows.filter(
+    (r) =>
+      r.vol_ksnk >= min &&
+      r.vol_tgs >= min &&
+      r.ty_le_ksnk != null &&
+      r.ty_le_tgs != null,
+  );
 }
 
 export function buildActionBoardFromGap(input: {

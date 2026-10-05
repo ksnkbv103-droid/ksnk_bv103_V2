@@ -143,11 +143,16 @@ export type MeQcDraft = {
   thongSoVatLy: "DAT" | "KHONG_DAT" | "";
   ciNgoaiGoi: "DAT" | "KHONG_DAT" | "";
   ciPcd: "DAT" | "KHONG_DAT" | "";
-  trangThaiBi: "CHUA_CO" | "AM" | "DUONG" | "";
+  trangThaiBi: "CHUA_CO" | "DANG_U" | "AM" | "DUONG" | "";
+  ongDoiChung?: "AM" | "DUONG" | "";
+  ongThu?: "AM" | "DUONG" | "";
+  gioBatDauU?: string;
+  gioDoc?: string;
+  soLoBi?: string;
 };
 
 const TRI = new Set(["DAT", "KHONG_DAT", ""]);
-const BI = new Set(["CHUA_CO", "AM", "DUONG", ""]);
+const BI = new Set(["CHUA_CO", "DANG_U", "AM", "DUONG", ""]);
 
 export function meQcDraftStorageKey(batchId: string): string {
   return `bv103.me-qc-draft.${String(batchId || "").trim()}`;

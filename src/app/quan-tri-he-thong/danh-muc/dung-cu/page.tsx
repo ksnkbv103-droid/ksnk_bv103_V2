@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import QuanLyDungCuPage from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/QuanLyDungCuPage";
 
-export const metadata = { title: "Quản lý dụng cụ | BV103" };
+export const metadata = { title: "Dụng cụ" };
 
 export default function Page() {
   return (

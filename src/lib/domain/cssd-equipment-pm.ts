@@ -22,12 +22,14 @@ export function pmDueLabel(status: PmDueStatus): string {
 }
 
 export function trangThaiMayLabel(st: string | null | undefined): string {
-  const s = String(st || "").trim();
-  if (s === "READY" || s === "HOAT_DONG") return "Sẵn sàng";
-  if (s === "REPAIRING") return "Đang bảo dưỡng/sửa";
+  const s = String(st || "").trim().toUpperCase();
+  if (s === "READY" || s === "HOAT_DONG" || s === "SAN_SANG") return "Sẵn sàng";
+  if (s === "REPAIRING" || s === "BAO_TRI") return "Đang bảo dưỡng/sửa";
   if (s === "HOLD_QC") return "Tạm giữ QC";
+  if (s === "CHO_THAM_DINH") return "Chờ thẩm định";
   if (s === "BROKEN") return "Hỏng";
   if (s === "RETIRED") return "Ngưng dùng";
+  if (s === "HUY") return "Đã hủy";
   return s || "—";
 }
 

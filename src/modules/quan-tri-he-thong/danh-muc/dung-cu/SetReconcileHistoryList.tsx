@@ -7,13 +7,7 @@ import { listSetReconcileHistoryAction } from "@/modules/cssd-su-co/actions/set-
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
-
-const STATUS_LABEL: Record<string, string> = {
-  BOM_APPROVED: "Đã duyệt đổi mã · tên · số lượng",
-  BOM_REJECTED: "Từ chối đổi mã · tên · số lượng",
-  BOM_APPLY_FAILED: "Ghi bảng thành phần lỗi",
-  NONE: "Đã ghi sổ sự cố / khớp",
-};
+import { setReconcileStatusLabel } from "@/lib/domain/cssd-set-reconcile";
 
 type HistoryRow = {
   id: string;
@@ -60,7 +54,7 @@ export function SetReconcileHistoryList() {
               {r.tenBo ? ` · ${r.tenBo}` : ""}
             </p>
             <p className="text-[11px] text-slate-500">
-              {STATUS_LABEL[r.status] || r.status} · {formatDateTimeVi(r.createdAt)}
+              {setReconcileStatusLabel(r.status)} · {formatDateTimeVi(r.createdAt)}
               {r.moTa ? ` · ${r.moTa}` : ""}
             </p>
           </div>

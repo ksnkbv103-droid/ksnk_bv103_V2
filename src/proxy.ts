@@ -1,13 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  isPathBlockedUnderPilotCoreModules,
-  isPilotCoreModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-core-modules-scope";
-import {
-  isPathBlockedUnderPilotFourModules,
-  isPilotFourModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-four-modules-scope";
+import { isPathBlockedUnderActivePilot } from "@/lib/ksnk-pilot-route-scope";
 import {
   GUEST_STATS_HOME_PATH,
   isGuestStatsOnlyRole,
@@ -46,13 +39,7 @@ function copyResponseCookies(from: NextResponse, to: NextResponse) {
  */
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  if (isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules(pathname)) {
-    return new NextResponse(null, { status: 404 });
-  } else if (
-    isPilotFourModulesScopeEnabled() &&
-    !isPilotCoreModulesScopeEnabled() &&
-    isPathBlockedUnderPilotFourModules(pathname)
-  ) {
+  if (isPathBlockedUnderActivePilot(pathname)) {
     return new NextResponse(null, { status: 404 });
   }
 
@@ -128,14 +115,20 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // IMPORTANT: getUser() xác minh JWT qua Supabase Auth API (server-side),
-  // không chỉ đọc cookie như getSession() — ngăn JWT spoofing.
+  // A) getUser() → /auth/v1/user mỗi navigation. B) getClaims() verify JWT/JWKS local — chọn B.
+  // Fallback getUser nếu claims lỗi (symmetric JWT / WebCrypto thiếu).
   let user: { id: string } | null = null;
   try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
+    const claimsRes = await supabase.auth.getClaims();
+    const sub = claimsRes.data?.claims?.sub;
+    if (typeof sub === "string" && sub.length > 0) {
+      user = { id: sub };
+    } else if (claimsRes.error) {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    }
   } catch (err) {
-    console.error("[proxy] Supabase auth.getUser failed:", err);
+    console.error("[proxy] Supabase auth.getClaims/getUser failed:", err);
     if (!onLoginRoute) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = "/login";
@@ -157,7 +150,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user) {
-    // BE-GUEST-01: enforce allowlist guest ở proxy (không chỉ client guard).
+    // BE-GUEST-01: allowlist guest chỉ theo roles từ DB — không tin cookie client (unsigned
+    // `ksnk_guest_stats=0` từng cho phép vượt allowlist).
     let guestOnly = false;
     try {
       const { data: permRow } = await supabase
@@ -165,9 +159,7 @@ export async function proxy(request: NextRequest) {
         .select("roles")
         .eq("auth_user_id", user.id)
         .maybeSingle();
-      const roles = Array.isArray(permRow?.roles)
-        ? (permRow.roles as string[])
-        : [];
+      const roles = Array.isArray(permRow?.roles) ? (permRow.roles as string[]) : [];
       guestOnly = isGuestStatsOnlyRole(roles);
     } catch (err) {
       console.error("[proxy] guest role lookup failed:", err);

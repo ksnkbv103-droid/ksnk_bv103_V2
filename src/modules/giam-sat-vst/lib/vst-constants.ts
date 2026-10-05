@@ -1,3 +1,4 @@
+/** Chuỗi lưu DB / RPC — giữ nguyên (prod đã có đúng 5 nhãn). */
 export const MOMENTS = [
   "Trước khi tiếp xúc người bệnh",
   "Trước khi làm thủ thuật vô khuẩn",
@@ -8,6 +9,34 @@ export const MOMENTS = [
 
 export type MomentType = (typeof MOMENTS)[number];
 
+/** Nhãn hiển thị QT.07 / WHO — map 1:1, không đổi chuỗi DB (VST-08). */
+export const MOMENT_DISPLAY_LABEL: Record<MomentType, string> = {
+  "Trước khi tiếp xúc người bệnh": "Trước khi tiếp xúc người bệnh",
+  "Trước khi làm thủ thuật vô khuẩn": "Trước khi làm thủ thuật vô khuẩn",
+  "Sau khi có nguy cơ tiếp xúc với dịch":
+    "Sau khi có nguy cơ phơi nhiễm với máu và dịch cơ thể",
+  "Sau khi tiếp xúc người bệnh": "Sau khi tiếp xúc người bệnh",
+  "Sau khi tiếp xúc xung quanh người bệnh":
+    "Sau khi tiếp xúc với môi trường xung quanh người bệnh",
+};
+
+/** Mã viết tắt domain 11:86–90 — TĐ1/TĐ4 tách riêng (VST-08). */
+export const MOMENT_SHORT_CODE: Record<MomentType, string> = {
+  "Trước khi tiếp xúc người bệnh": "T-NB",
+  "Trước khi làm thủ thuật vô khuẩn": "T-VK",
+  "Sau khi có nguy cơ tiếp xúc với dịch": "S-DCT",
+  "Sau khi tiếp xúc người bệnh": "S-NB",
+  "Sau khi tiếp xúc xung quanh người bệnh": "S-XQ NB",
+};
+
+export function momentDisplayLabel(raw: string | null | undefined): string {
+  const key = String(raw ?? "").trim();
+  if ((MOMENTS as readonly string[]).includes(key)) {
+    return MOMENT_DISPLAY_LABEL[key as MomentType];
+  }
+  return key;
+}
+
 export const ACTIONS = [
   "Rửa tay bằng nước",
   "Chà tay bằng cồn",
@@ -16,18 +45,28 @@ export const ACTIONS = [
 
 export type ActionType = (typeof ACTIONS)[number];
 
+/** Nhãn nút hành động (DB giữ «Rửa tay bằng nước»). */
+export const ACTION_DISPLAY_LABEL: Record<ActionType, string> = {
+  "Rửa tay bằng nước": "Rửa tay với xà phòng và nước",
+  "Chà tay bằng cồn": "Chà tay bằng cồn",
+  "Bỏ sót": "Bỏ sót",
+};
+
+export function actionDisplayLabel(raw: string | null | undefined): string {
+  const key = String(raw ?? "").trim();
+  if ((ACTIONS as readonly string[]).includes(key)) {
+    return ACTION_DISPLAY_LABEL[key as ActionType];
+  }
+  return key;
+}
+
 /** Bỏ sót = không tuân thủ. */
 export function isVstMissedAction(hanhDong: string | null | undefined): boolean {
   return hanhDong === "Bỏ sót";
 }
 
-/**
- * Số chỉ định WHO tối đa trên một cơ hội:
- * tuân thủ (rửa tay / chà cồn) → 2; không tuân thủ (bỏ sót) → 1.
- */
-export function vstMaxIndications(hanhDong: string | null | undefined): 1 | 2 {
-  return isVstMissedAction(hanhDong) ? 1 : 2;
-}
+/** WHO W4: một cơ hội nhận 1–5 thời điểm cho mọi hành động. */
+export const VST_MAX_MOMENTS_PER_OPP = 5;
 
 export interface VSTOpportunity {
   thoi_diems: MomentType[];

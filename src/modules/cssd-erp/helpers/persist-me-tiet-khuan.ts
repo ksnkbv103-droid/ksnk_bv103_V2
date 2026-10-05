@@ -4,11 +4,23 @@ import { appendQuyTrinhException } from "../actions/cssd-action-common";
 import { derivePassQuyTrinhIds, type PassMemberRow } from "../lib/me-tiet-khuan-batch-integrity";
 import { evaluateMeQcRelease, type MeQcOutcome } from "../lib/me-tiet-khuan-qc";
 import { assertImplantReleaseWithoutBiBlocked } from "../lib/me-tiet-khuan-ab-gates";
+import {
+  assertBiAmReleaseAllowed,
+  assertBiBm02HopLe,
+  biBm02ToQcPatch,
+  type BiBm02Input,
+} from "../lib/me-tiet-khuan-bi";
 import { getSterilizerMethod, type SterilizerMethod } from "./me-tiet-khuan-machine-kind";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { applyBatchRecallAndHoldMachine } from "@/modules/cssd-su-co/application/batch-recall-hold.application";
 import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
-import { buildChuongTrinhEditAudit, type ChuongTrinhPrefill } from "../lib/me-tiet-khuan-chuong-trinh";
+import {
+  buildChuongTrinhEditAudit,
+  resolveChuongTrinhChuanFromOptions,
+  resolveChuongTrinhOptions,
+  type ChuongTrinhChuanSpec,
+  type ChuongTrinhPrefill,
+} from "../lib/me-tiet-khuan-chuong-trinh";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -28,6 +40,12 @@ export type PersistMeTietKhuanInput = {
   ciNgoaiGoi: string;
   ciPcd: string;
   trangThaiBi: string;
+  /** ME-01 BM.02 — bắt buộc khi nhả với BI âm. */
+  ongDoiChung?: string;
+  ongThu?: string;
+  gioBatDauU?: string;
+  gioDoc?: string;
+  soLoBi?: string;
   anhMinhChung?: string;
 };
 
@@ -82,6 +100,36 @@ function asHeatFlag(value: unknown): boolean | null {
 }
 
 /** Cờ chịu nhiệt thô theo BOM bộ — null khi thiếu loại, không ép thành false. */
+export async function loadChuongTrinhChuanForMeFinish(
+  client: SupabaseClient,
+  input: {
+    thietBiId?: string | null;
+    phuongPhap?: string | null;
+    thietBi?: unknown;
+    chuongTrinh?: string | null;
+  },
+): Promise<ChuongTrinhChuanSpec | null> {
+  const method =
+    getSterilizerMethod({ phuong_phap: input.phuongPhap }) || getSterilizerMethod(input.thietBi);
+  if (!method) return null;
+  const tbId = String(input.thietBiId || "").trim();
+  let specs: unknown = null;
+  let mdmRows: Array<Record<string, unknown>> | null = null;
+  if (tbId) {
+    const { data: tb } = await client.from("cssd_dm_thiet_bi").select("specs").eq("id", tbId).maybeSingle();
+    specs = (tb as { specs?: unknown } | null)?.specs;
+    const { data: mdm } = await client
+      .from("cssd_dm_chuong_trinh_may")
+      .select(
+        "ma_chuong_trinh, ten_chuong_trinh, nhiet_do_chuan, ap_suat_chuan, thoi_gian_chuan, is_active",
+      )
+      .eq("thiet_bi_id", tbId);
+    mdmRows = (mdm || []) as Array<Record<string, unknown>>;
+  }
+  const options = resolveChuongTrinhOptions({ method, specs, mdmRows });
+  return resolveChuongTrinhChuanFromOptions(options, input.chuongTrinh);
+}
+
 export async function loadKitHeatLinesByBoIds(
   client: SupabaseClient,
   boIds: string[],
@@ -93,7 +141,7 @@ export async function loadKitHeatLinesByBoIds(
 
   const { data, error } = await client
     .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet)")
+    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh)")
     .in("bo_dung_cu_id", ids);
   if (error) return { ok: false, message: error.message };
 
@@ -107,7 +155,12 @@ export async function loadKitHeatLinesByBoIds(
     const boId = String(row.bo_dung_cu_id || "").trim();
     if (!boId || !byBo.has(boId)) continue;
     const loai = unwrapRelation(row.cssd_dm_loai_dung_cu);
-    byBo.get(boId)?.push({ is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null });
+    byBo.get(boId)?.push({
+      is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null,
+      phuong_phap_tiet_khuan_chi_dinh: loai
+        ? (loai as { phuong_phap_tiet_khuan_chi_dinh?: string | null }).phuong_phap_tiet_khuan_chi_dinh
+        : null,
+    });
   }
   return { ok: true, byBo };
 }
@@ -126,6 +179,17 @@ async function batchHasImplant(client: SupabaseClient, boIds: string[]): Promise
   return (data || []).some((row) => (row as { is_implant?: boolean | null }).is_implant === true);
 }
 
+function biFieldsFromPersist(p: PersistMeTietKhuanInput): BiBm02Input {
+  return {
+    trangThaiBi: p.trangThaiBi,
+    ongDoiChung: p.ongDoiChung,
+    ongThu: p.ongThu,
+    gioBatDauU: p.gioBatDauU,
+    gioDoc: p.gioDoc,
+    soLoBi: p.soLoBi,
+  };
+}
+
 function qcJson(args: {
   p: PersistMeTietKhuanInput;
   method: SterilizerMethod | null;
@@ -136,6 +200,7 @@ function qcJson(args: {
   apSuat: number | null;
   thoiGianChuKy: number | null;
   prev: Record<string, unknown>;
+  biPatch?: Record<string, string>;
 }): Record<string, unknown> {
   return {
     ...args.prev,
@@ -147,6 +212,7 @@ function qcJson(args: {
     co_implant: args.coImplant ? "true" : "false",
     phuong_phap: args.method || "",
     chuong_trinh: String(args.p.chuongTrinh || "").trim().slice(0, 80),
+    ...(args.biPatch || {}),
     ...(buildChuongTrinhEditAudit({
       prefill: args.p.chuongPrefill,
       chuongTrinh: String(args.p.chuongTrinh || ""),
@@ -187,7 +253,7 @@ export async function persistMeTietKhuanFinishWithClient(
 
   const { data: gateRow, error: gateErr } = await client
     .from("cssd_fact_lo_tiet_khuan")
-    .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json, phuong_phap, trang_thai_me, thiet_bi_id, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
+    .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json, phuong_phap, trang_thai_me, thiet_bi_id, chuong_trinh, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
     .eq("id", p.activeMeId)
     .maybeSingle();
   if (gateErr) return { ok: false, message: gateErr.message };
@@ -198,6 +264,8 @@ export async function persistMeTietKhuanFinishWithClient(
     tk_qc_json?: unknown;
     phuong_phap?: string | null;
     trang_thai_me?: string | null;
+    thiet_bi_id?: string | null;
+    chuong_trinh?: string | null;
     thiet_bi?: unknown;
   };
   if (!g.tk_mo_form_qc_at) {
@@ -221,6 +289,12 @@ export async function persistMeTietKhuanFinishWithClient(
   }
 
   const method = getSterilizerMethod({ phuong_phap: g.phuong_phap }) || getSterilizerMethod(g.thiet_bi);
+  const chuongTrinhChuan = await loadChuongTrinhChuanForMeFinish(client, {
+    thietBiId: g.thiet_bi_id,
+    phuongPhap: g.phuong_phap,
+    thietBi: g.thiet_bi,
+    chuongTrinh: p.chuongTrinh || g.chuong_trinh,
+  });
   const evaluated = evaluateMeQcRelease({
     thongSoVatLy: p.thongSoVatLy,
     ciNgoaiGoi: p.ciNgoaiGoi,
@@ -231,6 +305,7 @@ export async function persistMeTietKhuanFinishWithClient(
     nhietDo: p.nhietDo,
     apSuat: p.apSuat,
     thoiGianChuKy: p.thoiGianChuKy,
+    chuongTrinhChuan,
   });
   if (!evaluated.ok) return evaluated;
 
@@ -248,6 +323,19 @@ export async function persistMeTietKhuanFinishWithClient(
     return { ok: false, message: "QC đạt và BI chưa có — mẻ chuyển chờ BI, không kết luận không đạt." };
   }
 
+  let biPatch: Record<string, string> | undefined;
+  if (decision.outcome === "HOAN_THANH" && String(p.trangThaiBi || "").trim().toUpperCase() === "AM") {
+    const biGate = assertBiAmReleaseAllowed(biFieldsFromPersist(p));
+    if (!biGate.ok) return biGate;
+    const bm = assertBiBm02HopLe(biFieldsFromPersist(p));
+    if (!bm.ok) return bm;
+    biPatch = biBm02ToQcPatch(bm.record);
+  } else if (String(p.trangThaiBi || "").trim().toUpperCase() === "DUONG") {
+    const bm = assertBiBm02HopLe(biFieldsFromPersist(p));
+    if (!bm.ok) return bm;
+    biPatch = biBm02ToQcPatch(bm.record);
+  }
+
   const prevJson = (g.tk_qc_json && typeof g.tk_qc_json === "object" ? g.tk_qc_json : {}) as Record<string, unknown>;
   const payload = qcJson({
     p,
@@ -259,6 +347,7 @@ export async function persistMeTietKhuanFinishWithClient(
     apSuat: decision.apSuat,
     thoiGianChuKy: decision.thoiGianChuKy,
     prev: prevJson,
+    biPatch,
   });
   const ghiChu = `Chương trình: ${payload.chuong_trinh || "—"} | VL:${p.thongSoVatLy} CI ngoài:${p.ciNgoaiGoi} CI PCD:${p.ciPcd} BI:${p.trangThaiBi} | Người dỡ: ${p.nguoiUnload}`;
   const operatorId = await resolveCssdOperatorNhanSuId(client, {
@@ -351,7 +440,7 @@ export async function persistMeTietKhuanFinishWithClient(
   };
 }
 
-/** Mẻ chờ BI: âm → nhả. BI dương (kể cả mẻ đã nhả) → thu hồi cửa sổ cùng máy. */
+/** Mẻ chờ BI: âm → nhả. BI dương (kể cả mẻ đã nhả) → thu hồi cửa sổ cùng máy. BI tuần hơi nước đã nhả: chỉ ghi sổ. */
 export async function persistMeBiResultWithClient(
   client: SupabaseClient,
   args: {
@@ -360,11 +449,16 @@ export async function persistMeBiResultWithClient(
     operatorAuthUserId: string;
     operatorEmail?: string | null;
     nguoiLabel: string;
+    ongDoiChung?: string;
+    ongThu?: string;
+    gioBatDauU?: string;
+    gioDoc?: string;
+    soLoBi?: string;
   },
 ): Promise<
   | {
       ok: true;
-      outcome: "HOAN_THANH" | "QC_KHONG_DAT";
+      outcome: "HOAN_THANH" | "QC_KHONG_DAT" | "BI_GHI_SO";
       incidentIds?: string[];
       createdCount?: number;
       skippedCount?: number;
@@ -377,18 +471,35 @@ export async function persistMeBiResultWithClient(
 > {
   const actorUserId = String(args.operatorAuthUserId || "").trim();
   if (!actorUserId) return { ok: false, message: "Không xác định được người thực hiện." };
+  const bm = assertBiBm02HopLe({
+    trangThaiBi: args.ketQua,
+    ongDoiChung: args.ongDoiChung,
+    ongThu: args.ongThu,
+    gioBatDauU: args.gioBatDauU,
+    gioDoc: args.gioDoc,
+    soLoBi: args.soLoBi,
+  });
+  if (!bm.ok) return bm;
+  const biPatch = biBm02ToQcPatch(bm.record);
+
   const { data: me, error } = await client
     .from("cssd_fact_lo_tiet_khuan")
-    .select("id, ma_lo_tiet_khuan, trang_thai_me, ket_qua_test")
+    .select("id, ma_lo_tiet_khuan, trang_thai_me, ket_qua_test, tk_qc_json")
     .eq("id", args.batchId)
     .maybeSingle();
   if (error) return { ok: false, message: error.message };
   if (!me) return { ok: false, message: "Không tìm thấy mẻ." };
-  const row = me as { ma_lo_tiet_khuan?: string | null; trang_thai_me?: string | null; ket_qua_test?: boolean | null };
+  const row = me as {
+    ma_lo_tiet_khuan?: string | null;
+    trang_thai_me?: string | null;
+    ket_qua_test?: boolean | null;
+    tk_qc_json?: unknown;
+  };
   const waitingBi = row.trang_thai_me === "CHO_BI" && row.ket_qua_test == null;
   const released = row.trang_thai_me === "HOAN_THANH" || row.ket_qua_test === true;
-  if (args.ketQua === "AM" && !waitingBi) {
-    return { ok: false, message: "Chỉ nhập BI âm cho mẻ đang chờ kết quả BI." };
+  /** ME-01: BI tuần — ghi âm trên mẻ đã nhả (không đổi trạng thái). */
+  if (args.ketQua === "AM" && !waitingBi && !released) {
+    return { ok: false, message: "Chỉ nhập BI âm cho mẻ đang chờ kết quả BI hoặc mẻ đã nhả (BI tuần)." };
   }
   if (args.ketQua === "DUONG" && !waitingBi && !released) {
     return { ok: false, message: "Chỉ ghi BI dương cho mẻ đang chờ BI hoặc đã nhả." };
@@ -400,14 +511,53 @@ export async function persistMeBiResultWithClient(
     hoTen: args.nguoiLabel,
   });
 
-  if (args.ketQua === "AM") {
+  if (args.ketQua === "AM" && waitingBi) {
     const { error: rpcErr } = await client.rpc("rpc_cssd_me_nhap_bi_am", {
       p_me_id: args.batchId,
       p_actor_user_id: actorUserId,
       p_nguoi_nhan_su_id: operatorId,
+      p_qc_bi_json: biPatch,
     });
-    if (rpcErr) return { ok: false, message: rpcErr.message };
+    if (rpcErr) {
+      /** Tương thích khi migration chưa apply (RPC cũ không có p_qc_bi_json). */
+      if (/p_qc_bi_json|function public\.rpc_cssd_me_nhap_bi_am/i.test(rpcErr.message)) {
+        const { error: rpcErr2 } = await client.rpc("rpc_cssd_me_nhap_bi_am", {
+          p_me_id: args.batchId,
+          p_actor_user_id: actorUserId,
+          p_nguoi_nhan_su_id: operatorId,
+        });
+        if (rpcErr2) return { ok: false, message: rpcErr2.message };
+        const prev = (row.tk_qc_json && typeof row.tk_qc_json === "object" ? row.tk_qc_json : {}) as Record<
+          string,
+          unknown
+        >;
+        await client
+          .from("cssd_fact_lo_tiet_khuan")
+          .update({ tk_qc_json: { ...prev, ...biPatch } })
+          .eq("id", args.batchId);
+        return { ok: true, outcome: "HOAN_THANH" };
+      }
+      return { ok: false, message: rpcErr.message };
+    }
     return { ok: true, outcome: "HOAN_THANH" };
+  }
+
+  if (args.ketQua === "AM" && released) {
+    const prev = (row.tk_qc_json && typeof row.tk_qc_json === "object" ? row.tk_qc_json : {}) as Record<
+      string,
+      unknown
+    >;
+    const { error: updErr } = await client
+      .from("cssd_fact_lo_tiet_khuan")
+      .update({
+        trang_thai_bi: "AM",
+        ket_qua_bi: true,
+        tk_qc_json: { ...prev, ...biPatch, bi_tuan_sau_nha: true },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", args.batchId);
+    if (updErr) return { ok: false, message: updErr.message };
+    return { ok: true, outcome: "BI_GHI_SO" };
   }
 
   const linked = await loadLinkedBatchMembers(client, args.batchId);

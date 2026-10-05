@@ -16,6 +16,9 @@ export type BaoCaoTongHopFilters = {
   nghe_nghiep_ids?: string[];
   khu_vuc_ids?: string[];
   hinh_thuc_ids?: string[];
+  /** BCTH-03: lens VST / GSC riêng (mặc định KSNK). */
+  hinh_thuc_ids_vst?: string[];
+  hinh_thuc_ids_gsc?: string[];
   bang_kiem_mas?: string[];
   chuyen_de?: BaoCaoChuyenDe;
 };
@@ -39,8 +42,6 @@ export type BaoCaoKhoaRankRow = {
   label: string;
   ty_le_vst: number | null;
   ty_le_gsc: number | null;
-  /** Trung bình đơn giản VST% và GSC% khi cả hai có giá trị. */
-  ty_le_avg: number | null;
   tong_co_hoi_vst: number;
   tong_quan_sat_gsc: number;
   /** false khi khoa được lọc nhưng không có phiên trong kỳ. */
@@ -58,6 +59,8 @@ export type BaoCaoTongHopPayload = {
   errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string };
   vst: VstStrategicPayload | null;
   gsc: GscStrategicPayload | null;
+  /** BCTH-01: payload GSC chỉ BM.02/03 — khối Vệ sinh tay, độc lập lọc BK GSC. */
+  gsc_ve_sinh_tay: GscStrategicPayload | null;
   nkbv: NkbvDashboardPayload | null;
   /** Phụ lục vận hành CSSD — không gộp vào VST/GSC. */
   cssd: BaoCaoCssdAppendix | null;

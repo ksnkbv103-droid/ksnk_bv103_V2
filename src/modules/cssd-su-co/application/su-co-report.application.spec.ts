@@ -117,6 +117,21 @@ describe("executeIncidentReportAndRollback nháp", () => {
     const supabase = client({
       rpcResult: { success: true, su_co_id: "draft-1", idempotent: false },
       quyTrinhUpdateError: true,
+      // SC-04: cờ đỏ chỉ PROCESS — đủ prior để cập nhật quy_trinh (và lỗi mock).
+      priorRows: [
+        {
+          id: "p1",
+          quy_trinh_id: "qt-1",
+          is_active: true,
+          attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
+        },
+        {
+          id: "p2",
+          quy_trinh_id: "qt-1",
+          is_active: true,
+          attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL" },
+        },
+      ],
     });
     await expect(
       executeIncidentReportAndRollback(
@@ -153,36 +168,43 @@ describe("executeIncidentReportAndRollback nháp", () => {
     expect(res.incident_id).toBe("new-1");
   });
 
-  it("cờ đỏ chỉ khi đủ hai phiếu còn hiệu lực trên đúng chu kỳ", async () => {
+  it("SC-04: cờ đỏ khi ≥2 phiếu PROCESS còn hiệu lực trên đúng chu kỳ", async () => {
     const supabase = client({
-      rpcResult: { success: true, su_co_id: "hong-1" },
+      rpcResult: { success: true, su_co_id: "proc-1" },
       priorRows: [
         {
           id: "other-cycle",
           quy_trinh_id: "qt-khac",
           is_active: true,
-          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+          attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
         },
         {
           id: "inactive",
           quy_trinh_id: "qt-1",
           is_active: false,
-          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+          attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
+        },
+        {
+          id: "hong",
+          quy_trinh_id: "qt-1",
+          is_active: true,
+          attributes: { INCIDENT_GROUP: "INSTRUMENT", INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
         },
         {
           id: "a",
           quy_trinh_id: "qt-1",
           is_active: true,
-          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+          attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
         },
         {
           id: "b",
           quy_trinh_id: "qt-1",
           is_active: true,
-          attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+          attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL" },
         },
       ],
     });
+    // Báo Hỏng/Mất (không rollback) nhưng prior PROCESS đủ ngưỡng → vẫn bật cờ đỏ.
     const res = await executeIncidentReportAndRollback(
       supabase as never,
       {

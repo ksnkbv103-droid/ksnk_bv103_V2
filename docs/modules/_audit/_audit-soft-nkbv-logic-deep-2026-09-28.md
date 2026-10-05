@@ -26,7 +26,7 @@ Prior `_audit-soft-nkbv-deep-2026-09-28.md` mapped **doors / 3-lớp data / arch
 |------|-------------|-----------|
 | Index → IWP ±3 (7d) | §B.2.2 | `clinicalIwp` · `nkbv-shared-timeline.ts` · bridges |
 | DOE = first criterion in IWP | §B.2.3 | bridges `resolve*Doe` + `calculateCdcMetrics` |
-| POA = HD1–2 (+2d pre-admit); HAI = HD≥3 | §0.2 / §B.2.4 **cấm 48h** | `poaOrHai` · **Soft fix:** `applyCh2PoaGate` in rules-engine |
+| POA = HD1–2 (+2d pre-admit); HAI = HD≥3 | §0.2 / §B.2.4 **NHSN day-3** | `poaOrHai` · **Soft fix:** `applyCh2PoaGate` in rules-engine |
 | RIT 14d (DOE=d1) | §B.2.6 | `clinicalRitEnd` / grid RIT — **not enforced as hard stop in evaluate*** |
 | SBAP = IWP∪RIT | §B.2.7 | `clinicalSbapWindow` / `resolveClinicalSbap` |
 | Device >2 calendar days + DOE/DOE−1 | §B.2.8 | `isDeviceAssociated` / `deviceAssociationFromCanThiepDates` (Day1=placement; gap≥1 resets) |
@@ -88,8 +88,8 @@ Defs wired: BJ/CNS/CVS/GI/LRI/REPR/**USI** + **EENT** + **SST** (`nkbv-ch17-defi
 
 | # | Lock (v4.0) | Tip actual | Path | Severity | Disposition |
 |---|-------------|------------|------|----------|-------------|
-| 1 | HAI ≠ 48h; POA HD1–2; HAI HD≥3 | `hai_status` sent by FE but **ignored** by evaluate* → CLABSI/CAUTI/PNU still `is_positive` on POA | `nkbv-rules-engine.ts` (pre-fix) · FE `useNkbvChecklistModalState.ts:519` | **P0** | **FIXED Soft** `applyCh2PoaGate` + bridges set `hai_status` |
-| 2 | Ban «48 giờ» wording as case def | Spec titles «within 24-48 hours» / «beyond 48 hours» for Transfer (logic was calendar-day OK) | `nkbv-timeline-math.spec.ts:67,93` | **P1 Soft** | **FIXED Soft** rename calendar-day |
+| 1 | HAI day-3; POA HD1–2; HAI HD≥3 | `hai_status` sent by FE but **ignored** by evaluate* → CLABSI/CAUTI/PNU still `is_positive` on POA | `nkbv-rules-engine.ts` (pre-fix) · FE `useNkbvChecklistModalState.ts:519` | **P0** | **FIXED Soft** `applyCh2PoaGate` + bridges set `hai_status` |
+| 2 | Ban clock-hour wording as case def | Spec titles used clock-hour labels for Transfer (logic was calendar-day OK) | `nkbv-timeline-math.spec.ts:67,93` | **P1 Soft** | **FIXED Soft** rename calendar-day |
 | 3 | FE preview vs BE submit same device facts | Preview used `??`; submit used `\|\| 0/false` → silent wipe form device days when metrics 0 | `useNkbvChecklistModalState.ts` enrich block | **P0 Soft** | **FIXED Soft** `??` + form fallback |
 | 4 | Scenario 2 Secondary: blood ∈ IWP/SBAP | `blood_mandatory_for_localized` alone → Secondary | `nkbv-rules-engine.ts` Secondary gate | **P1 Soft** | **FIXED Soft** require window |
 | 5 | Clinical SBAP = [Index−3, DOE+13] | UTI bridge hand-rolled; OK when Index present; now explicit helper | `nkbv-uti-timeline-verdict.ts` post-SUTI | Soft clarity | **FIXED Soft** `clinicalSbapWindow` |
@@ -128,7 +128,7 @@ Unused / underused drivers: `hai_status` (now consumed); RIT hard-stop; multi-kh
 | `lib/nkbv-rules-engine.ts` | `applyCh2PoaGate`; Core wrappers; Scenario2 window; strip `infantGasOk`; PNEU-only POA |
 | `lib/nkbv-{bsi,uti,pneu}-timeline-verdict.ts` | set `hai_status` from admission+DOE; UTI SBAP via `clinicalSbapWindow` |
 | `components/useNkbvChecklistModalState.ts` | device enrich `??` (align preview/submit) |
-| `lib/nkbv-timeline-math.spec.ts` | ban «48h» titles; UTI infant title |
+| `lib/nkbv-timeline-math.spec.ts` | NHSN calendar-day titles; UTI infant title |
 | `lib/nkbv-clinical-submit-gate.ts` | VAE copy not claiming IWP Ch.2 |
 | `lib/nkbv-rules-engine.spec.ts` | POA → not CLABSI test |
 

@@ -5,6 +5,7 @@
 
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
+import { isQlcvHanPastVn } from "./qlcv-today-vn";
 
 export type QlcvBoardLaneId =
   | "lane_da_huy"
@@ -27,12 +28,7 @@ export type KanbanColumnId =
   | "DA_HUY";
 
 function isDeadlinePastOpen(t: CongViecBoardInput): boolean {
-  if (!t.han_hoan_thanh) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const d = new Date(String(t.han_hoan_thanh));
-  d.setHours(0, 0, 0, 0);
-  return d.getTime() < today.getTime();
+  return isQlcvHanPastVn(t.han_hoan_thanh);
 }
 
 /** Phiếu mở + quá hạn (mã / cờ view / hạn) — cùng ý với view + cron. */

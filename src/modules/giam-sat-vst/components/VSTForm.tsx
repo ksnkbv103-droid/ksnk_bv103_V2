@@ -10,8 +10,9 @@ import VSTPrintView from "./VSTPrintView";
 import { useVSTForm } from "../hooks/useVSTForm";
 import { useVstModuleLock } from "../hooks/use-vst-module-lock";
 import VstModuleLockBanner from "./VstModuleLockBanner";
-import { MOMENTS, ACTIONS, isVstMissedAction, vstMaxIndications, type MomentType, type ActionType } from "../lib/vst-constants";
-import { createDefaultVSTFormPersons, createNewOpp } from "../lib/vst-form-model";
+import { MOMENTS, ACTIONS, isVstMissedAction, type MomentType, type ActionType } from "../lib/vst-constants";
+import { createDefaultVSTFormPersons, createNewOpp, VST_MAX_PERSONS_NEW } from "../lib/vst-form-model";
+import { qlcvTodayVn } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 import type { VSTFormPerson } from "../hooks/useVSTFormHandlers";
@@ -41,10 +42,13 @@ export default function VSTForm({
   onSuccess,
   editDetail,
   editingSessionId,
+  requiresEditReason = false,
 }: {
   onSuccess: () => void;
   editDetail?: VstEditDetail | null;
   editingSessionId?: string | null;
+  /** Admin sửa phiên quá 30 phút — form sẽ hỏi lý do khi lưu. */
+  requiresEditReason?: boolean;
 }) {
   const {
     session, setSession,
@@ -65,7 +69,7 @@ export default function VSTForm({
     changeLocation,
     finishToHistory,
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
-  } = useVSTForm(onSuccess, editingSessionId ?? null);
+  } = useVSTForm(onSuccess, editingSessionId ?? null, requiresEditReason);
 
   const { lockedUntilDate, isLockedForSelectedDate, lockMessage } = useVstModuleLock(
     session.ngay_giam_sat ?? null,
@@ -75,6 +79,8 @@ export default function VSTForm({
   const editHydratedKeyRef = useRef<string | null>(null);
   const editBaselineRef = useRef<string | null>(null);
   const [isEditDirty, setIsEditDirty] = React.useState(false);
+  /** Phiên cũ >3 người: cảnh báo WHO, vẫn nạp đủ (VST-05). */
+  const [legacyPersonWarn, setLegacyPersonWarn] = React.useState<number | null>(null);
 
   const recordedOpportunityCount = persons.reduce(
     (sum, p) => sum + p.opportunities.filter((o) => o.isCollapsed).length,
@@ -135,7 +141,7 @@ export default function VSTForm({
         cach_thuc_giam_sat: cach || prev.cach_thuc_giam_sat,
         cach_thuc_id: String(sess.cach_thuc_id ?? cachDm?.id ?? prev.cach_thuc_id ?? ""),
         nguoi_giam_sat_id: String(sess.nguoi_giam_sat_id ?? prev.nguoi_giam_sat_id ?? ""),
-        ngay_giam_sat: String(sess.ngay_giam_sat ?? prev.ngay_giam_sat ?? new Date().toISOString().split("T")[0]),
+        ngay_giam_sat: String(sess.ngay_giam_sat ?? prev.ngay_giam_sat ?? qlcvTodayVn()),
         thoi_gian_bat_dau: String(sess.thoi_gian_bat_dau ?? prev.thoi_gian_bat_dau ?? ""),
         thoi_gian_ket_thuc: String(sess.thoi_gian_ket_thuc ?? prev.thoi_gian_ket_thuc ?? ""),
         ...nbHydrate,
@@ -198,8 +204,11 @@ export default function VSTForm({
         byPerson.get(personKey)!.opps.push(o);
       }
 
-      const basePersons: VSTFormPerson[] = createDefaultVSTFormPersons();
-      const groupEntries = Array.from(byPerson.entries()).slice(0, 3);
+      const groupEntries = Array.from(byPerson.entries());
+      // VST-05: nạp đủ mọi người (prod có phiên 4–8); cột trống chỉ khi <3 để cho phép đủ trần WHO nhập mới.
+      const colCount = Math.max(VST_MAX_PERSONS_NEW, groupEntries.length);
+      const basePersons: VSTFormPerson[] = createDefaultVSTFormPersons(colCount);
+      setLegacyPersonWarn(groupEntries.length > VST_MAX_PERSONS_NEW ? groupEntries.length : null);
 
       for (let idx = 0; idx < groupEntries.length; idx++) {
         const [, group] = groupEntries[idx];
@@ -207,7 +216,8 @@ export default function VSTForm({
           const row = o as VstObservationInput;
           const action = parseAction(row.hanh_dong);
           const missed = isVstMissedAction(action);
-          const thoi_diems = splitMoments(row.thoi_diem).slice(missed ? -1 : 0, missed ? undefined : vstMaxIndications(action));
+          // VST-02: không cắt thời điểm khi mở sửa — giữ đủ 1–5 chỉ định đã lưu.
+          const thoi_diems = splitMoments(row.thoi_diem);
 
           const thoi_gian_ghi_nhan = isReplayCamera ? undefined : parseRecordedAt(row.thoi_gian_ghi_nhan);
 
@@ -322,6 +332,27 @@ export default function VSTForm({
           )}
         </div>
 
+        {legacyPersonWarn != null && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold">
+              Phiên này có {legacyPersonWarn} đối tượng (vượt giới hạn WHO tối đa 3 NVYT cùng lúc).
+            </p>
+            <p className="mt-1 text-xs text-amber-900">
+              Đã nạp đủ mọi người đã lưu — lưu lại sẽ không mất ai. Không thêm đối tượng mới vượt số đã có
+              (nhập mới vẫn tối đa 3).
+            </p>
+          </div>
+        )}
+
+        {requiresEditReason && editingSessionId && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold">Phiên quá 30 phút — Admin sửa cần ghi lý do.</p>
+            <p className="mt-1 text-xs text-amber-900">
+              Khi bấm «Lưu phiên giám sát», hệ thống sẽ hỏi lý do sửa (tối thiểu 3 ký tự) để ghi nhật ký.
+            </p>
+          </div>
+        )}
+
         {hasUnsavedSession && (
           <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
             <p className="font-semibold">
@@ -336,8 +367,8 @@ export default function VSTForm({
         )}
 
         {/* Mobile Tab Switcher */}
-        <div className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden">
-          {[0, 1, 2].map((idx) => {
+        <div className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden overflow-x-auto">
+          {persons.map((_, idx) => {
             const isActive = activePersonTab === idx;
             const p = persons[idx];
             const rawName = p.is_manual

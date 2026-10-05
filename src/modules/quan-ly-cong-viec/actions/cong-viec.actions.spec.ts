@@ -93,10 +93,11 @@ describe("updateCongViec", () => {
               maybeSingle: vi.fn().mockResolvedValue({
                 data: {
                   id: "cv-01",
+                  tieu_de: "Việc cũ",
                   trang_thai: "MOI",
                   is_active: true,
-                  nguoi_phu_trach_id: null,
-                  han_hoan_thanh: null,
+                  nguoi_phu_trach_id: "ns-1",
+                  han_hoan_thanh: "2099-12-31",
                   phan_tram_hoan_thanh: 0,
                 },
                 error: null,
@@ -178,8 +179,37 @@ describe("updateCongViec", () => {
     await expect(
       updateCongViec("cv-01", {
         trang_thai: "HOAN_THANH",
-      })
-    ).rejects.toThrow("Không được phép cập nhật trực tiếp trạng thái công việc qua biểu mẫu sửa.");
+      }),
+    ).rejects.toThrow(/Không.*trạng thái/i);
+  });
+
+  it("blocks admin from updating status through updateCongViec (QLCV-06)", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_qlcv_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-01",
+                  tieu_de: "Việc",
+                  trang_thai: "MOI",
+                  is_active: true,
+                  nguoi_phu_trach_id: "ns-1",
+                  han_hoan_thanh: "2099-12-31",
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+    await expect(
+      updateCongViec("cv-01", { trang_thai: "HOAN_THANH" }),
+    ).rejects.toThrow(/Không cập nhật trạng thái qua form sửa/i);
   });
 
   it("records gia_han activity when han_hoan_thanh changes", async () => {
@@ -196,9 +226,12 @@ describe("updateCongViec", () => {
               maybeSingle: vi.fn().mockResolvedValue({
                 data: {
                   id: "cv-01",
+                  tieu_de: "Việc hạn",
                   trang_thai: "MOI",
                   is_active: true,
+                  nguoi_phu_trach_id: "ns-1",
                   han_hoan_thanh: pastDate,
+                  loai_cong_viec: "DOT_XUAT",
                   phan_tram_hoan_thanh: 20,
                 },
                 error: null,
@@ -254,10 +287,13 @@ describe("updateCongViec", () => {
               maybeSingle: vi.fn().mockResolvedValue({
                 data: {
                   id: "cv-01",
+                  tieu_de: "Việc giao",
                   trang_thai: "MOI",
                   is_active: true,
                   nguoi_phu_trach_id: "ns-old",
                   nguoi_phu_trach_ten: "Nguyễn Văn Cũ",
+                  han_hoan_thanh: "2099-12-31",
+                  loai_cong_viec: "DOT_XUAT",
                   phan_tram_hoan_thanh: 0,
                 },
                 error: null,

@@ -4,6 +4,7 @@ import {
   doeFormFieldsForChecklist,
   doeFormFieldsForSsiDepth,
 } from "./nkbv-clinical-symptom-catalog";
+import { resolveSsiSurveillanceDays } from "./nkbv-ssi-nhsn-catalog";
 import {
   addDays,
   clinicalIwp,
@@ -87,7 +88,7 @@ export function isHaiSuspectByDay3Rule(
  */
 
 /**
- * LOA / Transfer Rule — SSOT §B.2.5 · DoD 20c Domain A (calendar day, không 48h đồng hồ).
+ * LOA / Transfer Rule — SSOT §B.2.5 · DoD 20c Domain A (ngày lịch NHSN, không quy đổi giờ đồng hồ).
  * - LOA = khoa BN đang nằm vào DOE, trừ Transfer Rule.
  * - Transfer: DOE = ngày chuyển hoặc ngày sau → khoa chuyển đi.
  * - ≥2 khoa trong cửa sổ 24h lịch trước DOE → khoa **đầu** của ngày lịch trước DOE (không longest-stay).
@@ -237,11 +238,30 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     iwp_start = iwp.start;
     iwp_end = iwp.end;
   } else if (syndrome === "SSI") {
-    // SSI: surveillance period elsewhere; for symptom window still use detection ±3 for DOE pick heuristic
+    // SSI: DOE ∈ [ngày mổ, ngày mổ + SP − 1] — không dùng IWP ±3 quanh Index
     indexDate = override || ngay_phat_hien_clean;
-    const iwp = clinicalIwp(indexDate);
-    iwp_start = iwp.start;
-    iwp_end = iwp.end;
+    const surgery = String(
+      activeForm?.ngay_phau_thuat || activeForm?.surgery_date || "",
+    ).slice(0, 10);
+    const depthRaw = String(activeForm?.ssi_depth || "SUPERFICIAL").toUpperCase();
+    const depth =
+      depthRaw === "DEEP" || depthRaw === "ORGAN_SPACE" ? depthRaw : "SUPERFICIAL";
+    const spDays = resolveSsiSurveillanceDays({
+      depth: depth as "SUPERFICIAL" | "DEEP" | "ORGAN_SPACE",
+      procedureCode: activeForm?.loai_phau_thuat_nhsn,
+      eventTypeCode: activeForm?.ssi_event_type,
+    });
+    if (surgery && /^\d{4}-\d{2}-\d{2}$/.test(surgery) && spDays != null) {
+      iwp_start = surgery;
+      iwp_end = addDays(surgery, spDays - 1);
+    } else if (surgery && /^\d{4}-\d{2}-\d{2}$/.test(surgery)) {
+      // Thiếu mã PT cho Deep/Organ — vẫn mở cửa sổ nông 30 để không mất yếu tố sớm
+      iwp_start = surgery;
+      iwp_end = addDays(surgery, 29);
+    } else {
+      iwp_start = "";
+      iwp_end = "";
+    }
   } else if (useIwp) {
     // Index = ngày XN/CĐHA Active (override) hoặc theo pneu_trigger — không tự nhảy khi đã chọn CULTURE.
     indexDate = override || ngay_phat_hien_clean;
@@ -270,9 +290,12 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   }
 
   if (syndrome !== "VAE") {
-    // DOE = ngày sớm nhất có yếu tố TC ∈ IWP (SSOT §3.2) — không mặc định = Index
-    // khi đã có triệu chứng/XQ sớm hơn trong cửa sổ. Index là một ứng viên (cấy/CĐHA).
-    symptomKeys.forEach((k) => {
+    const pushIfInWindow = (
+      k: string,
+      winStart: string,
+      winEnd: string,
+    ) => {
+      if (!winStart || !winEnd) return;
       const raw = symptomDates[k];
       const candidates = Array.isArray(raw)
         ? raw.map((x) => String(x || "").slice(0, 10))
@@ -281,14 +304,48 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
         if (!dVal) continue;
         const present = activeForm?.[k] === true || Boolean(dVal);
         if (!present) continue;
-        if (dVal >= iwp_start && dVal <= iwp_end) {
-          validDates.push(dVal);
+        if (dVal >= winStart && dVal <= winEnd) validDates.push(dVal);
+      }
+    };
+
+    if (syndrome === "SSI") {
+      // Mỗi tầng độ sâu một SP; DOE = ngày sớm nhất có yếu tố trong SP tương ứng
+      const surgery = String(
+        activeForm?.ngay_phau_thuat || activeForm?.surgery_date || "",
+      ).slice(0, 10);
+      const procCode = activeForm?.loai_phau_thuat_nhsn;
+      const tiers = ["ORGAN_SPACE", "DEEP", "SUPERFICIAL"] as const;
+      for (const tier of tiers) {
+        const sp = resolveSsiSurveillanceDays({
+          depth: tier,
+          procedureCode: procCode,
+          eventTypeCode: activeForm?.ssi_event_type,
+        });
+        if (sp == null || !surgery) continue;
+        const winStart = surgery;
+        const winEnd = addDays(surgery, sp - 1);
+        for (const k of doeFormFieldsForSsiDepth(tier)) {
+          pushIfInWindow(k, winStart, winEnd);
+        }
+        if (indexDate && indexDate >= winStart && indexDate <= winEnd) {
+          validDates.push(indexDate);
         }
       }
-    });
-    if (indexDate && indexDate >= iwp_start && indexDate <= iwp_end) {
-      validDates.push(indexDate);
+      // Cửa sổ hiển thị = bao phủ rộng nhất đã dùng
+      if (surgery && validDates.length === 0 && iwp_start && iwp_end) {
+        // giữ iwp_* đã set; không có yếu tố → fallback Index nếu ∈ SP
+        if (indexDate && indexDate >= iwp_start && indexDate <= iwp_end) {
+          validDates.push(indexDate);
+        }
+      }
+    } else {
+      // DOE = ngày sớm nhất có yếu tố TC ∈ IWP — Index là một ứng viên
+      symptomKeys.forEach((k) => pushIfInWindow(k, iwp_start, iwp_end));
+      if (indexDate && indexDate >= iwp_start && indexDate <= iwp_end) {
+        validDates.push(indexDate);
+      }
     }
+
     if (validDates.length > 0) {
       validDates.sort();
       doe = validDates[0];
@@ -339,10 +396,24 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   const drDate = activeForm?.device_removed_date;
 
   if (dpDate && doe) {
+    const vv = ngay_vao_vien_clean;
     const assoc = isDeviceAssociated({
       placedDate: dpDate,
       removedDate: drDate,
       doe,
+      admissionDate: vv || null,
+      deviceKind:
+        checklistType === "BSI"
+          ? "cvc"
+          : checklistType === "UTI"
+            ? "foley"
+            : checklistType === "VAP" || checklistType === "HAP" || checklistType === "VAE"
+              ? "vent"
+              : null,
+      firstInpatientAccessDate:
+        checklistType === "BSI"
+          ? activeForm?.cvc_first_inpatient_access_date
+          : undefined,
     });
     device_placed_days = assoc.placedDays;
     // «Hiện diện gắn được» = đủ eligibility NHSN (≥3d + DOE/DOE−1), không chỉ tick 1 ngày

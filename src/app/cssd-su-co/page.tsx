@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { CssdSuCoPage } from "@/modules/cssd-su-co/contexts/su-co/entrypoint";
 
 export const metadata = {
-  title: "Sự cố | KSNK 103",
+  title: "Sự cố",
   description: "Hỏng/Mất · sự cố quy trình · hóa chất · máy · khác. Luân chuyển số lượng nằm ở Dụng cụ.",
 };
 

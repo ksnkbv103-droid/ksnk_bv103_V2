@@ -22,7 +22,6 @@ import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   formatDurRatio,
-  formatNullableFixed,
   formatRatePer1000,
   formatSsiPercent,
 } from "../lib/nkbv-rate-display";
@@ -46,35 +45,6 @@ type NkbvDashboardPanelProps = {
 };
 
 const COL_LOAI = ["var(--primary)", "#0d9488", "#2563eb", "#d97706", "#7c3aed", "#db2777", "#64748b"];
-
-/** SIR/SUR/DUR `null` nghĩa là chưa tính được — không được hiển thị thành 0. */
-function formatRatio(value: number | null | undefined, digits = 2): string {
-  return formatNullableFixed(value, digits);
-}
-
-/** SIR `null` = chưa đủ dữ liệu để chuẩn hoá; SIR = 0 là kết quả hợp lệ (không có ca). */
-function SirCell({ value, className }: { value: number | null | undefined; className: string }) {
-  if (value == null) {
-    return (
-      <td className={`px-4 py-3 text-center ${className}`}>
-        <span className="text-slate-300" title="Chưa đủ dữ liệu chuẩn hoá (thiếu baseline CDC hoặc số ca kỳ vọng < 1)">
-          —
-        </span>
-      </td>
-    );
-  }
-  return (
-    <td className={`px-4 py-3 text-center ${className}`}>
-      <span
-        className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
- value > 1.0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"
- }`}
-      >
-        {formatRatio(value)}
-      </span>
-    </td>
-  );
-}
 
 export default function NkbvDashboardPanel({
   payload,
@@ -173,8 +143,8 @@ export default function NkbvDashboardPanel({
       </p>
 
       <p className="rounded-[var(--radius-shell)] border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
-        Tỷ lệ CAUTI / CLABSI / VAE trên bảng này lấy từ sổ mẫu số khoa (ngày nằm viện / ngày dụng cụ đã nộp),
-        không đếm từ lưới bệnh án từng ca. SIR chuẩn hoá CDC chưa mở — số SIR nếu có là thô.
+        Tỷ lệ CAUTI / CLABSI / VAP trên bảng này lấy từ sổ mẫu số khoa (ngày nằm viện / ngày dụng cụ đã nộp),
+        không đếm từ lưới bệnh án từng ca.
       </p>
 
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
@@ -190,7 +160,7 @@ export default function NkbvDashboardPanel({
             sub:
               loading || !k
                 ? ""
-                : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
+                : `Tỷ lệ xác nhận (đã kết luận): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
           },
           {
             label: "Đang ghi / Chờ XN",
@@ -280,20 +250,6 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className={`${C.inset} bg-white p-5`}>
-              <h3 className={`mb-4 ${C.blockSection}`}>
-                Khoa có nhiều phiếu (top trong khoảng)
-              </h3>
-              <Bv103ResponsiveChart className="h-[260px] w-full min-h-[240px] min-w-0">
-                  <BarChart layout="vertical" data={payload.top_khoa} margin={{ left: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                    <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="ten_khoa" width={110} tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip />
-                    <Bar dataKey="so_phieu" fill="#2563eb" radius={[0, 10, 10, 0]} barSize={20} />
-                  </BarChart>
-              </Bv103ResponsiveChart>
-            </div>
           </div>
 
           {payload.epidemiologyError && (
@@ -303,7 +259,7 @@ export default function NkbvDashboardPanel({
             >
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
               <div className="space-y-1">
-                <p className="font-semibold">Không tính được chỉ số dịch tễ (tỷ suất / SIR / SUR)</p>
+                <p className="font-semibold">Không tính được chỉ số dịch tễ (tỷ suất / DUR)</p>
                 <p className="text-[13px] leading-relaxed">
                   Bảng chỉ số bên dưới không hiển thị được — đây là <strong>lỗi hệ thống</strong>,
                   không phải &laquo;kỳ này không có ca&raquo;. Vui lòng báo quản trị hệ thống.
@@ -316,14 +272,14 @@ export default function NkbvDashboardPanel({
           {!payload.epidemiologyError && payload.epidemiologyRates && payload.epidemiologyRates.length > 0 && (
             <details className={`${C.inset} bg-white p-5 space-y-[var(--bv103-space-3)]`}>
             <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700">
-              Xem thêm chỉ số dịch tễ (SIR / ngày thiết bị)
+              Xem thêm chỉ số dịch tễ (tỷ suất / ngày thiết bị)
             </summary>
             <div className="space-y-[var(--bv103-space-3)] pt-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className={`${C.sectionTitle} flex items-center gap-2`}>
                     <Activity className="h-5 w-5 text-[var(--primary)]" />
-                    Chỉ số dịch tễ lâm sàng (chuẩn JCI / NHSN–CDC)
+                    Chỉ số dịch tễ lâm sàng (NHSN / CDC)
                   </h3>
                   <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
                     Theo dõi mật độ nhiễm khuẩn liên quan thiết bị và mức dùng thiết bị xâm lấn trong kỳ lọc.
@@ -337,22 +293,13 @@ export default function NkbvDashboardPanel({
                   >
                     DUR: tỷ lệ ngày dùng thiết bị / ngày nằm viện
                   </span>
-                  <span
-                    className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm"
-                    title="Standardized Infection Ratio — ca quan sát ÷ ca kỳ vọng (chuẩn hóa)"
-                  >
-                    SIR: ca nhiễm quan sát so với kỳ vọng
-                  </span>
-                  <span
-                    className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm"
-                    title="Standardized Utilization Ratio — mức dùng thiết bị so với kỳ vọng"
-                  >
-                    SUR: mức dùng thiết bị so với kỳ vọng
+                  <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">
+                    Tỷ suất: ca / 1000 ngày thiết bị (pool toàn viện)
                   </span>
                 </div>
               </div>
 
-              {/* JCI Hospital Aggregates: pool = sum(cases)/sum(days). Never average khoa SIRs. */}
+              {/* Pool = sum(cases)/sum(days). Không trung bình tỷ suất theo khoa. */}
               {(() => {
                 const rates = payload.epidemiologyRates || [];
                 const totPatientDays = rates.reduce((acc, r) => acc + Number(r.obs_patient_days || 0), 0);
@@ -381,7 +328,6 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-semibold text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
-                        <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
@@ -397,7 +343,6 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-semibold text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
-                        <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
@@ -413,7 +358,6 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
-                        <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
@@ -429,7 +373,6 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
-                        <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
@@ -444,10 +387,9 @@ export default function NkbvDashboardPanel({
                 );
               })()}
 
-              {/* JCI Detailed Table */}
               <ResponsiveTableShell
                 maxHeight="max-h-[min(480px,60dvh)]"
-                scrollHint="Vuốt ngang để xem chỉ số JCI đầy đủ"
+                scrollHint="Vuốt ngang để xem tỷ suất và DUR theo khoa"
                 mobileCards={
                   payload.epidemiologyRates?.length ? (
                     <ul className="divide-y divide-slate-100">
@@ -460,29 +402,31 @@ export default function NkbvDashboardPanel({
                             <div className="rounded-lg bg-red-50/50 p-2">
                               <p className="font-medium text-red-700">CLABSI</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_clabsi_cases || 0}/{r.obs_cvc_days || 0} · SIR {formatRatio(r.clabsi_sir)}
+                                {r.obs_clabsi_cases || 0}/{r.obs_cvc_days || 0} ·{" "}
+                                {formatRatePer1000(r.obs_clabsi_cases || 0, r.obs_cvc_days || 0)}/1000
                               </p>
                             </div>
                             <div className="rounded-lg bg-amber-50/50 p-2">
                               <p className="font-medium text-amber-700">CAUTI</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_cauti_cases || 0}/{r.obs_foley_days || 0} · SIR {formatRatio(r.cauti_sir)}
+                                {r.obs_cauti_cases || 0}/{r.obs_foley_days || 0} ·{" "}
+                                {formatRatePer1000(r.obs_cauti_cases || 0, r.obs_foley_days || 0)}/1000
                               </p>
                             </div>
                             <div className="rounded-lg bg-teal-50/50 p-2">
-                              <p className="font-medium text-teal-700">VAP rate</p>
+                              <p className="font-medium text-teal-700">VAP</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0}
+                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0} ·{" "}
+                                {formatRatePer1000(r.obs_vap_cases || 0, r.obs_vent_days || 0)}/1000
                               </p>
-                              <p className="mt-1 font-medium text-teal-700">VAE SIR</p>
-                              <p className="tabular-nums text-slate-800">
-                                {r.obs_vae_cases || 0} ca · SIR {formatRatio(r.vae_sir)}
-                              </p>
+                              <p className="mt-1 font-medium text-teal-700">VAE (số ca)</p>
+                              <p className="tabular-nums text-slate-800">{r.obs_vae_cases || 0} ca</p>
                             </div>
                             <div className="rounded-lg bg-blue-50/50 p-2">
                               <p className="font-medium text-blue-700">SSI</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_ssi_cases || 0}/{r.obs_total_surgeries || 0} · SIR {formatRatio(r.ssi_sir)}
+                                {r.obs_ssi_cases || 0}/{r.obs_total_surgeries || 0} ·{" "}
+                                {formatSsiPercent(r.obs_ssi_cases || 0, r.obs_total_surgeries || 0)}%
                               </p>
                             </div>
                           </div>
@@ -498,15 +442,15 @@ export default function NkbvDashboardPanel({
                       <th className="px-4 py-3 w-44">Khoa lâm sàng</th>
                       <th className="px-4 py-3 text-center bg-red-50/30 text-red-700">CLABSI / CVC Days</th>
                       <th className="px-4 py-3 text-center bg-red-50/30 text-red-700">CVC DUR</th>
-                      <th className="px-4 py-3 text-center bg-red-50/30 text-red-700">CLABSI SIR</th>
+                      <th className="px-4 py-3 text-center bg-red-50/30 text-red-700">CLABSI /1000</th>
                       <th className="px-4 py-3 text-center bg-amber-50/30 text-amber-700">CAUTI / Foley Days</th>
                       <th className="px-4 py-3 text-center bg-amber-50/30 text-amber-700">Foley DUR</th>
-                      <th className="px-4 py-3 text-center bg-amber-50/30 text-amber-700">CAUTI SIR</th>
+                      <th className="px-4 py-3 text-center bg-amber-50/30 text-amber-700">CAUTI /1000</th>
                       <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP / Vent Days</th>
                       <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">Vent DUR</th>
-                      <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAE SIR</th>
+                      <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP /1000</th>
                       <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI / Mổ</th>
-                      <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI SIR</th>
+                      <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI %</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -527,7 +471,9 @@ export default function NkbvDashboardPanel({
                         <td className="px-4 py-3 text-center bg-red-50/10 font-mono">
                           {formatDurRatio(Number(r.obs_cvc_days || 0), Number(r.obs_patient_days || 0))}
                         </td>
-                        <SirCell value={r.clabsi_sir} className="bg-red-50/10" />
+                        <td className="px-4 py-3 text-center bg-red-50/10 font-mono tabular-nums">
+                          {formatRatePer1000(r.obs_clabsi_cases || 0, r.obs_cvc_days || 0)}
+                        </td>
 
                         {/* CAUTI columns */}
                         <td className="px-4 py-3 text-center bg-amber-50/10">
@@ -537,7 +483,9 @@ export default function NkbvDashboardPanel({
                         <td className="px-4 py-3 text-center bg-amber-50/10 font-mono">
                           {formatDurRatio(Number(r.obs_foley_days || 0), Number(r.obs_patient_days || 0))}
                         </td>
-                        <SirCell value={r.cauti_sir} className="bg-amber-50/10" />
+                        <td className="px-4 py-3 text-center bg-amber-50/10 font-mono tabular-nums">
+                          {formatRatePer1000(r.obs_cauti_cases || 0, r.obs_foley_days || 0)}
+                        </td>
 
                         {/* VAP columns */}
                         <td className="px-4 py-3 text-center bg-teal-50/10">
@@ -547,30 +495,8 @@ export default function NkbvDashboardPanel({
                         <td className="px-4 py-3 text-center bg-teal-50/10 font-mono">
                           {formatDurRatio(Number(r.obs_vent_days || 0), Number(r.obs_patient_days || 0))}
                         </td>
-                        <td className="px-4 py-3 text-center bg-teal-50/10">
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className="bv103-type-label font-semibold text-slate-500">
-                              VAE ca: {r.obs_vae_cases || 0}
-                            </span>
-                            {r.vae_sir == null ? (
-                              <span
-                                className="text-slate-300"
-                                title="Chưa đủ dữ liệu chuẩn hoá (thiếu baseline CDC hoặc số ca kỳ vọng < 1)"
-                              >
-                                —
-                              </span>
-                            ) : (
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
- r.vae_sir > 1.0
- ? "bg-red-100 text-red-800"
- : "bg-emerald-100 text-emerald-800"
- }`}
-                              >
-                                {formatRatio(r.vae_sir)}
-                              </span>
-                            )}
-                          </div>
+                        <td className="px-4 py-3 text-center bg-teal-50/10 font-mono tabular-nums">
+                          {formatRatePer1000(r.obs_vap_cases || 0, r.obs_vent_days || 0)}
                         </td>
 
                         {/* SSI columns */}
@@ -578,7 +504,12 @@ export default function NkbvDashboardPanel({
                           <span className="font-bold text-slate-900">{r.obs_ssi_cases || 0}</span>
                           <span className="text-slate-400"> / {r.obs_total_surgeries || 0}</span>
                         </td>
-                        <SirCell value={r.ssi_sir} className="bg-blue-50/10" />
+                        <td className="px-4 py-3 text-center bg-blue-50/10 font-mono tabular-nums">
+                          {(() => {
+                            const pct = formatSsiPercent(r.obs_ssi_cases || 0, r.obs_total_surgeries || 0);
+                            return pct === "—" ? "—" : `${pct}%`;
+                          })()}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -589,8 +520,8 @@ export default function NkbvDashboardPanel({
           )}
 
           <p className="text-center bv103-type-note">
-            * Mật độ JCI tính theo ngày nằm viện thu thập từ tab Mẫu số. SIR/SUR chuẩn hoá theo baseline CDC/NHSN
-            cấu hình trong danh mục; ô &laquo;—&raquo; nghĩa là chưa đủ dữ liệu chuẩn hoá, không phải bằng 0.
+            * Tỷ suất và DUR tính từ mẫu số ngày nằm viện / ngày thiết bị (tab Mẫu số). Ô &laquo;—&raquo; khi thiếu mẫu số,
+            không phải bằng 0.
           </p>
         </>
       ) : (

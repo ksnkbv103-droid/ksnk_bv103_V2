@@ -1,7 +1,8 @@
+/** @park — 2026-11: Action board không render trên BCTH (BCTH-08); giữ component cho VST/GSC module nếu cần. */
 "use client";
 
 import React from "react";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Award } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, Award } from "lucide-react";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import {
   complianceToneFromPercent,
@@ -10,11 +11,6 @@ import {
   type ComplianceTone,
 } from "@/lib/analytics/supervision-thresholds";
 import type { ActionBoardModel, ActionBoardRankRow, ActionBoardSource } from "@/lib/analytics/supervision-action-board";
-import {
-  buildSupervisionCompareDeepLink,
-  type AnalyticsUrlSeed,
-} from "@/lib/analytics/supervision-deep-link";
-
 function fmtPct(source: ActionBoardSource, value: number | null | undefined): string {
   if (value == null || Number.isNaN(Number(value))) return "—";
   return source === "vst" ? formatPercent1(value) : formatPercent2(value);
@@ -161,23 +157,4 @@ export function SupervisionActionBoard({ model, loading, hint }: Props) {
   );
 }
 
-/** Deep-link từ BCTH sang thống kê module (so sánh đa chiều theo từng phân hệ). */
-export function SupervisionActionDeepLink({
-  source,
-  seed,
-}: {
-  source: ActionBoardSource;
-  seed?: AnalyticsUrlSeed;
-}) {
-  const href = buildSupervisionCompareDeepLink(source, seed);
-  const label = source === "vst" ? "Chi tiết thống kê VST" : "Chi tiết thống kê GSC";
-  return (
-    <a
-      href={href}
-      className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline"
-    >
-      <ArrowUpRight size={14} aria-hidden />
-      {label} — khối / khu vực / đối tượng
-    </a>
-  );
-}
+export { SupervisionActionDeepLink } from "@/lib/analytics/supervision-action-deep-link";

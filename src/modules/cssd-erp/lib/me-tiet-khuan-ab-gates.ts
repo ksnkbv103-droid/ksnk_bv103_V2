@@ -10,7 +10,7 @@ export const AB1_FAIL_TARGET_STATION = "TIEP_NHAN" as const;
 
 /** AB-2 A: Soft không có nhả khẩn implant khi chưa BI âm. */
 export const MSG_NO_EMERGENCY_IMPLANT_RELEASE =
-  "Mẻ implant / chờ BI: Soft chặn nhả khẩn — chỉ nhả sau BI âm (tổ trưởng).";
+  "Mẻ có implant / chờ BI: không được nhả khẩn — chỉ nhả sau BI âm (tổ trưởng).";
 
 /** Soft never allows emergency implant release (AB-2 A). */
 export function isEmergencyImplantReleaseAllowed(): false {
@@ -34,8 +34,8 @@ export function assertImplantReleaseWithoutBiBlocked(input: {
 }
 
 /**
- * AB-6 A: nhả mẻ thường = NV/QC có `edit`; implant HOAN_THANH hoặc nhả từ CHO_BI → tổ trưởng (`qc`).
- * Soft maps «tổ trưởng» → RBAC `CSSD_ME_TIET_KHUAN.qc` (không invent role mới).
+ * AB-6 A / ME-04: nhả mẻ thường = `edit`; implant HOAN_THANH hoặc nhả từ CHO_BI → `nha_implant`
+ * (fallback `qc` khi permission mới chưa seed — xem verifyCssdBatchNhaImplant).
  */
 export function requiresToTruongReleaseRight(input: {
   coImplant?: boolean | null;
@@ -45,5 +45,23 @@ export function requiresToTruongReleaseRight(input: {
 }): boolean {
   if (input.releasingFromChoBi) return true;
   if (input.coImplant && input.outcome === "HOAN_THANH") return true;
+  /** Plasma/EO nhả với BI AM ngay tại QC cũng cần quyền nhả implant. */
+  if (input.outcome === "HOAN_THANH" && input.coImplant) return true;
+  return false;
+}
+
+/**
+ * ME-04: quyền `nha_implant` cho nhả implant / Plasma·EO đạt BI / ghi chờ BI / nhập BI âm.
+ * (Khớp 3 RPC: ket_luan_dat khi implant|bi_bat_buoc, ghi_cho_bi, nhap_bi_am.)
+ */
+export function requiresNhaImplantRight(input: {
+  coImplant?: boolean | null;
+  biBatBuoc?: boolean | null;
+  releasingFromChoBi?: boolean;
+  outcome?: MeQcOutcome | null;
+}): boolean {
+  if (input.releasingFromChoBi) return true;
+  if (input.outcome === "CHO_BI") return true;
+  if (input.outcome === "HOAN_THANH" && (input.coImplant || input.biBatBuoc)) return true;
   return false;
 }

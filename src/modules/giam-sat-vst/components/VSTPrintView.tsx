@@ -91,7 +91,7 @@ export default function VSTPrintView({
 
   return (
     <PrintLayout
-      title="PHIẾU GIÁM SÁT THỰC HÀNH VỆ SINH TAY (WHO 5 THỜI ĐIỂM)"
+      title="PHIẾU GIÁM SÁT THỰC HÀNH VỆ SINH TAY (WHO 5 THỜI ĐIỂM) — KSNK.QT.07.BM.01"
       headerTitle="BỆNH VIỆN QUÂN Y 103"
       departmentTitle={departmentTitle}
       fileTitle={() => buildPrintFileTitle({ loai: "LSGS", ma: printMa })}
@@ -171,8 +171,8 @@ export default function VSTPrintView({
             }}
           >
             <p style={{ margin: 0, fontSize: "13px", color: "#000" }}>
-              <strong>Tổng hợp phiên:</strong> {compliant}/{totalOpp} lượt ghi nhận có hành động —{" "}
-              <strong>tỷ lệ không &quot;Bỏ sót&quot;: {pctLabel}</strong>
+              <strong>Tổng hợp phiên:</strong> {compliant}/{totalOpp} cơ hội —{" "}
+              <strong>tỷ lệ tuân thủ: {pctLabel}</strong>
             </p>
           </div>
         ) : null}

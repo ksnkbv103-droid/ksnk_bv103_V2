@@ -6,8 +6,10 @@ import {
   computeMayUsage,
   computeReuseFrequency,
   computeStaffScans,
+  computeStationIncidentRates,
   computeStationVolume,
   computeStationVolumeTrend,
+  countCyclesWithProcessIncidents,
   cssdVnDay,
   describeCssdCapPhatByKhoaNhan,
   describeCssdKhoaOwnershipProxy,
@@ -178,7 +180,21 @@ describe("cssd-analytics-core", () => {
       so_me_da_qc: 3,
       so_me_dat: 2,
       ty_le_qc_dat_me: 66.7,
+      biDuong: 0,
+      bdHong: 0,
+      so_me_thu_hoi_than_trong: 0,
     });
+
+    const me10 = computeMeQcSummary([
+      { ket_qua_test: true, trang_thai_me: "HOAN_THANH", trang_thai_bi: "AM" },
+      { ket_qua_test: true, trang_thai_me: "THU_HOI", trang_thai_bi: "AM" },
+      { ket_qua_test: false, trang_thai_me: "QC_KHONG_DAT", trang_thai_bi: "DUONG" },
+      { ket_qua_test: true, bd_ket_qua: "KHONG_DAT" },
+    ]);
+    expect(me10.ty_le_qc_dat_me).toBe(75);
+    expect(me10.biDuong).toBe(1);
+    expect(me10.bdHong).toBe(1);
+    expect(me10.so_me_thu_hoi_than_trong).toBe(1);
 
     expect(
       computeMayUsage([
@@ -194,7 +210,8 @@ describe("cssd-analytics-core", () => {
 
   it("roundIncidentFreeRate and brief summary", () => {
     expect(roundIncidentFreeRate(100, 5)).toBe(95);
-    expect(roundIncidentFreeRate(0, 0)).toBe(100);
+    expect(roundIncidentFreeRate(0, 0)).toBeNull();
+    expect(roundIncidentFreeRate(1, 1)).toBe(0);
 
     const brief = summarizeCssdAnalyticsBrief({
       stationVolume: [
@@ -207,7 +224,15 @@ describe("cssd-analytics-core", () => {
       ],
       tyLeQuyTrinhKhongSuCo: 95,
       soBo: 40,
-      meQc: { so_me_ky: 12, so_me_da_qc: 10, so_me_dat: 9, ty_le_qc_dat_me: 90 },
+      meQc: {
+        so_me_ky: 12,
+        so_me_da_qc: 10,
+        so_me_dat: 9,
+        ty_le_qc_dat_me: 90,
+        biDuong: 0,
+        bdHong: 0,
+        so_me_thu_hoi_than_trong: 0,
+      },
       mayReady: 3,
       mayRepairing: 1,
       redAlertTotal: 2,
@@ -216,6 +241,51 @@ describe("cssd-analytics-core", () => {
     expect(brief.san_luong_cap_phat).toBe(5);
     expect(brief.tong_hoan_thanh_tram).toBe(45);
     expect(brief.ty_le_qc_dat_me).toBe(90);
+  });
+
+  it("CSSD-06: tử = chu trình có ≥1 SC PROCESS; máy không gắn chu trình bỏ", () => {
+    const rows = [
+      {
+        quy_trinh_id: "c1",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: "c1",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: "c1",
+        ma_tram_phat_hien: "DONG_GOI",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: null,
+        ma_tram_phat_hien: "TIET_KHUAN",
+        attributes: { INCIDENT_GROUP: "EQUIPMENT", INCIDENT_STATUS: "OPEN" },
+      },
+      {
+        quy_trinh_id: "c2",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "DA_DONG" },
+      },
+      {
+        quy_trinh_id: "c3",
+        ma_tram_phat_hien: "QC",
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "VO_HIEU" },
+      },
+    ];
+    expect(countCyclesWithProcessIncidents(rows)).toBe(1);
+    expect(roundIncidentFreeRate(1, 1)).toBe(0);
+    const volume = [
+      { station: "QC" as const, label: "Kiểm bộ", completed: 2 },
+      { station: "DONG_GOI" as const, label: "Đóng gói", completed: 0 },
+    ];
+    const rates = computeStationIncidentRates(volume, rows);
+    expect(rates.find((r) => r.station === "QC")?.incidentCycles).toBe(1);
+    expect(rates.find((r) => r.station === "QC")?.rate).toBe(50);
+    expect(rates.find((r) => r.station === "DONG_GOI")?.rate).toBeNull();
   });
 });
 

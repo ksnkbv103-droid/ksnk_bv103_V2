@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   buildCssdBatchTicket,
   buildCssdQcProofRows,
+  CAP_PHAT_NO_INCIDENT_LINE,
+  formatCapPhatIncidentStatus,
   formatQcTriWord,
   isCssdPrintImageUrl,
+  mapCapPhatPrintIncidents,
+  mapCapPhatQcFromBatch,
   parseBatchAnhMinhChung,
+  parseBatchQcJson,
   formatBatchMemberRecallXuLy,
 } from "./cssd-print-format";
 import type { CssdBatchPrintData } from "../types/cssd-print.types";
@@ -54,6 +59,36 @@ const basePrintData: CssdBatchPrintData = {
 };
 
 describe("cssd-print-format", () => {
+  it("parseBatchQcJson và mapCapPhatQcFromBatch đọc key ME-S2", () => {
+    const tkQc = {
+      thong_so_vat_ly: "DAT",
+      ci_ngoai_goi: "KHONG_DAT",
+      ci_pcd: "DAT",
+      trang_thai_bi: "AM",
+      nguoiUnload: "NV dỡ",
+    };
+    const parsed = parseBatchQcJson(tkQc);
+    expect(parsed.chiThiTiepXuc).toBe("DAT");
+    expect(parsed.testCI).toBe("KHONG_DAT");
+    expect(parsed.chiThiDaThongSo).toBe("DAT");
+    expect(parsed.testSinhHoc).toBe("AM");
+
+    const capPhat = mapCapPhatQcFromBatch({
+      tk_qc_json: tkQc,
+      trang_thai_bi: "AM",
+      nhiet_do: 134,
+      ap_suat: 2.1,
+      thoi_gian_chu_ky: 4,
+    });
+    expect(capPhat.chiThiTiepXuc).toBe("DAT");
+    expect(capPhat.testCI).toBe("KHONG_DAT");
+    expect(capPhat.chiThiDaThongSo).toBe("DAT");
+    expect(capPhat.testSinhHoc).toBe("AM");
+    expect(capPhat.nhietDoApSuat).toBe("134 °C / 2.1 áp suất");
+    expect(capPhat.thongSoMay).toBe("4 phút");
+    expect(capPhat.nguoiUnload).toBe("NV dỡ");
+  });
+
   it("parseBatchAnhMinhChung đọc tk_qc_json.anhMinhChung", () => {
     const parsed = parseBatchAnhMinhChung({
       anhMinhChung: { may: " https://x/a.png ", tiepXuc: "bad" },
@@ -144,5 +179,23 @@ describe("formatBatchMemberRecallXuLy Domain 23", () => {
       }),
     ).toMatch(/đánh giá KSNK/);
     expect(formatBatchMemberRecallXuLy({ isActive: false })).toMatch(/Tiếp nhận/);
+  });
+});
+
+describe("CSSD-05 cap phát print incidents", () => {
+  it("maps SC rows and skips void; empty → phủ định copy", () => {
+    const rows = mapCapPhatPrintIncidents([
+      {
+        id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        attributes: { INCIDENT_STATUS: "DA_XAC_NHAN", INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL" },
+      },
+      { id: "void-1", attributes: { INCIDENT_STATUS: "VO_HIEU", INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL" } },
+    ]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.ma).toBe("AAAAAAAA");
+    expect(rows[0]?.trangThai).toBe("Đã xác nhận");
+    expect(rows[0]?.loai).toBe("PROCESS_STERILIZATION_FAIL");
+    expect(CAP_PHAT_NO_INCIDENT_LINE).toMatch(/Không có sự cố/);
+    expect(formatCapPhatIncidentStatus({ INCIDENT_STATUS: "DA_DONG" })).toMatch(/Đã đóng/);
   });
 });

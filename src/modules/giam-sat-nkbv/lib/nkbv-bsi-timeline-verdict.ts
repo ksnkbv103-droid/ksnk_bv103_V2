@@ -103,6 +103,8 @@ export type BuildBsiTimelineVerdictInput = {
   dischargeDate?: string | null;
   devicePlacedDate?: string | null;
   deviceRemovedDate?: string | null;
+  /** CVC đặt trước VV — Day 1 đếm từ ngày tiếp cận nội trú đầu. */
+  cvcFirstInpatientAccessDate?: string | null;
   localizedSite?: BsiLocalizedSiteContext | null;
   /** @deprecated Không đủ MBI — giữ tương thích chỗ gọi cũ. */
   isNeutropenia?: boolean;
@@ -167,13 +169,17 @@ export function buildBsiTimelineVerdict(
         })
       : null);
 
+  const vv = (input.admissionDate || "").slice(0, 10);
   const cvcDates = input.canThiepDates.map((d) => d.slice(0, 10)).sort();
+  const cvcDatesInStay = vv ? cvcDates.filter((d) => d >= vv) : cvcDates;
   const cvcAssoc = doe
     ? deviceAssociationFromCanThiepDates(input.canThiepDates, doe, {
-        placedDate: input.devicePlacedDate || cvcDates[0] || null,
+        placedDate: input.devicePlacedDate || cvcDatesInStay[0] || null,
         removedDate: input.deviceRemovedDate || null,
         admissionDate: input.admissionDate,
         dischargeDate: input.dischargeDate,
+        deviceKind: "cvc",
+        firstInpatientAccessDate: input.cvcFirstInpatientAccessDate,
       })
     : { placedDays: 0, activeOnEvent: false, associated: false };
   const cvcPlacedDays = cvcAssoc.placedDays;
@@ -259,6 +265,9 @@ export function buildBsiTimelineVerdict(
     calculated_doe: doe || undefined,
     calculated_sbap_start: sbapStart,
     calculated_sbap_end: sbapEnd,
+    ngay_vao_vien: input.admissionDate
+      ? String(input.admissionDate).slice(0, 10)
+      : undefined,
     hai_status:
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus

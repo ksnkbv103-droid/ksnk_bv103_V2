@@ -19,13 +19,14 @@ import RbacMenuPreviewPanel from "./RbacMenuPreviewPanel";
 import RbacCatalogPackPanel from "./RbacCatalogPackPanel";
 
 export default function RBACMatrixView() {
-  const { isAdmin, loading: permLoading, allowed } = useModulePermission("PHAN_QUYEN");
-  const canConfigureRbac = isAdmin || allowed.edit;
+  const { isAdmin, loading: permLoading } = useModulePermission("PHAN_QUYEN");
+  const canConfigureRbac = isAdmin;
   const [data, setData] = useState<RBACDataSuccess | null>(null);
   const [loading, setLoading] = useState(true);
   const [matrix, setMatrix] = useState<Record<string, Set<string>>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [previewRoleId, setPreviewRoleId] = useState<string | null>(null);
+  const [confirmActorPassword, setConfirmActorPassword] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -114,14 +115,20 @@ export default function RBACMatrixView() {
   );
 
   const handleSaveAll = async () => {
+    if (!confirmActorPassword.trim()) {
+      toast.error("Nhập lại mật khẩu quản trị trước khi lưu ma trận.");
+      return;
+    }
     setIsSaving(true);
     const matrixToSave: Record<string, string[]> = {};
     Object.keys(matrix).forEach((roleId) => {
       matrixToSave[roleId] = Array.from(matrix[roleId]);
     });
-    const res = await saveFullRBACMatrix(matrixToSave);
-    if (res.success) toast.success("Đã cập nhật ma trận phân quyền hệ thống!");
-    else toast.error("Lỗi: " + res.error);
+    const res = await saveFullRBACMatrix(matrixToSave, confirmActorPassword);
+    if (res.success) {
+      toast.success("Đã cập nhật ma trận phân quyền hệ thống!");
+      setConfirmActorPassword("");
+    } else toast.error("Lỗi: " + res.error);
     setIsSaving(false);
   };
 
@@ -139,7 +146,7 @@ export default function RBACMatrixView() {
         <Lock className="mx-auto mb-4 h-14 w-14 text-red-500 opacity-50" />
         <h2 className={bv103DesignTokens.pageTitle}>Truy cập bị hạn chế</h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          Ma trận phân quyền chỉ dành cho quản trị hoặc người có quyền <strong>PHAN_QUYEN — Sửa</strong>.
+          Ma trận phân quyền chỉ dành cho quản trị hệ thống (vai trò ADMIN).
         </p>
       </div>
     );
@@ -179,10 +186,24 @@ export default function RBACMatrixView() {
       <KsnkPageHeader
         title="Ma trận phân quyền"
         actions={
-          <button type="button" onClick={() => void handleSaveAll()} disabled={isSaving} className={bv103DesignTokens.btnPrimary}>
-            <Shield className="h-3.5 w-3.5" />
-            {isSaving ? "Đang lưu…" : "Lưu ma trận"}
-          </button>
+          <>
+            <label className="flex items-center gap-2 text-xs text-slate-600">
+              <span className="whitespace-nowrap">Mật khẩu xác nhận</span>
+              <input
+                type="password"
+                className="input h-9 w-44 bg-white text-sm"
+                autoComplete="current-password"
+                value={confirmActorPassword}
+                onChange={(e) => setConfirmActorPassword(e.target.value)}
+                disabled={isSaving}
+                placeholder="Mật khẩu của bạn"
+              />
+            </label>
+            <button type="button" onClick={() => void handleSaveAll()} disabled={isSaving} className={bv103DesignTokens.btnPrimary}>
+              <Shield className="h-3.5 w-3.5" />
+              {isSaving ? "Đang lưu…" : "Lưu ma trận"}
+            </button>
+          </>
         }
       />
 

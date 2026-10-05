@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fetchAllRangeRows } from "@/lib/fetch-all-range";
+import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { countActiveLinkedMembers } from "../lib/me-tiet-khuan-batch-integrity";
 import { getSterilizerMethod } from "./me-tiet-khuan-machine-kind";
@@ -42,9 +42,12 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
         error: e instanceof Error ? e.message : "Không tải danh sách mẻ",
       })),
     // Form MDM dùng READY/REPAIRING/…; chỉ READY (và mã cũ HOAT_DONG nếu có) được chọn làm máy mẻ TK.
+    // A) select(*). B) cột dropdown mẻ — chọn B.
     supabase
       .from("cssd_dm_thiet_bi")
-      .select("*, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may)")
+      .select(
+        "id, ma_thiet_bi, ten_thiet_bi, trang_thai, loai_may_id, is_active, specs, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may)",
+      )
       .eq("is_active", true)
       .in("trang_thai", ["READY", "HOAT_DONG"]),
     (async () => {
@@ -71,14 +74,20 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   const ids = raw.map((b) => b.id).filter(Boolean);
   let byMe = new Map<string, number>();
   if (ids.length > 0) {
-    const { data: qrows } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("lo_tiet_khuan_id, is_active")
-      .in("lo_tiet_khuan_id", ids)
-      .eq("is_active", true);
-    byMe = countActiveLinkedMembers(
-      (qrows || []) as Array<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>,
+    // Nhiều mẻ: chia .in() + đọc hết trang — tránh cắt im PostgREST.
+    const qrows = await fetchAllByIdChunks<{ lo_tiet_khuan_id?: string | null; is_active?: boolean | null }>(
+      ids,
+      (idChunk, from, to) =>
+        supabase
+          .from("cssd_fact_quy_trinh")
+          .select("lo_tiet_khuan_id, is_active")
+          .in("lo_tiet_khuan_id", idChunk)
+          .eq("is_active", true)
+          .order("lo_tiet_khuan_id", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, to),
     );
+    byMe = countActiveLinkedMembers(qrows);
   }
   const batchRows = raw.map((b) => {
     const row = b as Record<string, unknown>;

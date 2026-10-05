@@ -14,7 +14,8 @@ type CacheEntry = {
   at: number;
 };
 
-const TTL_MS = 30_000;
+/** Khớp revalidate server ~90s — tránh double-fetch client trong cùng phiên lọc. */
+const TTL_MS = 90_000;
 const cache = new Map<string, CacheEntry>();
 
 function cacheKey(fp: AnalyticsFilterInput): string {

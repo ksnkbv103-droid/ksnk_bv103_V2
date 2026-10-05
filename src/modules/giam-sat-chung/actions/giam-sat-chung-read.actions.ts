@@ -14,6 +14,7 @@ import {
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { resolveBangKiemMaCandidates } from "@/lib/domain/ve-sinh-tay-catalog";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -36,6 +37,8 @@ export async function getGiamSatChungHistoryPaginated(params: {
   loaiBangKiem?: string;
   /** Slice 5: lọc theo `gstt_dm_bang_kiem.loai_giam_sat`. */
   loaiGiamSat?: GscLoaiGiamSatRoute;
+  /** GSC-09: `?bk=` — lọc theo mọi mã tương đương (alias IA-02 + map short↔dài). */
+  maBk?: string;
 }) {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
@@ -71,7 +74,22 @@ export async function getGiamSatChungHistoryPaginated(params: {
       "ten_bang_kiem_hien_thi",
     ]);
 
-    // 1. COUNT — chỉ đếm, không tải dữ liệu
+    let bangKiemIds: string[] | null = null;
+    const maBkFilter = String(params.maBk || "").trim();
+    if (maBkFilter) {
+      const candidates = resolveBangKiemMaCandidates(maBkFilter);
+      const { data: bkRows, error: bkErr } = await supabase
+        .from("gstt_dm_bang_kiem")
+        .select("id, ma_bk, ten_bang_kiem")
+        .in("ma_bk", candidates.length ? candidates : [maBkFilter]);
+      if (bkErr) throw bkErr;
+      bangKiemIds = (bkRows ?? []).map((r) => String((r as { id?: string }).id || "")).filter(Boolean);
+      if (!bangKiemIds.length) {
+        return { success: true as const, data: [], totalCount: 0, page, pageSize: size, maBk: maBkFilter };
+      }
+    }
+
+    // 1. COUNT UI phân trang — planned; giữ exact ở báo cáo/đếm nghiệp vụ.
     let countQ = supabase
       .from("v_gstt_giam_sat_chung_sessions_full")
       .select("id", { count: "exact", head: true })
@@ -88,6 +106,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
         countQ = countQ.eq("loai_giam_sat", params.loaiGiamSat);
       }
     }
+    if (bangKiemIds) countQ = countQ.in("bang_kiem_id", bangKiemIds);
     if (searchFilter) countQ = countQ.or(searchFilter);
     const { count, error: cErr } = await countQ;
     if (cErr) throw cErr;
@@ -111,6 +130,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
         dataQ = dataQ.eq("loai_giam_sat", params.loaiGiamSat);
       }
     }
+    if (bangKiemIds) dataQ = dataQ.in("bang_kiem_id", bangKiemIds);
     if (searchFilter) dataQ = dataQ.or(searchFilter);
     const { data: sessions, error } = await dataQ;
     if (error) throw error;
@@ -168,9 +188,10 @@ export async function getGscHeaderDmDropdowns() {
       }),
       getCachedDmKhoaPhong(),
       (() => {
+        // A) Full active list. B) limit 400 (+ filter khoa mạng lưới) — chọn B.
         let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
         if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
-        return q.order("ho_ten");
+        return q.order("ho_ten").limit(400);
       })(),
       supabase
         .from("gstt_dm_khu_vuc_giam_sat")

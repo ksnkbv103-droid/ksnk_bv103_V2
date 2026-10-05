@@ -27,7 +27,7 @@ export function validateStationAdvance(ctx: AdvanceContext): { ok: true } | { ok
     return {
       ok: false,
       message:
-        "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào CSSD → tab Mẻ tiệt khuẩn (/cssd-quy-trinh?tab=batch): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
+        "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào Quy trình → tab Mẻ: tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
     };
   }
 

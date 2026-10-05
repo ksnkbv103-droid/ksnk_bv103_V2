@@ -37,6 +37,12 @@ describe("dinhKyMatchDueOnDate (mirror RPC)", () => {
   it("MONTHLY: mốc = due (cùng ngày trong tháng) → khớp", () => {
     expect(dinhKyMatchDueOnDate("MONTHLY", "2026-05-30", parseIsoDateOnlyUtc("2026-05-30"))).toBe(true);
   });
+  it("MONTHLY neo 31 → 28/2 (hoặc 29/2 năm nhuận)", () => {
+    expect(dinhKyMatchDueOnDate("MONTHLY", "2026-01-31", parseIsoDateOnlyUtc("2026-02-28"))).toBe(true);
+    expect(dinhKyMatchDueOnDate("MONTHLY", "2026-01-31", parseIsoDateOnlyUtc("2026-02-27"))).toBe(false);
+    expect(dinhKyMatchDueOnDate("MONTHLY", "2026-01-31", parseIsoDateOnlyUtc("2026-03-31"))).toBe(true);
+    expect(dinhKyMatchDueOnDate("MONTHLY", "2026-01-31", parseIsoDateOnlyUtc("2026-04-30"))).toBe(true);
+  });
 
   // ---------------------------------------------------------------------------
   // DAILY — bộ test mới (chu kỳ bị khóa bởi constraint cũ)

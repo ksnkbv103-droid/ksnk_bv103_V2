@@ -69,6 +69,7 @@ export async function getVSTSessionsPaginated(params: {
     ]);
 
     // 1. COUNT
+    // UI phân trang lịch sử — planned đủ; giữ exact ở báo cáo/đếm nghiệp vụ.
     let countQ = supabase
       .from("v_gstt_giam_sat_vst_sessions_full")
       .select("id", { count: "exact", head: true })
@@ -142,6 +143,11 @@ export async function getVSTSessionDetail(sessionId: string) {
     }
     if (!sessionView) throw new Error("Không tìm thấy phiên giám sát.");
 
+    // VST soft-delete: list ẩn is_active=false — detail cũng không mở lại.
+    if (sessionView.is_active === false) {
+      return { success: false as const, error: "Phiên giám sát đã vô hiệu (xóa mềm)." };
+    }
+
     if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {
       const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
       const myNs = scope.actorNhanSuId ? String(scope.actorNhanSuId) : null;
@@ -214,9 +220,10 @@ export async function getVstHeaderDmDropdowns() {
       }),
       getCachedDmKhoaPhong(),
       (() => {
+        // A) Full active list. B) limit 400 (+ filter khoa mạng lưới) — chọn B.
         let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
         if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
-        return q.order("ho_ten");
+        return q.order("ho_ten").limit(400);
       })(),
       supabase
         .from("gstt_dm_khu_vuc_giam_sat")

@@ -497,6 +497,8 @@ export default function NkbvBaCaseSheet({
                 allowedEdit={allowedEdit}
                 simulatedRole="KSNK"
                 adjudicating={adjudicating}
+                canConfirmNkbv={liveEvaluation.is_positive === true}
+                classification={liveEvaluation.classification}
               />
             </div>
           ) : null}

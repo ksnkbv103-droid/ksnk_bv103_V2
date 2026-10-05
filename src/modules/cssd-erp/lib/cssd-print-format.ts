@@ -2,7 +2,56 @@
 
 import { isCssdCycleUsedClinically } from "@/modules/cssd-su-co/domain/cssd-used-clinically";
 import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
-import type { CssdBatchAnhMinhChung, CssdBatchPrintData, CssdQcProofRow } from "../types/cssd-print.types";
+import type {
+  CssdBatchAnhMinhChung,
+  CssdBatchPrintData,
+  CssdCapPhatPrintIncident,
+  CssdQcProofRow,
+} from "../types/cssd-print.types";
+import {
+  INCIDENT_STATUS_LABEL,
+  INCIDENT_STATUS_VOID,
+  readIncidentPhieuStatus,
+} from "@/modules/cssd-su-co/domain/cssd-incident-status";
+
+/** Dòng phủ định M8-A khi không có SC mẻ/chu trình ghi nhận. */
+export const CAP_PHAT_NO_INCIDENT_LINE = "Không có sự cố mẻ/chu trình ghi nhận";
+
+const INCIDENT_STATUS_PRINT_EXTRA: Record<string, string> = {
+  DA_DONG: "Đã đóng (giải phóng)",
+  CLOSED: "Đã đóng (giải phóng)",
+};
+
+export function formatCapPhatIncidentStatus(attrs: Record<string, unknown> | null | undefined): string {
+  const raw = String(attrs?.INCIDENT_STATUS ?? "").trim().toUpperCase();
+  if (raw === INCIDENT_STATUS_VOID) return INCIDENT_STATUS_LABEL.VO_HIEU;
+  if (INCIDENT_STATUS_PRINT_EXTRA[raw]) return INCIDENT_STATUS_PRINT_EXTRA[raw];
+  const status = readIncidentPhieuStatus(attrs);
+  return INCIDENT_STATUS_LABEL[status] || status;
+}
+
+/** Map hàng SC → dòng in phiếu cấp phát; bỏ phiếu vô hiệu. */
+export function mapCapPhatPrintIncidents(
+  rows: Array<{
+    id?: string | null;
+    attributes?: Record<string, unknown> | null;
+    mo_ta?: string | null;
+  }>,
+): CssdCapPhatPrintIncident[] {
+  const out: CssdCapPhatPrintIncident[] = [];
+  for (const row of rows) {
+    const attrs = row.attributes && typeof row.attributes === "object" ? row.attributes : {};
+    if (readIncidentPhieuStatus(attrs) === INCIDENT_STATUS_VOID) continue;
+    const id = String(row.id || "").trim();
+    const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim();
+    out.push({
+      ma: id ? id.slice(0, 8).toUpperCase() : "—",
+      trangThai: formatCapPhatIncidentStatus(attrs),
+      loai: typeCode || String(row.mo_ta || "").trim() || "—",
+    });
+  }
+  return out;
+}
 
 export function formatCssdPrintDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -129,6 +178,7 @@ export type CssdBatchTicketSource = {
   qcCiNgoai?: string | null;
   qcCiPcd?: string | null;
   ghiChuQc?: string | null;
+  bowieDickLine?: string | null;
   members: { maBo: string; tenBo: string; xuLyLabel?: string }[];
 };
 
@@ -167,6 +217,7 @@ export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPr
     qcCiPcd,
     biLabel,
     coImplantLabel: source.coImplant ? "Có" : "Không",
+    bowieDickLine: String(source.bowieDickLine || "").trim() || "—",
     members: source.members.map((member, idx) => ({
       stt: idx + 1,
       maQrBo: member.maBo || "—",
@@ -198,8 +249,76 @@ export function formatCssdTriLabel(raw: string | null | undefined): string {
 
 export function parseNguoiLoadFromGhiChu(ghiChu: string | null | undefined): string {
   const s = String(ghiChu || "");
-  const m = s.match(/Người load:\s*([^|]+)/i);
+  const m = s.match(/Người (?:load|nạp):\s*([^|]+)/i);
   return m?.[1]?.trim() || "—";
+}
+
+export function readQcJsonField(raw: unknown, key: string): string | null {
+  if (!raw || typeof raw !== "object") return null;
+  const text = String((raw as Record<string, unknown>)[key] || "").trim();
+  return text || null;
+}
+
+/** ME-S2 `tk_qc_json` → trường in phiếu cấp phát (cùng neo key với phiếu mẻ). */
+export function mapCapPhatQcFromBatch(batch: {
+  tk_qc_json?: unknown;
+  trang_thai_bi?: string | null;
+  nhiet_do?: number | string | null;
+  ap_suat?: number | string | null;
+  thoi_gian_chu_ky?: number | string | null;
+}): Pick<
+  CssdBatchQcJson,
+  | "nguoiUnload"
+  | "nhietDoApSuat"
+  | "thongSoMay"
+  | "chiThiTiepXuc"
+  | "chiThiDaThongSo"
+  | "testSinhHoc"
+  | "testCI"
+  | "testBowieDick"
+> & {
+  chiThiTiepXuc: string;
+  chiThiDaThongSo: string;
+  testCI: string;
+  testSinhHoc: string;
+  testBowieDick: string;
+  nhietDoApSuat: string;
+  thongSoMay: string;
+  nguoiUnload: string;
+} {
+  const raw = batch.tk_qc_json;
+  const legacy = parseBatchQcJson(raw);
+
+  const chiThiTiepXuc =
+    readQcJsonField(raw, "thong_so_vat_ly") || legacy.chiThiTiepXuc || "—";
+  const chiThiDaThongSo = readQcJsonField(raw, "ci_pcd") || legacy.chiThiDaThongSo || "—";
+  const testCI = readQcJsonField(raw, "ci_ngoai_goi") || legacy.testCI || "—";
+  const biRaw =
+    readQcJsonField(raw, "trang_thai_bi") ||
+    String(batch.trang_thai_bi || "").trim() ||
+    legacy.testSinhHoc ||
+    "";
+  const testSinhHoc = biRaw || "NA";
+
+  const nhietDo = formatCycleMeasure(batch.nhiet_do, "°C");
+  const apSuat = formatCycleMeasure(batch.ap_suat, "áp suất");
+  const thoiGianChuKy = formatCycleMeasure(batch.thoi_gian_chu_ky, "phút");
+  const nhietDoApSuat =
+    legacy.nhietDoApSuat ||
+    [nhietDo, apSuat].filter((part) => part !== "—").join(" / ") ||
+    "—";
+  const thongSoMay = legacy.thongSoMay || thoiGianChuKy || "—";
+
+  return {
+    nguoiUnload: legacy.nguoiUnload || "—",
+    nhietDoApSuat,
+    thongSoMay,
+    chiThiTiepXuc,
+    chiThiDaThongSo,
+    testCI,
+    testSinhHoc,
+    testBowieDick: legacy.testBowieDick || "—",
+  };
 }
 
 export type CssdBatchQcJson = {
@@ -310,10 +429,13 @@ export function parseBatchQcJson(raw: unknown): CssdBatchQcJson {
     nguoiUnload: String(o.nguoiUnload || "").trim() || undefined,
     nhietDoApSuat: String(o.nhietDoApSuat || "").trim() || undefined,
     thongSoMay: String(o.thongSoMay || "").trim() || undefined,
-    chiThiTiepXuc: String(o.chiThiTiepXuc || "").trim() || undefined,
-    chiThiDaThongSo: String(o.chiThiDaThongSo || "").trim() || undefined,
-    testSinhHoc: String(o.testSinhHoc || "").trim() || undefined,
-    testCI: String(o.testCI || "").trim() || undefined,
+    chiThiTiepXuc:
+      String(o.chiThiTiepXuc || o.thong_so_vat_ly || "").trim() || undefined,
+    chiThiDaThongSo:
+      String(o.chiThiDaThongSo || o.ci_pcd || "").trim() || undefined,
+    testSinhHoc:
+      String(o.testSinhHoc || o.trang_thai_bi || "").trim() || undefined,
+    testCI: String(o.testCI || o.ci_ngoai_goi || "").trim() || undefined,
     testBowieDick: String(o.testBowieDick || "").trim() || undefined,
     anhMinhChung,
   };

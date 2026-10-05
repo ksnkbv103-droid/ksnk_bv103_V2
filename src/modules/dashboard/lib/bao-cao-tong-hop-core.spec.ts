@@ -16,7 +16,6 @@ import {
   deltaFromPeriodPoints,
   deltaFromTrend,
   shouldFetchSource,
-  topBottomKhoa,
 } from "./bao-cao-tong-hop-core";
 
 describe("bao-cao-tong-hop-core", () => {
@@ -72,8 +71,8 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: 70,
             ty_le_gsc: null,
-            vst_tong: 10,
-            vst_dat: 7,
+            vst_tong: 20,
+            vst_dat: 14,
           },
         ],
         "ty_le_vst",
@@ -88,16 +87,16 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: 70,
             ty_le_gsc: null,
-            vst_tong: 10,
-            vst_dat: 7,
+            vst_tong: 20,
+            vst_dat: 14,
           },
           {
             label: "T3",
             min_date: "2026-06-15",
             ty_le_vst: 80,
             ty_le_gsc: null,
-            vst_tong: 10,
-            vst_dat: 8,
+            vst_tong: 20,
+            vst_dat: 16,
           },
         ],
         "ty_le_vst",
@@ -114,16 +113,16 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: 70,
             ty_le_gsc: null,
-            vst_tong: 10,
-            vst_dat: 7,
+            vst_tong: 20,
+            vst_dat: 14,
           },
           {
             label: "T2",
             min_date: "2026-06-08",
             ty_le_vst: 80,
             ty_le_gsc: null,
-            vst_tong: 10,
-            vst_dat: 8,
+            vst_tong: 20,
+            vst_dat: 16,
           },
         ],
         "ty_le_vst",
@@ -140,16 +139,16 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: null,
             ty_le_gsc: 33.33,
-            gsc_tong: 3,
-            gsc_dat: 1,
+            gsc_tong: 30,
+            gsc_dat: 10,
           },
           {
             label: "T2",
             min_date: "2026-06-08",
             ty_le_vst: null,
             ty_le_gsc: 66.67,
-            gsc_tong: 3,
-            gsc_dat: 2,
+            gsc_tong: 30,
+            gsc_dat: 20,
           },
         ],
         "ty_le_gsc",
@@ -301,7 +300,8 @@ describe("bao-cao-tong-hop-core", () => {
       } as never,
     );
     expect(rows).toHaveLength(1);
-    expect(rows[0].ty_le_avg).toBe(85);
+    expect(rows[0].ty_le_vst).toBe(80);
+    expect(rows[0].ty_le_gsc).toBe(90);
     expect(rows[0].label).toBe("B01");
   });
 
@@ -311,7 +311,6 @@ describe("bao-cao-tong-hop-core", () => {
         id: "1",
         ten: "A",
         label: "A",
-        ty_le_avg: 50,
         ty_le_vst: 50,
         ty_le_gsc: null,
         tong_co_hoi_vst: 1,
@@ -322,7 +321,6 @@ describe("bao-cao-tong-hop-core", () => {
         id: "2",
         ten: "B",
         label: "B",
-        ty_le_avg: 90,
         ty_le_vst: 90,
         ty_le_gsc: null,
         tong_co_hoi_vst: 1,
@@ -333,7 +331,6 @@ describe("bao-cao-tong-hop-core", () => {
         id: "3",
         ten: "C",
         label: "C",
-        ty_le_avg: null,
         ty_le_vst: null,
         ty_le_gsc: null,
         tong_co_hoi_vst: 0,
@@ -351,7 +348,6 @@ describe("bao-cao-tong-hop-core", () => {
           id: "k1",
           ten: "Khoa A",
           label: "Khoa A",
-          ty_le_avg: 80,
           ty_le_vst: 80,
           ty_le_gsc: null,
           tong_co_hoi_vst: 10,
@@ -368,37 +364,7 @@ describe("bao-cao-tong-hop-core", () => {
     );
     expect(merged).toHaveLength(2);
     expect(merged[0].ten).toBe("Khoa A");
-    expect(merged[1]).toMatchObject({ id: "k2", ten: "Khoa B", has_data: false, ty_le_avg: null });
-  });
-
-  it("topBottomKhoa orders by avg", () => {
-    const { top, bottom } = topBottomKhoa(
-      [
-        {
-          id: "1",
-          ten: "A",
-          label: "A",
-          ty_le_avg: 90,
-          ty_le_vst: 90,
-          ty_le_gsc: null,
-          tong_co_hoi_vst: 1,
-          tong_quan_sat_gsc: 0,
-        },
-        {
-          id: "2",
-          ten: "B",
-          label: "B",
-          ty_le_avg: 50,
-          ty_le_vst: 50,
-          ty_le_gsc: null,
-          tong_co_hoi_vst: 1,
-          tong_quan_sat_gsc: 0,
-        },
-      ],
-      1,
-    );
-    expect(top[0].ten).toBe("A");
-    expect(bottom[0].ten).toBe("B");
+    expect(merged[1]).toMatchObject({ id: "k2", ten: "Khoa B", has_data: false, ty_le_vst: null });
   });
 
   it("shouldFetchSource respects chuyen_de", () => {

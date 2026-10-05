@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { canAccessTaiKhoanNhanSuRoute } from "@/lib/auth/quan-tri-access";
 import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
 
-export const metadata = { title: "Tài khoản nhân sự | BV103" };
+export const metadata = { title: "Tài khoản & truy cập" };
 
 /** Gộp vào Nhân sự — cùng list account + role + Tạo TK. */
 export default async function Page() {

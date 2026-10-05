@@ -17,6 +17,7 @@ describe("supervision-percent VST (1 decimal)", () => {
     expect(formatPercent1(66.66)).toBe("66.7%");
     expect(formatPercent1FromRatio(2, 3)).toBe("66.7%");
     expect(formatPercent1FromRatio(0, 0)).toBe("—");
+    expect(formatPercent1(null)).toBe("—");
   });
 });
 

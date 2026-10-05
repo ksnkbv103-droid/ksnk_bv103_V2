@@ -1,5 +1,5 @@
 /**
- * Trạng thái khởi tạo Track B (lean): đã giao phụ trách → DANG_LAM ngay, không cổng "nhận việc".
+ * Trạng thái khởi tạo Track B: đã giao phụ trách → DANG_LAM; tổ không thay phụ trách.
  */
 
 export function resolveQlcvTrangThaiMaForTask(params: {
@@ -8,6 +8,8 @@ export function resolveQlcvTrangThaiMaForTask(params: {
   to_cong_tac_id?: string | null;
 }): string {
   if (!params.isActive) return "MOI";
-  if (params.nguoi_phu_trach_id || params.to_cong_tac_id) return "DANG_LAM";
+  // QLCV-04: chỉ phụ trách cá nhân → DANG_LAM (tổ không đủ).
+  if (params.nguoi_phu_trach_id) return "DANG_LAM";
+  void params.to_cong_tac_id;
   return "MOI";
 }

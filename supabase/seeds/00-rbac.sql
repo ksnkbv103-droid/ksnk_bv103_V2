@@ -100,6 +100,7 @@ VALUES
   ('CSSD_ME_TIET_KHUAN', 'import', 'Import CSSD - Mẻ Tiệt khuẩn'),
   ('CSSD_ME_TIET_KHUAN', 'qc', 'Kiểm định chất lượng CSSD - Mẻ Tiệt khuẩn'),
   ('CSSD_ME_TIET_KHUAN', 'lock', 'Khóa an toàn CSSD - Mẻ Tiệt khuẩn'),
+  ('CSSD_ME_TIET_KHUAN', 'nha_implant', 'Nhả mẻ implant / sau BI âm / ghi chờ BI (tổ trưởng CSSD)'),
   ('KSNK_KHO_HOACHAT', 'view', 'Xem KSNK - Kho hóa chất / vật tư'),
   ('KSNK_KHO_HOACHAT', 'create', 'Thêm KSNK - Kho hóa chất / vật tư'),
   ('KSNK_KHO_HOACHAT', 'edit', 'Sửa KSNK - Kho hóa chất / vật tư'),
@@ -151,8 +152,11 @@ WHERE r.name = 'NHAN_VIEN_KSNK'
     (p.module_name IN ('GIAM_SAT_VST','GIAM_SAT_CHUNG','GIAM_SAT_NKBV','CONG_VIEC','BAO_SU_CO','DAO_TAO')
      AND p.action IN ('view','create','edit','delete','import'))
     OR (p.module_name LIKE 'DASHBOARD%' AND p.action IN ('view','export'))
-    OR (p.module_name IN ('CSSD_WORKFLOW','CSSD_KHO_DUNGCU','CSSD_REPORT','CSSD_ME_TIET_KHUAN','KSNK_KHO_HOACHAT')
+    OR (p.module_name IN ('CSSD_WORKFLOW','CSSD_KHO_DUNGCU','CSSD_REPORT','KSNK_KHO_HOACHAT')
         AND p.action IN ('view','create','edit','delete','import','qc','lock','export'))
+    -- ME-04: NV KSNK không nhận qc / nha_implant trên mẻ (tổ trưởng grant tay)
+    OR (p.module_name = 'CSSD_ME_TIET_KHUAN'
+        AND p.action IN ('view','create','edit','delete','import','lock'))
     OR (p.module_name IN ('NHAN_SU','BANG_KIEM','DANH_MUC') AND p.action IN ('view','create','edit','delete','import'))
     OR (p.module_name = 'PHAN_QUYEN' AND p.action = 'view')
     OR (p.module_name IN ('LOAI_DC','BO_DC','DC_LE','THIET_BI','HOA_CHAT','KHOA_PHONG','BANG_KIEM_DETAIL') AND p.action = 'view')

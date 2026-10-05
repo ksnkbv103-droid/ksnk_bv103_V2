@@ -13,7 +13,6 @@ import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
-  ssr: false,
   loading: () => <div className="h-64 animate-pulse rounded-[var(--radius-shell)] bg-slate-50" />,
 });
 
@@ -66,8 +65,7 @@ export default function VSTAnalyticsView() {
       khuVucOptions={d.khuVucOptions}
       selectedKhuVucIds={d.selectedKhuVucIds}
       setSelectedKhuVucIds={d.setSelectedKhuVucIds}
-      selectedHinhThucIds={d.selectedHinhThucIds}
-      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
+      hideHinhThuc
     />
   );
 
@@ -86,13 +84,15 @@ export default function VSTAnalyticsView() {
         payload={d.payload}
         loading={d.loading}
         loadError={d.loadError}
+        sourceLens={d.sourceLens}
+        onSourceLensChange={d.setSourceLens}
       />
       <p className="px-1 text-[11px] leading-snug text-slate-500">
         Chỉ thống kê khoa — không phải bản ký gửi Ban Giám đốc. Bản ký nằm ở{" "}
         <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
           Báo cáo chính thức
         </Link>
-        . Nhập và lịch sử phiên qua ModeNav. Không tạo việc từ trang này.
+        . Nhập và lịch sử phiên qua thanh chế độ phía trên. Không tạo việc từ trang này.
       </p>
     </Bv103AnalyticsPageFrame>
   );

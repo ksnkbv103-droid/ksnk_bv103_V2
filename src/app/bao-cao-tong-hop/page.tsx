@@ -12,12 +12,13 @@ function PageSkeleton() {
   );
 }
 
+// Bỏ ssr:false — shell RSC + dynamic vẫn code-split charts (PERF2-chunks).
 const BaoCaoTongHopPage = dynamic(
   () =>
     import("@/modules/dashboard/views/bao-cao-tong-hop-page").then((m) => ({
       default: m.BaoCaoTongHopPage,
     })),
-  { ssr: false, loading: () => <PageSkeleton /> },
+  { loading: () => <PageSkeleton /> },
 );
 
 export default function BaoCaoTongHopRoute() {

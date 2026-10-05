@@ -16,8 +16,6 @@ import { formatDateVi, formatDateTimeVi } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useImportExport } from "@/hooks/useImportExport";
 import ReportFilters from "../components/report/ReportFilters";
-import ReportDashboard from "../components/report/ReportDashboard";
-import ReportAnalyticsPanels from "../components/report/ReportAnalyticsPanels";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
 import {
   CSSD_UI_ACTION_PRIMARY,
@@ -28,16 +26,47 @@ import {
 } from "../shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
-import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
-import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
-import IncidentVoidButton from "@/modules/cssd-su-co/components/IncidentVoidButton";
-import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import {
+  INCIDENT_STATUS_CONFIRMED,
+  canApproveCssdIncident,
+  canCloseSterilizationIncidentRelease,
+} from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { isBatchRecallCommandPending } from "@/modules/cssd-su-co/domain/cssd-batch-recall";
 import { stationLabel } from "../workflow/domain/cssd-stations";
 
+const panelPulse = () => (
+  <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+);
+
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
-  ssr: false,
-  loading: () => <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />,
+  loading: panelPulse,
 });
+const ReportDashboard = dynamic(() => import("../components/report/ReportDashboard"), {
+  loading: panelPulse,
+});
+const ReportAnalyticsPanels = dynamic(() => import("../components/report/ReportAnalyticsPanels"), {
+  loading: panelPulse,
+});
+const IncidentJournalPrintButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentJournalPrintButton"),
+  { loading: () => null },
+);
+const IncidentConfirmButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentConfirmButton"),
+  { loading: () => null },
+);
+const IncidentVoidButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentVoidButton"),
+  { loading: () => null },
+);
+const IncidentCloseReleaseButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentCloseReleaseButton"),
+  { loading: () => null },
+);
+const IncidentBatchRecallButton = dynamic(
+  () => import("@/modules/cssd-su-co/components/IncidentBatchRecallButton"),
+  { loading: () => null },
+);
 
 const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_PHAT"] as const;
 type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";
@@ -60,7 +89,9 @@ function CSSDReportPageInner() {
   const tabParam = searchParams.get("tab");
   const highlightIncidentId = String(searchParams.get("id") || "").trim();
   const { allowed } = useModulePermission("CSSD_REPORT");
-  const { allowed: incidentAllowed } = useModulePermission("BAO_SU_CO");
+  const { allowed: incidentAllowed, userRoles } = useModulePermission("BAO_SU_CO");
+  const canConfirmIncident = canApproveCssdIncident(userRoles);
+  const canCloseIncidentRelease = canCloseSterilizationIncidentRelease(userRoles);
   const { exportTemplate } = useImportExport({
     moduleKey: "CSSD_REPORT",
     tableName: "bao_cao_cssd",
@@ -120,7 +151,7 @@ function CSSDReportPageInner() {
       });
       if (!res.success) {
         toast.error(res.error || "Không tải thống kê sản lượng CSSD");
-        setAnalytics(res.data);
+        setAnalytics(null);
       } else {
         setAnalytics(res.data);
       }
@@ -129,13 +160,13 @@ function CSSDReportPageInner() {
   }, [filters]);
 
   const { stats, alerts, pieData, barData, incidentGroupStats, processAccountabilityRows } = useMemo(() => {
-    const volumeByStation = new Map((analytics?.stationVolume ?? []).map((r) => [r.station, r.completed]));
-    const bData = STATIONS.map((s) => {
-      const qCount = volumeByStation.get(s) ?? 0;
-      const sCount = raw.suCo.filter((sc) => sc.tram_phat_hien === s).length;
-      const rate = qCount > 0 ? (sCount / qCount) * 100 : null;
-      return { name: s, batches: qCount, incidents: sCount, rate };
-    });
+    const stationRates = analytics?.stationIncidentRates ?? [];
+    const bData = stationRates.map((r) => ({
+      name: r.station,
+      batches: r.completed,
+      incidents: r.incidentCycles,
+      rate: r.rate,
+    }));
     const ranked = bData.filter((b) => b.rate != null).sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0));
     const pMap = new Map<string, number>();
     raw.suCo.forEach((s) => {
@@ -156,11 +187,14 @@ function CSSDReportPageInner() {
         bestStation: ranked[0] ? stationLabel(ranked[0].name) : "Không áp dụng",
         worstStation: ranked[ranked.length - 1] ? stationLabel(ranked[ranked.length - 1].name) : "Không áp dụng",
       },
-      alerts: bData
-        .filter((b) => b.rate != null && b.rate > 5)
-        .map((b) => ({ name: stationLabel(b.name), rate: (b.rate as number).toFixed(1) })),
+      /** CSSD-06: gỡ ngưỡng 5% tới khi có nguồn QT. */
+      alerts: [] as Array<{ name: string; rate: string }>,
       pieData: Array.from(pMap).map(([name, value]) => ({ name, value })),
-      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: stationLabel(b.name) })),
+      barData: bData.map((b) => ({
+        ...b,
+        rate: b.rate ?? 0,
+        name: stationLabel(b.name),
+      })),
       incidentGroupStats: INCIDENT_GROUPS.map((g) => ({
         group: g,
         label: INCIDENT_GROUP_LABEL[g],
@@ -168,7 +202,11 @@ function CSSDReportPageInner() {
       })),
       processAccountabilityRows: raw.suCo
         .filter((x) => isAccountabilityCause(String(x.cause_class || "")))
-        .map((x) => ({ ...x, fault_operator: x.fault_operator || x.reporter_email || "Chưa ghi nhận" })),
+        .map((x) => ({
+          ...x,
+          fault_operator: x.fault_operator || "Chưa xác định",
+          nguoi_phat_hien: (x as { nguoi_phat_hien?: string }).nguoi_phat_hien || x.reporter_email || "—",
+        })),
     };
   }, [raw, analytics]);
 
@@ -334,13 +372,13 @@ function CSSDReportPageInner() {
             <h3 className="text-[11px] font-medium text-slate-500">Nhật ký sự cố theo nhóm nghiệp vụ</h3>
             <AdvancedDataTable
               columns={[
-                { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+                { header: "Mã QR", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
                 { header: "Nhóm", accessorKey: "incident_group_label", cell: (v: any) => <span className="text-[11px] font-medium text-slate-700">{v.incident_group_label}</span> },
                 { header: "Bản chất", accessorKey: "cause_label", cell: (v: any) => <span className="text-[11px] font-medium text-slate-700">{v.cause_label || "Chưa phân loại"}</span> },
                 { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
                 { header: "Mã lô", accessorKey: "ma_lo", cell: (v: any) => <span className="font-mono text-[11px]">{v.ma_lo || "—"}</span> },
                 { header: "Mô tả", accessorKey: "mo_ta_ngan", cell: (v: any) => <span className="line-clamp-2 text-[11px] text-slate-600">{v.mo_ta_ngan || "—"}</span> },
-                { header: "Người", accessorKey: "fault_operator", cell: (v: any) => <span className="text-[11px]">{v.fault_operator || v.reporter_email || "—"}</span> },
+                { header: "Người phát hiện", accessorKey: "nguoi_phat_hien", cell: (v: any) => <span className="text-[11px]">{v.nguoi_phat_hien || v.reporter_email || "—"}</span> },
                 { header: "Thời điểm", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
                 {
                   header: "Trạng thái",
@@ -360,7 +398,7 @@ function CSSDReportPageInner() {
                 { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
                 { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
                 {
-                  header: "In",
+                  header: "Thao tác",
                   accessorKey: "id",
                   cell: (v: any) =>
                     v.id ? (
@@ -371,10 +409,27 @@ function CSSDReportPageInner() {
                             onVoided={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
-                        {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
+                        {canConfirmIncident &&
+                        v.incident_status !== INCIDENT_STATUS_CONFIRMED &&
+                        v.incident_status !== "DA_DONG" ? (
                           <IncidentConfirmButton
                             incidentId={String(v.id)}
                             onConfirmed={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
+                        {canConfirmIncident &&
+                        isBatchRecallCommandPending(
+                          (v.attributes as Record<string, unknown> | null | undefined) || null,
+                        ) ? (
+                          <IncidentBatchRecallButton
+                            incidentId={String(v.id)}
+                            onOrdered={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
+                        {canCloseIncidentRelease && v.incident_status === INCIDENT_STATUS_CONFIRMED ? (
+                          <IncidentCloseReleaseButton
+                            incidentId={String(v.id)}
+                            onClosed={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
                         <IncidentJournalPrintButton incidentId={String(v.id)} />
@@ -403,15 +458,16 @@ function CSSDReportPageInner() {
 
       {tab === "ACCOUNTABILITY" && (
         <div className="space-y-2 print:hidden">
-          <h3 className="text-[11px] font-medium text-slate-500">Khâu gây lỗi và người thao tác</h3>
+          <h3 className="text-[11px] font-medium text-slate-500">Khâu gây lỗi</h3>
           <AdvancedDataTable
             columns={[
-              { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+              { header: "Mã QR", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
               { header: "Bản chất", accessorKey: "cause_label", cell: (v: any) => <span className="text-[11px] font-medium">{v.cause_label || "Chưa phân loại"}</span> },
               { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
               { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
               { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
-              { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },
+              { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa xác định"}</span> },
+              { header: "Người phát hiện", accessorKey: "nguoi_phat_hien", cell: (v: any) => <span className="text-[11px] text-slate-600">{v.nguoi_phat_hien || "—"}</span> },
               { header: "Thời gian", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
             ]}
             data={processAccountabilityRows}

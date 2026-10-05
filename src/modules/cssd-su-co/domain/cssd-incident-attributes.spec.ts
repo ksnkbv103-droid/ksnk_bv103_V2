@@ -108,37 +108,41 @@ describe("cssd-incident-attributes", () => {
     expect(countsTowardCssdSafetyTally(hong)).toBe(true);
   });
 
-  it("cờ đỏ kho chỉ theo quy_trinh_id của phiếu còn hiệu lực", () => {
+  it("cờ đỏ kho chỉ theo quy_trinh_id của phiếu PROCESS còn hiệu lực", () => {
     const ids = quyTrinhIdsWithEffectiveRedAlert([
       {
         quy_trinh_id: "qt-1",
         is_red_alert: true,
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
       },
       {
         quy_trinh_id: "qt-2",
         is_red_alert: true,
         is_active: false,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
       },
       {
         quy_trinh_id: "qt-3",
         is_red_alert: true,
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN", SET_RECONCILE_STATUS: "DRAFT" },
+        attributes: {
+          INCIDENT_GROUP: "PROCESS",
+          INCIDENT_TYPE_CODE: "PROCESS_MISSTEP",
+          SET_RECONCILE_STATUS: "DRAFT",
+        },
       },
       {
         quy_trinh_id: "qt-4",
         is_red_alert: true,
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_TRANSFER" },
+        attributes: { INCIDENT_GROUP: "INSTRUMENT", INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
       },
       {
         quy_trinh_id: "",
         is_red_alert: true,
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
       },
     ]);
     expect([...ids]).toEqual(["qt-1"]);
@@ -157,17 +161,22 @@ describe("cssd-incident-attributes", () => {
     expect([...ids]).toEqual(["qt-1"]);
   });
 
-  it("ngưỡng đỏ đếm đúng chu kỳ, bỏ phiếu tắt và chu kỳ khác", () => {
+  it("SC-04: cờ đỏ chỉ đếm PROCESS trên đúng chu kỳ", () => {
     const rows = [
       {
         quy_trinh_id: "qt-khac",
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
       },
       {
         quy_trinh_id: "qt-1",
         is_active: false,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
+      },
+      {
+        quy_trinh_id: "qt-1",
+        is_active: true,
+        attributes: { INCIDENT_GROUP: "INSTRUMENT", INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
       },
       {
         quy_trinh_id: "qt-1",
@@ -177,15 +186,25 @@ describe("cssd-incident-attributes", () => {
       {
         quy_trinh_id: "qt-1",
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN", SET_RECONCILE_STATUS: "DRAFT" },
+        attributes: {
+          INCIDENT_GROUP: "PROCESS",
+          INCIDENT_TYPE_CODE: "PROCESS_MISSTEP",
+          SET_RECONCILE_STATUS: "DRAFT",
+        },
       },
       {
         quy_trinh_id: "qt-1",
         is_active: true,
-        attributes: { INCIDENT_TYPE_CODE: "INSTRUMENT_BROKEN" },
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_MISSTEP" },
+      },
+      {
+        quy_trinh_id: "qt-1",
+        is_active: true,
+        attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL" },
       },
     ];
-    expect(countPriorSafetyIncidentsOnCycle(rows, "qt-1")).toBe(2);
+    // draft + 2 PROCESS hiệu lực = 3 prior
+    expect(countPriorSafetyIncidentsOnCycle(rows, "qt-1")).toBe(3);
     expect(countPriorSafetyIncidentsOnCycle(rows, "")).toBe(0);
   });
 

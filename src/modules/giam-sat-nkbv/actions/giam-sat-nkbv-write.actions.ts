@@ -15,7 +15,10 @@ import {
   evaluateSsi,
   evaluateCh17,
 } from "../lib/nkbv-rules-engine";
-import { assertClinicalEvidenceForSubmit } from "../lib/nkbv-clinical-submit-gate";
+import {
+  assertClinicalEvidenceForSubmit,
+  nkbvClinicalSubmitRequiresDoe,
+} from "../lib/nkbv-clinical-submit-gate";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
@@ -25,7 +28,15 @@ import {
   validateLoaiTrangAndLyDo,
   type Payload,
 } from "./giam-sat-nkbv-write.helpers";
-import { ritPriorFromCaseLike } from "../lib/nkbv-rit-hard-stop";
+import {
+  resolveServerRitPriors,
+  verifiedSiblingFromCaseRow,
+} from "../lib/nkbv-rit-hard-stop";
+import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
+import {
+  loaiCodeFromClassification,
+  nkbvNonHaiCloseReason,
+} from "../lib/nkbv-classification-taxonomy";
 import { hydratePriorOpenVaeDoe } from "../lib/nkbv-vae-event-period";
 import {
   isNkbvTerminalCaseStatus,
@@ -222,14 +233,11 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       return { success: false as const, error: gate.error };
     }
 
-    // Ch.2 RIT hard-stop (DoD 20a=A): load sibling ca cùng BA — SSI/VAE bypass in evaluate*
-    let ritPriorEvents = verificationInput?.rit_prior_events;
-    if (
-      !ritPriorEvents?.length &&
-      caRow?.ma_benh_an &&
-      viTriNhiemKhuan !== "SSI" &&
-      viTriNhiemKhuan !== "VAE"
-    ) {
+    // Ch.2 RIT: server luôn tự nạp sibling cùng ma_benh_an — bỏ qua rit_prior_events client
+    const ritBypass =
+      viTriNhiemKhuan === "SSI" || viTriNhiemKhuan === "VAE";
+    let ritPriorEvents: ReturnType<typeof resolveServerRitPriors> = [];
+    if (!ritBypass && caRow?.ma_benh_an) {
       const siblings = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
         supabase
           .from("v_nkbv_su_kien_full")
@@ -243,42 +251,43 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
           .order("id", { ascending: true })
           .range(from, to),
       );
-      ritPriorEvents = siblings
-        .filter((s) => String(s.trang_thai_ma || "").toUpperCase() !== "LOAI_TRU")
-        .map((s) => {
-          const vd =
-            s.verification_data && typeof s.verification_data === "object"
-              ? (s.verification_data as Record<string, unknown>)
-              : {};
-          const metrics =
-            vd.cdc_metrics && typeof vd.cdc_metrics === "object"
-              ? (vd.cdc_metrics as Record<string, unknown>)
-              : vd;
-          const doe =
-            (metrics.doe as string | undefined) ||
-            (metrics.DOE as string | undefined) ||
-            (vd.calculated_doe as string | undefined) ||
-            (s.ngay_phat_hien as string | null);
-          const ch17 =
-            typeof vd.ch17_type_code === "string" ? vd.ch17_type_code : null;
-          return ritPriorFromCaseLike({
-            id: String(s.id),
-            doe: doe ? String(doe).slice(0, 10) : null,
-            ngay_phat_hien: s.ngay_phat_hien ? String(s.ngay_phat_hien).slice(0, 10) : null,
-            loai_ma: s.loai_ma ? String(s.loai_ma) : null,
-            loai_ten: s.loai_ten ? String(s.loai_ten) : null,
-            vi_tri_nhiem_khuan: s.vi_tri_nhiem_khuan
-              ? String(s.vi_tri_nhiem_khuan)
-              : null,
-            ch17_type_code: ch17,
-          });
-        })
-        .filter((x): x is NonNullable<typeof x> => Boolean(x));
+      ritPriorEvents = resolveServerRitPriors({
+        siblings: siblings.map((s) =>
+          verifiedSiblingFromCaseRow({
+            ...s,
+            ngay_vao_vien: caRow.ngay_vao_vien,
+          }),
+        ),
+        admissionDate: caRow.ngay_vao_vien
+          ? String(caRow.ngay_vao_vien).slice(0, 10)
+          : null,
+      });
+    }
+
+    // POA/HAI: hydrate ngày VV từ phiếu/BA — bỏ hai_status client
+    let ngayVaoVienServer = caRow?.ngay_vao_vien
+      ? String(caRow.ngay_vao_vien).slice(0, 10)
+      : "";
+    if (!ngayVaoVienServer && caRow?.ma_benh_an) {
+      const { data: baStay } = await supabase
+        .from("nkbv_fact_benh_an")
+        .select("ngay_vao_vien")
+        .eq("ma_benh_an", caRow.ma_benh_an)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (baStay?.ngay_vao_vien) {
+        ngayVaoVienServer = String(baStay.ngay_vao_vien).slice(0, 10);
+      }
     }
 
     const evalInput: Record<string, unknown> = {
       ...verificationInput,
+      // Không tin danh sách client — luôn ghi đè bằng prior server
       rit_prior_events: ritPriorEvents,
+      // Không tin hai_status client — server tự tính từ ngày VV + DOE
+      hai_status: undefined,
+      ngay_vao_vien: ngayVaoVienServer || undefined,
+      admission_date: ngayVaoVienServer || undefined,
       rit_exclude_event_ids: [
         id,
         ...((verificationInput?.rit_exclude_event_ids as string[] | undefined) || []),
@@ -372,25 +381,30 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       throw new Error(`Vị trí nhiễm khuẩn không hợp lệ: ${viTriNhiemKhuan}`);
     }
 
-    // Map code to Vietnamese label and category code — VAE / VAP / HAP tách riêng
+    // Map loại theo classification engine (cổng PNEU → VAP/HAP theo kết luận)
     let mappedViTri = "";
-    let loaiCode = "";
-    if (viTriNhiemKhuan === "BSI") {
+    let loaiCode = loaiCodeFromClassification(result.classification, viTriNhiemKhuan);
+    if (loaiCode === "BSI" || viTriNhiemKhuan === "BSI") {
       mappedViTri = "Máu";
       loaiCode = "BSI";
-    } else if (viTriNhiemKhuan === "VAE") {
+    } else if (loaiCode === "VAE" || viTriNhiemKhuan === "VAE") {
       mappedViTri = "Đường hô hấp (VAE)";
       loaiCode = "VAE";
-    } else if (viTriNhiemKhuan === "VAP") {
+    } else if (loaiCode === "VAP") {
       mappedViTri = "Đường hô hấp (VAP)";
-      loaiCode = "VAP";
-    } else if (viTriNhiemKhuan === "HAP" || viTriNhiemKhuan === "PNEU") {
-      mappedViTri = "Đường hô hấp (HAP)";
-      loaiCode = "HAP";
-    } else if (viTriNhiemKhuan === "UTI") {
+    } else if (
+      loaiCode === "HAP" ||
+      viTriNhiemKhuan === "HAP" ||
+      viTriNhiemKhuan === "PNEU" ||
+      viTriNhiemKhuan === "VAP"
+    ) {
+      mappedViTri =
+        loaiCode === "VAP" ? "Đường hô hấp (VAP)" : "Đường hô hấp (HAP)";
+      if (loaiCode !== "VAP") loaiCode = "HAP";
+    } else if (loaiCode === "UTI" || viTriNhiemKhuan === "UTI") {
       mappedViTri = "Đường tiết niệu";
       loaiCode = "UTI";
-    } else if (viTriNhiemKhuan === "SSI") {
+    } else if (loaiCode === "SSI" || viTriNhiemKhuan === "SSI") {
       mappedViTri = "Vết mổ";
       loaiCode = "SSI";
     } else if (viTriNhiemKhuan === "CH17") {
@@ -403,21 +417,30 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       loaiCode = site || "CH17";
     }
 
-    // Query loai_nkbv_id based on loaiCode (VAE / VAP / HAP tách; HAP fallback PNEU)
+    // Tra loai_nkbv_id — khớp chính xác mã trước; HAP fallback PNEU
     let loaiNkbvId = undefined;
     if (loaiCode) {
-      const orParts = [`ma_loai.ilike.%${loaiCode}%`, `ma_loai.ilike.%${viTriNhiemKhuan}%`];
-      if (loaiCode === "HAP") orParts.push("ma_loai.ilike.%PNEU%");
-      if (loaiCode === "VAP") orParts.push("ma_loai.ilike.%PEDVAP%");
       const { data: matchedLoai } = await supabase
         .from("nkbv_dm_loai")
         .select("id, ma_loai")
-        .or(orParts.join(","))
         .eq("is_active", true)
-        .limit(5);
+        .in(
+          "ma_loai",
+          loaiCode === "HAP"
+            ? [loaiCode, "PNEU", "HAP"]
+            : [loaiCode],
+        )
+        .limit(10);
 
       const exact =
-        (matchedLoai || []).find((r) => String(r.ma_loai || "").toUpperCase() === loaiCode) ||
+        (matchedLoai || []).find(
+          (r) => String(r.ma_loai || "").toUpperCase() === loaiCode,
+        ) ||
+        (loaiCode === "HAP"
+          ? (matchedLoai || []).find(
+              (r) => String(r.ma_loai || "").toUpperCase() === "PNEU",
+            )
+          : undefined) ||
         (matchedLoai || [])[0];
       if (exact) {
         loaiNkbvId = exact.id;
@@ -448,14 +471,67 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       };
     }
 
+    const poaMajor =
+      result.classification === "POA"
+        ? resolveNkbvMajorType({
+            loai_ma: viTriNhiemKhuan,
+            vi_tri_nhiem_khuan: viTriNhiemKhuan,
+          })
+        : null;
+
+    // NKBV-03: CHO_DUYET bắt buộc LOA (Transfer Rule) — không silent fallback
+    const loaKhoaId = String(
+      (verificationInput as { attributed_khoa_id?: string } | null | undefined)
+        ?.attributed_khoa_id || "",
+    ).trim();
+    if (!loaKhoaId) {
+      return {
+        success: false as const,
+        error:
+          "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
+      };
+    }
+
+    const calculatedDoeRaw = String(
+      (verificationInput as { calculated_doe?: string } | null | undefined)
+        ?.calculated_doe || "",
+    ).slice(0, 10);
+    const calculatedDoe = /^\d{4}-\d{2}-\d{2}$/.test(calculatedDoeRaw)
+      ? calculatedDoeRaw
+      : "";
+    // NKBV-02: NO_EVENT / CONTAMINATION không có DOE — vẫn gửi CHO_DUYET để KSNK đóng
+    if (nkbvClinicalSubmitRequiresDoe(result) && !calculatedDoe) {
+      return {
+        success: false as const,
+        error: "Thiếu DOE (calculated_doe) — chưa đủ để đưa phiếu chờ duyệt.",
+      };
+    }
+
+    const surgeryDate =
+      viTriNhiemKhuan === "SSI"
+        ? String(
+            (verificationInput as { ngay_phau_thuat?: string; surgery_date?: string })
+              ?.ngay_phau_thuat ||
+              (verificationInput as { surgery_date?: string })?.surgery_date ||
+              "",
+          ).slice(0, 10)
+        : "";
+
     const verification_data = stripCopiedStayFieldsFromVerification({
       ...verificationInput,
+      // Không persist prior client — server tự nạp mỗi lần evaluate
+      rit_prior_events: undefined,
       evaluation_result: result,
       classification: result.classification,
       is_positive: result.is_positive,
       is_secondary_bsi: result.is_secondary_bsi || false,
       reason: result.reason,
       ghi_chu_tuy_bien: verificationInput?.ghi_chu_tuy_bien || undefined,
+      ...(calculatedDoe ? { calculated_doe: calculatedDoe } : { calculated_doe: null }),
+      attributed_khoa_id: loaKhoaId,
+      ...(poaMajor && poaMajor !== "OTHER" && poaMajor !== "SSI" && poaMajor !== "VAE"
+        ? { poa_major_type: poaMajor }
+        : {}),
       ...(viTriNhiemKhuan === "SSI"
         ? { ssi_reporting: extractSsiReportingSlice(verificationInput) }
         : {}),
@@ -467,7 +543,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         : {};
     const ghiChu = String(verificationInput?.ghi_chu_tuy_bien || "").trim();
 
-    const patch: Record<string, unknown> = {
+    const patchBase: Record<string, unknown> = {
       verification_data,
       trang_thai_id: lookupStatus.id,
       vi_tri_nhiem_khuan: mappedViTri || undefined,
@@ -482,23 +558,65 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     if (viTriNhiemKhuan === "SSI") {
       const maQr = String(verificationInput?.ma_qr_cssd_lien_quan || "").trim();
       if (maQr) {
-        const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr);
-        if (link) {
-          patch.quy_trinh_id = link.quy_trinh_id;
-          patch.lo_tiet_khuan_id = link.lo_tiet_khuan_id;
-          patch.ma_cycle_qr_lien_quan = link.ma_qr;
+        const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr, {
+          surgeryDateYmd: surgeryDate,
+        });
+        if (link && (link.quy_trinh_id || link.lo_tiet_khuan_id)) {
+          if (link.quy_trinh_id) patchBase.quy_trinh_id = link.quy_trinh_id;
+          patchBase.lo_tiet_khuan_id = link.lo_tiet_khuan_id;
+          patchBase.ma_cycle_qr_lien_quan = link.ma_qr;
+          if (link.chua_xac_dinh_me) {
+            const notes =
+              patchBase.clinical_notes && typeof patchBase.clinical_notes === "object"
+                ? { ...(patchBase.clinical_notes as Record<string, unknown>) }
+                : {};
+            notes.cssd_me_chua_xac_dinh = true;
+            patchBase.clinical_notes = notes;
+          }
         } else {
-          patch.ma_cycle_qr_lien_quan = maQr.toUpperCase();
+          patchBase.ma_cycle_qr_lien_quan = maQr.toUpperCase();
+          const notes =
+            patchBase.clinical_notes && typeof patchBase.clinical_notes === "object"
+              ? { ...(patchBase.clinical_notes as Record<string, unknown>) }
+              : {};
+          notes.cssd_me_chua_xac_dinh = true;
+          patchBase.clinical_notes = notes;
         }
       }
     }
 
-    const { data, error: updateErr } = await supabase
+    // Cột báo cáo (migration 20261005034000) — fallback nếu chưa apply
+    const reportCols: Record<string, unknown> = {
+      doe: calculatedDoe || null,
+      loa_khoa_id: loaKhoaId,
+      ...(surgeryDate && /^\d{4}-\d{2}-\d{2}$/.test(surgeryDate)
+        ? { ngay_phau_thuat: surgeryDate }
+        : {}),
+    };
+
+    let { data, error: updateErr } = await supabase
       .from("nkbv_fact_su_kien")
-      .update(patch)
+      .update({ ...patchBase, ...reportCols })
       .eq("id", id)
       .select()
       .single();
+
+    if (
+      updateErr &&
+      /doe|loa_khoa_id|ngay_phau_thuat|schema cache|Could not find/i.test(
+        updateErr.message || "",
+      )
+    ) {
+      // Migration chưa apply — vẫn lưu JSON; giữ Index ở ngay_phat_hien
+      const retry = await supabase
+        .from("nkbv_fact_su_kien")
+        .update(patchBase)
+        .eq("id", id)
+        .select()
+        .single();
+      data = retry.data;
+      updateErr = retry.error;
+    }
 
     if (updateErr) throw updateErr;
 
@@ -510,14 +628,35 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
   }
 }
 
-/** KSNK thẩm định bình duyệt phán quyết cuối cùng (Phê duyệt XAC_NHAN hoặc từ chối LOAI_TRU kèm lý do). */
+/** KSNK thẩm định: APPROVE → XAC_NHAN chỉ khi is_positive; không-NKBV → LOAI_TRU + lý do tự sinh. */
 export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" | "EXCLUDE", lyDoLoaiTru?: string) {
-  await verifyPermission("GIAM_SAT_NKBV", "edit");
+  await verifyPermission("GIAM_SAT_NKBV", "approve");
   const supabase = createAdminSupabaseClient();
 
   try {
+    const { data: ca, error: fetchErr } = await supabase
+      .from("nkbv_fact_su_kien")
+      .select("clinical_notes, verification_data")
+      .eq("id", id)
+      .single();
+    if (fetchErr) throw fetchErr;
+
+    const vd =
+      ca?.verification_data && typeof ca.verification_data === "object"
+        ? (ca.verification_data as Record<string, unknown>)
+        : {};
+    const isPositive = vd.is_positive === true;
+    const classification =
+      typeof vd.classification === "string" ? vd.classification : "";
+
+    if (decision === "APPROVE" && !isPositive) {
+      return {
+        success: false as const,
+        error: "Kết luận không phải NKBV — chỉ phê duyệt khi engine dương tính (HAI đủ tiêu chí).",
+      };
+    }
+
     const statusCode = decision === "APPROVE" ? "XAC_NHAN" : "LOAI_TRU";
-    
     const { data: lookupStatus, error: lErr } = await supabase
       .from("nkbv_dm_trang_thai_ca")
       .select("id")
@@ -527,17 +666,15 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
     if (lErr) throw lErr;
     if (!lookupStatus) throw new Error(`Không tìm thấy trạng thái ${statusCode}.`);
 
-    const { data: ca, error: fetchErr } = await supabase
-      .from("nkbv_fact_su_kien")
-      .select("clinical_notes")
-      .eq("id", id)
-      .single();
-    if (fetchErr) throw fetchErr;
-
-    const existingNotes = ca?.clinical_notes && typeof ca.clinical_notes === "object" ? ca.clinical_notes : {};
+    const existingNotes =
+      ca?.clinical_notes && typeof ca.clinical_notes === "object" ? ca.clinical_notes : {};
+    const autoReason = nkbvNonHaiCloseReason(classification);
     const updatedNotes = {
       ...existingNotes,
-      ly_do_loai_tru: decision === "EXCLUDE" ? (lyDoLoaiTru || "Từ chối bởi KSNK") : null,
+      ly_do_loai_tru:
+        decision === "EXCLUDE"
+          ? (lyDoLoaiTru?.trim() || autoReason)
+          : null,
     };
 
     const { data, error: updateErr } = await supabase

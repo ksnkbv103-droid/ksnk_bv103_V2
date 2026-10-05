@@ -11,42 +11,19 @@ import { usePermission } from "@/hooks/usePermission";
 import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
 import { SIDEBAR_NAV_GROUPS, type SidebarNavItem } from "@/lib/nav/sidebar-nav-groups";
 import { canSeeCommandCenterNav, canSeeNavGate, canSeeQuanTriSection } from "@/lib/nav/ksnk-nav-gates";
-import { isGiamSatNavPath, resolveGiamSatSidebarHref } from "@/lib/nav/giam-sat-write-dest";
-import {
-  isNavHiddenUnderPilotCoreModules,
-  isPilotCoreModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-core-modules-scope";
+import { resolveGiamSatSidebarHref } from "@/lib/nav/giam-sat-write-dest";
+import { menuItemIsActive } from "@/lib/nav/sidebar-menu-active";
+import { isNavHiddenUnderActivePilot } from "@/lib/ksnk-pilot-route-scope";
 
 type NavItem = { name: string; href: string; icon: LucideIcon };
-
-function menuItemIsActive(pathname: string, href: string, urlTab: string | null) {
-  const [path, query] = href.split("?");
-  if (path === "/quan-tri-he-thong" && (pathname === "/quan-tri-he-thong" || pathname.startsWith("/quan-tri-he-thong/"))) {
-    return true;
-  }
-  // «Giám sát» — hub hoặc deep-link VST/GSC/NKBV đều active trong vùng giám sát.
-  if (
-    path === "/giam-sat" ||
-    path.startsWith("/giam-sat-vst") ||
-    path.startsWith("/giam-sat-chung") ||
-    path.startsWith("/giam-sat-nkbv")
-  ) {
-    return isGiamSatNavPath(pathname);
-  }
-  if (pathname !== path) return false;
-  if (!query) return urlTab !== "dm_registry";
-  const want = new URLSearchParams(query).get("tab");
-  return want != null && want === urlTab;
-}
 
 function filterVisibleItems(
   items: SidebarNavItem[],
   isAdmin: boolean,
   canView: (module: string) => boolean,
-  pilotCore: boolean,
 ): SidebarNavItem[] {
   return items.filter((row) => {
-    if (pilotCore && isNavHiddenUnderPilotCoreModules(row.gate.id)) return false;
+    if (isNavHiddenUnderActivePilot(row.gate.id)) return false;
     if (row.requireCommandCenterShell) {
       return canSeeCommandCenterNav(isAdmin, canView);
     }
@@ -88,18 +65,18 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
   const urlTab = searchParams.get("tab");
   const { loading, isAdmin, canView } = usePermission(undefined, "view");
   const showQt = !loading && canSeeQuanTriSection(isAdmin, canView);
-  const pilotCore = isPilotCoreModulesScopeEnabled();
   const visibleGroups = !loading
     ? SIDEBAR_NAV_GROUPS.map((group) => ({
         ...group,
-        items: filterVisibleItems(group.items, isAdmin, canView, pilotCore),
+        items: filterVisibleItems(group.items, isAdmin, canView),
       })).filter((group) => group.items.length > 0)
     : [];
   const hasAnyNav = visibleGroups.length > 0;
-  const adminHubItems = showQt
-    ? SIDEBAR_ADMIN_GROUPS.flatMap((group) =>
-        group.items.filter((row) => canSeeNavGate(isAdmin, canView, row.gate)),
-      )
+  const adminGroups = showQt
+    ? SIDEBAR_ADMIN_GROUPS.map((group) => ({
+        ...group,
+        items: group.items.filter((row) => canSeeNavGate(isAdmin, canView, row.gate)),
+      })).filter((group) => group.items.length > 0)
     : [];
 
   return (
@@ -136,10 +113,10 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
           </div>
         ))
       )}
-      {adminHubItems.length > 0 ? (
-        <div className="space-y-1 border-t border-slate-200/90 pt-4">
-          <p className="section-label mb-2 px-4">Quản trị</p>
-          {adminHubItems.map((row) => {
+      {adminGroups.map((group) => (
+        <div key={group.id} className="space-y-1 border-t border-slate-200/90 pt-4">
+          <p className="section-label mb-2 px-4">{group.label}</p>
+          {group.items.map((row) => {
             const { gate: _g, ...item } = row;
             return (
               <NavLinkRow
@@ -151,7 +128,7 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
             );
           })}
         </div>
-      ) : null}
+      ))}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
+import { isVstHubBangKiemExcludedFromGscGeneric } from "@/lib/domain/gsc-lop-giam-sat-filter";
+import { buildVeSinhTayKpiCards } from "@/lib/domain/ve-sinh-tay-kpi";
 import { mergeKhoaRankWithSelected } from "./bao-cao-tong-hop-core";
 import { escHtml, fmtDelta, fmtIsoDate, fmtKyTruocDelta, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
 import {
@@ -22,8 +24,8 @@ import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
-import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
+import { bcthModuleComplianceTone } from "./bao-cao-tong-hop-thresholds";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -35,6 +37,9 @@ export type BaoCaoTongHopPrintParams = {
   ngheOptions: MultiSelectOption[];
   selectedKhuVucIds: string[];
   khuVucOptions: MultiSelectOption[];
+  vstLensLabel?: string;
+  gscLensLabel?: string;
+  bangKiemLabel?: string;
   payload: BaoCaoTongHopPayload | null;
   vstPayload: VstStrategicPayload | null;
   gscPayload: GscStrategicPayload | null;
@@ -54,14 +59,10 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
   );
   const tongPhienKsnk =
     (p.vstPayload?.workload?.ksnk_so_phien ?? 0) + (p.gscPayload?.workload?.ksnk_so_phien ?? 0);
-  const khoaTuGiamSat = Math.max(
-    p.vstPayload?.workload?.khoa_tu_giam_sat ?? 0,
-    p.gscPayload?.workload?.khoa_tu_giam_sat ?? 0,
-  );
-  const ksnkPhuKhoa = Math.max(
-    p.vstPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0,
-    p.gscPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0,
-  );
+  const vstKhoaTuGs = p.vstPayload?.workload?.khoa_tu_giam_sat ?? 0;
+  const gscKhoaTuGs = p.gscPayload?.workload?.khoa_tu_giam_sat ?? 0;
+  const vstKsnkPhu = p.vstPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0;
+  const gscKsnkPhu = p.gscPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0;
 
   const vstGapRows = buildGapKhoaRows(
     p.vstPayload?.gap_analysis,
@@ -88,15 +89,24 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     return `${escHtml(fmtDelta(week, digits))}${priorLine}`;
   };
 
-  const cssdAnalyticsHref = cssdReportAnalyticsHref({
-    tab: "volume",
-    from: p.tuNgay,
-    to: p.denNgay,
-  });
+  const vstKpiToneClass = (pct: number | null | undefined) => {
+    const tone = bcthModuleComplianceTone("vst", pct ?? null);
+    if (tone === "green") return "text-success";
+    if (tone === "yellow") return "text-warning";
+    if (tone === "red") return "text-danger";
+    return "";
+  };
+  const gscKpiToneClass = (pct: number | null | undefined) => {
+    const tone = bcthModuleComplianceTone("gsc", pct ?? null);
+    if (tone === "green") return "text-success";
+    if (tone === "yellow") return "text-warning";
+    if (tone === "red") return "text-danger";
+    return "";
+  };
 
   const dieuHanhSection = `
-    <h2>ĐIỀU HÀNH TỔNG HỢP (PROCESS)</h2>
-    <p class="muted">Theo dõi riêng tỷ lệ VST và GSC trong phạm vi lọc. NKBV là chỉ số lâm sàng, tách khỏi tuân thủ process.</p>
+    <h2>ĐIỀU HÀNH TỔNG HỢP — Tuân thủ quy trình</h2>
+    <p class="muted">Theo dõi riêng tỷ lệ VST và GSC trong phạm vi lọc. NKBV là chỉ số lâm sàng, tách khỏi tuân thủ quy trình.</p>
     <h3>1. Chỉ số cốt lõi kỳ báo cáo</h3>
     <table>
       <thead>
@@ -109,12 +119,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       <tbody>
         <tr>
           <td class="text-left"><strong>Vệ sinh tay (VST)</strong></td>
-          <td class="text-success"><strong>${fmtPct(kpi?.ty_le_vst)}</strong></td>
+          <td class="${vstKpiToneClass(kpi?.ty_le_vst ?? null)}"><strong>${fmtPct(kpi?.ty_le_vst)}</strong></td>
           <td style="font-size:11px;">${weekAndPrior(kpi?.delta_vst, ky?.delta_vst, 1)}</td>
         </tr>
         <tr>
           <td class="text-left"><strong>Giám sát chung (GSC)</strong></td>
-          <td class="text-success"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
+          <td class="${gscKpiToneClass(kpi?.ty_le_gsc ?? null)}"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
           <td style="font-size:11px;">${weekAndPrior(kpi?.delta_gsc, ky?.delta_gsc, 2)}</td>
         </tr>
       </tbody>
@@ -122,13 +132,13 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     <h3>2. Xu hướng tuân thủ theo tuần (VST + GSC)</h3>
     ${renderTrendLineChartSvg(p.payload?.trend_week ?? [])}
     ${renderTrendWeekTable(p.payload?.trend_week ?? [])}
-    <h3>3. So sánh theo khoa (VST · GSC — thấp → cao)</h3>
+    <h3>3. So sánh theo khoa (VST và GSC riêng — thấp → cao)</h3>
     ${renderKhoaGscBarChartSvg(fullKhoaRank)}
     ${renderFullKhoaRankSection(fullKhoaRank)}
     <h3>3b. Tuân thủ và khối lượng theo khoa — từng nguồn</h3>
-    ${renderKhoaGapModulePrint("VST", vstGapRows, 30, 1)}
-    ${renderKhoaGapModulePrint("GSC", gscGapRows, 30, 2)}
-    <h3>4. Kết quả NKBV (lâm sàng — tách khỏi tuân thủ process)</h3>
+    ${renderKhoaGapModulePrint("VST", vstGapRows, "vst", 30, 1)}
+    ${renderKhoaGapModulePrint("GSC", gscGapRows, "gsc", 30, 2)}
+    <h3>4. Kết quả NKBV (lâm sàng — tách khỏi tuân thủ quy trình)</h3>
     <table>
       <thead>
         <tr>
@@ -138,10 +148,10 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       </thead>
       <tbody>
         <tr>
-          <td class="text-left">Tỷ lệ xác nhận/PA−loại trừ</td>
+          <td class="text-left">Tỷ lệ xác nhận (mẫu đã kết luận)</td>
           <td>${fmtPct(kpi?.ti_le_xac_nhan_nkbv)}${
             p.payload?.nkbv?.kpis
-              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.kpis)}; ${p.payload.nkbv.kpis.tong_phieu} phiếu gồm loại trừ)`
+              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.kpis)}; ${p.payload.nkbv.kpis.tong_phieu} phiếu trong kỳ)`
               : kpi?.tong_phieu_nkbv != null
                 ? ` (${kpi.tong_phieu_nkbv} phiếu)`
                 : ""
@@ -152,7 +162,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     ${
       p.payload?.cssd
         ? `
-    <h3>5. Phụ lục CSSD (vận hành — tách khỏi tuân thủ process)</h3>
+    <h3>5. Phụ lục CSSD — số liệu toàn viện (vận hành)</h3>
     <table>
       <thead>
         <tr>
@@ -203,7 +213,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           .join("")}
       </tbody>
     </table>
-    <p class="muted">Phụ lục và bản ký dùng cùng lõi Báo cáo CSSD: ${escHtml(cssdAnalyticsHref)}</p>`
+    <p class="muted">Chi tiết đầy đủ: mở «Báo cáo CSSD» trên hệ thống (cùng kỳ lọc).</p>`
         : ""
     }
   `;
@@ -211,41 +221,78 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
   const phanTichCheo = `
     <div class="page-break"></div>
     <h2>PHÂN TÍCH THEO KHU VỰC VÀ ĐỐI TƯỢNG</h2>
-    ${renderMatrixTable("VST — Theo chức năng phòng", toVstMatrixRows(p.vstPayload?.matrix_khu_vuc), "Cơ hội", "Tuân thủ")}
-    ${renderMatrixTable("GSC — Theo chức năng phòng", toGscMatrixRows(p.gscPayload?.matrix_khu_vuc), "Khảo sát", "Đạt")}
-    ${renderMatrixTable("VST — Theo đối tượng (nghề)", toVstMatrixRows(p.vstPayload?.matrix_nghe), "Cơ hội", "Tuân thủ")}
-    ${renderMatrixTable("GSC — Theo đối tượng (nghề)", toGscMatrixRows(p.gscPayload?.matrix_nghe), "Khảo sát", "Đạt")}
+    ${renderMatrixTable("VST — Theo chức năng phòng", toVstMatrixRows(p.vstPayload?.matrix_khu_vuc), "Cơ hội", "Tuân thủ", "vst")}
+    ${renderMatrixTable("GSC — Theo chức năng phòng", toGscMatrixRows(p.gscPayload?.matrix_khu_vuc), "Tiêu chí quan sát", "Đạt", "gsc")}
+    ${renderMatrixTable("VST — Theo đối tượng (nghề)", toVstMatrixRows(p.vstPayload?.matrix_nghe), "Cơ hội", "Tuân thủ", "vst")}
+    ${renderMatrixTable("GSC — Theo đối tượng (nghề)", toGscMatrixRows(p.gscPayload?.matrix_nghe), "Tiêu chí quan sát", "Đạt", "gsc")}
     ${renderGscKhoaMatrix(p.gscPayload)}
   `;
 
+  const veSinhTayCards = buildVeSinhTayKpiCards({
+    vst: p.vstPayload,
+    gsc: p.payload?.gsc_ve_sinh_tay ?? null,
+  });
+  const veSinhTayTriptychTable = `
+    <h3>1. Bộ ba KPI Vệ sinh tay</h3>
+    <table>
+      <thead>
+        <tr>
+          <th class="text-left">Mẫu</th>
+          <th>Tỷ lệ</th>
+          <th class="text-left">Khối lượng</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${veSinhTayCards
+          .map(
+            (c) => `
+          <tr>
+            <td class="text-left">${escHtml(c.label)}${
+              c.catalogMaBk ? ` (${escHtml(c.catalogMaBk)})` : ""
+            }</td>
+            <td><strong>${c.tyLe == null ? "—" : `${c.tyLe}%`}</strong></td>
+            <td class="text-left">${escHtml(c.volumeNote ?? "—")}</td>
+          </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>
+    <p class="muted" style="font-size:11px">Ba tỷ lệ riêng — không gộp thành một %. BM.02/BM.03 không thuộc tổng Giám sát chung.</p>`;
+
+  const vstKpis = p.vstPayload?.kpis;
+  const vstNoSample = (vstKpis?.tong_co_hoi ?? 0) <= 0;
+  const vstPctCell = (v: number | null | undefined) =>
+    vstNoSample || v == null ? "—" : `${v}%`;
   const vstSection = p.vstPayload
     ? `
     <div class="page-break"></div>
-    <h2>I. KẾT QUẢ GIÁM SÁT TUÂN THỦ VỆ SINH TAY (WHO)</h2>
-    <h3>1. Chỉ số cốt lõi</h3>
+    <h2>I. KẾT QUẢ GIÁM SÁT TUÂN THỦ VỆ SINH TAY</h2>
+    ${veSinhTayTriptychTable}
+    <h3>2. Chi tiết WHO 5 thời điểm</h3>
     <table>
       <thead>
         <tr>
           <th>Tổng cơ hội</th>
           <th>Đã tuân thủ</th>
           <th>Tỷ lệ tuân thủ</th>
-          <th>Đúng kỹ thuật</th>
-          <th>Đủ thời gian</th>
-          <th>Lạm dụng găng</th>
+          <th>Kỹ thuật (phiếu WHO)</th>
+          <th>Đủ thời gian (phiếu WHO)</th>
+          <th>Bỏ sót khi đang mang găng</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>${p.vstPayload.kpis.tong_co_hoi.toLocaleString()}</td>
-          <td>${p.vstPayload.kpis.da_tuan_thu.toLocaleString()}</td>
-          <td class="text-success">${p.vstPayload.kpis.ty_le_tuan_thu}%</td>
-          <td>${p.vstPayload.kpis.ty_le_dung_ky_thuat}%</td>
-          <td>${p.vstPayload.kpis.ty_le_du_thoi_gian}%</td>
-          <td class="${p.vstPayload.kpis.ty_le_lam_dung_gang > 5 ? "text-danger bg-highlight" : ""}">${p.vstPayload.kpis.ty_le_lam_dung_gang}%</td>
+          <td>${vstNoSample ? "—" : vstKpis!.tong_co_hoi.toLocaleString()}</td>
+          <td>${vstNoSample ? "—" : vstKpis!.da_tuan_thu.toLocaleString()}</td>
+          <td>${vstPctCell(vstKpis?.ty_le_tuan_thu ?? null)}</td>
+          <td>${vstPctCell(vstKpis?.ty_le_dung_ky_thuat ?? null)}</td>
+          <td>${vstPctCell(vstKpis?.ty_le_du_thoi_gian ?? null)}</td>
+          <td>${vstPctCell(vstKpis?.ty_le_lam_dung_gang ?? null)}</td>
         </tr>
       </tbody>
     </table>
-    <h3>2. Phân bổ theo 5 thời điểm (Moment)</h3>
+    <p class="text-muted" style="font-size:11px">Chi tiết phiếu WHO — không phải chỉ số BM.02 kỹ thuật thường quy.</p>
+    <h3>3. Phân bổ theo 5 thời điểm (Moment)</h3>
     <table>
       <thead>
         <tr>
@@ -271,10 +318,19 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           .join("")}
       </tbody>
     </table>
-    ${renderComparableGapTable("3. Đối soát tự giám sát vs chuyên trách (khoa đủ hai nguồn)", p.vstPayload.gap_analysis ?? [], 10)}
+    ${renderComparableGapTable("4. Đối soát tự giám sát vs chuyên trách (khoa đủ hai nguồn)", p.vstPayload.gap_analysis ?? [], 10)}
   `
-    : "";
+    : p.payload?.gsc_ve_sinh_tay
+      ? `
+    <div class="page-break"></div>
+    <h2>I. KẾT QUẢ GIÁM SÁT TUÂN THỦ VỆ SINH TAY</h2>
+    ${veSinhTayTriptychTable}
+  `
+      : "";
 
+  const gscTopViolations = (p.gscPayload?.top_violations || []).filter(
+    (v) => !isVstHubBangKiemExcludedFromGscGeneric(v.ma_bk),
+  );
   const gscSection =
     p.gscPayload && p.gscPayload.kpis.tong_phien > 0
       ? `
@@ -287,7 +343,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           <th>STT</th>
           <th class="text-left">Chuyên đề</th>
           <th>Phiên</th>
-          <th>Khảo sát</th>
+          <th>Tiêu chí quan sát</th>
           <th>Đạt</th>
           <th>Tỷ lệ %</th>
           <th>Vi phạm</th>
@@ -303,7 +359,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
             <td>${bk.tong_phien.toLocaleString()}</td>
             <td>${bk.tong_quan_sat.toLocaleString()}</td>
             <td>${bk.tong_dat.toLocaleString()}</td>
-            <td><strong>${bk.ty_le_tuan_thu}%</strong></td>
+            <td><strong>${bk.ty_le_tuan_thu == null ? "—" : `${bk.ty_le_tuan_thu}%`}</strong></td>
             <td>${bk.tong_vi_pham.toLocaleString()}</td>
           </tr>`,
           )
@@ -324,7 +380,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
         </tr>
       </thead>
       <tbody>
-        ${(p.gscPayload.top_violations || [])
+        ${gscTopViolations
           .slice(0, 10)
           .map(
             (v, i) => `
@@ -351,9 +407,14 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     ngheLabel: pickLabels(p.selectedNgheIds, p.ngheOptions),
     khuLabel: pickLabels(p.selectedKhuVucIds, p.khuVucOptions),
     printedAt: issueDate,
-    khoaTuGiamSat,
-    ksnkPhuKhoa,
+    vstKhoaTuGs,
+    gscKhoaTuGs,
+    vstKsnkPhu,
+    gscKsnkPhu,
     tongPhienKsnk,
+    vstLensLabel: p.vstLensLabel,
+    gscLensLabel: p.gscLensLabel,
+    bangKiemLabel: p.bangKiemLabel,
   });
   const phanIii = renderPhanIiiSection(p.nhanXetDanhGia, p.kienNghiDeXuat, issueDate);
   const fileTitle = buildPrintFileTitle({

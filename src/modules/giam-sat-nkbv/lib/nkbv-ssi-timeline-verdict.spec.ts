@@ -10,17 +10,17 @@ import { ssiSbapWindow } from "./nkbv-shared-timeline";
 import type { BaGridXnCell } from "./nkbv-ba-grid-engine";
 
 describe("nkbv-ssi-timeline-verdict", () => {
-  it("SP: superficial luôn 30; deep/organ theo mã PT (fallback implant)", () => {
+  it("SP: superficial luôn 30; deep/organ theo mã PT; thiếu mã → null", () => {
     expect(ssiSurveillancePeriodDays("SUPERFICIAL", true)).toBe(30);
-    expect(ssiSurveillancePeriodDays("DEEP", false)).toBe(30);
-    expect(ssiSurveillancePeriodDays("DEEP", true)).toBe(90);
+    expect(ssiSurveillancePeriodDays("DEEP", false)).toBeNull();
+    expect(ssiSurveillancePeriodDays("DEEP", true)).toBeNull();
     expect(
       ssiSurveillancePeriodDays("DEEP", { procedureCode: "COLO" }),
     ).toBe(30);
     expect(
       ssiSurveillancePeriodDays("DEEP", { procedureCode: "KPRO" }),
     ).toBe(90);
-    expect(ssiSurveillancePeriodDays("ORGAN_SPACE", true)).toBe(90);
+    expect(ssiSurveillancePeriodDays("ORGAN_SPACE", true)).toBeNull();
     expect(ssiSpEndDate("2026-07-01", "SUPERFICIAL", false)).toBe("2026-07-30");
   });
 
@@ -28,6 +28,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
     const surgery = "2026-07-01";
     const lastIn = buildSsiTimelineVerdict({
       surgeryDate: surgery,
+      procedureCode: "COLO",
       tieuChuanByDate: {
         "2026-07-30": [{ key: "purulent_drainage", label: "Chảy mủ" }],
       },
@@ -41,6 +42,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
 
     const day31 = buildSsiTimelineVerdict({
       surgeryDate: surgery,
+      procedureCode: "COLO",
       tieuChuanByDate: {
         "2026-07-31": [{ key: "purulent_drainage", label: "Chảy mủ" }],
       },

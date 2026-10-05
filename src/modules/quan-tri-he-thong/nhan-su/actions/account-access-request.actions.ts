@@ -521,7 +521,8 @@ export async function listPendingAccountRequests(params?: {
   search?: string;
 }) {
   try {
-    await verifyPermission("NHAN_SU", "view");
+    // ADM-07: cùng cổng với duyệt / đếm (ensureRbacAdmin), không mở PII cho NHAN_SU.view.
+    await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
     const page = params?.page ?? 1;
     const pageSize = params?.pageSize ?? 50;
@@ -636,6 +637,16 @@ export async function approveAccountAccessRequest(params: {
       staffId: staff.id,
       status: "DUYET",
       decidedBy: actor.email ?? actor.id,
+    });
+
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    await logAdminAction({
+      action: "APPROVE_ACCOUNT_REQUEST",
+      targetTable: "mdm_nhan_su",
+      targetId: staff.id,
+      after: { status: "DUYET", kind: req.kind || "REQUEST" },
+      actorUserId: actor.id,
+      actorEmail: actor.email,
     });
 
     revalidatePath("/quan-tri-he-thong/nhan-su");
@@ -783,6 +794,17 @@ export async function rejectAccountAccessRequest(params: { staffId: string; reas
     } catch (auditErr) {
       console.error("[auth_audit] reject_request failed:", auditErr);
     }
+
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    await logAdminAction({
+      action: "REJECT_ACCOUNT_REQUEST",
+      targetTable: "mdm_nhan_su",
+      targetId: staff.id,
+      after: { status: "TU_CHOI", kind: req.kind || "REQUEST" },
+      reason,
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
 
     revalidatePath("/quan-tri-he-thong/nhan-su");
     revalidatePath("/quan-tri-he-thong/tai-khoan");

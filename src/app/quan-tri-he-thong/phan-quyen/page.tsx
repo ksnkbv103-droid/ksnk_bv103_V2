@@ -3,7 +3,7 @@ import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
 import { canAccessPhanQuyenRoute } from "@/lib/auth/quan-tri-access";
 import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
 
-export const metadata = { title: "Phân quyền | BV103" };
+export const metadata = { title: "Ma trận phân quyền" };
 
 /** Deep link — chặn server-side trước khi redirect hub tab Phân quyền. */
 export default async function PhanQuyenRedirectPage() {

@@ -4,10 +4,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FileBarChart, ExternalLink, Zap } from "lucide-react";
+import { FileBarChart, ExternalLink } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_ROUTES, cssdLuanChuyenHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
+import { cssdLuanChuyenHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import {
   coerceInstrumentFormTypeId,
@@ -127,7 +127,7 @@ export default function SuCoBaoCaoPage() {
     return (
       <CSSDPageShell title="Sự cố">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
-          Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
+          Bạn không có quyền Sự cố CSSD. Liên hệ quản trị KSNK.
         </div>
       </CSSDPageShell>
     );
@@ -141,19 +141,11 @@ export default function SuCoBaoCaoPage() {
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Link
-            href={CSSD_ROUTES.quyTrinh}
-            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            title="Báo nhanh tại trạm quy trình"
-          >
-            <Zap size={14} aria-hidden />
-            Báo nhanh
-          </Link>
-          <Link
             href={reportHref}
             className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             <FileBarChart size={14} aria-hidden />
-            Nhật ký
+            Nhật ký sự cố
             <ExternalLink size={12} className="opacity-50" aria-hidden />
           </Link>
         </div>

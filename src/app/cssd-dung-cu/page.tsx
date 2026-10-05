@@ -41,7 +41,7 @@ const CSSDCatalogBoTab = dynamic(
     import("@/modules/cssd-erp/views/CSSDCatalogBoTab").then((m) => ({
       default: m.CSSDCatalogBoTab,
     })),
-  { ssr: false, loading: () => panelFallback },
+  { loading: () => panelFallback },
 );
 
 const CSSDCatalogLoaiTab = dynamic(
@@ -49,7 +49,7 @@ const CSSDCatalogLoaiTab = dynamic(
     import("@/modules/cssd-erp/views/CSSDCatalogLoaiTab").then((m) => ({
       default: m.CSSDCatalogLoaiTab,
     })),
-  { ssr: false, loading: () => panelFallback },
+  { loading: () => panelFallback },
 );
 
 const CSSDCatalogDeNghiTab = dynamic(
@@ -57,7 +57,7 @@ const CSSDCatalogDeNghiTab = dynamic(
     import("@/modules/cssd-erp/views/CSSDCatalogDeNghiTab").then((m) => ({
       default: m.CSSDCatalogDeNghiTab,
     })),
-  { ssr: false, loading: () => panelFallback },
+  { loading: () => panelFallback },
 );
 
 const CSSDCatalogLuanChuyenTab = dynamic(
@@ -65,22 +65,21 @@ const CSSDCatalogLuanChuyenTab = dynamic(
     import("@/modules/cssd-erp/views/CSSDCatalogLuanChuyenTab").then((m) => ({
       default: m.CSSDCatalogLuanChuyenTab,
     })),
-  { ssr: false, loading: () => panelFallback },
+  { loading: () => panelFallback },
 );
 
 const InventoryHistoryTable = dynamic(
   () => import("@/modules/cssd-erp/components/inventory/InventoryHistoryTable"),
-  { ssr: false, loading: () => panelFallback },
+  { loading: () => panelFallback },
 );
 
 const SetCompositionCard = dynamic(
   () => import("@/modules/cssd-erp/components/inventory/SetCompositionCard"),
-  { ssr: false, loading: () => <p className="py-6 text-center text-sm text-slate-500">Đang tải thành phần…</p> },
+  { loading: () => <p className="py-6 text-center text-sm text-slate-500">Đang tải thành phần…</p> },
 );
 
 const SetReconcileCampaignPanel = dynamic(
   () => import("@/modules/cssd-erp/components/inventory/SetReconcileCampaignPanel"),
-  { ssr: false },
 );
 
 function CssdDungCuPageInner() {
@@ -128,7 +127,7 @@ function CssdDungCuPageInner() {
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
             Hỏng/Mất
           </Link>
-          {" chỉ tại Sự cố (không MOVE trên cửa sự cố)."}
+          {" chỉ tại Sự cố. Luân chuyển số lượng ở tab Luân chuyển."}
         </p>
 
         <div className="space-y-2">

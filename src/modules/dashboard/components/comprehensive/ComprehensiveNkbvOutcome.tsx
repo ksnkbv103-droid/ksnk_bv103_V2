@@ -9,9 +9,8 @@ import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import {
-  isPathBlockedUnderPilotCoreModules,
-  isPilotCoreModulesScopeEnabled,
-} from "@/lib/ksnk-pilot-core-modules-scope";
+  isPathBlockedUnderActivePilot,
+} from "@/lib/ksnk-pilot-route-scope";
 
 export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const monthly = payload?.nkbv?.monthly ?? [];
@@ -32,15 +31,14 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
 
   if (!payload || payload.sources.nkbv !== "ok" || monthly.length === 0) return null;
 
-  const blocked =
-    isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules("/giam-sat-nkbv");
+  const blocked = isPathBlockedUnderActivePilot("/giam-sat-nkbv");
 
   return (
     <section className={`${D.shellPadded}`}>
       <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-start justify-between gap-[var(--bv103-space-2)]">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <Activity size={18} className="text-[var(--primary)]" aria-hidden />
-          Xu hướng NKBV (outcome)
+          Xu hướng NKBV — số phiếu theo tháng
         </h2>
         {!blocked ? (
           <Link
@@ -53,7 +51,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
         ) : null}
       </div>
       <p className="mb-4 text-xs text-slate-500">
-        Số phiếu theo tháng — tách khỏi biểu đồ tuân thủ VST/GSC. Link giữ kỳ lọc báo cáo.
+        Mọi phiếu trong kỳ lọc (mọi trạng thái) — tách khỏi tuân thủ VST/GSC. Link giữ kỳ lọc báo cáo.
       </p>
       <div className="h-[240px] min-w-0">
         <SupervisionResponsiveChart className="h-full w-full min-w-0">

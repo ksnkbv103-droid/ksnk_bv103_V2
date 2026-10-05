@@ -75,6 +75,13 @@ describe("nkbv-shared-timeline", () => {
     expect(poaOrHai("2026-08-01", "2026-08-03").haiStatus).toBe("HAI");
   });
 
+  it("doeForRit: DOE trước nhập → HD1", () => {
+    const r = poaOrHai("2026-08-01", "2026-07-30");
+    expect(r.doeForRit).toBe("2026-08-01");
+    expect(r.haiStatus).toBe("POA");
+    expect(r.dayOfHospitalization).toBe(1);
+  });
+
   it("device association needs ≥3 placed days and active on DOE/DOE-1", () => {
     const ok = isDeviceAssociated({
       placedDate: "2026-08-01",
@@ -182,6 +189,32 @@ describe("nkbv-shared-timeline", () => {
     expect(registry.placedDays).toBe(3);
     expect(registry.associated).toBe(true);
     expect(registry.episodeStart).toBe("2026-08-03");
+  });
+
+  it("CVC trước VV: Day 1 = tiếp cận nội trú đầu — DOE day4 chỉ day2 → không CLABSI", () => {
+    const vv = "2026-08-01";
+    const access = "2026-08-03";
+    const doe = "2026-08-04";
+    const assoc = deviceAssociationFromCanThiepDates([], doe, {
+      placedDate: "2026-07-28",
+      admissionDate: vv,
+      deviceKind: "cvc",
+      firstInpatientAccessDate: access,
+    });
+    expect(assoc.placedDays).toBe(2);
+    expect(assoc.associated).toBe(false);
+    expect(assoc.episodeStart).toBe(access);
+  });
+
+  it("CVC trước VV thiếu ngày tiếp cận → cảnh báo, không clamp VV", () => {
+    const assoc = deviceAssociationFromCanThiepDates([], "2026-08-05", {
+      placedDate: "2026-07-28",
+      admissionDate: "2026-08-01",
+      deviceKind: "cvc",
+    });
+    expect(assoc.missingInpatientAccessWarn).toBe(true);
+    expect(assoc.associated).toBe(false);
+    expect(assoc.placedDays).toBe(0);
   });
 
   it("RIT end is DOE+13", () => {

@@ -48,3 +48,11 @@ describe("resolveQlcvPeriodRangeShifted", () => {
     expect(r.endIso).toBe("2026-08-09");
   });
 });
+
+describe("kỳ theo ngày VN (00:00–07:00)", () => {
+  it("17:30Z ngày 1/10 = 00:30 VN ngày 2 → tháng 10", () => {
+    const r = resolveQlcvPeriodRange("MONTH", new Date("2026-10-01T17:30:00Z"));
+    expect(r.startIso).toBe("2026-10-01");
+    expect(r.endIso).toBe("2026-10-31");
+  });
+});

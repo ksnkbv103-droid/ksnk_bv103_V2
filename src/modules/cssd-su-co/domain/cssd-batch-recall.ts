@@ -6,6 +6,19 @@
 import {
   isCssdCycleUsedClinically as isUsedFromEvent,
 } from "./cssd-used-clinically";
+import { readRecallMemberJson } from "./cssd-batch-recall-hold";
+import { isBatchQcFailTypeId } from "./cssd-incident-taxonomy";
+import { INCIDENT_STATUS_VOID, readIncidentPhieuStatus } from "./cssd-incident-status";
+
+/** SC-02: phiếu nghi mẻ đã báo — chờ Tổ trưởng/Admin ra lệnh thu hồi theo mẻ. */
+export function isBatchRecallCommandPending(attrs: Record<string, unknown> | null | undefined): boolean {
+  const a = attrs || {};
+  if (String(a.BATCH_RECALL_REQUESTED || "") !== "1") return false;
+  if (String(a.BATCH_RECALL || "") === "1") return false;
+  if (readIncidentPhieuStatus(a) === INCIDENT_STATUS_VOID) return false;
+  if (!isBatchQcFailTypeId(String(a.INCIDENT_TYPE_CODE || ""))) return false;
+  return String(a.LO_TIET_KHUAN_ID || "").trim().length > 0;
+}
 
 export function recallTargetStationForLotMember(_currentStation?: string | null): "TIEP_NHAN" {
   return "TIEP_NHAN";
@@ -160,7 +173,7 @@ export const BATCH_RECALL_REASON_OPTIONS: readonly BatchRecallReasonOption[] = [
     code: "MACHINE_FAULT",
     label: "Lỗi máy / thông số bất thường",
     typeId: "PROCESS_STERILE_QC_FAIL",
-    typeTen: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt",
+    typeTen: "Nội kiểm mẻ TK không đạt",
     hint: "QC mẻ không đạt — thu hồi về Tiếp nhận và tạm giữ máy.",
   },
 ] as const;
@@ -170,8 +183,22 @@ export const BATCH_RECALL_ENTRY_COPY = {
   title: "Thu hồi theo mẻ",
   subtitle: "Sự cố quy trình — thu hồi theo mẻ (không phải Hỏng/Mất).",
   effect:
-    "Bộ chưa dùng lâm sàng về Tiếp nhận để xử lý lại như dụng cụ bẩn. Bộ đã dùng chỉ được liệt kê. Máy sẵn sàng → HOLD_QC.",
+    "Bộ còn trong CSSD về Tiếp nhận ngay. Bộ đã cấp cho khoa → chờ thu về (quét nhận lại tại Tiếp nhận). Bộ đã dùng chỉ liệt kê. Máy sẵn sàng → tạm giữ QC.",
 } as const;
+
+export {
+  partitionRecallMembersTwoPhase,
+  readRecallMemberJson,
+  mergeRecallIncidentAttributes,
+  buildBm01RecallTotals,
+  isChoThuVeCycle,
+  isIssuedToWard,
+  recallScopeFromBatchCount,
+  markHoldMemberReturned,
+  THU_HOI_STATUS_CHO_THU_VE,
+  type RecallMemberStructured,
+  type RecallScope,
+} from "./cssd-batch-recall-hold";
 
 export function resolveBatchRecallReason(codeOrTypeId?: string | null): BatchRecallReasonOption {
   const raw = String(codeOrTypeId || "").trim().toUpperCase();
@@ -199,10 +226,25 @@ export type RecallPrintRow = {
   ghiChu: string;
 };
 
-/** Tách chuỗi RECALL_MOVED / RECALL_LISTED_USED thành hàng in A4. */
+/** Tách chuỗi RECALL_MOVED / RECALL_LISTED_USED thành hàng in A4 (legacy trước SC-01). */
 export function parseRecallMemberListText(raw: string | null | undefined): RecallPrintRow[] {
   const text = String(raw || "").trim();
   if (!text) return [];
+  if (text.startsWith("[")) {
+    const json = readRecallMemberJson(text);
+    if (json) {
+      return json.map((row) => ({
+        maBo: row.maBo,
+        maLo: row.maLo,
+        maCaMoId: row.maCaMoId || undefined,
+        ghiChu:
+          row.ghiChu ||
+          [row.khoaTen, row.trangThai === "CHO_THU_VE" ? "Chờ thu về" : "", row.maCaMoId ? `ca ${row.maCaMoId}` : ""]
+            .filter(Boolean)
+            .join(" · "),
+      }));
+    }
+  }
   const parts: string[] = [];
   let cur = "";
   let depth = 0;
@@ -242,4 +284,27 @@ export function parseRecallMemberListText(raw: string | null | undefined): Recal
     rows.push({ maBo, maLo: maLo || undefined, maCaMoId, ghiChu });
   }
   return rows;
+}
+
+/** Đọc danh sách thu hồi: JSON (SC-01+) hoặc chuỗi legacy. */
+export function resolveRecallPrintRows(raw: unknown): RecallPrintRow[] {
+  const json = readRecallMemberJson(raw);
+  if (json) {
+    return json.map((row) => ({
+      maBo: row.maBo,
+      maLo: row.maLo,
+      maCaMoId: row.maCaMoId || undefined,
+      ghiChu:
+        row.ghiChu ||
+        [
+          row.khoaTen,
+          row.trangThai === "CHO_THU_VE" ? "Chờ thu về" : row.trangThai === "DA_THU_VE" ? "Đã thu về" : "",
+          row.maCaMoId ? `ca ${row.maCaMoId}` : "",
+        ]
+          .filter(Boolean)
+          .join(" · "),
+    }));
+  }
+  if (typeof raw === "string") return parseRecallMemberListText(raw);
+  return [];
 }

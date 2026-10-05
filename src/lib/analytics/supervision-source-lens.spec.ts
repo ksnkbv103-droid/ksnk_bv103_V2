@@ -3,6 +3,7 @@ import type { GapKhoaRow } from "./supervision-matrix-mappers";
 import {
   comparableGapRows,
   gapRowsWithLensData,
+  hinhThucIdsForLens,
   maskGapRowsForLens,
   tyLeForLens,
 } from "./supervision-source-lens";
@@ -45,8 +46,36 @@ describe("supervision-source-lens", () => {
     expect(comparableGapRows(sample).map((r) => r.id)).toEqual(["a"]);
   });
 
+  it("comparable với source áp min-N (GS-07)", () => {
+    const rows = [
+      row({
+        id: "ok",
+        label: "OK",
+        ty_le_ksnk: 90,
+        vol_ksnk: 25,
+        ty_le_tgs: 80,
+        vol_tgs: 25,
+      }),
+      row({
+        id: "thin",
+        label: "Thin",
+        ty_le_ksnk: 90,
+        vol_ksnk: 10,
+        ty_le_tgs: 80,
+        vol_tgs: 25,
+      }),
+    ];
+    expect(comparableGapRows(rows, { source: "vst" }).map((r) => r.id)).toEqual(["ok"]);
+    expect(comparableGapRows(rows, { source: "gsc" }).map((r) => r.id)).toEqual([]);
+  });
+
   it("tyLeForLens returns null without volume", () => {
     expect(tyLeForLens(sample[1]!, "ksnk")).toBeNull();
     expect(tyLeForLens(sample[1]!, "tgs")).toBe(80);
+  });
+
+  it("hinhThucIdsForLens maps lens → stype RPC (GS-02)", () => {
+    expect(hinhThucIdsForLens("ksnk")).toEqual(["KSNK"]);
+    expect(hinhThucIdsForLens("tgs")).toEqual(["TU_GIAM_SAT"]);
   });
 });

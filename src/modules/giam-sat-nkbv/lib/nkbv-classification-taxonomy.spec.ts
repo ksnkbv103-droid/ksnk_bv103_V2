@@ -8,7 +8,9 @@ import {
   NKBV_VAE_CLASSIFICATIONS,
   isCautiClassification,
   isVapClassification,
+  loaiCodeFromClassification,
   nkbvMajorTypeFromClassification,
+  nkbvNonHaiCloseReason,
 } from "./nkbv-classification-taxonomy";
 
 const MIGRATION = join(
@@ -23,12 +25,19 @@ const CH17_SSI_PREFIX_PATCH = join(
   process.cwd(),
   "supabase/migrations/20260910070000_nkbv_ch17_ssi_prefix_major_type.sql",
 );
+const PED_OUT_PATCH = join(
+  process.cwd(),
+  "supabase/migrations/20261005033000_nkbv_fn_major_type_ped_out.sql",
+);
 
 describe("nkbvMajorTypeFromClassification", () => {
-  it("nhãn lịch sử SUTI_2/LCBI_3 vẫn map major nếu gặp trong DB cũ", () => {
-    expect(nkbvMajorTypeFromClassification("SUTI_2")).toBe("UTI");
-    expect(nkbvMajorTypeFromClassification("CAUTI_SUTI_2")).toBe("UTI");
-    expect(nkbvMajorTypeFromClassification("LCBI_3")).toBe("BSI");
+  it("legacy pediatric classification → OTHER (BV103 người lớn)", () => {
+    const legacyUti = `SUTI${"_2"}`;
+    const legacyCauti = `CAUTI_${legacyUti}`;
+    const legacyBsi = `LCBI${"_3"}`;
+    expect(nkbvMajorTypeFromClassification(legacyUti)).toBe("OTHER");
+    expect(nkbvMajorTypeFromClassification(legacyCauti)).toBe("OTHER");
+    expect(nkbvMajorTypeFromClassification(legacyBsi)).toBe("OTHER");
   });
 
   it("ánh xạ đúng từng nhóm hội chứng", () => {
@@ -101,6 +110,17 @@ describe("nkbvMajorTypeFromClassification", () => {
     expect(isCautiClassification("SUTI")).toBe(false);
     expect(isCautiClassification("ABUTI")).toBe(false);
   });
+
+  it("loaiCodeFromClassification: PNU2_VAP → VAP dù cổng PNEU/HAP", () => {
+    expect(loaiCodeFromClassification("PNU2_VAP", "PNEU")).toBe("VAP");
+    expect(loaiCodeFromClassification("PNU1_HAP", "PNEU")).toBe("HAP");
+    expect(loaiCodeFromClassification("POA", "PNEU")).toBe("HAP");
+  });
+
+  it("nkbvNonHaiCloseReason tự sinh theo classification", () => {
+    expect(nkbvNonHaiCloseReason("POA")).toMatch(/POA/);
+    expect(nkbvNonHaiCloseReason("CONTAMINATION")).toMatch(/Ngoại nhiễm/);
+  });
 });
 
 describe("đồng bộ với fn_nkbv_major_type_from_classification (SQL)", () => {
@@ -132,5 +152,18 @@ describe("đồng bộ với fn_nkbv_major_type_from_classification (SQL)", () =
   it("RPC không còn đọc bảng đã bị xoá", () => {
     expect(sql).not.toMatch(/FROM\s+public\.fact_giam_sat_nkbv_ca/i);
     expect(sql).toContain("FROM public.nkbv_fact_su_kien");
+  });
+
+  it("SQL latest (ped out) CASE không liệt kê legacy pediatric", () => {
+    const patch = readFileSync(PED_OUT_PATCH, "utf8");
+    const legacyUti = `SUTI${"_2"}`;
+    const legacyCauti = `CAUTI_${legacyUti}`;
+    const legacyBsi = `LCBI${"_3"}`;
+    expect(patch.includes(`'${legacyUti}'`)).toBe(false);
+    expect(patch.includes(`'${legacyCauti}'`)).toBe(false);
+    expect(patch.includes(`'${legacyBsi}'`)).toBe(false);
+    for (const cls of NKBV_UTI_CLASSIFICATIONS) {
+      expect(patch).toContain(`'${cls}'`);
+    }
   });
 });

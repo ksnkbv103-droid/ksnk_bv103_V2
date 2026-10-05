@@ -65,6 +65,31 @@ describe("evaluateMeQcRelease", () => {
     }
   });
 
+  it("ME-01: DANG_U không chặn nhả hơi nước thường; vẫn CHO_BI khi BI bắt buộc", () => {
+    const steam = evaluateMeQcRelease({ ...baseQc, trangThaiBi: "DANG_U", method: "HOI_NUOC", coImplant: false });
+    expect(steam.ok && steam.decision.outcome).toBe("HOAN_THANH");
+    const plasma = evaluateMeQcRelease({
+      ...baseQc,
+      trangThaiBi: "DANG_U",
+      method: "PLASMA_H2O2",
+      nhietDo: "",
+      apSuat: "",
+      thoiGianChuKy: "",
+    });
+    expect(plasma.ok && plasma.decision.outcome).toBe("CHO_BI");
+  });
+
+  it("ME-08: thông số lệch chuẩn catalog → QC_KHONG_DAT dù chọn Đạt vật lý", () => {
+    const r = evaluateMeQcRelease({
+      ...baseQc,
+      nhietDo: "121",
+      trangThaiBi: "AM",
+      method: "HOI_NUOC",
+      chuongTrinhChuan: { nhiet_do: "134", ap_suat: "2.1", thoi_gian_chu_ky: "18" },
+    });
+    expect(r.ok && r.decision.outcome).toBe("QC_KHONG_DAT");
+  });
+
   it("BI dương is a fail, BI âm releases plasma", () => {
     const pos = evaluateMeQcRelease({ ...baseQc, trangThaiBi: "DUONG", method: "EO", nhietDo: "", apSuat: "", thoiGianChuKy: "" });
     expect(pos.ok && pos.decision.outcome).toBe("QC_KHONG_DAT");
@@ -113,7 +138,13 @@ describe("assertPackIssuable batch release", () => {
   it("detects sterilization incidents OPEN or confirmed on the batch or set", () => {
     expect(
       isBlockingSterilizationIncident(
-        { quy_trinh_id: "qt-1", attributes: { INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "OPEN" } },
+        {
+          quy_trinh_id: "qt-1",
+          attributes: {
+            INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL",
+            INCIDENT_STATUS: "OPEN",
+          },
+        },
         { quyTrinhId: "qt-1", loTietKhuanId: "me-1" },
       ),
     ).toBe(true);
@@ -121,7 +152,11 @@ describe("assertPackIssuable batch release", () => {
       isBlockingSterilizationIncident(
         {
           quy_trinh_id: "other",
-          attributes: { LO_TIET_KHUAN_ID: "me-1", INCIDENT_GROUP: "PROCESS", INCIDENT_STATUS: "DA_XAC_NHAN" },
+          attributes: {
+            LO_TIET_KHUAN_ID: "me-1",
+            INCIDENT_GROUP: "PROCESS",
+            INCIDENT_STATUS: "DA_XAC_NHAN",
+          },
         },
         { quyTrinhId: "qt-1", loTietKhuanId: "me-1" },
       ),
@@ -133,6 +168,44 @@ describe("assertPackIssuable batch release", () => {
       ),
     ).toBe(false);
   });
+
+  it("does not block Kiểm bộ fail (PROCESS_QC_FAIL) without batch / TIET_KHUAN", () => {
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "qt-1",
+          attributes: {
+            INCIDENT_TYPE_CODE: "PROCESS_QC_FAIL",
+            INCIDENT_GROUP: "PROCESS",
+            INCIDENT_STATUS: "OPEN",
+          },
+        },
+        { quyTrinhId: "qt-1", loTietKhuanId: "me-1" },
+      ),
+    ).toBe(false);
+  });
+
+  it("blocks batch recall and TIET_KHUAN detection station", () => {
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "qt-1",
+          attributes: { BATCH_RECALL: "1", INCIDENT_STATUS: "OPEN" },
+        },
+        { quyTrinhId: "qt-1" },
+      ),
+    ).toBe(true);
+    expect(
+      isBlockingSterilizationIncident(
+        {
+          quy_trinh_id: "qt-1",
+          ma_tram_phat_hien: "TIET_KHUAN",
+          attributes: { INCIDENT_TYPE_CODE: "PROCESS_MISSTEP", INCIDENT_STATUS: "OPEN" },
+        },
+        { quyTrinhId: "qt-1" },
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("release SQL", () => {
@@ -142,5 +215,23 @@ describe("release SQL", () => {
     expect(release).not.toMatch(/thoi_gian_cap_phat\s*=/);
     expect(release).not.toMatch(/nguoi_cap_phat_id\s*=/);
     expect(release).toMatch(/tram_hien_tai_id = v_cap/);
+  });
+});
+
+describe("ME-05 release HSD SQL", () => {
+  it("uses batch end mốc and packaging days without coalesce 30", () => {
+    const sql = readFileSync(
+      "supabase/migrations/20261005145000_cssd_me05_hsd_bao_goi.sql",
+      "utf8",
+    );
+    const fn = sql.slice(
+      sql.indexOf("CREATE OR REPLACE FUNCTION public.fn_cssd_me_chuyen_bo_kho_vo_khuan"),
+      sql.indexOf("COMMENT ON FUNCTION public.fn_cssd_me_chuyen_bo_kho_vo_khuan"),
+    );
+    expect(fn).toMatch(/coalesce\(m\.thoi_gian_ket_thuc, m\.tk_mo_form_qc_at\)/);
+    expect(fn).toMatch(/thoi_gian_tiet_khuan = v_moc/);
+    expect(fn).toMatch(/cssd_dm_loai_bao_goi/);
+    expect(fn).not.toMatch(/coalesce\(src\.so_ngay,\s*30\)/);
+    expect(fn).not.toMatch(/dm_loai_dung_cu/);
   });
 });

@@ -59,7 +59,6 @@ export default function Ch17ClinicalSubForm({ form, onChange, allowedEdit }: Pro
             typeCode={form.ch17_type_code}
             flags={form.chapter17_flags || {}}
             procedureCode={form.procedure_code}
-            isInfantLe1={false}
             allowedEdit={allowedEdit}
             onFlagsChange={(chapter17_flags) => onChange({ ...form, chapter17_flags })}
           />

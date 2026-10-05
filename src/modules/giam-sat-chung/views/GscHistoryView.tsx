@@ -32,11 +32,34 @@ export default function GscHistoryView({ loaiGiamSat }: GscHistoryViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const resolvedLoai = loaiGiamSat ?? parseGscLoaiParam(searchParams.get("loai"));
+  const maBk = String(searchParams.get("bk") || "").trim() || null;
   const basePath = resolveBasePath(resolvedLoai);
+
+  const clearBkFilter = () => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("bk");
+    const q = next.toString();
+    router.push(q ? `/lich-su/gsc?${q}` : "/lich-su/gsc");
+  };
 
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
       <div className="space-y-2">
+        {maBk ? (
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700">
+              Bảng kiểm: <span className="font-semibold">{maBk}</span>
+              <button
+                type="button"
+                onClick={clearBkFilter}
+                className="ml-1 font-semibold text-slate-500 hover:text-slate-800"
+                aria-label="Bỏ lọc bảng kiểm"
+              >
+                ✕
+              </button>
+            </span>
+          </div>
+        ) : null}
         <div className="flex justify-end print:hidden">
           <SupervisionExcelExportButton
             label="Xuất Excel (90 ngày)"
@@ -51,6 +74,7 @@ export default function GscHistoryView({ loaiGiamSat }: GscHistoryViewProps) {
         </div>
         <HistoryTable
           loaiGiamSat={resolvedLoai}
+          maBk={maBk}
           onEditBundle={(bundle, row) => {
             // Encode edit context into URL params and redirect to form
             const sessionId = String(row.id || "").trim();

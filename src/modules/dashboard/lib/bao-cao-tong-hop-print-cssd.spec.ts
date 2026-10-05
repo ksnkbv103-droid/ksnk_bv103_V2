@@ -44,8 +44,8 @@ describe("bản ký phụ lục CSSD", () => {
     });
 
     expect(href).toBe("/cssd-erp/report?tab=volume&from=2026-09-01&to=2026-09-28");
-    expect(html).toContain(href.replaceAll("&", "&amp;"));
     expect(html).toContain("Báo cáo CSSD");
+    expect(html).not.toContain("/cssd-erp/report");
     expect(html).not.toContain("/thong-ke/cssd");
   });
 
@@ -105,8 +105,8 @@ describe("bản ký phụ lục CSSD", () => {
       [],
       0,
     );
-    const vstHtml = renderKhoaGapModulePrint("VST", vst, 30, 1);
-    const gscHtml = renderKhoaGapModulePrint("GSC", gsc, 30, 2);
+    const vstHtml = renderKhoaGapModulePrint("VST", vst, "vst", 30, 1);
+    const gscHtml = renderKhoaGapModulePrint("GSC", gsc, "gsc", 30, 2);
     expect(vstHtml).toContain("66.7% (2/3)");
     expect(vstHtml).not.toContain("10/20");
     expect(gscHtml).toContain("50.00% (10/20)");

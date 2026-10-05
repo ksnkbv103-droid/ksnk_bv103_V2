@@ -176,7 +176,7 @@ export default function UtiClinicalSubForm({
 
           <NkbvFormSection
             title="Triệu chứng trong cửa sổ nhiễm khuẩn"
-            hint="SSOT catalog · tiểu buốt/gấp/rắt chỉ khi KHÔNG đặt sonde tại chỗ."
+            hint="Theo danh mục dấu hiệu · tiểu buốt/gấp/rắt chỉ khi KHÔNG đặt sonde tại chỗ."
           >
             <NkbvCatalogSymptomRows
               rows={formSymptomRowsFor("UTI", { foleyActive: !!foleyActive })}

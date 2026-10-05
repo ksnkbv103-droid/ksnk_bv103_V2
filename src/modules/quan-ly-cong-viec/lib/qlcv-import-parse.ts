@@ -1,17 +1,17 @@
 /** Parse & validate dòng import công việc nội bộ KSNK — thuần, không I/O. */
 
-const LOAI = new Set(["DINH_KY", "DOT_XUAT", "KHAN_CAP"]);
 const UU_TIEN = new Set(["THAP", "TRUNG_BINH", "CAO"]);
 
 export type QlcvImportRow = {
   tieu_de: string;
   mo_ta: string | null;
-  loai_cong_viec: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
+  /** Import luôn DOT_XUAT (QLCV-05) — DINH_KY chỉ từ mẫu. */
+  loai_cong_viec: "DOT_XUAT";
   muc_do_uu_tien: "THAP" | "TRUNG_BINH" | "CAO";
   han_hoan_thanh: string | null;
   ma_nv: string;
   ma_to: string | null;
-  ma_khoa: string;
+  ma_khoa: string | null;
 };
 
 export type QlcvImportParseResult =
@@ -57,18 +57,18 @@ export function parseQlcvImportRow(row: Record<string, unknown>, rowIdx: number)
   const ma_nv = cell(row, "ma_nv", "Ma NV", "Mã NV", "MA_NV");
   if (!ma_nv) errors.push("Thiếu mã nhân viên phụ trách KSNK (ma_nv)");
 
-  const ma_khoa = cell(row, "ma_khoa", "Ma khoa", "Mã khoa", "MA_KHOA", "Địa điểm khoa");
-  if (!ma_khoa) errors.push("Thiếu mã khoa địa điểm (ma_khoa)");
+  const ma_khoa = cell(row, "ma_khoa", "Ma khoa", "Mã khoa", "MA_KHOA", "Địa điểm khoa") || null;
 
-  const loaiRaw = cell(row, "loai_cong_viec", "Loai", "LOAI_CONG_VIEC").toUpperCase() || "DOT_XUAT";
-  if (!LOAI.has(loaiRaw)) errors.push(`Loại công việc không hợp lệ: ${loaiRaw}`);
-
-  const uuRaw = cell(row, "muc_do_uu_tien", "Uu tien", "MUC_DO_UU_TIEN").toUpperCase() || "TRUNG_BINH";
+  // QLCV-05: bỏ cột loại — luôn DOT_XUAT; ưu tiên CAO cho việc khẩn.
+  const uuRaw = cell(row, "muc_do_uu_tien", "Uu tien", "MUC_DO_UU_TIEN", "Uu tiên").toUpperCase() || "TRUNG_BINH";
   if (!UU_TIEN.has(uuRaw)) errors.push(`Mức ưu tiên không hợp lệ: ${uuRaw}`);
 
   const hanRaw = cell(row, "han_hoan_thanh", "Han", "HAN_HOAN_THANH");
   const han_hoan_thanh = hanRaw ? normalizeDate(hanRaw) : null;
   if (hanRaw && !han_hoan_thanh) errors.push("Hạn hoàn thành phải dạng YYYY-MM-DD");
+  if (!han_hoan_thanh) {
+    errors.push("Hạn hoàn thành bắt buộc với việc đột xuất");
+  }
 
   if (errors.length) return { ok: false, rowIdx, errors };
 
@@ -78,7 +78,7 @@ export function parseQlcvImportRow(row: Record<string, unknown>, rowIdx: number)
     row: {
       tieu_de,
       mo_ta: cell(row, "mo_ta", "Mo ta", "Mô tả", "MO_TA") || null,
-      loai_cong_viec: loaiRaw as QlcvImportRow["loai_cong_viec"],
+      loai_cong_viec: "DOT_XUAT",
       muc_do_uu_tien: uuRaw as QlcvImportRow["muc_do_uu_tien"],
       han_hoan_thanh,
       ma_nv,

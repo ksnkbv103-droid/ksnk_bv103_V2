@@ -10,6 +10,9 @@ export async function executeVoidIncidentReport(
     incidentId: string;
     actorNhanSuId: string | null;
     actorHoTen: string | null;
+    voidReasonCode?: string | null;
+    voidReasonNote?: string | null;
+    allowVoidConfirmed?: boolean;
   },
 ): Promise<{ ok: true; already?: boolean } | { ok: false; error: string }> {
   const id = String(opts.incidentId || "").trim();
@@ -69,6 +72,7 @@ export async function executeVoidIncidentReport(
   let peers: VoidPeer[] = [];
   let events: VoidRollbackEvent[] = [];
   let currentLoId: string | null = null;
+  let currentStation: string | null = null;
   if (quyId) {
     const { data: peerRows, error: peerErr } = await supabase
       .from("cssd_fact_su_co")
@@ -79,8 +83,8 @@ export async function executeVoidIncidentReport(
     if (peerErr) return { ok: false, error: peerErr.message };
     peers = (peerRows || []) as VoidPeer[];
     const { data: qt, error: qtErr } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("metadata, lo_tiet_khuan_id")
+      .from("v_cssd_quy_trinh_full")
+      .select("metadata, lo_tiet_khuan_id, ma_trang_thai_hien_tai")
       .eq("id", quyId)
       .maybeSingle();
     if (qtErr) return { ok: false, error: qtErr.message };
@@ -88,6 +92,9 @@ export async function executeVoidIncidentReport(
     const list = Array.isArray(meta?.ngoai_le) ? meta.ngoai_le : [];
     events = list.filter((e): e is VoidRollbackEvent => Boolean(e) && typeof e === "object");
     currentLoId = String((qt as { lo_tiet_khuan_id?: string | null } | null)?.lo_tiet_khuan_id || "").trim() || null;
+    currentStation =
+      String((qt as { ma_trang_thai_hien_tai?: string | null } | null)?.ma_trang_thai_hien_tai || "").trim() ||
+      null;
   }
 
   const plan = planCssdIncidentVoid({
@@ -103,9 +110,13 @@ export async function executeVoidIncidentReport(
     ledger,
     rollbackEvents: events,
     currentLoId,
+    currentStation,
     voidedAt: new Date().toISOString(),
     actorName: opts.actorHoTen,
     actorNhanSuId: opts.actorNhanSuId,
+    voidReasonCode: opts.voidReasonCode,
+    voidReasonNote: opts.voidReasonNote,
+    allowVoidConfirmed: opts.allowVoidConfirmed,
   });
   if (!plan.ok) return plan;
   if (plan.already) return { ok: true, already: true };

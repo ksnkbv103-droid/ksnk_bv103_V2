@@ -1,11 +1,10 @@
 "use server";
 
 /**
- * Báo cáo kỳ QLCV MVP (Domain SSOT §6 / Q-14).
- * Không RPC mới — đọc `qlcv_fact_cong_viec` (+ tên MDM) cap 2000, aggregate TS.
- * `hoan_thanh_luc` không có trên `v_qlcv_cong_viec_full` nên đọc fact trực tiếp.
+ * Báo cáo kỳ QLCV (Q-14). QLCV-10: lọc theo kỳ ở server, phân trang hết (không cắt 2000 theo updated_at).
  */
 
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import {
   buildQlcvBaoCaoKyPayload,
@@ -68,22 +67,29 @@ export async function getQlcvBaoCaoKy(input: GetQlcvBaoCaoKyInput): Promise<Qlcv
     shift === 0 ? resolveQlcvPeriodRange(kind) : resolveQlcvPeriodRangeShifted(kind, shift);
 
   const { supabase } = await ensureQlcvKsnkAccess("view");
+  const start = period.startIso;
+  const end = period.endIso;
+  // VN day bounds as timestamptz strings (UTC+7).
+  const startTs = `${start}T00:00:00+07:00`;
+  const endTs = `${end}T23:59:59.999+07:00`;
 
-  // Admin client: fact có hoan_thanh_luc; view full chưa expose cột này (không mig mới).
-  const { data, error } = await supabase
-    .from("qlcv_fact_cong_viec")
-    .select(
-      "id,tieu_de,trang_thai,is_active,han_hoan_thanh,hoan_thanh_luc,phan_tram_hoan_thanh,nguoi_phu_trach_id,nguoi_giao_viec_id,created_at",
-    )
-    .order("updated_at", { ascending: false })
-    .limit(QLCV_BAO_CAO_FETCH_CAP);
+  const facts = await fetchAllRangeRows<FactLite>((from, to) =>
+    supabase
+      .from("qlcv_fact_cong_viec")
+      .select(
+        "id,tieu_de,trang_thai,is_active,han_hoan_thanh,hoan_thanh_luc,phan_tram_hoan_thanh,nguoi_phu_trach_id,nguoi_giao_viec_id,created_at",
+      )
+      .or(
+        [
+          `and(han_hoan_thanh.gte.${start},han_hoan_thanh.lte.${end})`,
+          `and(hoan_thanh_luc.gte.${startTs},hoan_thanh_luc.lte.${endTs})`,
+          `and(created_at.gte.${startTs},created_at.lte.${endTs})`,
+        ].join(","),
+      )
+      .order("created_at", { ascending: false })
+      .range(from, to),
+  );
 
-  if (error) {
-    console.error("bao-cao-ky: fact fetch", error);
-    throw new Error(`Không tải được dữ liệu báo cáo: ${error.message}`);
-  }
-
-  const facts = (data ?? []) as FactLite[];
   const truncated = facts.length >= QLCV_BAO_CAO_FETCH_CAP;
 
   const nameMap = await loadStaffNameMap(

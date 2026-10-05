@@ -5,8 +5,9 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
-import { normalizeGscStrategicPercents } from "@/lib/analytics/gsc-analytics-data";
-import type { GscStrategicFilters, GscStrategicPayload } from "../types/gsc-strategic.types";
+import { getCachedGscStrategicRpc } from "@/lib/analytics/strategic-analytics-cache";
+import { selectGscGenericBangKiemMas } from "@/lib/domain/gsc-lop-giam-sat-filter";
+import type { GscStrategicFilters } from "../types/gsc-strategic.types";
 
 const gscStrategicFiltersSchema = z.object({
   tu_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "tu_ngay YYYY-MM-DD"),
@@ -17,6 +18,8 @@ const gscStrategicFiltersSchema = z.object({
   khu_vuc_ids: z.array(z.string()).optional(),
   hinh_thuc_ids: z.array(z.string()).optional(),
   bang_kiem_mas: z.array(z.string()).optional(),
+  /** false = giữ BM.02/03 (khối Vệ sinh tay). Mặc định true = tổng GSC generic. */
+  exclude_vst_hub_bang_kiem: z.boolean().optional(),
 });
 
 export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
@@ -28,6 +31,7 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
     };
   }
   const f = parsed.data;
+  const excludeHub = f.exclude_vst_hub_bang_kiem !== false;
 
   await verifyPermission("GIAM_SAT_CHUNG", "view");
 
@@ -46,6 +50,10 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
       .filter((ma) => ma.length > 0);
     p_bang_kiem_mas = mas.length > 0 ? mas : null;
   }
+  // BCTH-01: BK mặc định / lọc GSC không gồm hub VST (BM.02/03).
+  if (excludeHub && p_bang_kiem_mas) {
+    p_bang_kiem_mas = selectGscGenericBangKiemMas(p_bang_kiem_mas);
+  }
 
   const rpcArgs = {
     p_tu_ngay: f.tu_ngay,
@@ -54,18 +62,6 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
     p_bang_kiem_mas,
   };
 
-  const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([
-    supabase.rpc("rpc_dashboard_gsc_strategic_analytics", rpcArgs),
-    supabase.rpc("rpc_gsc_compare_matrices", rpcArgs),
-  ]);
-
-  if (error) return { success: false as const, error: error.message };
-  if (matrixErr) return { success: false as const, error: matrixErr.message };
-
-  const merged = {
-    ...(data as GscStrategicPayload),
-    ...(matrices as Record<string, unknown>),
-  } as GscStrategicPayload;
-
-  return { success: true as const, data: normalizeGscStrategicPercents(merged) };
+  // A) Gọi RPC mỗi mở dashboard. B) Promise.all + unstable_cache 90s — chọn B.
+  return getCachedGscStrategicRpc(rpcArgs);
 }

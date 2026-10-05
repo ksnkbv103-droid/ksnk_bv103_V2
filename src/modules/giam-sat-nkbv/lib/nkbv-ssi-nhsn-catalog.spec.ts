@@ -31,7 +31,7 @@ describe("nkbv-ssi-nhsn-catalog", () => {
     expect(formatNhsnOptionLabel(getNhsnProcedure("BRST")!)).toMatch(/^BRST —/);
   });
 
-  it("SP: nông luôn 30; Deep/Organ theo mã PT; DIS luôn 30; fallback implant", () => {
+  it("SP: nông luôn 30; Deep/Organ theo mã PT; DIS luôn 30; thiếu mã → null", () => {
     expect(
       resolveSsiSurveillanceDays({ depth: "SUPERFICIAL", procedureCode: "KPRO" }),
     ).toBe(30);
@@ -54,7 +54,7 @@ describe("nkbv-ssi-nhsn-catalog", () => {
         procedureCode: "",
         hasImplantFallback: true,
       }),
-    ).toBe(90);
+    ).toBeNull();
   });
 
   it("PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS", () => {

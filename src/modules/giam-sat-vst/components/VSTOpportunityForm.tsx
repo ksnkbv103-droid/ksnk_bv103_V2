@@ -2,7 +2,15 @@
 "use client";
 
 import React, { useLayoutEffect, useRef } from "react";
-import { MOMENTS, ACTIONS, ActionType, MomentType } from "../lib/vst-constants";
+import {
+  MOMENTS,
+  ACTIONS,
+  ActionType,
+  MomentType,
+  MOMENT_SHORT_CODE,
+  ACTION_DISPLAY_LABEL,
+  momentDisplayLabel,
+} from "../lib/vst-constants";
 import VSTAssessmentSection from "./VSTAssessmentSection";
 import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVSTFormHandlers";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
@@ -27,39 +35,33 @@ interface VSTOpportunityFormProps {
   openOpportunity: (pIdx: number, oIdx: number) => void;
 }
 
-const MOMENT_TOOLTIPS: Record<string, string> = {
-  "Trước khi tiếp xúc người bệnh": "Rửa tay trước khi chạm vào bệnh nhân để bảo vệ họ khỏi mầm bệnh trên tay bạn.",
-  "Trước khi làm thủ thuật vô khuẩn": "Rửa tay trước khi thực hiện thủ thuật để ngăn mầm bệnh xâm nhập vào cơ thể bệnh nhân.",
-  "Sau khi có nguy cơ tiếp xúc với dịch": "Rửa tay ngay sau khi có nguy cơ tiếp xúc với dịch tiết để bảo vệ chính bạn và môi trường xung quanh.",
-  "Sau khi tiếp xúc người bệnh": "Rửa tay sau khi chạm vào bệnh nhân để bảo vệ bạn và môi trường y tế.",
-  "Sau khi tiếp xúc xung quanh người bệnh": "Rửa tay sau khi chạm vào bất kỳ vật dụng nào xung quanh bệnh nhân.",
-};
-
-const MOMENT_DISPLAY: Record<string, { timing: "TRƯỚC" | "SAU"; code: string }> = {
-  "Trước khi tiếp xúc người bệnh": { timing: "TRƯỚC", code: "TXNB" },
-  "Trước khi làm thủ thuật vô khuẩn": { timing: "TRƯỚC", code: "TTVK" },
-  "Sau khi có nguy cơ tiếp xúc với dịch": { timing: "SAU", code: "TXDCT" },
-  "Sau khi tiếp xúc người bệnh": { timing: "SAU", code: "TXNB" },
-  "Sau khi tiếp xúc xung quanh người bệnh": { timing: "SAU", code: "TXXQNB" },
+const MOMENT_TOOLTIPS: Record<MomentType, string> = {
+  "Trước khi tiếp xúc người bệnh":
+    "Vệ sinh tay trước khi chạm vào người bệnh để bảo vệ họ khỏi mầm bệnh trên tay bạn.",
+  "Trước khi làm thủ thuật vô khuẩn":
+    "Vệ sinh tay trước khi thực hiện thủ thuật để ngăn mầm bệnh xâm nhập vào cơ thể người bệnh.",
+  "Sau khi có nguy cơ tiếp xúc với dịch":
+    "Vệ sinh tay ngay sau khi có nguy cơ phơi nhiễm với máu và dịch cơ thể.",
+  "Sau khi tiếp xúc người bệnh":
+    "Vệ sinh tay sau khi chạm vào người bệnh để bảo vệ bạn và môi trường y tế.",
+  "Sau khi tiếp xúc xung quanh người bệnh":
+    "Vệ sinh tay sau khi chạm vào môi trường xung quanh người bệnh.",
 };
 
 function MomentChoiceLabel({ moment }: { moment: MomentType }) {
-  const display = MOMENT_DISPLAY[moment];
-  if (!display) {
-    return <span className="text-[11px] font-semibold leading-tight">{moment}</span>;
-  }
+  const code = MOMENT_SHORT_CODE[moment];
+  const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
-    <span className="flex flex-col items-center justify-center gap-0.5 leading-none">
-      <span className="text-[11px] font-medium uppercase tracking-normal">{display.timing}</span>
-      <span className="text-[11px] font-semibold uppercase tracking-wide">{display.code}</span>
+    <span className="flex flex-col items-center justify-center gap-0.5 leading-none" title={momentDisplayLabel(moment)}>
+      <span className="text-[11px] font-medium uppercase tracking-normal">{timing}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide">{code}</span>
     </span>
   );
 }
 
 function momentChipLabel(moment: MomentType): string {
-  const display = MOMENT_DISPLAY[moment];
-  if (!display) return String(MOMENTS.indexOf(moment) + 1);
-  return `${display.timing} ${display.code}`;
+  const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
+  return `${timing} ${MOMENT_SHORT_CODE[moment]}`;
 }
 
 const C = bv103LayoutChrome;
@@ -100,7 +102,7 @@ export default function VSTOpportunityForm({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap gap-1.5">
             {opp.thoi_diems.map((m: MomentType, i: number) => (
-              <span key={`${m}-${i}`} className={C.chipBadge} title={m}>
+              <span key={`${m}-${i}`} className={C.chipBadge} title={momentDisplayLabel(m)}>
                 {momentChipLabel(m)}
               </span>
             ))}
@@ -111,7 +113,9 @@ export default function VSTOpportunityForm({
             </span>
           ) : null}
         </div>
-        <span className="shrink-0 text-[11px] font-semibold uppercase text-[var(--primary)]">{opp.hanh_dong}</span>
+        <span className="shrink-0 text-[11px] font-semibold uppercase text-[var(--primary)]">
+          {opp.hanh_dong ? ACTION_DISPLAY_LABEL[opp.hanh_dong] : ""}
+        </span>
         <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400">Sửa</span>
       </button>
     );
@@ -155,7 +159,11 @@ export default function VSTOpportunityForm({
                     : C.choiceBtnIdle
                 }`}
               >
-                {a === "Rửa tay bằng nước" ? "Rửa nước" : a === "Chà tay bằng cồn" ? "Chà cồn" : "Bỏ sót"}
+                {a === "Rửa tay bằng nước"
+                  ? "Rửa tay với xà phòng và nước"
+                  : a === "Chà tay bằng cồn"
+                    ? "Chà cồn"
+                    : "Bỏ sót"}
               </button>
             ))}
           </div>

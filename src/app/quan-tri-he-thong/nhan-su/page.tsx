@@ -3,7 +3,7 @@ import QuanLyNhanSuPage from "@/modules/quan-tri-he-thong/nhan-su/views/QuanLyNh
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Quản lý Nhân sự | KSNK BV103",
+  title: "Nhân sự",
   description: "Quản lý hồ sơ nhân sự và phân khoa phòng",
 };
 

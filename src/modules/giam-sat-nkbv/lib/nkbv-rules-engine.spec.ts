@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  evaluateBsiClabsi,
-  evaluateVaeVap,
-  evaluateUtiCauti,
+  evaluateBsiClabsi as evaluateBsiClabsiRaw,
+  evaluateVaeVap as evaluateVaeVapRaw,
+  evaluateUtiCauti as evaluateUtiCautiRaw,
   evaluateSsi,
-  evaluateCh17,
+  evaluateCh17 as evaluateCh17Raw,
 } from "./nkbv-rules-engine";
 import {
   BsiVerificationData,
@@ -13,10 +13,24 @@ import {
   SsiVerificationData,
 } from "../types/nkbv-verification";
 
+/** Fixture cũ thiếu ngày VV — mặc định HAI (VV sớm, DOE muộn). Test POA/NO_EVENT gọi *Raw. */
+function withHaiAdmitDates<T extends Record<string, unknown>>(data: T): T {
+  return {
+    ngay_vao_vien: "2026-01-01",
+    calculated_doe: "2026-06-15",
+    ...data,
+  } as T;
+}
+const evaluateBsiClabsi = (d: any) => evaluateBsiClabsiRaw(withHaiAdmitDates(d));
+const evaluateUtiCauti = (d: any) => evaluateUtiCautiRaw(withHaiAdmitDates(d));
+const evaluateCh17 = (d: any) => evaluateCh17Raw(withHaiAdmitDates(d));
+const evaluateVaeVap = (d: any, route?: any) =>
+  evaluateVaeVapRaw(withHaiAdmitDates(d), route);
+
 describe("CDC/NHSN 2023 Rules Engine tests", () => {
   
   describe("evaluateBsiClabsi", () => {
-    it("hai_status POA → không CLABSI (NHSN day-3 / cấm 48h)", () => {
+    it("DOE HD2 → POA dù client gửi hai_status HAI (server tự tính)", () => {
       const data = {
         is_fungi_respiratory: false,
         pathogen_name: "E. coli",
@@ -29,17 +43,43 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         cvc_active_on_event: true,
         device_placed_date: "2026-05-08",
         calculated_doe: "2026-05-11",
+        ngay_vao_vien: "2026-05-10",
         is_neutropenia: false,
         is_intestinal_pathogen: false,
         has_localized_infection: false,
         localized_pathogen_matches: false,
         is_in_sbap_window: false,
         blood_mandatory_for_localized: false,
-        hai_status: "POA" as const,
+        hai_status: "HAI" as const,
       };
-      const res = evaluateBsiClabsi(data as any);
+      const res = evaluateBsiClabsiRaw(data as any);
       expect(res.is_positive).toBe(false);
       expect(res.classification).toBe("POA");
+    });
+
+    it("thiếu ngày VV → NO_EVENT (không tin hai_status HAI)", () => {
+      const data = {
+        is_fungi_respiratory: false,
+        pathogen_name: "E. coli",
+        pathogen_type: "RECOGNIZED" as const,
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: true,
+        has_fever: true,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        calculated_doe: "2026-05-11",
+        is_neutropenia: false,
+        is_intestinal_pathogen: false,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+        hai_status: "HAI" as const,
+      };
+      const res = evaluateBsiClabsiRaw(data as any);
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("NO_EVENT");
     });
 
     it("identifies respiratory fungi as community infection", () => {

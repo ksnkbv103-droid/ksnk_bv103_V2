@@ -116,7 +116,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           />
         </div>
         <div className="space-y-2">
-          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Cấp phát theo khoa nhận (SSOT)</h3>
+          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Cấp phát theo khoa nhận</h3>
           <AdvancedDataTable
             columns={[
               { header: "Khoa nhận", accessorKey: "ten_khoa", cell: (v: any) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },

@@ -49,14 +49,12 @@ export function isCh17SiteCriteriaMet(input: {
   siteCode: string | null | undefined;
   flags?: Record<string, boolean> | null;
   procedureCode?: string | null;
-  isInfantLe1?: boolean;
 }): { applicable: boolean; met: boolean; reason: string; rule: Ch17SiteRule | null } {
   const rule = ch17RuleForSite(input.siteCode);
   const r = evaluateCh17Type({
     typeCode: input.siteCode,
     evidence: normalizeCh17EvidenceFlags(input.flags),
     procedureCode: input.procedureCode,
-    isInfantLe1: input.isInfantLe1,
   });
   return {
     applicable: r.applicable,

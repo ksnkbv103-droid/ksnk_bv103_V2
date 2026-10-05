@@ -9,9 +9,11 @@ export type BangKiemPersistFields = {
   loai_giam_sat: string;
   is_active: boolean;
   ap_dung_jsonb: unknown;
+  /** GS-01: loại đối tượng từ BK. */
+  doi_tuong_giam_sat: string | null;
 };
 
-const BK_LOOKUP_SELECT = "id, ma_bk, loai_giam_sat, is_active, ap_dung_jsonb";
+const BK_LOOKUP_SELECT = "id, ma_bk, loai_giam_sat, is_active, ap_dung_jsonb, doi_tuong_giam_sat";
 
 function mapLookupRow(data: {
   id: string;
@@ -19,6 +21,7 @@ function mapLookupRow(data: {
   loai_giam_sat?: string | null;
   is_active?: boolean | null;
   ap_dung_jsonb?: unknown;
+  doi_tuong_giam_sat?: string | null;
 }) {
   return {
     id: String(data.id),
@@ -26,6 +29,7 @@ function mapLookupRow(data: {
     loai_giam_sat: data.loai_giam_sat ?? null,
     is_active: data.is_active !== false,
     ap_dung_jsonb: data.ap_dung_jsonb ?? null,
+    doi_tuong_giam_sat: data.doi_tuong_giam_sat ? String(data.doi_tuong_giam_sat).trim() : null,
   };
 }
 
@@ -72,5 +76,6 @@ export async function resolveBangKiemPersistFields(
     loai_giam_sat: String(row.loai_giam_sat ?? "TUAN_THU").trim() || "TUAN_THU",
     is_active: row.is_active,
     ap_dung_jsonb: row.ap_dung_jsonb,
+    doi_tuong_giam_sat: row.doi_tuong_giam_sat,
   };
 }

@@ -11,6 +11,7 @@ import {
 } from "@/lib/domain/qlcv-checklist";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { trangThaiCongViecSauBaoCaoTienDo } from "../lib/qlcv-trang-thai-after-bao-cao-tien-do";
+import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
@@ -36,6 +37,7 @@ async function persistProgressThenMaybeTransition(
     stMoi: string | null;
     currentTrangThaiMa: string | null;
     actorNhanSuId: string | null;
+    activityLyDo?: string;
   },
 ): Promise<{ phan_tram_hoan_thanh: number }> {
   const result = await persistQlcvChecklistViaRpc(supabase, {
@@ -63,11 +65,12 @@ async function persistProgressThenMaybeTransition(
       nextMa: params.stMoi,
       actorNhanSuId: params.actorNhanSuId,
       activityLyDo:
-        params.stMoi === "HOAN_THANH"
+        params.activityLyDo ||
+        (params.stMoi === "HOAN_THANH"
           ? "Hoàn thành định kỳ — đủ tiến độ/checklist"
           : params.stMoi === "CHO_DUYET"
             ? "Báo đủ tiến độ — chờ nghiệm thu"
-            : "Cập nhật trạng thái theo tiến độ",
+            : "Cập nhật trạng thái theo tiến độ"),
       extra:
         params.stMoi === "HOAN_THANH" || params.stMoi === "CHO_DUYET"
           ? { phan_tram_hoan_thanh: params.pct }
@@ -174,8 +177,12 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
   return { phan_tram_hoan_thanh: result.phan_tram_hoan_thanh };
 }
 
-/** Báo cáo % thủ công — chỉ khi việc không có checklist. */
-export async function reportQlcvManualProgress(congViecId: string, phanTram: number) {
+/** Báo cáo % thủ công — chỉ khi việc không có checklist. QLCV-09: DINH_KY @100% bắt kết quả. */
+export async function reportQlcvManualProgress(
+  congViecId: string,
+  phanTram: number,
+  ketQua?: string | null,
+) {
   const { supabase } = await ensureQlcvKsnkAccess("view");
   const scope = await resolveQlcvListScope(supabase);
   const actorNhanSuId = await getActorNhanSuId();
@@ -227,6 +234,11 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
     typeof cur.loai_cong_viec === "string" ? cur.loai_cong_viec : null,
   );
 
+  const ketQuaNorm = String(ketQua ?? "").trim();
+  if (stMoi === "HOAN_THANH" && isQlcvLoaiDinhKy(wf.loai_cong_viec) && !ketQuaNorm) {
+    throw new Error("Việc định kỳ đóng khi đủ 100% — nhập một dòng kết quả.");
+  }
+
   let result: { phan_tram_hoan_thanh: number };
   try {
     result = await persistProgressThenMaybeTransition(supabase, {
@@ -236,6 +248,7 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
       stMoi,
       currentTrangThaiMa: wf.trang_thai ? String(wf.trang_thai) : null,
       actorNhanSuId,
+      activityLyDo: stMoi === "HOAN_THANH" && ketQuaNorm ? `Kết quả: ${ketQuaNorm}` : undefined,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Không lưu được tiến độ.";
@@ -257,7 +270,9 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
       congViecId,
       loaiHoatDong: "HOAN_THANH",
       nguoiThucHienId: actorNhanSuId,
-      noiDung: "Hoàn thành — việc định kỳ đã báo đủ tiến độ.",
+      noiDung: ketQuaNorm
+        ? `Kết quả: ${ketQuaNorm}`
+        : "Hoàn thành — việc định kỳ đã báo đủ tiến độ.",
       trangThai: "HOAN_THANH",
       phanTramHoanThanh: pct,
     });

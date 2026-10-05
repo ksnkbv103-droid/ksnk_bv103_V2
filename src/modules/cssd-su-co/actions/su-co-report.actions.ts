@@ -3,15 +3,23 @@
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
-import { verifyCssdIncidentCreate, verifyCssdIncidentPrint } from "@/lib/cssd-server-gates";
+import {
+  verifyCssdIncidentApprove,
+  verifyCssdIncidentCreate,
+  verifyCssdIncidentPrint,
+} from "@/lib/cssd-server-gates";
+import { isBatchQcFailTypeId } from "../domain/cssd-incident-taxonomy";
+import { canApproveCssdIncident } from "../domain/cssd-incident-status";
 import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
 import { isCirculationIncidentTypeCode } from "../domain/cssd-incident-attributes";
 import { passesScPickerWhitelist, resolveScPickerWorkflowId } from "../domain/cssd-used-clinically";
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
 import { executeIncidentReportAndRollback } from "../application/su-co-report.application";
 import { executeConfirmIncidentReport } from "../application/confirm-incident.application";
+import { executeCloseIncidentRelease } from "../application/close-incident-release.application";
 import { executeVoidIncidentReport } from "../application/void-incident.application";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
+import { getActorRoleNames } from "@/lib/server-permission";
 import {
   INCIDENT_STATUS_LABEL,
   INCIDENT_STATUS_VOID,
@@ -141,14 +149,35 @@ export async function createIncidentReport(data: {
     /* ngoài phiên người dùng */
   }
 
-  const { incident_id, isRedAlert, deduped, recalledCount, machineHeld, recalled, listedUsed } =
-    await executeIncidentReportAndRollback(
+  let allowBatchRecallOrder = false;
+  if (parsed.incidentGroup === "PROCESS" && isBatchQcFailTypeId(parsed.typeId)) {
+    // SC-02: chỉ ra lệnh thu hồi khi có quyền; còn lại → báo + cách ly bộ.
+    try {
+      await verifyCssdIncidentApprove();
+      allowBatchRecallOrder = true;
+    } catch {
+      allowBatchRecallOrder = false;
+    }
+  }
+
+  const {
+    incident_id,
+    isRedAlert,
+    deduped,
+    recalledCount,
+    holdPendingCount,
+    machineHeld,
+    recalled,
+    listedUsed,
+    batchRecallDeferred,
+  } = await executeIncidentReportAndRollback(
     supabase,
     {
       ...parsed,
       maQR: qr,
       reporterEmail,
       reporterAuthUserId,
+      allowBatchRecallOrder,
       instrumentPayload: parsed.instrumentPayload
         ? { ...parsed.instrumentPayload, typeId: parsed.typeId }
         : undefined,
@@ -165,16 +194,89 @@ export async function createIncidentReport(data: {
     isRedAlert,
     deduped: Boolean(deduped),
     recalledCount: recalledCount || 0,
+    holdPendingCount: holdPendingCount || 0,
     machineHeld: Boolean(machineHeld),
     recalled: recalled || [],
     listedUsed: listedUsed || [],
+    batchRecallDeferred: Boolean(batchRecallDeferred),
   };
 }
 
-/** SC-8: xác nhận / đóng phiếu sự cố đang mở. */
+/** SC-02: Tổ trưởng / Admin ra lệnh thu hồi theo mẻ từ phiếu đã báo. */
+export async function commandBatchRecallFromIncident(incidentId: string) {
+  const supabase = createAdminSupabaseClient();
+  await verifyCssdIncidentCreate();
+  await verifyCssdIncidentApprove();
+  const id = String(incidentId || "").trim();
+  if (!id) return { success: false as const, error: "Thiếu mã phiếu sự cố." };
+
+  const { data, error } = await supabase
+    .from("cssd_fact_su_co")
+    .select("id, attributes, ma_qr_quy_trinh, quy_trinh_id, mo_ta")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) return { success: false as const, error: error.message };
+  if (!data) return { success: false as const, error: "Không tìm thấy phiếu." };
+
+  const attrs = ((data as { attributes?: Record<string, unknown> }).attributes || {}) as Record<
+    string,
+    unknown
+  >;
+  const typeId = String(attrs.INCIDENT_TYPE_CODE || "").trim();
+  const loId = String(attrs.LO_TIET_KHUAN_ID || "").trim();
+  if (!isBatchQcFailTypeId(typeId) || !loId) {
+    return { success: false as const, error: "Phiếu này không phải sự cố mẻ chờ thu hồi." };
+  }
+  if (String(attrs.BATCH_RECALL || "") === "1") {
+    return { success: false as const, error: "Mẻ đã được thu hồi." };
+  }
+
+  let reporterEmail: string | null = null;
+  let reporterAuthUserId: string | null = null;
+  try {
+    const uc = await createServerSupabaseUserClient();
+    const u = await uc.auth.getUser();
+    reporterEmail = u.data.user?.email?.trim() || null;
+    reporterAuthUserId = u.data.user?.id ?? null;
+  } catch {
+    /* */
+  }
+
+  const result = await executeIncidentReportAndRollback(
+    supabase,
+    {
+      maQR: String((data as { ma_qr_quy_trinh?: string }).ma_qr_quy_trinh || "") || undefined,
+      station: "TIET_KHUAN",
+      incidentGroup: "PROCESS",
+      typeId,
+      typeTen: String(attrs.INCIDENT_TYPE_LABEL || typeId),
+      desc: String((data as { mo_ta?: string }).mo_ta || "Ra lệnh thu hồi theo mẻ"),
+      reporterEmail,
+      reporterAuthUserId,
+      allowBatchRecallOrder: true,
+      processPayload: {
+        loTietKhuanId: loId,
+        maLo: String(attrs.MA_LO || "") || undefined,
+        quyTrinhId: String((data as { quy_trinh_id?: string }).quy_trinh_id || "") || null,
+      },
+    },
+    null,
+  );
+  revalidateCssdIncidentSurfaces();
+  return {
+    success: true as const,
+    incident_id: result.incident_id,
+    recalledCount: result.recalledCount || 0,
+    holdPendingCount: result.holdPendingCount || 0,
+    machineHeld: Boolean(result.machineHeld),
+  };
+}
+
+/** SC-8 / SC-03: xác nhận phiếu — Trưởng CSSD / Admin / Tổ trưởng mẻ; cấm tự xác nhận. */
 export async function confirmIncidentReport(incidentId: string) {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentCreate();
+  await verifyCssdIncidentApprove();
   const actorAuthUserId = await getActorAuthUserId();
   const actorNhanSuId = await getActorNhanSuId();
   let actorHoTen: string | null = null;
@@ -193,17 +295,64 @@ export async function confirmIncidentReport(incidentId: string) {
   return { success: true as const };
 }
 
-/** Vô hiệu phiếu đã ghi: trả trạm/cờ đỏ/tồn, bỏ khỏi đếm và báo cáo. */
-export async function voidIncidentReport(incidentId: string) {
+/** CSSD-02: đóng (giải phóng) SC TK đã xác nhận — biên bản + lý do; quyền Trưởng/Hội đồng/Admin. */
+export async function closeIncidentRelease(
+  incidentId: string,
+  opts: { lyDo: string; soBienBan: string },
+) {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentCreate();
+  const actorAuthUserId = await getActorAuthUserId();
+  const actorNhanSuId = await getActorNhanSuId();
+  const actorRoles = await getActorRoleNames();
+  let actorHoTen: string | null = null;
+  if (actorNhanSuId) {
+    const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", actorNhanSuId).maybeSingle();
+    actorHoTen = ns?.ho_ten ? String(ns.ho_ten).trim() : null;
+  }
+  const result = await executeCloseIncidentRelease(supabase, {
+    incidentId,
+    lyDo: opts.lyDo,
+    soBienBan: opts.soBienBan,
+    actorRoles,
+    actorNhanSuId,
+    actorAuthUserId,
+    actorHoTen,
+  });
+  if (!result.ok) return { success: false as const, error: result.error };
+  revalidateCssdIncidentSurfaces();
+  return { success: true as const };
+}
+
+/** Vô hiệu phiếu đã ghi: trả trạm/cờ đỏ/tồn, bỏ khỏi đếm và báo cáo. SC-03: bắt buộc lý do. */
+export async function voidIncidentReport(
+  incidentId: string,
+  opts?: { voidReasonCode?: string; voidReasonNote?: string },
+) {
+  const supabase = createAdminSupabaseClient();
+  await verifyCssdIncidentCreate();
+  const actorRoles = await getActorRoleNames();
+  let allowVoidConfirmed = false;
+  try {
+    await verifyCssdIncidentApprove();
+    allowVoidConfirmed = true;
+  } catch {
+    allowVoidConfirmed = canApproveCssdIncident(actorRoles);
+  }
   const actorNhanSuId = await getActorNhanSuId();
   let actorHoTen: string | null = null;
   if (actorNhanSuId) {
     const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", actorNhanSuId).maybeSingle();
     actorHoTen = ns?.ho_ten ? String(ns.ho_ten).trim() : null;
   }
-  const result = await executeVoidIncidentReport(supabase, { incidentId, actorNhanSuId, actorHoTen });
+  const result = await executeVoidIncidentReport(supabase, {
+    incidentId,
+    actorNhanSuId,
+    actorHoTen,
+    voidReasonCode: opts?.voidReasonCode,
+    voidReasonNote: opts?.voidReasonNote,
+    allowVoidConfirmed,
+  });
   if (!result.ok) return { success: false as const, error: result.error };
   revalidateCssdIncidentSurfaces();
   revalidateCssdInventorySurfaces();

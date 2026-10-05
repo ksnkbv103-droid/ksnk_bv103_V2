@@ -5,6 +5,8 @@
  * BM.01 = WHO → `/giam-sat-vst` (không picker BK).
  */
 
+import { resolveBangKiemGroupMas } from "./gsc-bk-short-long-map";
+
 export const VE_SINH_TAY_TOPIC_ID = "ve-sinh-tay" as const;
 
 /** Mã QT trên giấy (KSNK.QT.07.BM.0x) — neo nghiệp vụ. */
@@ -52,6 +54,11 @@ export function resolveBangKiemMaCandidates(raw: string | null | undefined): str
     if (ma === s && !out.includes(l)) out.push(l);
     if (ma === l && !out.includes(s)) out.push(s);
   }
+  // GSC-09 / VST-04: nhóm short↔dài cùng chủ đề (03-gap), ngoài alias VST.
+  for (const m of resolveBangKiemGroupMas(raw)) {
+    const u = normalizeBangKiemMa(m);
+    if (u && !out.includes(u)) out.push(u);
+  }
   return out;
 }
 
@@ -69,7 +76,7 @@ export const VE_SINH_TAY_ENTRIES: readonly VeSinhTayEntry[] = [
     qtMa: "BM.02",
     catalogMaBk: "KSNK.QT.07.BM.02",
     label: "Kỹ thuật VST thường quy",
-    hint: "KSNK.QT.07.BM.02 (alias hub BM.07.02)",
+    hint: "KSNK.QT.07.BM.02",
     href: `${GSC_TUAN_THU}?bk=KSNK.QT.07.BM.02`,
     kind: "gsc",
   },
@@ -77,7 +84,7 @@ export const VE_SINH_TAY_ENTRIES: readonly VeSinhTayEntry[] = [
     qtMa: "BM.03",
     catalogMaBk: "KSNK.QT.07.BM.03",
     label: "VST ngoại khoa",
-    hint: "KSNK.QT.07.BM.03 (alias hub BM.07.03)",
+    hint: "KSNK.QT.07.BM.03",
     href: `${GSC_TUAN_THU}?bk=KSNK.QT.07.BM.03`,
     kind: "gsc",
   },

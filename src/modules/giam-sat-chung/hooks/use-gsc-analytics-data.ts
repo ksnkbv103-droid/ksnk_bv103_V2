@@ -3,6 +3,10 @@ import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { fetchStrategicAnalytics } from "@/lib/analytics/strategic-analytics-fetch";
 import { useAnalyticsFilterPayload } from "@/lib/analytics/use-analytics-filter-payload";
 import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
+import {
+  hinhThucIdsForLens,
+  type SupervisionSourceLens,
+} from "@/lib/analytics/supervision-source-lens";
 
 type LoaiGiamSat = "TUAN_THU" | "NHAT_KY_VAN_HANH" | "DANH_GIA_HE_THONG" | undefined;
 
@@ -25,6 +29,8 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [payload, setPayload] = useState<GscStrategicPayload | null>(null);
+  const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
+  const lensHinhThucIds = useMemo(() => hinhThucIdsForLens(sourceLens), [sourceLens]);
 
   const bangKiemMasForRpc = useMemo(
     () =>
@@ -34,7 +40,10 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
     [filters.selectedBangKiemMas, filters.bangKiemOptions, initialLoaiGiamSat],
   );
 
-  const filterPayload = useAnalyticsFilterPayload(filters, { bangKiemMasOverride: bangKiemMasForRpc });
+  const filterPayload = useAnalyticsFilterPayload(filters, {
+    bangKiemMasOverride: bangKiemMasForRpc,
+    hinhThucIdsOverride: lensHinhThucIds,
+  });
 
   const loadAnalytics = useCallback(async () => {
     if (!filters.initDone) return;
@@ -70,5 +79,7 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
     initialLoaiGiamSat,
     bkLabelMap: filters.bkLabelMap,
     bkLabelRecord: filters.bkLabelRecord,
+    sourceLens,
+    setSourceLens,
   };
 }

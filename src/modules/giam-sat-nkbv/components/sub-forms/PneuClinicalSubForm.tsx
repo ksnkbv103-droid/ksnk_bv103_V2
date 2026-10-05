@@ -67,7 +67,7 @@ interface PneuClinicalSubFormProps {
 
 function syncRespCount(form: VaeVerificationData, patch: Partial<VaeVerificationData>): VaeVerificationData {
   const next = { ...form, ...patch };
-  // Chỉ đếm dòng hô hấp catalog (pneu_resp_line) — PNU3/infant phụ không nâng local count
+  // Chỉ đếm dòng hô hấp catalog (pneu_resp_line) — PNU3 phụ không nâng local count
   next.respiratory_symptoms_count = countPneuRespiratoryLines(
     next as unknown as Record<string, unknown>,
   );
@@ -451,7 +451,7 @@ export default function PneuClinicalSubForm({
 
           <NkbvFormSection
             title="Triệu chứng trong IWP"
-            hint="SSOT catalog · toàn thân ≥1 + hô hấp ≥2 dòng. Mỗi dấu hiệu dương tính gắn ngày ∈ IWP."
+            hint="Theo danh mục dấu hiệu · toàn thân ≥1 + hô hấp ≥2 dòng. Mỗi dấu hiệu dương tính gắn ngày ∈ IWP."
           >
             <p className="bv103-type-label text-slate-400">
               Toàn thân (tách sốt / hạ thân nhiệt / WBC)

@@ -7,6 +7,7 @@ import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-
 import { isQlcvBoardOverdue } from "./qlcv-board-lanes";
 import { isDeXuatChoDuyet } from "./qlcv-workflow-display";
 import type { QlcvPeriodKind, QlcvPeriodRange } from "./qlcv-period-range";
+import { qlcvDateVnFromInstant } from "./qlcv-today-vn";
 
 /** Cap fetch báo cáo — pilot/small volume; UI cảnh báo khi truncated. */
 export const QLCV_BAO_CAO_FETCH_CAP = 2000;
@@ -89,19 +90,16 @@ const CANONICAL_STATUS_ORDER = [
 const STATUS_LABEL: Record<string, string> = {
   MOI: "Mới",
   DANG_LAM: "Đang làm",
-  CHO_DUYET: "Chờ duyệt",
+  CHO_DUYET: "Chờ nghiệm thu",
   HOAN_THANH: "Hoàn thành",
   TU_CHOI: "Từ chối",
-  QUA_HAN: "Quá hạn (mã)",
+  QUA_HAN: "Quá hạn",
   DA_HUY: "Đã hủy",
   DE_XUAT: "Đề xuất (chờ duyệt)",
 };
 
 export function isoDateOnly(raw: string | null | undefined): string {
-  if (!raw) return "";
-  const s = String(raw).trim();
-  if (!s) return "";
-  return s.length >= 10 ? s.slice(0, 10) : s;
+  return qlcvDateVnFromInstant(raw);
 }
 
 function inPeriod(iso: string, period: QlcvPeriodRange): boolean {
@@ -138,7 +136,7 @@ function isCompletedOnTime(row: QlcvBaoCaoRow): boolean {
   const done = isoDateOnly(row.hoan_thanh_luc);
   const han = isoDateOnly(row.han_hoan_thanh);
   if (!done) return false;
-  if (!han) return true; // không hạn → coi đúng hạn khi đã đóng
+  if (!han) return false; // QLCV-10: không hạn → không tính đúng hạn
   return done <= han;
 }
 

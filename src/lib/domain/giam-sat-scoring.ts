@@ -85,9 +85,10 @@ function detectSuspiciousData(
 }
 
 /** TY_LE — PERCENTAGE: %DAT trên tổng evaluable (loại NA). */
-export function scoreTyLe(results: readonly GsttScoringInputItem[]): number {
+/** GSC-07: không có tiêu chí evaluable → null (hiển thị «—», không = 0%). */
+export function scoreTyLe(results: readonly GsttScoringInputItem[]): number | null {
   const evaluable = (results || []).filter(isEvaluable);
-  if (evaluable.length === 0) return 0;
+  if (evaluable.length === 0) return null;
   const dat = evaluable.filter((r) => r.value === "DAT").length;
   return Math.round((dat / evaluable.length) * 10000) / 100;
 }

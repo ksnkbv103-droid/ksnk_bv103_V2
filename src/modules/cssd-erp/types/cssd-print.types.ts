@@ -50,6 +50,8 @@ export type CssdBatchPrintData = {
   qcCiPcd: string;
   biLabel: string;
   coImplantLabel: string;
+  /** ME-02: dòng Bowie-Dick đầu ngày (hơi nước) hoặc «Không áp dụng». */
+  bowieDickLine?: string;
   nguoiLoad: string;
   nguoiUnload: string;
   nhietDoApSuat: string;
@@ -66,6 +68,13 @@ export type CssdBatchPrintData = {
   members: CssdBatchPrintMember[];
 };
 
+/** Một dòng sự cố trên phiếu cấp phát (CSSD-05 / §8). */
+export type CssdCapPhatPrintIncident = {
+  ma: string;
+  trangThai: string;
+  loai: string;
+};
+
 export type CssdCapPhatPrintData = {
   quyTrinhId: string;
   maLo: string;
@@ -75,8 +84,10 @@ export type CssdCapPhatPrintData = {
   tenBo: string;
   hanSuDung: string | null;
   maCaMo: string | null;
+  /** Thiếu dữ liệu → «—», không fallback người TK. */
   nguoiCapPhat: string;
-  thoiGianCapPhat: string;
+  /** Thiếu → null; UI hiện «—», không lấy giờ TK/now. */
+  thoiGianCapPhat: string | null;
   thietBi: string;
   nguoiLoad: string;
   nguoiUnload: string;
@@ -89,4 +100,6 @@ export type CssdCapPhatPrintData = {
   testBowieDick: string;
   thoiGianKetThucMe: string | null;
   instruments: CssdPrintInstrumentRow[];
+  /** Rỗng → dòng phủ định trên phiếu. */
+  suCo: CssdCapPhatPrintIncident[];
 };

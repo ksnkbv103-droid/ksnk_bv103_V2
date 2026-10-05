@@ -71,7 +71,19 @@ export default function TaiKhoanNhanSuPage() {
   };
 
   const onSetRole = async (r: StaffAuthRow, roleName: string) => {
-    const res = await setStaffKsnkRbacRole({ staffId: r.id, roleName });
+    const confirmActorPassword = window.prompt(
+      "Nhập lại mật khẩu quản trị để xác nhận gán vai trò:",
+    );
+    if (confirmActorPassword == null) return;
+    if (!String(confirmActorPassword).trim()) {
+      toast.error("Cần mật khẩu quản trị để gán vai trò.");
+      return;
+    }
+    const res = await setStaffKsnkRbacRole({
+      staffId: r.id,
+      roleName,
+      confirmActorPassword: String(confirmActorPassword),
+    });
     if (!res.success) {
       toast.error(res.error || "Không gán được vai trò.");
       return;

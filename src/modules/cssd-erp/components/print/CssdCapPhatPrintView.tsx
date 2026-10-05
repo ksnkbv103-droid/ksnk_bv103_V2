@@ -5,8 +5,10 @@ import PrintLayout from "@/components/shared/PrintLayout";
 import CssdCapPhatQrStrip from "./CssdCapPhatQrStrip";
 import CssdPrintInstrumentTable from "./CssdPrintInstrumentTable";
 import {
+  CAP_PHAT_NO_INCIDENT_LINE,
   formatCssdPrintDate,
   formatCssdPrintDateTime,
+  formatBiPrintLabel,
   formatCssdTriLabel,
 } from "../../lib/cssd-print-format";
 import type { CssdCapPhatPrintData } from "../../types/cssd-print.types";
@@ -63,7 +65,7 @@ export default function CssdCapPhatPrintView({
         <div>
           {labelRow("Mã mẻ tiệt khuẩn", data.maLo)}
           {labelRow("Thiết bị TK", data.thietBi)}
-          {labelRow("Người load mẻ", data.nguoiLoad)}
+          {labelRow("Người nạp mẻ", data.nguoiLoad)}
           {labelRow("Người dỡ mẻ", data.nguoiUnload)}
           {labelRow("Kết thúc mẻ TK", formatCssdPrintDateTime(data.thoiGianKetThucMe))}
         </div>
@@ -86,7 +88,7 @@ export default function CssdCapPhatPrintView({
         <span><strong>CI:</strong> {formatCssdTriLabel(data.testCI)}</span>
         <span><strong>Chỉ thị TX:</strong> {formatCssdTriLabel(data.chiThiTiepXuc)}</span>
         <span><strong>Chỉ thị ĐTS:</strong> {formatCssdTriLabel(data.chiThiDaThongSo)}</span>
-        <span><strong>BI:</strong> {formatCssdTriLabel(data.testSinhHoc)}</span>
+        <span><strong>BI:</strong> {formatBiPrintLabel(data.testSinhHoc)}</span>
         <span><strong>Bowie–Dick:</strong> {formatCssdTriLabel(data.testBowieDick)}</span>
       </div>
 
@@ -94,6 +96,21 @@ export default function CssdCapPhatPrintView({
         Danh mục dụng cụ trong bộ cấp phát
       </p>
       <CssdPrintInstrumentTable rows={data.instruments} />
+
+      <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "20px 0 6px" }}>
+        Sự cố mẻ / chu trình
+      </p>
+      {data.suCo.length === 0 ? (
+        <p style={{ margin: "0 0 8px", fontSize: 13 }}>{CAP_PHAT_NO_INCIDENT_LINE}</p>
+      ) : (
+        <ul style={{ margin: "0 0 8px", paddingLeft: 18, fontSize: 12 }}>
+          {data.suCo.map((sc) => (
+            <li key={`${sc.ma}-${sc.trangThai}-${sc.loai}`}>
+              Mã {sc.ma} — {sc.trangThai} — {sc.loai}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <p style={{ marginTop: 16, fontSize: 11, fontStyle: "italic", color: "#444" }}>
         Quét QR bộ ({data.maQrBo}), chu trình ({data.maCycleQr || "—"}) hoặc mẻ ({data.maLo}) để truy vết.

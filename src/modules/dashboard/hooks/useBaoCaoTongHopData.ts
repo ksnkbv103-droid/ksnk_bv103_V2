@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
+import {
+  hinhThucIdsForLens,
+  type SupervisionSourceLens,
+} from "@/lib/analytics/supervision-source-lens";
 import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
 import { getBaoCaoTongHopAnalytics } from "../actions/bao-cao-tong-hop.actions";
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
@@ -7,41 +11,48 @@ import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../types/bao-cao-tong
 export function useBaoCaoTongHopData() {
   const filters = useAnalyticsFilters();
   const [chuyenDe, setChuyenDe] = useState<BaoCaoChuyenDe>("ALL");
+  /** BCTH-03: lens riêng từng khối — mặc định KSNK (GS-02). */
+  const [vstLens, setVstLens] = useState<SupervisionSourceLens>("ksnk");
+  const [gscLens, setGscLens] = useState<SupervisionSourceLens>("ksnk");
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [payload, setPayload] = useState<BaoCaoTongHopPayload | null>(null);
 
-  const filterPayload = useCallback(
-    () =>
-      buildAnalyticsFilterPayload({
-        tuNgay: filters.tuNgay,
-        denNgay: filters.denNgay,
-        selectedKhoiIds: filters.selectedKhoiIds,
-        selectedKhoaIds: filters.selectedKhoaIds,
-        selectedNgheIds: filters.selectedNgheIds,
-        selectedKhuVucIds: filters.selectedKhuVucIds,
-        selectedHinhThucIds: filters.selectedHinhThucIds,
-        selectedBangKiemMas: filters.selectedBangKiemMas,
-        khoiOptionCount: filters.khoiOptions.length,
-        khoaOptionCount: filters.khoaOptions.length,
-        ngheOptionCount: filters.ngheOptions.length,
-        khuOptionCount: filters.khuVucOptions.length,
-      }),
-    [
-      filters.tuNgay,
-      filters.denNgay,
-      filters.selectedKhoiIds,
-      filters.selectedKhoaIds,
-      filters.selectedNgheIds,
-      filters.selectedKhuVucIds,
-      filters.selectedHinhThucIds,
-      filters.selectedBangKiemMas,
-      filters.khoiOptions.length,
-      filters.khoaOptions.length,
-      filters.ngheOptions.length,
-      filters.khuVucOptions.length,
-    ],
-  );
+  const filterPayload = useCallback(() => {
+    const base = buildAnalyticsFilterPayload({
+      tuNgay: filters.tuNgay,
+      denNgay: filters.denNgay,
+      selectedKhoiIds: filters.selectedKhoiIds,
+      selectedKhoaIds: filters.selectedKhoaIds,
+      selectedNgheIds: filters.selectedNgheIds,
+      selectedKhuVucIds: filters.selectedKhuVucIds,
+      selectedHinhThucIds: [],
+      selectedBangKiemMas: filters.selectedBangKiemMas,
+      khoiOptionCount: filters.khoiOptions.length,
+      khoaOptionCount: filters.khoaOptions.length,
+      ngheOptionCount: filters.ngheOptions.length,
+      khuOptionCount: filters.khuVucOptions.length,
+    });
+    return {
+      ...base,
+      hinh_thuc_ids_vst: hinhThucIdsForLens(vstLens),
+      hinh_thuc_ids_gsc: hinhThucIdsForLens(gscLens),
+    };
+  }, [
+    filters.tuNgay,
+    filters.denNgay,
+    filters.selectedKhoiIds,
+    filters.selectedKhoaIds,
+    filters.selectedNgheIds,
+    filters.selectedKhuVucIds,
+    filters.selectedBangKiemMas,
+    filters.khoiOptions.length,
+    filters.khoaOptions.length,
+    filters.ngheOptions.length,
+    filters.khuVucOptions.length,
+    vstLens,
+    gscLens,
+  ]);
 
   const loadReport = useCallback(async () => {
     if (!filters.initDone) return;
@@ -78,7 +89,8 @@ export function useBaoCaoTongHopData() {
     filters.selectedKhoaIds,
     filters.selectedNgheIds,
     filters.selectedKhuVucIds,
-    filters.selectedHinhThucIds,
+    vstLens,
+    gscLens,
     chuyenDe,
     loadReport,
   ]);
@@ -87,6 +99,10 @@ export function useBaoCaoTongHopData() {
     ...filters,
     chuyenDe,
     setChuyenDe,
+    vstLens,
+    setVstLens,
+    gscLens,
+    setGscLens,
     loading,
     loadError,
     payload,

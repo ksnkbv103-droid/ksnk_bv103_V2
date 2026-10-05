@@ -314,10 +314,13 @@ function resolveLegacyPhamVi(ap: BangKiemApDungJsonb, khoa: KhoaApDungContext): 
       if (isKhoaKsnkDepartment(khoa)) return false;
       return !ap.khoa_loai_tru.includes(khoa.id);
     case "THEO_KHOI": {
+      // GSC-04: ids rỗng (seed chưa map MDM) → không ẩn BK; hiện như khuyến nghị.
+      if (ap.khoi_ids.length === 0) return true;
       const kid = String(khoa.khoi_id ?? "");
       return Boolean(kid && ap.khoi_ids.includes(kid));
     }
     case "THEO_KHOA":
+      if (ap.khoa_ids.length === 0) return true;
       return ap.khoa_ids.includes(khoa.id);
     default:
       return false;

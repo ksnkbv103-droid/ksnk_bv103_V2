@@ -113,12 +113,19 @@ export function useVstHistoryTable() {
   const handleDelete = useCallback(
     async (items: VstHistoryRow[]) => {
       const ids = items.map((i) => String(i.id)).filter(Boolean);
-      if (!ids.length || !confirm(`Xóa vĩnh viễn ${ids.length} phiên khỏi cơ sở dữ liệu? Chỉ phiên do bạn giám sát mới được xóa.`)) {
+      if (!ids.length) return;
+      if (
+        !confirm(
+          `Vô hiệu ${ids.length} phiên giám sát (xóa mềm — dữ liệu vẫn lưu ≥3 năm theo QT.07)? Chỉ phiên do bạn giám sát (hoặc Admin sau 30 phút).`,
+        )
+      ) {
         return;
       }
-      const res = await deleteVSTSessions(ids);
+      const lyDo = window.prompt("Lý do xóa phiên (bắt buộc, tối thiểu 3 ký tự):", "");
+      if (lyDo == null) return;
+      const res = await deleteVSTSessions(ids, { lyDo });
       if (res.success) {
-        toast.success(`Đã xóa ${ids.length} phiên khỏi cơ sở dữ liệu`);
+        toast.success(`Đã vô hiệu ${ids.length} phiên`);
         refresh();
       } else {
         toast.error("Lỗi khi xóa: " + res.error);

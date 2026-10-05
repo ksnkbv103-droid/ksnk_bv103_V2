@@ -1,4 +1,4 @@
-/** Helper UI cho dropdown chức năng phòng (KHU_VUC_GIAM_SAT). */
+/** Helper UI cho dropdown khu vực giám sát (KHU_VUC_GIAM_SAT). */
 
 export type KhuVucSelectRow = {
   id: string;
@@ -23,6 +23,14 @@ export function filterKhuVucsForKhoa(
     const code = String(kv.ma_danh_muc || "").trim().toUpperCase();
     return allowed.has(code);
   });
+}
+
+/** GS-01: khu vực có thuộc allowed (hoặc is_common) của khoa không. */
+export function isKhuVucAllowedForKhoa(
+  khuVuc: KhuVucSelectRow,
+  allowedKhuVucCodes: string[] | null | undefined,
+): boolean {
+  return filterKhuVucsForKhoa([khuVuc], allowedKhuVucCodes).length > 0;
 }
 
 export function buildKhuVucFlatSelectOptions(rows: KhuVucSelectRow[]) {

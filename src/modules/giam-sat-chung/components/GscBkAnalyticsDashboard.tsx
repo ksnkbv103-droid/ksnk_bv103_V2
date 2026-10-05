@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
+import { buildQlcvSourceDeepLink } from "@/lib/analytics/qlcv-source-deep-link";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -108,6 +110,26 @@ export function GscBkAnalyticsDashboard({
             { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(detail?.kpis?.tong_dat ?? 0, detail?.kpis?.tong_quan_sat ?? 0) },
           ]}
         />
+
+        {(detail?.kpis?.tong_quan_sat ?? 0) > 0 &&
+        (detail?.kpis?.tong_dat ?? 0) / (detail?.kpis?.tong_quan_sat ?? 1) < 0.8 ? (
+          <p className="text-xs text-slate-600">
+            Chỉ số dưới mục tiêu —{" "}
+            <Link
+              href={buildQlcvSourceDeepLink({
+                from: "GIAM_SAT",
+                tieuDe: `Theo dõi kế hoạch cải tiến · ${label || maBk}`,
+                moTa: `Bảng kiểm ${maBk}: tuân thủ dưới mục tiêu. QT.33 — theo dõi hoàn thành kế hoạch cải tiến khoa.`,
+                sourceMa: maBk,
+                sourceLabel: label || maBk,
+                sourceHref: `/giam-sat-chung?bk=${encodeURIComponent(maBk)}`,
+              })}
+              className="font-semibold text-sky-800 underline-offset-2 hover:underline"
+            >
+              Tạo việc theo dõi cải tiến
+            </Link>
+          </p>
+        ) : null}
 
         <SupervisionTrendChart
           title="Xu hướng tuân thủ"

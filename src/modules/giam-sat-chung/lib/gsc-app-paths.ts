@@ -82,9 +82,13 @@ export function gscThongKeHref(loai?: GscLoaiGiamSatRoute | null): string {
   return "/thong-ke/gsc";
 }
 
-export function gscLichSuHref(loai?: GscLoaiGiamSatRoute | null): string {
+export function gscLichSuHref(loai?: GscLoaiGiamSatRoute | null, maBk?: string | null): string {
+  const params = new URLSearchParams();
   if (loai === "NHAT_KY_VAN_HANH" || loai === "DANH_GIA_HE_THONG") {
-    return `/lich-su/gsc?loai=${loai}`;
+    params.set("loai", loai);
   }
-  return "/lich-su/gsc";
+  const bk = String(maBk || "").trim();
+  if (bk) params.set("bk", bk);
+  const q = params.toString();
+  return q ? `/lich-su/gsc?${q}` : "/lich-su/gsc";
 }

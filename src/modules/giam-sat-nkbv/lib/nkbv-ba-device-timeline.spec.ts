@@ -4,6 +4,7 @@ import {
   collectDeviceMilestones,
   deviceKeyForPanel,
   isDeviceDateInStay,
+  resolveDeviceAssociationDay1,
   validateDeviceRegistryDates,
 } from "./nkbv-ba-device-timeline";
 import type { BaTimelineMilestone } from "./nkbv-ba-timeline-core";
@@ -85,6 +86,31 @@ describe("nkbv-ba-device-timeline", () => {
     const assoc = deviceAssociationFromCanThiepDates(dates, "2026-08-03");
     expect(assoc.associated).toBe(true);
     expect(assoc.placedDays).toBe(3);
+  });
+
+  it("resolveDeviceAssociationDay1: CVC vs Foley trước VV", () => {
+    expect(
+      resolveDeviceAssociationDay1({
+        kind: "cvc",
+        placedDate: "2026-07-28",
+        admissionDate: "2026-08-01",
+        firstInpatientAccessDate: "2026-08-03",
+      }).day1,
+    ).toBe("2026-08-03");
+    expect(
+      resolveDeviceAssociationDay1({
+        kind: "foley",
+        placedDate: "2026-07-28",
+        admissionDate: "2026-08-01",
+      }).day1,
+    ).toBe("2026-08-01");
+    expect(
+      resolveDeviceAssociationDay1({
+        kind: "cvc",
+        placedDate: "2026-07-28",
+        admissionDate: "2026-08-01",
+      }).warnMissingInpatientAccess,
+    ).toBe(true);
   });
 
   it("1 ngày Foley → không gắn CAUTI", () => {

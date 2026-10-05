@@ -12,11 +12,18 @@ import {
   buildIncidentAttributes,
   countPriorSafetyIncidentsOnCycle,
   isCirculationIncidentTypeCode,
+  shouldRaiseRedAlert,
   resolveProcessBatchLink,
 } from "../domain/cssd-incident-attributes";
 import { resolveIncidentPolicy } from "../domain/cssd-incident-policy";
-import { isBatchQcFailTypeId } from "../domain/cssd-incident-taxonomy";
+import {
+  isBatchQcFailTypeId,
+  isBowieDickFailTypeId,
+  isSinglePackPostSterileTypeId,
+} from "../domain/cssd-incident-taxonomy";
 import { applyBatchRecallAndHoldMachine } from "./batch-recall-hold.application";
+import { spawnRecallFollowupQlcvTask } from "./recall-followup-qlcv.application";
+import { nextMachineStatusAfterBatchQcFail } from "../domain/cssd-batch-recall";
 import {
   CAUSE_CLASS_LABEL,
   defaultCauseClass,
@@ -78,6 +85,8 @@ export async function executeIncidentReportAndRollback(
     };
     processPayload?: { loTietKhuanId?: string; maLo?: string; quyTrinhId?: string | null };
     confirmDuplicate?: boolean;
+    /** SC-02: true = đã qua gate ra lệnh thu hồi / phiếu mẻ. */
+    allowBatchRecallOrder?: boolean;
   },
   quyTrinhRow: QuyRow | null,
 ): Promise<{
@@ -85,9 +94,11 @@ export async function executeIncidentReportAndRollback(
   isRedAlert: boolean;
   deduped?: boolean;
   recalledCount?: number;
+  holdPendingCount?: number;
   machineHeld?: boolean;
   recalled?: { quyTrinhId: string; maBo: string; tenBo: string; maLo: string }[];
   listedUsed?: { quyTrinhId: string; maBo: string; tenBo: string; maLo: string; maCaMoId?: string }[];
+  batchRecallDeferred?: boolean;
 }> {
   const q = quyTrinhRow;
   const causeClass = data.causeClass || defaultCauseClass(data.incidentGroup);
@@ -119,7 +130,14 @@ export async function executeIncidentReportAndRollback(
   };
 
   const batchFail = data.incidentGroup === "PROCESS" && isBatchQcFailTypeId(typeId);
-  if (batchFail && loTietKhuanId) {
+  // SC-08: loại mẻ thiếu mã lô → lỗi rõ (không lưu phiếu «ảo»).
+  if (batchFail && !loTietKhuanId) {
+    throw new Error("Thu hồi / sự cố mẻ cần mã lô tiệt khuẩn. Chưa thu hồi — bổ sung mẻ hoặc báo Tổ trưởng.");
+  }
+  if (batchFail && loTietKhuanId && data.allowBatchRecallOrder !== true) {
+    // SC-02: báo nghi mẻ lỗi — chỉ cách ly bộ đang báo; không thu hồi / không giữ máy.
+    // Tiếp tục luồng thường với freezeSafetyLock.
+  } else if (batchFail && loTietKhuanId && data.allowBatchRecallOrder === true) {
     const nguoiBaoId = await resolveCssdOperatorNhanSuId(supabase, {
       authUserId: data.reporterAuthUserId,
       email: data.reporterEmail,
@@ -136,20 +154,30 @@ export async function executeIncidentReportAndRollback(
       maQr: data.maQR,
       quyTrinhId: q?.id ?? processPayload.quyTrinhId ?? null,
     });
+    if (rec.listedUsed.length > 0) {
+      await spawnRecallFollowupQlcvTask(supabase, {
+        incidentId: rec.incidentId,
+        loTietKhuanId,
+        maLo,
+        listedUsed: rec.listedUsed,
+      });
+    }
     return {
       incident_id: rec.incidentId,
       isRedAlert: rec.isRedAlert,
       deduped: !rec.incidentCreated,
-      recalledCount: rec.recalled.length,
+      recalledCount: rec.recalled.length + rec.holdPending.length,
+      holdPendingCount: rec.holdPending.length,
       machineHeld: rec.machineHeld,
       recalled: rec.recalled,
       listedUsed: rec.listedUsed,
     };
   }
 
+  const deferredBatchSuspect = batchFail && data.allowBatchRecallOrder !== true;
   const skipWorkflowRollback = data.incidentGroup === "INSTRUMENT";
-  const rollbackStation =
-    !skipWorkflowRollback && (q || batchFail)
+  let rollbackStation =
+    !skipWorkflowRollback && (q || batchFail || isSinglePackPostSterileTypeId(typeId) || isBowieDickFailTypeId(typeId))
       ? resolveIncidentPolicy({
           detectionStation: data.station,
           incidentTypeTen: data.typeTen,
@@ -159,6 +187,19 @@ export async function executeIncidentReportAndRollback(
           currentStation: q?.ma_trang_thai_hien_tai || data.station,
         })
       : null;
+  // SC-02: nghi mẻ lỗi chưa có lệnh — chỉ đóng băng bộ đang báo, không rollback / giữ máy.
+  if (deferredBatchSuspect && q) {
+    const stay = (q.ma_trang_thai_hien_tai || data.station) as Station;
+    rollbackStation = {
+      targetStation: stay,
+      faultStation: "TIET_KHUAN",
+      clearSterilizationBatchLink: false,
+      freezeSafetyLock: true,
+      recallEntireBatch: false,
+      holdMachineQc: false,
+      kind: "process_failure",
+    };
+  }
 
   let isRedAlert = false;
   const circulationSubmit = isCirculationIncidentTypeCode(typeId);
@@ -178,7 +219,7 @@ export async function executeIncidentReportAndRollback(
       }[],
       cycleId,
     );
-    isRedAlert = prior >= 2;
+    isRedAlert = shouldRaiseRedAlert(prior);
   }
 
   const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
@@ -214,6 +255,10 @@ export async function executeIncidentReportAndRollback(
     loTietKhuanId: processPayload.loTietKhuanId,
     maLo: processPayload.maLo,
   });
+  if (deferredBatchSuspect) {
+    attributes.BATCH_RECALL_REQUESTED = "1";
+    attributes.RECALL_SCOPE = "BATCH";
+  }
   const setReconcile = data.setReconcilePayload;
   if (setReconcile) {
     const lineErr = validateInstrumentDoorLines(typeId || SET_RECONCILE_TYPE_ID, setReconcile.lines);
@@ -418,7 +463,30 @@ export async function executeIncidentReportAndRollback(
       if (alertErr) throw new Error(mapFkError(alertErr.message));
     }
 
-    return { incident_id: incident.id as string, isRedAlert };
+    // SC-02: Bowie-Dick — tạm giữ máy (không thu hồi mẻ).
+    if (rollbackStation?.holdMachineQc && data.machineId) {
+      const { data: may } = await supabase
+        .from("cssd_dm_thiet_bi")
+        .select("id, trang_thai")
+        .eq("id", data.machineId)
+        .maybeSingle();
+      const next = nextMachineStatusAfterBatchQcFail(
+        (may as { trang_thai?: string | null } | null)?.trang_thai,
+      );
+      if (next) {
+        await supabase
+          .from("cssd_dm_thiet_bi")
+          .update({ trang_thai: next, updated_at: new Date().toISOString() })
+          .eq("id", data.machineId);
+      }
+    }
+
+    return {
+      incident_id: incident.id as string,
+      isRedAlert,
+      batchRecallDeferred: deferredBatchSuspect || undefined,
+      machineHeld: Boolean(rollbackStation?.holdMachineQc && data.machineId),
+    };
   } catch (e: unknown) {
     if (q && originalState) {
       const rollbackPayload: Record<string, unknown> = {

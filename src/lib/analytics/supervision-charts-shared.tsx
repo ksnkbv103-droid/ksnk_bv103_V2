@@ -229,11 +229,18 @@ function percentTooltipFormatter(digits: SupervisionPercentDigits = 2) {
   };
 }
 
-/** Chỉ số cột % thấp nhất (mặc định 3) — tô đậm can thiệp. */
-function bottomPercentHighlightIndices(values: (number | null | undefined)[], count = 3): Set<number> {
+/** Chỉ số cột % thấp nhất (mặc định 3) — tô đậm can thiệp. Bỏ qua mẫu mỏng (VST-07). */
+function bottomPercentHighlightIndices(
+  values: (number | null | undefined)[],
+  count = 3,
+  eligible?: boolean[],
+): Set<number> {
   const ranked = values
     .map((v, i) => ({ v, i }))
-    .filter((x): x is { v: number; i: number } => x.v != null && Number.isFinite(x.v));
+    .filter(
+      (x): x is { v: number; i: number } =>
+        x.v != null && Number.isFinite(x.v) && (eligible ? eligible[x.i] !== false : true),
+    );
   ranked.sort((a, b) => a.v - b.v);
   return new Set(ranked.slice(0, count).map((x) => x.i));
 }
@@ -242,12 +249,15 @@ function highlightBarFill(base: string, highlight: boolean): string {
   return highlight ? "#ef4444" : base;
 }
 
-/** Tô cột % dưới ngưỡng cảnh báo (mặc định vàng <80%, đỏ <70%). */
+/** Tô cột % dưới ngưỡng cảnh báo (mặc định vàng <80%, đỏ <70%). VST-07: mẫu mỏng → xám. */
 function complianceBarColor(
   base: string,
   pct: number | null | undefined,
   thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
+  opts?: { sample?: number | null; minSample?: number | null },
 ): string {
+  const minN = opts?.minSample;
+  if (minN != null && Number(opts?.sample ?? 0) < minN) return "#94a3b8";
   const tone = khoaChartTone(pct, thresholds);
   if (tone === "yellow") return "#f59e0b";
   if (tone === "red") return "#ef4444";

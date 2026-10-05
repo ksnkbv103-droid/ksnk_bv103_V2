@@ -7,6 +7,7 @@ import {
   batchRecallReasonFromTypeId,
   BATCH_RECALL_REASON_OPTIONS,
   BATCH_RECALL_ENTRY_COPY,
+  isBatchRecallCommandPending,
   isCssdCycleUsedClinically,
   partitionRecallMembers,
   parseRecallMemberListText,
@@ -103,6 +104,32 @@ describe("cssd-batch-recall", () => {
     expect(p.BATCH_RECALL_COUNT).toBe("4");
     expect(p.MACHINE_HOLD_QC).toBe("1");
     expect(p.MACHINE_ID).toBe("may-1");
+  });
+
+  it("SC-02: nhận diện phiếu chờ ra lệnh thu hồi theo mẻ", () => {
+    expect(
+      isBatchRecallCommandPending({
+        BATCH_RECALL_REQUESTED: "1",
+        INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL",
+        LO_TIET_KHUAN_ID: "lo-1",
+      }),
+    ).toBe(true);
+    expect(
+      isBatchRecallCommandPending({
+        BATCH_RECALL_REQUESTED: "1",
+        BATCH_RECALL: "1",
+        INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL",
+        LO_TIET_KHUAN_ID: "lo-1",
+      }),
+    ).toBe(false);
+    expect(
+      isBatchRecallCommandPending({
+        BATCH_RECALL_REQUESTED: "1",
+        INCIDENT_TYPE_CODE: "PROCESS_STERILIZATION_FAIL",
+        LO_TIET_KHUAN_ID: "lo-1",
+        INCIDENT_STATUS: "VO_HIEU",
+      }),
+    ).toBe(false);
   });
 
   it("maps QT.24 reasons to existing PROCESS batch-QC type ids", () => {

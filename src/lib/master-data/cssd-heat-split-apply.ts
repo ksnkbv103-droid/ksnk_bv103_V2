@@ -1,6 +1,6 @@
 /**
- * Áp tách MAIN/SUB khi lưu loại dụng cụ Cao→Thấp (CSSD-A).
- * Không đụng bộ đang TIET_KHUAN / CAP_PHAT.
+ * Áp tách nhiệt khi lưu loại Cao→Thấp (CSSD-04 Lock A).
+ * Ưu tiên parent_bo_id / vai_tro_tach; fallback MAIN/SUB nếu cột chưa có (migration chưa apply).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildCssdSubBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
@@ -16,53 +16,78 @@ export type HeatSplitApplyResult = {
   skipped: { maBo: string; reason: string }[];
 };
 
-async function ensureSubBo(
+async function hasParentBoColumn(supabase: SupabaseClient): Promise<boolean> {
+  const { error } = await supabase.from("cssd_dm_bo_dung_cu").select("id, parent_bo_id").limit(1);
+  return !error;
+}
+
+async function ensureComponentBo(
   supabase: SupabaseClient,
-  main: { id: string; ma_bo: string; ten_bo: string | null; khoa_su_dung_id: string | null; phan_loai_bo: string | null },
+  parent: {
+    id: string;
+    ma_bo: string;
+    ten_bo: string | null;
+    khoa_su_dung_id: string | null;
+    phan_loai_bo: string | null;
+  },
+  role: "CHIU_NHIET" | "KHONG_CHIU_NHIET",
+  useParentCols: boolean,
 ): Promise<{ id: string; ma_bo: string }> {
-  const subMa = buildCssdSubBoMa(main.ma_bo);
+  const suffix = role === "KHONG_CHIU_NHIET" ? "-KCN" : "-CN";
+  const childMa =
+    role === "KHONG_CHIU_NHIET" && !useParentCols
+      ? buildCssdSubBoMa(parent.ma_bo)
+      : `${normalizeBoMa(parent.ma_bo)}${suffix}`;
   const { data: existing, error: exErr } = await supabase
     .from("cssd_dm_bo_dung_cu")
     .select("id, ma_bo")
-    .eq("ma_bo", subMa)
+    .eq("ma_bo", childMa)
     .eq("is_active", true)
     .maybeSingle();
   if (exErr) throw new Error(exErr.message);
   if (existing?.id) {
-    return { id: String(existing.id), ma_bo: String(existing.ma_bo || subMa) };
+    return { id: String(existing.id), ma_bo: String(existing.ma_bo || childMa) };
   }
 
   const now = new Date().toISOString();
+  const label = role === "KHONG_CHIU_NHIET" ? "không chịu nhiệt" : "chịu nhiệt";
+  const row: Record<string, unknown> = {
+    ma_bo: childMa,
+    ten_bo: `${String(parent.ten_bo || parent.ma_bo).trim()} (${label})`,
+    khoa_su_dung_id: parent.khoa_su_dung_id,
+    phan_loai_bo: parent.phan_loai_bo || "PHAU_THUAT",
+    trang_thai: "ACTIVE",
+    co_ma_dinh_danh_rieng: true,
+    is_active: true,
+    ghi_chu: `Tách nhiệt danh mục · mẹ ${parent.ma_bo} · ${role}`,
+    updated_at: now,
+  };
+  if (useParentCols) {
+    row.parent_bo_id = parent.id;
+    row.vai_tro_tach = role;
+  }
+
   const { data: inserted, error: insErr } = await supabase
     .from("cssd_dm_bo_dung_cu")
-    .insert({
-      ma_bo: subMa,
-      ten_bo: `${String(main.ten_bo || main.ma_bo).trim()} (nhạy nhiệt)`,
-      khoa_su_dung_id: main.khoa_su_dung_id,
-      phan_loai_bo: main.phan_loai_bo || "PHAU_THUAT",
-      trang_thai: "ACTIVE",
-      co_ma_dinh_danh_rieng: true,
-      is_active: true,
-      ghi_chu: `Tự tách khi danh mục loại đổi sang nhạy nhiệt · MAIN ${main.ma_bo}`,
-      updated_at: now,
-    })
+    .insert(row)
     .select("id, ma_bo")
     .single();
   if (insErr) throw new Error(insErr.message);
-  if (!inserted?.id) throw new Error(`Không tạo được bộ SUB ${subMa}.`);
-  return { id: String(inserted.id), ma_bo: String(inserted.ma_bo || subMa) };
+  if (!inserted?.id) throw new Error(`Không tạo được bộ thành phần ${childMa}.`);
+  return { id: String(inserted.id), ma_bo: String(inserted.ma_bo || childMa) };
 }
 
-async function ensureQuyTrinhSub(
+async function ensureQuyTrinhForComponent(
   supabase: SupabaseClient,
-  mainQuyTrinhId: string | null,
-  subBoId: string,
-  subMa: string,
+  parentQuyTrinhId: string | null,
+  childBoId: string,
+  childMa: string,
+  useParentCols: boolean,
 ): Promise<void> {
   const { data: hit, error } = await supabase
     .from("cssd_fact_quy_trinh")
     .select("id")
-    .eq("ma_qr_quy_trinh", subMa)
+    .eq("ma_qr_quy_trinh", childMa)
     .eq("is_active", true)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -70,31 +95,36 @@ async function ensureQuyTrinhSub(
 
   const now = new Date().toISOString();
   let staPatch: Record<string, unknown> = {
-    ma_trang_thai_hien_tai: "DONG_GOI",
+    ma_trang_thai_hien_tai: "TIEP_NHAN",
     updated_at: now,
   };
-  if (mainQuyTrinhId) {
+  if (parentQuyTrinhId) {
     const { data: mainQt } = await supabase
       .from("cssd_fact_quy_trinh")
       .select("ma_trang_thai_hien_tai")
-      .eq("id", mainQuyTrinhId)
+      .eq("id", parentQuyTrinhId)
       .maybeSingle();
-    const sta = String((mainQt as { ma_trang_thai_hien_tai?: string } | null)?.ma_trang_thai_hien_tai || "DONG_GOI");
+    const sta = String((mainQt as { ma_trang_thai_hien_tai?: string } | null)?.ma_trang_thai_hien_tai || "TIEP_NHAN");
     if (!isHeatSplitBlockedStation(sta)) {
       staPatch = { ma_trang_thai_hien_tai: sta, updated_at: now };
     }
   }
 
-  const { error: insErr } = await supabase.from("cssd_fact_quy_trinh").insert({
-    ma_qr_quy_trinh: subMa,
-    ma_qr_bo_vinh_vien: subMa,
-    bo_dung_cu_id: subBoId,
+  const insertRow: Record<string, unknown> = {
+    ma_qr_quy_trinh: childMa,
+    ma_qr_bo_vinh_vien: childMa,
+    bo_dung_cu_id: childBoId,
     ...staPatch,
-    quy_trinh_cha_id: mainQuyTrinhId,
-    ma_vai_tro_bo: "SUB",
     is_active: true,
     updated_at: now,
-  });
+  };
+  // Legacy fallback only when parent cols missing — không ghi MAIN/SUB khi Lock A.
+  if (!useParentCols && parentQuyTrinhId) {
+    insertRow.quy_trinh_cha_id = parentQuyTrinhId;
+    insertRow.ma_vai_tro_bo = "SUB";
+  }
+
+  const { error: insErr } = await supabase.from("cssd_fact_quy_trinh").insert(insertRow);
   if (insErr) throw new Error(insErr.message);
 }
 
@@ -110,6 +140,8 @@ export async function applyHeatSplitAfterLoaiDowngrade(
   }
   const id = String(loaiId || "").trim();
   if (!id) return out;
+
+  const useParentCols = await hasParentBoColumn(supabase);
 
   const { data: bomRows, error: bomErr } = await supabase
     .from("cssd_dm_bo_dung_cu_chi_tiet")
@@ -180,41 +212,59 @@ export async function applyHeatSplitAfterLoaiDowngrade(
       continue;
     }
 
-    const mainQt =
+    const parentQt =
       (qtRows || []).find((q) => String((q as { ma_vai_tro_bo?: string }).ma_vai_tro_bo || "").toUpperCase() !== "SUB") ||
       (qtRows || [])[0];
-    const mainQtId = mainQt?.id ? String((mainQt as { id: string }).id) : null;
+    const parentQtId = parentQt?.id ? String((parentQt as { id: string }).id) : null;
 
-    const sub = await ensureSubBo(supabase, {
+    const parentMeta = {
       id: boId,
       ma_bo: maBo,
       ten_bo: String((bo as { ten_bo?: string }).ten_bo || ""),
       khoa_su_dung_id: ((bo as { khoa_su_dung_id?: string | null }).khoa_su_dung_id as string | null) ?? null,
       phan_loai_bo: ((bo as { phan_loai_bo?: string | null }).phan_loai_bo as string | null) ?? null,
-    });
+    };
 
+    const coldChild = await ensureComponentBo(supabase, parentMeta, "KHONG_CHIU_NHIET", useParentCols);
     const now = new Date().toISOString();
-    const { error: moveErr } = await supabase
+    const { error: moveColdErr } = await supabase
       .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .update({ bo_dung_cu_id: sub.id, updated_at: now })
+      .update({ bo_dung_cu_id: coldChild.id, updated_at: now })
       .in("id", plan.subChiTietIds)
       .eq("bo_dung_cu_id", boId);
-    if (moveErr) throw new Error(moveErr.message);
+    if (moveColdErr) throw new Error(moveColdErr.message);
 
-    if (mainQtId) {
-      await supabase
-        .from("cssd_fact_quy_trinh")
-        .update({ ma_vai_tro_bo: "MAIN", updated_at: now })
-        .eq("id", mainQtId);
+    if (useParentCols) {
+      const heatChild = await ensureComponentBo(supabase, parentMeta, "CHIU_NHIET", true);
+      if (plan.mainChiTietIds.length) {
+        const { error: moveHeatErr } = await supabase
+          .from("cssd_dm_bo_dung_cu_chi_tiet")
+          .update({ bo_dung_cu_id: heatChild.id, updated_at: now })
+          .in("id", plan.mainChiTietIds)
+          .eq("bo_dung_cu_id", boId);
+        if (moveHeatErr) throw new Error(moveHeatErr.message);
+      }
+      await ensureQuyTrinhForComponent(supabase, parentQtId, heatChild.id, heatChild.ma_bo, true);
+      await ensureQuyTrinhForComponent(supabase, parentQtId, coldChild.id, coldChild.ma_bo, true);
+      out.split.push({
+        maBo,
+        maSub: `${heatChild.ma_bo}+${coldChild.ma_bo}`,
+        movedLines: plan.subChiTietIds.length + plan.mainChiTietIds.length,
+      });
+    } else {
+      if (parentQtId) {
+        await supabase
+          .from("cssd_fact_quy_trinh")
+          .update({ ma_vai_tro_bo: "MAIN", updated_at: now })
+          .eq("id", parentQtId);
+      }
+      await ensureQuyTrinhForComponent(supabase, parentQtId, coldChild.id, coldChild.ma_bo, false);
+      out.split.push({
+        maBo,
+        maSub: coldChild.ma_bo,
+        movedLines: plan.subChiTietIds.length,
+      });
     }
-
-    await ensureQuyTrinhSub(supabase, mainQtId, sub.id, sub.ma_bo);
-
-    out.split.push({
-      maBo,
-      maSub: sub.ma_bo,
-      movedLines: plan.subChiTietIds.length,
-    });
   }
 
   return out;
@@ -226,7 +276,7 @@ export function formatHeatSplitToast(result: HeatSplitApplyResult): string | nul
   if (result.split.length) {
     parts.push(
       `Đã tách ${result.split.length} bộ: ${result.split
-        .map((s) => `${s.maBo} → ${s.maSub} (${s.movedLines} dòng nhạy nhiệt)`)
+        .map((s) => `${s.maBo} → ${s.maSub} (${s.movedLines} dòng không chịu nhiệt/thành phần)`)
         .join("; ")}.`,
     );
   }

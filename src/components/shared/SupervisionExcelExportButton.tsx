@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { downloadRowsAsExcel } from "@/lib/analytics/download-supervision-excel";
+import { qlcvTodayVn } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 
 type Props = {
   label?: string;
@@ -18,11 +19,10 @@ type Props = {
 };
 
 function defaultRange(): { tu_ngay: string; den_ngay: string } {
-  const den = new Date();
+  const den_ngay = qlcvTodayVn();
   const tu = new Date();
   tu.setDate(tu.getDate() - 90);
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
-  return { tu_ngay: iso(tu), den_ngay: iso(den) };
+  return { tu_ngay: qlcvTodayVn(tu), den_ngay };
 }
 
 export function SupervisionExcelExportButton({

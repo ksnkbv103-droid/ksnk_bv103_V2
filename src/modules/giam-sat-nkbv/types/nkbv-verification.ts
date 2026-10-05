@@ -27,6 +27,9 @@ export type NkbvAnalysisIndexFields = {
   rit_prior_events?: RitPriorEvent[];
   /** Loại trừ chính phiếu đang sửa khỏi RIT lookup. */
   rit_exclude_event_ids?: string[];
+  /** Ngày vào viện (server POA gate) — không tin hai_status client. */
+  ngay_vao_vien?: string;
+  admission_date?: string;
 };
 
 export interface BsiVerificationData extends NkbvAnalysisIndexFields {
@@ -45,6 +48,8 @@ export interface BsiVerificationData extends NkbvAnalysisIndexFields {
   cvc_active_on_event: boolean; // CVC còn lưu trong ngày DOE hoặc ngày ngay trước đó
   device_placed_date?: string; // Ngày đặt CVC (Mới)
   device_removed_date?: string; // Ngày rút CVC (Mới, nếu có)
+  /** Ngày tiếp cận nội trú đầu (CVC đặt trước VV) — optional until DB column ships. */
+  cvc_first_inpatient_access_date?: string;
   is_neutropenia: boolean; // Legacy tick — KHÔNG đủ MBI một mình (BSI-P0-1)
   /** Soft 20e — Ch.4 criterion 1a attest: allo HSCT ≤1y + GI GVHD III/IV (cite cdc-ch4.txt:415-418). */
   has_hsct_or_gvhd?: boolean;

@@ -9,6 +9,7 @@ import {
   confirmBatDauTietKhuanBatch,
   confirmKetThucChuTrinhTietKhuan,
   createCssdSterilizationBatch,
+  fetchCssdMeNguoiNapPickerOptions,
   fetchCssdBatchMembers,
   fetchCssdBatchWorkflowState,
   fetchCssdMeListData,
@@ -56,7 +57,8 @@ export function useMeTietKhuanWorkflow() {
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<"LIST" | "CREATE" | "PROCESS">("LIST");
   const [machineId, setMachineId] = useState("");
-  const [nguoiLoad, setNguoiLoad] = useState("");
+  const [nguoiNapId, setNguoiNapId] = useState("");
+  const [nguoiNapOptions, setNguoiNapOptions] = useState<Array<{ id: string; hoTen: string; maNv: string }>>([]);
   const [activeMe, setActiveMe] = useState<any>(null);
   const [batchGate, setBatchGate] = useState<any>(null);
   const [waitingRows, setWaitingRows] = useState<any[]>([]);
@@ -70,11 +72,16 @@ export function useMeTietKhuanWorkflow() {
   }, [items]);
 
   useEffect(() => {
-    if (userData?.ho_ten) {
-      if (!nguoiLoad) setNguoiLoad(userData.ho_ten);
-      if (!nguoiUnload) setNguoiUnload(userData.ho_ten);
-    }
-  }, [userData, nguoiLoad, nguoiUnload]);
+    if (userData?.ho_ten && !nguoiUnload) setNguoiUnload(userData.ho_ten);
+    if (userData?.id && !nguoiNapId) setNguoiNapId(String(userData.id));
+  }, [userData, nguoiNapId, nguoiUnload]);
+
+  useEffect(() => {
+    if (step !== "CREATE") return;
+    void fetchCssdMeNguoiNapPickerOptions().then((r) => {
+      if (r.success) setNguoiNapOptions(r.data);
+    });
+  }, [step]);
   const [chuongTrinh, setChuongTrinh] = useState("");
   const [chuongTrinhMa, setChuongTrinhMa] = useState("");
   const chuongPrefillRef = useRef<ChuongTrinhPrefill | null>(null);
@@ -84,7 +91,12 @@ export function useMeTietKhuanWorkflow() {
   const [thongSoVatLy, setThongSoVatLy] = useState<"DAT" | "KHONG_DAT" | "">("");
   const [ciNgoaiGoi, setCiNgoaiGoi] = useState<"DAT" | "KHONG_DAT" | "">("");
   const [ciPcd, setCiPcd] = useState<"DAT" | "KHONG_DAT" | "">("");
-  const [trangThaiBi, setTrangThaiBi] = useState<"CHUA_CO" | "AM" | "DUONG" | "">("");
+  const [trangThaiBi, setTrangThaiBi] = useState<"CHUA_CO" | "DANG_U" | "AM" | "DUONG" | "">("");
+  const [ongDoiChung, setOngDoiChung] = useState<"AM" | "DUONG" | "">("");
+  const [ongThu, setOngThu] = useState<"AM" | "DUONG" | "">("");
+  const [gioBatDauU, setGioBatDauU] = useState("");
+  const [gioDoc, setGioDoc] = useState("");
+  const [soLoBi, setSoLoBi] = useState("");
   const [confirmAsk, setConfirmAsk] = useState<{
     title: string;
     body: string;
@@ -103,7 +115,12 @@ export function useMeTietKhuanWorkflow() {
     ciNgoaiGoi,
     ciPcd,
     trangThaiBi,
-  }), [chuongTrinh, nhietDo, apSuat, thoiGianChuKy, thongSoVatLy, ciNgoaiGoi, ciPcd, trangThaiBi]);
+    ongDoiChung,
+    ongThu,
+    gioBatDauU,
+    gioDoc,
+    soLoBi,
+  }), [chuongTrinh, nhietDo, apSuat, thoiGianChuKy, thongSoVatLy, ciNgoaiGoi, ciPcd, trangThaiBi, ongDoiChung, ongThu, gioBatDauU, gioDoc, soLoBi]);
 
   const applyQcDraft = (draft: MeQcDraft) => {
     setChuongTrinh(draft.chuongTrinh);
@@ -114,6 +131,11 @@ export function useMeTietKhuanWorkflow() {
     setCiNgoaiGoi(draft.ciNgoaiGoi);
     setCiPcd(draft.ciPcd);
     setTrangThaiBi(draft.trangThaiBi);
+    setOngDoiChung(draft.ongDoiChung || "");
+    setOngThu(draft.ongThu || "");
+    setGioBatDauU(draft.gioBatDauU || "");
+    setGioDoc(draft.gioDoc || "");
+    setSoLoBi(draft.soLoBi || "");
   };
 
   const resetQcFields = () => {
@@ -127,6 +149,11 @@ export function useMeTietKhuanWorkflow() {
     setCiNgoaiGoi("");
     setCiPcd("");
     setTrangThaiBi("");
+    setOngDoiChung("");
+    setOngThu("");
+    setGioBatDauU("");
+    setGioDoc("");
+    setSoLoBi("");
   };
 
   const askConfirm = (ask: { title: string; body: string; confirmLabel: string; danger?: boolean }) =>
@@ -285,11 +312,11 @@ export function useMeTietKhuanWorkflow() {
   };
 
   const createMe = async () => {
-    if (!machineId || !nguoiLoad) return toast.error("Vui lòng chọn Máy và Người load");
+    if (!machineId || !nguoiNapId) return toast.error("Vui lòng chọn máy và người nạp");
     if (!chuongTrinhMa || !String(chuongTrinh || "").trim()) {
-      return toast.error("Chọn chương trình máy trước khi tạo mẻ (M-04).");
+      return toast.error("Chọn chương trình máy trước khi tạo mẻ.");
     }
-    const r = await createCssdSterilizationBatch(machineId, nguoiLoad, chuongTrinh);
+    const r = await createCssdSterilizationBatch(machineId, nguoiNapId, chuongTrinh);
     if (!r.success) return toast.error(r.error);
     setActiveMe(r.data);
     setStep("PROCESS");
@@ -427,6 +454,11 @@ export function useMeTietKhuanWorkflow() {
       ciNgoaiGoi,
       ciPcd,
       trangThaiBi,
+      ongDoiChung,
+      ongThu,
+      gioBatDauU,
+      gioDoc,
+      soLoBi,
       anhMinhChung: "",
     });
     if (!saved.success) return toast.error("Không lưu được mẻ: " + saved.error);
@@ -476,18 +508,41 @@ export function useMeTietKhuanWorkflow() {
     void fetchData();
   };
 
-  const submitBi = async (ketQua: "AM" | "DUONG") => {
+  const submitBi = async (
+    ketQua: "AM" | "DUONG",
+    biBm02?: {
+      ongDoiChung?: string;
+      ongThu?: string;
+      gioBatDauU?: string;
+      gioDoc?: string;
+      soLoBi?: string;
+    },
+  ) => {
     if (!activeMe?.id) return;
     const ok = await askConfirm(
       ketQua === "AM"
-        ? { title: "Nhả mẻ", body: "BI âm — nhả mẻ vào kho vô khuẩn?", confirmLabel: "Nhả mẻ" }
-        : { title: "BI dương", body: "BI dương — lập sự cố và không nhả mẻ?", confirmLabel: "BI dương", danger: true },
+        ? {
+            title: activeMe.trang_thai_me === "HOAN_THANH" ? "Ghi BI tuần" : "Nhả mẻ",
+            body:
+              activeMe.trang_thai_me === "HOAN_THANH"
+                ? "Ghi BI âm vào sổ BM.02 (không đổi trạng thái mẻ đã nhả)?"
+                : "BI âm + đối chứng dương — nhả mẻ vào kho vô khuẩn?",
+            confirmLabel: activeMe.trang_thai_me === "HOAN_THANH" ? "Ghi sổ" : "Nhả mẻ",
+          }
+        : { title: "BI dương", body: "BI dương — lập sự cố và thu hồi?", confirmLabel: "BI dương", danger: true },
     );
     if (!ok) return;
-    const saved = await nhapKetQuaBiMeTietKhuan(activeMe.id, ketQua);
+    const saved = await nhapKetQuaBiMeTietKhuan(activeMe.id, ketQua, biBm02 || {
+      ongDoiChung,
+      ongThu,
+      gioBatDauU,
+      gioDoc,
+      soLoBi,
+    });
     if (!saved.success) return toast.error(saved.error || "Không lưu được kết quả BI.");
     clearQcDraft(activeMe.id);
     if (saved.outcome === "HOAN_THANH") toast.success("BI âm. Mẻ đã nhả.");
+    else if (saved.outcome === "BI_GHI_SO") toast.success("Đã ghi BI tuần vào sổ BM.02.");
     else {
       const listed = saved.listedUsed || [];
       const names = listed.map((row) => row.maBo).filter(Boolean).join(", ");
@@ -507,7 +562,11 @@ export function useMeTietKhuanWorkflow() {
   };
 
   const openRowForProcess = (row: any) => {
-    if (row.ket_qua_test === true || row.ket_qua_test === false) {
+    const releasedOk =
+      row.ket_qua_test === true &&
+      String(row.trang_thai_me || "").toUpperCase() === "HOAN_THANH" &&
+      String(row.phuong_phap || "").toUpperCase() === "HOI_NUOC";
+    if ((row.ket_qua_test === true || row.ket_qua_test === false) && !releasedOk) {
       toast.message("Mẻ đã kết thúc", {
         description: "Dùng báo cáo / kho để tra cứu theo mã lô hoặc mã QR bộ.",
       });
@@ -561,8 +620,9 @@ export function useMeTietKhuanWorkflow() {
     setStep,
     machineId,
     setMachineId,
-    nguoiLoad,
-    setNguoiLoad,
+    nguoiNapId,
+    setNguoiNapId,
+    nguoiNapOptions,
     activeMe,
     batchGate,
     waitingRows,
@@ -588,6 +648,16 @@ export function useMeTietKhuanWorkflow() {
     setCiPcd,
     trangThaiBi,
     setTrangThaiBi,
+    ongDoiChung,
+    setOngDoiChung,
+    ongThu,
+    setOngThu,
+    gioBatDauU,
+    setGioBatDauU,
+    gioDoc,
+    setGioDoc,
+    soLoBi,
+    setSoLoBi,
     confirmAsk,
     settleConfirm,
     createMe,

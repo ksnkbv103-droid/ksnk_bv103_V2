@@ -5,23 +5,42 @@ import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
+import { actionDisplayLabel, momentDisplayLabel } from "../lib/vst-constants";
 
 export type VstExportRow = {
   session_id: string;
   ngay_giam_sat: string | null;
-  /** Mã khoa (compact); thiếu mã → tên */
   khoa: string | null;
   ten_khu_vuc: string | null;
+  vi_tri: string | null;
+  hinh_thuc_giam_sat: string | null;
   ten_nguoi_giam_sat: string | null;
+  thoi_gian_bat_dau: string | null;
+  thoi_gian_ket_thuc: string | null;
   ten_doi_tuong: string | null;
+  ngoai_danh_muc: string | null;
   ten_nghe_nghiep: string | null;
   thoi_diem: string | null;
   hanh_dong: string | null;
-  dung_ky_thuat: boolean | null;
-  du_thoi_gian: boolean | null;
-  /** Chỉ khi bỏ sót — khớp KPI lạm dụng găng / form / in phiếu */
-  co_deo_gang: boolean | null;
+  dung_ky_thuat: string | null;
+  du_thoi_gian: string | null;
+  co_deo_gang: string | null;
+  thoi_gian_ghi_nhan: string | null;
 };
+
+function boolVi(v: unknown): string | null {
+  if (typeof v !== "boolean") return null;
+  return v ? "Có" : "Không";
+}
+
+function mapMomentsDisplay(raw: string | null): string | null {
+  if (!raw) return null;
+  return raw
+    .split(/\s*,\s*/g)
+    .map((p) => momentDisplayLabel(p.trim()))
+    .filter(Boolean)
+    .join(", ");
+}
 
 /**
  * Xuất cơ hội VST thô theo kỳ + scope. Đọc hết trang; lỗi đọc trả success: false.
@@ -43,7 +62,9 @@ export async function exportVstOpportunitiesRaw(params: {
     const sessionList = await fetchAllRangeRows<Record<string, unknown>>((from, to) => {
       let sessionQ = supabase
         .from("v_gstt_giam_sat_vst_sessions_full")
-        .select("id, ngay_giam_sat, ma_khoa_phong, ten_khoa_phong, ten_khu_vuc_giam_sat, ten_nguoi_giam_sat, khoa_id")
+        .select(
+          "id, ngay_giam_sat, ma_khoa_phong, ten_khoa_phong, ten_khu_vuc_giam_sat, ten_nguoi_giam_sat, khoa_id, hinh_thuc_giam_sat, vi_tri_cu_the, thoi_gian_bat_dau, thoi_gian_ket_thuc",
+        )
         .eq("is_active", true)
         .gte("ngay_giam_sat", params.tu_ngay)
         .lte("ngay_giam_sat", params.den_ngay);
@@ -62,7 +83,7 @@ export async function exportVstOpportunitiesRaw(params: {
       supabase
         .from("v_gstt_giam_sat_vst_full")
         .select(
-          "id, session_id, ten_nhan_vien_ngoai, ten_nghe_nghiep_hien_thi, thoi_diem, hanh_dong, dung_ky_thuat, du_thoi_gian, co_deo_gang, ngay_giam_sat",
+          "id, session_id, ten_nhan_vien, ten_nhan_vien_ngoai, ten_nghe_nghiep_hien_thi, thoi_diem, hanh_dong, dung_ky_thuat, du_thoi_gian, co_deo_gang, ngay_giam_sat, thoi_gian_ghi_nhan, vi_tri",
         )
         .in("session_id", idChunk)
         .order("id", { ascending: true })
@@ -72,6 +93,13 @@ export async function exportVstOpportunitiesRaw(params: {
     const rows: VstExportRow[] = facts.map((f) => {
       const sid = String(f.session_id ?? "");
       const s = sessionMap.get(sid) ?? {};
+      const tenDoiTuong =
+        f.ten_nhan_vien != null
+          ? String(f.ten_nhan_vien)
+          : f.ten_nhan_vien_ngoai != null
+            ? String(f.ten_nhan_vien_ngoai)
+            : null;
+      const ngoai = f.ten_nhan_vien_ngoai != null && String(f.ten_nhan_vien_ngoai).trim() !== "";
       return {
         session_id: sid,
         ngay_giam_sat:
@@ -88,14 +116,25 @@ export async function exportVstOpportunitiesRaw(params: {
           return label === "—" ? null : label;
         })(),
         ten_khu_vuc: s.ten_khu_vuc_giam_sat != null ? String(s.ten_khu_vuc_giam_sat) : null,
+        vi_tri:
+          f.vi_tri != null
+            ? String(f.vi_tri)
+            : s.vi_tri_cu_the != null
+              ? String(s.vi_tri_cu_the)
+              : null,
+        hinh_thuc_giam_sat: s.hinh_thuc_giam_sat != null ? String(s.hinh_thuc_giam_sat) : null,
         ten_nguoi_giam_sat: s.ten_nguoi_giam_sat != null ? String(s.ten_nguoi_giam_sat) : null,
-        ten_doi_tuong: f.ten_nhan_vien_ngoai != null ? String(f.ten_nhan_vien_ngoai) : null,
+        thoi_gian_bat_dau: s.thoi_gian_bat_dau != null ? String(s.thoi_gian_bat_dau) : null,
+        thoi_gian_ket_thuc: s.thoi_gian_ket_thuc != null ? String(s.thoi_gian_ket_thuc) : null,
+        ten_doi_tuong: tenDoiTuong,
+        ngoai_danh_muc: ngoai ? "Có" : "Không",
         ten_nghe_nghiep: f.ten_nghe_nghiep_hien_thi != null ? String(f.ten_nghe_nghiep_hien_thi) : null,
-        thoi_diem: f.thoi_diem != null ? String(f.thoi_diem) : null,
-        hanh_dong: f.hanh_dong != null ? String(f.hanh_dong) : null,
-        dung_ky_thuat: typeof f.dung_ky_thuat === "boolean" ? f.dung_ky_thuat : null,
-        du_thoi_gian: typeof f.du_thoi_gian === "boolean" ? f.du_thoi_gian : null,
-        co_deo_gang: typeof f.co_deo_gang === "boolean" ? f.co_deo_gang : null,
+        thoi_diem: mapMomentsDisplay(f.thoi_diem != null ? String(f.thoi_diem) : null),
+        hanh_dong: f.hanh_dong != null ? actionDisplayLabel(String(f.hanh_dong)) : null,
+        dung_ky_thuat: boolVi(f.dung_ky_thuat),
+        du_thoi_gian: boolVi(f.du_thoi_gian),
+        co_deo_gang: boolVi(f.co_deo_gang),
+        thoi_gian_ghi_nhan: f.thoi_gian_ghi_nhan != null ? String(f.thoi_gian_ghi_nhan) : null,
       };
     });
 

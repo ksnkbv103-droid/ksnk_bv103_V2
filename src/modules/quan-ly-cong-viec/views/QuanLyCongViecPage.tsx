@@ -36,9 +36,11 @@ import {
   resolveQlcvPeriodRange,
   type QlcvPeriodKind,
 } from "@/modules/quan-ly-cong-viec/lib/qlcv-period-range";
+import { qlcvDateVnFromInstant } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 import type { CongViecView } from "@/modules/quan-ly-cong-viec/types";
 import type { QlcvBoardFilter } from "@/modules/quan-ly-cong-viec/lib/qlcv-board-filter";
 import { buildQlcvAnalyticsPrefill } from "@/lib/analytics/qlcv-analytics-deep-link";
+import { parseQlcvNguonFromSearchParams } from "@/lib/analytics/qlcv-source-deep-link";
 
 const panelFallback = (
   <p className="py-8 text-center text-sm text-slate-500">Đang tải…</p>
@@ -153,7 +155,7 @@ export default function QuanLyCongViecPage() {
   const canApprove = canShowQlcvApproveActions(qlcvUi);
   const canManageDinhKy = isAdmin || allowed.edit;
 
-  const kanban = useQlcvKanban({ canApprove });
+  const kanban = useQlcvKanban({ canApprove, actorStaffId: userData?.id ?? null });
 
   const mergedTasks = useMemo(
     () => mergeQlcvKanbanTasks(kanban.tasks, kanban.pendingKanbanExtras),
@@ -174,14 +176,6 @@ export default function QuanLyCongViecPage() {
     actorStaffId: userData?.id ?? null,
     mergedTasks,
   });
-
-  useEffect(() => {
-    void kanban.fetchTasksInitial();
-  }, [kanban.fetchTasksInitial]);
-
-  useEffect(() => {
-    if (userData?.id) kanban.setBoardFilter("MY_TASKS");
-  }, [userData?.id, kanban.setBoardFilter]);
 
   useEffect(() => {
     const openId = searchParams.get("id")?.trim();
@@ -208,7 +202,8 @@ export default function QuanLyCongViecPage() {
   }, [searchParams, canManageDinhKy]);
 
   useEffect(() => {
-    if (searchParams.get("from") !== "analytics") return;
+    const from = searchParams.get("from");
+    if (!from || !["analytics", "CSSD_SU_CO", "GIAM_SAT", "NKBV"].includes(from)) return;
     if (searchParams.get("create") === "1") {
       setCreateStayTab("DIEN_HANH");
       setIsAdding(true);
@@ -219,9 +214,9 @@ export default function QuanLyCongViecPage() {
 
   const execPrintTasks = useMemo(() => {
     return mergedTasks.filter((t) => {
-      const han = t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : "";
+      const han = qlcvDateVnFromInstant(t.han_hoan_thanh);
       if (han && han >= periodRange.startIso && han <= periodRange.endIso) return true;
-      const created = t.created_at ? String(t.created_at).slice(0, 10) : "";
+      const created = qlcvDateVnFromInstant(t.created_at);
       if (!han && created && created >= periodRange.startIso && created <= periodRange.endIso) return true;
       return false;
     });
@@ -279,21 +274,27 @@ export default function QuanLyCongViecPage() {
   }, []);
 
   const analyticsGapHint = useMemo(() => {
-    if (searchParams.get("from") !== "analytics") return null;
+    const from = searchParams.get("from");
+    if (!from || !["analytics", "CSSD_SU_CO", "GIAM_SAT", "NKBV"].includes(from)) return null;
     const topic = searchParams.get("topic")?.trim();
     const gap = searchParams.get("gap")?.trim();
     const khoa = searchParams.get("khoa")?.trim();
     const bk = searchParams.get("bk")?.trim();
-    const parts = ["Mở từ thống kê / báo cáo — tạo việc theo dõi bao phủ giám sát."];
-    if (topic) parts.push(`Chuyên đề: ${topic}.`);
-    if (gap) parts.push(`Trạng thái: ${gap}.`);
+    const parts =
+      from === "analytics"
+        ? ["Mở từ thống kê / báo cáo — tạo việc theo dõi."]
+        : ["Mở từ module nguồn — tạo việc KSNK. Hạn do người tạo nhập."];
+    if (topic) parts.push(`Tiêu đề gợi ý: ${topic}.`);
+    if (gap) parts.push(gap);
     if (khoa) parts.push(`Khoa: ${khoa}.`);
     if (bk) parts.push(`BK thiếu: ${bk}.`);
     return parts.join(" ");
   }, [searchParams]);
 
   const analyticsCreatePrefill = useMemo(() => {
-    if (searchParams.get("from") !== "analytics") return undefined;
+    const from = searchParams.get("from");
+    if (!from || !["analytics", "CSSD_SU_CO", "GIAM_SAT", "NKBV"].includes(from)) return undefined;
+    const nguon = parseQlcvNguonFromSearchParams(searchParams);
     const giaRaw = searchParams.get("gia_tri_luc_tao");
     const giaTri =
       giaRaw != null && giaRaw !== "" && Number.isFinite(Number(giaRaw)) ? Number(giaRaw) : null;
@@ -316,11 +317,17 @@ export default function QuanLyCongViecPage() {
       mo_ta: p.mo_ta,
       loai_cong_viec: "DOT_XUAT" as const,
       muc_do_uu_tien: "CAO" as const,
-      analytics_meta: {
-        ...p.analytics_meta,
-        khoa_id: khoaId,
-      },
-      han_hoan_thanh: searchParams.get("ky_do_lai")?.trim() || undefined,
+      analytics_meta:
+        from === "analytics"
+          ? {
+              ...p.analytics_meta,
+              khoa_id: khoaId,
+            }
+          : undefined,
+      // QLCV-12 / N-QLCV-4 tạm: hạn KHÔNG tự điền từ nguồn (analytics giữ gợi ý ky_do_lai nếu có).
+      han_hoan_thanh:
+        from === "analytics" ? searchParams.get("ky_do_lai")?.trim() || undefined : undefined,
+      nguon_lien_ket: nguon,
     };
   }, [searchParams]);
 

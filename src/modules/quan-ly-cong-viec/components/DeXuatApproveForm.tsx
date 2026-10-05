@@ -7,7 +7,7 @@ import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { congViecSchema } from "@/lib/validations/quan-ly-cong-viec.validations";
+import { congViecSchemaWithHanRule } from "@/lib/validations/quan-ly-cong-viec.validations";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import type { CongViecView } from "../types";
 
@@ -94,12 +94,12 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
 
   const handleApprove = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!String(selectedTo || "").trim()) {
-      toast.error("Chọn tổ công tác chuyên trách trước khi phê duyệt.");
+    if (!String(selectedNhanSu || "").trim()) {
+      toast.error("Chọn người phụ trách trước khi phê duyệt.");
       return;
     }
-    if (!String(selectedNhanSu || "").trim()) {
-      toast.error("Chọn người thực hiện trước khi phê duyệt.");
+    if (!String(hanHoanThanh || "").trim()) {
+      toast.error("Nhập hạn hoàn thành trước khi phê duyệt.");
       return;
     }
 
@@ -110,11 +110,11 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
       muc_do_uu_tien: mucDoUuTien,
       han_hoan_thanh: hanHoanThanh || null,
       nguoi_phu_trach_id: selectedNhanSu,
-      to_cong_tac_id: selectedTo,
-      dia_diem_khoa_id: selectedKhoa,
+      to_cong_tac_id: selectedTo || null,
+      dia_diem_khoa_id: selectedKhoa || null,
     };
 
-    const validation = congViecSchema.safeParse(payload);
+    const validation = congViecSchemaWithHanRule.safeParse(payload);
     if (!validation.success) {
       toast.error(validation.error.issues[0]?.message || "Dữ liệu không hợp lệ");
       return;
@@ -173,12 +173,13 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
               <option value="THAP">Thấp</option>
             </select>
             <p className={`mt-1 ${bv103LayoutChrome.noticeSlate}`}>
-              Urgency qua ưu tiên (CAO). Loại hình ẩn — giữ mã đề xuất ({loaiCongViec === "KHAN_CAP" ? "KHAN_CAP legacy" : "DOT_XUAT"}).
+              Ưu tiên Cao dùng cho việc cần xử lý gấp.
             </p>
           </div>
           <div>
-            <label className={labelStyles}>Hạn hoàn thành</label>
+            <label className={labelStyles}>Hạn hoàn thành *</label>
             <input
+              required
               type="date"
               value={hanHoanThanh}
               onChange={(e) => setHanHoanThanh(e.target.value)}
@@ -192,7 +193,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
             <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
             <SearchableSelect
               options={khoaPhongOptions}
-              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa / đơn vị…"}
               value={selectedKhoa}
               onChange={setSelectedKhoa}
               disabled={optionsLoading}
@@ -200,7 +201,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
             />
           </div>
           <div>
-            <label className={labelStyles}>Tổ công tác chuyên trách *</label>
+            <label className={labelStyles}>Tổ công tác (tuỳ chọn)</label>
             <SearchableSelect
               options={toCongTacOptions}
               placeholder={optionsLoading ? "Đang tải..." : "Chọn tổ công tác..."}
@@ -211,7 +212,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
             />
           </div>
           <div>
-            <label className={labelStyles}>Người thực hiện *</label>
+            <label className={labelStyles}>Người phụ trách *</label>
             <SearchableSelect
               options={assigneeOptions}
               placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}

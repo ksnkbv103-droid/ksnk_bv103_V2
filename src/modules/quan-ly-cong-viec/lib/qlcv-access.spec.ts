@@ -4,6 +4,8 @@ import {
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
   canShowHuyKhiNghiemThuKhongDat,
+  canShowQlcvApproveActions,
+  canShowQlcvNghiemThuActions,
   isQlcvTaskOverdue,
 } from "./qlcv-access";
 
@@ -93,6 +95,55 @@ describe("canShowEditTaskMetadata", () => {
   });
 });
 
+describe("canShowQlcvApproveActions / nghiệm thu", () => {
+  it("edit không đủ để hiện phê duyệt — cần approve", () => {
+    expect(canShowQlcvApproveActions(baseFlags)).toBe(false);
+    expect(canShowQlcvApproveActions({ ...baseFlags, hasApprove: true })).toBe(true);
+  });
+
+  it("ẩn nghiệm thu khi actor = người phụ trách", () => {
+    expect(
+      canShowQlcvNghiemThuActions(
+        {
+          trang_thai: "CHO_DUYET",
+          phan_tram_hoan_thanh: 100,
+          is_active: true,
+          nguoi_phu_trach_id: "actor-1",
+        },
+        { ...baseFlags, hasApprove: true },
+      ),
+    ).toBe(false);
+  });
+
+  it("ADMIN vẫn hiện nghiệm thu khi là người phụ trách (N-QLCV-5)", () => {
+    expect(
+      canShowQlcvNghiemThuActions(
+        {
+          trang_thai: "CHO_DUYET",
+          phan_tram_hoan_thanh: 100,
+          is_active: true,
+          nguoi_phu_trach_id: "actor-1",
+        },
+        { ...baseFlags, hasApprove: true, isRBACAdmin: true },
+      ),
+    ).toBe(true);
+  });
+
+  it("hiện nghiệm thu khi có approve và không phải phụ trách", () => {
+    expect(
+      canShowQlcvNghiemThuActions(
+        {
+          trang_thai: "CHO_DUYET",
+          phan_tram_hoan_thanh: 100,
+          is_active: true,
+          nguoi_phu_trach_id: "other",
+        },
+        { ...baseFlags, hasApprove: true },
+      ),
+    ).toBe(true);
+  });
+});
+
 describe("canShowHuyKhiNghiemThuKhongDat", () => {
   const choDuyet = { trang_thai: "CHO_DUYET", phan_tram_hoan_thanh: 100, is_active: true };
 
@@ -153,28 +204,40 @@ describe("canShowDeleteTask", () => {
       ),
     ).toBe(false);
   });
-  it("là quản trị viên → được xóa", () => {
+  it("quản trị + phiếu trống %0 → được xóa", () => {
     expect(
       canShowDeleteTask(
         {
           trang_thai: "DANG_LAM",
-          han_hoan_thanh: "2020-01-01",
+          han_hoan_thanh: "2099-01-01",
           is_active: true,
           nguoi_phu_trach_id: "other",
-          phan_tram_hoan_thanh: 50,
+          phan_tram_hoan_thanh: 0,
         },
         { ...baseFlags, isRBACAdmin: true },
       ),
     ).toBe(true);
   });
-  it("quyền DELETE (không admin) → được xóa", () => {
+  it("HOAN_THANH → không hiện nút xóa (QLCV-07)", () => {
     expect(
       canShowDeleteTask(
         {
-          trang_thai: "DANG_LAM",
+          trang_thai: "HOAN_THANH",
           is_active: true,
-          nguoi_phu_trach_id: "other",
-          phan_tram_hoan_thanh: 50,
+          phan_tram_hoan_thanh: 100,
+        },
+        { ...baseFlags, isRBACAdmin: true, hasDelete: true },
+      ),
+    ).toBe(false);
+  });
+  it("quyền DELETE + đề xuất → được xóa", () => {
+    expect(
+      canShowDeleteTask(
+        {
+          trang_thai: "MOI",
+          is_active: false,
+          nguoi_phu_trach_id: null,
+          phan_tram_hoan_thanh: 0,
         },
         { ...baseFlags, hasDelete: true },
       ),

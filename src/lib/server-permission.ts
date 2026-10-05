@@ -1,7 +1,8 @@
 "use server";
 
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { getRequestAuthUser } from "@/lib/auth/rbac-request";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 
@@ -42,13 +43,24 @@ const getPermissionsRequestScope = cache(async (userId: string) => {
 export async function verifyPermissions(required: readonly PermissionCheck[]) {
   if (!required.length) return;
 
-  const userSb = await createServerSupabaseUserClient();
-  // getUser() xác minh JWT server-side (ngăn JWT spoofing), thay vì getSession() chỉ đọc cookie.
-  const { data: { user } } = await userSb.auth.getUser();
+  // getUser() xác minh JWT server-side (ngăn JWT spoofing) — dedup qua React cache().
+  const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
-  // Trusted Super Admin bypass
-  if (isTrustedAdminEmail(user.email)) return;
+  // Break-glass (env KSNK_BREAK_GLASS_EMAILS) — ghi nhật ký mỗi lần dùng.
+  if (isTrustedAdminEmail(user.email)) {
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    void logAdminAction({
+      action: "BREAK_GLASS_USED",
+      targetTable: "rbac",
+      targetId: user.id,
+      after: { checks: required.map((r) => `${r.moduleKey}:${r.action}`) },
+      actorUserId: user.id,
+      actorEmail: user.email,
+      reason: "verifyPermissions",
+    });
+    return;
+  }
 
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
   
@@ -73,24 +85,38 @@ export async function verifyPermission(moduleKey: string, action: string) {
  * bỏ qua ràng buộc chủ phiên và cửa sổ 30 phút ở tầng server action.
  */
 export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
-  const userSb = await createServerSupabaseUserClient();
-  const {
-    data: { user },
-  } = await userSb.auth.getUser();
+  const user = await getRequestAuthUser();
   if (!user?.id) return false;
-  if (isTrustedAdminEmail(user.email)) return true;
+  if (isTrustedAdminEmail(user.email)) {
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    void logAdminAction({
+      action: "BREAK_GLASS_USED",
+      targetTable: "rbac",
+      targetId: user.id,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      reason: "supervision_bypass",
+    });
+    return true;
+  }
   const { roles } = await getPermissionsRequestScope(user.id);
   return roles.includes("ADMIN");
+}
+
+/** Tên vai trò RBAC của actor hiện tại (trusted email → ADMIN). */
+export async function getActorRoleNames(): Promise<string[]> {
+  const user = await getRequestAuthUser();
+  if (!user?.id) return [];
+  if (isTrustedAdminEmail(user.email)) return ["ADMIN"];
+  const { roles } = await getPermissionsRequestScope(user.id);
+  return roles.map((r) => String(r || "").trim()).filter(Boolean);
 }
 
 /** Ít nhất một cặp (module, action) phải khớp — OR. Dùng cho đọc danh mục dùng chung nhiều module. */
 export async function verifyAnyPermission(alternatives: readonly PermissionCheck[]) {
   if (!alternatives.length) return;
 
-  const userSb = await createServerSupabaseUserClient();
-  const {
-    data: { user },
-  } = await userSb.auth.getUser();
+  const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   if (isTrustedAdminEmail(user.email)) return;
@@ -106,6 +132,36 @@ export async function verifyAnyPermission(alternatives: readonly PermissionCheck
   if (!ok) {
     const keys = alternatives.map((a) => `${a.moduleKey}:${a.action}`).join(", ");
     throw new Error(`Cần ít nhất một quyền phù hợp (${keys}).`);
+  }
+}
+
+/**
+ * AND của các nhóm OR — một getUser + một đọc RBAC (tránh gọi verifyAnyPermission tuần tự).
+ * Mỗi nhóm: cần ≥1 quyền khớp; mọi nhóm phải đạt.
+ */
+export async function verifyAllAnyPermissionGroups(
+  groups: readonly (readonly PermissionCheck[])[],
+) {
+  if (!groups.length) return;
+
+  const user = await getRequestAuthUser();
+  if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
+
+  if (isTrustedAdminEmail(user.email)) return;
+
+  const { roles, permissions } = await getPermissionsRequestScope(user.id);
+  if (roles.includes("ADMIN")) return;
+
+  const has = (moduleKey: string, action: string) =>
+    permissions.some((p) => p.module === moduleKey && p.action === action);
+
+  for (const alternatives of groups) {
+    if (!alternatives.length) continue;
+    const ok = alternatives.some((a) => has(a.moduleKey, a.action));
+    if (!ok) {
+      const keys = alternatives.map((a) => `${a.moduleKey}:${a.action}`).join(", ");
+      throw new Error(`Cần ít nhất một quyền phù hợp (${keys}).`);
+    }
   }
 }
 

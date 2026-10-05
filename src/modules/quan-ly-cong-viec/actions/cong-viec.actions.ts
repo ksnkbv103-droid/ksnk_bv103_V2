@@ -27,10 +27,12 @@ import {
   insertQlcvTaskRow,
   normalizeQlcvHanDate,
 } from "../lib/qlcv-create-task";
+import { assertQlcvActiveInvariant } from "../lib/qlcv-active-invariant";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { QLCV_BOARD_FETCH_MAX_PAGES, QLCV_BOARD_FETCH_PAGE_SIZE } from "../lib/qlcv-query-limits";
-import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
+import { QLCV_BOARD_TASK_VIEW_SELECT, QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
+import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
@@ -87,6 +89,7 @@ export async function createCongViec(input: CongViecInput) {
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,
     analytics_meta: payload.analytics_meta ?? null,
+    nguon_lien_ket: payload.nguon_lien_ket ?? null,
   });
 
   await appendQlcvNhatKy(supabase, {
@@ -105,20 +108,35 @@ export async function createCongViec(input: CongViecInput) {
 async function fetchAllActiveRootTasksInScope(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
   scope: Awaited<ReturnType<typeof resolveQlcvListScope>>,
+  opts?: { boardFilter?: QlcvBoardFilter | null; actorStaffId?: string | null },
 ) {
   const rows: Record<string, unknown>[] = [];
+  const actor = opts?.actorStaffId ? String(opts.actorStaffId) : "";
+  const lens = opts?.boardFilter ?? null;
+
   for (let page = 0; page < QLCV_BOARD_FETCH_MAX_PAGES; page++) {
     const from = page * QLCV_BOARD_FETCH_PAGE_SIZE;
     const to = from + QLCV_BOARD_FETCH_PAGE_SIZE - 1;
 
     let query = supabase
       .from("v_qlcv_cong_viec_full")
-      .select(QLCV_ROOT_TASK_VIEW_SELECT)
+      .select(QLCV_BOARD_TASK_VIEW_SELECT)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .range(from, to);
 
     query = applyQlcvListScopeToQuery(query, scope);
+
+    // A) Dump full board rồi filter client. B) Lọc SQL theo lens mặc định — chọn B.
+    if (lens === "MY_TASKS" && actor) {
+      query = query
+        .eq("nguoi_phu_trach_id", actor)
+        .not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
+    } else if (lens === "IN_PROGRESS") {
+      query = query.eq("trang_thai", "DANG_THUC_HIEN");
+    } else if (lens === "OVERDUE") {
+      query = query.eq("is_qua_han", true).not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
+    }
 
     const { data, error } = await query;
     if (error) {
@@ -134,11 +152,14 @@ async function fetchAllActiveRootTasksInScope(
   return rows;
 }
 
-/** Toàn bộ việc active trong phạm vi — dùng Kanban + thẻ cổng (fetch phân trang). */
-export async function getCongViecListForBoard() {
+/** Việc active trong phạm vi — Kanban (cắt cột + lọc SQL theo lens). */
+export async function getCongViecListForBoard(opts?: {
+  boardFilter?: QlcvBoardFilter | null;
+  actorStaffId?: string | null;
+}) {
   const { supabase } = await ensureQlcvKsnkAccess("view");
   const scope = await resolveQlcvListScope(supabase);
-  return fetchAllActiveRootTasksInScope(supabase, scope);
+  return fetchAllActiveRootTasksInScope(supabase, scope, opts);
 }
 
 export async function getCongViecList() {
@@ -323,7 +344,7 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, is_qua_han, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id, loai_cong_viec, checklist",
+      "id, tieu_de, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, is_qua_han, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id, loai_cong_viec, checklist",
     )
     .eq("id", id)
     .maybeSingle();
@@ -412,9 +433,17 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   // Sử dụng kiểm tra undefined để cho phép cập nhật null
   if (updates.tieu_de !== undefined) dbUpdates.tieu_de = updates.tieu_de;
   if (updates.mo_ta !== undefined) dbUpdates.mo_ta = updates.mo_ta;
+  // QLCV-05: không đổi loại sau tạo (trừ legacy KHAN_CAP → DOT_XUAT).
   if (updates.loai_cong_viec !== undefined) {
-    const loai = normalizeQlcvDmFields({ loai_cong_viec: updates.loai_cong_viec });
-    dbUpdates.loai_cong_viec = loai.loai_cong_viec;
+    const nextLoai = String(updates.loai_cong_viec).toUpperCase();
+    const curLoai = String(curMa.loai_cong_viec ?? "").toUpperCase();
+    if (nextLoai === curLoai) {
+      /* noop */
+    } else if (curLoai === "KHAN_CAP" && nextLoai === "DOT_XUAT") {
+      dbUpdates.loai_cong_viec = "DOT_XUAT";
+    } else {
+      throw new Error("Không được đổi loại công việc sau khi tạo.");
+    }
   }
   if (updates.muc_do_uu_tien !== undefined) dbUpdates.muc_do_uu_tien = updates.muc_do_uu_tien;
   if (updates.han_hoan_thanh !== undefined) dbUpdates.han_hoan_thanh = updates.han_hoan_thanh;
@@ -453,9 +482,19 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   };
   const isProposalPending = isDeXuatChoDuyet(curForDeXuat);
 
-  if (isProposalPending && nextPhuTrach && nextTo) {
+  if (isProposalPending && nextPhuTrach) {
     await verifyQlcvApproveCapability();
     await validateAssigneeForQlcv(supabase, nextPhuTrach, ksnkKhoaId);
+    const nextHan = (updates.han_hoan_thanh !== undefined
+      ? updates.han_hoan_thanh
+      : cur.han_hoan_thanh) as string | null;
+    const nextTieu = (updates.tieu_de !== undefined ? updates.tieu_de : cur.tieu_de) as string;
+    assertQlcvActiveInvariant({
+      tieu_de: nextTieu,
+      nguoi_phu_trach_id: nextPhuTrach,
+      han_hoan_thanh: nextHan,
+      loai_cong_viec: updates.loai_cong_viec ?? curMa.loai_cong_viec,
+    });
 
     const trangThai = resolveQlcvTrangThaiMaForTask({
       isActive: true,
@@ -470,7 +509,7 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
     const patch: Record<string, unknown> = {
       trang_thai: dmFk.trang_thai,
       nguoi_phu_trach_id: nextPhuTrach,
-      to_cong_tac_id: nextTo,
+      to_cong_tac_id: nextTo ?? null,
       nguoi_giao_viec_id: actor,
       noi_dung_hoat_dong: "Phê duyệt đề xuất và giao nhiệm vụ KSNK",
     };
@@ -493,16 +532,38 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
     return { success: true, activated: true };
   }
 
-  if (cur.is_active && (nextPhuTrach || nextTo)) {
+  // QLCV-04: chặn xóa phụ trách / hạn trên phiếu active; chỉ DANG_LAM khi có phụ trách.
+  if (cur.is_active) {
+    const nextHanActive = (updates.han_hoan_thanh !== undefined
+      ? updates.han_hoan_thanh
+      : cur.han_hoan_thanh) as string | null;
+    const nextTieuActive = (updates.tieu_de !== undefined ? updates.tieu_de : cur.tieu_de) as string;
+    if (
+      updates.han_hoan_thanh !== undefined ||
+      updates.nguoi_phu_trach_id !== undefined ||
+      updates.tieu_de !== undefined
+    ) {
+      assertQlcvActiveInvariant({
+        tieu_de: nextTieuActive,
+        nguoi_phu_trach_id: nextPhuTrach,
+        han_hoan_thanh: nextHanActive,
+        loai_cong_viec: updates.loai_cong_viec ?? curMa.loai_cong_viec,
+      });
+    }
+  }
+
+  if (cur.is_active && nextPhuTrach) {
     const st = normalizeQlcvTrangThaiToCanonical(curMa.trang_thai);
     if (st === "MOI") {
       const tt = normalizeQlcvDmFields({ trang_thai: "DANG_LAM" });
       dbUpdates.trang_thai = tt.trang_thai;
     }
   }
+  // QLCV-06: cấm ghi trang_thai qua form sửa (kể cả quản trị) — dùng adminSetTrangThaiCongViec.
   if (updates.trang_thai !== undefined) {
-    const tt = normalizeQlcvDmFields({ trang_thai: updates.trang_thai });
-    dbUpdates.trang_thai = tt.trang_thai;
+    throw new Error(
+      "Không cập nhật trạng thái qua form sửa. Dùng nút thao tác hoặc chỉnh trạng thái có lý do (quản trị).",
+    );
   }
   if (
     updates.phan_tram_hoan_thanh !== undefined &&
@@ -609,6 +670,15 @@ export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   if (!isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Chỉ nghiệm thu khi việc đã báo 100% (cổng chờ nghiệm thu).");
   }
+  // N-QLCV-5 / QLCV-06: cấm tự nghiệm thu (trừ quản trị / Chủ nhiệm).
+  if (
+    actorNhanSuId &&
+    cur.nguoi_phu_trach_id &&
+    actorNhanSuId === cur.nguoi_phu_trach_id &&
+    !(await hasRBACAdminSupervisionBypass())
+  ) {
+    throw new Error("Không được tự nghiệm thu việc mình phụ trách.");
+  }
 
   // 19c TAC-3A: đóng việc bắt buộc 1 dòng kết quả (hoặc checklist 100%).
   const closeErr = validateQlcvCloseRequiresResult({
@@ -617,32 +687,56 @@ export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   });
   if (closeErr) throw new Error(closeErr);
 
+  const ketQuaNorm = normalizeQlcvKetQuaText(ketQua);
+  const lyDoNt = ketQuaNorm
+    ? `Kết quả: ${ketQuaNorm}`
+    : hasQlcvChecklistFullResult(cur.checklist)
+      ? "Đã nghiệm thu — checklist đủ."
+      : "Đã nghiệm thu và đóng công việc.";
+
   await invokeQlcvTransition(supabase, {
     congViecId: id,
     action: "NGHIEM_THU",
     actorNhanSuId: actorNhanSuId,
+    lyDo: lyDoNt,
   });
 
-  const ketQuaNorm = normalizeQlcvKetQuaText(ketQua);
-  if (ketQuaNorm) {
-    await appendQlcvNhatKy(supabase, {
-      congViecId: id,
-      loaiHoatDong: "HOAN_THANH",
-      nguoiThucHienId: actorNhanSuId,
-      noiDung: `Kết quả: ${ketQuaNorm}`,
-      trangThai: "HOAN_THANH",
-      phanTramHoanThanh: Number(cur.phan_tram_hoan_thanh ?? 100),
-    });
-  } else if (hasQlcvChecklistFullResult(cur.checklist)) {
-    await appendQlcvNhatKy(supabase, {
-      congViecId: id,
-      loaiHoatDong: "HOAN_THANH",
-      nguoiThucHienId: actorNhanSuId,
-      noiDung: "Kết quả: checklist đủ 100%.",
-      trangThai: "HOAN_THANH",
-      phanTramHoanThanh: 100,
-    });
-  }
+  revalidatePath("/quan-ly-cong-viec");
+  return { success: true };
+}
+
+/** Quản trị chỉnh trạng thái qua SET_TRANG_THAI — bắt lý do, ghi nhật ký (QLCV-06). */
+export async function adminSetTrangThaiCongViec(
+  id: string,
+  nextTrangThai: string,
+  lyDo: string,
+) {
+  const { verifyQlcvAdminStatusCapability } = await import("../lib/qlcv-rbac");
+  await verifyQlcvAdminStatusCapability();
+  const { supabase } = await ensureQlcvKsnkAccess("edit");
+  const actorNhanSuId = await getActorNhanSuId();
+  const reason = String(lyDo || "").trim();
+  if (!reason) throw new Error("Nhập lý do khi chỉnh trạng thái.");
+
+  const { data: cur, error: fetchErr } = await supabase
+    .from("qlcv_fact_cong_viec")
+    .select("id, trang_thai, phan_tram_hoan_thanh")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchErr || !cur) throw new Error("Không tìm thấy công việc.");
+
+  await invokeQlcvTransition(supabase, {
+    congViecId: id,
+    action: "SET_TRANG_THAI",
+    actorNhanSuId: actorNhanSuId,
+    lyDo: reason,
+    patch: {
+      next_trang_thai: nextTrangThai,
+      current_trang_thai: cur.trang_thai,
+      phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh,
+      loai_hoat_dong: "CAP_NHAT",
+    },
+  });
 
   revalidatePath("/quan-ly-cong-viec");
   return { success: true };
@@ -695,12 +789,7 @@ export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
 }
 
 // ==================== XÓA ====================
-/**
- * - Quản trị (ADMIN / email tin cậy): xóa được mọi trạng thái (trừ khi policy khác).
- * - HOAN_THANH: cần quyền CONG_VIEC delete (hoặc admin).
- * - Khác: chỉ người tạo/đề xuất trong phạm vi an toàn, hoặc quyền CONG_VIEC delete.
- * - Người phụ trách sau khi đã giao: không được xóa.
- */
+/** QLCV-07: chỉ đề xuất / phiếu trống; còn lại dùng Hủy. */
 export async function deleteCongViec(id: string) {
   const { supabase } = await ensureQlcvKsnkAccess("delete");
   await verifyQlcvDeleteCapability();
@@ -708,7 +797,9 @@ export async function deleteCongViec(id: string) {
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_tao_id, nguoi_phu_trach_id, han_hoan_thanh, phan_tram_hoan_thanh")
+    .select(
+      "id, trang_thai, is_active, nguoi_tao_id, nguoi_phu_trach_id, han_hoan_thanh, phan_tram_hoan_thanh, nhat_ky",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -721,6 +812,9 @@ export async function deleteCongViec(id: string) {
     },
     scope,
   );
+
+  const { assertQlcvHardDeleteAllowed } = await import("../lib/qlcv-hard-delete");
+  assertQlcvHardDeleteAllowed(cur);
 
   const { error } = await supabase.from("qlcv_fact_cong_viec").delete().eq("id", id);
 

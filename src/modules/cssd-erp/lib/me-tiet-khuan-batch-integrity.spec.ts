@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assertSteamKitHeatAllowed } from "./me-tiet-khuan-batch-heat";
 import {
+  collectParentBoIdsWithActiveChildren,
   countActiveLinkedMembers,
   derivePassQuyTrinhIds,
   isLiveBatchMember,
@@ -109,11 +110,27 @@ describe("rejectStartMember", () => {
   });
 });
 
+describe("collectParentBoIdsWithActiveChildren", () => {
+  it("gom parent_bo_id; bỏ trống/null", () => {
+    const set = collectParentBoIdsWithActiveChildren([
+      { parent_bo_id: "bo-me" },
+      { parent_bo_id: "bo-me" },
+      { parent_bo_id: null },
+      { parent_bo_id: "  " },
+      { parent_bo_id: "bo-me-2" },
+    ]);
+    expect([...set].sort()).toEqual(["bo-me", "bo-me-2"]);
+  });
+});
+
 describe("rejectParentBoWithSub", () => {
-  it("chặn MAIN hoặc khi còn SUB; bộ thường cho nạp", () => {
+  it("chặn mẹ (child components / MAIN / còn SUB); bộ thường cho nạp", () => {
+    expect(rejectParentBoWithSub({ hasChildComponents: true })).toMatch(/thành phần/);
     expect(rejectParentBoWithSub({ maVaiTroBo: "MAIN", hasActiveSub: false })).toMatch(/thành phần/);
     expect(rejectParentBoWithSub({ maVaiTroBo: "SUB", hasActiveSub: true })).toMatch(/thành phần/);
     expect(rejectParentBoWithSub({ maVaiTroBo: null, hasActiveSub: false })).toBeNull();
     expect(rejectParentBoWithSub({ maVaiTroBo: "SUB", hasActiveSub: false })).toBeNull();
+    // Lock A: không còn ma_vai_tro_bo/SUB — thiếu hasChildComponents sẽ bypass (cổng action phải truyền).
+    expect(rejectParentBoWithSub({ maVaiTroBo: null, hasActiveSub: false, hasChildComponents: false })).toBeNull();
   });
 });

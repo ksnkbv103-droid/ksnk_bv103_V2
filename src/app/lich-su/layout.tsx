@@ -2,6 +2,7 @@
 "use client";
 
 import React, { Suspense } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Stethoscope, ClipboardList } from "lucide-react";
 import {
@@ -20,6 +21,7 @@ const historyTabs: SupervisionTabLinkDef[] = [
 export default function LichSuLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const supervisionModule = pathname?.includes("/lich-su/gsc") ? "gsc" : "vst";
+  const isVst = supervisionModule === "vst";
 
   return (
     <div className={bv103DesignTokens.pageOuter}>
@@ -42,6 +44,25 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
           }
         />
       </Suspense>
+
+      {isVst ? (
+        <p className="no-print mb-2 px-0.5 text-[11px] leading-snug text-slate-500">
+          Khối Vệ sinh tay ·{" "}
+          <Link
+            href="/lich-su/gsc?bk=KSNK.QT.07.BM.02"
+            className="font-medium text-[var(--primary)] underline"
+          >
+            BM.02
+          </Link>
+          {" / "}
+          <Link
+            href="/lich-su/gsc?bk=KSNK.QT.07.BM.03"
+            className="font-medium text-[var(--primary)] underline"
+          >
+            BM.03
+          </Link>
+        </p>
+      ) : null}
 
       {children}
     </div>

@@ -20,11 +20,10 @@ type Props = {
 const TEMPLATE_HEADERS = [
   { header: "Tiêu đề*", key: "tieu_de" },
   { header: "Mô tả", key: "mo_ta" },
-  { header: "Loại (dinh_ky|dot_xuat|khan_cap)", key: "loai_cong_viec" },
   { header: "Ưu tiên (thap|trung_binh|cao)", key: "muc_do_uu_tien" },
-  { header: "Hạn (yyyy-mm-dd)", key: "han_hoan_thanh" },
-  { header: "Mã nv ksnk phụ trách*", key: "ma_nv" },
-  { header: "Mã khoa địa điểm*", key: "ma_khoa" },
+  { header: "Hạn (yyyy-mm-dd)*", key: "han_hoan_thanh" },
+  { header: "Mã nv phụ trách*", key: "ma_nv" },
+  { header: "Mã khoa địa điểm", key: "ma_khoa" },
   { header: "Mã tổ", key: "ma_to" },
 ];
 
@@ -53,7 +52,6 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
     ws.addRow({
       tieu_de: "Rà soát checklist IPC nội bộ KSNK",
       mo_ta: "Theo quy trình KSNK BV103",
-      loai_cong_viec: "DOT_XUAT",
       muc_do_uu_tien: "TRUNG_BINH",
       han_hoan_thanh: "2026-12-31",
       ma_nv: "ADMIN01",

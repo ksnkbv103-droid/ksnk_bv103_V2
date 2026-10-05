@@ -2,7 +2,7 @@
 
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -12,7 +12,7 @@ import {
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
-import { VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
+import { VST_COMPARE_MIN_SAMPLE, VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
@@ -31,6 +31,9 @@ type Props = {
   denNgay: string;
   khoaOptions: { id: string; label: string; khoi_id?: string }[];
   selectedKhoaIds: string[];
+  /** GS-02: lens điều khiển fetch RPC; đổi lens → refetch. */
+  sourceLens: SupervisionSourceLens;
+  onSourceLensChange: (lens: SupervisionSourceLens) => void;
 };
 
 /**
@@ -38,7 +41,7 @@ type Props = {
  * Nâng cao: đối soát · KPI · (lỗi/moment nằm phân tích sâu / drill).
  */
 export default function VstStrategicAnalyticsPanel(p: Props) {
-  const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
+  const sourceLens = p.sourceLens;
   const gapKhoaRows = useMemo(
     () =>
       buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
@@ -53,7 +56,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
-      { title: "Theo chức năng phòng", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
+      { title: "Theo khu vực", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
       ...(p.payload?.matrix_cach_thuc?.length
@@ -70,7 +73,11 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       <div id="so-sanh" className="scroll-mt-24 flex flex-wrap items-center justify-between gap-2">
-        <SupervisionSourceLensToggle value={sourceLens} onChange={setSourceLens} disabled={p.loading} />
+        <SupervisionSourceLensToggle
+          value={sourceLens}
+          onChange={p.onSourceLensChange}
+          disabled={p.loading}
+        />
         <p className="text-[11px] text-slate-500">
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
@@ -117,6 +124,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
             loading={p.loading}
             defaultOpen={false}
             summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
+            minSample={VST_COMPARE_MIN_SAMPLE}
           />
         </div>
       </details>
@@ -125,7 +133,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát · KPI thô
+            Đối soát · Số liệu gốc
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
@@ -136,7 +144,13 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
               { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
               { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
               { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-              { label: "Đúng kỹ thuật", value: formatPercent1FromRatio(p.payload?.kpis?.dung_ky_thuat ?? 0, p.payload?.kpis?.da_tuan_thu ?? 0) },
+              {
+                label: "Kỹ thuật quan sát nhanh (phiếu WHO)",
+                value: formatPercent1FromRatio(
+                  p.payload?.kpis?.dung_ky_thuat ?? 0,
+                  p.payload?.kpis?.danh_gia_ky_thuat ?? 0,
+                ),
+              },
             ]}
           />
         </div>

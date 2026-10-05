@@ -4,11 +4,11 @@ import GscFormView from "@/modules/giam-sat-chung/views/GscFormView";
 import { parseGscLocPrefill } from "@/modules/giam-sat-chung/lib/gsc-loc-prefill";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { pickSearchParam, redirectWithQuery } from "@/lib/nav/redirect-with-query";
+import { pickGscEditSessionId } from "@/modules/giam-sat-chung/lib/gsc-edit-session-param";
 
 export const metadata = {
-  title: "Form giám sát chung | KSNK 103",
-  description:
-    "Form gốc — mọi loại bảng kiểm. Hub Giám sát mở mẫu tuân thủ tại /giam-sat-chung/tuan-thu.",
+  title: "Giám sát chung",
+  description: "Mở phiên giám sát chung (sửa phiếu) hoặc chuyển sang cửa tuân thủ.",
 };
 
 type Props = {
@@ -19,7 +19,14 @@ export default async function Page({ searchParams }: Props) {
   const params = await searchParams;
   if (pickSearchParam(params.tab) === "history") redirectWithQuery("/lich-su/gsc", params);
   if (pickSearchParam(params.tab) === "analytics") redirectWithQuery("/thong-ke/gsc", params);
-  const editId = pickSearchParam(params.edit);
+
+  const editId = pickGscEditSessionId({
+    edit: pickSearchParam(params.edit),
+    session: pickSearchParam(params.session),
+  });
+  // Không có edit/session → cửa ghi = tuân thủ (R5); giữ loc/ma/bk…
+  if (!editId) redirectWithQuery("/giam-sat-chung/tuan-thu", params);
+
   const locPrefill = parseGscLocPrefill({
     loc: pickSearchParam(params.loc),
     ma: pickSearchParam(params.ma),

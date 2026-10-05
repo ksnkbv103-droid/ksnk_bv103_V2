@@ -29,6 +29,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("Recognized pathogen + CVC ≥3d → CLABSI", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix }),
       bloodXn: [blood({ id: "b1", ngay: ix })],
       lamSang: { "2026-07-19": [{ key: "fever", label: "Sốt" }] },
@@ -45,6 +46,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("CVC chỉ 1 ngày tại DOE → PRIMARY_BSI_NON_CLABSI (không gắn)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix }),
       bloodXn: [blood({ id: "b1", ngay: ix })],
       lamSang: { "2026-07-19": [{ key: "fever", label: "Sốt" }] },
@@ -60,6 +62,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("CVC 2 ngày liên tiếp (Day1–2) → chưa đủ Day 3 → không CLABSI", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix }),
       bloodXn: [blood({ id: "b1", ngay: ix })],
       lamSang: { "2026-07-20": [{ key: "fever", label: "Sốt" }] },
@@ -107,6 +110,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("Site Secondary defer: localized + match → SECONDARY_BSI (không CLABSI)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix, vi_khuan: "E. coli" }),
       bloodXn: [blood({ id: "b1", ngay: ix, vi_khuan: "E. coli" })],
       lamSang: {},
@@ -129,6 +133,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("Yeast sau UTI exclusion → vẫn Primary candidate messaging (không Secondary)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix, vi_khuan: "Candida albicans" }),
       bloodXn: [blood({ id: "b1", ngay: ix, vi_khuan: "Candida albicans" })],
       lamSang: {},
@@ -149,6 +154,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("Single CoNS without sx → CONTAMINATION", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({
         id: "b1",
         ngay: ix,
@@ -208,6 +214,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
     expect(counted.drawnSeparate).toBe(false);
 
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: a,
       bloodXn: [a, b],
       lamSang: { [ix]: [{ key: "fever", label: "Sốt" }] },
@@ -222,6 +229,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("MBI: ANC ≥2 ngày + tác nhân đường ruột → MBI_LCBI (không CLABSI)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" }),
       bloodXn: [blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" })],
       lamSang: {},
@@ -237,6 +245,7 @@ describe("nkbv-bsi-timeline-verdict", () => {
   it("tick neutropenia đơn trên Hub không đủ MBI", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
       indexXn: blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" }),
       bloodXn: [blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" })],
       lamSang: {},

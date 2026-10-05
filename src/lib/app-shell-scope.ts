@@ -4,6 +4,7 @@
  */
 
 import { CSSD_APP_SHELL_PREFIXES } from "./cssd-routes";
+import { isVeSinhTayGscBangKiem } from "./domain/ve-sinh-tay-catalog";
 
 function normalizePath(pathname: string | null): string {
   if (!pathname) return "";
@@ -28,8 +29,15 @@ export type KsnkHeaderBreadcrumb = {
   page?: string;
 };
 
+export type KsnkHeaderBreadcrumbQuery = {
+  bk?: string | null;
+};
+
 /** Context bar — zone + trang hiện tại. */
-export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderBreadcrumb {
+export function getKsnkAppHeaderBreadcrumb(
+  pathname: string | null,
+  query?: KsnkHeaderBreadcrumbQuery | null,
+): KsnkHeaderBreadcrumb {
   const p = normalizePath(pathname);
   // H2: `/` redirects → BCTH; keep breadcrumb one-door if ever rendered before redirect.
   if (p === "/" || p === "") return { zone: "Điều hành", page: "Báo cáo chính thức" };
@@ -37,9 +45,12 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
     return { zone: "Điều hành", page: "Báo cáo chính thức" };
   }
   if (p.startsWith("/giam-sat-vst")) return { zone: "Giám sát", page: "Vệ sinh tay" };
-  if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Form giám sát chung" };
+  if (p === "/giam-sat-chung") return { zone: "Giám sát", page: "Giám sát chung" };
   if (p.startsWith("/giam-sat-chung/nhat-ky")) return { zone: "Giám sát", page: "Nhật ký vận hành" };
   if (p.startsWith("/giam-sat-chung/he-thong")) return { zone: "Giám sát", page: "Đánh giá hệ thống" };
+  if (p.startsWith("/giam-sat-chung/tuan-thu") && isVeSinhTayGscBangKiem(query?.bk)) {
+    return { zone: "Giám sát", page: "Vệ sinh tay" };
+  }
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };
   if (p.startsWith("/giam-sat-nkbv")) return { zone: "Giám sát", page: "NKBV" };
   if (p === "/giam-sat") return { zone: "Giám sát", page: "Cổng giám sát" };

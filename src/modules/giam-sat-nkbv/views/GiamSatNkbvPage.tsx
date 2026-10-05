@@ -166,28 +166,33 @@ export default function GiamSatNkbvPage() {
   const setSelectedKhoa = header.setSelectedKhoa;
 
   /** Deep link: ?case= | ?ba=&xn= | ?tab=… — đọc lại khi URL đổi (nút Phân tích từ kho vi sinh). */
+  const deepLinkKey = searchParams.toString();
   useEffect(() => {
     if (header.loading) return;
-    const caseId = (searchParams.get("case") || "").trim();
-    const ba = (searchParams.get("ba") || "").trim();
-    const xn = (searchParams.get("xn") || "").trim();
-    const tab = parseMainTab(searchParams.get("tab"));
-    const tu = (searchParams.get("tu_ngay") || searchParams.get("tu") || "").trim();
-    const den = (searchParams.get("den_ngay") || searchParams.get("den") || "").trim();
+    const sp = new URLSearchParams(deepLinkKey);
+    const caseId = (sp.get("case") || "").trim();
+    const ba = (sp.get("ba") || "").trim();
+    const xn = (sp.get("xn") || "").trim();
+    const tab = parseMainTab(sp.get("tab"));
+    const tu = (sp.get("tu_ngay") || sp.get("tu") || "").trim();
+    const den = (sp.get("den_ngay") || sp.get("den") || "").trim();
     const khoa =
-      (searchParams.get("khoa") || "").trim() ||
-      (searchParams.get("khoa_ids") || "").split(",")[0]?.trim() ||
+      (sp.get("khoa") || "").trim() ||
+      (sp.get("khoa_ids") || "").split(",")[0]?.trim() ||
       "";
 
-    if (tab) setMainTab(tab);
-    if (tu) setDashTu(tu);
-    if (den) setDashDen(den);
+    if (tab) setMainTab((prev) => (prev === tab ? prev : tab));
+    if (tu) setDashTu((prev) => (prev === tu ? prev : tu));
+    if (den) setDashDen((prev) => (prev === den ? prev : den));
     if (khoa) setSelectedKhoa(khoa);
 
     if (ba) {
       setMainTab("records");
-      setHubBa(ba);
-      setHubXn(xn || null);
+      setHubBa((prev) => (prev === ba ? prev : ba));
+      setHubXn((prev) => {
+        const next = xn || null;
+        return prev === next ? prev : next;
+      });
     } else {
       setHubXn(null);
       setHubBa(null);
@@ -207,7 +212,7 @@ export default function GiamSatNkbvPage() {
         toast.success("Đã mở phiếu NKBV từ mã QR / liên kết");
       })();
     }
-  }, [header.loading, searchParams, setSelectedKhoa]);
+  }, [header.loading, deepLinkKey, setSelectedKhoa]);
 
   const openHubBa = useCallback(
     (ma: string, xnId?: string) => {
@@ -780,7 +785,7 @@ export default function GiamSatNkbvPage() {
                 ma_benh_an: "",
                 ma_benh_nhan: "",
                 ho_ten_benh_nhan: "",
-                ngay_vao_vien: new Date().toISOString().slice(0, 10),
+                ngay_vao_vien: todayYmdInVn(),
                 khoa_dieu_tri_id: header.selectedKhoa || "",
                 __createStay: true,
               });

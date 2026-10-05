@@ -64,6 +64,14 @@ export interface CongViec {
   checklist?: unknown;
   /** Nhật ký sự kiện — SSOT thay bảng hoat_dong. */
   nhat_ky?: unknown;
+  /** QLCV-12: nguồn liên kết module khác. */
+  nguon_lien_ket?: {
+    module: "CSSD_SU_CO" | "GIAM_SAT" | "NKBV" | "analytics";
+    id?: string | null;
+    ma?: string | null;
+    label?: string | null;
+    href?: string | null;
+  } | null;
 
   created_at: string;
   updated_at: string;

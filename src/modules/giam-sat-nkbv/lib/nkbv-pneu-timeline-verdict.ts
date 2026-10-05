@@ -212,6 +212,7 @@ export function buildPneuTimelineVerdict(
         removedDate: input.deviceRemovedDate || null,
         admissionDate: input.admissionDate,
         dischargeDate: input.dischargeDate,
+        deviceKind: "vent",
       })
     : { placedDays: 0, activeOnEvent: false, associated: false, episodeStart: undefined, episodeRemoved: null };
   const ventDays = ventAssoc.placedDays;
@@ -340,6 +341,9 @@ export function buildPneuTimelineVerdict(
     has_tachypnea: hasTachypnea,
     microbiology_evidence: "NONE" as const,
     calculated_doe: doe || undefined,
+    ngay_vao_vien: input.admissionDate
+      ? String(input.admissionDate).slice(0, 10)
+      : undefined,
     hai_status:
       input.admissionDate && doe
         ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus

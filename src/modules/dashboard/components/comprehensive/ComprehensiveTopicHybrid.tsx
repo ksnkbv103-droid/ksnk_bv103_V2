@@ -63,6 +63,10 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
           title="Vệ sinh tay"
           available={payload?.capabilities.topic_vst}
           deepHref={deep ? buildAnalyticsDeepLink("/thong-ke/vst", deep) : "/thong-ke/vst"}
+          extraDeepLinks={[
+            { href: "/thong-ke/gsc?bk=KSNK.QT.07.BM.02", label: "BM.02" },
+            { href: "/thong-ke/gsc?bk=KSNK.QT.07.BM.03", label: "BM.03" },
+          ]}
           lines={buildVstLines(payload)}
         />
       )}
@@ -94,23 +98,37 @@ function TopicSummary({
   title,
   available,
   deepHref,
+  extraDeepLinks,
   lines,
 }: {
   title: string;
   available?: boolean;
   deepHref: string;
+  extraDeepLinks?: { href: string; label: string }[];
   lines: string[];
 }) {
   return (
     <div className="mb-5 border-b border-slate-100 pb-5 last:mb-0 last:border-0 last:pb-0">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="bv103-type-section text-slate-700">{title}</h3>
-        <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
-          Chi tiết thống kê <ExternalLink size={10} aria-hidden />
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
+            {extraDeepLinks?.length ? "WHO" : "Chi tiết thống kê"}
+            <ExternalLink size={10} aria-hidden className="ml-0.5 inline" />
+          </Link>
+          {extraDeepLinks?.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="bv103-type-label font-semibold text-emerald-700 hover:underline"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
       </div>
       {!available ? (
-        <p className="text-xs text-slate-500">N/A — không có dữ liệu hoặc không có quyền nguồn.</p>
+        <p className="text-xs text-slate-500">— không có dữ liệu hoặc không có quyền nguồn.</p>
       ) : (
         <ul className="list-inside list-disc space-y-1 text-sm text-slate-700">
           {lines.map((line) => (
@@ -127,7 +145,7 @@ function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
   if (!k) return [];
   const lines = [
     `Tuân thủ: ${formatPercent1(k.ty_le_tuan_thu)} (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
-    `Đúng kỹ thuật: ${k.ty_le_dung_ky_thuat}% · Lạm dụng găng: ${k.ty_le_lam_dung_gang}%`,
+    `Kỹ thuật (phiếu WHO): ${k.ty_le_dung_ky_thuat == null ? "—" : `${k.ty_le_dung_ky_thuat}%`} · Bỏ sót khi đang mang găng: ${k.ty_le_lam_dung_gang == null ? "—" : `${k.ty_le_lam_dung_gang}%`}`,
   ];
   const worstMoment = [...(payload?.vst?.moments ?? [])].sort((a, b) => a.ty_le_tuan_thu - b.ty_le_tuan_thu)[0];
   if (worstMoment) lines.push(`Thời điểm thấp nhất: ${worstMoment.ten} (${formatPercent1(worstMoment.ty_le_tuan_thu)})`);
@@ -152,7 +170,7 @@ function buildNkbvLines(payload: BaoCaoTongHopPayload | null): string[] {
   const k = payload?.nkbv?.kpis;
   if (!k) return [];
   const lines = [
-    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận/PA−LT: ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,
+    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận (đã kết luận): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,
     `Đang ghi/ chờ XN: ${k.dang_va_cho_xn} · Loại trừ: ${k.loai_tru}`,
   ];
   const topLoai = payload?.nkbv?.by_loai?.[0];

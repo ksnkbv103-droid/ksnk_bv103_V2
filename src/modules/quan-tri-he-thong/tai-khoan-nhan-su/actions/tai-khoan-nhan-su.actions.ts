@@ -143,9 +143,13 @@ export async function getAvailableRolesAction() {
 export async function setStaffKsnkRbacRole(params: {
   staffId: string;
   roleName: string;
+  confirmActorPassword?: string;
 }) {
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
+    const reauth = await verifyCurrentActorPassword(String(params.confirmActorPassword || ""));
+    if (!reauth.ok) return { success: false as const, error: reauth.error };
+
     const supabase = createAdminSupabaseClient();
 
     const roleNorm = params.roleName.trim();
@@ -159,6 +163,18 @@ export async function setStaffKsnkRbacRole(params: {
         success: false as const,
         error:
           "Chỉ được gán một trong: Hội đồng KSNK, Nhân viên khoa KSNK, Mạng lưới KSNK, hoặc Khách xem Thống kê.",
+      };
+    }
+
+    const { data: staffRow } = await supabase
+      .from("mdm_nhan_su")
+      .select("auth_user_id")
+      .eq("id", params.staffId)
+      .maybeSingle();
+    if (staffRow?.auth_user_id && String(staffRow.auth_user_id) === String(actor.id)) {
+      return {
+        success: false as const,
+        error: "Không được tự gán/gỡ vai trò của chính mình.",
       };
     }
 
@@ -191,6 +207,16 @@ export async function setStaffKsnkRbacRole(params: {
             : "Chưa gỡ được vai trò đăng nhập — cần apply migrate clear RPC, hoặc gỡ tại Phân quyền."),
       };
     }
+
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    await logAdminAction({
+      action: "CHANGE_RBAC_ROLE",
+      targetTable: "mdm_nhan_su",
+      targetId: params.staffId,
+      after: { roleName: canonicalName || null },
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
 
     await invalidateUserPermissionsCache();
     revalidatePath("/quan-tri-he-thong/tai-khoan");

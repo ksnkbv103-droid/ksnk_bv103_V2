@@ -36,9 +36,15 @@ export const createNewOpp = (): ExtendedOpportunity => ({
   isCollapsed: false,
 });
 
-export function createDefaultVSTFormPersons(): VSTFormPerson[] {
-  return (["col1", "col2", "col3"] as const).map((id_col) => ({
-    id_col,
+/** WHO W2: tối đa 3 NVYT khi nhập mới. Phiên cũ có thể nhiều hơn (grandfather). */
+export const VST_MAX_PERSONS_NEW = 3;
+/** Trần cứng prod (max lịch sử 8). */
+export const VST_MAX_PERSONS_HARD = 8;
+
+export function createDefaultVSTFormPersons(count: number = VST_MAX_PERSONS_NEW): VSTFormPerson[] {
+  const n = Math.min(VST_MAX_PERSONS_HARD, Math.max(1, Math.floor(count)));
+  return Array.from({ length: n }, (_, i) => ({
+    id_col: `col${i + 1}`,
     nghe_nghiep_id: "",
     nhan_vien_id: "",
     is_manual: false,

@@ -4,15 +4,16 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { buildVeSinhTayKpiCards } from "@/lib/domain/ve-sinh-tay-kpi";
-import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import { bcthModuleComplianceTone } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "@/modules/dashboard/lib/dashboard-chrome";
 import type { BaoCaoTongHopPayload } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 
-/** Ba KPI cạnh nhau — WHO + BM.07.02 + BM.07.03; không gộp %. */
+/** Ba KPI cạnh nhau — WHO + KSNK.QT.07.BM.02 + BM.03; không gộp %. */
 export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const cards = buildVeSinhTayKpiCards({
     vst: payload?.vst ?? null,
-    gsc: payload?.gsc ?? null,
+    // BCTH-01: BM.02/03 từ payload hub riêng — không phụ thuộc lọc BK GSC.
+    gsc: payload?.gsc_ve_sinh_tay ?? payload?.gsc ?? null,
     filters: payload
       ? {
           tu_ngay: payload.filters.tu_ngay,
@@ -25,14 +26,14 @@ export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayloa
   return (
     <div className="mb-[var(--bv103-space-3)] space-y-[var(--bv103-space-2)]">
       <p className="bv103-type-label text-slate-500">
-        Ba tỷ lệ riêng — WHO 5 thời điểm · kỹ thuật thường quy (BM.07.02) · ngoại khoa (BM.07.03). Không gộp thành một %.
+        Ba tỷ lệ riêng — WHO 5 thời điểm · kỹ thuật thường quy (KSNK.QT.07.BM.02) · ngoại khoa (KSNK.QT.07.BM.03). Không gộp thành một %.
       </p>
       <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
         {cards.map((card) => {
           const isWho = card.catalogMaBk == null;
           const value =
-            card.tyLe == null ? "N/A" : isWho ? formatPercent1(card.tyLe) : formatPercent2(card.tyLe);
-          const tone = complianceToneFromPercent(card.tyLe);
+            card.tyLe == null ? "—" : isWho ? formatPercent1(card.tyLe) : formatPercent2(card.tyLe);
+          const tone = bcthModuleComplianceTone("vst", card.tyLe);
           return (
             <div
               key={card.qtMa}

@@ -8,6 +8,7 @@ import {
   isVeSinhTayGscBangKiem,
   isWhoObservationBangKiem,
   normalizeBangKiemMa,
+  resolveBangKiemMaCandidates,
 } from "./ve-sinh-tay-catalog";
 
 export type LopGiamSatV2 = "he_thong" | "thuc_hanh_don_vi" | "hybrid";
@@ -46,7 +47,8 @@ export function readLopGiamSatFromBangKiem(bk: BangKiemLopSource): LopGiamSatV2 
 
 /**
  * Suy lớp khi tip chưa có seed_meta (pre-25d):
- * DANH_GIA_HE_THONG → he_thong; còn lại → thuc_hanh_don_vi (null nếu không suy được).
+ * DANH_GIA_HE_THONG → he_thong; TUAN_THU/rỗng → thuc_hanh_don_vi.
+ * GSC-08: NHAT_KY_VAN_HANH → null (không thuộc thực hành).
  */
 export function inferLopGiamSatFallback(bk: BangKiemLopSource): LopGiamSatV2 | null {
   const fromMeta = readLopGiamSatFromBangKiem(bk);
@@ -55,7 +57,8 @@ export function inferLopGiamSatFallback(bk: BangKiemLopSource): LopGiamSatV2 | n
     .trim()
     .toUpperCase();
   if (lg === "DANH_GIA_HE_THONG") return "he_thong";
-  if (lg === "TUAN_THU" || lg === "NHAT_KY_VAN_HANH" || !lg) return "thuc_hanh_don_vi";
+  if (lg === "NHAT_KY_VAN_HANH") return null;
+  if (lg === "TUAN_THU" || !lg) return "thuc_hanh_don_vi";
   return null;
 }
 
@@ -73,6 +76,30 @@ export function isVstHubBangKiemExcludedFromGscGeneric(maBk: string | null | und
 
 export function filterOutVstHubFromGscGenericList<T extends { ma_bk?: string | null }>(rows: T[]): T[] {
   return rows.filter((r) => !isVstHubBangKiemExcludedFromGscGeneric(r.ma_bk));
+}
+
+/**
+ * BCTH-01 / GSC: BK mặc định khối GSC = TUAN_THU trừ alias hub Vệ sinh tay (BM.02/03).
+ * Dùng chung BCTH và `/thong-ke/gsc` khi chọn `p_bang_kiem_mas`.
+ */
+export function selectGscGenericBangKiemMas(mas: readonly string[]): string[] {
+  return mas
+    .map((ma) => String(ma ?? "").trim())
+    .filter((ma) => ma.length > 0 && !isVstHubBangKiemExcludedFromGscGeneric(ma));
+}
+
+/** Mọi alias ma_bk BM.02/BM.03 để RPC khối Vệ sinh tay (không phụ thuộc lọc BK GSC). */
+export function veSinhTayHubBangKiemMasForRpc(): string[] {
+  const out = new Set<string>();
+  for (const e of [
+    "KSNK.QT.07.BM.02",
+    "KSNK.QT.07.BM.03",
+    "BM.07.02",
+    "BM.07.03",
+  ] as const) {
+    for (const c of resolveBangKiemMaCandidates(e)) out.add(c);
+  }
+  return [...out];
 }
 
 /**
@@ -117,12 +144,13 @@ export function filterBangKiemByLopGiamSatMode<T extends BangKiemLopSource>(
     return base.filter((bk) => String(bk.loai_giam_sat || "").trim().toUpperCase() === "NHAT_KY_VAN_HANH");
   }
 
-  // TUAN_THU = giám sát thực hành
+  // TUAN_THU = giám sát thực hành — GSC-08: loại nhật ký vận hành
   return base.filter((bk) => {
+    const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
+    if (lg === "NHAT_KY_VAN_HANH") return false;
     const lop = inferLopGiamSatFallback(bk);
     if (lop === "he_thong") return false;
     if (lop === "thuc_hanh_don_vi" || lop === "hybrid") return true;
-    const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
     return !lg || lg === "TUAN_THU";
   });
 }

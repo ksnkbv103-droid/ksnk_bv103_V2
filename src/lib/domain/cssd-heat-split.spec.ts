@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isHeatSplitBlockedStation,
   planHeatSplitForBo,
+  rejectParentBoScan,
   shouldAutoSplitOnLoaiHeatDowngrade,
 } from "./cssd-heat-split";
 
@@ -32,5 +33,11 @@ describe("cssd-heat-split", () => {
     expect(isHeatSplitBlockedStation("TIET_KHUAN")).toBe(true);
     expect(isHeatSplitBlockedStation("CAP_PHAT")).toBe(true);
     expect(isHeatSplitBlockedStation("DONG_GOI")).toBe(false);
+  });
+
+  it("CSSD-04: rejectParentBoScan chặn mẹ / MAIN", () => {
+    expect(rejectParentBoScan({ hasChildComponents: true })).toMatch(/thành phần/);
+    expect(rejectParentBoScan({ maVaiTroBo: "MAIN" })).toMatch(/thành phần/);
+    expect(rejectParentBoScan({})).toBeNull();
   });
 });

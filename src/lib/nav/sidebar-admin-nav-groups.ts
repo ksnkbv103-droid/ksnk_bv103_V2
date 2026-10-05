@@ -22,7 +22,7 @@ export type SidebarAdminGroup = {
 export const SIDEBAR_ADMIN_GROUPS: SidebarAdminGroup[] = [
   {
     id: "qt-hub",
-    label: "Sửa danh mục",
+    label: "Quản trị",
     items: [
       {
         name: "Quản trị hệ thống",

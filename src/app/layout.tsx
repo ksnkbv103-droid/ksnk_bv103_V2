@@ -10,6 +10,7 @@ const ClientLayoutWrapper = dynamic(() => import("../components/shared/ClientLay
 });
 
 import { PermissionProvider } from "@/contexts/PermissionProvider";
+import { getServerRbacSnapshot } from "@/lib/auth/rbac-request";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext", "vietnamese"],
@@ -45,11 +46,12 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialRbac = await getServerRbacSnapshot();
   return (
     <html lang="vi" className={`${inter.className} ${inter.variable}`}>
       <body className="bg-slate-50 text-slate-900 pointer-events-auto">
-        <PermissionProvider>
+        <PermissionProvider initialSnapshot={initialRbac}>
           <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
         </PermissionProvider>
         <Toaster position="top-right" richColors />

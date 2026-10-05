@@ -5,8 +5,11 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 function withCountsPercent<T extends { tong_co_hoi?: number; da_tuan_thu?: number; ty_le_tuan_thu?: number | null }>(
   row: T,
 ): T {
-  const pct = rateFromTotals(Number(row.da_tuan_thu ?? 0), Number(row.tong_co_hoi ?? 0));
-  return pct == null ? row : { ...row, ty_le_tuan_thu: pct };
+  const tong = Number(row.tong_co_hoi ?? 0);
+  const pct = rateFromTotals(Number(row.da_tuan_thu ?? 0), tong);
+  // VST-06 / GSC-07: mẫu 0 → null («—»), không giữ 0% RPC.
+  if (pct == null) return tong > 0 ? row : { ...row, ty_le_tuan_thu: null };
+  return { ...row, ty_le_tuan_thu: pct };
 }
 
 /** Chênh tự GS − chuyên trách sau khi cả hai % đã làm tròn 1 chữ số từ đếm. */
@@ -32,21 +35,31 @@ function remapVstGapRows(rows: VstStrategicPayload["gap_analysis"] | undefined) 
   });
 }
 
-/** VST: % = đạt / tong_co_hoi, 1 chữ số — không tin ROUND RPC. */
+/**
+ * VST: % = đạt / tong_co_hoi, 1 chữ số — không tin ROUND RPC.
+ * VST-06: mẫu 0 ghi null runtime (cast payload) để FE hiện «—».
+ */
 export function normalizeVstStrategicPercents(payload: VstStrategicPayload): VstStrategicPayload {
   const kpis = payload.kpis;
   const tong = Number(kpis?.tong_co_hoi ?? 0);
   const daTuanThu = Number(kpis?.da_tuan_thu ?? 0);
   const boSot = Number(kpis?.bo_sot ?? 0);
-  return {
+  const normalized = {
     ...payload,
     kpis: kpis
       ? {
           ...kpis,
-          ty_le_tuan_thu: rateFromTotals(kpis.da_tuan_thu, tong) ?? kpis.ty_le_tuan_thu,
-          ty_le_dung_ky_thuat: rateFromTotals(kpis.dung_ky_thuat, daTuanThu) ?? kpis.ty_le_dung_ky_thuat,
-          ty_le_du_thoi_gian: rateFromTotals(kpis.du_thoi_gian, daTuanThu) ?? kpis.ty_le_du_thoi_gian,
-          ty_le_lam_dung_gang: rateFromTotals(kpis.lam_dung_gang, boSot) ?? kpis.ty_le_lam_dung_gang,
+          ty_le_tuan_thu: rateFromTotals(kpis.da_tuan_thu, tong) ?? (tong > 0 ? kpis.ty_le_tuan_thu : null),
+          // VST-03: mẫu = ô đã đánh giá (không dùng da_tuan_thu / bo_sot).
+          ty_le_dung_ky_thuat:
+            rateFromTotals(kpis.dung_ky_thuat, Number(kpis.danh_gia_ky_thuat ?? 0)) ??
+            (Number(kpis.danh_gia_ky_thuat ?? 0) > 0 ? kpis.ty_le_dung_ky_thuat : null),
+          ty_le_du_thoi_gian:
+            rateFromTotals(kpis.du_thoi_gian, Number(kpis.danh_gia_thoi_gian ?? 0)) ??
+            (Number(kpis.danh_gia_thoi_gian ?? 0) > 0 ? kpis.ty_le_du_thoi_gian : null),
+          ty_le_lam_dung_gang:
+            rateFromTotals(kpis.lam_dung_gang, Number(kpis.danh_gia_gang ?? boSot)) ??
+            (Number(kpis.danh_gia_gang ?? boSot) > 0 ? kpis.ty_le_lam_dung_gang : null),
         }
       : kpis,
     trendline: (payload.trendline ?? []).map(withCountsPercent),
@@ -59,4 +72,5 @@ export function normalizeVstStrategicPercents(payload: VstStrategicPayload): Vst
     moments: (payload.moments ?? []).map(withCountsPercent),
     gap_analysis: remapVstGapRows(payload.gap_analysis),
   };
+  return normalized as VstStrategicPayload;
 }

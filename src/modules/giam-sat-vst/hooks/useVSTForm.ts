@@ -21,6 +21,7 @@ import {
   writeStickyAdminContext,
 } from "@/lib/supervision-admin-context";
 import { createNewOpp } from "../lib/vst-form-model";
+import { qlcvTodayVn } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 
 type NhanSuOption = { id?: string; khoa_id?: string; nghe_nghiep_id?: string; [key: string]: unknown };
 
@@ -31,7 +32,11 @@ function clonePersonIdentities(persons: VSTFormPerson[]): VSTFormPerson[] {
   }));
 }
 
-export function useVSTForm(onSuccess: () => void, editingSessionId?: string | null) {
+export function useVSTForm(
+  onSuccess: () => void,
+  editingSessionId?: string | null,
+  requiresEditReason = false,
+) {
   const { isMangLuoi, isAdmin, userData, loading: permLoading } = usePermission();
   const lockKhoa = Boolean(isMangLuoi && !isAdmin && !editingSessionId);
   const actorKhoaId = userData?.khoa_id ?? null;
@@ -43,7 +48,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     hinh_thuc_giam_sat: "Giám sát chuyên trách",
     cach_thuc_giam_sat: "Giám sát trực tiếp tại chỗ",
     nguoi_giam_sat_id: "",
-    ngay_giam_sat: new Date().toISOString().split("T")[0]!,
+    ngay_giam_sat: qlcvTodayVn(),
     thoi_gian_bat_dau: "",
     is_bo_sung_nguoi_benh: false,
     ma_benh_an: "",
@@ -90,11 +95,14 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
       setInitialLoading(true);
       setMasterDataFetchFailed(false);
       try {
-        const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true });
+        // A) Bundle rồi header tuần tự. B) Promise.all độc lập — chọn B (TTFD form).
+        const [result, scoped] = await Promise.all([
+          mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true }),
+          getVstHeaderDmDropdowns(),
+        ]);
         if (cancelled) return;
         if (result.success) {
           setMasterDataFetchFailed(false);
-          const scoped = await getVstHeaderDmDropdowns();
           const scopedData = scoped.success ? scoped.data : null;
           const nextKhoas = scopedData?.khoas?.length ? scopedData.khoas : result.data.khoas || [];
           setKhoas(nextKhoas);
@@ -194,6 +202,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     onSuccess,
     editingSessionId ?? null,
     handleCreateSaveSuccess,
+    requiresEditReason,
   );
 
   const handleFinalSaveRef = useRef(handleFinalSave);

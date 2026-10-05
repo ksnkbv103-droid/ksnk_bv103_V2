@@ -19,15 +19,30 @@ export const CAUSE_CLASS_LABEL: Record<CauseClass, string> = {
   SC_HE_THONG: "Lỗi hệ thống / dữ liệu",
 };
 
+/** Loại kích hoạt thu hồi cả mẻ (SC-02: chỉ sau lệnh Tổ trưởng / phiếu mẻ). */
 export const BATCH_QC_FAIL_TYPE_IDS = [
   "PROCESS_STERILIZATION_FAIL",
   "PROCESS_STERILE_QC_FAIL",
   "PROCESS_BI_POSITIVE",
 ] as const;
 
+/** SC-02: một gói lỗi sau TK — không thu hồi mẻ. */
+export const SINGLE_PACK_POST_STERILE_TYPE_ID = "PROCESS_SINGLE_PACK_FAIL" as const;
+
+/** SC-02 / N-SC-5: Bowie-Dick tách khỏi nội kiểm mẻ — giữ máy, không thu hồi. */
+export const BOWIE_DICK_FAIL_TYPE_ID = "PROCESS_BOWIE_DICK_FAIL" as const;
+
 export function isBatchQcFailTypeId(typeId?: string | null): boolean {
   const code = String(typeId || "").trim().toUpperCase();
   return (BATCH_QC_FAIL_TYPE_IDS as readonly string[]).includes(code);
+}
+
+export function isSinglePackPostSterileTypeId(typeId?: string | null): boolean {
+  return String(typeId || "").trim().toUpperCase() === SINGLE_PACK_POST_STERILE_TYPE_ID;
+}
+
+export function isBowieDickFailTypeId(typeId?: string | null): boolean {
+  return String(typeId || "").trim().toUpperCase() === BOWIE_DICK_FAIL_TYPE_ID;
 }
 
 /** Sự cố gắn mẻ: đủ mã lô thì không bắt buộc QR bộ. */
@@ -108,8 +123,10 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   PROCESS: [
     { code: "PROCESS_MISSTEP", label: "Sai thao tác quy trình tại khâu" },
     { code: "PROCESS_QC_FAIL", label: "Không đạt Kiểm bộ tại khâu" },
-    { code: "PROCESS_STERILIZATION_FAIL", label: "Chất lượng tiệt khuẩn / mẻ không đạt" },
-    { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
+    { code: "PROCESS_SINGLE_PACK_FAIL", label: "Một gói lỗi sau tiệt khuẩn (rách / ướt / CI trong gói)" },
+    { code: "PROCESS_STERILIZATION_FAIL", label: "Chất lượng tiệt khuẩn / mẻ không đạt (hệ thống)" },
+    { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK không đạt" },
+    { code: "PROCESS_BOWIE_DICK_FAIL", label: "Bowie-Dick không đạt" },
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
   /** D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */

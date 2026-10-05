@@ -6,7 +6,7 @@
  */
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidateCssdIncidentSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
 import { verifyCssdInventoryEdit } from "@/lib/cssd-server-gates";
 import { createIncidentReport as createIncidentReportImpl } from "@/modules/cssd-su-co/actions/su-co-report.actions";
@@ -15,6 +15,7 @@ import {
   INCIDENT_STATUS_OPEN,
   readIncidentPhieuStatus,
 } from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { getActorNhanSuId } from "@/lib/actor-auth-server";
 
 export async function createIncidentReport(data: Parameters<typeof createIncidentReportImpl>[0]) {
   return createIncidentReportImpl(data);
@@ -38,14 +39,13 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
     .eq("ma_qr_quy_trinh", maQrFact)
     .eq("is_active", true);
   if (suCoErr) throw new Error(suCoErr.message);
-  const openCount = (suCoRows || []).filter(
-    (r) =>
-      readIncidentPhieuStatus((r as { attributes?: Record<string, unknown> | null }).attributes) ===
-      INCIDENT_STATUS_OPEN,
-  ).length;
+  const openCount = (suCoRows || []).filter((r) => {
+    const st = readIncidentPhieuStatus((r as { attributes?: Record<string, unknown> | null }).attributes);
+    return st === INCIDENT_STATUS_OPEN;
+  }).length;
   if (openCount > 0) {
     throw new Error(
-      `Còn ${openCount} phiếu sự cố chưa xác nhận gắn bộ này — xác nhận/đóng phiếu trước khi mở khóa.`,
+      `Còn ${openCount} phiếu sự cố chưa xác nhận gắn bộ này — xác nhận/đóng (giải phóng) phiếu trước khi mở khóa.`,
     );
   }
 
@@ -57,13 +57,27 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   if (upErr) throw new Error(upErr.message);
   if (!unlocked?.length) throw new Error("Không mở khóa được bộ — bản ghi không còn hoặc đã đổi.");
 
-  const operator = "Quản trị viên";
+  let operator = "CSSD";
+  try {
+    const nsId = await getActorNhanSuId();
+    if (nsId) {
+      const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", nsId).maybeSingle();
+      if (ns?.ho_ten) operator = String(ns.ho_ten).trim();
+    }
+    if (operator === "CSSD") {
+      const uc = await createServerSupabaseUserClient();
+      const { data: auth } = await uc.auth.getUser();
+      if (auth.user?.email) operator = auth.user.email.trim();
+    }
+  } catch {
+    /* giữ CSSD */
+  }
   await appendQuyTrinhException(
     supabase,
     quyId,
     {
       su_kien: "MO_DONG_BANG",
-      ly_do: "Quản trị mở khóa an toàn (đóng băng)",
+      ly_do: "Mở khóa an toàn sau khi phiếu sự cố đã đóng (giải phóng)",
       nguoi_thao_tac: operator,
     },
     { soft: true },

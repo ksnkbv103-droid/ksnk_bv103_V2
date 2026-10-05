@@ -2,12 +2,9 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
 import { getErrorMessage, mapFkError, revalidateCssdInventorySurfaces } from "./cssd-action-common";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
-import { buildCssdSubBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import { bootstrapCssdQuyTrinhFromBoId } from "../shared/application/cssd-bo-bootstrap";
-import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 
 async function verifyCanRegisterPhysicalLabel(): Promise<void> {
   try {
@@ -101,62 +98,14 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
 }
 
 /**
- * Tách mã SUB — `{ma_bo MAIN}-SUB`, liên kết quy_trinh_cha.
+ * CSSD-04: tách nhiệt chỉ tại danh mục (parent_bo_id) — không tách SUB trên trạm.
  */
-export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Promise<
-  { success: true; ma_vach_qr_phu: string; quy_trinh_cha_id: string } | { success: false; error: string }
-> {
-  try {
-    await verifyCanRegisterPhysicalLabel();
-    const supabase = createAdminSupabaseClient();
-    const mainCode = normalizeBoMa(maQrMain);
-    if (!mainCode) return { success: false, error: "Thiếu mã QR bộ chính." };
-
-    const main = await fetchActiveQuyTrinhByScanCode(supabase, mainCode);
-    if (!main) return { success: false, error: "Không tìm thấy quy trình MAIN." };
-
-    const mainMa =
-      normalizeBoMa(String((main as { ma_bo?: string | null }).ma_bo || "")) ||
-      normalizeBoMa(String((main as { ma_qr_quy_trinh?: string }).ma_qr_quy_trinh || mainCode));
-    const subQr = buildCssdSubBoMa(mainMa);
-
-    const { data: subHit } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id")
-      .eq("ma_qr_quy_trinh", subQr)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (subHit?.id) {
-      return { success: false, error: `Mã SUB ${subQr} đã tồn tại.` };
-    }
-
-    const sta = String((main as { ma_trang_thai_hien_tai?: string }).ma_trang_thai_hien_tai || "DONG_GOI").trim();
-    const staPatch = await buildQuyTrinhTramPatch(supabase, sta);
-    const boId = String((main as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim();
-    const mainId = String((main as { id?: string }).id || "").trim();
-
-    const { error: tagMainErr } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({ ma_vai_tro_bo: "MAIN", updated_at: new Date().toISOString() })
-      .eq("id", mainId);
-    if (tagMainErr) return { success: false, error: mapFkError(tagMainErr.message) };
-
-    const { error: insSubErr } = await supabase.from("cssd_fact_quy_trinh").insert({
-      ma_qr_quy_trinh: subQr,
-      ma_qr_bo_vinh_vien: subQr,
-      bo_dung_cu_id: boId || null,
-      ...staPatch,
-      quy_trinh_cha_id: mainId,
-      ma_vai_tro_bo: "SUB",
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    });
-    if (insSubErr) return { success: false, error: mapFkError(insSubErr.message) };
-
-    revalidateCssdInventorySurfaces();
-
-    return { success: true, ma_vach_qr_phu: subQr, quy_trinh_cha_id: mainId };
-  } catch (e: unknown) {
-    return { success: false, error: getErrorMessage(e) };
-  }
+export async function registerSplitSubQrFromMainMaAction(
+  _maQrMain: string,
+): Promise<{ success: true; ma_vach_qr_phu: string; quy_trinh_cha_id: string } | { success: false; error: string }> {
+  return {
+    success: false,
+    error:
+      "Tách nhiệt làm tại danh mục dụng cụ (bộ thành phần chịu nhiệt / không chịu nhiệt). Không tách trên trạm Đóng gói.",
+  };
 }

@@ -42,6 +42,9 @@ type Props = {
   loadError?: string | null;
   bkLabelRecord?: Record<string, string>;
   khoaFilterLocked?: boolean;
+  /** GS-02: lens điều khiển fetch RPC; đổi lens → refetch. */
+  sourceLens: SupervisionSourceLens;
+  onSourceLensChange: (lens: SupervisionSourceLens) => void;
 };
 
 /**
@@ -52,7 +55,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [selectedMaBk, setSelectedMaBk] = useState<string | null>(() => searchParams.get("bk"));
-  const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
+  const sourceLens = p.sourceLens;
 
   useEffect(() => {
     const fromUrl = searchParams.get("bk");
@@ -112,7 +115,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
-      { title: "Theo chức năng phòng", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
+      { title: "Theo khu vực", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng", rows: toCompareRows(p.payload?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
       { title: "Theo cách thức giám sát", rows: toCompareRows(p.payload?.matrix_cach_thuc) },
@@ -127,7 +130,11 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       <div id="so-sanh" className="scroll-mt-24 flex flex-wrap items-center justify-between gap-2">
-        <SupervisionSourceLensToggle value={sourceLens} onChange={setSourceLens} disabled={p.loading} />
+        <SupervisionSourceLensToggle
+          value={sourceLens}
+          onChange={p.onSourceLensChange}
+          disabled={p.loading}
+        />
         <p className="text-[11px] text-slate-500">
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
@@ -160,7 +167,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
-            Tab tỷ lệ hoặc khối lượng — khoa dưới 80% tô cảnh báo.
+            Tab tỷ lệ hoặc khối lượng — dưới mốc tham chiếu tô cảnh báo.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
           </p>
         </header>
@@ -184,7 +191,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionTrendChart
-            title="Xu hướng tuân thủ (gộp)"
+            title="Xu hướng tuân thủ"
             data={p.payload?.trendline ?? []}
             loading={p.loading}
             source="gsc"
@@ -202,7 +209,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát · bao phủ TGS · KPI thô
+            Đối soát hai nguồn · Bao phủ tự giám sát · Số liệu tổng
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">

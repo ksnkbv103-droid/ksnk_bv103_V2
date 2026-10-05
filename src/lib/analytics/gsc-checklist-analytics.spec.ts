@@ -1,18 +1,24 @@
 import { describe, expect, it } from "vitest";
 import {
   groupCriterionKhoaRows,
+  partitionChecklistOverviewByMinN,
   pickTopInterventionChecklists,
   sortChecklistOverviewByRisk,
   sortCriterionMatrix,
 } from "./gsc-checklist-analytics";
 import type { GscChecklistOverviewRow } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 
-const row = (ma: string, tyLe: number, viPham: number): GscChecklistOverviewRow => ({
+const row = (
+  ma: string,
+  tyLe: number,
+  viPham: number,
+  opts?: { phien?: number; quanSat?: number },
+): GscChecklistOverviewRow => ({
   ma_bk: ma,
   ten_bang_kiem: ma,
-  tong_phien: 1,
-  tong_quan_sat: 10,
-  tong_dat: Math.round((tyLe / 100) * 10),
+  tong_phien: opts?.phien ?? 5,
+  tong_quan_sat: opts?.quanSat ?? 40,
+  tong_dat: Math.round((tyLe / 100) * (opts?.quanSat ?? 40)),
   tong_vi_pham: viPham,
   ty_le_tuan_thu: tyLe,
   worst_khoa_ten: null,
@@ -27,10 +33,23 @@ describe("gsc-checklist-analytics", () => {
     expect(sorted.map((r) => r.ma_bk)).toEqual(["A", "C", "B"]);
   });
 
-  it("pickTopInterventionChecklists respects limit", () => {
-    const top = pickTopInterventionChecklists([row("A", 40, 3), row("B", 30, 8), row("C", 20, 1)], 2);
+  it("GSC-05: mẫu mỏng tách khỏi danh sách cần chú ý", () => {
+    const { attention, thin } = partitionChecklistOverviewByMinN([
+      row("X", 0, 2, { phien: 1, quanSat: 2 }),
+      row("Y", 60, 16, { phien: 5, quanSat: 40 }),
+    ]);
+    expect(attention.map((r) => r.ma_bk)).toEqual(["Y"]);
+    expect(thin.map((r) => r.ma_bk)).toEqual(["X"]);
+  });
+
+  it("pickTopInterventionChecklists respects limit (chỉ đủ min-N)", () => {
+    const top = pickTopInterventionChecklists(
+      [row("A", 40, 3), row("B", 30, 8), row("C", 20, 1), row("T", 0, 2, { phien: 1, quanSat: 2 })],
+      2,
+    );
     expect(top).toHaveLength(2);
     expect(top[0].ma_bk).toBe("C");
+    expect(top.every((r) => r.ma_bk !== "T")).toBe(true);
   });
 
   it("sortCriterionMatrix puts weakest first", () => {

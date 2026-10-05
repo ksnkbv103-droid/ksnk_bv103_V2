@@ -121,7 +121,7 @@ Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan).
 
 ### Soft Soft-queue — NKBV **logic** deep vs Domain SSOT adult v4.0 (2026-09-28)
 
-**DONE Soft P0/P1 logic** — tip vs `10-NKBV-diagnosis-domain-ssot-adult.md` v4.0: POA gate in rules-engine (cấm 48h/day-3); FE/BE device enrich `??` drift; Scenario2 Secondary window; UTI clinical SBAP helper; strip dead `infantGasOk`; Transfer spec titles calendar-day. **Park Domain:** SIR. **RIT 20a + age-null 20b + Transfer 20c + SSI deepest 20d + MBI 20e + APRV 20f → DONE Soft** (see beats). Soft next = Soft-ready GSC/CSSD/QLCV verify. EENT/SST engine **present**. Detail `_audit-soft-nkbv-logic-deep-2026-09-28.md`. Soft Soft-queue: NKBV logic Soft closed; Domain P1 residual SIR · G.1#1/#2/#5 confirm.
+**DONE Soft P0/P1 logic** — tip vs `10-NKBV-diagnosis-domain-ssot-adult.md` v4.0: POA gate in rules-engine (NHSN day-3); FE/BE device enrich `??` drift; Scenario2 Secondary window; UTI clinical SBAP helper; strip dead `infantGasOk`; Transfer spec titles calendar-day. **Park Domain:** SIR. **RIT 20a + age-null 20b + Transfer 20c + SSI deepest 20d + MBI 20e + APRV 20f → DONE Soft** (see beats). Soft next = Soft-ready GSC/CSSD/QLCV verify. EENT/SST engine **present**. Detail `_audit-soft-nkbv-logic-deep-2026-09-28.md`. Soft Soft-queue: NKBV logic Soft closed; Domain P1 residual SIR · G.1#1/#2/#5 confirm.
 
 ### Soft Soft-queue — QLCV **logic** deep vs Domain 19/19c (2026-09-28)
 

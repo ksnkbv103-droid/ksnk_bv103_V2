@@ -35,7 +35,6 @@ export type Ch17TypeDef = {
 export type Ch17EvalContext = {
   evidence: Record<string, boolean>;
   procedureCode?: string | null;
-  isInfantLe1?: boolean;
 };
 
 export type Ch17EvalResult = {
@@ -78,10 +77,7 @@ export function evalCh17Node(node: Ch17Node, ctx: Ch17EvalContext): NodeEval {
       };
     }
     case "ageGate": {
-      const infant = !!ctx.isInfantLe1;
-      const pass =
-        (node.age === "OVER_1Y" && !infant);
-      if (!pass) return { ok: false, missing: [] };
+      if (node.age !== "OVER_1Y") return { ok: false, missing: [] };
       return evalCh17Node(node.of, ctx);
     }
     case "procedureGate": {

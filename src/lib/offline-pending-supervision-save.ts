@@ -17,6 +17,8 @@ export type PendingVstItem = {
   session: SessionInput;
   observations: VSTObservation[];
   existingSessionId?: string | null;
+  /** Admin sửa phiên quá 30 phút — đồng bộ kèm lý do. */
+  lyDoSua?: string | null;
   enqueuedAt: number;
 };
 
@@ -51,6 +53,7 @@ export function enqueueOfflineVstSave(params: {
   session: SessionInput;
   observations: VSTObservation[];
   existingSessionId?: string | null;
+  lyDoSua?: string | null;
 }) {
   const item: PendingVstItem = {
     kind: "vst",
@@ -59,6 +62,7 @@ export function enqueueOfflineVstSave(params: {
     session: params.session,
     observations: params.observations,
     existingSessionId: params.existingSessionId ?? null,
+    lyDoSua: params.lyDoSua ?? null,
   };
   const q = readQueue();
   q.push(item);
@@ -125,10 +129,11 @@ export async function flushPendingSupervisionSaves(): Promise<{
     try {
       if (item.kind === "vst") {
         const sid = String(item.existingSessionId ?? "").trim();
+        const lyDo = String(item.lyDoSua ?? "").trim();
         const res = await saveVSTSession(
           item.session,
           item.observations,
-          sid ? { existingSessionId: sid } : undefined,
+          sid ? { existingSessionId: sid, ...(lyDo ? { lyDoSua: lyDo } : {}) } : undefined,
         );
         if (res.success) synced++;
         else {

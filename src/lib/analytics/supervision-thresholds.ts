@@ -1,12 +1,21 @@
-/** Ngưỡng tuân thủ giám sát — SSOT pilot (chart · bảng · in · KPI). */
+/** Ngưỡng tuân thủ giám sát — SSOT pilot (chart · bảng · in · KPI). Số chờ N-GS-3. */
 export const SUPERVISION_COMPLIANCE_THRESHOLDS = {
-  /** Đạt mục tiêu BGĐ */
+  /** Mốc tham chiếu xanh (pilot) */
   GREEN_MIN: 85,
-  /** Cần theo dõi */
+  /** Mốc tham chiếu vàng (pilot) */
   YELLOW_MIN: 70,
   /** Tô cảnh báo cột/bảng theo khoa */
   KHOA_WARN_PCT: 80,
 } as const;
+
+/** GS-07: min-N đối soát — tạm dùng cùng mốc Action board (20 VST / 30 GSC). */
+export const DOI_SOAT_MIN_SAMPLE = {
+  vst: 20,
+  gsc: 30,
+} as const;
+
+/** VST-07: so sánh khoa/khối/nghề/thời điểm — dưới ngưỡng = «mẫu mỏng», không tô màu. */
+export const VST_COMPARE_MIN_SAMPLE = 20;
 
 /** Ngưỡng tô cột biểu đồ khoa (warn = vàng, red = đỏ). */
 export type KhoaChartThresholds = {

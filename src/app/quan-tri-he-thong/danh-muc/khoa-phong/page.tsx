@@ -3,7 +3,7 @@ import KhoaPhongMasterPage from "@/modules/quan-tri-he-thong/danh-muc/khoa-phong
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Danh mục Khoa Phòng | Quản trị Hệ thống | KSNK BV103",
+  title: "Khoa phòng",
   description: "Quản lý danh mục Khoa Phòng trong hệ thống",
 };
 

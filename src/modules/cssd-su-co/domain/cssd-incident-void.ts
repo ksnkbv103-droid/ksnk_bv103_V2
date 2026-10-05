@@ -15,6 +15,9 @@ import {
 } from "./cssd-incident-attributes";
 import { resolveIncidentPolicy } from "./cssd-incident-policy";
 import {
+  assertIncidentVoidReason,
+  INCIDENT_STATUS_CONFIRMED,
+  INCIDENT_STATUS_CLOSED,
   INCIDENT_STATUS_VOID,
   readIncidentPhieuStatus,
 } from "./cssd-incident-status";
@@ -29,6 +32,9 @@ export const INCIDENT_VOID_BOM =
 export const INCIDENT_VOID_TRANSFER =
   "Phiếu có điều chuyển bộ. Lập phiếu ngược ở Luân chuyển — vô hiệu ở đây lệch cấu phần.";
 export const INCIDENT_VOID_ALREADY = "Phiếu sự cố đã bị vô hiệu.";
+export const INCIDENT_VOID_CONFIRMED =
+  "Phiếu đã xác nhận — chỉ Trưởng CSSD / Admin được vô hiệu kèm lý do.";
+export const INCIDENT_VOID_CLOSED = "Phiếu đã đóng (giải phóng) — không vô hiệu.";
 
 const BOM_BLOCK = new Set(["BOM_PENDING", "BOM_APPLYING", "BOM_APPLY_FAILED", "BOM_APPROVED"]);
 
@@ -187,14 +193,30 @@ export function planCssdIncidentVoid(input: {
   ledger: readonly VoidLedgerLine[];
   rollbackEvents: readonly VoidRollbackEvent[];
   currentLoId: string | null;
+  /** SC-03: trạm hiện tại của chu trình — chỉ phục hồi khi còn đứng ở đích rollback. */
+  currentStation?: string | null;
   voidedAt: string;
   actorName?: string | null;
   actorNhanSuId?: string | null;
+  voidReasonCode?: string | null;
+  voidReasonNote?: string | null;
+  /** SC-03: đã qua gate xác nhận — cho phép vô hiệu phiếu DA_XAC_NHAN. */
+  allowVoidConfirmed?: boolean;
 }): IncidentVoidPlan {
   const attrs = input.ticket.attributes || {};
   if (input.ticket.isActive === false || readIncidentPhieuStatus(attrs) === INCIDENT_STATUS_VOID) {
     return { ok: true, already: true };
   }
+  const status = readIncidentPhieuStatus(attrs);
+  if (status === INCIDENT_STATUS_CLOSED) {
+    return { ok: false, error: INCIDENT_VOID_CLOSED };
+  }
+  if (status === INCIDENT_STATUS_CONFIRMED && !input.allowVoidConfirmed) {
+    return { ok: false, error: INCIDENT_VOID_CONFIRMED };
+  }
+  const reasonGate = assertIncidentVoidReason(input.voidReasonCode, input.voidReasonNote);
+  if (!reasonGate.ok) return reasonGate;
+
   const typeId = readIncidentTypeCode(attrs);
   if (String(attrs.BATCH_RECALL || "") === "1" || isBatchQcFailTypeId(typeId)) {
     return { ok: false, error: INCIDENT_VOID_BATCH };
@@ -211,6 +233,7 @@ export function planCssdIncidentVoid(input: {
   const detection = String(input.ticket.detectionStation || "").trim().toUpperCase();
   const quyId = String(input.ticket.quyTrinhId || "").trim();
   const peers = input.peers.filter((p) => String(p.quy_trinh_id || "").trim() === quyId);
+  const currentSta = String(input.currentStation || "").trim().toUpperCase();
 
   let cycle: IncidentVoidCyclePlan | null = null;
   if (quyId) {
@@ -241,14 +264,17 @@ export function planCssdIncidentVoid(input: {
         : null;
     const thisFreezes = Boolean(policy?.freezeSafetyLock);
     const othersFreeze = peers.some(peerFreezes);
+    // SC-03: chỉ kéo trạm về khi chu trình còn đứng đúng trạm đích rollback.
+    const stillAtRollbackTarget =
+      Boolean(before) && isCssdStation(target) && currentSta === String(target).toUpperCase();
     cycle = {
-      restoreStation: before ? detection : null,
-      stamps: before ? stampPatch(before) : {},
+      restoreStation: stillAtRollbackTarget ? detection : null,
+      stamps: stillAtRollbackTarget && before ? stampPatch(before) : {},
       isRedAlert: peers.some(
         (p) => p.is_red_alert === true && isEffectiveCssdRedAlertSource(p),
       ),
       isDongBang: thisFreezes ? othersFreeze : null,
-      restoreLoId: restoreLo,
+      restoreLoId: stillAtRollbackTarget ? restoreLo : null,
     };
   }
 
@@ -256,7 +282,9 @@ export function planCssdIncidentVoid(input: {
     ...attrs,
     INCIDENT_STATUS: INCIDENT_STATUS_VOID,
     INCIDENT_VOIDED_AT: input.voidedAt,
+    INCIDENT_VOID_REASON: reasonGate.code,
   };
+  if (reasonGate.note) next.INCIDENT_VOID_REASON_NOTE = reasonGate.note;
   const byId = String(input.actorNhanSuId || "").trim();
   if (byId) next.INCIDENT_VOIDED_BY_ID = byId;
   const byName = String(input.actorName || "").trim();

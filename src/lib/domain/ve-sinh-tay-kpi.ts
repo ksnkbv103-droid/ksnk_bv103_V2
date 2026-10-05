@@ -27,12 +27,28 @@ export type VeSinhTayKpiCard = {
   statsHref: string;
 };
 
+/** VST-04: cộng mọi bang_kiem trong nhóm alias (short + dài), không lấy dòng đầu. */
 function pickBkRow(gsc: GscStrategicPayload | null | undefined, maBk: string) {
   const rows = resolveChecklistOverview(gsc);
   const candidates = new Set(resolveBangKiemMaCandidates(maBk));
-  return (
-    rows.find((r) => candidates.has(String(r.ma_bk ?? "").trim().toUpperCase())) ?? null
-  );
+  const matched = rows.filter((r) => candidates.has(String(r.ma_bk ?? "").trim().toUpperCase()));
+  if (!matched.length) return null;
+  if (matched.length === 1) return matched[0];
+  const tong_phien = matched.reduce((s, r) => s + Number(r.tong_phien ?? 0), 0);
+  const tong_quan_sat = matched.reduce((s, r) => s + Number(r.tong_quan_sat ?? 0), 0);
+  const tong_dat = matched.reduce((s, r) => s + Number(r.tong_dat ?? 0), 0);
+  const tong_vi_pham = matched.reduce((s, r) => s + Number(r.tong_vi_pham ?? 0), 0);
+  const ty_le_tuan_thu =
+    tong_quan_sat > 0 ? Math.round((tong_dat / tong_quan_sat) * 10000) / 100 : null;
+  return {
+    ...matched[0],
+    ma_bk: maBk,
+    tong_phien,
+    tong_quan_sat,
+    tong_dat,
+    tong_vi_pham,
+    ty_le_tuan_thu,
+  };
 }
 
 export function buildVeSinhTayKpiCards(input: {

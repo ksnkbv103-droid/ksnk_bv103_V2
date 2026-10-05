@@ -22,7 +22,7 @@
 | `BM.17.01` | `KSNK.QT.17.BM.01` | PTPH cấp cao / BTN — khớp chủ đề |
 | `BM.18.02` | `KSNK.QT.18.BM.02` | Làm sạch DC — khớp |
 | `BM.19.01` | `(không IN cùng tên)` | Canon KK MĐC; QT.19 = kiểm tra bảo dưỡng → BM.02; KKMĐC = QT.25/26 cần PO |
-| `BM.19.02` | `KSNK.QT.19.BM.02` | Kiểm tra bảo dưỡng — khớp |
+| `BM.19.02` | `(không map)` | **Khác form** (sửa 2026-10-05 theo rà 07-GSC GSC-04): DB `seed.sql:199` = Nhật ký theo dõi hóa chất KKMĐC (MEC), NHAT_KY_VAN_HANH — KHÔNG phải QT.19.BM.02 kiểm tra bảo dưỡng; cấm alias; nhánh nhật ký, ngoài % (N-GSC-8) |
 | `BM.20.02` | `KSNK.QT.20.BM.01` | Đóng gói — **lệch số** .02 vs .01 |
 | `BM.21.04` | `KSNK.QT.22.BM.04` | Lưu trữ–cấp phát — lệch QT số + digital=cần PO |
 | `BM.22.04` | `KSNK.QT.21 / QT.23?` | Canon «vận hành QC TK» — map QT.21/23 còn mở (cần PO) |
@@ -38,7 +38,7 @@
 | `BM.QĐ.09.01` | `KSNK.QĐ.16.BM.01` | PE — lệch số |
 | `BM.QĐ.12.01` | `KSNK.QĐ.14.BM.01` | Lồng ấp — lệch số |
 | `BM.QĐ.16.01` | `KSNK.QĐ.19.BM.01` | Xét nghiệm ATSB — lệch số |
-| `BM.QĐ.17.01` | `KSNK.QĐ.20.BM.01` | Pha chế — lệch số |
+| `BM.QĐ.17.01` | `(không map)` | **Khác form** (sửa 2026-10-05 theo rà 07-GSC): DB `seed.sql:209` = Nhật ký vệ sinh phòng sạch / Tủ BSC (nhật ký) — KHÔNG phải QĐ.20 pha chế; cấm alias; nhánh nhật ký, ngoài % (N-GSC-8) |
 | `BM.QĐ.18.02` | `KSNK.QĐ.21.BM.02` | Bếp ăn — lệch số + BM.02 |
 | `BM.QĐ.19.03` | `(SUDs — OUT / không IN seed)` | Dụng cụ một lần — ngoài filtered inventory GS |
 | `BM.QĐ.20.01` | `KSNK.QĐ.15? nước lọc máu` | Nước lọc máu/nha — map QĐ.15 cần đối chiếu nội dung |

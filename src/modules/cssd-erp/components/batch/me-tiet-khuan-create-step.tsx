@@ -39,23 +39,25 @@ type Machine = {
 type Props = {
   machines: Machine[];
   machineId: string;
-  nguoiLoad: string;
+  nguoiNapId: string;
+  nguoiNapOptions: Array<{ id: string; hoTen: string; maNv: string }>;
   chuongTrinhMa: string;
   onMachineChange: (id: string) => void;
-  onNguoiLoadChange: (v: string) => void;
+  onNguoiNapIdChange: (id: string) => void;
   onChuongTrinhMaChange: (ma: string, opt: ChuongTrinhMayOption | null) => void;
   onCancel: () => void;
   onStart: () => void;
 };
 
-/** Form tạo mẻ tiệt khuẩn — M-04 bắt chọn chương trình (Domain A thin). */
+/** Form tạo mẻ tiệt khuẩn — bắt chọn chương trình theo máy. */
 export default function MeTietKhuanCreateStep({
   machines,
   machineId,
-  nguoiLoad,
+  nguoiNapId,
+  nguoiNapOptions,
   chuongTrinhMa,
   onMachineChange,
-  onNguoiLoadChange,
+  onNguoiNapIdChange,
   onChuongTrinhMaChange,
   onCancel,
   onStart,
@@ -108,7 +110,7 @@ export default function MeTietKhuanCreateStep({
     onChuongTrinhMaChange(ma, opt);
   };
 
-  const canStart = Boolean(machineId && nguoiLoad.trim() && chuongTrinhMa);
+  const canStart = Boolean(machineId && nguoiNapId && chuongTrinhMa);
 
   return (
     <>
@@ -164,12 +166,12 @@ export default function MeTietKhuanCreateStep({
                   {chuongOptions.map((o) => (
                     <option key={o.ma} value={o.ma}>
                       {o.ten}
-                      {o.nguon_label ? ` · ${o.nguon_label}` : o.nguon === "qt21_hd03" ? " · QT21 HD.03" : ""}
+                      {o.nguon_label ? ` · ${o.nguon_label}` : o.nguon === "qt21_hd03" ? " · mẫu mặc định" : ""}
                     </option>
                   ))}
                 </select>
                 <p className="pl-4 text-[11px] font-medium text-slate-500">
-                  Bắt buộc chọn chương trình (M-04). Danh mục theo máy trống → mẫu QT21 HD.03 theo PP (không invent catalog viện).
+                  Bắt buộc chọn chương trình. Danh mục theo máy trống → dùng mẫu mặc định theo phương pháp.
                 </p>
               </div>
             ) : null}
@@ -204,13 +206,21 @@ export default function MeTietKhuanCreateStep({
               </div>
             ) : null}
             <div className="space-y-2">
-              <label className={`ml-4 ${CSSD_UI_FORM_LABEL}`}>Người load mẻ</label>
-              <input
-                className={CSSD_UI_CONTROL}
-                placeholder="Nhập tên người load..."
-                value={nguoiLoad}
-                onChange={(e) => onNguoiLoadChange(e.target.value)}
-              />
+              <label className={`ml-4 ${CSSD_UI_FORM_LABEL}`}>Người nạp mẻ</label>
+              <select
+                className={CSSD_UI_CONTROL_NATIVE}
+                value={nguoiNapId}
+                onChange={(e) => onNguoiNapIdChange(e.target.value)}
+                data-testid="me-create-nguoi-nap"
+              >
+                <option value="">-- Chọn nhân sự --</option>
+                {nguoiNapOptions.map((nv) => (
+                  <option key={nv.id} value={nv.id}>
+                    {nv.hoTen}
+                    {nv.maNv ? ` (${nv.maNv})` : ""}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex gap-4">
@@ -221,7 +231,7 @@ export default function MeTietKhuanCreateStep({
               type="button"
               onClick={() => {
                 if (!canStart) {
-                  toast.error("Chọn máy, chương trình và người load.");
+                  toast.error("Chọn máy, chương trình và người nạp.");
                   return;
                 }
                 onStart();

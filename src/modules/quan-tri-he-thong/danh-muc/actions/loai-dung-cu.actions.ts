@@ -9,11 +9,9 @@ import {
 } from "@/lib/master-data/cssd-heat-split-apply";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
-  applyResolvedTramToLoaiSpecs,
+  applySterileMethodSuggestionToLoaiSpecs,
   buildLoaiPhysicalUpsertPayload,
-  missingTramCssdSeedMessage,
-  resolveSuggestedTramFromCatalog,
-  suggestCssdStationFromMaster,
+  suggestCssdSterileMethodFromMaster,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { loaiListSortColumn, mapLoaiPhysicalToListRow, mergeLoaiListTrongBo } from "@/lib/master-data/cssd-loai-list-map";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
@@ -145,25 +143,19 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   if (!ma || !ten) {
     return { success: false, error: "Thiếu mã hoặc tên loại dụng cụ." };
   }
-  const suggestion = suggestCssdStationFromMaster({
+  const suggestion = suggestCssdSterileMethodFromMaster({
     spaulding: payload.phan_loai_spaulding,
     sterileMethod: payload.phuong_phap_tiet_khuan_chi_dinh,
     isChiuNhiet: payload.is_chiu_nhiet,
   });
   const supabase = createAdminSupabaseClient();
-  let tramWarning: string | undefined;
-  try {
-    const trams = await fetchActiveRegistryDmRows(supabase, "TRAM_CSSD");
-    const resolved = resolveSuggestedTramFromCatalog(suggestion.maTramGoiY, trams);
-    const specs =
-      payload.specs && typeof payload.specs === "object" && !Array.isArray(payload.specs)
-        ? (payload.specs as Record<string, unknown>)
-        : {};
-    payload.specs = applyResolvedTramToLoaiSpecs(specs, resolved, suggestion.maTramGoiY);
-    if (!resolved) tramWarning = missingTramCssdSeedMessage(suggestion.maTramGoiY);
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return { success: false, error: `Không đọc được danh mục trạm CSSD: ${msg}` };
+  const specs =
+    payload.specs && typeof payload.specs === "object" && !Array.isArray(payload.specs)
+      ? (payload.specs as Record<string, unknown>)
+      : {};
+  payload.specs = applySterileMethodSuggestionToLoaiSpecs(specs, suggestion);
+  if (suggestion.phuongPhapChiDinh && !payload.phuong_phap_tiet_khuan_chi_dinh) {
+    payload.phuong_phap_tiet_khuan_chi_dinh = suggestion.phuongPhapChiDinh;
   }
   let prevIsChiuNhiet: boolean | null = null;
   if (id) {
@@ -197,7 +189,7 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
     }
   }
 
-  return { ...saved, warning: tramWarning, heatSplitNote };
+  return { ...saved, heatSplitNote };
 }
 
 export async function toggleLoaiDungCuStatusAction(id: string, currentStatus: boolean) {

@@ -42,11 +42,12 @@ describe("entity-qr-core", () => {
 
     const locKhoa = classifyEntityQr("LOC-KHOA-B01");
     expect(locKhoa.kind).toBe("LOC_KHOA");
-    expect(locKhoa.href).toBe("/giam-sat-chung?loc=khoa&ma=B01");
+    expect(locKhoa.href).toMatch(/^\/giam-sat-chung\/tuan-thu\?loc=khoa&ma=/);
+    expect(locKhoa.href).toBe("/giam-sat-chung/tuan-thu?loc=khoa&ma=B01");
 
     const locKhu = classifyEntityQr("LOC-KHU-KHU01");
     expect(locKhu.kind).toBe("LOC_KHU");
-    expect(locKhu.href).toBe("/giam-sat-chung?loc=khu&ma=KHU01");
+    expect(locKhu.href).toBe("/giam-sat-chung/tuan-thu?loc=khu&ma=KHU01");
   });
 
   it("rejects short GSC display refs without full uuid", () => {

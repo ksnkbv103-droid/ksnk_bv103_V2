@@ -28,22 +28,31 @@ export type VstBoSungNbMetadata = {
   so_giuong_nguoi_benh: string | null;
 } & Record<string, string | boolean | null>;
 
-/** Chuẩn hóa ảnh chụp NB từ form/session — tắt = false + null fields (gan_nb=false). */
+/** Chuẩn hóa ảnh chụp NB — GS-03: gan_nb = đúng bool toggle; trường NB null nếu trống. */
 export function buildVstBoSungNbMetadata(input: VstBoSungNbSessionSlice): VstBoSungNbMetadata {
   const boSungRaw = Boolean(input.is_bo_sung_nguoi_benh);
   const maBa = String(input.ma_benh_an ?? "").trim() || null;
   const maNb = String(input.ma_nguoi_benh ?? "").trim() || null;
   const tenNb = String(input.ten_nguoi_benh ?? "").trim() || null;
   const giuongNb = String(input.so_giuong_nguoi_benh ?? "").trim() || null;
-  const boSungEffective = boSungRaw && Boolean(maBa || maNb || tenNb || giuongNb);
   const snap = parseGscBoSungNbFromUnknown(input);
+  if (!boSungRaw) {
+    return {
+      is_bo_sung_nguoi_benh: false,
+      ma_benh_an: null,
+      ma_nguoi_benh: null,
+      ten_nguoi_benh: null,
+      so_giuong_nguoi_benh: null,
+      ...serializeGscBoSungNbForMetadata(snap, false),
+    };
+  }
   return {
-    is_bo_sung_nguoi_benh: boSungEffective,
-    ma_benh_an: boSungEffective ? maBa : null,
-    ma_nguoi_benh: boSungEffective ? maNb : null,
-    ten_nguoi_benh: boSungEffective ? tenNb : null,
-    so_giuong_nguoi_benh: boSungEffective ? giuongNb : null,
-    ...serializeGscBoSungNbForMetadata(snap, boSungEffective),
+    is_bo_sung_nguoi_benh: true,
+    ma_benh_an: maBa,
+    ma_nguoi_benh: maNb,
+    ten_nguoi_benh: tenNb,
+    so_giuong_nguoi_benh: giuongNb,
+    ...serializeGscBoSungNbForMetadata(snap, true),
   };
 }
 

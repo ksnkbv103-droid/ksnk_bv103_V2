@@ -72,6 +72,36 @@ export function clampDeviceDay1(
   return start < vv ? vv : start;
 }
 
+export type NkbvDeviceAssociationKind = "cvc" | "foley" | "vent";
+
+/**
+ * Ngày 1 đếm device-days NHSN.
+ * CVC đặt trước VV → Day 1 = ngày tiếp cận nội trú đầu (không clamp VV).
+ * Foley/Vent → clamp VV như cũ.
+ */
+export function resolveDeviceAssociationDay1(input: {
+  kind?: NkbvDeviceAssociationKind | null;
+  placedDate: string;
+  admissionDate?: string | null;
+  firstInpatientAccessDate?: string | null;
+}): { day1: string; warnMissingInpatientAccess?: boolean } {
+  const placed = isoDateOnly(input.placedDate);
+  const vv = isoDateOnly(input.admissionDate);
+  const access = isoDateOnly(input.firstInpatientAccessDate);
+
+  if (input.kind === "cvc" && vv && placed && placed < vv) {
+    if (access) {
+      return { day1: access < placed ? placed : access };
+    }
+    return { day1: placed, warnMissingInpatientAccess: true };
+  }
+
+  if (vv && placed && placed < vv) {
+    return { day1: vv };
+  }
+  return { day1: placed || vv };
+}
+
 /** Sổ đăng ký: thứ tự ngày + không đặt sau ra viện. */
 export function validateDeviceRegistryDates(input: {
   insertionDate: string;

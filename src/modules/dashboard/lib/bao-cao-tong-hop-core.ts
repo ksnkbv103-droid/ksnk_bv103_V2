@@ -1,5 +1,6 @@
 import { addWeeks, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from "date-fns";
 import { vi } from "date-fns/locale";
+import { DOI_SOAT_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
 import { khoaChartLabel } from "@/lib/analytics/supervision-matrix-mappers";
 import { roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import {
@@ -65,8 +66,10 @@ function isoWeekBucketKey(minDate: string): string {
 }
 
 function pointHasMetricVolume(p: BaoCaoTrendPoint, metric: "ty_le_vst" | "ty_le_gsc"): boolean {
-  if (metric === "ty_le_vst") return (p.vst_tong ?? 0) > 0 && p.ty_le_vst != null;
-  return (p.gsc_tong ?? 0) > 0 && p.ty_le_gsc != null;
+  if (metric === "ty_le_vst") {
+    return (p.vst_tong ?? 0) >= DOI_SOAT_MIN_SAMPLE.vst && p.ty_le_vst != null;
+  }
+  return (p.gsc_tong ?? 0) >= DOI_SOAT_MIN_SAMPLE.gsc && p.ty_le_gsc != null;
 }
 
 /** So sánh tuần cuối vs tuần liền trước — chỉ khi đủ 2 tuần ISO liên tiếp có dữ liệu. */
@@ -194,7 +197,7 @@ function bucketTrendBy(
     .map(([, b]) => finalizeTrendPoint(b));
 }
 
-/** Gộp theo tháng từ các điểm trend (trung bình đơn giản trong tháng). */
+/** Gộp theo tháng từ các điểm trend — cộng mẫu số/mẫu tử rồi tính %. */
 export function bucketTrendByMonth(points: BaoCaoTrendPoint[]): BaoCaoTrendPoint[] {
   return bucketTrendBy(
     points,
@@ -238,9 +241,7 @@ export function pickTrend(points: BaoCaoTrendPoint[], granularity: BaoCaoTrendGr
 }
 
 function finalizeKhoaRankRow(row: Omit<BaoCaoKhoaRankRow, "has_data">): BaoCaoKhoaRankRow {
-  const parts = [row.ty_le_vst, row.ty_le_gsc].filter((x): x is number => x != null);
-  const ty_le_avg = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 10) / 10 : null;
-  return { ...row, ty_le_avg, has_data: true };
+  return { ...row, has_data: true };
 }
 
 export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategicPayload | null): BaoCaoKhoaRankRow[] {
@@ -254,7 +255,6 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
         label: khoaChartLabel(row),
         ty_le_vst: row.ty_le_tuan_thu,
         ty_le_gsc: null,
-        ty_le_avg: row.ty_le_tuan_thu,
         tong_co_hoi_vst: row.tong_co_hoi,
         tong_quan_sat_gsc: 0,
       }),
@@ -265,8 +265,7 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
     if (cur) {
       cur.ty_le_gsc = row.ty_le_tuan_thu;
       cur.tong_quan_sat_gsc = row.tong_quan_sat;
-      const finalized = finalizeKhoaRankRow(cur);
-      cur.ty_le_avg = finalized.ty_le_avg;
+      Object.assign(cur, finalizeKhoaRankRow(cur));
     } else {
       byId.set(
         row.id,
@@ -276,7 +275,6 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
           label: khoaChartLabel(row),
           ty_le_vst: null,
           ty_le_gsc: row.ty_le_tuan_thu,
-          ty_le_avg: row.ty_le_tuan_thu,
           tong_co_hoi_vst: 0,
           tong_quan_sat_gsc: row.tong_quan_sat,
         }),
@@ -313,6 +311,28 @@ export function sortKhoaRankByComplianceAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKh
   });
 }
 
+export function sortKhoaRankByVstAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
+  return [...rows].sort((a, b) => {
+    const aV = a.ty_le_vst;
+    const bV = b.ty_le_vst;
+    if (aV != null && bV != null && aV !== bV) return aV - bV;
+    if (aV != null && bV == null) return -1;
+    if (aV == null && bV != null) return 1;
+    return a.label.localeCompare(b.label, "vi");
+  });
+}
+
+export function sortKhoaRankByGscAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
+  return [...rows].sort((a, b) => {
+    const aG = a.ty_le_gsc;
+    const bG = b.ty_le_gsc;
+    if (aG != null && bG != null && aG !== bG) return aG - bG;
+    if (aG != null && bG == null) return -1;
+    if (aG == null && bG != null) return 1;
+    return a.label.localeCompare(b.label, "vi");
+  });
+}
+
 /** Gộp khoa đã chọn (lọc) với dữ liệu RPC — khoa 0 phiên vẫn hiện «Chưa GS». */
 export function mergeKhoaRankWithSelected(
   rows: BaoCaoKhoaRankRow[],
@@ -343,7 +363,6 @@ export function mergeKhoaRankWithSelected(
       label: maMatch?.[1] ?? (ten.length > 12 ? `${ten.slice(0, 10)}…` : ten),
       ty_le_vst: null,
       ty_le_gsc: null,
-      ty_le_avg: null,
       tong_co_hoi_vst: 0,
       tong_quan_sat_gsc: 0,
       has_data: false,
@@ -351,16 +370,6 @@ export function mergeKhoaRankWithSelected(
   }
   return sortKhoaRankByComplianceAsc(merged);
 }
-
-export function topBottomKhoa(rows: BaoCaoKhoaRankRow[], n = 5): { top: BaoCaoKhoaRankRow[]; bottom: BaoCaoKhoaRankRow[] } {
-  const sorted = [...rows].sort((a, b) => (b.ty_le_avg ?? -1) - (a.ty_le_avg ?? -1));
-  const withScore = sorted.filter((r) => r.ty_le_avg != null);
-  return {
-    top: withScore.slice(0, n),
-    bottom: [...withScore].reverse().slice(0, n),
-  };
-}
-
 
 const SUPERVISION_ANALYTICS_CANONICAL: Record<string, { analytics: string; history: string }> = {
   "/giam-sat-vst": { analytics: "/thong-ke/vst", history: "/lich-su/vst" },
@@ -430,6 +439,8 @@ export function composeBaoCaoTongHopPayload(args: {
   filters: BaoCaoTongHopFilters;
   vst: VstStrategicPayload | null;
   gsc: GscStrategicPayload | null;
+  /** BM.02/03 riêng — không gộp vào tổng GSC. */
+  gscVeSinhTay?: GscStrategicPayload | null;
   nkbv: NkbvDashboardPayload | null;
   cssd?: BaoCaoCssdAppendix | null;
   sources: { vst: SourceLoadStatus; gsc: SourceLoadStatus; nkbv: SourceLoadStatus; cssd?: SourceLoadStatus };
@@ -475,6 +486,7 @@ export function composeBaoCaoTongHopPayload(args: {
     errors: args.errors,
     vst: args.vst,
     gsc: args.gsc,
+    gsc_ve_sinh_tay: args.gscVeSinhTay ?? null,
     nkbv: args.nkbv,
     cssd: args.cssd ?? null,
     kpis: {

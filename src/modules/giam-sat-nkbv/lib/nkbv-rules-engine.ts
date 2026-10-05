@@ -45,25 +45,36 @@ import {
 } from "./nkbv-mbi-ch4";
 
 
-/** Ch.2 only: DOE POA (HD1–2) → không tính tử số HAI. SSI/VAE không gọi. */
-function applyCh2PoaGate(
-  data: { hai_status?: "HAI" | "POA"; calculated_doe?: string; ngay_vao_vien?: string; admission_date?: string },
+/** Ch.2 only: tự tính POA/HAI từ ngày VV + DOE — không tin hai_status client. SSI/VAE không gọi. */
+export function applyCh2PoaGate(
+  data: {
+    hai_status?: "HAI" | "POA";
+    calculated_doe?: string;
+    ngay_vao_vien?: string;
+    admission_date?: string;
+  },
   result: RuleEvaluationResult,
 ): RuleEvaluationResult {
   if (!result.is_positive) return result;
-  let status = data.hai_status;
-  if (!status) {
-    const adm = (data.ngay_vao_vien || data.admission_date || "").slice(0, 10);
-    const doe = (data.calculated_doe || "").slice(0, 10);
-    if (adm && doe) status = poaOrHai(adm, doe).haiStatus;
+  const adm = (data.ngay_vao_vien || data.admission_date || "").slice(0, 10);
+  const doe = (data.calculated_doe || "").slice(0, 10);
+  if (!adm || !doe || !/^\d{4}-\d{2}-\d{2}$/.test(adm) || !/^\d{4}-\d{2}-\d{2}$/.test(doe)) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      lcbi_type: result.lcbi_type,
+      reason:
+        "Thiếu ngày vào viện / DOE — chưa phân tích HAI (NHSN day-3).",
+    };
   }
+  const status = poaOrHai(adm, doe).haiStatus;
   if (status !== "POA") return result;
   return {
     is_positive: false,
     classification: "POA",
     lcbi_type: result.lcbi_type,
     reason:
-      "DOE thuộc khung POA (ngày viện 1–2 / trước nhập theo Ch.2). Không tính HAI/NKBV — cấm định nghĩa 48 giờ; dùng NHSN day-3.",
+      "DOE thuộc khung POA (ngày viện 1–2 / trước nhập theo Ch.2). Không tính HAI/NKBV — HAI theo NHSN day-3 (DOE từ ngày lịch thứ 3).",
   };
 }
 
@@ -197,6 +208,9 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
       placedDate: data.device_placed_date,
       removedDate: data.device_removed_date,
       doe: data.calculated_doe,
+      admissionDate: data.ngay_vao_vien || data.admission_date,
+      deviceKind: "cvc",
+      firstInpatientAccessDate: data.cvc_first_inpatient_access_date,
     }).associated;
   } else {
     hasCvc = data.cvc_placed_days >= 3 && Boolean(data.cvc_active_on_event);
@@ -232,7 +246,7 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
       is_positive: true,
       classification: "MBI_LCBI",
       lcbi_type: lcbiType,
-      reason: `${mbiBarrier.reason} Không tính lỗi CLABSI. (MBI organism = tip is_intestinal_pathogen proxy — G.1#5 browser còn mở.)`,
+      reason: `${mbiBarrier.reason} Không tính lỗi CLABSI (MBI-LCBI).`,
     };
   }
 
@@ -423,6 +437,8 @@ function evaluateVaeVapCore(
         placedDate: data.device_placed_date,
         removedDate: data.device_removed_date,
         doe: data.calculated_doe || data.device_placed_date,
+        admissionDate: data.ngay_vao_vien || data.admission_date,
+        deviceKind: "vent",
       })
     : null;
   // VAP (PNEU): ≥3 ngày lịch thở máy liên tục + hiện diện DOE/DOE−1
@@ -563,6 +579,8 @@ function evaluateUtiCautiCore(data: UtiVerificationData): RuleEvaluationResult {
       placedDate: data.device_placed_date,
       removedDate: data.device_removed_date,
       doe: data.calculated_doe,
+      admissionDate: data.ngay_vao_vien || data.admission_date,
+      deviceKind: "foley",
     }).associated;
   } else {
     const present =
@@ -764,9 +782,9 @@ function ssiDepthWithinSp(
   const limitDays = resolveSsiSurveillanceDays({
     depth,
     procedureCode: data.loai_phau_thuat_nhsn,
-    hasImplantFallback: data.has_implant,
     eventTypeCode,
   });
+  if (limitDays == null) return false;
   return days < limitDays;
 }
 
@@ -807,16 +825,21 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
   const userLimitDays = resolveSsiSurveillanceDays({
     depth: userDepth === "NONE" ? "SUPERFICIAL" : userDepth,
     procedureCode: data.loai_phau_thuat_nhsn,
-    hasImplantFallback: data.has_implant,
     eventTypeCode: userEventCode,
   });
+  if (userLimitDays == null) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason:
+        "Thiếu nhóm thủ thuật NHSN — không xác định SP. Chọn mã PT trước khi đánh giá SSI.",
+    };
+  }
   const limitHint = isSecondaryIncisionalEvent(data.ssi_event_type)
     ? "đường mổ phụ SIS/DIS luôn 30 ngày"
     : proc
       ? `mã PT ${proc.code} · Deep/Organ ${proc.deep_organ_surveillance_days} ngày (nông/SIS/DIS luôn 30)`
-      : data.has_implant
-        ? "fallback implant 90 ngày (chưa chọn mã PT NHSN)"
-        : "30 ngày (chưa chọn mã PT NHSN hoặc nông)";
+      : "SP nông 30 ngày";
 
   if (data.is_patos) {
     return {
@@ -896,7 +919,7 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     ssiDepthRank(userDepth) < ssiDepthRank(engineDepth)
   ) {
     warnings.push(
-      `Độ sâu form (${userDepth}) nông hơn kết luận engine (${engineDepth}) — báo cáo theo ${engineDepth} (sâu nhất thắng SSOT C.5.3).`,
+      `Độ sâu form (${userDepth}) nông hơn kết luận engine (${engineDepth}) — báo cáo theo ${engineDepth} (sâu nhất thắng).`,
     );
   }
 

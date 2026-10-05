@@ -19,6 +19,7 @@ const optionalUuid = (msg: string) =>
 
 const gscSessionSchema = z.object({
   khoa_id: z.string().uuid("Khoa không hợp lệ"),
+  /** GS-01: bắt buộc khi tạo mới (action); optional để grandfather phiên cũ khi sửa. */
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
   nguoi_giam_sat_id: optionalUuid("Người giám sát không hợp lệ"),
   nhan_vien_id: optionalUuid("Nhân viên không hợp lệ"),
@@ -31,6 +32,7 @@ const gscSessionSchema = z.object({
   hinh_thuc_giam_sat: z.string().optional(), // Legacy support
   cach_thuc_giam_sat: z.string().optional(), // Legacy support
   doi_tuong_giam_sat: z.string().optional(),
+  /** GS-01: bắt buộc khi tạo mới (action); optional grandfather khi sửa. */
   vi_tri: z.string().optional(),
   ngay_giam_sat: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày YYYY-MM-DD").nullable().optional(),
   /** Khung giờ phiên (bắt buộc khi giám sát lại qua camera). */
@@ -42,7 +44,8 @@ const gscSessionSchema = z.object({
   /** Nhập tay tên đối tượng (không có hồ sơ mdm_nhan_su). */
   is_manual_nhan_vien: z.boolean().optional(),
   ten_manual_nhan_vien: z.string().optional(),
-  is_bo_sung_nguoi_benh: z.boolean().optional(),
+  /** GS-01/03: gan_nb bool luôn ghi — mặc định false. */
+  is_bo_sung_nguoi_benh: z.boolean().default(false),
   ma_benh_an: z.string().max(200).optional(),
   ma_nguoi_benh: z.string().max(200).optional(),
   ten_nguoi_benh: z.string().max(300).optional(),

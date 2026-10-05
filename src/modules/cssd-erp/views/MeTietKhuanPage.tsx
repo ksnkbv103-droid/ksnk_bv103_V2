@@ -57,10 +57,11 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         <MeTietKhuanCreateStep
           machines={w.machines}
           machineId={w.machineId}
-          nguoiLoad={w.nguoiLoad}
+          nguoiNapId={w.nguoiNapId}
+          nguoiNapOptions={w.nguoiNapOptions}
           chuongTrinhMa={w.chuongTrinhMa}
           onMachineChange={w.setMachineId}
-          onNguoiLoadChange={w.setNguoiLoad}
+          onNguoiNapIdChange={w.setNguoiNapId}
           onChuongTrinhMaChange={w.onChuongTrinhMaChange}
           onCancel={() => w.setStep("LIST")}
           onStart={() => void w.createMe()}
@@ -107,13 +108,23 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         setCiPcd={w.setCiPcd}
         trangThaiBi={w.trangThaiBi}
         setTrangThaiBi={w.setTrangThaiBi}
+        ongDoiChung={w.ongDoiChung}
+        setOngDoiChung={w.setOngDoiChung}
+        ongThu={w.ongThu}
+        setOngThu={w.setOngThu}
+        gioBatDauU={w.gioBatDauU}
+        setGioBatDauU={w.setGioBatDauU}
+        gioDoc={w.gioDoc}
+        setGioDoc={w.setGioDoc}
+        soLoBi={w.soLoBi}
+        setSoLoBi={w.setSoLoBi}
         onBackToList={w.backToList}
         onAddItemByCode={(code) => void w.addItem(code)}
         onRemoveItem={(id) => void w.removeItem(id)}
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
         onFinishQc={(isPass) => void w.finishQc(isPass)}
-        onSubmitBi={(ketQua) => void w.submitBi(ketQua)}
+        onSubmitBi={(ketQua, biBm02) => void w.submitBi(ketQua, biBm02)}
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
         onReportIncident={() => setIsBatchRecallOpen(true)}

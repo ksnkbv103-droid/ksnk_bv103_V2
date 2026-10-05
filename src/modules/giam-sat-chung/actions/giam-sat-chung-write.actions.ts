@@ -12,6 +12,8 @@ import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-pe
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
+import { assertKhuVucAllowedForKhoa } from "@/lib/khu-vuc-giam-sat-server";
+import { validateSixSessionDimensions } from "@/lib/validations/giam-sat-session-dimensions";
 import { resolveBkApDungChoKhoa } from "@/lib/domain/bang-kiem-ap-dung";
 import {
   GscSessionInput,
@@ -109,7 +111,17 @@ export async function saveGiamSatChung(
     const hinh = policy.derivedHinhThuc;
     validateGscModeFields(hinh, cach);
     const modeIds = await resolveGscModeIds(supabase, { hinh, cach, hinh_id, cach_id });
-    if (isReplayCameraSupervisionCachThuc(cach)) {
+    let cachMa: string | null = null;
+    if (modeIds.cach_thuc_id) {
+      const { data: cachRow } = await supabase
+        .from("gstt_dm_cach_thuc_giam_sat")
+        .select("ma_cach_thuc")
+        .eq("id", modeIds.cach_thuc_id)
+        .maybeSingle();
+      cachMa = cachRow?.ma_cach_thuc ? String(cachRow.ma_cach_thuc) : null;
+    }
+    const isReplayCamera = isReplayCameraSupervisionCachThuc(cachMa || cach);
+    if (isReplayCamera) {
       const bd = String(sessionData.thoi_gian_bat_dau ?? "").trim();
       const kt = String(sessionData.thoi_gian_ket_thuc ?? "").trim();
       if (!bd || !kt) {
@@ -132,9 +144,31 @@ export async function saveGiamSatChung(
           "Đối tượng (nhân viên)",
         );
     const bangKiem = await resolveBangKiemPersistFields(supabase, sessionData.loai_bang_kiem);
+
+    // GS-01: 6 chiều — chỉ siết khi tạo mới (grandfather phiên cũ khi sửa).
+    if (!existingSessionId) {
+      const khoaIdForDim = String(khoaNorm ?? "").trim();
+      const khuVucIdForDim = String(sessionData.khu_vuc_id ?? "").trim();
+      const dimErr = validateSixSessionDimensions({
+        khoa_id: khoaIdForDim,
+        khu_vuc_id: khuVucIdForDim,
+        vi_tri: String(sessionData.vi_tri ?? ""),
+        doi_tuong_loai: bangKiem.doi_tuong_giam_sat,
+        nhan_vien_id: nhanVienNorm,
+        is_manual_nhan_vien: isManualNv,
+        ten_manual_nhan_vien: tenManualNv,
+        gan_nb: Boolean(sessionData.is_bo_sung_nguoi_benh),
+      });
+      if (dimErr) return { success: false, error: dimErr };
+      await assertKhuVucAllowedForKhoa({
+        supabase,
+        khoaId: khoaIdForDim,
+        khuVucId: khuVucIdForDim,
+      });
+    }
     const ngayGs = parseNgayGiamSatOrNull(sessionData.ngay_giam_sat);
     await assertSupervisionNotLockedForDate(supabase, "GSC", ngayGs);
-    const thoiGianGhiNhan = isReplayCameraSupervisionCachThuc(cach)
+    const thoiGianGhiNhan = isReplayCamera
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
       : new Date().toISOString();
 
@@ -218,13 +252,16 @@ export async function saveGiamSatChung(
       throw new Error("Không chốt được nội dung bảng kiểm. Vui lòng thử lại.");
     }
 
+    // GS-03: gan_nb = đúng bool toggle; trường NB null nếu trống (không ép false).
     const boSungRaw = Boolean(sessionData.is_bo_sung_nguoi_benh);
-    const maBa = String((sessionData as { ma_benh_an?: string }).ma_benh_an ?? "").trim() || null;
-    const maNb = String(sessionData.ma_nguoi_benh ?? "").trim() || null;
-    const tenNb = String(sessionData.ten_nguoi_benh ?? "").trim() || null;
-    const giuongNb = String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null;
+    const maBa = boSungRaw
+      ? String((sessionData as { ma_benh_an?: string }).ma_benh_an ?? "").trim() || null
+      : null;
+    const maNb = boSungRaw ? String(sessionData.ma_nguoi_benh ?? "").trim() || null : null;
+    const tenNb = boSungRaw ? String(sessionData.ten_nguoi_benh ?? "").trim() || null : null;
+    const giuongNb = boSungRaw ? String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null : null;
     const boSungNbSnap = parseGscBoSungNbFromUnknown(sessionData);
-    const boSungEffective = boSungRaw && Boolean(maBa || maNb || tenNb || giuongNb);
+    const boSungEffective = boSungRaw;
 
     const thoiGianBatDauNorm = String(sessionData.thoi_gian_bat_dau ?? "").trim() || null;
     const thoiGianKetThucNorm = String(sessionData.thoi_gian_ket_thuc ?? "").trim() || null;
@@ -248,6 +285,8 @@ export async function saveGiamSatChung(
 
     const sessionPayload = {
       bang_kiem_id: bangKiem.bang_kiem_id,
+      // GSC-01: chụp loại lúc lưu (cột migration 20261005175100 — chưa apply thì insert có thể bỏ qua nếu schema cũ).
+      loai_giam_sat: bangKiem.loai_giam_sat || null,
       khoa_id: khoaNorm,
       khu_vuc_id: sessionData.khu_vuc_id || null,
       vi_tri: sessionData.vi_tri,
@@ -293,21 +332,47 @@ export async function saveGiamSatChung(
     };
 
     let sessionId: string;
+    const isMissingLoaiCol = (err: unknown) =>
+      /loai_giam_sat|schema cache/i.test(
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message?: unknown }).message ?? "")
+          : String(err ?? ""),
+      );
+    const payloadWithoutLoai = (() => {
+      const { loai_giam_sat: _omit, ...rest } = sessionPayload as typeof sessionPayload & {
+        loai_giam_sat?: string | null;
+      };
+      return rest;
+    })();
 
     if (existingSessionId) {
-      const { error: upErr } = await supabase
-        .from("gstt_fact_chung_sessions")
-        .update({
-          ...sessionPayload,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingSessionId);
+      let upErr = (
+        await supabase
+          .from("gstt_fact_chung_sessions")
+          .update({
+            ...sessionPayload,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingSessionId)
+      ).error;
+      if (upErr && isMissingLoaiCol(upErr)) {
+        upErr = (
+          await supabase
+            .from("gstt_fact_chung_sessions")
+            .update({
+              ...payloadWithoutLoai,
+              is_active: true,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingSessionId)
+        ).error;
+      }
       if (upErr) throw upErr;
 
       sessionId = existingSessionId;
     } else {
-      const { data: session, error: sError } = await supabase
+      let insertRes = await supabase
         .from("gstt_fact_chung_sessions")
         .insert({
           ...sessionPayload,
@@ -315,8 +380,18 @@ export async function saveGiamSatChung(
         })
         .select()
         .single();
-      if (sError) throw sError;
-      sessionId = session.id;
+      if (insertRes.error && isMissingLoaiCol(insertRes.error)) {
+        insertRes = await supabase
+          .from("gstt_fact_chung_sessions")
+          .insert({
+            ...payloadWithoutLoai,
+            is_active: true,
+          })
+          .select()
+          .single();
+      }
+      if (insertRes.error) throw insertRes.error;
+      sessionId = insertRes.data.id;
     }
 
     revalidateGscPaths();

@@ -16,8 +16,8 @@ const r = (
 
 describe("scoreTyLe (PERCENTAGE)", () => {
   it("trả 0 khi không có tiêu chí evaluable", () => {
-    expect(scoreTyLe([])).toBe(0);
-    expect(scoreTyLe([r("1", "NA"), r("2", "NA")])).toBe(0);
+    expect(scoreTyLe([])).toBeNull();
+    expect(scoreTyLe([r("1", "NA"), r("2", "NA")])).toBeNull();
   });
 
   it("trả % chính xác (làm tròn) loại NA", () => {

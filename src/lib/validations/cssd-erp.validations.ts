@@ -5,7 +5,7 @@ import { z } from "zod";
  */
 export const createSterilizationBatchSchema = z.object({
   machineId: z.string().uuid("ID máy không hợp lệ"),
-  nguoiLoad: z.string().min(2, "Tên người load quá ngắn"),
+  nguoiNapId: z.string().uuid("Chọn người nạp từ danh mục"),
   /** M-04: bắt chọn chương trình (không free-text-only create). */
   chuongTrinh: z.string().trim().min(1, "Chọn chương trình máy").max(80),
 });
@@ -42,6 +42,11 @@ export const finishSterilizationBatchSchema = z.object({
   ciNgoaiGoi: z.string().min(1, "Thiếu CI ngoài gói"),
   ciPcd: z.string().min(1, "Thiếu CI PCD"),
   trangThaiBi: z.string().min(1, "Thiếu kết quả BI"),
+  ongDoiChung: z.string().optional().default(""),
+  ongThu: z.string().optional().default(""),
+  gioBatDauU: z.string().optional().default(""),
+  gioDoc: z.string().optional().default(""),
+  soLoBi: z.string().optional().default(""),
   anhMinhChung: z.string().optional().default(""),
 });
 

@@ -3,10 +3,13 @@ import {
   applyCh2RitGate,
   checkRitHardStop,
   resolveRitEndForPrior,
+  resolveServerRitPriors,
   ritPriorFromCaseLike,
+  ritPriorFromVerifiedSibling,
   ritTypesOverlap,
+  verifiedSiblingFromCaseRow,
 } from "./nkbv-rit-hard-stop";
-import { clinicalRitEnd } from "./nkbv-shared-timeline";
+import { clinicalRitEnd, poaOrHai } from "./nkbv-shared-timeline";
 import {
   evaluateBsiClabsi,
   evaluateSsi,
@@ -29,7 +32,7 @@ function utiPositive(overrides: Partial<UtiVerificationData> = {}): UtiVerificat
     has_blood_culture_positive_in_window: false,
     blood_urine_pathogen_matches: false,
     calculated_doe: "2026-07-20",
-    hai_status: "HAI",
+    ngay_vao_vien: "2026-07-01",
     ...overrides,
   };
 }
@@ -196,7 +199,7 @@ describe("nkbv-rit-hard-stop (DoD 20a=A)", () => {
       is_in_sbap_window: false,
       blood_mandatory_for_localized: false,
       calculated_doe: "2026-07-20",
-      hai_status: "HAI",
+      ngay_vao_vien: "2026-07-01",
       rit_prior_events: [{ doe: "2026-07-15", majorType: "BSI" }],
     } as any);
     expect(bsi.is_positive).toBe(false);
@@ -281,5 +284,182 @@ describe("nkbv-rit-hard-stop (DoD 20a=A)", () => {
         loai_ma: "SSI",
       }),
     ).toBeNull();
+  });
+
+  describe("NKBV-01 verified prior filter", () => {
+    it("CONTAMINATION không mở RIT — LCBI sau đó không bị chặn", () => {
+      const priors = resolveServerRitPriors({
+        siblings: [
+          {
+            id: "c1",
+            calculated_doe: "2026-07-05",
+            classification: "CONTAMINATION",
+            is_positive: false,
+            loai_ma: "BSI",
+          },
+        ],
+      });
+      expect(priors).toHaveLength(0);
+      const hit = checkRitHardStop({
+        currentMajorType: "BSI",
+        doe: "2026-07-10",
+        priorEvents: priors,
+      });
+      expect(hit.blocked).toBe(false);
+    });
+
+    it("HAI #1 DOE5; #2 DOE12 chặn; #3 DOE20 cho — RIT không nối từ #2", () => {
+      const p1 = ritPriorFromVerifiedSibling({
+        id: "h1",
+        calculated_doe: "2026-07-05",
+        classification: "CLABSI",
+        is_positive: true,
+        loai_ma: "BSI",
+      });
+      expect(p1).not.toBeNull();
+      expect(checkRitHardStop({
+        currentMajorType: "BSI",
+        doe: "2026-07-12",
+        priorEvents: [p1!],
+      }).blocked).toBe(true);
+
+      // #2 bị RIT — không đủ tiêu chí → không làm prior
+      const p2 = ritPriorFromVerifiedSibling({
+        id: "h2",
+        calculated_doe: "2026-07-12",
+        classification: "RIT",
+        is_positive: false,
+        loai_ma: "BSI",
+      });
+      expect(p2).toBeNull();
+
+      const ritEnd = clinicalRitEnd("2026-07-05"); // 2026-07-18
+      expect(
+        checkRitHardStop({
+          currentMajorType: "BSI",
+          doe: "2026-07-20",
+          priorEvents: [p1!],
+        }).blocked,
+      ).toBe(false);
+      expect("2026-07-20" > ritEnd).toBe(true);
+    });
+
+    it("Secondary BSI không mở BSI RIT", () => {
+      expect(
+        ritPriorFromVerifiedSibling({
+          calculated_doe: "2026-07-05",
+          classification: "SECONDARY_BSI",
+          is_positive: true,
+          is_secondary_bsi: true,
+          loai_ma: "BSI",
+        }),
+      ).toBeNull();
+    });
+
+    it("POA UTI DOE = HD−1 → RIT từ HD1 (hết HD14)", () => {
+      const adm = "2026-07-10";
+      const rawDoe = "2026-07-09";
+      expect(poaOrHai(adm, rawDoe).doeForRit).toBe(adm);
+      const prior = ritPriorFromVerifiedSibling({
+        calculated_doe: rawDoe,
+        ngay_vao_vien: adm,
+        classification: "POA",
+        is_positive: false,
+        poa_major_type: "UTI",
+        loai_ma: "UTI",
+      });
+      expect(prior?.doe).toBe(adm);
+      expect(clinicalRitEnd(prior!.doe)).toBe("2026-07-23");
+    });
+
+    it("chuỗi POA → ngoại nhiễm → HAI cùng site trong 14 ngày: chặn bởi POA", () => {
+      const priors = resolveServerRitPriors({
+        siblings: [
+          {
+            id: "poa",
+            calculated_doe: "2026-07-10",
+            classification: "POA",
+            is_positive: false,
+            poa_major_type: "BSI",
+            loai_ma: "BSI",
+          },
+          {
+            id: "cont",
+            calculated_doe: "2026-07-12",
+            classification: "CONTAMINATION",
+            is_positive: false,
+            loai_ma: "BSI",
+          },
+        ],
+      });
+      expect(priors).toHaveLength(1);
+      expect(priors[0].id).toBe("poa");
+      expect(
+        checkRitHardStop({
+          currentMajorType: "BSI",
+          doe: "2026-07-18",
+          priorEvents: priors,
+        }).blocked,
+      ).toBe(true);
+    });
+
+    it("thiếu calculated_doe / nháp / BO_QUA / NO_EVENT → không prior", () => {
+      expect(
+        ritPriorFromVerifiedSibling({
+          classification: "CLABSI",
+          is_positive: true,
+          loai_ma: "BSI",
+        }),
+      ).toBeNull();
+      expect(
+        ritPriorFromVerifiedSibling({
+          calculated_doe: "2026-07-05",
+          classification: "CLABSI",
+          is_positive: true,
+          analysis_disposition: "BO_QUA",
+        }),
+      ).toBeNull();
+      expect(
+        ritPriorFromVerifiedSibling({
+          calculated_doe: "2026-07-05",
+          classification: "NO_EVENT",
+          is_positive: false,
+        }),
+      ).toBeNull();
+    });
+
+    it("resolveServerRitPriors bỏ qua client — chỉ dùng siblings", () => {
+      const fromDb = resolveServerRitPriors({
+        siblings: [
+          verifiedSiblingFromCaseRow({
+            id: "real",
+            loai_ma: "UTI",
+            trang_thai_ma: "CHO_DUYET",
+            verification_data: {
+              calculated_doe: "2026-07-15",
+              classification: "CAUTI_SUTI",
+              is_positive: true,
+            },
+          }),
+        ],
+      });
+      expect(fromDb).toHaveLength(1);
+      expect(fromDb[0].doe).toBe("2026-07-15");
+    });
+
+    it("SSI/VAE bypass resolveServerRitPriors", () => {
+      expect(
+        resolveServerRitPriors({
+          bypass: true,
+          siblings: [
+            {
+              calculated_doe: "2026-07-15",
+              classification: "CLABSI",
+              is_positive: true,
+            },
+          ],
+        }),
+      ).toHaveLength(0);
+    });
   });
 });

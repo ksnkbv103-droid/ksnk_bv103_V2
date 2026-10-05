@@ -27,12 +27,12 @@ const TABLE_TABS: { id: ReportTableId; label: string; hint: string }[] = [
   {
     id: "NGUOI",
     label: "Theo người",
-    hint: "Người thực hiện · mở · quá hạn · hoàn thành · đúng hạn (theo kỳ)",
+    hint: "Người phụ trách · mở · quá hạn · hoàn thành · đúng hạn (theo kỳ)",
   },
   {
     id: "TRANG_THAI",
     label: "Theo trạng thái",
-    hint: "7 mã canonical + đề xuất (thời điểm trên tập đã tải)",
+    hint: "Theo trạng thái trên tập phiếu của kỳ",
   },
   {
     id: "QUA_HAN",
@@ -160,7 +160,7 @@ export function QlcvBaoCaoPanel() {
             <h2 className="bv103-type-section text-slate-900">Báo cáo kỳ · người–việc–tiến độ</h2>
             <p className="bv103-type-body text-slate-600">
               Quan sát rõ <strong>ai phụ trách</strong>, <strong>việc gì</strong>,{" "}
-              <strong>mở / quá hạn / hoàn thành đúng hạn</strong> theo tuần · tháng · quý (SSOT §6).
+              <strong>mở / quá hạn / hoàn thành đúng hạn</strong> theo tuần · tháng · quý.
             </p>
           </div>
           <button
@@ -216,41 +216,41 @@ export function QlcvBaoCaoPanel() {
         {payload?.truncated ? (
           <p className="rounded-[var(--radius-control)] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
             Đã đạt trần fetch {payload.fetchCap} phiếu (mới cập nhật trước). Báo cáo có thể thiếu việc cũ —
-            cần RPC/mig aggregate nếu volume lớn (chưa áp dụng prod trong task này).
+            khối lượng lớn — cần tổng hợp kỳ riêng nếu vượt trần.
           </p>
         ) : null}
 
         <p className="text-xs text-slate-500">
-          Đã tải {payload?.fetched ?? 0} phiếu · không RPC mới · đọc fact + aggregate TS.
+          Đã tải {payload?.fetched ?? 0} phiếu trong kỳ.
         </p>
 
         {payload ? (
           <div
             className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-white px-3 py-2 text-xs text-slate-700"
-            title="Stats MVP · aggregate client từ rows kỳ (không RPC mới)"
+            title="Số việc mở · % hoàn thành · % quá hạn trong việc đang mở"
           >
             {(() => {
-              // Derive from payload.theoNguoi (client aggregate kỳ — không RPC mới)
-              const tongNguoi = payload.theoNguoi.reduce((s, r) => s + r.mo + r.hoan_thanh, 0);
-              const tong = tongNguoi > 0 ? tongNguoi : payload.fetched;
+              const mo = payload.theoNguoi.reduce((s, r) => s + r.mo, 0);
               const hoanThanh = payload.theoNguoi.reduce((s, r) => s + r.hoan_thanh, 0);
               const quaHan = payload.theoNguoi.reduce((s, r) => s + r.qua_han, 0);
-              const pct = (n: number, d: number) => (d <= 0 ? 0 : Math.round((n / d) * 1000) / 10);
+              const mauHt = mo + hoanThanh;
+              const fmt = (n: number, d: number) =>
+                d <= 0 ? "—" : `${Math.round((n / d) * 1000) / 10}%`;
               return (
                 <>
                   <span>
                     <span className="font-medium text-slate-500">Số việc</span>{" "}
-                    <strong className="tabular-nums">{tong}</strong>
+                    <strong className="tabular-nums">{mo}</strong>
                   </span>
                   <span className="text-slate-300">·</span>
                   <span>
                     <span className="font-medium text-slate-500">% hoàn thành</span>{" "}
-                    <strong className="tabular-nums text-emerald-700">{pct(hoanThanh, tong)}%</strong>
+                    <strong className="tabular-nums text-emerald-700">{fmt(hoanThanh, mauHt)}</strong>
                   </span>
                   <span className="text-slate-300">·</span>
                   <span>
                     <span className="font-medium text-slate-500">% quá hạn</span>{" "}
-                    <strong className="tabular-nums text-red-700">{pct(quaHan, tong)}%</strong>
+                    <strong className="tabular-nums text-red-700">{fmt(quaHan, mo)}</strong>
                   </span>
                 </>
               );
@@ -298,7 +298,7 @@ export function QlcvBaoCaoPanel() {
             <table className={bv103TableLayout.tableFixed}>
               <thead>
                 <tr className={bv103TableLayout.theadRow}>
-                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Người thực hiện</th>
+                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Người phụ trách</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>Mở</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>Quá hạn</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>Hoàn thành</th>
@@ -358,7 +358,7 @@ export function QlcvBaoCaoPanel() {
                 <tr className={bv103TableLayout.theadRow}>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Việc</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Hạn</th>
-                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người thực hiện</th>
+                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người phụ trách</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người giao</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colNarrow}`}>%</th>
                 </tr>
@@ -390,7 +390,7 @@ export function QlcvBaoCaoPanel() {
               <thead>
                 <tr className={bv103TableLayout.theadRow}>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colTitle}`}>Việc</th>
-                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người thực hiện</th>
+                  <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Người phụ trách</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Hạn</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colMeta}`}>Hoàn thành lúc</th>
                   <th className={`${bv103TableLayout.th} ${bv103TableLayout.colStatus}`}>Kết quả</th>

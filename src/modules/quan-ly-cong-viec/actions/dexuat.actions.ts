@@ -13,6 +13,7 @@ import {
   assertQlcvHanHoanThanhChangeAllowed,
   insertQlcvTaskRow,
 } from "../lib/qlcv-create-task";
+import { assertQlcvActiveInvariant } from "../lib/qlcv-active-invariant";
 import { QLCV_FACT_WRITE_TABLE } from "../lib/qlcv-fact-write";
 import { throwQlcvDbError } from "../lib/qlcv-supabase-error";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
@@ -21,6 +22,14 @@ import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
+import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
+
+/** Lọc gần đúng pending đề xuất ở SQL; vẫn `isDeXuatChoDuyet` phía app (legacy alias). */
+function applyPendingDeXuatSqlFilter<T extends { or: (f: string) => T }>(query: T): T {
+  return query.or(
+    "trang_thai.eq.DE_XUAT_CHO_DUYET,and(is_active.eq.false,trang_thai.eq.MOI),and(is_active.eq.false,trang_thai.eq.CHUA_BAT_DAU),and(is_active.eq.false,trang_thai.is.null)",
+  );
+}
 
 interface CreateDeXuatInput {
   tieu_de: string;
@@ -89,13 +98,19 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, lyDo?: string) 
 
   const { data: row, error: fetchErr } = await supabase
     .from("qlcv_fact_cong_viec")
-    .select("nguoi_phu_trach_id, to_cong_tac_id")
+    .select("tieu_de, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, loai_cong_viec")
     .eq("id", id)
     .maybeSingle();
 
   if (fetchErr || !row) throw new Error("Không tìm thấy đề xuất.");
 
   if (duyet) {
+    assertQlcvActiveInvariant({
+      tieu_de: row.tieu_de,
+      nguoi_phu_trach_id: row.nguoi_phu_trach_id,
+      han_hoan_thanh: row.han_hoan_thanh,
+      loai_cong_viec: row.loai_cong_viec,
+    });
     const trangThai = resolveQlcvTrangThaiMaForTask({
       isActive: true,
       nguoi_phu_trach_id: row.nguoi_phu_trach_id,
@@ -144,6 +159,12 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
   assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
   await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
   await assertQlcvDiaDiemKhoaValid(supabase, p.dia_diem_khoa_id, false); // Domain A: optional
+  assertQlcvActiveInvariant({
+    tieu_de: p.tieu_de,
+    nguoi_phu_trach_id: p.nguoi_phu_trach_id,
+    han_hoan_thanh: p.han_hoan_thanh,
+    loai_cong_viec: p.loai_cong_viec,
+  });
 
   const trangThai = resolveQlcvTrangThaiMaForTask({
     isActive: true,
@@ -187,21 +208,15 @@ export async function getPendingDeXuat() {
   const { supabase } = await ensureQlcvKsnkAccess("approve");
   const scope = await resolveQlcvListScope(supabase);
 
+  // A) select(*) + filter client. B) cột board + lọc SQL gần đúng — chọn B.
   const data = await fetchAllRangeRows<DeXuatRow>((from, to) => {
     let query = supabase
       .from("v_qlcv_cong_viec_full")
-      .select(
-        `
-      *,
-      nguoi_tao:mdm_nhan_su!nguoi_tao_id(ho_ten),
-      nguoi_phu_trach:mdm_nhan_su!nguoi_phu_trach_id(ho_ten),
-      to_cong_tac:mdm_dm_to_cong_tac!to_cong_tac_id(ten_to)
-    `,
-      )
-      .eq("is_active", false)
+      .select(QLCV_ROOT_TASK_VIEW_SELECT)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true })
       .range(from, to);
+    query = applyPendingDeXuatSqlFilter(query);
     query = applyQlcvListScopeToQuery(query, scope);
     return query;
   });
@@ -219,12 +234,12 @@ export async function getMyPendingDeXuat() {
   const data = await fetchAllRangeRows<DeXuatRow>((from, to) => {
     let query = supabase
       .from("v_qlcv_cong_viec_full")
-      .select("*")
-      .eq("is_active", false)
+      .select(QLCV_ROOT_TASK_VIEW_SELECT)
       .eq("nguoi_tao_id", actorNhanSuId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true })
       .range(from, to);
+    query = applyPendingDeXuatSqlFilter(query);
     query = applyQlcvListScopeToQuery(query, scope);
     return query;
   });

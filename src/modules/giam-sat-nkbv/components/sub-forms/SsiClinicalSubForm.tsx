@@ -70,10 +70,10 @@ export default function SsiClinicalSubForm({
   const limitDays = resolveSsiSurveillanceDays({
     depth,
     procedureCode: form.loai_phau_thuat_nhsn,
-    hasImplantFallback: form.has_implant,
     eventTypeCode: form.ssi_event_type,
   });
-  const isTimeframeExpired = form.days_since_surgery > limitDays;
+  const isTimeframeExpired =
+    limitDays == null || form.days_since_surgery > limitDays;
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
   const siteOptions = useMemo(
@@ -90,13 +90,14 @@ export default function SsiClinicalSubForm({
     return res.warnings?.length ? res.warnings.join(" · ") : null;
   }, [form]);
   const survStart = form.surgery_date || undefined;
-  const survEnd = form.surgery_date
-    ? (() => {
-        const d = new Date(`${form.surgery_date}T12:00:00`);
-        d.setDate(d.getDate() + limitDays);
-        return d.toISOString().slice(0, 10);
-      })()
-    : undefined;
+  const survEnd =
+    form.surgery_date && limitDays != null
+      ? (() => {
+          const d = new Date(`${form.surgery_date}T12:00:00`);
+          d.setDate(d.getDate() + limitDays);
+          return d.toISOString().slice(0, 10);
+        })()
+      : undefined;
 
   const applyEventType = (code: string) => {
     const d = depthFromSsiEventType(code);
@@ -367,7 +368,6 @@ export default function SsiClinicalSubForm({
                 typeCode={form.organ_space_site}
                 flags={form.chapter17_flags || {}}
                 procedureCode={form.loai_phau_thuat_nhsn}
-                isInfantLe1={false}
                 allowedEdit={allowedEdit && !isTimeframeExpired}
                 onFlagsChange={(chapter17_flags) => onChange({ ...form, chapter17_flags })}
               />

@@ -1,4 +1,8 @@
-import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
+import {
+  verifyAllAnyPermissionGroups,
+  verifyAnyPermission,
+  verifyPermission,
+} from "@/lib/server-permission";
 import { DASHBOARD_CC_WIDGET } from "@/lib/dashboard-command-center-widget-keys";
 
 /** Một trong các widget CC hoặc quyền `DASHBOARD` legacy (tương thích ngược). */
@@ -17,10 +21,12 @@ const SUPERVISION_VIEW = [
 
 export type AnalyticsShellContext = "command-center" | "vst" | "gsc";
 
-/** Vào Command Center / báo cáo tổng hợp: widget CC (hoặc DASHBOARD cũ) + ít nhất một nguồn giám sát. */
+/**
+ * Vào Command Center / báo cáo tổng hợp: widget CC (hoặc DASHBOARD cũ) + ít nhất một nguồn giám sát.
+ * A) Hai verifyAnyPermission tuần tự — 2× getUser. B) Một verifyAllAnyPermissionGroups — chọn B.
+ */
 export async function verifyCommandCenterShell() {
-  await verifyAnyPermission([...CC_OR_LEGACY_VIEW]);
-  await verifyAnyPermission([...SUPERVISION_VIEW]);
+  await verifyAllAnyPermissionGroups([CC_OR_LEGACY_VIEW, SUPERVISION_VIEW]);
 }
 
 /** Tab Thống kê VST/GSC — chỉ cần quyền module tương ứng (khớp NAV_GATE_VST / NAV_GATE_GSC). */
@@ -48,3 +54,10 @@ export async function verifyDashboardOverviewWidget() {
 export async function verifyBaoCaoTongHopShell() {
   await verifyCommandCenterShell();
 }
+
+/** In / xuất BCTH — widget EXPORT (client: `canExportBaoCaoTongHop` trong widget-keys). */
+export async function verifyBaoCaoTongHopExport() {
+  await verifyPermission(DASHBOARD_CC_WIDGET.EXPORT, "export");
+}
+
+export { canExportBaoCaoTongHop } from "@/lib/dashboard-command-center-widget-keys";

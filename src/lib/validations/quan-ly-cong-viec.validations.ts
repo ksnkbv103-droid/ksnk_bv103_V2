@@ -64,6 +64,27 @@ export const congViecSchema = z.object({
     })
     .optional()
     .nullable(),
+
+  /** QLCV-12: nguồn liên kết module khác. */
+  nguon_lien_ket: z
+    .object({
+      module: z.enum(["CSSD_SU_CO", "GIAM_SAT", "NKBV", "analytics"]),
+      id: z.string().trim().min(1).optional().nullable(),
+      ma: z.string().trim().min(1).optional().nullable(),
+      label: z.string().trim().min(1).optional().nullable(),
+      href: z
+        .string()
+        .trim()
+        .min(1)
+        .optional()
+        .nullable()
+        .refine(
+          (h) => h == null || h === "" || (h.startsWith("/") && !h.startsWith("//") && !h.includes("\\")),
+          { message: "nguon_lien_ket.href chỉ cho đường dẫn nội bộ bắt đầu /" },
+        ),
+    })
+    .optional()
+    .nullable(),
 });
 
 

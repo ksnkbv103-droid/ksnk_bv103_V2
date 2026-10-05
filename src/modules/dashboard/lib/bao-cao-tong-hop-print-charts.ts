@@ -1,5 +1,6 @@
 /** SVG tĩnh nhúng bản in — không phụ thuộc canvas/Recharts. */
 
+import { DEFAULT_KHOA_CHART_THRESHOLDS, khoaChartTone } from "@/lib/analytics/supervision-thresholds";
 import { escHtml, fmtPct } from "./bao-cao-tong-hop-print-format";
 import type { BaoCaoKhoaRankRow, BaoCaoTrendPoint } from "../types/bao-cao-tong-hop.types";
 
@@ -14,9 +15,11 @@ const COLORS = {
 
 function barColor(pct: number | null): string {
   if (pct == null) return COLORS.grid;
-  if (pct < 70) return COLORS.danger;
-  if (pct < 80) return COLORS.warn;
-  return COLORS.bar;
+  const tone = khoaChartTone(pct, DEFAULT_KHOA_CHART_THRESHOLDS);
+  if (tone === "red") return COLORS.danger;
+  if (tone === "yellow") return COLORS.warn;
+  if (tone === "green") return COLORS.bar;
+  return COLORS.grid;
 }
 
 /** Biểu đồ cột GSC % theo khoa (đã sắp thấp→cao, tối đa 12). */

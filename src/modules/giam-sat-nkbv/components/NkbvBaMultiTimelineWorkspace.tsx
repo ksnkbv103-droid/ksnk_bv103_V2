@@ -276,12 +276,17 @@ export default function NkbvBaMultiTimelineWorkspace({
       saveBaAnalysisSessions(maBenhAn, merged, analysisMode);
       hydratedKeyRef.current = `${maBenhAn}:${analysisMode}`;
       setSessions(merged);
+      // Chỉ sync lên server khi local có phiên chưa có trên server (tránh ghi lặp mỗi mount).
       if (res.success && merged.length) {
-        void replaceNkbvBaPhanTichSessions({
-          ma_benh_an: maBenhAn,
-          mode: analysisMode,
-          sessions: merged,
-        });
+        const serverIds = new Set((res.sessions || []).map((s) => s.id));
+        const needsPush = merged.some((s) => !serverIds.has(s.id));
+        if (needsPush) {
+          void replaceNkbvBaPhanTichSessions({
+            ma_benh_an: maBenhAn,
+            mode: analysisMode,
+            sessions: merged,
+          });
+        }
       }
     })();
     return () => {
@@ -301,20 +306,22 @@ export default function NkbvBaMultiTimelineWorkspace({
 
   // Khi server/timeline đã có CĐHA cùng ngày+loại → bỏ bản local tạm (nguyên nhân XQ lặp)
   useEffect(() => {
-    setLocalCdha((prev) =>
-      prev.filter((loc) => !split.cdha.some((b) => cdhaKey(b) === cdhaKey(loc))),
-    );
+    setLocalCdha((prev) => {
+      const next = prev.filter((loc) => !split.cdha.some((b) => cdhaKey(b) === cdhaKey(loc)));
+      return next.length === prev.length ? prev : next;
+    });
   }, [split.cdha]);
 
   useEffect(() => {
-    setLocalSsiTc((prev) =>
-      prev.filter((loc) => {
+    setLocalSsiTc((prev) => {
+      const next = prev.filter((loc) => {
         const day = (split.tieuChuanChuyenBietByDate[loc.ngay] || []).some(
           (x) => x.key === loc.key,
         );
         return !day;
-      }),
-    );
+      });
+      return next.length === prev.length ? prev : next;
+    });
   }, [split.tieuChuanChuyenBietByDate]);
 
   const cdhaList = useMemo(() => {
@@ -398,8 +405,14 @@ export default function NkbvBaMultiTimelineWorkspace({
     }
     if (hydratedKeyRef.current !== `${maBenhAn}:${analysisMode}`) return;
     const next = pruneBaAnalysisSessions(maBenhAn, validIds, analysisMode);
-    setSessions(next);
-    persistSessions(next, analysisMode);
+    setSessions((prev) => {
+      const sameLen = prev.length === next.length;
+      const sameIds =
+        sameLen && prev.every((s, i) => s.id === next[i]?.id && s.panel === next[i]?.panel);
+      if (sameIds) return prev;
+      persistSessions(next, analysisMode);
+      return next;
+    });
     setOpenSessionId((cur) => (cur && next.some((s) => s.id === cur) ? cur : null));
     setSampleConclusions(loadBaSampleConclusions(maBenhAn));
   }, [maBenhAn, analysisMode, split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, persistSessions]);

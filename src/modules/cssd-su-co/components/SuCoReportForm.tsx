@@ -2,8 +2,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import Link from "next/link";
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildQlcvSourceDeepLink } from "@/lib/analytics/qlcv-source-deep-link";
 import { usePermission } from "@/hooks/usePermission";
 import {
   fetchSuCoFormCatalog,
@@ -610,19 +612,31 @@ export default function SuCoReportForm({
             },
           });
         } else if (res.isRedAlert) {
-          toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ đã sự cố từ 2 lần trở lên.", { duration: 8000 });
+          toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ đã có ≥3 phiếu sự cố quy trình trên chu trình.", {
+            duration: 8000,
+          });
+        } else if (res.batchRecallDeferred) {
+          toast.message(
+            "Đã ghi nhận — bộ đang báo đã cách ly. Thu hồi cả mẻ cần Trưởng CSSD / Admin ra lệnh.",
+            { duration: 8000 },
+          );
         } else {
           toast.success("Đã ghi nhận báo cáo sự cố!");
         }
         if (!luanChuyen) {
-          if (res.recalledCount || res.machineHeld) {
-            const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ về Tiếp nhận` : "";
-            const holdBit = res.machineHeld ? "máy tạm giữ QC (HOLD_QC)" : "";
+          if (res.recalledCount || res.machineHeld || res.holdPendingCount) {
+            const recallBit = res.recalledCount
+              ? `đã xử lý thu hồi ${res.recalledCount} bộ (trong CSSD về TN / chờ thu từ khoa)`
+              : "";
+            const holdPendingBit = res.holdPendingCount
+              ? `${res.holdPendingCount} bộ chờ thu về từ khoa`
+              : "";
+            const holdBit = res.machineHeld ? "máy tạm giữ QC" : "";
             const listed = res.listedUsed || [];
             const listedBit = listed.length
-              ? `${listed.length} bộ đã dùng chỉ liệt kê: ${listed.map((row) => row.maBo).filter(Boolean).join(", ")}`
+              ? `${listed.length} bộ đã dùng — đã tạo việc theo dõi KSNK: ${listed.map((row) => row.maBo).filter(Boolean).join(", ")}`
               : "";
-            toast.message([recallBit, holdBit, listedBit].filter(Boolean).join(" — ") + ".");
+            toast.message([recallBit, holdPendingBit, holdBit, listedBit].filter(Boolean).join(" — ") + ".");
           }
           if (res.incident_id) {
             const printData = await getIncidentForPrint(res.incident_id);
@@ -635,7 +649,16 @@ export default function SuCoReportForm({
         }
       } catch (err: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
-        if (isNetworkError(err)) {
+        // SC-08: thu hồi / BI+ không xếp hàng ngoại tuyến.
+        const batchUnsafe =
+          payload.incidentGroup === "PROCESS" &&
+          (payload.typeId === "PROCESS_BI_POSITIVE" ||
+            payload.typeId === "PROCESS_STERILIZATION_FAIL" ||
+            payload.typeId === "PROCESS_STERILE_QC_FAIL" ||
+            Boolean((payload as { processPayload?: { loTietKhuanId?: string } }).processPayload?.loTietKhuanId));
+        if (isNetworkError(err) && batchUnsafe) {
+          toast.error("Chưa thu hồi — mất mạng. Thử lại hoặc báo Tổ trưởng CSSD.");
+        } else if (isNetworkError(err)) {
           await pushOfflineTask("REPORT_INCIDENT", payload);
           toast.info("Đã lưu ngoại tuyến — sẽ đồng bộ khi có mạng.");
           onSubmitted?.();
@@ -712,6 +735,42 @@ export default function SuCoReportForm({
             <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-2" data-testid="batch-recall-group-lock">
               <span className="text-[12px] font-semibold text-amber-900">Sự cố quy trình · Thu hồi theo mẻ</span>
               <span className="text-[11px] text-slate-500">(không mở cửa Hỏng/Mất)</span>
+              <Link
+                href={buildQlcvSourceDeepLink({
+                  from: "CSSD_SU_CO",
+                  tieuDe: "Theo dõi NB sau thu hồi bộ đã dùng",
+                  moTa: [
+                    maQR.trim() ? `Mã QR/bộ: ${maQR.trim()}` : null,
+                    "QT.24: theo dõi NB khi dụng cụ lỗi đã được sử dụng; RCA/khắc phục khi cần.",
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                  sourceMa: maQR.trim() || undefined,
+                  sourceLabel: "Thu hồi mẻ / sự cố CSSD",
+                  sourceHref: "/cssd-su-co",
+                })}
+                className="text-[11px] font-semibold text-sky-800 underline-offset-2 hover:underline"
+              >
+                Tạo việc theo dõi NB
+              </Link>
+              <Link
+                href={buildQlcvSourceDeepLink({
+                  from: "CSSD_SU_CO",
+                  tieuDe: "RCA / khắc phục sự cố CSSD",
+                  moTa: [
+                    maQR.trim() ? `Mã QR/bộ: ${maQR.trim()}` : null,
+                    "QT.24: tổ chức RCA và đề xuất biện pháp.",
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                  sourceMa: maQR.trim() || undefined,
+                  sourceLabel: "RCA sự cố CSSD",
+                  sourceHref: "/cssd-su-co",
+                })}
+                className="text-[11px] font-semibold text-sky-800 underline-offset-2 hover:underline"
+              >
+                Tạo việc RCA / khắc phục
+              </Link>
             </div>
           ) : (
             <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />

@@ -29,7 +29,10 @@ import type { GscFormProgress } from "../lib/gsc-score-display";
 import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
 import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
 import type { GscPatientPrefill } from "../lib/gsc-patient-prefill";
-import { filterOutWhoBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
+import {
+  filterOutWhoBangKiemRows,
+  VE_SINH_TAY_ENTRIES,
+} from "@/lib/domain/ve-sinh-tay-catalog";
 import {
   filterBangKiemByLopGiamSatMode,
   isGscRouteDeepLinkAllowed,
@@ -57,7 +60,7 @@ const GSC_SIBLING_DOORS: { loai: GscLoaiGiamSatRoute; label: string }[] = [
 function GscSiblingDoors({ current }: { current?: GscLoaiGiamSatRoute }) {
   return (
     <p className="px-0.5 text-[11px] leading-snug text-slate-500">
-      Cửa GSC:{" "}
+      Giám sát chung:{" "}
       {GSC_SIBLING_DOORS.map((d, i) => (
         <React.Fragment key={d.loai}>
           {i > 0 ? " · " : null}
@@ -77,6 +80,25 @@ function GscSiblingDoors({ current }: { current?: GscLoaiGiamSatRoute }) {
   );
 }
 
+/** Lối nhỏ khối Vệ sinh tay (BM.02/03) — không đưa vào picker (R4). */
+function GscVeSinhTayQuietLinks({ show }: { show: boolean }) {
+  if (!show) return null;
+  const gscEntries = VE_SINH_TAY_ENTRIES.filter((e) => e.kind === "gsc");
+  return (
+    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+      Vệ sinh tay:{" "}
+      {gscEntries.map((e, i) => (
+        <React.Fragment key={e.qtMa}>
+          {i > 0 ? " · " : null}
+          <Link href={e.href} className="font-semibold text-[var(--primary)] hover:underline">
+            {e.label}
+          </Link>
+        </React.Fragment>
+      ))}
+    </p>
+  );
+}
+
 function filterBangKiemByLoai(
   all: BangKiemListRow[],
   initialLoaiGiamSat?: GscLoaiGiamSatRoute,
@@ -88,7 +110,7 @@ function filterBangKiemByLoai(
 
 interface GscFormViewProps {
   initialLoaiGiamSat?: GscLoaiGiamSatRoute;
-  /** Deep-link / quét QR: `?edit=<sessionUuid>` */
+  /** Deep-link / quét QR: `?edit=<sessionUuid>` (legacy `?session=` đã resolve ở page). */
   editSessionId?: string | null;
   /** Deep-link tem vị trí: `?loc=khoa|khu&ma=` */
   locPrefill?: GscLocPrefill | null;
@@ -272,6 +294,10 @@ export default function GscFormView({
             <button
               type="button"
               onClick={() => {
+                if (editSessionId || editSourceSessionId) {
+                  router.push(SUPERVISION_HISTORY_PATHS.gsc);
+                  return;
+                }
                 setSelectedTemplate(null);
                 setFormProgress(null);
                 setEditSourceSessionId(null);
@@ -314,6 +340,10 @@ export default function GscFormView({
               router.refresh();
             }}
             onCancel={() => {
+              if (editSessionId || editSourceSessionId) {
+                router.push(SUPERVISION_HISTORY_PATHS.gsc);
+                return;
+              }
               setSelectedTemplate(null);
               setFormProgress(null);
               setEditSourceSessionId(null);
@@ -323,12 +353,8 @@ export default function GscFormView({
         </div>
       ) : (
         <div className="space-y-2">
-          {!initialLoaiGiamSat ? (
-            <p className="px-0.5 text-[11px] leading-snug text-slate-500">
-              Form gốc: mọi loại bảng kiểm. Chọn một cửa riêng bên dưới.
-            </p>
-          ) : null}
           <GscSiblingDoors current={initialLoaiGiamSat} />
+          <GscVeSinhTayQuietLinks show={initialLoaiGiamSat === "TUAN_THU"} />
           <ChecklistTemplateTable
             data={processedData}
             onSelect={handleSelectTemplate}

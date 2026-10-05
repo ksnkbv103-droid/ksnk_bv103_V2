@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { GscChecklistOverviewRow } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import {
+  resolveChecklistOverview,
   resolveSortedChecklistOverview,
   resolveTopInterventionChecklists,
 } from "./gsc-checklist-intervention";
@@ -10,6 +11,9 @@ const row = (ma: string, tyLe: number, vp: number): GscChecklistOverviewRow =>
     ma_bk: ma,
     ty_le_tuan_thu: tyLe,
     tong_vi_pham: vp,
+    tong_phien: 5,
+    tong_quan_sat: 40,
+    tong_dat: Math.round((tyLe / 100) * 40),
   }) as GscChecklistOverviewRow;
 
 describe("gsc-checklist-intervention", () => {
@@ -29,5 +33,16 @@ describe("gsc-checklist-intervention", () => {
     );
     expect(top).toHaveLength(2);
     expect(top[0].ma_bk).toBe("C");
+  });
+
+  it("BCTH-01: resolveChecklistOverview drops BM.02/03 hub", () => {
+    const rows = resolveChecklistOverview({
+      checklist_overview: [
+        row("KSNK.QT.01.BM.03", 50, 2),
+        row("BM.07.02", 10, 9),
+        row("KSNK.QT.07.BM.03", 20, 5),
+      ],
+    } as never);
+    expect(rows.map((r) => r.ma_bk)).toEqual(["KSNK.QT.01.BM.03"]);
   });
 });

@@ -24,6 +24,8 @@ type DashboardFilterPanelProps = {
   setSelectedKhuVucIds: (v: string[]) => void;
   selectedHinhThucIds?: string[];
   setSelectedHinhThucIds?: (v: string[]) => void;
+  /** GS-02 /thong-ke: hình thức khóa theo lens toggle — ẩn bộ lọc thủ công. */
+  hideHinhThuc?: boolean;
   tuNgay: string;
   setTuNgay: (v: string) => void;
   denNgay: string;
@@ -48,6 +50,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
   const isBrief = p.variant === "brief";
   const isCompact = p.variant === "compact" || isBrief;
   const hideBangKiem = isBrief || p.hideBangKiem;
+  const showHinhThuc = Boolean(p.setSelectedHinhThucIds) && !p.hideHinhThuc;
 
   const filteredKhoaOptions = React.useMemo(() => {
     if (!p.selectedKhoiIds || p.selectedKhoiIds.length === 0 || p.selectedKhoiIds.length === p.khoiOptions.length) {
@@ -60,7 +63,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
     isPartialSelection(p.selectedKhoiIds, p.khoiOptions) ||
     isPartialSelection(p.selectedNgheIds, p.ngheOptions) ||
     isPartialSelection(p.selectedKhuVucIds, p.khuVucOptions) ||
-    (p.selectedHinhThucIds && p.selectedHinhThucIds.length > 0) ||
+    (showHinhThuc && p.selectedHinhThucIds && p.selectedHinhThucIds.length > 0) ||
     (!hideBangKiem && isPartialSelection(p.selectedBangKiemMas ?? [], p.bangKiemOptions ?? []));
 
   const hinhThucOptions = [
@@ -146,13 +149,13 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             onChange={p.setSelectedBangKiemMas}
             minWidthClassName={selectMin}
           />
-          {p.setSelectedHinhThucIds ? (
+          {showHinhThuc ? (
             <SearchableMultiSelect
               size={selectSize}
               label="Hình thức"
               options={hinhThucOptions}
               selected={p.selectedHinhThucIds || []}
-              onChange={p.setSelectedHinhThucIds}
+              onChange={p.setSelectedHinhThucIds!}
               minWidthClassName={selectMin}
             />
           ) : null}
@@ -171,13 +174,13 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
               minWidthClassName={selectMin}
             />
           ) : null}
-          {p.setSelectedHinhThucIds && isCompact ? (
+          {showHinhThuc && isCompact ? (
             <SearchableMultiSelect
               size={selectSize}
               label="Hình thức"
               options={hinhThucOptions}
               selected={p.selectedHinhThucIds || []}
-              onChange={p.setSelectedHinhThucIds}
+              onChange={p.setSelectedHinhThucIds!}
               minWidthClassName={selectMin}
             />
           ) : null}

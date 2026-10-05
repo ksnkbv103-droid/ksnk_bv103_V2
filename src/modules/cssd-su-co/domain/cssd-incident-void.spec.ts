@@ -18,6 +18,7 @@ describe("planCssdIncidentVoid", () => {
       rollbackEvents: [],
       currentLoId: null,
       voidedAt: "2026-10-01T00:00:00.000Z",
+      voidReasonCode: "NHAP_NHAM" as const,
     };
     expect(
       planCssdIncidentVoid({
@@ -96,7 +97,9 @@ describe("planCssdIncidentVoid", () => {
         },
       ],
       currentLoId: null,
+      currentStation: "DONG_GOI",
       voidedAt: "2026-10-01T00:00:00.000Z",
+      voidReasonCode: "NHAP_NHAM",
       actorName: "Lan",
     });
     expect(plan.ok).toBe(true);
@@ -105,8 +108,42 @@ describe("planCssdIncidentVoid", () => {
     expect(plan.cycle?.stamps.thoi_gian_tiet_khuan).toBe("2026-09-01T01:00:00.000Z");
     expect(plan.cycle?.isRedAlert).toBe(false);
     expect(plan.attributes.INCIDENT_STATUS).toBe("VO_HIEU");
+    expect(plan.attributes.INCIDENT_VOID_REASON).toBe("NHAP_NHAM");
     expect(plan.attributes.INCIDENT_VOIDED_BY_NAME).toBe("Lan");
     expect(countsTowardCssdSafetyTally(plan.attributes)).toBe(false);
+  });
+
+  it("SC-03: đã đi tiếp khỏi trạm rollback → không kéo lùi trạm", () => {
+    const plan = planCssdIncidentVoid({
+      ticket: {
+        id: "sc-1",
+        isActive: true,
+        attributes: processAttrs,
+        moTa: "ướt",
+        detectionStation: "TIET_KHUAN",
+        quyTrinhId: "qt-1",
+      },
+      peers: [],
+      ledger: [],
+      rollbackEvents: [
+        {
+          su_kien: "SU_CO_DOMINO_ROLLBACK",
+          tu_tram: "TIET_KHUAN",
+          den_tram: "DONG_GOI",
+          chi_tiet: {
+            su_co_id: "sc-1",
+            before: { thoi_gian_tiet_khuan: "2026-09-01T01:00:00.000Z" },
+          },
+        },
+      ],
+      currentLoId: null,
+      currentStation: "CAP_PHAT",
+      voidedAt: "2026-10-01T00:00:00.000Z",
+      voidReasonCode: "SAI_BO",
+    });
+    expect(plan.ok).toBe(true);
+    if (!plan.ok || plan.already) return;
+    expect(plan.cycle?.restoreStation).toBeNull();
   });
 
   it("phiếu sau giữ trạm; Hỏng trả tồn và cộng lại kho bổ sung", () => {
@@ -148,11 +185,13 @@ describe("planCssdIncidentVoid", () => {
       ],
       currentLoId: "lo-1",
       voidedAt: "2026-10-01T00:00:00.000Z",
+      voidReasonCode: "TRUNG",
     });
     expect(plan.ok).toBe(true);
     if (!plan.ok || plan.already) return;
     expect(plan.cycle?.restoreStation).toBeNull();
-    expect(plan.cycle?.isRedAlert).toBe(true);
+    // SC-04: peer CHEMICAL không còn tính cờ đỏ
+    expect(plan.cycle?.isRedAlert).toBe(false);
     expect(plan.deactivateLedgerIds).toEqual(["h1", "b1"]);
     expect(plan.khoDelta).toEqual([{ loaiDungCuId: "L1", delta: 1 }]);
   });
@@ -183,7 +222,9 @@ describe("planCssdIncidentVoid", () => {
         },
       ],
       currentLoId: null,
+      currentStation: "TIET_KHUAN",
       voidedAt: "2026-10-01T00:00:00.000Z",
+      voidReasonCode: "NHAP_NHAM",
     });
     expect(plan.ok).toBe(true);
     if (!plan.ok || plan.already) return;
@@ -207,6 +248,7 @@ describe("planCssdIncidentVoid", () => {
       rollbackEvents: [],
       currentLoId: null,
       voidedAt: "2026-10-01T00:00:00.000Z",
+      voidReasonCode: "NHAP_NHAM",
     });
     expect(plan).toEqual({ ok: true, already: true });
   });

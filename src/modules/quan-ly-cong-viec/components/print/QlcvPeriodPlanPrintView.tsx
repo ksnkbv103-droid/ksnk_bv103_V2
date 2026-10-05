@@ -30,7 +30,7 @@ export function QlcvPeriodPlanPrintView({ period, maus }: Props) {
 
   return (
     <PrintLayout
-      title="BẢNG NỘI DUNG CÔNG VIỆC ĐỊNH KỲ (KẾ HOẠCH)"
+      title="Bảng việc định kỳ trong kỳ"
       subtitle={period.label}
       leftSignatureTitle="NGƯỜI LẬP"
       rightSignatureTitle="THỦ TRƯỞNG ĐƠN VỊ"

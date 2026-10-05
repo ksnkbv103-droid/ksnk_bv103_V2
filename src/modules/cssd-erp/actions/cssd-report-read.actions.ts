@@ -35,8 +35,10 @@ import {
   computeMeQcSummary,
   computeReuseFrequency,
   computeStaffScans,
+  computeStationIncidentRates,
   computeStationVolume,
   computeStationVolumeTrend,
+  countCyclesWithProcessIncidents,
   pivotVolumeTrendTotals,
   roundIncidentFreeRate,
   summarizeCssdAnalyticsBrief,
@@ -48,6 +50,7 @@ import {
   type CssdQuyTrinhAnalyticsRow,
   type CssdReuseRow,
   type CssdStaffScanRow,
+  type CssdStationIncidentRateRow,
   type CssdStationVolumeRow,
   type CssdVolumeBucket,
   type CssdVolumeTrendPoint,
@@ -159,6 +162,10 @@ async function buildQuyTrinhAnalyticsSelect(supabase: SupabaseClient): Promise<s
   return cols.join(",");
 }
 
+/** Sự cố báo cáo — đủ cột parse incident; không select(*). */
+const SU_CO_REPORT_SELECT =
+  "id, quy_trinh_id, is_red_alert, ma_loai_su_co, ten_loai_su_co, incident_group, incident_type_label, ma_qr_quy_trinh, ma_tram_phat_hien, ma_tram_gay_loi, mo_ta, attributes, created_at, is_active";
+
 export async function fetchCssdReportBundle(filters: CssdReportFilters) {
   try {
     await verifyCssdReportView();
@@ -167,11 +174,19 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     const to = String(filters.to || "").trim();
     const station = String(filters.station || "ALL").trim();
 
+    // A) select(*). B) analytics/report projection đã có sẵn — chọn B.
+    const quyTrinhSelect = [
+      await buildQuyTrinhAnalyticsSelect(supabase),
+      "ma_qr_quy_trinh",
+      "is_red_alert",
+      "is_active",
+    ].join(",");
+
     const [resQ, resS] = await Promise.all([
       fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
         supabase
           .from("v_cssd_quy_trinh_full")
-          .select("*")
+          .select(quyTrinhSelect)
           .gte("created_at", from)
           .lte("created_at", `${to}T23:59:59`)
           .order("id", { ascending: true })
@@ -180,7 +195,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       fetchAllReportRows<Record<string, unknown>>((pFrom, pTo) =>
         supabase
           .from("v_cssd_su_co_full")
-          .select("*")
+          .select(SU_CO_REPORT_SELECT)
           .gte("created_at", from)
           .lte("created_at", `${to}T23:59:59`)
           .order("id", { ascending: true })
@@ -238,7 +253,8 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         loai_su_co: typeLabel || parsed.typeName,
         incident_group: group,
         incident_group_label: INCIDENT_GROUP_LABEL[group],
-        fault_operator: String(attrs.FAULT_OPERATOR || attrs.NGUOI_PHAT_HIEN || ""),
+        fault_operator: String(attrs.FAULT_OPERATOR || ""),
+        nguoi_phat_hien: String(attrs.NGUOI_PHAT_HIEN || ""),
         reporter_email: String(attrs.REPORTER_EMAIL || ""),
         cause_class: causeClass || "",
         cause_label: causeLabel || "Chưa phân loại",
@@ -283,7 +299,9 @@ export type CssdAnalyticsBundle = {
   brief: ReturnType<typeof summarizeCssdAnalyticsBrief>;
   tyLeQuyTrinhKhongSuCo: number | null;
   quyTrinhKyCount: number;
+  /** Số chu trình có ≥1 SC PROCESS (tử KPI) — không đếm phiếu. */
   suCoKyCount: number;
+  stationIncidentRates: CssdStationIncidentRateRow[];
 };
 
 function emptyAnalyticsBundle(): CssdAnalyticsBundle {
@@ -292,7 +310,15 @@ function emptyAnalyticsBundle(): CssdAnalyticsBundle {
     label: stationLabel(station),
     completed: 0,
   }));
-  const meQc = { so_me_ky: 0, so_me_da_qc: 0, so_me_dat: 0, ty_le_qc_dat_me: null as number | null };
+  const meQc = {
+    so_me_ky: 0,
+    so_me_da_qc: 0,
+    so_me_dat: 0,
+    ty_le_qc_dat_me: null as number | null,
+    biDuong: 0,
+    bdHong: 0,
+    so_me_thu_hoi_than_trong: 0,
+  };
   return {
     stationVolume,
     volumeTrendDay: [],
@@ -310,7 +336,7 @@ function emptyAnalyticsBundle(): CssdAnalyticsBundle {
     staffScans: [],
     brief: summarizeCssdAnalyticsBrief({
       stationVolume,
-      tyLeQuyTrinhKhongSuCo: 100,
+      tyLeQuyTrinhKhongSuCo: null,
       soBo: 0,
       meQc,
       mayReady: 0,
@@ -318,9 +344,10 @@ function emptyAnalyticsBundle(): CssdAnalyticsBundle {
       redAlertTotal: 0,
       frozenTotal: 0,
     }),
-    tyLeQuyTrinhKhongSuCo: 100,
+    tyLeQuyTrinhKhongSuCo: null,
     quyTrinhKyCount: 0,
     suCoKyCount: 0,
+    stationIncidentRates: [],
   };
 }
 
@@ -346,8 +373,6 @@ export async function fetchCssdAnalyticsBundle(filters: {
         ? (stationRaw as CssdAnalyticsStation)
         : "ALL";
 
-    const toEnd = `${to}T23:59:59`;
-
     const quyTrinhSelect = `${await buildQuyTrinhAnalyticsSelect(supabase)},ma_qr_quy_trinh`;
     const [resQ, resS, resBo, resMe, resTb, resBt, resKhoa] = await Promise.all([
       fetchAllReportRows<CssdQuyTrinhAnalyticsRow & { ma_qr_quy_trinh?: string | null }>((pFrom, pTo) =>
@@ -358,12 +383,17 @@ export async function fetchCssdAnalyticsBundle(filters: {
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
-      fetchAllReportRows<{ id?: string; attributes?: Record<string, unknown> | null }>((pFrom, pTo) =>
+      fetchAllReportRows<{
+        id?: string;
+        quy_trinh_id?: string | null;
+        ma_tram_phat_hien?: string | null;
+        attributes?: Record<string, unknown> | null;
+        created_at?: string | null;
+      }>((pFrom, pTo) =>
         supabase
           .from("v_cssd_su_co_full")
-          .select("id, attributes")
-          .gte("created_at", from)
-          .lte("created_at", toEnd)
+          .select("id, quy_trinh_id, ma_tram_phat_hien, attributes, created_at")
+          .or(reportTimestampWindow(from, to, ["created_at"]))
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
@@ -381,11 +411,16 @@ export async function fetchCssdAnalyticsBundle(filters: {
         ket_qua_test?: boolean | null;
         thoi_gian_bat_dau?: string | null;
         created_at?: string | null;
+        trang_thai_me?: string | null;
+        trang_thai_bi?: string | null;
+        tk_qc_json?: Record<string, unknown> | null;
         thiet_bi?: { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
       }>((pFrom, pTo) =>
         supabase
           .from("cssd_fact_lo_tiet_khuan")
-          .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
+          .select(
+            "id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, trang_thai_me, trang_thai_bi, tk_qc_json, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)",
+          )
           .eq("is_active", true)
           .or(mePeriodWindowFilter(from, to))
           .order("id", { ascending: true })
@@ -438,17 +473,19 @@ export async function fetchCssdAnalyticsBundle(filters: {
       if (compactSoHuu) next.ten_khoa = compactSoHuu;
       return next;
     });
-    const suCoKyCount = resS.rows.filter((x) => {
-      const attrs = (x.attributes as Record<string, unknown>) || {};
-      return countsTowardCssdSafetyTally(attrs);
-    }).length;
     const quyTrinhKyCount = quyTrinh.filter((r) => {
       const day = cssdVnDay(r.thoi_gian_tiep_nhan) || cssdVnDay(r.created_at) || "";
       return day >= from && day <= to;
     }).length;
+    const suCoInKy = resS.rows.filter((r) => {
+      const day = cssdVnDay(r.created_at) || "";
+      return day.length > 0 && day >= from && day <= to;
+    });
+    const suCoKyCount = countCyclesWithProcessIncidents(suCoInKy);
     const tyLe = roundIncidentFreeRate(quyTrinhKyCount, suCoKyCount);
 
     const stationVolume = computeStationVolume(quyTrinh, from, to);
+    const stationIncidentRates = computeStationIncidentRates(stationVolume, suCoInKy);
     const pointsDay = computeStationVolumeTrend(quyTrinh, from, to, "day", stationFilter);
     const pointsMonth = computeStationVolumeTrend(quyTrinh, from, to, "month", stationFilter);
     const pointsYear = computeStationVolumeTrend(quyTrinh, from, to, "year", stationFilter);
@@ -475,6 +512,12 @@ export async function fetchCssdAnalyticsBundle(filters: {
           thiet_bi_id: m.thiet_bi_id ? String(m.thiet_bi_id) : null,
           ten_thiet_bi: ten || null,
           ket_qua_test: m.ket_qua_test == null ? null : Boolean(m.ket_qua_test),
+          trang_thai_me: m.trang_thai_me != null ? String(m.trang_thai_me) : null,
+          trang_thai_bi: m.trang_thai_bi != null ? String(m.trang_thai_bi) : null,
+          tk_qc_json:
+            m.tk_qc_json && typeof m.tk_qc_json === "object"
+              ? (m.tk_qc_json as Record<string, unknown>)
+              : null,
           _day: day,
         };
       })
@@ -487,7 +530,16 @@ export async function fetchCssdAnalyticsBundle(filters: {
     for (const tb of resTb.rows) {
       const st = String((tb as { trang_thai?: string }).trang_thai || "").toUpperCase();
       if (st === "READY" || st === "HOAT_DONG" || st === "SAN_SANG") mayReady += 1;
-      else if (st === "REPAIRING" || st === "BAO_TRI" || st === "BROKEN") mayRepairing += 1;
+      // ME-03: HOLD_QC / CHO_THAM_DINH = chưa sẵn sàng vận hành (gộp bucket «đang sửa/giữ»).
+      else if (
+        st === "REPAIRING" ||
+        st === "BAO_TRI" ||
+        st === "BROKEN" ||
+        st === "HOLD_QC" ||
+        st === "CHO_THAM_DINH"
+      ) {
+        mayRepairing += 1;
+      }
     }
     const phieuBaoTriMo = resBt.count ?? 0;
 
@@ -547,6 +599,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
         tyLeQuyTrinhKhongSuCo: tyLe,
         quyTrinhKyCount,
         suCoKyCount,
+        stationIncidentRates,
       },
     };
   } catch (e: unknown) {

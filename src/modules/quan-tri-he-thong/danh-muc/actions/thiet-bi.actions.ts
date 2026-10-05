@@ -2,6 +2,7 @@
 
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
   softDeleteManyMasterRows,
@@ -62,9 +63,10 @@ export async function getLoaiMayTietKhuanOptionsAction() {
 function parseDateOnly(value: unknown): string | null {
   const raw = String(value || "").trim();
   if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString().slice(0, 10);
+  return todayYmdInVn(date);
 }
 
 export async function saveThietBiAction(input: Record<string, unknown>) {
@@ -98,7 +100,7 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     else if (/^[0-9a-f-]{36}$/i.test(loaiMa)) loai_may_id = loaiMa;
   }
 
-  const specs = {
+  const formSpecs = {
     hang_san_xuat: String(input.hang_san_xuat || "").trim() || null,
     nam_san_xuat: nam,
     serial_number: String(input.serial_number || "").trim() || null,
@@ -106,6 +108,39 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     vi_tri: String(input.vi_tri || "").trim() || null,
     ghi_chu: String(input.ghi_chu || "").trim() || null,
   };
+
+  /** ME-02/08: merge specs — không xóa bd_dau_ngay_* / chuong_trinh_catalog. */
+  let specs: Record<string, unknown> = { ...formSpecs };
+  if (id) {
+    const supabase = createAdminSupabaseClient();
+    const { data: cur } = await supabase.from("cssd_dm_thiet_bi").select("specs, trang_thai").eq("id", id).maybeSingle();
+    const prev = (cur?.specs && typeof cur.specs === "object" ? cur.specs : {}) as Record<string, unknown>;
+    specs = { ...prev, ...formSpecs };
+
+    /** ME-03: không gỡ tay HOLD_QC / CHO_THAM_DINH ở danh mục. */
+    const prevTt = String(cur?.trang_thai || "").trim().toUpperCase();
+    const nextTt = trangThai || "READY";
+    if (
+      (prevTt === "HOLD_QC" || prevTt === "CHO_THAM_DINH") &&
+      nextTt !== prevTt &&
+      !lockedOps
+    ) {
+      return {
+        success: false as const,
+        error: "Tạm giữ / chờ thẩm định chỉ gỡ qua bảo trì và thẩm định — không đổi tay ở danh mục.",
+      };
+    }
+    if (
+      (nextTt === "HOLD_QC" || nextTt === "CHO_THAM_DINH") &&
+      prevTt !== nextTt &&
+      !lockedOps
+    ) {
+      return {
+        success: false as const,
+        error: "Không gán tạm giữ / chờ thẩm định tay ở danh mục — chỉ qua QC mẻ hoặc bảo trì.",
+      };
+    }
+  }
 
   const payload = {
     ma_thiet_bi: ma,
