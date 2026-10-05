@@ -32,7 +32,7 @@ import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import { DinhKyChecklistEditor } from "./DinhKyChecklistEditor";
 import type { QlcvPeriodKind } from "../lib/qlcv-period-range";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
 function labelChuKy(ma: string): string {
@@ -86,7 +86,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [tieuDe, setTieuDe] = useState("");
   const [checklistItems, setChecklistItems] = useState<QlcvChecklistItem[]>([]);
   const [chuKy, setChuKy] = useState<MaChuKyDinhKy>("MONTHLY");
-  const [ngayBatDau, setNgayBatDau] = useState(() => new Date().toISOString().slice(0, 10));
+  const [ngayBatDau, setNgayBatDau] = useState(() => todayYmdInVn());
   const [ngayKetThuc, setNgayKetThuc] = useState("");
   const [nsId, setNsId] = useState("");
   const [toId, setToId] = useState("");
@@ -108,7 +108,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setTieuDe("");
     setChecklistItems([]);
     setChuKy("MONTHLY");
-    setNgayBatDau(new Date().toISOString().slice(0, 10));
+    setNgayBatDau(todayYmdInVn());
     setNgayKetThuc("");
     setNsId("");
     setToId("");

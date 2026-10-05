@@ -36,6 +36,7 @@ import {
   resolveQlcvPeriodRange,
   type QlcvPeriodKind,
 } from "@/modules/quan-ly-cong-viec/lib/qlcv-period-range";
+import { qlcvDateVnFromInstant } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 import type { CongViecView } from "@/modules/quan-ly-cong-viec/types";
 import type { QlcvBoardFilter } from "@/modules/quan-ly-cong-viec/lib/qlcv-board-filter";
 import { buildQlcvAnalyticsPrefill } from "@/lib/analytics/qlcv-analytics-deep-link";
@@ -213,9 +214,9 @@ export default function QuanLyCongViecPage() {
 
   const execPrintTasks = useMemo(() => {
     return mergedTasks.filter((t) => {
-      const han = t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : "";
+      const han = qlcvDateVnFromInstant(t.han_hoan_thanh);
       if (han && han >= periodRange.startIso && han <= periodRange.endIso) return true;
-      const created = t.created_at ? String(t.created_at).slice(0, 10) : "";
+      const created = qlcvDateVnFromInstant(t.created_at);
       if (!han && created && created >= periodRange.startIso && created <= periodRange.endIso) return true;
       return false;
     });

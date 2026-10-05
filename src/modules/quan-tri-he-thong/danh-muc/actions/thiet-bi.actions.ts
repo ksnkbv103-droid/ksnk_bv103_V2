@@ -2,6 +2,7 @@
 
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
   softDeleteManyMasterRows,
@@ -62,9 +63,10 @@ export async function getLoaiMayTietKhuanOptionsAction() {
 function parseDateOnly(value: unknown): string | null {
   const raw = String(value || "").trim();
   if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString().slice(0, 10);
+  return todayYmdInVn(date);
 }
 
 export async function saveThietBiAction(input: Record<string, unknown>) {

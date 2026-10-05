@@ -785,7 +785,7 @@ export default function GiamSatNkbvPage() {
                 ma_benh_an: "",
                 ma_benh_nhan: "",
                 ho_ten_benh_nhan: "",
-                ngay_vao_vien: new Date().toISOString().slice(0, 10),
+                ngay_vao_vien: todayYmdInVn(),
                 khoa_dieu_tri_id: header.selectedKhoa || "",
                 __createStay: true,
               });
