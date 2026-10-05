@@ -5,6 +5,7 @@ import {
 } from "./nkbv-classification-taxonomy";
 import { formatNkbvLoaiDisplay } from "./nkbv-loai-labels";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { addDays, subDays } from "./nkbv-timeline-math";
 
 export type NkbvCasRowMinimal = {
   ngay_phat_hien?: string | null;
@@ -17,12 +18,106 @@ export type NkbvCasRowMinimal = {
   classification?: string | null;
   /** verification_data.is_positive — KPI «Đã xác nhận NKBV» = XAC_NHAN ∧ true. */
   is_positive?: boolean | null;
+  /** LOA (Transfer Rule) — ưu tiên lọc khoa dashboard; fallback khoa ghi nhận. */
+  loa_khoa_id?: string | null;
+  khoa_ghi_nhan_id?: string | null;
 };
 
 /** Ngày kỳ báo cáo phiếu: report_date → DOE → Index. */
 export function nkbvReportDate(row: NkbvCasRowMinimal): string | null {
   const d = row.report_date || row.ngay_phat_hien;
   return d ? String(d).slice(0, 10) : null;
+}
+
+/** Pad Index fetch: SSI SP tối đa 90d — Index có thể lệch kỳ so với DOE/ngày mổ. */
+export const NKBV_DASHBOARD_INDEX_PAD_DAYS = 90;
+
+/** Biên truy vấn theo Index (ngay_phat_hien) rộng hơn kỳ báo cáo (DOE/ngày mổ). */
+export function nkbvDashboardFetchBounds(
+  tuStr: string,
+  denStr: string,
+  padDays = NKBV_DASHBOARD_INDEX_PAD_DAYS,
+): { fetchTu: string; fetchDen: string } {
+  return {
+    fetchTu: subDays(tuStr.slice(0, 10), padDays),
+    fetchDen: addDays(denStr.slice(0, 10), padDays),
+  };
+}
+
+/** Map hàng view → cas tối thiểu; report_date = DOE (SSI = ngày mổ). */
+export function mapNkbvDashboardCasFromViewRow(
+  x: Record<string, unknown>,
+): NkbvCasRowMinimal {
+  const vd =
+    x.verification_data && typeof x.verification_data === "object"
+      ? (x.verification_data as Record<string, unknown>)
+      : {};
+  const calculatedDoe =
+    typeof vd.calculated_doe === "string"
+      ? vd.calculated_doe.slice(0, 10)
+      : typeof x.doe === "string"
+        ? String(x.doe).slice(0, 10)
+        : null;
+  const surgeryDate =
+    typeof vd.ngay_phau_thuat === "string"
+      ? vd.ngay_phau_thuat.slice(0, 10)
+      : typeof vd.surgery_date === "string"
+        ? vd.surgery_date.slice(0, 10)
+        : typeof x.ngay_phau_thuat === "string"
+          ? String(x.ngay_phau_thuat).slice(0, 10)
+          : null;
+  const cls = typeof vd.classification === "string" ? vd.classification : null;
+  const isSsi =
+    cls &&
+    (/^(SIP|SIS|DIP|DIS)$/i.test(cls) ||
+      cls.toUpperCase().startsWith("ORGAN_SPACE") ||
+      cls.toUpperCase().startsWith("SSI:"));
+  const report_date = isSsi
+    ? surgeryDate || calculatedDoe || (x.ngay_phat_hien as string | null)
+    : calculatedDoe || (x.ngay_phat_hien as string | null);
+  const loaFromCol =
+    typeof x.loa_khoa_id === "string" ? x.loa_khoa_id.trim() : "";
+  const loaFromJson =
+    typeof vd.attributed_khoa_id === "string"
+      ? vd.attributed_khoa_id.trim()
+      : "";
+  const khoaGhi =
+    typeof x.khoa_ghi_nhan_id === "string" ? x.khoa_ghi_nhan_id.trim() : "";
+  return {
+    ngay_phat_hien: x.ngay_phat_hien as string | null,
+    report_date,
+    loai_nkbv: { ma_loai: x.loai_ma as string | null, ten_loai: x.loai_ten as string | null },
+    trang_thai_row: {
+      ma_trang_thai: x.trang_thai_ma as string | null,
+      ten_trang_thai: x.trang_thai_ten as string | null,
+    },
+    khoa_ghi_nhan: {
+      ma_khoa: x.khoa_ma as string | null,
+      ten_khoa: x.khoa_ten as string | null,
+    },
+    classification: cls,
+    is_positive: typeof vd.is_positive === "boolean" ? vd.is_positive : null,
+    loa_khoa_id: loaFromCol || loaFromJson || null,
+    khoa_ghi_nhan_id: khoaGhi || null,
+  };
+}
+
+/** NKBV-03: lọc khoa theo LOA; thiếu LOA → fallback khoa ghi nhận (phiếu nháp). */
+export function matchNkbvDashboardLoaKhoa(
+  row: NkbvCasRowMinimal,
+  khoaId: string | null,
+  khoaIds: string[],
+): boolean {
+  const targets = khoaIds.length > 0
+    ? khoaIds
+    : khoaId
+      ? [khoaId]
+      : [];
+  if (targets.length === 0) return true;
+  const loa = String(row.loa_khoa_id || "").trim();
+  const ghi = String(row.khoa_ghi_nhan_id || "").trim();
+  const key = loa || ghi;
+  return Boolean(key && targets.includes(key));
 }
 
 /**

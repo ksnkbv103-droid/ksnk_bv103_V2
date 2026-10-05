@@ -12,6 +12,18 @@ export type ClinicalSubmitGateResult =
   | { ok: true }
   | { ok: false; error: string };
 
+/**
+ * CHO_DUYET bắt buộc DOE khi ca dương tính / POA (cần ngày quy kết).
+ * NO_EVENT / CONTAMINATION / loại trừ engine — cho phép thiếu DOE để KSNK đóng phiếu.
+ */
+export function nkbvClinicalSubmitRequiresDoe(result: {
+  is_positive?: boolean | null;
+  classification?: string | null;
+}): boolean {
+  if (result.is_positive === true) return true;
+  return String(result.classification || "").toUpperCase() === "POA";
+}
+
 function iwpBounds(detectionDate: string): { start: string; end: string } {
   const d = detectionDate.slice(0, 10);
   return { start: subDays(d, 3), end: addDays(d, 3) };

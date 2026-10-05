@@ -8,6 +8,9 @@ import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-rang
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import {
   aggregateNkbvDashboard,
+  mapNkbvDashboardCasFromViewRow,
+  matchNkbvDashboardLoaKhoa,
+  nkbvDashboardFetchBounds,
   NKBV_CHO_TAC_STATUS_MAS,
   type NkbvCasRowMinimal,
   type NkbvEpidemiologyRate,
@@ -24,22 +27,20 @@ type GiamSatNkbvDashboardFilters = {
 
 const NKBV_DASH_CACHE_TAG = "nkbv-dashboard-aggregate";
 
-async function loadNkbvDashboardRaw(tuStr: string, denStr: string, khoaId: string | null, khoaIds: string[]) {
+async function loadNkbvDashboardRaw(tuStr: string, denStr: string, khoaId: string | null) {
   const supabase = createAdminSupabaseClient();
+  // Index pad: aggregate vẫn lọc theo report_date (DOE / ngày mổ SSI).
+  // Không lọc khoa ở SQL (khoa_ghi_nhan ≠ LOA) — post-filter LOA sau map JSON.
+  const { fetchTu, fetchDen } = nkbvDashboardFetchBounds(tuStr, denStr);
   const data = await fetchAllRangeRows<Record<string, unknown>>((from, to) => {
-    let q = supabase
+    const q = supabase
       .from("v_nkbv_su_kien_full")
       .select(
-        "ngay_phat_hien, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten, khoa_ma, verification_data",
+        "ngay_phat_hien, khoa_ghi_nhan_id, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten, khoa_ma, verification_data",
       )
       .eq("is_active", true)
-      .gte("ngay_phat_hien", tuStr)
-      .lte("ngay_phat_hien", denStr);
-    if (khoaIds.length > 0) {
-      q = q.in("khoa_ghi_nhan_id", khoaIds);
-    } else if (khoaId) {
-      q = q.eq("khoa_ghi_nhan_id", khoaId);
-    }
+      .gte("ngay_phat_hien", fetchTu)
+      .lte("ngay_phat_hien", fetchDen);
     return q
       .order("ngay_phat_hien", { ascending: true })
       .order("id", { ascending: true })
@@ -77,7 +78,7 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
   let raw: Awaited<ReturnType<typeof loadNkbvDashboardRaw>>;
   try {
     raw = await unstable_cache(
-      () => loadNkbvDashboardRaw(tuStr, denStr, khoaId, khoaIds),
+      () => loadNkbvDashboardRaw(tuStr, denStr, khoaId),
       [NKBV_DASH_CACHE_TAG, cacheKey],
       { revalidate: 90, tags: [NKBV_DASH_CACHE_TAG] },
     )();
@@ -93,39 +94,9 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
     });
   }
 
-  const rows = raw.data.map((x) => {
-    const vd =
-      x.verification_data && typeof x.verification_data === "object"
-        ? (x.verification_data as Record<string, unknown>)
-        : {};
-    const calculatedDoe =
-      typeof vd.calculated_doe === "string" ? vd.calculated_doe.slice(0, 10) : null;
-    const surgeryDate =
-      typeof vd.ngay_phau_thuat === "string"
-        ? vd.ngay_phau_thuat.slice(0, 10)
-        : typeof vd.surgery_date === "string"
-          ? vd.surgery_date.slice(0, 10)
-          : null;
-    const cls = typeof vd.classification === "string" ? vd.classification : null;
-    const isSsi =
-      cls &&
-      (/^(SIP|SIS|DIP|DIS)$/i.test(cls) ||
-        cls.toUpperCase().startsWith("ORGAN_SPACE") ||
-        cls.toUpperCase().startsWith("SSI:"));
-    // Fallback khi migration chưa apply: DOE từ JSON; SSI kỳ theo ngày mổ
-    const report_date = isSsi
-      ? surgeryDate || calculatedDoe || (x.ngay_phat_hien as string | null)
-      : calculatedDoe || (x.ngay_phat_hien as string | null);
-    return {
-      ngay_phat_hien: x.ngay_phat_hien,
-      report_date,
-      loai_nkbv: { ma_loai: x.loai_ma, ten_loai: x.loai_ten },
-      trang_thai_row: { ma_trang_thai: x.trang_thai_ma, ten_trang_thai: x.trang_thai_ten },
-      khoa_ghi_nhan: { ma_khoa: x.khoa_ma, ten_khoa: x.khoa_ten },
-      classification: cls,
-      is_positive: typeof vd.is_positive === "boolean" ? vd.is_positive : null,
-    };
-  }) as NkbvCasRowMinimal[];
+  const rows = raw.data
+    .map((x) => mapNkbvDashboardCasFromViewRow(x))
+    .filter((r) => matchNkbvDashboardLoaKhoa(r, khoaId, khoaIds)) as NkbvCasRowMinimal[];
   const payload = aggregateNkbvDashboard(rows, tuStr, denStr);
 
   const epidemiologyRates = ((raw.rpcData || []) as Array<Record<string, unknown>>).map((r) => ({

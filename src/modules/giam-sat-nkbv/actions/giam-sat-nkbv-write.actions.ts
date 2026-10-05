@@ -15,7 +15,10 @@ import {
   evaluateSsi,
   evaluateCh17,
 } from "../lib/nkbv-rules-engine";
-import { assertClinicalEvidenceForSubmit } from "../lib/nkbv-clinical-submit-gate";
+import {
+  assertClinicalEvidenceForSubmit,
+  nkbvClinicalSubmitRequiresDoe,
+} from "../lib/nkbv-clinical-submit-gate";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
@@ -489,12 +492,15 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       };
     }
 
-    const calculatedDoe = String(
+    const calculatedDoeRaw = String(
       (verificationInput as { calculated_doe?: string } | null | undefined)
         ?.calculated_doe || "",
-    )
-      .slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(calculatedDoe)) {
+    ).slice(0, 10);
+    const calculatedDoe = /^\d{4}-\d{2}-\d{2}$/.test(calculatedDoeRaw)
+      ? calculatedDoeRaw
+      : "";
+    // NKBV-02: NO_EVENT / CONTAMINATION không có DOE — vẫn gửi CHO_DUYET để KSNK đóng
+    if (nkbvClinicalSubmitRequiresDoe(result) && !calculatedDoe) {
       return {
         success: false as const,
         error: "Thiếu DOE (calculated_doe) — chưa đủ để đưa phiếu chờ duyệt.",
@@ -521,7 +527,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       is_secondary_bsi: result.is_secondary_bsi || false,
       reason: result.reason,
       ghi_chu_tuy_bien: verificationInput?.ghi_chu_tuy_bien || undefined,
-      calculated_doe: calculatedDoe,
+      ...(calculatedDoe ? { calculated_doe: calculatedDoe } : { calculated_doe: null }),
       attributed_khoa_id: loaKhoaId,
       ...(poaMajor && poaMajor !== "OTHER" && poaMajor !== "SSI" && poaMajor !== "VAE"
         ? { poa_major_type: poaMajor }
@@ -581,7 +587,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
 
     // Cột báo cáo (migration 20261005034000) — fallback nếu chưa apply
     const reportCols: Record<string, unknown> = {
-      doe: calculatedDoe,
+      doe: calculatedDoe || null,
       loa_khoa_id: loaKhoaId,
       ...(surgeryDate && /^\d{4}-\d{2}-\d{2}$/.test(surgeryDate)
         ? { ngay_phau_thuat: surgeryDate }

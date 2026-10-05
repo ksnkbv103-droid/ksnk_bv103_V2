@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   aggregateNkbvDashboard,
   formatNkbvXacNhanVolume,
+  mapNkbvDashboardCasFromViewRow,
+  matchNkbvDashboardLoaKhoa,
+  nkbvDashboardFetchBounds,
   nkbvPaMauSo,
   nkbvReportDate,
 } from "./nkbv-dashboard-aggregate";
@@ -189,5 +192,68 @@ describe("aggregateNkbvDashboard", () => {
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
     expect(out.top_khoa[0]?.ten_khoa).toBe("A05");
     expect(out.top_khoa[0]?.so_phieu).toBe(2);
+  });
+});
+
+describe("nkbvDashboard fetch/LOA helpers", () => {
+  it("pad Index ±90d quanh kỳ báo cáo", () => {
+    expect(nkbvDashboardFetchBounds("2026-10-01", "2026-10-31")).toEqual({
+      fetchTu: "2026-07-03",
+      fetchDen: "2027-01-29",
+    });
+  });
+
+  it("map: Index ngoài kỳ nhưng DOE trong kỳ → report_date = DOE", () => {
+    const row = mapNkbvDashboardCasFromViewRow({
+      ngay_phat_hien: "2026-11-02",
+      khoa_ghi_nhan_id: "khoa-ghi",
+      loai_ma: "UTI",
+      loai_ten: "UTI",
+      trang_thai_ma: "XAC_NHAN",
+      trang_thai_ten: "Xác nhận",
+      khoa_ma: "A",
+      khoa_ten: "Khoa A",
+      verification_data: {
+        calculated_doe: "2026-10-30",
+        attributed_khoa_id: "khoa-loa",
+        is_positive: true,
+        classification: "CAUTI_SUTI",
+      },
+    });
+    expect(row.report_date).toBe("2026-10-30");
+    expect(row.loa_khoa_id).toBe("khoa-loa");
+    const inOct = aggregateNkbvDashboard([row], "2026-10-01", "2026-10-31");
+    expect(inOct.kpis.tong_phieu).toBe(1);
+    const inNov = aggregateNkbvDashboard([row], "2026-11-01", "2026-11-30");
+    expect(inNov.kpis.tong_phieu).toBe(0);
+  });
+
+  it("map SSI: kỳ theo ngày mổ (không Index)", () => {
+    const row = mapNkbvDashboardCasFromViewRow({
+      ngay_phat_hien: "2026-10-05",
+      khoa_ghi_nhan_id: "khoa-ghi",
+      verification_data: {
+        classification: "SIP",
+        ngay_phau_thuat: "2026-09-25",
+        calculated_doe: "2026-09-28",
+        attributed_khoa_id: "khoa-loa",
+        is_positive: true,
+      },
+    });
+    expect(row.report_date).toBe("2026-09-25");
+  });
+
+  it("LOA ưu tiên hơn khoa ghi nhận; thiếu LOA → fallback ghi nhận", () => {
+    const withLoa = mapNkbvDashboardCasFromViewRow({
+      khoa_ghi_nhan_id: "ghi",
+      verification_data: { attributed_khoa_id: "loa" },
+    });
+    expect(matchNkbvDashboardLoaKhoa(withLoa, "loa", [])).toBe(true);
+    expect(matchNkbvDashboardLoaKhoa(withLoa, "ghi", [])).toBe(false);
+    const draft = mapNkbvDashboardCasFromViewRow({
+      khoa_ghi_nhan_id: "ghi",
+      verification_data: {},
+    });
+    expect(matchNkbvDashboardLoaKhoa(draft, "ghi", [])).toBe(true);
   });
 });
