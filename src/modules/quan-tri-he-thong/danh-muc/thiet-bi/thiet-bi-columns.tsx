@@ -6,6 +6,7 @@ import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/q
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import ThietBiPrintQrButton from "@/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { trangThaiMayLabel } from "@/lib/domain/cssd-equipment-pm";
 
 interface ActionCells {
   renderStatusCell: (item: ThietBiRow) => ReactNode;
@@ -60,16 +61,17 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       sortable: true,
       cell: (i) => {
         const val = (i.trang_thai || "READY").toUpperCase();
-        if (val === "REPAIRING" || val === "BAO_TRI") {
-          return <span className={TC.statusDanger}>Đang bảo trì</span>;
+        const label = trangThaiMayLabel(val);
+        if (val === "REPAIRING" || val === "BAO_TRI" || val === "BROKEN") {
+          return <span className={TC.statusDanger}>{label}</span>;
         }
-        if (val === "READY" || val === "SAN_SANG") {
-          return <span className={TC.statusOk}>Sẵn sàng</span>;
+        if (val === "READY" || val === "SAN_SANG" || val === "HOAT_DONG") {
+          return <span className={TC.statusOk}>{label}</span>;
         }
-        if (val === "HOLD_QC") {
-          return <span className={TC.statusWarn}>Tạm giữ QC</span>;
+        if (val === "HOLD_QC" || val === "CHO_THAM_DINH") {
+          return <span className={TC.statusWarn}>{label}</span>;
         }
-        return <span className={TC.statusInfo}>{clip(i.trang_thai, 20)}</span>;
+        return <span className={TC.statusInfo}>{label}</span>;
       },
     },
     {

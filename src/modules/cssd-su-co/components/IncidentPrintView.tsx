@@ -12,7 +12,12 @@ import { parseSetReconcileSnapshot } from "../domain/cssd-set-reconcile-attrs";
 import { resolveRecallPrintRows } from "../domain/cssd-batch-recall";
 import { buildBm01RecallTotals, readRecallMemberJson } from "../domain/cssd-batch-recall-hold";
 import { CSSD_RED_ALERT_DISPLAY_MIN } from "../domain/cssd-incident-attributes";
-import { SET_RECONCILE_KIND_LABEL, formatLoaiDungCuLabel, type SetReconcileLineKind } from "@/lib/domain/cssd-set-reconcile";
+import {
+  SET_RECONCILE_KIND_LABEL,
+  formatLoaiDungCuLabel,
+  setReconcileStatusLabel,
+  type SetReconcileLineKind,
+} from "@/lib/domain/cssd-set-reconcile";
 import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
 export interface IncidentDetailRow {
@@ -123,7 +128,7 @@ export default function IncidentPrintView({
   // Hướng xử lý đề xuất tương ứng
   const solutionText = useMemo(() => {
     if (incident.incident_group === "INSTRUMENT") {
-      return "Ghi nhận Hỏng/Mất trên bộ — rà soát cấu phần (cổng soft BOM). Không tự đóng băng trừ khi đã escalate.";
+      return "Ghi nhận Hỏng/Mất trên bộ — rà soát cấu phần (đề nghị đổi danh mục). Không tự khóa bộ trừ khi đã chuyển cấp xử lý.";
     }
     if (incident.incident_group === "PROCESS") {
       if (batchRecalled) {
@@ -140,7 +145,7 @@ export default function IncidentPrintView({
         return `Thu hồi mẻ${n}.${movedBit}${pendingBit}${listedBit}${hold}`;
       }
       const target = rollbackTarget ? stationLabel(rollbackTarget) : "Làm sạch";
-      return `Rollback domino: Tự động chuyển bộ dụng cụ về trạm [${target}] để xử lý lại từ đầu.`;
+      return `Thu hồi theo chuỗi: tự động chuyển bộ dụng cụ về trạm [${target}] để xử lý lại từ đầu.`;
     }
     if (incident.incident_group === "EQUIPMENT") {
       return "Khóa máy/Ngừng hoạt động. Báo phòng vật tư kỹ thuật sửa chữa & hiệu chuẩn lại thông số.";
@@ -246,7 +251,7 @@ export default function IncidentPrintView({
         {setSnap?.lines?.length ? (
           <div style={{ marginBottom: "14px" }}>
             <p style={{ margin: "0 0 6px", fontSize: "12px", fontWeight: 800, textTransform: "uppercase" }}>
-              Bảng thành phần bộ {setStatus ? `(${setStatus})` : ""}
+              Bảng thành phần bộ {setStatus ? `(${setReconcileStatusLabel(setStatus)})` : ""}
             </p>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
               <thead>

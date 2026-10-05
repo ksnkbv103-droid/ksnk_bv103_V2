@@ -20,6 +20,8 @@ describe("cssd-equipment-pm", () => {
 
   it("labels HOLD_QC machine status", () => {
     expect(trangThaiMayLabel("HOLD_QC")).toBe("Tạm giữ QC");
+    expect(trangThaiMayLabel("CHO_THAM_DINH")).toBe("Chờ thẩm định");
     expect(trangThaiMayLabel("READY")).toBe("Sẵn sàng");
+    expect(trangThaiMayLabel("SAN_SANG")).toBe("Sẵn sàng");
   });
 });

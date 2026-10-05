@@ -109,6 +109,19 @@ export type SetReconcileStatus =
 export const BOM_APPROVE_CLAIM_STATUS: SetReconcileStatus = "BOM_APPLYING";
 export const BOM_APPROVE_FAILED_STATUS: SetReconcileStatus = "BOM_APPLY_FAILED";
 
+/** Nhãn VN cho trạng thái rà soát BOM — in phiếu / sổ lịch sử. */
+export function setReconcileStatusLabel(status: string | null | undefined): string {
+  const s = String(status || "").trim().toUpperCase();
+  if (s === "BOM_PENDING") return "Chờ duyệt đổi danh mục";
+  if (s === "BOM_APPLYING") return "Đang ghi danh mục";
+  if (s === "BOM_APPLY_FAILED") return "Ghi bảng thành phần lỗi";
+  if (s === "BOM_APPROVED") return "Đã duyệt đổi mã · tên · số lượng";
+  if (s === "BOM_REJECTED") return "Từ chối đổi mã · tên · số lượng";
+  if (s === "NONE") return "Đã ghi sổ sự cố / khớp";
+  if (s === "DRAFT") return "Nháp";
+  return s || "—";
+}
+
 export function canClaimBomApprove(status: string | null | undefined): boolean {
   return status === "BOM_PENDING";
 }

@@ -46,12 +46,12 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
       <p className="bv103-type-label mt-1 text-slate-500">
         Chỉ khoa đủ mẫu cả hai nguồn (tối thiểu {minN}{" "}
         {source === "vst" ? "cơ hội" : "khảo sát"} / nguồn). Lệch ={" "}
-        <span className="font-medium">TGS − KSNK</span> (tự giám sát trừ chuyên trách) — không đảo
-        dấu. Dương = tự báo cao hơn chuyên trách.
+        <span className="font-medium">Tự GS − Chuyên trách</span> (tự giám sát trừ chuyên trách) — không
+        đảo dấu. Dương = tự báo cao hơn chuyên trách.
       </p>
       {data.length === 0 ? (
         <p className={`mt-3 ${P.emptyBody}`}>
-          Thiếu mẫu đối soát — chưa có khoa đủ min-N cả hai nguồn trong phạm vi lọc.
+          Thiếu mẫu đối soát — chưa có khoa đủ số mẫu tối thiểu cả hai nguồn trong phạm vi lọc.
         </p>
       ) : (
         <div className="mt-3 overflow-x-auto">
@@ -61,7 +61,7 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
                 <th className="py-2 pr-2 font-medium">Khoa</th>
                 <th className="py-2 px-2 font-medium text-right">Tự GS %</th>
                 <th className="py-2 px-2 font-medium text-right">Chuyên trách %</th>
-                <th className="py-2 pl-2 font-medium text-right">TGS − KSNK</th>
+                <th className="py-2 pl-2 font-medium text-right">Tự GS − CT</th>
               </tr>
             </thead>
             <tbody>

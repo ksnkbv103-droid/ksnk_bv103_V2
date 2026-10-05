@@ -71,12 +71,12 @@ export function CatalogDeNghiApproveQueue() {
         Đề nghị danh mục — chờ duyệt (ghi đè master)
       </h3>
       <p className="text-[11px] text-violet-900/80">
-        Tách khỏi cửa sự cố SET_RECONCILE. Duyệt = ghi đè loại / bộ / thành phần.
+        Tách khỏi cửa sự cố rà soát bộ. Duyệt = ghi đè loại / bộ / thành phần.
       </p>
       {loading ? (
         <p className="text-[12px] text-slate-500">Đang tải…</p>
       ) : rows.length === 0 ? (
-        <p className="text-[12px] text-slate-500">Không có phiếu PENDING.</p>
+        <p className="text-[12px] text-slate-500">Không có phiếu chờ duyệt.</p>
       ) : (
         <ul className="space-y-2">
           {rows.map((r) => (
