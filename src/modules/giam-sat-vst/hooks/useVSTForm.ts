@@ -32,7 +32,11 @@ function clonePersonIdentities(persons: VSTFormPerson[]): VSTFormPerson[] {
   }));
 }
 
-export function useVSTForm(onSuccess: () => void, editingSessionId?: string | null) {
+export function useVSTForm(
+  onSuccess: () => void,
+  editingSessionId?: string | null,
+  requiresEditReason = false,
+) {
   const { isMangLuoi, isAdmin, userData, loading: permLoading } = usePermission();
   const lockKhoa = Boolean(isMangLuoi && !isAdmin && !editingSessionId);
   const actorKhoaId = userData?.khoa_id ?? null;
@@ -198,6 +202,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     onSuccess,
     editingSessionId ?? null,
     handleCreateSaveSuccess,
+    requiresEditReason,
   );
 
   const handleFinalSaveRef = useRef(handleFinalSave);

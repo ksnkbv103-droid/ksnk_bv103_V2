@@ -27,12 +27,14 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
     observations: Array<Record<string, unknown>>;
   } | null>(null);
   const [editLoading, setEditLoading] = useState(Boolean(editSessionId));
+  const [requiresEditReason, setRequiresEditReason] = useState(false);
 
   useEffect(() => {
     if (!editSessionId) {
       setEditLoading(false);
       setEditVstSourceSessionId(null);
       setEditVstDetail(null);
+      setRequiresEditReason(false);
       return;
     }
 
@@ -40,6 +42,7 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
     setEditLoading(true);
     setEditVstSourceSessionId(editSessionId);
     setEditVstDetail(null);
+    setRequiresEditReason(false);
 
     (async () => {
       const can = await assertCanEditVSTSession(editSessionId);
@@ -50,11 +53,13 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
         setEditLoading(false);
         return;
       }
+      setRequiresEditReason(Boolean(can.requiresReason));
       const detail = await getVSTSessionDetail(editSessionId);
       if (cancelled) return;
       if (!detail.success) {
         toast.error(detail.error);
         setEditVstSourceSessionId(null);
+        setRequiresEditReason(false);
         setEditLoading(false);
         return;
       }
@@ -89,9 +94,11 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
       <VSTForm
         editDetail={editVstDetail}
         editingSessionId={editVstSourceSessionId}
+        requiresEditReason={requiresEditReason}
         onSuccess={() => {
           setEditVstSourceSessionId(null);
           setEditVstDetail(null);
+          setRequiresEditReason(false);
           markSupervisionHistoryStale("vst");
           router.push(SUPERVISION_HISTORY_PATHS.vst);
           router.refresh();

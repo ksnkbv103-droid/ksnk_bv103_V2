@@ -42,10 +42,13 @@ export default function VSTForm({
   onSuccess,
   editDetail,
   editingSessionId,
+  requiresEditReason = false,
 }: {
   onSuccess: () => void;
   editDetail?: VstEditDetail | null;
   editingSessionId?: string | null;
+  /** Admin sửa phiên quá 30 phút — form sẽ hỏi lý do khi lưu. */
+  requiresEditReason?: boolean;
 }) {
   const {
     session, setSession,
@@ -66,7 +69,7 @@ export default function VSTForm({
     changeLocation,
     finishToHistory,
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
-  } = useVSTForm(onSuccess, editingSessionId ?? null);
+  } = useVSTForm(onSuccess, editingSessionId ?? null, requiresEditReason);
 
   const { lockedUntilDate, isLockedForSelectedDate, lockMessage } = useVstModuleLock(
     session.ngay_giam_sat ?? null,
@@ -337,6 +340,15 @@ export default function VSTForm({
             <p className="mt-1 text-xs text-amber-900">
               Đã nạp đủ mọi người đã lưu — lưu lại sẽ không mất ai. Không thêm đối tượng mới vượt số đã có
               (nhập mới vẫn tối đa 3).
+            </p>
+          </div>
+        )}
+
+        {requiresEditReason && editingSessionId && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold">Phiên quá 30 phút — Admin sửa cần ghi lý do.</p>
+            <p className="mt-1 text-xs text-amber-900">
+              Khi bấm «Lưu phiên giám sát», hệ thống sẽ hỏi lý do sửa (tối thiểu 3 ký tự) để ghi nhật ký.
             </p>
           </div>
         )}

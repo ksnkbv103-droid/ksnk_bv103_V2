@@ -19,6 +19,7 @@ import {
 } from "../lib/vst-form-model";
 import { buildVstObservations, validateOpportunityInput } from "../lib/vst-form-submit";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
+import { promptVstEditReasonOrThrow } from "../lib/vst-edit-reason";
 
 export type { ExtendedOpportunity, VSTFormPerson, VSTOppAssessmentField, VSTPersonUpdatableField };
 export { createDefaultVSTFormPersons };
@@ -36,6 +37,8 @@ export function useVSTFormHandlers(
   editingSessionId: string | null,
   /** Create-mode: sau lưu hiện CTA tiếp tục thay vì nhảy lịch sử ngay. */
   onCreateSaveSuccess?: (savedPersons: VSTFormPerson[]) => void,
+  /** Admin sửa phiên quá 30 phút — bắt buộc lyDoSua (N-VST-9). */
+  requiresEditReason = false,
 ) {
   const mutatePersons = (mutator: (draft: VSTFormPerson[]) => void) => {
     const next = [...persons];
@@ -147,14 +150,28 @@ export function useVSTFormHandlers(
       thoi_gian_ket_thuc: ketThucIso,
     };
 
-    setLoading(true);
     const sid = String(editingSessionId ?? "").trim();
+    let lyDoSua: string | undefined;
+    if (sid && requiresEditReason) {
+      try {
+        lyDoSua = promptVstEditReasonOrThrow();
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message === "__VST_EDIT_REASON_CANCELLED__") return;
+        return toast.error(err instanceof Error ? err.message : "Cần lý do sửa phiên.");
+      }
+    }
+
+    setLoading(true);
+    const saveOpts = sid
+      ? { existingSessionId: sid, ...(lyDoSua ? { lyDoSua } : {}) }
+      : undefined;
     try {
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         enqueueOfflineVstSave({
           session: sessionPayload as SessionInput,
           observations,
           existingSessionId: sid || null,
+          lyDoSua: lyDoSua ?? null,
         });
         toast.warning(
           "Chưa lên máy chủ — phiên đang chờ mạng. Khi có internet, bấm «Đồng bộ» ở góc màn hình hoặc mở lại trang.",
@@ -165,7 +182,7 @@ export function useVSTFormHandlers(
       const res = await saveVSTSession(
         sessionPayload as SessionInput,
         observations,
-        sid ? { existingSessionId: sid } : undefined,
+        saveOpts,
       );
       if (res.success) {
         toast.success(res.message);
@@ -186,6 +203,7 @@ export function useVSTFormHandlers(
           session: sessionPayload as SessionInput,
           observations,
           existingSessionId: sid || null,
+          lyDoSua: lyDoSua ?? null,
         });
         toast.warning(
           "Chưa lên máy chủ — mạng lỗi, phiên đang chờ. Khi có internet, bấm «Đồng bộ» ở góc màn hình.",
