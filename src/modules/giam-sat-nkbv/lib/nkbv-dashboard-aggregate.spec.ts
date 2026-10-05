@@ -54,8 +54,9 @@ describe("aggregateNkbvDashboard", () => {
     expect(out.kpis.da_xac_nhan).toBe(1);
     expect(out.kpis.loai_tru).toBe(1);
     expect(out.kpis.dang_va_cho_xn).toBe(1);
-    // PA = 4 - 1 loại trừ = 3 → 1/3 = 33%
-    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(33);
+    // Mẫu = 2 XAC_NHAN + 1 LOAI_TRU = 3 → 1/3 ≈ 33.3%
+    expect(out.kpis.phieu_xac_nhan_trang_thai).toBe(2);
+    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(33.3);
     expect(out.by_loai).toEqual(
       expect.arrayContaining([expect.objectContaining({ ma: "UTI", so_phieu: 1 })]),
     );
@@ -138,7 +139,7 @@ describe("aggregateNkbvDashboard", () => {
     expect(out.kpis.tong_phieu).toBe(1);
   });
 
-  it("formatNkbvXacNhanVolume uses PA−loại trừ, not tong phiếu", () => {
+  it("formatNkbvXacNhanVolume uses đã kết luận (XAC_NHAN + LOAI_TRU), not tong phiếu", () => {
     const rows = [
       {
         ngay_phat_hien: "2026-01-15",
@@ -164,7 +165,7 @@ describe("aggregateNkbvDashboard", () => {
     const k = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31").kpis;
     expect(k.tong_phieu).toBe(3);
     expect(nkbvPaMauSo(k)).toBe(2);
-    expect(formatNkbvXacNhanVolume(k)).toBe("1/2 (PA−loại trừ)");
+    expect(formatNkbvXacNhanVolume(k)).toBe("1/2 đã kết luận");
     expect(k.ti_le_xac_nhan_so_voi_pa).toBe(50);
   });
 

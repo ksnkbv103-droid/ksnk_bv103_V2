@@ -7,7 +7,6 @@ import {
   gapExclusionReason,
   isGapComparable,
   khoaChartLabel,
-  KHOA_COMPLIANCE_WARN_PCT,
   normalizeGapKhoaRow,
   sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
@@ -17,10 +16,22 @@ import {
   formatSupervisionPercent,
   type SupervisionPercentDigits,
 } from "@/lib/analytics/supervision-percent";
+import { comparableGapRows } from "@/lib/analytics/supervision-source-lens";
 import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
-import { formatBaoCaoIssueDateVi } from "./bao-cao-tong-hop-core";
+import {
+  DEFAULT_KHOA_CHART_THRESHOLDS,
+  DOI_SOAT_MIN_SAMPLE,
+  khoaChartTone,
+  VST_KHOA_CHART_THRESHOLDS,
+  type ComplianceTone,
+  type KhoaChartThresholds,
+} from "@/lib/analytics/supervision-thresholds";
+import {
+  formatBaoCaoIssueDateVi,
+  sortKhoaRankByGscAsc,
+  sortKhoaRankByVstAsc,
+} from "./bao-cao-tong-hop-core";
 import { escHtml, fmtIsoDate, fmtPct } from "./bao-cao-tong-hop-print-format";
-import { BAO_CAO_TONG_HOP_THRESHOLDS } from "./bao-cao-tong-hop-thresholds";
 import type { BaoCaoKhoaRankRow, BaoCaoTrendPoint } from "../types/bao-cao-tong-hop.types";
 import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 
@@ -45,9 +56,14 @@ export function renderPrintCoverMeta(args: {
   ngheLabel: string;
   khuLabel: string;
   printedAt: Date;
-  khoaTuGiamSat: number;
-  ksnkPhuKhoa: number;
+  vstKhoaTuGs: number;
+  gscKhoaTuGs: number;
+  vstKsnkPhu: number;
+  gscKsnkPhu: number;
   tongPhienKsnk: number;
+  vstLensLabel?: string;
+  gscLensLabel?: string;
+  bangKiemLabel?: string;
 }): string {
   const printedAt = formatDateTimeVi(args.printedAt);
   return `
@@ -78,8 +94,22 @@ export function renderPrintCoverMeta(args: {
       </div>
       <div class="cover-meta-row cover-meta-wide">
         <dt>Cường độ giám sát</dt>
-        <dd>${args.khoaTuGiamSat} khoa tự GS; KSNK phụ ${args.ksnkPhuKhoa} khoa; ${args.tongPhienKsnk.toLocaleString()} phiên KSNK trong kỳ.</dd>
+        <dd>Tự giám sát — VST: ${args.vstKhoaTuGs} khoa · GSC: ${args.gscKhoaTuGs} khoa; Khoa được KSNK giám sát — VST: ${args.vstKsnkPhu} khoa · GSC: ${args.gscKsnkPhu} khoa; ${args.tongPhienKsnk.toLocaleString()} phiên KSNK trong kỳ.</dd>
       </div>
+      ${
+        args.vstLensLabel || args.gscLensLabel || args.bangKiemLabel
+          ? `<div class="cover-meta-row cover-meta-wide">
+        <dt>Lọc báo cáo</dt>
+        <dd>${[
+          args.vstLensLabel ? `VST: ${escHtml(args.vstLensLabel)}` : null,
+          args.gscLensLabel ? `GSC: ${escHtml(args.gscLensLabel)}` : null,
+          args.bangKiemLabel ? `Bảng kiểm: ${escHtml(args.bangKiemLabel)}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}</dd>
+      </div>`
+          : ""
+      }
     </dl>`;
 }
 
@@ -139,7 +169,9 @@ export function renderMatrixTable(
   rows: MatrixRow[],
   tongLabel: string,
   datLabel: string,
+  module: "vst" | "gsc" = "gsc",
 ): string {
+  const thresholds = module === "vst" ? VST_KHOA_CHART_THRESHOLDS : DEFAULT_KHOA_CHART_THRESHOLDS;
   if (rows.length === 0) {
     return `<h3>${escHtml(title)}</h3><p class="muted">Không có dữ liệu trong phạm vi lọc.</p>`;
   }
@@ -165,7 +197,7 @@ export function renderMatrixTable(
             <td class="text-left">${escHtml(r.ten)}</td>
             <td>${r.tong.toLocaleString()}</td>
             <td>${r.dat.toLocaleString()}</td>
-            <td class="${r.ty_le < 70 ? "text-danger" : "text-success"}"><strong>${r.ty_le}%</strong></td>
+            <td class="${complianceTonePrintClass(khoaChartTone(r.ty_le, thresholds))}"><strong>${r.ty_le}%</strong></td>
           </tr>`,
           )
           .join("")}
@@ -173,45 +205,56 @@ export function renderMatrixTable(
     </table>`;
 }
 
-function worstCompliance(row: BaoCaoKhoaRankRow): number | null {
-  const parts = [row.ty_le_gsc, row.ty_le_vst].filter((x): x is number => x != null);
-  if (parts.length === 0) return null;
-  return Math.min(...parts);
+function complianceTonePrintClass(tone: ComplianceTone): string {
+  if (tone === "green") return "text-success";
+  if (tone === "yellow") return "text-warning";
+  if (tone === "red") return "text-danger";
+  return "";
 }
 
-function khoaRankPrintClass(row: BaoCaoKhoaRankRow): string {
-  if (row.has_data === false || row.tong_co_hoi_vst + row.tong_quan_sat_gsc === 0) return "";
-  const v = worstCompliance(row);
-  if (v == null) return "";
-  if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN) return "text-success";
-  if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN) return "text-warning";
-  return "text-danger";
+function khoaRankGroupLabel(
+  rate: number | null,
+  sample: number,
+  minSample: number,
+  thresholds: KhoaChartThresholds,
+): string {
+  if (sample < minSample) return `mẫu mỏng (${sample})`;
+  if (rate == null) return "—";
+  const tone = khoaChartTone(rate, thresholds);
+  if (tone === "green") return "Nhóm cao";
+  if (tone === "yellow") return "Trung bình";
+  if (tone === "red") return "Ưu tiên";
+  return "—";
 }
 
-function khoaGroupPrintLabel(row: BaoCaoKhoaRankRow): string {
-  if (row.has_data === false || row.tong_co_hoi_vst + row.tong_quan_sat_gsc === 0) return "Chưa GS";
-  const v = worstCompliance(row);
-  if (v == null) return "—";
-  if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN) return "Nhóm cao";
-  if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN) return "Trung bình";
-  return "Ưu tiên";
-}
-
-export function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
-  const withData = rows.filter((r) => r.has_data !== false && r.tong_co_hoi_vst + r.tong_quan_sat_gsc > 0);
+function renderKhoaRankMetricTable(
+  title: string,
+  rows: BaoCaoKhoaRankRow[],
+  metric: "vst" | "gsc",
+): string {
+  const minSample = DOI_SOAT_MIN_SAMPLE[metric];
+  const thresholds = metric === "vst" ? VST_KHOA_CHART_THRESHOLDS : DEFAULT_KHOA_CHART_THRESHOLDS;
+  const sorted =
+    metric === "vst" ? sortKhoaRankByVstAsc(rows) : sortKhoaRankByGscAsc(rows);
+  const withData = sorted.filter((r) => {
+    if (r.has_data === false) return false;
+    return metric === "vst" ? r.tong_co_hoi_vst > 0 : r.tong_quan_sat_gsc > 0;
+  });
   if (withData.length === 0) {
-    return `<p class="muted">Chưa có xếp hạng khoa có dữ liệu trong phạm vi lọc.</p>`;
+    return `<h4>${escHtml(title)}</h4><p class="muted">Chưa có khoa có dữ liệu ${metric.toUpperCase()} trong phạm vi lọc.</p>`;
   }
+  const warn = thresholds.warnPct;
+  const red = thresholds.redPct;
   return `
-    <p class="muted">Sắp xếp GSC rồi VST thấp → cao (ẩn khoa không có dữ liệu). Ngưỡng xanh ≥${BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN}%, vàng ≥${BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN}%.</p>
+    <h4>${escHtml(title)}</h4>
+    <p class="muted">Sắp xếp % thấp → cao · xanh ≥${warn}%, vàng ≥${red}% · dưới ${minSample} mẫu = mẫu mỏng (không tô màu).</p>
     <div class="table-wrap">
     <table>
       <thead>
         <tr>
           <th>STT</th>
           <th class="text-left">Khoa/phòng</th>
-          <th>VST %</th>
-          <th>GSC %</th>
+          <th>Tỷ lệ %</th>
           <th>Mẫu số</th>
           <th>Nhóm</th>
         </tr>
@@ -219,26 +262,39 @@ export function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
       <tbody>
         ${withData
           .map((r, i) => {
-            const sample = [
-              r.tong_co_hoi_vst > 0 ? `${r.tong_co_hoi_vst} CH` : null,
-              r.tong_quan_sat_gsc > 0 ? `${r.tong_quan_sat_gsc} QS` : null,
-            ]
-              .filter(Boolean)
-              .join(" · ");
+            const rate = metric === "vst" ? r.ty_le_vst : r.ty_le_gsc;
+            const sample = metric === "vst" ? r.tong_co_hoi_vst : r.tong_quan_sat_gsc;
+            const sampleLabel = metric === "vst" ? `${sample} CH` : `${sample} QS`;
+            const thin = sample < minSample;
+            const tone = thin ? "neutral" : khoaChartTone(rate, thresholds);
             return `
-          <tr class="${khoaRankPrintClass(r)}">
+          <tr class="${complianceTonePrintClass(tone)}">
             <td>${i + 1}</td>
             <td class="text-left">${escHtml(r.label)}</td>
-            <td>${fmtPct(r.ty_le_vst)}</td>
-            <td><strong>${fmtPct(r.ty_le_gsc)}</strong></td>
-            <td style="font-size:11px;">${escHtml(sample)}</td>
-            <td style="font-size:11px;">${escHtml(khoaGroupPrintLabel(r))}</td>
+            <td><strong>${fmtPct(rate)}</strong></td>
+            <td style="font-size:11px;">${escHtml(sampleLabel)}</td>
+            <td style="font-size:11px;">${escHtml(khoaRankGroupLabel(rate, sample, minSample, thresholds))}</td>
           </tr>`;
           })
           .join("")}
       </tbody>
     </table>
     </div>`;
+}
+
+export function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
+  const anyData = rows.some(
+    (r) =>
+      r.has_data !== false &&
+      (r.tong_co_hoi_vst > 0 || r.tong_quan_sat_gsc > 0),
+  );
+  if (!anyData) {
+    return `<p class="muted">Chưa có xếp hạng khoa có dữ liệu trong phạm vi lọc.</p>`;
+  }
+  return (
+    renderKhoaRankMetricTable("Vệ sinh tay (VST)", rows, "vst") +
+    renderKhoaRankMetricTable("Giám sát chung (GSC)", rows, "gsc")
+  );
 }
 
 export function renderTrendWeekTable(points: BaoCaoTrendPoint[]): string {
@@ -280,19 +336,21 @@ export function renderTrendWeekTable(points: BaoCaoTrendPoint[]): string {
 
 function gapPrintCompareLabel(
   row: ReturnType<typeof normalizeGapKhoaRow>,
+  source: "vst" | "gsc",
   digits: SupervisionPercentDigits,
 ): string {
-  if (isGapComparable(row)) {
+  if (comparableGapRows([row], { source }).length > 0) {
     return formatGapDeltaPercent(row.ty_le_ksnk, row.ty_le_tgs, digits) ?? "Đủ đối soát";
   }
-  return labelGapExclusion(gapExclusionReason(row));
+  const reason = gapExclusionReason(row);
+  if (reason) return labelGapExclusion(reason);
+  return `Chưa đủ mẫu đối soát (min ${DOI_SOAT_MIN_SAMPLE[source]})`;
 }
 
-function gapPrintPctClass(pct: number | null | undefined): string {
+function gapPrintPctClass(pct: number | null | undefined, source: "vst" | "gsc"): string {
   if (pct == null || !Number.isFinite(pct)) return "";
-  if (pct >= KHOA_COMPLIANCE_WARN_PCT) return "text-success";
-  if (pct >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN) return "text-warning";
-  return "text-danger";
+  const thresholds = source === "vst" ? VST_KHOA_CHART_THRESHOLDS : DEFAULT_KHOA_CHART_THRESHOLDS;
+  return complianceTonePrintClass(khoaChartTone(pct, thresholds));
 }
 
 function gapPrintPctCell(
@@ -308,16 +366,23 @@ function gapPrintPctCell(
 export function renderKhoaGapModulePrint(
   title: string,
   rows: ReturnType<typeof buildGapKhoaRows>,
+  source: "vst" | "gsc",
   limit = 30,
   digits: SupervisionPercentDigits = 2,
 ): string {
+  const total = rows.length;
   const sorted = sortGapRowsByMetric(rows, "ty_le_ksnk", "desc").slice(0, limit);
   if (sorted.length === 0) {
     return `<h4>${escHtml(title)}</h4><p class="muted">Chưa có dữ liệu khoa trong phạm vi lọc.</p>`;
   }
+  const footnote =
+    total > limit
+      ? `<p class="muted">hiển thị ${limit}/${total} khoa</p>`
+      : "";
+  const gapThresholds = source === "vst" ? VST_KHOA_CHART_THRESHOLDS : DEFAULT_KHOA_CHART_THRESHOLDS;
   return `
     <h4>${escHtml(title)}</h4>
-    <p class="muted">Sắp xếp chuyên trách % cao → thấp · cảnh báo &lt;${KHOA_COMPLIANCE_WARN_PCT}% · đối soát gộp trạng thái loại trừ.</p>
+    <p class="muted">Sắp xếp chuyên trách % cao → thấp · vàng &lt;${gapThresholds.warnPct}% · đối soát min-N ${DOI_SOAT_MIN_SAMPLE[source]} mẫu/nguồn.</p>
     <table>
       <thead>
         <tr>
@@ -337,16 +402,16 @@ export function renderKhoaGapModulePrint(
           <tr>
             <td>${i + 1}</td>
             <td class="text-left">${escHtml(r.label)}</td>
-            <td class="${gapPrintPctClass(r.ty_le_ksnk)}"><strong>${gapPrintPctCell(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, digits)}</strong></td>
-            <td class="${gapPrintPctClass(r.ty_le_tgs)}">${gapPrintPctCell(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, digits)}</td>
+            <td class="${gapPrintPctClass(r.ty_le_ksnk, source)}"><strong>${gapPrintPctCell(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, digits)}</strong></td>
+            <td class="${gapPrintPctClass(r.ty_le_tgs, source)}">${gapPrintPctCell(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, digits)}</td>
             <td>${r.vol_ksnk > 0 ? `${r.dat_ksnk.toLocaleString()}/${r.vol_ksnk.toLocaleString()}` : "0"}</td>
             <td>${r.vol_tgs > 0 ? `${r.dat_tgs.toLocaleString()}/${r.vol_tgs.toLocaleString()}` : "0"}</td>
-            <td class="text-left" style="font-size:11px;">${escHtml(gapPrintCompareLabel(r, digits))}</td>
+            <td class="text-left" style="font-size:11px;">${escHtml(gapPrintCompareLabel(r, source, digits))}</td>
           </tr>`,
           )
           .join("")}
       </tbody>
-    </table>`;
+    </table>${footnote}`;
 }
 
 export function renderComparableGapTable(
@@ -409,7 +474,7 @@ export function renderGscKhoaMatrix(gsc: GscStrategicPayload | null): string {
           <th>STT</th>
           <th class="text-left">Khoa/phòng</th>
           <th>Mã</th>
-          <th>Khảo sát</th>
+          <th>Tiêu chí quan sát</th>
           <th>Đạt</th>
           <th>Tỷ lệ</th>
         </tr>
@@ -424,7 +489,7 @@ export function renderGscKhoaMatrix(gsc: GscStrategicPayload | null): string {
             <td>${escHtml(r.ma_khoa ?? "—")}</td>
             <td>${r.tong_quan_sat.toLocaleString()}</td>
             <td>${r.tong_dat.toLocaleString()}</td>
-            <td class="${r.ty_le_tuan_thu < 70 ? "text-danger" : ""}"><strong>${r.ty_le_tuan_thu}%</strong></td>
+            <td class="${complianceTonePrintClass(khoaChartTone(r.ty_le_tuan_thu, DEFAULT_KHOA_CHART_THRESHOLDS))}"><strong>${r.ty_le_tuan_thu}%</strong></td>
           </tr>`,
           )
           .join("")}
@@ -460,7 +525,7 @@ export function renderChecklistTrends(
       ${violNote}
       <table>
         <thead>
-          <tr><th>Tuần</th><th>Khảo sát</th><th>Đạt</th><th>Tỷ lệ %</th></tr>
+          <tr><th>Tuần</th><th>Tiêu chí quan sát</th><th>Đạt</th><th>Tỷ lệ %</th></tr>
         </thead>
         <tbody>
           ${trend

@@ -7,9 +7,8 @@ import { SupervisionKhoaAnalyticsBlock } from "@/lib/analytics/supervision-analy
 import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
-import {
-  SupervisionActionDeepLink,
-} from "@/lib/analytics/SupervisionActionBoard";
+import { SupervisionActionDeepLink } from "@/lib/analytics/supervision-action-deep-link";
+import { DEFAULT_KHOA_CHART_THRESHOLDS, VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
 import {
   gapRowsWithLensData,
   maskGapRowsForLens,
@@ -164,6 +163,9 @@ function ModuleKhoaDashboard({
         ksnkVolumeLabel={ksnkVolumeLabel}
         tgsVolumeLabel={tgsVolumeLabel}
         sourceLens={sourceLens}
+        khoaChartThresholds={
+          moduleLabel === "VST" ? VST_KHOA_CHART_THRESHOLDS : DEFAULT_KHOA_CHART_THRESHOLDS
+        }
       />
     </section>
   );

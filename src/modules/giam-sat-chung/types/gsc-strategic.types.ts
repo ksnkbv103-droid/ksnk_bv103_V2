@@ -114,4 +114,6 @@ export type GscStrategicFilters = {
   khu_vuc_ids?: string[];
   hinh_thuc_ids?: string[];
   bang_kiem_mas?: string[];
+  /** false = giữ BM.02/03 (khối Vệ sinh tay). Mặc định true. */
+  exclude_vst_hub_bang_kiem?: boolean;
 };

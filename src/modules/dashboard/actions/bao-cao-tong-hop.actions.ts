@@ -6,7 +6,11 @@ import { getVstStrategicAnalytics } from "@/modules/giam-sat-vst/actions/vst-str
 import { getGiamSatNkbvDashboardPayload } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
 import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/contexts/reporting/analytics";
 import { describeCssdKhoaOwnershipProxy } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
-import { verifyBaoCaoTongHopShell } from "../lib/dashboard-command-center-access";
+import { veSinhTayHubBangKiemMasForRpc } from "@/lib/domain/gsc-lop-giam-sat-filter";
+import {
+  verifyBaoCaoTongHopExport,
+  verifyBaoCaoTongHopShell,
+} from "../lib/dashboard-command-center-access";
 import {
   composeBaoCaoTongHopPayload,
   computeTyLeGsc,
@@ -33,6 +37,9 @@ const filtersSchema = z.object({
   nghe_nghiep_ids: z.array(z.string()).optional(),
   khu_vuc_ids: z.array(z.string()).optional(),
   hinh_thuc_ids: z.array(z.string()).optional(),
+  /** BCTH-03: lens riêng từng khối (mặc định KSNK). */
+  hinh_thuc_ids_vst: z.array(z.string()).optional(),
+  hinh_thuc_ids_gsc: z.array(z.string()).optional(),
   bang_kiem_mas: z.array(z.string()).optional(),
   chuyen_de: z.enum(["ALL", "VST", "GSC", "NKBV"]).optional(),
 });
@@ -44,6 +51,21 @@ function mapSourceResult(
   const msg = res.error || "";
   if (/permission|quyền|denied|403/i.test(msg)) return { status: "denied", data: null, error: msg };
   return { status: "error", data: null, error: msg };
+}
+
+/** BCTH-11: gate in/xuất bản ký — gọi từ client trước khi mở hộp thoại in. */
+export async function assertBaoCaoTongHopExport(): Promise<
+  { success: true } | { success: false; error: string }
+> {
+  try {
+    await verifyBaoCaoTongHopExport();
+    return { success: true };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Không có quyền xuất/in báo cáo tổng hợp",
+    };
+  }
 }
 
 export async function getBaoCaoTongHopAnalytics(
@@ -61,14 +83,20 @@ export async function getBaoCaoTongHopAnalytics(
 
   const f = parsed.data;
   const chuyenDe: BaoCaoChuyenDe = f.chuyen_de ?? "ALL";
-  const analyticsInput = {
+  const hinhThucVst = f.hinh_thuc_ids_vst ?? f.hinh_thuc_ids;
+  const hinhThucGsc = f.hinh_thuc_ids_gsc ?? f.hinh_thuc_ids;
+  const baseInput = {
     tu_ngay: f.tu_ngay,
     den_ngay: f.den_ngay,
     khoi_ids: f.khoi_ids,
     khoa_ids: f.khoa_ids,
     nghe_nghiep_ids: f.nghe_nghiep_ids,
     khu_vuc_ids: f.khu_vuc_ids,
-    hinh_thuc_ids: f.hinh_thuc_ids,
+  };
+  const vstInput = { ...baseInput, hinh_thuc_ids: hinhThucVst };
+  const gscInput = {
+    ...baseInput,
+    hinh_thuc_ids: hinhThucGsc,
     bang_kiem_mas: f.bang_kiem_mas,
   };
 
@@ -82,6 +110,7 @@ export async function getBaoCaoTongHopAnalytics(
 
   let vst: VstStrategicPayload | null = null;
   let gsc: GscStrategicPayload | null = null;
+  let gscVeSinhTay: GscStrategicPayload | null = null;
   let nkbv: NkbvDashboardPayload | null = null;
   let cssd: BaoCaoCssdAppendix | null = null;
 
@@ -89,7 +118,7 @@ export async function getBaoCaoTongHopAnalytics(
 
   if (shouldFetchSource(chuyenDe, "VST")) {
     tasks.push(
-      getVstStrategicAnalytics(analyticsInput).then((res) => {
+      getVstStrategicAnalytics(vstInput).then((res) => {
         const mapped = mapSourceResult(res);
         sources.vst = mapped.status;
         if (mapped.error) errors.vst = mapped.error;
@@ -100,11 +129,25 @@ export async function getBaoCaoTongHopAnalytics(
 
   if (shouldFetchSource(chuyenDe, "GSC")) {
     tasks.push(
-      getGscStrategicAnalytics(analyticsInput).then((res) => {
+      getGscStrategicAnalytics(gscInput).then((res) => {
         const mapped = mapSourceResult(res);
         sources.gsc = mapped.status;
         if (mapped.error) errors.gsc = mapped.error;
         if (res.success) gsc = res.data;
+      }),
+    );
+  }
+
+  // BCTH-01: BM.02/03 luôn tải riêng — không phụ thuộc lọc BK GSC.
+  if (shouldFetchSource(chuyenDe, "VST") || shouldFetchSource(chuyenDe, "GSC")) {
+    tasks.push(
+      getGscStrategicAnalytics({
+        ...baseInput,
+        hinh_thuc_ids: hinhThucVst,
+        bang_kiem_mas: veSinhTayHubBangKiemMasForRpc(),
+        exclude_vst_hub_bang_kiem: false,
+      }).then((res) => {
+        if (res.success) gscVeSinhTay = res.data;
       }),
     );
   }
@@ -170,8 +213,13 @@ export async function getBaoCaoTongHopAnalytics(
     | null = null;
   const priorBounds = previousEqualLengthPeriod(f.tu_ngay, f.den_ngay);
   if (priorBounds && (shouldFetchSource(chuyenDe, "VST") || shouldFetchSource(chuyenDe, "GSC"))) {
-    const priorInput = {
-      ...analyticsInput,
+    const priorVstInput = {
+      ...vstInput,
+      tu_ngay: priorBounds.tu_ngay,
+      den_ngay: priorBounds.den_ngay,
+    };
+    const priorGscInput = {
+      ...gscInput,
       tu_ngay: priorBounds.tu_ngay,
       den_ngay: priorBounds.den_ngay,
     };
@@ -179,10 +227,10 @@ export async function getBaoCaoTongHopAnalytics(
       (async () => {
         const [priorVst, priorGsc] = await Promise.all([
           shouldFetchSource(chuyenDe, "VST")
-            ? getVstStrategicAnalytics(priorInput)
+            ? getVstStrategicAnalytics(priorVstInput)
             : Promise.resolve(null),
           shouldFetchSource(chuyenDe, "GSC")
-            ? getGscStrategicAnalytics(priorInput)
+            ? getGscStrategicAnalytics(priorGscInput)
             : Promise.resolve(null),
         ]);
         const priorVstPct =
@@ -207,6 +255,7 @@ export async function getBaoCaoTongHopAnalytics(
     filters: { ...f, chuyen_de: chuyenDe },
     vst,
     gsc,
+    gscVeSinhTay,
     nkbv,
     cssd,
     sources,

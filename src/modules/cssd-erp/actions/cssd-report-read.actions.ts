@@ -373,8 +373,6 @@ export async function fetchCssdAnalyticsBundle(filters: {
         ? (stationRaw as CssdAnalyticsStation)
         : "ALL";
 
-    const toEnd = `${to}T23:59:59`;
-
     const quyTrinhSelect = `${await buildQuyTrinhAnalyticsSelect(supabase)},ma_qr_quy_trinh`;
     const [resQ, resS, resBo, resMe, resTb, resBt, resKhoa] = await Promise.all([
       fetchAllReportRows<CssdQuyTrinhAnalyticsRow & { ma_qr_quy_trinh?: string | null }>((pFrom, pTo) =>
@@ -390,12 +388,12 @@ export async function fetchCssdAnalyticsBundle(filters: {
         quy_trinh_id?: string | null;
         ma_tram_phat_hien?: string | null;
         attributes?: Record<string, unknown> | null;
+        created_at?: string | null;
       }>((pFrom, pTo) =>
         supabase
           .from("v_cssd_su_co_full")
-          .select("id, quy_trinh_id, ma_tram_phat_hien, attributes")
-          .gte("created_at", from)
-          .lte("created_at", toEnd)
+          .select("id, quy_trinh_id, ma_tram_phat_hien, attributes, created_at")
+          .or(reportTimestampWindow(from, to, ["created_at"]))
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
@@ -479,11 +477,15 @@ export async function fetchCssdAnalyticsBundle(filters: {
       const day = cssdVnDay(r.thoi_gian_tiep_nhan) || cssdVnDay(r.created_at) || "";
       return day >= from && day <= to;
     }).length;
-    const suCoKyCount = countCyclesWithProcessIncidents(resS.rows);
+    const suCoInKy = resS.rows.filter((r) => {
+      const day = cssdVnDay(r.created_at) || "";
+      return day.length > 0 && day >= from && day <= to;
+    });
+    const suCoKyCount = countCyclesWithProcessIncidents(suCoInKy);
     const tyLe = roundIncidentFreeRate(quyTrinhKyCount, suCoKyCount);
 
     const stationVolume = computeStationVolume(quyTrinh, from, to);
-    const stationIncidentRates = computeStationIncidentRates(stationVolume, resS.rows);
+    const stationIncidentRates = computeStationIncidentRates(stationVolume, suCoInKy);
     const pointsDay = computeStationVolumeTrend(quyTrinh, from, to, "day", stationFilter);
     const pointsMonth = computeStationVolumeTrend(quyTrinh, from, to, "month", stationFilter);
     const pointsYear = computeStationVolumeTrend(quyTrinh, from, to, "year", stationFilter);

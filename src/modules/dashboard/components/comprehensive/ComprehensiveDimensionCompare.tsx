@@ -1,4 +1,4 @@
-/** @deprecated 2026-09-17 — BCTH không còn bảng 2 cột. Dùng SupervisionActionBoard + /thong-ke/{vst,gsc}#so-sanh. */
+/** @park — 2026-11: BCTH không còn bảng 2 cột (11:386 bỏ, không hồi). Deep-link /thong-ke/{vst,gsc}#so-sanh. */
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -58,7 +58,7 @@ export function ComprehensiveDimensionCompare({ payload }: { payload: BaoCaoTong
       gscRows: gscNghe,
       naNote:
         gscNghe.length === 0 && (payload.vst?.matrix_nghe?.length ?? 0) > 0
-          ? "GSC: N/A — nguồn chưa trả matrix đối tượng trong kỳ lọc."
+          ? "GSC: — nguồn chưa trả matrix đối tượng trong kỳ lọc."
           : null,
     };
   }, [payload, active]);

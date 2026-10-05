@@ -160,7 +160,7 @@ export default function NkbvDashboardPanel({
             sub:
               loading || !k
                 ? ""
-                : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
+                : `Tỷ lệ xác nhận (đã kết luận): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
           },
           {
             label: "Đang ghi / Chờ XN",

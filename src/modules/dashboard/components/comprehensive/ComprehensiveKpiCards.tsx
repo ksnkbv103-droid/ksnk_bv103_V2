@@ -3,7 +3,7 @@
 import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import type { BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
-import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
+import { bcthModuleComplianceTone } from "../../lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
@@ -77,6 +77,8 @@ function KpiCard({
   periodLabel,
   note,
   volumeNote,
+  complianceModule,
+  neutralTone,
 }: {
   label: string;
   value: string;
@@ -89,9 +91,15 @@ function KpiCard({
   periodLabel?: string | null;
   note?: string | null;
   volumeNote?: string | null;
+  complianceModule?: "vst" | "gsc";
+  neutralTone?: boolean;
 }) {
   const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
-  const tone = complianceToneFromPercent(pct);
+  const tone = neutralTone
+    ? "neutral"
+    : complianceModule
+      ? bcthModuleComplianceTone(complianceModule, pct)
+      : "neutral";
   return (
     <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
       <p className={D.kpiLabel}>{label}</p>
@@ -103,7 +111,7 @@ function KpiCard({
       {weekDelta != null || periodDelta != null ? (
         <div className="mt-[var(--bv103-space-1)] flex flex-col gap-0.5">
           {weekDelta != null ? (
-            <DeltaLine label="Δ 2 tuần" delta={weekDelta} prevRate={weekPrev} digits={digits} />
+            <DeltaLine label="So với tuần trước" delta={weekDelta} prevRate={weekPrev} digits={digits} />
           ) : null}
           {periodDelta != null && periodLabel ? (
             <DeltaLine label={periodLabel} delta={periodDelta} prevRate={periodPrev} digits={digits} />
@@ -142,7 +150,8 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         <KpiCard
           label="Vệ sinh tay"
           digits={1}
-          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "N/A"}
+          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "—"}
+          complianceModule="vst"
           weekDelta={k?.delta_vst}
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
           periodDelta={ky?.delta_vst}
@@ -153,24 +162,26 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         <KpiCard
           label="Giám sát chung"
           digits={2}
-          value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "N/A"}
+          value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "—"}
+          complianceModule="gsc"
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}
           periodPrev={ky?.ty_le_gsc}
           periodLabel={periodLabel}
-          volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
+          volumeNote={gscVol ? `Tiêu chí quan sát: ${gscVol}` : null}
         />
         <KpiCard
           label="NKBV — tỷ lệ xác nhận"
           digits={1}
-          value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}
+          value={k?.ti_le_xac_nhan_nkbv != null ? formatPercent1(k.ti_le_xac_nhan_nkbv) : "—"}
           volumeNote={nkbvVol ? `Xác nhận: ${nkbvVol}` : null}
-          note="Mẫu số = PA − loại trừ (không lấy tổng phiếu gồm loại trừ). Tách khỏi vệ sinh tay / giám sát chung."
+          neutralTone
+          note="Mẫu số = phiếu đã kết luận (xác nhận + loại trừ). Tách khỏi vệ sinh tay / giám sát chung."
         />
       </div>
       <p className="bv103-type-label text-slate-500">
-        Δ 2 tuần = hai tuần ISO liền kề trên xu hướng. Dòng kỳ trước = cùng độ dài kỳ lọc, lùi liền trước.
+        So với tuần trước = hai tuần ISO liền kề trên xu hướng. Dòng kỳ trước = cùng độ dài kỳ lọc, lùi liền trước.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

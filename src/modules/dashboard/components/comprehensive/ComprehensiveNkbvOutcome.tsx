@@ -38,7 +38,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
       <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-start justify-between gap-[var(--bv103-space-2)]">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <Activity size={18} className="text-[var(--primary)]" aria-hidden />
-          Xu hướng NKBV (outcome)
+          Xu hướng NKBV — số phiếu theo tháng
         </h2>
         {!blocked ? (
           <Link
@@ -51,7 +51,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
         ) : null}
       </div>
       <p className="mb-4 text-xs text-slate-500">
-        Số phiếu theo tháng — tách khỏi biểu đồ tuân thủ VST/GSC. Link giữ kỳ lọc báo cáo.
+        Mọi phiếu trong kỳ lọc (mọi trạng thái) — tách khỏi tuân thủ VST/GSC. Link giữ kỳ lọc báo cáo.
       </p>
       <div className="h-[240px] min-w-0">
         <SupervisionResponsiveChart className="h-full w-full min-w-0">

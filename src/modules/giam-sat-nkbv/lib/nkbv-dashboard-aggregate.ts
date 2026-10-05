@@ -74,7 +74,9 @@ export type NkbvDashboardPayload = {
     dang_va_cho_xn: number;
     loai_tru: number;
     da_dong: number;
-    /** 0–100, làm tròn số nguyên; null khi mẫu số = 0 */
+    /** Phiếu trạng thái XAC_NHAN (mọi kết cục) — mẫu số kết luận cùng loại trừ. */
+    phieu_xac_nhan_trang_thai: number;
+    /** 0–100, làm tròn 1 chữ số; null khi mẫu số = 0 */
     ti_le_xac_nhan_so_voi_pa: number | null;
   };
   monthly: { ky: string; label: string; so_phieu: number }[];
@@ -116,6 +118,7 @@ export function aggregateNkbvDashboard(
   });
 
   let da_xac_nhan = 0;
+  let phieu_xac_nhan_trang_thai = 0;
   let loai_tru = 0;
   let da_dong = 0;
   let dang_va_cho_xn = 0;
@@ -137,6 +140,7 @@ export function aggregateNkbvDashboard(
 
     const confirmedNkbv = ma_tt === "XAC_NHAN" && r.is_positive === true;
     if (confirmedNkbv) da_xac_nhan += 1;
+    if (ma_tt === "XAC_NHAN") phieu_xac_nhan_trang_thai += 1;
     else if (ma_tt === "LOAI_TRU") loai_tru += 1;
     else if (ma_tt === "DA_DONG") da_dong += 1;
     else if (CHO_TAC.has(ma_tt)) dang_va_cho_xn += 1;
@@ -191,9 +195,11 @@ export function aggregateNkbvDashboard(
     .slice(0, 12);
 
   const tong_phieu = inRange.length;
-  const pa_denominator = tong_phieu - loai_tru;
+  const ket_luan_mau_so = phieu_xac_nhan_trang_thai + loai_tru;
   const ti_le_xac_nhan_so_voi_pa =
-    pa_denominator > 0 ? Math.round((da_xac_nhan / pa_denominator) * 100) : null;
+    ket_luan_mau_so > 0
+      ? Math.round((da_xac_nhan / ket_luan_mau_so) * 1000) / 10
+      : null;
 
   return {
     tu_ngay: tuNgayISO,
@@ -201,6 +207,7 @@ export function aggregateNkbvDashboard(
     kpis: {
       tong_phieu,
       da_xac_nhan,
+      phieu_xac_nhan_trang_thai,
       dang_va_cho_xn,
       loai_tru,
       da_dong,
@@ -213,20 +220,20 @@ export function aggregateNkbvDashboard(
   };
 }
 
-/** Mẫu số tỷ lệ xác nhận = PA − loại trừ (không dùng tổng phiếu gồm loại trừ). */
+/** Mẫu số tỷ lệ xác nhận = phiếu XAC_NHAN + LOAI_TRU (đã kết luận). */
 export function nkbvPaMauSo(kpis: {
-  tong_phieu: number;
+  phieu_xac_nhan_trang_thai: number;
   loai_tru: number;
 }): number {
-  return Math.max(kpis.tong_phieu - kpis.loai_tru, 0);
+  return Math.max(kpis.phieu_xac_nhan_trang_thai + kpis.loai_tru, 0);
 }
 
-/** Nhãn khối lượng BCTH/in: «a/b (PA−loại trừ)» — khớp công thức metric-dictionary. */
+/** Nhãn khối lượng BCTH/in — khớp metric-dictionary. */
 export function formatNkbvXacNhanVolume(kpis: {
   da_xac_nhan: number;
-  tong_phieu: number;
+  phieu_xac_nhan_trang_thai: number;
   loai_tru: number;
 }): string {
   const mau = nkbvPaMauSo(kpis);
-  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} (PA−loại trừ)`;
+  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} đã kết luận`;
 }

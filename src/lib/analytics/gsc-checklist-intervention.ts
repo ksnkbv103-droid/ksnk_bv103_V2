@@ -2,14 +2,20 @@ import type {
   GscChecklistOverviewRow,
   GscStrategicPayload,
 } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
-import { resolveChecklistOverview } from "@/lib/analytics/gsc-analytics-data";
+import { resolveChecklistOverview as resolveChecklistOverviewRaw } from "@/lib/analytics/gsc-analytics-data";
+import { filterOutVstHubFromGscGenericList } from "@/lib/domain/gsc-lop-giam-sat-filter";
 import {
   partitionChecklistOverviewByMinN,
   pickTopInterventionChecklists,
   sortChecklistOverviewByRisk,
 } from "@/lib/analytics/gsc-checklist-analytics";
 
-export { resolveChecklistOverview };
+/** BCTH-01: list GSC generic không gồm BM.02/03 (hub Vệ sinh tay). */
+export function resolveChecklistOverview(
+  payload: GscStrategicPayload | null | undefined,
+): GscChecklistOverviewRow[] {
+  return filterOutVstHubFromGscGenericList(resolveChecklistOverviewRaw(payload));
+}
 
 /** SSOT pipeline: payload GSC → overview đủ min-N, xếp rủi ro (GSC-05). */
 export function resolveSortedChecklistOverview(

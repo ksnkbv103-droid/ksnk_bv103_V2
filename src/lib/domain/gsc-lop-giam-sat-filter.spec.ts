@@ -4,6 +4,8 @@ import {
   isGscRouteDeepLinkAllowed,
   isVstHubBangKiemExcludedFromGscGeneric,
   readLopGiamSatFromBangKiem,
+  selectGscGenericBangKiemMas,
+  veSinhTayHubBangKiemMasForRpc,
 } from "./gsc-lop-giam-sat-filter";
 
 describe("gsc-lop-giam-sat-filter 25d residual", () => {
@@ -57,6 +59,21 @@ describe("gsc-lop-giam-sat-filter 25d residual", () => {
     expect(isVstHubBangKiemExcludedFromGscGeneric("BM.07.02")).toBe(true);
     expect(isVstHubBangKiemExcludedFromGscGeneric("KSNK.QT.07.BM.03")).toBe(true);
     expect(isVstHubBangKiemExcludedFromGscGeneric("KSNK.QT.01.BM.03")).toBe(false);
+  });
+
+  it("BCTH-01: selectGscGenericBangKiemMas drops BM.02/03 aliases", () => {
+    expect(
+      selectGscGenericBangKiemMas([
+        "KSNK.QT.01.BM.03",
+        "BM.07.02",
+        "KSNK.QT.07.BM.02",
+        "KSNK.QT.07.BM.03",
+        "BM.08.01",
+      ]),
+    ).toEqual(["KSNK.QT.01.BM.03", "BM.08.01"]);
+    expect(veSinhTayHubBangKiemMasForRpc()).toEqual(
+      expect.arrayContaining(["KSNK.QT.07.BM.02", "BM.07.02", "KSNK.QT.07.BM.03", "BM.07.03"]),
+    );
   });
 
   it("GSC-08: TUAN_THU bỏ BK nhật ký (fallback không gán thuc_hanh)", () => {

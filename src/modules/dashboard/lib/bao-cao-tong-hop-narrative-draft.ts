@@ -3,6 +3,13 @@
  * User chỉnh tay trước khi ký; không auto-ký; không dùng CCS trên surface.
  */
 
+import {
+  normalizeGapKhoaRow,
+  type GapKhoaSourceRow,
+} from "@/lib/analytics/supervision-matrix-mappers";
+import { comparableGapRows } from "@/lib/analytics/supervision-source-lens";
+import { DOI_SOAT_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
+import { filterOutVstHubFromGscGenericList } from "@/lib/domain/gsc-lop-giam-sat-filter";
 import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 
 export type PhanIiiDraft = {
@@ -14,53 +21,73 @@ function fmtPct(v: number | null | undefined): string {
   return v == null ? "—" : `${v}%`;
 }
 
-/** Top khoa GSC thấp (fallback VST) — có dữ liệu. */
-function bottomKhoaLabels(payload: BaoCaoTongHopPayload, limit = 3): string[] {
+function bottomKhoaBySource(
+  payload: BaoCaoTongHopPayload,
+  source: "vst" | "gsc",
+  limit = 3,
+): string[] {
+  const minN = DOI_SOAT_MIN_SAMPLE[source];
   return [...payload.khoa_rank]
-    .filter((r) => r.has_data !== false && (r.ty_le_gsc != null || r.ty_le_vst != null))
+    .filter((r) => {
+      if (r.has_data === false) return false;
+      if (source === "vst") {
+        return r.ty_le_vst != null && r.tong_co_hoi_vst >= minN;
+      }
+      return r.ty_le_gsc != null && r.tong_quan_sat_gsc >= minN;
+    })
     .sort((a, b) => {
-      const aG = a.ty_le_gsc;
-      const bG = b.ty_le_gsc;
-      if (aG != null && bG != null && aG !== bG) return aG - bG;
-      if (aG != null && bG == null) return -1;
-      if (aG == null && bG != null) return 1;
-      return (a.ty_le_vst ?? 999) - (b.ty_le_vst ?? 999);
+      const av = source === "vst" ? a.ty_le_vst! : a.ty_le_gsc!;
+      const bv = source === "vst" ? b.ty_le_vst! : b.ty_le_gsc!;
+      return av - bv;
     })
     .slice(0, limit)
     .map((r) => {
-      const parts = [
-        r.ty_le_gsc != null ? `GSC ${fmtPct(r.ty_le_gsc)}` : null,
-        r.ty_le_vst != null ? `VST ${fmtPct(r.ty_le_vst)}` : null,
-      ].filter(Boolean);
-      return `${r.label || r.ten} (${parts.join(", ")})`;
+      const pct = source === "vst" ? r.ty_le_vst : r.ty_le_gsc;
+      return `${r.label || r.ten} (${source.toUpperCase()} ${fmtPct(pct)})`;
     });
 }
 
 function topGapLabels(payload: BaoCaoTongHopPayload, limit = 3): string[] {
-  const gaps = [
-    ...(payload.vst?.gap_analysis ?? []).map((g) => ({
-      ten: String(g.ten || "Khoa"),
-      abs: Math.abs(Number(g.do_lech ?? 0)),
-      domain: "VST",
-    })),
-    ...(payload.gsc?.gap_analysis ?? []).map((g) => ({
-      ten: String(g.ten || "Khoa"),
-      abs: Math.abs(Number(g.do_lech ?? 0)),
-      domain: "GSC",
-    })),
-  ]
-    .filter((g) => g.abs > 5)
-    .sort((a, b) => b.abs - a.abs);
-  return gaps.slice(0, limit).map((g) => `${g.ten} (${g.domain}, Δ≈${Math.round(g.abs)})`);
+  const gaps: { label: string; delta: number; domain: string }[] = [];
+
+  const pushFrom = (source: "vst" | "gsc", analysis: GapKhoaSourceRow[] | undefined) => {
+    for (const raw of analysis ?? []) {
+      const norm = normalizeGapKhoaRow(raw);
+      if (comparableGapRows([norm], { source }).length === 0) continue;
+      const delta = Number(raw.do_lech ?? 0);
+      if (Math.abs(delta) <= 5) continue;
+      gaps.push({
+        label: norm.label || String(raw.ten || "Khoa"),
+        delta,
+        domain: source.toUpperCase(),
+      });
+    }
+  };
+
+  pushFrom("vst", payload.vst?.gap_analysis);
+  pushFrom("gsc", payload.gsc?.gap_analysis);
+
+  return gaps
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, limit)
+    .map((g) => {
+      const signed =
+        g.delta > 0 ? `+${Math.round(g.delta * 10) / 10}` : `${Math.round(g.delta * 10) / 10}`;
+      return `${g.label} (${g.domain}, Δ${signed}%)`;
+    });
 }
 
 function topBkRisk(payload: BaoCaoTongHopPayload, limit = 3): string[] {
-  const rows = payload.gsc?.checklist_overview ?? payload.gsc?.dynamic_checklists ?? [];
+  const raw = payload.gsc?.checklist_overview ?? payload.gsc?.dynamic_checklists ?? [];
+  const rows = filterOutVstHubFromGscGenericList(raw);
   return [...rows]
     .filter((b) => b.ty_le_tuan_thu != null || Number(b.tong_vi_pham ?? 0) > 0)
     .sort((a, b) => {
-      const ta = a.ty_le_tuan_thu ?? 100;
-      const tb = b.ty_le_tuan_thu ?? 100;
+      const ta = a.ty_le_tuan_thu;
+      const tb = b.ty_le_tuan_thu;
+      if (ta == null && tb == null) return Number(b.tong_vi_pham ?? 0) - Number(a.tong_vi_pham ?? 0);
+      if (ta == null) return 1;
+      if (tb == null) return -1;
       if (ta !== tb) return ta - tb;
       return Number(b.tong_vi_pham ?? 0) - Number(a.tong_vi_pham ?? 0);
     })
@@ -89,11 +116,15 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
     `Trong kỳ ${payload.filters.tu_ngay} → ${payload.filters.den_ngay}, tỷ lệ tuân thủ VST đạt ${fmtPct(k.ty_le_vst)}, GSC đạt ${fmtPct(k.ty_le_gsc)} (theo dõi riêng từng nguồn — không gộp chỉ số tổng hợp).`,
   );
 
-  const bottom = bottomKhoaLabels(payload);
-  if (bottom.length > 0) {
-    lines.push(`Các khoa tuân thủ thấp cần ưu tiên theo dõi: ${bottom.join("; ")}.`);
+  const bottomVst = bottomKhoaBySource(payload, "vst");
+  const bottomGsc = bottomKhoaBySource(payload, "gsc");
+  const bottomParts: string[] = [];
+  if (bottomVst.length > 0) bottomParts.push(`VST: ${bottomVst.join("; ")}`);
+  if (bottomGsc.length > 0) bottomParts.push(`GSC: ${bottomGsc.join("; ")}`);
+  if (bottomParts.length > 0) {
+    lines.push(`Các khoa tuân thủ thấp cần ưu tiên theo dõi: ${bottomParts.join(". ")}.`);
   } else {
-    lines.push("Chưa đủ xếp hạng khoa có dữ liệu VST/GSC trong kỳ lọc để nêu tên cụ thể.");
+    lines.push("Chưa đủ xếp hạng khoa có dữ liệu VST/GSC (đủ min-N) trong kỳ lọc để nêu tên cụ thể.");
   }
 
   const gaps = topGapLabels(payload);
@@ -111,11 +142,11 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
     const tong = payload.nkbv.kpis.tong_phieu ?? 0;
     lines.push(
       cho > 0
-        ? `NKBV: ${cho} phiếu đang chờ xác nhận trên tổng ${tong} phiếu kỳ (outcome — tách khỏi tuân thủ process).`
-        : `NKBV: không có phiếu chờ xác nhận; tổng ${tong} phiếu trong kỳ (outcome — tách khỏi tuân thủ process).`,
+        ? `NKBV: ${cho} phiếu đang chờ xác nhận trên tổng ${tong} phiếu kỳ (lâm sàng — tách khỏi tuân thủ quy trình).`
+        : `NKBV: không có phiếu chờ xác nhận; tổng ${tong} phiếu trong kỳ (lâm sàng — tách khỏi tuân thủ quy trình).`,
     );
   } else if (payload.sources.nkbv !== "ok") {
-    lines.push("NKBV: chưa có số liệu outcome trong phạm vi quyền / nguồn.");
+    lines.push("NKBV: chưa có số liệu lâm sàng trong phạm vi quyền / nguồn.");
   }
 
   if (payload.cssd) {
@@ -128,7 +159,7 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
   const nhanXet = lines.join(" ");
 
   const kn: string[] = [];
-  if (bottom.length > 0 || gaps.length > 0) {
+  if (bottomParts.length > 0 || gaps.length > 0) {
     kn.push(
       "Đề nghị khoa lâm sàng tăng cường tự giám sát và phối hợp khoa KSNK đối soát các khoa/gap nêu trên trong tháng tới.",
     );
@@ -143,12 +174,15 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
   if ((payload.nkbv?.kpis?.dang_va_cho_xn ?? 0) > 0) {
     kn.push("Đôn đốc xác nhận phiếu NKBV đang chờ để đóng vòng kết cục lâm sàng.");
   }
+  if (payload.cssd && payload.cssd.may_repairing > 0) {
+    kn.push("Rà soát vận hành CSSD (máy đang sửa/bảo trì) để bảo đảm an toàn dụng cụ.");
+  }
   if (
     payload.cssd &&
-    (payload.cssd.may_repairing > 0 ||
-      (payload.cssd.ty_le_quy_trinh_khong_su_co != null && payload.cssd.ty_le_quy_trinh_khong_su_co < 95))
+    payload.cssd.ty_le_quy_trinh_khong_su_co != null &&
+    payload.cssd.ty_le_quy_trinh_khong_su_co < 90
   ) {
-    kn.push("Rà soát vận hành CSSD (máy sửa / sự cố quy trình) để bảo đảm an toàn dụng cụ.");
+    kn.push("Rà soát sự cố quy trình CSSD trong kỳ — tỷ lệ không sự cố thấp hơn ngưỡng vận hành.");
   }
   kn.push("Báo cáo này do hệ thống gợi ý từ số liệu — Chủ nhiệm khoa KSNK chỉnh sửa trước khi ký gửi Ban Giám đốc.");
 

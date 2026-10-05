@@ -54,3 +54,10 @@ export async function verifyDashboardOverviewWidget() {
 export async function verifyBaoCaoTongHopShell() {
   await verifyCommandCenterShell();
 }
+
+/** In / xuất BCTH — widget EXPORT (client: `canExportBaoCaoTongHop` trong widget-keys). */
+export async function verifyBaoCaoTongHopExport() {
+  await verifyPermission(DASHBOARD_CC_WIDGET.EXPORT, "export");
+}
+
+export { canExportBaoCaoTongHop } from "@/lib/dashboard-command-center-widget-keys";

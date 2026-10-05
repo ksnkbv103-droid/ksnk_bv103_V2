@@ -1,11 +1,9 @@
 /** Action board VST/GSC — thấp nhất / cao nhất (điển hình) / lỗi hay gặp. */
 
-export const ACTION_BOARD_MIN_SAMPLE = {
-  /** VST: cơ hội quan sát tối thiểu để vào bảng điển hình / xếp hạng hành động */
-  vst: 20,
-  /** GSC: tiêu chí có áp dụng tối thiểu */
-  gsc: 30,
-} as const;
+import { DOI_SOAT_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
+
+/** @deprecated Dùng `DOI_SOAT_MIN_SAMPLE` — alias tương thích action board. */
+export const ACTION_BOARD_MIN_SAMPLE = DOI_SOAT_MIN_SAMPLE;
 
 export type ActionBoardSource = "vst" | "gsc";
 

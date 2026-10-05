@@ -9,6 +9,8 @@ import { useChuyenDeTrendSeries } from "../hooks/use-chuyen-de-trend-series";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import { Bv103AnalyticsPageFrame, Bv103AnalyticsPageSkeleton } from "@/components/shared/Bv103AnalyticsPageFrame";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
+import { SUPERVISION_SOURCE_LENS_LABEL } from "@/lib/analytics/supervision-source-lens";
 import { useBaoCaoTongHopData } from "../hooks/useBaoCaoTongHopData";
 import { ComprehensiveKpiCards } from "../components/comprehensive/ComprehensiveKpiCards";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
@@ -17,6 +19,9 @@ import { VeSinhTayKpiTriptych } from "../components/comprehensive/VeSinhTayKpiTr
 import { AnalyticsKhoaScopeBanner } from "../components/AnalyticsKhoaScopeBanner";
 import { buildPhanIiiDraft } from "../lib/bao-cao-tong-hop-narrative-draft";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
+import { hinhThucIdsForLens } from "@/lib/analytics/supervision-source-lens";
+import { usePermission } from "@/hooks/usePermission";
+import { canExportBaoCaoTongHop } from "@/lib/dashboard-command-center-widget-keys";
 
 function ChartSectionSkeleton() {
   return <div className="h-56 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />;
@@ -68,6 +73,8 @@ const ComprehensiveThoiDiem = dynamic(
 
 export function BaoCaoTongHopPage() {
   const d = useBaoCaoTongHopData();
+  const { canExport, loading: permLoading } = usePermission();
+  const canPrintBcth = canExportBaoCaoTongHop(canExport);
   const [nhanXetDanhGia, setNhanXetDanhGia] = useState("");
   const [kienNghiDeXuat, setKienNghiDeXuat] = useState("");
   const [moreSectionsOpen, setMoreSectionsOpen] = useState(false);
@@ -80,7 +87,7 @@ export function BaoCaoTongHopPage() {
       selectedKhoaIds: d.selectedKhoaIds,
       selectedNgheIds: d.selectedNgheIds,
       selectedKhuVucIds: d.selectedKhuVucIds,
-      selectedHinhThucIds: d.selectedHinhThucIds,
+      selectedHinhThucIds: hinhThucIdsForLens(d.gscLens),
       selectedBangKiemMas: d.selectedBangKiemMas,
       khoiOptionCount: d.khoiOptions.length,
       khoaOptionCount: d.khoaOptions.length,
@@ -103,7 +110,7 @@ export function BaoCaoTongHopPage() {
     d.selectedKhoaIds,
     d.selectedNgheIds,
     d.selectedKhuVucIds,
-    d.selectedHinhThucIds,
+    d.gscLens,
     d.selectedBangKiemMas,
     d.khoiOptions.length,
     d.khoaOptions.length,
@@ -127,7 +134,10 @@ export function BaoCaoTongHopPage() {
     selectedKhuVucIds: d.selectedKhuVucIds,
     khuVucOptions: d.khuVucOptions,
     selectedKhoiIds: d.selectedKhoiIds,
-    selectedHinhThucIds: d.selectedHinhThucIds,
+    selectedHinhThucIds: hinhThucIdsForLens(d.vstLens),
+    selectedHinhThucIdsGsc: hinhThucIdsForLens(d.gscLens),
+    vstLensLabel: SUPERVISION_SOURCE_LENS_LABEL[d.vstLens],
+    gscLensLabel: SUPERVISION_SOURCE_LENS_LABEL[d.gscLens],
     selectedBangKiemMas: d.selectedBangKiemMas,
     khoiOptionCount: d.khoiOptions.length,
     khoaOptionCount: d.khoaOptions.length,
@@ -138,6 +148,7 @@ export function BaoCaoTongHopPage() {
     gscPayload: d.payload?.gsc ?? null,
     nhanXetDanhGia,
     kienNghiDeXuat,
+    canExport: canPrintBcth,
   });
 
   const onPrintClick = () => {
@@ -165,8 +176,12 @@ export function BaoCaoTongHopPage() {
       <button
         type="button"
         onClick={onPrintClick}
-        disabled={printing || d.loading}
-        title="In báo cáo A4"
+        disabled={printing || d.loading || permLoading || !canPrintBcth}
+        title={
+          canPrintBcth
+            ? "In báo cáo A4"
+            : "Cần quyền xuất/in báo cáo tổng hợp (DASHBOARD_CC_EXPORT)"
+        }
         className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
       >
         <Printer size={14} aria-hidden /> {printing ? "Đang in…" : "In A4"}
@@ -175,31 +190,43 @@ export function BaoCaoTongHopPage() {
   );
 
   const filterBar = (
-    <AnalyticsFilterBar
-      variant="compact"
-      khoaFilterLocked={d.khoaFilterLocked}
-      tuNgay={d.tuNgay}
-      setTuNgay={d.setTuNgay}
-      denNgay={d.denNgay}
-      setDenNgay={d.setDenNgay}
-      bangKiemOptions={d.bangKiemOptions}
-      selectedBangKiemMas={d.selectedBangKiemMas}
-      setSelectedBangKiemMas={d.setSelectedBangKiemMas}
-      khoiOptions={d.khoiOptions}
-      selectedKhoiIds={d.selectedKhoiIds}
-      setSelectedKhoiIds={d.setSelectedKhoiIds}
-      khoaOptions={d.khoaOptions}
-      selectedKhoaIds={d.selectedKhoaIds}
-      setSelectedKhoaIds={d.setSelectedKhoaIds}
-      ngheOptions={d.ngheOptions}
-      selectedNgheIds={d.selectedNgheIds}
-      setSelectedNgheIds={d.setSelectedNgheIds}
-      khuVucOptions={d.khuVucOptions}
-      selectedKhuVucIds={d.selectedKhuVucIds}
-      setSelectedKhuVucIds={d.setSelectedKhuVucIds}
-      selectedHinhThucIds={d.selectedHinhThucIds}
-      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
-    />
+    <div className="space-y-2">
+      <AnalyticsFilterBar
+        variant="compact"
+        khoaFilterLocked={d.khoaFilterLocked}
+        tuNgay={d.tuNgay}
+        setTuNgay={d.setTuNgay}
+        denNgay={d.denNgay}
+        setDenNgay={d.setDenNgay}
+        bangKiemOptions={d.bangKiemOptions}
+        selectedBangKiemMas={d.selectedBangKiemMas}
+        setSelectedBangKiemMas={d.setSelectedBangKiemMas}
+        khoiOptions={d.khoiOptions}
+        selectedKhoiIds={d.selectedKhoiIds}
+        setSelectedKhoiIds={d.setSelectedKhoiIds}
+        khoaOptions={d.khoaOptions}
+        selectedKhoaIds={d.selectedKhoaIds}
+        setSelectedKhoaIds={d.setSelectedKhoaIds}
+        ngheOptions={d.ngheOptions}
+        selectedNgheIds={d.selectedNgheIds}
+        setSelectedNgheIds={d.setSelectedNgheIds}
+        khuVucOptions={d.khuVucOptions}
+        selectedKhuVucIds={d.selectedKhuVucIds}
+        setSelectedKhuVucIds={d.setSelectedKhuVucIds}
+        hideHinhThuc
+      />
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2">
+        <span className="text-xs font-medium text-slate-500">Hình thức</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="bv103-type-label text-slate-500">VST</span>
+          <SupervisionSourceLensToggle value={d.vstLens} onChange={d.setVstLens} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="bv103-type-label text-slate-500">GSC</span>
+          <SupervisionSourceLensToggle value={d.gscLens} onChange={d.setGscLens} />
+        </div>
+      </div>
+    </div>
   );
 
   return (

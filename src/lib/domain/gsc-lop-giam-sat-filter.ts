@@ -8,6 +8,7 @@ import {
   isVeSinhTayGscBangKiem,
   isWhoObservationBangKiem,
   normalizeBangKiemMa,
+  resolveBangKiemMaCandidates,
 } from "./ve-sinh-tay-catalog";
 
 export type LopGiamSatV2 = "he_thong" | "thuc_hanh_don_vi" | "hybrid";
@@ -75,6 +76,30 @@ export function isVstHubBangKiemExcludedFromGscGeneric(maBk: string | null | und
 
 export function filterOutVstHubFromGscGenericList<T extends { ma_bk?: string | null }>(rows: T[]): T[] {
   return rows.filter((r) => !isVstHubBangKiemExcludedFromGscGeneric(r.ma_bk));
+}
+
+/**
+ * BCTH-01 / GSC: BK mặc định khối GSC = TUAN_THU trừ alias hub Vệ sinh tay (BM.02/03).
+ * Dùng chung BCTH và `/thong-ke/gsc` khi chọn `p_bang_kiem_mas`.
+ */
+export function selectGscGenericBangKiemMas(mas: readonly string[]): string[] {
+  return mas
+    .map((ma) => String(ma ?? "").trim())
+    .filter((ma) => ma.length > 0 && !isVstHubBangKiemExcludedFromGscGeneric(ma));
+}
+
+/** Mọi alias ma_bk BM.02/BM.03 để RPC khối Vệ sinh tay (không phụ thuộc lọc BK GSC). */
+export function veSinhTayHubBangKiemMasForRpc(): string[] {
+  const out = new Set<string>();
+  for (const e of [
+    "KSNK.QT.07.BM.02",
+    "KSNK.QT.07.BM.03",
+    "BM.07.02",
+    "BM.07.03",
+  ] as const) {
+    for (const c of resolveBangKiemMaCandidates(e)) out.add(c);
+  }
+  return [...out];
 }
 
 /**

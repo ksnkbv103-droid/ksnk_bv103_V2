@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { buildVeSinhTayKpiCards } from "@/lib/domain/ve-sinh-tay-kpi";
-import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import { bcthModuleComplianceTone } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "@/modules/dashboard/lib/dashboard-chrome";
 import type { BaoCaoTongHopPayload } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 
@@ -12,7 +12,8 @@ import type { BaoCaoTongHopPayload } from "@/modules/dashboard/types/bao-cao-ton
 export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const cards = buildVeSinhTayKpiCards({
     vst: payload?.vst ?? null,
-    gsc: payload?.gsc ?? null,
+    // BCTH-01: BM.02/03 từ payload hub riêng — không phụ thuộc lọc BK GSC.
+    gsc: payload?.gsc_ve_sinh_tay ?? payload?.gsc ?? null,
     filters: payload
       ? {
           tu_ngay: payload.filters.tu_ngay,
@@ -32,7 +33,7 @@ export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayloa
           const isWho = card.catalogMaBk == null;
           const value =
             card.tyLe == null ? "—" : isWho ? formatPercent1(card.tyLe) : formatPercent2(card.tyLe);
-          const tone = complianceToneFromPercent(card.tyLe);
+          const tone = bcthModuleComplianceTone("vst", card.tyLe);
           return (
             <div
               key={card.qtMa}

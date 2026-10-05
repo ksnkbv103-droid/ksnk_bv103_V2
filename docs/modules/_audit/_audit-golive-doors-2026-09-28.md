@@ -783,3 +783,20 @@ Test: `tsc --noEmit` OK; vitest hydrate/Zod/analytics/export/mig-order OK; `npm 
 | File | `175000` (2 dòng fuzzy) · `175300` merge · `gsc-orphan-criterion-merge.ts` + vitest · seed JSON |
 
 Thứ tự: `175000` → `175100` → `175200` → **`175300` merge** → `180000` VST…
+
+## MOD-BCTH — Module 10 Báo cáo tổng hợp (2026-10-05, nhánh `cursor/mod-bcth`)
+
+Neo Domain `10-BCTH.md`. Không migration mới. Không push / không apply.
+
+| Mã | Kết quả |
+|----|---------|
+| BCTH-01 | Helper `selectGscGenericBangKiemMas` + `exclude_vst_hub`; GSC mặc định trừ BM.02/03; payload `gsc_ve_sinh_tay`; in bảng 3 KPI Vệ sinh tay; list/top lỗi lọc hub |
+| BCTH-03 | Lens VST/GSC riêng (mặc định KSNK); ẩn hình thức chung; bìa in ghi lens/BK |
+| BCTH-02 | Bỏ `ty_le_avg`/`worstCompliance`/`topBottomKhoa`; 2 bảng khoa; min-N 20/30; Δ đủ mẫu; narrative comparable + dấu |
+| BCTH-04 | NKBV mẫu = XAC_NHAN+LOAI_TRU; làm tròn 1 số; KPI neutral; bỏ «outcome»/PA−LT |
+| BCTH-05/06 | Mẫu 0 → «—»; tone VST 90/85 · GSC 80/70 thống nhất BCTH↔`/thong-ke` |
+| BCTH-07 | Phụ lục CSSD link «toàn viện»; in không URL; sự cố `cssdVnDay` cùng cửa sổ mẫu |
+| BCTH-08 | Park Action board / DimensionCompare; DeepLink tách file; `ACTION_BOARD_MIN_SAMPLE` = `DOI_SOAT_MIN_SAMPLE` |
+| BCTH-09/10/11 | Bìa VST/GSC khoa riêng; gap «30/N»; jargon; gate `DASHBOARD_CC_EXPORT` (client+server) |
+
+Test: `tsc --noEmit` OK; vitest BCTH/NKBV/GSC filter OK; `npm run verify` OK.

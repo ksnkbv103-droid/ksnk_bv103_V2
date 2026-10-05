@@ -128,7 +128,7 @@ function TopicSummary({
         </div>
       </div>
       {!available ? (
-        <p className="text-xs text-slate-500">N/A — không có dữ liệu hoặc không có quyền nguồn.</p>
+        <p className="text-xs text-slate-500">— không có dữ liệu hoặc không có quyền nguồn.</p>
       ) : (
         <ul className="list-inside list-disc space-y-1 text-sm text-slate-700">
           {lines.map((line) => (
@@ -170,7 +170,7 @@ function buildNkbvLines(payload: BaoCaoTongHopPayload | null): string[] {
   const k = payload?.nkbv?.kpis;
   if (!k) return [];
   const lines = [
-    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận/PA−LT: ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,
+    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận (đã kết luận): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,
     `Đang ghi/ chờ XN: ${k.dang_va_cho_xn} · Loại trừ: ${k.loai_tru}`,
   ];
   const topLoai = payload?.nkbv?.by_loai?.[0];
