@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
+import { withBreakGlassAdminRole } from "@/lib/auth/trusted-admin-email";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import type { PermissionRow } from "@/hooks/use-permission-api";
 import type { ServerRbacSnapshot, UserDataProfile } from "@/lib/auth/rbac-snapshot.types";
@@ -43,10 +43,7 @@ async function loadRbacSnapshotForUser(userId: string, email: string | undefined
       }
     : null;
 
-  const roles = ((authData?.roles as string[]) || []).slice();
-  if (isTrustedAdminEmail(email) && !roles.includes("ADMIN")) {
-    roles.push("ADMIN");
-  }
+  const roles = withBreakGlassAdminRole((authData?.roles as string[]) || [], email);
 
   return {
     authUserId: userId,
