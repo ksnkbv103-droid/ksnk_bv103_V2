@@ -26,7 +26,11 @@ import {
 } from "../shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
-import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import {
+  INCIDENT_STATUS_CONFIRMED,
+  canApproveCssdIncident,
+  canCloseSterilizationIncidentRelease,
+} from "@/modules/cssd-su-co/domain/cssd-incident-status";
 import { stationLabel } from "../workflow/domain/cssd-stations";
 
 const panelPulse = () => (
@@ -80,7 +84,9 @@ function CSSDReportPageInner() {
   const tabParam = searchParams.get("tab");
   const highlightIncidentId = String(searchParams.get("id") || "").trim();
   const { allowed } = useModulePermission("CSSD_REPORT");
-  const { allowed: incidentAllowed } = useModulePermission("BAO_SU_CO");
+  const { allowed: incidentAllowed, userRoles } = useModulePermission("BAO_SU_CO");
+  const canConfirmIncident = canApproveCssdIncident(userRoles);
+  const canCloseIncidentRelease = canCloseSterilizationIncidentRelease(userRoles);
   const { exportTemplate } = useImportExport({
     moduleKey: "CSSD_REPORT",
     tableName: "bao_cao_cssd",
@@ -398,13 +404,15 @@ function CSSDReportPageInner() {
                             onVoided={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
-                        {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED && v.incident_status !== "DA_DONG" ? (
+                        {canConfirmIncident &&
+                        v.incident_status !== INCIDENT_STATUS_CONFIRMED &&
+                        v.incident_status !== "DA_DONG" ? (
                           <IncidentConfirmButton
                             incidentId={String(v.id)}
                             onConfirmed={() => setFilters((f) => ({ ...f }))}
                           />
                         ) : null}
-                        {incidentAllowed.create && v.incident_status === INCIDENT_STATUS_CONFIRMED ? (
+                        {canCloseIncidentRelease && v.incident_status === INCIDENT_STATUS_CONFIRMED ? (
                           <IncidentCloseReleaseButton
                             incidentId={String(v.id)}
                             onClosed={() => setFilters((f) => ({ ...f }))}

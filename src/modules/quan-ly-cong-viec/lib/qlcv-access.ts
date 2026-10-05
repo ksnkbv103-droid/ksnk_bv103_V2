@@ -94,9 +94,24 @@ export function canShowDirectCreateTask(f: QlcvUiAccessFlags): boolean {
   return f.isRBACAdmin || f.hasEdit;
 }
 
-/** Phê duyệt đề xuất / Kanban duyệt — `approve` hoặc `edit` (tương thích role cũ). */
+/** Phê duyệt đề xuất / nghiệm thu — chỉ `approve` (khớp verifyQlcvApproveCapability). */
 export function canShowQlcvApproveActions(f: QlcvUiAccessFlags): boolean {
-  return f.isRBACAdmin || f.hasApprove || f.hasEdit;
+  return f.isRBACAdmin || f.hasApprove;
+}
+
+/** Nghiệm thu: có approve và không phải tự nghiệm thu việc mình phụ trách (trừ admin). */
+export function canShowQlcvNghiemThuActions(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
+  if (!canShowQlcvApproveActions(f)) return false;
+  if (!isEligibleForNghiemThu(row)) return false;
+  if (f.isRBACAdmin) return true;
+  if (
+    f.actorStaffId &&
+    row.nguoi_phu_trach_id &&
+    String(f.actorStaffId) === String(row.nguoi_phu_trach_id)
+  ) {
+    return false;
+  }
+  return true;
 }
 
 /** Hủy khi chờ nghiệm thu — cùng quyền với action `huyKhiChoNghiemThuKhongDat` (xóa). */

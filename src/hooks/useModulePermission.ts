@@ -20,14 +20,8 @@ export function useModulePermission(moduleKey: string) {
     canEdit,
     canDelete,
     canImport,
-    hasPermission,
+    canApprove,
   } = usePermission(moduleKey, "view");
-
-  const canApproveModule = (module: string) =>
-    isAdmin ||
-    canEdit(module) ||
-    hasPermission(`${module}_APPROVE`) ||
-    hasPermission(`${module}_approve`);
 
   return {
     loading,
@@ -44,7 +38,8 @@ export function useModulePermission(moduleKey: string) {
       edit: canEdit(moduleKey),
       delete: canDelete(moduleKey),
       import: canImport(moduleKey),
-      approve: canApproveModule(moduleKey),
+      // ADM-04 / QLCV-06: approve ≠ edit — khớp verifyPermission(..., "approve").
+      approve: isAdmin || canApprove(moduleKey),
       manage: canEdit(moduleKey) || canDelete(moduleKey),
     },
   };

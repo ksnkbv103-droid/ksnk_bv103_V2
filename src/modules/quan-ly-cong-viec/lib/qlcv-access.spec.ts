@@ -4,6 +4,8 @@ import {
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
   canShowHuyKhiNghiemThuKhongDat,
+  canShowQlcvApproveActions,
+  canShowQlcvNghiemThuActions,
   isQlcvTaskOverdue,
 } from "./qlcv-access";
 
@@ -90,6 +92,41 @@ describe("canShowEditTaskMetadata", () => {
         baseFlags,
       ),
     ).toBe(false);
+  });
+});
+
+describe("canShowQlcvApproveActions / nghiệm thu", () => {
+  it("edit không đủ để hiện phê duyệt — cần approve", () => {
+    expect(canShowQlcvApproveActions(baseFlags)).toBe(false);
+    expect(canShowQlcvApproveActions({ ...baseFlags, hasApprove: true })).toBe(true);
+  });
+
+  it("ẩn nghiệm thu khi actor = người phụ trách", () => {
+    expect(
+      canShowQlcvNghiemThuActions(
+        {
+          trang_thai: "CHO_DUYET",
+          phan_tram_hoan_thanh: 100,
+          is_active: true,
+          nguoi_phu_trach_id: "actor-1",
+        },
+        { ...baseFlags, hasApprove: true },
+      ),
+    ).toBe(false);
+  });
+
+  it("hiện nghiệm thu khi có approve và không phải phụ trách", () => {
+    expect(
+      canShowQlcvNghiemThuActions(
+        {
+          trang_thai: "CHO_DUYET",
+          phan_tram_hoan_thanh: 100,
+          is_active: true,
+          nguoi_phu_trach_id: "other",
+        },
+        { ...baseFlags, hasApprove: true },
+      ),
+    ).toBe(true);
   });
 });
 

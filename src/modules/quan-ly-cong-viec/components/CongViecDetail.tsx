@@ -34,6 +34,7 @@ import {
   canShowHoatDongProgressSection,
   canShowHuyKhiNghiemThuKhongDat,
   canShowQlcvApproveActions,
+  canShowQlcvNghiemThuActions,
 } from "../lib/qlcv-access";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
@@ -125,7 +126,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     hasApprove: allowed.approve,
     actorStaffId: userData?.id ?? null,
   };
-  const canNghiemThu = canShowQlcvApproveActions(accessFlags);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CongViecDetailData | null>(null);
   const mauSacByMa = QLCV_TRANG_THAI_MAU_SAC;
@@ -220,7 +220,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const atNghiemThuGate = isEligibleForNghiemThu(data);
   const checklistReadOnly =
     isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || atNghiemThuGate;
-  const showNghiemThuToolbar = atNghiemThuGate && canNghiemThu;
+  const showNghiemThuToolbar = canShowQlcvNghiemThuActions(data, accessFlags);
   const showHuyKhiNghiemThuKhongDat = canShowHuyKhiNghiemThuKhongDat(data, accessFlags);
   const showHuyButton =
     (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&

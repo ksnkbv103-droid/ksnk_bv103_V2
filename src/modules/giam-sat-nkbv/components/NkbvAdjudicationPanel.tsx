@@ -5,10 +5,12 @@ import { nkbvFormChrome as UI } from "@/modules/giam-sat-nkbv/lib/nkbv-form-chro
 import React, { useState } from "react";
 import { Award, Check, Ban } from "lucide-react";
 import { toast } from "sonner";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 interface NkbvAdjudicationPanelProps {
   onAdjudicate: (decision: "APPROVE" | "EXCLUDE", reason?: string) => Promise<void>;
-  allowedEdit: boolean;
+  /** @deprecated R2: cổng phán quyết dùng RBAC `approve`, không còn `edit`. */
+  allowedEdit?: boolean;
   simulatedRole?: "KSNK" | "LAM_SANG" | "VI_SINH";
   adjudicating: boolean;
   /** Chỉ hiện «Xác nhận NKBV» khi engine dương tính. */
@@ -19,16 +21,17 @@ interface NkbvAdjudicationPanelProps {
 
 export default function NkbvAdjudicationPanel({
   onAdjudicate,
-  allowedEdit,
   simulatedRole = "KSNK",
   adjudicating,
   canConfirmNkbv = false,
   classification = null,
 }: NkbvAdjudicationPanelProps) {
+  const { allowed, loading: permLoading } = useModulePermission("GIAM_SAT_NKBV");
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [lyDoLoaiTru, setLyDoLoaiTru] = useState("");
 
-  if (!allowedEdit) return null;
+  // ADM-04: server verifyPermission(..., "approve") — FE không hiện nút khi chỉ có edit.
+  if (permLoading || !allowed.approve) return null;
 
   const isRoleLocked = simulatedRole !== "KSNK";
 
