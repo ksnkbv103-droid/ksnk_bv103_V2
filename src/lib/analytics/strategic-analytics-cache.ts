@@ -38,10 +38,11 @@ function fetchCachedVstStrategicRpcRaw(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
+      // service_role: gọi *_impl (wrapper yêu cầu auth.uid()).
       const supabase = createAdminSupabaseClient();
       const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([
-        supabase.rpc("rpc_dashboard_vst_strategic_analytics", rpcArgs),
-        supabase.rpc("rpc_vst_compare_matrices", rpcArgs),
+        supabase.rpc("rpc_dashboard_vst_strategic_analytics_impl", rpcArgs),
+        supabase.rpc("rpc_vst_compare_matrices_impl", rpcArgs),
       ]);
       if (error) return { success: false as const, error: error.message };
       if (matrixErr) return { success: false as const, error: matrixErr.message };
@@ -76,10 +77,11 @@ function fetchCachedGscStrategicRpcRaw(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
+      // service_role: gọi *_impl (wrapper yêu cầu auth.uid()).
       const supabase = createAdminSupabaseClient();
       const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([
-        supabase.rpc("rpc_dashboard_gsc_strategic_analytics", rpcArgs),
-        supabase.rpc("rpc_gsc_compare_matrices", rpcArgs),
+        supabase.rpc("rpc_dashboard_gsc_strategic_analytics_impl", rpcArgs),
+        supabase.rpc("rpc_gsc_compare_matrices_impl", rpcArgs),
       ]);
       if (error) return { success: false as const, error: error.message };
       if (matrixErr) return { success: false as const, error: matrixErr.message };
@@ -115,6 +117,7 @@ export function getCachedGscTgsSessionHits(args: {
   const key = JSON.stringify(args);
   return unstable_cache(
     async () => {
+      // service_role: gọi *_impl (wrapper yêu cầu auth.uid()).
       const supabase = createAdminSupabaseClient();
       const { data, error } = await supabase.rpc("rpc_gsc_tgs_session_hits", {
         p_tu_ngay: args.tu_ngay,
