@@ -76,7 +76,8 @@ export function hrefForQlcvNguon(n: QlcvNguonLienKet | null | undefined): string
   if (safe) return safe;
   if (!n.id) return null;
   if (n.module === "CSSD_SU_CO") return `/cssd-su-co?id=${encodeURIComponent(n.id)}`;
-  if (n.module === "GIAM_SAT") return `/giam-sat-chung?session=${encodeURIComponent(n.id)}`;
+  // SSOT GSC: `?edit=` — page vẫn nhận `?session=` (link cũ).
+  if (n.module === "GIAM_SAT") return `/giam-sat-chung?edit=${encodeURIComponent(n.id)}`;
   if (n.module === "NKBV") return `/giam-sat-nkbv?id=${encodeURIComponent(n.id)}`;
   return null;
 }

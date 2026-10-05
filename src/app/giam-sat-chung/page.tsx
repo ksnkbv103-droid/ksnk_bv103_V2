@@ -4,6 +4,7 @@ import GscFormView from "@/modules/giam-sat-chung/views/GscFormView";
 import { parseGscLocPrefill } from "@/modules/giam-sat-chung/lib/gsc-loc-prefill";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { pickSearchParam, redirectWithQuery } from "@/lib/nav/redirect-with-query";
+import { pickGscEditSessionId } from "@/modules/giam-sat-chung/lib/gsc-edit-session-param";
 
 export const metadata = {
   title: "Giám sát chung",
@@ -19,8 +20,11 @@ export default async function Page({ searchParams }: Props) {
   if (pickSearchParam(params.tab) === "history") redirectWithQuery("/lich-su/gsc", params);
   if (pickSearchParam(params.tab) === "analytics") redirectWithQuery("/thong-ke/gsc", params);
 
-  const editId = pickSearchParam(params.edit);
-  // Không có edit → cửa ghi = tuân thủ (R5); giữ loc/ma/bk…
+  const editId = pickGscEditSessionId({
+    edit: pickSearchParam(params.edit),
+    session: pickSearchParam(params.session),
+  });
+  // Không có edit/session → cửa ghi = tuân thủ (R5); giữ loc/ma/bk…
   if (!editId) redirectWithQuery("/giam-sat-chung/tuan-thu", params);
 
   const locPrefill = parseGscLocPrefill({

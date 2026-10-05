@@ -47,6 +47,6 @@ describe("qlcv-source-deep-link", () => {
         id: "sess-1",
         href: "javascript:alert(1)",
       }),
-    ).toBe("/giam-sat-chung?session=sess-1");
+    ).toBe("/giam-sat-chung?edit=sess-1");
   });
 });

@@ -3,6 +3,7 @@ import GscFormView from "@/modules/giam-sat-chung/views/GscFormView";
 import { parseGscLocPrefill } from "@/modules/giam-sat-chung/lib/gsc-loc-prefill";
 import { parseGscPatientPrefill } from "@/modules/giam-sat-chung/lib/gsc-patient-prefill";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import { pickGscEditSessionId } from "@/modules/giam-sat-chung/lib/gsc-edit-session-param";
 
 export const metadata = {
   title: "Giám sát tuân thủ",
@@ -13,6 +14,7 @@ export const metadata = {
 type Props = {
   searchParams: Promise<{
     edit?: string;
+    session?: string;
     loc?: string;
     ma?: string;
     bk?: string;
@@ -26,7 +28,7 @@ type Props = {
 
 export default async function GiamSatTuanThuPage({ searchParams }: Props) {
   const params = await searchParams;
-  const editId = params.edit || null;
+  const editId = pickGscEditSessionId(params);
   return (
     <Suspense fallback={<SupervisionPageSkeleton />}>
       <GscFormView

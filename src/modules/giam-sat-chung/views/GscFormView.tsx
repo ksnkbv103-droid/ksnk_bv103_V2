@@ -110,7 +110,7 @@ function filterBangKiemByLoai(
 
 interface GscFormViewProps {
   initialLoaiGiamSat?: GscLoaiGiamSatRoute;
-  /** Deep-link / quét QR: `?edit=<sessionUuid>` */
+  /** Deep-link / quét QR: `?edit=<sessionUuid>` (legacy `?session=` đã resolve ở page). */
   editSessionId?: string | null;
   /** Deep-link tem vị trí: `?loc=khoa|khu&ma=` */
   locPrefill?: GscLocPrefill | null;
