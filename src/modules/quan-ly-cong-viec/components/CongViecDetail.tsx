@@ -38,6 +38,7 @@ import {
 } from "../lib/qlcv-access";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
+import { hrefForQlcvNguon } from "@/lib/analytics/qlcv-source-deep-link";
 import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { QLCV_TRANG_THAI_MAU_SAC } from "../lib/qlcv-labels";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
@@ -337,29 +338,20 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           {data.nguon_lien_ket?.module ? (
             <p className="text-xs text-slate-600">
               Nguồn:{" "}
-              {data.nguon_lien_ket.href || data.nguon_lien_ket.id ? (
-                <a
-                  href={
-                    data.nguon_lien_ket.href ||
-                    (data.nguon_lien_ket.module === "CSSD_SU_CO"
-                      ? `/cssd-su-co?id=${encodeURIComponent(String(data.nguon_lien_ket.id))}`
-                      : data.nguon_lien_ket.module === "GIAM_SAT"
-                        ? `/giam-sat-chung?session=${encodeURIComponent(String(data.nguon_lien_ket.id))}`
-                        : data.nguon_lien_ket.module === "NKBV"
-                          ? `/giam-sat-nkbv?id=${encodeURIComponent(String(data.nguon_lien_ket.id))}`
-                          : "#")
-                  }
-                  className="font-semibold text-sky-800 hover:underline"
-                >
-                  {data.nguon_lien_ket.label ||
-                    data.nguon_lien_ket.ma ||
-                    data.nguon_lien_ket.module}
-                </a>
-              ) : (
-                <span className="font-medium">
-                  {data.nguon_lien_ket.label || data.nguon_lien_ket.ma || data.nguon_lien_ket.module}
-                </span>
-              )}
+              {(() => {
+                const nguonHref = hrefForQlcvNguon(data.nguon_lien_ket);
+                const nguonLabel =
+                  data.nguon_lien_ket.label ||
+                  data.nguon_lien_ket.ma ||
+                  data.nguon_lien_ket.module;
+                return nguonHref ? (
+                  <a href={nguonHref} className="font-semibold text-sky-800 hover:underline">
+                    {nguonLabel}
+                  </a>
+                ) : (
+                  <span className="font-medium">{nguonLabel}</span>
+                );
+              })()}
             </p>
           ) : null}
         </div>

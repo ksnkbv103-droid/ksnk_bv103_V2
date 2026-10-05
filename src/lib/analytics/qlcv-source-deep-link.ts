@@ -13,6 +13,23 @@ export type QlcvNguonLienKet = {
   href?: string | null;
 };
 
+/** Chỉ path nội bộ bắt đầu `/` (không `//`, không scheme). */
+export function isSafeInternalAppHref(href: string | null | undefined): boolean {
+  const h = String(href ?? "").trim();
+  if (!h.startsWith("/")) return false;
+  if (h.startsWith("//")) return false;
+  if (h.includes("\\")) return false;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(h)) return false;
+  return true;
+}
+
+/** Trả về href nội bộ an toàn hoặc null (bỏ javascript:/http ngoài). */
+export function sanitizeQlcvNguonHref(href: string | null | undefined): string | null {
+  const h = String(href ?? "").trim();
+  if (!h) return null;
+  return isSafeInternalAppHref(h) ? h : null;
+}
+
 export function buildQlcvSourceDeepLink(opts: {
   from: Exclude<QlcvNguonModule, "analytics">;
   tieuDe: string;
@@ -30,7 +47,8 @@ export function buildQlcvSourceDeepLink(opts: {
   if (opts.sourceId?.trim()) q.set("source_id", opts.sourceId.trim());
   if (opts.sourceMa?.trim()) q.set("source_ma", opts.sourceMa.trim());
   if (opts.sourceLabel?.trim()) q.set("source_label", opts.sourceLabel.trim());
-  if (opts.sourceHref?.trim()) q.set("source_href", opts.sourceHref.trim());
+  const safeHref = sanitizeQlcvNguonHref(opts.sourceHref);
+  if (safeHref) q.set("source_href", safeHref);
   if (opts.openCreate !== false) q.set("create", "1");
   return `/quan-ly-cong-viec?${q.toString()}`;
 }
@@ -48,13 +66,14 @@ export function parseQlcvNguonFromSearchParams(sp: {
     id: sp.get("source_id")?.trim() || null,
     ma: sp.get("source_ma")?.trim() || null,
     label: sp.get("source_label")?.trim() || null,
-    href: sp.get("source_href")?.trim() || null,
+    href: sanitizeQlcvNguonHref(sp.get("source_href")),
   };
 }
 
 export function hrefForQlcvNguon(n: QlcvNguonLienKet | null | undefined): string | null {
   if (!n) return null;
-  if (n.href) return n.href;
+  const safe = sanitizeQlcvNguonHref(n.href);
+  if (safe) return safe;
   if (!n.id) return null;
   if (n.module === "CSSD_SU_CO") return `/cssd-su-co?id=${encodeURIComponent(n.id)}`;
   if (n.module === "GIAM_SAT") return `/giam-sat-chung?session=${encodeURIComponent(n.id)}`;

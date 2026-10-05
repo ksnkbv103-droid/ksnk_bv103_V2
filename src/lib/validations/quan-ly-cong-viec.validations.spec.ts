@@ -69,6 +69,32 @@ describe("congViecCreateSchema — người thực hiện + hạn", () => {
     }
   });
 
+  it("chặn nguon_lien_ket.href javascript/ngoài", () => {
+    const bad = congViecSchema.safeParse({
+      tieu_de: "Việc thử",
+      loai_cong_viec: "DINH_KY",
+      muc_do_uu_tien: "TRUNG_BINH",
+      nguon_lien_ket: { module: "GIAM_SAT", href: "javascript:alert(1)" },
+    });
+    expect(bad.success).toBe(false);
+
+    const ext = congViecSchema.safeParse({
+      tieu_de: "Việc thử",
+      loai_cong_viec: "DINH_KY",
+      muc_do_uu_tien: "TRUNG_BINH",
+      nguon_lien_ket: { module: "GIAM_SAT", href: "https://evil.example" },
+    });
+    expect(ext.success).toBe(false);
+
+    const ok = congViecSchema.safeParse({
+      tieu_de: "Việc thử",
+      loai_cong_viec: "DINH_KY",
+      muc_do_uu_tien: "TRUNG_BINH",
+      nguon_lien_ket: { module: "GIAM_SAT", href: "/giam-sat-chung?edit=1" },
+    });
+    expect(ok.success).toBe(true);
+  });
+
   it("nhận payload create tối thiểu Domain A", () => {
     const parsed = congViecCreateSchema.safeParse({
       tieu_de: "Việc thử",

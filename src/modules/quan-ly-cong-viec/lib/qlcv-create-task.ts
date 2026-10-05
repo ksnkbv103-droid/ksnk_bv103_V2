@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeQlcvNguonHref } from "@/lib/analytics/qlcv-source-deep-link";
 import { normalizeQlcvDmFields } from "./qlcv-persist-dm-fields";
 import { QLCV_FACT_WRITE_TABLE } from "./qlcv-fact-write";
 import { throwQlcvDbError } from "./qlcv-supabase-error";
@@ -139,6 +140,7 @@ export async function insertQlcvTaskRow(
       : {};
 
   const nguon = payload.nguon_lien_ket;
+  const safeNguonHref = sanitizeQlcvNguonHref(nguon?.href);
   const nguon_lien_ket =
     nguon && nguon.module
       ? {
@@ -146,7 +148,7 @@ export async function insertQlcvTaskRow(
           ...(nguon.id ? { id: String(nguon.id) } : {}),
           ...(nguon.ma ? { ma: String(nguon.ma) } : {}),
           ...(nguon.label ? { label: String(nguon.label) } : {}),
-          ...(nguon.href ? { href: String(nguon.href) } : {}),
+          ...(safeNguonHref ? { href: safeNguonHref } : {}),
         }
       : null;
 
