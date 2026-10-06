@@ -7,6 +7,7 @@ import {
 import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
 import { getBaoCaoTongHopAnalytics } from "../actions/bao-cao-tong-hop.actions";
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
+import { createLoadRequestGuard } from "./bao-cao-tong-hop-load-guard";
 
 export function useBaoCaoTongHopData() {
   const filters = useAnalyticsFilters();
@@ -17,6 +18,7 @@ export function useBaoCaoTongHopData() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [payload, setPayload] = useState<BaoCaoTongHopPayload | null>(null);
+  const requestGuardRef = useRef(createLoadRequestGuard());
 
   const filterPayload = useCallback(() => {
     const base = buildAnalyticsFilterPayload({
@@ -56,20 +58,23 @@ export function useBaoCaoTongHopData() {
 
   const loadReport = useCallback(async () => {
     if (!filters.initDone) return;
+    const requestId = requestGuardRef.current.begin();
     setLoading(true);
     setLoadError(null);
     try {
       const fp = filterPayload();
       const res = await getBaoCaoTongHopAnalytics({ ...fp, chuyen_de: chuyenDe });
+      if (!requestGuardRef.current.isCurrent(requestId)) return;
       if (res.success) setPayload(res.data);
       else {
         setPayload(null);
         setLoadError(res.error);
       }
     } catch (err) {
+      if (!requestGuardRef.current.isCurrent(requestId)) return;
       setLoadError(err instanceof Error ? err.message : "Có lỗi khi tải báo cáo tổng hợp");
     } finally {
-      setLoading(false);
+      if (requestGuardRef.current.isCurrent(requestId)) setLoading(false);
     }
   }, [filters.initDone, filterPayload, chuyenDe]);
 

@@ -4,7 +4,10 @@ import { z } from "zod";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
-import { getCachedVstStrategicRpc } from "@/lib/analytics/strategic-analytics-cache";
+import {
+  getCachedVstStrategicKpisOnly,
+  getCachedVstStrategicRpc,
+} from "@/lib/analytics/strategic-analytics-cache";
 import type { VstStrategicFilters } from "../types/vst-strategic.types";
 
 const vstStrategicFiltersSchema = z.object({
@@ -17,7 +20,7 @@ const vstStrategicFiltersSchema = z.object({
   hinh_thuc_ids: z.array(z.string()).optional(),
 });
 
-export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
+async function buildVstStrategicRpcArgs(filters: VstStrategicFilters) {
   const parsed = vstStrategicFiltersSchema.safeParse(filters);
   if (!parsed.success) {
     return {
@@ -32,12 +35,26 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
   const scope = await getActorKsnkScope();
   const rpcFilters = resolveAnalyticsRpcFilters(scope, f, "vst");
 
-  const rpcArgs = {
-    p_tu_ngay: f.tu_ngay,
-    p_den_ngay: f.den_ngay,
-    ...rpcFilters,
+  return {
+    success: true as const,
+    rpcArgs: {
+      p_tu_ngay: f.tu_ngay,
+      p_den_ngay: f.den_ngay,
+      ...rpcFilters,
+    },
   };
+}
 
+export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
+  const built = await buildVstStrategicRpcArgs(filters);
+  if (!built.success) return built;
   // A) Gọi RPC mỗi mở dashboard. B) Promise.all + unstable_cache 90s — chọn B.
-  return getCachedVstStrategicRpc(rpcArgs);
+  return getCachedVstStrategicRpc(built.rpcArgs);
+}
+
+/** Kỳ trước BCTH — chỉ KPI (không matrices / gap). */
+export async function getVstStrategicKpisOnly(filters: VstStrategicFilters) {
+  const built = await buildVstStrategicRpcArgs(filters);
+  if (!built.success) return built;
+  return getCachedVstStrategicKpisOnly(built.rpcArgs);
 }

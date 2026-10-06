@@ -23,11 +23,18 @@ type GiamSatNkbvDashboardFilters = {
   khoa_ghi_nhan_ids?: string[];
   tu_ngay?: string;
   den_ngay?: string;
+  /** false = bỏ RPC rates (BCTH không dùng epidemiologyRates). Mặc định true. */
+  include_rates?: boolean;
 };
 
 const NKBV_DASH_CACHE_TAG = "nkbv-dashboard-aggregate";
 
-async function loadNkbvDashboardRaw(tuStr: string, denStr: string, khoaId: string | null) {
+async function loadNkbvDashboardRaw(
+  tuStr: string,
+  denStr: string,
+  khoaId: string | null,
+  includeRates: boolean,
+) {
   const supabase = createAdminSupabaseClient();
   // Index pad: aggregate vẫn lọc theo report_date (DOE / ngày mổ SSI).
   // Không lọc khoa ở SQL (khoa_ghi_nhan ≠ LOA) — post-filter LOA sau map JSON.
@@ -46,6 +53,10 @@ async function loadNkbvDashboardRaw(tuStr: string, denStr: string, khoaId: strin
       .order("id", { ascending: true })
       .range(from, to);
   });
+
+  if (!includeRates) {
+    return { data, rpcData: [] as unknown[], rpcErrorMessage: null as string | null };
+  }
 
   const { data: rpcData, error: rpcError } = await supabase.rpc("fn_nkbv_dich_te_hoc_rates", {
     p_tu_ngay: tuStr,
@@ -72,13 +83,14 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
 
   const khoaIds = (filters.khoa_ghi_nhan_ids || []).map((x) => String(x || "").trim()).filter(Boolean);
   const khoaId = filters.khoa_ghi_nhan_id?.trim() || null;
-  const cacheKey = JSON.stringify({ tuStr, denStr, khoaId, khoaIds });
+  const includeRates = filters.include_rates !== false;
+  const cacheKey = JSON.stringify({ tuStr, denStr, khoaId, khoaIds, includeRates });
 
   // A) fetchAll mỗi lần mở tab. B) unstable_cache 90s theo bộ lọc — chọn B (số tổng hợp).
   let raw: Awaited<ReturnType<typeof loadNkbvDashboardRaw>>;
   try {
     raw = await unstable_cache(
-      () => loadNkbvDashboardRaw(tuStr, denStr, khoaId),
+      () => loadNkbvDashboardRaw(tuStr, denStr, khoaId, includeRates),
       [NKBV_DASH_CACHE_TAG, cacheKey],
       { revalidate: 90, tags: [NKBV_DASH_CACHE_TAG] },
     )();
@@ -98,6 +110,17 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
     .map((x) => mapNkbvDashboardCasFromViewRow(x))
     .filter((r) => matchNkbvDashboardLoaKhoa(r, khoaId, khoaIds)) as NkbvCasRowMinimal[];
   const payload = aggregateNkbvDashboard(rows, tuStr, denStr);
+
+  if (!includeRates) {
+    return {
+      success: true as const,
+      data: {
+        ...payload,
+        epidemiologyRates: [] as NkbvEpidemiologyRate[],
+        epidemiologyError: null,
+      },
+    };
+  }
 
   const epidemiologyRates = ((raw.rpcData || []) as Array<Record<string, unknown>>).map((r) => ({
     ...r,

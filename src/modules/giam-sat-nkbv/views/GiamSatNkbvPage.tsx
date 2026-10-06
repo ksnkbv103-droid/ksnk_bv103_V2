@@ -22,6 +22,7 @@ import { useGiamSatHeader } from "@/hooks/useGiamSatHeader";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
+import { useNkbvRecordsTable } from "../hooks/useNkbvRecordsTable";
 import {
   ensureNkbvBaAnalysisCase,
   getNkbvFormDmBundle,
@@ -31,7 +32,6 @@ import {
   listGiamSatNkbvCas,
   softDeleteGiamSatNkbvCa,
   updateGiamSatNkbvCa,
-  listNkbvMedicalRecords, // Added
 } from "../actions/giam-sat-nkbv.actions";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import dynamic from "next/dynamic";
@@ -299,53 +299,29 @@ export default function GiamSatNkbvPage() {
     void loadDm();
   }, [loadDm]);
 
-  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [recordsLoading, setRecordsLoading] = useState(false);
-  const [recordsPage, setRecordsPage] = useState(1);
-  const [recordsTotalCount, setRecordsTotalCount] = useState(0);
-  const [recordsSearch, setRecordsSearch] = useState("");
   const [recordsInpatientOnly, setRecordsInpatientOnly] = useState(false);
   const [recordsDevicePriority, setRecordsDevicePriority] = useState(false);
   const [recordsChuaPtOnly, setRecordsChuaPtOnly] = useState(true);
   const [recordsKhoaId, setRecordsKhoaId] = useState("");
 
-  const fetchRecords = useCallback(async () => {
-    if (mainTab !== "records") return;
-    setRecordsLoading(true);
-    try {
-      const res = await listNkbvMedicalRecords({
-        page: recordsPage,
-        pageSize: 15,
-        search: recordsSearch,
-        inpatientOnly: recordsInpatientOnly,
-        devicePriorityOnly: recordsDevicePriority,
-        chuaPhanTichOnly: recordsChuaPtOnly,
-        khoaId: recordsKhoaId || null,
-      });
-      if (res.success) {
-        setMedicalRecords(res.data);
-        setRecordsTotalCount(res.totalCount);
-      } else {
-        toast.error(res.error || "Không thể tải danh sách bệnh án");
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Lỗi");
-    } finally {
-      setRecordsLoading(false);
-    }
-  }, [
-    mainTab,
-    recordsPage,
-    recordsSearch,
-    recordsInpatientOnly,
-    recordsDevicePriority,
-    recordsChuaPtOnly,
-    recordsKhoaId,
-  ]);
-
-  useEffect(() => {
-    void fetchRecords();
-  }, [fetchRecords]);
+  const {
+    data: medicalRecords,
+    loading: recordsLoading,
+    page: recordsPage,
+    setPage: setRecordsPage,
+    pageSize: recordsPageSize,
+    totalCount: recordsTotalCount,
+    totalPages: recordsTotalPages,
+    searchTerm: recordsSearch,
+    handleSearch: handleRecordsSearch,
+    refresh: fetchRecords,
+  } = useNkbvRecordsTable({
+    enabled: mainTab === "records",
+    inpatientOnly: recordsInpatientOnly,
+    devicePriorityOnly: recordsDevicePriority,
+    chuaPhanTichOnly: recordsChuaPtOnly,
+    khoaId: recordsKhoaId,
+  });
 
   const recordColumns = useMemo(
     () => [
@@ -951,7 +927,7 @@ export default function GiamSatNkbvPage() {
                 khoas={header.khoas}
                 onImported={() => {
                   setRecordsPage(1);
-                  void fetchRecords();
+                  fetchRecords();
                 }}
               />
             </KsnkSupervisionPanel>
@@ -1023,15 +999,12 @@ export default function GiamSatNkbvPage() {
               loading={recordsLoading}
               searchPlaceholder="Tìm kiếm Số bệnh án, mã bệnh nhân, họ tên..."
               searchValue={recordsSearch}
-              onSearch={(val) => {
-                setRecordsSearch(val);
-                setRecordsPage(1);
-              }}
+              onSearch={handleRecordsSearch}
               serverPagination={{
                 page: recordsPage,
-                totalPages: Math.ceil(recordsTotalCount / 15) || 1,
+                totalPages: recordsTotalPages,
                 totalCount: recordsTotalCount,
-                pageSize: 15,
+                pageSize: recordsPageSize,
                 onPageChange: setRecordsPage,
               }}
             />
@@ -1054,7 +1027,7 @@ export default function GiamSatNkbvPage() {
               toast.success("Đã lưu");
               setEditorOpen(false);
               void refresh();
-              void fetchRecords();
+              fetchRecords();
             } else toast.error(res.error);
           }}
         />
@@ -1070,7 +1043,7 @@ export default function GiamSatNkbvPage() {
           }}
           onSuccess={() => {
             void refresh();
-            void fetchRecords();
+            fetchRecords();
             setHubNonce((n) => n + 1);
           }}
           allowedEdit={allowed.edit}
@@ -1111,7 +1084,7 @@ export default function GiamSatNkbvPage() {
           }}
           onCaseMutated={() => {
             void refresh();
-            void fetchRecords();
+            fetchRecords();
           }}
           onEnsureAnalysisCase={async ({ stay, milestone, gate, existingCaseId, analysisSeed }) => {
             if (!allowed.create && !allowed.edit) {
@@ -1143,7 +1116,7 @@ export default function GiamSatNkbvPage() {
               return { success: false, error: "Không mở được khung điều tra" };
             }
             void refresh();
-            void fetchRecords();
+            fetchRecords();
             return { success: true, caseRow: res.caseRow };
           }}
         />
@@ -1167,7 +1140,7 @@ export default function GiamSatNkbvPage() {
           khoas={header.khoas}
           onClose={() => setEditStay(null)}
           onSaved={() => {
-            void fetchRecords();
+            fetchRecords();
             setHubNonce((n) => n + 1);
           }}
         />

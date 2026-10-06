@@ -1,11 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isPathBlockedUnderActivePilot } from "@/lib/ksnk-pilot-route-scope";
+import { GUEST_STATS_HOME_PATH } from "@/lib/auth/guest-stats-access";
 import {
-  GUEST_STATS_HOME_PATH,
-  isGuestStatsOnlyRole,
-  isGuestStatsPathAllowed,
-} from "@/lib/auth/guest-stats-access";
+  classifyGuestRoleLookup,
+  decideGuestProxyAccess,
+  guestLookupFailWantsHtmlPage,
+} from "@/lib/auth/proxy-guest-role-gate";
 
 /** Trang đăng nhập / khôi phục mật khẩu — không chặn người chưa đăng nhập. */
 function isLoginRoutePath(pathname: string): boolean {
@@ -31,6 +32,32 @@ function copyResponseCookies(from: NextResponse, to: NextResponse) {
       secure: c.secure,
     });
   });
+}
+
+/** PA C: 503 khi không tra được roles — HTML có thử lại; action/API nhận JSON ngắn. */
+function guestRoleLookupUnavailableResponse(
+  request: NextRequest,
+  supabaseResponse: NextResponse
+): NextResponse {
+  const wantsHtml = guestLookupFailWantsHtmlPage(
+    request.method,
+    request.headers.get("accept")
+  );
+  const body = wantsHtml
+    ? `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"/><title>Không kiểm tra được quyền</title></head><body style="font-family:system-ui;padding:2rem;max-width:32rem"><h1>Không kiểm tra được quyền</h1><p>Hệ thống tạm thời không xác nhận được vai trò tài khoản. Vui lòng thử lại.</p><p><a href="">Thử lại</a></p></body></html>`
+    : JSON.stringify({
+        error: "Không kiểm tra được quyền, thử lại",
+        code: "GUEST_ROLE_LOOKUP_FAILED",
+      });
+  const res = new NextResponse(body, {
+    status: 503,
+    headers: {
+      "Content-Type": wantsHtml ? "text/html; charset=utf-8" : "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+  copyResponseCookies(supabaseResponse, res);
+  return res;
 }
 
 /**
@@ -150,30 +177,48 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user) {
-    // BE-GUEST-01: allowlist guest chỉ theo roles từ DB — không tin cookie client (unsigned
-    // `ksnk_guest_stats=0` từng cho phép vượt allowlist).
-    let guestOnly = false;
+    // BE-GUEST-01: allowlist guest chỉ theo roles từ DB — không tin cookie client.
+    // Lỗi lookup (throw hoặc `{ error }`) → PA C fail-closed (xem proxy-guest-role-gate).
+    let outcome;
     try {
-      const { data: permRow } = await supabase
+      const { data: permRow, error: permError } = await supabase
         .from("v_sys_user_permissions")
         .select("roles")
         .eq("auth_user_id", user.id)
         .maybeSingle();
-      const roles = Array.isArray(permRow?.roles) ? (permRow.roles as string[]) : [];
-      guestOnly = isGuestStatsOnlyRole(roles);
+      outcome = classifyGuestRoleLookup({
+        data: permRow as { roles?: unknown } | null,
+        error: permError ?? null,
+      });
+      if (outcome.kind === "lookup_failed") {
+        console.error("[proxy] guest role lookup failed:", permError);
+      }
     } catch (err) {
       console.error("[proxy] guest role lookup failed:", err);
+      outcome = classifyGuestRoleLookup({ data: null, error: null, threw: true });
     }
 
-    if (guestOnly) {
-      if (onLoginRoute || !isGuestStatsPathAllowed(pathname)) {
-        const homeUrl = request.nextUrl.clone();
-        homeUrl.pathname = GUEST_STATS_HOME_PATH;
-        homeUrl.search = "";
-        const redirectResponse = NextResponse.redirect(homeUrl);
-        copyResponseCookies(supabaseResponse, redirectResponse);
-        return redirectResponse;
-      }
+    const decision = decideGuestProxyAccess({
+      outcome,
+      pathname,
+      onLoginRoute,
+    });
+
+    if (decision.action === "service_unavailable") {
+      return guestRoleLookupUnavailableResponse(request, supabaseResponse);
+    }
+
+    if (decision.action === "redirect_guest_home") {
+      const homeUrl = request.nextUrl.clone();
+      homeUrl.pathname = GUEST_STATS_HOME_PATH;
+      homeUrl.search = "";
+      const redirectResponse = NextResponse.redirect(homeUrl);
+      copyResponseCookies(supabaseResponse, redirectResponse);
+      return redirectResponse;
+    }
+
+    // guest (đã allow) hoặc lookup_failed trên allowlist (/login, thống kê) — không redirect home.
+    if (outcome.kind === "guest" || outcome.kind === "lookup_failed") {
       return supabaseResponse;
     }
 

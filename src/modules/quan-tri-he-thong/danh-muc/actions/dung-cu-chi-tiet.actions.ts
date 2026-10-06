@@ -10,6 +10,7 @@ import {
   mergeDuplicateBomLinesForBo,
 } from "@/lib/master-data/cssd-bom-line-merge.application";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { upsertMasterRow } from "./master-crud-core";
 
 /** Lưu một dòng thành phần bộ — gọi từ panel trong tab Bộ. */
@@ -143,16 +144,23 @@ export async function mergeDuplicateBomLinesAction(boId?: string) {
       return { success: true as const, ...r };
     }
 
-    const { data: activeRows, error } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .select("bo_dung_cu_id, loai_dung_cu_id")
-      .eq("is_active", true)
-      .not("loai_dung_cu_id", "is", null)
-      .not("bo_dung_cu_id", "is", null);
-    if (error) return { success: false as const, error: error.message };
+    const activeRows = await fetchAllRangeRows<{
+      id: string;
+      bo_dung_cu_id: string | null;
+      loai_dung_cu_id: string | null;
+    }>((from, to) =>
+      supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .select("id, bo_dung_cu_id, loai_dung_cu_id")
+        .eq("is_active", true)
+        .not("loai_dung_cu_id", "is", null)
+        .not("bo_dung_cu_id", "is", null)
+        .order("id")
+        .range(from, to),
+    );
 
     const counts = new Map<string, number>();
-    for (const row of activeRows || []) {
+    for (const row of activeRows) {
       const bo = String((row as { bo_dung_cu_id?: string }).bo_dung_cu_id || "").trim();
       const loai = String((row as { loai_dung_cu_id?: string }).loai_dung_cu_id || "").trim();
       if (!bo || !loai) continue;
