@@ -113,7 +113,7 @@ Phase 0–2 CSSD instrument (local)
   → tắt KSNK_PILOT_CORE_MODULES trước UAT CSSD
   → trial:auth:precheck = 0 (blocker)
   → ADMIN gộp BOM trùng → apply 20260904120000… (khi PO duyệt cloud)
-  → (tuỳ) apply 20260904140000 RLS write quy_trinh/lo — xem §7 (khi PO duyệt)
+  → (tuỳ) apply archive_legacy/drafts/20260904140000 RLS write quy_trinh/lo — xem §7 (khi PO duyệt)
   → pilot:go-live:gate (+ ký sign-off)
   → mở cloud / wave W2+
 ```
@@ -124,7 +124,7 @@ Migration head / đếm file: **xem** `ls supabase/migrations/*.sql | wc -l` + n
 
 ## 7. Checklist RLS write DRAFT — `quy_trinh` / `lo_tiet_khuan`
 
-ADR: [`adr-cssd-fact-write-rls.md`](../../core/adr-cssd-fact-write-rls.md). Migration DRAFT: `supabase/migrations/20260904140000_cssd_fact_quy_trinh_lo_write_rls.sql`.
+ADR: [`adr-cssd-fact-write-rls.md`](../../core/adr-cssd-fact-write-rls.md). Migration DRAFT: `supabase/migrations/archive_legacy/drafts/20260904140000_cssd_fact_quy_trinh_lo_write_rls.sql`.
 
 Quyết định: **thêm RLS write scoped** (khớp `lifecycle_event` / `su_co` / `bao_tri`); app **giữ** `createAdminSupabaseClient` sau `verifyPermission`.
 

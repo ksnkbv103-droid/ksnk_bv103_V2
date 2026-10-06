@@ -1,12 +1,20 @@
 "use server";
 
 import { z } from "zod";
-import { getGscStrategicAnalytics } from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
-import { getVstStrategicAnalytics } from "@/modules/giam-sat-vst/actions/vst-strategic-analytics.actions";
+import {
+  getGscStrategicAnalytics,
+  getGscStrategicKpisOnly,
+} from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
+import { resolveTuanThuBangKiemMas } from "@/modules/giam-sat-chung/lib/resolve-tuan-thu-bang-kiem-mas";
+import {
+  getVstStrategicAnalytics,
+  getVstStrategicKpisOnly,
+} from "@/modules/giam-sat-vst/actions/vst-strategic-analytics.actions";
 import { getGiamSatNkbvDashboardPayload } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
 import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/contexts/reporting/analytics";
 import { describeCssdKhoaOwnershipProxy } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import { veSinhTayHubBangKiemMasForRpc } from "@/lib/domain/gsc-lop-giam-sat-filter";
+import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import {
   verifyBaoCaoTongHopExport,
   verifyBaoCaoTongHopShell,
@@ -114,6 +122,21 @@ export async function getBaoCaoTongHopAnalytics(
   let nkbv: NkbvDashboardPayload | null = null;
   let cssd: BaoCaoCssdAppendix | null = null;
 
+  // Tra TUAN_THU 1 lần khi BCTH cần GSC generic (hiện tại và/hoặc kỳ trước) và chưa có lọc BK.
+  const needGscGeneric =
+    shouldFetchSource(chuyenDe, "GSC") && !(f.bang_kiem_mas && f.bang_kiem_mas.length > 0);
+  let gscOpts: { resolvedTuanThuBangKiemMas?: string[] | null } | undefined;
+  if (needGscGeneric) {
+    const supabase = await createServerSupabaseUserClient();
+    const resolved = await resolveTuanThuBangKiemMas(supabase);
+    if (!resolved.success) {
+      sources.gsc = "error";
+      errors.gsc = resolved.error;
+    } else {
+      gscOpts = { resolvedTuanThuBangKiemMas: resolved.mas };
+    }
+  }
+
   const tasks: Promise<void>[] = [];
 
   if (shouldFetchSource(chuyenDe, "VST")) {
@@ -127,9 +150,9 @@ export async function getBaoCaoTongHopAnalytics(
     );
   }
 
-  if (shouldFetchSource(chuyenDe, "GSC")) {
+  if (shouldFetchSource(chuyenDe, "GSC") && !errors.gsc) {
     tasks.push(
-      getGscStrategicAnalytics(gscInput).then((res) => {
+      getGscStrategicAnalytics(gscInput, gscOpts).then((res) => {
         const mapped = mapSourceResult(res);
         sources.gsc = mapped.status;
         if (mapped.error) errors.gsc = mapped.error;
@@ -158,6 +181,7 @@ export async function getBaoCaoTongHopAnalytics(
         tu_ngay: f.tu_ngay,
         den_ngay: f.den_ngay,
         khoa_ghi_nhan_ids: f.khoa_ids,
+        include_rates: false,
       }).then((res) => {
         const mapped = mapSourceResult(res);
         sources.nkbv = mapped.status;
@@ -202,7 +226,7 @@ export async function getBaoCaoTongHopAnalytics(
     );
   }
 
-  // Kỳ trước cùng độ dài — chạy song song với tải kỳ hiện tại (soft-fail).
+  // Kỳ trước cùng độ dài — chỉ KPI (soft-fail).
   let kyTruoc:
     | {
         tu_ngay: string;
@@ -227,10 +251,10 @@ export async function getBaoCaoTongHopAnalytics(
       (async () => {
         const [priorVst, priorGsc] = await Promise.all([
           shouldFetchSource(chuyenDe, "VST")
-            ? getVstStrategicAnalytics(priorVstInput)
+            ? getVstStrategicKpisOnly(priorVstInput)
             : Promise.resolve(null),
-          shouldFetchSource(chuyenDe, "GSC")
-            ? getGscStrategicAnalytics(priorGscInput)
+          shouldFetchSource(chuyenDe, "GSC") && !errors.gsc
+            ? getGscStrategicKpisOnly(priorGscInput, gscOpts)
             : Promise.resolve(null),
         ]);
         const priorVstPct =

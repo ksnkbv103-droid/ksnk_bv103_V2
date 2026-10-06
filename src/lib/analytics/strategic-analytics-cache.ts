@@ -72,6 +72,27 @@ export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
   };
 }
 
+/**
+ * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
+ * Tag invalidate giữ VST_STRATEGIC_CACHE_TAG; key khác cặp full.
+ */
+export function getCachedVstStrategicKpisOnly(rpcArgs: RpcArgs) {
+  const key = JSON.stringify(rpcArgs);
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminSupabaseClient();
+      const { data, error } = await supabase.rpc("rpc_dashboard_vst_strategic_analytics_impl", rpcArgs);
+      if (error) return { success: false as const, error: error.message };
+      return {
+        success: true as const,
+        data: normalizeVstStrategicPercents(data as VstStrategicPayload),
+      };
+    },
+    [VST_STRATEGIC_CACHE_TAG, "kpis-only", key],
+    { revalidate: REVALIDATE_SEC, tags: [VST_STRATEGIC_CACHE_TAG] },
+  )();
+}
+
 /** Cache ngắn RPC cặp dashboard GSC (đã verifyPermission bên ngoài). */
 function fetchCachedGscStrategicRpcRaw(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
@@ -106,6 +127,27 @@ export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
     success: true as const,
     data: { ...main.data, gap_analysis: gapRes.data.gap_analysis },
   };
+}
+
+/**
+ * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
+ * Tag invalidate giữ GSC_STRATEGIC_CACHE_TAG; key khác cặp full.
+ */
+export function getCachedGscStrategicKpisOnly(rpcArgs: RpcArgs) {
+  const key = JSON.stringify(rpcArgs);
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminSupabaseClient();
+      const { data, error } = await supabase.rpc("rpc_dashboard_gsc_strategic_analytics_impl", rpcArgs);
+      if (error) return { success: false as const, error: error.message };
+      return {
+        success: true as const,
+        data: normalizeGscStrategicPercents(data as GscStrategicPayload),
+      };
+    },
+    [GSC_STRATEGIC_CACHE_TAG, "kpis-only", key],
+    { revalidate: REVALIDATE_SEC, tags: [GSC_STRATEGIC_CACHE_TAG] },
+  )();
 }
 
 /** Cache ngắn hits TGS theo kỳ/khoa. */

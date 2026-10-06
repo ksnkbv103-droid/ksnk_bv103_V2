@@ -65,7 +65,7 @@
     "mdm:fallback:audit": "node scripts/mdm-fallback-audit.mjs",
     "verify:danh-muc-routes": "node scripts/verify-trung-tam-danh-muc-routes.mjs",
     "mdm:fallback:audit:strict": "MDM_LEGACY_FAIL_ON_ROWS=1 node scripts/mdm-fallback-audit.mjs",
-    "mdm:migrate": "export SUPABASE_ACCESS_TOKEN=$(grep ^SUPABASE_ACCESS_TOKEN .env.local | cut -d= -f2-) && npx supabase db push",
+    "mdm:migrate": "node -e \"console.error('[mdm:migrate] BỊ CHẶN: prod ghi version migration khác tên file — db push sẽ chạy lại migration cũ. Apply migration qua Lead/MCP (apply_migration). Local: npm run mdm:migrate:local'); process.exit(1)\"",
     "mdm:migrate:local": "npx supabase db push --local",
     "mdm:import:bk-ap-dung": "node --env-file=.env.local scripts/import-bang-kiem-ap-dung-csv.mjs",
     "mdm:import:bk-ap-dung:dry": "DRY_RUN=1 node --env-file=.env.local scripts/import-bang-kiem-ap-dung-csv.mjs",

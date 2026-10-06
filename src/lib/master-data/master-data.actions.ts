@@ -1,5 +1,6 @@
 "use server";
 
+import { getRequestAuthUser } from "@/lib/auth/rbac-request";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { getRegistryEntryOrNull } from "./domain-registry";
 import { fetchActiveRegistryDmRows, RegistrySelectRow } from "./registry-select-fetch";
@@ -13,9 +14,17 @@ import {
 /**
  * Server Action lấy dữ liệu danh mục tĩnh dùng chung.
  * Tích hợp sẵn Caching cho các bảng danh mục lớn đã được cache.
+ *
+ * Gate: chỉ yêu cầu đăng nhập (không DANH_MUC.view) — RegistrySelect dùng ở form
+ * giám sát của người không-admin; cache nhánh KHOA_PHONG/… dùng admin client.
  */
 export async function getActiveMasterDataAction(loaiDanhMuc: string): Promise<RegistrySelectRow[]> {
   try {
+    const user = await getRequestAuthUser();
+    if (!user?.id) {
+      throw new Error("Chưa đăng nhập");
+    }
+
     const loai = loaiDanhMuc.trim().toUpperCase();
 
     // 1. Kiểm tra cache trước cho các danh mục lớn/tần suất truy vấn cao

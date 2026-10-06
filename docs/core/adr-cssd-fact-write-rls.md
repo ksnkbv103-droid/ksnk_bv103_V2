@@ -53,7 +53,7 @@ SELECT giữ nguyên. Runtime admin write **không đổi** (service role bypass
 ## Hậu quả
 
 - Defense-in-depth: JWT user thiếu quyền → thao tác ghi bị RLS chặn.
-- Migration file: `supabase/migrations/20260904140000_cssd_fact_quy_trinh_lo_write_rls.sql` (**DRAFT** — comment chưa apply prod).
+- Migration file: `supabase/migrations/archive_legacy/drafts/20260904140000_cssd_fact_quy_trinh_lo_write_rls.sql` (**DRAFT** — comment chưa apply prod).
 - Gate apply: [`ops-go-live.md`](../reference/guides/ops-go-live.md) §7.
 - Không phá runtime hiện tại (admin path không phụ thuộc write policy).
 
