@@ -40,7 +40,7 @@ SSOT mã quyền: [`permission-registry-data.ts`](../../src/lib/permission-regis
 |------|-------|------------------|
 | Kiểm tra parity | `npm run admin:rbac:parity:local` | `npm run admin:rbac:parity` (cần `.env.local` + Supabase linked) |
 | Đồng bộ | `npm run admin:rbac:sync:local` (chỉ registry) hoặc `npx tsx scripts/admin-rbac-sync.ts --local --with-presets` / `local:golden:reset` | UI **Đồng bộ Registry**; preset riêng nút **Áp dụng preset** hoặc CLI `--with-presets` |
-| Deploy schema | `npm run mdm:migrate:local` | `npm run mdm:migrate` (linked cloud — cần token) |
+| Deploy schema | `npm run mdm:migrate:local` | Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. |
 | Lệch lịch sử cloud | — | Nếu `Remote migration versions not found…`: đối chiếu `supabase migration list`; **không** `repair` bừa — chỉ repair version orphan sau khi PO/IT xác nhận (vd. `20260717063027`) |
 | Xác nhận ADMIN | `admin_granted` = `db_permission_count` = số quyền registry | Cùng metric trong output parity |
 | Auth pilot | `npm run trial:auth:precheck:local` | `npm run trial:auth:precheck` |
@@ -72,7 +72,7 @@ SSOT mã quyền: [`permission-registry-data.ts`](../../src/lib/permission-regis
 | Môi trường | Lệnh kiểm tra head | Ghi chú |
 |------------|-------------------|---------|
 | **Local** | `npx supabase migration list --local` | Docker + `npm run mdm:migrate:local`. Head repo = **129** file (xem `ls supabase/migrations/*.sql | wc -l`; snapshot 2026-09-04; head `20260904120000`). Golden verify: `npm run local:golden:verify` (SOP §2.1.2). |
-| **Linked staging** | `npm run mdm:migrate` | `npm run trial:db:precheck`, `npm run smoke:gsc-vst`, `npm run gstt:db:audit`, `npm run ssot:db:guard`. |
+| **Linked staging** | Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. | `npm run trial:db:precheck`, `npm run smoke:gsc-vst`, `npm run gstt:db:audit`, `npm run ssot:db:guard`. |
 | **Repo SSOT** | `ls supabase/migrations/*.sql` | Tên file = nguồn sự thật; không apply SQL tay trên remote. Đếm + ngày: xem ghi chú Local (đừng tin số cũ ~87). |
 
 **Local không chạy được:** Nếu `connection refused` port 54322 → bật Docker Desktop, chạy `npx supabase start`. Không audit EXPLAIN/size trên local khi DB down — dùng linked staging tạm thời.
@@ -112,7 +112,7 @@ npm run local:golden:verify
 1. **Tạo Migration local:** Sử dụng lệnh `npx supabase migration new <ten_nghiep_vu>` để khởi tạo file SQL mới.
 2. **Migrate cục bộ:** Sử dụng lệnh `npm run mdm:migrate:local` để apply thay đổi lên môi trường local và chạy unit test kiểm chứng logic.
 3. **Chạy Precheck Schema:** Chạy lệnh `npm run trial:db:precheck:local` để xác thực toàn bộ RPC, View và khóa ngoại (FK) cần thiết.
-4. **Deploy & Sync Remote:** Chạy lệnh `npm run mdm:migrate` để apply đồng bộ lên DB remote y tế, kết hợp kiểm tra hậu migration (`npm run mdm:postcheck:sql`).
+4. **Deploy & Sync Remote:** Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. Kết hợp kiểm tra hậu migration (`npm run mdm:postcheck:sql`).
 5. **Auth pilot:** `npm run trial:auth:precheck` (linked) — khớp `auth.users` ↔ `mdm_nhan_su.email`.
 
 ---

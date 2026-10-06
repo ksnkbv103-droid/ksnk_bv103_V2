@@ -6,7 +6,7 @@
 ## Người dùng / môi trường
 
 - Vai trò: NV KSNK hoặc ADMIN có shell Command Center
-- Staging hoặc local đã `mdm:migrate` (không lỗi `v_auth_user_permissions`)
+- Staging hoặc local đã apply migration (Lead/MCP / `mdm:migrate:local`; không lỗi `v_auth_user_permissions`)
 
 ## Kịch bản tay (≥3)
 

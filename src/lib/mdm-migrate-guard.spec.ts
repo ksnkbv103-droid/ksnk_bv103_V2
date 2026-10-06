@@ -28,6 +28,13 @@ describe("mdm:migrate guard (chặn db push nhầm prod)", () => {
     );
   });
 
+  it("pilot:ship không chứa mdm:migrate", () => {
+    const steps = (scripts["pilot:ship"] ?? "")
+      .split("&&")
+      .map((s) => s.trim());
+    expect(steps).not.toContain("npm run mdm:migrate");
+  });
+
   it("20260904140000 không còn ở migrations gốc; có trong archive_legacy/drafts", () => {
     expect(existsSync(join(ROOT, ROOT_MIGRATION))).toBe(false);
     expect(existsSync(join(ROOT, ARCHIVED_MIGRATION))).toBe(true);

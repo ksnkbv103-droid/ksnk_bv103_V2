@@ -34,7 +34,7 @@ describe("createDebouncedLatestCaller (tab HSBA NKBV)", () => {
     type Res = { search: string };
     const resolvers: Array<(v: Res) => void> = [];
     const listFn = vi.fn(
-      (p: { search: string }) =>
+      (_p: { search: string }) =>
         new Promise<Res>((resolve) => {
           resolvers.push(resolve);
         }),
@@ -62,6 +62,45 @@ describe("createDebouncedLatestCaller (tab HSBA NKBV)", () => {
     resolvers[1]!({ search: "new" });
     await Promise.resolve();
     expect(applied).toBe("new");
+    caller.dispose();
+  });
+
+  it("schedule mới trong cửa sổ debounce vô hiệu phản hồi request cũ đang bay", async () => {
+    type Res = { search: string };
+    const resolvers: Array<(v: Res) => void> = [];
+    const listFn = vi.fn(
+      (_p: { search: string }) =>
+        new Promise<Res>((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
+    const caller = createDebouncedLatestCaller(listFn, { debounceMs: 300 });
+    const applied: string[] = [];
+
+    caller.schedule({ search: "old" }, (r) => {
+      applied.push(r.search);
+    });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(listFn).toHaveBeenCalledTimes(1);
+
+    // Lịch mới trước khi hết debounce — chưa gọi fetch "new"
+    caller.schedule({ search: "new" }, (r) => {
+      applied.push(r.search);
+    });
+    expect(listFn).toHaveBeenCalledTimes(1);
+
+    // "old" resolve trong lúc debounce → không apply
+    resolvers[0]!({ search: "old" });
+    await Promise.resolve();
+    expect(applied).toEqual([]);
+
+    await vi.advanceTimersByTimeAsync(300);
+    expect(listFn).toHaveBeenCalledTimes(2);
+    expect(listFn).toHaveBeenLastCalledWith({ search: "new" });
+
+    resolvers[1]!({ search: "new" });
+    await Promise.resolve();
+    expect(applied).toEqual(["new"]);
     caller.dispose();
   });
 });

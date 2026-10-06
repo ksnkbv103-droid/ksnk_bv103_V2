@@ -22,7 +22,7 @@ Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 ## MCP (project)
 
 - Config: [`.cursor/mcp.json`](../../.cursor/mcp.json) — **Supabase MCP** (OAuth trong Cursor; không commit secret).
-- Khi đụng schema / RLS / bảng thật: **ưu tiên MCP Supabase** để đối chiếu, rồi mới CLI (`mdm:migrate`, `verify:mdm`).
+- Khi đụng schema / RLS / bảng thật: **ưu tiên MCP Supabase** để đối chiếu. Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. Rồi `verify:mdm`.
 - Không đoán schema từ trí nhớ — khớp `01-agent-discipline`.
 
 ## Agents (`.cursor/agents/`)

@@ -7,7 +7,7 @@ export function formatQlcvDbError(message: string): string {
   if (SCHEMA_CACHE_RE.test(message)) {
     return (
       "Cơ sở dữ liệu / schema API chưa khớp với app (thiếu cột hoặc PostgREST chưa reload). " +
-      "App trỏ cloud: chạy `npm run mdm:migrate` (đẩy migration lên project Supabase). " +
+      "App trỏ cloud: liên hệ quản trị để apply migration. " +
       "Chỉ dùng local: `npm run mdm:migrate:local` rồi `supabase stop && supabase start`. " +
       "Chi tiết: docs/modules/qlcv/README.md"
     );

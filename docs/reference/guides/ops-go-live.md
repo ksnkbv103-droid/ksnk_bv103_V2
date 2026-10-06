@@ -24,7 +24,7 @@ cat vercel.json   # phải thấy "deploymentEnabled": false
 
 ## 1. Mở cloud — chỉ sau Phase 0–2 CSSD instrument
 
-**Mở cloud (linked mdm:migrate / staging deploy / prod wave) chỉ khi đủ:**
+**Mở cloud (linked staging deploy / prod wave; migration qua Lead/MCP) chỉ khi đủ:**
 
 1. **Phase 0–2 CSSD instrument** xong (quyết định D1–D10 + code/local verify theo [`domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md)).
 2. **`npm run local:golden:verify`** pass (sau `local:golden:reset` nếu vừa reset DB).
@@ -62,7 +62,7 @@ Gate gồm `trial:db:precheck` + **`trial:auth:precheck`** + verify engineering/
 
 1. Giữ `deploymentEnabled: false` → deploy Vercel **thủ công** khi PO chốt (CLI/UI), không auto từ push.
 2. Env trên Vercel khớp wave (§2.1).
-3. Schema remote: `mdm:migrate` **chỉ** khi đã §1 + §5 (BOM) + PO duyệt.
+3. Schema remote: Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. **Chỉ** khi đã §1 + §5 (BOM) + PO duyệt.
 
 ---
 

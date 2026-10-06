@@ -40,7 +40,7 @@
     "env:bootstrap": "node scripts/supabase-env-bootstrap.mjs",
     "env:check": "node scripts/supabase-env-check.mjs",
     "trial:prep": "npm run env:bootstrap && npm run env:check",
-    "pilot:ship": "npm run env:check && npm run verify:engineering && npm run build && npm run mdm:migrate && npm run trial:db:precheck && npm run smoke:gsc-vst",
+    "pilot:ship": "npm run env:check && npm run verify:engineering && npm run build && npm run trial:db:precheck && npm run smoke:gsc-vst",
     "pilot:go-live:precheck": "npm run trial:db:precheck && npm run trial:auth:precheck",
     "pilot:go-live:precheck:local": "npm run trial:db:precheck:local && npm run trial:auth:precheck:local",
     "pilot:go-live:gate": "npm run pilot:go-live:precheck && npm run verify:engineering && npm run verify:cssd && npm run test:pilot && npm run smoke:gsc-vst && node scripts/pilot-go-live-gate.mjs",
