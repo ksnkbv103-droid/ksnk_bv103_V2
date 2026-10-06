@@ -55,7 +55,7 @@ Domain phần mềm: **CDC → WHO → BYT/Cục Quân y → QT/QĐ chính thứ
 
 | Tình huống | Lệnh / việc |
 |------------|-------------|
-| Schema / RPC / view | Migration → `npm run mdm:migrate` (local: `:local`) |
+| Schema / RPC / view | Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. |
 | Sau migrate | `npm run verify:mdm` (hoặc `:local`) |
 | Action / `fact_*` | `npm run verify:engineering` |
 | SSOT ánh xạ | Changelog `docs/core/implementation-mapping.md` |

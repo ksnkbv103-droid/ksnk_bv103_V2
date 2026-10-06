@@ -10,6 +10,7 @@
 | `scripts/sql/` | Probe read-only (precheck, EXPLAIN, smoke) |
 | `scripts/lib/` | Helper dùng chung (`resolve-supabase-query-output.mjs`) |
 | `scripts/archive/one-off-20260531/` | Import CSV / cutover pilot (lịch sử) |
+| `scripts/archive/one-off-20261005/` | Thứ tự apply go-live 05/10 (echo-only, lịch sử) |
 | `scripts/archive/sql-20260531/` | SQL ad-hoc cũ |
 | `scripts/archive/codemods-202606/` | Codemod một lần (UI/table rename) |
 
@@ -22,7 +23,7 @@
 | DB probe | `trial:db:precheck`, `ssot:db:guard`, `fact:orphan:sweep`, `cssd:db:audit`, `gstt:db:audit` | `:local` cho Docker |
 | View audit | `audit:views` | View orphan vs src/sql — probe 11 trong `local:golden:verify` (cần `:54322`) |
 | Pilot ship | `pilot:go-live:gate`, `verify`, `verify:engineering` | Trước push / ký go-live |
-| MDM | `mdm:migrate`, `mdm:apply-and-verify`, `admin:rbac:sync` | Schema + RBAC |
+| MDM | `mdm:migrate:local`, `mdm:apply-and-verify`, `admin:rbac:sync` | Schema + RBAC. Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. |
 | Layout | `layout:drift-check`, `panel:chrome-check`, `columns:chrome-check` | UI governance |
 
 ## Ops thủ công (không CI)

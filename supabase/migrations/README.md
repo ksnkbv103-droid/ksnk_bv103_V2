@@ -4,7 +4,7 @@
 
 CLI chỉ apply file `*.sql` **trực tiếp trong thư mục này** (không quét subfolder).
 
-**Lệnh:** `npm run mdm:migrate` (linked) hoặc `npm run mdm:migrate:local`.
+**Lệnh:** Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`.
 
 ### Linked / staging / prod (chuỗi incremental)
 
@@ -48,7 +48,7 @@ Migration **mới** sau baseline v2: `npx supabase migration new <ten>` → file
 
 ### Remote / linked
 
-`npm run mdm:migrate` cần **file trùng version** với `schema_migrations` trên remote. Squash v2 (`20260602100000`) chỉ sau `migration repair` — xem [`migration-squash-runbook.md`](../../docs/reference/guides/migration-squash-runbook.md).
+Remote: MCP `apply_migration` ghi version theo thời điểm apply (khác tên file) → **không** `supabase db push` lên prod (sẽ chạy lại migration cũ); migration prod đi qua Lead/MCP. Local: `npm run mdm:migrate:local`. Squash v2 (`20260602100000`) chỉ sau `migration repair` — xem [`migration-squash-runbook.md`](../../docs/reference/guides/migration-squash-runbook.md).
 
 ## Không nằm trong migrations/
 

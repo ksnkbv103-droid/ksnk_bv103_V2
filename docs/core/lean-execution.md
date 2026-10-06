@@ -15,7 +15,7 @@
 |---|----------|
 | 1 | Người dùng / môi trường (pilot, role) xác định |
 | 2 | ≥3 kịch bản tay trên UI (hoặc RPC) cho luồng vừa sửa |
-| 3 | Migration/RPC apply đúng nếu đụng schema (`mdm:migrate` khi cần) |
+| 3 | Migration/RPC apply đúng nếu đụng schema (Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`.) |
 | 4 | Lệnh verify phù hợp pass (không chỉ `build`) |
 
 ## Lệnh verify

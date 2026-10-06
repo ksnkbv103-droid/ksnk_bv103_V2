@@ -14,7 +14,7 @@
 
 | Bước | Lệnh / việc |
 |------|-------------|
-| Push schema | `npm run mdm:migrate` |
+| Push schema | Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. |
 | Gate MDM | `npm run verify:mdm` |
 | Gate app contract | `npm run verify:engineering` |
 | Ship pilot | `npm run pilot:ship` |

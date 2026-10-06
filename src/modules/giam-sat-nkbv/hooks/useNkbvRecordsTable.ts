@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { listNkbvMedicalRecords } from "../actions/giam-sat-nkbv.actions";
+import {
+  applyNkbvRecordsListOutcome,
+  type NkbvRecordsListOutcome,
+} from "./nkbv-records-list-apply";
 import { createDebouncedLatestCaller } from "./nkbv-records-list-caller";
 
 export type NkbvMedicalRecordRow = {
@@ -26,8 +30,6 @@ type ListParams = {
   chuaPhanTichOnly: boolean;
   khoaId: string;
 };
-
-type ListResult = Awaited<ReturnType<typeof listNkbvMedicalRecords>>;
 
 const PAGE_SIZE = 15;
 
@@ -57,25 +59,15 @@ export function useNkbvRecordsTable(opts: {
     chuaPhanTichOnly: opts.chuaPhanTichOnly,
     khoaId: opts.khoaId,
   });
-  paramsRef.current = {
-    page,
-    search: searchTerm,
-    inpatientOnly: opts.inpatientOnly,
-    devicePriorityOnly: opts.devicePriorityOnly,
-    chuaPhanTichOnly: opts.chuaPhanTichOnly,
-    khoaId: opts.khoaId,
-  };
   const enabledRef = useRef(opts.enabled);
-  enabledRef.current = opts.enabled;
 
-  const applyResult = useCallback((res: ListResult) => {
-    setLoading(false);
-    if (res.success) {
-      setData((res.data || []) as NkbvMedicalRecordRow[]);
-      setTotalCount(res.totalCount ?? 0);
-    } else {
-      toast.error(res.error || "Không thể tải danh sách bệnh án");
-    }
+  const applyResult = useCallback((res: NkbvRecordsListOutcome) => {
+    applyNkbvRecordsListOutcome(res, {
+      setLoading,
+      setData: (rows) => setData(rows as NkbvMedicalRecordRow[]),
+      setTotalCount,
+      onErrorMessage: (message) => toast.error(message),
+    });
   }, []);
 
   const onError = useCallback((error: unknown) => {
@@ -83,32 +75,55 @@ export function useNkbvRecordsTable(opts: {
     toast.error(error instanceof Error ? error.message : "Lỗi");
   }, []);
 
-  const callerRef = useRef<ReturnType<typeof createDebouncedLatestCaller<ListParams, ListResult>> | null>(
-    null,
-  );
+  const callerRef = useRef<ReturnType<
+    typeof createDebouncedLatestCaller<ListParams, NkbvRecordsListOutcome>
+  > | null>(null);
 
   useEffect(() => {
-    const caller = createDebouncedLatestCaller<ListParams, ListResult>(async (params) => {
-      if (!enabledRef.current) {
-        return { success: true as const, data: [], totalCount: 0 };
-      }
-      setLoading(true);
-      return listNkbvMedicalRecords({
-        page: params.page,
-        pageSize: PAGE_SIZE,
-        search: params.search,
-        inpatientOnly: params.inpatientOnly,
-        devicePriorityOnly: params.devicePriorityOnly,
-        chuaPhanTichOnly: params.chuaPhanTichOnly,
-        khoaId: params.khoaId || null,
-      });
-    }, { debounceMs: 300 });
+    const caller = createDebouncedLatestCaller<ListParams, NkbvRecordsListOutcome>(
+      async (params) => {
+        if (!enabledRef.current) {
+          return { skipped: true as const };
+        }
+        setLoading(true);
+        return listNkbvMedicalRecords({
+          page: params.page,
+          pageSize: PAGE_SIZE,
+          search: params.search,
+          inpatientOnly: params.inpatientOnly,
+          devicePriorityOnly: params.devicePriorityOnly,
+          chuaPhanTichOnly: params.chuaPhanTichOnly,
+          khoaId: params.khoaId || null,
+        });
+      },
+      { debounceMs: 300 },
+    );
     callerRef.current = caller;
     return () => {
       caller.dispose();
       callerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    paramsRef.current = {
+      page,
+      search: searchTerm,
+      inpatientOnly: opts.inpatientOnly,
+      devicePriorityOnly: opts.devicePriorityOnly,
+      chuaPhanTichOnly: opts.chuaPhanTichOnly,
+      khoaId: opts.khoaId,
+    };
+    enabledRef.current = opts.enabled;
+  }, [
+    page,
+    searchTerm,
+    opts.enabled,
+    opts.inpatientOnly,
+    opts.devicePriorityOnly,
+    opts.chuaPhanTichOnly,
+    opts.khoaId,
+  ]);
 
   useEffect(() => {
     if (!opts.enabled) return;

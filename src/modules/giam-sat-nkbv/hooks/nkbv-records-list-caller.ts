@@ -35,6 +35,8 @@ export function createDebouncedLatestCaller<TParams, TResult>(
       onError?: (error: unknown) => void,
     ) {
       if (timer) clearTimeout(timer);
+      // Vô hiệu mọi request đang bay ngay khi có lịch mới (tránh đè trong cửa sổ debounce).
+      seq += 1;
       timer = setTimeout(() => {
         timer = null;
         invoke(params, onApply, onError);

@@ -19,13 +19,13 @@ KSNK_PILOT_CORE_MODULES=1
 
 | Lệnh | Ý nghĩa |
 |------|---------|
-| `npm run mdm:migrate` | Linked staging/prod |
+| Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. | Linked staging/prod |
 | `npm run trial:db:precheck` | MDM + GSC/VST + QLCV + RPC |
 | `npm run trial:auth:precheck` | Auth ↔ `mdm_nhan_su` |
 | `npm run verify:admin` | Contract quản trị + engineering |
 | `npm run trial:audit:probe` | Không còn trigger `*audit*` trên GSC/VST (sau migrate) |
 
-**Lỗi GSC `sys_audit_log does not exist` (42P01):** trigger audit sót trên DB — apply migration `20260605100000_detach_orphan_audit_triggers.sql` (hoặc `mdm:migrate`).
+**Lỗi GSC `sys_audit_log does not exist` (42P01):** trigger audit sót trên DB — apply migration `20260605100000_detach_orphan_audit_triggers.sql` (Lead/MCP `apply_migration`; local: `npm run mdm:migrate:local`).
 
 Local: Docker + `npx supabase start` → `mdm:migrate:local` → `*:local` scripts.
 
