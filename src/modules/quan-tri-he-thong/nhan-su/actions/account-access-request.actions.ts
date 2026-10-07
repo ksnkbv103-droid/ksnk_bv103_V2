@@ -9,7 +9,6 @@ import { verifyPermission } from "../../actions/verify-permission";
 import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import {
-  formatAccountRequestTicketCode,
   isPendingAccountRequest,
   mergeAccountRequest,
   PENDING_ACCOUNT_REQUEST_CONTAINS,
@@ -18,8 +17,9 @@ import {
 } from "../lib/account-access-request";
 import {
   decideAccessRequestRow,
+  discardAccessRequestRow,
+  hasRecentAccessRequest,
   insertAccessRequestRow,
-  lookupAccessRequestFromTable,
 } from "../lib/account-access-request-store";
 import { verifyCurrentActorPassword } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/lib/admin-reauth";
 
@@ -27,24 +27,14 @@ function errMsg(e: unknown) {
   return e instanceof Error ? e.message : String(e);
 }
 
-/** Light in-memory cooldown per email (best-effort on warm instances). */
-const submitCooldown = new Map<string, number>();
 const SUBMIT_COOLDOWN_MS = 45_000;
 
-function assertSubmitCooldown(email: string): string | null {
-  const now = Date.now();
-  const prev = submitCooldown.get(email) ?? 0;
-  if (now - prev < SUBMIT_COOLDOWN_MS) {
-    return "Bạn vừa gửi yêu cầu. Vui lòng chờ khoảng 1 phút rồi thử lại.";
-  }
-  submitCooldown.set(email, now);
-  if (submitCooldown.size > 500) {
-    const cutoff = now - SUBMIT_COOLDOWN_MS * 2;
-    for (const [k, t] of submitCooldown) {
-      if (t < cutoff) submitCooldown.delete(k);
-    }
-  }
-  return null;
+/** Cùng một câu cho đã có tài khoản, đang chờ, vừa gửi, hoặc tra cứu. */
+const PUBLIC_ACCOUNT_ACK =
+  "Nếu thông tin hợp lệ, yêu cầu đã được ghi nhận. Quản trị sẽ xử lý khi cần.";
+
+function publicAccountAck() {
+  return { success: true as const, message: PUBLIC_ACCOUNT_ACK };
 }
 
 function genPendingMaNv(): string {
@@ -138,10 +128,10 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       return { success: false as const, error: "Lý do xin cấp tài khoản tối thiểu 5 ký tự." };
     }
 
-    const coolErr = assertSubmitCooldown(email);
-    if (coolErr) return { success: false as const, error: coolErr };
-
     const supabase = createAdminSupabaseClient();
+    if (await hasRecentAccessRequest(supabase, email, SUBMIT_COOLDOWN_MS)) {
+      return publicAccountAck();
+    }
 
     const khoas = await getCachedDmKhoaPhong();
     if (!(khoas || []).some((k) => String(k.id) === khoaId)) {
@@ -190,18 +180,8 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       if (byEmail) existing = byEmail as unknown as ExistingStaffRow;
     }
 
-    if (existing?.auth_user_id) {
-      return {
-        success: false as const,
-        error: "Email/mã NV này đã có tài khoản đăng nhập. Dùng «Quên mật khẩu» nếu cần.",
-      };
-    }
-
-    if (existing && isPendingAccountRequest(existing.extra_data)) {
-      return {
-        success: false as const,
-        error: "Đã có yêu cầu chờ duyệt cho hồ sơ này. Vui lòng chờ quản trị xử lý.",
-      };
+    if (existing?.auth_user_id || (existing && isPendingAccountRequest(existing.extra_data))) {
+      return publicAccountAck();
     }
 
     const nowIso = new Date().toISOString();
@@ -222,6 +202,7 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       payload,
     });
 
+    try {
     const requestMeta: AccountRequestMeta = {
       status: "CHO_DUYET",
       kind: "REQUEST",
@@ -257,13 +238,7 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
 
       revalidatePath("/quan-tri-he-thong/nhan-su");
       revalidatePath("/quan-tri-he-thong/tai-khoan");
-      return {
-        success: true as const,
-        staffId: existing.id,
-        linkedExisting: true,
-        ticket_id: ticketId,
-        ticket_code: formatAccountRequestTicketCode(ticketId),
-      };
+      return publicAccountAck();
     }
 
     const newMa = maNv || genPendingMaNv();
@@ -306,16 +281,14 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
 
     revalidatePath("/quan-tri-he-thong/nhan-su");
     revalidatePath("/quan-tri-he-thong/tai-khoan");
-    return {
-      success: true as const,
-      staffId: inserted.id as string,
-      linkedExisting: false,
-      ticket_id: ticketId,
-      ticket_code: formatAccountRequestTicketCode(ticketId),
-    };
+    return publicAccountAck();
+    } catch (writeErr) {
+      await discardAccessRequestRow(supabase, ticketId);
+      throw writeErr;
+    }
   } catch (e: unknown) {
     console.error("[submitAccountAccessRequest]", e);
-    return { success: false as const, error: errMsg(e) || "Không gửi được yêu cầu." };
+    return { success: false as const, error: "Không gửi được yêu cầu." };
   }
 }
 
@@ -340,10 +313,10 @@ export async function submitForgotResetAdminRequestAction(input: {
       return { success: false as const, error: "Lý do tối thiểu 5 ký tự." };
     }
 
-    const coolErr = assertSubmitCooldown(`reset:${email}`);
-    if (coolErr) return { success: false as const, error: coolErr };
-
     const supabase = createAdminSupabaseClient();
+    if (await hasRecentAccessRequest(supabase, email, SUBMIT_COOLDOWN_MS)) {
+      return publicAccountAck();
+    }
 
     type StaffRow = {
       id: string;
@@ -373,24 +346,8 @@ export async function submitForgotResetAdminRequestAction(input: {
     }
 
     // Uniform response — không lộ chi tiết hồ sơ
-    if (!staff?.auth_user_id) {
-      return {
-        success: true as const,
-        message: "Nếu email tồn tại trong hệ thống, yêu cầu đã được ghi nhận để quản trị xử lý.",
-      };
-    }
-    if (staff.is_active === false) {
-      return {
-        success: true as const,
-        message: "Nếu email tồn tại trong hệ thống, yêu cầu đã được ghi nhận để quản trị xử lý.",
-      };
-    }
-
-    if (isPendingAccountRequest(staff.extra_data)) {
-      return {
-        success: false as const,
-        error: "Đã có yêu cầu chờ duyệt cho hồ sơ này. Vui lòng chờ quản trị xử lý hoặc tra cứu trạng thái.",
-      };
+    if (!staff?.auth_user_id || staff.is_active === false || isPendingAccountRequest(staff.extra_data)) {
+      return publicAccountAck();
     }
 
     const nowIso = new Date().toISOString();
@@ -401,6 +358,7 @@ export async function submitForgotResetAdminRequestAction(input: {
       payload: { ma_nv: maNv || staff.ma_nv, ly_do: lyDo, source: "FORGOT_RESET" },
     });
 
+    try {
     const extra = mergeAccountRequest(
       { ...(staff.extra_data || {}), email },
       {
@@ -420,81 +378,30 @@ export async function submitForgotResetAdminRequestAction(input: {
 
     revalidatePath("/quan-tri-he-thong/nhan-su");
     revalidatePath("/quan-tri-he-thong/tai-khoan");
-    return {
-      success: true as const,
-      message: "Nếu email tồn tại trong hệ thống, yêu cầu đã được ghi nhận để quản trị xử lý.",
-    };
+    return publicAccountAck();
+    } catch (writeErr) {
+      await discardAccessRequestRow(supabase, ticketId);
+      throw writeErr;
+    }
   } catch (e: unknown) {
     console.error("[submitForgotResetAdminRequest]", e);
-    return { success: false as const, error: errMsg(e) || "Không gửi được yêu cầu." };
+    return { success: false as const, error: "Không gửi được yêu cầu." };
   }
 }
 
 /**
- * Public tra cứu trạng thái phiếu — chỉ status / kind / reject_reason (không dump hồ sơ).
+ * Public tra cứu — không trả found/status (không phân biệt có phiếu hay không).
  */
 export async function lookupAccountAccessRequestStatusAction(input: {
   email: string;
   ma_nv?: string;
 }) {
-  try {
-    const email = normalizeEmail(String(input.email || ""));
-    const maNv = String(input.ma_nv || "").trim();
-    if (!email || !email.includes("@")) {
-      return { success: false as const, error: "Email không hợp lệ." };
-    }
-
-    const supabase = createAdminSupabaseClient();
-
-    const fromTable = await lookupAccessRequestFromTable(supabase, email, maNv || undefined);
-    if (fromTable) {
-      return {
-        success: true as const,
-        found: true as const,
-        status: fromTable.status,
-        kind: fromTable.kind,
-        reject_reason: fromTable.status === "TU_CHOI" ? fromTable.reject_reason : null,
-        ticket_code: formatAccountRequestTicketCode(fromTable.ticket_id),
-      };
-    }
-
-    // Soft fallback
-    type SoftRow = { extra_data: Record<string, unknown> | null; ma_nv: string | null };
-    let row: SoftRow | null = null;
-    if (maNv) {
-      const { data } = await supabase
-        .from("mdm_nhan_su")
-        .select("extra_data, ma_nv")
-        .eq("ma_nv", maNv)
-        .maybeSingle();
-      if (data) row = data as SoftRow;
-    }
-    if (!row) {
-      const { data } = await supabase
-        .from("v_mdm_nhan_su_full")
-        .select("extra_data, ma_nv")
-        .ilike("email", email)
-        .limit(1)
-        .maybeSingle();
-      if (data) row = data as SoftRow;
-    }
-
-    const req = readAccountRequest(row?.extra_data);
-    if (!req) {
-      return { success: true as const, found: false as const };
-    }
-
-    return {
-      success: true as const,
-      found: true as const,
-      status: req.status,
-      kind: req.kind || ("REQUEST" as const),
-      reject_reason: req.status === "TU_CHOI" ? req.reject_reason || null : null,
-      ticket_code: formatAccountRequestTicketCode(req.ticket_id),
-    };
-  } catch (e: unknown) {
-    return { success: false as const, error: errMsg(e) };
+  const email = normalizeEmail(String(input.email || ""));
+  if (!email || !email.includes("@")) {
+    return { success: false as const, error: "Email không hợp lệ." };
   }
+  void input.ma_nv;
+  return publicAccountAck();
 }
 
 /** Admin: số hồ sơ chờ duyệt — cùng lọc danh sách `?pending=1`, không đếm bảng phiếu. */

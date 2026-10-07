@@ -1,7 +1,21 @@
 "use server";
 
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
+import { QUAN_TRI_ENTRY_MODULE_KEYS } from "@/lib/nav/ksnk-nav-gates";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+
+const DEDICATED_NO_DANH_MUC_FALLBACK = new Set([
+  "PHAN_QUYEN",
+  "NHAN_SU",
+  "KHOA_PHONG",
+  "BANG_KIEM",
+  "BANG_KIEM_DETAIL",
+  "LOAI_DC",
+  "BO_DC",
+  "DC_LE",
+  "THIET_BI",
+  "HOA_CHAT",
+]);
 
 type AccessSnapshot = {
   isAdmin: boolean;
@@ -55,16 +69,12 @@ async function getServerAccessSnapshot(): Promise<AccessSnapshot | null> {
   };
 }
 
-/** Hub Quản trị — OR DANH_MUC / PHAN_QUYEN / NHAN_SU view hoặc ADMIN. */
+/** Hub Quản trị — cùng tập mã với menu (`QUAN_TRI_ENTRY_MODULE_KEYS`). */
 export async function canAccessQuanTriHub(): Promise<boolean> {
   const snap = await getServerAccessSnapshot();
   if (!snap) return false;
-  return (
-    snap.isAdmin ||
-    snap.canView("DANH_MUC") ||
-    snap.canView("PHAN_QUYEN") ||
-    snap.canView("NHAN_SU")
-  );
+  if (snap.isAdmin) return true;
+  return QUAN_TRI_ENTRY_MODULE_KEYS.some((key) => snap.canView(key));
 }
 
 /** Deep link / tab Phân quyền — cần PHAN_QUYEN view hoặc ADMIN. */
@@ -81,9 +91,15 @@ export async function canAccessTaiKhoanNhanSuRoute(): Promise<boolean> {
   return snap.isAdmin || (snap.canView("PHAN_QUYEN") && snap.canEdit("PHAN_QUYEN"));
 }
 
-/** Trang danh mục dedicated — cần view module tương ứng hoặc DANH_MUC view hoặc ADMIN. */
+/**
+ * Trang danh mục. Mã đã tách (khoa, bảng kiểm, CSSD, nhân sự) không nhận fallback DANH_MUC.
+ * Lookup `DANH_MUC_*` vẫn xem được khi có DANH_MUC.view.
+ */
 export async function canAccessDanhMucModuleRoute(moduleKey: string): Promise<boolean> {
   const snap = await getServerAccessSnapshot();
   if (!snap) return false;
-  return snap.isAdmin || snap.canView(moduleKey) || snap.canView("DANH_MUC");
+  if (snap.isAdmin || snap.canView(moduleKey)) return true;
+  if (DEDICATED_NO_DANH_MUC_FALLBACK.has(moduleKey)) return false;
+  if (moduleKey.startsWith("DANH_MUC_")) return snap.canView("DANH_MUC");
+  return false;
 }

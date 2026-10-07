@@ -95,6 +95,19 @@ export async function insertAccessRequestRow(
   return (data?.id as string) || null;
 }
 
+/** Xóa phiếu vừa tạo khi ghi hồ sơ thất bại — tránh cooldown chặn lần gửi lại. */
+export async function discardAccessRequestRow(
+  supabase: any,
+  ticketId: string | null,
+): Promise<void> {
+  if (!ticketId) return;
+  try {
+    await supabase.from("sys_account_access_request").delete().eq("id", ticketId);
+  } catch {
+    /* best-effort */
+  }
+}
+
 export async function decideAccessRequestRow(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
@@ -129,6 +142,29 @@ export async function decideAccessRequestRow(
   else if (params.email) q = q.eq("email", params.email);
   else return;
   await q;
+}
+
+/** Cooldown bền theo dòng phiếu, không theo bộ nhớ process. */
+export async function hasRecentAccessRequest(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  email: string,
+  windowMs: number,
+): Promise<boolean> {
+  const available = await isAccountAccessRequestTableAvailable(supabase);
+  if (!available) return false;
+  const since = new Date(Date.now() - windowMs).toISOString();
+  const { data, error } = await supabase
+    .from("sys_account_access_request")
+    .select("id")
+    .eq("email", email)
+    .gte("created_at", since)
+    .limit(1);
+  if (error) {
+    if (isMissingTableError(error)) tableAvailableCache = false;
+    return false;
+  }
+  return Array.isArray(data) && data.length > 0;
 }
 
 export async function lookupAccessRequestFromTable(

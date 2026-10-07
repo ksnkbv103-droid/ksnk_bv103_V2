@@ -35,7 +35,7 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
         .maybeSingle();
 
       if (staffByEmail && staffByEmail.is_active === false) {
-        return { ok: false as const, error: "Hồ sơ nhân sự không còn hoạt động. Liên hệ quản trị." };
+        return { ok: false as const, error: "Mã đăng nhập hoặc mật khẩu không đúng." };
       }
       emailForAuth = await resolveStaffLoginEmail(
         admin,
@@ -52,11 +52,8 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
       if (lookupErr) {
         return { ok: false as const, error: "Đăng nhập không thành công." };
       }
-      if (!row?.email) {
-        return { ok: false as const, error: "Chưa cấu hình email cho mã nhân viên này. Liên hệ quản trị." };
-      }
-      if (row.is_active === false) {
-        return { ok: false as const, error: "Hồ sơ nhân sự không còn hoạt động. Liên hệ quản trị." };
+      if (!row?.email || row.is_active === false) {
+        return { ok: false as const, error: "Mã đăng nhập hoặc mật khẩu không đúng." };
       }
       emailForAuth = await resolveStaffLoginEmail(admin, row.email, row.auth_user_id);
     }

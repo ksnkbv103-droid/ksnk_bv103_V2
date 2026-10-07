@@ -8,7 +8,7 @@ export default async function QuanTriHeThongLayout({ children }: { children: Rea
   const allowed = await canAccessQuanTriHub();
   if (!allowed) {
     return (
-      <QuanTriAccessDenied detail="Cần quyền xem Danh mục, Phân quyền, Nhân sự hoặc vai trò quản trị." />
+      <QuanTriAccessDenied detail="Cần quyền xem đúng mục quản trị (danh mục, khoa phòng, bảng kiểm, nhân sự hoặc phân quyền)." />
     );
   }
   return children;

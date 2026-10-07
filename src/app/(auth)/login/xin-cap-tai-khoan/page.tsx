@@ -26,7 +26,7 @@ export default function XinCapTaiKhoanPage() {
   const [chucDanhs, setChucDanhs] = useState<ChucDanhOpt[]>([]);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [ticketCode, setTicketCode] = useState<string | null>(null);
+  const [ack, setAck] = useState("");
 
   useEffect(() => {
     void Promise.all([
@@ -65,9 +65,8 @@ export default function XinCapTaiKhoanPage() {
         toast.error(res.error);
         return;
       }
+      setAck(res.message);
       setDone(true);
-      setTicketCode(res.ticket_code || null);
-      toast.success("Đã gửi yêu cầu. Quản trị sẽ duyệt trước khi cấp tài khoản đăng nhập.");
     } finally {
       setLoading(false);
     }
@@ -86,15 +85,7 @@ export default function XinCapTaiKhoanPage() {
           {done ? (
             <div className="mt-8 space-y-4 text-center">
               <p className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900">
-                Yêu cầu đã được ghi nhận (trạng thái chờ duyệt).
-                {ticketCode ? (
-                  <>
-                    {" "}
-                    Mã phiếu: <strong className="font-mono">{ticketCode}</strong> — ghi lại để hỏi quản trị.
-                  </>
-                ) : (
-                  <> Liên hệ quản trị KSNK nếu cần hỗ trợ.</>
-                )}
+                {ack}
               </p>
               <p className="text-sm text-slate-600">
                 Tra cứu trạng thái tại{" "}

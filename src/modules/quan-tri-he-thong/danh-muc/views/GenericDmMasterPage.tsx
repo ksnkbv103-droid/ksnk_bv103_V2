@@ -12,7 +12,7 @@ import GenericDmHubRedirectBanner from "./GenericDmHubRedirectBanner";
 import GenericDmMasterDataTable from "./GenericDmMasterDataTable";
 import GenericDmMasterHeader from "./GenericDmMasterHeader";
 import { useGenericDmMasterPageModel } from "../hooks/useGenericDmMasterPageModel";
-import { useModulePermission } from "@/hooks/useModulePermission";
+import { usePermission } from "@/hooks/usePermission";
 import {
   exportGenericDmExcelAction,
   importGenericDmExcelAction,
@@ -22,11 +22,16 @@ import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: string }) {
   const router = useRouter();
   const permissionModule = resolveDanhMucViewModuleByType(loaiDanhMuc);
-  const { loading: permLoading, allowed } = useModulePermission(permissionModule);
+  const { loading: permLoading, isAdmin, canView, canCreate, canEdit, canDelete: canDeletePerm, canImport: canImportPerm } =
+    usePermission();
   const locked = isLockedSystemLookup(loaiDanhMuc);
-  const canMutate = !locked && (allowed.create || allowed.edit);
-  const canDelete = !locked && allowed.delete;
-  const canImport = !locked && (allowed.import || allowed.edit);
+  const canViewPage =
+    isAdmin ||
+    canView(permissionModule) ||
+    (permissionModule.startsWith("DANH_MUC_") && canView("DANH_MUC"));
+  const canMutate = !locked && (canCreate(permissionModule) || canEdit(permissionModule));
+  const canDelete = !locked && canDeletePerm(permissionModule);
+  const canImport = !locked && (canImportPerm(permissionModule) || canEdit(permissionModule));
   const m = useGenericDmMasterPageModel(loaiDanhMuc, canMutate, canDelete);
   const title = DM_HUB_LABELS[m.key] || loaiDanhMuc;
   const maCol = m.reg?.maColumn ?? "ma";
@@ -72,6 +77,14 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         >
           Về trung tâm quản trị
         </button>
+      </div>
+    );
+  }
+
+  if (!permLoading && !canViewPage) {
+    return (
+      <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-6 py-10 text-center">
+        <p className="text-sm font-medium text-slate-700">Không có quyền xem danh mục này.</p>
       </div>
     );
   }

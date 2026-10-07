@@ -58,8 +58,8 @@ export async function checkStaffSessionAllowed(): Promise<StaffSessionCheckResul
       return { ok: false as const, reason: "check_failed" };
     }
   } catch (error) {
-    // Env/Supabase client lỗi TRƯỚC khi biết user — fail-open tránh gate 500 cả layout.
+    // Mất cấu hình / client Supabase: không mở app. Gate hiện lớp chặn + thử lại.
     console.error("[staff-session] checkStaffSessionAllowed config error:", error);
-    return { ok: true as const };
+    return { ok: false as const, reason: "check_failed" };
   }
 }

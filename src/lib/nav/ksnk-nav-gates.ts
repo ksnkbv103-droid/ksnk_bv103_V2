@@ -36,8 +36,27 @@ export const NAV_GATE_CSSD_THIET_BI: NavGate = { id: "cssd-thiet-bi", moduleKeys
 export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys: ["KSNK_KHO_HOACHAT"] };
 
 
-/** OR: giống `canSeeQuanTriSection` — user chỉ có NHAN_SU vẫn cần mục Quản trị (vào hub /nhan-su). */
-export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: ["DANH_MUC", "PHAN_QUYEN", "NHAN_SU"] };
+/**
+ * Cửa vào khu Quản trị. Khớp trang dedicated: mã chi tiết (KHOA_PHONG, BANG_KIEM, …)
+ * cũng mở menu, không chỉ DANH_MUC / PHAN_QUYEN / NHAN_SU.
+ */
+export const QUAN_TRI_ENTRY_MODULE_KEYS = [
+  "DANH_MUC",
+  "DANH_MUC_ORG",
+  "DANH_MUC_GSTT",
+  "DANH_MUC_CSSD_LOOKUP",
+  "PHAN_QUYEN",
+  "NHAN_SU",
+  "KHOA_PHONG",
+  "BANG_KIEM",
+  "LOAI_DC",
+  "BO_DC",
+  "DC_LE",
+  "THIET_BI",
+  "HOA_CHAT",
+] as const;
+
+export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: QUAN_TRI_ENTRY_MODULE_KEYS };
 
 /** Hub `/giam-sat` + lịch sử: hiện nếu có VIEW ít nhất một phân hệ giám sát. */
 export const NAV_GATE_GIAM_SAT_HUB: NavGate = {
@@ -74,5 +93,6 @@ export function canSeeCommandCenterNav(
 }
 
 export function canSeeQuanTriSection(isAdmin: boolean, canView: (module: string) => boolean): boolean {
-  return isAdmin || canView("DANH_MUC") || canView("PHAN_QUYEN") || canView("NHAN_SU");
+  if (isAdmin) return true;
+  return QUAN_TRI_ENTRY_MODULE_KEYS.some((key) => canView(key));
 }

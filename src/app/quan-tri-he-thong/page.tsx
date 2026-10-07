@@ -23,9 +23,7 @@ export default function QuanTriHeThongPage() {
       <div className="mx-auto mt-8 max-w-lg space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-slate-200 bg-white px-5 py-6 text-center shadow-sm">
         <h2 className={`${T.pageTitle} text-slate-800`}>Truy cập bị từ chối</h2>
         <p className="text-sm leading-relaxed text-slate-600">
-          Cần quyền xem ít nhất một trong: <strong className="font-semibold text-slate-700">Danh mục gốc</strong>,{" "}
-          <strong className="font-semibold text-slate-700">Phân quyền</strong>,{" "}
-          <strong className="font-semibold text-slate-700">Nhân sự</strong>, hoặc vai trò quản trị.
+          Cần quyền xem đúng mục quản trị: danh mục, khoa phòng, bảng kiểm, nhân sự, phân quyền, hoặc vai trò quản trị.
         </p>
         <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 px-3 py-2.5 text-left">
           <p className={T.labelBlock}>Tài khoản hiện tại</p>

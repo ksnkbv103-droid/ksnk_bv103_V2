@@ -8,8 +8,12 @@ import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
 import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
-import { filterDanhMucHubRows, getAllDanhMucHubRows } from "@/lib/master-data/danh-muc-hub-catalog";
-import { visibleHubRows } from "@/lib/master-data/quan-tri-hub-jobs";
+import {
+  canViewHubCatalogRow,
+  filterDanhMucHubRows,
+  getAllDanhMucHubRows,
+} from "@/lib/master-data/danh-muc-hub-catalog";
+import { rowsForHubJob, visibleHubRows } from "@/lib/master-data/quan-tri-hub-jobs";
 import type { QuanTriHubJobId } from "@/lib/master-data/quan-tri-hub-jobs";
 import { quanTriHubHref, type QuanTriHubTab } from "@/lib/master-data/quan-tri-paths";
 import QuanTriDanhMucTabStrip, { type QuanTriHubUiTab } from "./QuanTriDanhMucTabStrip";
@@ -34,10 +38,16 @@ export default function QuanTriDanhMucPage() {
   const [hubSearch, setHubSearch] = useState("");
   const { loading: permLoading, isAdmin, canView } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
-  const canViewNhanSu = canView("NHAN_SU");
   const canViewRbac = isAdmin || canView("PHAN_QUYEN");
-  const canAccessJobs = canViewDanhMuc || canViewNhanSu || isAdmin;
   const canAccessIt = canViewDanhMuc || isAdmin;
+  const catalogRows = useMemo(
+    () =>
+      getAllDanhMucHubRows({ stats, includeTaiKhoan: canViewRbac }).filter((row) =>
+        canViewHubCatalogRow(row, isAdmin, canView),
+      ),
+    [stats, canViewRbac, isAdmin, canView],
+  );
+  const canAccessJobs = catalogRows.length > 0;
 
   const setHubTab = useCallback(
     (tab: QuanTriHubTab) => {
@@ -73,10 +83,6 @@ export default function QuanTriDanhMucPage() {
     };
   }, []);
 
-  const catalogRows = useMemo(
-    () => getAllDanhMucHubRows({ stats, includeTaiKhoan: canViewRbac }),
-    [stats, canViewRbac],
-  );
   const filteredCatalog = useMemo(() => {
     const matched = filterDanhMucHubRows(catalogRows, hubSearch);
     return visibleHubRows(matched, hubSearch);
@@ -87,13 +93,12 @@ export default function QuanTriDanhMucPage() {
 
   const allowedJobs = useMemo((): QuanTriHubJobId[] => {
     const jobs: QuanTriHubJobId[] = [];
-    if (canViewDanhMuc || canViewNhanSu || isAdmin) jobs.push("to-chuc");
-    if (canViewDanhMuc || isAdmin) {
-      jobs.push("bang-kiem", "cssd");
-    }
+    if (rowsForHubJob(catalogRows, "to-chuc").length > 0) jobs.push("to-chuc");
+    if (rowsForHubJob(catalogRows, "bang-kiem").length > 0) jobs.push("bang-kiem");
+    if (rowsForHubJob(catalogRows, "cssd").length > 0) jobs.push("cssd");
     if (canViewRbac) jobs.push("nguoi-dung");
     return jobs;
-  }, [canViewDanhMuc, canViewNhanSu, canViewRbac, isAdmin]);
+  }, [catalogRows, canViewRbac]);
 
   if (permLoading) {
     return (
@@ -107,7 +112,9 @@ export default function QuanTriDanhMucPage() {
     return (
       <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-5 py-8 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-600">Không đủ quyền khu Quản trị.</p>
-        <p className="mt-2 text-xs text-slate-500">Cần quyền Danh mục, Nhân sự, Phân quyền, hoặc vai trò quản trị.</p>
+        <p className="mt-2 text-xs text-slate-500">
+          Cần quyền xem đúng mục (khoa phòng, bảng kiểm, danh mục, nhân sự hoặc phân quyền).
+        </p>
       </div>
     );
   }

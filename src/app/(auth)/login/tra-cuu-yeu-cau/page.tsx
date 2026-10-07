@@ -6,31 +6,16 @@ import { toast } from "sonner";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { lookupAccountAccessRequestStatusAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request.actions";
 
-const STATUS_LABEL: Record<string, string> = {
-  CHO_DUYET: "Chờ duyệt",
-  DUYET: "Đã duyệt",
-  TU_CHOI: "Từ chối",
-};
-
-const KIND_LABEL: Record<string, string> = {
-  REQUEST: "Xin cấp tài khoản",
-  RESET: "Xin đặt lại mật khẩu",
-};
-
 export default function TraCuuYeuCauPage() {
   const [email, setEmail] = useState("");
   const [maNv, setMaNv] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<
-    | { found: false }
-    | { found: true; status: string; kind: string; reject_reason: string | null; ticket_code: string | null }
-    | null
-  >(null);
+  const [ack, setAck] = useState("");
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setResult(null);
+    setAck("");
     try {
       const res = await lookupAccountAccessRequestStatusAction({
         email,
@@ -40,17 +25,7 @@ export default function TraCuuYeuCauPage() {
         toast.error(res.error);
         return;
       }
-      if (!res.found) {
-        setResult({ found: false });
-        return;
-      }
-      setResult({
-        found: true,
-        status: res.status,
-        kind: res.kind,
-        reject_reason: res.reject_reason,
-        ticket_code: res.ticket_code ?? null,
-      });
+      setAck(res.message);
     } finally {
       setLoading(false);
     }
@@ -62,7 +37,7 @@ export default function TraCuuYeuCauPage() {
         <div className="w-full max-w-md rounded-[var(--radius-shell)] border border-slate-100 bg-white p-8 shadow-[var(--shadow-app-soft)]">
           <h1 className={`text-center ${T.authTitle}`}>Tra cứu yêu cầu</h1>
           <p className={`mt-2 text-center ${T.authSubtitle}`}>
-            Nhập email (và mã NV nếu có) để xem trạng thái phiếu xin cấp tài khoản hoặc xin đặt lại mật khẩu.
+            Nhập email. Hệ thống ghi nhận tra cứu mà không cho biết phiếu có tồn tại hay đang ở trạng thái nào.
           </p>
           <form className="mt-8 space-y-[var(--bv103-space-3)]" onSubmit={(e) => void onSubmit(e)}>
             <div>
@@ -93,34 +68,10 @@ export default function TraCuuYeuCauPage() {
             </button>
           </form>
 
-          {result && !result.found ? (
+          {ack ? (
             <p className="mt-6 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-center text-sm text-slate-700">
-              Không tìm thấy yêu cầu phù hợp với thông tin đã nhập.
+              {ack}
             </p>
-          ) : null}
-
-          {result && result.found ? (
-            <div className="mt-6 space-y-2 rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm text-slate-800">
-              {result.ticket_code ? (
-                <p>
-                  <span className="text-slate-500">Mã phiếu:</span>{" "}
-                  <strong className="font-mono">{result.ticket_code}</strong>
-                </p>
-              ) : null}
-              <p>
-                <span className="text-slate-500">Loại:</span>{" "}
-                <strong>{KIND_LABEL[result.kind] || result.kind}</strong>
-              </p>
-              <p>
-                <span className="text-slate-500">Trạng thái:</span>{" "}
-                <strong>{STATUS_LABEL[result.status] || result.status}</strong>
-              </p>
-              {result.status === "TU_CHOI" && result.reject_reason ? (
-                <p>
-                  <span className="text-slate-500">Lý do từ chối:</span> {result.reject_reason}
-                </p>
-              ) : null}
-            </div>
           ) : null}
 
           <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-sm">

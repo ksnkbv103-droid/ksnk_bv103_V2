@@ -8,6 +8,7 @@ import {
   type RegistryEntry,
 } from "./domain-registry";
 import { getDanhMucAdminPath } from "./danh-muc-admin-routes";
+import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 import { quanTriDungCuHref, quanTriHubHref } from "./quan-tri-paths";
 
 export type DanhMucDomain = "MDM" | "CSSD" | "GSTT" | "QLCV" | "NKBV" | "RBAC";
@@ -165,10 +166,24 @@ function rowFromRegistry(entry: RegistryEntry, stats: Partial<TrungTamDanhMucSta
     domain: domainForRegistryEntry(entry),
     group: groupForRegistryEntry(entry),
     tier: "lookup",
+    moduleKey: getRegistryModuleForMasterTable(entry.sourceTable) ?? undefined,
     loaiDanhMuc: entry.loaiDanhMuc,
     sourceTable: entry.sourceTable,
     stats: byLoai[entry.loaiDanhMuc] || { count: 0 },
   };
+}
+
+/** Thẻ hub hiện khi user có đúng mã của trang. DANH_MUC.view không mở khoa, bảng kiểm, CSSD, nhân sự. */
+export function canViewHubCatalogRow(
+  row: DanhMucHubRow,
+  isAdmin: boolean,
+  canView: (module: string) => boolean,
+): boolean {
+  if (isAdmin) return true;
+  const key = row.moduleKey;
+  if (!key) return canView("DANH_MUC");
+  if (key.startsWith("DANH_MUC_")) return canView(key) || canView("DANH_MUC");
+  return canView(key);
 }
 
 export function getAllDanhMucHubRows(options: {

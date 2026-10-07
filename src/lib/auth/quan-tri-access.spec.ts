@@ -65,9 +65,20 @@ describe("quan-tri-access", () => {
     await expect(canAccessTaiKhoanNhanSuRoute()).resolves.toBe(true);
   });
 
-  it("allows danh mục module via DANH_MUC fallback", async () => {
+  it("DANH_MUC.view không mở trang khoa", async () => {
     mockPermissions([], [{ module: "DANH_MUC", action: "view" }]);
+    await expect(canAccessDanhMucModuleRoute("KHOA_PHONG")).resolves.toBe(false);
+  });
+
+  it("KHOA_PHONG.view mở hub và trang khoa", async () => {
+    mockPermissions([], [{ module: "KHOA_PHONG", action: "view" }]);
+    await expect(canAccessQuanTriHub()).resolves.toBe(true);
     await expect(canAccessDanhMucModuleRoute("KHOA_PHONG")).resolves.toBe(true);
+  });
+
+  it("DANH_MUC.view vẫn mở lookup DANH_MUC_ORG", async () => {
+    mockPermissions([], [{ module: "DANH_MUC", action: "view" }]);
+    await expect(canAccessDanhMucModuleRoute("DANH_MUC_ORG")).resolves.toBe(true);
   });
 
   it("trusted admin bypasses checks", async () => {

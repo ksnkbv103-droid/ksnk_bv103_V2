@@ -29,7 +29,9 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
           <article key={job.id} className={`${UI.inset} p-3 sm:p-3.5`}>
             <button
               type="button"
-              onClick={() => onOpen(job.href)}
+              onClick={() =>
+                onOpen(job.id === "nguoi-dung" ? job.href : (links[0]?.path ?? job.href))
+              }
               className="flex w-full items-start justify-between gap-3 text-left"
             >
               <div className="flex items-start gap-3">

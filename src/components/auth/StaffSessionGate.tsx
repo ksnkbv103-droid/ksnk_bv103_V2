@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
-  STAFF_GATE_AUTH_CHECK_AT_KEY,
-  STAFF_GATE_AUTH_CHECK_TTL_MS,
   STAFF_GATE_LINK_SYNC_TTL_MS,
   clearStaffGateAuthCheckAt,
   decideStaffGateAction,
@@ -53,7 +51,7 @@ export default function StaffSessionGate() {
       if (decision.action === "sign_out_inactive") {
         setCheckFailedBlock(false);
         await supabase.auth.signOut({ scope: "local" });
-        router.replace("/login");
+        router.replace("/login?inactive=1");
         router.refresh();
         return "stop" as const;
       }
@@ -76,12 +74,10 @@ export default function StaffSessionGate() {
         return;
       }
 
-      const shouldCheck = shouldRunGateTask(STAFF_GATE_AUTH_CHECK_AT_KEY, STAFF_GATE_AUTH_CHECK_TTL_MS);
-      if (shouldCheck) {
-        const res = await checkStaffSessionAllowed();
-        if (cancelled) return;
-        if ((await applyCheckResult(res)) === "stop") return;
-      }
+      // Không bỏ qua 60 giây: hồ sơ vừa bị tắt phải bị chặn ở lần điều hướng kế.
+      const res = await checkStaffSessionAllowed();
+      if (cancelled) return;
+      if ((await applyCheckResult(res)) === "stop") return;
 
       const shouldSync = shouldRunGateTask("staff_gate_link_sync_at", STAFF_GATE_LINK_SYNC_TTL_MS);
       if (shouldSync) {
@@ -133,7 +129,7 @@ export default function StaffSessionGate() {
       const decision = decideStaffGateAction(res);
       if (decision.action === "sign_out_inactive") {
         await supabase.auth.signOut({ scope: "local" });
-        router.replace("/login");
+        router.replace("/login?inactive=1");
         router.refresh();
         return;
       }
