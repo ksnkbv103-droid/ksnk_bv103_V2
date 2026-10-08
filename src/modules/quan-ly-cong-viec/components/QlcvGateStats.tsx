@@ -122,7 +122,7 @@ export function QlcvGateStats({
         </strong>
       </span>
     </div>
-    <p className="text-[10px] font-medium text-slate-500">Chip đếm: toàn viện</p>
+    <p className="bv103-type-label text-[11px] font-medium text-slate-500">Chip đếm: toàn viện</p>
     <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
       {actorStaffId
         ? chip(
