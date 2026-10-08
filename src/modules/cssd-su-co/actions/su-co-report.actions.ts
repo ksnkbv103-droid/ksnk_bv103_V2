@@ -19,7 +19,7 @@ import { executeConfirmIncidentReport } from "../application/confirm-incident.ap
 import { executeCloseIncidentRelease } from "../application/close-incident-release.application";
 import { executeVoidIncidentReport } from "../application/void-incident.application";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
-import { getActorRoleNames } from "@/lib/server-permission";
+import { getActorRoleNames, verifyPermission } from "@/lib/server-permission";
 import {
   INCIDENT_STATUS_LABEL,
   INCIDENT_STATUS_VOID,
@@ -305,6 +305,13 @@ export async function closeIncidentRelease(
   const actorAuthUserId = await getActorAuthUserId();
   const actorNhanSuId = await getActorNhanSuId();
   const actorRoles = await getActorRoleNames();
+  let hasClosePermission = false;
+  try {
+    await verifyPermission("BAO_SU_CO", "close");
+    hasClosePermission = true;
+  } catch {
+    hasClosePermission = false;
+  }
   let actorHoTen: string | null = null;
   if (actorNhanSuId) {
     const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", actorNhanSuId).maybeSingle();
@@ -315,6 +322,7 @@ export async function closeIncidentRelease(
     lyDo: opts.lyDo,
     soBienBan: opts.soBienBan,
     actorRoles,
+    hasClosePermission,
     actorNhanSuId,
     actorAuthUserId,
     actorHoTen,

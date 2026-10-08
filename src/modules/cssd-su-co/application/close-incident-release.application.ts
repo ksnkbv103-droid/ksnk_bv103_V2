@@ -3,7 +3,7 @@ import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/c
 import {
   assertIncidentPhieuCanCloseRelease,
   buildIncidentCloseReleaseAttributePatch,
-  canCloseSterilizationIncidentRelease,
+  canCloseCssdIncidentRelease,
   INCIDENT_STATUS_CONFIRMED,
   INCIDENT_STATUS_OPEN,
   readIncidentPhieuStatus,
@@ -16,12 +16,13 @@ export async function executeCloseIncidentRelease(
     lyDo: string;
     soBienBan: string;
     actorRoles: readonly string[];
+    hasClosePermission?: boolean;
     actorNhanSuId: string | null;
     actorAuthUserId: string | null;
     actorHoTen: string | null;
   },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!canCloseSterilizationIncidentRelease(opts.actorRoles)) {
+  if (!canCloseCssdIncidentRelease({ roles: opts.actorRoles, hasClosePermission: opts.hasClosePermission })) {
     return {
       ok: false,
       error: "Chỉ Trưởng CSSD / Hội đồng KSNK / Admin được đóng (giải phóng) sự cố tiệt khuẩn.",

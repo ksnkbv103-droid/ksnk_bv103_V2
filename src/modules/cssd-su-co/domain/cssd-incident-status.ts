@@ -45,6 +45,15 @@ export function canCloseSterilizationIncidentRelease(roles: readonly string[]): 
   return (CSSD_INCIDENT_CLOSE_ROLES as readonly string[]).some((r) => set.has(r));
 }
 
+/** Vai trò khóa (Trưởng / Hội đồng / Admin) hoặc quyền ma trận `BAO_SU_CO.close`. */
+export function canCloseCssdIncidentRelease(input: {
+  roles: readonly string[];
+  hasClosePermission?: boolean;
+}): boolean {
+  if (input.hasClosePermission) return true;
+  return canCloseSterilizationIncidentRelease(input.roles);
+}
+
 export function canApproveCssdIncident(roles: readonly string[]): boolean {
   const set = new Set(roles.map((r) => String(r || "").trim().toUpperCase()).filter(Boolean));
   return (CSSD_INCIDENT_APPROVE_ROLES as readonly string[]).some((r) => set.has(r));
