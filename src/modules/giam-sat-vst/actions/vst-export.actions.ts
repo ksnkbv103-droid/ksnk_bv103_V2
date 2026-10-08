@@ -6,6 +6,7 @@ import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { actionDisplayLabel, momentDisplayLabel } from "../lib/vst-constants";
+import { assertVstHistoryAccess } from "../lib/vst-read-scope";
 
 export type VstExportRow = {
   session_id: string;
@@ -52,6 +53,8 @@ export async function exportVstOpportunitiesRaw(params: {
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
     const scope = await getActorKsnkScope();
+    const historyAccess = assertVstHistoryAccess(scope);
+    if (!historyAccess.ok) return { success: false, error: historyAccess.error };
     const supabase = createAdminSupabaseClient();
     const scopeKhoa =
       scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk ? scope.actorKhoaId : null;
