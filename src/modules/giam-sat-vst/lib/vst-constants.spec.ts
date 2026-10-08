@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   ACTION_DISPLAY_LABEL,
+  ACTION_UI_LABEL,
   ACTIONS,
   MOMENT_DISPLAY_LABEL,
   MOMENT_SHORT_CODE,
+  MOMENT_UI_LABEL,
   MOMENTS,
   actionDisplayLabel,
+  actionUiLabel,
   isVstMissedAction,
   momentDisplayLabel,
+  momentUiLabel,
   VST_MAX_MOMENTS_PER_OPP,
 } from "./vst-constants";
 
@@ -28,10 +32,18 @@ describe("vst-constants WHO moments", () => {
     expect(momentDisplayLabel(MOMENTS[0])).toBe(MOMENTS[0]);
   });
 
-  it("mã viết tắt tách TĐ1 / TĐ4", () => {
-    expect(MOMENT_SHORT_CODE[MOMENTS[0]]).toBe("T-NB");
-    expect(MOMENT_SHORT_CODE[MOMENTS[3]]).toBe("S-NB");
-    expect(MOMENT_SHORT_CODE[MOMENTS[0]]).not.toBe(MOMENT_SHORT_CODE[MOMENTS[3]]);
+  it("mã / nhãn UI tách TĐ1 / TĐ4 bằng TRƯỚC·SAU", () => {
+    expect(MOMENT_SHORT_CODE[MOMENTS[0]]).toBe("TXNB");
+    expect(MOMENT_SHORT_CODE[MOMENTS[1]]).toBe("TTVK");
+    expect(MOMENT_SHORT_CODE[MOMENTS[2]]).toBe("TXDCT");
+    expect(MOMENT_SHORT_CODE[MOMENTS[3]]).toBe("TXNB");
+    expect(MOMENT_SHORT_CODE[MOMENTS[4]]).toBe("TXXQNB");
+    expect(MOMENT_UI_LABEL[MOMENTS[0]]).toBe("TRƯỚC TXNB");
+    expect(MOMENT_UI_LABEL[MOMENTS[1]]).toBe("TRƯỚC TTVK");
+    expect(MOMENT_UI_LABEL[MOMENTS[2]]).toBe("SAU TXDCT");
+    expect(MOMENT_UI_LABEL[MOMENTS[3]]).toBe("SAU TXNB");
+    expect(MOMENT_UI_LABEL[MOMENTS[4]]).toBe("SAU TXXQNB");
+    expect(momentUiLabel(MOMENTS[0])).not.toBe(momentUiLabel(MOMENTS[3]));
   });
 
   it("một cơ hội tối đa 5 thời điểm mọi hành động", () => {
@@ -44,5 +56,9 @@ describe("vst-constants WHO moments", () => {
     expect(ACTIONS[0]).toBe("Rửa tay bằng nước");
     expect(ACTION_DISPLAY_LABEL["Rửa tay bằng nước"]).toBe("Rửa tay với xà phòng và nước");
     expect(actionDisplayLabel("Rửa tay bằng nước")).toContain("xà phòng");
+    expect(ACTION_UI_LABEL["Rửa tay bằng nước"]).toBe("RỬA TAY");
+    expect(ACTION_UI_LABEL["Chà tay bằng cồn"]).toBe("CHÀ CỒN");
+    expect(ACTION_UI_LABEL["Bỏ sót"]).toBe("BỎ SÓT");
+    expect(actionUiLabel("Bỏ sót")).toBe("BỎ SÓT");
   });
 });
