@@ -6,8 +6,8 @@ import {
 } from "./vst-edit-hydrate";
 import { MOMENTS } from "./vst-constants";
 
-describe("VST-02/05 edit-load — không cắt thời điểm / người", () => {
-  it("giữ 5 thời điểm bỏ sót khi nạp sửa", () => {
+describe("edit-load — người đủ; thời điểm cắt theo domain §2.1", () => {
+  it("bỏ sót: parse đủ token nhưng hydrate chỉ giữ 1", () => {
     const raw = MOMENTS.join(", ");
     const moments = splitMomentsNoTrim(raw);
     expect(moments).toHaveLength(5);
@@ -21,8 +21,24 @@ describe("VST-02/05 edit-load — không cắt thời điểm / người", () =>
         co_deo_gang: true,
       },
     ]);
-    expect(persons[0]!.opportunities[0]!.thoi_diems).toHaveLength(5);
+    expect(persons[0]!.opportunities[0]!.thoi_diems).toHaveLength(1);
+    expect(persons[0]!.opportunities[0]!.thoi_diems[0]).toBe(MOMENTS[0]);
     expect(persons[0]!.opportunities[0]!.hanh_dong).toBe("Bỏ sót");
+  });
+
+  it("tuân thủ: hydrate cắt còn tối đa 2", () => {
+    const raw = MOMENTS.slice(0, 4).join(", ");
+    const { persons } = hydrateVstPersonsFromObservations([
+      {
+        id: "o1",
+        nhan_vien_id: "11111111-1111-4111-8111-111111111111",
+        nghe_nghiep_id: "22222222-2222-4222-8222-222222222222",
+        hanh_dong: "Chà tay bằng cồn",
+        thoi_diem: raw,
+        dung_ky_thuat: true,
+      },
+    ]);
+    expect(persons[0]!.opportunities[0]!.thoi_diems).toHaveLength(2);
   });
 
   it("nạp đủ 8 người + cảnh báo legacy", () => {

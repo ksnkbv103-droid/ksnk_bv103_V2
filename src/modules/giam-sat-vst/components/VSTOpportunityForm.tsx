@@ -11,6 +11,8 @@ import {
   ACTION_UI_LABEL,
   MOMENT_SHORT_CODE,
   MOMENT_UI_LABEL,
+  isVstMissedAction,
+  maxMomentsForAction,
   momentDisplayLabel,
 } from "../lib/vst-constants";
 import VSTAssessmentSection from "./VSTAssessmentSection";
@@ -52,21 +54,18 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Active outline — chữ đậm còn đọc được (tránh fill + bv103-type-label ghi đè màu). */
-const momentActive =
-  "border-[var(--primary)] bg-[var(--primary)]/12 text-slate-900 shadow-sm";
-const actionWashActive = "border-amber-600 bg-amber-50 text-amber-950 shadow-sm";
-const actionMissActive = "border-red-600 bg-red-50 text-red-950 shadow-sm";
+/** Ô chọn: nền trắng / chọn nền slate đậm — chữ luôn tương phản, không dùng fill vàng/đỏ loè. */
+const cellBase =
+  "flex w-full min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-md border px-1.5 py-2 text-center transition-colors touch-manipulation";
+const cellIdle = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
+const cellOn = "border-slate-900 bg-slate-900 text-white";
+const cellMissOn = "border-rose-800 bg-rose-800 text-white";
 
-/** Hai dòng gọn ô: TRƯỚC|SAU rồi mã (TXNB / TTVK / …). Chữ inherit màu nút. */
-function MomentChoiceLabel({ moment }: { moment: MomentType }) {
+function MomentCellLabel({ moment }: { moment: MomentType }) {
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
-    <span
-      className="flex flex-col items-center justify-center gap-0.5 leading-tight text-inherit"
-      title={momentDisplayLabel(moment)}
-    >
-      <span className="bv103-type-label font-medium uppercase tracking-wide !text-inherit">{timing}</span>
+    <span className="flex flex-col items-center justify-center gap-0.5 leading-none">
+      <span className="bv103-type-label font-medium uppercase tracking-wider !text-inherit">{timing}</span>
       <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
         {MOMENT_SHORT_CODE[moment]}
       </span>
@@ -87,6 +86,7 @@ export default function VSTOpportunityForm({
 }: VSTOpportunityFormProps) {
   const hideOppRecordTime = isReplayCameraSupervisionCachThuc(cachThucGiamSat);
   const postActionFieldsRef = useRef<HTMLDivElement>(null);
+  const momentCap = maxMomentsForAction(opp.hanh_dong);
 
   useLayoutEffect(() => {
     if (opp.isCollapsed || !opp.hanh_dong) return;
@@ -101,100 +101,93 @@ export default function VSTOpportunityForm({
   }, [opp.hanh_dong, opp.isCollapsed]);
 
   if (opp.isCollapsed) {
+    const momentsLine = opp.thoi_diems.map((m) => MOMENT_UI_LABEL[m]).join(" · ");
     return (
       <button
         type="button"
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 ${C.panelInset} px-3 py-2.5 text-left transition-colors hover:border-slate-300 hover:bg-slate-50/80`}
+        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2.5 text-left transition-colors hover:border-slate-400"
         onClick={() => openOpportunity(pIdx, oIdx)}
       >
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex flex-wrap gap-1.5">
-            {opp.thoi_diems.map((m: MomentType, i: number) => (
-              <span key={`${m}-${i}`} className={C.chipBadge} title={momentDisplayLabel(m)}>
-                {MOMENT_UI_LABEL[m]}
-              </span>
-            ))}
-          </div>
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <p className="truncate text-xs font-semibold tracking-wide text-slate-800" title={momentsLine}>
+            {momentsLine || "—"}
+          </p>
           {!hideOppRecordTime ? (
-            <span className={bv103PanelChrome.innerTableHead}>
-              {formatTimeVi(opp.thoi_gian_ghi_nhan)}
-            </span>
+            <p className={bv103PanelChrome.innerTableHead}>{formatTimeVi(opp.thoi_gian_ghi_nhan)}</p>
           ) : null}
         </div>
         <span
-          className="bv103-type-label shrink-0 font-semibold uppercase tracking-wide text-[var(--primary)]"
+          className="bv103-type-label shrink-0 font-semibold uppercase tracking-wide text-slate-700 !text-slate-700"
           title={opp.hanh_dong ? ACTION_DISPLAY_LABEL[opp.hanh_dong] : undefined}
         >
           {opp.hanh_dong ? ACTION_UI_LABEL[opp.hanh_dong] : ""}
         </span>
-        <span className="bv103-type-label shrink-0 font-medium uppercase tracking-wide text-slate-400">Sửa</span>
+        <span className="bv103-type-label shrink-0 font-medium text-slate-400 !text-slate-400">Sửa</span>
       </button>
     );
   }
 
   return (
-    <div className="flex flex-col rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 sm:p-4">
-      <div className="min-h-0 space-y-3">
-        <div className="space-y-2">
-          <p className={C.sectionTitle}>1. Thời điểm</p>
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
-            {MOMENTS.map((m) => {
-              const active = opp.thoi_diems.includes(m);
-              return (
-                <button
-                  key={m}
-                  type="button"
-                  title={`${momentDisplayLabel(m)} — ${MOMENT_TOOLTIPS[m]}`}
-                  aria-label={MOMENT_UI_LABEL[m]}
-                  aria-pressed={active}
-                  onClick={() => toggleMoment(pIdx, oIdx, m)}
-                  className={`${C.choiceBtn} flex flex-col items-center justify-center px-1.5 py-2 normal-case ${
-                    active ? momentActive : C.choiceBtnIdle
-                  }`}
-                >
-                  <MomentChoiceLabel moment={m} />
-                </button>
-              );
-            })}
-          </div>
+    <div className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white p-3 sm:p-4">
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h3 className={C.sectionTitle}>Thời điểm</h3>
+          <p className="bv103-type-label text-slate-500 !text-slate-500">
+            {isVstMissedAction(opp.hanh_dong)
+              ? "Bỏ sót: tối đa 1"
+              : `Tuân thủ: tối đa ${momentCap}`}
+          </p>
         </div>
-
-        <div className="space-y-2">
-          <p className={C.sectionTitle}>2. Hành động</p>
-          <div className="grid grid-cols-3 gap-1.5">
-            {ACTIONS.map((a) => {
-              const active = opp.hanh_dong === a;
-              return (
-                <button
-                  key={a}
-                  type="button"
-                  title={ACTION_DISPLAY_LABEL[a]}
-                  aria-pressed={active}
-                  onClick={() => updateAction(pIdx, oIdx, a)}
-                  className={`${C.choiceBtn} inline-flex items-center justify-center ${
-                    active
-                      ? a === "Bỏ sót"
-                        ? actionMissActive
-                        : actionWashActive
-                      : C.choiceBtnIdle
-                  }`}
-                >
-                  <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
-                    {ACTION_UI_LABEL[a]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {MOMENTS.map((m) => {
+            const active = opp.thoi_diems.includes(m);
+            return (
+              <button
+                key={m}
+                type="button"
+                title={`${momentDisplayLabel(m)} — ${MOMENT_TOOLTIPS[m]}`}
+                aria-label={MOMENT_UI_LABEL[m]}
+                aria-pressed={active}
+                onClick={() => toggleMoment(pIdx, oIdx, m)}
+                className={`${cellBase} ${active ? cellOn : cellIdle}`}
+              >
+                <MomentCellLabel moment={m} />
+              </button>
+            );
+          })}
         </div>
+      </section>
 
-        <div ref={postActionFieldsRef} className="scroll-mt-2 space-y-2">
-          <p className={C.sectionTitle}>3. Đánh giá</p>
-          <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
+      <section className="space-y-2">
+        <h3 className={C.sectionTitle}>Hành động</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {ACTIONS.map((a) => {
+            const active = opp.hanh_dong === a;
+            const onClass = a === "Bỏ sót" ? cellMissOn : cellOn;
+            return (
+              <button
+                key={a}
+                type="button"
+                title={ACTION_DISPLAY_LABEL[a]}
+                aria-pressed={active}
+                onClick={() => updateAction(pIdx, oIdx, a)}
+                className={`${cellBase} min-h-[2.75rem] ${active ? onClass : cellIdle}`}
+              >
+                <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
+                  {ACTION_UI_LABEL[a]}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </section>
 
-      <div className="max-sm:sticky max-sm:bottom-0 max-sm:z-[1] max-sm:-mx-3 max-sm:mt-2 max-sm:border-t max-sm:border-slate-100 max-sm:bg-white max-sm:px-3 max-sm:pt-2 sm:mt-4">
+      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-2">
+        <h3 className={C.sectionTitle}>Đánh giá</h3>
+        <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
+      </section>
+
+      <div className="max-sm:sticky max-sm:bottom-0 max-sm:z-[1] max-sm:-mx-3 max-sm:border-t max-sm:border-slate-100 max-sm:bg-white max-sm:px-3 max-sm:pt-2">
         <button type="button" onClick={() => submitOpportunity(pIdx, oIdx)} className={C.btnPrimaryBlock}>
           Ghi nhận cơ hội
         </button>
