@@ -7,8 +7,10 @@ import {
   ACTIONS,
   ActionType,
   MomentType,
-  MOMENT_SHORT_CODE,
   ACTION_DISPLAY_LABEL,
+  ACTION_UI_LABEL,
+  MOMENT_SHORT_CODE,
+  MOMENT_UI_LABEL,
   momentDisplayLabel,
 } from "../lib/vst-constants";
 import VSTAssessmentSection from "./VSTAssessmentSection";
@@ -48,23 +50,21 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
     "Vệ sinh tay sau khi chạm vào môi trường xung quanh người bệnh.",
 };
 
+const C = bv103LayoutChrome;
+
+/** Hai dòng gọn ô: TRƯỚC|SAU rồi mã (TXNB / TTVK / …). */
 function MomentChoiceLabel({ moment }: { moment: MomentType }) {
-  const code = MOMENT_SHORT_CODE[moment];
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
-    <span className="flex flex-col items-center justify-center gap-0.5 leading-none" title={momentDisplayLabel(moment)}>
-      <span className="text-[11px] font-medium uppercase tracking-normal">{timing}</span>
-      <span className="text-[11px] font-semibold uppercase tracking-wide">{code}</span>
+    <span
+      className="flex flex-col items-center justify-center gap-0.5 leading-tight"
+      title={momentDisplayLabel(moment)}
+    >
+      <span className="bv103-type-label font-medium uppercase tracking-wide">{timing}</span>
+      <span className="bv103-type-label font-semibold uppercase tracking-wide">{MOMENT_SHORT_CODE[moment]}</span>
     </span>
   );
 }
-
-function momentChipLabel(moment: MomentType): string {
-  const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
-  return `${timing} ${MOMENT_SHORT_CODE[moment]}`;
-}
-
-const C = bv103LayoutChrome;
 
 export default function VSTOpportunityForm({
   opp,
@@ -103,7 +103,7 @@ export default function VSTOpportunityForm({
           <div className="flex flex-wrap gap-1.5">
             {opp.thoi_diems.map((m: MomentType, i: number) => (
               <span key={`${m}-${i}`} className={C.chipBadge} title={momentDisplayLabel(m)}>
-                {momentChipLabel(m)}
+                {MOMENT_UI_LABEL[m]}
               </span>
             ))}
           </div>
@@ -113,59 +113,70 @@ export default function VSTOpportunityForm({
             </span>
           ) : null}
         </div>
-        <span className="shrink-0 text-[11px] font-semibold uppercase text-[var(--primary)]">
-          {opp.hanh_dong ? ACTION_DISPLAY_LABEL[opp.hanh_dong] : ""}
+        <span
+          className="bv103-type-label shrink-0 font-semibold uppercase tracking-wide text-[var(--primary)]"
+          title={opp.hanh_dong ? ACTION_DISPLAY_LABEL[opp.hanh_dong] : undefined}
+        >
+          {opp.hanh_dong ? ACTION_UI_LABEL[opp.hanh_dong] : ""}
         </span>
-        <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400">Sửa</span>
+        <span className="bv103-type-label shrink-0 font-medium uppercase tracking-wide text-slate-400">Sửa</span>
       </button>
     );
   }
 
   return (
-    <div className={`flex flex-col rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 sm:p-4`}>
+    <div className="flex flex-col rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 sm:p-4">
       <div className="min-h-0 space-y-3">
         <div className="space-y-2">
           <p className={C.sectionTitle}>1. Thời điểm</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            {MOMENTS.map((m) => (
-              <button
-                key={m}
-                type="button"
-                title={MOMENT_TOOLTIPS[m]}
-                onClick={() => toggleMoment(pIdx, oIdx, m)}
-                className={`${C.choiceBtn} flex flex-col items-center justify-center normal-case ${
-                  opp.thoi_diems.includes(m) ? C.choiceBtnActive : C.choiceBtnIdle
-                }`}
-              >
-                <MomentChoiceLabel moment={m} />
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+            {MOMENTS.map((m) => {
+              const active = opp.thoi_diems.includes(m);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  title={`${momentDisplayLabel(m)} — ${MOMENT_TOOLTIPS[m]}`}
+                  aria-label={MOMENT_UI_LABEL[m]}
+                  aria-pressed={active}
+                  onClick={() => toggleMoment(pIdx, oIdx, m)}
+                  className={`${C.choiceBtn} flex flex-col items-center justify-center px-1.5 py-2 normal-case ${
+                    active ? C.choiceBtnActive : C.choiceBtnIdle
+                  }`}
+                >
+                  <MomentChoiceLabel moment={m} />
+                </button>
+              );
+            })}
           </div>
         </div>
 
         <div className="space-y-2">
           <p className={C.sectionTitle}>2. Hành động</p>
-          <div className="grid grid-cols-3 gap-2">
-            {ACTIONS.map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => updateAction(pIdx, oIdx, a)}
-                className={`${C.choiceBtn} ${
-                  opp.hanh_dong === a
-                    ? a === "Bỏ sót"
-                      ? C.choiceBtnActiveDanger
-                      : C.choiceBtnActiveWarning
-                    : C.choiceBtnIdle
-                }`}
-              >
-                {a === "Rửa tay bằng nước"
-                  ? "Rửa tay với xà phòng và nước"
-                  : a === "Chà tay bằng cồn"
-                    ? "Chà cồn"
-                    : "Bỏ sót"}
-              </button>
-            ))}
+          <div className="grid grid-cols-3 gap-1.5">
+            {ACTIONS.map((a) => {
+              const active = opp.hanh_dong === a;
+              return (
+                <button
+                  key={a}
+                  type="button"
+                  title={ACTION_DISPLAY_LABEL[a]}
+                  aria-pressed={active}
+                  onClick={() => updateAction(pIdx, oIdx, a)}
+                  className={`${C.choiceBtn} inline-flex items-center justify-center ${
+                    active
+                      ? a === "Bỏ sót"
+                        ? C.choiceBtnActiveDanger
+                        : C.choiceBtnActiveWarning
+                      : C.choiceBtnIdle
+                  }`}
+                >
+                  <span className="bv103-type-label font-semibold uppercase tracking-wide">
+                    {ACTION_UI_LABEL[a]}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

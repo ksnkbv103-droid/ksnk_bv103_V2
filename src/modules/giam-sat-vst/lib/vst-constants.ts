@@ -20,14 +20,31 @@ export const MOMENT_DISPLAY_LABEL: Record<MomentType, string> = {
     "Sau khi tiếp xúc với môi trường xung quanh người bệnh",
 };
 
-/** Mã viết tắt domain 11:86–90 — TĐ1/TĐ4 tách riêng (VST-08). */
+/** Mã viết tắt — TĐ1/TĐ4 cùng gốc TXNB, tách bằng TRƯỚC/SAU trên UI. */
 export const MOMENT_SHORT_CODE: Record<MomentType, string> = {
-  "Trước khi tiếp xúc người bệnh": "T-NB",
-  "Trước khi làm thủ thuật vô khuẩn": "T-VK",
-  "Sau khi có nguy cơ tiếp xúc với dịch": "S-DCT",
-  "Sau khi tiếp xúc người bệnh": "S-NB",
-  "Sau khi tiếp xúc xung quanh người bệnh": "S-XQ NB",
+  "Trước khi tiếp xúc người bệnh": "TXNB",
+  "Trước khi làm thủ thuật vô khuẩn": "TTVK",
+  "Sau khi có nguy cơ tiếp xúc với dịch": "TXDCT",
+  "Sau khi tiếp xúc người bệnh": "TXNB",
+  "Sau khi tiếp xúc xung quanh người bệnh": "TXXQNB",
 };
+
+/** Nhãn ô form / chip — một dòng, đủ phân biệt 5 thời điểm WHO. */
+export const MOMENT_UI_LABEL: Record<MomentType, string> = {
+  "Trước khi tiếp xúc người bệnh": "TRƯỚC TXNB",
+  "Trước khi làm thủ thuật vô khuẩn": "TRƯỚC TTVK",
+  "Sau khi có nguy cơ tiếp xúc với dịch": "SAU TXDCT",
+  "Sau khi tiếp xúc người bệnh": "SAU TXNB",
+  "Sau khi tiếp xúc xung quanh người bệnh": "SAU TXXQNB",
+};
+
+export function momentUiLabel(raw: string | null | undefined): string {
+  const key = String(raw ?? "").trim();
+  if ((MOMENTS as readonly string[]).includes(key)) {
+    return MOMENT_UI_LABEL[key as MomentType];
+  }
+  return key;
+}
 
 export function momentDisplayLabel(raw: string | null | undefined): string {
   const key = String(raw ?? "").trim();
@@ -45,12 +62,27 @@ export const ACTIONS = [
 
 export type ActionType = (typeof ACTIONS)[number];
 
-/** Nhãn nút hành động (DB giữ «Rửa tay bằng nước»). */
+/** Nhãn dài (tooltip / in / export) — DB giữ «Rửa tay bằng nước». */
 export const ACTION_DISPLAY_LABEL: Record<ActionType, string> = {
   "Rửa tay bằng nước": "Rửa tay với xà phòng và nước",
   "Chà tay bằng cồn": "Chà tay bằng cồn",
   "Bỏ sót": "Bỏ sót",
 };
+
+/** Nhãn ô form hành động — gọn, đồng bộ 3 ô. */
+export const ACTION_UI_LABEL: Record<ActionType, string> = {
+  "Rửa tay bằng nước": "RỬA TAY",
+  "Chà tay bằng cồn": "CHÀ CỒN",
+  "Bỏ sót": "BỎ SÓT",
+};
+
+export function actionUiLabel(raw: string | null | undefined): string {
+  const key = String(raw ?? "").trim();
+  if ((ACTIONS as readonly string[]).includes(key)) {
+    return ACTION_UI_LABEL[key as ActionType];
+  }
+  return key;
+}
 
 export function actionDisplayLabel(raw: string | null | undefined): string {
   const key = String(raw ?? "").trim();
