@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
-const BASE_MIGRATION = "supabase/migrations/20261005034000_nkbv_doe_loa_report_cols.sql";
-const FIX_MIGRATION = "supabase/migrations/20261006090000_nkbv_rates_fix_ambiguous_ma_khoa.sql";
+const BASE_MIGRATION = "nkbv_doe_loa_report_cols";
+const FIX_MIGRATION = "nkbv_rates_fix_ambiguous_ma_khoa";
 
 const FN_NAME = "fn_nkbv_dich_te_hoc_rates";
 
@@ -45,8 +44,8 @@ const RETURNS_COLS = [
   '"ssi_sir" numeric',
 ] as const;
 
-function readMigration(rel: string): string {
-  return readFileSync(join(process.cwd(), rel), "utf8");
+function readMigration(name: string): string {
+  return readMigrationSql(name);
 }
 
 /** Lấy khối CREATE … $$; của fn_nkbv_dich_te_hoc_rates (không gồm COMMENT). */

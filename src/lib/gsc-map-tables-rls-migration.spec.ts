@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
-const MIGRATION =
-  "supabase/migrations/20261006092000_gsc_map_tables_rls.sql";
+const MIGRATION = "gsc_map_tables_rls";
 
 const TABLES = [
   "gstt_map_tieu_chi_orphan",
@@ -12,7 +10,7 @@ const TABLES = [
 ] as const;
 
 function readMigration(): string {
-  return readFileSync(join(process.cwd(), MIGRATION), "utf8");
+  return readMigrationSql(MIGRATION);
 }
 
 describe("gsc map tables RLS migration", () => {

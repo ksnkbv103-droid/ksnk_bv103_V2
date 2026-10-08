@@ -1,7 +1,7 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { applySetReconcilePhysicalLines } from "./set-reconcile-ledger.application";
 import type { SetReconcileLineInput } from "@/lib/domain/cssd-set-reconcile";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
 const hong = (ten: string, id: string): SetReconcileLineInput => ({
   chiTietId: id,
@@ -53,7 +53,7 @@ describe("applySetReconcilePhysicalLines batch", () => {
   });
 
   it("SQL batch không áp lại cùng su_co_id", () => {
-    const sql = readFileSync("supabase/migrations/20260925150000_cssd_ledger_atomic.sql", "utf8");
+    const sql = readMigrationSql("cssd_ledger_atomic");
     expect(sql).toContain("CSSD_LEDGER_APPLIED");
     expect(sql).toContain("g.su_co_id = p_su_co_id");
     expect(sql).toContain("'idempotent', true");
@@ -64,10 +64,7 @@ describe("applySetReconcilePhysicalLines batch", () => {
   });
 
   it("Approach A migrate ensures chi_tiet on BO_SUNG / DIEU_CHUYEN dest", () => {
-    const sql = readFileSync(
-      "supabase/migrations/20260928023000_cssd_ledger_ensure_chi_tiet_on_move.sql",
-      "utf8",
-    );
+    const sql = readMigrationSql("cssd_ledger_ensure_chi_tiet_on_move");
     expect(sql).toContain("fn_cssd_ensure_chi_tiet_for_ledger");
     expect(sql).toContain("fn_cssd_apply_instrument_ledger_tx");
     expect(sql).toContain("so_luong");
