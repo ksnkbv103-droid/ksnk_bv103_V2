@@ -21,7 +21,8 @@
 | [`../core/lean-execution.md`](../core/lean-execution.md) | Verify, PR |
 | [`../core/operations-sop.md`](../core/operations-sop.md) | Auth, RLS |
 | [`../core/governance-pipeline.md`](../core/governance-pipeline.md) | Migration ship |
-| [`../core/handover-roadmap.md`](../core/handover-roadmap.md) | Onboarding (ngắn) |
+| [`../core/handover-roadmap.md`](../core/handover-roadmap.md) | Onboarding + lộ trình rà soát §5 |
+| [`../core/skills-catalog.md`](../core/skills-catalog.md) | Mục lục Cursor (skill, rule, agent, lệnh) |
 
 ## Module (pointer)
 
