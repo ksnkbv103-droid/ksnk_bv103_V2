@@ -25,7 +25,7 @@ export async function executeCloseIncidentRelease(
   if (!canCloseCssdIncidentRelease({ roles: opts.actorRoles, hasClosePermission: opts.hasClosePermission })) {
     return {
       ok: false,
-      error: "Chỉ Trưởng CSSD / Hội đồng KSNK / Admin được đóng (giải phóng) sự cố tiệt khuẩn.",
+      error: "Cần quyền đóng sự cố (BAO_SU_CO.close) hoặc vai trò Trưởng CSSD / Hội đồng KSNK / Admin.",
     };
   }
 
