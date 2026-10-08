@@ -9,6 +9,7 @@ import {
   MomentType,
   ACTION_DISPLAY_LABEL,
   ACTION_UI_LABEL,
+  MOMENT_SHORT_CODE,
   MOMENT_UI_LABEL,
   momentDisplayLabel,
 } from "../lib/vst-constants";
@@ -50,6 +51,20 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 };
 
 const C = bv103LayoutChrome;
+
+/** Hai dòng gọn ô: TRƯỚC|SAU rồi mã (TXNB / TTVK / …). */
+function MomentChoiceLabel({ moment }: { moment: MomentType }) {
+  const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
+  return (
+    <span
+      className="flex flex-col items-center justify-center gap-0.5 leading-tight"
+      title={momentDisplayLabel(moment)}
+    >
+      <span className="bv103-type-label font-medium uppercase tracking-wide">{timing}</span>
+      <span className="bv103-type-label font-semibold uppercase tracking-wide">{MOMENT_SHORT_CODE[moment]}</span>
+    </span>
+  );
+}
 
 export default function VSTOpportunityForm({
   opp,
@@ -99,12 +114,12 @@ export default function VSTOpportunityForm({
           ) : null}
         </div>
         <span
-          className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]"
+          className="bv103-type-label shrink-0 font-semibold uppercase tracking-wide text-[var(--primary)]"
           title={opp.hanh_dong ? ACTION_DISPLAY_LABEL[opp.hanh_dong] : undefined}
         >
           {opp.hanh_dong ? ACTION_UI_LABEL[opp.hanh_dong] : ""}
         </span>
-        <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400">Sửa</span>
+        <span className="bv103-type-label shrink-0 font-medium uppercase tracking-wide text-slate-400">Sửa</span>
       </button>
     );
   }
@@ -122,15 +137,14 @@ export default function VSTOpportunityForm({
                   key={m}
                   type="button"
                   title={`${momentDisplayLabel(m)} — ${MOMENT_TOOLTIPS[m]}`}
+                  aria-label={MOMENT_UI_LABEL[m]}
                   aria-pressed={active}
                   onClick={() => toggleMoment(pIdx, oIdx, m)}
-                  className={`${C.choiceBtn} inline-flex items-center justify-center px-1.5 py-2.5 tracking-wide ${
+                  className={`${C.choiceBtn} flex flex-col items-center justify-center px-1.5 py-2 normal-case ${
                     active ? C.choiceBtnActive : C.choiceBtnIdle
                   }`}
                 >
-                  <span className="whitespace-nowrap text-[11px] font-semibold uppercase sm:text-[10px] md:text-[11px]">
-                    {MOMENT_UI_LABEL[m]}
-                  </span>
+                  <MomentChoiceLabel moment={m} />
                 </button>
               );
             })}
@@ -149,7 +163,7 @@ export default function VSTOpportunityForm({
                   title={ACTION_DISPLAY_LABEL[a]}
                   aria-pressed={active}
                   onClick={() => updateAction(pIdx, oIdx, a)}
-                  className={`${C.choiceBtn} inline-flex items-center justify-center tracking-wide ${
+                  className={`${C.choiceBtn} inline-flex items-center justify-center ${
                     active
                       ? a === "Bỏ sót"
                         ? C.choiceBtnActiveDanger
@@ -157,7 +171,7 @@ export default function VSTOpportunityForm({
                       : C.choiceBtnIdle
                   }`}
                 >
-                  <span className="whitespace-nowrap text-[11px] font-semibold uppercase">
+                  <span className="bv103-type-label font-semibold uppercase tracking-wide">
                     {ACTION_UI_LABEL[a]}
                   </span>
                 </button>
