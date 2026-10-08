@@ -9,6 +9,7 @@ import {
   assertIncidentPhieuCanConfirm,
   buildIncidentCloseReleaseAttributePatch,
   buildIncidentConfirmAttributePatch,
+  canCloseCssdIncidentRelease,
   canCloseSterilizationIncidentRelease,
   readIncidentPhieuStatus,
 } from "./cssd-incident-status";
@@ -87,6 +88,9 @@ describe("cssd-incident-status", () => {
     expect(canCloseSterilizationIncidentRelease(["ADMIN"])).toBe(true);
     expect(canCloseSterilizationIncidentRelease(["HOI_DONG_KSNK"])).toBe(true);
     expect(canCloseSterilizationIncidentRelease(["NHAN_VIEN_KSNK"])).toBe(false);
+    expect(canCloseCssdIncidentRelease({ roles: ["NHAN_VIEN_KSNK"], hasClosePermission: true })).toBe(true);
+    expect(canCloseCssdIncidentRelease({ roles: ["NHAN_VIEN_KSNK"] })).toBe(false);
+    expect(canCloseCssdIncidentRelease({ roles: ["TRUONG_CSSD"] })).toBe(true);
 
     expect(
       isBlockingSterilizationIncident(
