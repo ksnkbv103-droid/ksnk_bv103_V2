@@ -7,6 +7,8 @@ import dynamic from "next/dynamic";
 import { Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { usePermission } from "@/hooks/usePermission";
+import { CSSD_MAY_COUNTS_LABEL, formatCssdMayReadyRepairing } from "@/lib/analytics/cssd-metrics/cssd-may-counts";
 import {
   fetchCssdAnalyticsBundle,
   fetchCssdReportBundle,
@@ -90,8 +92,10 @@ function CSSDReportPageInner() {
   const highlightIncidentId = String(searchParams.get("id") || "").trim();
   const { allowed } = useModulePermission("CSSD_REPORT");
   const { allowed: incidentAllowed, userRoles } = useModulePermission("BAO_SU_CO");
+  const { can } = usePermission();
   const canConfirmIncident = canApproveCssdIncident(userRoles);
-  const canCloseIncidentRelease = canCloseSterilizationIncidentRelease(userRoles);
+  const canCloseIncidentRelease =
+    canCloseSterilizationIncidentRelease(userRoles) || can("BAO_SU_CO", "close");
   const { exportTemplate } = useImportExport({
     moduleKey: "CSSD_REPORT",
     tableName: "bao_cao_cssd",
@@ -290,11 +294,11 @@ function CSSDReportPageInner() {
                 </p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <p className={CSSD_UI_STAT_LABEL}>Máy sẵn sàng</p>
+                <p className={CSSD_UI_STAT_LABEL}>{CSSD_MAY_COUNTS_LABEL}</p>
                 <p className={`mt-1 ${CSSD_UI_STAT_VALUE}`}>
                   {analyticsLoading
                     ? "…"
-                    : `${analytics.brief.may_ready}/${analytics.brief.may_ready + analytics.brief.may_repairing}`}
+                    : formatCssdMayReadyRepairing(analytics.brief.may_ready, analytics.brief.may_repairing)}
                 </p>
               </div>
             </div>

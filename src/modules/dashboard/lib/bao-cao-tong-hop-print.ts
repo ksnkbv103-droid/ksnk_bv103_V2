@@ -1,4 +1,5 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
+import { CSSD_MAY_COUNTS_LABEL, formatCssdMayReadyRepairing } from "@/lib/analytics/cssd-metrics/cssd-may-counts";
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { isVstHubBangKiemExcludedFromGscGeneric } from "@/lib/domain/gsc-lop-giam-sat-filter";
@@ -26,7 +27,6 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
 import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 import { bcthModuleComplianceTone } from "./bao-cao-tong-hop-thresholds";
-import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -105,12 +105,6 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     return "";
   };
 
-  const cssdAnalyticsHref = cssdReportAnalyticsHref({
-    tab: "volume",
-    from: p.tuNgay,
-    to: p.denNgay,
-  });
-
   const dieuHanhSection = `
     <h2>ĐIỀU HÀNH TỔNG HỢP — Tuân thủ quy trình</h2>
     <p class="muted">Theo dõi riêng tỷ lệ VST và GSC trong phạm vi lọc. NKBV là chỉ số lâm sàng, tách khỏi tuân thủ quy trình.</p>
@@ -170,6 +164,11 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       p.payload?.cssd
         ? `
     <h3>5. Phụ lục CSSD — số liệu toàn viện (vận hành)</h3>
+    ${
+      p.selectedKhoaIds.length
+        ? `<p class="muted">Bộ lọc khoa không đổi phụ lục này — số máy và sản lượng vẫn toàn viện.</p>`
+        : ""
+    }
     <table>
       <thead>
         <tr>
@@ -199,8 +198,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           }</td>
         </tr>
         <tr>
-          <td class="text-left">Máy sẵn sàng / sửa·BT</td>
-          <td>${p.payload.cssd.may_ready} / ${p.payload.cssd.may_repairing}</td>
+          <td class="text-left">${CSSD_MAY_COUNTS_LABEL}</td>
+          <td>${formatCssdMayReadyRepairing(p.payload.cssd.may_ready, p.payload.cssd.may_repairing)}</td>
         </tr>
       </tbody>
     </table>
