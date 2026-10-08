@@ -216,7 +216,7 @@ export default function VSTForm({
           const row = o as VstObservationInput;
           const action = parseAction(row.hanh_dong);
           const missed = isVstMissedAction(action);
-          // VST-02: không cắt thời điểm khi mở sửa — giữ đủ 1–5 chỉ định đã lưu.
+          // Nạp sửa: giữ đủ chỉ định đã lưu (dữ liệu cũ có thể lệch trần); validate/UI siết khi chỉnh.
           const thoi_diems = splitMoments(row.thoi_diem);
 
           const thoi_gian_ghi_nhan = isReplayCamera ? undefined : parseRecordedAt(row.thoi_gian_ghi_nhan);

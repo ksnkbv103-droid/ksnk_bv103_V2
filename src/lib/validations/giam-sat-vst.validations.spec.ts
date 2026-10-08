@@ -124,8 +124,24 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("VST-02: chấp nhận bỏ sót / tuân thủ nhiều thời điểm (≤5)", () => {
-    const parsed = parse([
+  it("domain §2.1: tuân thủ ≤2 thời điểm; bỏ sót ≤1", () => {
+    const ok = parse([
+      observation({
+        opportunities: [
+          {
+            ...compliantOpp,
+            thoi_diems: [
+              "Trước khi tiếp xúc người bệnh",
+              "Trước khi làm thủ thuật vô khuẩn",
+            ],
+          },
+          missedOpp,
+        ],
+      }),
+    ]);
+    expect(ok.success).toBe(true);
+
+    const overCompliant = parse([
       observation({
         opportunities: [
           {
@@ -134,10 +150,16 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
               "Trước khi tiếp xúc người bệnh",
               "Trước khi làm thủ thuật vô khuẩn",
               "Sau khi tiếp xúc người bệnh",
-              "Sau khi tiếp xúc xung quanh người bệnh",
-              "Sau khi có nguy cơ tiếp xúc với dịch",
             ],
           },
+        ],
+      }),
+    ]);
+    expect(overCompliant.success).toBe(false);
+
+    const overMissed = parse([
+      observation({
+        opportunities: [
           {
             ...missedOpp,
             thoi_diems: ["Trước khi tiếp xúc người bệnh", "Sau khi tiếp xúc người bệnh"],
@@ -145,7 +167,10 @@ describe("vstSaveSessionSchema — cổng ghi phiên VST", () => {
         ],
       }),
     ]);
-    expect(parsed.success).toBe(true);
+    expect(overMissed.success).toBe(false);
+    if (!overMissed.success) {
+      expect(overMissed.error.issues.some((i) => String(i.message).includes("Bỏ sót"))).toBe(true);
+    }
   });
 
   it("VST-03: chấp nhận tuân thủ / bỏ sót không đánh giá kỹ thuật·găng", () => {

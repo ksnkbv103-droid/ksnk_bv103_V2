@@ -4,7 +4,13 @@
  * Cổng ghi trước khi lưu `gstt_fact_vst_sessions` / `gstt_fact_vst`.
  */
 import { z } from "zod";
-import { ACTIONS, MOMENTS, VST_MAX_MOMENTS_PER_OPP } from "@/modules/giam-sat-vst/lib/vst-constants";
+import {
+  ACTIONS,
+  MOMENTS,
+  VST_MAX_MOMENTS_COMPLIANT,
+  isVstMissedAction,
+  maxMomentsForAction,
+} from "@/modules/giam-sat-vst/lib/vst-constants";
 import { VST_MAX_PERSONS_HARD } from "@/modules/giam-sat-vst/lib/vst-form-model";
 
 /** UUID bắt buộc — chuỗi rỗng "" coi như thiếu (form thường set "" khi chưa chọn). */
@@ -29,7 +35,8 @@ const vstOpportunitySchema = z
     thoi_diems: z
       .array(vstMomentSchema)
       .min(1, "Phải có ít nhất 1 thời điểm")
-      .max(VST_MAX_MOMENTS_PER_OPP, "Một cơ hội tối đa 5 thời điểm WHO"),
+      // Trần tuyệt đối tuân thủ; bỏ sót siết thêm trong superRefine.
+      .max(VST_MAX_MOMENTS_COMPLIANT, "Rửa tay / chà cồn tối đa 2 thời điểm trên một cơ hội"),
     hanh_dong: vstActionSchema,
     dung_ky_thuat: z.boolean().nullable().optional(),
     du_thoi_gian: z.boolean().nullable().optional(),
@@ -43,6 +50,16 @@ const vstOpportunitySchema = z
         code: "custom",
         path: ["thoi_diems"],
         message: "Không được chọn trùng thời điểm WHO trên một cơ hội",
+      });
+    }
+    const cap = maxMomentsForAction(opp.hanh_dong);
+    if (opp.thoi_diems.length > cap) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["thoi_diems"],
+        message: isVstMissedAction(opp.hanh_dong)
+          ? "Bỏ sót chỉ được chọn 1 thời điểm"
+          : "Rửa tay / chà cồn tối đa 2 thời điểm trên một cơ hội",
       });
     }
     // VST-03: kỹ thuật / thời gian / găng trên phiếu WHO là tùy chọn.

@@ -2,7 +2,13 @@ import type { Dispatch, SetStateAction } from "react";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { SessionInput } from "../actions/vst-write.helpers";
-import { ActionType, MomentType, VSTObservation, VST_MAX_MOMENTS_PER_OPP } from "../lib/vst-constants";
+import {
+  ActionType,
+  MomentType,
+  VSTObservation,
+  clampMomentsForAction,
+  maxMomentsForAction,
+} from "../lib/vst-constants";
 import { saveVSTSession } from "../actions/vst-write-save-session.actions";
 import { toast } from "sonner";
 import {
@@ -60,8 +66,16 @@ export function useVSTFormHandlers(
         opp.thoi_diems = opp.thoi_diems.filter((m: MomentType) => m !== moment);
         return;
       }
-      // VST-02 WHO W4: 1–5 thời điểm mọi hành động; chỉ chặn trùng / vượt 5 — không tự cắt im lặng.
-      if (opp.thoi_diems.length >= VST_MAX_MOMENTS_PER_OPP) return;
+      // Domain §2.1: rửa/chà ≤2; bỏ sót ≤1 (chưa chọn hành động → trần tuân thủ 2).
+      const cap = maxMomentsForAction(opp.hanh_dong);
+      if (opp.thoi_diems.length >= cap) {
+        toast.error(
+          opp.hanh_dong === "Bỏ sót"
+            ? "Bỏ sót chỉ được chọn 1 thời điểm"
+            : "Rửa tay / chà cồn tối đa 2 thời điểm trên một cơ hội",
+        );
+        return;
+      }
       opp.thoi_diems = [...opp.thoi_diems, moment];
     });
   };
@@ -70,6 +84,7 @@ export function useVSTFormHandlers(
     mutatePersons((next) => {
       const opp = next[pIdx].opportunities[oIdx];
       opp.hanh_dong = action;
+      opp.thoi_diems = clampMomentsForAction(opp.thoi_diems, action);
       if (!isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat)) opp.thoi_gian_ghi_nhan = new Date().toISOString();
       if (action === "Bỏ sót") {
         opp.dung_ky_thuat = null;

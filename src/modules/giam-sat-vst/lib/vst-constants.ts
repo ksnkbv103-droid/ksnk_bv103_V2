@@ -97,8 +97,25 @@ export function isVstMissedAction(hanhDong: string | null | undefined): boolean 
   return hanhDong === "Bỏ sót";
 }
 
-/** WHO W4: một cơ hội nhận 1–5 thời điểm cho mọi hành động. */
-export const VST_MAX_MOMENTS_PER_OPP = 5;
+/**
+ * Domain §2.1 / QT.07: một cơ hội tuân thủ (rửa / chà) ≤ 2 chỉ định;
+ * không tuân thủ (bỏ sót) ≤ 1 chỉ định. Không bắt đủ 5 mốc trên một cơ hội.
+ */
+export const VST_MAX_MOMENTS_COMPLIANT = 2;
+export const VST_MAX_MOMENTS_MISSED = 1;
+
+/** @deprecated dùng maxMomentsForAction — trần tuyệt đối = tuân thủ (2). */
+export const VST_MAX_MOMENTS_PER_OPP = VST_MAX_MOMENTS_COMPLIANT;
+
+export function maxMomentsForAction(hanhDong: string | null | undefined): number {
+  return isVstMissedAction(hanhDong) ? VST_MAX_MOMENTS_MISSED : VST_MAX_MOMENTS_COMPLIANT;
+}
+
+/** Cắt danh sách thời điểm theo trần hành động (giữ thứ tự đã chọn). */
+export function clampMomentsForAction<T>(moments: readonly T[], hanhDong: string | null | undefined): T[] {
+  const cap = maxMomentsForAction(hanhDong);
+  return moments.length > cap ? moments.slice(0, cap) : [...moments];
+}
 
 export interface VSTOpportunity {
   thoi_diems: MomentType[];
