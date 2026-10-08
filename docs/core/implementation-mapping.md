@@ -143,6 +143,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-10-09 | **VST §2.1 — predicate KPI:** `fn_vst_is_valid_opportunity` đếm chỉ định WHO phân biệt, tuân thủ ≤2, bỏ sót ≤1 (trước đó chỉ ≥1). Migration `20261008221231`. View không viết lại. Local đã apply; prod chờ lệnh. |
 | 2026-10-05 | **HOTFIX-ADM-LOCAL (local only, chưa push):** nhánh `cursor/hotfix-adm-email` từ `origin/main` @ `6e9cc902`. Cherry-pick ADM-01 (`4d739dc5`→`29a019e8`) + ADM-05 (`0900c4d7`→`08c13628`) + adapt auth (`2c8c711a`: `getActorAuthUser`, không kéo PERF2 `rbac-request`). **Không migration** — `logAdminAction` no-op khi thiếu `sys_admin_audit` (không kéo ADM-02/03). Verify: `tsc` / `vitest` / `verify` / `build` xanh. |
 | 2026-09-24 | **CSSD ME-S3 thu hồi mẻ:** không đạt / BI+ một RPC; chu kỳ cũ giữ `lo_tiet_khuan_id`; chu kỳ mới về Tiếp nhận; bộ đã dùng chỉ liệt kê; phiếu in từ cột S2. Migration `20260925120000`. Trạng thái mẻ thêm `THU_HOI`. |
 | 2026-09-24 | **CSSD ME-S2 phiếu mẻ:** phương pháp từ mã loại máy; QC 3 mục + BI; `CHO_BI` không nhả; cấp phát đòi `HOAN_THANH` và không sự cố tiệt khuẩn mở. Migration `20260925100000`. S1 đổi timestamp `20260925090000`. |
