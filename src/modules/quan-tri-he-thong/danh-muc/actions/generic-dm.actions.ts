@@ -1,8 +1,10 @@
 "use server";
-import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
 import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
-import { lockedSystemLookupMutateError } from "@/lib/master-data/locked-system-lookups";
+import {
+  isLockedSystemLookup,
+  lockedSystemLookupMutateError,
+} from "@/lib/master-data/locked-system-lookups";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";

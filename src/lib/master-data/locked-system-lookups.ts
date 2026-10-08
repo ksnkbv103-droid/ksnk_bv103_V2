@@ -12,6 +12,9 @@ export const LOCKED_SYSTEM_LOOKUP_LOAI = [
   "NGHE_NGHIEP",
 ] as const;
 
+export const LOCKED_SYSTEM_LOOKUP_WRITE_ERROR =
+  "Đây là danh mục hệ thống. Chỉ xem — không thêm, sửa, xóa hay nạp Excel.";
+
 export type LockedSystemLookupLoai = (typeof LOCKED_SYSTEM_LOOKUP_LOAI)[number];
 
 export function isLockedSystemLookup(loaiDanhMuc: string): boolean {
