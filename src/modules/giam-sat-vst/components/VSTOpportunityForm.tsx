@@ -52,16 +52,24 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Hai dòng gọn ô: TRƯỚC|SAU rồi mã (TXNB / TTVK / …). */
+/** Active outline — chữ đậm còn đọc được (tránh fill + bv103-type-label ghi đè màu). */
+const momentActive =
+  "border-[var(--primary)] bg-[var(--primary)]/12 text-slate-900 shadow-sm";
+const actionWashActive = "border-amber-600 bg-amber-50 text-amber-950 shadow-sm";
+const actionMissActive = "border-red-600 bg-red-50 text-red-950 shadow-sm";
+
+/** Hai dòng gọn ô: TRƯỚC|SAU rồi mã (TXNB / TTVK / …). Chữ inherit màu nút. */
 function MomentChoiceLabel({ moment }: { moment: MomentType }) {
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
     <span
-      className="flex flex-col items-center justify-center gap-0.5 leading-tight"
+      className="flex flex-col items-center justify-center gap-0.5 leading-tight text-inherit"
       title={momentDisplayLabel(moment)}
     >
-      <span className="bv103-type-label font-medium uppercase tracking-wide">{timing}</span>
-      <span className="bv103-type-label font-semibold uppercase tracking-wide">{MOMENT_SHORT_CODE[moment]}</span>
+      <span className="bv103-type-label font-medium uppercase tracking-wide !text-inherit">{timing}</span>
+      <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
+        {MOMENT_SHORT_CODE[moment]}
+      </span>
     </span>
   );
 }
@@ -141,7 +149,7 @@ export default function VSTOpportunityForm({
                   aria-pressed={active}
                   onClick={() => toggleMoment(pIdx, oIdx, m)}
                   className={`${C.choiceBtn} flex flex-col items-center justify-center px-1.5 py-2 normal-case ${
-                    active ? C.choiceBtnActive : C.choiceBtnIdle
+                    active ? momentActive : C.choiceBtnIdle
                   }`}
                 >
                   <MomentChoiceLabel moment={m} />
@@ -166,12 +174,12 @@ export default function VSTOpportunityForm({
                   className={`${C.choiceBtn} inline-flex items-center justify-center ${
                     active
                       ? a === "Bỏ sót"
-                        ? C.choiceBtnActiveDanger
-                        : C.choiceBtnActiveWarning
+                        ? actionMissActive
+                        : actionWashActive
                       : C.choiceBtnIdle
                   }`}
                 >
-                  <span className="bv103-type-label font-semibold uppercase tracking-wide">
+                  <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
                     {ACTION_UI_LABEL[a]}
                   </span>
                 </button>

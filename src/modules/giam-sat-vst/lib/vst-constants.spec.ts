@@ -9,9 +9,13 @@ import {
   MOMENTS,
   actionDisplayLabel,
   actionUiLabel,
+  clampMomentsForAction,
   isVstMissedAction,
+  maxMomentsForAction,
   momentDisplayLabel,
   momentUiLabel,
+  VST_MAX_MOMENTS_COMPLIANT,
+  VST_MAX_MOMENTS_MISSED,
   VST_MAX_MOMENTS_PER_OPP,
 } from "./vst-constants";
 
@@ -46,8 +50,16 @@ describe("vst-constants WHO moments", () => {
     expect(momentUiLabel(MOMENTS[0])).not.toBe(momentUiLabel(MOMENTS[3]));
   });
 
-  it("một cơ hội tối đa 5 thời điểm mọi hành động", () => {
-    expect(VST_MAX_MOMENTS_PER_OPP).toBe(5);
+  it("domain §2.1: tuân thủ ≤2 chỉ định; bỏ sót ≤1", () => {
+    expect(VST_MAX_MOMENTS_COMPLIANT).toBe(2);
+    expect(VST_MAX_MOMENTS_MISSED).toBe(1);
+    expect(VST_MAX_MOMENTS_PER_OPP).toBe(2);
+    expect(maxMomentsForAction("Rửa tay bằng nước")).toBe(2);
+    expect(maxMomentsForAction("Chà tay bằng cồn")).toBe(2);
+    expect(maxMomentsForAction(null)).toBe(2);
+    expect(maxMomentsForAction("Bỏ sót")).toBe(1);
+    expect(clampMomentsForAction(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["a", "b"]);
+    expect(clampMomentsForAction(["a", "b"], "Bỏ sót")).toEqual(["a"]);
     expect(isVstMissedAction("Bỏ sót")).toBe(true);
     expect(isVstMissedAction("Chà tay bằng cồn")).toBe(false);
   });

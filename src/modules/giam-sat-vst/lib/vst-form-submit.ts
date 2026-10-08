@@ -1,6 +1,7 @@
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { VSTObservation } from "./vst-constants";
+import { isVstMissedAction, maxMomentsForAction } from "./vst-constants";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { normalizeRecordTime, type ExtendedOpportunity, type VSTFormPerson } from "./vst-form-model";
 import { buildVstObservationPersistRow } from "./vst-observation-persist-fields";
@@ -50,6 +51,12 @@ export function buildVstObservations(params: {
 export function validateOpportunityInput(opp: ExtendedOpportunity): string | null {
   if (!opp.thoi_diems.length) return "Vui lòng chọn ít nhất 1 thời điểm";
   if (!opp.hanh_dong) return "Vui lòng chọn Hành động";
+  const cap = maxMomentsForAction(opp.hanh_dong);
+  if (opp.thoi_diems.length > cap) {
+    return isVstMissedAction(opp.hanh_dong)
+      ? "Bỏ sót chỉ được chọn 1 thời điểm"
+      : "Rửa tay / chà cồn tối đa 2 thời điểm trên một cơ hội";
+  }
   // VST-03: kỹ thuật / thời gian / găng trên phiếu WHO là tùy chọn.
   return null;
 }
