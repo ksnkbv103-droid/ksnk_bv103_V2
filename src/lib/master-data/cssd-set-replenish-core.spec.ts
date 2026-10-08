@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { replenishSetInstrumentCore, returnSetInstrumentToKhoCore } from "./cssd-set-replenish-core";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
 describe("kho dự phòng atomic", () => {
   it("bổ sung gọi RPC và không đọc-sửa-ghi so_luong_kho_du_phong", async () => {
@@ -64,7 +64,7 @@ describe("kho dự phòng atomic", () => {
   });
 
   it("SQL trừ kho bằng UPDATE có điều kiện, không gán giá trị đã đọc", () => {
-    const sql = readFileSync("supabase/migrations/20260925150000_cssd_ledger_atomic.sql", "utf8");
+    const sql = readMigrationSql("cssd_ledger_atomic");
     expect(sql).toContain("so_luong_kho_du_phong = so_luong_kho_du_phong - v_abs");
     expect(sql).toContain("so_luong_kho_du_phong >= v_abs");
     expect(sql).not.toContain("so_luong_kho_du_phong = v_reserve - v_abs");

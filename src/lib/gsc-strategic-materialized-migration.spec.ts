@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
-const MIGRATION =
-  "supabase/migrations/20261006091000_gsc_strategic_materialized_base.sql";
+const MIGRATION = "gsc_strategic_materialized_base";
 
 const STRAT = "rpc_dashboard_gsc_strategic_analytics_impl";
 const CMP = "rpc_gsc_compare_matrices_impl";
@@ -26,7 +24,7 @@ const JSON_KEYS = [
 ] as const;
 
 function readMigration(): string {
-  return readFileSync(join(process.cwd(), MIGRATION), "utf8");
+  return readMigrationSql(MIGRATION);
 }
 
 function extractFunction(sql: string, name: string): string {

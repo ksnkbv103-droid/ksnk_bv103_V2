@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import {
   buildIncidentAttributes,
   countPriorSafetyIncidentsOnCycle,
@@ -11,6 +9,7 @@ import {
   readIncidentTypeLabel,
   resolveProcessBatchLink,
 } from "./cssd-incident-attributes";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
 describe("cssd-incident-attributes", () => {
   it("builds SSOT keys for insert", () => {
@@ -209,10 +208,7 @@ describe("cssd-incident-attributes", () => {
   });
 
   it("migration S-F2 khóa CTE đỏ theo quy_trinh và phiếu còn hiệu lực", () => {
-    const sql = readFileSync(
-      resolve(process.cwd(), "supabase/migrations/20261001120000_cssd_red_alert_by_quy_trinh.sql"),
-      "utf8",
-    );
+    const sql = readMigrationSql("cssd_red_alert_by_quy_trinh");
     expect(sql).toContain("cssd_su_co_counts_for_red_alert");
     expect(sql).toContain("sc.quy_trinh_id");
     expect(sql).not.toMatch(/where\s+ma_qr_quy_trinh/i);

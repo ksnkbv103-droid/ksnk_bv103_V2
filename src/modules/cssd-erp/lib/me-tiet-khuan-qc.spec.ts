@@ -1,8 +1,8 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { getSterilizerMethod, isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
 import { evaluateMeQcRelease, formatMeMaLo, steamBiWeeklyReminder } from "./me-tiet-khuan-qc";
 import { assertPackIssuable, isBlockingSterilizationIncident } from "@/lib/domain/cssd-pack-issuance";
+import { readMigrationSql } from "@/lib/testing/migration-file";
 
 const baseQc = {
   thongSoVatLy: "DAT",
@@ -210,7 +210,7 @@ describe("assertPackIssuable batch release", () => {
 
 describe("release SQL", () => {
   it("does not stamp issuance time when releasing a batch", () => {
-    const sql = readFileSync("supabase/migrations/20260925100000_cssd_me_s2_qc_release.sql", "utf8");
+    const sql = readMigrationSql("cssd_me_s2_qc_release");
     const release = sql.slice(sql.indexOf("fn_cssd_me_chuyen_bo_kho_vo_khuan"), sql.indexOf("rpc_cssd_me_tao"));
     expect(release).not.toMatch(/thoi_gian_cap_phat\s*=/);
     expect(release).not.toMatch(/nguoi_cap_phat_id\s*=/);
@@ -220,10 +220,7 @@ describe("release SQL", () => {
 
 describe("ME-05 release HSD SQL", () => {
   it("uses batch end mốc and packaging days without coalesce 30", () => {
-    const sql = readFileSync(
-      "supabase/migrations/20261005145000_cssd_me05_hsd_bao_goi.sql",
-      "utf8",
-    );
+    const sql = readMigrationSql("cssd_me05_hsd_bao_goi");
     const fn = sql.slice(
       sql.indexOf("CREATE OR REPLACE FUNCTION public.fn_cssd_me_chuyen_bo_kho_vo_khuan"),
       sql.indexOf("COMMENT ON FUNCTION public.fn_cssd_me_chuyen_bo_kho_vo_khuan"),
