@@ -756,7 +756,7 @@ Neo Domain 09-VST + xác nhận WHO W2 (≤3 NV nhập mới; 32 phiên cũ nạ
 
 | Mã | Kết quả |
 |----|---------|
-| VST-02 | Bỏ `vstMaxIndications` + cắt UI/Zod; edit-load không cắt thời điểm; 1–5 mọi hành động |
+| VST-02 | **Sửa 2026-10-09:** khôi phục domain §2.1 — tuân thủ ≤2 chỉ định, bỏ sót ≤1 (UI/Zod/hydrate clamp). Soft «1–5 mọi hành động» **đã thu hồi** — không làm theo. |
 | VST-05 | Xóa mềm + lý do + audit; `rpc_vst_save_session`; nạp đủ người cũ; chặn thêm vượt grandfather |
 | VST-01 | `fn_vst_is_valid_opportunity` + `so_dong_khong_hop_le`; bỏ «Chưa ghi thời điểm» |
 | VST-03 | Nhãn «(phiếu WHO)»; mẫu = ô đã đánh giá; trường phụ tùy chọn |

@@ -1,4 +1,11 @@
-import { ACTIONS, MOMENTS, isVstMissedAction, type ActionType, type MomentType } from "./vst-constants";
+import {
+  ACTIONS,
+  MOMENTS,
+  clampMomentsForAction,
+  isVstMissedAction,
+  type ActionType,
+  type MomentType,
+} from "./vst-constants";
 import {
   createDefaultVSTFormPersons,
   createNewOpp,
@@ -18,7 +25,7 @@ export type VstHydrateObservation = {
   co_deo_gang?: boolean | null;
 };
 
-/** Tách thời điểm đã lưu — không cắt (VST-02). */
+/** Tách thời điểm đã lưu (token hợp lệ WHO). Cắt trần theo hành động ở hydrate. */
 export function splitMomentsNoTrim(raw: unknown): MomentType[] {
   const tokens = String(raw ?? "")
     .split(/\s*,\s*/g)
@@ -34,7 +41,8 @@ function parseAction(hanhDong: unknown): ActionType | null {
 }
 
 /**
- * Nạp form sửa: đủ mọi người (không slice 3), đủ mọi thời điểm (không cắt).
+ * Nạp form sửa: đủ mọi người (không slice 3).
+ * Thời điểm cắt theo domain §2.1 (tuân thủ ≤2, bỏ sót ≤1).
  * Trả thêm số người legacy >3 để UI cảnh báo.
  */
 export function hydrateVstPersonsFromObservations(
@@ -78,7 +86,7 @@ export function hydrateVstPersonsFromObservations(
       const missed = isVstMissedAction(action);
       return {
         id: String(row.id ?? `${idx}-${oIdx}`),
-        thoi_diems: splitMomentsNoTrim(row.thoi_diem),
+        thoi_diems: clampMomentsForAction(splitMomentsNoTrim(row.thoi_diem), action),
         hanh_dong: action,
         dung_ky_thuat: missed ? null : typeof row.dung_ky_thuat === "boolean" ? row.dung_ky_thuat : null,
         du_thoi_gian: missed ? null : typeof row.du_thoi_gian === "boolean" ? row.du_thoi_gian : null,

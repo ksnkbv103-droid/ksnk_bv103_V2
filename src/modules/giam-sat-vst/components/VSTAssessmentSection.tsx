@@ -19,81 +19,91 @@ interface VSTAssessmentSectionProps {
 
 const C = bv103LayoutChrome;
 
+function YesNoRow({
+  label,
+  ariaLabel,
+  value,
+  onYes,
+  onNo,
+  invertYesStyle = false,
+}: {
+  label: string;
+  ariaLabel: string;
+  value: boolean | null | undefined;
+  onYes: () => void;
+  onNo: () => void;
+  /** Bỏ sót + mang găng: «Có» = xấu → đỏ. */
+  invertYesStyle?: boolean;
+}) {
+  const yesActive = value === true;
+  const noActive = value === false;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <span className="bv103-type-label text-slate-700 !text-slate-700">{label}</span>
+      <div className={C.segmentGroup} role="group" aria-label={ariaLabel}>
+        <button
+          type="button"
+          onClick={onYes}
+          className={`${C.segmentBtn} ${
+            yesActive ? (invertYesStyle ? C.segmentBtnNo : C.segmentBtnYes) : C.segmentBtnIdle
+          }`}
+        >
+          Có
+        </button>
+        <button
+          type="button"
+          onClick={onNo}
+          className={`${C.segmentBtn} ${
+            noActive ? (invertYesStyle ? C.segmentBtnYes : C.segmentBtnNo) : C.segmentBtnIdle
+          }`}
+        >
+          Không
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment }: VSTAssessmentSectionProps) {
   if (opp.hanh_dong && opp.hanh_dong !== "Bỏ sót") {
     return (
-      <div className={`space-y-3 p-3 ${C.panelInset}`}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={C.labelField}>Kỹ thuật quan sát nhanh (phiếu WHO)?</span>
-          <div className={C.segmentGroup} role="group" aria-label="Kỹ thuật quan sát nhanh phiếu WHO">
-            <button
-              type="button"
-              onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", true)}
-              className={`${C.segmentBtn} ${opp.dung_ky_thuat === true ? C.segmentBtnYes : C.segmentBtnIdle}`}
-            >
-              Có
-            </button>
-            <button
-              type="button"
-              onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", false)}
-              className={`${C.segmentBtn} ${opp.dung_ky_thuat === false ? C.segmentBtnNo : C.segmentBtnIdle}`}
-            >
-              Không
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={C.labelField}>Đủ thời gian (phiếu WHO)?</span>
-          <div className={C.segmentGroup} role="group" aria-label="Đủ thời gian phiếu WHO">
-            <button
-              type="button"
-              onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", true)}
-              className={`${C.segmentBtn} ${opp.du_thoi_gian === true ? C.segmentBtnYes : C.segmentBtnIdle}`}
-            >
-              Có
-            </button>
-            <button
-              type="button"
-              onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", false)}
-              className={`${C.segmentBtn} ${opp.du_thoi_gian === false ? C.segmentBtnNo : C.segmentBtnIdle}`}
-            >
-              Không
-            </button>
-          </div>
-        </div>
+      <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50/60 p-3">
+        <YesNoRow
+          label="Kỹ thuật quan sát nhanh (phiếu WHO)"
+          ariaLabel="Kỹ thuật quan sát nhanh phiếu WHO"
+          value={opp.dung_ky_thuat}
+          onYes={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", true)}
+          onNo={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", false)}
+        />
+        <YesNoRow
+          label="Đủ thời gian (phiếu WHO)"
+          ariaLabel="Đủ thời gian phiếu WHO"
+          value={opp.du_thoi_gian}
+          onYes={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", true)}
+          onNo={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", false)}
+        />
       </div>
     );
   }
 
   if (opp.hanh_dong === "Bỏ sót") {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-shell)] border border-rose-200 bg-rose-50/50 p-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-rose-800">
-          Đang mang găng (khi bỏ sót)?
-        </span>
-        <div className={C.segmentGroup} role="group" aria-label="Đang mang găng khi bỏ sót">
-          <button
-            type="button"
-            onClick={() => updateAssessment(pIdx, oIdx, "co_deo_gang", true)}
-            className={`${C.segmentBtn} ${opp.co_deo_gang === true ? C.segmentBtnNo : C.segmentBtnIdle}`}
-          >
-            Có
-          </button>
-          <button
-            type="button"
-            onClick={() => updateAssessment(pIdx, oIdx, "co_deo_gang", false)}
-            className={`${C.segmentBtn} ${opp.co_deo_gang === false ? C.segmentBtnYes : C.segmentBtnIdle}`}
-          >
-            Không
-          </button>
-        </div>
+      <div className="rounded-md border border-slate-200 bg-slate-50/60 p-3">
+        <YesNoRow
+          label="Đang mang găng (khi bỏ sót)?"
+          ariaLabel="Đang mang găng khi bỏ sót"
+          value={opp.co_deo_gang}
+          invertYesStyle
+          onYes={() => updateAssessment(pIdx, oIdx, "co_deo_gang", true)}
+          onNo={() => updateAssessment(pIdx, oIdx, "co_deo_gang", false)}
+        />
       </div>
     );
   }
 
   return (
-    <div className="flex h-14 items-center justify-center rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200 bv103-type-note sm:h-16">
-      Hoàn thành bước 2
+    <div className="flex h-12 items-center justify-center rounded-md border border-dashed border-slate-200">
+      <span className="bv103-type-label text-slate-400 !text-slate-400">Chọn hành động để đánh giá</span>
     </div>
   );
 }

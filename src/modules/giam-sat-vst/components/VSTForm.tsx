@@ -10,7 +10,14 @@ import VSTPrintView from "./VSTPrintView";
 import { useVSTForm } from "../hooks/useVSTForm";
 import { useVstModuleLock } from "../hooks/use-vst-module-lock";
 import VstModuleLockBanner from "./VstModuleLockBanner";
-import { MOMENTS, ACTIONS, isVstMissedAction, type MomentType, type ActionType } from "../lib/vst-constants";
+import {
+  MOMENTS,
+  ACTIONS,
+  clampMomentsForAction,
+  isVstMissedAction,
+  type MomentType,
+  type ActionType,
+} from "../lib/vst-constants";
 import { createDefaultVSTFormPersons, createNewOpp, VST_MAX_PERSONS_NEW } from "../lib/vst-form-model";
 import { qlcvTodayVn } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
@@ -216,8 +223,8 @@ export default function VSTForm({
           const row = o as VstObservationInput;
           const action = parseAction(row.hanh_dong);
           const missed = isVstMissedAction(action);
-          // Nạp sửa: giữ đủ chỉ định đã lưu (dữ liệu cũ có thể lệch trần); validate/UI siết khi chỉnh.
-          const thoi_diems = splitMoments(row.thoi_diem);
+          // Domain §2.1: cắt trần khi nạp (tuân thủ ≤2, bỏ sót ≤1).
+          const thoi_diems = clampMomentsForAction(splitMoments(row.thoi_diem), action);
 
           const thoi_gian_ghi_nhan = isReplayCamera ? undefined : parseRecordedAt(row.thoi_gian_ghi_nhan);
 
