@@ -31,6 +31,23 @@
 | [`pilot-module-automated-gates-20260703.md`](./pilot-module-automated-gates-20260703.md) | Gate tự động 7 khối pilot |
 | [`perf-audit-20260703.md`](./perf-audit-20260703.md) | Perf audit — exceljs lazy-load **Done**; recharts/linked RPC đo **Wave 5** |
 
+## Kế hoạch 17/09/2026 — mốc
+
+Không mở song song với [`../../core/handover-roadmap.md`](../../core/handover-roadmap.md) §5. Các file dưới đây giữ nguyên để tra quyết định ngày đó.
+
+| File | Vai trò |
+|------|---------|
+| [`BV103-KE-HOACH-TOI-UU-20260916.md`](./BV103-KE-HOACH-TOI-UU-20260916.md) | Kế hoạch tối ưu 16/09 |
+| [`BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md`](./BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md) | Rà độ rối UI/docs |
+| [`BV103-CLEANUP-WAVE-20260917.md`](./BV103-CLEANUP-WAVE-20260917.md) | Sóng dọn |
+| [`BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`](./BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md) | Giám sát chiến lược |
+| [`BV103-TGS-KSNK-CHIEN-LUOC-20260917.md`](./BV103-TGS-KSNK-CHIEN-LUOC-20260917.md) | TGS KSNK |
+| [`BV103-VST-GSC-CAI-TO-PLAN-20260917.md`](./BV103-VST-GSC-CAI-TO-PLAN-20260917.md) | Plan cải tổ VST/GSC |
+| [`BV103-GSC-KE-HOACH-CHINH-20260917.md`](./BV103-GSC-KE-HOACH-CHINH-20260917.md) | Kế hoạch chính GSC |
+| [`BV103-GSC-DE-CUONG-20260917.md`](./BV103-GSC-DE-CUONG-20260917.md) | Đề cương GSC |
+| [`BV103-GSC-CHAN-DOAN-DON-GIAN-20260917.md`](./BV103-GSC-CHAN-DOAN-DON-GIAN-20260917.md) | Chẩn đoán GSC |
+| [`BV103-GSC-PHASE-C-DOI-CHIIEU-20260917.md`](./BV103-GSC-PHASE-C-DOI-CHIIEU-20260917.md) | Đối chiếu phase C |
+
 ## Archived
 
 Gap register cũ, domain-audit phase 0–6, toàn bộ audit tháng 6/2026 → [`../../archive/reports/README.md`](../../archive/reports/README.md).

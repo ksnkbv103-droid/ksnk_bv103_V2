@@ -55,10 +55,10 @@
 | [`core/domain-specification.md`](core/domain-specification.md) | Nghiệp vụ, ubiquitous language |
 | [`core/implementation-mapping.md`](core/implementation-mapping.md) | Thuật ngữ ↔ bảng/RPC |
 | [`core/governance-pipeline.md`](core/governance-pipeline.md) | Migration + ship + CI |
-| [`core/skills-catalog.md`](core/skills-catalog.md) | Agent skills allowlist |
+| [`core/skills-catalog.md`](core/skills-catalog.md) | Mục lục skill / rule / agent / lệnh — không chép thân |
 | [`core/engineering-guidelines.md`](core/engineering-guidelines.md) | Code, UI, PR |
 | [`core/operations-sop.md`](core/operations-sop.md) | Auth, RLS, Smart DB |
-| [`core/handover-roadmap.md`](core/handover-roadmap.md) | Lộ trình, cấu trúc app |
+| [`core/handover-roadmap.md`](core/handover-roadmap.md) | Onboarding + **lộ trình rà soát đang theo** (§5) |
 | [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) | Cursor: intake, verify, tiết kiệm quota |
 
 **Ký / ADR / catalog** (không đọc mỗi diff)
@@ -90,6 +90,7 @@ Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/gu
 
 - [`reference/architecture/`](reference/architecture/) — overview, [backlog đang mở](reference/architecture/open-backlog-20260731.md), [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md), [lookup vs enum](reference/architecture/lookup-vs-enum-guidance.md)
 - [`reference/reports/`](reference/reports/) — **gap đang mở:** [gap-register-20260709](reference/reports/gap-register-20260709.md) · **mốc:** [gap-register-20260703](reference/reports/gap-register-20260703.md) · [db-hygiene-20260703](reference/reports/db-hygiene-20260703.md) · [index](reference/reports/README.md)
+- Nhật ký lát 09/2026 (không phải SSOT): [`modules/_audit/README.md`](modules/_audit/README.md)
 - Audit lịch sử (06/2026 trở về trước): [`archive/reports/`](archive/reports/) only
 - [`reference/guides/`](reference/guides/) — import JSON, migration runbook, [Cursor prompt templates](reference/guides/cursor-command-intake-template.md)
 

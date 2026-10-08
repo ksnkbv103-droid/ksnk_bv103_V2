@@ -20,5 +20,7 @@
 | Lookup / enum | [`reference/architecture/lookup-vs-enum-guidance.md`](reference/architecture/lookup-vs-enum-guidance.md) | Kế hoạch unification: [`archive/agent-notes/`](archive/agent-notes/) |
 | Báo cáo audit | [`reference/reports/README.md`](reference/reports/README.md) | Tháng 6/2026: [`archive/reports/`](archive/reports/) |
 | Ghi chú AI | **Không** — chỉ kho | [`archive/agent-notes/`](archive/agent-notes/) |
+| Cursor (skill, rule, agent, lệnh) | [`core/skills-catalog.md`](core/skills-catalog.md) | Thân lệnh: `.cursor/`, `.agents/skills/` — không chép vào docs |
+| Lộ trình rà soát đang theo | [`core/handover-roadmap.md`](core/handover-roadmap.md) §5 | Nhật ký lát: [`modules/_audit/README.md`](modules/_audit/README.md). Plan 09/2026: [`reference/reports/README.md`](reference/reports/README.md) |
 
 Bản chụp toàn hệ (24/08, **không** thay SSOT khi sửa code): [`reference/reports/ksnk-bv103-compendium-20260824.md`](reference/reports/ksnk-bv103-compendium-20260824.md).

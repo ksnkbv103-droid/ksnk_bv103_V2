@@ -32,3 +32,22 @@ Verify trước push: `npm run verify` (full) — xem [`lean-execution.md`](lean
 
 - Tổng hợp module: [`../wiki/entities.md`](../wiki/entities.md)  
 - Kiến trúc chi tiết: [`../reference/architecture/system-overview.md`](../reference/architecture/system-overview.md)
+- Chủ đề → một file: [`../ssot-map.md`](../ssot-map.md). Mục lục Cursor: [`skills-catalog.md`](skills-catalog.md).
+
+## 5. Lộ trình rà soát (cửa đang theo)
+
+Phase 0–5 tháng 5: [`../reference/architecture/roadmap-2026h2.md`](../reference/architecture/roadmap-2026h2.md) — kế hoạch gốc, không phải việc tuần này.
+
+Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nhật ký lát (`modules/_audit/`) và plan tháng 9 (`reference/reports/BV103-*`) là mốc. Khi chúng mâu thuẫn SSOT, SSOT thắng — ví dụ dòng VST-02 «1–5 mọi hành động» trong `_audit-golive-doors` đã thu hồi.
+
+| Mốc | Việc | Trạng thái |
+|------|------|------------|
+| 2026-09-28 | Nhật ký golive / soft trong [`../modules/_audit/README.md`](../modules/_audit/README.md) | Mốc. Không sửa code theo audit nếu lệch domain-spec |
+| 2026-10-08 | Nợ Phase B #85–#93 (GSC scope, CSSD close/QC, NKBV hết cắt dòng, đào tạo, deps) | Đã lên `main`. Không thấy phá §2.1 VST |
+| 2026-10-09 | Form VST: nhãn TRƯỚC/SAU + trần app #94–#97 | Đã lên `main` |
+| 2026-10-09 | KPI `fn_vst_is_valid_opportunity` #98 `63884e3a`, prod history `20261008225611` | Đã siết: rửa/chà 1–2 thời điểm WHO, bỏ sót đúng 1. 32 034 dòng, 0 dòng rời mẫu số |
+| Mở | Xóa phiên VST đang là `is_active=false` | Chờ PO — không tự đổi xóa cứng |
+| Mở | UAT tay form VST (≤2 / ≤1, chữ ô chọn đọc được) | PO |
+| Không mở | Ký nghiệm thu lâm sàng toàn repo; vá giao diện VST thêm | — |
+
+File SQL repo: `supabase/migrations/20261008221231_vst_valid_opp_moment_cap.sql`. Không đổi tên cho khớp timestamp prod.
