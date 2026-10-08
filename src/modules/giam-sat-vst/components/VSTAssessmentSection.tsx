@@ -19,6 +19,7 @@ interface VSTAssessmentSectionProps {
 
 const C = bv103LayoutChrome;
 
+/** Hàng đánh giá cố định h-14 — khớp ô thời điểm / hành động. */
 function YesNoRow({
   label,
   ariaLabel,
@@ -32,20 +33,23 @@ function YesNoRow({
   value: boolean | null | undefined;
   onYes: () => void;
   onNo: () => void;
-  /** Bỏ sót + mang găng: «Có» = xấu → đỏ. */
   invertYesStyle?: boolean;
 }) {
   const yesActive = value === true;
   const noActive = value === false;
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <span className="bv103-type-label text-slate-700 !text-slate-700">{label}</span>
-      <div className={C.segmentGroup} role="group" aria-label={ariaLabel}>
+    <div className="box-border flex h-14 items-center justify-between gap-3 border-b border-slate-100 px-1 last:border-b-0">
+      <span className="bv103-type-label min-w-0 flex-1 text-slate-700 !text-slate-700">{label}</span>
+      <div className={`${C.segmentGroup} h-9 shrink-0`} role="group" aria-label={ariaLabel}>
         <button
           type="button"
           onClick={onYes}
-          className={`${C.segmentBtn} ${
-            yesActive ? (invertYesStyle ? C.segmentBtnNo : C.segmentBtnYes) : C.segmentBtnIdle
+          className={`inline-flex h-9 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
+            yesActive
+              ? invertYesStyle
+                ? "bg-rose-600 text-white"
+                : "bg-[var(--primary)] text-white"
+              : "bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           Có
@@ -53,8 +57,12 @@ function YesNoRow({
         <button
           type="button"
           onClick={onNo}
-          className={`${C.segmentBtn} ${
-            noActive ? (invertYesStyle ? C.segmentBtnYes : C.segmentBtnNo) : C.segmentBtnIdle
+          className={`inline-flex h-9 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
+            noActive
+              ? invertYesStyle
+                ? "bg-[var(--primary)] text-white"
+                : "bg-rose-600 text-white"
+              : "bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           Không
@@ -67,7 +75,7 @@ function YesNoRow({
 export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment }: VSTAssessmentSectionProps) {
   if (opp.hanh_dong && opp.hanh_dong !== "Bỏ sót") {
     return (
-      <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50/60 p-3">
+      <div className="rounded border border-slate-200 bg-white">
         <YesNoRow
           label="Kỹ thuật quan sát nhanh (phiếu WHO)"
           ariaLabel="Kỹ thuật quan sát nhanh phiếu WHO"
@@ -88,7 +96,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
 
   if (opp.hanh_dong === "Bỏ sót") {
     return (
-      <div className="rounded-md border border-slate-200 bg-slate-50/60 p-3">
+      <div className="rounded border border-slate-200 bg-white">
         <YesNoRow
           label="Đang mang găng (khi bỏ sót)?"
           ariaLabel="Đang mang găng khi bỏ sót"
@@ -102,7 +110,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   }
 
   return (
-    <div className="flex h-12 items-center justify-center rounded-md border border-dashed border-slate-200">
+    <div className="box-border flex h-14 items-center justify-center rounded border border-dashed border-slate-200">
       <span className="bv103-type-label text-slate-400 !text-slate-400">Chọn hành động để đánh giá</span>
     </div>
   );

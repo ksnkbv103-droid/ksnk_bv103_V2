@@ -401,7 +401,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-[var(--bv103-space-3)] xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
+        <div className="grid min-h-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
           {persons.map((p, idx) => {
             const isTabActive = activePersonTab === idx;
             return (

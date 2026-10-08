@@ -19,7 +19,6 @@ import VSTAssessmentSection from "./VSTAssessmentSection";
 import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVSTFormHandlers";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { bv103PanelChrome } from "@/lib/bv103-panel-chrome";
 import { formatTimeVi } from "@/lib/format-datetime-vi";
 
 interface VSTOpportunityFormProps {
@@ -54,22 +53,26 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Ô chọn: nền trắng / chọn nền slate đậm — chữ luôn tương phản, không dùng fill vàng/đỏ loè. */
-const cellBase =
-  "flex w-full min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-md border px-1.5 py-2 text-center transition-colors touch-manipulation";
-const cellIdle = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
-const cellOn = "border-slate-900 bg-slate-900 text-white";
-const cellMissOn = "border-rose-800 bg-rose-800 text-white";
+/** Một thước đo: mọi ô chọn cùng h-14, lưới đều cột. */
+const CELL =
+  "box-border flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded border px-1 text-center transition-colors touch-manipulation";
+const CELL_IDLE = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
+const CELL_ON = "border-slate-900 bg-slate-900 text-white";
+const CELL_MISS = "border-rose-800 bg-rose-800 text-white";
+const SECTION_HEAD = "flex h-7 items-center justify-between gap-2";
+const GRID_GAP = "gap-1.5";
 
 function MomentCellLabel({ moment }: { moment: MomentType }) {
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
-    <span className="flex flex-col items-center justify-center gap-0.5 leading-none">
-      <span className="bv103-type-label font-medium uppercase tracking-wider !text-inherit">{timing}</span>
-      <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
+    <>
+      <span className="bv103-type-label leading-none font-medium uppercase tracking-wider !text-inherit">
+        {timing}
+      </span>
+      <span className="bv103-type-label leading-none font-semibold uppercase tracking-wide !text-inherit">
         {MOMENT_SHORT_CODE[moment]}
       </span>
-    </span>
+    </>
   );
 }
 
@@ -105,40 +108,43 @@ export default function VSTOpportunityForm({
     return (
       <button
         type="button"
-        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2.5 text-left transition-colors hover:border-slate-400"
+        className="box-border flex h-14 w-full cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 text-left transition-colors hover:border-slate-400"
         onClick={() => openOpportunity(pIdx, oIdx)}
       >
-        <div className="min-w-0 flex-1 space-y-0.5">
-          <p className="truncate text-xs font-semibold tracking-wide text-slate-800" title={momentsLine}>
+        <div className="min-w-0 flex-1">
+          <p className="truncate bv103-type-label font-semibold tracking-wide text-slate-800 !text-slate-800" title={momentsLine}>
             {momentsLine || "—"}
           </p>
           {!hideOppRecordTime ? (
-            <p className={bv103PanelChrome.innerTableHead}>{formatTimeVi(opp.thoi_gian_ghi_nhan)}</p>
+            <p className="bv103-type-label mt-0.5 text-slate-400 !text-slate-400">
+              {formatTimeVi(opp.thoi_gian_ghi_nhan)}
+            </p>
           ) : null}
         </div>
         <span
-          className="bv103-type-label shrink-0 font-semibold uppercase tracking-wide text-slate-700 !text-slate-700"
+          className="bv103-type-label w-20 shrink-0 text-right font-semibold uppercase tracking-wide text-slate-700 !text-slate-700"
           title={opp.hanh_dong ? ACTION_DISPLAY_LABEL[opp.hanh_dong] : undefined}
         >
           {opp.hanh_dong ? ACTION_UI_LABEL[opp.hanh_dong] : ""}
         </span>
-        <span className="bv103-type-label shrink-0 font-medium text-slate-400 !text-slate-400">Sửa</span>
+        <span className="bv103-type-label w-8 shrink-0 text-right font-medium text-slate-400 !text-slate-400">
+          Sửa
+        </span>
       </button>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-md border border-slate-200 bg-white p-3 sm:p-4">
-      <section className="space-y-2">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <h3 className={C.sectionTitle}>Thời điểm</h3>
-          <p className="bv103-type-label text-slate-500 !text-slate-500">
-            {isVstMissedAction(opp.hanh_dong)
-              ? "Bỏ sót: tối đa 1"
-              : `Tuân thủ: tối đa ${momentCap}`}
+    <div className="flex flex-col gap-3 rounded border border-slate-200 bg-white p-3">
+      <section className="space-y-1.5">
+        <div className={SECTION_HEAD}>
+          <h3 className={`${C.sectionTitle} !m-0`}>Thời điểm</h3>
+          <p className="bv103-type-label shrink-0 text-slate-500 !text-slate-500">
+            {isVstMissedAction(opp.hanh_dong) ? "Tối đa 1" : `Tối đa ${momentCap}`}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {/* Luôn 5 cột bằng nhau — tránh hàng 2+1 lệch. */}
+        <div className={`grid grid-cols-5 ${GRID_GAP}`}>
           {MOMENTS.map((m) => {
             const active = opp.thoi_diems.includes(m);
             return (
@@ -149,7 +155,7 @@ export default function VSTOpportunityForm({
                 aria-label={MOMENT_UI_LABEL[m]}
                 aria-pressed={active}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
-                className={`${cellBase} ${active ? cellOn : cellIdle}`}
+                className={`${CELL} ${active ? CELL_ON : CELL_IDLE}`}
               >
                 <MomentCellLabel moment={m} />
               </button>
@@ -158,12 +164,16 @@ export default function VSTOpportunityForm({
         </div>
       </section>
 
-      <section className="space-y-2">
-        <h3 className={C.sectionTitle}>Hành động</h3>
-        <div className="grid grid-cols-3 gap-2">
+      <section className="space-y-1.5">
+        <div className={SECTION_HEAD}>
+          <h3 className={`${C.sectionTitle} !m-0`}>Hành động</h3>
+          <span className="bv103-type-label invisible select-none" aria-hidden>
+            —
+          </span>
+        </div>
+        <div className={`grid grid-cols-3 ${GRID_GAP}`}>
           {ACTIONS.map((a) => {
             const active = opp.hanh_dong === a;
-            const onClass = a === "Bỏ sót" ? cellMissOn : cellOn;
             return (
               <button
                 key={a}
@@ -171,7 +181,7 @@ export default function VSTOpportunityForm({
                 title={ACTION_DISPLAY_LABEL[a]}
                 aria-pressed={active}
                 onClick={() => updateAction(pIdx, oIdx, a)}
-                className={`${cellBase} min-h-[2.75rem] ${active ? onClass : cellIdle}`}
+                className={`${CELL} ${active ? (a === "Bỏ sót" ? CELL_MISS : CELL_ON) : CELL_IDLE}`}
               >
                 <span className="bv103-type-label font-semibold uppercase tracking-wide !text-inherit">
                   {ACTION_UI_LABEL[a]}
@@ -182,16 +192,19 @@ export default function VSTOpportunityForm({
         </div>
       </section>
 
-      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-2">
-        <h3 className={C.sectionTitle}>Đánh giá</h3>
+      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-1.5">
+        <div className={SECTION_HEAD}>
+          <h3 className={`${C.sectionTitle} !m-0`}>Đánh giá</h3>
+          <span className="bv103-type-label invisible select-none" aria-hidden>
+            —
+          </span>
+        </div>
         <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
       </section>
 
-      <div className="max-sm:sticky max-sm:bottom-0 max-sm:z-[1] max-sm:-mx-3 max-sm:border-t max-sm:border-slate-100 max-sm:bg-white max-sm:px-3 max-sm:pt-2">
-        <button type="button" onClick={() => submitOpportunity(pIdx, oIdx)} className={C.btnPrimaryBlock}>
-          Ghi nhận cơ hội
-        </button>
-      </div>
+      <button type="button" onClick={() => submitOpportunity(pIdx, oIdx)} className={`${C.btnPrimaryBlock} h-11`}>
+        Ghi nhận cơ hội
+      </button>
     </div>
   );
 }
