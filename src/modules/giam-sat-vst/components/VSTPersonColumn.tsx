@@ -142,11 +142,13 @@ export default function VSTPersonColumn({
   }, [person.nghe_nghiep_id, person.nhan_vien_id, person.ten_manual]);
 
   return (
-    <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm print:max-h-none print:overflow-visible">
-      <div className="shrink-0 border-b border-slate-100 bg-slate-50/60 px-4 py-3 print:border-b-0">
-        <p className="font-mono text-[11px] font-medium text-[var(--primary)]">Nhân viên {pIdx + 1}</p>
+    <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded border border-slate-200 bg-white print:max-h-none print:overflow-visible">
+      <div className="shrink-0 space-y-3 border-b border-slate-200 px-3 py-3 print:border-b-0">
+        <p className="bv103-type-label font-semibold uppercase tracking-wide text-slate-500 !text-slate-500">
+          Nhân viên {pIdx + 1}
+        </p>
 
-        <div className="mt-3 space-y-3">
+        <div className="space-y-3">
           <div className="space-y-1">
             <label className={C.labelField}>
               Nghề nghiệp <span className="text-rose-600">*</span>
@@ -173,10 +175,10 @@ export default function VSTPersonColumn({
 
           <div className="space-y-1">
             <label className={C.labelField}>Tên nhân viên</label>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-stretch">
               {person.is_manual ? (
                 <input
-                  className={`${C.controlInput} flex-1 text-xs`}
+                  className={`${C.controlInput} w-full`}
                   placeholder={requireKhoa ? "Chọn khoa trước…" : "Nhập họ tên…"}
                   value={person.ten_manual}
                   onChange={(e) => updatePerson(pIdx, "ten_manual", e.target.value)}
@@ -196,11 +198,11 @@ export default function VSTPersonColumn({
                     keywords: [String(ns.ho_ten || ""), String(ns.ma_nhan_vien || "")],
                   }))}
                   searchable={true}
-                  className="flex-1 min-w-0"
+                  className="min-w-0 w-full"
                 />
               )}
 
-              <label className={`flex min-h-[var(--bv103-control-h)] shrink-0 cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 transition-colors hover:border-slate-300 sm:min-w-[9.5rem]`}>
+              <label className="box-border flex h-[var(--bv103-control-h)] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:border-slate-400 sm:w-36">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs checkbox-primary rounded border-slate-300"
@@ -212,17 +214,21 @@ export default function VSTPersonColumn({
                     else updatePerson(pIdx, "ten_manual", "");
                   }}
                 />
-                <span className="uppercase tracking-wide">Ngoài danh mục</span>
+                <span className="uppercase tracking-wide">Ngoài DM</span>
               </label>
             </div>
-            {requireKhoa && <p className="text-[11px] font-medium text-amber-700">Chọn khoa trước để lọc danh sách nhân viên.</p>}
+            {requireKhoa ? (
+              <p className="bv103-type-label font-medium text-amber-700 !text-amber-700">
+                Chọn khoa trước để lọc danh sách nhân viên.
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
 
       <div
         ref={scrollContainerRef}
-        className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 print:max-h-none print:overflow-visible"
+        className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden overscroll-contain p-3 print:max-h-none print:overflow-visible"
         aria-label={`Danh sách cơ hội — nhân viên ${pIdx + 1}`}
       >
         {person.opportunities.map((opp: ExtendedOpportunity, oIdx: number) => (
