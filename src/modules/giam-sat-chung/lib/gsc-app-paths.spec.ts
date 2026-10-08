@@ -4,6 +4,7 @@ import {
   gscThongKeHref,
   parseGscLoaiParam,
   resolveGscLoaiFromPathname,
+  resolveGscNavLoai,
 } from "./gsc-app-paths";
 
 describe("gsc-app-paths GSC-5", () => {
@@ -19,12 +20,18 @@ describe("gsc-app-paths GSC-5", () => {
     expect(gscLichSuHref("NHAT_KY_VAN_HANH")).toBe("/lich-su/gsc?loai=NHAT_KY_VAN_HANH");
     expect(gscThongKeHref("DANH_GIA_HE_THONG")).toBe("/thong-ke/gsc?loai=DANH_GIA_HE_THONG");
     expect(gscThongKeHref("TUAN_THU")).toBe("/thong-ke/gsc");
-    expect(gscLichSuHref("TUAN_THU")).toBe("/lich-su/gsc");
+    expect(gscLichSuHref("TUAN_THU")).toBe("/lich-su/gsc?loai=TUAN_THU");
     expect(gscThongKeHref()).toBe("/thong-ke/gsc");
     expect(gscLichSuHref(undefined, "BM.07.03")).toBe("/lich-su/gsc?bk=BM.07.03");
     expect(gscLichSuHref("NHAT_KY_VAN_HANH", "BM.QĐ.08.01")).toBe(
       "/lich-su/gsc?loai=NHAT_KY_VAN_HANH&bk=BM.Q%C4%90.08.01",
     );
+  });
+
+  it("thống kê không query vẫn mở lịch sử tuân thủ", () => {
+    expect(resolveGscNavLoai("/thong-ke/gsc")).toBe("TUAN_THU");
+    expect(resolveGscNavLoai("/thong-ke/gsc", "NHAT_KY_VAN_HANH")).toBe("NHAT_KY_VAN_HANH");
+    expect(resolveGscNavLoai("/lich-su/gsc")).toBeUndefined();
   });
 
   it("parses loai query", () => {

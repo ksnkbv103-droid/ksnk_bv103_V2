@@ -6,6 +6,7 @@ import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
 import { parseGscResultsJsonb } from "../lib/gsc-results-jsonb";
 import { GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { assertGscHistoryAccess, gscSessionVisibleToActor } from "../lib/gsc-read-scope";
 import { parseGscBoSungNbFromUnknown } from "../lib/gsc-bo-sung-nguoi-benh";
 import { parseGscBangKiemSnapshot } from "../lib/gsc-bang-kiem-snapshot";
 
@@ -25,6 +26,8 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
+    const historyAccess = assertGscHistoryAccess(scope);
+    if (!historyAccess.ok) return { success: false as const, error: historyAccess.error };
     const id = String(sessionId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã phiên." };
 
@@ -40,13 +43,8 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
     if (sErr) throw sErr;
     if (!ses) return { success: false as const, error: "Không tìm thấy phiên." };
 
-    if (scope.isMangLuoiKsnk) {
-      const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
-      const sessionKhoa = ses.khoa_id ? String(ses.khoa_id) : null;
-      if (!myKhoa || !sessionKhoa || sessionKhoa !== myKhoa) {
-        // Không tiết lộ tồn tại phiên ngoài phạm vi khoa.
-        return { success: false as const, error: "Không tìm thấy phiên." };
-      }
+    if (!gscSessionVisibleToActor(scope, ses)) {
+      return { success: false as const, error: "Không tìm thấy phiên." };
     }
 
     // Ảnh chụp bổ sung NB nằm trong metadata fact (chưa lộ hết trên view).
