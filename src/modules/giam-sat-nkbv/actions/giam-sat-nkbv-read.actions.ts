@@ -7,6 +7,7 @@ import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fet
 import { filterAllowedNkbvLoaiRows } from "../lib/nkbv-loai-labels";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { NkbvListSortKey } from "@/lib/validations/nkbv-list-pagination";
 import { NKBV_LIST_SORT_KEYS, nkbvListPaginationSchema } from "@/lib/validations/nkbv-list-pagination";
 import { scanStayCrossCaseAlerts } from "../lib/nkbv-import-window-scan";
@@ -15,7 +16,6 @@ import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { countChuaPhanTich } from "../lib/nkbv-vi-sinh-analysis-status";
 import {
   CHUA_PT_BA_CHUNK,
-  CHUA_PT_VI_SINH_SCAN_CAP,
   chunkStrings,
   collectChuaPhanTichBaKeysFromScan,
   normalizeChuaPhanTichBaKeys,
@@ -235,39 +235,66 @@ export async function listNkbvMedicalRecords(params: {
     dataQ = dataQ.is("ngay_ra_vien", null);
   }
   if (params.devicePriorityOnly) {
-    const { data: devRows, error: devErr } = await supabase
-      .from("nkbv_fact_ba_ngay_dung_cu")
-      .select("ma_benh_an")
-      .limit(1500);
-    if (devErr) return { success: false as const, error: devErr.message, data: [], totalCount: 0 };
+    let devRows: { ma_benh_an?: string | null }[] = [];
+    try {
+      devRows = await fetchAllRangeRows((from, to) =>
+        supabase
+          .from("nkbv_fact_ba_ngay_dung_cu")
+          .select("ma_benh_an")
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Không đọc hết ngày dụng cụ.";
+      return { success: false as const, error: msg, data: [], totalCount: 0 };
+    }
     const priorityBas = Array.from(
-      new Set((devRows || []).map((r) => String(r.ma_benh_an || "").trim()).filter(Boolean)),
+      new Set(devRows.map((r) => String(r.ma_benh_an || "").trim()).filter(Boolean)),
     );
     if (!priorityBas.length) {
       return { success: true as const, data: [], totalCount: 0 };
     }
-    countQ = countQ.in("ma_benh_an", priorityBas);
-    dataQ = dataQ.in("ma_benh_an", priorityBas);
+    if (priorityBas.length <= CHUA_PT_BA_CHUNK) {
+      countQ = countQ.in("ma_benh_an", priorityBas);
+      dataQ = dataQ.in("ma_benh_an", priorityBas);
+    } else {
+      const chunks = chunkStrings(priorityBas, CHUA_PT_BA_CHUNK);
+      const orFilter = chunks.map((c) => `ma_benh_an.in.(${c.join(",")})`).join(",");
+      countQ = countQ.or(orFilter);
+      dataQ = dataQ.or(orFilter);
+    }
   }
   if (params.chuaPhanTichOnly) {
     const { data: rpcKeys, error: chuaErr } = await supabase.rpc("fn_nkbv_ba_keys_chua_phan_tich");
     let chuaBas = !chuaErr ? normalizeChuaPhanTichBaKeys(rpcKeys) : [];
     if (chuaErr) {
-      const { data: posRows, error: posErr } = await supabase
-        .from("nkbv_fact_vi_sinh")
-        .select("id, ma_benh_an, ket_qua_phan_loai, ket_qua_duong_tinh, tac_nhan, metadata")
-        .eq("is_active", true)
-        .limit(CHUA_PT_VI_SINH_SCAN_CAP);
-      if (posErr) return { success: false as const, error: posErr.message, data: [], totalCount: 0 };
-      const { data: caseRows } = await supabase
-        .from("nkbv_fact_su_kien")
-        .select("verification_data, is_active")
-        .eq("is_active", true)
-        .limit(CHUA_PT_VI_SINH_SCAN_CAP);
-      chuaBas = collectChuaPhanTichBaKeysFromScan({
-        viSinhRows: posRows || [],
-        caseRows: caseRows || [],
-      });
+      try {
+        const [posRows, caseRows] = await Promise.all([
+          fetchAllRangeRows((from, to) =>
+            supabase
+              .from("nkbv_fact_vi_sinh")
+              .select("id, ma_benh_an, ket_qua_phan_loai, ket_qua_duong_tinh, tac_nhan, metadata")
+              .eq("is_active", true)
+              .order("id", { ascending: true })
+              .range(from, to),
+          ),
+          fetchAllRangeRows((from, to) =>
+            supabase
+              .from("nkbv_fact_su_kien")
+              .select("verification_data, is_active")
+              .eq("is_active", true)
+              .order("id", { ascending: true })
+              .range(from, to),
+          ),
+        ]);
+        chuaBas = collectChuaPhanTichBaKeysFromScan({
+          viSinhRows: posRows,
+          caseRows,
+        });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Không đọc hết xét nghiệm chưa phân tích.";
+        return { success: false as const, error: msg, data: [], totalCount: 0 };
+      }
     }
     if (!chuaBas.length) {
       return { success: true as const, data: [], totalCount: 0 };
@@ -568,51 +595,76 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     if (!stayRow) return { success: false as const, error: "Không tìm thấy hồ sơ bệnh án" };
     stay = stayRow as HubRow;
 
-    const [lisRes, casesRes, deviceDaysRes, locationDaysRes, manualRes] = await Promise.all([
-      supabase
-        .from("nkbv_fact_vi_sinh")
-        .select(
-          "id, ma_xet_nghiem, loai_benh_pham, loai_benh_pham_chuan, ngay_lay_mau, tac_nhan, so_luong, ket_qua_phan_loai, ket_qua_duong_tinh, is_mdro, mdro_phenotype, metadata",
-        )
-        .eq("ma_benh_an", ma)
-        .eq("is_active", true)
-        .order("ngay_lay_mau", { ascending: true })
-        .limit(200),
-      supabase
-        .from("v_nkbv_su_kien_full")
-        .select(
-          "id, ma_ca, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, ngay_phat_hien, vi_tri_nhiem_khuan, verification_data, tac_nhan_vi_khuan",
-        )
-        .eq("ma_benh_an", ma)
-        .eq("is_active", true)
-        .order("ngay_phat_hien", { ascending: false })
-        .limit(100),
-      supabase
-        .from("nkbv_fact_ba_ngay_dung_cu")
-        .select("id, ngay_lich, loai_dung_cu")
-        .eq("ma_benh_an", ma)
-        .limit(800),
-      supabase
-        .from("nkbv_fact_ba_ngay_khoa")
-        .select("ngay_lich, khoa_id")
-        .eq("ma_benh_an", ma)
-        .limit(400),
-      supabase
-        .from("nkbv_fact_ba_timeline")
-        .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key")
-        .eq("ma_benh_an", ma)
-        .eq("is_active", true)
-        .order("milestone_date", { ascending: true })
-        .limit(200),
-    ]);
+    let lisRes: HubRow[] = [];
+    let casesRes: HubRow[] = [];
+    let deviceDaysRes: HubRow[] = [];
+    let locationDaysRes: HubRow[] = [];
+    let manualRes: HubRow[] = [];
+    try {
+      [lisRes, casesRes, deviceDaysRes, locationDaysRes, manualRes] = await Promise.all([
+        fetchAllRangeRows<HubRow>((from, to) =>
+          supabase
+            .from("nkbv_fact_vi_sinh")
+            .select(
+              "id, ma_xet_nghiem, loai_benh_pham, loai_benh_pham_chuan, ngay_lay_mau, tac_nhan, so_luong, ket_qua_phan_loai, ket_qua_duong_tinh, is_mdro, mdro_phenotype, metadata",
+            )
+            .eq("ma_benh_an", ma)
+            .eq("is_active", true)
+            .order("ngay_lay_mau", { ascending: true })
+            .order("id", { ascending: true })
+            .range(from, to),
+        ),
+        fetchAllRangeRows<HubRow>((from, to) =>
+          supabase
+            .from("v_nkbv_su_kien_full")
+            .select(
+              "id, ma_ca, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, ngay_phat_hien, vi_tri_nhiem_khuan, verification_data, tac_nhan_vi_khuan",
+            )
+            .eq("ma_benh_an", ma)
+            .eq("is_active", true)
+            .order("ngay_phat_hien", { ascending: false })
+            .order("id", { ascending: true })
+            .range(from, to),
+        ),
+        fetchAllRangeRows<HubRow>((from, to) =>
+          supabase
+            .from("nkbv_fact_ba_ngay_dung_cu")
+            .select("id, ngay_lich, loai_dung_cu")
+            .eq("ma_benh_an", ma)
+            .order("ngay_lich", { ascending: true })
+            .order("id", { ascending: true })
+            .range(from, to),
+        ),
+        fetchAllRangeRows<HubRow>((from, to) =>
+          supabase
+            .from("nkbv_fact_ba_ngay_khoa")
+            .select("ngay_lich, khoa_id")
+            .eq("ma_benh_an", ma)
+            .order("ngay_lich", { ascending: true })
+            .order("id", { ascending: true })
+            .range(from, to),
+        ),
+        fetchAllRangeRows<HubRow>((from, to) =>
+          supabase
+            .from("nkbv_fact_ba_timeline")
+            .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key")
+            .eq("ma_benh_an", ma)
+            .eq("is_active", true)
+            .order("milestone_date", { ascending: true })
+            .order("id", { ascending: true })
+            .range(from, to),
+        ),
+      ]);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Không đọc hết hồ sơ bệnh án.";
+      return { success: false as const, error: msg };
+    }
 
-    if (lisRes.error) return { success: false as const, error: lisRes.error.message };
-    if (casesRes.error) return { success: false as const, error: casesRes.error.message };
-    lisRaw = (lisRes.data || []) as HubRow[];
-    casesRaw = (casesRes.data || []) as HubRow[];
-    deviceDaysRaw = (deviceDaysRes.error ? [] : deviceDaysRes.data || []) as HubRow[];
-    locationDaysRaw = (locationDaysRes.error ? [] : locationDaysRes.data || []) as HubRow[];
-    manualRaw = (manualRes.error ? [] : manualRes.data || []) as HubRow[];
+    lisRaw = lisRes;
+    casesRaw = casesRes;
+    deviceDaysRaw = deviceDaysRes;
+    locationDaysRaw = locationDaysRes;
+    manualRaw = manualRes;
     devicesRaw = [];
   }
 

@@ -5,7 +5,6 @@
 
 import { countChuaPhanTich } from "./nkbv-vi-sinh-analysis-status";
 
-export const CHUA_PT_VI_SINH_SCAN_CAP = 1500 as const;
 /** Chunk size if caller still pages BA keys into PostgREST `.in`. */
 export const CHUA_PT_BA_CHUNK = 80 as const;
 
