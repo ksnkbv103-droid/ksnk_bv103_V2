@@ -65,3 +65,22 @@ export function requiresNhaImplantRight(input: {
   if (input.outcome === "HOAN_THANH" && (input.coImplant || input.biBatBuoc)) return true;
   return false;
 }
+
+/**
+ * Nút «Nhả mẻ» trên phiếu QC. BI chưa đọc + BI bắt buộc → CHO_BI (cần quyền).
+ * Không đạt không đi qua đây.
+ */
+export function meQcPassNeedsNhaImplant(input: {
+  coImplant?: boolean | null;
+  biBatBuoc?: boolean | null;
+  trangThaiBi?: string | null;
+}): boolean {
+  const bi = String(input.trangThaiBi || "").trim().toUpperCase();
+  const chuaDoc = !bi || bi === "CHUA_CO" || bi === "DANG_U";
+  const outcome = input.biBatBuoc && chuaDoc ? "CHO_BI" : "HOAN_THANH";
+  return requiresNhaImplantRight({
+    coImplant: input.coImplant,
+    biBatBuoc: input.biBatBuoc,
+    outcome,
+  });
+}
