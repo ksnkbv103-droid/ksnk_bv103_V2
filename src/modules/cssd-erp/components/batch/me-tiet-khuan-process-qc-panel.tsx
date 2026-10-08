@@ -5,6 +5,7 @@ import { Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
+import { meQcPassNeedsNhaImplant } from "../../lib/me-tiet-khuan-ab-gates";
 import { CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL } from "../../shared/ui/cssd-ui-chrome";
 
 type Tri = "DAT" | "KHONG_DAT" | "";
@@ -210,6 +211,7 @@ export default function MeTietKhuanProcessQcPanel({
   batchId,
   onFinish,
   onSubmitBi,
+  canNhaImplant = false,
 }: {
   showForm: boolean;
   method: SterilizerMethod | null;
@@ -249,6 +251,8 @@ export default function MeTietKhuanProcessQcPanel({
   setSoLoBi: (v: string) => void;
   batchId: string;
   onFinish: (isPass: boolean) => void;
+  /** ME-04: nhả implant / ghi BI. Thiếu quyền thì ẩn nút, server vẫn chặn. */
+  canNhaImplant?: boolean;
   onSubmitBi?: (
     ketQua: "AM" | "DUONG",
     biBm02: {
@@ -297,22 +301,28 @@ export default function MeTietKhuanProcessQcPanel({
           soLoBi={soLoBi}
           setSoLoBi={setSoLoBi}
         />
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="h-11 rounded-xl bg-emerald-700 px-4 text-xs font-semibold text-white"
-            onClick={() => onSubmitBi?.("AM", bm02Payload())}
-          >
-            {biTuanSauNha ? "Ghi BI âm" : "Nhả mẻ (BI âm)"}
-          </button>
-          <button
-            type="button"
-            className="h-11 rounded-xl border border-red-300 bg-white px-4 text-xs font-semibold text-red-700"
-            onClick={() => onSubmitBi?.("DUONG", bm02Payload())}
-          >
-            BI dương
-          </button>
-        </div>
+        {canNhaImplant ? (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="h-11 rounded-xl bg-emerald-700 px-4 text-xs font-semibold text-white"
+              onClick={() => onSubmitBi?.("AM", bm02Payload())}
+            >
+              {biTuanSauNha ? "Ghi BI âm" : "Nhả mẻ (BI âm)"}
+            </button>
+            <button
+              type="button"
+              className="h-11 rounded-xl border border-red-300 bg-white px-4 text-xs font-semibold text-red-700"
+              onClick={() => onSubmitBi?.("DUONG", bm02Payload())}
+            >
+              BI dương
+            </button>
+          </div>
+        ) : (
+          <p className="text-[11px] font-medium text-violet-900">
+            Ghi BI và nhả mẻ cần quyền nhả implant (tổ trưởng).
+          </p>
+        )}
       </div>
     );
   }
@@ -320,6 +330,7 @@ export default function MeTietKhuanProcessQcPanel({
   if (!showForm) return null;
 
   const biBatBuoc = coImplant || method === "PLASMA_H2O2" || method === "EO";
+  const blockPass = !canNhaImplant && meQcPassNeedsNhaImplant({ coImplant, biBatBuoc, trangThaiBi });
   const needsBm02 = trangThaiBi === "AM" || trangThaiBi === "DUONG";
   const anyFail =
     thongSoVatLy === "KHONG_DAT" || ciNgoaiGoi === "KHONG_DAT" || ciPcd === "KHONG_DAT" || trangThaiBi === "DUONG";
@@ -444,11 +455,19 @@ export default function MeTietKhuanProcessQcPanel({
                 setSoLoBi={setSoLoBi}
               />
             ) : null}
+            {blockPass ? (
+              <p className="text-[11px] font-medium text-violet-800">
+                Nhả mẻ implant hoặc chờ BI cần quyền nhả implant (tổ trưởng). Kết luận không đạt vẫn dùng được.
+              </p>
+            ) : null}
             <div className="flex gap-2 pb-2">
               <button
                 type="button"
-                className={`h-11 flex-1 rounded-xl text-xs font-semibold text-white ${anyFail ? "bg-slate-300" : "bg-emerald-700"}`}
-                onClick={() => handleFinish(true)}
+                disabled={blockPass}
+                className={`h-11 flex-1 rounded-xl text-xs font-semibold text-white ${anyFail || blockPass ? "bg-slate-300" : "bg-emerald-700"}`}
+                onClick={() => {
+                  if (!blockPass) handleFinish(true);
+                }}
               >
                 Nhả mẻ
               </button>

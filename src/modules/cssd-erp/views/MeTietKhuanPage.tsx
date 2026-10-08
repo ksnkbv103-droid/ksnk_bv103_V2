@@ -11,12 +11,15 @@ import MeTietKhuanProcessStep from "../components/batch/me-tiet-khuan-process-st
 import { buildMeTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
+import { usePermission } from "@/hooks/usePermission";
 import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import { MeTietKhuanConfirmDialog } from "../components/batch/me-tiet-khuan-slip-stepper";
 
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
+  const { can } = usePermission();
+  const canNhaImplant = can("CSSD_ME_TIET_KHUAN", "nha_implant");
   const [isBatchRecallOpen, setIsBatchRecallOpen] = React.useState(false);
   const confirmDialog = (
     <MeTietKhuanConfirmDialog
@@ -129,6 +132,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         isPrintBusy={w.isCssdPrinting}
         onReportIncident={() => setIsBatchRecallOpen(true)}
         suppressShell={suppressShell}
+        canNhaImplant={canNhaImplant}
       />
       {printPortal}
       {confirmDialog}

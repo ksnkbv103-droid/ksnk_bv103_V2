@@ -70,6 +70,7 @@ export default function MeTietKhuanProcessStep({
   isPrintBusy,
   onReportIncident,
   suppressShell = false,
+  canNhaImplant = false,
 }: {
   activeMe: MeRow | null;
   batchGate: MeRow | null;
@@ -125,6 +126,7 @@ export default function MeTietKhuanProcessStep({
   isPrintBusy?: boolean;
   onReportIncident?: () => void;
   suppressShell?: boolean;
+  canNhaImplant?: boolean;
 }) {
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
   const qcOpen = Boolean(batchGate?.tk_mo_form_qc_at);
@@ -369,6 +371,7 @@ export default function MeTietKhuanProcessStep({
             batchId={activeMe?.id || ""}
             onFinish={(isPass) => void onFinishQc(isPass)}
             onSubmitBi={(ketQua, biBm02) => void onSubmitBi(ketQua, biBm02)}
+            canNhaImplant={canNhaImplant}
           />
         ) : null}
       </div>
