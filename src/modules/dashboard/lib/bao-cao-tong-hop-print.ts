@@ -26,6 +26,7 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
 import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 import { bcthModuleComplianceTone } from "./bao-cao-tong-hop-thresholds";
+import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -103,6 +104,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     if (tone === "red") return "text-danger";
     return "";
   };
+
+  const cssdAnalyticsHref = cssdReportAnalyticsHref({
+    tab: "volume",
+    from: p.tuNgay,
+    to: p.denNgay,
+  });
 
   const dieuHanhSection = `
     <h2>ĐIỀU HÀNH TỔNG HỢP — Tuân thủ quy trình</h2>

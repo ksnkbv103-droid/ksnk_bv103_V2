@@ -12,8 +12,8 @@
 | 2 | **Bộ dụng cụ** | BO_DC (hard-write master = **ADMIN**; `BO_DC.edit` = duyệt phiếu) | `ma_bo` = `KHOA.SET.NN` (tem QR) |
 | 3 | **Thành phần bộ** | DC_LE (trong bộ; **1 bộ × 1 loại** unique active — D6) | `ma_chi_tiet` (DC-*) |
 | 4 | In tem / workflow | CSSD_* | Quét `ma_bo` |
-| 5 | Biến động dụng cụ | `/cssd-su-co` (nhóm Dụng cụ) | **3 cửa (D2):** **Đổi danh mục** (`SET_RECONCILE` / BOM_PENDING → ADMIN; không ghi sổ) · **Hỏng/Mất** (ghi sổ ngay) · **Chuyển** (`MOVE` / `InstrumentMoveDualTable`: kho↔bộ / bộ↔bộ; chỉ cửa này có `BO_SUNG`/`TRA_KHO`/`DIEU_CHUYEN` — D3). Không gọi mọi biến động là «sự cố» (D1). |
-| 6 | Xem danh mục | `/cssd-dung-cu` | Read-only: thành phần dưới bộ đã chọn; rà soát khi lệch (deep-link cửa Đổi danh mục). Xuất phiếu kiểm kê trên thanh tìm. |
+| 5 | Biến động dụng cụ | `/cssd-su-co` (Hỏng/Mất · Chuyển) | **Hỏng/Mất** ghi sổ ngay · **Chuyển** (`MOVE`: kho↔bộ / bộ↔bộ; chỉ cửa này có `BO_SUNG`/`TRA_KHO`/`DIEU_CHUYEN` — D3). Đổi danh mục master: `/cssd-dung-cu?tab=DE_NGHI`. Không gọi mọi biến động là «sự cố» (D1). |
+| 6 | Xem danh mục | `/cssd-dung-cu` | Read-only: thành phần dưới bộ đã chọn. Đề nghị sửa danh mục: `?tab=DE_NGHI`. Xuất phiếu kiểm kê trên thanh tìm. |
 
 ## Vào app
 
