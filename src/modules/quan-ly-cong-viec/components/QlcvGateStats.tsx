@@ -101,7 +101,7 @@ export function QlcvGateStats({
     <div className="flex min-w-0 flex-col gap-1.5">
     <div
       className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-50/80 px-2.5 py-1.5 text-[11px] text-slate-700"
-      title="Số việc mở · % hoàn thành · % quá hạn trong việc đang mở"
+      title="Số việc, % hoàn thành và % quá hạn tính trên bảng đang xem. Chip đếm bên dưới là toàn viện."
     >
       <span>
         <span className="font-medium text-slate-500">Số việc</span>{" "}
@@ -109,19 +109,20 @@ export function QlcvGateStats({
       </span>
       <span className="text-slate-300">·</span>
       <span>
-        <span className="font-medium text-slate-500">% hoàn thành</span>{" "}
+        <span className="font-medium text-slate-500">% hoàn thành (bảng đang xem)</span>{" "}
         <strong className="tabular-nums text-emerald-700">
           {mvp.pctHoanThanh == null ? "—" : `${mvp.pctHoanThanh}%`}
         </strong>
       </span>
       <span className="text-slate-300">·</span>
       <span>
-        <span className="font-medium text-slate-500">% quá hạn</span>{" "}
+        <span className="font-medium text-slate-500">% quá hạn (bảng đang xem)</span>{" "}
         <strong className="tabular-nums text-red-700">
           {mvp.pctQuaHan == null ? "—" : `${mvp.pctQuaHan}%`}
         </strong>
       </span>
     </div>
+    <p className="bv103-type-label text-[11px] font-medium text-slate-500">Chip đếm: toàn viện</p>
     <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
       {actorStaffId
         ? chip(
