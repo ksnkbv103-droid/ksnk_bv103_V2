@@ -2,6 +2,7 @@
 
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { BloomLevel, DaoTaoQuestionLoai, DapAnDung } from "@/lib/dao-tao/types";
 import {
   buildPhuongAnWithStableIds,
@@ -128,34 +129,40 @@ export async function listCauHoiDaoTao(filters?: {
 export async function getBankStats() {
   await verifyPermission("DAO_TAO", "view");
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .from("dao_tao_cau_hoi")
-    .select("loai")
-    .eq("is_active", true);
-  if (error) throw error;
+  const rows = await fetchAllRangeRows<{ loai: string }>((from, to) => {
+    const q = admin
+      .from("dao_tao_cau_hoi")
+      .select("loai")
+      .eq("is_active", true)
+      .order("id", { ascending: true })
+      .range(from, to);
+    return q;
+  });
   const byLoai: Record<string, number> = {};
-  for (const row of data ?? []) {
+  for (const row of rows) {
     byLoai[row.loai] = (byLoai[row.loai] ?? 0) + 1;
   }
-  return { total: data?.length ?? 0, byLoai };
+  return { total: rows.length, byLoai };
 }
 
 export async function getDaoTaoBankForExport(includeInactive = true): Promise<ExportBankRow[]> {
   await verifyPermission("DAO_TAO", "view");
   const admin = createAdminSupabaseClient();
-  let q = admin
-    .from("dao_tao_cau_hoi")
-    .select(
-      "ma_cau, chu_de_ma, chu_de_ten, import_stt, loai, stem, giai_thich, is_active, bloom_level, phuong_an, dap_an_dung",
-    )
-    .order("import_stt", { ascending: true, nullsFirst: false })
-    .limit(5000);
-  if (!includeInactive) q = q.eq("is_active", true);
-  const { data, error } = await q;
-  if (error) throw error;
+  const data = await fetchAllRangeRows<Omit<DbCauHoi, "id">>((from, to) => {
+    let q = admin
+      .from("dao_tao_cau_hoi")
+      .select(
+        "ma_cau, chu_de_ma, chu_de_ten, import_stt, loai, stem, giai_thich, is_active, bloom_level, phuong_an, dap_an_dung",
+      )
+      .order("import_stt", { ascending: true, nullsFirst: false })
+      .order("id", { ascending: true })
+      .range(from, to);
+    if (!includeInactive) q = q.eq("is_active", true);
+    return q;
+  });
 
   const out: ExportBankRow[] = [];
-  for (const row of data ?? []) {
+  for (const row of data) {
     const opts = ((row.phuong_an ?? []) as PhuongAnJson[])
       .slice()
       .sort((a, b) => a.thu_tu_goc - b.thu_tu_goc);
