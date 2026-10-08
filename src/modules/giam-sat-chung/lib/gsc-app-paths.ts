@@ -82,9 +82,21 @@ export function gscThongKeHref(loai?: GscLoaiGiamSatRoute | null): string {
   return "/thong-ke/gsc";
 }
 
+/** Thống kê GSC không có `?loai=` là tuân thủ — nav Lịch sử phải mang cùng loại. */
+export function resolveGscNavLoai(
+  pathname: string,
+  loaiFromQuery?: GscLoaiGiamSatRoute,
+): GscLoaiGiamSatRoute | undefined {
+  return (
+    resolveGscLoaiFromPathname(pathname) ??
+    loaiFromQuery ??
+    (pathname === "/thong-ke/gsc" || pathname.startsWith("/thong-ke/gsc/") ? "TUAN_THU" : undefined)
+  );
+}
+
 export function gscLichSuHref(loai?: GscLoaiGiamSatRoute | null, maBk?: string | null): string {
   const params = new URLSearchParams();
-  if (loai === "NHAT_KY_VAN_HANH" || loai === "DANH_GIA_HE_THONG") {
+  if (loai) {
     params.set("loai", loai);
   }
   const bk = String(maBk || "").trim();

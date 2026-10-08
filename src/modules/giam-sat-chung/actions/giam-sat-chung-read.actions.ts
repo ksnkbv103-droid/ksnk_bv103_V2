@@ -14,6 +14,11 @@ import {
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import {
+  applyGscHistoryReadScope,
+  applyGscLoaiFilter,
+  assertGscHistoryAccess,
+} from "../lib/gsc-read-scope";
 import { resolveBangKiemMaCandidates } from "@/lib/domain/ve-sinh-tay-catalog";
 
 function getErrorMessage(error: unknown): string {
@@ -43,6 +48,8 @@ export async function getGiamSatChungHistoryPaginated(params: {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
+    const historyAccess = assertGscHistoryAccess(scope);
+    if (!historyAccess.ok) return { success: false as const, error: historyAccess.error };
 
     const supabase = createAdminSupabaseClient();
 
@@ -94,18 +101,9 @@ export async function getGiamSatChungHistoryPaginated(params: {
       .from("v_gstt_giam_sat_chung_sessions_full")
       .select("id", { count: "exact", head: true })
       .eq("is_active", true);
-    if (scope.isMangLuoiKsnk) {
-      if (!scope.actorKhoaId) return { success: true as const, data: [], totalCount: 0, page, pageSize: size };
-      countQ = countQ.eq("khoa_id", scope.actorKhoaId);
-    }
+    countQ = applyGscHistoryReadScope(countQ, scope);
     if (params.loaiBangKiem) countQ = countQ.eq("loai_bang_kiem", params.loaiBangKiem);
-    if (params.loaiGiamSat) {
-      if (params.loaiGiamSat === "TUAN_THU") {
-        countQ = countQ.or("loai_giam_sat.is.null,loai_giam_sat.eq.TUAN_THU");
-      } else {
-        countQ = countQ.eq("loai_giam_sat", params.loaiGiamSat);
-      }
-    }
+    countQ = applyGscLoaiFilter(countQ, params.loaiGiamSat);
     if (bangKiemIds) countQ = countQ.in("bang_kiem_id", bangKiemIds);
     if (searchFilter) countQ = countQ.or(searchFilter);
     const { count, error: cErr } = await countQ;
@@ -118,18 +116,9 @@ export async function getGiamSatChungHistoryPaginated(params: {
       .eq("is_active", true)
       .order(sortCol, { ascending })
       .range(from, to);
-    if (scope.isMangLuoiKsnk) {
-      if (!scope.actorKhoaId) return { success: true as const, data: [], totalCount: 0, page, pageSize: size };
-      dataQ = dataQ.eq("khoa_id", scope.actorKhoaId);
-    }
+    dataQ = applyGscHistoryReadScope(dataQ, scope);
     if (params.loaiBangKiem) dataQ = dataQ.eq("loai_bang_kiem", params.loaiBangKiem);
-    if (params.loaiGiamSat) {
-      if (params.loaiGiamSat === "TUAN_THU") {
-        dataQ = dataQ.or("loai_giam_sat.is.null,loai_giam_sat.eq.TUAN_THU");
-      } else {
-        dataQ = dataQ.eq("loai_giam_sat", params.loaiGiamSat);
-      }
-    }
+    dataQ = applyGscLoaiFilter(dataQ, params.loaiGiamSat);
     if (bangKiemIds) dataQ = dataQ.in("bang_kiem_id", bangKiemIds);
     if (searchFilter) dataQ = dataQ.or(searchFilter);
     const { data: sessions, error } = await dataQ;

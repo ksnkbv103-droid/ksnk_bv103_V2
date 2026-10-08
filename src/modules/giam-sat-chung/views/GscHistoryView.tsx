@@ -66,7 +66,7 @@ export default function GscHistoryView({ loaiGiamSat }: GscHistoryViewProps) {
             fileBase="GSC_phien"
             sheetName="GSC"
             loadRows={async (range) => {
-              const res = await exportGscSessionsRaw(range);
+              const res = await exportGscSessionsRaw({ ...range, loaiGiamSat: resolvedLoai });
               if (!res.success) return res;
               return { success: true, rows: res.rows as unknown as Record<string, unknown>[] };
             }}

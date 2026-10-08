@@ -7,6 +7,12 @@ import { GSC_SESSIONS_FULL_LIST_SELECT } from "../lib/gsc-read-view-select";
 import { mapGscSessionToExportRow, type GscExportRow } from "../lib/gsc-export-map";
 import { mergeGscHistoryRowsWithSessionMetadata } from "../lib/gsc-read-utils";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
+import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import {
+  applyGscHistoryReadScope,
+  applyGscLoaiFilter,
+  assertGscHistoryAccess,
+} from "../lib/gsc-read-scope";
 
 export type { GscExportRow };
 
@@ -17,16 +23,14 @@ export type { GscExportRow };
 export async function exportGscSessionsRaw(params: {
   tu_ngay: string;
   den_ngay: string;
+  loaiGiamSat?: GscLoaiGiamSatRoute;
 }): Promise<{ success: true; rows: GscExportRow[] } | { success: false; error: string }> {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
+    const historyAccess = assertGscHistoryAccess(scope);
+    if (!historyAccess.ok) return { success: false, error: historyAccess.error };
     const supabase = createAdminSupabaseClient();
-    const scopeKhoa =
-      scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk ? scope.actorKhoaId : null;
-    if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk && !scopeKhoa) {
-      return { success: true, rows: [] };
-    }
 
     const listRows = await fetchAllRangeRows<Record<string, unknown>>((from, to) => {
       let q = supabase
@@ -35,7 +39,8 @@ export async function exportGscSessionsRaw(params: {
         .eq("is_active", true)
         .gte("ngay_giam_sat", params.tu_ngay)
         .lte("ngay_giam_sat", params.den_ngay);
-      if (scopeKhoa) q = q.eq("khoa_id", scopeKhoa);
+      q = applyGscHistoryReadScope(q, scope);
+      q = applyGscLoaiFilter(q, params.loaiGiamSat);
       return q.order("ngay_giam_sat", { ascending: false }).order("id", { ascending: true }).range(from, to);
     });
     const ids = listRows.map((r) => String(r.id ?? "").trim()).filter(Boolean);
