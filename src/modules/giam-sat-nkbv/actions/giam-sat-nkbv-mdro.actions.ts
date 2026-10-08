@@ -2,6 +2,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import {
   buildGscMdroDeepLink,
   GSC_BK_ISOLATION,
@@ -88,13 +89,26 @@ export async function listMdroInpatientsByKhoa(params: {
   since.setDate(since.getDate() - 30);
   const sinceIso = since.toISOString().slice(0, 10);
 
-  const { data: sessions } = await supabase
-    .from("v_gstt_giam_sat_chung_sessions_full")
-    .select("ma_benh_an, ma_nguoi_benh, loai_bang_kiem, ngay_giam_sat")
-    .eq("is_active", true)
-    .gte("ngay_giam_sat", sinceIso)
-    .in("loai_bang_kiem", [GSC_BK_MDRO, GSC_BK_ISOLATION])
-    .limit(2000);
+  let sessions: {
+    ma_benh_an?: string | null;
+    ma_nguoi_benh?: string | null;
+    loai_bang_kiem?: string | null;
+  }[] = [];
+  try {
+    sessions = await fetchAllRangeRows((from, to) =>
+      supabase
+        .from("v_gstt_giam_sat_chung_sessions_full")
+        .select("ma_benh_an, ma_nguoi_benh, loai_bang_kiem")
+        .eq("is_active", true)
+        .gte("ngay_giam_sat", sinceIso)
+        .in("loai_bang_kiem", [GSC_BK_MDRO, GSC_BK_ISOLATION])
+        .order("id", { ascending: true })
+        .range(from, to),
+    );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Không đọc hết phiên giám sát MDRO.";
+    return { success: false as const, error: msg, data: [] as MdroInpatientRow[] };
+  }
 
   const hasBk = (ba: string, pid: string, bk: string) =>
     (sessions || []).some((s) => {

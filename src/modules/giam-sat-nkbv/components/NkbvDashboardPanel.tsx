@@ -123,14 +123,14 @@ export default function NkbvDashboardPanel({
         <p className="w-full pb-1 text-[11px] text-slate-500">
           Đang lọc: <span className="font-semibold text-slate-700">{khoaLabel}</span>
           {" · "}
-          Mặc định 12 tháng lịch gần nhất. Chỉ tính phiếu có ngày phát hiện trong khoảng.
+          Mặc định 12 tháng lịch gần nhất. Số theo ngày báo cáo (DOE; SSI theo ngày mổ), không theo ngày phát hiện.
         </p>
       </div>
       ) : (
         <p className="text-[11px] text-slate-500">
           Đang lọc: <span className="font-semibold text-slate-700">{khoaLabel}</span>
           {" · "}
-          {tuNgay} → {denNgay}. Chỉ tính phiếu có ngày phát hiện trong khoảng.
+          {tuNgay} → {denNgay}. Số theo ngày báo cáo (DOE; SSI theo ngày mổ), không theo ngày phát hiện.
         </p>
       )}
 
