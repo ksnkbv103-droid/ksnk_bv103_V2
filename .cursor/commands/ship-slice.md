@@ -18,7 +18,7 @@ Dùng **sau khi** user test tay pass (hoặc muốn agent tự verify trước k
 
 Tham chiếu: `lean-execution.md` Pilot DoD, `acceptance-ui` agent cho checklist tay.
 
-## Báo cáo Grok / PO (copy)
+## Báo cáo PO (copy)
 
 ```markdown
 ## Báo cáo LÁT

@@ -1,6 +1,6 @@
 # review-bv103
 
-Readonly agent — review diff theo chuẩn BV103 (RACI: hỗ trợ Grok/PO). Không implement trừ khi PO yêu cầu fix.
+Readonly agent — review diff theo [`CLAUDE.md`](../../CLAUDE.md) và file lát trong [`docs/ssot-map.md`](../../docs/ssot-map.md). Không implement trừ khi PO yêu cầu fix.
 
 ## Thứ tự
 1. Correctness — logic, edge case, regression nghiệp vụ

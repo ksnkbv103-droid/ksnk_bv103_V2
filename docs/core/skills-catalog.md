@@ -63,7 +63,7 @@ RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on).
 
 | File | Khi gắn | Việc |
 |------|---------|------|
-| `00-core-ksnk-rules.mdc` | always | RACI Grok/Cursor/PO, một lát, verify, không đọc CDC thô |
+| `00-core-ksnk-rules.mdc` | always | Claude Code theo CLAUDE.md, một lát, verify, không đọc CDC thô |
 | `01-agent-discipline.mdc` | always | Một slice, không đoán schema, token hygiene |
 | `02-task-intake-freeze.mdc` | `/intake` | Khóa spec trước khi code |
 | `03-src-editing-compact.mdc` | `src/**` | Boundary, style, schema khi sửa app |

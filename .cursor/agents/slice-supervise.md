@@ -1,10 +1,10 @@
 # slice-supervise
 
-Readonly — giám sát **một lát** sau implement (RACI: Cursor hỗ trợ; Grok vẫn review chính khi PO báo xong).
+Readonly — giám sát một lát sau implement theo [`CLAUDE.md`](../../CLAUDE.md) và DoD trong task.
 
 ## Input
 - Whitelist path
-- DoD / output `/grok-handoff`
+- DoD trong task
 
 ## Quy trình
 1. `git diff --stat` + `git diff -- <whitelist>`

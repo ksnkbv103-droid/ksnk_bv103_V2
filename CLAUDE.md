@@ -22,7 +22,7 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 ## Không
 
 - Một lát. Diff tối thiểu. Không đoán schema — đọc migration hoặc DB trước khi đặt tên bảng, cột, RPC
-- Không migrate prod. Local: `npm run mdm:migrate:local`. Commit, push, PR, deploy Vercel chỉ khi PO ra lệnh trong task này
+- Không migrate prod. Local: `npm run mdm:migrate:local`. Commit, push, PR chỉ khi PO ra lệnh trong task này. Deploy Vercel chỉ khi anh nói «deploy»
 - Không viết bản tài liệu thứ hai; không chép thân rule/skill vào docs. `docs/core` giữ 17 file
 - Không viết lại engine lâm sàng. Lệch KPI thì sửa hàm KPI. Không nhận «chính xác tuyệt đối»
 
@@ -30,13 +30,13 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 
 Đã trên `main`: form VST #94–#97, KPI #98, vòng domain #101, cửa docs #99/#103. Prod Vercel từng chạy commit cũ — không tự deploy.
 
-Còn PO: UAT tay form VST (≤2 / =1, chữ ô chọn). Xác nhận giữ xóa mềm phiên.
+Còn PO: UAT tay form VST (≤2 / =1, chữ ô chọn). Xác nhận giữ xóa mềm phiên. Deploy chỉ khi anh nói «deploy».
 
 ## Việc khác
 
 Skill (`.claude/skills`) và subagent (`.claude/agents`) chỉ là mô tả ngắn. Khi khớp, đọc đúng một thân: `.cursor/rules/`, `.agents/skills/`, hoặc `.cursor/agents/`. Luật 00, 01, 05 đã tóm ở trên — không đọc lại cả file. Lệnh: thân một bản ở `.cursor/commands/`.
 
-Không mở: `docs/data/`, `docs/archive/`, `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`.
+Không mở: `docs/data/`, `docs/archive/`, `_agent-*.md`, transcript, CDC/NHSN thô, `node_modules/`, `.next/`.
 
 | Việc vừa làm | Lệnh |
 |--------------|------|
