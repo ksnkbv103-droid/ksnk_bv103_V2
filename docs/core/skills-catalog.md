@@ -1,6 +1,6 @@
 # Skills catalog — BV103
 
-> Mục lục Cursor trong repo: skill, agent, rule, lệnh. **Thân lệnh giữ ở** `.agents/skills/`, `.cursor/agents/`, `.cursor/rules/`, `.cursor/commands/` — file này không chép lại nội dung.  
+> **Bản đang dùng** (đối chiếu file trên đĩa, 2026-10-09). Cursor chỉ load `.cursor/rules/`, `.cursor/agents/`, `.cursor/commands/`, `.agents/skills/`. File này là mục lục chuẩn cho người và agent — không chép thân lệnh, để khỏi có hai bản lệch nhau.  
 > Allowlist skill. **Không** cài full marketplace — thêm từng skill rồi `npm run skills:lock`.  
 > Mặc định **manual @mention** — tránh load descriptor mỗi turn.  
 > Lộ trình rà soát đang theo: [`handover-roadmap.md`](handover-roadmap.md) §5.
@@ -38,7 +38,9 @@ Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 | `db-verify` | Đối chiếu migration ↔ mapping | readonly |
 | `slice-supervise` | Giám sát diff lát vs DoD | readonly |
 
-## User-level (optional, không lock)
+## User-level (không có trong repo)
+
+Các skill dưới đây không nằm trong `.agents/skills/` và không được `skills-lock` khóa. Không coi là bản đang chạy của BV103.
 
 | Skill | Khi dùng | Invoke |
 |-------|----------|--------|
@@ -66,6 +68,7 @@ RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on).
 | `02-task-intake-freeze.mdc` | `/intake` | Khóa spec trước khi code |
 | `03-src-editing-compact.mdc` | `src/**` | Boundary, style, schema khi sửa app |
 | `04-po-workflow.mdc` | `/intake-nv` | PO không rành code — không always-on |
+| `05-domain-auto-slice.mdc` | always | Rà/sửa: SSOT đã chốt thì tự chọn, một lát |
 | `12-cssd-erp-spec-context.mdc` | `cssd-erp`, `cssd-su-co` | Neo spec CSSD |
 | `13-giam-sat-spec-context.mdc` | `giam-sat-*` | Neo spec VST/GSC |
 | `14-cong-viec-spec-context.mdc` | `quan-ly-cong-viec` | Neo spec QLCV |
@@ -92,6 +95,7 @@ RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on).
 | `/intake` | `intake.md` | Dev — scope kỹ thuật |
 | `/implement` | `implement.md` | Sau duyệt intake |
 | `/grok-handoff` | `grok-handoff.md` | Task dán từ Grok (DoD + whitelist) |
+| `/domain-slice` | `domain-slice.md` | Rà, phản biện, chọn theo domain, sửa một lát |
 | `/go-live-check` | `go-live-check.md` | Cổng sẵn sàng pilot, không deploy |
 | `/uat-cases` | `uat-cases.md` | Checklist UAT tay từ DoD |
 | `/ship-slice` | `ship-slice.md` | Verify + review sau test tay |
