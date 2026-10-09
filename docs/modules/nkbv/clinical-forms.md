@@ -4,7 +4,7 @@
 > **Phiên bản:** 3.2 (2026-08-05) — lớp L1/L2/L3 tinh gọn CDC + investigation-forms  
 > Neo domain: [`hai-surveillance-domain-ssot-20260827.md`](./hai-surveillance-domain-ssot-20260827.md) (v3.3, Phụ lục E) · luồng ca: [`hai-identification-data-flow-20260827.md`](./hai-identification-data-flow-20260827.md)  
 > Phân tích phiếu: [`investigation-forms/README.md`](./investigation-forms/README.md)  
-> **SSOT triệu chứng:** [`investigation-forms/02-clinical-symptom-catalog.md`](./investigation-forms/02-clinical-symptom-catalog.md) · code `nkbv-clinical-symptom-catalog.ts` · Ch.17 SSI `nkbv-chapter17-clinical.ts` · UAT [`investigation-forms/symptom-catalog-uat-20260809.md`](./investigation-forms/symptom-catalog-uat-20260809.md)
+> **SSOT triệu chứng:** [`investigation-forms/02-clinical-symptom-catalog.md`](./investigation-forms/02-clinical-symptom-catalog.md) · code `nkbv-clinical-symptom-catalog.ts` · Ch.17 SSI `nkbv-chapter17-clinical.ts`
 
 ## Cập nhật 2026-08 — form hàng chẩn đoán (2 cột)
 
@@ -82,7 +82,7 @@ Giữ mapping type ↔ UI như v2 (BSI/UTI/VAE/PNEU/SSI) — field nằm ở hà
 
 Chi tiết cây + bảng field: [`investigation-forms/trees/`](./investigation-forms/trees/).  
 Spec A (vận hành) + B (phụ lục): `investigation-forms/*-2026.md`.  
-Gap P0/P1: [`investigation-forms/gap-lean-vs-runtime.md`](./investigation-forms/gap-lean-vs-runtime.md).
+Gap P0/P1 (mốc): [`../../archive/module-history/nkbv/investigation-forms/gap-lean-vs-runtime.md`](../../archive/module-history/nkbv/investigation-forms/gap-lean-vs-runtime.md).
 
 | Hội chứng | L1 (tóm tắt) | L2 hay gặp | L3 |
 |-----------|--------------|------------|-----|

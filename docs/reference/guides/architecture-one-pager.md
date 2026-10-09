@@ -102,5 +102,5 @@ Luồng nghiệp vụ: [`domain-specification.md`](../../core/domain-specificati
 | Demo terminal gates | [`demo-governance-gates.md`](./demo-governance-gates.md) |
 | Ship & agent workflow | [`../../../AGENTS.md`](../../../AGENTS.md) |
 | Lean execution / DoD | [`lean-execution.md`](../../core/lean-execution.md) |
-| Lộ trình phase dài | [`../architecture/roadmap-2026h2.md`](../architecture/roadmap-2026h2.md) |
+| Việc còn mở | [`handover-roadmap.md`](../../core/handover-roadmap.md) §5 |
 | Wiki entities | [`../../wiki/entities.md`](../../wiki/entities.md) |

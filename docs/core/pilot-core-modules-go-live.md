@@ -34,15 +34,15 @@ Local: Docker + `npx supabase start` → `mdm:migrate:local` → `*:local` scrip
 | Module | File |
 |--------|------|
 | Quản trị | [`../modules/mdm/README.md`](../modules/mdm/README.md) § Pilot checklist |
-| Giám sát | [`../modules/giam-sat/pilot-checklist-202606.md`](../modules/giam-sat/pilot-checklist-202606.md) |
-| QLCV | [`../modules/qlcv/pilot-checklist-202606.md`](../modules/qlcv/pilot-checklist-202606.md) |
-| CSSD quy trình | [`../modules/cssd/pilot-test-checklist.md`](../modules/cssd/pilot-test-checklist.md) |
-| CSSD hóa chất / thiết bị | [`../modules/cssd/pilot-checklist-hoa-chat-202606.md`](../modules/cssd/pilot-checklist-hoa-chat-202606.md), [`pilot-checklist-thiet-bi-202606.md`](../modules/cssd/pilot-checklist-thiet-bi-202606.md) |
-| CSSD cycle QR | [`../modules/cssd/pilot-checklist-cycle-qr-202606.md`](../modules/cssd/pilot-checklist-cycle-qr-202606.md) |
-| NKBV clinical | [`../modules/nkbv/pilot-clinical-checklist-20260603.md`](../modules/nkbv/pilot-clinical-checklist-20260603.md) |
+| Giám sát | [`../archive/module-history/giam-sat/pilot-checklist-202606.md`](../archive/module-history/giam-sat/pilot-checklist-202606.md) |
+| QLCV | [`../archive/module-history/qlcv/pilot-checklist-202606.md`](../archive/module-history/qlcv/pilot-checklist-202606.md) |
+| CSSD quy trình | [`../archive/module-history/cssd/pilot-test-checklist.md`](../archive/module-history/cssd/pilot-test-checklist.md) |
+| CSSD hóa chất / thiết bị | [`../archive/module-history/cssd/pilot-checklist-hoa-chat-202606.md`](../archive/module-history/cssd/pilot-checklist-hoa-chat-202606.md), [`pilot-checklist-thiet-bi-202606.md`](../archive/module-history/cssd/pilot-checklist-thiet-bi-202606.md) |
+| CSSD cycle QR | [`../archive/module-history/cssd/pilot-checklist-cycle-qr-202606.md`](../archive/module-history/cssd/pilot-checklist-cycle-qr-202606.md) |
+| NKBV clinical | [`../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md`](../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md) |
 
 **Go-live tổng (Phase 6):** [`pilot-go-live-signoff-202606.md`](pilot-go-live-signoff-202606.md) · `npm run pilot:go-live:gate`  
-**Gói thực thi W1 (IT + PO):** [`../reference/guides/w1-go-live-execution-pack-20260722.md`](../reference/guides/w1-go-live-execution-pack-20260722.md) · hướng dẫn PO [`po-uat-signoff-202607.md`](po-uat-signoff-202607.md)
+**Gói thực thi W1 (IT + PO, mốc):** [`../archive/plans/guides/w1-go-live-execution-pack-20260722.md`](../archive/plans/guides/w1-go-live-execution-pack-20260722.md) · hướng dẫn PO [`po-uat-signoff-202607.md`](po-uat-signoff-202607.md)
 
 **Ops runbook tay (2026-09-04):** [`../reference/guides/ops-go-live.md`](../reference/guides/ops-go-live.md) — env/wave, tắt pilot trước UAT CSSD, auth blocker, BOM unique `20260904120000`, mở cloud chỉ sau Phase 0–2 + golden + approve commit. Quyết định dụng cụ: [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
 

@@ -5,10 +5,10 @@
 | Thư mục | Vai trò | Ghi chú |
 |---------|---------|---------|
 | [`../data/`](../data/) | Machine source — seed, parser, thuật toán gốc | `human_readable: false` trong manifest |
-| [`../archive/`](../archive/) | Baseline / plan đã Done | Không link từ read-minimum |
+| [`../archive/`](../archive/) | Mốc / plan đã xong / nhật ký | Cổng: [`../archive/README.md`](../archive/README.md) |
 | [`../archive/agent-notes/`](../archive/agent-notes/) | Ghi chú phiên AI | Không dùng khi sửa hệ thống |
 | [`../archive/nkbv-sources/`](../archive/nkbv-sources/) | NKBV v2.0 + `Domain *` | Thuật toán đang dùng: [`../modules/nkbv/hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) |
-| [`archive/pilot_chain_20260520_20260529.tar.gz`](../archive/pilot_chain_20260520_20260529.tar.gz) | Migration pre-pilot | Không apply — chỉ tra cứu |
+| [`../archive/pilot_chain_20260520_20260529.tar.gz`](../archive/pilot_chain_20260520_20260529.tar.gz) | Migration pre-pilot | Không apply — chỉ tra cứu |
 
 ## Quy tắc ingest
 

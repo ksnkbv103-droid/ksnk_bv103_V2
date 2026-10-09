@@ -1,7 +1,7 @@
 # Hướng dẫn PO nghiệm thu tay §B — đợt 07/2026
 
 > Dành cho Product Owner (không cần chạy lệnh). Kết quả tick vào **§B của [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md)**. Phần máy (§A) IT đã chạy pass 2026-07-03 / re-verify 2026-07-09.  
-> **Gói đóng W1 (IT + PO):** [`../reference/guides/w1-go-live-execution-pack-20260722.md`](../reference/guides/w1-go-live-execution-pack-20260722.md).
+> **Gói đóng W1 (IT + PO, mốc):** [`../archive/plans/guides/w1-go-live-execution-pack-20260722.md`](../archive/plans/guides/w1-go-live-execution-pack-20260722.md).
 
 ## Chuẩn bị (1 lần)
 
@@ -16,9 +16,9 @@
 
 | Bước | Khối | Checklist | Ước lượng |
 |------|------|-----------|-----------|
-| 1 | QLCV (6 kịch bản Q1–Q6) | [`pilot-checklist-202606.md`](../modules/qlcv/pilot-checklist-202606.md) | ~30 phút |
+| 1 | QLCV (6 kịch bản Q1–Q6) | [`pilot-checklist-202606.md`](../archive/module-history/qlcv/pilot-checklist-202606.md) | ~30 phút |
 | 2 | **QLCV Kanban mobile (M1–M3)** | cùng file trên, mục "Kanban mobile" | ~10 phút |
-| 3 | GSC + VST | [`pilot-checklist-202606.md`](../modules/giam-sat/pilot-checklist-202606.md) | ~40 phút |
+| 3 | GSC + VST | [`pilot-checklist-202606.md`](../archive/module-history/giam-sat/pilot-checklist-202606.md) | ~40 phút |
 | 4 | MDM / Quản trị | [`../modules/mdm/README.md`](../modules/mdm/README.md) § Pilot | ~25 phút |
 
 **Go-live W1** khi 3 khối trên ≥5/6 + IT auth = 0 + ký §E. Không chờ CSSD/NKBV/Dashboard.
@@ -27,8 +27,8 @@
 
 | Bước | Khối | Checklist | Gói |
 |------|------|-----------|-----|
-| 5 | CSSD P3–P5 | link trong §B | [`w2-cssd-uat-pack-20260722.md`](../reference/guides/w2-cssd-uat-pack-20260722.md) |
-| 6 | **NKBV clinical (#2–#5)** | [`pilot-clinical-checklist-20260603.md`](../modules/nkbv/pilot-clinical-checklist-20260603.md) | [`w3-nkbv-dashboard-enablement-20260722.md`](../reference/guides/w3-nkbv-dashboard-enablement-20260722.md) |
+| 5 | CSSD P3–P5 | link trong §B | [`w2-cssd-uat-pack-20260722.md`](../archive/plans/guides/w2-cssd-uat-pack-20260722.md) |
+| 6 | **NKBV clinical (#2–#5)** | [`pilot-clinical-checklist-20260603.md`](../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md) | [`w3-nkbv-dashboard-enablement-20260722.md`](../archive/plans/guides/w3-nkbv-dashboard-enablement-20260722.md) |
 | 7 | Dashboard | [`../modules/dashboard/README.md`](../modules/dashboard/README.md) | cùng gói W3 |
 
 ## Cách ghi kết quả

@@ -12,14 +12,12 @@ const indexPath = path.join(docsDir, "wiki", "index.md");
 const MARKER_START = "<!-- AUTO_CATALOG_START -->";
 const MARKER_END = "<!-- AUTO_CATALOG_END -->";
 
-const SKIP_DIRS = new Set(["wiki", "sources", ".git"]);
+const SKIP_DIRS = new Set(["wiki", "sources", ".git", "archive", "data"]);
 const TIER_ORDER = [
   ["core", "Core SSOT"],
   ["modules", "Modules"],
   ["reference", "Reference"],
-  ["data", "Data (machine)"],
-  ["archive", "Archive"],
-  ["specs", "Specs"],
+  ["ux", "UX"],
 ];
 
 function listMdFiles(dir, base = "docs") {

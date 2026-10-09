@@ -1,7 +1,7 @@
 # Pilot BV103 — Go-live sign-off (Phase 6)
 
 > **Mục tiêu:** Một bảng duy nhất ký trước production. Automated gate: `npm run pilot:go-live:gate`.  
-> **Cải tổ local 2026-07-03:** [`pilot-module-automated-gates-20260703.md`](../reference/reports/pilot-module-automated-gates-20260703.md)
+> **Cải tổ local 2026-07-03 (mốc):** [`pilot-module-automated-gates-20260703.md`](../archive/reports/pilot-module-automated-gates-20260703.md)
 
 ## A. Automated gates (IT)
 
@@ -27,31 +27,31 @@ npm run pilot:go-live:gate:local
 
 ## B. Checklist tay (NV KSNK) — ≥5/6 mỗi khối
 
-> Hướng dẫn cho PO: [`po-uat-signoff-202607.md`](./po-uat-signoff-202607.md) · Gói đóng W1: [`../reference/guides/w1-go-live-execution-pack-20260722.md`](../reference/guides/w1-go-live-execution-pack-20260722.md)
+> Hướng dẫn cho PO: [`po-uat-signoff-202607.md`](./po-uat-signoff-202607.md) · Gói đóng W1: [`../archive/plans/guides/w1-go-live-execution-pack-20260722.md`](../archive/plans/guides/w1-go-live-execution-pack-20260722.md)
 
 ### B1 — W1 (bắt buộc để go-live)
 
 | Khối | File | Pass | Tester | Ngày |
 |------|------|------|--------|------|
 | MDM / Quản trị | [`../modules/mdm/README.md`](../modules/mdm/README.md) § Pilot | ☐ /5 | | |
-| GSC + VST | [`../modules/giam-sat/pilot-checklist-202606.md`](../modules/giam-sat/pilot-checklist-202606.md) | ☐ | | |
-| QLCV | [`../modules/qlcv/pilot-checklist-202606.md`](../modules/qlcv/pilot-checklist-202606.md) | ☐ /6 | | |
+| GSC + VST | [`../archive/module-history/giam-sat/pilot-checklist-202606.md`](../archive/module-history/giam-sat/pilot-checklist-202606.md) | ☐ | | |
+| QLCV | [`../archive/module-history/qlcv/pilot-checklist-202606.md`](../archive/module-history/qlcv/pilot-checklist-202606.md) | ☐ /6 | | |
 
-### B2 — W2 CSSD ([gói UAT](../reference/guides/w2-cssd-uat-pack-20260722.md))
+### B2 — W2 CSSD ([gói UAT](../archive/plans/guides/w2-cssd-uat-pack-20260722.md))
 
 | Khối | File | Pass | Tester | Ngày |
 |------|------|------|--------|------|
-| CSSD quy trình P3 | [`../modules/cssd/pilot-test-checklist.md`](../modules/cssd/pilot-test-checklist.md) | ☐ /6 | | |
-| CSSD hóa chất P4 | [`../modules/cssd/pilot-checklist-hoa-chat-202606.md`](../modules/cssd/pilot-checklist-hoa-chat-202606.md) | ☐ /6 | | |
-| CSSD thiết bị P4 | [`../modules/cssd/pilot-checklist-thiet-bi-202606.md`](../modules/cssd/pilot-checklist-thiet-bi-202606.md) | ☐ /6 | | |
-| CSSD cycle QR P5 | [`../modules/cssd/pilot-checklist-cycle-qr-202606.md`](../modules/cssd/pilot-checklist-cycle-qr-202606.md) | ☐ /6 | | |
+| CSSD quy trình P3 | [`../archive/module-history/cssd/pilot-test-checklist.md`](../archive/module-history/cssd/pilot-test-checklist.md) | ☐ /6 | | |
+| CSSD hóa chất P4 | [`../archive/module-history/cssd/pilot-checklist-hoa-chat-202606.md`](../archive/module-history/cssd/pilot-checklist-hoa-chat-202606.md) | ☐ /6 | | |
+| CSSD thiết bị P4 | [`../archive/module-history/cssd/pilot-checklist-thiet-bi-202606.md`](../archive/module-history/cssd/pilot-checklist-thiet-bi-202606.md) | ☐ /6 | | |
+| CSSD cycle QR P5 | [`../archive/module-history/cssd/pilot-checklist-cycle-qr-202606.md`](../archive/module-history/cssd/pilot-checklist-cycle-qr-202606.md) | ☐ /6 | | |
 
-### B3 — W3 ([enablement](../reference/guides/w3-nkbv-dashboard-enablement-20260722.md))
+### B3 — W3 ([enablement](../archive/plans/guides/w3-nkbv-dashboard-enablement-20260722.md))
 
 | Khối | File | Pass | Tester | Ngày |
 |------|------|------|--------|------|
 | Dashboard / Báo cáo | [`../modules/dashboard/README.md`](../modules/dashboard/README.md) | ☐ /5 | | |
-| NKBV clinical | [`../modules/nkbv/pilot-clinical-checklist-20260603.md`](../modules/nkbv/pilot-clinical-checklist-20260603.md) | ☐ /5 | | |
+| NKBV clinical | [`../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md`](../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md) | ☐ /5 | | |
 
 **NKBV / Dashboard / CSSD** pilot theo **wave** — xem §C. W1 **không** chờ B2/B3.
 
@@ -69,9 +69,9 @@ Chi tiết: [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md), 
 
 | Hạng mục | Trạng thái |
 |----------|------------|
-| BRD vật tư phi-hóa-chất | Chờ workshop [`brd-vat-tu-intake-202606.md`](../modules/cssd/brd-vat-tu-intake-202606.md) (agenda 2026-07-22) |
-| HIS/LIS auto | Next steps [`his-lis-next-steps-20260722.md`](../reference/guides/his-lis-next-steps-20260722.md) · spike [`his-lis-integration-spike-20260610.md`](../archive/reports/his-lis-integration-spike-20260610.md) |
-| CAP_PHAT soft vs hard | **Chốt soft-warning** [`cap-phat-soft-warning-decision-20260722.md`](../modules/cssd/cap-phat-soft-warning-decision-20260722.md) |
+| BRD vật tư phi-hóa-chất | Chờ workshop [`brd-vat-tu-intake-202606.md`](../archive/module-history/cssd/brd-vat-tu-intake-202606.md) (agenda 2026-07-22) |
+| HIS/LIS auto | Next steps [`his-lis-next-steps-20260722.md`](../archive/plans/guides/his-lis-next-steps-20260722.md) · spike [`his-lis-integration-spike-20260610.md`](../archive/reports/his-lis-integration-spike-20260610.md) |
+| CAP_PHAT soft vs hard | **Chốt soft-warning** [`cap-phat-soft-warning-decision-20260722.md`](../archive/module-history/cssd/cap-phat-soft-warning-decision-20260722.md) |
 | Sự cố / backup | [`incident-backup-playbook.md`](../reference/guides/incident-backup-playbook.md) |
 
 ## E. Sign-off cuối

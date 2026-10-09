@@ -196,7 +196,7 @@ Chi tiết: [interaction-matrix.md](./interaction-matrix.md).
 
 ## 8. TÀI LIỆU LIÊN QUAN
 
-- [debt-register.md](./debt-register.md) — nợ kỹ thuật D-01..D-20
-- [roadmap-2026h2.md](./roadmap-2026h2.md) — Phase 0–5 + Pilot DoD
+- Việc còn mở: [`handover-roadmap.md`](../../core/handover-roadmap.md) §5
 - [implementation-mapping.md](../../core/implementation-mapping.md) — SSOT bảng/RPC
 - [migration-squash-runbook.md](../guides/migration-squash-runbook.md) — repair remote sau squash
+- Mốc H2 / sổ nợ: [`../../archive/plans/architecture/`](../../archive/plans/architecture/)

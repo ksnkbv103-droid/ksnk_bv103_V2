@@ -2,6 +2,13 @@
 
 > Prefix chuẩn: `## [YYYY-MM-DD] ingest|query|lint | mô tả`
 
+## [2026-10-09] lint | Thu gọn toàn `docs/` — một chủ đề một bản sống
+
+- Lớp sống: core (17) · wiki · module domain · reference kiến trúc/ADR/runbook · `ux/principles.md`.
+- Mốc / nhật ký / A–B / plan đã xong → [`../archive/`](../archive/) (`reports`, `plans`, `slice-journals`, `module-history`).
+- Catalog `wiki:index` bỏ `archive/` và `data/`.
+- Chi tiết: [`lint.md`](lint.md) DOC-20261009 · [`../ssot-map.md`](../ssot-map.md).
+
 ## [2026-09-09] lint | Vệ sinh SSOT — chuyển kho `_agent-*` + NKBV v2.0
 
 - Bản đồ: [`../ssot-map.md`](../ssot-map.md).

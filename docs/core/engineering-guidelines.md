@@ -37,7 +37,7 @@ export async function actionGhiNghiepVu(payload: InputSchema) {
 
 ## 2. Hướng dẫn UI/UX và Layout Primitives (Chống Trôi lệch Giao diện)
 
-SSOT hình ảnh: [`docs/reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md) · dialect: [`docs/reference/architecture/design-dialect-matrix-20260731.md`](../reference/architecture/design-dialect-matrix-20260731.md) · **chrome L1:** [`docs/reference/architecture/page-chrome-contract-20260731.md`](../reference/architecture/page-chrome-contract-20260731.md) · tokens `src/lib/bv103-design-tokens.ts`.
+SSOT hình ảnh: [`docs/reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md) · IA: [`docs/ux/principles.md`](../ux/principles.md) · **chrome L1:** [`docs/reference/architecture/page-chrome-contract-20260731.md`](../reference/architecture/page-chrome-contract-20260731.md) · tokens `src/lib/bv103-design-tokens.ts`.
 
 ### 2.1 Cấu trúc Layout Chuẩn (module-first)
 

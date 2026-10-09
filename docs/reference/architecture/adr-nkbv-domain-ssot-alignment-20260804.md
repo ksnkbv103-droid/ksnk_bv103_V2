@@ -59,10 +59,10 @@ Implement code **neo SSOT** cho thuật toán Shared + delta hội chứng; **kh
 ## Hậu quả
 
 - W1 thêm bảng `nkbv_fact_device_registry` + lib shared trong `src/modules/giam-sat-nkbv/lib/`.
-- W2 chỉ đóng **P0** trong [`gap-catalog-harden-w2-20260804.md`](../../modules/nkbv/gap-catalog-harden-w2-20260804.md).
+- W2 chỉ đóng **P0** trong [`gap-catalog-harden-w2-20260804.md`](../../archive/module-history/nkbv/gap-catalog-harden-w2-20260804.md).
 - Mỗi slice code sau W0: `/intake-nv` (PO) khi đổi phạm vi; verify `npm run verify:engineering`.
 
 ## Tham chiếu
 
-- Roadmap: [`implementation-roadmap-ssot-v2-20260804.md`](../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md)
+- Roadmap (mốc): [`implementation-roadmap-ssot-v2-20260804.md`](../../archive/module-history/nkbv/implementation-roadmap-ssot-v2-20260804.md)
 - ADR cũ: [`adr-nkbv-unified-module-20260715.md`](adr-nkbv-unified-module-20260715.md)

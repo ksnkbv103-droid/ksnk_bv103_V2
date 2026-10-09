@@ -8,7 +8,7 @@
  * 4. Gate hồi quy → `npm run layout:drift-check`
  *
  * Thang bo góc: control (--radius-control) · surface (--radius-shell) · chip (rounded-full).
- * @see docs/modules/giam-sat/layout-primitives.md
+ * @see docs/reference/architecture/layout-primitives.md
  */
 
 const panelSurface = "bv103-layer-panel";

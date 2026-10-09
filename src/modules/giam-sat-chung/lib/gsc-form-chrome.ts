@@ -3,7 +3,7 @@ import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 /**
  * GSC form phiên — compose từ `bv103LayoutChrome` + token riêng module.
- * @see docs/modules/giam-sat/layout-primitives.md
+ * @see docs/reference/architecture/layout-primitives.md
  */
 export const gscFormChrome = {
   ...P,
