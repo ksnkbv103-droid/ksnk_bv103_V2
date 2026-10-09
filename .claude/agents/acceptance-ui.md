@@ -2,6 +2,7 @@
 name: acceptance-ui
 description: Viết checklist test tay cho PO. Không sửa code.
 tools: Read, Grep, Glob
+model: haiku
 ---
 
 # acceptance-ui

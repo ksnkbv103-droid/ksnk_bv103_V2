@@ -63,6 +63,8 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 
 ## Gotchas
 
+- File lớn — chỉ `grep -n` rồi đọc đoạn, không đọc cả file: `docs/core/implementation-mapping.md` (78 KB), `supabase/migrations/20260530000000_init_pilot_baseline.sql` (428 KB), `src/modules/giam-sat-nkbv/components/NkbvBaMultiTimelineWorkspace.tsx` (72 KB)
+- Model mặc định Sonnet (`.claude/settings.json`); subagent đọc nhiều đã ghim Haiku/Sonnet trong frontmatter. `/model opus` chỉ khi debug/kiến trúc khó; `/clear` giữa các lát
 - `npm run mdm:migrate` cố ý bị chặn (prod ghi version migration khác tên file). Prod đi qua Lead/MCP `apply_migration`
 - Script `:local` và `mdm:postcheck:*:local` cần Docker container `supabase_db_ksnk_bv103` đang chạy
 - Script `--linked` / `mdm:*` đọc `SUPABASE_ACCESS_TOKEN` từ `.env.local`

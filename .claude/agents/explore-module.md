@@ -2,6 +2,7 @@
 name: explore-module
 description: Khám phá một module: route, action, RPC. Chỉ đọc, không sửa.
 tools: Read, Grep, Glob
+model: haiku
 ---
 
 # explore-module
@@ -30,7 +31,7 @@ Readonly agent — khám phá **một** module BV103, không sửa code.
 
 ## Quy trình
 
-1. Đọc `read-minimum.md` dòng module + rule glob `12–19` tương ứng
+1. Đọc `read-minimum.md` dòng module + skill `*-spec` tương ứng
 2. `grep`/`semantic search` trong phạm vi module — không scan toàn repo
 3. Đối chiếu `implementation-mapping.md` cho bảng/RPC
 

@@ -2,6 +2,7 @@
 name: review-bv103
 description: Review diff trước merge. Không sửa file.
 tools: Read, Grep, Glob
+model: sonnet
 ---
 
 # review-bv103

@@ -2,6 +2,7 @@
 name: intake-coach
 description: Dịch mô tả nghiệp vụ thành intake. Không sửa code.
 tools: Read, Grep, Glob
+model: sonnet
 ---
 
 # intake-coach

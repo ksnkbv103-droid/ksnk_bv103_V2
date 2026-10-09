@@ -1,7 +1,36 @@
 {
   "enableAllProjectMcpServers": true,
+  "model": "sonnet",
   "permissions": {
+    "allow": [
+      "Bash(npm run lint*)",
+      "Bash(npm run build*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run verify*)",
+      "Bash(npm run docs:links:check)",
+      "Bash(npm run repo:hygiene)",
+      "Bash(npm run engineering:*)",
+      "Bash(npm run legacy:*)",
+      "Bash(npm run imports:*)",
+      "Bash(npx vitest*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)"
+    ],
+    "ask": [
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(vercel*)",
+      "Bash(npx supabase db reset*)"
+    ],
     "deny": [
+      "Bash(git reset --hard*)",
+      "Bash(git push --force*)",
+      "Bash(rm -rf*)",
+      "Bash(npm run mdm:migrate)",
+      "Bash(npx supabase db push*--linked*)",
       "Read(./docs/data/**)",
       "Read(./nkbv-sources/**)",
       "Read(./node_modules/**)",
@@ -13,6 +42,8 @@
       "Read(./supabase/auth-data.sql)",
       "Read(./supabase/auth-users-identities.sql)",
       "Read(./package-lock.json)",
+      "Read(./supabase/seed.sql)",
+      "Read(./public/**)",
       "Read(./.vercel/**)",
       "Read(./**/*.tsbuildinfo)",
       "Read(./**/_agent-*)",

@@ -2,6 +2,7 @@
 name: db-verify
 description: Đối chiếu migration với implementation-mapping. Chỉ đọc.
 tools: Read, Grep, Glob, Bash
+model: haiku
 ---
 
 # db-verify

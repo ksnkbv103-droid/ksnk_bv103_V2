@@ -18,4 +18,4 @@ Giải thích code, hành vi, tradeoff. **Không** dùng tool write/edit; **khô
 2. Luồng dữ liệu / quyết định thiết kế (nếu liên quan)
 3. Tradeoff hoặc rủi ro (ngắn)
 
-Dùng **Ask mode** hoặc Plan mode khi cần so sánh approach trước `/intake`.
+Dùng Plan mode (Shift+Tab) khi cần so sánh approach trước `/intake`.

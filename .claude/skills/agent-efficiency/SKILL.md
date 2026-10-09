@@ -7,7 +7,7 @@ description: Task đụng nhiều file. Cấm glob cả repo. Đọc theo read-m
 
 > Bullet cốt lõi **đã gộp vào** `01-agent-discipline` (always-on). File này giữ để `@agent-efficiency` khi cần nhắc chi tiết.
 
-Cherry-pick từ Minimize-Cursor-Cost — áp dụng khi agent mode burn token.
+Áp dụng khi phiên đốt token.
 
 ## Search & read
 
