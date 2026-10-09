@@ -11,7 +11,7 @@
 | Ánh xạ bảng / RPC | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) |
 | Auth / RLS / môi trường | [`../../core/operations-sop.md`](../../core/operations-sop.md) |
 | Ship / verify | [`../../core/lean-execution.md`](../../core/lean-execution.md) · [`../../../AGENTS.md`](../../../AGENTS.md) |
-| Backlog đang mở | [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) |
+| Backlog đang mở | [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) |
 | Audit PO 05/08 | [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md) |
 
 **Kèm thay đổi chưa commit (24/08):** working tree có slice CSSD sự cố (RLS ghi `cssd_fact_su_co`), QLCV, VST/GSC, picker UI. Head migration trên đĩa: `20260824120000_cssd_fact_su_co_write_rls.sql`.
@@ -68,7 +68,7 @@
 
 **KSNK BV103** (`ksnk_bv103`, phiên bản package `0.1.0`) là phần mềm **Kiểm soát nhiễm khuẩn** làm riêng cho **Khoa Kiểm soát Nhiễm khuẩn — Bệnh viện 103** (Bệnh viện Quân y 103). Không phải HIS toàn viện, không phải ERP generic.
 
-Ba nhóm nhiệm vụ (trích [`system-overview.md`](../architecture/system-overview.md)):
+Ba nhóm nhiệm vụ (trích [`system-overview.md`](../plans/architecture/system-overview.md)):
 
 1. **Giám sát lâm sàng** — vệ sinh tay (VST, chuẩn WHO), bảng kiểm động (GSC), nhiễm khuẩn bệnh viện (NKBV / HAI, hướng CDC/NHSN).
 2. **Hậu cần tiệt khuẩn tập trung (CSSD)** — chu trình quét mã QR 6 trạm, mẻ hấp, kho dụng cụ / hóa chất, sự cố và thu hồi.
@@ -87,7 +87,7 @@ Tầm nhìn dài: nối HIS/LIS theo hướng FHIR (`Patient`, `Encounter`, `Obs
 | Nguyên tắc | Ý nghĩa nghiệp vụ | Nguồn |
 |------------|-------------------|--------|
 | **Một cửa vào cho một việc** | Nhiều bảng phía dưới được, nhưng người dùng không phải đoán URL song song | Chương trình tinh giản 26/07/2026 |
-| **Giữ ranh giới dữ liệu** | VST / GSC / NKBV / CSSD / công việc / danh mục **không gộp bảng** | [`simplification-program-20260726.md`](../architecture/simplification-program-20260726.md) |
+| **Giữ ranh giới dữ liệu** | VST / GSC / NKBV / CSSD / công việc / danh mục **không gộp bảng** | [`simplification-program-20260726.md`](../plans/architecture/simplification-program-20260726.md) |
 | **Không rewrite để go-live** | Sửa đúng mảnh; deep-link cũ vẫn chạy | Audit PO 05/08 |
 | **Không tin trình duyệt** | Mọi ghi dữ liệu kiểm quyền trên máy chủ | [`engineering-guidelines.md`](../../core/engineering-guidelines.md) §1.2 |
 | **Boy Scout trong mảnh đang làm** | Dọn đúng file vừa sửa; không “cải tổ cả viện” trong một chat | [`AGENTS.md`](../../../AGENTS.md) |
@@ -241,7 +241,7 @@ flowchart TB
 | Đào tạo ↔ gap / bảng kiểm / ca HAI | Không gắn bài theo lỗ hổng | **Silo** |
 | HIS / LIS | Cổng Excel / dán bảng — không API sống | Đủ pilot, mỏng khi scale |
 
-Ma trận đầy đủ: [`../architecture/interaction-matrix.md`](../architecture/interaction-matrix.md).
+Ma trận đầy đủ: [`../architecture/interaction-matrix.md`](../../reference/architecture/interaction-matrix.md).
 
 ### 4.3 Ranh giới CSSD và MDM (dễ lẫn — đọc kỹ)
 
@@ -593,7 +593,7 @@ CCS (chỉ số tổng hợp cũ) **đã hạ khỏi mặt vận hành** — lu�
 | **Chức năng** | Camera hoặc gõ tay; mã `GSC-`, `VST-`, `SC-`, `NKBV-`, `QLCV-`, bộ CSSD, vị trí khoa |
 | **File** | `views/EntityQrScanPage.tsx`, `src/lib/entity-qr/entity-qr-core.ts` |
 
-**Ưu (nhận xét 24/08):** đúng tinh thần “một cửa quét”. **Nhược:** phụ thuộc dữ liệu đã sinh QR đúng quy ước. Phân bổ mã: [`../architecture/entity-qr-allocation-20260728.md`](../architecture/entity-qr-allocation-20260728.md).
+**Ưu (nhận xét 24/08):** đúng tinh thần “một cửa quét”. **Nhược:** phụ thuộc dữ liệu đã sinh QR đúng quy ước. Phân bổ mã: [`../architecture/entity-qr-allocation-20260728.md`](../plans/architecture/entity-qr-allocation-20260728.md).
 
 ---
 
@@ -651,7 +651,7 @@ Cổng kiểm lệch giao diện: `layout:drift-check`, `layout:typography-check
 
 Chrome theo module: `cssd-ui-chrome`, `gsc-form-chrome`, `nkbv-form-chrome`, `qlcv-table-chrome`, `dashboard-chrome`.
 
-Ngôn ngữ thị giác: MIS bệnh viện — trang trọng, ít “poster”. SSOT: [`../guides/bv103-visual-language.md`](../guides/bv103-visual-language.md) · [`../architecture/page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md).
+Ngôn ngữ thị giác: MIS bệnh viện — trang trọng, ít “poster”. SSOT: [`../guides/bv103-visual-language.md`](../../reference/guides/bv103-visual-language.md) · [`../architecture/page-chrome-contract-20260731.md`](../../reference/architecture/page-chrome-contract-20260731.md).
 
 ### 7.3 Thành phần dùng nhiều
 
@@ -922,7 +922,7 @@ Phần mềm là **hệ kiểm soát nhiễm khuẩn chuyên khoa**, không ph�
 | Hard-block cấp phát thiếu BOM | **Cố ý không** (Q2) |
 | Rewrite Auth / Quản trị | **Cấm** (F-04) |
 
-Backlog sống: [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md). Sổ nợ lịch sử nhiều mục Done: [`../architecture/debt-register.md`](../architecture/debt-register.md) — **đừng** lấy § cũ làm việc đang mở.
+Backlog sống: [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md). Sổ nợ lịch sử nhiều mục Done: [`../architecture/debt-register.md`](../plans/architecture/debt-register.md) — **đừng** lấy § cũ làm việc đang mở.
 
 ### 13.2 Việc mở ưu tiên (trích backlog)
 
@@ -1015,15 +1015,15 @@ Bookmark cũ (nhiều URL CSSD / `?tab=` giám sát) redirect trong `next.config
 | Cổng docs | [`../../README.md`](../../README.md) |
 | Domain | [`../../core/domain-specification.md`](../../core/domain-specification.md) |
 | Mapping | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) |
-| Overview KT | [`../architecture/system-overview.md`](../architecture/system-overview.md) |
-| One-pager | [`../guides/architecture-one-pager.md`](../guides/architecture-one-pager.md) |
+| Overview KT | [`../architecture/system-overview.md`](../plans/architecture/system-overview.md) |
+| One-pager | [`../guides/architecture-one-pager.md`](../plans/guides/architecture-one-pager.md) |
 | SOP | [`../../core/operations-sop.md`](../../core/operations-sop.md) |
 | Wiki | [`../../wiki/entities.md`](../../wiki/entities.md) · [`../../wiki/concepts.md`](../../wiki/concepts.md) |
 | Audit PO | [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md) |
 | Audit IPC | [`deep-system-review-ipc-eng-20260805.md`](./deep-system-review-ipc-eng-20260805.md) |
 | UI score | [`ui-consistency-scorecard-20260731.md`](./ui-consistency-scorecard-20260731.md) |
 | In | [`print-audit-scorecard-20260803.md`](./print-audit-scorecard-20260803.md) |
-| UX dashboard | [`../../modules/dashboard/dashboard-ux-audit-20260717.md`](../../modules/dashboard/dashboard-ux-audit-20260717.md) |
+| UX dashboard | [`../../modules/dashboard/dashboard-ux-audit-20260717.md`](../module-history/dashboard/dashboard-ux-audit-20260717.md) |
 | README gốc | [`../../../README.md`](../../../README.md) |
 
 ### 14.4 Ba case kiểm tài liệu này

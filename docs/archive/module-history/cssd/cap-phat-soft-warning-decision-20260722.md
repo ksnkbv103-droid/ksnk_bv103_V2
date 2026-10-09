@@ -1,7 +1,7 @@
 # Quyết định nghiệp vụ — CAP_PHAT soft-warning (W2) — 2026-07-22
 
 > Đóng todo «quyết định soft-warning vs hard-block cấp phát».  
-> SSOT kỹ thuật đã chốt soft-warning từ 2026-07-01 ([implementation-mapping](../../core/implementation-mapping.md)).
+> SSOT kỹ thuật đã chốt soft-warning từ 2026-07-01 ([implementation-mapping](../../../core/implementation-mapping.md)).
 
 ## Quyết định
 

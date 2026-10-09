@@ -31,7 +31,7 @@
 
 ## Ma trận trạng thái (điền tay)
 
-### Reform — [`../architecture/uat-after-reform-20260728.md`](../architecture/uat-after-reform-20260728.md)
+### Reform — [`../architecture/uat-after-reform-20260728.md`](../plans/architecture/uat-after-reform-20260728.md)
 
 | Nhóm | Mục | PASS? | Người ký | Ngày | Ghi chú fail |
 |------|-----|:-----:|----------|------|--------------|
@@ -44,7 +44,7 @@
 
 ### NKBV lâm sàng — tối thiểu #2–#5
 
-Nguồn đầy đủ: [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`](../../modules/nkbv/pilot-clinical-checklist-20260603.md).
+Nguồn đầy đủ: [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`](../module-history/nkbv/pilot-clinical-checklist-20260603.md).
 
 | # | Kịch bản | PASS? | Người ký | Ngày |
 |---|----------|:-----:|----------|------|
@@ -79,4 +79,4 @@ Nguồn đầy đủ: [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`
 ## Liên kết
 
 - Báo cáo tổng: [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md)  
-- Open backlog: [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) · ID `UAT-NKBV` · `UAT-REFORM`
+- Open backlog: [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) · ID `UAT-NKBV` · `UAT-REFORM`

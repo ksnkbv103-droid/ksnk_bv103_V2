@@ -69,7 +69,7 @@ flowchart LR
 | Trường `ap_dung_jsonb.muc_do` | Có | Bắt buộc / khuyến nghị / chỉ KSNK — **không** phải P/I/S |
 | `la_then_chot` | Có | Then chốt gói care-bundle — **không** phải risk |
 
-Tham chiếu: [`bang-kiem-overview.md`](bang-kiem-overview.md), [`metric-dictionary.md`](../dashboard/metric-dictionary.md), [`concepts.md#gsc-scoring`](../../wiki/concepts.md#gsc-scoring).
+Tham chiếu: [`bang-kiem-overview.md`](../../../modules/giam-sat/bang-kiem-overview.md), [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md), [`concepts.md#gsc-scoring`](../../../wiki/concepts.md#gsc-scoring).
 
 ## 4. Gap và ranh giới (không đụng scoring phiên)
 

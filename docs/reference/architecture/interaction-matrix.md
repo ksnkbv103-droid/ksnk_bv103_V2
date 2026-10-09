@@ -2,7 +2,7 @@
 
 > **Phiên bản:** 1.2 (17/07/2026 — liên thông SSI/RCA + Composition Reconcile)  
 > **Trạng thái:** SSOT phụ thuộc giữa bounded contexts  
-> **Đồng bộ với:** [system-overview.md](./system-overview.md)
+> **Đồng bộ với:** [system-overview.md](../../archive/plans/architecture/system-overview.md)
 
 ---
 

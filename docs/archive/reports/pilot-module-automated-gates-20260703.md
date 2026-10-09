@@ -9,11 +9,11 @@
 | 1 MDM / Quản trị | `verify:admin`, `verify:danh-muc-routes`, `admin:rbac:parity:local` | **PASS** | ☐ PO — [`mdm/README.md`](../../modules/mdm/README.md) |
 | 2 GSC + VST | `smoke:gsc-vst:local`, `gstt:scoring:audit`, `gstt:db:audit:local` | **PASS** (36/36 scoring) | ☐ PO — [`giam-sat/pilot-checklist-202606.md`](../../modules/giam-sat/pilot-checklist-202606.md) |
 | 3 QLCV | `trial:qlcv:precheck:local`, domain specs | **PASS** | ☐ PO — [`qlcv/pilot-checklist-202606.md`](../../modules/qlcv/pilot-checklist-202606.md) |
-| 4 CSSD P3 quy trình | `verify:cssd` (49 tests), `cssd:db:audit:local` | **PASS** | ☐ PO — [`cssd/pilot-test-checklist.md`](../../modules/cssd/pilot-test-checklist.md) |
+| 4 CSSD P3 quy trình | `verify:cssd` (49 tests), `cssd:db:audit:local` | **PASS** | ☐ PO — [`cssd/pilot-test-checklist.md`](../module-history/cssd/pilot-test-checklist.md) |
 | 5 CSSD P4 hóa chất + thiết bị | `cssd:db:audit:local` | **PASS** | ☐ PO — hóa chất + thiết bị checklists |
-| 6 CSSD P5 cycle QR | `verify:cssd` | **PASS** | ☐ PO — [`pilot-checklist-cycle-qr-202606.md`](../../modules/cssd/pilot-checklist-cycle-qr-202606.md) |
+| 6 CSSD P5 cycle QR | `verify:cssd` | **PASS** | ☐ PO — [`pilot-checklist-cycle-qr-202606.md`](../module-history/cssd/pilot-checklist-cycle-qr-202606.md) |
 | 7 Dashboard | `test:pilot` (25), `pilot:dashboard:explain:local` | **PASS** | ☐ PO — [`dashboard/README.md`](../../modules/dashboard/README.md) |
-| 8 NKBV | `nkbv-rules-engine.spec.ts` (18 tests) | **PASS** (engineering) | ☐ **PO clinical UAT** — [`pilot-clinical-checklist-20260603.md`](../../modules/nkbv/pilot-clinical-checklist-20260603.md) |
+| 8 NKBV | `nkbv-rules-engine.spec.ts` (18 tests) | **PASS** (engineering) | ☐ **PO clinical UAT** — [`pilot-clinical-checklist-20260603.md`](../module-history/nkbv/pilot-clinical-checklist-20260603.md) |
 
 ## Lệnh đã chạy (local)
 

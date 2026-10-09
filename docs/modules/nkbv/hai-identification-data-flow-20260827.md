@@ -3,7 +3,7 @@
 > **Ngày:** 2026-08-27 · **Loại:** quy trình vận hành + thứ tự thuật toán  
 > **Neo tiêu chí / từ điển:** [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (Ch.2–4, 6–7, 9–10, 17, Phụ lục E)  
 > **Neo UI 3 khối:** [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md)  
-> **CSDL / bảng timeline:** [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md)  
+> **CSDL / bảng timeline:** [`hai-database-plan-20260827.md`](../../archive/module-history/nkbv/hai-database-plan-20260827.md)  
 > **Không** thay tiêu chí CDC. File này = cách **lấy dữ liệu** và **thứ tự chẩn đoán** tại BV103.  
 > **Không API HIS/LIS/PACS.** Mọi nạp = copy bảng / Excel / gõ tay.
 
@@ -92,7 +92,7 @@ Mọi mốc IP nhập trên lưới BA ghi `nkbv_fact_ba_timeline` theo `ma_benh
 
 Khi mở **bảng phân tích**, máy **kéo triệu chứng đã có trên BA** vào cửa sổ IWP (`hydrateLamSangDraftFromBa`) — không bắt gõ lại. Gõ thêm trên **bảng chung** hoặc trên **phiên phân tích** đều ghi `nkbv_fact_ba_timeline` (cùng đợt nằm viện), để lần sau các Index khác vẫn thấy.
 
-Triệu chứng / CĐHA / khoa / Foley–máy–CVC trên lưới = **bệnh án**. Phiếu xác định ca **lấy theo bệnh án** (không nhập lại). Bỏ tích dụng cụ hoặc đổi khoa trên lưới → sửa bệnh án và phiếu. Chi tiết: [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md) mục Quy tắc thống nhất.
+Triệu chứng / CĐHA / khoa / Foley–máy–CVC trên lưới = **bệnh án**. Phiếu xác định ca **lấy theo bệnh án** (không nhập lại). Bỏ tích dụng cụ hoặc đổi khoa trên lưới → sửa bệnh án và phiếu. Chi tiết: [`hai-database-plan-20260827.md`](../../archive/module-history/nkbv/hai-database-plan-20260827.md) mục Quy tắc thống nhất.
 
 ---
 

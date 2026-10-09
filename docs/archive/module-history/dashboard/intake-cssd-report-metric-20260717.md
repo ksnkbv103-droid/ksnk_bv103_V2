@@ -19,7 +19,7 @@ Trên Báo cáo CSSD đang có ô **「Tỷ lệ tuân thủ」** tính bằng `
 - **In scope:**
   - `src/modules/cssd-erp/views/CSSDReportPage.tsx` (tính `compliance`)
   - `src/modules/cssd-erp/components/report/ReportDashboard.tsx` (nhãn StatCard + tooltip/chú thích)
-  - Ghi 1 dòng vào [`metric-dictionary.md`](metric-dictionary.md) mục CSSD (chỉ số riêng, ngoài CCS)
+  - Ghi 1 dòng vào [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md) mục CSSD (chỉ số riêng, ngoài CCS)
 - **Out of scope:**
   - Đổi công thức CCS / RPC strategic VST–GSC
   - Redesign toàn trang CSSD Report / thêm RPC mới

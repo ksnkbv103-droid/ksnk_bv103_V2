@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Kiểm tra link markdown tới file .md/.mdc trong docs/, AGENTS.md, .cursor/rules
+ * Kiểm tra link markdown tới file .md/.mdc.
+ * Bỏ qua docs/archive và docs/data (cửa CLAUDE.md — không đọc kho).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -10,6 +11,7 @@ const scanRoots = [
   path.join(root, "docs"),
   path.join(root, ".cursor", "rules"),
   path.join(root, "AGENTS.md"),
+  path.join(root, "CLAUDE.md"),
   path.join(root, "README.md"),
   path.join(root, "supabase", "migrations", "README.md"),
 ];
@@ -42,9 +44,17 @@ function walk(file) {
   }
 }
 
+function isClosedTree(dir) {
+  const rel = path.relative(root, dir);
+  return rel === path.join("docs", "data")
+    || rel.startsWith(`${path.join("docs", "data")}${path.sep}`)
+    || rel === path.join("docs", "archive")
+    || rel.startsWith(`${path.join("docs", "archive")}${path.sep}`);
+}
+
 function walkDir(dir) {
   if (!fs.existsSync(dir)) return;
-  if (dir.includes(`${path.sep}archive${path.sep}`)) return;
+  if (isClosedTree(dir)) return;
   if (fs.statSync(dir).isFile()) {
     if (dir.endsWith(".md") || dir.endsWith(".mdc")) walk(dir);
     return;

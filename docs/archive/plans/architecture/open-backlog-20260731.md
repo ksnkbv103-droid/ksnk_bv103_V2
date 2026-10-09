@@ -66,13 +66,13 @@ Còn P1 ngoài code: UAT ký khoa · OPS-DB-01 (Docker gate) · `admin:rbac:sync
 
 ## Liên kết
 
-- **Full audit PO (2026-08-05):** [`../reports/full-system-audit-po-20260805.md`](../reports/full-system-audit-po-20260805.md)  
-- **UAT coordination pack:** [`../reports/uat-coordination-pack-20260805.md`](../reports/uat-coordination-pack-20260805.md)  
-- **UI B+4 (S0–S3):** [`./ui-consistency-program-20260803.md`](./ui-consistency-program-20260803.md)  
-- **UI B+3 (Done):** [`./ui-consistency-program-20260802.md`](./ui-consistency-program-20260802.md)  
-- Scorecard UI: [`../reports/ui-consistency-scorecard-20260731.md`](../reports/ui-consistency-scorecard-20260731.md)  
-- Scorecard giám sát + filter: [`../reports/supervision-analytics-filter-scorecard-20260803.md`](../reports/supervision-analytics-filter-scorecard-20260803.md)  
-- Scorecard in: [`../reports/print-audit-scorecard-20260803.md`](../reports/print-audit-scorecard-20260803.md)  
-- A1–A5: [`../reports/system-audit-a1-a5-20260731.md`](../reports/system-audit-a1-a5-20260731.md)  
-- Tóm tắt PO 31/07: [`../reports/po-system-audit-summary-20260731.md`](../reports/po-system-audit-summary-20260731.md)  
+- **Full audit PO (2026-08-05):** [`../reports/full-system-audit-po-20260805.md`](../../reports/full-system-audit-po-20260805.md)  
+- **UAT coordination pack:** [`../reports/uat-coordination-pack-20260805.md`](../../reports/uat-coordination-pack-20260805.md)  
+- **UI B+4 (S0–S3):** [`./ui-consistency-program.md#b4`](./ui-consistency-program.md#b4)  
+- **UI B+3 (Done):** [`./ui-consistency-program.md#b3`](./ui-consistency-program.md#b3)  
+- Scorecard UI: [`../reports/ui-consistency-scorecard-20260731.md`](../../reports/ui-consistency-scorecard-20260731.md)  
+- Scorecard giám sát + filter: [`../reports/supervision-analytics-filter-scorecard-20260803.md`](../../reports/supervision-analytics-filter-scorecard-20260803.md)  
+- Scorecard in: [`../reports/print-audit-scorecard-20260803.md`](../../reports/print-audit-scorecard-20260803.md)  
+- A1–A5: [`../reports/system-audit-a1-a5-20260731.md`](../../reports/system-audit-a1-a5-20260731.md)  
+- Tóm tắt PO 31/07: [`../reports/po-system-audit-summary-20260731.md`](../../reports/po-system-audit-summary-20260731.md)  
 - Dialect matrix: [`./design-dialect-matrix-20260731.md`](./design-dialect-matrix-20260731.md)

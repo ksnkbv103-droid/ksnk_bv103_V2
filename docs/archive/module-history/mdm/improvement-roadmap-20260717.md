@@ -4,7 +4,7 @@
 > **Phạm vi:** Module `quan-tri-he-thong` + ranh giới master ↔ vận hành.  
 > **Không làm trong đợt 1A:** sửa `src/` cho Lớp 1–3 (mở chat `/intake-nv` riêng từng slice).  
 > **Persona:** cân bằng KSNK / master CSSD / IT — thứ tự theo lớp cố định.  
-> **Liên quan:** [README MDM](./README.md) · [debt D-16/D-17](../../reference/architecture/debt-register.md) · [F-04](../../archive/reports/comprehensive-review-20260603.md) · [reform CSSD](../cssd/reform-plan.md) · [roadmap 2026H2](../../reference/architecture/roadmap-2026h2.md)
+> **Liên quan:** [README MDM](./README.md) · [debt D-16/D-17](../../plans/architecture/debt-register.md) · [F-04](../../reports/comprehensive-review.md#2026-06-03) · [reform CSSD](../cssd/reform-plan.md) · [roadmap 2026H2](../../plans/architecture/roadmap-2026h2.md)
 
 ---
 
@@ -58,7 +58,7 @@ flowchart TB
 
 | Khoản | Bằng chứng |
 |-------|------------|
-| 9-slice admin / Double SSOT lookup | [`admin-module-slice-plan.md`](../../archive/plans/admin-module-slice-plan.md) |
+| 9-slice admin / Double SSOT lookup | [`admin-module-slice-plan.md`](../../plans/admin-module-slice-plan.md) |
 | Placement: master UI dưới `quan-tri-he-thong/danh-muc/`; CSSD RO + banner | Rule `20-master-data-placement.mdc`, `CssdCatalogMdmBanner` |
 | Hub catalog SSOT | `src/lib/master-data/danh-muc-hub-catalog.ts` |
 | Soft-delete `is_active`; CRUD `master-crud-core` | Module quan-tri |
@@ -72,9 +72,9 @@ flowchart TB
 
 | Trạng thái | Việc | Deliverable |
 |------------|------|-------------|
-| **Done (1A)** | Chuẩn hóa “MDM tổ chức” vs “Master CSSD” | Wiki [`concepts.md`](../../wiki/concepts.md#cssd-vs-mdm) + README này |
+| **Done (1A)** | Chuẩn hóa “MDM tổ chức” vs “Master CSSD” | Wiki [`concepts.md`](../../../wiki/concepts.md#cssd-vs-mdm) + README này |
 | **Done (1A)** | Sửa drift rule placement (`dm_*` → `{module}_dm_*`) | `.cursor/rules/20-master-data-placement.mdc` |
-| **Done (1A)** | `LOAI_DUNG_CU` = TABLE `cssd_dm_loai_dung_cu` (không lookup) | [`implementation-mapping.md`](../../core/implementation-mapping.md) |
+| **Done (1A)** | `LOAI_DUNG_CU` = TABLE `cssd_dm_loai_dung_cu` (không lookup) | [`implementation-mapping.md`](../../../core/implementation-mapping.md) |
 | **Done (1A)** | Gắn F-04 / D-16 / D-17 vào lộ trình | File này + debt-register |
 
 **Out:** không refactor 146 file; không đổi schema trong Lớp 0.
@@ -167,5 +167,5 @@ Cải trải nghiệm, không big-bang tách module (F-04).
 
 | Ngày | Việc |
 |------|------|
-| 2026-07-28 | Ghi nhận Sóng 4 deferred (HIS/LIS, Spaulding engine, facade kho) — [`roadmap-dang-cap-wave4-20260728.md`](../../reference/architecture/roadmap-dang-cap-wave4-20260728.md). Không mở Lớp 1 trong đợt IA/UX. |
+| 2026-07-28 | Ghi nhận Sóng 4 deferred (HIS/LIS, Spaulding engine, facade kho) — [`roadmap-dang-cap-wave4-20260728.md`](../../plans/architecture/roadmap-dang-cap-wave4-20260728.md). Không mở Lớp 1 trong đợt IA/UX. |
 | 2026-07-17 | Tạo lộ trình 4 lớp; đóng Lớp 0 (doc/rule/mapping). |

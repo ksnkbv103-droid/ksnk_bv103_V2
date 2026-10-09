@@ -1,9 +1,9 @@
 # UI Consistency Scorecard — 2026-07-31 (A2) · B+3 + B+4 Done 2026-08-03
 
 > Evidence-based. Global width SSOT: `KsnkPageShell` → `max-w-7xl` (`ClientLayoutWrapper`).  
-> Tokens: `bv103-design-tokens` · chrome: `bv103-layout-chrome` · dialect: [`design-dialect-matrix-20260731.md`](../architecture/design-dialect-matrix-20260731.md).  
-> **B+3:** [`../architecture/ui-consistency-program-20260802.md`](../architecture/ui-consistency-program-20260802.md).  
-> **B+4:** [`../architecture/ui-consistency-program-20260803.md`](../architecture/ui-consistency-program-20260803.md).
+> Tokens: `bv103-design-tokens` · chrome: `bv103-layout-chrome` · dialect: [`design-dialect-matrix-20260731.md`](../plans/architecture/design-dialect-matrix-20260731.md).  
+> **B+3:** [`../architecture/ui-consistency-program.md#b3`](../plans/architecture/ui-consistency-program.md#b3).  
+> **B+4:** [`../architecture/ui-consistency-program.md#b4`](../plans/architecture/ui-consistency-program.md#b4).
 
 ## Scoreboard (1–5) — sau B+4 (2026-08-03)
 

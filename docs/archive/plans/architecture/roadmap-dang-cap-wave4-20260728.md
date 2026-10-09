@@ -22,7 +22,7 @@
 ## Cách mở slice
 
 1. Chat mới `/intake-nv` — một hạng mục / một chat.  
-2. Tham chiếu: [`improvement-roadmap-20260717.md`](../../modules/mdm/improvement-roadmap-20260717.md), [`debt-register.md`](./debt-register.md).  
+2. Tham chiếu: [`improvement-roadmap-20260717.md`](../../module-history/mdm/improvement-roadmap-20260717.md), [`debt-register.md`](./debt-register.md).  
 3. Verify tối thiểu: `verify:engineering` (+ `verify:cssd` / `verify:mdm` nếu đụng schema).
 
 ## Liên kết chương trình

@@ -5,7 +5,7 @@
 > **Vai trò:** kỹ sư phần mềm + chuyên gia kiểm soát nhiễm khuẩn (IPC)  
 > **Phương pháp:** đối chiếu SSOT (`domain-specification`, mapping, module README) + audit sống + khảo sát cấu trúc runtime (`src/app` ~52 page · `src/modules` ~12 package · ~115 server actions · ~118 migrations).  
 > **Nguyên tắc:** Không rewrite hệ thống; không sửa `src/` / migration trong đợt rà soát này.  
-> **Backlog sống:** [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md)  
+> **Backlog sống:** [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md)  
 > **Tiền thân PO ngắn:** [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md)
 
 ---
@@ -105,7 +105,7 @@ So với [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md
 - Compliance VST = “không bỏ sót”, **không** bắt buộc kỹ thuật/thời gian đúng (WHO indication vs quality).
 - Care-bundle (`dat_tron_goi`) và weight/red-flag **có trong model nhưng UI/KPI chủ yếu hiện % tiêu chí** → dễ hiểu nhầm “đạt” khi gói then-chốt fail. Wiki: [`../../wiki/concepts.md#gsc-scoring`](../../wiki/concepts.md#gsc-scoring).
 - **Hai hệ ngưỡng:** form ~90/80 vs dashboard 85/70/80 — lệch ngôn ngữ lãnh đạo ↔ hiện trường.
-- P×I×S rủi ro bảng kiểm: feasibility [`../../modules/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md`](../../modules/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md), chưa ship.
+- P×I×S rủi ro bảng kiểm: feasibility [`../../modules/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md`](../module-history/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md), chưa ship.
 
 **Linh hoạt:** cao về template seed/MDM; thấp về tự soạn BK ngoài admin.
 
@@ -131,7 +131,7 @@ So với [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md
 
 - Một module `/giam-sat-nkbv` cho BSI/UTI/VAE-PNEU/SSI — đúng ADR unified; Shared timeline / Secondary BSI / device registry W1–W2 — kỷ luật scope tốt (không giả vờ NHSN đầy đủ).
 - Import LIS/ADT + xác nhận kép trên form diagnostic — an toàn lâm sàng hơn auto-classify.
-- Roadmap: [`../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md`](../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md) — W3 LabID/CLIP backlog; **W4–W6 tạm dừng**.
+- Roadmap: [`../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md`](../module-history/nkbv/implementation-roadmap-ssot-v2-20260804.md) — W3 LabID/CLIP backlog; **W4–W6 tạm dừng**.
 
 **Khiếm khuyết**
 
@@ -183,7 +183,7 @@ So với [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md
 | Touch targets giám sát / QR camera / offline hẹp (CSSD+pending GS) | Offline chưa first-class toàn hệ |
 | Print/export đã có scorecard và vá 08-05 | Dialect search/filter ngoài GS cần giữ SSOT |
 
-Chrome contract: [`../architecture/page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) · dialect: [`../architecture/design-dialect-matrix-20260731.md`](../architecture/design-dialect-matrix-20260731.md).
+Chrome contract: [`../architecture/page-chrome-contract-20260731.md`](../../reference/architecture/page-chrome-contract-20260731.md) · dialect: [`../architecture/design-dialect-matrix-20260731.md`](../plans/architecture/design-dialect-matrix-20260731.md).
 
 ### Backend
 
@@ -266,9 +266,9 @@ Prefix SSOT: [`../../core/implementation-mapping.md`](../../core/implementation-
 | Tài liệu | Vai trò |
 |----------|---------|
 | [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md) | Tổng rà soát PO ngắn (8 chiều + R0–R6) |
-| [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) | Backlog sống |
+| [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) | Backlog sống |
 | [`uat-coordination-pack-20260805.md`](./uat-coordination-pack-20260805.md) | Gói điều phối UAT |
-| [`comprehensive-review-20260709.md`](./comprehensive-review-20260709.md) | Audit Domain→DB→BE→UI trước đó |
+| [`comprehensive-review.md#2026-07-09`](./comprehensive-review.md#2026-07-09) | Audit Domain→DB→BE→UI trước đó |
 | [`../../core/domain-specification.md`](../../core/domain-specification.md) | SSOT nghiệp vụ |
 | [`../../modules/nkbv/hai-surveillance-domain-ssot-20260827.md`](../../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) | SSOT NHSN đang dùng (v3.3) vs pilot runtime |
 | [`../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md`](../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) | Lịch sử v2.0 (kho) |
@@ -279,6 +279,6 @@ Prefix SSOT: [`../../core/implementation-mapping.md`](../../core/implementation-
 ## Nguồn evidence chính
 
 - SSOT: [`../../core/domain-specification.md`](../../core/domain-specification.md), [`../../wiki/entities.md`](../../wiki/entities.md), [`../../wiki/concepts.md`](../../wiki/concepts.md)
-- Audit sống: [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md), [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md)
+- Audit sống: [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md), [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md)
 - Module: `docs/modules/{giam-sat,cssd,nkbv,dashboard,qlcv,dao-tao,mdm}/`
 - Runtime xương sống: `src/modules/*`, `src/lib/{domain,analytics,entity-qr,permission-*}`, `src/proxy.ts`

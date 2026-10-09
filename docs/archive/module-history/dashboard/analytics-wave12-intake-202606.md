@@ -160,6 +160,6 @@ Mọi thay đổi sau đó ghi `Spec change` + intake revision.
 
 ## Tham chiếu
 
-- [`bao-cao-tong-hop.md`](./bao-cao-tong-hop.md)
-- [`../../core/lean-execution.md`](../../core/lean-execution.md)
+- [`bao-cao-tong-hop.md`](../../../modules/dashboard/bao-cao-tong-hop.md)
+- [`../../core/lean-execution.md`](../../../core/lean-execution.md)
 - Hội thoại: P0 full rank khoa (đã implement), triptych, moment bảng số, luật đối soát.

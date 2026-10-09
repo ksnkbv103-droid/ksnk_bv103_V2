@@ -1,6 +1,6 @@
 # NKBV — Clinical forms coverage audit (Phase 5.2)
 
-> Đối chiếu [`clinical-forms.md`](./clinical-forms.md) ↔ code pilot · 2026-06-10
+> Đối chiếu [`clinical-forms.md`](../../../modules/nkbv/clinical-forms.md) ↔ code pilot · 2026-06-10
 
 ## Tóm tắt rubric
 

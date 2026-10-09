@@ -41,10 +41,10 @@
 ## Exit intake
 
 - [ ] V1–V5 có chữ ký NV KSNK + IT
-- [ ] Cập nhật [`implementation-mapping.md`](../../core/implementation-mapping.md) nếu quyết định schema
+- [ ] Cập nhật [`implementation-mapping.md`](../../../core/implementation-mapping.md) nếu quyết định schema
 - [ ] **Không** migration mới cho đến khi intake đóng
 
 ## Tham chiếu
 
 - [`pilot-checklist-hoa-chat-202606.md`](./pilot-checklist-hoa-chat-202606.md)
-- [`../../archive/reports/domain-audit-phase3-20260610.md`](../../archive/reports/domain-audit-phase3-20260610.md) §4.3
+- [`../../archive/reports/domain-audit-20260610.md#phase-3`](../../reports/domain-audit-20260610.md#phase-3) §4.3

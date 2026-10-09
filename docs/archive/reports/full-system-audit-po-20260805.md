@@ -3,7 +3,7 @@
 > **Ngày:** 2026-08-05  
 > **Phạm vi:** Domain · Frontend · Backend · UI/UX · Database · Triển khai · Nợ kỹ thuật  
 > **Nguyên tắc:** Không rewrite hệ thống; soft CAP_PHAT giữ SSOT; 1 wave = 1 slice đo được.  
-> **Backlog sống:** [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md)  
+> **Backlog sống:** [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md)  
 > **Tiền thân:** [`po-system-audit-summary-20260731.md`](./po-system-audit-summary-20260731.md) · [`system-audit-a1-a5-20260731.md`](./system-audit-a1-a5-20260731.md)
 
 ---
@@ -62,7 +62,7 @@ Spec: [`../../core/domain-specification.md`](../../core/domain-specification.md)
 | Đào tạo | Partial | Seed RBAC `DAO_TAO` parity (W2.5) |
 | NKBV | Eng harden W2 Done | UAT lâm sàng #2–#5; P1 clinical depth; W3 LabID/CLIP backlog; W4–W6 tạm dừng |
 
-NKBV roadmap: [`../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md`](../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md).
+NKBV roadmap: [`../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md`](../module-history/nkbv/implementation-roadmap-ssot-v2-20260804.md).
 
 ---
 
@@ -70,7 +70,7 @@ NKBV roadmap: [`../../modules/nkbv/implementation-roadmap-ssot-v2-20260804.md`](
 
 ### Hợp đồng UI (đã khóa)
 
-- **3 vai trò:** Ops · Analytics · Admin — [`../architecture/design-dialect-matrix-20260731.md`](../architecture/design-dialect-matrix-20260731.md)
+- **3 vai trò:** Ops · Analytics · Admin — [`../architecture/design-dialect-matrix-20260731.md`](../plans/architecture/design-dialect-matrix-20260731.md)
 - **1 dải L1:** `KsnkPageChrome` → `KsnkContextBanner` → nội dung
 - **Gate:** `layout:drift-check`, typography / panel / columns checks
 
@@ -176,9 +176,9 @@ Pipeline: migration → `mdm:migrate` → `verify:mdm` / `verify:engineering` �
 
 | Tài liệu | Vai trò |
 |----------|---------|
-| [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) | Backlog sống |
-| [`../architecture/uat-after-reform-20260728.md`](../architecture/uat-after-reform-20260728.md) | UAT reform A–F |
-| [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`](../../modules/nkbv/pilot-clinical-checklist-20260603.md) | UAT NKBV lâm sàng |
+| [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) | Backlog sống |
+| [`../architecture/uat-after-reform-20260728.md`](../plans/architecture/uat-after-reform-20260728.md) | UAT reform A–F |
+| [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`](../module-history/nkbv/pilot-clinical-checklist-20260603.md) | UAT NKBV lâm sàng |
 | [`uat-coordination-pack-20260805.md`](./uat-coordination-pack-20260805.md) | Gói điều phối UAT (R1) |
 | [`print-audit-scorecard-20260803.md`](./print-audit-scorecard-20260803.md) | Scorecard in |
 | [`ui-consistency-scorecard-20260731.md`](./ui-consistency-scorecard-20260731.md) | Scorecard UI |

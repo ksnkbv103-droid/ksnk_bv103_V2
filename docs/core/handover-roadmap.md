@@ -31,8 +31,8 @@ Verify trước push: `npm run verify` (full) — xem [`lean-execution.md`](lean
 ## 4. Wiki & tài liệu
 
 - Tổng hợp module: [`../wiki/entities.md`](../wiki/entities.md)  
-- Kiến trúc chi tiết: [`../reference/architecture/system-overview.md`](../reference/architecture/system-overview.md)
-- Chủ đề → một file: [`../ssot-map.md`](../ssot-map.md). Mục lục Cursor: [`skills-catalog.md`](skills-catalog.md).
+- Kho tổng quan 30/05 (không mở khi sửa): [`../archive/plans/architecture/system-overview.md`](../archive/plans/architecture/system-overview.md). Đang dùng: [`implementation-mapping.md`](implementation-mapping.md) và [`../wiki/entities.md`](../wiki/entities.md).
+- Chủ đề → một file: [`../ssot-map.md`](../ssot-map.md). Mục lục skill: [`skills-catalog.md`](skills-catalog.md).
 
 ## 5. Lộ trình rà soát (cửa đang theo)
 

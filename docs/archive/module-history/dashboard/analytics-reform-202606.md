@@ -37,7 +37,7 @@ src/lib/analytics/supervision-matrix-mappers.ts
 |---|---|
 | **Mục đích** | Tạo «sổ tay» chung — ai cũng hiểu cùng một định nghĩa số. |
 | **Ý nghĩa** | Tránh nhầm `ty_le_ccs` vs `ty_le_avg`, `delta` vs `do_lech`, comparable vs mọi khoa có 1 nguồn. |
-| **File** | Doc này + [`metric-dictionary.md`](./metric-dictionary.md) |
+| **File** | Doc này + [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md) |
 | **Verify** | Review tay 3 case: chỉ KSNK · comparable · 0 phiên |
 
 ---
@@ -128,7 +128,7 @@ npm run verify:engineering
 | `do_lech` | từ RPC `gap_analysis` | Δ TGS vs KSNK |
 | `delta_*` | tuần ISO cuối − tuần liền trước | Badge KPI |
 
-Chi tiết: [`metric-dictionary.md`](./metric-dictionary.md).
+Chi tiết: [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md).
 
 ---
 
@@ -182,5 +182,5 @@ Chi tiết: [`metric-dictionary.md`](./metric-dictionary.md).
 ## Tham chiếu
 
 - [`analytics-wave12-intake-202606.md`](./analytics-wave12-intake-202606.md)
-- [`bao-cao-tong-hop.md`](./bao-cao-tong-hop.md)
+- [`bao-cao-tong-hop.md`](../../../modules/dashboard/bao-cao-tong-hop.md)
 - ADR: [`adr-dashboard-kpi-path-20260603.md`](../../reference/architecture/adr-dashboard-kpi-path-20260603.md)

@@ -1,7 +1,7 @@
 # Quản trị hệ thống BV103 — Kế hoạch 9 slice dứt điểm (25/05/2026)
 
 Tóm tắt kế hoạch cải tiến module Quản trị hệ thống (`/quan-tri-he-thong/*`) sau đợt
-chuẩn hóa prefix DB ngày 25/05. Tham chiếu: [`implementation-mapping.md`](../implementation-mapping.md),
+chuẩn hóa prefix DB ngày 25/05. Tham chiếu: [`implementation-mapping.md`](../../core/implementation-mapping.md),
 `scripts/sql/reference/ssot-slice8/README.md`.
 
 ## Trạng thái triển khai

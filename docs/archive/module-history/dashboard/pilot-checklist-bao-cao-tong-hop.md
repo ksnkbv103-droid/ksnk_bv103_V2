@@ -1,7 +1,7 @@
 # Pilot checklist — Báo cáo tổng hợp KSNK (`/bao-cao-tong-hop`)
 
 > Đối soát số liệu với module nguồn (VST / GSC / NKBV) trước khi gửi BGĐ/HĐ KSNK.  
-> SSOT chỉ số: [`metric-dictionary.md`](./metric-dictionary.md) · Module: [`bao-cao-tong-hop.md`](./bao-cao-tong-hop.md)
+> SSOT chỉ số: [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md) · Module: [`bao-cao-tong-hop.md`](../../../modules/dashboard/bao-cao-tong-hop.md)
 
 ## Người dùng / môi trường
 

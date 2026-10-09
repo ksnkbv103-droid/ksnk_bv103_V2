@@ -1,7 +1,7 @@
 # Wave 2–3 follow-up + Wave 4 (2026-07-31)
 
 > Sau audit + Wave 1 UI. Backlog mở: [`open-backlog-20260731.md`](./open-backlog-20260731.md).  
-> **UI tiếp theo (không gộp vào W2 BE):** chương trình B+3 S1–S5 — [`ui-consistency-program-20260802.md`](./ui-consistency-program-20260802.md).
+> **UI tiếp theo (không gộp vào W2 BE):** chương trình B+3 S1–S5 — [`ui-consistency-program.md#b3`](./ui-consistency-program.md#b3).
 
 ## Wave 2 — An toàn & UAT (trạng thái)
 

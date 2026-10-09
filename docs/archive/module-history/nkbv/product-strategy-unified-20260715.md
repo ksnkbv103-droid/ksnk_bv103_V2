@@ -1,7 +1,7 @@
 # Quyết định sản phẩm NKBV — một module thống nhất (2026-07-15)
 
 > **Trạng thái:** **Đã PO xác nhận** (2026-07-15)  
-> **SSOT đầy đủ:** [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md)
+> **SSOT đầy đủ:** [`adr-nkbv-unified-module-20260715.md`](../../../reference/architecture/adr-nkbv-unified-module-20260715.md)
 
 ## Chốt ngắn
 

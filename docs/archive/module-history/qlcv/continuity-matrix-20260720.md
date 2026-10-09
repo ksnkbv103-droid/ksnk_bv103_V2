@@ -1,6 +1,6 @@
 # QLCV — ma trận liên thông UI → Action → RPC/DB (2026-07-20)
 
-> SSOT nghiệp vụ: [`domain-specification.md`](../../core/domain-specification.md) §2.3 · Mapping: [`implementation-mapping.md`](../../core/implementation-mapping.md) § Công việc.
+> SSOT nghiệp vụ: [`domain-specification.md`](../../core/domain-specification.md) §2.3 · Mapping: [`implementation-mapping.md`](../../../core/implementation-mapping.md) § Công việc.
 
 | Thao tác UI | Server Action | RPC / bảng ghi | Guard |
 |-------------|---------------|----------------|-------|

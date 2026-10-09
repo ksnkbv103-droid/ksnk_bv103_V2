@@ -38,7 +38,7 @@ isProject: false
 # BV103 — Rà soát kiến trúc toàn diện & lộ trình phát triển
 
 > **Mục đích:** Một lần xem lại toàn bộ để lên kế hoạch phát triển tiếp.  
-> **SSOT kỹ thuật:** [docs/core/implementation-mapping.md](docs/core/implementation-mapping.md) + Postgres thực tế.  
+> **SSOT kỹ thuật:** [docs/core/implementation-mapping.md](../../core/implementation-mapping.md) + Postgres thực tế.  
 > **SSOT nghiệp vụ:** [docs/core/domain-specification.md](docs/core/domain-specification.md) (cần cập nhật tên bảng prefix mới).
 
 ---
@@ -183,7 +183,7 @@ flowchart TB
 **RPC chính:** `rpc_scan_workflow_station`.  
 **Legacy redirects:** 9 route `/cssd-erp/*`, `/cssd-tiep-nhan` → canonical ([cssd-routes.ts](src/lib/cssd-routes.ts)).
 
-**QLDCPT gaps (P0–P3)** — xem [reform-plan.md](docs/modules/cssd/reform-plan.md): thiếu Digital BOM tại trạm Đóng gói, Spaulding engine, facade CSSD↔MDM, trace NKBV↔CSSD.
+**QLDCPT gaps (P0–P3)** — xem [reform-plan.md](../module-history/cssd/reform-plan.md): thiếu Digital BOM tại trạm Đóng gói, Spaulding engine, facade CSSD↔MDM, trace NKBV↔CSSD.
 
 ---
 
@@ -258,7 +258,7 @@ flowchart TB
 
 - `Sidebar.tsx` — nav gates OR semantics
 - `ClientLayoutWrapper` — auth gate (client-side, **không middleware.ts**)
-- Layout primitives: [layout-primitives.md](docs/modules/giam-sat/layout-primitives.md)
+- Layout primitives: [layout-primitives.md](../../reference/architecture/layout-primitives.md)
 
 ### C5. RBAC model
 
@@ -358,8 +358,8 @@ npm run pilot:ship  # + migrate linked + precheck
 ### E3. Governance pipeline
 
 - Schema change → `supabase migration new` → root migrations only → changelog mapping doc.
-- Không SQL nóng trên remote ([operations-sop.md](docs/core/operations-sop.md)).
-- Một vertical slice / PR ([lean-execution.md](docs/core/lean-execution.md)).
+- Không SQL nóng trên remote ([operations-sop.md](../../core/operations-sop.md)).
+- Một vertical slice / PR ([lean-execution.md](../../core/lean-execution.md)).
 
 ---
 
@@ -444,7 +444,7 @@ flowchart TB
 
 | ID | Mô tả | Vị trí |
 |----|-------|--------|
-| D-05 | ~40 file app vẫn query view alias cũ (`v_fact_*`, `v_dm_*`) — Step 2 view rename chưa xong | [view-rename-mapping-20260526.md](docs/archive/baselines/view-rename-mapping-20260526.md) |
+| D-05 | ~40 file app vẫn query view alias cũ (`v_fact_*`, `v_dm_*`) — Step 2 view rename chưa xong | [view-rename-mapping-20260526.md](../baselines/view-rename-mapping-20260526.md) |
 | D-06 | Dashboard naming drift: `strategic-dashboard-v3.types.ts` chứa V4 payload | dashboard module |
 | D-07 | Dual dashboard data path: summary tables vs RPC v4 unnest | DB + docs |
 | D-08 | 9 legacy CSSD redirect routes — giữ compat URL | src/app/cssd-* |
@@ -501,7 +501,7 @@ flowchart TB
 
 ### Phase 3 — NKBV clinical depth (6–10 tuần)
 
-1. Hoàn thiện sub-forms + rules engine theo [clinical-forms.md](docs/modules/nkbv/clinical-forms.md).
+1. Hoàn thiện sub-forms + rules engine theo [clinical-forms.md](../../modules/nkbv/clinical-forms.md).
 2. Adjudication workflow + CDC metrics panel production-ready.
 3. Vi sinh import portal + mẫu số daily.
 4. Chuẩn bị hook `quy_trinh_id` cho SSI trace (QLDCPT B5).

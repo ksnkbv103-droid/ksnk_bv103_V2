@@ -2,7 +2,7 @@
 
 > **Ngày:** 2026-07-17  
 > **Loại:** Báo cáo đánh giá + **đã triển khai** P0/P1/P2 (không đổi công thức CCS)  
-> **SSOT công thức:** [`metric-dictionary.md`](metric-dictionary.md) · Skill `@dashboard-pilot`  
+> **SSOT công thức:** [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md) · Skill `@dashboard-pilot`  
 > **Backlog intake:** [`intake-cssd-report-metric-20260717.md`](intake-cssd-report-metric-20260717.md) · [`intake-analytics-chrome-unify-20260717.md`](intake-analytics-chrome-unify-20260717.md) · [`intake-nkbv-dashboard-filter-deeplink-20260717.md`](intake-nkbv-dashboard-filter-deeplink-20260717.md)
 
 ---

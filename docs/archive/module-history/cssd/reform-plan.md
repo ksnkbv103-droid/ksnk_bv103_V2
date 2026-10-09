@@ -2,7 +2,7 @@
 
 > Phiên bản: 2026-05-25 · Trạng thái: **Đã được duyệt 6 quyết định cốt lõi** · Phạm vi: module quản lý dụng cụ phẫu thuật (CSSD/QLDCPT)
 > Đối chiếu nghiệp vụ: [`../../data/qldcpt/cssd-business-notes.md`](../../data/qldcpt/cssd-business-notes.md)
-> Ràng buộc kỷ luật: [`AGENTS.md`](../../../AGENTS.md), [`01-agent-discipline.mdc`](../../../.cursor/rules/01-agent-discipline.mdc), [`51-database-migration-rules.mdc`](../../../.cursor/rules/51-database-migration-rules.mdc), [`../../core/lean-execution.md`](../../core/lean-execution.md)
+> Ràng buộc kỷ luật: [`AGENTS.md`](../../../../AGENTS.md), [`01-agent-discipline.mdc`](../../../../.cursor/rules/01-agent-discipline.mdc), [`51-database-migration-rules.mdc`](../../../../.cursor/rules/51-database-migration-rules.mdc), [`../../core/lean-execution.md`](../../../core/lean-execution.md)
 
 ## TL;DR
 
@@ -61,7 +61,7 @@
 
 ### B4 · Mapping doc lệch tên bảng
 
-- [`docs/core/implementation-mapping.md`](../../core/implementation-mapping.md) L23-39 vẫn ghi tên cũ `dm_loai_dung_cu`, `fact_quy_trinh`.
+- [`docs/core/implementation-mapping.md`](../../../core/implementation-mapping.md) L23-39 vẫn ghi tên cũ `dm_loai_dung_cu`, `fact_quy_trinh`.
 
 ### B5 · NKBV SSI ↔ CSSD trace link
 
@@ -429,10 +429,10 @@ Loại nhầm lẫn schema; không sửa code chức năng.
 
 | Type | File | Mục đích |
 |---|---|---|
-| MODIFY | [`docs/core/implementation-mapping.md`](../../core/implementation-mapping.md) | Cập nhật tên `cssd_*`; thêm dòng `cssd_fact_lifecycle_event` là SSOT audit; dòng changelog ngày |
+| MODIFY | [`docs/core/implementation-mapping.md`](../../../core/implementation-mapping.md) | Cập nhật tên `cssd_*`; thêm dòng `cssd_fact_lifecycle_event` là SSOT audit; dòng changelog ngày |
 | MODIFY | [`src/lib/cssd-routes.ts`](../../../src/lib/cssd-routes.ts) | Comment đánh dấu `erpRoot`, `erpCatalog`, `erpInventory` = legacy redirect |
-| MODIFY | [`docs/core/read-minimum.md`](../../core/read-minimum.md) | Thêm dòng đọc tối thiểu khi sửa `cssd-erp/components/packaging/*` |
-| MODIFY | [`.cursor/rules/12-cssd-erp-spec-context.mdc`](../../../.cursor/rules/12-cssd-erp-spec-context.mdc) | Thêm anchor đến `cssd-packaging-rules.ts` và doc này |
+| MODIFY | [`docs/core/read-minimum.md`](../../../core/read-minimum.md) | Thêm dòng đọc tối thiểu khi sửa `cssd-erp/components/packaging/*` |
+| MODIFY | [`.cursor/rules/12-cssd-erp-spec-context.mdc`](../../../../.cursor/rules/12-cssd-erp-spec-context.mdc) | Thêm anchor đến `cssd-packaging-rules.ts` và doc này |
 
 #### Verify
 
@@ -457,7 +457,7 @@ Click 1 nút từ ca SSI → mở `/cssd-quy-trinh?tab=trace&qr=<mã>` xem timel
 | MODIFY | `src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts` | Whitelist 3 cột mới ở insert/update |
 | NEW | `src/modules/giam-sat-nkbv/lib/resolve-cssd-trace.ts` | Hàm `resolveCssdLinkFromQr(qr)` đọc `v_fact_quy_trinh_full` |
 | MODIFY | `src/modules/giam-sat-nkbv/components/NkbvCaseEditor.tsx` (panel SSI) | Nút 🔍 "Truy vết bộ" khi có `quy_trinh_id` |
-| MODIFY | [`docs/core/implementation-mapping.md`](../../core/implementation-mapping.md) | Dòng changelog P2 |
+| MODIFY | [`docs/core/implementation-mapping.md`](../../../core/implementation-mapping.md) | Dòng changelog P2 |
 
 #### Verify
 
@@ -593,8 +593,8 @@ npm run pilot:ship   # khi đóng pha
 ### F.3 Cấu trúc tài liệu
 
 - File hiện tại: track tiến độ + quyết định cốt lõi (immutable đối với 6 Q).
-- [`docs/core/implementation-mapping.md`](../../core/implementation-mapping.md): mỗi pha 1 dòng changelog.
-- [`.cursor/rules/12-cssd-erp-spec-context.mdc`](../../../.cursor/rules/12-cssd-erp-spec-context.mdc): bổ sung anchor sau P0.
+- [`docs/core/implementation-mapping.md`](../../../core/implementation-mapping.md): mỗi pha 1 dòng changelog.
+- [`.cursor/rules/12-cssd-erp-spec-context.mdc`](../../../../.cursor/rules/12-cssd-erp-spec-context.mdc): bổ sung anchor sau P0.
 
 ### F.4 Tiêu chí dừng
 

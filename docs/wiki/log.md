@@ -2,6 +2,11 @@
 
 > Prefix chuẩn: `## [YYYY-MM-DD] ingest|query|lint | mô tả`
 
+## [2026-10-09] lint | Gộp chuỗi báo cáo và ghi chú lẻ trong kho
+
+- `archive/reports`: gap, evidence, review, domain-audit mỗi chuỗi một file. Mốc sớm giữ trong file, mục đầu là bản cuối.
+- Nhật ký A–B ngắn gộp vào `plans/ab/`. Ghi chú AI 09/2026 còn bốn file theo chủ đề. Mẫu lệnh Cursor và plan tách PR tháng 5 đã xóa.
+
 ## [2026-10-09] lint | Ghim MCP, bỏ trạng thái cũ trên cửa
 
 - `.mcp.json`: Supabase `cvzwslpxwgqiugzzhqej`, GitHub `ksnkbv103-droid/ksnk_bv103_V2`, Vercel `ksnk-bv103-v2`. Không secret.

@@ -3,7 +3,7 @@
 > **Ngày:** 2026-07-26  
 > **Môi trường mục tiêu đợt này:** Local only  
 > **Phạm vi PO:** A–E + UX + dọn code (không big-bang gộp bảng dữ liệu)  
-> **Liên quan:** [MDM hub roadmap](../../modules/mdm/improvement-roadmap-20260717.md) · [debt-register](./debt-register.md) · [domain-specification](../../core/domain-specification.md)
+> **Liên quan:** [MDM hub roadmap](../../module-history/mdm/improvement-roadmap-20260717.md) · [debt-register](./debt-register.md) · [domain-specification](../../core/domain-specification.md)
 
 ---
 
@@ -123,7 +123,7 @@ Thứ tự tối ưu **rủi ro × giá trị nhận thức** (không theo thứ
 
 ### P3 — C: Hub Quản trị 4 nhóm ngôn ngữ
 
-Bám [improvement-roadmap Lớp 3](../../modules/mdm/improvement-roadmap-20260717.md) — **chỉ nhãn/nhóm**, không tách module.
+Bám [improvement-roadmap Lớp 3](../../module-history/mdm/improvement-roadmap-20260717.md) — **chỉ nhãn/nhóm**, không tách module.
 
 | Nhóm UI | Nội dung |
 |---------|----------|
@@ -143,7 +143,7 @@ Bám [improvement-roadmap Lớp 3](../../modules/mdm/improvement-roadmap-2026071
 1. Component/dialog dùng chung: chọn file → bảng xem trước (N dòng) → 2 chế độ rõ («Chỉ thêm/cập nhật» vs «Đồng bộ đầy đủ = có thể ẩn bản ghi thiếu») → kết quả lỗi theo dòng.  
 2. Smart-import + bảng kiểm dùng cùng shell UX; LIS vi sinh giữ action riêng, chỉ mượn shell nếu khớp.  
 3. Gỡ hoặc archive `giam-sat-chung-import` deprecated (không UI).  
-4. Cập nhật [`json-import-export.md`](../guides/json-import-export.md).
+4. Cập nhật [`json-import-export.md`](../../../reference/guides/json-import-export.md).
 
 **Acceptance:** nạp khoa + nạp bảng kiểm cùng pattern xác nhận; hủy ở bước xem trước = không ghi DB.
 

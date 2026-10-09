@@ -58,7 +58,7 @@ _Generated 2026-10-09 — `npm run wiki:index`_
 - [`docs/modules/nkbv/clinical-forms.md`](../modules/nkbv/clinical-forms.md) — ĐẶC TẢ THIẾT KẾ CÁC BIỂU MẪU NHẬP LIỆU LÂM SÀNG NKBV (CDC/NHSN)
 - [`docs/modules/nkbv/domain-specification.md`](../modules/nkbv/domain-specification.md) — ĐẶC TẢ NGHIỆP VỤ GIÁM SÁT NHIỄM KHUẨN BỆNH VIỆN (NKBV) — CDC/NHSN STANDARD
 - [`docs/modules/nkbv/hai-criteria-element-dictionary-20260827.md`](../modules/nkbv/hai-criteria-element-dictionary-20260827.md) — Từ điển yếu tố tiêu chí chẩn đoán HAI (BV103)
-- [`docs/modules/nkbv/hai-database-plan-20260827.md`](../modules/nkbv/hai-database-plan-20260827.md) — Kế hoạch dữ liệu NKBV — khớp timeline trên màn hình
+- [`docs/modules/nkbv/hai-database-plan-20260827.md`](../archive/module-history/nkbv/hai-database-plan-20260827.md) — Kế hoạch dữ liệu NKBV — khớp timeline trên màn hình
 - [`docs/modules/nkbv/hai-identification-data-flow-20260827.md`](../modules/nkbv/hai-identification-data-flow-20260827.md) — Quy trình xác định ca HAI và luồng dữ liệu BV103
 - [`docs/modules/nkbv/hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) — Domain SSOT v3.3 — Giám sát nhiễm khuẩn bệnh viện (NKBV / HAI)
 - [`docs/modules/nkbv/hai-timeline-and-diagnostic-report-20260827.md`](../modules/nkbv/hai-timeline-and-diagnostic-report-20260827.md) — Timeline bệnh án và mẫu báo cáo chẩn đoán HAI
@@ -81,12 +81,12 @@ _Generated 2026-10-09 — `npm run wiki:index`_
 - [`docs/reference/architecture/layout-primitives.md`](../reference/architecture/layout-primitives.md) — Layout primitives — KSNK BV103
 - [`docs/reference/architecture/lookup-vs-enum-guidance.md`](../reference/architecture/lookup-vs-enum-guidance.md) — Hướng dẫn: danh mục nhỏ — bảng / lookup / gắn cứng
 - [`docs/reference/architecture/page-chrome-contract-20260731.md`](../reference/architecture/page-chrome-contract-20260731.md) — Page Chrome Contract — BV103 (2026-07-31)
-- [`docs/reference/architecture/system-overview.md`](../reference/architecture/system-overview.md) — HỆ THỐNG KIỂM SOÁT NHIỄM KHUẨN (KSNK) — BỆNH VIỆN 103
-- [`docs/reference/guides/architecture-one-pager.md`](../reference/guides/architecture-one-pager.md) — Kiến trúc KSNK BV103 — One-pager
+- [`docs/reference/architecture/system-overview.md`](../archive/plans/architecture/system-overview.md) — HỆ THỐNG KIỂM SOÁT NHIỄM KHUẨN (KSNK) — BỆNH VIỆN 103
+- [`docs/reference/guides/architecture-one-pager.md`](../archive/plans/guides/architecture-one-pager.md) — Kiến trúc KSNK BV103 — One-pager
 - [`docs/reference/guides/auth-pilot-link-sop.md`](../reference/guides/auth-pilot-link-sop.md) — SOP — Link Auth ↔ `mdm_nhan_su` (Phase 6.2)
 - [`docs/reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md) — BV103 Visual Language (Phase 0 SSOT)
-- [`docs/reference/guides/demo-governance-gates.md`](../reference/guides/demo-governance-gates.md) — Demo governance gates — runbook terminal (~2–3 phút)
-- [`docs/reference/guides/demo-script-skeptics-10min.md`](../reference/guides/demo-script-skeptics-10min.md) — Demo script 10 phút — đối thoại với skeptic
+- [`docs/reference/guides/demo-governance-gates.md`](../archive/plans/guides/demo-governance-gates.md) — Demo governance gates — runbook terminal (~2–3 phút)
+- [`docs/reference/guides/demo-script-skeptics-10min.md`](../archive/plans/guides/demo-script-skeptics-10min.md) — Demo script 10 phút — đối thoại với skeptic
 - [`docs/reference/guides/incident-backup-playbook.md`](../reference/guides/incident-backup-playbook.md) — Playbook sự cố & backup/restore — KSNK BV103
 - [`docs/reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) — Cẩm nang Kiến trúc Hybrid JSONB: Import / Export & Mở rộng Danh mục
 - [`docs/reference/guides/migration-squash-runbook.md`](../reference/guides/migration-squash-runbook.md) — Migration Squash Runbook — BV103 Pilot Baseline

@@ -23,7 +23,7 @@ Hai nhánh **tách rõ**, cùng hub giám sát:
 
 **Đã phân tích, chưa ship**
 
-- Điểm nguy cơ **P×I×S** trên danh mục BK (SOP 7.1) — [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](../../modules/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md). Tách khỏi `tong_diem` phiên.
+- Điểm nguy cơ **P×I×S** trên danh mục BK (SOP 7.1) — [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](../../module-history/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md). Tách khỏi `tong_diem` phiên.
 
 ## 2. Đề cương vận hành chuẩn (nghiệp vụ + kỹ thuật)
 

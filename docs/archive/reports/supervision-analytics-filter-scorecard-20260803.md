@@ -3,7 +3,7 @@
 > **Loại:** báo cáo / contract.  
 > **Trạng thái wave:** AN-GAP-01a/b · AN-LABEL-01 · FLT-ANALYTICS-01 · FLT-NKBV-01 · FLT-CONTRACT-01 · FLT-SEARCH-01 · FLT-SELECT-01 · FLT-DATE-01 — **Done code+doc 2026-08-03**.  
 > **Đối tượng:** PO.  
-> **Tham chiếu:** [`metric-dictionary.md`](../../modules/dashboard/metric-dictionary.md) · [`system-audit-a1-a5-20260731.md`](./system-audit-a1-a5-20260731.md) §A5 · [`open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) · [`page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) · [`giam-sat/README.md`](../../modules/giam-sat/README.md)
+> **Tham chiếu:** [`metric-dictionary.md`](../../modules/dashboard/metric-dictionary.md) · [`system-audit-a1-a5-20260731.md`](./system-audit-a1-a5-20260731.md) §A5 · [`open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) · [`page-chrome-contract-20260731.md`](../../reference/architecture/page-chrome-contract-20260731.md) · [`giam-sat/README.md`](../../modules/giam-sat/README.md)
 
 ---
 
@@ -237,10 +237,10 @@ Mỗi dòng = **1 chat** `/intake-nv` → duyệt → `/implement`.
 
 | Doc | Vai trò |
 |-----|---------|
-| [`open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) | ID AN-\* / FLT-\* đăng ký |
+| [`open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) | ID AN-\* / FLT-\* đăng ký |
 | [`ui-consistency-scorecard-20260731.md`](./ui-consistency-scorecard-20260731.md) | Chrome/dialect đã Done — **không** thay scorecard filter này |
-| [`descriptive-analytics-roadmap-20260729.md`](../../modules/dashboard/descriptive-analytics-roadmap-20260729.md) | Phases 0–6 Done — nền tảng số |
-| [`dashboard-ux-audit-20260717.md`](../../modules/dashboard/dashboard-ux-audit-20260717.md) | UX P0/P1 lịch sử |
+| [`descriptive-analytics-roadmap-20260729.md`](../module-history/dashboard/descriptive-analytics-roadmap-20260729.md) | Phases 0–6 Done — nền tảng số |
+| [`dashboard-ux-audit-20260717.md`](../module-history/dashboard/dashboard-ux-audit-20260717.md) | UX P0/P1 lịch sử |
 
 **Bằng chứng code (đường dẫn):**
 

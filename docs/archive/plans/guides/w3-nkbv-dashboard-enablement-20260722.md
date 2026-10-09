@@ -4,7 +4,7 @@
 
 ## 1. NKBV clinical UAT (DOM-08)
 
-Checklist: [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`](../../modules/nkbv/pilot-clinical-checklist-20260603.md)
+Checklist: [`../../modules/nkbv/pilot-clinical-checklist-20260603.md`](../../module-history/nkbv/pilot-clinical-checklist-20260603.md)
 
 | # | Ai | Việc |
 |---|----|------|
@@ -33,7 +33,7 @@ npm run verify:engineering
 
 ## 3. Production mở W3
 
-1. Tick §B NKBV + Dashboard trên [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md).
+1. Tick §B NKBV + Dashboard trên [`pilot-go-live-signoff-202606.md`](../../../core/pilot-go-live-signoff-202606.md).
 2. Tắt (hoặc không set) `KSNK_PILOT_CORE_MODULES` trên prod **hoặc** dùng flag wave riêng nếu IT đã chuẩn bị.
 3. Thông báo user: menu hiện thêm NKBV + Báo cáo.
 

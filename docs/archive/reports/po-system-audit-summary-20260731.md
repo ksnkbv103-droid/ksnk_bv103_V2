@@ -22,7 +22,7 @@ Phần mềm **đúng hướng nghiệp vụ và đã qua cải tổ cửa vào*
 ## Top việc (đã xếp Wave)
 
 1. **Wave 1 + UI B+3:** dialect · thin CC/CSSD/QLCV/BCTH/banner/auth — **Done**.  
-2. **UI B+4 (2026-08-03):** NKBV thin · Admin/MDM · polish gate — **Done** — [`ui-consistency-program-20260803.md`](../architecture/ui-consistency-program-20260803.md).  
+2. **UI B+4 (2026-08-03):** NKBV thin · Admin/MDM · polish gate — **Done** — [`ui-consistency-program.md#b4`](../plans/architecture/ui-consistency-program.md#b4).  
 3. **Wave 2 (UAT/ops):** guest proxy (**Done**) · ký UAT khoa · sync seed DAO_TAO khi DB local.  
 4. **Wave 3:** metric-dictionary gaps (AN-GAP-01).  
 5. **Wave 4:** HIS/LIS / Spaulding sâu — chỉ khi viện sẵn.
@@ -31,4 +31,4 @@ Phần mềm **đúng hướng nghiệp vụ và đã qua cải tổ cửa vào*
 
 Gộp bảng · hard-block cấp phát · đổi Auth · rewrite Quản trị.
 
-Chi tiết: [`open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) · [`ui-consistency-scorecard-20260731.md`](./ui-consistency-scorecard-20260731.md) · [`system-audit-a1-a5-20260731.md`](./system-audit-a1-a5-20260731.md) · UI B+4: [`../architecture/ui-consistency-program-20260803.md`](../architecture/ui-consistency-program-20260803.md).
+Chi tiết: [`open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md) · [`ui-consistency-scorecard-20260731.md`](./ui-consistency-scorecard-20260731.md) · [`system-audit-a1-a5-20260731.md`](./system-audit-a1-a5-20260731.md) · UI B+4: [`../architecture/ui-consistency-program.md#b4`](../plans/architecture/ui-consistency-program.md#b4).

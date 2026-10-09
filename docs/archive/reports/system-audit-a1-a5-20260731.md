@@ -1,6 +1,6 @@
 # System audit A1 · A3 · A4 · A5 — 2026-07-31
 
-> Cùng chương trình Full System Audit. Backlog mở: [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md).
+> Cùng chương trình Full System Audit. Backlog mở: [`../architecture/open-backlog-20260731.md`](../plans/architecture/open-backlog-20260731.md).
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Checklist | Trạng thái | Ghi chú |
 |-----------|------------|---------|
-| Reform A–C (hub, QR, CSSD E2E) | **Chờ ký tay** | [`uat-after-reform-20260728.md`](../architecture/uat-after-reform-20260728.md) |
+| Reform A–C (hub, QR, CSSD E2E) | **Chờ ký tay** | [`uat-after-reform-20260728.md`](../plans/architecture/uat-after-reform-20260728.md) |
 | Reform F (descriptive analytics) | **Chờ ký tay** | F1–F5 |
 | NKBV clinical #2–#5 | **Eng ready / khoa chưa ký** | vitest 29 PASS @07-26; `D-14` |
 | Soft CAP_PHAT / BOM | **SSOT giữ soft-warning** | Không đổi hard-block trong đợt này |

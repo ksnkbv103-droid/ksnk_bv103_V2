@@ -59,6 +59,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Claude Code — bật MCP trên máy, không commit
+.claude/settings.local.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

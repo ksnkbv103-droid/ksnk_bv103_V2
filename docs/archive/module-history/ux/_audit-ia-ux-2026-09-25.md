@@ -11,7 +11,7 @@
 | Method | Code/structure of shell + 7+ surfaces; prior audits (dashboard 2026-07, QLCV/CSSD 2026-09); locks GSC H2 · CSSD 6 stations · QLCV Domain 19 |
 | Non-goals | No Word/Văn bản redesign · no Soft SXHD · no push / Cloud / Vercel / migrate |
 
-**Companion:** [`principles.md`](./principles.md). Visual tokens SSOT: [`docs/reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md) + `src/lib/bv103-design-tokens.ts`.
+**Companion:** [`principles.md`](../../../ux/principles.md). Visual tokens SSOT: [`docs/reference/guides/bv103-visual-language.md`](../../../reference/guides/bv103-visual-language.md) + `src/lib/bv103-design-tokens.ts`.
 
 ---
 
@@ -120,7 +120,7 @@ Rubric: Discoverability · Density · Click-depth · Status · Medical calm · P
 
 ## 6. UX principles (titles)
 
-Full text: [`principles.md`](./principles.md).
+Full text: [`principles.md`](../../../ux/principles.md).
 
 1. One door, one job  
 2. Name the page once (Header SSOT)  

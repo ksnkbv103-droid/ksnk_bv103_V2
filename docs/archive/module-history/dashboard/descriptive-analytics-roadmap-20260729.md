@@ -1,7 +1,7 @@
 # Roadmap thống kê mô tả (2026-07-29)
 
 > Chương trình nâng «thống kê mô tả» theo góc nhìn Chủ nhiệm khoa KSNK + Quản trị viên.  
-> **Không đổi** công thức CCS. SSOT KPI: [`metric-dictionary.md`](metric-dictionary.md) · Skill `@dashboard-pilot`.
+> **Không đổi** công thức CCS. SSOT KPI: [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md) · Skill `@dashboard-pilot`.
 
 ## Persona
 

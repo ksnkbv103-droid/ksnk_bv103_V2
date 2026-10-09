@@ -2,7 +2,7 @@
 
 > Mục tiêu: biến pilot kỹ thuật (đã PASS gate máy) thành **go-live W1 có chữ ký**.  
 > Wave: MDM + GSC/VST + QLCV với `KSNK_PILOT_CORE_MODULES=1`.  
-> Bảng ký tổng: [`../../core/pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md).
+> Bảng ký tổng: [`../../core/pilot-go-live-signoff-202606.md`](../../../core/pilot-go-live-signoff-202606.md).
 
 ## A. Việc IT (trước khi NV KSNK test tay)
 
@@ -15,7 +15,7 @@
 | 5 | Gate máy linked (khi token OK) | `npm run pilot:go-live:gate` | Exit 0 |
 | 6 | Local vẫn dùng được khi chưa có token | `npm run pilot:go-live:gate:local` | Exit 0 (đã PASS 2026-07-09) |
 
-**Auth link SOP:** [`auth-pilot-link-sop.md`](./auth-pilot-link-sop.md) — chỉ tạo Auth theo danh sách KSNK duyệt; cấm bulk.
+**Auth link SOP:** [`auth-pilot-link-sop.md`](../../../reference/guides/auth-pilot-link-sop.md) — chỉ tạo Auth theo danh sách KSNK duyệt; cấm bulk.
 
 ## B. Việc NV KSNK / PO (W1 only — ≥5/6 mỗi khối)
 
@@ -27,7 +27,7 @@ Thứ tự ngắn (chi tiết UI trong checklist từng module):
 | 2 | GSC + VST | [`../../modules/giam-sat/pilot-checklist-202606.md`](../../modules/giam-sat/pilot-checklist-202606.md) | Pass / Tester / Ngày |
 | 3 | MDM / Quản trị | [`../../modules/mdm/README.md`](../../modules/mdm/README.md) § Pilot | Pass / Tester / Ngày |
 
-Hướng dẫn PO chung: [`../../core/po-uat-signoff-202607.md`](../../core/po-uat-signoff-202607.md).
+Hướng dẫn PO chung: [`../../core/po-uat-signoff-202607.md`](../../../core/po-uat-signoff-202607.md).
 
 **Không** bắt buộc ký CSSD / NKBV / Dashboard để đóng **W1** — các khối đó thuộc W2/W3.
 

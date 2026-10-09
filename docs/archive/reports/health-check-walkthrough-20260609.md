@@ -1,8 +1,8 @@
 # Health Check Walkthrough — KSNK BV103
 
 > **Ngày:** 2026-06-09  
-> **Phương pháp:** Bottom-up (DB → Types → Frontend → UX), delta trên báo cáo [comprehensive-review-20260603.md](./comprehensive-review-20260603.md)  
-> **Evidence:** [audit-evidence-pack-20260609.md](./audit-evidence-pack-20260609.md)
+> **Phương pháp:** Bottom-up (DB → Types → Frontend → UX), delta trên báo cáo [comprehensive-review.md#2026-06-03](./comprehensive-review.md#2026-06-03)  
+> **Evidence:** [audit-evidence-pack.md#2026-06-09](./audit-evidence-pack.md#2026-06-09)
 
 ---
 

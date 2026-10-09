@@ -1,7 +1,7 @@
 # UAT vận hành sau cải tổ đẳng cấp (2026-07-28)
 
 > Sóng 3 chương trình cải tổ — checklist tay cho khoa + KSNK. Engineering không ký hộ lâm sàng.  
-> **Gói điều phối (persona · lịch · bảng ký):** [`../reports/uat-coordination-pack-20260805.md`](../reports/uat-coordination-pack-20260805.md).
+> **Gói điều phối (persona · lịch · bảng ký):** [`../reports/uat-coordination-pack-20260805.md`](../../reports/uat-coordination-pack-20260805.md).
 
 ## A. Cửa vào (sau Sóng 1)
 
@@ -32,11 +32,11 @@
 
 ## D. NKBV lâm sàng
 
-Chạy đúng bảng trong [`pilot-clinical-checklist-20260603.md`](../../modules/nkbv/pilot-clinical-checklist-20260603.md) (#2–#5 tay). Cột UAT khoa vẫn trống cho đến khi khoa ký.
+Chạy đúng bảng trong [`pilot-clinical-checklist-20260603.md`](../../module-history/nkbv/pilot-clinical-checklist-20260603.md) (#2–#5 tay). Cột UAT khoa vẫn trống cho đến khi khoa ký.
 
 ## F. Thống kê mô tả — baseline BI (2026-07-29)
 
-> Bổ sung cho chương trình [`descriptive-analytics-roadmap-20260729.md`](../../modules/dashboard/descriptive-analytics-roadmap-20260729.md). Không thay §A–D.
+> Bổ sung cho chương trình [`descriptive-analytics-roadmap-20260729.md`](../../module-history/dashboard/descriptive-analytics-roadmap-20260729.md). Không thay §A–D.
 
 | # | Làm gì | Kỳ vọng |
 |---|--------|---------|
@@ -55,4 +55,4 @@ npm run pilot:go-live:gate:local
 npm run pilot:go-live:gate
 ```
 
-Sign-off formal: [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md).
+Sign-off formal: [`pilot-go-live-signoff-202606.md`](../../../core/pilot-go-live-signoff-202606.md).

@@ -1,6 +1,6 @@
 # HIS / LIS — bước tiếp theo (sau W1–W3) — 2026-07-22
 
-> Không implement trong pilot hiện tại. Spike gốc: [`../../archive/reports/his-lis-integration-spike-20260610.md`](../../archive/reports/his-lis-integration-spike-20260610.md).
+> Không implement trong pilot hiện tại. Spike gốc: [`../../archive/reports/his-lis-integration-spike-20260610.md`](../../reports/his-lis-integration-spike-20260610.md).
 
 ## Hiện trạng
 
@@ -21,7 +21,7 @@
 
 - [ ] W1 §E đã ký
 - [ ] NKBV UAT #2–#5 Pass
-- [ ] SLA + audit log + retry thống nhất với ops ([`incident-backup-playbook.md`](./incident-backup-playbook.md))
+- [ ] SLA + audit log + retry thống nhất với ops ([`incident-backup-playbook.md`](../../../reference/guides/incident-backup-playbook.md))
 
 ## Không làm
 

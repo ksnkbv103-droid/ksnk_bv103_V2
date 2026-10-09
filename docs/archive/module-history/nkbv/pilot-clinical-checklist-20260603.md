@@ -15,7 +15,7 @@
 
 | # | Kịch bản | Làm gì trên UI | Kỳ vọng thấy | Kỹ thuật verify | UAT khoa KSNK |
 |---|----------|----------------|--------------|-----------------|---------------|
-| 1 | **BA-centric — tạo phiếu muộn** | Import LIS → mở Hub bệnh án → chọn XN trên bảng chung → phân tích → Kết luận → **Tạo phiếu** | Import **không** tự spawn `nkbv_fact_su_kien`; XN (+) chưa phân tích có badge «Chưa PT»; phiếu chỉ sinh sau nút Tạo phiếu | Manual Hub BA + `nkbv-vi-sinh-analysis-status` · kiến trúc [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md) | [ ] khoa; eng 2026-08-09 |
+| 1 | **BA-centric — tạo phiếu muộn** | Import LIS → mở Hub bệnh án → chọn XN trên bảng chung → phân tích → Kết luận → **Tạo phiếu** | Import **không** tự spawn `nkbv_fact_su_kien`; XN (+) chưa phân tích có badge «Chưa PT»; phiếu chỉ sinh sau nút Tạo phiếu | Manual Hub BA + `nkbv-vi-sinh-analysis-status` · kiến trúc [`ba-multi-timeline-architecture.md`](../../../modules/nkbv/ba-multi-timeline-architecture.md) | [ ] khoa; eng 2026-08-09 |
 | 2 | Khoa điền form → chờ duyệt | Sau tạo phiếu: mở ca → điền form lâm sàng → gửi | Trạng thái → `CHO_DUYET` | Manual `/giam-sat-nkbv` | [ ] |
 | 3 | KSNK xác nhận / loại trừ | Panel thẩm định: Phê duyệt hoặc Loại trừ (+ lý do) | `XAC_NHAN` hoặc `LOAI_TRU` | Manual adjudication | [ ] |
 | 4 | Import trùng mã XN | Dán lại cùng `ma_xet_nghiem` theo mẫu cố định | Hệ thống bỏ qua dòng trùng | Manual portal · `nkbv-vi-sinh-unique-key.spec.ts` · khóa `ma_xet_nghiem` | [ ] khoa; eng 2026-08-02 |
@@ -69,9 +69,9 @@
 
 **Engineering sẵn sàng UAT (2026-07-09; re-verify local 2026-07-26):** Day-3 server + map `CHO_XAC_MINH` Done · vitest NKBV **29 PASS** (`rules-engine` + `timeline-math` + `loai-labels`) · `verify:engineering` PASS. Chữ ký khoa (#2–#5 tay) = bước còn lại của DOM-08 — **không thể ký hộ khoa trong chat này**.
 
-Checklist vận hành sau cải tổ cửa vào/QR (2026-07-28): [`uat-after-reform-20260728.md`](../../reference/architecture/uat-after-reform-20260728.md) — mục D trỏ về bảng này.
+Checklist vận hành sau cải tổ cửa vào/QR (2026-07-28): [`uat-after-reform-20260728.md`](../../plans/architecture/uat-after-reform-20260728.md) — mục D trỏ về bảng này.
 
-**Gói W3 (env + Dashboard):** [`../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md`](../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md).
+**Gói W3 (env + Dashboard):** [`../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md`](../../plans/guides/w3-nkbv-dashboard-enablement-20260722.md).
 
 ## Sign-off
 

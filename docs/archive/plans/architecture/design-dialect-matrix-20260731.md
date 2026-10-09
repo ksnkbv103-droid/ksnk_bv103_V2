@@ -1,8 +1,8 @@
 # Design Dialect Matrix — BV103 (2026-07-31)
 
 > Wave 1.1 — **cấm shell thứ 4**. Mọi màn hình mới phải chọn đúng một vai trò dưới đây.  
-> Visual SSOT: [`../guides/bv103-visual-language.md`](../guides/bv103-visual-language.md) · tokens `bv103-design-tokens.ts`.  
-> **L1 chrome:** [`page-chrome-contract-20260731.md`](./page-chrome-contract-20260731.md) — primitive `KsnkPageChrome` duy nhất.
+> Visual SSOT: [`../guides/bv103-visual-language.md`](../../../reference/guides/bv103-visual-language.md) · tokens `bv103-design-tokens.ts`.  
+> **L1 chrome:** [`page-chrome-contract-20260731.md`](../../../reference/architecture/page-chrome-contract-20260731.md) — primitive `KsnkPageChrome` duy nhất.
 
 ## Ba vai trò trang (duy nhất)
 

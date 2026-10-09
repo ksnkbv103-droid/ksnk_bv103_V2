@@ -1,6 +1,6 @@
 # Kế hoạch cải tạo đồng bộ — sau audit 2026-06-03
 
-> **Nguồn:** [comprehensive-review-20260603.md](../../archive/reports/comprehensive-review-20260603.md)  
+> **Nguồn:** [comprehensive-review.md#2026-06-03](../../reports/comprehensive-review.md#2026-06-03)  
 > **Nguyên tắc:** Một thay đổi schema = một migration + changelog `implementation-mapping` + `verify:engineering`. Không DROP summary/MV không số đo.
 
 ## Trạng thái implement (2026-06-03)
@@ -14,14 +14,14 @@
 | R-10 | Done | Auth server: chỉ [`src/proxy.ts`](../../../src/proxy.ts) (Next.js 16 — không `middleware.ts`) |
 | R-11 | Done | Ledger hard gate + `cssd-asset-ledger.spec.ts` |
 | R-12 | Done | Digital BOM confirm → `persistBomCheckpoint` |
-| R-20 | Done | [dashboard-rpc-benchmark-20260603.md](../../archive/reports/dashboard-rpc-benchmark-20260603.md); refresh linked khi volume tăng |
+| R-20 | Done | [dashboard-rpc-benchmark-20260603.md](../../reports/dashboard-rpc-benchmark-20260603.md); refresh linked khi volume tăng |
 | R-21 | Done | [adr-dashboard-kpi-path-20260603.md](./adr-dashboard-kpi-path-20260603.md) (Accepted) |
 | R-22 | N/A | Không còn file `strategic-dashboard-v3` |
-| R-23 | Done | [bao-cao-tong-hop.md](../../modules/dashboard/bao-cao-tong-hop.md) |
+| R-23 | Done | [bao-cao-tong-hop.md](../../../modules/dashboard/bao-cao-tong-hop.md) |
 | R-30–33 | Done | mapping changelog, interaction-matrix, view-catalog, module docs |
 | R-40 | Done | `layout:drift-check` OK |
 | R-41 | Done | Migration `20260603160000` |
-| R-42 | Done | [pilot-clinical-checklist-20260603.md](../../modules/nkbv/pilot-clinical-checklist-20260603.md) |
+| R-42 | Done | [pilot-clinical-checklist-20260603.md](../../module-history/nkbv/pilot-clinical-checklist-20260603.md) |
 | R-50–53 | **Done (2026-06-04)** | D-07 DROP summary; D-13 legacy RPC; D-QLCV-01 TEXT+CHECK |
 | UX-01–07 | **Done (2026-06-04)** | typography codemod 0 hits; gate exit 1 |
 

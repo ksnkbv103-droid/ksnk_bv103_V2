@@ -42,7 +42,7 @@
 
 ### [D-05] Sử dụng View Alias cũ trong ứng dụng
 *   **Mô tả:** Khoảng 40 file code frontend và server actions vẫn đang gọi các view alias cũ (`v_fact_*`, `v_dm_*`) thay vì các view đã được đổi tên theo chuẩn phân hệ (`v_gstt_*`, `v_cssd_*`).
-*   **Vị trí:** [view-rename-mapping-20260526.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/archive/baselines/view-rename-mapping-20260526.md).
+*   **Vị trí:** [view-rename-mapping-20260526.md](../../baselines/view-rename-mapping-20260526.md).
 *   **Ưu tiên:** P1.
 *   **Exit Criteria:** Quét toàn bộ source code, thay thế triệt để 100% các view cũ bằng view prefix chuẩn và chạy di dân DROP 24 view alias cũ.
 
@@ -53,7 +53,7 @@
 *   **Exit Criteria:** Refactor đổi tên tệp kiểu dữ liệu khớp chính xác với phiên bản Dashboard V4.
 
 ### [D-07] Dual Dashboard Data Path — **Done (2026-06-04)**
-*   **Đã làm:** Migration `20260604100000` — DROP `gstt_fact_*_summary` + trigger sync; `v_gstt_giam_sat_vst_sessions_full` aggregate live từ `gstt_fact_vst`. Benchmark: [dashboard-rpc-benchmark-20260603.md](../../archive/reports/dashboard-rpc-benchmark-20260603.md).
+*   **Đã làm:** Migration `20260604100000` — DROP `gstt_fact_*_summary` + trigger sync; `v_gstt_giam_sat_vst_sessions_full` aggregate live từ `gstt_fact_vst`. Benchmark: [dashboard-rpc-benchmark-20260603.md](../../reports/dashboard-rpc-benchmark-20260603.md).
 *   **Exit Criteria:** ~~Benchmark~~ **Đạt** — RPC-only read path (ADR accepted).
 
 ### [D-QLCV-01] QLCV — chuyển `trang_thai`/`loai` sang TEXT+CHECK — **Done (2026-06-04)**
@@ -101,7 +101,7 @@
 *   **Exit Criteria:** **Đạt** — app chỉ gọi 4 RPC dashboard (contract spec).
 
 ### [D-14] Giao diện Xác minh ca NKBV — **Engineering done; UAT pending**
-*   **Đã làm:** Sub-forms BSI/UTI/VAP/SSI + `nkbv-rules-engine.spec.ts`; checklist [pilot-clinical-checklist-20260603.md](../../modules/nkbv/pilot-clinical-checklist-20260603.md).
+*   **Đã làm:** Sub-forms BSI/UTI/VAP/SSI + `nkbv-rules-engine.spec.ts`; checklist [pilot-clinical-checklist-20260603.md](../../module-history/nkbv/pilot-clinical-checklist-20260603.md).
 *   **Exit Criteria:** KSNK pilot sign-off 5 kịch bản tay (cột UAT trong checklist).
 
 ---
@@ -120,7 +120,7 @@
 
 ## Audit 2026-06-03 re-verification
 
-> Nguồn: [comprehensive-review-20260603.md](../../archive/reports/comprehensive-review-20260603.md) — chỉ trạng thái sau grep/code + CLI trên HEAD; **không** copy báo cáo 30/05.
+> Nguồn: [comprehensive-review.md#2026-06-03](../../reports/comprehensive-review.md#2026-06-03) — chỉ trạng thái sau grep/code + CLI trên HEAD; **không** copy báo cáo 30/05.
 
 | ID | Trạng thái mới | Bằng chứng ngắn |
 |----|----------------|-----------------|
@@ -153,7 +153,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Audit 2026-06-30 re-verification
 
-> Nguồn: [audit-evidence-pack-20260630.md](../../archive/reports/audit-evidence-pack-20260630.md) · [gap-register-20260630.md](../../archive/reports/gap-register-20260630.md)
+> Nguồn: [audit-evidence-pack.md#2026-06-30](../../reports/audit-evidence-pack.md#2026-06-30) · [gap-register.md#2026-06-30](../../reports/gap-register.md#2026-06-30)
 
 | ID | Trạng thái | Ghi chú |
 |----|------------|---------|
@@ -171,7 +171,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Audit 2026-07-03 — Cải tổ pilot toàn diện (local)
 
-> Nguồn: [gap-register-20260703.md](../reports/gap-register-20260703.md) · `local:golden:verify`
+> Nguồn: [gap-register.md#2026-07-03](../../reports/gap-register.md#2026-07-03) · `local:golden:verify`
 
 | Mục cũ | Trạng thái mới | Ghi chú |
 |--------|----------------|---------|
@@ -191,7 +191,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Audit 2026-07-09 — Rà soát toàn diện (1B + 2A)
 
-> Nguồn: [comprehensive-review-20260709.md](../reports/comprehensive-review-20260709.md) · [gap-register-20260709.md](../reports/gap-register-20260709.md) · [audit-evidence-pack-20260709.md](../reports/audit-evidence-pack-20260709.md)  
+> Nguồn: [comprehensive-review.md#2026-07-09](../../reports/comprehensive-review.md#2026-07-09) · [gap-register.md#2026-07-09](../../reports/gap-register.md#2026-07-09) · [audit-evidence-pack.md#2026-07-09](../../reports/audit-evidence-pack.md#2026-07-09)  
 > Gate tĩnh PASS; Docker/local golden **Blocked** session audit.
 
 | ID | Mức | Trạng thái | Ghi chú |
@@ -249,7 +249,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Perf / complexity residual — Batches 1–12 (cập nhật 2026-09-09)
 
-> Nguồn (kho lưu): [`../../archive/agent-notes/202609/_agent-perf-fix-progress-20260907.md`](../../archive/agent-notes/202609/_agent-perf-fix-progress-20260907.md) · Batch 12: `rpc_qlcv_nhiem_vu_rollup`, `rpc_qlcv_board_counts`; toast in khi board chưa tải hết.
+> Nguồn (kho lưu): [`../../archive/agent-notes/202609/_agent-perf-fix-progress-20260907.md`](../../agent-notes/202609/kien-truc-hieu-nang.md#_agent-perf-fix-progress-20260907) · Batch 12: `rpc_qlcv_nhiem_vu_rollup`, `rpc_qlcv_board_counts`; toast in khi board chưa tải hết.
 
 | ID | Mức | Mục | Ghi chú |
 |----|-----|-----|--------|
@@ -271,7 +271,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Delta tối ưu / catalog 2026-09-09
 
-> Pointer (không thay open-backlog lịch sử). Báo cáo đầy đủ: [`../../archive/agent-notes/202609/_agent-project-optimization-debt-roadmap-20260909.md`](../../archive/agent-notes/202609/_agent-project-optimization-debt-roadmap-20260909.md) · nền audit: [`../../archive/agent-notes/202609/_agent-full-project-expert-audit-roadmap-20260909.md`](../../archive/agent-notes/202609/_agent-full-project-expert-audit-roadmap-20260909.md).
+> Pointer (không thay open-backlog lịch sử). Báo cáo đầy đủ: [`../../archive/agent-notes/202609/_agent-project-optimization-debt-roadmap-20260909.md`](../../agent-notes/202609/kien-truc-hieu-nang.md#_agent-project-optimization-debt-roadmap-20260909) · nền audit: [`../../archive/agent-notes/202609/_agent-full-project-expert-audit-roadmap-20260909.md`](../../agent-notes/202609/kien-truc-hieu-nang.md#_agent-full-project-expert-audit-roadmap-20260909).
 
 | ID | Mức | Mục | Trạng thái |
 |----|-----|-----|------------|

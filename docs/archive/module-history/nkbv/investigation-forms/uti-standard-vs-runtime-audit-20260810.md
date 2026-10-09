@@ -2,7 +2,7 @@
 
 > **Ngày:** 2026-08-10 · **Loại:** audit nghiệp vụ (không ship sửa engine trong slice này)  
 > **Đối tượng:** Product Owner / IP KSNK — đối chiếu case thật với bảng lệch  
-> **SSOT:** [`hai-surveillance-domain-ssot-20260804.md`](../../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) §7 · Domain CAUTI · [`trees/UTI.md`](trees/UTI.md) · [`UTI-2026.md`](UTI-2026.md)  
+> **SSOT:** [`hai-surveillance-domain-ssot-20260804.md`](../../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) §7 · Domain CAUTI · [`trees/UTI.md`](../../../../modules/nkbv/investigation-forms/trees/UTI.md) · [`UTI-2026.md`](UTI-2026.md)  
 > **Runtime:** `nkbv-uti-timeline-verdict.ts` → `evaluateUtiCauti` · `stripUtiVoidingFromLamSang` · `nkbv-secondary-bsi-gate.ts` · `nkbv-shared-timeline.ts` (Foley)
 
 ---
@@ -222,6 +222,6 @@ Ghi chú (CFU thiếu / yeast+E.coli / chỉ khó tiểu+Foley): ________
 |-----|---------|
 | [`gap-lean-vs-runtime.md`](gap-lean-vs-runtime.md) | Catalog — UTI-AUDIT-A1… |
 | [`syndrome-audit-backlog.md`](syndrome-audit-backlog.md) | Trạng thái audit hội chứng |
-| [`trees/UTI.md`](trees/UTI.md) | Cây quyết định form |
+| [`trees/UTI.md`](../../../../modules/nkbv/investigation-forms/trees/UTI.md) | Cây quyết định form |
 | [`pneu-standard-vs-runtime-audit-20260810.md`](pneu-standard-vs-runtime-audit-20260810.md) | Mẫu audit + LOA chung B3 |
 | SSOT §7 | Thuật toán chuẩn |
