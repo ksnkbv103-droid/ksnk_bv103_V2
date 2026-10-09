@@ -45,7 +45,7 @@ Engine: `giam-sat-scoring.ts` · UI: `gsc-score-display.ts` · [`concepts.md#gsc
 
 ## Điểm nguy cơ P×I×S (kế hoạch / chưa ship)
 
-Phân tích khả thi (SOP 7.1): P/I chấm tay, S gợi ý từ `% tuân thủ năm trước`, điểm = `P×I×S` — **tách** khỏi `tong_diem` phiên. Chi tiết: [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](bang-kiem-rui-ro-pis-feasibility-20260731.md).
+Phân tích khả thi (SOP 7.1): P/I chấm tay, S gợi ý từ `% tuân thủ năm trước`, điểm = `P×I×S` — **tách** khỏi `tong_diem` phiên. Chi tiết (mốc): [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](../../archive/module-history/giam-sat/bang-kiem-rui-ro-pis-feasibility-20260731.md).
 
 ## Quy tắc phiên
 

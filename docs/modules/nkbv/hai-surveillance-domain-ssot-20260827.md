@@ -23,7 +23,7 @@ v3.1: rút CLIP/LabID/AUR/Location; Ch.17 đủ tiêu chí người lớn. v3.2:
 | [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) | Thu thập BA/LIS/HIS-copy + thứ tự chẩn đoán tại BV103 |
 | [`hai-criteria-element-dictionary-20260827.md`](hai-criteria-element-dictionary-20260827.md) | Từ điển yếu tố tiêu chí (SX/LAB/IMG) — căn cứ ID |
 | [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md) | Tổ chức CSDL + chi tiết bảng timeline (cửa sổ tính, không pre-agg) |
-| [`hai-database-rebuild-plan-20260827.md`](hai-database-rebuild-plan-20260827.md) | Đập demo / xây lại bảng NKBV (kế hoạch, chưa code) |
+| [`hai-database-rebuild-plan-20260827.md`](../../archive/module-history/nkbv/hai-database-rebuild-plan-20260827.md) | Đập demo / xây lại bảng NKBV (kế hoạch, kho) |
 | v2.0 (2026-08-04) | Lịch sử — [`../../archive/nkbv-sources/`](../../archive/nkbv-sources/); không còn neo thuật toán |
 | `domain-specification.md` + `clinical-forms.md` | Hợp đồng app pilot — **không ghi đè** |
 | `All domain_NKBV` + `Domain *` | [`../../archive/nkbv-sources/`](../../archive/nkbv-sources/) — nguồn thô |

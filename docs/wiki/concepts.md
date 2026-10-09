@@ -17,7 +17,6 @@
 **Migration:** DDL/WRITE → TABLE physical ([`implementation-mapping.md`](../core/implementation-mapping.md)). SELECT có thể qua view `dm_*` / `fact_*`.
 
 - Ma trận coupling: [`../reference/architecture/interaction-matrix.md`](../reference/architecture/interaction-matrix.md)
-- Tách PR: [`../reference/architecture/unstaged-slice-split.md`](../reference/architecture/unstaged-slice-split.md)
 
 ---
 
@@ -30,9 +29,9 @@
 | Phiên QR trạm 3–6? | **CSSD vận hành** — `cssd_fact_quy_trinh*` |
 | Scan, QC mẻ, sự cố, giao dịch kho? | CSSD only — `cssd_fact_*` (không CRUD master dưới `/cssd-*`) |
 
-Tránh gọi “MDM” cho cả master CSSD — dễ lẫn với khoa/nhân sự. Lộ trình: [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
+Tránh gọi “MDM” cho cả master CSSD — dễ lẫn với khoa/nhân sự. Cổng: [`../modules/mdm/README.md`](../modules/mdm/README.md).
 
-Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [`../modules/cssd/reform-plan.md`](../modules/cssd/reform-plan.md).
+Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`.
 
 ---
 
@@ -50,9 +49,9 @@ Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [
 | Admin title | `KsnkPageHeader` — RBAC, MDM, danh mục |
 | CSSD chrome | `cssd-ui-chrome.ts` (extends layout chrome) |
 
-Doc chi tiết: [`modules/giam-sat/layout-primitives.md`](../modules/giam-sat/layout-primitives.md).
+Doc chi tiết: [`layout-primitives.md`](../reference/architecture/layout-primitives.md) · chrome: [`page-chrome-contract`](../reference/architecture/page-chrome-contract-20260731.md).
 
-**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — cổng vào module/workspace. **Điều hành (H2):** chỉ «Báo cáo chính thức» → `/bao-cao-tong-hop` (`/` redirect cùng cửa). **Giám sát:** một mục «Giám sát» → `/giam-sat` (QR / lịch sử / thống kê vào từ hub; bookmark `/qr` vẫn sống). Deep-link VST/GSC/NKBV mở từ hub. Lịch sử / Thống kê VST·GSC: `/lich-su/*`, `/thong-ke/*`. **CSSD:** sidebar tách «Vận hành» vs «Tra cứu» là **cổng chuyển màn duy nhất** (không ModeNav trùng trên hero). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts). Ai thấy mục nào = `NavGate`. Chương trình giản hóa: [`simplification-program-20260726.md`](../reference/architecture/simplification-program-20260726.md).
+**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — cổng vào module/workspace. **Điều hành (H2):** chỉ «Báo cáo chính thức» → `/bao-cao-tong-hop` (`/` redirect cùng cửa). **Giám sát:** một mục «Giám sát» → `/giam-sat` (QR / lịch sử / thống kê vào từ hub; bookmark `/qr` vẫn sống). Deep-link VST/GSC/NKBV mở từ hub. Lịch sử / Thống kê VST·GSC: `/lich-su/*`, `/thong-ke/*`. **CSSD:** sidebar tách «Vận hành» vs «Tra cứu» là **cổng chuyển màn duy nhất** (không ModeNav trùng trên hero). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts). Ai thấy mục nào = `NavGate`. IA: [`../ux/principles.md`](../ux/principles.md).
 
 1. `rounded-2xl` / `xl` — `npm run layout:drift-check`
 2. Label tối thiểu `text-[11px]` — `npm run layout:typography-check`

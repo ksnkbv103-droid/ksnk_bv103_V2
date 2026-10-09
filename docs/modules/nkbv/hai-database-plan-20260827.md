@@ -3,7 +3,7 @@
 > **Ngày:** 2026-08-27 (viết lại lời dễ đọc)  
 > Đối chiếu **đúng lưới đang chạy** (`NkbvBaCommonDayGrid` + `NkbvBaDayGrid`), không đoán.  
 > **Chưa sửa phần mềm** trong đợt này.  
-> **Tổ chức lại CSDL (đập demo, xây chuẩn):** [`hai-database-rebuild-plan-20260827.md`](hai-database-rebuild-plan-20260827.md) — chờ PO duyệt trước khi migration.
+> **Tổ chức lại CSDL (đập demo, xây chuẩn, kho):** [`hai-database-rebuild-plan-20260827.md`](../../archive/module-history/nkbv/hai-database-rebuild-plan-20260827.md) — chờ PO duyệt trước khi migration.
 
 Một câu: **cột = loại thông tin, hàng = từng ngày dương lịch.** Máy tô màu khung ngày khi bạn chọn một xét nghiệm hoặc một phim — khung đó **không** lưu thành bảng riêng (đổi xét nghiệm thì khung đổi).
 
@@ -132,7 +132,7 @@ Không ghi vào đây: số HD, khung tô màu, kết luận phiếu.
 
 ## Việc tiếp theo (khi làm trên app)
 
-Làm theo **từng phần** trong [`hai-database-rebuild-plan-20260827.md`](hai-database-rebuild-plan-20260827.md) — không vá từng cột trên model cũ (dụng cụ đang nằm trong “triệu chứng”, khoa chưa có bảng).
+Làm theo **từng phần** trong [`hai-database-rebuild-plan-20260827.md`](../../archive/module-history/nkbv/hai-database-rebuild-plan-20260827.md) — không vá từng cột trên model cũ (dụng cụ đang nằm trong “triệu chứng”, khoa chưa có bảng).
 
 ---
 

@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 tiers:
   wiki:
@@ -10,27 +10,35 @@ tiers:
     description: Raw immutable layer pointer
     glob: "docs/sources/**"
   core:
-    description: SSOT vận hành — 11 đọc thường + 6 ký/ADR (xem docs/README Lớp 1)
+    description: SSOT vận hành — 11 đọc thường + 6 ký/ADR (xem docs/README)
     glob: "docs/core/*.md"
     max_files: 17
   modules:
-    description: Tài liệu theo module
+    description: Domain đang dùng theo module — cấm _audit / A-B / tên ngày
     glob: "docs/modules/**"
   reference:
-    description: Kiến trúc, audit, runbook
+    description: Kiến trúc sống, ADR, runbook
     glob: "docs/reference/**"
+  ux:
+    description: IA / tương tác — một file principles
+    glob: "docs/ux/*.md"
+    max_files: 1
   data:
     description: Machine source — script parse, không đọc tay
     glob: "docs/data/**"
     human_readable: false
   archive:
-    description: Baseline/plan đã Done + ghi chú AI + nguồn NKBV đã thay
+    description: Mốc / plan đã xong / nhật ký / nguồn đã thay
     glob: "docs/archive/**"
     index: false
     subfolders:
       reports: "docs/archive/reports/**"
+      plans: "docs/archive/plans/**"
+      slice_journals: "docs/archive/slice-journals/**"
+      module_history: "docs/archive/module-history/**"
       agent_notes: "docs/archive/agent-notes/**"
       nkbv_sources: "docs/archive/nkbv-sources/**"
+      baselines: "docs/archive/baselines/**"
 
 entrypoints:
   human: docs/README.md
@@ -39,12 +47,14 @@ entrypoints:
   read_minimum: docs/core/read-minimum.md
   wiki_schema: docs/wiki/WIKI_SCHEMA.md
   wiki_index: docs/wiki/index.md
+  archive: docs/archive/README.md
 
 routes:
   cssd-workflow:
     read:
       - docs/core/read-minimum.md
       - docs/modules/cssd/README.md
+      - docs/modules/cssd/domain-overview.md
       - docs/core/implementation-mapping.md
   giam-sat-scoring:
     read:
@@ -65,3 +75,8 @@ scan_roots:
   - docs
   - AGENTS.md
   - .cursor/rules
+
+rules:
+  living_no_audit_prefix: true
+  living_no_ab_gates: true
+  one_topic_one_file: true

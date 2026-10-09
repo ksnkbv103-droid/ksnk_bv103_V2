@@ -234,7 +234,7 @@ Mỗi trụ trên `/` hiển thị theo mẫu cố định (không đổi công 
 4. **CTA** — deep-link màn chuyên sâu (không tự tạo việc trừ khi pha cầu QLCV)
 
 Trụ C tách nhãn: **NV KSNK / phiên giám sát** vs **máy CSSD / NV CSSD** (không gộp một link mơ hồ).  
-Chương trình: [`descriptive-analytics-roadmap-20260729.md`](descriptive-analytics-roadmap-20260729.md).
+Chương trình (mốc): [`descriptive-analytics-roadmap-20260729.md`](../../archive/module-history/dashboard/descriptive-analytics-roadmap-20260729.md).
 
 
 ---

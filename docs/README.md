@@ -1,80 +1,65 @@
 # Cổng tài liệu — KSNK BV103
 
-> **Một cổng duy nhất.** Bắt đầu tại đây; không duyệt ngẫu nhiên `docs/data/`.  
-> **Chủ đề → file đang dùng:** [`ssot-map.md`](ssot-map.md).
+> **Một cổng.** Bắt đầu tại đây. Chủ đề → đúng một file đang dùng: [`ssot-map.md`](ssot-map.md).  
+> **Không** duyệt `data/` hay `archive/` khi sửa code.
+
+## Phân lớp (bắt buộc)
+
+| Lớp | Đường dẫn | Vai trò | Được phép thêm file khi |
+|-----|-----------|---------|-------------------------|
+| 0. Raw | [`data/`](data/) · [`archive/`](archive/) | Máy đọc / mốc lịch sử | Seed mới; hoặc **git mv** mốc ra archive — không viết SSOT mới trong archive |
+| 1. Core | [`core/`](core/) | SSOT vận hành (tối đa 17 file) | Chỉ khi gộp/thay file hiện có; không nở thêm |
+| 2. Wiki | [`wiki/`](wiki/) | Tổng hợp chéo module | Sửa `entities.md` / `concepts.md` — không tách file mới |
+| 3. Module | [`modules/<mod>/`](modules/) | Domain đang dùng của đúng một module | Luật nghiệp vụ còn hiệu lực, **không** gắn ngày / `_audit` / A–B |
+| 4. Reference | [`reference/`](reference/) | Kiến trúc sống + ADR + runbook | Hợp đồng / quyết định còn hiệu lực. Báo cáo ngày → archive |
+| 5. UX | [`ux/principles.md`](ux/principles.md) | IA / tương tác | Chỉ sửa file này; audit UX → archive |
+
+**Một chủ đề = một bản đang dùng.** Mốc, nhật ký lát, A–B đã chốt, plan tháng → [`archive/`](archive/). Khi archive mâu thuẫn core/module, **SSOT thắng**.
+
+---
 
 ## Tôi là…
-
-### PO / lãnh đạo / onboard toàn hệ
-
-1. Bản chụp 24/08/2026 (ý tưởng, 12 module, FE/BE/DB, đánh giá): [`reference/reports/ksnk-bv103-compendium-20260824.md`](reference/reports/ksnk-bv103-compendium-20260824.md) — **không** thay SSOT core khi sửa code.
 
 ### Dev / AI agent (sửa code)
 
 1. [`AGENTS.md`](../AGENTS.md)
-2. [`core/read-minimum.md`](core/read-minimum.md) — chọn dòng theo loại diff
-3. [`core/lean-execution.md`](core/lean-execution.md) — verify + checklist PR
-4. [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) — vận hành Cursor (ít token, scope rõ)
+2. [`core/read-minimum.md`](core/read-minimum.md)
+3. [`core/lean-execution.md`](core/lean-execution.md)
+4. [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md)
 
-### PM / KSNK (nghiệp vụ)
+### PO / KSNK (nghiệp vụ)
 
 1. [`core/domain-specification.md`](core/domain-specification.md)
-2. Module: [`modules/cssd/`](modules/cssd/) · [`modules/giam-sat/`](modules/giam-sat/) · [`modules/nkbv/`](modules/nkbv/)
-3. Bản chụp toàn hệ (24/08/2026, không thay SSOT): [`reference/reports/ksnk-bv103-compendium-20260824.md`](reference/reports/ksnk-bv103-compendium-20260824.md)
+2. Module: [`modules/cssd/`](modules/cssd/) · [`modules/giam-sat/`](modules/giam-sat/) · [`modules/nkbv/`](modules/nkbv/) · [`modules/qlcv/`](modules/qlcv/)
+3. Việc còn mở: [`core/handover-roadmap.md`](core/handover-roadmap.md) §5
+4. Bản chụp toàn hệ 24/08/2026 (không thay SSOT): [`archive/reports/ksnk-bv103-compendium-20260824.md`](archive/reports/ksnk-bv103-compendium-20260824.md)
 
 ### DBA / DevOps
 
 1. [`core/operations-sop.md`](core/operations-sop.md)
 2. [`core/governance-pipeline.md`](core/governance-pipeline.md)
 3. [`reference/guides/migration-squash-runbook.md`](reference/guides/migration-squash-runbook.md)
-4. [`reference/guides/ops-go-live.md`](reference/guides/ops-go-live.md) — go-live tay (env/wave/gate, UAT CSSD, auth blocker, BOM unique)
+4. [`reference/guides/ops-go-live.md`](reference/guides/ops-go-live.md)
 
 ---
 
-## Lớp Wiki — Tổng hợp (ít file, LLM maintain)
-
-> Tri thức biên dịch một lần; module README chỉ còn **pointer**.
+## Lớp Wiki
 
 | File | Vai trò |
 |------|---------|
-| [`wiki/entities.md`](wiki/entities.md) | Tất cả module (CSSD, GSC, NKBV, MDM, QLCV) |
-| [`wiki/concepts.md`](wiki/concepts.md) | Layout, scoring, CSSD↔MDM, prefix DB |
-| [`wiki/index.md`](wiki/index.md) | Catalog + `npm run wiki:index` |
+| [`wiki/entities.md`](wiki/entities.md) | CSSD, GSC/VST, NKBV, MDM, QLCV |
+| [`wiki/concepts.md`](wiki/concepts.md) | Prefix DB, CSSD↔MDM, layout, GSC scoring, BOM |
+| [`wiki/index.md`](wiki/index.md) | Catalog sống — `npm run wiki:index` |
 | [`wiki/WIKI_SCHEMA.md`](wiki/WIKI_SCHEMA.md) | Ingest / query / lint |
-| [`sources/README.md`](sources/README.md) | Raw `data/`, `archive/` — immutable |
+| [`sources/README.md`](sources/README.md) | Con trỏ raw `data/` + `archive/` |
 
-## Lớp 1 — Core SSOT (17 file)
+## Lớp Core (17 file)
 
-**Đọc thường xuyên**
+**Đọc thường xuyên:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap` · `cursor-operating-playbook`
 
-| File | Vai trò |
-|------|---------|
-| [`core/read-minimum.md`](core/read-minimum.md) | Đọc gì theo loại diff |
-| [`core/lean-execution.md`](core/lean-execution.md) | Vertical slice, verify, PR |
-| [`core/pilot-core-modules-go-live.md`](core/pilot-core-modules-go-live.md) | Pilot gấp: Quản trị + Giám sát + QLCV |
-| [`core/domain-specification.md`](core/domain-specification.md) | Nghiệp vụ, ubiquitous language |
-| [`core/implementation-mapping.md`](core/implementation-mapping.md) | Thuật ngữ ↔ bảng/RPC |
-| [`core/governance-pipeline.md`](core/governance-pipeline.md) | Migration + ship + CI |
-| [`core/skills-catalog.md`](core/skills-catalog.md) | Mục lục skill / rule / agent / lệnh — không chép thân |
-| [`core/engineering-guidelines.md`](core/engineering-guidelines.md) | Code, UI, PR |
-| [`core/operations-sop.md`](core/operations-sop.md) | Auth, RLS, Smart DB |
-| [`core/handover-roadmap.md`](core/handover-roadmap.md) | Onboarding + **lộ trình rà soát đang theo** (§5) |
-| [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) | Cursor: intake, verify, tiết kiệm quota |
+**Ký / ADR / catalog:** `po-cursor-guide` · `domain-decisions-cssd-instrument` · `adr-cssd-fact-write-rls` · `database-view-catalog` · `pilot-go-live-signoff-202606` · `po-uat-signoff-202607`
 
-**Ký / ADR / catalog** (không đọc mỗi diff)
-
-| File | Vai trò |
-|------|---------|
-| [`core/po-cursor-guide.md`](core/po-cursor-guide.md) | Cheat sheet PO |
-| [`core/domain-decisions-cssd-instrument.md`](core/domain-decisions-cssd-instrument.md) | Quyết định dụng cụ D1–D10 |
-| [`core/adr-cssd-fact-write-rls.md`](core/adr-cssd-fact-write-rls.md) | ADR ghi fact CSSD / RLS |
-| [`core/database-view-catalog.md`](core/database-view-catalog.md) | Catalog view DB |
-| [`core/pilot-go-live-signoff-202606.md`](core/pilot-go-live-signoff-202606.md) | Bảng ký go-live |
-| [`core/po-uat-signoff-202607.md`](core/po-uat-signoff-202607.md) | Hướng dẫn PO ký UAT |
-
-Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/guides/) (`architecture-one-pager`, `demo-governance-gates`, `auth-pilot-link-sop`, `w1-go-live-execution-pack-20260722`, `incident-backup-playbook`).
-
-## Lớp 2 — Module docs
+## Lớp Module (cổng)
 
 | Module | README |
 |--------|--------|
@@ -86,38 +71,25 @@ Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/gu
 | Dashboard | [`modules/dashboard/README.md`](modules/dashboard/README.md) |
 | Đào tạo | [`modules/dao-tao/README.md`](modules/dao-tao/README.md) |
 
-## Lớp 3 — Reference (audit / kiến trúc)
+## Lớp Reference (đang dùng)
 
-- [`reference/architecture/`](reference/architecture/) — overview, [backlog đang mở](reference/architecture/open-backlog-20260731.md), [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md), [lookup vs enum](reference/architecture/lookup-vs-enum-guidance.md)
-- [`reference/reports/`](reference/reports/) — **gap đang mở:** [gap-register-20260709](reference/reports/gap-register-20260709.md) · **mốc:** [gap-register-20260703](reference/reports/gap-register-20260703.md) · [db-hygiene-20260703](reference/reports/db-hygiene-20260703.md) · [index](reference/reports/README.md)
-- Nhật ký lát 09/2026 (không phải SSOT): [`modules/_audit/README.md`](modules/_audit/README.md)
-- Audit lịch sử (06/2026 trở về trước): [`archive/reports/`](archive/reports/) only
-- [`reference/guides/`](reference/guides/) — import JSON, migration runbook, [Cursor prompt templates](reference/guides/cursor-command-intake-template.md)
+**Kiến trúc / ADR:** [`system-overview`](reference/architecture/system-overview.md) · [`interaction-matrix`](reference/architecture/interaction-matrix.md) · [`lookup-vs-enum`](reference/architecture/lookup-vs-enum-guidance.md) · [`page-chrome-contract`](reference/architecture/page-chrome-contract-20260731.md) · [`layout-primitives`](reference/architecture/layout-primitives.md) · ADR NKBV / dashboard / QLCV
 
-## Lớp 4 — Data (⚠️ machine source)
+**Runbook:** [`ops-go-live`](reference/guides/ops-go-live.md) · [`migration-squash`](reference/guides/migration-squash-runbook.md) · [`json-import-export`](reference/guides/json-import-export.md) · [`incident-backup`](reference/guides/incident-backup-playbook.md) · [`auth-pilot-link`](reference/guides/auth-pilot-link-sop.md) · [`architecture-one-pager`](reference/guides/architecture-one-pager.md) · [`visual-language`](reference/guides/bv103-visual-language.md)
 
-[`data/README.md`](data/README.md) — **không đọc tay**; script seed/generator parse từ đây.
+Mốc audit / plan / A–B: [`archive/README.md`](archive/README.md).
 
-## Lớp 5 — Archive
+## Data · Archive
 
-[`archive/`](archive/) — baseline, plan đã Done, ghi chú AI — **không** link từ read-minimum khi sửa code.
-
-| Thư mục | Nội dung |
-|---------|----------|
-| [`archive/reports/`](archive/reports/) | Audit / gap tháng 6/2026 |
-| [`archive/agent-notes/`](archive/agent-notes/) | Ghi chú phiên AI (`_agent-*`) |
-| [`archive/nkbv-sources/`](archive/nkbv-sources/) | NKBV v2.0 + `Domain *` thô |
+- [`data/README.md`](data/README.md) — **không đọc tay**; script seed/generator.
+- [`archive/README.md`](archive/README.md) — báo cáo, plan, nhật ký lát, nguồn NKBV cũ, ghi chú AI.
 
 ---
 
 ## Công cụ
 
-- `npm run docs:links:check` — kiểm tra link nội bộ
-- `npm run repo:hygiene` — SQL active, view pilot, inventory docs
-- Inventory scripts: [`../scripts/README.md`](../scripts/README.md)
+- `npm run docs:links:check` — link nội bộ (bỏ qua `archive/`)
+- `npm run wiki:index` — catalog lớp sống
+- `npm run repo:hygiene` — SQL active + inventory
 - `npm run verify` — full gate trước push
 - Manifest: [`DOCS_MANIFEST.yaml`](DOCS_MANIFEST.yaml)
-
-## Legacy
-
-[`archive/pilot_chain_20260520_20260529.tar.gz`](archive/pilot_chain_20260520_20260529.tar.gz) — migration pre-pilot (không apply). SQL ad-hoc: [`../scripts/archive/sql-20260531/`](../scripts/archive/sql-20260531/).

@@ -45,5 +45,5 @@ Mục lục theo module. Mỗi file có dòng **LƯU TRỮ** ở đầu.
 | [`_agent-perf-batch6-plus-plan-20260907.md`](202609/_agent-perf-batch6-plus-plan-20260907.md) | Kế hoạch batch 6+ |
 | [`_agent-perf-batch8-ssr-shell-spike-20260907.md`](202609/_agent-perf-batch8-ssr-shell-spike-20260907.md) | Quyết định SKIP SSR shell |
 | [`_agent-full-project-expert-audit-roadmap-20260909.md`](202609/_agent-full-project-expert-audit-roadmap-20260909.md) | Audit chuyên gia + roadmap toàn dự án |
-| [`_agent-project-optimization-debt-roadmap-20260909.md`](202609/_agent-project-optimization-debt-roadmap-20260909.md) | Delta tối ưu / nợ kỹ thuật — pointer: [`debt-register.md`](../../reference/architecture/debt-register.md) |
+| [`_agent-project-optimization-debt-roadmap-20260909.md`](202609/_agent-project-optimization-debt-roadmap-20260909.md) | Delta tối ưu / nợ kỹ thuật — pointer: [`debt-register.md`](../plans/architecture/debt-register.md) |
 | [`_agent-opt-wave2-debt-fixes-20260909.md`](202609/_agent-opt-wave2-debt-fixes-20260909.md) | Wave 2 vá nợ (tem / SuCo / offline / NKBV) |

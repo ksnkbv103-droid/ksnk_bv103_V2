@@ -3,7 +3,7 @@
 > **Identity contract** — CDC NHSN 2025 · runtime: `nkbv-clinical-symptom-catalog.ts`  
 > Thuật toán: [`../hai-surveillance-domain-ssot-20260827.md`](../hai-surveillance-domain-ssot-20260827.md)  
 > **BOM đầy đủ SX + LAB + IMG + DEV + EXCL:** [`../hai-criteria-element-dictionary-20260827.md`](../hai-criteria-element-dictionary-20260827.md)  
-> UAT: [`symptom-catalog-uat-20260809.md`](symptom-catalog-uat-20260809.md)  
+> UAT (mốc): [`symptom-catalog-uat-20260809.md`](../../../archive/module-history/nkbv/investigation-forms/symptom-catalog-uat-20260809.md)  
 > Ch.17 vận hành: `nkbv-chapter17-clinical.ts` · nguyên tử `nkbv-ch17-evidence-catalog.ts`
 
 ## Nguyên tắc

@@ -1,6 +1,6 @@
 # Page Chrome Contract — BV103 (2026-07-31)
 
-> SSOT lớp L1 dưới App Header. Dialect: [`design-dialect-matrix-20260731.md`](./design-dialect-matrix-20260731.md).  
+> SSOT lớp L1 dưới App Header. Dialect (mốc): [`design-dialect-matrix-20260731.md`](../../archive/plans/architecture/design-dialect-matrix-20260731.md). IA: [`../../ux/principles.md`](../../ux/principles.md).  
 > Primitive: `src/components/shared/KsnkPageChrome.tsx` · tokens `pageChromeShell*`.
 
 ## Stack cố định
@@ -42,7 +42,7 @@
 | **Ops list search** | Ô tìm **trong** `AdvancedDataTable` (`inline`). `searchPlacement="header"` **deprecated**. Kanban/tool không ADT: SearchBar ngoài được phép. |
 | **Entity picker dài (>~8)** | `SearchableSelect` / `RegistrySelect searchable` — cấm native `<select>` khoa/NS/danh mục dài. |
 
-Chi tiết: [`../reports/supervision-analytics-filter-scorecard-20260803.md`](../reports/supervision-analytics-filter-scorecard-20260803.md) §5.
+Chi tiết (mốc): [`../../archive/reports/supervision-analytics-filter-scorecard-20260803.md`](../../archive/reports/supervision-analytics-filter-scorecard-20260803.md) §5.
 
 ## Ánh xạ hotspots
 

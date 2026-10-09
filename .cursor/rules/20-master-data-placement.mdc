@@ -14,4 +14,4 @@ alwaysApply: false
 - Before rebuilding a module, remove old module structure cleanly first.
 - After rebuild/refactor, provide updated folder structure for verification.
 - If master data code is found in the wrong module, move it to the correct location instead of duplicating.
-- Lộ trình / ngôn ngữ: `docs/modules/mdm/improvement-roadmap-20260717.md`.
+- Ngôn ngữ / ranh giới: `docs/wiki/concepts.md#cssd-vs-mdm` · cổng `docs/modules/mdm/README.md`.

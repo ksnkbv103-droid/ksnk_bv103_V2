@@ -248,7 +248,7 @@ Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển
 | `/cssd-hoa-chat` | Kho hóa chất |
 | Quản trị → Danh mục dụng cụ | Tab **Bộ · Phiếu · Lịch sử**; sheet **Loại** (`?sheet=loai`, ADMIN). Hard-write master chỉ ADMIN (D5). |
 
-Pilot: [`pilot-test-checklist.md`](pilot-test-checklist.md) · Cycle QR: [`pilot-checklist-cycle-qr-202606.md`](pilot-checklist-cycle-qr-202606.md).
+Pilot (mốc): [`../../archive/module-history/cssd/`](../../archive/module-history/cssd/).
 
 ---
 

@@ -3,18 +3,13 @@
 ## Contradictions (wiki vs SSOT)
 
 | ID | Mô tả | SSOT | Trạng thái |
-|----|--------|------|------------|
-| — | Chưa ghi sau thu gọn 2026-05-31 | migration + `implementation-mapping.md` | OK |
-| DOC-20260909 | `_agent-*` lẫn module / NKBV v2.0 cạnh SSOT v3.3 | [`ssot-map.md`](../ssot-map.md) · kho `archive/agent-notes` + `archive/nkbv-sources` | Đã chuyển kho 2026-09-09 |
+|----|-------|------|------------|
+| DOC-20260909 | `_agent-*` lẫn module / NKBV v2.0 cạnh SSOT v3.3 | [`ssot-map.md`](../ssot-map.md) · `archive/agent-notes` + `archive/nkbv-sources` | Đã chuyển kho 2026-09-09 |
+| DOC-20261009 | File ngày / `_audit` / A–B / plan đã xong lẫn lớp sống | [`ssot-map.md`](../ssot-map.md) · [`archive/README.md`](../archive/README.md) | Đã thu 2026-10-09: lớp sống không còn `_audit`, A–B, báo cáo ngày |
 
-Giải quyết: tên bảng → mapping; nghiệp vụ → `domain-specification.md`; NKBV chi tiết → `data/nkbv/algorithms/` + rules engine.
-
-## Health 2026-05-31
-
-- Thu gọn: `entities.md`, `concepts.md` thay nhiều file rời; xóa `specs/README`, doc trùng module.
-- `handover-roadmap.md` bỏ bảng `fact_*` cũ — trỏ mapping.
-- Cần ingest tiếp: trạng thái backfill GSC scoring.
+Giải quyết: tên bảng → mapping; nghiệp vụ → `domain-specification.md`; NKBV chi tiết → `data/nkbv/algorithms/` + rules engine. Việc mở → `handover-roadmap.md` §5.
 
 ```bash
 npm run docs:links:check
+npm run wiki:index
 ```

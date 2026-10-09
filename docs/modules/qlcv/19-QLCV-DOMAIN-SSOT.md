@@ -7,7 +7,16 @@
 | Phạm vi | DOMAIN ONLY — công việc nội bộ khoa KSNK (+ deep-link analytics nếu code đã có). Không sửa code, không commit, không Cloud, không Word QĐ/QT |
 | Ngoài phạm vi | CSSD trạm/mẻ/SC · form GSC/VST (chỉ ghi liên kết menu nếu tạo việc từ analytics) · KH năm/tuần/mốc (đã DROP) |
 | Neo pack | `KSNK-DOMAIN-SSOT.md` §4 · `02-entity-list-v2-ssot.md` §4b · `06-data-dictionary-v1.md` §3c · `08-domain-coverage-map-full.md` §6 · macwork `docs/modules/qlcv/*` |
-| Trạng thái | **Applied A** 2026-09-25 (Nghĩa skip widget); xem `19b-QLCV-SIMPLIFY-20260925.md` · assignee-first |
+| Trạng thái | **Applied A** 2026-09-25 · assignee-first · tối giản 19c · loại/ưu tiên 19d (mốc `archive/plans/ab/`) |
+
+## Quyết định đã chốt (09/2026)
+
+1. Tạo việc bắt buộc: `tieu_de` + đúng 1 người thực hiện + hạn khi Đột xuất/Khẩn. Phối hợp, địa điểm, nhiệm vụ… sau «Thêm chi tiết».
+2. List/Kanban: primary = người thực hiện; secondary = chip phối hợp. Stats MVP = số việc · % HT · % quá hạn.
+3. Sáu câu quan sát mọi phiếu mở: việc gì · ai · hạn · tiến độ · kết quả · nằm trong đâu (`nhiem_vu_id` tùy chọn).
+4. Không link Quản trị Loại/Trạng thái từ QLCV. Ưu tiên nổi trên form; không taxonomy loại mới.
+
+Mốc A–B: `docs/archive/plans/ab/19b|19c|19d-*.md`.
 
 ## §0. Nguồn (ký hiệu cột «Nguồn»)
 

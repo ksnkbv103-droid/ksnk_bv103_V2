@@ -1,7 +1,7 @@
 # Báo cáo tổng hợp KSNK (`/bao-cao-tong-hop`)
 
 > Pilot 2026-06 — compose VST + GSC + NKBV từ RPC strategic (không đọc `*_summary`).  
-> **Reform kiến trúc:** [`analytics-reform-202606.md`](./analytics-reform-202606.md) · [`metric-dictionary.md`](./metric-dictionary.md)
+> **KPI / CCS:** [`metric-dictionary.md`](./metric-dictionary.md). Reform 06/2026 (mốc): [`../../archive/module-history/dashboard/analytics-reform-202606.md`](../../archive/module-history/dashboard/analytics-reform-202606.md).
 
 ## Route & code
 
@@ -38,7 +38,7 @@ Template `bao-cao-tong-hop-print.ts`: bìa (kỳ, mã BC-TH, phạm vi, ngày in
 2. Deep link sang module (`buildAnalyticsDeepLink` → `/thong-ke/vst` · `/thong-ke/gsc`).  
 3. In/export narrative controls khi bật in.
 
-Checklist tay: [`pilot-checklist-bao-cao-tong-hop.md`](./pilot-checklist-bao-cao-tong-hop.md).
+Checklist tay (mốc): [`pilot-checklist-bao-cao-tong-hop.md`](../../archive/module-history/dashboard/pilot-checklist-bao-cao-tong-hop.md).
 
 ## SSOT mapping
 

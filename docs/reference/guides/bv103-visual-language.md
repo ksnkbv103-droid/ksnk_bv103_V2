@@ -75,7 +75,7 @@ Mọi `*Panel*`, `*Form*`, `*Modal*` **bắt buộc** import chrome (`npm run pa
 | **L3 columns chrome** | ✅ | **100%** | 12/12 `*-columns.tsx` import chrome |
 | **L3 panel chrome import** | ✅ | **~98%** | 59/60 panel/form/modal — gate `panel:chrome-check` |
 | **L4 panel token wire** | ✅ | **~95%** | `UI.*` / `F.*` / `bv103LayoutChrome.*` / `CSSD_UI_*` |
-| **B+3 program** | 📋 | S0 Done | [`ui-consistency-program-20260802.md`](../architecture/ui-consistency-program-20260802.md) — S1–S5 chat implement riêng |
+| **Chrome / layout** | ✅ | Sống | [`page-chrome-contract`](../architecture/page-chrome-contract-20260731.md) · [`layout-primitives`](../architecture/layout-primitives.md) · [`ux/principles`](../../ux/principles.md) |
 
 **Chuẩn wire:** alias `UI` (panel), `F`/`C` (Quản trị), `D` (dashboard), `gscFormChrome` (GSC/VST), `bv103LayoutChrome` (QLCV). Gate **siết import** + **tiêu đề IN HOA**; `panel:wire` khi thêm panel mới.
 

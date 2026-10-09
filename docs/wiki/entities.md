@@ -14,7 +14,7 @@
 | Quy trình | `cssd_fact_quy_trinh` (BOM runtime trong `metadata.bom_lines`) |
 | Mẻ / QC | `cssd_fact_lo_tiet_khuan` |
 | Kho | `cssd_fact_kho_*` (tab giám sát FEFO — không phải trạm) |
-| Reform QLDCPT | [`../modules/cssd/reform-plan.md`](../modules/cssd/reform-plan.md) |
+| Domain CSSD | [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) |
 | Code | `cssd-stations.ts`, `cssd-packaging-rules.ts`, `cssd-qr-hub.ts` |
 
 Ranh giới MDM: [`concepts.md`](concepts.md#cssd-vs-mdm).
@@ -83,4 +83,4 @@ Pilot tinh gọn: **Điều hành** + **Nhiệm vụ** + **Định kỳ/Đột x
 | Phê duyệt đề xuất | Giao tổ + phụ trách → kích hoạt |
 | Checklist | RPC `fn_qlcv_update_checklist` |
 
-DB: `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky`, `qlcv_fact_nhiem_vu`. Địa điểm: `dia_diem_khoa_id` + `vi_tri_thuc_hien`. Chi tiết: [`../modules/qlcv/README.md`](../modules/qlcv/README.md).
+DB: `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky`, `qlcv_fact_nhiem_vu`. Địa điểm: `dia_diem_khoa_id` + `vi_tri_thuc_hien`. Chi tiết: [`../modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md).

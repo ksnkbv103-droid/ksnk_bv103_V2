@@ -1,6 +1,6 @@
 # Bàn giao & onboarding — KSNK BV103
 
-> **SSOT lộ trình phase:** [`../reference/architecture/roadmap-2026h2.md`](../reference/architecture/roadmap-2026h2.md)  
+> **Việc còn mở:** §5 dưới đây. Kế hoạch H2 gốc (kho): [`../archive/plans/architecture/roadmap-2026h2.md`](../archive/plans/architecture/roadmap-2026h2.md).  
 > **SSOT schema:** [`implementation-mapping.md`](implementation-mapping.md)
 
 ## 1. Cấu trúc app (tóm tắt)
@@ -36,13 +36,13 @@ Verify trước push: `npm run verify` (full) — xem [`lean-execution.md`](lean
 
 ## 5. Lộ trình rà soát (cửa đang theo)
 
-Phase 0–5 tháng 5: [`../reference/architecture/roadmap-2026h2.md`](../reference/architecture/roadmap-2026h2.md) — kế hoạch gốc, không phải việc tuần này.
+Phase 0–5 tháng 5: [`../archive/plans/architecture/roadmap-2026h2.md`](../archive/plans/architecture/roadmap-2026h2.md) — kế hoạch gốc, không phải việc tuần này.
 
-Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nhật ký lát (`modules/_audit/`) và plan tháng 9 (`reference/reports/BV103-*`) là mốc. Khi chúng mâu thuẫn SSOT, SSOT thắng — ví dụ dòng VST-02 «1–5 mọi hành động» trong `_audit-golive-doors` đã thu hồi.
+Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nhật ký lát và plan tháng 9 nằm ở [`../archive/`](../archive/). Khi chúng mâu thuẫn SSOT, SSOT thắng — ví dụ dòng VST-02 «1–5 mọi hành động» trong nhật ký golive đã thu hồi.
 
 | Mốc | Việc | Trạng thái |
 |------|------|------------|
-| 2026-09-28 | Nhật ký golive / soft trong [`../modules/_audit/README.md`](../modules/_audit/README.md) | Mốc. Không sửa code theo audit nếu lệch domain-spec |
+| 2026-09-28 | Nhật ký golive / soft trong [`../archive/slice-journals/`](../archive/slice-journals/) | Mốc. Không sửa code theo audit nếu lệch domain-spec |
 | 2026-10-08 | Nợ Phase B #85–#93 (GSC scope, CSSD close/QC, NKBV hết cắt dòng, đào tạo, deps) | Đã lên `main`. Không thấy phá §2.1 VST |
 | 2026-10-09 | Form VST: nhãn TRƯỚC/SAU + trần app #94–#97 | Đã lên `main` |
 | 2026-10-09 | KPI `fn_vst_is_valid_opportunity` #98 `63884e3a`, prod history `20261008225611` | Đã siết: rửa/chà 1–2 thời điểm WHO, bỏ sót đúng 1. 32 034 dòng, 0 dòng rời mẫu số |
