@@ -126,10 +126,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Script thử nghiệm cục bộ — không ép lint chung CI.
     "scratch/**",
-    // Agent Skills (bên thứ ba) — không phải mã ứng dụng.
-    ".agents/**",
-    // Cursor hooks/settings — không lint với eslint-config-next (ESLint 10 flat).
-    ".cursor/**",
+    // Claude Code configs/skills — không phải mã ứng dụng.
+    ".claude/**",
   ]),
 ]);
 

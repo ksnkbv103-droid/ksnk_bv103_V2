@@ -1,7 +1,6 @@
 # Cây quyết định + phân lớp — PNEU / VAP / Non-VAP
 
-> **A2** · SSOT §10 · Runtime: `PneuClinicalSubForm` + `VaeVerificationData` (nhánh PNEU)  
-> **PO audit chuẩn vs runtime (2026-08-10, kho):** [`../../../../archive/module-history/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md`](../../../../archive/module-history/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md).
+> **A2** · SSOT §10 · Runtime: `PneuClinicalSubForm` + `VaeVerificationData` (nhánh PNEU)
 
 ## Decision tree
 

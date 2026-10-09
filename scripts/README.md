@@ -1,6 +1,6 @@
 # Scripts BV103 — inventory
 
-> SQL vận hành: [`sql/README.md`](sql/README.md). Archive: [`archive/`](archive/).
+> SQL vận hành: [`sql/README.md`](sql/README.md).
 
 ## Cấu trúc
 
@@ -9,10 +9,6 @@
 | `scripts/*.mjs` | Runner, gate, audit — gắn `package.json` |
 | `scripts/sql/` | Probe read-only (precheck, EXPLAIN, smoke) |
 | `scripts/lib/` | Helper dùng chung (`resolve-supabase-query-output.mjs`) |
-| `scripts/archive/one-off-20260531/` | Import CSV / cutover pilot (lịch sử) |
-| `scripts/archive/one-off-20261005/` | Thứ tự apply go-live 05/10 (echo-only, lịch sử) |
-| `scripts/archive/sql-20260531/` | SQL ad-hoc cũ |
-| `scripts/archive/codemods-202606/` | Codemod một lần (UI/table rename) |
 
 ## Lệnh npm chính (theo nhóm)
 

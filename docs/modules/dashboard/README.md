@@ -7,7 +7,7 @@
 | Mapping RPC | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) |
 | Chrome / IA | [`../../reference/architecture/page-chrome-contract-20260731.md`](../../reference/architecture/page-chrome-contract-20260731.md) · [`../../ux/principles.md`](../../ux/principles.md) |
 
-Rule: `18-dashboard-analytics-spec-context.mdc` · Skill: `@dashboard-pilot`
+Skill: `dashboard-spec`, `dashboard-pilot`
 
 ## Route chính
 

@@ -7,14 +7,16 @@
 
 | Lớp | Đường dẫn | Vai trò | Được phép thêm file khi |
 |-----|-----------|---------|-------------------------|
-| 0. Raw | [`data/`](data/) · [`archive/`](archive/) | Máy đọc / mốc lịch sử | Seed mới; hoặc **git mv** mốc ra archive — không viết SSOT mới trong archive |
-| 1. Core | [`core/`](core/) | SSOT vận hành (tối đa 17 file) | Chỉ khi gộp/thay file hiện có; không nở thêm |
+| Lớp | Đường dẫn | Vai trò | Được phép thêm file khi |
+|-----|-----------|---------|-------------------------|
+| 0. Raw | [`data/`](data/) | Máy đọc (seed, catalog máy) | Seed mới |
+| 1. Core | [`core/`](core/) | SSOT vận hành (tối đa 13 file) | Chỉ khi gộp/thay file hiện có; không nở thêm |
 | 2. Wiki | [`wiki/`](wiki/) | Tổng hợp chéo module | Sửa `entities.md` / `concepts.md` — không tách file mới |
 | 3. Module | [`modules/<mod>/`](modules/) | Domain đang dùng của đúng một module | Luật nghiệp vụ còn hiệu lực, **không** gắn ngày / `_audit` / A–B |
-| 4. Reference | [`reference/`](reference/) | Kiến trúc sống + ADR + runbook | Hợp đồng / quyết định còn hiệu lực. Báo cáo ngày → archive |
-| 5. UX | [`ux/principles.md`](ux/principles.md) | IA / tương tác | Chỉ sửa file này; audit UX → archive |
+| 4. Reference | [`reference/`](reference/) | Kiến trúc sống + ADR + runbook | Hợp đồng / quyết định còn hiệu lực |
+| 5. UX | [`ux/principles.md`](ux/principles.md) | IA / tương tác | Chỉ sửa file này |
 
-**Một chủ đề = một bản đang dùng.** Mốc, nhật ký lát, A–B đã chốt, plan tháng → [`archive/`](archive/). Khi archive mâu thuẫn core/module, **SSOT thắng**.
+**Một chủ đề = một bản đang dùng.** Toàn bộ lịch sử mốc, nhật ký lát cũ đã chốt đã được lưu trong git history.
 
 ---
 
@@ -24,11 +26,11 @@ Sửa repo: [`../CLAUDE.md`](../CLAUDE.md). Chủ đề đang dùng: [`ssot-map.
 
 Wiki tổng hợp: [`wiki/entities.md`](wiki/entities.md) · [`wiki/concepts.md`](wiki/concepts.md). Catalog máy: [`wiki/index.md`](wiki/index.md).
 
-## Lớp Core (17 file)
+## Lớp Core (13 file)
 
-**Mục lục, không đọc hết:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap` · `cursor-operating-playbook`
+**Mục lục, không đọc hết:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap`
 
-**Ký / ADR / catalog:** `po-cursor-guide` · `domain-decisions-cssd-instrument` · `adr-cssd-fact-write-rls` · `database-view-catalog` · `pilot-go-live-signoff-202606` · `po-uat-signoff-202607`
+**Ký / ADR / catalog:** `domain-decisions-cssd-instrument` · `adr-cssd-fact-write-rls` · `database-view-catalog`
 
 Cổng module nằm trên [`ssot-map.md`](ssot-map.md).
 
@@ -38,14 +40,9 @@ Cổng module nằm trên [`ssot-map.md`](ssot-map.md).
 
 **Runbook:** [`ops-go-live`](reference/guides/ops-go-live.md) · [`migration-squash`](reference/guides/migration-squash-runbook.md) · [`json-import-export`](reference/guides/json-import-export.md) · [`incident-backup`](reference/guides/incident-backup-playbook.md) · [`auth-pilot-link`](reference/guides/auth-pilot-link-sop.md)
 
-Tổng quan 30/05, one-pager và script demo: [`archive/plans/`](archive/plans/).
+## Data
 
-Mốc audit / plan / A–B: [`archive/README.md`](archive/README.md).
-
-## Data · Archive
-
-- [`data/README.md`](data/README.md) — **không đọc tay**; script seed/generator.
-- [`archive/README.md`](archive/README.md) — báo cáo, plan, nhật ký lát, nguồn NKBV cũ, ghi chú AI.
+[`data/README.md`](data/README.md) — **không đọc tay**; script seed/generator.
 
 ---
 

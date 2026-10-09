@@ -29,40 +29,33 @@ KSNK_PILOT_CORE_MODULES=1
 
 Local: Docker + `npx supabase start` → `mdm:migrate:local` → `*:local` scripts.
 
-## Checklist tay (ký tên trước go-live)
+## Tiêu chí nghiệm thu tay trước go-live
 
-| Module | File |
-|--------|------|
-| Quản trị | [`../modules/mdm/README.md`](../modules/mdm/README.md) § Pilot checklist |
-| Giám sát | [`../archive/module-history/giam-sat/pilot-checklist-202606.md`](../archive/module-history/giam-sat/pilot-checklist-202606.md) |
-| QLCV | [`../archive/module-history/qlcv/pilot-checklist-202606.md`](../archive/module-history/qlcv/pilot-checklist-202606.md) |
-| CSSD quy trình | [`../archive/module-history/cssd/pilot-test-checklist.md`](../archive/module-history/cssd/pilot-test-checklist.md) |
-| CSSD hóa chất / thiết bị | [`../archive/module-history/cssd/pilot-checklist-hoa-chat-202606.md`](../archive/module-history/cssd/pilot-checklist-hoa-chat-202606.md), [`pilot-checklist-thiet-bi-202606.md`](../archive/module-history/cssd/pilot-checklist-thiet-bi-202606.md) |
-| CSSD cycle QR | [`../archive/module-history/cssd/pilot-checklist-cycle-qr-202606.md`](../archive/module-history/cssd/pilot-checklist-cycle-qr-202606.md) |
-| NKBV clinical | [`../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md`](../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md) |
+Mỗi module thực hiện ≥5/6 kịch bản PASS trên staging; `trial:db:precheck` và `trial:auth:precheck` không có blocker (auth: `mdm_email_no_auth` = 0 cho user pilot).
 
-**Go-live tổng (Phase 6):** [`pilot-go-live-signoff-202606.md`](pilot-go-live-signoff-202606.md) · `npm run pilot:go-live:gate`  
-**Gói thực thi W1 (IT + PO, mốc):** [`../archive/plans/guides/w1-go-live-execution-pack-20260722.md`](../archive/plans/guides/w1-go-live-execution-pack-20260722.md) · hướng dẫn PO [`po-uat-signoff-202607.md`](po-uat-signoff-202607.md)
+| Module | Cổng tài liệu |
+|--------|---------------|
+| Quản trị | [`../modules/mdm/README.md`](../modules/mdm/README.md) |
+| Giám sát | [`../modules/giam-sat/README.md`](../modules/giam-sat/README.md) |
+| QLCV | [`../modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md) |
+| CSSD | [`../modules/cssd/README.md`](../modules/cssd/README.md) |
+| NKBV | [`../modules/nkbv/README.md`](../modules/nkbv/README.md) |
 
-**Ops runbook tay (2026-09-04):** [`../reference/guides/ops-go-live.md`](../reference/guides/ops-go-live.md) — env/wave, tắt pilot trước UAT CSSD, auth blocker, BOM unique `20260904120000`, mở cloud chỉ sau Phase 0–2 + golden + approve commit. Quyết định dụng cụ: [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
-
-**Định nghĩa “dùng luôn”:** mỗi module ≥5/6 kịch bản PASS trên staging; `trial:db:precheck` và `trial:auth:precheck` không có blocker (auth: `mdm_email_no_auth` = 0 cho user pilot).
+**Ops runbook tay:** [`../reference/guides/ops-go-live.md`](../reference/guides/ops-go-live.md) — env/wave, auth blocker, BOM unique. Quyết định dụng cụ: [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
 
 ## Mở rộng CSSD sau pilot 3 module (Phase 4.5)
 
 1. Trên **staging CSSD week**: **tắt** `KSNK_PILOT_CORE_MODULES` (hoặc không set) để route `/cssd-*` mở.
 2. Chạy checklist hóa chất + thiết bị; quy trình P3 ≥5/6.
 3. `npm run trial:auth:precheck` → `mdm_email_no_auth` = 0 (link Auth cho email trong `mdm_nhan_su.extra_data`).
-4. Go-live production: bật lại pilot-3 **hoặc** tắt hẳn flag khi CSSD đã ký đủ checklist.
+4. Go-live production: bật lại pilot-3 **hoặc** tắt hẳn flag khi CSSD đã nghiệm thu đủ.
 
 ```bash
 npm run trial:auth:precheck        # linked
 npm run trial:auth:precheck:local  # docker local
 ```
 
-## Phase 6 — Go-live closure
-
-**Bảng ký tổng:** [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md)
+## Phase 6 — Go-live automated gate
 
 **Automated gate:**
 

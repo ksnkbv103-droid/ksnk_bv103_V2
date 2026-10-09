@@ -24,10 +24,19 @@ Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103 (pilot). Next.js 16 
 - `src/app/` route mỏng · `src/modules/<module>/` DDD (quan-tri-he-thong, giam-sat-*, cssd-erp, quan-ly-cong-viec, dashboard, dao-tao, …) · `src/lib/` RBAC, domain thuần · `supabase/migrations/` SSOT schema
 - Đọc đúng thứ tự:
   1. [`docs/ssot-map.md`](docs/ssot-map.md) — một chủ đề, một file
-  2. [`.cursor/commands/domain-slice.md`](.cursor/commands/domain-slice.md) + [`.cursor/rules/05-domain-auto-slice.mdc`](.cursor/rules/05-domain-auto-slice.mdc)
+  2. Lệnh `/domain-slice` (mục «Đã chốt» + luật vòng)
   3. [`docs/core/handover-roadmap.md`](docs/core/handover-roadmap.md) §5 — việc còn mở
   4. File module của lát (dòng ssot-map). Đọc thêm theo diff: [`docs/core/read-minimum.md`](docs/core/read-minimum.md)
-- Skill (`.claude/skills`) và subagent (`.claude/agents`) chỉ là mô tả ngắn. Khi khớp, đọc đúng một thân: `.cursor/rules/`, `.agents/skills/`, hoặc `.cursor/agents/`. Lệnh: thân một bản ở `.cursor/commands/`. Luật 00, 01, 05 đã tóm ở đây — không đọc lại cả file.
+- Thân duy nhất nằm trong `.claude/`: lệnh `.claude/commands/`, skill `.claude/skills/` (nạp theo việc: `cssd-spec`, `nkbv-spec`, `migration-rules`…), subagent `.claude/agents/`. Không có bản thứ hai ở nơi khác.
+- Subagent đọc nhiều file (`explore-module`, `db-verify`, `review-bv103`) → model rẻ (Haiku/Sonnet); Opus chỉ khi debug/kiến trúc khó.
+
+## Kỷ luật (luôn áp dụng)
+
+- Nghiệp vụ y tế / ranh giới CSSD vs MDM mơ hồ → hỏi trước. Có tradeoff (migration vs patch app, RPC vs query) → nói trước khi code.
+- Không tạo bảng summary/pre-aggregation khi chưa có số đo và PO đồng ý.
+- Mỗi dòng diff truy vết được tới yêu cầu. Boy Scout chỉ trong file vừa chạm.
+- Grep trước khi đọc file > 500 dòng; mục tiêu ≤ 8 file đọc/task; > 3 file ngoài scope → dừng, hỏi PO. Output delta-only.
+- Pilot DoD một lát: người dùng/môi trường rõ · ≥ 3 kịch bản tay · migration + RPC apply đúng · `verify:engineering` pass.
 
 ## Khóa PO (2026-10-09)
 
@@ -48,9 +57,9 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 
 - Never đoán schema
 - Never migrate prod. Commit, push, PR chỉ khi PO ra lệnh trong task này. Deploy Vercel chỉ khi anh nói «deploy»
-- Never viết bản tài liệu thứ hai; không chép thân rule/skill vào docs. `docs/core` giữ 17 file
+- Never viết bản tài liệu thứ hai; không chép thân skill vào docs. `docs/core` giữ 13 file
 - Never viết lại engine lâm sàng. Lệch KPI thì sửa hàm KPI. Không nhận «chính xác tuyệt đối»
-- Never mở: `docs/data/`, `docs/archive/`, `_agent-*.md`, transcript, CDC/NHSN thô, `nkbv-sources/extracted/`, `node_modules/`, `.next/` (xem [`.claudeignore`](.claudeignore))
+- Never mở: `docs/data/`, `_agent-*.md`, transcript, CDC/NHSN thô, `nkbv-sources/extracted/`, `node_modules/`, `.next/`, `.env*` (chặn cứng bằng `permissions.deny` trong [`.claude/settings.json`](.claude/settings.json)). Lịch sử cũ (archive, Cursor) chỉ còn trong git history — không khôi phục
 
 ## Gotchas
 

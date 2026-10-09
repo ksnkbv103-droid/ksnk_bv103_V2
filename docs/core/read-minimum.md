@@ -4,21 +4,21 @@
 
 | Loại diff | Đọc bắt buộc | Tra cứu thêm |
 |-----------|--------------|--------------|
-| Bất kỳ | `AGENTS.md`, rule glob module (`.cursor/rules/1x-*.mdc`, `18-*.mdc`, `19-*.mdc`) | [`implementation-mapping.md`](implementation-mapping.md) |
+| Bất kỳ | `CLAUDE.md`, skill module trong `.claude/skills/` | [`implementation-mapping.md`](implementation-mapping.md) |
 | UI layout / shell | [`wiki/concepts.md`](../wiki/concepts.md#layout-primitives) · [`page-chrome-contract-20260731.md`](../reference/architecture/page-chrome-contract-20260731.md) khi đụng shell/chrome | [`engineering-guidelines.md`](engineering-guidelines.md) §2 |
 | Server Action / `fact_*` | [`operations-sop.md`](operations-sop.md) § Auth/RLS | `verify:engineering` |
-| Migration / RPC / view | [`operations-sop.md`](operations-sop.md) § DB + [`governance-pipeline.md`](governance-pipeline.md) | `51-database-migration-rules.mdc` |
-| CSSD workflow / QR / mẻ / dụng cụ | [`domain-specification.md`](domain-specification.md) §2.2 + [`modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) + mapping § CSSD · quyết định Phase 0 [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md) | [`modules/cssd/README.md`](../modules/cssd/README.md) · `12-cssd-erp-spec-context.mdc` |
-| MDM / danh mục / import | [`domain-specification.md`](domain-specification.md) (MDM) + `20-master-data-placement.mdc` | [`modules/mdm/README.md`](../modules/mdm/README.md) · [`reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) |
-| Giám sát VST/GSC | [`domain-specification.md`](domain-specification.md) (Giám sát) | [`modules/giam-sat/README.md`](../modules/giam-sat/README.md) · `13-giam-sat-spec-context.mdc` |
-| NKBV | [`modules/nkbv/README.md`](../modules/nkbv/README.md) | `17-nkbv-spec-context.mdc` |
-| QLCV | mapping § Công việc | [`modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md) · `14-cong-viec-spec-context.mdc` |
-| Bảng kiểm template | [`modules/giam-sat/bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | `16-bang-kiem-spec-context.mdc` |
-| Dashboard / RPC báo cáo | [`modules/dashboard/README.md`](../modules/dashboard/README.md) · [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md) | `18-dashboard-analytics-spec-context.mdc` · `@dashboard-pilot` |
-| Đào tạo / thi MCQ | [`modules/dao-tao/domain-overview.md`](../modules/dao-tao/domain-overview.md) | `19-dao-tao-spec-context.mdc` |
+| Migration / RPC / view | [`operations-sop.md`](operations-sop.md) § DB + [`governance-pipeline.md`](governance-pipeline.md) | skill `migration-rules` |
+| CSSD workflow / QR / mẻ / dụng cụ | [`domain-specification.md`](domain-specification.md) §2.2 + [`modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) + mapping § CSSD · quyết định Phase 0 [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md) | [`modules/cssd/README.md`](../modules/cssd/README.md) · skill `cssd-spec` |
+| MDM / danh mục / import | [`domain-specification.md`](domain-specification.md) (MDM) + skill `master-data-placement` | [`modules/mdm/README.md`](../modules/mdm/README.md) · [`reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) |
+| Giám sát VST/GSC | [`domain-specification.md`](domain-specification.md) (Giám sát) | [`modules/giam-sat/README.md`](../modules/giam-sat/README.md) · skill `giam-sat-spec` |
+| NKBV | [`modules/nkbv/README.md`](../modules/nkbv/README.md) | skill `nkbv-spec` |
+| QLCV | mapping § Công việc | [`modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md) · skill `qlcv-spec` |
+| Bảng kiểm template | [`modules/giam-sat/bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | skill `bang-kiem-spec` |
+| Dashboard / RPC báo cáo | [`modules/dashboard/README.md`](../modules/dashboard/README.md) · [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md) | skill `dashboard-spec` · `@dashboard-pilot` |
+| Đào tạo / thi MCQ | [`modules/dao-tao/domain-overview.md`](../modules/dao-tao/domain-overview.md) | skill `dao-tao-spec` |
 | RBAC / tài khoản | [`operations-sop.md`](operations-sop.md) | `permission-registry.ts` |
 | Chỉ refactor thuần (lib) | mapping cột liên quan | module README nếu đổi hành vi |
 
-**Không** mở [`data/`](../data/) trừ khi chạy script seed. **Không** mở [`archive/pilot_chain_*.tar.gz`](../archive/) trừ khi tra lịch sử migration. **Không** mở `_agent-*.md` hay [`archive/agent-notes/`](../archive/agent-notes/) khi sửa code (chỉ khi tra nhật ký phiên). **Không** mở [`archive/nkbv-sources/`](../archive/nkbv-sources/) khi sửa NKBV — dùng bản 27/08.
+**Không** mở [`data/`](../data/) trừ khi chạy script seed. Không mở `_agent-*` hay CDC/NHSN thô khi sửa code. Lịch sử cũ tra cứu qua git log.
 
 **Khám phá / câu hỏi tổng hợp:** [`../wiki/entities.md`](../wiki/entities.md) — không thay read-minimum khi sửa code.

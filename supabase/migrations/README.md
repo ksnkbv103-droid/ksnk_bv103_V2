@@ -14,7 +14,6 @@ Thư mục gốc giữ chuỗi incremental **`20260530000000` … `2026070412000
 |---------|--|
 | [`archive_legacy/khu_vuc_reverted_pair/README.md`](archive_legacy/khu_vuc_reverted_pair/README.md) | Cặp apply+revert khu vực — giữ trên chain remote |
 | [`archive_legacy/drafts/`](archive_legacy/drafts/) | File `*_DRAFT*.sql` — **không** apply cho đến khi PO duyệt |
-| [`../archive/`](../archive/) | pg_dump schema/data deprecated |
 
 Nếu CLI báo `Remote migration versions not found in local`:
 
@@ -38,9 +37,6 @@ npm run trial:db:precheck:local
 
 ### Lịch sử (archived — không apply)
 
-| Artifact | Nội dung |
-|----------|----------|
-| [`docs/archive/pilot_chain_20260520_20260529.tar.gz`](../../docs/archive/pilot_chain_20260520_20260529.tar.gz) | 90 migration trước squash v1 |
 | [`archive_legacy/post_baseline_20260530_20260602/`](archive_legacy/post_baseline_20260530_20260602/) | Baseline v1 + 25 file incremental (20260530–20260602) — đã gộp vào baseline v2 |
 | [`archive_legacy/drafts/`](archive_legacy/drafts/) | `*_DRAFT*.sql` chờ PO duyệt — không trên chuỗi apply |
 
@@ -55,7 +51,6 @@ Remote: MCP `apply_migration` ghi version theo thời điểm apply (khác tên 
 | Vị trí | Vai trò |
 |--------|---------|
 | `scripts/sql/` | Precheck, EXPLAIN, smoke, audit — [`scripts/sql/README.md`](../../scripts/sql/README.md) |
-| `scripts/archive/sql-20260531/reference-ssot-slice8/` | Template Slice 8 (resolved, không apply) |
 
 ## Sau migrate
 

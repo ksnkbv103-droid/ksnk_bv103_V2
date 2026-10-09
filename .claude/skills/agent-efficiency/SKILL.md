@@ -3,4 +3,26 @@ name: agent-efficiency
 description: Task đụng nhiều file. Cấm glob cả repo. Đọc theo read-minimum.
 ---
 
-Đọc và làm đúng `.cursor/rules/agent-efficiency.mdc`. Không đọc thêm rule khác trong lượt này.
+# Agent efficiency (BV103)
+
+> Bullet cốt lõi **đã gộp vào** `01-agent-discipline` (always-on). File này giữ để `@agent-efficiency` khi cần nhắc chi tiết.
+
+Cherry-pick từ Minimize-Cursor-Cost — áp dụng khi agent mode burn token.
+
+## Search & read
+
+- `grep` / semantic search **trước** `read` file > 500 dòng
+- Không re-read file đã đọc trong cùng task trừ khi file đổi
+- Không `list`/`glob` toàn repo cho task hẹp — `@file` hoặc path cụ thể
+- Mục tiêu ≤ **8 file** đọc mỗi task
+
+## Execution
+
+- Dừng khi đủ evidence; không "khám phá thêm" không yêu cầu
+- Output **delta-only** khi iterate — không restate toàn bộ plan
+- `verify:quick` / `verify:engineering` theo intake — không full `verify` sau mỗi dòng
+
+## Scope
+
+- > 3 file ngoài intake → dừng, hỏi user trước khi mở rộng
+- 1 chat = 1 task; đổi task → chat mới (~15–20 turns)

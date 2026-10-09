@@ -248,8 +248,6 @@ Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển
 | `/cssd-hoa-chat` | Kho hóa chất |
 | Quản trị → Danh mục dụng cụ | Tab **Bộ · Phiếu · Lịch sử**; sheet **Loại** (`?sheet=loai`, ADMIN). Hard-write master chỉ ADMIN (D5). |
 
-Pilot (mốc): [`../../archive/module-history/cssd/`](../../archive/module-history/cssd/).
-
 ---
 
 ## 8. Backlog P1 (ghi nhận — không implement trong đợt này)

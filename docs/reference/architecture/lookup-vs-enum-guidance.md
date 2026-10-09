@@ -1,6 +1,6 @@
 # Hướng dẫn: danh mục nhỏ — bảng / lookup / gắn cứng
 
-> 2026-09-07 · Hướng dẫn kiến trúc (không đổi schema trong note này). Kế hoạch unification cũ: [`../../archive/agent-notes/202609/quan-tri.md`](../../archive/agent-notes/202609/quan-tri.md) (kho lưu, mục lookup).
+> 2026-09-07 · Hướng dẫn kiến trúc (không đổi schema trong note này).
 
 ## Thực tế trong BV103 hôm nay
 

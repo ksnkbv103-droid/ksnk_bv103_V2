@@ -3,9 +3,6 @@
 SSOT for **interaction & IA** rules. Visual tokens / type / chrome classes stay in
 [`docs/reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md)
 and `src/lib/bv103-*-chrome.ts`.
-
-Audit gốc (kho): [`../archive/module-history/ux/_audit-ia-ux-2026-09-25.md`](../archive/module-history/ux/_audit-ia-ux-2026-09-25.md).
-
 Locks that override local taste: GSC H2 (Báo cáo chính thức one door; no Việc hôm nay;
 Công việc separate) · CSSD 6 stations + scan gates + packaging scan-only + separate
 Sự cố/kho doors · QLCV Domain file 19 (4 tabs; person/work/progress/responsibility).

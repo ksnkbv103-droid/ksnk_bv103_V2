@@ -78,7 +78,7 @@ Staging **không** tự nạp `01-pilot-nhan-su.sql` auth local trừ khi chủ 
 ## 4. Chiến lược B — Schema remote lệch / chưa đủ migration
 
 1. **Không** repair.
-2. Apply nốt migration còn thiếu từ archive: giải nén `docs/archive/pilot_chain_20260520_20260529.tar.gz`.
+2. Kiểm tra commit lịch sử trước squash nếu cần tra cứu.
 3. Khi schema khớp baseline → quay lại Chiến lược A.
 4. Nếu không thể: restore backup + làm sạch branch deploy.
 
@@ -86,21 +86,9 @@ Staging **không** tự nạp `01-pilot-nhan-su.sql` auth local trừ khi chủ 
 
 ## 5. Script batch repair (staging)
 
-Tạo file danh sách version cũ từ archive:
-
-```bash
-tar -tzf docs/archive/pilot_chain_20260520_20260529.tar.gz | head \
-  | sed 's/.*\///;s/_.*//' \
-  | sort -u > /tmp/old_versions.txt
-```
-
 Repair từng dòng (review trước khi chạy):
 
 ```bash
-while read ver; do
-  npx supabase migration repair --status reverted "$ver"
-done < /tmp/old_versions.txt
-
 npx supabase migration repair --status applied 20260602100000
 ```
 
@@ -125,14 +113,12 @@ npm run verify:engineering
 |-----|-----------|
 | Repair sai, schema OK | Sửa lại `schema_migrations` bằng repair ngược |
 | Schema hỏng | Restore pg_dump §3 Bước 1 |
-| App lỗi view alias | Migration `20260530100000_drop_view_compat_aliases.sql` chỉ DROP alias — rollback bằng re-apply baseline hoặc CREATE VIEW alias lại từ archive `20260526000010` |
+| App lỗi view alias | Migration `20260530100000_drop_view_compat_aliases.sql` chỉ DROP alias — rollback bằng re-apply baseline hoặc CREATE VIEW alias lại |
 
 ---
 
 ## 8. Liên quan
 
-- Archive chain: `docs/archive/pilot_chain_20260520_20260529.tar.gz`
 - Baseline SSOT v2: `supabase/migrations/20260602100000_init_pilot_baseline.sql`
 - Archive v1 + incremental: `supabase/migrations/archive_legacy/post_baseline_20260530_20260602/`
-- View alias Step 2: `docs/archive/baselines/view-rename-mapping-20260526.md`
 - Mapping changelog: `docs/core/implementation-mapping.md`

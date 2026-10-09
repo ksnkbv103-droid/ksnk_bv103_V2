@@ -3,4 +3,18 @@ name: architecture-quality
 description: Cache, index, src/lib/domain, hoặc chất lượng migration.
 ---
 
-Đọc và làm đúng `.cursor/rules/82-architecture-quality.mdc`. Không đọc thêm rule khác trong lượt này.
+# Architecture & Quality Standards (BV103)
+
+> Chi tiết DB perf, pagination, cache, domain convention, observability: skill **`smart-db-bv103`** (`.claude/skills/smart-db-bv103/SKILL.md`).
+
+## Domain Layer (`src/lib/domain/`)
+
+1. Logic nghiệp vụ **thuần** → `src/lib/domain/` (pure functions).
+2. **KHÔNG import** `@/lib/supabase*`, `next/*`, `react` trong `src/lib/domain/`.
+3. Module I/O (Supabase) → `actions/` hoặc `workflow/application/` — không đặt tên folder `domain/` cho file có I/O.
+4. `src/lib/master-data/domain-registry.ts` là **registry pattern** (map `dm_*`), khác `src/lib/domain/`.
+
+## Observability (tóm tắt)
+
+5. Server Actions lỗi → `console.error` kèm `{ module, action, userId, error }` — **không log PII**.
+6. Query chậm → `pg_stat_statements` trước khi sửa code app.

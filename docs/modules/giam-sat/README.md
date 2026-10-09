@@ -13,7 +13,7 @@
 | Layout / scoring | [`../../wiki/concepts.md`](../../wiki/concepts.md) · [`../../ux/principles.md`](../../ux/principles.md) |
 | Seed catalog (người) | [`bang-kiem-seed/README.md`](bang-kiem-seed/README.md) |
 
-Rule: `13-giam-sat-spec-context.mdc`, `16-bang-kiem-spec-context.mdc`
+Skills: `giam-sat-spec`, `bang-kiem-spec`
 
 ## IA (khóa)
 

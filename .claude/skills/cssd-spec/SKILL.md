@@ -3,4 +3,17 @@ name: cssd-spec
 description: Trước khi sửa sâu CSSD: src/modules/cssd-erp, cssd-su-co, src/app/cssd-*.
 ---
 
-Đọc và làm đúng `.cursor/rules/12-cssd-erp-spec-context.mdc`. Không đọc thêm rule khác trong lượt này.
+**Nguồn domain (ưu tiên):** CDC → WHO → BYT/Cục Quân y → QT/QĐ chính thức BV103 → `docs/modules/cssd/domain-overview.md` + `domain-decisions-cssd-instrument.md` + mapping.
+Chỉ lấp domain đã có; HLD/out-of-scope không mở station mới. Soft-warn thiếu BOM (Q2) giữ trừ khi PO đổi.
+
+# CSSD ERP — ngữ cảnh spec
+
+Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
+
+1. [`domain-specification.md`](../../../docs/core/domain-specification.md) — luồng CSSD.
+2. [`implementation-mapping.md`](../../../docs/core/implementation-mapping.md) — bảng/cột thật.
+3. [`read-minimum.md`](../../../docs/core/read-minimum.md).
+4. `AGENTS.md` — CSSD **read-only** catalog tại `/cssd-dung-cu`; CRUD DM tại `quan-tri-he-thong/danh-muc`. Gate: `npm run imports:cssd-mdm`.
+5. Skill `@cssd-pilot` khi pilot hoặc đụng mẻ/QR/RLS.
+
+**Luật nghiệp vụ:** tiệt khuẩn theo nhiệt/phi nhiệt; bộ chỉ đạt vô khuẩn khi **mọi** thành phần/mẻ liên quan đạt — không shortcut trong action.

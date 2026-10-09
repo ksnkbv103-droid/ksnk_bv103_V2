@@ -4,9 +4,9 @@
 
 | Lớp | Đường dẫn | Ai sở hữu |
 |-----|-----------|-----------|
-| Raw | [`../data/README.md`](../data/README.md) · [`../archive/README.md`](../archive/README.md) | Con người + script (immutable) |
-| Wiki | `entities.md`, `concepts.md`, `index.md`, `log.md` | **LLM** |
-| Schema vận hành | `AGENTS.md`, `docs/core/*`, `.cursor/rules/*` | Đồng tiến hóa |
+| Raw | [`../data/README.md`](../data/README.md) | Con người + script (immutable) |
+| Wiki | `entities.md`, `concepts.md`, `index.md` | **LLM** |
+| Schema vận hành | `CLAUDE.md`, `docs/core/*`, `.claude/skills/*` | Đồng tiến hóa |
 
 **SSOT khi code:** superseded — cửa [`../../CLAUDE.md`](../../CLAUDE.md) rồi [`../ssot-map.md`](../ssot-map.md). Schema này chỉ cho ingest wiki.
 
@@ -18,8 +18,6 @@ docs/wiki/
   entities.md      # mọi module — không tách entities/*
   concepts.md      # chéo module — không tách concepts/*
   index.md
-  log.md
-  lint.md
 ```
 
 Module `README.md` = bảng pointer ngắn → wiki + core.
@@ -30,17 +28,16 @@ Module `README.md` = bảng pointer ngắn → wiki + core.
 
 1. Đọc source (không sửa `data/**` trừ khi seed).
 2. Cập nhật section trong `entities.md` hoặc `concepts.md`.
-3. `index.md` + append `log.md` (`## [date] ingest | …`).
-4. Mâu thuẫn → `lint.md`.
+3. Cập nhật `index.md` bằng `npm run wiki:index`.
 
 ### Query
 
 1. Sửa code thì không bắt đầu ở đây — [`../../CLAUDE.md`](../../CLAUDE.md). Hỏi tổng hợp: `entities.md` / `concepts.md`, rồi file ssot-map nếu implement.
-2. Câu trả lời đáng giữ → thêm section wiki + log `query | …`.
+2. Câu trả lời đáng giữ → thêm section wiki.
 
 ### Lint
 
-`lint.md` — contradictions, orphan, stale. `npm run docs:links:check`.
+`npm run docs:links:check` — kiểm tra link nội bộ.
 
 ## Không làm
 

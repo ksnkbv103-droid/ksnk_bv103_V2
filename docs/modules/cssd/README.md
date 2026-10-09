@@ -1,6 +1,6 @@
 # CSSD
 
-> Bản đồ: [`../../ssot-map.md`](../../ssot-map.md). Ghi chú AI / nhật ký lát: [`../../archive/`](../../archive/).
+> Bản đồ: [`../../ssot-map.md`](../../ssot-map.md).
 
 | Đọc khi | File |
 |---------|------|
@@ -14,7 +14,7 @@
 | Ranh giới MDM | [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-vs-mdm) |
 | Layout / chrome | [`../../reference/architecture/layout-primitives.md`](../../reference/architecture/layout-primitives.md) |
 
-Rule: `12-cssd-erp-spec-context.mdc`
+Skill: `cssd-spec`
 
 ## URL canonical (pilot)
 

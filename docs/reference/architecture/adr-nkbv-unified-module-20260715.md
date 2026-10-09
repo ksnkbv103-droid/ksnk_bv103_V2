@@ -34,7 +34,7 @@ Trong NKBV đã có một entity ca (`nkbv_fact_su_kien`), form con theo loại,
 |---|----------|-------------------------|
 | 1 | Làm sạch tên loại trên UI (VAE / VAP / HAP **tách riêng**) | **Done (sửa 2026-07-15)** — không gộp; VAE có tầng VAC/IVAC/PVAP |
 | 2 | Lọc hàng đợi theo loại + trạng thái + khoa | **Done** — `listGiamSatNkbvCas` + tab Danh sách phiếu |
-| 3 | UAT luồng Day-3 → điền form → KSNK duyệt | Kịch bản #1–#7 trong [`pilot-clinical-checklist-20260603.md`](../../archive/module-history/nkbv/pilot-clinical-checklist-20260603.md) — **chờ khoa ký tay** |
+| 3 | UAT luồng Day-3 → điền form → KSNK duyệt | Kịch bản #1–#7 trong `pilot-clinical-checklist-20260603.md` — **chờ khoa ký tay** |
 | 4 | Ổn định mẫu số denominator trước KPI | **Backlog slice riêng** — tab «Nộp Mẫu số» + RPC `fn_nkbv_dich_te_hoc_rates` đã có; cần quy trình vận hành khoa nộp đủ ngày thiết bị / ca mổ trước khi tin SIR |
 
 Không redesign tách module giữa các hạng mục trên.

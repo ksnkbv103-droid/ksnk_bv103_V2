@@ -3,4 +3,43 @@ name: destructive-change
 description: DROP bảng, xóa module, hoặc đổi không đảo được. Dừng nếu PO chưa ra lệnh trong task.
 ---
 
-Đọc và làm đúng `.cursor/rules/62-destructive-change-gate.mdc`. Không đọc thêm rule khác trong lượt này.
+# Destructive Change Gate
+
+## Trigger conditions
+
+Globs chỉ auto-attach khi sửa migration. Khi xóa hàng loạt `src/`/`docs/` hoặc gỡ feature vận hành: **@62-destructive-change-gate** hoặc dừng hỏi PO.
+
+Apply this gate when a request includes any of the following (including outside `supabase/migrations/`):
+
+- Drop table, view, function, trigger, policy, or column
+- Mass deletion of files or modules under `src/` or `docs/`
+- Removal of a production-facing feature or admin tab
+- Irreversible data migration
+- User asks to remove something "100%" or "triệt để" without staged deprecation
+
+## Mandatory preflight checklist
+
+Do not execute destructive changes until all checks are documented:
+
+1. `Impact map` - list dependent modules, scripts, and DB objects.
+2. `Data impact` - data loss scope and whether backup/export is needed.
+3. `Rollback plan` - exact reversal procedure.
+4. `Migration order` - safe sequence for deploy and verify.
+5. `Runtime risk` - possible outages or permission regressions.
+
+If any item is unknown, pause and ask for confirmation.
+
+## Execution safeguards
+
+- Prefer staged deprecation over immediate deletion.
+- If immediate deletion is required, add explicit compatibility notes.
+- Update operational docs and mapping docs in the same change set.
+- Verify with targeted checks after migration and app verification.
+
+## Required confirmation phrase
+
+Before applying destructive edits, request explicit user confirmation with:
+
+`Confirm destructive change: [scope] + [environment] + [rollback acknowledged].`
+
+Proceed only after confirmation is present in the conversation.

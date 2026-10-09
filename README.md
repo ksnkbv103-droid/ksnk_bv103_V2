@@ -10,7 +10,7 @@ Nền tảng quản lý KSNK cho Bệnh viện 103, đang trong **giai đoạn p
 | **W2** (CSSD UAT) | Staging, tắt flag pilot | + **CSSD** (quy trình, hóa chất, thiết bị, cycle QR) |
 | **W3** (mở rộng) | Prod | + **NKBV**, **Dashboard** (khi checklist pass) |
 
-Chi tiết ký go-live: [`docs/core/pilot-go-live-signoff-202606.md`](docs/core/pilot-go-live-signoff-202606.md) · [`docs/core/pilot-core-modules-go-live.md`](docs/core/pilot-core-modules-go-live.md)
+Chi tiết go-live: [`docs/core/pilot-core-modules-go-live.md`](docs/core/pilot-core-modules-go-live.md)
 
 ## Công nghệ
 

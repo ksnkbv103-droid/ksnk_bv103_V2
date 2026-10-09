@@ -6,8 +6,8 @@
 | Chủ sở hữu | KSNK Soft · Domain — BVQY 103 / `ksnk_bv103_V2` · QLCV |
 | Phạm vi | DOMAIN ONLY — công việc nội bộ khoa KSNK (+ deep-link analytics nếu code đã có). Không sửa code, không commit, không Cloud, không Word QĐ/QT |
 | Ngoài phạm vi | CSSD trạm/mẻ/SC · form GSC/VST (chỉ ghi liên kết menu nếu tạo việc từ analytics) · KH năm/tuần/mốc (đã DROP) |
-| Neo | File này · [`domain-specification.md`](../../core/domain-specification.md) §2.3 · A–B trong `docs/archive/plans/ab/` |
-| Trạng thái | **Applied A** 2026-09-25 · assignee-first · tối giản 19c · loại/ưu tiên 19d (mốc `archive/plans/ab/`) |
+| Neo | File này · [`domain-specification.md`](../../core/domain-specification.md) §2.3 |
+| Trạng thái | **Applied A** 2026-09-25 · assignee-first · tối giản 19c · loại/ưu tiên 19d |
 
 ## Quyết định đã chốt (09/2026)
 
@@ -16,15 +16,12 @@
 3. Sáu câu quan sát mọi phiếu mở: việc gì · ai · hạn · tiến độ · kết quả · nằm trong đâu (`nhiem_vu_id` tùy chọn).
 4. Không link Quản trị Loại/Trạng thái từ QLCV. Ưu tiên nổi trên form; không taxonomy loại mới.
 
-Mốc A–B: `docs/archive/plans/ab/19b|19c|19d-*.md`.
-
 ## §0. Nguồn (ký hiệu cột «Nguồn»)
 
 | Ký hiệu | Ở đâu trong repo này |
 |---------|----------------------|
 | CORE | [`domain-specification.md`](../../core/domain-specification.md) §2.3 · [`implementation-mapping.md`](../../core/implementation-mapping.md) · [`ssot-map.md`](../../ssot-map.md) · [`entities.md`](../../wiki/entities.md#qlcv) |
 | CODE | `src/lib/domain/qlcv/*`, `src/modules/quan-ly-cong-viec/*`, migrations `*qlcv*` |
-| AB | `docs/archive/plans/ab/19b|19c|19d-*.md` |
 | TEXT+CHECK | §10 file này — migration `20260604120000` |
 
 Bản nháp 2026-09-25 có đối chiếu pack domain và checkout khác máy. Bản đang dùng là file này. Drive QT/QĐ không có vòng đời phiếu việc riêng — không viện dẫn BYT bịa.

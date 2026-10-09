@@ -1,3 +1,23 @@
 {
-  "enableAllProjectMcpServers": true
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "deny": [
+      "Read(./docs/data/**)",
+      "Read(./nkbv-sources/**)",
+      "Read(./node_modules/**)",
+      "Read(./.next/**)",
+      "Read(./coverage/**)",
+      "Read(./test-results/**)",
+      "Read(./supabase/.temp/**)",
+      "Read(./supabase/schema.sql)",
+      "Read(./supabase/auth-data.sql)",
+      "Read(./supabase/auth-users-identities.sql)",
+      "Read(./package-lock.json)",
+      "Read(./.vercel/**)",
+      "Read(./**/*.tsbuildinfo)",
+      "Read(./**/_agent-*)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
 }

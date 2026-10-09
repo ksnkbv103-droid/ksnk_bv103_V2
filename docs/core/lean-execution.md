@@ -6,7 +6,7 @@
 
 1. Chọn **một** mảnh (module + luồng UI rõ).
 2. Đọc tối thiểu: [`read-minimum.md`](read-minimum.md).
-3. Implement surgical — mỗi dòng diff truy vết được yêu cầu ([`01-agent-discipline.mdc`](../../.cursor/rules/01-agent-discipline.mdc)).
+3. Implement surgical — mỗi dòng diff truy vết được yêu cầu (`01-agent-discipline.mdc`).
 4. Verify theo bảng dưới → Pilot DoD trong [`AGENTS.md`](../../AGENTS.md).
 
 ## Pilot DoD (xong task)

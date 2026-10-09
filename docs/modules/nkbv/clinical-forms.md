@@ -80,9 +80,7 @@ Giữ mapping type ↔ UI như v2 (BSI/UTI/VAE/PNEU/SSI) — field nằm ở hà
 | **L2 Branch** | Nhánh có điều kiện | Progressive disclosure |
 | **L3 Audit** | Ruled-out / đào tạo / in giấy | Thu gọn hoặc phụ lục B |
 
-Chi tiết cây + bảng field: [`investigation-forms/trees/`](./investigation-forms/trees/).  
-Spec A (vận hành) + B (phụ lục): `investigation-forms/*-2026.md`.  
-Gap P0/P1 (mốc): [`../../archive/module-history/nkbv/investigation-forms/gap-lean-vs-runtime.md`](../../archive/module-history/nkbv/investigation-forms/gap-lean-vs-runtime.md).
+Chi tiết cây + bảng field: [`investigation-forms/trees/`](./investigation-forms/trees/).
 
 | Hội chứng | L1 (tóm tắt) | L2 hay gặp | L3 |
 |-----------|--------------|------------|-----|

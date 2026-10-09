@@ -1,107 +1,84 @@
-# Skills catalog — BV103
+# Skills, Agents & Commands Catalog — BV103
 
-> **Bản đang dùng** (đối chiếu file trên đĩa, 2026-10-09). Claude Code nạp [`../../CLAUDE.md`](../../CLAUDE.md) (ngắn). Rule, skill, agent gốc vẫn một bản trong `.cursor/rules/`, `.agents/skills/`, `.cursor/agents/`. `.claude/skills` và `.claude/agents` chỉ là mô tả ngắn — thân được đọc khi việc khớp, không nạp cả bộ lúc mở repo. File này là mục lục — không chép thân lệnh.  
-> Allowlist skill. **Không** cài full marketplace — thêm từng skill rồi `npm run skills:lock`.  
-> Mặc định **manual @mention** — tránh load descriptor mỗi turn.  
-> Lộ trình rà soát đang theo: [`handover-roadmap.md`](handover-roadmap.md) §5.
+> **Bản chuẩn hóa cho Claude Code** (2026-10-09).  
+> Toàn bộ lệnh, skill và agent chuyên biệt nằm duy nhất trong thư mục `.claude/`.  
+> Claude Code tự nạp [`../../CLAUDE.md`](../../CLAUDE.md) (ngắn gọn, tối ưu credits). Skill và subagent chỉ nạp on-demand khi khớp việc.
 
-## Local (`.agents/skills/`)
+---
 
-| Skill | Khi dùng | Invoke |
-|-------|----------|--------|
-| `po-intake` | PO không rành code — dịch nghiệp vụ → intake | `/intake-nv` hoặc `@po-intake` |
-| `smart-db-bv103` | Migration, RPC, index, RLS, import lô, refactor data layer | `@smart-db-bv103` |
-| `cssd-pilot` | Mẻ/QR, tiệt khuẩn, ranh giới CSSD↔MDM | `@cssd-pilot` |
-| `dashboard-pilot` | KPI, CCS, báo cáo tổng hợp, analytics | `@dashboard-pilot` |
-| `react-dev` | Component React 19, hooks, typing UI mới | `@react-dev` |
-| `reviewing-code` | Review PR / diff trước merge | `/review` hoặc `@reviewing-code` |
-| `supabase` | Auth, RLS, Supabase client, CLI | `@supabase` |
-| `giam-sat-pilot` | VST/GSC form, scoring, phiên, import | `@giam-sat-pilot` |
-| `qlcv-pilot` | Kanban, checklist RPC, spawn định kỳ | `@qlcv-pilot` |
+## 1. Slash Commands (`.claude/commands/`)
 
-Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
+Gọi bằng dấu `/` trong phiên làm việc với Claude Code:
 
-## MCP (project)
+| Lệnh | Mục đích | Ai dùng |
+|------|----------|---------|
+| `/intake-nv` | PO mô tả nghiệp vụ thuần tiếng Việt → chuyển thành intake chuẩn | PO |
+| `/intake` | Khóa scope kỹ thuật trước khi code | Kỹ thuật / Dev |
+| `/implement` | Thực thi một lát (vertical slice) sau khi intake đã duyệt | Dev / Claude |
+| `/domain-slice` | Rà soát, phản biện, chọn theo SSOT đã chốt, sửa 1 lát | Dev / Claude |
+| `/uat-cases` | Sinh kịch bản nghiệm thu tay (UAT) cho PO | PO / Dev |
+| `/ship-slice` | Chạy bộ verify và kiểm tra trước khi hoàn tất lát | Dev / Claude |
+| `/go-live-check` | Kiểm tra trạng thái sẵn sàng golive (không deploy) | Dev / PO |
+| `/review` | Review diff theo checklist BV103 | Dev / Claude |
+| `/explain` | Giải thích kiến trúc hoặc logic (chỉ đọc, không sửa) | Dev / PO |
+| `/commit` | Tạo commit theo convention sau khi verify pass | Dev / Claude |
+| `/pr-create` | Tạo Pull Request | Dev / Claude |
 
-- Claude Code: [`.mcp.json`](../../.mcp.json) — Supabase `cvzwslpxwgqiugzzhqej`, GitHub `ksnkbv103-droid/ksnk_bv103_V2`, Vercel `ksnk-bv103-v2`. Cursor: [`.cursor/mcp.json`](../../.cursor/mcp.json) cùng project Supabase. OAuth một lần trong client; không commit secret.
-- Khi đụng schema / RLS / bảng thật: **ưu tiên MCP Supabase** để đối chiếu. Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. Rồi `verify:mdm`.
-- Không đoán schema từ trí nhớ — khớp `01-agent-discipline`.
+---
 
-## Agents (`.cursor/agents/`)
+## 2. Skills (`.claude/skills/`)
 
-| Agent | Khi dùng | Mode |
-|-------|----------|------|
-| `intake-coach` | Mô tả nghiệp vụ thô → intake duyệt | readonly |
-| `acceptance-ui` | Intake → checklist test tay cho PO | readonly |
-| `explore-module` | Khám phá 1 module, map route/action/RPC | readonly |
-| `review-bv103` | Review diff trước merge | readonly |
-| `db-verify` | Đối chiếu migration ↔ mapping | readonly |
-| `slice-supervise` | Giám sát diff lát vs DoD | readonly |
+Skill được cấu hình tự động hoặc nạp on-demand theo từng module/tình huống công việc:
 
-## User-level (không có trong repo)
+### Domain & Modules
 
-Các skill dưới đây không nằm trong `.agents/skills/` và không được `skills-lock` khóa. Không coi là bản đang chạy của BV103.
+| Skill | Module / Tình huống |
+|-------|---------------------|
+| `cssd-pilot` / `cssd-spec` | Quy trình tiệt khuẩn CSSD, mẻ hấp, kiểm soát dụng cụ, sự cố |
+| `giam-sat-pilot` / `giam-sat-spec` | Giám sát tuân thủ VST, GSC, phiên kiểm tra |
+| `bang-kiem-spec` | Ma trận bảng kiểm, tiêu chí, rubric đánh giá |
+| `nkbv-spec` | Nhiễm khuẩn bệnh viện (BSI, UTI, PNEU, SSI, VAE) — cấm đọc CDC thô |
+| `qlcv-pilot` / `qlcv-spec` | Quản lý công việc, Kanban, phân công, checklist |
+| `dashboard-pilot` / `dashboard-spec` | Dashboard, báo cáo tổng hợp, KPI, RPC phân tích |
+| `dao-tao-spec` | Ngân hàng câu hỏi, đề thi MCQ đào tạo |
+| `mdm-spec` / `master-data-placement` | Quản trị danh mục dùng chung (MDM), chuẩn hóa vị trí lưu |
 
-| Skill | Khi dùng | Invoke |
-|-------|----------|--------|
-| `next-best-practices` | App Router, RSC conventions | manual @ |
-| `code-review-nextjs` / `parallel-code-review` | PR lớn | manual @ |
-| `webapp-testing` / `agent-browser` | QA UI tự động | manual @ |
+### Kỹ thuật & Hạ tầng
 
-## Thêm skill mới
+| Skill | Chức năng |
+|-------|-----------|
+| `smart-db-bv103` | Best practices Postgres/Supabase, index, keyset pagination, cache |
+| `migration-rules` | Luật viết migration additive, mapping schema, an toàn dữ liệu |
+| `destructive-change` | Cổng kiểm soát thay đổi phá hủy (DROP table/column, breaking change) |
+| `schema-sync` | Đồng bộ type TypeScript với schema Supabase |
+| `react-dev` | React 19, Server/Client components, Hooks, tối ưu UI |
+| `frontend-performance` | Tối ưu bảng, tránh re-render, ảo hóa danh sách |
+| `architecture-quality` | DDD ranh giới module, boy-scout rule, clean code |
+| `agent-efficiency` | Kỷ luật tiết kiệm token/credits, không đọc file thừa |
+| `supabase` | Tương tác CLI Supabase, Auth, RLS |
+| `po-intake` / `po-workflow` / `intake-freeze` | Quy trình khóa yêu cầu của PO |
+| `reviewing-code` | Tiêu chuẩn đánh giá code |
+| `src-editing` | Kỷ luật chỉnh sửa code trong `src/` |
 
-```bash
-npm run skills:sync:reviewing-code   # ví dụ có sẵn
-npm run skills:lock
-```
+---
 
-Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map nguồn (`bv103Local`).
+## 3. Subagents (`.claude/agents/`)
 
-## Cursor rules (`.cursor/rules/`)
+Chuyên trách các nhiệm vụ đọc nhiều file hoặc kiểm tra độc lập (ưu tiên chạy bằng model tiết kiệm credits như Haiku/Sonnet):
 
-RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on). Playbook vận hành: [`cursor-operating-playbook.md`](cursor-operating-playbook.md). Cheat sheet PO: [`po-cursor-guide.md`](po-cursor-guide.md).
+| Subagent | Chức năng | Chế độ |
+|----------|-----------|--------|
+| `explore-module` | Khảo sát một module (route, action, RPC, DB) | Read-only |
+| `db-verify` | Đối chiếu migration với mapping DB | Read-only |
+| `intake-coach` | Hướng dẫn và hoàn thiện intake từ yêu cầu thô | Read-only |
+| `acceptance-ui` | Lập danh sách kiểm thử giao diện cho PO | Read-only |
+| `slice-supervise` | Giám sát độ gọn gàng của lát cắt so với DoD | Read-only |
+| `review-bv103` | Review độc lập trước khi merge | Read-only |
 
-| File | Khi gắn | Việc |
-|------|---------|------|
-| `00-core-ksnk-rules.mdc` | always | Claude Code theo CLAUDE.md, một lát, verify, không đọc CDC thô |
-| `01-agent-discipline.mdc` | always | Một slice, không đoán schema, token hygiene |
-| `02-task-intake-freeze.mdc` | `/intake` | Khóa spec trước khi code |
-| `03-src-editing-compact.mdc` | `src/**` | Boundary, style, schema khi sửa app |
-| `04-po-workflow.mdc` | `/intake-nv` | PO không rành code — không always-on |
-| `05-domain-auto-slice.mdc` | always | Rà/sửa: SSOT đã chốt thì tự chọn, một lát |
-| `12-cssd-erp-spec-context.mdc` | `cssd-erp`, `cssd-su-co` | Neo spec CSSD |
-| `13-giam-sat-spec-context.mdc` | `giam-sat-*` | Neo spec VST/GSC |
-| `14-cong-viec-spec-context.mdc` | `quan-ly-cong-viec` | Neo spec QLCV |
-| `15-danh-muc-mdm-spec-context.mdc` | danh mục quản trị | Neo MDM / import |
-| `16-bang-kiem-spec-context.mdc` | bảng kiểm quản trị | Neo ma trận bảng kiểm |
-| `17-nkbv-spec-context.mdc` | `giam-sat-nkbv` | Neo NKBV — không đọc CDC thô |
-| `18-dashboard-analytics-spec-context.mdc` | dashboard, thống kê | KPI / RPC báo cáo |
-| `19-dao-tao-spec-context.mdc` | `dao-tao` | Thi MCQ lean |
-| `20-master-data-placement.mdc` | CSSD + quản trị | Chỗ đặt master data |
-| `50-schema-sync-gate.mdc` | actions, types | Khớp code ↔ cột thật |
-| `51-database-migration-rules.mdc` | `supabase/migrations` | Migration additive, mapping |
-| `62-destructive-change-gate.mdc` | migration | Cổng xóa schema / xóa module |
-| `81-frontend-performance.mdc` | bảng, read action | Hiệu năng bảng |
-| `82-architecture-quality.mdc` | migration, `src/lib/domain` | Cache, index, domain layer |
-| `agent-efficiency.mdc` | `@agent-efficiency` hoặc `/implement` | Không auto-glob |
+---
 
-`.cursorignore` loại `node_modules`, `.next`, `docs/data`, `archive`, dump `_agent` khỏi `@codebase`.
+## 4. MCP Servers (`.mcp.json`)
 
-## Slash commands
-
-Claude Code: `.claude/commands/` (trỏ về file dưới). Thân lệnh: `.cursor/commands/`.
-
-| Lệnh | File | Ai dùng |
-|------|------|---------|
-| `/intake-nv` | `intake-nv.md` | PO — ngôn ngữ nghiệp vụ |
-| `/intake` | `intake.md` | Dev — scope kỹ thuật |
-| `/implement` | `implement.md` | Sau duyệt intake |
-| `/grok-handoff` | `grok-handoff.md` | Không phải cửa. Whitelist dán tay thì vẫn `/domain-slice` |
-| `/domain-slice` | `domain-slice.md` | Rà, phản biện, chọn theo domain, sửa một lát |
-| `/go-live-check` | `go-live-check.md` | Cổng sẵn sàng pilot, không deploy |
-| `/uat-cases` | `uat-cases.md` | Checklist UAT tay từ DoD |
-| `/ship-slice` | `ship-slice.md` | Verify + review sau test tay |
-| `/review` | `review.md` | Review diff |
-| `/explain` | `explain.md` | Chỉ giải thích |
-| `/commit` | `commit.md` | Commit khi user yêu cầu |
-| `/pr-create` | `pr-create.md` | Tạo pull request |
+- **Supabase**: Kết nối project `cvzwslpxwgqiugzzhqej`
+- **GitHub**: Tương tác repo `ksnkbv103-droid/ksnk_bv103_V2`
+- **Vercel**: Deploy và quản lý preview `ksnk-bv103-v2`

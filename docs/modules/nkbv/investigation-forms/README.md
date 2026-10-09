@@ -1,6 +1,6 @@
 # Investigation forms — Phiếu NKBV tinh gọn / đủ CDC
 
-> Methodology sống. Thuật toán: [`../hai-surveillance-domain-ssot-20260827.md`](../hai-surveillance-domain-ssot-20260827.md). Audit/backlog đã chuyển [`../../../archive/module-history/nkbv/investigation-forms/`](../../../archive/module-history/nkbv/investigation-forms/).
+> Methodology sống. Thuật toán: [`../hai-surveillance-domain-ssot-20260827.md`](../hai-surveillance-domain-ssot-20260827.md).
 
 ## Đọc theo thứ tự
 

@@ -12,7 +12,7 @@
 | GSC | `rpc_dashboard_gsc_strategic_analytics` | Phiên checklist động |
 | NKBV | aggregate action module NKBV | Outcome nhiễm khuẩn — **không** gộp CCS |
 
-App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic. Bảng summary đã DROP (migration `20260604100000`, 2026-06-04). Command Center và báo cáo tổng hợp đọc RPC strategic / v4 (compose phía app). Benchmark: [`../../archive/reports/dashboard-rpc-benchmark-20260603.md`](../../archive/reports/dashboard-rpc-benchmark-20260603.md). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
+App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic. Bảng summary đã DROP (migration `20260604100000`, 2026-06-04). Command Center và báo cáo tổng hợp đọc RPC strategic / v4 (compose phía app). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
 
 **Hits TGS (bao phủ / BK tôi):** app gọi RPC `rpc_gsc_tgs_session_hits` (không select VIEW summary trực tiếp). RPC scan live VIEW `gstt_fact_gsc_dashboard_summary` ở lớp DB — **không** dùng cho CCS / Command Center KPI.
 
@@ -234,7 +234,7 @@ Mỗi trụ trên `/` hiển thị theo mẫu cố định (không đổi công 
 4. **CTA** — deep-link màn chuyên sâu (không tự tạo việc trừ khi pha cầu QLCV)
 
 Trụ C tách nhãn: **NV KSNK / phiên giám sát** vs **máy CSSD / NV CSSD** (không gộp một link mơ hồ).  
-Chương trình (mốc): [`descriptive-analytics-roadmap-20260729.md`](../../archive/module-history/dashboard/descriptive-analytics-roadmap-20260729.md).
+Chương trình (mốc): `descriptive-analytics-roadmap-20260729.md`.
 
 
 ---

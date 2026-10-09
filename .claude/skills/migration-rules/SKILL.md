@@ -3,4 +3,14 @@ name: migration-rules
 description: Viết hoặc sửa file supabase/migrations. Additive, có mapping.
 ---
 
-Đọc và làm đúng `.cursor/rules/51-database-migration-rules.mdc`. Không đọc thêm rule khác trong lượt này.
+# Database migration (Postgres / Supabase)
+
+Trước khi ghi SQL: mở hoặc `@` [`docs/core/implementation-mapping.md`](../../../docs/core/implementation-mapping.md) và [`docs/core/governance-pipeline.md`](../../../docs/core/governance-pipeline.md).
+
+- **Tên file:** ưu tiên `YYYYMMDD_<mô_tả_ngắn>.sql` cho file **mới**; không rename migration đã apply — xem [`docs/core/lean-execution.md`](../../../docs/core/lean-execution.md) §2 và [`governance-pipeline.md`](../../../docs/core/governance-pipeline.md).
+
+- Ưu tiên **additive**: `ADD COLUMN IF NOT EXISTS`, backfill, index trước khi drop/rename.
+- Mọi rename/drop cần **tương thích ngược** hoặc migration nhiều bước + rollback plan.
+- Sau đổi schema: cập nhật **cùng task** các action/types/form/bảng UI liên quan (đồng bộ code-app-database).
+- `dm_*` / registry / RLS: không tự ý thêm nguồn danh mục song song; khớp `UNIFIED_DOMAIN_SPECIFICATION` + skill `master-data-placement`.
+- **Kiểm soát De-normalization / Pre-aggregation:** Không tự ý tạo thêm các bảng `fact_*_summary` hoặc cột lưu trữ trùng lặp nếu chưa trình bày phương án đồng bộ nhất quán dữ liệu (VD: Trigger đồng bộ an toàn) và chưa có sự đồng ý của người dùng dựa trên phân tích đánh đổi thực tế.

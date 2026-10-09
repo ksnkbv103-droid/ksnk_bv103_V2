@@ -1,6 +1,6 @@
 # SQL vận hành BV103 (`scripts/sql/`)
 
-Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mục này (+ `scripts/master-data-cutover-postcheck.sql`) là **active**; phần còn lại → [`../archive/sql-20260531/`](../archive/sql-20260531/).
+Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mục này (+ `scripts/master-data-cutover-postcheck.sql`) là **active**.
 
 Inventory runner/gate: [`../README.md`](../README.md).
 
@@ -44,11 +44,7 @@ Inventory runner/gate: [`../README.md`](../README.md).
 
 ## CI guard SQL active
 
-`npm run legacy:sql:guard` — quét `scripts/sql/`, `seed.sql` (bỏ qua `scripts/archive/`).
-
-## Archive (không active)
-
-[`../archive/sql-20260531/`](../archive/sql-20260531/) — GSC QA, smoke RCA, slice8 template, FK reports cũ. **Cấm** import vào pipeline; chỉ tham khảo lịch sử.
+`npm run legacy:sql:guard` — quét `scripts/sql/`, `seed.sql`.
 
 ## Migration SSOT
 

@@ -9,7 +9,7 @@ tiers:
   core:
     description: SSOT vận hành — 11 đọc thường + 6 ký/ADR (xem docs/README)
     glob: "docs/core/*.md"
-    max_files: 17
+    max_files: 13
   modules:
     description: Domain đang dùng theo module — cấm _audit / A-B / tên ngày
     glob: "docs/modules/**"
@@ -24,27 +24,14 @@ tiers:
     description: Machine source — script parse, không đọc tay
     glob: "docs/data/**"
     human_readable: false
-  archive:
-    description: Mốc / plan đã xong / nhật ký / nguồn đã thay
-    glob: "docs/archive/**"
-    index: false
-    subfolders:
-      reports: "docs/archive/reports/**"
-      plans: "docs/archive/plans/**"
-      slice_journals: "docs/archive/slice-journals/**"
-      module_history: "docs/archive/module-history/**"
-      agent_notes: "docs/archive/agent-notes/**"
-      nkbv_sources: "docs/archive/nkbv-sources/**"
-      baselines: "docs/archive/baselines/**"
 
 entrypoints:
   human: docs/README.md
   ssot_map: docs/ssot-map.md
-  agent: AGENTS.md
+  agent: CLAUDE.md
   read_minimum: docs/core/read-minimum.md
   wiki_schema: docs/wiki/WIKI_SCHEMA.md
   wiki_index: docs/wiki/index.md
-  archive: docs/archive/README.md
 
 routes:
   cssd-workflow:
@@ -70,8 +57,8 @@ routes:
 
 scan_roots:
   - docs
-  - AGENTS.md
-  - .cursor/rules
+  - CLAUDE.md
+  - .claude/skills
 
 rules:
   living_no_audit_prefix: true

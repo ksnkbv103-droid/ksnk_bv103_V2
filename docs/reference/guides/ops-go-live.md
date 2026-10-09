@@ -1,7 +1,7 @@
 # Ops go-live — runbook tay (Phase 3)
 
 > **Cập nhật:** 2026-09-04 · Doc + checklist only (không bật deploy; không apply migration linked/prod).  
-> **SSOT:** [`operations-sop.md`](../../core/operations-sop.md) · [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md) · [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) · [`auth-pilot-link-sop.md`](auth-pilot-link-sop.md) · quyết định dụng cụ [`domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md) (D5–D6 BOM).
+> **SSOT:** [`operations-sop.md`](../../core/operations-sop.md) · [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md) · [`auth-pilot-link-sop.md`](auth-pilot-link-sop.md) · quyết định dụng cụ [`domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md) (D5–D6 BOM).
 
 ---
 
@@ -56,7 +56,7 @@ npm run pilot:go-live:gate:local
 npm run pilot:go-live:gate
 ```
 
-Gate gồm `trial:db:precheck` + **`trial:auth:precheck`** + verify engineering/CSSD + smoke. Bảng ký: [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) §A–§F.
+Gate gồm `trial:db:precheck` + **`trial:auth:precheck`** + verify engineering/CSSD + smoke. Chi tiết xem [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md).
 
 ### 2.3 Deploy tay (nhắc — không thực thi trong Phase 3 doc)
 

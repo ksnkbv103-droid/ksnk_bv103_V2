@@ -115,7 +115,6 @@ Không spawn phiếu Day-3 tự động.
 | Map bệnh phẩm | `nkbv-specimen-syndrome.ts` |
 | Verdict | `nkbv-*-timeline-verdict.ts` → `nkbv-rules-engine.ts` |
 | Tạo phiếu muộn | sau kết luận — không `ensureNkbvBaAnalysisCase` lúc chọn Index |
-| Audit PNEU chuẩn vs runtime (PO, kho) | [`../../archive/module-history/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md`](../../archive/module-history/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md) |
 
 ---
 

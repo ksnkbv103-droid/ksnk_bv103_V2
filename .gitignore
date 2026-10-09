@@ -1,10 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Local clone of https://github.com/PatrickJS/awesome-cursorrules (rule templates; not part of app source)
-/awesome-cursorrules
-/awesome-cursorrules.zip
-/docs/archive_legacy.zip
 .env.vercel.*
+.claude/worktrees/
 
 # dependencies
 /node_modules

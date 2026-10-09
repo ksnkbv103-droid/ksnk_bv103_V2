@@ -8,7 +8,7 @@
 | Entity / nghiệp vụ / mapping | [`../../wiki/entities.md`](../../wiki/entities.md#mdm--rbac--audit) · domain-spec § MDM · mapping § MDM |
 | Import JSON | [`../../reference/guides/json-import-export.md`](../../reference/guides/json-import-export.md) |
 
-Rule: `15-danh-muc-mdm-spec-context.mdc`, `20-master-data-placement.mdc`
+Skills: `mdm-spec`, `master-data-placement`
 
 Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md)
 

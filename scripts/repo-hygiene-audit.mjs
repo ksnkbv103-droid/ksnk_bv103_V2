@@ -26,7 +26,6 @@ const SQL_ACTIVE = new Set([
   "gsc-vst-rpc-smoke.sql",
   "khu-vuc-verify.sql",
   "qlcv-pilot-precheck.sql",
-  "gstt-archive-parity-check.sql",
   "gstt-gap-id-parity-check.sql",
   "gstt-migration-audit-counts.sql",
   "ssot-legacy-guard.sql",
