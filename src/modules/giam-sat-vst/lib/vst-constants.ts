@@ -117,6 +117,16 @@ export function clampMomentsForAction<T>(moments: readonly T[], hanhDong: string
   return moments.length > cap ? moments.slice(0, cap) : [...moments];
 }
 
+/**
+ * Bấm thêm một thời điểm. Đã chọn thì bỏ. Quá trần §2.1 thì bỏ lựa chọn cũ nhất,
+ * giữ các lựa chọn mới — không chặn bằng cảnh báo.
+ */
+export function admitMoment<T>(selected: readonly T[], moment: T, cap: number): T[] {
+  if (selected.includes(moment)) return selected.filter((item) => item !== moment);
+  const next = [...selected, moment];
+  return next.length > cap ? next.slice(next.length - cap) : next;
+}
+
 export interface VSTOpportunity {
   thoi_diems: MomentType[];
   hanh_dong: ActionType | null;

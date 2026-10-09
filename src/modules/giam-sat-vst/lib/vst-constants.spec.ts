@@ -9,6 +9,7 @@ import {
   MOMENTS,
   actionDisplayLabel,
   actionUiLabel,
+  admitMoment,
   clampMomentsForAction,
   isVstMissedAction,
   maxMomentsForAction,
@@ -60,6 +61,9 @@ describe("vst-constants WHO moments", () => {
     expect(maxMomentsForAction("Bỏ sót")).toBe(1);
     expect(clampMomentsForAction(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["a", "b"]);
     expect(clampMomentsForAction(["a", "b"], "Bỏ sót")).toEqual(["a"]);
+    expect(admitMoment(["a", "b"], "c", 2)).toEqual(["b", "c"]);
+    expect(admitMoment(["a", "b"], "a", 2)).toEqual(["b"]);
+    expect(admitMoment(["a"], "b", 1)).toEqual(["b"]);
     expect(isVstMissedAction("Bỏ sót")).toBe(true);
     expect(isVstMissedAction("Chà tay bằng cồn")).toBe(false);
   });
