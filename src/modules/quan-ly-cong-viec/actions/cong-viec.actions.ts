@@ -133,7 +133,7 @@ async function fetchAllActiveRootTasksInScope(
         .eq("nguoi_phu_trach_id", actor)
         .not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
     } else if (lens === "IN_PROGRESS") {
-      query = query.eq("trang_thai", "DANG_THUC_HIEN");
+      query = query.eq("trang_thai", "DANG_LAM");
     } else if (lens === "OVERDUE") {
       query = query.eq("is_qua_han", true).not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
     }
