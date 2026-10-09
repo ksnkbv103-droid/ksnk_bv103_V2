@@ -1,5 +1,5 @@
 /**
- * BA-centric timeline + criteria gate (pure) — ba-centric-timeline.md / CDC order.
+ * BA-centric timeline + criteria gate (pure) — ba-multi-timeline-architecture.md / CDC order.
  */
 
 import {

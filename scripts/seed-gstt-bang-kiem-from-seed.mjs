@@ -27,8 +27,7 @@ const SEED_DIR = path.join(ROOT, "docs/modules/giam-sat/bang-kiem-seed");
 const CATALOG_PATH = path.join(SEED_DIR, "00-catalog.json");
 const BK_DIR = path.join(SEED_DIR, "bk");
 const WHO_DIR = path.join(SEED_DIR, "who");
-const EXCLUDED_PATH = path.join(SEED_DIR, "01-excluded-index.md");
-const GAP_PATH = path.join(SEED_DIR, "03-gap-vs-canonical36.md");
+const SEED_README = path.join(SEED_DIR, "README.md");
 
 const APPLY = String(process.env.APPLY || "").trim() === "1";
 const DRY_RUN = !APPLY;
@@ -152,9 +151,17 @@ function loadCatalog() {
   return catalog;
 }
 
+function excludedSection() {
+  const md = fs.readFileSync(SEED_README, "utf8");
+  const start = md.indexOf("## Excluded index");
+  if (start < 0) throw new Error("bang-kiem-seed/README.md thiếu ## Excluded index");
+  const rest = md.slice(start);
+  const next = rest.indexOf("\n## ", 1);
+  return next < 0 ? rest : rest.slice(0, next);
+}
+
 function assertZeroOut() {
-  const md = fs.readFileSync(EXCLUDED_PATH, "utf8");
-  const outMas = [...md.matchAll(/`?(KSNK\.(?:QT|QĐ)\.[0-9]+\.BM\.[0-9]+)`?/g)].map((m) => m[1]);
+  const outMas = [...excludedSection().matchAll(/`?(KSNK\.(?:QT|QĐ)\.[0-9]+\.BM\.[0-9]+)`?/g)].map((m) => m[1]);
   return new Set(outMas);
 }
 
@@ -220,7 +227,8 @@ async function main() {
   const bkFiles = fs.readdirSync(BK_DIR).filter((f) => f.endsWith(".json"));
   console.log("=== Soft Soft Soft-local GSC-L03 seed ===");
   console.log("SEED_DIR", SEED_DIR);
-  console.log("files: catalog + bk=%d who=%d gap=%s", bkFiles.length, whoFiles.length, fs.existsSync(GAP_PATH));
+  const seedReadme = fs.readFileSync(SEED_README, "utf8");
+  console.log("files: catalog + bk=%d who=%d gap=%s", bkFiles.length, whoFiles.length, seedReadme.includes("## Gap vs canonical-36"));
   console.log("mode:", DRY_RUN ? "DRY_RUN (no DB write)" : "APPLY=1 (upsert Soft Soft Soft-local)");
   console.log("SHORT_ALIAS keys:", Object.keys(SHORT_ALIAS).join(", "), "(no BM.19.02)");
 

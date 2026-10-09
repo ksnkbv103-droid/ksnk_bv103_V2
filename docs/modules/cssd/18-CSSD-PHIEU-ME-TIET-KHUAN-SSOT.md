@@ -129,3 +129,71 @@ Trạng thái tối thiểu (suy ra, không cần enum mới — khớp tên cod
 | Ngày | Việc |
 |------|------|
 | 2026-09-25 | v1.0 draft — Soft · Domain; nguồn CDC 2008 (Sterilizing Practices, Steam) + BV103 KSNK.QT.21/QT.23 v1.0; chờ PO A/B |
+
+---
+
+## QC, nhả mẻ (ME-S2)
+
+Một lát trên nhánh S1. Không gồm truy vết thu hồi, in phiếu, UX nhãn.
+
+## Máy và mã mẻ
+
+- Dropdown chỉ máy có phương pháp `HOI_NUOC` | `PLASMA_H2O2` | `EO`, suy từ mã `LOAI_MAY_TIET_KHUAN` (`getSterilizerMethod`). Không regex tên máy.
+- Mã mẻ sinh trong `rpc_cssd_me_tao`: `<mã máy rút gọn>-ddMMyy-n` theo lịch Việt Nam.
+
+## QC và BI
+
+- Kết thúc mẻ: thông số vật lý, CI ngoài gói, CI PCD — mỗi mục Đạt hoặc Không đạt. Thiếu hoặc chưa đánh giá thì server từ chối.
+- Một mục Không đạt hoặc BI dương → `QC_KHONG_DAT` (BI dương đi sự cố `PROCESS_BI_POSITIVE`).
+- BI bắt buộc (plasma, EO, hoặc bộ `is_implant`) mà chưa có kết quả → `CHO_BI`. Bộ ở lại trạm tiệt khuẩn.
+- Hơi nước không implant: BI chưa có vẫn nhả; nhắc nếu máy chưa có BI trong 7 ngày.
+- `ket_qua_bi` / `ket_qua_ci` để trống khi chưa có kết quả — không ghi `false`.
+
+## Nhả và cấp phát
+
+- Nhả (`HOAN_THANH`) chuyển bộ sang trạm cấp phát (kho vô khuẩn) và gán hạn dùng. Không ghi `thoi_gian_cap_phat` / `nguoi_cap_phat_id`.
+- Người nạp, người dỡ, người nhả là user phiên, giờ server.
+- Nhả mẻ thường: quyền `CSSD_ME_TIET_KHUAN.edit` (AB-6 A · NV/QC có quyền nhả). Nhả mẻ implant hoặc nhập BI cho `CHO_BI`: quyền `qc` = **tổ trưởng** (Soft map RBAC; Domain 18b AB-6 A). Soft **không** có nhả khẩn implant khi chưa BI âm (AB-2 A).
+- Cổng cấp phát: mẻ `HOAN_THANH`, không `CHO_BI`, không sự cố tiệt khuẩn đang mở hoặc đã xác nhận gắn mẻ/bộ.
+
+## Bowie–Dick
+
+- Chỉ máy hơi nước. Ghi người và giờ vào `specs`. Không đạt thì chặn tạo mẻ hơi nước đến khi có BD đạt mới.
+
+## Schema
+
+Migration `20260925100000_cssd_me_s2_qc_release.sql` (additive). Migration S1 đổi timestamp `20260925090000` để không trùng kiểm kê. Index một mẻ mở/máy bỏ qua dữ liệu cũ trùng, không xóa dòng; mẻ `CHO_BI` không khóa máy.
+
+---
+
+## Không đạt, thu hồi, truy vết (ME-S3)
+
+Một lát trên nhánh ME-S2. Không gồm UX nhãn.
+
+## Không đạt
+
+Mẻ không đạt (một mục QC hoặc BI dương lúc kết luận) cập nhật mẻ, bộ và sự cố trong `rpc_cssd_me_thu_hoi`. Không thu hồi xong rồi mới ghi mẻ.
+
+Domain 18b **AB-1 A**: về `TIEP_NHAN` (không `DONG_GOI`). Mọi bộ chưa dùng lâm sàng: đóng chu kỳ cũ (`is_active = false`, giữ `lo_tiet_khuan_id`, khóa chu kỳ đó) và mở chu kỳ mới tại Tiếp nhận, không gắn mẻ, để xử lý lại như dụng cụ bẩn. Không về Đóng gói. Máy đang sẵn sàng chuyển `HOLD_QC`.
+
+## BI dương
+
+Kể cả mẻ đã nhả. Mẻ dương: `trang_thai_bi = DUONG`. Đã nhả thì `THU_HOI`, chưa nhả thì `QC_KHONG_DAT`. `ket_qua_test = false` — không còn hiển thị Đạt.
+
+Domain 18b **AB-3 A** (mọi PP): phạm vi cùng máy, sau mẻ BI âm gần nhất (mốc, không thu hồi) đến hết mẻ dương. Không có mốc âm thì lấy từ đầu đến mẻ dương. Không lấy mẻ chạy sau mẻ dương. Mẻ khác trong cửa sổ chuyển `THU_HOI`.
+
+Bộ đã có `ma_ca_mo_id` không đổi trạm. Tên bộ ghi trên phiếu sự cố (`RECALL_LISTED_USED`) và trả về cho màn mẻ. Bộ chưa dùng bị thu hồi như trên.
+
+Luồng mẻ không còn nhánh dedupe trả về trước khi thu hồi. Phiếu cùng mẻ và loại sự cố được cập nhật sau khi thu hồi, trong cùng transaction.
+
+## Đếm và in
+
+«Số bộ» và danh sách trên phiếu đếm mọi chu kỳ còn `lo_tiet_khuan_id`, kể cả chu kỳ đã đóng. Truy vấn thu hồi chỉ lấy `is_active = true`.
+
+Phiếu in đọc cột ME-S2: mã mẻ, máy, phương pháp, chương trình, nhiệt độ, áp suất, thời gian chu kỳ, tên người nạp / dỡ / nhả theo user id, giờ bắt đầu, giờ kết thúc chu trình (`tk_mo_form_qc_at`), giờ nhả, ba mục QC bằng chữ Đạt hoặc Không đạt, BI Chưa có / Âm / Dương, cờ implant, danh sách bộ. In được mẻ không đạt và chờ BI. Không in mã thủ tục.
+
+Cấp phát ghi `ma_ca_mo_id` bằng `jsonb ||`, không ghi đè metadata. Lỗi cập nhật cấp phát được trả ra. Ngoại lệ quy trình nối mảng `ngoai_le` bằng RPC.
+
+## Schema
+
+Migration `20260925120000_cssd_me_s3_batch_recall.sql`. Thêm giá trị `THU_HOI` vào check `trang_thai_me`. Không bảng mới.

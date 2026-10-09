@@ -6,9 +6,6 @@ tiers:
     glob: "docs/wiki/**"
     human_readable: true
     agent_maintained: true
-  sources:
-    description: Raw immutable layer pointer
-    glob: "docs/sources/**"
   core:
     description: SSOT vận hành — 11 đọc thường + 6 ký/ADR (xem docs/README)
     glob: "docs/core/*.md"

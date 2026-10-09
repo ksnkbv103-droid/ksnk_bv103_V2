@@ -4,7 +4,7 @@
 
 | Lớp | Đường dẫn | Ai sở hữu |
 |-----|-----------|-----------|
-| Raw | [`../sources/README.md`](../sources/README.md) → `data/`, `archive/` | Con người + script (immutable) |
+| Raw | [`../data/README.md`](../data/README.md) · [`../archive/README.md`](../archive/README.md) | Con người + script (immutable) |
 | Wiki | `entities.md`, `concepts.md`, `index.md`, `log.md` | **LLM** |
 | Schema vận hành | `AGENTS.md`, `docs/core/*`, `.cursor/rules/*` | Đồng tiến hóa |
 

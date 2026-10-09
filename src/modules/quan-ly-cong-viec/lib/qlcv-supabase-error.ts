@@ -9,7 +9,7 @@ export function formatQlcvDbError(message: string): string {
       "Cơ sở dữ liệu / schema API chưa khớp với app (thiếu cột hoặc PostgREST chưa reload). " +
       "App trỏ cloud: liên hệ quản trị để apply migration. " +
       "Chỉ dùng local: `npm run mdm:migrate:local` rồi `supabase stop && supabase start`. " +
-      "Chi tiết: docs/modules/qlcv/README.md"
+      "Chi tiết: docs/modules/qlcv/19-QLCV-DOMAIN-SSOT.md"
     );
   }
   return message;

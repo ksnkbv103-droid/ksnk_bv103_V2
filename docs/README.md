@@ -51,7 +51,7 @@
 | [`wiki/concepts.md`](wiki/concepts.md) | Prefix DB, CSSD↔MDM, layout, GSC scoring, BOM |
 | [`wiki/index.md`](wiki/index.md) | Catalog sống — `npm run wiki:index` |
 | [`wiki/WIKI_SCHEMA.md`](wiki/WIKI_SCHEMA.md) | Ingest / query / lint |
-| [`sources/README.md`](sources/README.md) | Con trỏ raw `data/` + `archive/` |
+| [`data/README.md`](data/README.md) · [`archive/README.md`](archive/README.md) | Raw máy đọc và kho lịch sử |
 
 ## Lớp Core (17 file)
 
@@ -66,14 +66,14 @@
 | CSSD | [`modules/cssd/README.md`](modules/cssd/README.md) |
 | Giám sát | [`modules/giam-sat/README.md`](modules/giam-sat/README.md) |
 | NKBV | [`modules/nkbv/README.md`](modules/nkbv/README.md) |
-| MDM / Quản trị | [`modules/mdm/README.md`](modules/mdm/README.md) · pointer [`modules/quan-tri-he-thong/README.md`](modules/quan-tri-he-thong/README.md) |
-| QLCV | [`modules/qlcv/README.md`](modules/qlcv/README.md) |
+| MDM / Quản trị | [`modules/mdm/README.md`](modules/mdm/README.md) |
+| QLCV | [`modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](modules/qlcv/19-QLCV-DOMAIN-SSOT.md) |
 | Dashboard | [`modules/dashboard/README.md`](modules/dashboard/README.md) |
-| Đào tạo | [`modules/dao-tao/README.md`](modules/dao-tao/README.md) |
+| Đào tạo | [`modules/dao-tao/domain-overview.md`](modules/dao-tao/domain-overview.md) |
 
 ## Lớp Reference (đang dùng)
 
-**Kiến trúc / ADR:** [`system-overview`](reference/architecture/system-overview.md) · [`interaction-matrix`](reference/architecture/interaction-matrix.md) · [`lookup-vs-enum`](reference/architecture/lookup-vs-enum-guidance.md) · [`page-chrome-contract`](reference/architecture/page-chrome-contract-20260731.md) · [`layout-primitives`](reference/architecture/layout-primitives.md) · ADR NKBV / dashboard / QLCV
+**Kiến trúc / ADR:** [`system-overview`](reference/architecture/system-overview.md) · [`interaction-matrix`](reference/architecture/interaction-matrix.md) · [`lookup-vs-enum`](reference/architecture/lookup-vs-enum-guidance.md) · [`page-chrome-contract`](reference/architecture/page-chrome-contract-20260731.md) · [`layout-primitives`](reference/architecture/layout-primitives.md) · ADR NKBV (unified + alignment)
 
 **Runbook:** [`ops-go-live`](reference/guides/ops-go-live.md) · [`migration-squash`](reference/guides/migration-squash-runbook.md) · [`json-import-export`](reference/guides/json-import-export.md) · [`incident-backup`](reference/guides/incident-backup-playbook.md) · [`auth-pilot-link`](reference/guides/auth-pilot-link-sop.md) · [`architecture-one-pager`](reference/guides/architecture-one-pager.md) · [`visual-language`](reference/guides/bv103-visual-language.md)
 

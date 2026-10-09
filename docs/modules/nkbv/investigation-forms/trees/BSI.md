@@ -48,3 +48,28 @@ flowchart TD
 | CLIP adherence | L3/Out | — | W3 backlog |
 
 **Core tối thiểu đạt CLABSI:** pathogen hợp lệ + không secondary + CVC association.
+
+---
+
+## Phiếu BSI-2026
+
+> Cây: đầu file này.
+
+## Phần A — Vận hành
+
+1. Index: cấy máu (LIS).  
+2. IWP Computed.  
+3. Loại tác nhân Recognized / Commensal (+ nấm hô hấp cộng đồng = loại).  
+4. Nếu Commensal (L2): ≥2 lần lấy riêng + sốt/rét run/tụt HA (+ ngày).  
+6. CVC đặt/rút / ≥2 ngày / DOE/DOE−1 (Registry).  
+7. Secondary ổ tại chỗ + SBAP + khớp (L2).  
+8. MBI (L2): neutropenia / HSCT / ANC.  
+9. Kết luận: CLABSI / LCBI / Secondary / Contamination.
+
+## Phần B — Phụ lục đầy đủ
+
+- Hành chính + Location CDC (P1).  
+- Logic trees LCBI 1/2/3 + MBI-LCBI đầy đủ SSOT §6.  
+- Ruled-out: ngoại nhiễm, cộng đồng nấm, thiếu ≥2 lần commensal.  
+- CLIP (out W3) ghi “không thuộc phiếu này”.  
+- Kết luận IP + Secondary YES/NO.
