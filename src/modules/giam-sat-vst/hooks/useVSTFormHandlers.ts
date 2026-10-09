@@ -6,6 +6,7 @@ import {
   ActionType,
   MomentType,
   VSTObservation,
+  admitMoment,
   clampMomentsForAction,
   maxMomentsForAction,
 } from "../lib/vst-constants";
@@ -62,21 +63,8 @@ export function useVSTFormHandlers(
   const toggleMoment = (pIdx: number, oIdx: number, moment: MomentType) => {
     mutatePersons((next) => {
       const opp = next[pIdx].opportunities[oIdx];
-      if (opp.thoi_diems.includes(moment)) {
-        opp.thoi_diems = opp.thoi_diems.filter((m: MomentType) => m !== moment);
-        return;
-      }
-      // Domain §2.1: rửa/chà ≤2; bỏ sót ≤1 (chưa chọn hành động → trần tuân thủ 2).
-      const cap = maxMomentsForAction(opp.hanh_dong);
-      if (opp.thoi_diems.length >= cap) {
-        toast.error(
-          opp.hanh_dong === "Bỏ sót"
-            ? "Bỏ sót chỉ được chọn 1 thời điểm"
-            : "Rửa tay / chà cồn tối đa 2 thời điểm trên một cơ hội",
-        );
-        return;
-      }
-      opp.thoi_diems = [...opp.thoi_diems, moment];
+      // §2.1: rửa/chà giữ 2, bỏ sót giữ 1. Quá trần thì bỏ mốc chọn sớm nhất.
+      opp.thoi_diems = admitMoment(opp.thoi_diems, moment, maxMomentsForAction(opp.hanh_dong));
     });
   };
 

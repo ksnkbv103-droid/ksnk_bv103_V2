@@ -53,11 +53,13 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Một thước đo: mọi ô chọn cùng h-14, lưới đều cột. */
+/** Ô thời điểm thấp, một hàng 5 cột. Hành động cao hơn một chút cho nhãn một dòng. */
+const MOMENT_CELL =
+  "box-border flex h-9 min-w-0 w-full flex-col items-center justify-center overflow-hidden rounded border px-0.5 text-center transition-colors touch-manipulation";
 const CELL =
-  "box-border flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded border px-1 text-center transition-colors touch-manipulation";
+  "box-border flex h-11 w-full items-center justify-center rounded border px-1 text-center transition-colors touch-manipulation";
 const CELL_IDLE = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
-const CELL_ON = "border-slate-900 bg-slate-900 text-white";
+const CELL_ON = "border-[var(--primary)] bg-[var(--primary)] text-white";
 const CELL_MISS = "border-rose-800 bg-rose-800 text-white";
 const SECTION_HEAD = "flex h-7 items-center justify-between gap-2";
 const GRID_GAP = "gap-1.5";
@@ -66,10 +68,10 @@ function MomentCellLabel({ moment }: { moment: MomentType }) {
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
     <>
-      <span className="bv103-type-label leading-none font-medium uppercase tracking-wider !text-inherit">
+      <span className="bv103-type-label w-full truncate text-center leading-none font-medium uppercase !text-inherit">
         {timing}
       </span>
-      <span className="bv103-type-label leading-none font-semibold uppercase tracking-wide !text-inherit">
+      <span className="bv103-type-label w-full truncate text-center leading-none font-semibold uppercase !text-inherit">
         {MOMENT_SHORT_CODE[moment]}
       </span>
     </>
@@ -143,8 +145,10 @@ export default function VSTOpportunityForm({
             {isVstMissedAction(opp.hanh_dong) ? "Tối đa 1" : `Tối đa ${momentCap}`}
           </p>
         </div>
-        {/* Luôn 5 cột bằng nhau — tránh hàng 2+1 lệch. */}
-        <div className={`grid grid-cols-5 ${GRID_GAP}`}>
+        <div
+          className={`grid ${GRID_GAP}`}
+          style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
+        >
           {MOMENTS.map((m) => {
             const active = opp.thoi_diems.includes(m);
             return (
@@ -155,7 +159,7 @@ export default function VSTOpportunityForm({
                 aria-label={MOMENT_UI_LABEL[m]}
                 aria-pressed={active}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
-                className={`${CELL} ${active ? CELL_ON : CELL_IDLE}`}
+                className={`${MOMENT_CELL} ${active ? CELL_ON : CELL_IDLE}`}
               >
                 <MomentCellLabel moment={m} />
               </button>
