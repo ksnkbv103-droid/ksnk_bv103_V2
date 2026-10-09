@@ -154,6 +154,23 @@ Alias legacy chỉ đọc: `CHUA_BAT_DAU`→`MOI`; `CHO_NHAN_VIEC`/`DANG_THUC_HI
 - Deep-link analytics/TGS gap → tạo việc + `analytics_meta` (không mở domain GSC/CSSD).
 - Không điều khiển trạm CSSD hay phiên GSC từ QLCV.
 
+## §10. Vận hành
+
+```bash
+npm run mdm:migrate:local
+npx supabase stop && npx supabase start
+npm run verify:engineering
+npm run test -- src/modules/quan-ly-cong-viec
+```
+
+Ghi checklist qua `fn_qlcv_update_checklist`. Cloud thiếu cột → `npm run mdm:migrate` (không chỉ local).
+
+**«Không tải mẫu định kỳ»** — thiếu view sau scheduler. **«schema cache / PGRST204»** — cloud thiếu migration mới, không phải thiếu checklist.
+
+### TEXT+CHECK (đã làm 2026-06-04)
+
+Cột `trang_thai` và `loai_cong_viec` kiểu `text` + CHECK trên `qlcv_fact_cong_viec` (migration `20260604120000_qlcv_text_check_codes.sql`). Trigger `trg_qlcv_sync_code_from_fk` giữ FK lookup đồng bộ lúc chuyển tiếp. App dual-write mã text + FK id. Debt D-QLCV-01 đã đóng. Drop cột FK `trang_thai_id` / `loai_cong_viec_id` là backlog sau dual-read ổn định — không chặn pilot.
+
 ---
 
 *Mirror đồng nhất: `ksnk_bv103_macwork/docs/modules/qlcv/19-QLCV-DOMAIN-SSOT.md`.*

@@ -4,7 +4,7 @@
 > **Trạng thái:** Hợp đồng vận hành pilot (RBAC / state / cổng nạp LIS).  
 > **Quy trình ca + dữ liệu:** [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) (LIS tạo BA nếu chưa có mã; copy HIS/gõ tay; triệu chứng timeline = BA).  
 > **Thuật toán + từ điển:** [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (v3.3).  
-> **Workspace phân tích:** [`ba-centric-timeline.md`](ba-centric-timeline.md) — **Bệnh án trung tâm**; cổng vi sinh chỉ nạp timeline.  
+> **Workspace phân tích:** [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md) — **Bệnh án trung tâm**; cổng vi sinh chỉ nạp timeline.  
 > §3 form legacy bên dưới — runtime dùng device **>2 ngày lịch** và split VAE/PNEU (Ch.2 §2.8).  
 > **Không API HIS/LIS.** Vi sinh = copy LIS (tạo BA nếu chưa có mã). Bệnh án cũng copy HIS hoặc gõ tay.  
 > **Chiến lược sản phẩm:** [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md).

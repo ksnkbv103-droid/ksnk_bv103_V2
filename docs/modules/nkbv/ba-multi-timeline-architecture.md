@@ -1,7 +1,7 @@
 # BA — Kiến trúc 3 khối (bảng chung → phân tích → tạo phiếu muộn)
 
 > Hợp đồng UI app pilot. Thuật toán: [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md). Quy trình ca: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md). Tận dụng lưới + mẫu báo cáo: [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md).  
-> Legacy lưới 17 hàng: [`ba-cdc-grid-timeline.md`](ba-cdc-grid-timeline.md) (tham chiếu).
+> Legacy lưới 17 hàng: mục **Hợp đồng hàng lưới** trong file này.
 
 ## Luồng chuẩn
 
@@ -116,3 +116,169 @@ Không spawn phiếu Day-3 tự động.
 | Verdict | `nkbv-*-timeline-verdict.ts` → `nkbv-rules-engine.ts` |
 | Tạo phiếu muộn | sau kết luận — không `ensureNkbvBaAnalysisCase` lúc chọn Index |
 | Audit PNEU chuẩn vs runtime (PO, kho) | [`../../archive/module-history/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md`](../../archive/module-history/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md) |
+
+---
+
+## Vai trò BA / Phiếu / Form
+
+Workspace 3 khối: [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md).  
+Domain: [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (Phụ lục E). Quy trình ca: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md).
+
+## 1. Hồ sơ bệnh án = đợt nằm viện — trung tâm bằng chứng
+
+| | |
+|--|--|
+| **Là gì** | Một lần nhập viện (`ma_benh_an` ≈ AdmissionID) |
+| **Bảng** | `nkbv_fact_benh_an` + `nkbv_fact_vi_sinh` + `nkbv_fact_ba_timeline` + `nkbv_fact_ba_ngay_khoa` + `nkbv_fact_ba_ngay_dung_cu` |
+| **UI** | Hub BA = lưới ngày (Date, HD, XN, CĐHA, TC SSI, Khoa chọn theo mã, CVC/Vent/Foley) |
+| **Không phải** | Một nhiễm khuẩn; không tick LCBI/CAUTI trên form ADT; **không** nhập lại khoa/dụng cụ trên phiếu nếu đã có trên lưới |
+
+## 2. Kho vi sinh = dữ liệu thô (không điều tra)
+
+| | |
+|--|--|
+| **Bảng** | `nkbv_fact_vi_sinh` |
+| **UI** | Tab vi sinh (nạp) · hàng VS trên bảng chung (chip + badge chưa/đã PT) |
+| **Không** | Tự spawn phiếu HAI khi import |
+
+## 3. Phiên phân tích (bảng phân tích) — chưa phải phiếu
+
+| | |
+|--|--|
+| **Là gì** | View IWP/DOE/RIT/SBAP + kết luận nháp sau khi chọn 1 bệnh phẩm / CĐHA / TC SSI |
+| **Lưu** | State UI (không tạo `nkbv_fact_su_kien`) |
+| **Xong** | Nút **Tạo phiếu** hoặc **Bỏ qua** |
+
+## 4. Phiếu sự kiện = HAI đã đóng vòng phân tích
+
+| | |
+|--|--|
+| **Bảng** | `nkbv_fact_su_kien` + `verification_data` (gồm `index_vi_sinh_id`, disposition) |
+| **Khi tạo** | **Sau** kết luận trên bảng phân tích — không lúc chọn Index |
+| **UI** | Form mẫu sẵn có · danh sách phiếu = kho tra cứu |
+
+## 5. Form mẫu
+
+Form tiêu chuẩn (BSI/UTI/VAE/PNEU/SSI) mở khi IP bấm **Tạo phiếu** — khoa và Foley/máy/CVC **lấy từ lưới bệnh án**. Không nhập lại trên form. Sửa trên lưới → phiếu theo.
+
+## 6. In phiếu / báo cáo gửi khoa
+
+Hai bản in hiện có: `NkbvCasePrintView` (mục) · `NkbvBaGridCasePrintView` (văn bản).  
+Mẫu gửi khoa (dải ngày + lời tiếng Việt): [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md) §3–§5.
+
+## Luồng chuẩn
+
+```
+Tạo BA (LIS nếu chưa có mã / copy HIS / gõ) → trên lưới: khoa theo mã + tích Foley/máy/CVC + CĐHA/TC SSI
+  → chọn 1 bệnh phẩm (hoặc CĐHA / TC SSI)
+  → bảng phân tích → kết luận
+  → Tạo phiếu (hoặc Bỏ qua) — phiếu đọc khoa/dụng cụ từ bệnh án; sửa lưới thì phiếu theo
+  → thẩm định / in
+```
+
+## Nhãn UI
+
+- **Hồ sơ đợt nằm viện** = BA / bảng chung  
+- **Cổng vi sinh** = nạp thô  
+- **Bảng phân tích** = phiên theo Index  
+- **Phiếu xác định ca NKBV** = chỉ sau nút Tạo phiếu
+
+
+---
+
+## Nguồn dữ liệu và trình tự CDC
+
+> SSOT vận hành. Chi tiết hàng lưới: mục **Hợp đồng hàng lưới** trong file này.  
+> Vai trò BA/phiếu: mục **Vai trò BA / Phiếu / Form** trong file này.  
+> Quy trình ca + dữ liệu: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md).
+
+## 1. Nguyên tắc
+
+1. **Bệnh án** = trung tâm bằng chứng (lưới ngày: khoa, Foley/máy/CVC, triệu chứng, CĐHA).
+2. **Cổng vi sinh** chỉ nạp thô — không chốt HAI, không spawn phiếu Day-3.
+3. Làm việc theo **3 khối**: bảng chung → bảng phân tích → **mới** tạo phiếu.
+4. Chọn **từng bệnh phẩm** (chip XN), không chọn cả ô ngày.
+5. XN (+) chưa đóng vòng → hàng đợi / badge `Chưa PT`.
+
+## 2. UI trên 1 BA
+
+| Khối | Nội dung |
+|------|----------|
+| **Bảng chung** | 6 hàng: ngày lịch · HD · VS (đa chip) · CĐHA · TC DOE SSI · khoa |
+| **Bảng phân tích** | Mở khi chọn Index: ngày X · CĐHA (IWP) · TC LS (DOE) · RIT · SBAP · can thiệp |
+| **Kết luận** | 2 hàng + nút Tạo phiếu / Bỏ qua |
+| **Danh sách phiếu** | Kho phụ sau khi đã tạo phiếu |
+
+## 3. Trình tự CDC
+
+Chi tiết: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) §4–§5.
+
+| Bước | Việc |
+|------|------|
+| 0 | Tạo/mở BA + copy LIS + trên lưới: CĐHA, TC SSI, **chọn khoa theo mã**, **tích** Foley/máy/CVC |
+| 1 | Chọn 1 bệnh phẩm / CĐHA / TC SSI |
+| 2 | Đặt cửa sổ đúng protocol (IWP / SP SSI / Event Period VAE) |
+| 3 | Máu: Secondary **trước** LCBI/CLABSI. Hô hấp + máy: VAE không mặc định VAP |
+| 4 | DOE → POA/HAI → LOA → dụng cụ → RIT/SBAP |
+| 5 | Kết luận nháp → Tạo phiếu hoặc Bỏ qua |
+
+## 4. Nguồn dữ liệu
+
+**Không API HIS/LIS.** Chi tiết: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) §2.
+
+| Nguồn | Cách | Bảng |
+|-------|------|------|
+| LIS | Copy bảng / Excel | `nkbv_fact_vi_sinh` |
+| BA / ADT | Copy file hoặc gõ | `nkbv_fact_benh_an` |
+| CĐHA / TC SSI / khoa ngày | Lưới (khoa = danh sách mã) | `nkbv_fact_ba_timeline` |
+| CVC / Foley / vent | **Tích từng ngày trên lưới** (không sổ đặt–rút tay) | Bệnh án; sổ dụng cụ nếu còn thì **suy từ ô tích** |
+| Sự kiện đã tạo phiếu | Nút Tạo phiếu | `nkbv_fact_su_kien` |
+
+## 5. Luồng chuẩn
+
+```
+Tạo BA (LIS nếu chưa có mã / copy HIS / gõ) → trên lưới: chọn khoa + tích Foley/máy/CVC + CĐHA/TC
+  → chọn 1 bệnh phẩm → bảng phân tích (Secondary trước CLABSI) → kết luận
+  → Tạo phiếu hoặc Bỏ qua (phiếu đọc khoa/dụng cụ từ lưới; sửa lưới thì phiếu theo)
+```
+
+
+---
+
+## Hợp đồng hàng lưới (tham chiếu)
+
+> **SSOT UI hiện hành (Wave 1 multi-timeline):** [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md).  
+> Tài liệu này giữ hợp đồng hàng IWP / Index−7/+14 cho bảng phân tích hội chứng kiểu Chương 2.
+
+## 1. Multi-timeline (tóm tắt)
+
+1. **Bảng chung:** ngày lịch · HD · XN vi sinh (+) · CĐHA · khoa — luôn hiện.
+2. **Bảng phân tích** chỉ mở khi chọn bệnh phẩm tương ứng (PNEU / UTI / BSI / VAE / SSI).
+3. PNEU/UTI/BSI dùng **IWP ±3**; VAE dùng Event Period; SSI dùng SP 30/90 — **không** tô IWP giả.
+4. Cấy máu: vai trò kép (PNU2 / Secondary S1·S2 / Primary BSI) — xem architecture §4.
+
+## 2. Cột ngày (bảng phân tích đã mở)
+
+Neo **Index**: trước **7** ngày · sau **14** ngày.
+
+## 3. Hàng bảng IWP (PNEU / UTI / Primary BSI)
+
+| Hàng | Ghi chú |
+|------|---------|
+| Index / Ngày X | XN hoặc CĐHA |
+| IWP | Index ±3 |
+| Triệu chứng LS | Catalog theo hội chứng |
+| Lab / máu (PNEU) | Máu (+) ∈ IWP có thể gắn PNU2 |
+| Can thiệp | Vent / Foley / CVC |
+| NSK · RIT · SBAP | DOE → RIT 14d · SBAP |
+| Kết luận · In phiếu văn bản | `NkbvBaGridCasePrintView` |
+
+## 4. Runtime
+
+| Việc | File |
+|------|------|
+| Architecture | `ba-multi-timeline-architecture.md` |
+| Workspace | `NkbvBaMultiTimelineWorkspace.tsx` |
+| Specimen map | `nkbv-specimen-syndrome.ts` |
+| Secondary BSI | `nkbv-secondary-bsi-gate.ts` |
+| IWP engine (shared math) | `nkbv-ba-grid-engine.ts` |

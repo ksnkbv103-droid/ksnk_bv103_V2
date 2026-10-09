@@ -1,5 +1,5 @@
 /**
- * Pure engine for BA CDC grid timeline — ba-cdc-grid-timeline.md (17 rows, shift Index)
+ * Pure engine for BA CDC grid timeline — ba-multi-timeline-architecture.md § Hợp đồng hàng lưới (17 rows, shift Index)
  */
 
 import { calculateCdcMetrics, type CdcMetricsResult } from "./nkbv-timeline-math";

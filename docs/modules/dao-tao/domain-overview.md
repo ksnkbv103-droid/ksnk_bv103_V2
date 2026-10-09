@@ -4,7 +4,6 @@
 > **Nguồn kiểm:** migration `20260729150000` + lean `20260729160000` + `ma_cau` `20260802120000`; DB production `ksnk-bv103-prod` (3 bảng `dao_tao_*`); luật thuần `src/lib/dao-tao/`; thao tác `src/modules/dao-tao/actions/`.  
 > **SSOT ngắn:** [`../../core/domain-specification.md`](../../core/domain-specification.md) §1 (dòng Đào tạo).  
 > **Ánh xạ route / quyền:** [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) § Đào tạo.  
-> **Vận hành gọn:** [`README.md`](README.md).  
 > Tài liệu này là bản **nghiệp vụ đầy đủ** (PO đọc được) — không thay mapping kỹ thuật.
 
 ---
@@ -238,6 +237,14 @@ Cột: `ma_cau | chu_de_ma | chu_de_ten | stt | loai | stem | A | B | C | D | da
 Xem trước liệt kê lỗi (tối đa 20 dòng trên UI). File layout cũ (`MCQ to form_2.xlsx`) vẫn đọc được.
 
 Trên UI: bật/tắt từng câu, sửa nội dung (quyền sửa).
+
+### CLI
+
+```bash
+npx tsx scripts/dao-tao-import-mcq.ts --local --dry-run path.xlsx
+npx tsx scripts/dao-tao-import-mcq.ts --local --sync-full path.xlsx
+# --replace = alias của --sync-full
+```
 
 ---
 

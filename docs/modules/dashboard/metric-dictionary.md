@@ -12,7 +12,7 @@
 | GSC | `rpc_dashboard_gsc_strategic_analytics` | Phiên checklist động |
 | NKBV | aggregate action module NKBV | Outcome nhiễm khuẩn — **không** gộp CCS |
 
-App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic (ADR 2026-06-03). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
+App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic. Bảng summary đã DROP (migration `20260604100000`, 2026-06-04). Command Center và báo cáo tổng hợp đọc RPC strategic / v4 (compose phía app). Benchmark: [`../../archive/reports/dashboard-rpc-benchmark-20260603.md`](../../archive/reports/dashboard-rpc-benchmark-20260603.md). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
 
 **Hits TGS (bao phủ / BK tôi):** app gọi RPC `rpc_gsc_tgs_session_hits` (không select VIEW summary trực tiếp). RPC scan live VIEW `gstt_fact_gsc_dashboard_summary` ở lớp DB — **không** dùng cho CCS / Command Center KPI.
 

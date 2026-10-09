@@ -69,3 +69,30 @@ Contract báo cáo JSON: `nkbv-ssi-reporting-contract.ts` (`extractSsiReportingS
 | Soft-gate mẫu số Clean/ASA/duration | L2 | Soft toast | `softWarnMauSoSurgery` |
 
 **Core:** trong SP + không PATOS + mã sự kiện + ≥1 tiêu chí (+ site nếu Organ).
+
+---
+
+## Phiếu SSI-2026
+
+> Cây: đầu file này · SSOT mã: `src/modules/giam-sat-nkbv/lib/nkbv-ssi-nhsn-catalog.ts`  
+> Surveillance 30/90 theo **mã PT + loại sự kiện** — không IWP ±3
+
+## Phần A — Vận hành
+
+1. Chọn **mã phẫu thuật NHSN** + ngày mổ + DOE (days tự tính).  
+2. SP: nông (SIP/SIS) và DIS luôn **30**; DIP/Organ theo nhóm mã PT **30 hoặc 90**.  
+3. PATOS (L1) — nếu có → không báo SSI mới.  
+4. Chọn **mã loại sự kiện** SIP/SIS/DIP/DIS hoặc ORGAN_SPACE (bắt buộc khi chốt).  
+5. Checklist tiêu chí theo độ sâu suy ra từ event.  
+6. Organ/Space → chọn **mã vị trí Ch.17** (PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS).  
+7. QR CSSD (delta BV103, L2).  
+8. Secondary máu + khớp ∈ SBAP (L2).  
+9. Kết luận classification NHSN (`SIP`… / `ORGAN_SPACE:IAB`) ± Secondary.
+
+## Phần B — Phụ lục
+
+- `has_implant`: thuộc tính ca / mẫu số — **không** đồng nghĩa SP 90.  
+- Soft-gate mẫu số: Clean cấm với APPY/BILI/CHOL/COLO/REC/SB/VHYS; mổ &lt; 5 phút; ASA 6.  
+- Contract báo cáo JSON: `nkbv-ssi-reporting-contract.ts`.  
+- Ruled-out: hết cửa sổ, thiếu tiêu chí, thiếu event/site, PATOS.  
+- Chữ ký IP (vận hành).

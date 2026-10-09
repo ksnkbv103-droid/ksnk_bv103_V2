@@ -12,10 +12,10 @@
 | MDM / danh mục / import | [`domain-specification.md`](domain-specification.md) (MDM) + `20-master-data-placement.mdc` | [`modules/mdm/README.md`](../modules/mdm/README.md) · [`reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) |
 | Giám sát VST/GSC | [`domain-specification.md`](domain-specification.md) (Giám sát) | [`modules/giam-sat/README.md`](../modules/giam-sat/README.md) · `13-giam-sat-spec-context.mdc` |
 | NKBV | [`modules/nkbv/README.md`](../modules/nkbv/README.md) | `17-nkbv-spec-context.mdc` |
-| QLCV | mapping § Công việc | [`modules/qlcv/README.md`](../modules/qlcv/README.md) · `14-cong-viec-spec-context.mdc` |
+| QLCV | mapping § Công việc | [`modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md) · `14-cong-viec-spec-context.mdc` |
 | Bảng kiểm template | [`modules/giam-sat/bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | `16-bang-kiem-spec-context.mdc` |
 | Dashboard / RPC báo cáo | [`modules/dashboard/README.md`](../modules/dashboard/README.md) · [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md) | `18-dashboard-analytics-spec-context.mdc` · `@dashboard-pilot` |
-| Đào tạo / thi MCQ | [`modules/dao-tao/README.md`](../modules/dao-tao/README.md) | `19-dao-tao-spec-context.mdc` |
+| Đào tạo / thi MCQ | [`modules/dao-tao/domain-overview.md`](../modules/dao-tao/domain-overview.md) | `19-dao-tao-spec-context.mdc` |
 | RBAC / tài khoản | [`operations-sop.md`](operations-sop.md) | `permission-registry.ts` |
 | Chỉ refactor thuần (lib) | mapping cột liên quan | module README nếu đổi hành vi |
 

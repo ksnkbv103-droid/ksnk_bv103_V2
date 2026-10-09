@@ -7,10 +7,8 @@
 | Domain nghiệp vụ | [`domain-overview.md`](domain-overview.md) |
 | Workflow / QR | [`../../core/domain-specification.md`](../../core/domain-specification.md) §2.2 + [`../../wiki/entities.md`](../../wiki/entities.md#cssd) |
 | Master → vận hành / mã QR | [`quan-ly-dung-cu-luong.md`](quan-ly-dung-cu-luong.md) |
-| Phiếu mẻ (trạm tiệt khuẩn) | [`18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md`](18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md) |
-| QC / nhả mẻ | [`me-s2-batch-qc-release.md`](me-s2-batch-qc-release.md) |
-| Thu hồi / truy vết | [`me-s3-batch-recall-trace.md`](me-s3-batch-recall-trace.md) |
-| Data model lean | [`data-model-lean.md`](data-model-lean.md) |
+| Phiếu mẻ, QC / nhả, thu hồi | [`18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md`](18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md) |
+| Data model lean | [`domain-overview.md`](domain-overview.md) §9 |
 | Phase 0 dụng cụ (D1–D10) | [`../../core/domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md) |
 | Mapping bảng | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) § CSSD |
 | Ranh giới MDM | [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-vs-mdm) |

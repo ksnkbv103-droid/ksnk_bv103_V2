@@ -25,7 +25,7 @@ const MODULE_HINTS = [
   {
     pattern: /dao-tao|đào tạo|dao tao|mcq|ky-thi|ngân hàng câu/i,
     context:
-      "BV103 Đào tạo: read-minimum dòng Đào tạo; rule 19-dao-tao-spec-context; docs/modules/dao-tao/README.md.",
+      "BV103 Đào tạo: read-minimum dòng Đào tạo; rule 19-dao-tao-spec-context; docs/modules/dao-tao/domain-overview.md.",
   },
   {
     pattern: /giam-sat-nkbv|modules\/nkbv|nkbv_/i,

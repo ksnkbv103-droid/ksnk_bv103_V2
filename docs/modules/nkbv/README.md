@@ -11,8 +11,7 @@
 | Kế hoạch CSDL + timeline | [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md) |
 | Timeline BA + mẫu báo cáo | [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md) |
 | Domain UI / state (app pilot) | [`domain-specification.md`](domain-specification.md) |
-| Vai trò BA / Phiếu / Form | [`ba-phieu-form-roles.md`](ba-phieu-form-roles.md) |
-| BA 3 khối | [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md) · [`ba-centric-timeline.md`](ba-centric-timeline.md) · [`ba-cdc-grid-timeline.md`](ba-cdc-grid-timeline.md) |
+| BA 3 khối, vai trò phiếu, lưới CDC | [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md) |
 | Form lâm sàng | [`clinical-forms.md`](clinical-forms.md) |
 | Phiếu tinh gọn / đủ CDC | [`investigation-forms/README.md`](investigation-forms/README.md) |
 | Tổng hợp | [`../../wiki/entities.md`](../../wiki/entities.md#nkbv-hai) |
