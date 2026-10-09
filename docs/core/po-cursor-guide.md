@@ -1,6 +1,6 @@
 # PO — Dùng Cursor khi không rành code
 
-> Cheat sheet 1 trang. Chi tiết: [`cursor-operating-playbook.md`](cursor-operating-playbook.md).
+> Cheat sheet 1 trang. Cửa sửa: [`../../CLAUDE.md`](../../CLAUDE.md). Chủ đề: [`../ssot-map.md`](../ssot-map.md). Chi tiết lệnh: [`cursor-operating-playbook.md`](cursor-operating-playbook.md).
 
 ## Mỗi việc mới
 

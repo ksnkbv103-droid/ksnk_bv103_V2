@@ -1,6 +1,6 @@
 # /go-live-check — Cổng sẵn sàng vận hành (không deploy)
 
-Readonly trừ khi PO bảo sửa. **Không** Vercel, **không** migrate remote/prod. **Không** đọc CDC thô — neo DoD/SSOT Grok đã chốt.
+Readonly trừ khi PO bảo sửa. **Không** Vercel, **không** migrate remote/prod. **Không** đọc CDC thô — neo [`CLAUDE.md`](../../CLAUDE.md) và file lát trong [`docs/ssot-map.md`](../../docs/ssot-map.md).
 
 ## Checklist
 1. Domain SSOT repo khớp hành vi app?
