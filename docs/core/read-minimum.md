@@ -1,6 +1,6 @@
 # Đọc tối thiểu theo loại thay đổi
 
-> Tránh đọc cả `docs/`. Luôn bắt đầu: [`AGENTS.md`](../../AGENTS.md) + [`lean-execution.md`](lean-execution.md). Chủ đề → file đang dùng: [`../ssot-map.md`](../ssot-map.md).
+> Cửa: [`../../CLAUDE.md`](../../CLAUDE.md) (ssot-map → `/domain-slice` → handover §5 → file lát). Bảng dưới là đọc thêm theo loại diff — không thay cửa.
 
 | Loại diff | Đọc bắt buộc | Tra cứu thêm |
 |-----------|--------------|--------------|

@@ -2,6 +2,11 @@
 
 > Prefix chuẩn: `## [YYYY-MM-DD] ingest|query|lint | mô tả`
 
+## [2026-10-09] lint | Một cửa Claude, bỏ lối đọc thứ hai
+
+- `CLAUDE.md` giữ thứ tự ssot-map → domain-slice → handover §5 và khóa VST. Không thêm file `docs/core` (đủ 17).
+- Bảng chủ đề tay trong `wiki/index.md` và câu «SSOT khi code» trong `WIKI_SCHEMA.md` — superseded bởi ssot-map.
+
 ## [2026-10-09] lint | Claude Code nạp skill theo việc
 
 - 18 rule theo đường dẫn + 9 skill + 6 agent có mặt trong `.claude/`, mỗi cái một câu mô tả.

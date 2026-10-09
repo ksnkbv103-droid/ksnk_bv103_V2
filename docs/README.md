@@ -1,6 +1,6 @@
 # Cổng tài liệu — KSNK BV103
 
-> **Một cổng.** Bắt đầu tại đây. Chủ đề → đúng một file đang dùng: [`ssot-map.md`](ssot-map.md).  
+> Mục lục lớp tài liệu. Cửa khi sửa repo: [`../CLAUDE.md`](../CLAUDE.md). Chủ đề → [`ssot-map.md`](ssot-map.md).  
 > **Không** duyệt `data/` hay `archive/` khi sửa code.
 
 ## Phân lớp (bắt buộc)
@@ -22,11 +22,9 @@
 
 ### Dev / AI agent (sửa code)
 
-1. [`CLAUDE.md`](../CLAUDE.md) — cổng Claude Code
-2. [`AGENTS.md`](../AGENTS.md)
-3. [`core/read-minimum.md`](core/read-minimum.md)
-4. [`core/lean-execution.md`](core/lean-execution.md)
-5. [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md)
+1. [`CLAUDE.md`](../CLAUDE.md) — một cửa (thứ tự đọc, khóa, việc còn PO)
+
+Danh sách năm file «đọc trước» cũ (AGENTS, read-minimum, lean, playbook) — superseded. Playbook chỉ khi cần lệnh/verify: [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md).
 
 ### PO / KSNK (nghiệp vụ)
 

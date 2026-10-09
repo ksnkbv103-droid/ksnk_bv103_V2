@@ -1,6 +1,8 @@
 # Cursor Operating Playbook (General Software)
 
-**Ai đọc gì:** Product Owner (không rành code) → [`po-cursor-guide.md`](po-cursor-guide.md) + `/intake-nv`. Dev / kỹ thuật → playbook này + `/intake`.
+**Không phải cửa.** Cửa Claude: [`../../CLAUDE.md`](../../CLAUDE.md). Chủ đề: [`../ssot-map.md`](../ssot-map.md). Playbook này chỉ là cách chạy Cursor.
+
+**Ai đọc gì:** Product Owner (không rành code) → [`po-cursor-guide.md`](po-cursor-guide.md) + `/intake-nv`. Dev / kỹ thuật → playbook này + `/intake`, hoặc `/domain-slice` khi SSOT đã chốt.
 
 This playbook is a practical operating system for using Cursor with high accuracy, low rework, and controlled token/quota usage.
 
@@ -108,6 +110,7 @@ In Cursor chat, type:
 
 - `/intake-nv` — **PO / không rành code**: khóa scope bằng ngôn ngữ nghiệp vụ
 - `/intake` — khóa scope kỹ thuật trước khi code
+- `/domain-slice` — rà / sửa khi SSOT đã chốt (thân lệnh: `.cursor/commands/domain-slice.md`)
 - `/implement` — after approved intake
 - `/ship-slice` — verify + review sau test tay
 - `/review` — before commit/merge
@@ -115,5 +118,5 @@ In Cursor chat, type:
 - `/commit`, `/pr-create` — git/PR only when user asks
 
 PO cheat sheet: `docs/core/po-cursor-guide.md`.  
-Source: `.cursor/commands/*.md`. Copy-paste templates (if needed): `docs/reference/guides/cursor-command-*.md`.
+Thân lệnh một bản: `.cursor/commands/*.md`. Mẫu `docs/reference/guides/cursor-command-*.md` không còn — superseded.
 

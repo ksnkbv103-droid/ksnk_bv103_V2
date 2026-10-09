@@ -34,11 +34,8 @@ Chạy lệnh đã chốt trong intake. Mặc định khi đụng action/DB: `np
 
 Tham chiếu: `docs/core/lean-execution.md`, `AGENTS.md` Pilot DoD.
 
-## Nếu task đến từ Grok
+## Nếu task có whitelist
 
-Ưu tiên `/grok-handoff`. Output phải đủ để Grok review diff (Files / Verify / DoD / Residual).
-Không mở rộng ngoài whitelist path trong task Grok.
+Ở trong whitelist. Cấm đọc CDC thô. Commit, push, deploy chỉ khi PO ra lệnh trong task.
 
-## RACI
-
-Ưu tiên task từ Grok qua `/grok-handoff`. Cấm đọc CDC thô. PO UAT localhost; Grok review sau `LÁT … xong`.
+Cửa và khóa: `CLAUDE.md`. Rà domain đã chốt: `/domain-slice`.
