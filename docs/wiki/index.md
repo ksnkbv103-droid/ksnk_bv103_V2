@@ -1,44 +1,17 @@
 # Wiki index
 
-> **Đọc trước:** [`entities.md`](entities.md) · [`concepts.md`](concepts.md) · Bản đồ SSOT: [`../ssot-map.md`](../ssot-map.md) · Schema: [`WIKI_SCHEMA.md`](WIKI_SCHEMA.md)
+> Catalog file. Không phải cửa sửa. Cửa: [`../../CLAUDE.md`](../../CLAUDE.md) → [`../ssot-map.md`](../ssot-map.md).
+> Bảng «Core SSOT» và «Module (pointer)» tay — superseded bởi ssot-map (tránh hai lối vào). Danh sách dưới do `npm run wiki:index` sinh.
 
-## Wiki (gộp)
+## Wiki
 
 | File | Nội dung |
 |------|----------|
-| [`entities.md`](entities.md) | CSSD, VST/GSC, NKBV, MDM, QLCV |
-| [`concepts.md`](concepts.md) | Prefix DB, CSSD↔MDM, layout, GSC scoring, BOM |
-| [`lint.md`](lint.md) | Health + contradictions |
+| [`entities.md`](entities.md) | Tổng hợp module — không thay SSOT khi sửa |
+| [`concepts.md`](concepts.md) | Prefix DB, CSSD↔MDM, layout |
+| [`lint.md`](lint.md) | Health |
 | [`log.md`](log.md) | Timeline |
-
-## Core SSOT
-
-| File | Vai trò |
-|------|---------|
-| [`../core/read-minimum.md`](../core/read-minimum.md) | Đọc theo diff |
-| [`../core/domain-specification.md`](../core/domain-specification.md) | Nghiệp vụ |
-| [`../core/implementation-mapping.md`](../core/implementation-mapping.md) | Bảng/RPC |
-| [`../core/lean-execution.md`](../core/lean-execution.md) | Verify, PR |
-| [`../core/operations-sop.md`](../core/operations-sop.md) | Auth, RLS |
-| [`../core/governance-pipeline.md`](../core/governance-pipeline.md) | Migration ship |
-| [`../core/handover-roadmap.md`](../core/handover-roadmap.md) | Onboarding + lộ trình rà soát §5 |
-| [`../core/skills-catalog.md`](../core/skills-catalog.md) | Mục lục Cursor (skill, rule, agent, lệnh) |
-
-## Module (pointer)
-
-| Module | Deep doc | Wiki |
-|--------|----------|------|
-| CSSD | [`domain-overview.md`](../modules/cssd/domain-overview.md) | [entities#cssd](entities.md#cssd) |
-| Giám sát | [`bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | [entities#gsc](entities.md#giám-sát-vst--gsc) |
-| NKBV | [`hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) | [entities#nkbv](entities.md#nkbv-hai) |
-| QLCV | [`19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md) | [entities#qlcv](entities.md#qlcv) |
-| MDM | [`README.md`](../modules/mdm/README.md) | [entities#mdm](entities.md#mdm--rbac) |
-| Dashboard | [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md) | — |
-| Đào tạo | [`domain-overview.md`](../modules/dao-tao/domain-overview.md) | — |
-
-## Reference
-
-[`../reference/architecture/system-overview.md`](../reference/architecture/system-overview.md) · [`interaction-matrix.md`](../reference/architecture/interaction-matrix.md) · việc mở: [`../core/handover-roadmap.md`](../core/handover-roadmap.md) §5
+| [`WIKI_SCHEMA.md`](WIKI_SCHEMA.md) | Ingest wiki |
 
 <!-- AUTO_CATALOG_START -->
 

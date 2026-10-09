@@ -43,7 +43,7 @@ Pipeline schema & ship: [`docs/core/governance-pipeline.md`](docs/core/governanc
 
 | Tài liệu | Mục đích |
 |----------|----------|
-| [`CLAUDE.md`](CLAUDE.md) | Cổng Claude Code — luật sửa repo |
+| [`CLAUDE.md`](CLAUDE.md) | Một cửa khi sửa — thứ tự đọc và khóa. Bảng này là mục lục, không phải cửa thứ hai |
 | [`AGENTS.md`](AGENTS.md) | Cổng ship code — quy tắc agent & dev |
 | [`docs/reference/guides/architecture-one-pager.md`](docs/reference/guides/architecture-one-pager.md) | Tổng quan kiến trúc một trang |
 | [`docs/core/domain-specification.md`](docs/core/domain-specification.md) | Đặc tả nghiệp vụ y tế |

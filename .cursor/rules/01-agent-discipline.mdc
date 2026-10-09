@@ -38,7 +38,7 @@ Tinh gọn từ [Karpathy-style guidelines](https://github.com/multica-ai/andrej
 
 ## Token hygiene (always)
 
-- **RACI:** Grok đọc CDC/SSOT + sửa local mặc định; Cursor chỉ /grok-handoff khi PO dán — cấm đọc CDC thô.
+- **Ai làm gì:** Claude Code sửa theo [`CLAUDE.md`](../../CLAUDE.md) và SSOT đã chắt. Cấm đọc CDC/NHSN thô. PO chốt lát, UAT, commit/Vercel khi ra lệnh.
 
 
 - Grep / semantic search trước khi đọc file > 500 dòng; mục tiêu ≤ **8 file** đọc/task.
@@ -48,4 +48,4 @@ Tinh gọn từ [Karpathy-style guidelines](https://github.com/multica-ai/andrej
 - Verify đúng mức intake — không full `verify` sau mỗi chỉnh nhỏ.
 - Domain phần mềm: CDC → WHO → BYT/Cục Quân y → QT/QĐ chính thức BV103 → SSOT repo; không invent module; không đoán schema.
 
-- **Cấm Cursor đọc CDC/NHSN thô** — chỉ implement neo Grok đã chắt trong task; không @ file SSOT dài trừ mục được chỉ định.
+- **Cấm đọc CDC/NHSN thô** — chỉ làm theo SSOT đã chắt; không @ file SSOT dài trừ mục được chỉ định.

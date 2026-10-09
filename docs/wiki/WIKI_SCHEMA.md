@@ -8,7 +8,7 @@
 | Wiki | `entities.md`, `concepts.md`, `index.md`, `log.md` | **LLM** |
 | Schema vận hành | `AGENTS.md`, `docs/core/*`, `.cursor/rules/*` | Đồng tiến hóa |
 
-**SSOT khi code:** `core/domain-specification.md` + `core/implementation-mapping.md` + migration.
+**SSOT khi code:** superseded — cửa [`../../CLAUDE.md`](../../CLAUDE.md) rồi [`../ssot-map.md`](../ssot-map.md). Schema này chỉ cho ingest wiki.
 
 ## Cấu trúc (đã thu gọn)
 
@@ -35,7 +35,7 @@ Module `README.md` = bảng pointer ngắn → wiki + core.
 
 ### Query
 
-1. `entities.md` / `concepts.md` → rồi `core/*` nếu implement.
+1. Sửa code thì không bắt đầu ở đây — [`../../CLAUDE.md`](../../CLAUDE.md). Hỏi tổng hợp: `entities.md` / `concepts.md`, rồi file ssot-map nếu implement.
 2. Câu trả lời đáng giữ → thêm section wiki + log `query | …`.
 
 ### Lint
