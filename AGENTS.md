@@ -20,6 +20,7 @@
 | Khóa scope (PO / không rành code) | `/intake-nv` |
 | Khóa scope (kỹ thuật) | `/intake` |
 | Code | `/implement` (sau duyệt intake) |
+| Rà / sửa bám domain đã chốt | `/domain-slice` (rule `05` luôn bật) |
 | Checklist test tay | agent `acceptance-ui` |
 | Nghiệm thu slice | `/ship-slice` |
 | Review | `/review` |

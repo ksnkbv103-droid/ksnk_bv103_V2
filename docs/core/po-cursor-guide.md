@@ -52,7 +52,7 @@ Tôi là PO không rành code. Luôn /intake-nv trước khi sửa. Giải thíc
 Tự chạy verify và báo kết quả. 1 chat = 1 tính năng. Không mở rộng scope không hỏi.
 ```
 
-**Trong repo BV103:** rule `04-po-workflow.mdc` (`alwaysApply: true`) đã bật sẵn — không cần dán User Rule riêng khi chat trong project này.
+**Trong repo BV103:** lệnh và rule đang dùng nằm ở [`skills-catalog.md`](skills-catalog.md). `04-po-workflow.mdc` chỉ gắn khi `/intake-nv`, không always-on.
 
 ## Tránh
 

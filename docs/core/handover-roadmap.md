@@ -46,6 +46,7 @@ Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nh�
 | 2026-10-08 | Nợ Phase B #85–#93 (GSC scope, CSSD close/QC, NKBV hết cắt dòng, đào tạo, deps) | Đã lên `main`. Không thấy phá §2.1 VST |
 | 2026-10-09 | Form VST: nhãn TRƯỚC/SAU + trần app #94–#97 | Đã lên `main` |
 | 2026-10-09 | KPI `fn_vst_is_valid_opportunity` #98 `63884e3a`, prod history `20261008225611` | Đã siết: rửa/chà 1–2 thời điểm WHO, bỏ sót đúng 1. 32 034 dòng, 0 dòng rời mẫu số |
+| 2026-10-09 | Vòng sửa: rule `05-domain-auto-slice` + `/domain-slice` | Khi SSOT đã chốt thì tự chọn một lát. SSOT im thì hỏi PO. Không tự quét cả repo |
 | Mở | Xóa phiên VST đang là `is_active=false` | Chờ PO — không tự đổi xóa cứng |
 | Mở | UAT tay form VST (≤2 / ≤1, chữ ô chọn đọc được) | PO |
 | Không mở | Ký nghiệm thu lâm sàng toàn repo; vá giao diện VST thêm | — |
