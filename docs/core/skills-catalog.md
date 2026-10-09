@@ -1,6 +1,6 @@
 # Skills catalog — BV103
 
-> **Bản đang dùng** (đối chiếu file trên đĩa, 2026-10-09). Cursor chỉ load `.cursor/rules/`, `.cursor/agents/`, `.cursor/commands/`, `.agents/skills/`. File này là mục lục chuẩn cho người và agent — không chép thân lệnh, để khỏi có hai bản lệch nhau.  
+> **Bản đang dùng** (đối chiếu file trên đĩa, 2026-10-09). Claude Code nạp [`../../CLAUDE.md`](../../CLAUDE.md) (ngắn). Rule, skill, agent gốc vẫn một bản trong `.cursor/rules/`, `.agents/skills/`, `.cursor/agents/`. `.claude/skills` và `.claude/agents` chỉ là mô tả ngắn — thân được đọc khi việc khớp, không nạp cả bộ lúc mở repo. File này là mục lục — không chép thân lệnh.  
 > Allowlist skill. **Không** cài full marketplace — thêm từng skill rồi `npm run skills:lock`.  
 > Mặc định **manual @mention** — tránh load descriptor mỗi turn.  
 > Lộ trình rà soát đang theo: [`handover-roadmap.md`](handover-roadmap.md) §5.
@@ -87,7 +87,9 @@ RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on).
 
 `.cursorignore` loại `node_modules`, `.next`, `docs/data`, `archive`, dump `_agent` khỏi `@codebase`.
 
-## Slash commands (`.cursor/commands/`)
+## Slash commands
+
+Claude Code: `.claude/commands/` (trỏ về file dưới). Thân lệnh: `.cursor/commands/`.
 
 | Lệnh | File | Ai dùng |
 |------|------|---------|

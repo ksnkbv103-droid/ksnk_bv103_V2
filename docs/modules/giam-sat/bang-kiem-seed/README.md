@@ -62,7 +62,7 @@ _Không_ — cả 15 đã resolve tiêu chí (hoặc map hạng mục).
 - Không invent nội dung lâm sàng; bản MD 1.1 local thường chỉ còn tên BM → ưu tiên appendices Drive khi có.
 - QĐ phụ lục có sẵn trong `ipc-updated/QD/*.md|docx` (bản 2.x) → dùng local khi Drive pack lệch phiên bản.
 - `KSNK.QT.11.BM.01` form giấy = lưới ngày T2–CN; seed map hạng mục công việc → `tieu_chi` DAT family.
-- Mirror: `ksnk-domain/bang-kiem-seed/` · `ksnk_bv103_macwork/docs/modules/giam-sat/bang-kiem-seed/` · `/home/box/bang-kiem-seed/`.
+- Bản seed đang dùng: thư mục này (`00-catalog.json`, `bk/`, `who/`).
 
 ## Soft Soft Soft-ready load (25d Domain A — 2026-09-28)
 

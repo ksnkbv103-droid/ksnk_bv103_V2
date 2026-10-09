@@ -1,17 +1,17 @@
 ---
-description: BV103 — lõi (tối giản token) + RACI Grok/Cursor/PO
+description: BV103 — lõi (tối giản token) + cổng Claude Code / PO
 alwaysApply: true
 ---
 
 # Core KSNK 103
 
-- SSOT: [`AGENTS.md`](../../AGENTS.md) — đọc trước; chi tiết trong `docs/core/`.
+- SSOT: [`AGENTS.md`](../../AGENTS.md) · cổng sửa: [`CLAUDE.md`](../../CLAUDE.md). Chi tiết trong `docs/core/`.
 - Kỷ luật: [`01-agent-discipline.mdc`](01-agent-discipline.mdc); edit `src/`: [`03-src-editing-compact.mdc`](03-src-editing-compact.mdc).
 - Đọc tối thiểu: [`read-minimum.md`](../../docs/core/read-minimum.md); skills: [`skills-catalog.md`](../../docs/core/skills-catalog.md).
 - **Một lát / một chat** — whitelist path; working tree bẩn ≠ sửa rộng.
-- **RACI:** Grok = CDC/domain + sửa local mặc định (≤~5 file). Cursor = chỉ khi PO dán `/grok-handoff` (cấm đọc CDC/NHSN thô). PO = chốt lát, UAT localhost, commit/Vercel khi ra lệnh.
-- Neo nghiệp vụ trong task Cursor: chỉ bullet **Neo Grok** + path SSOT ngắn — không @ SSOT dài / không đọc sổ CDC.
+- **Ai làm gì:** Claude Code sửa theo `CLAUDE.md` và SSOT đã chắt — cấm đọc CDC/NHSN thô. PO = chốt lát, UAT localhost, commit/Vercel khi ra lệnh.
+- Neo nghiệp vụ: path SSOT ngắn trong [`ssot-map.md`](../../docs/ssot-map.md) — không đọc sổ CDC, không đọc `docs/data/` tay.
 - Verify theo [`lean-execution.md`](../../docs/core/lean-execution.md). Action/`fact_*` → `verify:engineering`; schema → migration **local** — không migrate remote/prod trừ PO.
 - Ranh giới CSSD vs MDM; mapping: [`implementation-mapping.md`](../../docs/core/implementation-mapping.md).
-- Luồng Cursor: `/grok-handoff` (ưu tiên) hoặc `/intake`→`/implement`→`/ship-slice`; UAT `/uat-cases`; giám sát `@slice-supervise`.
+- Luồng: `/intake`→`/implement`→`/ship-slice`, hoặc `/domain-slice` khi SSOT đã chốt. UAT `/uat-cases`.
 - UI shell: [`concepts.md`](../../docs/wiki/concepts.md#layout-primitives).

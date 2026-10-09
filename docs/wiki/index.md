@@ -32,6 +32,9 @@
 | Giám sát | [`bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | [entities#gsc](entities.md#giám-sát-vst--gsc) |
 | NKBV | [`hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) | [entities#nkbv](entities.md#nkbv-hai) |
 | QLCV | [`19-QLCV-DOMAIN-SSOT.md`](../modules/qlcv/19-QLCV-DOMAIN-SSOT.md) | [entities#qlcv](entities.md#qlcv) |
+| MDM | [`README.md`](../modules/mdm/README.md) | [entities#mdm](entities.md#mdm--rbac) |
+| Dashboard | [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md) | — |
+| Đào tạo | [`domain-overview.md`](../modules/dao-tao/domain-overview.md) | — |
 
 ## Reference
 

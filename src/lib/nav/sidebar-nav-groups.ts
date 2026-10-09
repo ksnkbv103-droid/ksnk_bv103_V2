@@ -5,7 +5,7 @@
  * Giám sát: mục sidebar «Giám sát» → hub `/giam-sat`; nếu user chỉ 1 đích ghi (VST|GSC|NKBV) thì deep-link form (SXHD).
  * Lịch sử/Thống kê VST·GSC: ModeNav trong module giám sát hoặc `/lich-su/*` `/thong-ke/*`.
  * @see docs/wiki/concepts.md#layout-primitives
- * @see docs/reference/architecture/simplification-program-20260726.md
+ * @see docs/archive/plans/architecture/simplification-program-20260726.md
  */
 
 import {

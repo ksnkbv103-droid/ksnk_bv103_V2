@@ -3,7 +3,7 @@
 
 > **Phiên bản:** 1.1 (Cập nhật chuẩn hóa theo CSDL thực tế - 30/05/2026)  
 > **Trạng thái:** Hoạt động (SSOT Kiến trúc hệ thống)  
-> **Tài liệu tham chiếu chính:** [docs/core/implementation-mapping.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/implementation-mapping.md)
+> **Tài liệu tham chiếu chính:** [`implementation-mapping.md`](../../core/implementation-mapping.md)
 
 ---
 
@@ -14,7 +14,7 @@ Hệ thống KSNK BV103 là một giải pháp hoạch định nguồn lực ti�
 Hệ thống thực hiện ba nhóm nhiệm vụ chiến lược:
 1.  **Giám sát Lâm sàng (Clinical Surveillance):** Vệ sinh tay (VST), Giám sát bảng kiểm động (GSC), Nhiễm khuẩn bệnh viện (NKBV / HAI).
 2.  **Hậu cần Tiệt khuẩn Tập trung (CSSD Logistics):** Quản lý chu trình tiệt khuẩn khép kín, kho dụng cụ đã tiệt khuẩn, mẻ hấp sấy, hóa chất diệt khuẩn và sự cố thiết bị.
-3.  **Vận hành Nội bộ & Quản trị (Administration & QLCV):** Quản trị danh mục dùng chung (MDM), phân quyền chi tiết (RBAC), nhật ký kiểm toán (Audit Trail) và quản lý giao việc (QLCV).
+3.  **Vận hành Nội bộ & Quản trị (Administration & QLCV):** Quản trị danh mục dùng chung (MDM), phân quyền chi tiết (RBAC) và quản lý giao việc (QLCV). Nhật ký kiểm toán hệ thống đã gỡ (2026-06-02) — xem §2.1.
 
 ### Sơ đồ luồng tương tác hệ thống tổng quát
 

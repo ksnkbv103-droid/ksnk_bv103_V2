@@ -22,6 +22,6 @@
 | Layout / chrome | [`wiki/concepts.md`](wiki/concepts.md#layout-primitives) · [`reference/architecture/layout-primitives.md`](reference/architecture/layout-primitives.md) · [`page-chrome-contract`](reference/architecture/page-chrome-contract-20260731.md) | Chương trình B+3/B+4 → `archive/plans/architecture/` |
 | IA / tương tác | [`ux/principles.md`](ux/principles.md) | Audit UX → `archive/module-history/ux/` |
 | Lookup / enum | [`reference/architecture/lookup-vs-enum-guidance.md`](reference/architecture/lookup-vs-enum-guidance.md) | — |
-| Cursor (skill / rule / lệnh) | [`core/skills-catalog.md`](core/skills-catalog.md) | Thân lệnh: `.cursor/`, `.agents/skills/` |
+| Agent code | [`../CLAUDE.md`](../CLAUDE.md) · [`core/skills-catalog.md`](core/skills-catalog.md) | Thân lệnh: `.cursor/commands/`. Lệnh Claude: `.claude/commands/` |
 | Ghi chú AI | **Không** | [`archive/agent-notes/`](archive/agent-notes/) |
 | Nhật ký lát | **Không** | [`archive/slice-journals/`](archive/slice-journals/) |

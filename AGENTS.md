@@ -1,6 +1,6 @@
 # AGENTS.md — KSNK BV103
 
-> Cổng ship code. Chi tiết: [`docs/README.md`](docs/README.md).
+> Cổng ship code. Agent sửa repo: [`CLAUDE.md`](CLAUDE.md). Chi tiết: [`docs/README.md`](docs/README.md).
 
 ## Triết lý
 
@@ -13,15 +13,16 @@
 | Surgical | Diff tối thiểu |
 | Goal-driven | Pilot DoD + verify |
 
-## Cursor workflow
+## Vòng làm việc
+
+Cổng sửa code: [`CLAUDE.md`](CLAUDE.md). Lệnh gõ trong Claude Code (thân nằm ở `.cursor/commands/`, không viết bản thứ hai):
 
 | Bước | Lệnh |
 |------|------|
 | Khóa scope (PO / không rành code) | `/intake-nv` |
 | Khóa scope (kỹ thuật) | `/intake` |
 | Code | `/implement` (sau duyệt intake) |
-| Rà / sửa bám domain đã chốt | `/domain-slice` (rule `05` luôn bật) |
-| Checklist test tay | agent `acceptance-ui` |
+| Rà / sửa bám domain đã chốt | `/domain-slice` |
 | Nghiệm thu slice | `/ship-slice` |
 | Review | `/review` |
 | Giải thích | `/explain` |
@@ -30,27 +31,14 @@
 PO cheat sheet: [`po-cursor-guide.md`](docs/core/po-cursor-guide.md).  
 Playbook: [`docs/core/cursor-operating-playbook.md`](docs/core/cursor-operating-playbook.md).
 
-## Grok Lead ↔ Cursor (RACI go-live)
-
-**Mục tiêu:** hoàn thiện từng lát tới vận hành — **ít token Cursor**, đúng nghiệp vụ.
+## Ai làm gì
 
 | Ai | Việc |
 |----|------|
-| **Grok Bot** | Đọc CDC/WHO/BYT/QT BV103 + SSOT; chắt DoD; sửa local mặc định (≤~5 file); review `git diff`; báo cáo |
-| **Cursor IDE** | Chỉ khi PO nói «dùng Cursor» hoặc lát lớn — `/grok-handoff`; **cấm** đọc CDC/NHSN thô |
+| **Claude Code** | Sửa repo theo [`CLAUDE.md`](CLAUDE.md) và SSOT đã chắt. Không đọc CDC/NHSN thô, không đọc `docs/data/` tay, không migrate prod |
 | **PO (Nghĩa)** | Chốt lát; UAT localhost; `commit` / `deploy Vercel` chỉ khi ra lệnh rõ |
 
-| Bước | Ai | Lệnh / việc |
-|------|----|-------------|
-| Chốt hướng | Grok + PO | A/B/hoãn |
-| Sửa mỏng | Grok | Local Mac |
-| Giao IDE | Grok → PO | Khối DoD + whitelist |
-| Code IDE | Cursor | `/grok-handoff` |
-| Giám sát | Grok (+ `@slice-supervise`) | Diff + verify |
-| UAT | PO | Localhost; `/uat-cases` |
-| Ship | PO lệnh | `/ship-slice`; commit/Vercel khi bảo |
-
-Domain phần mềm: **CDC → WHO → BYT/Cục Quân y → QT/QĐ chính thức BV103 → SSOT repo** (Grok đọc; Cursor chỉ neo đã chắt). Không soạn Word QĐ/QT trong chat phần mềm.
+Domain phần mềm đã chắt trong SSOT repo: **CDC → WHO → BYT/Cục Quân y → QT/QĐ chính thức BV103 → file đang dùng** ([`docs/ssot-map.md`](docs/ssot-map.md)). Không soạn Word QĐ/QT trong chat phần mềm. Không đọc `nkbv-sources/extracted/` hay `docs/archive/nkbv-sources/`.
 
 ## App ↔ Database
 

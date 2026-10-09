@@ -1,6 +1,6 @@
 # Đề cương & biện pháp — Module Giám sát tuân thủ (GSC / VST)
 
-> Ngày: 2026-09-17 · Phạm vi: `ksnk_bv103` giám sát quá trình (process) · Không commit/migrate/Vercel trong lát này.
+> Đề cương vận hành, không phải plan hiệu lực. Chiến lược: [`BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`](./BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md).
 
 ## 1. Hiện trạng kiến trúc (1 trang)
 

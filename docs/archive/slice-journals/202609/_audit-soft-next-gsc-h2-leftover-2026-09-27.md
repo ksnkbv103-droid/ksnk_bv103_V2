@@ -10,7 +10,7 @@
 | Phạm vi | FE-only · H2 (2026-09-17) leftover: breadcrumb/RBAC copy + orphan QLCV brief + SSOT docs |
 | Không | push / PR / Cloud / Vercel / migrate / DROP / dirty WT / W4 / W6 |
 
-Lock: `BV103-GSC-KE-HOACH-CHINH-20260917.md` §11.0 H2 · `docs/ux/principles.md`.
+Lock: [`BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`](../../plans/202609/BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md) · [`ux/principles.md`](../../../ux/principles.md).
 
 ---
 

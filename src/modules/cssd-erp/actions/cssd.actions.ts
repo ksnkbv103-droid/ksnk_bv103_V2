@@ -1,6 +1,6 @@
 /**
  * Barrel CSSD — entry tổng.
- * Bản đồ command/query: docs/reference/architecture/cssd-action-map-20260727.md
+ * Bản đồ command/query (kho): docs/archive/plans/architecture/cssd-action-map-20260727.md
  *
  * Ưu tiên trong code mới:
  *   - Query  → `./read.actions`  (alias `cssd-read.actions`)

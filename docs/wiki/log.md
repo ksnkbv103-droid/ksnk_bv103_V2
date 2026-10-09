@@ -2,6 +2,22 @@
 
 > Prefix chuẩn: `## [YYYY-MM-DD] ingest|query|lint | mô tả`
 
+## [2026-10-09] lint | Claude Code nạp skill theo việc
+
+- 18 rule theo đường dẫn + 9 skill + 6 agent có mặt trong `.claude/`, mỗi cái một câu mô tả.
+- Thân vẫn ở `.cursor/rules`, `.agents/skills`, `.cursor/agents`. Luật 00/01/05 nằm trong `CLAUDE.md`, không đọc lại.
+
+## [2026-10-09] lint | Cổng Claude Code
+
+- Agent sửa repo đọc [`../../CLAUDE.md`](../../CLAUDE.md). Thân lệnh vẫn `.cursor/commands/`. Lệnh gõ: `.claude/commands/`.
+- Không đọc CDC thô, `docs/data/`, hay `archive/` khi sửa code.
+
+## [2026-10-09] lint | Đồng bộ con trỏ về một vị trí trong repo
+
+- Bỏ đường dẫn tuyệt đối `file://` và mirror `macwork` / pack ngoài repo trên lớp sống.
+- QLCV: rule `14` + `19-QLCV-DOMAIN-SSOT.md`. Hub VST: `modules/giam-sat/README.md`. Bản đồ mẻ CSSD và chương trình giản hóa IA: `archive/plans/architecture/`.
+- Chi tiết: [`lint.md`](lint.md) DOC-20261009b.
+
 ## [2026-10-09] lint | Thu gọn toàn `docs/` — một chủ đề một bản sống
 
 - Lớp sống: core (17) · wiki · module domain · reference kiến trúc/ADR/runbook · `ux/principles.md`.

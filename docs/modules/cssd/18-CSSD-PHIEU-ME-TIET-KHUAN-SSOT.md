@@ -113,7 +113,7 @@ Trạng thái tối thiểu (suy ra, không cần enum mới — khớp tên cod
 | AB-5 | Bộ sai PP/không chịu nhiệt vào phiếu hơi nước | Chặn cứng ngay khi quét vào phiếu | Cảnh báo khi quét, chặn cứng tại nút «Bắt đầu» |
 | AB-6 | Ai được «Nhả mẻ»? | NV vận hành/QC đã được phân quyền nhả mẻ thường; **chỉ Tổ trưởng CSSD** nhả mẻ implant / mẻ `CHO_BI` | Chỉ Tổ trưởng CSSD nhả mọi mẻ (đúng chữ QT23 B5, nhiều thao tác hơn) |
 
-## §6. Gap nhanh vs code hiện tại (`ksnk_bv103_macwork`, commit f5ba649 · 18/09/2026 07:07 +07; đọc tĩnh, chưa chạy)
+## §6. Gap nhanh vs code (đọc tĩnh 2026-09-18, commit `f5ba649`)
 
 - **Số mẻ:** `createCssdSterilizationBatch` sinh `LOT-<6 số cuối timestamp>` — không có số thứ tự máy-ngày (M-02).
 - **Chương trình/phương pháp:** không có trường chương trình; PP suy bằng regex tên máy (`isSteamSterilizerProfile`, QC panel `EO|PLASMA`) — chưa có PP chuẩn trên phiếu (M-03/M-04).

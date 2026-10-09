@@ -6,7 +6,7 @@
 | Thư mục | Nội dung |
 |---------|----------|
 | [`reports/`](reports/) | Audit / gap / scorecard / compendium (06–08/2026) |
-| [`plans/202609/`](plans/202609/) | Plan cải tổ 16–17/09/2026 (GSC, TGS, cleanup) |
+| [`plans/202609/`](plans/202609/) | Chỉ 3 file: chiến lược hiệu lực, đề cương, rà rối UI. Bản nháp SUPERSEDED đã xóa |
 | [`plans/architecture/`](plans/architecture/) | Roadmap H2, backlog 31/07, UI B+3/B+4, debt register |
 | [`plans/guides/`](plans/guides/) | Gói W1–W3, template Cursor cũ, HIS/LIS spike |
 | [`plans/ab/`](plans/ab/) | Cổng A–B đã chốt (CSSD 18b–27, NKBV 20a–f, QLCV 19b–25c, GSC 25d) |

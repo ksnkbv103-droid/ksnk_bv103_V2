@@ -10,8 +10,7 @@
 | Phạm vi | 66 BM IN (1 WHO + 65 BK) từ `bang-kiem-seed` |
 | DB / code / Cloud / git | **Không** |
 | Khóa PO | Quy trình/bảng kiểm **hệ thống** → lớp `he_thong`, **Khoa KSNK chủ trì** (Hội đồng: KSNK thư ký). Tách bạch khỏi giám sát tuân thủ **tại điểm chăm sóc / đơn vị thực hành**. |
-| Mirror | `ksnk_bv103_macwork/.../giam-sat/16-…md` · `ksnk-domain/16-…md` · seed `bang-kiem-seed` + `/home/box/bang-kiem-seed` |
-| Neo liên quan | file **12** inventory · file **15** SURF_* · file **11/13/14** |
+| Neo liên quan | [`12-BANG-KIEM-inventory-from-KSNK-final.md`](12-BANG-KIEM-inventory-from-KSNK-final.md) · hub VST trong [`README.md`](README.md) · SURF_* ở §6.3 file này · seed [`bang-kiem-seed/README.md`](bang-kiem-seed/README.md) |
 | Seed enriched v2 | `lop_giam_sat` · `co_quan_chu_tri` · `noi_quan_sat` · `ly_do_phan_bo` · `pham_vi_khoa` · `doi_tuong_goi_y` · `bat_buoc_filter_khoa` |
 
 ---
@@ -40,7 +39,7 @@
 - Với `he_thong`: thường `don_vi_cu_the` + `nhom=["Khoa KSNK"]` (ICRA: `nhom_khoa` gồm KSNK + khu ICRA).
 - Với `thuc_hanh_don_vi`: giữ logic v1 (toàn viện / nhóm / chuyên khoa / đơn vị).
 
-`doi_tuong_goi_y` = nhóm nghề (không tên cá nhân) — khớp file 11/15 X12.
+`doi_tuong_goi_y` = nhóm nghề (không tên cá nhân) — khớp §6.3.
 
 ---
 
@@ -321,13 +320,13 @@ when user chọn chế độ «Giám sát thực hành» + khoa X:
 | R1 | BM `toan_vien` thực hành **luôn hiện** khi đã chọn khoa X — vẫn ghi `khoa_id` phiên = khoa đang quan sát |
 | R2 | BM `nhom_khoa` / `chuyen_khoa` / `don_vi_cu_the` **ẩn** nếu khoa X ∉ `nhom` |
 | R3 | Map MDM: khoa LS cụ thể ∈ `Khoa lâm sàng chung`; ICU ∈ `Nội / ICU / HSTC`; … |
-| R4 | Hub VST: WHO/BM.02/BM.03 **không** vào list GSC generic (file 15); filter khoa vẫn áp trong card hub |
+| R4 | Hub VST: WHO/BM.02/BM.03 **không** vào list GSC generic (§6.3); filter khoa vẫn áp trong card hub |
 | R5 | **Tách picker:** hệ thống ≠ thực hành — không để QT.02/05/QĐ.01 lẫn list VST khi user chọn Nội A |
 | R6 | Hybrid QT.06: hiện trên picker thực hành (theo khoa) **và** có entry điều phối trên góc hệ thống/KSNK (cùng mã, khác ngữ cảnh phiên) |
 | R7 | Báo cáo so sánh khoa: chỉ tính phiên `thuc_hanh` thuộc khoa; phiên `he_thong` báo riêng (cột/Khoa KSNK) — không «phạt» khoa LS vì thiếu phiên hệ thống |
-| R8 | ĐT trên BCTH = nhóm nghề — **cấm** tên cá nhân (file 15 X12) |
+| R8 | ĐT trên BCTH = nhóm nghề — **cấm** tên cá nhân (§6.3) |
 
-### 6.3 Hub VST (file 15) — không đổi
+### 6.3 Hub VST — mã `SURF_*` (không đổi)
 
 | BM | Surface | Lớp v2 |
 |----|---------|--------|
@@ -381,13 +380,13 @@ Tổng residual: **13** (giảm ambiguity lớp hệ thống — đã chốt QT.
 
 ---
 
-## 9. Link file 12 · 15
+## 9. Link bản đang dùng
 
 | File | Vai trò với file 16 v2 |
 |------|------------------------|
-| **12** | Nguồn IN/OUT · mã BM · không thay inventory |
-| **15** | SURF_* hub VST — không đổi |
-| **11/13/14** | Module · % · hình thức — filter khoa / lớp hệ thống độc lập lens HT |
+| [`12`](12-BANG-KIEM-inventory-from-KSNK-final.md) | Nguồn IN/OUT · mã BM · không thay inventory |
+| [`README` giám sát](README.md) | Hub VST 3 mẫu / 3 chỉ số và khóa sổ |
+| §6.3 file này | Mã `SURF_*` — không đổi |
 
 ---
 

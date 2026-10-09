@@ -82,4 +82,4 @@ Chỉ khi chắc không đụng Server Action / DB: `npm run verify:quick` (= bu
 Bổ sung khi đụng schema: `npm run verify:mdm:local`, `npm run trial:db:precheck:local`. Chi tiết: [`lean-execution.md`](./lean-execution.md).
 
 ### 3.2 Quy trình Sử dụng PR Template
-Khi tạo Pull Request trên GitHub, lập trình viên bắt buộc phải sử dụng **[.github/pull_request_template.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/.github/pull_request_template.md)**, điền đầy đủ mô tả kịch bản kiểm thử lâm sàng bằng tay, và xác nhận hoàn thành phần **Alignment Check** (ánh xạ nghiệp vụ dữ liệu).
+Khi tạo Pull Request trên GitHub, lập trình viên bắt buộc phải sử dụng [`.github/pull_request_template.md`](../../.github/pull_request_template.md), điền đầy đủ mô tả kịch bản kiểm thử lâm sàng bằng tay, và xác nhận hoàn thành phần **Alignment Check** (ánh xạ nghiệp vụ dữ liệu).

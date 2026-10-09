@@ -24,7 +24,7 @@ Theo `metric-dictionary.md` (§ KSNK vs TGS) và intake TGS (`bang-kiem-ap-dung-
 **Không** gộp hai nguồn thành một %. **Không** bỏ KSNK.  
 Đối soát (`do_lech`) chỉ khi `vol_tgs > 0 ∧ vol_ksnk > 0` — là *câu hỏi thứ ba*, không thay thế hai lens.
 
-Đã local: toggle + Action/chart 1 nguồn + đối soát ở Nâng cao (`BV103-TGS-KSNK-CHIEN-LUOC-20260917.md`).
+Đã local: toggle + Action/chart 1 nguồn + đối soát ở Nâng cao.
 
 ---
 
@@ -32,13 +32,12 @@ Theo `metric-dictionary.md` (§ KSNK vs TGS) và intake TGS (`bang-kiem-ap-dung-
 
 Nguồn đã đọc (theo thứ tự ưu tiên domain BV103):
 
-1. `docs/modules/dashboard/metric-dictionary.md` — định nghĩa chỉ số & khóa surface  
-2. `docs/modules/dashboard/bang-kiem-ap-dung-tgs-intake-202606.md` — ba lớp KPI TGS + phạm vi BK  
-3. `docs/modules/dashboard/analytics-wave12-intake-202606.md` — luật comparable  
-4. `docs/reference/reports/BV103-GSC-DE-CUONG-20260917.md` — đề cương vận hành VST/GSC  
-5. `docs/reference/reports/ksnk-bv103-compendium-20260824.md` §6.4–6.5, §6.10 — mục đích module & BCTH  
-6. `docs/core/domain-specification.md` §2.1 VST (WHO)  
-7. Plan trước: Action board · TGS×KSNK · VST≠GSC
+1. [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md) — định nghĩa chỉ số
+2. [`bang-kiem-ap-dung-tgs-intake-202606.md`](../../module-history/dashboard/bang-kiem-ap-dung-tgs-intake-202606.md) — ba lớp KPI TGS
+3. [`analytics-wave12-intake-202606.md`](../../module-history/dashboard/analytics-wave12-intake-202606.md) — luật comparable
+4. [`BV103-GSC-DE-CUONG-20260917.md`](./BV103-GSC-DE-CUONG-20260917.md) — đề cương vận hành
+5. [`ksnk-bv103-compendium-20260824.md`](../../reports/ksnk-bv103-compendium-20260824.md) §6.4–6.5, §6.10
+6. [`domain-specification.md`](../../../core/domain-specification.md) §2.1 VST
 
 **Tầm nhìn hệ (compendium):** quan sát tuân thủ → số điều hành → (việc khắc phục **riêng** trên QLCV, không trộn vào thống kê — H2).
 
@@ -210,13 +209,12 @@ Bám compendium (§6.4–6.5, 6.10) + metric-dictionary “Ba tầng màn hình�
 
 ## 10. Tham chiếu đã dùng
 
-- `docs/modules/dashboard/metric-dictionary.md`  
-- `docs/modules/dashboard/bang-kiem-ap-dung-tgs-intake-202606.md`  
-- `docs/modules/dashboard/analytics-wave12-intake-202606.md`  
-- `docs/reference/reports/BV103-GSC-DE-CUONG-20260917.md`  
-- `docs/reference/reports/BV103-TGS-KSNK-CHIEN-LUOC-20260917.md`  
-- `docs/reference/reports/ksnk-bv103-compendium-20260824.md` §6.4–6.5, 6.10  
-- `docs/core/domain-specification.md` §2.1  
+- [`metric-dictionary.md`](../../../modules/dashboard/metric-dictionary.md)
+- [`bang-kiem-ap-dung-tgs-intake-202606.md`](../../module-history/dashboard/bang-kiem-ap-dung-tgs-intake-202606.md)
+- [`analytics-wave12-intake-202606.md`](../../module-history/dashboard/analytics-wave12-intake-202606.md)
+- [`BV103-GSC-DE-CUONG-20260917.md`](./BV103-GSC-DE-CUONG-20260917.md)
+- [`ksnk-bv103-compendium-20260824.md`](../../reports/ksnk-bv103-compendium-20260824.md) §6.4–6.5, §6.10
+- [`domain-specification.md`](../../../core/domain-specification.md) §2.1  
 
 ---
 

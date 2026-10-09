@@ -10,7 +10,6 @@ Mục lục theo module. Mỗi file có dòng **LƯU TRỮ** ở đầu.
 |------|---------|
 | [`_agent-deep-audit-20260904.md`](202609/_agent-deep-audit-20260904.md) | Audit domain vs PCI / QT |
 | [`_agent-standardization-review-20260904.md`](202609/_agent-standardization-review-20260904.md) | Rà soát thống nhất |
-| [`_agent-task-p0-next.md`](202609/_agent-task-p0-next.md) | Template task P0 |
 | [`_agent-dung-cu-loai-proposal-20260907.md`](202609/_agent-dung-cu-loai-proposal-20260907.md) | Đề xuất loại dụng cụ |
 | [`_agent-perf-complexity-rootcause-20260907.md`](202609/_agent-perf-complexity-rootcause-20260907.md) | Căn nguyên chậm / phức tạp (lát CSSD) |
 | [`_agent-thiet-bi-hoa-chat-reaudit-20260907.md`](202609/_agent-thiet-bi-hoa-chat-reaudit-20260907.md) | Re-audit thiết bị + hóa chất |

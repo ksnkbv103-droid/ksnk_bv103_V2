@@ -12,9 +12,8 @@
 | Domain (PO) | [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) |
 | Hành trình ngắn | [`../core/domain-specification.md`](../core/domain-specification.md) §2.2 |
 | Quy trình | `cssd_fact_quy_trinh` (BOM runtime trong `metadata.bom_lines`) |
-| Mẻ / QC | `cssd_fact_lo_tiet_khuan` |
+| Mẻ / QC / thu hồi | [`../modules/cssd/18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md`](../modules/cssd/18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md) · `cssd_fact_lo_tiet_khuan` |
 | Kho | `cssd_fact_kho_*` (tab giám sát FEFO — không phải trạm) |
-| Domain CSSD | [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) |
 | Code | `cssd-stations.ts`, `cssd-packaging-rules.ts`, `cssd-qr-hub.ts` |
 
 Ranh giới MDM: [`concepts.md`](concepts.md#cssd-vs-mdm).

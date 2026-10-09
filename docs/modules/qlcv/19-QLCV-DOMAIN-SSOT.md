@@ -6,7 +6,7 @@
 | Chủ sở hữu | KSNK Soft · Domain — BVQY 103 / `ksnk_bv103_V2` · QLCV |
 | Phạm vi | DOMAIN ONLY — công việc nội bộ khoa KSNK (+ deep-link analytics nếu code đã có). Không sửa code, không commit, không Cloud, không Word QĐ/QT |
 | Ngoài phạm vi | CSSD trạm/mẻ/SC · form GSC/VST (chỉ ghi liên kết menu nếu tạo việc từ analytics) · KH năm/tuần/mốc (đã DROP) |
-| Neo pack | `KSNK-DOMAIN-SSOT.md` §4 · `02-entity-list-v2-ssot.md` §4b · `06-data-dictionary-v1.md` §3c · `08-domain-coverage-map-full.md` §6 · macwork `docs/modules/qlcv/*` |
+| Neo | File này · [`domain-specification.md`](../../core/domain-specification.md) §2.3 · A–B trong `docs/archive/plans/ab/` |
 | Trạng thái | **Applied A** 2026-09-25 · assignee-first · tối giản 19c · loại/ưu tiên 19d (mốc `archive/plans/ab/`) |
 
 ## Quyết định đã chốt (09/2026)
@@ -20,14 +20,14 @@ Mốc A–B: `docs/archive/plans/ab/19b|19c|19d-*.md`.
 
 ## §0. Nguồn (ký hiệu cột «Nguồn»)
 
-| Ký hiệu | Nguồn đã đọc |
-|---------|--------------|
-| D-PACK | `/workspace/ksnk-domain/` — `KSNK-DOMAIN-SSOT.md`, `02`/`04`/`05`/`06`/`08`/`09`, README |
-| MW-DOC | `ksnk_bv103_macwork/docs/modules/qlcv/` (README, pilot-checklist, intake KSNK-only, continuity-matrix) · `docs/core/domain-specification.md` §2.3 · `docs/ssot-map.md` · `docs/wiki/entities.md` · ADR text-check deferred |
-| CODE | Đọc tĩnh: `src/lib/domain/qlcv/*`, `src/modules/quan-ly-cong-viec/*`, migrations `*qlcv*` — HEAD `f5ba649` (2026-09-18 07:07 +07). Không sửa `src/` |
-| DRV | Drive MCP trong «02. Khuyến cáo…» + «Quy trình…KSNK_final»: **không có QT rõ vòng đời phiếu việc**; BDNL = mô tả vị trí, không neo workflow. Không viện dẫn BYT bịa |
+| Ký hiệu | Ở đâu trong repo này |
+|---------|----------------------|
+| CORE | [`domain-specification.md`](../../core/domain-specification.md) §2.3 · [`implementation-mapping.md`](../../core/implementation-mapping.md) · [`ssot-map.md`](../../ssot-map.md) · [`entities.md`](../../wiki/entities.md#qlcv) |
+| CODE | `src/lib/domain/qlcv/*`, `src/modules/quan-ly-cong-viec/*`, migrations `*qlcv*` |
+| AB | `docs/archive/plans/ab/19b|19c|19d-*.md` |
+| TEXT+CHECK | §10 file này — migration `20260604120000` |
 
-**SSOT trước:** chưa có file `19`. Pack chỉ có **mảnh mỏng** (3 entity + 7 TT + DD rút gọn) + pilot/continuity macwork — thiếu RACI, Q-rules IN/OUT, báo cáo kỳ theo thanh Nghĩa.
+Bản nháp 2026-09-25 có đối chiếu pack domain và checkout khác máy. Bản đang dùng là file này. Drive QT/QĐ không có vòng đời phiếu việc riêng — không viện dẫn BYT bịa.
 
 ## §1. Mục tiêu quan sát (thanh Nghĩa)
 
@@ -170,7 +170,3 @@ Ghi checklist qua `fn_qlcv_update_checklist`. Cloud thiếu cột → `npm run m
 ### TEXT+CHECK (đã làm 2026-06-04)
 
 Cột `trang_thai` và `loai_cong_viec` kiểu `text` + CHECK trên `qlcv_fact_cong_viec` (migration `20260604120000_qlcv_text_check_codes.sql`). Trigger `trg_qlcv_sync_code_from_fk` giữ FK lookup đồng bộ lúc chuyển tiếp. App dual-write mã text + FK id. Debt D-QLCV-01 đã đóng. Drop cột FK `trang_thai_id` / `loai_cong_viec_id` là backlog sau dual-read ổn định — không chặn pilot.
-
----
-
-*Mirror đồng nhất: `ksnk_bv103_macwork/docs/modules/qlcv/19-QLCV-DOMAIN-SSOT.md`.*
