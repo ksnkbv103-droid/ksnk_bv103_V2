@@ -1,0 +1,19 @@
+---
+paths:
+  - "supabase/migrations/**"
+  - "scripts/sql/**"
+---
+
+# Database migration (Postgres / Supabase)
+
+Trước khi ghi SQL: mở hoặc `@` [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md) và [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+
+- **Tên file:** ưu tiên `YYYYMMDDHHMMSS_<mô_tả_ngắn>.sql` cho file **mới**; không rename migration đã apply — xem [`docs/core/lean-execution.md`](../../docs/core/lean-execution.md) §2 và [`governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+
+- Ưu tiên **additive**: `ADD COLUMN IF NOT EXISTS`, backfill, index trước khi drop/rename.
+- Mọi rename/drop cần **tương thích ngược** hoặc migration nhiều bước + rollback plan.
+- Sau đổi schema: cập nhật **cùng task** các action/types/form/bảng UI liên quan (đồng bộ code-app-database).
+- `dm_*` / registry / RLS: không tự ý thêm nguồn danh mục song song; khớp `docs/core/domain-specification.md` + rule `mdm.md`.
+- **Kiểm soát De-normalization / Pre-aggregation:** Không tự ý tạo thêm các bảng `fact_*_summary` hoặc cột lưu trữ trùng lặp nếu chưa trình bày phương án đồng bộ nhất quán dữ liệu (VD: Trigger đồng bộ an toàn) và chưa có sự đồng ý của người dùng dựa trên phân tích đánh đổi thực tế.
+
+- Query chậm: `pg_stat_statements` + `EXPLAIN ANALYZE` trước khi sửa code app. Xóa/đổi không đảo được → skill `destructive-change`.

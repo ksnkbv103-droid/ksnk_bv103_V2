@@ -31,7 +31,7 @@
 
 Tránh gọi “MDM” cho cả master CSSD — dễ lẫn với khoa/nhân sự. Cổng: [`../modules/mdm/README.md`](../modules/mdm/README.md).
 
-Skills: `master-data-placement`, `cssd-spec`.
+Rules: `.claude/rules/mdm.md`, `.claude/rules/cssd.md`.
 
 ---
 

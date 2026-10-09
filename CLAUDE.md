@@ -27,8 +27,8 @@ Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103 (pilot). Next.js 16 
   2. Lệnh `/domain-slice` (mục «Đã chốt» + luật vòng)
   3. [`docs/core/handover-roadmap.md`](docs/core/handover-roadmap.md) §5 — việc còn mở
   4. File module của lát (dòng ssot-map). Đọc thêm theo diff: [`docs/core/read-minimum.md`](docs/core/read-minimum.md)
-- Thân duy nhất nằm trong `.claude/`: lệnh `.claude/commands/`, skill `.claude/skills/` (nạp theo việc: `cssd-spec`, `nkbv-spec`, `migration-rules`…), subagent `.claude/agents/`. Không có bản thứ hai ở nơi khác.
-- Subagent đọc nhiều file (`explore-module`, `db-verify`, `review-bv103`) → model rẻ (Haiku/Sonnet); Opus chỉ khi debug/kiến trúc khó.
+- Cấu hình agent chỉ nằm trong `.claude/`: `rules/` (luật theo đường dẫn, tự nạp khi chạm file — src, data-access, migrations, cssd, nkbv, giam-sat, qlcv, dashboard, mdm, dao-tao) · `commands/` (11 lệnh) · `skills/` (4: supabase, smart-db-bv103, react-dev, destructive-change) · `agents/` (6 subagent read-only, đã ghim model). Danh mục + cách chọn model: [`docs/core/skills-catalog.md`](docs/core/skills-catalog.md)
+- Model: Sonnet mặc định · Haiku cho subagent đọc nhiều · Opus (hoặc `/model opusplan`) chỉ cho kiến trúc/debug khó
 
 ## Kỷ luật (luôn áp dụng)
 
@@ -48,6 +48,7 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 
 ## Always
 
+- Việc không tầm thường: `/intake-nv` (PO) hoặc `/intake` trước; chưa duyệt thì không `/implement`. Giải thích bằng tiếng Việt nghiệp vụ; tự chạy verify và báo pass/fail. Một phiên = một lát; `/clear` khi đổi việc
 - Một lát. Diff tối thiểu. Đọc migration hoặc DB trước khi đặt tên bảng, cột, RPC
 - Chạy lệnh verify theo bảng Commands sau khi sửa; không commit khi verify fail
 - Hai cách đọc lâm sàng mà SSOT im → dừng, hỏi PO. Vòng này thắng chat

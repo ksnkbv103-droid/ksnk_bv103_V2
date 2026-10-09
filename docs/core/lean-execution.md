@@ -7,7 +7,7 @@
 1. Chọn **một** mảnh (module + luồng UI rõ).
 2. Đọc tối thiểu: [`read-minimum.md`](read-minimum.md).
 3. Implement surgical — mỗi dòng diff truy vết được yêu cầu (CLAUDE.md §Kỷ luật).
-4. Verify theo bảng dưới → Pilot DoD trong [`AGENTS.md`](../../AGENTS.md).
+4. Verify theo bảng dưới → Pilot DoD bảng dưới.
 
 ## Pilot DoD (xong task)
 

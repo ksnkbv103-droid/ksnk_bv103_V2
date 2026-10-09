@@ -1,5 +1,6 @@
 ---
 description: Commit khi người dùng yêu cầu
+model: haiku
 ---
 
 # /commit — Tạo git commit (chỉ khi user yêu cầu)

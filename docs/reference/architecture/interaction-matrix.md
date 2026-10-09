@@ -75,7 +75,7 @@ sequenceDiagram
 | CSSD UI import CRUD MDM trực tiếp | `imports:cssd-mdm` guard |
 | App ALTER TABLE trên VIEW | Migration rule 51 |
 | Client ghi `fact_*` không qua Server Action | RBAC + audit |
-| Pre-aggregation table mới không đo latency | AGENTS.md governance |
+| Pre-aggregation table mới không đo latency | CLAUDE.md §Kỷ luật |
 
 ---
 

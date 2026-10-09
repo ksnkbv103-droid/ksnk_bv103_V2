@@ -5,7 +5,7 @@
 ## Migration mới
 
 1. Tên file: `YYYYMMDD_<mo_ta_ngan>.sql` (không rename file đã apply).
-2. FK mới → index (skill `architecture-quality`).
+2. FK mới → index (rule `migrations.md`).
 3. Local: `npm run mdm:migrate:local` → `npm run verify:mdm:local`.
 4. Remote pilot: theo SOP — không SQL nóng tùy tiện.
 5. Cập nhật [`implementation-mapping.md`](implementation-mapping.md) changelog nếu đổi SSOT bảng/cột.

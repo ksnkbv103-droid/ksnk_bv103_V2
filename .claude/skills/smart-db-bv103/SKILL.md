@@ -20,8 +20,7 @@ description: Schema, RPC, index, RLS, import lô, báo cáo chậm. Không mở 
 
 1. [`docs/core/lean-execution.md`](../../../docs/core/lean-execution.md) — checklist + verify.
 2. [`docs/core/operations-sop.md`](../../../docs/core/operations-sop.md) — Smart DB / hiệu năng / RLS.
-3. [`AGENTS.md`](../../../AGENTS.md).
-4. Khi đụng DB: [`docs/core/governance-pipeline.md`](../../../docs/core/governance-pipeline.md) và [`docs/core/implementation-mapping.md`](../../../docs/core/implementation-mapping.md).
+3. Khi đụng DB: [`docs/core/governance-pipeline.md`](../../../docs/core/governance-pipeline.md) và [`docs/core/implementation-mapping.md`](../../../docs/core/implementation-mapping.md).
 
 ## Quy tắc vàng (ROI-first)
 

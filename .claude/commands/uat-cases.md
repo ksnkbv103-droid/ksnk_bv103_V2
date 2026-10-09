@@ -1,8 +1,12 @@
 ---
 description: Checklist test tay cho PO
+argument-hint: "[lát hoặc intake]"
+model: haiku
 ---
 
 # /uat-cases — Checklist UAT tay từ DoD/intake
+
+**Đầu vào:** $ARGUMENTS
 
 Readonly. **Không** sửa code. **Không** bảo Agent đọc CDC.
 

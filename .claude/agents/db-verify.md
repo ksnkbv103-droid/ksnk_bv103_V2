@@ -1,6 +1,6 @@
 ---
 name: db-verify
-description: Đối chiếu migration với implementation-mapping. Chỉ đọc.
+description: Đối chiếu migration/SQL với implementation-mapping trước khi đặt tên bảng, cột, RPC. Read-only.
 tools: Read, Grep, Glob, Bash
 model: haiku
 ---
@@ -18,8 +18,8 @@ Readonly agent — đối chiếu schema thực tế, **cấm đoán** cột/b�
 
 1. Đọc `supabase/migrations/*.sql` liên quan — không suy từ ký ức
 2. Đối chiếu `implementation-mapping.md`
-3. Skill `@smart-db-bv103` khi đề xuất index/RLS/RPC
-4. Rule skill `migration-rules` cho SQL
+3. Skill `smart-db-bv103` khi đề xuất index/RLS/RPC
+4. rule `migrations.md` cho SQL
 
 ## Output
 

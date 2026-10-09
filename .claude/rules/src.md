@@ -1,17 +1,16 @@
 ---
-name: src-editing
-description: Sửa file trong src/ (component, action, style, ranh giới module). Không mở khi chỉ sửa docs hoặc SQL.
+paths:
+  - "src/**"
 ---
 
 # Src editing — compact (BV103)
 
-> Pagination/DB chi tiết: `@81-frontend-performance`, `@50-schema-sync-gate`, skill `@smart-db-bv103`.
 
 ## Boundary & SSOT
 
 - `permission-registry.ts` = SSOT module/quyền; module mới phải đăng ký.
 - Ranh giới CSSD workflow vs MDM danh mục — không coupling chéo module.
-- SSOT: `AGENTS.md` → `read-minimum.md` → `domain-specification.md` → `implementation-mapping.md`.
+- SSOT: `CLAUDE.md` → `ssot-map.md` → `read-minimum.md` → `domain-specification.md` → `implementation-mapping.md`.
 - Prefix DB: `mdm_*`, `gstt_*`, `cssd_*`, `nkbv_*`, `qlcv_*`, `sys_*` — không `fact_*`/`dm_*` compat.
 - Đổi field DB: cập nhật action + types + form + UI **cùng task**; đọc migration trước khi kết luận cột.
 
@@ -41,7 +40,7 @@ description: Sửa file trong src/ (component, action, style, ranh giới module
 
 ## Page chrome / shell
 
-- Sửa layout shell, header module, tab bar, page frame → đọc [`wiki/concepts.md`](../../../docs/wiki/concepts.md#layout-primitives) + [`page-chrome-contract-20260731.md`](../../../docs/reference/architecture/page-chrome-contract-20260731.md). Không invent dialect chrome mới ngoài contract.
+- Sửa layout shell, header module, tab bar, page frame → đọc [`wiki/concepts.md`](../../docs/wiki/concepts.md#layout-primitives) + [`page-chrome-contract-20260731.md`](../../docs/reference/architecture/page-chrome-contract-20260731.md). Không invent dialect chrome mới ngoài contract.
 
 ## Mobile (tóm tắt)
 

@@ -1,7 +1,7 @@
 ---
 name: review-bv103
-description: Review diff trước merge. Không sửa file.
-tools: Read, Grep, Glob
+description: Review diff độc lập (Critical/Major/Minor + Go/No-go) trước commit hoặc merge. Read-only.
+tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
@@ -23,7 +23,7 @@ Readonly agent — review diff theo [`CLAUDE.md`](../../CLAUDE.md) và file lát
 - [ ] Không dual-path / orphan do diff; không nợ ngoài DoD
 - [ ] Không đòi đọc CDC thô — neo DoD/SSOT path trong scope
 
-Tham chiếu: `/review`, skill `@reviewing-code` nếu PR lớn.
+Tham chiếu: `/review`. Mức độ: Critical = bug/lộ dữ liệu/mất dữ liệu; Major = hiệu năng/bảo trì; Minor = style (linter lo).
 
 ## Output
 1. **Findings** — Critical / Major / Minor

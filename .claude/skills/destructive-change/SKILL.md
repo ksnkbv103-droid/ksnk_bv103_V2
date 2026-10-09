@@ -7,7 +7,7 @@ description: DROP bảng, xóa module, hoặc đổi không đảo được. D�
 
 ## Trigger conditions
 
-Globs chỉ auto-attach khi sửa migration. Khi xóa hàng loạt `src/`/`docs/` hoặc gỡ feature vận hành: **@62-destructive-change-gate** hoặc dừng hỏi PO.
+Áp dụng cả ngoài migration: xóa hàng loạt `src/`/`docs/`, gỡ feature vận hành.
 
 Apply this gate when a request includes any of the following (including outside `supabase/migrations/`):
 

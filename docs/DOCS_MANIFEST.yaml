@@ -59,6 +59,7 @@ scan_roots:
   - docs
   - CLAUDE.md
   - .claude/skills
+  - .claude/rules
 
 rules:
   living_no_audit_prefix: true

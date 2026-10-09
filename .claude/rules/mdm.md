@@ -1,9 +1,20 @@
 ---
-name: master-data-placement
-description: Đặt chỗ master data CSSD hoặc quản trị. CRUD danh mục không nằm trong cssd-erp.
+paths:
+  - "src/modules/quan-tri-he-thong/**"
+  - "src/lib/master-data/**"
 ---
 
-# Master Data Placement
+# Danh mục & MDM — ngữ cảnh spec
+
+Trước khi thêm/sửa CRUD, import, registry:
+
+1. [`domain-specification.md`](../../docs/core/domain-specification.md) — MDM
+2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) § MDM
+3. [`guides/json-import-export.md`](../../docs/reference/guides/json-import-export.md) khi import JSON
+
+**Không** thêm `dict_*` mới làm chuẩn; danh mục lõi qua **domain-registry** → `dm_*`.
+
+## Master Data Placement
 
 - Danh mục lõi: khai qua **domain-registry** → bảng/view `{module}_dm_*` hoặc ghi lookup qua **`sys_lookup_value`** (category_type). **Không** thêm bảng `dict_*` mới; **không** dùng prefix legacy `dm_*` / `fact_*` (đã DROP, `legacy:guard`).
 - **Master CSSD** (loại/bộ/BOM/thiết bị/hóa chất): TABLE `cssd_dm_*` — UI CRUD chỉ dưới `quan-tri-he-thong/danh-muc/`.

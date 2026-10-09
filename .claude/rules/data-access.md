@@ -1,9 +1,33 @@
 ---
-name: frontend-performance
-description: Bảng dữ liệu, action đọc danh sách, phân trang. Không mở cho form nhỏ.
+paths:
+  - "src/**/actions/**"
+  - "src/**/hooks/**"
+  - "src/lib/**/*server*.ts"
 ---
 
-# Frontend Performance (BV103)
+# Schema Sync Gate (application code)
+
+- Đồng bộ code–app–database là cổng ra release.
+- Trước khi đặt tên bảng/cột/FK hoặc type mapping mới: đọc [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md), và pipeline [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+- Khi đổi field DB: cập nhật trong **cùng task** actions, types, form, bảng UI.
+- Ưu tiên migration additive (`ADD COLUMN IF NOT EXISTS`) trước destructive; rename có lộ trình rollback.
+- Trước khi xong: kiểm tra `UI input -> server action -> DB` nhất quán.
+
+## Contract-first preflight (bắt buộc cho Admin/MDM/RBAC)
+
+- Trước khi sửa action/query, bắt buộc xác nhận schema thực tế trong `supabase/migrations/*`:
+  - bảng có tồn tại không
+  - cột có tồn tại không
+  - kiểu dữ liệu/FK có đúng không
+- Cấm giả định cột dùng chung cho mọi bảng. Ví dụ: `dm_roles` **không có** `is_active`.
+- Nếu dùng RPC:
+  - gọi đúng tên tham số hàm hiện hành
+  - parse đúng shape trả về (object keyed vs array), không suy diễn.
+- Nếu dữ liệu danh mục hiển thị rỗng bất thường:
+  - kiểm tra theo thứ tự: query contract -> permission/RLS -> fallback trực tiếp `dm_*`.
+- Mọi lỗi kiểu `Could not find column ... in schema cache` phải được xử lý ở code contract (không workaround ở UI).
+
+## Frontend Performance (BV103)
 
 Áp dụng khi viết/sửa **bảng dữ liệu, hook lấy dữ liệu, Server Actions trả danh sách**.
 

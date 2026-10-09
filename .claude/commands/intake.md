@@ -1,8 +1,11 @@
 ---
 description: Khóa scope kỹ thuật trước khi code
+argument-hint: "[mục tiêu kỹ thuật]"
 ---
 
 # /intake — Khóa phạm vi trước khi code (kỹ thuật)
+
+**Đầu vào:** $ARGUMENTS
 
 Chạy lệnh này **đầu tiên** cho task không trivial. **Không sửa code.**
 
@@ -36,4 +39,4 @@ Chạy lệnh này **đầu tiên** cho task không trivial. **Không sửa code
 2. **Top 3 rủi ro**
 3. **Giả định** cần user xác nhận (nếu có)
 
-Chờ user duyệt intake trước khi implement. Tham chiếu: skill `intake-freeze`.
+Chờ user duyệt intake trước khi implement. Sau duyệt, công thức/định nghĩa/acceptance là **đóng băng**; đổi giữa chừng → ghi `Spec change` và phát hành lại intake.

@@ -1,12 +1,15 @@
 ---
 description: PO mô tả nghiệp vụ — dịch thành intake, chưa code
+argument-hint: "[mô tả nghiệp vụ]"
 ---
 
 # /intake-nv — Khóa phạm vi theo ngôn ngữ nghiệp vụ (PO)
 
+**Đầu vào:** $ARGUMENTS
+
 Dành cho **người không rành code**. **Không sửa code** — chỉ lập kế hoạch để user duyệt.
 
-Skill gợi ý: `@po-intake`. Agent gợi ý: `intake-coach` khi chưa rõ module.
+Agent gợi ý: `intake-coach` khi chưa rõ module. Luôn đọc `read-minimum.md` dòng module; rule `.claude/rules/*` tự nạp khi chạm file.
 
 ## User điền (tiếng Việt nghiệp vụ)
 
@@ -65,7 +68,6 @@ Sau khi nhận mô tả nghiệp vụ, bổ sung:
 
 Chờ user trả lời **「OK triển khai」** hoặc chỉnh sửa trước `/implement`.
 
-Tham chiếu: skill `intake-freeze`.
 
 # PO workflow (BV103)
 
@@ -88,4 +90,4 @@ User là **Product Owner, không rành code**. Áp dụng mọi chat trong repo 
 ## Tham chiếu
 
 - Command: `/intake-nv`
-- Skill: `@po-intake` · Agents: `intake-coach`, `acceptance-ui`
+- Agents: `intake-coach`, `acceptance-ui`

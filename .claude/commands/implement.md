@@ -1,8 +1,11 @@
 ---
 description: Code một lát sau khi intake đã được duyệt
+argument-hint: "[tên lát đã duyệt]"
 ---
 
 # /implement — Code theo intake đã duyệt
+
+**Đầu vào:** $ARGUMENTS
 
 Chỉ dùng sau khi intake đã được user **duyệt** (hoặc user nói rõ "triển khai theo plan").
 
@@ -14,7 +17,7 @@ Chỉ dùng sau khi intake đã được user **duyệt** (hoặc user nói rõ 
 - **Không đoán schema** — đọc migration hoặc CLI DB trước khi kết luận bảng/cột
 - Nghiệp vụ CSSD vs MDM mơ hồ → dừng và hỏi
 
-## Hiệu quả (từ agent-efficiency — luôn áp dụng khi implement)
+## Hiệu quả (luôn áp dụng khi implement)
 
 - `grep` / semantic search **trước** `read` file > 500 dòng; mục tiêu ≤ **8 file** đọc/task
 - Không `glob`/`list` toàn repo — chỉ path trong intake
@@ -36,7 +39,7 @@ Nếu user đổi KPI/công thức/acceptance giữa chừng: ghi `Spec change`,
 
 Chạy lệnh đã chốt trong intake. Mặc định khi đụng action/DB: `npm run verify:engineering`.
 
-Tham chiếu: `docs/core/lean-execution.md`, `AGENTS.md` Pilot DoD.
+Tham chiếu: `docs/core/lean-execution.md`, Pilot DoD trong `CLAUDE.md`.
 
 ## Nếu task có whitelist
 

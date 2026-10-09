@@ -1,6 +1,6 @@
 ---
 name: acceptance-ui
-description: Viết checklist test tay cho PO. Không sửa code.
+description: Viết ≥3 kịch bản test tay cho PO từ intake hoặc DoD. Read-only.
 tools: Read, Grep, Glob
 model: haiku
 ---
@@ -40,6 +40,6 @@ Case [N] fail:
 
 ## Không làm
 
-- Không chạy browser trừ khi user yêu cầu `@webapp-testing`
+- Không chạy browser trừ khi user yêu cầu
 - Không sửa code
 - Giải thích bằng tiếng Việt nghiệp vụ — tránh stack trace trừ khi user hỏi

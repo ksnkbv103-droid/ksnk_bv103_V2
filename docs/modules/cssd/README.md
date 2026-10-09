@@ -14,7 +14,7 @@
 | Ranh giới MDM | [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-vs-mdm) |
 | Layout / chrome | [`../../reference/architecture/layout-primitives.md`](../../reference/architecture/layout-primitives.md) |
 
-Skill: `cssd-spec`
+Rule: `.claude/rules/cssd.md`
 
 ## URL canonical (pilot)
 

@@ -1,8 +1,11 @@
 ---
 description: Rà và sửa một lát theo SSOT đã chốt
+argument-hint: "[module hoặc lát]"
 ---
 
 # /domain-slice — Rà, phản biện, chọn theo domain, sửa một lát
+
+**Đầu vào:** $ARGUMENTS
 
 Dùng khi PO bảo rà soát, làm chuẩn, hoặc sửa cho bám yêu cầu đã chốt.
 

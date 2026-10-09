@@ -1,29 +1,10 @@
 ---
-description: Review diff trước merge
+description: Review diff trước merge (chạy subagent review-bv103, Sonnet)
+argument-hint: "[path; để trống = git diff hiện tại]"
 ---
 
 # /review — Review diff trước commit/merge
 
-Review thay đổi hiện tại (diff / file vừa sửa). **Không implement thêm** trừ khi user yêu cầu fix.
+**Đầu vào:** $ARGUMENTS (mặc định: `git diff` hiện tại)
 
-## Thứ tự review
-
-1. **Correctness** — logic, edge case, regression nghiệp vụ
-2. **Security / permission** — `verifyPermission`, RLS, lộ dữ liệu
-3. **Performance** — query nặng, N+1, thiếu index/pagination
-4. **Maintainability** — naming, ranh giới module, dead code do diff
-
-## BV103 checklist nhanh
-
-- [ ] Đúng module; không lẫn CSSD vs MDM
-- [ ] `UI → Action → DB` khớp `docs/core/implementation-mapping.md`
-- [ ] Migration (nếu có) + code app đồng bộ
-- [ ] Không `.from('dm_*'|'fact_*')` compat cũ
-
-## Output bắt buộc
-
-1. **Findings** — theo mức độ: Critical / Major / Minor (không chắc → nêu cách kiểm chứng)
-2. **Tests đề xuất** — cụ thể, có thể chạy được
-3. **Go / No-go** — một câu + điều kiện nếu No-go
-
-Trả lời ngắn gọn, ưu tiên findings trước giải thích dài.
+Giao cho subagent `review-bv103` (context cô lập, model Sonnet) — không tự review trong phiên chính để khỏi đọc thừa. Chuyển nguyên văn **Findings / Tests đề xuất / Go-No-go** của subagent. Không implement thêm trừ khi user yêu cầu fix.

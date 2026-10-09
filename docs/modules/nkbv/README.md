@@ -18,4 +18,4 @@
 
 **Phân lớp:** thuật toán + Phụ lục E = v3.3. UI/state = `domain-specification` + `clinical-forms`. Cổng LIS/HIS: `NkbvViSinhImportPortal` · `NkbvBenhAnImportPortal` (tạo BA từ LIS khi chưa có mã; không đè BA đã có).
 
-Skill: `nkbv-spec`
+Rule: `.claude/rules/nkbv.md`

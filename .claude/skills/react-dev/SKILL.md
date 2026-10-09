@@ -314,52 +314,6 @@ See [server-components.md](examples/server-components.md) for parallel fetching,
 
 </server_components>
 
-<routing>
-
-Both TanStack Router and React Router v7 provide type-safe routing solutions.
-
-**TanStack Router** - Compile-time type safety with Zod validation:
-
-```typescript
-import { createRoute } from '@tanstack/react-router';
-import { z } from 'zod';
-
-const userRoute = createRoute({
-  path: '/users/$userId',
-  component: UserPage,
-  loader: async ({ params }) => ({ user: await fetchUser(params.userId) }),
-  validateSearch: z.object({
-    tab: z.enum(['profile', 'settings']).optional(),
-    page: z.number().int().positive().default(1),
-  }),
-});
-
-function UserPage() {
-  const { user } = useLoaderData({ from: userRoute.id });
-  const { tab, page } = useSearch({ from: userRoute.id });
-  const { userId } = useParams({ from: userRoute.id });
-}
-```
-
-**React Router v7** - Automatic type generation with Framework Mode:
-
-```typescript
-import type { Route } from "./+types/user";
-
-export async function loader({ params }: Route.LoaderArgs) {
-  return { user: await fetchUser(params.userId) };
-}
-
-export default function UserPage({ loaderData }: Route.ComponentProps) {
-  const { user } = loaderData; // Typed from loader
-  return <h1>{user.name}</h1>;
-}
-```
-
-See [tanstack-router.md](references/tanstack-router.md) for TanStack patterns and [react-router.md](references/react-router.md) for React Router patterns.
-
-</routing>
-
 <rules>
 
 ALWAYS:
@@ -370,7 +324,6 @@ ALWAYS:
 - as const for tuple returns
 - ref as prop in React 19 (no forwardRef)
 - useActionState for form actions
-- Type-safe routing patterns (see routing section)
 
 NEVER:
 - any for event handlers
@@ -390,7 +343,5 @@ NEVER:
 - [react-19-patterns.md](references/react-19-patterns.md) - useActionState, use(), useOptimistic, migration
 - [generic-components.md](examples/generic-components.md) - Table, Select, List, Modal patterns
 - [server-components.md](examples/server-components.md) - async components, Server Actions, streaming
-- [tanstack-router.md](references/tanstack-router.md) - TanStack Router typed routes, search params, navigation
-- [react-router.md](references/react-router.md) - React Router v7 loaders, actions, type generation, forms
 
 </references>

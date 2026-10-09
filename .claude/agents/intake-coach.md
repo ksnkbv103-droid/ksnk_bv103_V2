@@ -1,6 +1,6 @@
 ---
 name: intake-coach
-description: Dịch mô tả nghiệp vụ thành intake. Không sửa code.
+description: Dịch mô tả nghiệp vụ tiếng Việt của PO thành intake chuẩn. Read-only.
 tools: Read, Grep, Glob
 model: sonnet
 ---
@@ -16,7 +16,7 @@ Readonly agent — dịch **mô tả nghiệp vụ thô** sang intake BV103. Kh�
 
 ## Quy trình
 
-1. Skill `@po-intake` hoặc command `/intake-nv`
+1. Làm theo command `/intake-nv`
 2. Map module — nếu không chắc, liệt kê 2 phỏng đoán + hỏi user chọn
 3. `grep`/`semantic search` **chỉ trong** `src/modules/<module>/` nếu cần xác nhận route/màn hình — ≤ 5 file
 4. Đối chiếu `read-minimum.md` + `implementation-mapping.md` (grep, không đọc cả file nếu dài)

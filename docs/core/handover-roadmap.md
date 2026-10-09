@@ -1,6 +1,6 @@
 # Bàn giao & onboarding — KSNK BV103
 
-> **Việc còn mở:** §5 dưới đây. Kế hoạch H2 gốc (kho): `../archive/plans/architecture/roadmap-2026h2.md`.  
+> **Việc còn mở:** §5 dưới đây.  
 > **SSOT schema:** [`implementation-mapping.md`](implementation-mapping.md)
 
 ## 1. Cấu trúc app (tóm tắt)

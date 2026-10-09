@@ -1,8 +1,11 @@
 ---
 description: Giải thích, không sửa
+argument-hint: "[câu hỏi]"
 ---
 
 # /explain — Chỉ giải thích, không sửa code
+
+**Đầu vào:** $ARGUMENTS
 
 Giải thích code, hành vi, tradeoff. **Không** dùng tool write/edit; **không** tạo diff.
 
