@@ -23,7 +23,7 @@ Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 
 ## MCP (project)
 
-- Config: [`.cursor/mcp.json`](../../.cursor/mcp.json) — **Supabase MCP** (OAuth trong Cursor; không commit secret).
+- Claude Code: [`.mcp.json`](../../.mcp.json) — Supabase `cvzwslpxwgqiugzzhqej`, GitHub `ksnkbv103-droid/ksnk_bv103_V2`, Vercel `ksnk-bv103-v2`. Cursor: [`.cursor/mcp.json`](../../.cursor/mcp.json) cùng project Supabase. OAuth một lần trong client; không commit secret.
 - Khi đụng schema / RLS / bảng thật: **ưu tiên MCP Supabase** để đối chiếu. Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. Rồi `verify:mdm`.
 - Không đoán schema từ trí nhớ — khớp `01-agent-discipline`.
 
@@ -96,7 +96,7 @@ Claude Code: `.claude/commands/` (trỏ về file dưới). Thân lệnh: `.curs
 | `/intake-nv` | `intake-nv.md` | PO — ngôn ngữ nghiệp vụ |
 | `/intake` | `intake.md` | Dev — scope kỹ thuật |
 | `/implement` | `implement.md` | Sau duyệt intake |
-| `/grok-handoff` | `grok-handoff.md` | Task dán từ Grok (DoD + whitelist) |
+| `/grok-handoff` | `grok-handoff.md` | Không phải cửa. Whitelist dán tay thì vẫn `/domain-slice` |
 | `/domain-slice` | `domain-slice.md` | Rà, phản biện, chọn theo domain, sửa một lát |
 | `/go-live-check` | `go-live-check.md` | Cổng sẵn sàng pilot, không deploy |
 | `/uat-cases` | `uat-cases.md` | Checklist UAT tay từ DoD |

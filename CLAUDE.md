@@ -26,11 +26,15 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 - Không viết bản tài liệu thứ hai; không chép thân rule/skill vào docs. `docs/core` giữ 17 file
 - Không viết lại engine lâm sàng. Lệch KPI thì sửa hàm KPI. Không nhận «chính xác tuyệt đối»
 
-## Đã xong / còn PO
+## Kết nối
 
-Đã trên `main`: form VST #94–#97, KPI #98, vòng domain #101, cửa docs #99/#103. Prod Vercel từng chạy commit cũ — không tự deploy.
+Đã ghim trong [`.mcp.json`](.mcp.json). Không gõ lại ref. OAuth mỗi dịch vụ một lần bằng `/mcp`. Git remote `origin` dùng credential sẵn trên máy.
 
-Còn PO: UAT tay form VST (≤2 / =1, chữ ô chọn). Xác nhận giữ xóa mềm phiên. Deploy chỉ khi anh nói «deploy».
+- Supabase `cvzwslpxwgqiugzzhqej`
+- GitHub `ksnkbv103-droid/ksnk_bv103_V2`
+- Vercel `dr-nghia-103-s-projects/ksnk-bv103-v2` — https://ksnk-bv103-v2.vercel.app
+
+Việc còn mở: handover §5 ở bước đọc phía trên. Không chép lại vào cửa này.
 
 ## Việc khác
 

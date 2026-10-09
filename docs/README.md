@@ -54,7 +54,7 @@ Danh sách năm file «đọc trước» cũ (AGENTS, read-minimum, lean, playbo
 
 ## Lớp Core (17 file)
 
-**Đọc thường xuyên:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap` · `cursor-operating-playbook`
+**Mục lục, không đọc hết:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap` · `cursor-operating-playbook`
 
 **Ký / ADR / catalog:** `po-cursor-guide` · `domain-decisions-cssd-instrument` · `adr-cssd-fact-write-rls` · `database-view-catalog` · `pilot-go-live-signoff-202606` · `po-uat-signoff-202607`
 

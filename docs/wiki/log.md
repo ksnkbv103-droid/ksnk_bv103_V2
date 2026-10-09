@@ -2,6 +2,11 @@
 
 > Prefix chuẩn: `## [YYYY-MM-DD] ingest|query|lint | mô tả`
 
+## [2026-10-09] lint | Ghim MCP, bỏ trạng thái cũ trên cửa
+
+- `.mcp.json`: Supabase `cvzwslpxwgqiugzzhqej`, GitHub `ksnkbv103-droid/ksnk_bv103_V2`, Vercel `ksnk-bv103-v2`. Không secret.
+- `CLAUDE.md` không chép việc còn mở — nguồn là `handover-roadmap.md` §5. `/grok-handoff` không còn là cửa thứ hai.
+
 ## [2026-10-09] lint | Một cửa Claude, bỏ lối đọc thứ hai
 
 - `CLAUDE.md` giữ thứ tự ssot-map → domain-slice → handover §5 và khóa VST. Không thêm file `docs/core` (đủ 17).
