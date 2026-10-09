@@ -1,6 +1,6 @@
 # Skills catalog — BV103
 
-> Mục lục Cursor trong repo: skill, agent, rule, lệnh. **Thân lệnh giữ ở** `.agents/skills/`, `.cursor/agents/`, `.cursor/rules/`, `.cursor/commands/` — file này không chép lại nội dung.  
+> **Bản đang dùng** (đối chiếu file trên đĩa, 2026-10-09). Cursor chỉ load `.cursor/rules/`, `.cursor/agents/`, `.cursor/commands/`, `.agents/skills/`. File này là mục lục chuẩn cho người và agent — không chép thân lệnh, để khỏi có hai bản lệch nhau.  
 > Allowlist skill. **Không** cài full marketplace — thêm từng skill rồi `npm run skills:lock`.  
 > Mặc định **manual @mention** — tránh load descriptor mỗi turn.  
 > Lộ trình rà soát đang theo: [`handover-roadmap.md`](handover-roadmap.md) §5.
@@ -38,7 +38,9 @@ Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 | `db-verify` | Đối chiếu migration ↔ mapping | readonly |
 | `slice-supervise` | Giám sát diff lát vs DoD | readonly |
 
-## User-level (optional, không lock)
+## User-level (không có trong repo)
+
+Các skill dưới đây không nằm trong `.agents/skills/` và không được `skills-lock` khóa. Không coi là bản đang chạy của BV103.
 
 | Skill | Khi dùng | Invoke |
 |-------|----------|--------|
