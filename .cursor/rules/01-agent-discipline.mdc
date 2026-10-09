@@ -10,7 +10,7 @@ Tinh gọn từ [Karpathy-style guidelines](https://github.com/multica-ai/andrej
 ## 1. Think before coding
 
 - Nghiệp vụ y tế hoặc ranh giới **CSSD vs MDM** mơ hồ → hỏi trước, không đoán rồi sửa.
-- Nêu giả định ngắn; ≥2 cách hiểu yêu cầu → trình bày, không chọn ngầm.
+- Nêu giả định ngắn. SSOT hoặc yêu cầu PO đã chốt chọn được một cách → làm cách đó (`05-domain-auto-slice`). Còn ≥2 cách đọc lâm sàng mà SSOT im → trình bày, không chọn ngầm.
 - Có tradeoff (migration vs patch app, RPC vs query trực tiếp) → nói trước khi implement.
 - **Cấm tự ý phán đoán dữ liệu**: Luôn đối chiếu trực tiếp file migration hoặc chạy lệnh CLI kiểm tra DB thực tế để xác nhận sự tồn tại của bảng, cột, kiểu dữ liệu và dung lượng (table size). Cấm đoán mò schema dựa trên ký ức.
 - **Cấm âm thầm tạo bảng Summary/Pre-aggregation**: Chỉ đẻ thêm bảng tổng hợp khi chứng minh được sự cần thiết vật lý bằng số liệu đo lường cụ thể (size bảng gốc, CPU cycle lãng phí khi regexp split, latency) và được sự đồng ý của người dùng sau khi thảo luận rõ ràng về tradeoff.

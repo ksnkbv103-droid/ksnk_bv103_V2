@@ -66,6 +66,7 @@ RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on).
 | `02-task-intake-freeze.mdc` | `/intake` | Khóa spec trước khi code |
 | `03-src-editing-compact.mdc` | `src/**` | Boundary, style, schema khi sửa app |
 | `04-po-workflow.mdc` | `/intake-nv` | PO không rành code — không always-on |
+| `05-domain-auto-slice.mdc` | always | Rà/sửa: SSOT đã chốt thì tự chọn, một lát |
 | `12-cssd-erp-spec-context.mdc` | `cssd-erp`, `cssd-su-co` | Neo spec CSSD |
 | `13-giam-sat-spec-context.mdc` | `giam-sat-*` | Neo spec VST/GSC |
 | `14-cong-viec-spec-context.mdc` | `quan-ly-cong-viec` | Neo spec QLCV |
@@ -92,6 +93,7 @@ RACI và cấm đọc CDC thô nằm trong `00-core-ksnk-rules.mdc` (always-on).
 | `/intake` | `intake.md` | Dev — scope kỹ thuật |
 | `/implement` | `implement.md` | Sau duyệt intake |
 | `/grok-handoff` | `grok-handoff.md` | Task dán từ Grok (DoD + whitelist) |
+| `/domain-slice` | `domain-slice.md` | Rà, phản biện, chọn theo domain, sửa một lát |
 | `/go-live-check` | `go-live-check.md` | Cổng sẵn sàng pilot, không deploy |
 | `/uat-cases` | `uat-cases.md` | Checklist UAT tay từ DoD |
 | `/ship-slice` | `ship-slice.md` | Verify + review sau test tay |
