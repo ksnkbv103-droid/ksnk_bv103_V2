@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildBatchRecallAttributePatch,
   nextMachineStatusAfterBatchQcFail,
+  recallTargetStationForFailedBatchMember,
   recallTargetStationForLotMember,
   resolveBatchRecallReason,
   batchRecallReasonFromTypeId,
@@ -163,5 +164,14 @@ describe("parseRecallMemberListText", () => {
     expect(mixed[1]?.maBo).toBe("B03");
     expect(mixed[1]?.maCaMoId).toBe("CA99");
     expect(mixed[1]?.ghiChu).toMatch(/ca mổ/);
+  });
+});
+
+describe("recallTargetStationForFailedBatchMember (PO 2026-10-10)", () => {
+  it("mẻ hỏng: bộ còn trong CSSD về Đóng gói; bộ đã cấp phát về Tiếp nhận", () => {
+    expect(recallTargetStationForFailedBatchMember("TIET_KHUAN")).toBe("DONG_GOI");
+    expect(recallTargetStationForFailedBatchMember("DONG_GOI")).toBe("DONG_GOI");
+    expect(recallTargetStationForFailedBatchMember("")).toBe("DONG_GOI");
+    expect(recallTargetStationForFailedBatchMember("CAP_PHAT")).toBe("TIEP_NHAN");
   });
 });

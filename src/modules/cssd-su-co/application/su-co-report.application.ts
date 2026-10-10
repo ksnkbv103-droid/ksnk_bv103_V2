@@ -474,10 +474,11 @@ export async function executeIncidentReportAndRollback(
         (may as { trang_thai?: string | null } | null)?.trang_thai,
       );
       if (next) {
-        await supabase
+        const { error: holdErr } = await supabase
           .from("cssd_dm_thiet_bi")
           .update({ trang_thai: next, updated_at: new Date().toISOString() })
           .eq("id", data.machineId);
+        if (holdErr) throw new Error("Không giữ được máy (HOLD_QC): " + holdErr.message);
       }
     }
 
@@ -496,13 +497,27 @@ export async function executeIncidentReportAndRollback(
       };
       if (hasQuyTrinhIsRedAlert) rollbackPayload.is_red_alert = originalState.is_red_alert;
       if (hasDongBang) rollbackPayload.is_dong_bang = originalState.is_dong_bang;
-      await supabase.from("cssd_fact_quy_trinh").update(rollbackPayload).eq("id", q.id);
+      const { error: undoErr } = await supabase.from("cssd_fact_quy_trinh").update(rollbackPayload).eq("id", q.id);
+      if (undoErr) {
+        console.error({ module: "cssd-su-co", action: "report-incident-undo", quyTrinhId: q.id, error: undoErr.message });
+      }
     }
     // Nháp và phiếu đã ghi sổ atomic không xóa ở đây — Postgres rollback cả transaction RPC.
+    // Phiếu ghi rời: vô hiệu (không xóa cứng) để còn dấu vết vì sao hủy.
     if (!draftId && !atomicWrite && incident?.id) {
-      await supabase.from("cssd_fact_su_co").delete().eq("id", incident.id);
+      const { error: voidErr } = await supabase
+        .from("cssd_fact_su_co")
+        .update({
+          is_active: false,
+          attributes: { ...attributes, LOI_XU_LY_HUY: getErrorMessage(e) || "Lỗi xử lý sự cố" },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", incident.id);
+      if (voidErr) {
+        console.error({ module: "cssd-su-co", action: "report-incident-void", incidentId: incident.id, error: voidErr.message });
+      }
     }
-    throw new Error(getErrorMessage(e) || "Loi xu ly su co");
+    throw new Error(getErrorMessage(e) || "Lỗi xử lý sự cố");
   }
 }
 

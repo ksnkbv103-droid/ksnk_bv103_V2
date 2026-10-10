@@ -174,7 +174,7 @@ Một lát trên nhánh ME-S2. Không gồm UX nhãn.
 
 Mẻ không đạt (một mục QC hoặc BI dương lúc kết luận) cập nhật mẻ, bộ và sự cố trong `rpc_cssd_me_thu_hoi`. Không thu hồi xong rồi mới ghi mẻ.
 
-Domain 18b **AB-1 A**: về `TIEP_NHAN` (không `DONG_GOI`). Mọi bộ chưa dùng lâm sàng: đóng chu kỳ cũ (`is_active = false`, giữ `lo_tiet_khuan_id`, khóa chu kỳ đó) và mở chu kỳ mới tại Tiếp nhận, không gắn mẻ, để xử lý lại như dụng cụ bẩn. Không về Đóng gói. Máy đang sẵn sàng chuyển `HOLD_QC`.
+**PO chốt lại 2026-10-10 (thay AB-1 A):** mẻ hỏng (QC mẻ không đạt / BI dương) → bộ còn trong CSSD **về `DONG_GOI`** (đóng gói + tiệt khuẩn lại). Đóng chu kỳ cũ (`is_active = false`, giữ `lo_tiet_khuan_id`, khóa chu kỳ đó), mở chu kỳ mới tại Đóng gói (gán Cycle QR mới), không gắn mẻ. Bộ **đã cấp phát** vẫn chờ thu về rồi nhận lại ở `TIEP_NHAN`; bộ đã dùng lâm sàng chỉ liệt kê. Gói ướt/rách riêng lẻ vẫn về làm sạch. Máy đang sẵn sàng chuyển `HOLD_QC`.
 
 ## BI dương
 

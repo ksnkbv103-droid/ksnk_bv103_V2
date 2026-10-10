@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { commandBatchRecallFromIncident } from "../actions/su-co-report.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 type Props = {
   incidentId: string;
@@ -16,7 +17,7 @@ export default function IncidentBatchRecallButton({ incidentId, onOrdered, class
   const [loading, setLoading] = useState(false);
 
   const onClick = async () => {
-    if (!window.confirm("Ra lệnh thu hồi theo mẻ cho phiếu này? Bộ trong CSSD về TN; bộ đã cấp chờ thu về.")) {
+    if (!(await confirmAction("Ra lệnh thu hồi theo mẻ cho phiếu này? Bộ trong CSSD về TN; bộ đã cấp chờ thu về."))) {
       return;
     }
     setLoading(true);

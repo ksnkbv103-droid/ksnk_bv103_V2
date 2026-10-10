@@ -24,6 +24,15 @@ export function recallTargetStationForLotMember(_currentStation?: string | null)
   return "TIEP_NHAN";
 }
 
+/**
+ * PO 2026-10-10: mẻ hỏng (QC mẻ không đạt / BI dương) → bộ còn trong CSSD quay về ĐÓNG GÓI
+ * (đóng gói + tiệt khuẩn lại). Bộ đã cấp phát (CAP_PHAT) vẫn về TIẾP NHẬN như thu hồi sau cấp (SC-10),
+ * khớp `rpc_cssd_me_thu_hoi` (CHO_THU_VE → nhận lại ở Tiếp nhận).
+ */
+export function recallTargetStationForFailedBatchMember(currentStation?: string | null): "DONG_GOI" | "TIEP_NHAN" {
+  return String(currentStation || "").trim().toUpperCase() === "CAP_PHAT" ? "TIEP_NHAN" : "DONG_GOI";
+}
+
 /** Domain 23 A: used chỉ qua event (actor+timestamp). Re-export SSOT. */
 export function isCssdCycleUsedClinically(input: {
   usedClinically?: boolean | null;

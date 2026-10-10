@@ -1,6 +1,6 @@
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { WORKFLOW_STEPS, stepIndex } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
-import { recallTargetStationForLotMember } from "./cssd-batch-recall";
+import { recallTargetStationForFailedBatchMember, recallTargetStationForLotMember } from "./cssd-batch-recall";
 import {
   isBatchQcFailTypeId,
   isBowieDickFailTypeId,
@@ -104,7 +104,7 @@ export function resolveIncidentPolicy(args: {
   /** QC mẻ / BI+ — không áp cho QC trạm (`PROCESS_QC_FAIL`). Không xóa liên kết mẻ. */
   if (args.incidentGroup === "PROCESS" && isBatchQcFailTypeId(args.typeId)) {
     return {
-      targetStation: recallTargetStationForLotMember(args.currentStation || det),
+      targetStation: recallTargetStationForFailedBatchMember(args.currentStation || det),
       faultStation: args.faultStation || "TIET_KHUAN",
       clearSterilizationBatchLink: false,
       freezeSafetyLock: false,

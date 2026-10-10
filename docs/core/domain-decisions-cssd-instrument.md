@@ -33,7 +33,13 @@
 | Tab **Lịch sử** (`?tab=lich-su`) | Nhật ký duyệt / áp dụng |
 | Sheet **Loại** (`?sheet=loai`) | CRUD loại — **ADMIN**, không tab ngang hàng |
 
-Vận hành RO: `/cssd-dung-cu`. Ba cửa biến động: `/cssd-su-co` (nhóm Dụng cụ).
+Vận hành RO: `/cssd-dung-cu`. Vị trí ba cửa hiện nay:
+
+| Cửa | Ở đâu | Ghi sổ |
+|-----|-------|--------|
+| **Hỏng/Mất** | `/cssd-su-co` (nhóm Dụng cụ) | **Ngay** — `rpc_cssd_commit_instrument_report` áp dòng sổ trong một giao dịch. Mã loại lưu `INSTRUMENT_SET_RECONCILE` chỉ là «phiếu dòng sổ» chung; `SET_RECONCILE_STATUS=NONE` khi không có dòng đổi chuẩn/đổi loại |
+| **Đổi danh mục** | `/cssd-dung-cu` tab `DE_NGHI` → duyệt ở Quản trị tab **Phiếu** | Chờ ADMIN (`BOM_PENDING`), không ghi sổ cho tới khi duyệt |
+| **Chuyển** | `/cssd-dung-cu` tab `LUAN_CHUYEN` | Ngay (`MOVE`) |
 
 ---
 

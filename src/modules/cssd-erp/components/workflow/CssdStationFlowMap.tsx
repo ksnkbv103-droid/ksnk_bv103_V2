@@ -9,7 +9,7 @@ import CssdBatchMeLinkChip from "./cssd-batch-me-link-chip";
 
 /** Helper QT.19 — tách Kiểm bộ (trạm) vs QC mẻ (domain). */
 const STATION_HINT: Partial<Record<Station, string>> = {
-  QC: "Kiểm bộ trước đóng gói (QT.19) ≠ QC mẻ",
+  QC: "Kiểm bộ trước đóng gói ≠ QC mẻ",
 };
 
 const STATION_ICON: Record<Exclude<Station, "TIET_KHUAN">, React.ReactNode> = {

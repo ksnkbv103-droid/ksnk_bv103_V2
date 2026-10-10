@@ -23,6 +23,7 @@ import type { FactBaoTriRow, LoaiPhieuBaoTri, SuCoEquipmentRow } from "../action
 import type { BaoTriMachineOption } from "../actions/cssd-bao-tri-list.actions";
 import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checklist";
 import { cssdSuCoEquipmentHref } from "@/lib/cssd-routes";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
 const MODULE_THIET_BI = "THIET_BI";
@@ -124,7 +125,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   };
 
   const onHuy = async (id: string) => {
-    if (!confirm("Hủy phiếu và trả máy về sẵn sàng?")) return;
+    if (!(await confirmAction("Hủy phiếu và trả máy về sẵn sàng?"))) return;
     const r = await huyBaoTriThietBiAction({ id });
     if (!r.success) return toast.error(r.error);
     toast.message("Đã hủy phiếu.");

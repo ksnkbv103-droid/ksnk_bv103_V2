@@ -65,28 +65,28 @@ describe("cssd-incident-policy", () => {
     expect(p.kind).toBe("generic");
   });
 
-  it("PROCESS sterilization fail returns every set to Tiếp nhận and keeps the batch link", () => {
+  it("PROCESS sterilization fail returns sets still in CSSD to Đóng gói and keeps the batch link", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "TIET_KHUAN",
       incidentTypeTen: "Chất lượng tiệt khuẩn / mẻ không đạt",
       incidentGroup: "PROCESS",
       typeId: "PROCESS_STERILIZATION_FAIL",
     });
-    expect(p.targetStation).toBe("TIEP_NHAN");
+    expect(p.targetStation).toBe("DONG_GOI");
     expect(p.freezeSafetyLock).toBe(false);
     expect(p.clearSterilizationBatchLink).toBe(false);
     expect(p.recallEntireBatch).toBe(true);
     expect(p.holdMachineQc).toBe(true);
   });
 
-  it("PROCESS BI+ uses the same Tiếp nhận recall as mẻ không đạt", () => {
+  it("PROCESS BI+ uses the same Đóng gói recall as mẻ không đạt", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "TIET_KHUAN",
       incidentTypeTen: "Chỉ thị sinh học (BI) dương tính",
       incidentGroup: "PROCESS",
       typeId: "PROCESS_BI_POSITIVE",
     });
-    expect(p.targetStation).toBe("TIEP_NHAN");
+    expect(p.targetStation).toBe("DONG_GOI");
     expect(p.freezeSafetyLock).toBe(false);
     expect(p.clearSterilizationBatchLink).toBe(false);
     expect(p.recallEntireBatch).toBe(true);

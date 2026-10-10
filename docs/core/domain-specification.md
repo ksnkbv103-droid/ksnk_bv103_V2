@@ -61,7 +61,7 @@ flowchart LR
 
 * **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — **không** phải trạm quét.
 * **Tab Trace** (`?tab=trace`): timeline + liên kết SSI — không phải trạm.
-* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ / QC mẻ không đạt → recall theo `lo_tiet_khuan_id` + máy `HOLD_QC` (chưa tự mở máy sau 3× BI (−)).
+* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ / QC mẻ không đạt → recall theo `lo_tiet_khuan_id` (bộ còn trong CSSD **về `DONG_GOI`**, bộ đã cấp phát chờ thu về → `TIEP_NHAN`; PO 2026-10-10) + máy `HOLD_QC` (chưa tự mở máy sau 3× BI (−)).
 * **Trạm 4:** panel đối chiếu cấu phần (read-only realtime) + nút «Báo biến động bộ này» → phiếu header–dòng (**không** gọi mọi biến động là «sự cố» — D1). **3 cửa (D2):** **Đổi danh mục** (`SET_RECONCILE`, chờ ADMIN — không ghi sổ) · **Hỏng/Mất** (ghi sổ ngay) · **Chuyển** (`MOVE` / `InstrumentMoveDualTable`; chỉ cửa này có `BO_SUNG`/`TRA_KHO`/`DIEU_CHUYEN` — D3). Không phiếu từng món. Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
 * **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần). Implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2) — **không** hard-block.
@@ -95,4 +95,4 @@ MVP NKBV nhập liệu lâm sàng; kiến trúc hướng FHIR (`Patient`, `Encou
 
 * Audit hệ thống: `sys_audit_log` **không còn** (DROP 2026-06-02). Nhật ký quản trị hiện là `sys_admin_audit` (insert-only, migration `20261005154000`, đã apply; ghi qua `logAdminAction`); xem `wiki/entities.md` § MDM + RBAC
 * **Xóa danh mục (khoa, thiết bị, hóa chất, bảng kiểm, registry…): xóa mềm** `is_active=false`, nhãn UI «Ngừng sử dụng»; không xóa cứng (PO chốt 2026-10-10). Bản ghi cũ vẫn tra được từ phiếu đã lập.
-* **RBAC — 6 vai trò:** `ADMIN` (toàn quyền quản trị), `NHAN_VIEN_KSNK`, `MANG_LUOI_KSNK`, `CHI_HUY_KHOA`, `GIAM_DOC`, và vai trò khách `KHACH_THONG_KE_GSTT` (chỉ xem Thống kê VST/GSC). Phân quyền theo ma trận module×action (`sys_role_permissions`); gói quyền danh mục gán qua ma trận, ADMIN không áp gói. Vai trò KSNK và khách loại trừ lẫn nhau khi gán (`rpc_assign_staff_ksnk_role`).
+* **RBAC — 5 vai trò (DB: `sys_roles`, migration `20260718100000`):** `ADMIN` (toàn quyền quản trị), `HOI_DONG_KSNK` (Hội đồng KSNK — chỉ xem), `NHAN_VIEN_KSNK`, `MANG_LUOI_KSNK`, và vai trò khách `KHACH_THONG_KE_GSTT` (chỉ xem Thống kê VST/GSC). Phân quyền theo ma trận module×action (`sys_role_permissions`); gói quyền danh mục gán qua ma trận, ADMIN không áp gói. Vai trò KSNK và khách loại trừ lẫn nhau khi gán (`rpc_assign_staff_ksnk_role`).

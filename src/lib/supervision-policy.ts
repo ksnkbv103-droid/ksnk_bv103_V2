@@ -20,11 +20,9 @@ function isNetworkRoleName(name: string | null | undefined) {
   return n.includes("mang luoi");
 }
 
-/** Vai trò hệ thống (bảng `roles`) được phép đứng tên giám sát khi đã có quyền module giám sát. */
+/** Vai trò hệ thống (bảng `roles`) được phép đứng tên giám sát khi đã có quyền module giám sát. `HOI_DONG_KSNK` chỉ xem (operations-sop) nên không thuộc danh sách. */
 const SUPERVISION_ELIGIBLE_ROLE_NAMES = new Set(
-  ["ADMIN", "NHAN_VIEN_KSNK", "MANG_LUOI_KSNK", "CHI_HUY_KHOA", "GIAM_DOC"].map((s) =>
-    s.toUpperCase(),
-  ),
+  ["ADMIN", "NHAN_VIEN_KSNK", "MANG_LUOI_KSNK"].map((s) => s.toUpperCase()),
 );
 
 async function userHasSupervisionEligibleRole(
