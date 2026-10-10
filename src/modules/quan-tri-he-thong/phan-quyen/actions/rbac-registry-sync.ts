@@ -8,19 +8,21 @@ import { syncKsnkRolePermissionMappings } from "./rbac-ksnk-role-mappings";
  */
 export async function upsertRegistryPermissionsAndAdminMappings(supabase: SupabaseClient) {
   // 0. Dọn dẹp các vai trò trùng lặp (ví dụ 'Admin', 'admin') để đảm bảo SSOT duy nhất là 'ADMIN'
-  const { data: legacyAdmins } = await supabase
+  // Xóa cứng có chủ đích: `v_sys_user_permissions` không lọc `sys_roles.is_active`,
+  // nên tắt mềm vẫn để vai trò trùng cấp quyền. FK CASCADE gỡ luôn user_roles/role_permissions.
+  const { data: legacyAdmins, error: legacyErr } = await supabase
     .from("sys_roles")
     .select("id, name")
     .ilike("name", "admin");
+  if (legacyErr) throw legacyErr;
 
   const duplicateIds = (legacyAdmins || [])
     .filter((r) => r.name !== "ADMIN")
     .map((r) => r.id);
 
   if (duplicateIds.length > 0) {
-    console.log(`[RBAC] Cleaning up ${duplicateIds.length} duplicate Admin roles...`);
-    await supabase.from("sys_role_permissions").delete().in("role_id", duplicateIds);
-    await supabase.from("sys_roles").delete().in("id", duplicateIds);
+    const { error: dupErr } = await supabase.from("sys_roles").delete().in("id", duplicateIds);
+    if (dupErr) throw dupErr;
   }
 
   const { error: roleUpsertErr } = await supabase.from("sys_roles").upsert(
@@ -40,9 +42,11 @@ export async function upsertRegistryPermissionsAndAdminMappings(supabase: Supaba
   });
   if (pErr) throw pErr;
 
-  const { data: adminRole } = await supabase.from("sys_roles").select("id").eq("name", "ADMIN").single();
+  const { data: adminRole, error: adminErr } = await supabase.from("sys_roles").select("id").eq("name", "ADMIN").single();
+  if (adminErr) throw adminErr;
   if (adminRole) {
-    const { data: allP } = await supabase.from("sys_permissions").select("id");
+    const { data: allP, error: allPErr } = await supabase.from("sys_permissions").select("id");
+    if (allPErr) throw allPErr;
     if (allP) {
       const mappings = allP.map((p) => ({ role_id: adminRole.id, permission_id: p.id }));
       const { error: rErr } = await supabase

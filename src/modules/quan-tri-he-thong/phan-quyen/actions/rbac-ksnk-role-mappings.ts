@@ -174,19 +174,34 @@ export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
     const matcher = matchers[name];
     if (!matcher) continue;
 
-    const { error: delErr } = await supabase.from("sys_role_permissions").delete().eq("role_id", role.id);
-    if (delErr) throw delErr;
+    const wanted = new Set<string>();
+    for (const p of perms) if (matcher(p)) wanted.add(p.id);
 
-    const seenPid = new Set<string>();
-    const picks = [];
-    for (const p of perms) {
-      if (!matcher(p) || seenPid.has(p.id)) continue;
-      seenPid.add(p.id);
-      picks.push({ role_id: role.id, permission_id: p.id });
+    // Diff thay cho xóa-hết-rồi-chèn: thêm trước, bớt sau. Lỗi giữa chừng chỉ để thừa quyền
+    // tạm thời (chạy lại là đúng), không bao giờ để vai trò trắng quyền.
+    if (wanted.size) {
+      const picks = [...wanted].map((pid) => ({ role_id: role.id, permission_id: pid }));
+      const { error: upErr } = await supabase
+        .from("sys_role_permissions")
+        .upsert(picks, { onConflict: "role_id,permission_id", ignoreDuplicates: true });
+      if (upErr) throw upErr;
     }
-    if (!picks.length) continue;
 
-    const { error: insErr } = await supabase.from("sys_role_permissions").insert(picks);
-    if (insErr) throw insErr;
+    const { data: current, error: curErr } = await supabase
+      .from("sys_role_permissions")
+      .select("permission_id")
+      .eq("role_id", role.id);
+    if (curErr) throw curErr;
+    const extras = (current || [])
+      .map((r) => String(r.permission_id))
+      .filter((pid) => !wanted.has(pid));
+    if (extras.length) {
+      const { error: delErr } = await supabase
+        .from("sys_role_permissions")
+        .delete()
+        .eq("role_id", role.id)
+        .in("permission_id", extras);
+      if (delErr) throw delErr;
+    }
   }
 }
