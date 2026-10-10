@@ -40,6 +40,7 @@ import type {
   BoRefByLoai,
   BoDungCuChiTietPreviewRow,
 } from "../actions/bo-dung-cu-chi-tiet.types";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 type Props = {
   /** `null` = chưa chọn bộ */
@@ -251,9 +252,9 @@ export function BoDungCuChiTietPanel({
     setMoreOpen(false);
     if (!selectedBoId) return;
     if (
-      !window.confirm(
+      !(await confirmAction(
         "Gộp các dòng trùng loại trên bộ này? Số lượng sẽ được cộng tổng vào một dòng; các dòng thừa sẽ ngưng (is_active=false).",
-      )
+      ))
     ) {
       return;
     }

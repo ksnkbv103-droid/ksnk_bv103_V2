@@ -10,6 +10,7 @@ import {
   resetKsnkRolePermissionPresets,
   syncPermissionRegistry,
 } from "../actions/rbac.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 /** Thao tác nguy hiểm phân quyền — tab quản trị. */
 export default function RbacItDangerActions() {
@@ -19,13 +20,16 @@ export default function RbacItDangerActions() {
   const [isResettingPresets, setIsResettingPresets] = useState(false);
 
   const handleSync = useCallback(async () => {
-    const ok = window.confirm(
-      "Cập nhật danh sách quyền theo phiên bản phần mềm?\n\n" +
+    const ok = await confirmAction({
+      title: "Cập nhật danh sách quyền theo phiên bản phần mềm?",
+      tone: "default",
+      confirmText: "Cập nhật",
+      message:
         "• Thêm/cập nhật danh sách module × hành động từ mã nguồn\n" +
         "• Gán đủ quyền cho Quản trị hệ thống\n" +
         "• Không ghi đè ô đã chỉnh trên Hội đồng / NV KSNK / Mạng lưới / Khách\n\n" +
         "Muốn đưa các vai trò về quyền mặc định → dùng «Đặt lại quyền mặc định».",
-    );
+    });
     if (!ok) return;
     setIsSyncing(true);
     try {
@@ -43,12 +47,15 @@ export default function RbacItDangerActions() {
   }, []);
 
   const handleResetPresets = useCallback(async () => {
-    const ok = window.confirm(
-      "Đặt lại quyền mặc định cho vai trò KSNK?\n\n" +
+    const ok = await confirmAction({
+      title: "Đặt lại quyền mặc định cho vai trò KSNK?",
+      message:
         "Sẽ ghi đè toàn bộ quyền của: Hội đồng, Nhân viên KSNK, Mạng lưới KSNK, Khách theo cấu hình mặc định.\n" +
         "Các chỉnh tay trên 4 vai trò này sẽ mất.\n\n" +
         "Quản trị hệ thống không bị ảnh hưởng.",
-    );
+      confirmText: "Đặt lại quyền",
+      requireText: "DAT LAI",
+    });
     if (!ok) return;
     setIsResettingPresets(true);
     try {

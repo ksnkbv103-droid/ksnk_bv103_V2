@@ -70,11 +70,11 @@ export default function StaffAuthPasswordDialog({
   const submitLabel =
     mode === "create" || mode === "approve_request"
       ? mode === "approve_request"
-        ? "Duyệt & tạo TK"
-        : "Tạo TK"
+        ? "Duyệt và tạo tài khoản"
+        : "Tạo tài khoản"
       : mode === "approve_reset"
-        ? "Duyệt & đặt lại MK"
-        : "Đặt lại MK";
+        ? "Duyệt và đặt lại mật khẩu"
+        : "Đặt lại mật khẩu";
 
   const needReauth = requireReauth || mode === "reset" || mode === "approve_request" || mode === "approve_reset";
 
@@ -93,7 +93,7 @@ export default function StaffAuthPasswordDialog({
       return;
     }
     if (requireSecondApprover && !secondEmail.trim()) {
-      toast.error("Không tự đặt lại MK của chính mình — nhập email quản trị khác để ghi nhận, hoặc dùng Đổi mật khẩu của tôi.");
+      toast.error("Không tự đặt lại mật khẩu của chính mình — nhập email quản trị khác để ghi nhận, hoặc dùng Đổi mật khẩu của tôi.");
       return;
     }
     await onSubmit({
@@ -178,7 +178,7 @@ export default function StaffAuthPasswordDialog({
                 autoComplete="off"
               />
               <p className="mt-1 text-[11px] text-amber-700">
-                Bạn đang đặt lại MK trên hồ sơ của chính mình. Nên dùng «Đổi mật khẩu của tôi» thay vì
+                Bạn đang đặt lại mật khẩu trên hồ sơ của chính mình. Nên dùng «Đổi mật khẩu của tôi» thay vì
                 tự reset tại đây. Nếu vẫn tiếp tục, nhập email quản trị khác để ghi nhận (chưa có duyệt
                 2 admin trực tiếp).
               </p>

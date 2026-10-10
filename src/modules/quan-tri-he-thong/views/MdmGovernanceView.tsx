@@ -28,6 +28,7 @@ import RbacItDangerActions from "../phan-quyen/views/RbacItDangerActions";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export default function MdmGovernanceView() {
   const [loading, setLoading] = useState(true);
@@ -96,14 +97,14 @@ export default function MdmGovernanceView() {
   };
 
   const handleDeleteRegistry = async (row: MdmFieldRegistryRow) => {
-    if (!window.confirm(`Xóa cấu hình registry và tháo gỡ HOÀN TOÀN trigger kiểm soát cột ${row.column_name}?`)) {
+    if (!(await confirmAction(`Ngừng sử dụng cấu hình registry và tháo trigger kiểm soát cột ${row.column_name}? Có thể bật lại sau.`))) {
       return;
     }
     try {
-      toast.info(`Đang tháo gỡ trigger và xóa cấu hình cột ${row.column_name}...`);
+      toast.info(`Đang tháo trigger cột ${row.column_name}...`);
       const res = await deleteRegistryRowAction(row.id);
       if (res.success) {
-        toast.success(`Đã tháo gỡ cấu hình bảo vệ thành công!`);
+        toast.success(`Đã ngừng sử dụng cấu hình cột ${row.column_name}.`);
         await fetchSnapshot(true);
       } else {
         toast.error("Không thể gỡ bỏ: " + res.error);
@@ -114,7 +115,7 @@ export default function MdmGovernanceView() {
   };
 
   const handleRejectSuggestion = async (row: MdmSuggestionRow) => {
-    if (!window.confirm(`Từ chối gợi ý bảo vệ này? Gợi ý sẽ ẩn đi.`)) {
+    if (!(await confirmAction(`Từ chối gợi ý bảo vệ này? Gợi ý sẽ ẩn đi.`))) {
       return;
     }
     try {
@@ -217,16 +218,18 @@ export default function MdmGovernanceView() {
     {
       header: "Thao tác",
       accessorKey: "id",
-      cell: (r) => (
-        <button
-          type="button"
-          onClick={() => handleDeleteRegistry(r)}
-          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-          title="Tháo gỡ Trigger và xóa cấu hình"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      )
+      cell: (r) =>
+        r.is_active ? (
+          <button
+            type="button"
+            onClick={() => handleDeleteRegistry(r)}
+            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+            title="Ngừng sử dụng cấu hình (tháo trigger)"
+            aria-label={`Ngừng sử dụng cấu hình cột ${r.column_name}`}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        ) : null
     }
   ];
 

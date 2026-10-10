@@ -13,6 +13,7 @@ import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem, TieuChiBangKiem } from "../bang-kiem.types";
 import { getTieuChiTableColumns } from "./tieu-chi-table-columns";
 import TieuChiTableToolbar from "./tieu-chi-table-toolbar";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export type TieuChiTablePermission = Partial<{
   import: boolean;
@@ -54,11 +55,11 @@ export default function TieuChiTable({
   }, [bangKiem.id, refreshKey]);
 
   const handleBulkDelete = async (items: TieuChiBangKiem[]) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa ${items.length} tiêu chí đã chọn?`)) return;
+    if (!(await confirmAction(`Ngừng sử dụng ${items.length} tiêu chí đã chọn? Phiếu cũ vẫn giữ nguyên.`))) return;
     const ids = items.map((i) => i.id);
     const res = await deleteMultipleTieuChis(ids);
     if (res.success) {
-      toast.success("Đã xóa các mục chọn");
+      toast.success("Đã ngừng sử dụng các mục đã chọn.");
       setRefreshKey((prev) => prev + 1);
     } else {
       toast.error(res.error);
@@ -78,7 +79,7 @@ export default function TieuChiTable({
       setIsFormOpen(true);
     },
     onDelete: async (tc) => {
-      if (!window.confirm("Bạn có chắc chắn muốn xóa tiêu chí này?")) return;
+      if (!(await confirmAction("Ngừng sử dụng tiêu chí này? Phiếu cũ vẫn giữ nguyên."))) return;
       await deleteTieuChi(bangKiem.id, tc.id);
       setRefreshKey((prev) => prev + 1);
     },

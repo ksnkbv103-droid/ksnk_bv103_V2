@@ -19,6 +19,7 @@ import {
 } from "../lib/bang-kiem-gsc-fields";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export type BangKiemTablePermission = Partial<{
   import: boolean;
@@ -95,7 +96,7 @@ export default function BangKiemTable({
       setIsFormOpen(true);
     },
     onDelete: async (bk) => {
-      if (!window.confirm("Xóa mẫu này?")) return;
+      if (!(await confirmAction("Ngừng sử dụng mẫu bảng kiểm này? Phiếu cũ vẫn giữ nguyên."))) return;
       await deleteBangKiem(bk.id);
       setRefreshKey((k) => k + 1);
     },
@@ -190,8 +191,8 @@ export default function BangKiemTable({
           }
           onDeleteSelected={
             allowDelete
-              ? (items) => {
-                  if (confirm(`Xóa ${items.length} bảng kiểm?`)) {
+              ? async (items) => {
+                  if (await confirmAction(`Ngừng sử dụng ${items.length} bảng kiểm? Phiếu cũ vẫn giữ nguyên.`)) {
                     void Promise.all(items.map((i) => deleteBangKiem(i.id))).then(() =>
                       setRefreshKey((k) => k + 1),
                     );

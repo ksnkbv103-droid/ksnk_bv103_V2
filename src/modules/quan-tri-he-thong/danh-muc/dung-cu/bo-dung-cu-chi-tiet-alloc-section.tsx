@@ -7,6 +7,7 @@ import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { allocateProceduralSetAction } from "../actions/bo-dung-cu.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export type AllocationRow = {
   id: string;
@@ -45,7 +46,7 @@ export function BoDungCuChiTietAllocSection({
   const [busy, setBusy] = React.useState(false);
 
   const runAllocate = async (khoaPhongId: string, quantity: number, confirmMsg?: string) => {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+    if (confirmMsg && !(await confirmAction(confirmMsg))) return;
     setBusy(true);
     try {
       const r = await allocateProceduralSetAction({

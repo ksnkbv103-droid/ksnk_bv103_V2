@@ -77,7 +77,7 @@ export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion,
     <QuanTriFormDialogShell
       open={isOpen}
       onClose={onClose}
-      title="Phê duyệt & Thiết lập Bảo vệ"
+      title="Phê duyệt và thiết lập bảo vệ"
       subtitle="Kích hoạt trigger kiểm soát toàn vẹn dữ liệu cứng"
       size="md"
       onSubmit={handleSubmit}

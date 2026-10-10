@@ -5,6 +5,7 @@ import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedData
 import { toast } from "sonner";
 import { mdmSoftDeleteManyGenericDm } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { GenericDmRow } from "./generic-dm-master-columns";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 type Props = {
   columns: Column<GenericDmRow>[];
@@ -48,14 +49,14 @@ export default function GenericDmMasterDataTable({
           canDelete
             ? async (items) => {
                 if (!items.length) return;
-                if (!window.confirm(`Xóa mềm ${items.length} dòng đã chọn?`)) return;
+                if (!(await confirmAction(`Ngừng sử dụng ${items.length} dòng đã chọn?`))) return;
                 const res = await mdmSoftDeleteManyGenericDm(
                   registryKey,
                   items.map((x) => String(x.id))
                 );
                 if (!res.success) toast.error((res as { error?: string }).error || "Không xóa được.");
                 else {
-                  toast.success("Đã xóa mềm các dòng đã chọn.");
+                  toast.success("Đã ngừng sử dụng các dòng đã chọn.");
                   void onReload();
                 }
               }

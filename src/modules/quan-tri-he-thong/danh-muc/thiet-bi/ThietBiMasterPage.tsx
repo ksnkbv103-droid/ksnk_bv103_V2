@@ -22,6 +22,7 @@ import {
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 import { smartImportData } from "../actions/smart-import.actions";
 import { getMasterDataExport } from "../actions/export.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?: boolean }) {
   const [data, setData] = useState<ThietBiRow[]>([]);
@@ -67,13 +68,13 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
     },
     onEdit: openEdit,
     onDelete: async (row) => {
-      if (!window.confirm(`Xóa mềm thiết bị ${row.ma_thiet_bi || row.id}?`)) return;
+      if (!(await confirmAction(`Ngừng sử dụng thiết bị ${row.ma_thiet_bi || row.id}?`))) return;
       const result = await softDeleteThietBiAction(row.id);
       if (!result.success) {
-        toast.error(result.error || "Không thể xóa mềm.");
+        toast.error(result.error || "Không thể ngừng sử dụng.");
         return;
       }
-      toast.success("Đã xóa mềm dữ liệu.");
+      toast.success("Đã ngừng sử dụng.");
       setRefreshKey((k) => k + 1);
     },
   });
@@ -158,13 +159,13 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
-            if (!window.confirm(`Xóa mềm ${rows.length} thiết bị?`)) return;
+            if (!(await confirmAction(`Ngừng sử dụng ${rows.length} thiết bị?`))) return;
             const result = await softDeleteManyThietBiAction(rows.map((r) => r.id));
             if (!result.success) {
               toast.error(result.error || "Không thể xóa danh sách.");
               return;
             }
-            toast.success("Đã xóa mềm dữ liệu đã chọn.");
+            toast.success("Đã ngừng sử dụng các mục đã chọn.");
             setRefreshKey((k) => k + 1);
           }}
         />

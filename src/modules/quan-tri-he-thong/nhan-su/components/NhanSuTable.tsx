@@ -117,7 +117,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
 
   const openCreateTk = (row: NhanSu) => {
     if (!row.email?.trim()) {
-      toast.error("Nhân sự chưa có email — cập nhật hồ sơ trước khi tạo TK.");
+      toast.error("Nhân sự chưa có email — cập nhật hồ sơ trước khi tạo tài khoản.");
       return;
     }
     setAuthDialog({ mode: "create", staff: row });
@@ -179,7 +179,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           secondApproverEmail: payload.secondApproverEmail,
         });
         if (!res.success) {
-          toast.error(res.error || "Duyệt đặt lại MK thất bại.");
+          toast.error(res.error || "Duyệt đặt lại mật khẩu thất bại.");
           return;
         }
         toast.success("Đã duyệt và đặt lại mật khẩu.");
@@ -372,7 +372,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       ) 
     },
     { 
-      header: "Chức vụ & danh",
+      header: "Chức vụ và chức danh",
       accessorKey: "chuc_danh", 
       sortable: true, 
       cell: (i) => (
@@ -399,7 +399,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               ? "bg-emerald-50 text-emerald-800 border border-emerald-100"
               : "bg-slate-100 text-slate-500"
           }`}>
-            {i.auth_user_id ? "Đã có TK" : "Chưa TK"}
+            {i.auth_user_id ? "Đã có tài khoản" : "Chưa có tài khoản"}
           </span>
           <span className="text-[11px] font-medium text-slate-600">
             {staffKsnkRoleDisplayLabel(i.vai_tro_he_thong_ksnk) || "— vai trò —"}
@@ -427,7 +427,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                       className="inline-flex h-8 items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100"
                     >
                       <KeyRound size={12} aria-hidden />
-                      Duyệt cấp TK
+                      Duyệt cấp tài khoản
                     </button>
                   ) : (
                     <button
@@ -436,7 +436,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                       className="inline-flex h-8 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-semibold text-amber-950 hover:bg-amber-100"
                     >
                       <KeyRound size={12} aria-hidden />
-                      Duyệt đặt lại MK
+                      Duyệt đặt lại mật khẩu
                     </button>
                   )}
                   <button
@@ -457,7 +457,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
             >
               <KeyRound size={12} aria-hidden />
-              {provisioningId === i.id ? "Đang tạo…" : "Tạo TK"}
+              {provisioningId === i.id ? "Đang tạo…" : "Tạo tài khoản"}
             </button>
           ) : canProvisionTk && i.auth_user_id ? (
             <button
@@ -467,7 +467,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
             >
               <KeyRound size={12} aria-hidden />
-              Đặt lại MK
+              Đặt lại mật khẩu
             </button>
           ) : null}
         </div>

@@ -11,6 +11,7 @@ import {
 } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import { useGenericDmMaSuggest } from "./useGenericDmMaSuggest";
 import { buildGenericDmColumns, type GenericDmRow } from "../views/generic-dm-master-columns";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export function useGenericDmMasterPageModel(loaiDanhMuc: string, canMutate: boolean, canDelete: boolean) {
   const key = loaiDanhMuc.trim();
@@ -94,11 +95,11 @@ export function useGenericDmMasterPageModel(loaiDanhMuc: string, canMutate: bool
   const onSoftDelete = useCallback(
     async (r: GenericDmRow) => {
       const label = String(r[tenCol] ?? r.id);
-      if (!window.confirm(`Xóa mềm "${label}"?`)) return;
+      if (!(await confirmAction(`Ngừng sử dụng "${label}"?`))) return;
       const res = await mdmSoftDeleteGenericDm(key, String(r.id));
       if (!res.success) toast.error((res as { error?: string }).error || "Không xóa được.");
       else {
-        toast.success("Đã xóa mềm.");
+        toast.success("Đã ngừng sử dụng.");
         void load();
       }
     },

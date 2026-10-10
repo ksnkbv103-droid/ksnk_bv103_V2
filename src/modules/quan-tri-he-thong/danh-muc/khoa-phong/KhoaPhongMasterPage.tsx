@@ -24,6 +24,7 @@ import {
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 import { smartImportMasterTable } from "../actions/smart-import.gateway";
 import { getMasterDataExport } from "../actions/export.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 function KhoaPhongMasterPageContent() {
   const router = useRouter();
@@ -87,13 +88,13 @@ function KhoaPhongMasterPageContent() {
       setFormOpen(true);
     },
     onDelete: async (row) => {
-      if (!window.confirm(`Tắt khoa phòng ${row.ma_danh_muc || row.id}? Khoa vẫn còn trong sổ, có thể bật lại.`)) return;
+      if (!(await confirmAction(`Ngừng sử dụng khoa phòng ${row.ma_danh_muc || row.id}? Khoa vẫn còn trong sổ, có thể bật lại.`))) return;
       const result = await softDeleteKhoaPhongAction(row.id);
       if (!result.success) {
-        toast.error(result.error || "Không thể tắt khoa.");
+        toast.error(result.error || "Không thể ngừng sử dụng khoa.");
         return;
       }
-      toast.success("Đã tắt khoa (xóa mềm).");
+      toast.success("Đã ngừng sử dụng khoa.");
       setRefreshKey((k) => k + 1);
     },
   });
@@ -133,7 +134,7 @@ function KhoaPhongMasterPageContent() {
     <div className="space-y-3 animate-in fade-in duration-700">
       <KsnkPageHeader
         showTitle={false}
-        title="Khoa phòng & Đơn vị"
+        title="Khoa phòng và đơn vị"
         actions={
           <>
             <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
@@ -173,13 +174,13 @@ function KhoaPhongMasterPageContent() {
           bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
-            if (!window.confirm(`Tắt ${rows.length} khoa phòng? Khoa vẫn còn trong sổ, có thể bật lại.`)) return;
+            if (!(await confirmAction(`Ngừng sử dụng ${rows.length} khoa phòng? Khoa vẫn còn trong sổ, có thể bật lại.`))) return;
             const result = await softDeleteManyKhoaPhongAction(rows.map((r) => r.id));
             if (!result.success) {
-              toast.error(result.error || "Không thể tắt danh sách khoa.");
+              toast.error(result.error || "Không thể ngừng sử dụng các khoa đã chọn.");
               return;
             }
-            toast.success("Đã tắt khoa đã chọn (xóa mềm).");
+            toast.success("Đã ngừng sử dụng các khoa đã chọn.");
             setRefreshKey((k) => k + 1);
           }}
         />

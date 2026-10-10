@@ -26,6 +26,7 @@ import {
   softDeleteManyBoDungCuAction,
   toggleBoDungCuStatusAction,
 } from "../actions/bo-dung-cu.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () => void }) {
   const router = useRouter();
@@ -97,13 +98,13 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
     },
     onEdit: openEdit,
     onDelete: async (row) => {
-      if (!window.confirm(`Xóa mềm bộ dụng cụ ${row.ma_bo || row.id}?`)) return;
+      if (!(await confirmAction(`Ngừng sử dụng bộ dụng cụ ${row.ma_bo || row.id}?`))) return;
       const result = await softDeleteBoDungCuAction(row.id);
       if (!result.success) {
-        toast.error(result.error || "Không thể xóa mềm.");
+        toast.error(result.error || "Không thể ngừng sử dụng.");
         return;
       }
-      toast.success("Đã xóa mềm dữ liệu.");
+      toast.success("Đã ngừng sử dụng.");
       setRefreshKey((k) => k + 1);
     },
   });
@@ -178,13 +179,13 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
           }
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
-            if (!window.confirm(`Xóa mềm ${rows.length} bộ dụng cụ?`)) return;
+            if (!(await confirmAction(`Ngừng sử dụng ${rows.length} bộ dụng cụ?`))) return;
             const result = await softDeleteManyBoDungCuAction(rows.map((r) => r.id));
             if (!result.success) {
               toast.error(result.error || "Không thể xóa danh sách.");
               return;
             }
-            toast.success("Đã xóa mềm dữ liệu đã chọn.");
+            toast.success("Đã ngừng sử dụng các mục đã chọn.");
             setRefreshKey((k) => k + 1);
           }}
         />

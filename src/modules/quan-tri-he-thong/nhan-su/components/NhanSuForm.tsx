@@ -177,7 +177,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
 
   const subtitle = initialData?.id
     ? "Mã nhân viên là định danh duy nhất."
-    : "Họ tên, khoa, email, vai trò — tạo TK nếu có quyền.";
+    : "Họ tên, khoa, email, vai trò — tạo tài khoản nếu có quyền.";
 
   return (
     <QuanTriFormDialogShell

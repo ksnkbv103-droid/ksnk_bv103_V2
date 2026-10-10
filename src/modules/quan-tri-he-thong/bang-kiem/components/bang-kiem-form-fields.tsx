@@ -95,7 +95,7 @@ export default function BangKiemFormFields({
           <option value="PHONG_NGUA_CHUAN">Phòng ngừa chuẩn</option>
           <option value="GOI_CAN_THIEP">Gói can thiệp</option>
           <option value="XU_LY_DUNG_CU">Xử lý dụng cụ</option>
-          <option value="MOI_TRUONG_CHAT_THAI">Môi trường & Chất thải</option>
+          <option value="MOI_TRUONG_CHAT_THAI">Môi trường và chất thải</option>
           <option value="CHUYEN_KHOA">Chuyên khoa</option>
           <option value="QUAN_TRI_HE_THONG">Quản trị hệ thống</option>
         </select>

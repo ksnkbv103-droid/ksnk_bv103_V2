@@ -23,6 +23,7 @@ import {
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 import { smartImportData } from "../actions/smart-import.actions";
 import { getMasterDataExport } from "../actions/export.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 function HoaChatMasterPageContent() {
   const [data, setData] = useState<HoaChatRow[]>([]);
@@ -62,13 +63,13 @@ function HoaChatMasterPageContent() {
       setFormOpen(true);
     },
     onDelete: async (row) => {
-      if (!window.confirm(`Xóa mềm hóa chất ${row.ma_hoa_chat || row.id}?`)) return;
+      if (!(await confirmAction(`Ngừng sử dụng hóa chất ${row.ma_hoa_chat || row.id}?`))) return;
       const result = await softDeleteHoaChatAction(row.id);
       if (!result.success) {
-        toast.error(result.error || "Không thể xóa mềm.");
+        toast.error(result.error || "Không thể ngừng sử dụng.");
         return;
       }
-      toast.success("Đã xóa mềm dữ liệu.");
+      toast.success("Đã ngừng sử dụng.");
       setRefreshKey((k) => k + 1);
     },
   });
@@ -102,7 +103,7 @@ function HoaChatMasterPageContent() {
     <div className="space-y-3 animate-in fade-in duration-700">
       <KsnkListPageHeader
         icon={Beaker}
-        title="Hóa chất & Vật tư"
+        title="Hóa chất và vật tư"
         eyebrow="Danh mục hóa chất, vật tư và test kit khoa KSNK"
         actions={
           <>
@@ -144,13 +145,13 @@ function HoaChatMasterPageContent() {
           bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
-            if (!window.confirm(`Xóa mềm ${rows.length} hóa chất?`)) return;
+            if (!(await confirmAction(`Ngừng sử dụng ${rows.length} hóa chất?`))) return;
             const result = await softDeleteManyHoaChatAction(rows.map((r) => r.id));
             if (!result.success) {
               toast.error(result.error || "Không thể xóa danh sách.");
               return;
             }
-            toast.success("Đã xóa mềm dữ liệu đã chọn.");
+            toast.success("Đã ngừng sử dụng các mục đã chọn.");
             setRefreshKey((k) => k + 1);
           }}
         />

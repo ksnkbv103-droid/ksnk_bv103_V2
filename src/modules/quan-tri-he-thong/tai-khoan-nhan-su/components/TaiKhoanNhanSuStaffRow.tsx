@@ -62,7 +62,7 @@ export default function TaiKhoanNhanSuStaffRow({
               }}
               className="rounded-lg bg-slate-800 px-2 py-1.5 bv103-type-label font-semibold text-white disabled:opacity-40"
             >
-              Tạo TK
+              Tạo tài khoản
             </button>
           </div>
         ) : (
@@ -105,7 +105,7 @@ export default function TaiKhoanNhanSuStaffRow({
                   type="password"
                   value={actorPw}
                   onChange={(e) => setActorPw(e.target.value)}
-                  placeholder="MK admin hiện tại (xác nhận)"
+                  placeholder="Mật khẩu quản trị hiện tại (xác nhận)"
                   className="bv103-control-h min-w-[110px] w-full rounded-lg border border-slate-200 px-2 text-xs"
                 />
                 <div className="flex items-center gap-1.5">

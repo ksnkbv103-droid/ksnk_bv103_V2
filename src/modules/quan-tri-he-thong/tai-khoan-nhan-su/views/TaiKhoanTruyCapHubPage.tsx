@@ -43,7 +43,7 @@ export default function TaiKhoanTruyCapHubPage() {
             <div>
               <div className="text-sm font-semibold text-slate-900">Phiếu chờ duyệt</div>
               <p className="mt-1 text-xs text-slate-600">
-                Xin cấp TK và xin admin đặt lại MK — lọc «Chỉ chờ duyệt» trên Nhân sự.
+                Xin cấp tài khoản và xin admin đặt lại mật khẩu — lọc «Chỉ chờ duyệt» trên Nhân sự.
               </p>
               <p className="mt-2 text-2xl font-semibold tabular-nums text-amber-900">
                 {pending == null ? "…" : pending}
@@ -64,7 +64,7 @@ export default function TaiKhoanTruyCapHubPage() {
             <div>
               <div className="text-sm font-semibold text-slate-900">Nhân sự</div>
               <p className="mt-1 text-xs text-slate-600">
-                Tạo TK, đặt lại MK, duyệt / từ chối phiếu trên cột Tài khoản.
+                Tạo tài khoản, đặt lại mật khẩu, duyệt / từ chối phiếu trên cột Tài khoản.
               </p>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function TaiKhoanTruyCapHubPage() {
             <div>
               <div className="text-sm font-semibold text-slate-900">Đổi mật khẩu của tôi</div>
               <p className="mt-1 text-xs text-slate-600">
-                Self-service khi đã biết mật khẩu hiện tại. Quên MK: email hoặc xin admin từ trang đăng nhập.
+                Self-service khi đã biết mật khẩu hiện tại. Quên mật khẩu: email hoặc xin admin từ trang đăng nhập.
               </p>
             </div>
           </div>
@@ -109,10 +109,10 @@ export default function TaiKhoanTruyCapHubPage() {
           </div>
           <ul className="list-disc space-y-1 pl-5 text-xs text-slate-600">
             <li>
-              Đặt lại / duyệt MK: luôn nhập lại mật khẩu đăng nhập của bạn trước khi đổi mật khẩu người khác.
+              Đặt lại / duyệt mật khẩu: luôn nhập lại mật khẩu đăng nhập của bạn trước khi đổi mật khẩu người khác.
             </li>
             <li>
-              Không dùng nút «Đặt lại MK» trên hồ sơ của chính mình — hãy đổi MK tại «Đổi mật khẩu của tôi»
+              Không dùng nút «Đặt lại mật khẩu» trên hồ sơ của chính mình — hãy đổi mật khẩu tại «Đổi mật khẩu của tôi»
               hoặc dùng quên mật khẩu / xin admin khác.
             </li>
             <li>

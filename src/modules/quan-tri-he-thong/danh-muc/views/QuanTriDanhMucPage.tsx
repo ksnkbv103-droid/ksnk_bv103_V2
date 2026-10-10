@@ -32,7 +32,6 @@ function uiTabFromQuery(tab: string | null): QuanTriHubUiTab {
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [uiTab, setUiTab] = useState<QuanTriHubUiTab>("DANH_MUC");
   const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
   const [loading, setLoading] = useState(true);
   const [hubSearch, setHubSearch] = useState("");
@@ -49,9 +48,12 @@ export default function QuanTriDanhMucPage() {
   );
   const canAccessJobs = catalogRows.length > 0;
 
+  // URL là nguồn duy nhất của tab (không giữ bản sao state) — tránh nháy tab khi điều hướng.
+  const rawTab = searchParams.get("tab");
+  const uiTab = useMemo(() => uiTabFromQuery(rawTab), [rawTab]);
+
   const setHubTab = useCallback(
     (tab: QuanTriHubTab) => {
-      setUiTab(tab === "PHAN_QUYEN" ? "PHAN_QUYEN" : tab === "DANH_MUC" ? "DANH_MUC" : "IT");
       router.replace(quanTriHubHref(tab), { scroll: false });
     },
     [router],
@@ -62,14 +64,12 @@ export default function QuanTriDanhMucPage() {
   }, [canAccessJobs, canViewRbac, uiTab, setHubTab]);
 
   useEffect(() => {
-    const raw = searchParams.get("tab");
-    setUiTab(uiTabFromQuery(raw));
-    if (raw === "dm_registry") {
+    if (rawTab === "dm_registry") {
       requestAnimationFrame(() => {
         document.getElementById("dm-unified-catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
-  }, [searchParams]);
+  }, [rawTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -134,7 +134,12 @@ export default function QuanTriDanhMucPage() {
       />
 
       {uiTab === "DANH_MUC" && canAccessJobs ? (
-        <div className="space-y-[var(--bv103-space-3)]" id="dm-unified-catalog">
+        <div
+          className="space-y-[var(--bv103-space-3)]"
+          id="dm-unified-catalog"
+          role="tabpanel"
+          aria-labelledby="tab-danhmuc-hub"
+        >
           {(canViewDanhMuc || isAdmin) && <QuanTriHubWorkQueue onOpen={go} />}
           <QuanTriHubJobCards rows={catalogRows} allowedJobs={allowedJobs} onOpen={go} />
           <div className="min-w-0 space-y-2">
@@ -160,11 +165,16 @@ export default function QuanTriDanhMucPage() {
           </div>
         </div>
       ) : uiTab === "PHAN_QUYEN" && canViewRbac ? (
-        <section aria-labelledby="tab-phan-quyen">
+        <section id="panel-phan-quyen" role="tabpanel" aria-labelledby="tab-phan-quyen">
           <RBACMatrixView />
         </section>
       ) : uiTab === "IT" && canAccessIt ? (
-        <section className="space-y-[var(--bv103-space-3)]" aria-labelledby="tab-danh-cho-it">
+        <section
+          id="panel-danh-cho-it"
+          role="tabpanel"
+          className="space-y-[var(--bv103-space-3)]"
+          aria-labelledby="tab-danh-cho-it"
+        >
           {canViewDanhMuc ? <MdmGovernanceView /> : null}
           <SystemHealthPanel />
         </section>

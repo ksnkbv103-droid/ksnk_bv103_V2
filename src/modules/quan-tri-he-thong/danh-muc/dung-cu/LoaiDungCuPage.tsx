@@ -23,6 +23,7 @@ import {
   softDeleteManyLoaiDungCuAction,
   toggleLoaiDungCuStatusAction,
 } from "../actions/loai-dung-cu.actions";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 function clip(s: string | null | undefined, n: number) {
   const t = String(s ?? "").trim();
@@ -90,13 +91,13 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
     },
     onEdit: (item) => { setEditing(item); setIsFormOpen(true); },
     onDelete: async (item) => {
-      if (!window.confirm(`Xóa mềm loại ${item.ma_danh_muc || item.id}?`)) return;
+      if (!(await confirmAction(`Ngừng sử dụng loại ${item.ma_danh_muc || item.id}?`))) return;
       const result = await softDeleteLoaiDungCuAction(item.id);
       if (!result.success) {
         toast.error(result.error || "Không thể xóa.");
         return;
       }
-      toast.success("Đã xóa mềm dữ liệu.");
+      toast.success("Đã ngừng sử dụng.");
       table.refresh();
     },
   });
@@ -271,13 +272,13 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
               onRowClick={(r) => setSelectedLoaiId((cur) => (cur === r.id ? null : r.id))}
               onDeleteSelected={async (items) => {
                 if (!items.length) return;
-                if (!window.confirm(`Xóa mềm ${items.length} loại dụng cụ?`)) return;
+                if (!(await confirmAction(`Ngừng sử dụng ${items.length} loại dụng cụ?`))) return;
                 const result = await softDeleteManyLoaiDungCuAction(items.map((x) => x.id));
                 if (!result.success) {
                   toast.error(result.error || "Không thể xóa danh sách.");
                   return;
                 }
-                toast.success("Đã xóa mềm dữ liệu đã chọn.");
+                toast.success("Đã ngừng sử dụng các mục đã chọn.");
                 table.refresh();
               }}
             />
