@@ -417,27 +417,36 @@ export async function saveTraLoiCau(input: {
 }) {
   const { user } = await requireDaoTaoUser();
   const admin = createAdminSupabaseClient();
-  const { data: lanThi } = await admin
-    .from("dao_tao_lan_thi")
-    .select("id, auth_user_id, trang_thai, de_snapshot")
-    .eq("id", input.lanThiId)
-    .maybeSingle();
-  if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
-  if (lanThi.trang_thai !== "dang_lam") throw new Error("Bài đã nộp.");
 
-  const snap = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).map((item) =>
-    item.id === input.cauId ? { ...item, tra_loi: input.traLoi } : item,
-  );
+  // Hai lần tự lưu song song cùng đọc–sửa–ghi cả de_snapshot → mất câu trả lời.
+  // Khóa lạc quan theo updated_at: ghi trượt (0 dòng) thì đọc lại rồi thử tiếp.
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const { data: lanThi } = await admin
+      .from("dao_tao_lan_thi")
+      .select("id, auth_user_id, trang_thai, de_snapshot, han_nop_luc, updated_at")
+      .eq("id", input.lanThiId)
+      .maybeSingle();
+    if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
+    if (lanThi.trang_thai !== "dang_lam") throw new Error("Bài đã nộp.");
+    if (Date.now() > new Date(lanThi.han_nop_luc).getTime() + LATE_GRACE_MS) {
+      throw new Error("Đã hết giờ làm bài — không thể lưu thêm câu trả lời.");
+    }
 
-  const { error } = await admin
-    .from("dao_tao_lan_thi")
-    .update({
-      de_snapshot: snap,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", input.lanThiId);
-  if (error) throw error;
-  return { ok: true };
+    const snap = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).map((item) =>
+      item.id === input.cauId ? { ...item, tra_loi: input.traLoi } : item,
+    );
+
+    let query = admin
+      .from("dao_tao_lan_thi")
+      .update({ de_snapshot: snap, updated_at: new Date().toISOString() })
+      .eq("id", input.lanThiId)
+      .eq("trang_thai", "dang_lam");
+    query = lanThi.updated_at ? query.eq("updated_at", lanThi.updated_at) : query.is("updated_at", null);
+    const { data: written, error } = await query.select("id");
+    if (error) throw error;
+    if (written?.length) return { ok: true };
+  }
+  throw new Error("Không lưu được câu trả lời do nhiều thao tác cùng lúc — vui lòng thử lại.");
 }
 
 export async function submitLanThi(lanThiId: string) {

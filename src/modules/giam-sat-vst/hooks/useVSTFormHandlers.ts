@@ -7,7 +7,7 @@ import {
   MomentType,
   VSTObservation,
   admitMoment,
-  clampMomentsForAction,
+  clampMomentsKeepNewest,
   maxMomentsForAction,
 } from "../lib/vst-constants";
 import { saveVSTSession } from "../actions/vst-write-save-session.actions";
@@ -72,7 +72,7 @@ export function useVSTFormHandlers(
     mutatePersons((next) => {
       const opp = next[pIdx].opportunities[oIdx];
       opp.hanh_dong = action;
-      opp.thoi_diems = clampMomentsForAction(opp.thoi_diems, action);
+      opp.thoi_diems = clampMomentsKeepNewest(opp.thoi_diems, action);
       if (!isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat)) opp.thoi_gian_ghi_nhan = new Date().toISOString();
       if (action === "Bỏ sót") {
         opp.dung_ky_thuat = null;

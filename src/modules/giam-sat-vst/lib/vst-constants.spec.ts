@@ -11,6 +11,7 @@ import {
   actionUiLabel,
   admitMoment,
   clampMomentsForAction,
+  clampMomentsKeepNewest,
   isVstMissedAction,
   maxMomentsForAction,
   momentDisplayLabel,
@@ -61,6 +62,8 @@ describe("vst-constants WHO moments", () => {
     expect(maxMomentsForAction("Bỏ sót")).toBe(1);
     expect(clampMomentsForAction(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["a", "b"]);
     expect(clampMomentsForAction(["a", "b"], "Bỏ sót")).toEqual(["a"]);
+    expect(clampMomentsKeepNewest(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["b", "c"]);
+    expect(clampMomentsKeepNewest(["a", "b"], "Bỏ sót")).toEqual(["b"]);
     expect(admitMoment(["a", "b"], "c", 2)).toEqual(["b", "c"]);
     expect(admitMoment(["a", "b"], "a", 2)).toEqual(["b"]);
     expect(admitMoment(["a"], "b", 1)).toEqual(["b"]);

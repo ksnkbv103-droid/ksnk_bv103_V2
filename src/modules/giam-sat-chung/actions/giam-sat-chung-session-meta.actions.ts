@@ -4,7 +4,8 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
-import { getActorNhanSuId } from "@/lib/actor-auth-server";
+import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
+import { logAdminAction } from "@/lib/admin-audit";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -21,15 +22,29 @@ type GscSessionMutRow = {
   nguoi_giam_sat_id?: string | null;
   is_active?: boolean | null;
   ngay_giam_sat?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
-/** Xóa hẳn phiên + kết quả tiêu chí trong DB. Chỉ chủ phiên; phiên còn active. */
-export async function deleteGiamSatChungSessions(sessionIds: string[]) {
+export type DeleteGiamSatChungSessionsOpts = {
+  /** Bắt buộc khi xóa (QT.07 lưu hồ sơ ≥3 năm) — ghi vào `metadata.xoa` + nhật ký quản trị. */
+  lyDo?: string | null;
+};
+
+/**
+ * Xóa mềm phiên GSC (`is_active=false` + lý do trong `metadata.xoa` + nhật ký). Không xóa cứng.
+ * Chỉ chủ phiên (hoặc admin giám sát); phiên còn active; ngày chưa khóa sổ.
+ */
+export async function deleteGiamSatChungSessions(sessionIds: string[], opts?: DeleteGiamSatChungSessionsOpts) {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "delete");
     const ids = (sessionIds || []).map(String).filter(Boolean);
     if (!ids.length) return { success: true as const };
+
+    const lyDo = String(opts?.lyDo ?? "").trim();
+    if (lyDo.length < 3) {
+      return { success: false as const, error: "Vui lòng nhập lý do xóa (tối thiểu 3 ký tự)." };
+    }
 
     const adminBypass = await hasRBACAdminSupervisionBypass();
     const actorNhanSuId = await getActorNhanSuId();
@@ -39,7 +54,7 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
 
     const { data: rows, error: qErr } = await supabase
       .from("gstt_fact_chung_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,ngay_giam_sat")
+      .select("id,nguoi_giam_sat_id,is_active,ngay_giam_sat,metadata")
       .in("id", ids);
     if (qErr) throw qErr;
 
@@ -73,8 +88,36 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
       );
     }
 
-    const { error: sessionErr } = await supabase.from("gstt_fact_chung_sessions").delete().in("id", ids);
-    if (sessionErr) throw sessionErr;
+    const actorAuthUserId = await getActorAuthUserId();
+    const nowIso = new Date().toISOString();
+    for (const id of ids) {
+      const before = rowById.get(String(id));
+      const prevMeta =
+        before?.metadata && typeof before.metadata === "object" ? before.metadata : {};
+      const { error: sessionErr } = await supabase
+        .from("gstt_fact_chung_sessions")
+        .update({
+          is_active: false,
+          metadata: {
+            ...prevMeta,
+            xoa: { ly_do: lyDo, luc: nowIso, boi_nhan_su_id: actorNhanSuId || null, boi_auth_user_id: actorAuthUserId || null },
+          },
+          updated_at: nowIso,
+        })
+        .eq("id", id)
+        .eq("is_active", true);
+      if (sessionErr) throw sessionErr;
+
+      await logAdminAction({
+        action: "GSC_SOFT_DELETE_SESSION",
+        targetTable: "gstt_fact_chung_sessions",
+        targetId: String(id),
+        before: { is_active: true, nguoi_giam_sat_id: before?.nguoi_giam_sat_id ?? null, ngay_giam_sat: before?.ngay_giam_sat ?? null },
+        after: { is_active: false, ly_do_xoa: lyDo },
+        reason: lyDo,
+        actorUserId: actorAuthUserId,
+      });
+    }
 
     revalidateGscPaths();
     return { success: true as const };

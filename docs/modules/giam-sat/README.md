@@ -58,8 +58,8 @@ Cổng `/giam-sat` → khối **Vệ sinh tay** (3 lối, **không** gộp form)
 | # | Mẫu | Route |
 |---|-----|-------|
 | 1 | Quan sát 5 thời điểm (WHO / QT.07 BM.01) | `/giam-sat-vst` |
-| 2 | Kỹ thuật VST thường quy (QT.07 BM.02) | `/giam-sat-chung/tuan-thu?bk=BM.07.02` |
-| 3 | VST ngoại khoa (QT.07 BM.03) | `/giam-sat-chung/tuan-thu?bk=BM.07.03` |
+| 2 | Kỹ thuật VST thường quy (QT.07 BM.02) | `/giam-sat-chung/tuan-thu?bk=KSNK.QT.07.BM.02` |
+| 3 | VST ngoại khoa (QT.07 BM.03) | `/giam-sat-chung/tuan-thu?bk=KSNK.QT.07.BM.03` |
 
 Map mã SSOT: `src/lib/domain/ve-sinh-tay-catalog.ts` (`chuyen_de = VE_SINH_TAY`).
 
@@ -81,7 +81,7 @@ Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) tab **Vệ sinh tay** (v�
 - Cùng filter kỳ / khoa / lens TGS|KSNK của BCTH.
 - Tab chuyên đề VST cũng tải GSC (để có BM.02/03) — `shouldFetchSource("VST", "GSC") === true`.
 
-Deep-link thống kê từng khối: `/thong-ke/vst` · `/thong-ke/gsc?bk=BM.07.02` · `?bk=BM.07.03`.
+Deep-link thống kê từng khối: `/thong-ke/vst` · `/thong-ke/gsc?bk=KSNK.QT.07.BM.02` · `?bk=KSNK.QT.07.BM.03` (mã ngắn `BM.07.0x` vẫn được nhận như alias).
 
 ## UAT nhanh
 

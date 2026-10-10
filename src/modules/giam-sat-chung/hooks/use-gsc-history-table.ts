@@ -94,10 +94,14 @@ export function useGscHistoryTable(
 
   const handleDelete = useCallback(async (items: { id: string }[]) => {
     const ids = items.map((i) => String(i.id)).filter(Boolean);
-    if (!ids.length || !confirm(`Xóa vĩnh viễn ${ids.length} phiên khỏi cơ sở dữ liệu? Chỉ phiên do bạn giám sát mới được xóa.`)) return;
-    const res = await deleteGiamSatChungSessions(ids);
+    if (!ids.length) return;
+    const lyDo = window.prompt(
+      `Ngừng sử dụng ${ids.length} phiên giám sát? Phiên được ẩn khỏi báo cáo nhưng vẫn lưu hồ sơ.\nNhập lý do (tối thiểu 3 ký tự):`,
+    );
+    if (lyDo === null) return;
+    const res = await deleteGiamSatChungSessions(ids, { lyDo });
     if (res.success) {
-      toast.success(`Đã xóa ${ids.length} phiên khỏi cơ sở dữ liệu`);
+      toast.success(`Đã ngừng sử dụng ${ids.length} phiên`);
       refresh();
     } else toast.error("Lỗi xóa: " + res.error);
   }, [refresh]);

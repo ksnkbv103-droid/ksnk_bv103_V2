@@ -111,10 +111,16 @@ export function maxMomentsForAction(hanhDong: string | null | undefined): number
   return isVstMissedAction(hanhDong) ? VST_MAX_MOMENTS_MISSED : VST_MAX_MOMENTS_COMPLIANT;
 }
 
-/** Cắt danh sách thời điểm theo trần hành động (giữ thứ tự đã chọn). */
+/** Cắt danh sách thời điểm theo trần hành động (giữ thứ tự đã chọn) — dùng khi nạp dữ liệu đã lưu. */
 export function clampMomentsForAction<T>(moments: readonly T[], hanhDong: string | null | undefined): T[] {
   const cap = maxMomentsForAction(hanhDong);
   return moments.length > cap ? moments.slice(0, cap) : [...moments];
+}
+
+/** Đổi hành động trên form: quá trần thì bỏ lựa chọn cũ nhất, giữ mới nhất (cùng luật `admitMoment`). */
+export function clampMomentsKeepNewest<T>(moments: readonly T[], hanhDong: string | null | undefined): T[] {
+  const cap = maxMomentsForAction(hanhDong);
+  return moments.length > cap ? moments.slice(moments.length - cap) : [...moments];
 }
 
 /**

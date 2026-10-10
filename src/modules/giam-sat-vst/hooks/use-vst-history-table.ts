@@ -15,6 +15,7 @@ import { consumeSupervisionHistoryStale } from "@/lib/supervision-form-nav";
 import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VstPrintData } from "../hooks/use-vst-print";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 const MODULE_KEY = "GIAM_SAT_VST";
 
@@ -115,9 +116,9 @@ export function useVstHistoryTable() {
       const ids = items.map((i) => String(i.id)).filter(Boolean);
       if (!ids.length) return;
       if (
-        !confirm(
+        !(await confirmAction(
           `Vô hiệu ${ids.length} phiên giám sát (xóa mềm — dữ liệu vẫn lưu ≥3 năm theo QT.07)? Chỉ phiên do bạn giám sát (hoặc Admin sau 30 phút).`,
-        )
+        ))
       ) {
         return;
       }

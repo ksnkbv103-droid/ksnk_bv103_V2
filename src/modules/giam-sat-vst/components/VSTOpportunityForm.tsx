@@ -10,6 +10,7 @@ import {
   ACTION_DISPLAY_LABEL,
   ACTION_UI_LABEL,
   MOMENT_SHORT_CODE,
+  MOMENT_DISPLAY_LABEL,
   MOMENT_UI_LABEL,
   isVstMissedAction,
   maxMomentsForAction,
@@ -156,7 +157,7 @@ export default function VSTOpportunityForm({
                 key={m}
                 type="button"
                 title={`${momentDisplayLabel(m)} — ${MOMENT_TOOLTIPS[m]}`}
-                aria-label={MOMENT_UI_LABEL[m]}
+                aria-label={MOMENT_DISPLAY_LABEL[m]}
                 aria-pressed={active}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
                 className={`${MOMENT_CELL} ${active ? CELL_ON : CELL_IDLE}`}

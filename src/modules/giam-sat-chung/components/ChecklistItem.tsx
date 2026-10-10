@@ -7,6 +7,7 @@ import { gscFormChrome } from "../lib/gsc-form-chrome";
 import LogEntryForm from "./LogEntryForm";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 interface ChecklistItemProps {
   criterion: ChecklistCriterion;
@@ -183,8 +184,8 @@ export default function ChecklistItem({
     }
   };
 
-  const handleRemoveImage = () => {
-    if (confirm("Bạn có chắc chắn muốn xóa ảnh bằng chứng này?")) {
+  const handleRemoveImage = async () => {
+    if (await confirmAction("Bạn có chắc chắn muốn xóa ảnh bằng chứng này?")) {
       onChange({ ...result, image_url: null });
     }
   };

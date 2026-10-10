@@ -15,6 +15,7 @@ import {
   ACTIONS,
   clampMomentsForAction,
   isVstMissedAction,
+  maxMomentsForAction,
   type MomentType,
   type ActionType,
 } from "../lib/vst-constants";
@@ -26,6 +27,7 @@ import type { VSTFormPerson } from "../hooks/useVSTFormHandlers";
 import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { useEntityQrImage } from "@/hooks/useEntityQr";
 import { parseVstBoSungNbFromSessionRow } from "../lib/vst-bo-sung-nguoi-benh";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 type VstEditDetail = {
   session: Record<string, unknown>;
@@ -88,6 +90,8 @@ export default function VSTForm({
   const [isEditDirty, setIsEditDirty] = React.useState(false);
   /** Phiên cũ >3 người: cảnh báo WHO, vẫn nạp đủ (VST-05). */
   const [legacyPersonWarn, setLegacyPersonWarn] = React.useState<number | null>(null);
+  /** Số cơ hội cũ có quá nhiều thời điểm WHO, đã cắt khi nạp (đã bị loại khỏi KPI từ 2026-10-09). */
+  const [legacyMomentTrim, setLegacyMomentTrim] = React.useState<number | null>(null);
 
   const recordedOpportunityCount = persons.reduce(
     (sum, p) => sum + p.opportunities.filter((o) => o.isCollapsed).length,
@@ -216,6 +220,7 @@ export default function VSTForm({
       const colCount = Math.max(VST_MAX_PERSONS_NEW, groupEntries.length);
       const basePersons: VSTFormPerson[] = createDefaultVSTFormPersons(colCount);
       setLegacyPersonWarn(groupEntries.length > VST_MAX_PERSONS_NEW ? groupEntries.length : null);
+      let trimmedMoments = 0;
 
       for (let idx = 0; idx < groupEntries.length; idx++) {
         const [, group] = groupEntries[idx];
@@ -224,7 +229,9 @@ export default function VSTForm({
           const action = parseAction(row.hanh_dong);
           const missed = isVstMissedAction(action);
           // Domain §2.1: cắt trần khi nạp (tuân thủ ≤2, bỏ sót ≤1).
-          const thoi_diems = clampMomentsForAction(splitMoments(row.thoi_diem), action);
+          const rawMoments = splitMoments(row.thoi_diem);
+          if (rawMoments.length > maxMomentsForAction(action)) trimmedMoments += 1;
+          const thoi_diems = clampMomentsForAction(rawMoments, action);
 
           const thoi_gian_ghi_nhan = isReplayCamera ? undefined : parseRecordedAt(row.thoi_gian_ghi_nhan);
 
@@ -251,6 +258,7 @@ export default function VSTForm({
       }
 
       setPersons(basePersons);
+      setLegacyMomentTrim(trimmedMoments > 0 ? trimmedMoments : null);
       editBaselineRef.current = null;
       setIsEditDirty(false);
     }, [editDetail, initialLoading, editingSessionId, ngheNghieps, hinhThucGiamSats, cachThucGiamSats, setPersons, setSession]);
@@ -338,6 +346,18 @@ export default function VSTForm({
             </div>
           )}
         </div>
+
+        {legacyMomentTrim != null && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold">
+              {legacyMomentTrim} cơ hội trong phiên này đã lưu quá số thời điểm WHO cho phép.
+            </p>
+            <p className="mt-1 text-xs text-amber-900">
+              Form chỉ giữ các thời điểm mới chọn nhất (rửa/chà tối đa 2, bỏ sót 1). Kiểm tra lại rồi lưu; các
+              cơ hội cũ vượt trần không được tính vào chỉ số tuân thủ.
+            </p>
+          </div>
+        )}
 
         {legacyPersonWarn != null && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -430,9 +450,9 @@ export default function VSTForm({
 
         <div className="sticky bottom-0 z-20 flex flex-row items-center justify-end gap-3 border-t border-slate-200 bg-white/95 py-3 backdrop-blur max-sm:bottom-[4.5rem]">
           <button
-            onClick={() => {
+            onClick={async () => {
               if (hasUnsavedSession) {
-                const ok = window.confirm(
+                const ok = await confirmAction(
                   "In bản nháp từ màn hình — có thể khác dữ liệu đã lưu trên hệ thống. Tiếp tục?",
                 );
                 if (!ok) return;
