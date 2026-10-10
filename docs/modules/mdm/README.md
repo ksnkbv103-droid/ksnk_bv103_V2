@@ -17,7 +17,7 @@ Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-
 1. **Khoa → nhân sự → GSC:** Tạo/sửa khoa → gán nhân sự → `/giam-sat-chung` header đúng khoa.
 2. **Bảng kiểm:** Sửa mẫu tại `/quan-tri-he-thong/bang-kiem` → phiên GSC mới load đủ tiêu chí.
 3. **RBAC:** User thiếu quyền không sửa generic DM; tab Phân quyền chỉ khi `PHAN_QUYEN.edit` hoặc admin.
-4. **Tài khoản:** `/quan-tri-he-thong/tai-khoan-nhan-su` link Auth ↔ `mdm_nhan_su`.
+4. **Tài khoản:** `/quan-tri-he-thong/nhan-su` (cột Tài khoản) và `/quan-tri-he-thong/tai-khoan` (hub yêu cầu) link Auth ↔ `mdm_nhan_su`.
 5. **Dụng cụ ↔ CSSD:** `/quan-tri-he-thong/danh-muc/dung-cu?tab=bo` → BOM; vận hành đọc `/cssd-dung-cu`.
 
 ## Import & bảo vệ liên kết

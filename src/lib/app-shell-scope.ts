@@ -87,7 +87,7 @@ export function getKsnkAppHeaderBreadcrumb(
   }
   if (p.startsWith("/quan-tri-he-thong")) {
     if (p.startsWith("/quan-tri-he-thong/phan-quyen")) return { zone: "Quản trị", page: "Ma trận phân quyền" };
-    if (p.startsWith("/quan-tri-he-thong/tai-khoan-nhan-su") || p === "/quan-tri-he-thong/tai-khoan" || p.startsWith("/quan-tri-he-thong/tai-khoan/")) {
+    if (p === "/quan-tri-he-thong/tai-khoan" || p.startsWith("/quan-tri-he-thong/tai-khoan/")) {
       return { zone: "Quản trị", page: "Tài khoản & truy cập" };
     }
     if (p.startsWith("/quan-tri-he-thong/nhan-su")) return { zone: "Quản trị", page: "Nhân sự" };

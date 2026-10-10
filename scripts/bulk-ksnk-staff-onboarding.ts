@@ -166,7 +166,7 @@ async function main() {
   console.log(`Bỏ qua (chưa có tài khoản Auth — cần cấp trên UI Tài khoản nhân sự): ${skippedNoAuth}`);
   console.log(`Lỗi: ${errors}`);
   if (skippedNoAuth > 0) {
-    console.log("\nGợi ý: vào /quan-tri-he-thong/tai-khoan-nhan-su để provision từng người thiếu email/auth.");
+    console.log("\nGợi ý: vào /quan-tri-he-thong/nhan-su để provision từng người thiếu email/auth.");
   }
 }
 
