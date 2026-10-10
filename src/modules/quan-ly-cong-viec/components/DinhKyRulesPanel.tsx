@@ -34,6 +34,7 @@ import { DinhKyChecklistEditor } from "./DinhKyChecklistEditor";
 import type { QlcvPeriodKind } from "../lib/qlcv-period-range";
 import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 function labelChuKy(ma: string): string {
   if (ma === "DAILY") return "Hàng ngày";
@@ -557,7 +558,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                           type="button"
                           className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 hover:underline"
                           onClick={async () => {
-                            if (!window.confirm(`Xóa mẫu «${r.tieu_de}»? Nếu còn phiếu gắn mẫu, hệ thống chỉ tắt mẫu.`)) {
+                            if (!(await confirmAction(`Xóa mẫu «${r.tieu_de}»? Nếu còn phiếu gắn mẫu, hệ thống chỉ tắt mẫu.`))) {
                               return;
                             }
                             try {

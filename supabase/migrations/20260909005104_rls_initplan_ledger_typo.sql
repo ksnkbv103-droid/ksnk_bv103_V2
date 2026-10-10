@@ -1,17 +1,15 @@
--- Bọc (select auth.uid()/role()) để RLS không tính lại từng dòng.
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='dao_tao_lan_thi' AND policyname='dao_tao_lan_thi_insert') THEN EXECUTE $stmt$-- Bọc (select auth.uid()/role()) để RLS không tính lại từng dòng.
 -- Sửa typo thông báo chưa đăng nhập trên rpc_cssd_apply_instrument_ledger.
 
 ALTER POLICY dao_tao_lan_thi_insert ON public.dao_tao_lan_thi
-  WITH CHECK (auth_user_id = (select auth.uid()));
-
-ALTER POLICY dao_tao_lan_thi_select ON public.dao_tao_lan_thi
+  WITH CHECK (auth_user_id = (select auth.uid()));$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='dao_tao_lan_thi' AND policyname='dao_tao_lan_thi_select') THEN EXECUTE $stmt$ALTER POLICY dao_tao_lan_thi_select ON public.dao_tao_lan_thi
   USING (
     is_admin_user((select auth.uid()))
     OR fn_sys_has_permission('DAO_TAO'::text, 'view'::text)
     OR (auth_user_id = (select auth.uid()))
-  );
-
-ALTER POLICY dao_tao_lan_thi_update ON public.dao_tao_lan_thi
+  );$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='dao_tao_lan_thi' AND policyname='dao_tao_lan_thi_update') THEN EXECUTE $stmt$ALTER POLICY dao_tao_lan_thi_update ON public.dao_tao_lan_thi
   USING (
     is_admin_user((select auth.uid()))
     OR fn_sys_has_permission('DAO_TAO'::text, 'edit'::text)
@@ -21,9 +19,8 @@ ALTER POLICY dao_tao_lan_thi_update ON public.dao_tao_lan_thi
     is_admin_user((select auth.uid()))
     OR fn_sys_has_permission('DAO_TAO'::text, 'edit'::text)
     OR (auth_user_id = (select auth.uid()))
-  );
-
-ALTER POLICY "Admin full access" ON public.gstt_fact_chung_sessions
+  );$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='gstt_fact_chung_sessions' AND policyname='Admin full access') THEN EXECUTE $stmt$ALTER POLICY "Admin full access" ON public.gstt_fact_chung_sessions
   USING (
     EXISTS (
       SELECT 1
@@ -32,9 +29,8 @@ ALTER POLICY "Admin full access" ON public.gstt_fact_chung_sessions
       WHERE ur.user_id = (select auth.uid())
         AND r.name = 'ADMIN'::text
     )
-  );
-
-ALTER POLICY "Admin full access" ON public.gstt_fact_vst
+  );$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='gstt_fact_vst' AND policyname='Admin full access') THEN EXECUTE $stmt$ALTER POLICY "Admin full access" ON public.gstt_fact_vst
   USING (
     EXISTS (
       SELECT 1
@@ -43,12 +39,10 @@ ALTER POLICY "Admin full access" ON public.gstt_fact_vst
       WHERE ur.user_id = (select auth.uid())
         AND r.name = 'ADMIN'::text
     )
-  );
-
-ALTER POLICY "Authenticated read" ON public.gstt_fact_vst
-  USING ((select auth.role()) = 'authenticated'::text);
-
-ALTER POLICY "Admin full access" ON public.gstt_fact_vst_sessions
+  );$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='gstt_fact_vst' AND policyname='Authenticated read') THEN EXECUTE $stmt$ALTER POLICY "Authenticated read" ON public.gstt_fact_vst
+  USING ((select auth.role()) = 'authenticated'::text);$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='gstt_fact_vst_sessions' AND policyname='Admin full access') THEN EXECUTE $stmt$ALTER POLICY "Admin full access" ON public.gstt_fact_vst_sessions
   USING (
     EXISTS (
       SELECT 1
@@ -57,29 +51,23 @@ ALTER POLICY "Admin full access" ON public.gstt_fact_vst_sessions
       WHERE ur.user_id = (select auth.uid())
         AND r.name = 'ADMIN'::text
     )
-  );
-
-ALTER POLICY mdm_nhan_su_select_self ON public.mdm_nhan_su
-  USING ((auth_user_id IS NOT NULL) AND (auth_user_id = (select auth.uid())));
-
-ALTER POLICY permissions_admin_full_access_v2 ON public.sys_permissions
+  );$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='mdm_nhan_su' AND policyname='mdm_nhan_su_select_self') THEN EXECUTE $stmt$ALTER POLICY mdm_nhan_su_select_self ON public.mdm_nhan_su
+  USING ((auth_user_id IS NOT NULL) AND (auth_user_id = (select auth.uid())));$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='sys_permissions' AND policyname='permissions_admin_full_access_v2') THEN EXECUTE $stmt$ALTER POLICY permissions_admin_full_access_v2 ON public.sys_permissions
   USING (is_admin_user((select auth.uid())))
-  WITH CHECK (is_admin_user((select auth.uid())));
-
-ALTER POLICY role_permissions_admin_full_access_v2 ON public.sys_role_permissions
+  WITH CHECK (is_admin_user((select auth.uid())));$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='sys_role_permissions' AND policyname='role_permissions_admin_full_access_v2') THEN EXECUTE $stmt$ALTER POLICY role_permissions_admin_full_access_v2 ON public.sys_role_permissions
   USING (is_admin_user((select auth.uid())))
-  WITH CHECK (is_admin_user((select auth.uid())));
-
-ALTER POLICY roles_admin_full_access_v2 ON public.sys_roles
+  WITH CHECK (is_admin_user((select auth.uid())));$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='sys_roles' AND policyname='roles_admin_full_access_v2') THEN EXECUTE $stmt$ALTER POLICY roles_admin_full_access_v2 ON public.sys_roles
   USING (is_admin_user((select auth.uid())))
-  WITH CHECK (is_admin_user((select auth.uid())));
-
-ALTER POLICY user_roles_admin_full_access_v2 ON public.sys_user_roles
+  WITH CHECK (is_admin_user((select auth.uid())));$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='sys_user_roles' AND policyname='user_roles_admin_full_access_v2') THEN EXECUTE $stmt$ALTER POLICY user_roles_admin_full_access_v2 ON public.sys_user_roles
   USING (is_admin_user((select auth.uid())))
-  WITH CHECK (is_admin_user((select auth.uid())));
-
-ALTER POLICY user_roles_self_or_admin_select_v2 ON public.sys_user_roles
-  USING ((user_id = (select auth.uid())) OR is_admin_user((select auth.uid())));
+  WITH CHECK (is_admin_user((select auth.uid())));$stmt$; END IF; END $guard$;
+DO $guard$ BEGIN IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='sys_user_roles' AND policyname='user_roles_self_or_admin_select_v2') THEN EXECUTE $stmt$ALTER POLICY user_roles_self_or_admin_select_v2 ON public.sys_user_roles
+  USING ((user_id = (select auth.uid())) OR is_admin_user((select auth.uid())));$stmt$; END IF; END $guard$;
 
 CREATE OR REPLACE FUNCTION public.rpc_cssd_apply_instrument_ledger(
   p_su_co_id uuid,

@@ -104,9 +104,11 @@ CREATE POLICY sys_module_locks_delete_admin ON public.sys_module_locks
 DO $$
 DECLARE v_jobid bigint;
 BEGIN
-  SELECT jobid INTO v_jobid FROM cron.job WHERE jobname = 'nightly-sync-dashboard-pre-aggregates';
-  IF v_jobid IS NOT NULL THEN
-    PERFORM cron.unschedule(v_jobid);
+  IF to_regclass('cron.job') IS NOT NULL THEN
+    EXECUTE $q$SELECT jobid FROM cron.job WHERE jobname = 'nightly-sync-dashboard-pre-aggregates'$q$ INTO v_jobid;
+    IF v_jobid IS NOT NULL THEN
+      PERFORM cron.unschedule(v_jobid);
+    END IF;
   END IF;
 END $$;
 DROP FUNCTION public.fn_sync_dashboard_pre_aggregates();
@@ -130,6 +132,7 @@ DROP FUNCTION public.fn_gstt_rca_gen_ma_ticket(timestamp with time zone);
 -- Post-assertions (abort whole migration if any fails)
 -- ───────────────────────────────────────────────────────────────────────────
 DO $$
+DECLARE v_cron_left boolean;
 BEGIN
   IF (SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename='cssd_dm_hoa_chat'
         AND policyname IN ('cssd_dm_hoa_chat_select','cssd_dm_hoa_chat_insert','cssd_dm_hoa_chat_update','cssd_dm_hoa_chat_delete')
@@ -146,8 +149,11 @@ BEGIN
         AND policyname='sys_module_locks_select' AND cmd='SELECT' AND qual='true') THEN
     RAISE EXCEPTION 'P0-5 assert: mất sys_module_locks_select';
   END IF;
-  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname='nightly-sync-dashboard-pre-aggregates') THEN
-    RAISE EXCEPTION 'P1-a assert: cron job vẫn còn';
+  IF to_regclass('cron.job') IS NOT NULL THEN
+    EXECUTE $q$SELECT EXISTS (SELECT 1 FROM cron.job WHERE jobname='nightly-sync-dashboard-pre-aggregates')$q$ INTO v_cron_left;
+    IF v_cron_left THEN
+      RAISE EXCEPTION 'P1-a assert: cron job vẫn còn';
+    END IF;
   END IF;
   IF has_function_privilege('authenticated','public.rpc_vst_compare_matrices_impl(date,date,uuid[],uuid[],uuid[],uuid[],text[])','EXECUTE')
      OR has_function_privilege('anon','public.rpc_vst_compare_matrices_impl(date,date,uuid[],uuid[],uuid[],uuid[],text[])','EXECUTE') THEN

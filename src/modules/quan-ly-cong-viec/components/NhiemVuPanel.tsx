@@ -22,6 +22,7 @@ import {
   type KeHoachNamPeriodFilter,
   type KeHoachNamPeriodKind,
 } from "../lib/ke-hoach-nam-format";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 export type NhiemVuPanelProps = {
   onCreateCongViec?: (prefill: {
@@ -226,7 +227,7 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
   };
 
   const removeNv = async (nv: NhiemVuRow) => {
-    if (!window.confirm(`Xóa / huỷ nhiệm vụ «${nv.ten}»?`)) return;
+    if (!(await confirmAction(`Xóa / huỷ nhiệm vụ «${nv.ten}»?`))) return;
     try {
       const r = await deleteOrHuyNhiemVu(nv.id);
       toast.success(r.mode === "deleted" ? "Đã xóa nhiệm vụ." : "Đã huỷ (còn việc gắn).");

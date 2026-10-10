@@ -1,5 +1,5 @@
 -- RBAC-ACTIVE: vai trò đã tắt (`sys_roles.is_active = false`) không còn cấp quyền.
--- FILE ONLY — chưa apply. Prod đi qua Lead/MCP `apply_migration` (CLAUDE.md).
+-- ĐÃ APPLY PROD 2026-10-10 qua MCP `apply_migration` (PO duyệt). Version trên prod do MCP đặt, khác tên file — không đổi tên file.
 --
 -- Trước: `v_sys_user_permissions` JOIN `sys_roles` không lọc `is_active` → vai trò bị tắt
 -- vẫn xuất hiện trong `roles` và vẫn cấp `permissions` (server-permission.ts đọc view này).
