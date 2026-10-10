@@ -54,12 +54,12 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 - Chạy lệnh verify theo bảng Commands sau khi sửa; không commit khi verify fail
 - Hai cách đọc lâm sàng mà SSOT im → dừng, hỏi PO. Vòng này thắng chat
 - Xong một lát: báo câu SSOT đã bám, lát nào, cái gì không đụng
-- Chỉ dừng hỏi PO ở cổng rủi ro: nghiệp vụ lâm sàng SSOT im · migration/apply DB prod · thao tác phá hủy (`destructive-change`) · commit/push/deploy · đổi quyền truy cập người dùng thật. Lựa chọn kỹ thuật thường → tự chọn, ghi lý do. Hết plan: báo tổng kết + gợi ý việc kế tiếp từ `docs/core/handover-roadmap.md` §5
+- Chỉ dừng hỏi PO ở cổng rủi ro: nghiệp vụ lâm sàng SSOT im · migration/apply DB prod · thao tác phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền truy cập người dùng thật. Lựa chọn kỹ thuật thường → tự chọn, ghi lý do. Hết plan: báo tổng kết + gợi ý việc kế tiếp từ `docs/core/handover-roadmap.md` §5
 
 ## Do Not
 
 - Never đoán schema
-- Never migrate prod. Commit, push, PR chỉ khi PO ra lệnh trong task này. Deploy Vercel chỉ khi anh nói «deploy»
+- Never migrate prod. Plan đã duyệt → **tự commit** (theo lát, verify pass, không gom file ngoài phạm vi). Push, PR chỉ khi PO đồng ý từng lần (luôn hỏi sau khi commit xong). Deploy Vercel chỉ khi anh nói «deploy». Local là bản gốc duy nhất; báo lệch local/GitHub trước khi hỏi push
 - Never viết bản tài liệu thứ hai; không chép thân skill vào docs. `docs/core` giữ 13 file
 - Never viết lại engine lâm sàng. Lệch KPI thì sửa hàm KPI. Không nhận «chính xác tuyệt đối»
 - Never mở: `docs/data/`, `_agent-*.md`, transcript, CDC/NHSN thô, `nkbv-sources/extracted/`, `node_modules/`, `.next/`, `.env*` (chặn cứng bằng `permissions.deny` trong [`.claude/settings.json`](.claude/settings.json)). Lịch sử cũ (archive, Cursor) chỉ còn trong git history — không khôi phục
