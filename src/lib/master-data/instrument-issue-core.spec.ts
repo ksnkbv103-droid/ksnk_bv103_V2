@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildChiTietIssueNoteText } from "./instrument-issue-core";
+import { buildChiTietIssueNoteText } from "@/modules/cssd-erp/workflow/application/instrument-issue-core";
 
 describe("buildChiTietIssueNoteText", () => {
   const now = "2026-06-02 10:00:00";
@@ -55,7 +55,7 @@ describe("reportChiTietInstrumentIssueAction contract", () => {
 
 describe("insertInstrumentIssueLedgerCore harden (RPC-parity tồn)", () => {
   it("rejects when quantity > thucTe (chuan + delta)", async () => {
-    const { insertInstrumentIssueLedgerCore } = await import("./instrument-issue-core");
+    const { insertInstrumentIssueLedgerCore } = await import("@/modules/cssd-erp/workflow/application/instrument-issue-core");
     const inserts: unknown[] = [];
     const client = {
       from(table: string) {

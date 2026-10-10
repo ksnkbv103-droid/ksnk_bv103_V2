@@ -2,7 +2,7 @@
 
 import { verifyPermission } from "@/lib/server-permission";
 import { instrumentChangeRequiresIncidentResult } from "@/lib/domain/cssd-instrument-incident";
-import { type InstrumentIssueType } from "@/lib/master-data/instrument-issue-core";
+import { type InstrumentIssueType } from "@/modules/cssd-erp/workflow/application/instrument-issue-core";
 
 /** Đã đóng: biến động thành phần chỉ qua 3 cửa /cssd-su-co (D1/D2). */
 export async function replenishSetInstrumentAction(_params: {

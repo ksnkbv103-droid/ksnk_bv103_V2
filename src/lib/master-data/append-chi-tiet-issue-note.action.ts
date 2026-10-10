@@ -2,7 +2,7 @@
 
 import { verifyAnyPermission } from "@/lib/server-permission";
 import { instrumentChangeRequiresIncidentResult } from "@/lib/domain/cssd-instrument-incident";
-import { type InstrumentIssueType } from "@/lib/master-data/instrument-issue-core";
+import { type InstrumentIssueType } from "@/modules/cssd-erp/workflow/application/instrument-issue-core";
 
 /**
  * Đã đóng: hỏng/mất không phiếu. Dùng form sự cố CSSD.

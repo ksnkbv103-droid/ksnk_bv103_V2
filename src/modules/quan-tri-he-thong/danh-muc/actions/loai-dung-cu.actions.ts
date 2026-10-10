@@ -6,7 +6,7 @@ import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-ca
 import {
   applyHeatSplitAfterLoaiDowngrade,
   formatHeatSplitToast,
-} from "@/lib/master-data/cssd-heat-split-apply";
+} from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
   applySterileMethodSuggestionToLoaiSpecs,
