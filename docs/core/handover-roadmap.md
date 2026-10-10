@@ -45,6 +45,9 @@ Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). To�
 | 2026-10-09 | Form VST: nhãn TRƯỚC/SAU + trần app #94–#97 | Đã lên `main` | — |
 | 2026-10-09 | KPI `fn_vst_is_valid_opportunity` #98 `63884e3a`, prod history `20261008225611` | Đã siết: rửa/chà 1–2 thời điểm WHO, bỏ sót đúng 1. 32 034 dòng, 0 dòng rời mẫu số | — |
 | 2026-10-09 | Vòng sửa: `/domain-slice` | Khi SSOT đã chốt thì tự chọn một lát. SSOT im thì hỏi PO. Không tự quét cả repo | — |
+| 2026-10-10 | Rà soát toàn hệ thống + sửa theo lát (NKBV khoa/loại trừ chỉ KSNK/4 tab, GSC xóa mềm, Đào tạo hết giờ, trang lỗi, CSSD cổng cấp phát ở DB, nhả mẻ implant từ DB). 4 migration `20261010120000…150000` đã apply prod qua MCP | Xong | — |
+| 2026-10-10 | PO chốt mẻ hỏng → bộ còn trong CSSD về **Đóng gói**. Code + migration `20261010160000` xong ở local; zod + nhật ký cho CRUD danh mục quản trị xong | Đã apply prod migration `20261010160000` (PO duyệt) | — |
+| Mở | Zod chi tiết cho nhập lô (smart-import, generic-dm-import) và duyệt đề nghị danh mục | Lát riêng | Sonnet |
 | Mở | Xóa phiên VST đang là `is_active=false` | Chờ PO — không tự đổi xóa cứng | Sonnet (khi PO chốt đổi) |
 | Mở | UAT tay form VST (≤2 / ≤1, chữ ô chọn đọc được) | PO | Haiku (soát/UAT) |
 | Không mở | Ký nghiệm thu lâm sàng toàn repo; vá giao diện VST thêm | — | — |

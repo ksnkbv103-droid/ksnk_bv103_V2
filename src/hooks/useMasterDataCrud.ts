@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 interface MasterDataCrudConfig<T> {
   tableName: string;
@@ -49,7 +50,7 @@ export function useMasterDataCrud<T extends { id: string; is_active?: boolean }>
 
   const softDelete = async (item: T) => {
     const code = String(item[config.codeField as keyof T] ?? item.id);
-    if (!window.confirm(`Xóa mềm ${config.entityLabel} ${code}?`)) return;
+    if (!(await confirmAction(`Xóa mềm ${config.entityLabel} ${code}?`))) return;
     const { error } = await supabase
       .from(config.tableName)
       .update({
@@ -67,7 +68,7 @@ export function useMasterDataCrud<T extends { id: string; is_active?: boolean }>
 
   const softDeleteMany = async (items: T[]) => {
     if (!items.length) return;
-    if (!window.confirm(`Xóa mềm ${items.length} ${config.entityLabel}?`)) return;
+    if (!(await confirmAction(`Xóa mềm ${items.length} ${config.entityLabel}?`))) return;
     const { error } = await supabase
       .from(config.tableName)
       .update({
