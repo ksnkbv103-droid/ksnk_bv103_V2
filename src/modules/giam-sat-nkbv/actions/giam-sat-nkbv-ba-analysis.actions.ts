@@ -273,8 +273,11 @@ export async function ensureNkbvBaAnalysisCase(input: {
         fieldLabel: "Khoa ghi nhận",
         activeOnly: true,
       });
-    } catch {
-      khoaId = null;
+    } catch (e) {
+      return {
+        success: false as const,
+        error: e instanceof Error && e.message ? e.message : "Khoa ghi nhận không hợp lệ hoặc đã ngừng sử dụng",
+      };
     }
   }
 
@@ -352,21 +355,7 @@ export async function ensureNkbvBaAnalysisCase(input: {
         .maybeSingle();
       if (again) return finishWithSeed(again as Record<string, unknown>);
     }
-    if (/khoa|foreign key|fk/i.test(createErr.message) && insertRow.khoa_ghi_nhan_id) {
-      const retry = { ...insertRow, khoa_ghi_nhan_id: null };
-      const res2 = await supabase.from("nkbv_fact_su_kien").insert(retry).select("id").single();
-      if (!res2.error && res2.data) {
-        created = res2.data;
-        createErr = null;
-      } else {
-        return {
-          success: false as const,
-          error: `Không neo phiếu: ${res2.error?.message || createErr.message}`,
-        };
-      }
-    } else {
-      return { success: false as const, error: `Không neo phiếu: ${createErr.message}` };
-    }
+    return { success: false as const, error: `Không neo phiếu: ${createErr.message}` };
   }
 
   if (!created?.id) {

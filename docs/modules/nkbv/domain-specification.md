@@ -121,8 +121,8 @@ Hệ thống sử dụng cơ chế bảo mật cấp dòng (Row Level Security -
 ## 5. Chiến lược Đồng bộ & Dữ liệu Tổng hợp (Pre-aggregation Rules)
 
 Để phục vụ phân tích báo cáo thời gian thực mà không làm suy giảm hiệu năng DB (tuân thủ **CLAUDE.md - Quản trị Pre-aggregation chặt chẽ**):
-- **Bảng dữ liệu giao dịch vi sinh (`fact_vi_sinh_records`):** Chứa dữ liệu nhập thô từ LIS. Các chỉ mục (B-tree Index) được đặt tại `ma_benh_nhan`, `ngay_lay_mau`, `loai_benh_pham` để tìm kiếm và quét nhanh.
-- **Rules Engine (Database View):** Không tạo bảng vật lý tổng hợp dư thừa. Thay vào đó, sử dụng SQL View `v_fact_vi_sinh_nkbv_screening` để thực hiện phép lọc tự động Day 3 giữa `fact_vi_sinh_records` và `fact_giam_sat_nkbv_ca`.
+- **Bảng dữ liệu giao dịch vi sinh (`nkbv_fact_vi_sinh`):** Chứa dữ liệu nhập thô từ LIS. Các chỉ mục (B-tree Index) được đặt tại `ma_benh_nhan`, `ngay_lay_mau`, `loai_benh_pham` để tìm kiếm và quét nhanh.
+- **Rules Engine (Database View):** Không tạo bảng vật lý tổng hợp dư thừa. Thay vào đó, sử dụng SQL View (hiện có `v_nkbv_vi_sinh_chua_phan_tich`; mở rộng lọc Day 3 thì thêm view mới, không tạo bảng tổng hợp) trên `nkbv_fact_vi_sinh` và `nkbv_fact_su_kien`.
 - **Thống kê Dashboard:** Sử dụng hàm SQL/RPC tính toán động trên View để hiển thị tỷ lệ NKBV theo Bệnh nhân, theo Khoa phòng, theo Loại nhiễm khuẩn và loại Bệnh phẩm. Chỉ cân nhắc vật lý hóa (Materialized View) khi dữ liệu vượt ngưỡng $100.000$ dòng giao dịch thực tế.
 
 ---

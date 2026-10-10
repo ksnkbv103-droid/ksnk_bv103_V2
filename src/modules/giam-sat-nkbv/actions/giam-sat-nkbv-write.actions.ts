@@ -164,6 +164,8 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     }
 
     if (viTriNhiemKhuan === "LOAI_TRU") {
+      // Loại trừ ca = thẩm định của KSNK (SSOT NKBV §4.1) — cần quyền approve, không chỉ edit.
+      await verifyPermission("GIAM_SAT_NKBV", "approve");
       const excludeStatus = await supabase
         .from("nkbv_dm_trang_thai_ca")
         .select("id")
@@ -184,10 +186,14 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       const notes = verificationInput.clinical_notes || {};
       const lyDo = String(notes.ly_do_loai_tru || verificationInput.ly_do_loai_tru || "").trim();
       const ghiChu = String(verificationInput.ghi_chu_tuy_bien || notes.ghi_chu_tuy_bien || "").trim();
+      const lyDoLoaiTru = lyDo || ghiChu;
+      if (lyDoLoaiTru.length < 3) {
+        return { success: false as const, error: "Cần nhập lý do loại trừ ca bệnh (tối thiểu 3 ký tự)." };
+      }
       const updatedNotes = {
         ...prevNotes,
         ...notes,
-        ly_do_loai_tru: lyDo || ghiChu || "Bác sĩ phán quyết loại trừ ca bệnh.",
+        ly_do_loai_tru: lyDoLoaiTru,
         ...(ghiChu ? { ghi_chu_tuy_bien: ghiChu } : {}),
       };
 

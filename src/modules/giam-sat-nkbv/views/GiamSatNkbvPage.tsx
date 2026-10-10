@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, Activity, HeartPulse } from "lucide-react";
+import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
@@ -40,6 +40,8 @@ import NkbvCdcLocationBanner from "../components/NkbvCdcLocationBanner";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
 import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
+import { confirmAction } from "@/components/shared/confirm-action";
+import { NkbvNapDuLieuSwitch } from "../components/NkbvNapDuLieuSwitch";
 
 const tabPulse = () => (
   <div className="h-56 animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90" />
@@ -273,8 +275,7 @@ export default function GiamSatNkbvPage() {
     () => [
       { id: "records", label: "Hàng đợi bệnh án", icon: HeartPulse },
       { id: "cases", label: "Danh sách phiếu", icon: LayoutList },
-      { id: "vi-sinh", label: "Cổng Vi sinh LIS", icon: FileSpreadsheet },
-      { id: "mau-so", label: "Nộp Mẫu số", icon: Activity },
+      { id: "vi-sinh", label: "Nạp dữ liệu", icon: FileSpreadsheet },
       { id: "dashboard", label: "Thống kê", icon: BarChart3 },
     ],
     [],
@@ -641,7 +642,7 @@ export default function GiamSatNkbvPage() {
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!window.confirm("Ẩn phiếu này khỏi danh sách?")) return;
+                    if (!(await confirmAction("Ẩn phiếu này khỏi danh sách?"))) return;
                     const id = String(item.id ?? "");
                     const res = await softDeleteGiamSatNkbvCa(id);
                     if (res.success) {
@@ -682,7 +683,7 @@ export default function GiamSatNkbvPage() {
         trailing={
           <KsnkSupervisionTabList
             tabs={supervisionTabs}
-            activeId={mainTab}
+            activeId={mainTab === "mau-so" ? "vi-sinh" : mainTab}
             onChange={(id) => {
               if (id === "cases" || id === "records" || id === "dashboard" || id === "vi-sinh" || id === "mau-so") {
                 setMainTab(id);
@@ -860,6 +861,16 @@ export default function GiamSatNkbvPage() {
             }}
           />
         </Bv103AnalyticsPageFrame>
+      ) : null}
+
+      {mainTab === "vi-sinh" || mainTab === "mau-so" ? (
+        <NkbvNapDuLieuSwitch
+          value={mainTab}
+          onChange={(next) => {
+            setMainTab(next);
+            syncNkbvUrl({ tab: next });
+          }}
+        />
       ) : null}
 
       {mainTab === "vi-sinh" ? (

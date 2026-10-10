@@ -23,7 +23,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 ### `ty_le_vst` / `ty_le_gsc`
 
 - **Công thức:** `round((đạt / tổng) × 100, 1 chữ số thập phân)` — **VST**
-- **VST mẫu số:** `tong_co_hoi` (một dòng `gstt_fact_vst` = một cơ hội, không tách chỉ định WHO)
+- **VST mẫu số:** `tong_co_hoi` (một dòng `gstt_fact_vst` **hợp lệ** theo `fn_vst_is_valid_opportunity` = một cơ hội, không tách chỉ định WHO; dòng vượt trần ≤2 thời điểm WHO khi rửa/chà hoặc ≠1 khi bỏ sót không tính — PO 2026-10-09)
 - **Đúng kỹ thuật / đủ thời gian:** mẫu số `da_tuan_thu` (đã rửa hoặc chà). Bỏ sót không vào mẫu.
 - **Lạm dụng găng:** mẫu số `bo_sot`.
 - **GSC mẫu số:** `tong_quan_sat` — **2 chữ số thập phân** (`Đạt ÷ tiêu chí có áp dụng`, loại NA). Nhật ký không hiện %.
@@ -221,7 +221,7 @@ Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 
 
 | Chỉ số | Công thức | Ghi chú |
 |--------|-----------|---------|
-| `ti_le_xac_nhan_nkbv` | `round((da_xac_nhan / max(PA − loại_trừ, 0)) × 100)` khi mẫu số > 0; else null | Code field: `ti_le_xac_nhan_so_voi_pa` trên payload dashboard NKBV / BCTH |
+| `ti_le_xac_nhan_nkbv` | `round((da_xac_nhan / (phiếu XAC_NHAN + phiếu LOAI_TRU)) × 100, 1 chữ số thập phân)` khi mẫu số > 0; else null | **Chỉ tính phiếu phân tích (PA) đã có kết luận thẩm định**; phiếu đang chờ không vào mẫu số (không để tồn đọng kéo tụt tỷ lệ). `da_xac_nhan` = XAC_NHAN và engine dương tính. Hiển thị «x/y đã kết luận». Code field: `ti_le_xac_nhan_so_voi_pa` (PA = phiếu phân tích `nkbv_fact_su_kien`). PO làm rõ 2026-10-10 |
 | `clabsi_rate_per_1000` | `(obs_clabsi_cases / obs_cvc_days) × 1000` khi `obs_cvc_days > 0` | **Ẩn Trụ D hero** nếu thiếu mẫu số; không bịa Rate |
 
 ### Câu mô tả trụ (thống kê mô tả — 2026-07-29)

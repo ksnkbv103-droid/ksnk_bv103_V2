@@ -28,6 +28,7 @@ import {
   type NkbvChecklistTypeCode,
 } from "../lib/nkbv-loai-labels";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import type { NkbvActiveChecklistType, NkbvSuspectedType } from "./useNkbvChecklistModalState";
 
 function fmtDate(d?: string | null) {
@@ -728,6 +729,9 @@ function TypePicker({
   allowedEdit: boolean;
   lockType?: NkbvChecklistTypeCode | null;
 }) {
+  // Loại trừ ca là quyết định thẩm định của KSNK (quyền approve) — khoa lâm sàng không thấy nút.
+  const { allowed: nkbvAllowed } = useModulePermission("GIAM_SAT_NKBV");
+  const canExclude = Boolean(nkbvAllowed.approve);
   const locked = Boolean(lockType && lockType !== "LOAI_TRU");
   if (locked && lockType) {
     return (
@@ -744,7 +748,7 @@ function TypePicker({
             {suggestedType !== lockType ? ` · Gợi ý bệnh phẩm khác (${formatNkbvChecklistTypeLabel(suggestedType)}) — giữ loại phiếu.` : ""}
           </p>
         </div>
-        {allowedEdit ? (
+        {allowedEdit && (canExclude || suspectedType === "LOAI_TRU") ? (
           suspectedType === "LOAI_TRU" ? (
             <button
               type="button"
@@ -818,7 +822,9 @@ function TypePicker({
               { id: "CH17" as const, color: "border-violet-200 text-violet-900 bg-violet-50/40" },
               { id: "LOAI_TRU" as const, color: "border-slate-200 text-slate-800 bg-slate-50/60" },
             ] satisfies Array<{ id: NkbvChecklistTypeCode; color: string }>
-          ).map((item) => {
+          )
+            .filter((item) => item.id !== "LOAI_TRU" || canExclude || suspectedType === "LOAI_TRU")
+            .map((item) => {
             const isSuggested = item.id === suggestedType;
             const isSelected = suspectedType === item.id;
             return (

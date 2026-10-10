@@ -21,6 +21,7 @@ import {
   NKBV_NHSN_PROCEDURES,
   softWarnMauSoSurgery,
 } from "../lib/nkbv-ssi-nhsn-catalog";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 type NkbvMauSoDailyPortalProps = {
   khoas: Array<{ id: string; ten_danh_muc: string; ma_danh_muc?: string }>;
@@ -174,7 +175,7 @@ export default function NkbvMauSoDailyPortal({
 
     let softWarnAck = false;
     if (warns.length > 0) {
-      const ok = window.confirm(
+      const ok = await confirmAction(
         `Cảnh báo census (nghi nhập tổng tuần vào 1 ngày):\n\n${warns
           .map((w) => `• ${w.message}`)
           .join("\n")}\n\nVẫn lưu đúng ngày ${formatDateVi(ngayGhiNhan)}? Hệ thống không nội suy ngày thiếu.`,

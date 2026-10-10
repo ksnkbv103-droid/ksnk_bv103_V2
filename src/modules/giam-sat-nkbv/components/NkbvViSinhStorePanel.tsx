@@ -37,6 +37,7 @@ import {
   statusBadgeLabel,
   type ViSinhAnalysisStatus,
 } from "../lib/nkbv-vi-sinh-analysis-status";
+import { confirmAction } from "@/components/shared/confirm-action";
 
 type Draft = {
   khoa_yeu_cau_id: string;
@@ -232,7 +233,7 @@ export default function NkbvViSinhStorePanel({
   };
 
   const onDelete = async (r: NkbvViSinhStoreRow) => {
-    if (!window.confirm(`Xóa cứng xét nghiệm ${r.ma_xet_nghiem}? Không hoàn tác được.`)) return;
+    if (!(await confirmAction(`Xóa cứng xét nghiệm ${r.ma_xet_nghiem}? Không hoàn tác được.`))) return;
     setBusyId(r.id);
     const res = await deleteNkbvViSinhStoreRecordHard(r.id);
     setBusyId(null);
