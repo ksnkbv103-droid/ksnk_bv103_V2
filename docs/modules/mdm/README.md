@@ -5,7 +5,7 @@
 | Đọc khi | File |
 |---------|------|
 | Entrypoints code | [`../../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md`](../../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md) |
-| Entity / nghiệp vụ / mapping | [`../../wiki/entities.md`](../../wiki/entities.md#mdm--rbac--audit) · domain-spec § MDM · mapping § MDM |
+| Entity / nghiệp vụ / mapping | [`../../wiki/entities.md`](../../wiki/entities.md#mdm--rbac) · domain-spec § MDM · mapping § MDM |
 | Import JSON | [`../../reference/guides/json-import-export.md`](../../reference/guides/json-import-export.md) |
 
 Rule: `.claude/rules/mdm.md`

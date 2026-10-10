@@ -89,8 +89,10 @@ MVP NKBV nhập liệu lâm sàng; kiến trúc hướng FHIR (`Patient`, `Encou
 
 * Khoa phòng: **`mdm_dm_khoa_phong`**
 * Nhân sự: **`mdm_nhan_su`** + `auth_user_id` → `auth.users`
-* Lookup phẳng: **`sys_lookup_value`** (14+ category_type)
+* Lookup phẳng: **`sys_lookup_value`** (danh sách `category_type` theo `src/lib/master-data/domain-registry.ts`; không ghi số cố định ở docs)
 
 **Master CSSD** (định nghĩa dụng cụ/máy/hóa chất — CRUD tại Quản trị, không phải phiên QR): TABLE **`cssd_dm_loai_dung_cu`**, **`cssd_dm_bo_dung_cu`**, **`cssd_dm_bo_dung_cu_chi_tiet`**, **`cssd_dm_thiet_bi`**, **`cssd_dm_hoa_chat`**. IA dụng cụ: tab **Bộ · Phiếu · Lịch sử** + sheet **Loại** ADMIN. Hard-write loại/bộ/BOM chỉ **ADMIN**; `BO_DC.edit` = duyệt phiếu (D5). BOM **1 bộ×1 loại** unique active (D6). Ranh giới: [`../wiki/concepts.md`](../wiki/concepts.md#cssd-vs-mdm). Cổng MDM: [`../modules/mdm/README.md`](../modules/mdm/README.md). Quyết định: [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
 
-* Audit hệ thống: **không còn** (DROP 2026-06-02; xem `implementation-mapping.md` changelog)
+* Audit hệ thống: `sys_audit_log` **không còn** (DROP 2026-06-02). Nhật ký quản trị hiện là `sys_admin_audit` (insert-only, migration `20261005154000`, đã apply; ghi qua `logAdminAction`); xem `wiki/entities.md` § MDM + RBAC
+* **Xóa danh mục (khoa, thiết bị, hóa chất, bảng kiểm, registry…): xóa mềm** `is_active=false`, nhãn UI «Ngừng sử dụng»; không xóa cứng (PO chốt 2026-10-10). Bản ghi cũ vẫn tra được từ phiếu đã lập.
+* **RBAC — 6 vai trò:** `ADMIN` (toàn quyền quản trị), `NHAN_VIEN_KSNK`, `MANG_LUOI_KSNK`, `CHI_HUY_KHOA`, `GIAM_DOC`, và vai trò khách `KHACH_THONG_KE_GSTT` (chỉ xem Thống kê VST/GSC). Phân quyền theo ma trận module×action (`sys_role_permissions`); gói quyền danh mục gán qua ma trận, ADMIN không áp gói. Vai trò KSNK và khách loại trừ lẫn nhau khi gán (`rpc_assign_staff_ksnk_role`).

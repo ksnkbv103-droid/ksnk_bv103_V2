@@ -59,10 +59,10 @@ Logic phân loại **không** đặt trong Zod — chỉ `giam-sat-nkbv.validati
 | Khái niệm | TABLE |
 |-----------|-------|
 | Khoa / nhân sự | `mdm_dm_khoa_phong`, `mdm_nhan_su` |
-| Lookup 14+ loại | `sys_lookup_value` (WRITE duy nhất) |
+| Lookup phẳng (theo `domain-registry.ts`) | `sys_lookup_value` (WRITE duy nhất) |
 | RBAC | `sys_roles`, `sys_permissions`, `sys_role_permissions`, `sys_user_roles` |
 
-> **Audit hệ thống (`sys_audit_log`):** đã gỡ khỏi app + DB (2026-06-02). Xem changelog `implementation-mapping.md`.
+> **Audit hệ thống:** `sys_audit_log` đã gỡ khỏi app + DB (2026-06-02). Nhật ký quản trị mới là bảng riêng `sys_admin_audit` (chỉ thêm, ADMIN đọc; migration `20261005154000`, ghi qua `src/lib/admin-audit.ts`). Đã apply (PO xác nhận 2026-10-10).
 
 Import JSON: [`../reference/guides/json-import-export.md`](../reference/guides/json-import-export.md).
 
