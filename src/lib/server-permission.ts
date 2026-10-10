@@ -39,6 +39,24 @@ const getPermissionsRequestScope = cache(async (userId: string) => {
   return fetchUserPermissions(userId);
 });
 
+/** Break-glass (env KSNK_BREAK_GLASS_EMAILS) — ghi nhật ký mỗi lần dùng, mọi cổng kiểm quyền. */
+async function logBreakGlass(
+  user: { id: string; email?: string | null },
+  reason: string,
+  checks?: readonly PermissionCheck[],
+) {
+  const { logAdminAction } = await import("@/lib/admin-audit");
+  void logAdminAction({
+    action: "BREAK_GLASS_USED",
+    targetTable: "rbac",
+    targetId: user.id,
+    after: checks ? { checks: checks.map((r) => `${r.moduleKey}:${r.action}`) } : null,
+    actorUserId: user.id,
+    actorEmail: user.email,
+    reason,
+  });
+}
+
 /** Một round-trip DB: đọc view quyền một lần, kiểm tra nhiều cặp (module + action). */
 export async function verifyPermissions(required: readonly PermissionCheck[]) {
   if (!required.length) return;
@@ -47,18 +65,8 @@ export async function verifyPermissions(required: readonly PermissionCheck[]) {
   const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
-  // Break-glass (env KSNK_BREAK_GLASS_EMAILS) — ghi nhật ký mỗi lần dùng.
   if (isTrustedAdminEmail(user.email)) {
-    const { logAdminAction } = await import("@/lib/admin-audit");
-    void logAdminAction({
-      action: "BREAK_GLASS_USED",
-      targetTable: "rbac",
-      targetId: user.id,
-      after: { checks: required.map((r) => `${r.moduleKey}:${r.action}`) },
-      actorUserId: user.id,
-      actorEmail: user.email,
-      reason: "verifyPermissions",
-    });
+    await logBreakGlass(user, "verifyPermissions", required);
     return;
   }
 
@@ -88,15 +96,7 @@ export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   const user = await getRequestAuthUser();
   if (!user?.id) return false;
   if (isTrustedAdminEmail(user.email)) {
-    const { logAdminAction } = await import("@/lib/admin-audit");
-    void logAdminAction({
-      action: "BREAK_GLASS_USED",
-      targetTable: "rbac",
-      targetId: user.id,
-      actorUserId: user.id,
-      actorEmail: user.email,
-      reason: "supervision_bypass",
-    });
+    await logBreakGlass(user, "supervision_bypass");
     return true;
   }
   const { roles } = await getPermissionsRequestScope(user.id);
@@ -119,7 +119,10 @@ export async function verifyAnyPermission(alternatives: readonly PermissionCheck
   const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
-  if (isTrustedAdminEmail(user.email)) return;
+  if (isTrustedAdminEmail(user.email)) {
+    await logBreakGlass(user, "verifyAnyPermission", alternatives);
+    return;
+  }
 
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
 
@@ -147,7 +150,10 @@ export async function verifyAllAnyPermissionGroups(
   const user = await getRequestAuthUser();
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
-  if (isTrustedAdminEmail(user.email)) return;
+  if (isTrustedAdminEmail(user.email)) {
+    await logBreakGlass(user, "verifyAllAnyPermissionGroups", groups.flat());
+    return;
+  }
 
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
   if (roles.includes("ADMIN")) return;
