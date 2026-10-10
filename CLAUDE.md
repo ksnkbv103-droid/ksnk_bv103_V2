@@ -28,7 +28,7 @@ Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103 (pilot). Next.js 16 
   3. [`docs/core/handover-roadmap.md`](docs/core/handover-roadmap.md) §5 — việc còn mở
   4. File module của lát (dòng ssot-map). Đọc thêm theo diff: [`docs/core/read-minimum.md`](docs/core/read-minimum.md)
 - Cấu hình agent chỉ nằm trong `.claude/`: `rules/` (luật theo đường dẫn, tự nạp khi chạm file — src, data-access, migrations, cssd, nkbv, giam-sat, qlcv, dashboard, mdm, dao-tao) · `commands/` (11 lệnh) · `skills/` (4: supabase, smart-db-bv103, react-dev, destructive-change) · `agents/` (6 subagent read-only, đã ghim model). Danh mục + cách chọn model: [`docs/core/skills-catalog.md`](docs/core/skills-catalog.md)
-- Model: Sonnet mặc định · Haiku cho subagent đọc nhiều · Opus (hoặc `/model opusplan`) chỉ cho kiến trúc/debug khó
+- Model: `/model opusplan` cho việc nhiều lát (Opus lập plan, Sonnet thực thi — không cần đổi tay) · Sonnet cho việc nhỏ · Haiku cho subagent đọc nhiều
 
 ## Kỷ luật (luôn áp dụng)
 
@@ -37,6 +37,7 @@ Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103 (pilot). Next.js 16 
 - Mỗi dòng diff truy vết được tới yêu cầu. Boy Scout chỉ trong file vừa chạm.
 - Grep trước khi đọc file > 500 dòng; mục tiêu ≤ 8 file đọc/task; > 3 file ngoài scope → dừng, hỏi PO. Output delta-only.
 - Pilot DoD một lát: người dùng/môi trường rõ · ≥ 3 kịch bản tay · migration + RPC apply đúng · `verify:engineering` pass.
+- Lọc output lệnh dài (`tail -30`, `git log -n 5 --oneline`). Tiến độ ghi vào file plan để `/clear` không mất việc.
 
 ## Khóa PO (2026-10-09)
 
@@ -48,11 +49,12 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 
 ## Always
 
-- Việc không tầm thường: `/intake-nv` (PO) hoặc `/intake` trước; chưa duyệt thì không `/implement`. Giải thích bằng tiếng Việt nghiệp vụ; tự chạy verify và báo pass/fail. Một phiên = một lát; `/clear` khi đổi việc
+- Việc không tầm thường: soạn plan (plan mode, hoặc `/intake-nv` / `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt **một lần**. Sau đó **tự chạy nối các lát** trong cùng phiên: tự phân tích, phản biện, chọn phương án ít rủi ro (ghi lý do vào plan), verify sau mỗi lát, ghi tiến độ vào plan. Giải thích bằng tiếng Việt nghiệp vụ; báo pass/fail
 - Một lát. Diff tối thiểu. Đọc migration hoặc DB trước khi đặt tên bảng, cột, RPC
 - Chạy lệnh verify theo bảng Commands sau khi sửa; không commit khi verify fail
 - Hai cách đọc lâm sàng mà SSOT im → dừng, hỏi PO. Vòng này thắng chat
 - Xong một lát: báo câu SSOT đã bám, lát nào, cái gì không đụng
+- Chỉ dừng hỏi PO ở cổng rủi ro: nghiệp vụ lâm sàng SSOT im · migration/apply DB prod · thao tác phá hủy (`destructive-change`) · commit/push/deploy · đổi quyền truy cập người dùng thật. Lựa chọn kỹ thuật thường → tự chọn, ghi lý do. Hết plan: báo tổng kết + gợi ý việc kế tiếp từ `docs/core/handover-roadmap.md` §5
 
 ## Do Not
 
@@ -65,7 +67,7 @@ Chi tiết ở `/domain-slice` và domain §2.1. Không chép SSOT vào đây. K
 ## Gotchas
 
 - File lớn — chỉ `grep -n` rồi đọc đoạn, không đọc cả file: `docs/core/implementation-mapping.md` (78 KB), `supabase/migrations/20260530000000_init_pilot_baseline.sql` (428 KB), `src/modules/giam-sat-nkbv/components/NkbvBaMultiTimelineWorkspace.tsx` (72 KB)
-- Model mặc định Sonnet (`.claude/settings.json`); subagent đọc nhiều đã ghim Haiku/Sonnet trong frontmatter. `/model opus` chỉ khi debug/kiến trúc khó; `/clear` giữa các lát
+- Model mặc định Sonnet (`.claude/settings.json`); subagent đọc nhiều đã ghim Haiku/Sonnet trong frontmatter. `/model opusplan` cho việc nhiều lát; `/clear` khi đổi hẳn sang việc khác
 - `npm run mdm:migrate` cố ý bị chặn (prod ghi version migration khác tên file). Prod đi qua Lead/MCP `apply_migration`
 - Script `:local` và `mdm:postcheck:*:local` cần Docker container `supabase_db_ksnk_bv103` đang chạy
 - Script `--linked` / `mdm:*` đọc `SUPABASE_ACCESS_TOKEN` từ `.env.local`
