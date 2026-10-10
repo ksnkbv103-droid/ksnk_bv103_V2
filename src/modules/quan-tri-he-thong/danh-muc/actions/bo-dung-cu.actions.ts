@@ -24,6 +24,9 @@ import {
   blockDeactivateForActiveCycles,
   CSSD_ACTIVE_CIRCULATION_TINH_TRANG_OR,
 } from "@/lib/domain/cssd-bo-active-cycle";
+import { logAdminAction } from "@/lib/admin-audit";
+import { parseOrFirstError } from "@/lib/validations/master-data-write.validations";
+import { allocateProceduralSetSchema } from "@/lib/validations/danh-muc-write.validations";
 
 type BoDungCuRow = {
   id: string;
@@ -368,10 +371,16 @@ export async function allocateProceduralSetAction(params: {
   quantity: number;
 }) {
   await verifyPermission("BO_DC", "edit");
+  const shape = parseOrFirstError(allocateProceduralSetSchema, {
+    boDungCuId: String(params.boDungCuId || "").trim(),
+    khoaPhongId: String(params.khoaPhongId || "").trim(),
+    quantity: Number(params.quantity),
+  });
+  if (!shape.ok) return { success: false as const, error: shape.error };
   const supabase = createAdminSupabaseClient();
-  const bid = String(params.boDungCuId || "").trim();
-  const kid = String(params.khoaPhongId || "").trim();
-  const qty = Number(params.quantity || 0);
+  const bid = shape.data.boDungCuId;
+  const kid = shape.data.khoaPhongId;
+  const qty = shape.data.quantity;
 
   // Check if allocation already exists
   const { data: existing, error: fetchErr } = await supabase
@@ -408,5 +417,11 @@ export async function allocateProceduralSetAction(params: {
     if (insErr) return { success: false as const, error: insErr.message };
   }
 
+  await logAdminAction({
+    action: "BO_PHAN_BO_SAVE",
+    targetTable: "cssd_dm_bo_phan_bo",
+    targetId: bid,
+    after: { khoa_phong_id: kid, so_luong_co_so: qty },
+  });
   return { success: true as const };
 }

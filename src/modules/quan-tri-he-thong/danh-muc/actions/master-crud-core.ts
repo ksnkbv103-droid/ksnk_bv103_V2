@@ -26,6 +26,14 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
+import { logAdminAction } from "@/lib/admin-audit";
+import {
+  masterSoftDeleteManySchema,
+  masterSoftDeleteSchema,
+  masterToggleSchema,
+  masterUpsertSchema,
+  parseOrFirstError,
+} from "@/lib/validations/master-data-write.validations";
 
 /** Tên bảng vật lý (pilot) — ghi/đọc trực tiếp khi caller dùng prefix module. */
 const PHYSICAL_TABLE_NAMES = [
@@ -225,7 +233,19 @@ async function assertCodeChangeAllowed(
   return "Không được sửa mã danh mục đã tồn tại — chỉ sửa tên (hoặc dùng migration).";
 }
 
+/** Nhật ký chỉ giữ tên trường + vài giá trị ngắn — không chép nguyên payload (tránh lộ dữ liệu dài/nhạy cảm). */
+function auditPayloadPreview(payload: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(payload)) {
+    if (/password|token|secret/i.test(k)) continue;
+    out[k] = typeof v === "string" && v.length > 120 ? `${v.slice(0, 120)}…` : v;
+  }
+  return out;
+}
+
 export async function upsertMasterRow(tableName: string, id: string, payload: Record<string, unknown>) {
+  const parsed = parseOrFirstError(masterUpsertSchema, { tableName, id, payload });
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
@@ -261,10 +281,18 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
   }
 
   revalidateMasterDataRowCacheTag(tableName);
+  await logAdminAction({
+    action: id ? "MASTER_UPDATE" : "MASTER_CREATE",
+    targetTable: tableName,
+    targetId: id || null,
+    after: auditPayloadPreview(payload),
+  });
   return { success: true as const };
 }
 
 export async function toggleMasterStatus(tableName: string, id: string, currentStatus: boolean) {
+  const parsed = parseOrFirstError(masterToggleSchema, { tableName, id, currentStatus });
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
@@ -277,10 +305,19 @@ export async function toggleMasterStatus(tableName: string, id: string, currentS
 
   if (error) return { success: false as const, error: error.message };
   revalidateMasterDataRowCacheTag(tableName);
+  await logAdminAction({
+    action: "MASTER_TOGGLE_ACTIVE",
+    targetTable: tableName,
+    targetId: id,
+    before: { is_active: currentStatus },
+    after: { is_active: !currentStatus },
+  });
   return { success: true as const };
 }
 
 export async function softDeleteMasterRow(tableName: string, id: string) {
+  const parsed = parseOrFirstError(masterSoftDeleteSchema, { tableName, id });
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
@@ -293,10 +330,18 @@ export async function softDeleteMasterRow(tableName: string, id: string) {
 
   if (error) return { success: false as const, error: error.message };
   revalidateMasterDataRowCacheTag(tableName);
+  await logAdminAction({
+    action: "MASTER_SOFT_DELETE",
+    targetTable: tableName,
+    targetId: id,
+    after: { is_active: false },
+  });
   return { success: true as const };
 }
 
 export async function softDeleteManyMasterRows(tableName: string, ids: string[]) {
+  const parsed = parseOrFirstError(masterSoftDeleteManySchema, { tableName, ids });
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
@@ -309,6 +354,11 @@ export async function softDeleteManyMasterRows(tableName: string, ids: string[])
 
   if (error) return { success: false as const, error: error.message };
   revalidateMasterDataRowCacheTag(tableName);
+  await logAdminAction({
+    action: "MASTER_SOFT_DELETE_MANY",
+    targetTable: tableName,
+    after: { is_active: false, ids, count: ids.length },
+  });
   return { success: true as const };
 }
 

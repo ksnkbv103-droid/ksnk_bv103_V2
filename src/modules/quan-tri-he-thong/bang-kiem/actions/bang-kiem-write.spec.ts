@@ -31,6 +31,8 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+const BK_ID = "22222222-2222-4222-8222-222222222222";
+
 describe("bang-kiem-write JSONB Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,7 +42,7 @@ describe("bang-kiem-write JSONB Actions", () => {
   describe("saveTieuChi", () => {
     it("adds a new criterion when id is not provided", async () => {
       const mockBk = {
-        id: "bk-1",
+        id: BK_ID,
         tieu_chi_jsonb: [
           { id: "tc-1", stt: 1, noi_dung: "Criterion 1" }
         ]
@@ -57,7 +59,7 @@ describe("bang-kiem-write JSONB Actions", () => {
       });
 
       const result = await saveTieuChi({
-        bangKiemId: "bk-1",
+        bangKiemId: BK_ID,
         stt: 2,
         ma_tc: "TC02",
         noi_dung: "New Criterion",
@@ -80,7 +82,7 @@ describe("bang-kiem-write JSONB Actions", () => {
 
     it("persists GSC criterion fields used on the supervision form", async () => {
       const mockBk = {
-        id: "bk-1",
+        id: BK_ID,
         tieu_chi_jsonb: [{ id: "tc-1", stt: 1, noi_dung: "Nhiệt độ", ma_csv_goc: "keep-me" }],
       };
       mocks.select.mockReturnValue({
@@ -94,7 +96,7 @@ describe("bang-kiem-write JSONB Actions", () => {
 
       const result = await saveTieuChi({
         id: "tc-1",
-        bangKiemId: "bk-1",
+        bangKiemId: BK_ID,
         stt: 1,
         noi_dung: "Nhiệt độ lò",
         kieu_du_lieu: "SO_LIEU",
@@ -118,7 +120,7 @@ describe("bang-kiem-write JSONB Actions", () => {
 
     it("updates existing criterion when id matches", async () => {
       const mockBk = {
-        id: "bk-1",
+        id: BK_ID,
         tieu_chi_jsonb: [
           { id: "tc-1", stt: 1, noi_dung: "Old Name" }
         ]
@@ -136,7 +138,7 @@ describe("bang-kiem-write JSONB Actions", () => {
 
       const result = await saveTieuChi({
         id: "tc-1",
-        bangKiemId: "bk-1",
+        bangKiemId: BK_ID,
         stt: 1,
         noi_dung: "Updated Name",
         is_active: false
@@ -154,7 +156,7 @@ describe("bang-kiem-write JSONB Actions", () => {
   describe("deleteTieuChi", () => {
     it("deletes a criterion from the parent array", async () => {
       const mockBk = {
-        id: "bk-1",
+        id: BK_ID,
         tieu_chi_jsonb: [
           { id: "tc-1", stt: 1 },
           { id: "tc-2", stt: 2 }
@@ -171,7 +173,7 @@ describe("bang-kiem-write JSONB Actions", () => {
         eq: mocks.eq.mockResolvedValue({ data: null, error: null })
       });
 
-      const result = await deleteTieuChi("bk-1", "tc-1");
+      const result = await deleteTieuChi(BK_ID, "tc-1");
       
       expect(result.success).toBe(true);
       const updateCall = mocks.update.mock.calls[0][0];

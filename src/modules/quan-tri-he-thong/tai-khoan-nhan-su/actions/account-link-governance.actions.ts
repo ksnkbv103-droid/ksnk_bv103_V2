@@ -10,6 +10,7 @@
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { logAdminAction, maskEmailForAudit } from "@/lib/admin-audit";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 
 type AccountLinkReadSnapshot =
@@ -89,13 +90,28 @@ export async function syncAccountLinkAction() {
 
       // Service-role write OUTSIDE cache. Same email-match predicate as the read.
       const adminClient = createAdminSupabaseClient();
-      const { error: upErr } = await adminClient
+      // Chỉ ghi khi hồ sơ còn trống liên kết: snapshot cache tới 1 giờ, có thể đã bị quản trị gán cho tài khoản khác.
+      const { data: linkedRows, error: upErr } = await adminClient
         .from("mdm_nhan_su")
         .update({ auth_user_id: user.id })
-        .eq("id", snapshot.nhanSuId);
+        .eq("id", snapshot.nhanSuId)
+        .is("auth_user_id", null)
+        .select("id");
 
       if (upErr) return { success: false, error: "Lỗi khi cập nhật liên kết: " + upErr.message };
+      if (!linkedRows?.length) {
+        revalidateTag(cacheTag, "default");
+        return { success: true, linked: false, message: "Hồ sơ này đã được liên kết với tài khoản khác." };
+      }
 
+      await logAdminAction({
+        action: "AUTO_LINK_ACCOUNT",
+        targetTable: "mdm_nhan_su",
+        targetId: snapshot.nhanSuId,
+        before: { auth_user_id: null },
+        after: { auth_user_id: user.id, email: maskEmailForAudit(user.email) },
+        actorUserId: user.id,
+      });
       revalidateTag(cacheTag, "default");
       revalidatePath("/");
       return { success: true, linked: true, nhanSuId: snapshot.nhanSuId, autoLinked: true };
@@ -154,12 +170,26 @@ export async function manualLinkAccountAction(maNv: string) {
     }
   }
 
-  const { error: upErr } = await adminClient
+  const { data: linkedRows, error: upErr } = await adminClient
     .from("mdm_nhan_su")
     .update({ auth_user_id: user.id })
-    .eq("id", target.id);
+    .eq("id", target.id)
+    .is("auth_user_id", null)
+    .select("id");
 
   if (upErr) return { success: false, error: upErr.message };
+  if (!linkedRows?.length) {
+    return { success: false, error: "Nhân viên này đã được liên kết với một tài khoản khác." };
+  }
+
+  await logAdminAction({
+    action: mayLinkAsAdmin ? "ADMIN_LINK_ACCOUNT" : "MANUAL_LINK_ACCOUNT",
+    targetTable: "mdm_nhan_su",
+    targetId: target.id,
+    before: { auth_user_id: null },
+    after: { auth_user_id: user.id, email: maskEmailForAudit(user.email) },
+    actorUserId: user.id,
+  });
 
   revalidatePath("/");
   return { success: true };

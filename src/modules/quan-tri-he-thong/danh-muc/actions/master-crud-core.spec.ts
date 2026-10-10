@@ -5,7 +5,12 @@ const mocks = vi.hoisted(() => ({
   updateEq: vi.fn(),
   from: vi.fn(),
   requireCssdCatalogMasterWrite: vi.fn(async () => undefined),
+  logAdminAction: vi.fn(async (_input: unknown) => undefined),
 }));
+
+const KHOA_ID = "33333333-3333-4333-8333-333333333333";
+
+vi.mock("@/lib/admin-audit", () => ({ logAdminAction: mocks.logAdminAction }));
 
 vi.mock("@/lib/supabase-server", () => ({
   createAdminSupabaseClient: () => ({
@@ -83,8 +88,11 @@ describe("master-crud-core allowlist", () => {
       delete: del,
     }));
     const { softDeleteMasterRow } = await import("./master-crud-core");
-    const res = await softDeleteMasterRow("mdm_dm_khoa_phong", "khoa-1");
+    const res = await softDeleteMasterRow("mdm_dm_khoa_phong", KHOA_ID);
     expect(res).toEqual({ success: true });
+    expect(mocks.logAdminAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "MASTER_SOFT_DELETE", targetTable: "mdm_dm_khoa_phong", targetId: KHOA_ID }),
+    );
     expect(mocks.from).toHaveBeenCalledWith("mdm_dm_khoa_phong");
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ is_active: false }));
     expect(del).not.toHaveBeenCalled();
@@ -104,7 +112,27 @@ describe("master-crud-core allowlist", () => {
 
   it("D5: non-catalog tables skip requireCssdCatalogMasterWrite", async () => {
     const { softDeleteMasterRow } = await import("./master-crud-core");
-    await softDeleteMasterRow("mdm_dm_khoa_phong", "khoa-2");
+    await softDeleteMasterRow("mdm_dm_khoa_phong", KHOA_ID);
     expect(mocks.requireCssdCatalogMasterWrite).not.toHaveBeenCalled();
+  });
+
+  it("zod: id không phải UUID bị từ chối, không chạm DB và không ghi nhật ký", async () => {
+    const { softDeleteMasterRow, upsertMasterRow, toggleMasterStatus, softDeleteManyMasterRows } = await import("./master-crud-core");
+    mocks.from.mockClear();
+    expect(await softDeleteMasterRow("mdm_dm_khoa_phong", "khoa-1")).toMatchObject({ success: false, error: "Mã bản ghi không hợp lệ." });
+    expect(await toggleMasterStatus("mdm_dm_khoa_phong", "khoa-1", true)).toMatchObject({ success: false });
+    expect(await upsertMasterRow("mdm_dm_khoa_phong", "", {})).toMatchObject({ success: false, error: "Chưa có dữ liệu để lưu." });
+    expect(await softDeleteManyMasterRows("mdm_dm_khoa_phong", [])).toMatchObject({ success: false });
+    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.logAdminAction).not.toHaveBeenCalled();
+  });
+
+  it("nhật ký: tạo mới ghi MASTER_CREATE, bỏ trường nhạy cảm và cắt chuỗi dài", async () => {
+    const { upsertMasterRow } = await import("./master-crud-core");
+    await upsertMasterRow("cssd_dm_hoa_chat", "", { ten_hoa_chat: "Cidex", password: "x", ghi_chu: "y".repeat(300) });
+    const call = mocks.logAdminAction.mock.calls.at(-1)?.[0] as { action: string; after: Record<string, unknown> };
+    expect(call.action).toBe("MASTER_CREATE");
+    expect(call.after).not.toHaveProperty("password");
+    expect(String(call.after.ghi_chu).length).toBeLessThanOrEqual(121);
   });
 });

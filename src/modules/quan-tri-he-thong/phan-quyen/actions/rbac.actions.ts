@@ -23,6 +23,8 @@ import {
   upsertRegistryPermissionsAndAdminMappings,
 } from "./rbac-registry-sync";
 import type { RBACDataResult } from "../rbac.types";
+import { parseOrFirstError } from "@/lib/validations/master-data-write.validations";
+import { rbacMatrixSchema } from "@/lib/validations/danh-muc-write.validations";
 
 function errRbac(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -137,6 +139,8 @@ export async function saveFullRBACMatrix(
 ) {
   try {
     const actor = await ensureRbacAdmin();
+    const matrixShape = parseOrFirstError(rbacMatrixSchema, matrix);
+    if (!matrixShape.ok) return { success: false, error: matrixShape.error };
     const { verifyCurrentActorPassword } = await import(
       "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/lib/admin-reauth"
     );

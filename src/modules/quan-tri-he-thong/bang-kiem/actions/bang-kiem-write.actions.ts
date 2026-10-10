@@ -17,6 +17,16 @@ import type { TieuChiBangKiem } from "../bang-kiem.types";
 import { resolveBangKiemGscPersistFields } from "../lib/bang-kiem-gsc-fields";
 import { resolveTieuChiGscPersistFields } from "../lib/bang-kiem-tieu-chi-gsc-fields";
 import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
+import { logAdminAction } from "@/lib/admin-audit";
+import { parseOrFirstError } from "@/lib/validations/master-data-write.validations";
+import {
+  bangKiemIdSchema,
+  deleteMultipleTieuChisSchema,
+  deleteTieuChiSchema,
+  importTieuChisSchema,
+  saveBangKiemSchema,
+  saveTieuChiSchema,
+} from "@/lib/validations/bang-kiem-write.validations";
 
 function errBk(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -35,7 +45,8 @@ function str(r: Record<string, unknown>, ...keys: string[]): string | undefined 
 export async function saveBangKiemApDungAction(bangKiemId: string, apRaw: unknown) {
   try {
     await verifyPermission("BANG_KIEM", "edit");
-    if (!bangKiemId) throw new Error("Thiếu mã bảng kiểm.");
+    const idCheck = parseOrFirstError(bangKiemIdSchema, { bangKiemId });
+    if (!idCheck.ok) throw new Error(idCheck.error);
 
     const supabase = createAdminSupabaseClient();
     const { data: bk, error: fetchErr } = await supabase
@@ -75,6 +86,13 @@ export async function saveBangKiem(data: Record<string, unknown>) {
     const idRaw = data.id;
     const idEarly = typeof idRaw === "string" ? idRaw : "";
     await verifyPermission("BANG_KIEM", idEarly ? "edit" : "create");
+    const shape = parseOrFirstError(saveBangKiemSchema, {
+      id: idEarly,
+      ma_bk: str(data, "ma_bk", "ma_bang_kiem") ?? "",
+      ten_bang_kiem: str(data, "ten_bang_kiem", "ten_bk") ?? "",
+      mo_ta: (data.mo_ta as string | null | undefined) ?? null,
+    });
+    if (!shape.ok) throw new Error(shape.error);
     const phanLoai = (data.phan_loai_chuyen_mon as string | null | undefined) ?? null;
     const gscFields = resolveBangKiemGscPersistFields(data);
     if (!gscFields.ok) throw new Error(gscFields.error);
@@ -145,9 +163,13 @@ export async function saveTieuChi(data: Record<string, unknown>) {
       (typeof data.bangKiemId === "string" && data.bangKiemId) ||
       (typeof data.bang_kiem_id === "string" && data.bang_kiem_id) ||
       "";
-    if (!bangKiemId) {
-      throw new Error("Thiếu mã ID bảng kiểm cha.");
-    }
+    const tcShape = parseOrFirstError(saveTieuChiSchema, {
+      bangKiemId,
+      noi_dung: typeof data.noi_dung === "string" ? data.noi_dung : "",
+      ma_tc: (data.ma_tc as string | null | undefined) ?? null,
+      ghi_chu: (data.ghi_chu as string | null | undefined) ?? null,
+    });
+    if (!tcShape.ok) throw new Error(tcShape.error);
     
     const sttRaw = typeof data.stt === "number" ? data.stt : Number(data.stt);
     const stt = Number.isFinite(sttRaw) ? sttRaw : 0;
@@ -232,6 +254,12 @@ export async function saveTieuChi(data: Record<string, unknown>) {
       .eq("id", bangKiemId);
     if (updateErr) throw updateErr;
     
+    await logAdminAction({
+      action: "BANG_KIEM_SAVE_TIEU_CHI",
+      targetTable: "gstt_dm_bang_kiem",
+      targetId: bangKiemId,
+      after: { bangKiemId, ma_tc: (data.ma_tc as string | null | undefined) ?? null, tieu_chi_id: idEarly || null },
+    });
     revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
@@ -242,6 +270,8 @@ export async function saveTieuChi(data: Record<string, unknown>) {
 export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string) {
   try {
     await verifyPermission("BANG_KIEM_DETAIL", "delete");
+    const delShape = parseOrFirstError(deleteTieuChiSchema, { bangKiemId: bangKiemId || undefined, tcId });
+    if (!delShape.ok) throw new Error(delShape.error);
     const supabase = createAdminSupabaseClient();
     
     let targetBangKiemId = bangKiemId;
@@ -292,6 +322,12 @@ export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string
       .eq("id", targetBangKiemId);
     if (updateErr) throw updateErr;
     
+    await logAdminAction({
+      action: "BANG_KIEM_DELETE_TIEU_CHI",
+      targetTable: "gstt_dm_bang_kiem",
+      targetId: bangKiemId ?? null,
+      after: { tieu_chi_id: tcId, is_active: false },
+    });
     revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
@@ -302,6 +338,8 @@ export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string
 export async function importTieuChis(bangKiemId: string, newCriteria: Record<string, unknown>[]) {
   try {
     await verifyPermission("BANG_KIEM_DETAIL", "import");
+    const impShape = parseOrFirstError(importTieuChisSchema, { bangKiemId, newCriteria: newCriteria || [] });
+    if (!impShape.ok) throw new Error(impShape.error);
     const supabase = createAdminSupabaseClient();
     
     const { data: bk, error: fetchErr } = await supabase
@@ -342,6 +380,12 @@ export async function importTieuChis(bangKiemId: string, newCriteria: Record<str
       .eq("id", bangKiemId);
     if (updateErr) throw updateErr;
     
+    await logAdminAction({
+      action: "BANG_KIEM_IMPORT_TIEU_CHI",
+      targetTable: "gstt_dm_bang_kiem",
+      targetId: bangKiemId,
+      after: { so_tieu_chi: (newCriteria || []).length },
+    });
     revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
@@ -353,6 +397,8 @@ export async function deleteMultipleTieuChis(ids: string[]) {
   try {
     await verifyPermission("BANG_KIEM_DETAIL", "delete");
     if (!ids || ids.length === 0) return { success: true };
+    const multiShape = parseOrFirstError(deleteMultipleTieuChisSchema, { ids });
+    if (!multiShape.ok) throw new Error(multiShape.error);
     
     const supabase = createAdminSupabaseClient();
     const { data: bks, error: fetchErr } = await supabase
@@ -393,6 +439,12 @@ export async function deleteMultipleTieuChis(ids: string[]) {
       }
     }
     
+    await logAdminAction({
+      action: "BANG_KIEM_DELETE_NHIEU_TIEU_CHI",
+      targetTable: "gstt_dm_bang_kiem",
+      targetId: null,
+      after: { so_tieu_chi: ids.length, ids },
+    });
     revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
