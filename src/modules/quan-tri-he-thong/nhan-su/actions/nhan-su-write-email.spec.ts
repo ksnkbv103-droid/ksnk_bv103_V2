@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   authUserHasAdminRole: vi.fn(),
 }));
 
-vi.mock("../../actions/verify-permission", () => ({
+vi.mock("@/lib/server-permission", () => ({
   verifyPermission: mocks.verifyPermission,
 }));
 

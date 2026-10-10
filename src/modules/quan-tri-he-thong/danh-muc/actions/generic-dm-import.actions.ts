@@ -11,6 +11,7 @@ import {
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import { buildMigratedUpsertPayload } from "@/lib/master-data/danh-muc-routing";
 import { listMasterRows, softDeleteManyMasterRows, upsertMasterRow } from "./master-crud-core";
+import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 
 function permModule(loaiDanhMuc: string): string {
   const key = loaiDanhMuc.trim();
@@ -151,7 +152,7 @@ export async function importGenericDmExcelAction(
         at: new Date().toISOString(),
       }),
     );
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true as const, audit };
   } catch (e: unknown) {
     return { success: false as const, error: e instanceof Error ? e.message : String(e) };

@@ -47,10 +47,9 @@ describe("buildChiTietIssueNoteText", () => {
 });
 
 describe("reportChiTietInstrumentIssueAction contract", () => {
-  it("exports orchestrator and legacy alias", async () => {
+  it("exports orchestrator", async () => {
     const mod = await import("./append-chi-tiet-issue-note.action");
     expect(typeof mod.reportChiTietInstrumentIssueAction).toBe("function");
-    expect(typeof mod.appendChiTietIssueNoteAction).toBe("function");
   });
 });
 

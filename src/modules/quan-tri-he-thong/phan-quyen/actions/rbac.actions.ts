@@ -11,6 +11,7 @@
  *   `ensureRbacAdmin()` đã chặt từ tầng app (break-glass env hoặc ADMIN role hoặc PHAN_QUYEN.edit).
  */
 
+import { logAdminAction } from "@/lib/admin-audit";
 import { invalidateUserPermissionsCache } from "@/lib/server-permission";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
@@ -32,20 +33,31 @@ function errRbac(e: unknown) {
  * Không ghi đè ma trận vai trò KSNK (dùng `resetKsnkRolePermissionPresets`).
  */
 export async function syncPermissionRegistry() {
+  let userId: string | null = null;
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
+    userId = actor.id;
     const supabase = createAdminSupabaseClient();
 
-    console.log("[RBAC] Syncing Permission Registry (no KSNK preset overwrite)...");
     await upsertRegistryPermissionsAndAdminMappings(supabase);
 
-    console.log("[RBAC] Registry sync completed successfully!");
+    await logAdminAction({
+      action: "SYNC_PERMISSION_REGISTRY",
+      targetTable: "sys_permissions",
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
     await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };
   } catch (error: unknown) {
-    console.error("[SYNC ERROR]", error);
+    console.error("[rbac] syncPermissionRegistry failed", {
+      module: "phan-quyen",
+      action: "syncPermissionRegistry",
+      userId,
+      error: errRbac(error),
+    });
     return { success: false, error: errRbac(error) };
   }
 }
@@ -54,19 +66,31 @@ export async function syncPermissionRegistry() {
  * Ghi đè quyền các vai trò KSNK active theo preset code (Hội đồng / NV / Mạng lưới / Khách).
  */
 export async function resetKsnkRolePermissionPresets() {
+  let userId: string | null = null;
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
+    userId = actor.id;
     const supabase = createAdminSupabaseClient();
 
-    console.log("[RBAC] Applying KSNK role permission presets (overwrite)...");
     await applyKsnkRolePermissionPresets(supabase);
 
+    await logAdminAction({
+      action: "RESET_KSNK_ROLE_PRESETS",
+      targetTable: "sys_role_permissions",
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
     await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };
   } catch (error: unknown) {
-    console.error("[PRESET RESET ERROR]", error);
+    console.error("[rbac] resetKsnkRolePermissionPresets failed", {
+      module: "phan-quyen",
+      action: "resetKsnkRolePermissionPresets",
+      userId,
+      error: errRbac(error),
+    });
     return { success: false, error: errRbac(error) };
   }
 }

@@ -21,11 +21,3 @@ export async function reportChiTietInstrumentIssueAction(_params: {
   return instrumentChangeRequiresIncidentResult();
 }
 
-/** @deprecated Prefer `reportChiTietInstrumentIssueAction` — alias giữ import cũ. */
-export async function appendChiTietIssueNoteAction(params: {
-  chiTietId: string;
-  issueType: InstrumentIssueType;
-  note?: string;
-}) {
-  return reportChiTietInstrumentIssueAction(params);
-}

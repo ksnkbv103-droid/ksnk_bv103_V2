@@ -1,11 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
-import { verifyPermission } from "../../actions/verify-permission";
 import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import {
@@ -22,6 +20,16 @@ import {
   insertAccessRequestRow,
 } from "../lib/account-access-request-store";
 import { verifyCurrentActorPassword } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/lib/admin-reauth";
+import { parseOrFirstError } from "@/lib/validations/tai-khoan-nhan-su.validations";
+import {
+  approveAccountAccessRequestSchema,
+  approveForgotResetRequestSchema,
+  lookupAccountAccessRequestStatusSchema,
+  rejectAccountAccessRequestSchema,
+  submitAccountAccessRequestSchema,
+  submitForgotResetAdminRequestSchema,
+} from "@/lib/validations/account-access-request.validations";
+import { revalidateNhanSuTaiKhoan } from "@/modules/quan-tri-he-thong/actions/revalidate-quan-tri";
 
 function errMsg(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -104,28 +112,18 @@ export type SubmitAccountAccessRequestInput = {
  */
 export async function submitAccountAccessRequestAction(input: SubmitAccountAccessRequestInput) {
   try {
-    const hoTen = String(input.ho_ten || "").trim();
-    const email = normalizeEmail(String(input.email || ""));
-    const maNv = String(input.ma_nv || "").trim();
-    const sdt = String(input.so_dien_thoai || "").trim();
-    const khoaId = String(input.khoa_id || "").trim();
-    const chucDanhId = String(input.chuc_danh_id || "").trim();
-    const lyDo = String(input.ly_do || "").trim();
+    const parsed = parseOrFirstError(submitAccountAccessRequestSchema, input);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
+    const hoTen = parsed.data.ho_ten;
+    const email = normalizeEmail(parsed.data.email);
+    const maNv = parsed.data.ma_nv || "";
+    const sdt = parsed.data.so_dien_thoai || "";
+    const khoaId = parsed.data.khoa_id;
+    const chucDanhId = parsed.data.chuc_danh_id;
+    const lyDo = parsed.data.ly_do;
 
-    if (!hoTen || hoTen.length < 2) {
-      return { success: false as const, error: "Họ tên không hợp lệ." };
-    }
     if (!email || !email.includes("@")) {
       return { success: false as const, error: "Email không hợp lệ." };
-    }
-    if (!khoaId) {
-      return { success: false as const, error: "Chọn khoa / phòng từ danh mục." };
-    }
-    if (!chucDanhId) {
-      return { success: false as const, error: "Chọn chức danh từ danh mục." };
-    }
-    if (!lyDo || lyDo.length < 5) {
-      return { success: false as const, error: "Lý do xin cấp tài khoản tối thiểu 5 ký tự." };
     }
 
     const supabase = createAdminSupabaseClient();
@@ -236,8 +234,7 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       const { error: upErr } = await supabase.from("mdm_nhan_su").update(patch).eq("id", existing.id);
       if (upErr) throw upErr;
 
-      revalidatePath("/quan-tri-he-thong/nhan-su");
-      revalidatePath("/quan-tri-he-thong/tai-khoan");
+      revalidateNhanSuTaiKhoan();
       return publicAccountAck();
     }
 
@@ -279,8 +276,7 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       }
     }
 
-    revalidatePath("/quan-tri-he-thong/nhan-su");
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidateNhanSuTaiKhoan();
     return publicAccountAck();
     } catch (writeErr) {
       await discardAccessRequestRow(supabase, ticketId);
@@ -302,15 +298,14 @@ export async function submitForgotResetAdminRequestAction(input: {
   ly_do: string;
 }) {
   try {
-    const email = normalizeEmail(String(input.email || ""));
-    const maNv = String(input.ma_nv || "").trim();
-    const lyDo = String(input.ly_do || "").trim();
+    const parsed = parseOrFirstError(submitForgotResetAdminRequestSchema, input);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
+    const email = normalizeEmail(parsed.data.email);
+    const maNv = parsed.data.ma_nv || "";
+    const lyDo = parsed.data.ly_do;
 
     if (!email || !email.includes("@")) {
       return { success: false as const, error: "Email không hợp lệ." };
-    }
-    if (!lyDo || lyDo.length < 5) {
-      return { success: false as const, error: "Lý do tối thiểu 5 ký tự." };
     }
 
     const supabase = createAdminSupabaseClient();
@@ -376,8 +371,7 @@ export async function submitForgotResetAdminRequestAction(input: {
       .eq("id", staff.id);
     if (upErr) throw upErr;
 
-    revalidatePath("/quan-tri-he-thong/nhan-su");
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidateNhanSuTaiKhoan();
     return publicAccountAck();
     } catch (writeErr) {
       await discardAccessRequestRow(supabase, ticketId);
@@ -396,11 +390,12 @@ export async function lookupAccountAccessRequestStatusAction(input: {
   email: string;
   ma_nv?: string;
 }) {
-  const email = normalizeEmail(String(input.email || ""));
+  const parsed = parseOrFirstError(lookupAccountAccessRequestStatusSchema, input);
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
+  const email = normalizeEmail(parsed.data.email);
   if (!email || !email.includes("@")) {
     return { success: false as const, error: "Email không hợp lệ." };
   }
-  void input.ma_nv;
   return publicAccountAck();
 }
 
@@ -474,19 +469,18 @@ export async function approveAccountAccessRequest(params: {
 }) {
   try {
     const actor = await ensureRbacAdmin();
-    const reauth = await verifyCurrentActorPassword(params.confirmActorPassword);
+    const parsed = parseOrFirstError(approveAccountAccessRequestSchema, params);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
+    const reauth = await verifyCurrentActorPassword(parsed.data.confirmActorPassword);
     if (!reauth.ok) return { success: false as const, error: reauth.error };
 
     const supabase = createAdminSupabaseClient();
-    const pw = params.password;
-    if (!pw || pw.length < 8) {
-      return { success: false as const, error: "Mật khẩu tối thiểu 8 ký tự." };
-    }
+    const pw = parsed.data.password;
 
     const { data: staff, error: sErr } = await supabase
       .from("mdm_nhan_su")
       .select("id, extra_data, is_active, auth_user_id")
-      .eq("id", params.staffId)
+      .eq("id", parsed.data.staffId)
       .maybeSingle();
     if (sErr || !staff) return { success: false as const, error: "Không tìm thấy hồ sơ." };
 
@@ -556,8 +550,7 @@ export async function approveAccountAccessRequest(params: {
       actorEmail: actor.email,
     });
 
-    revalidatePath("/quan-tri-he-thong/nhan-su");
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidateNhanSuTaiKhoan();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: errMsg(e) };
@@ -577,11 +570,13 @@ export async function approveForgotResetRequest(params: {
   try {
     // Fail closed: phiếu RESET phải CHO_DUYET trước khi đụng mật khẩu (UI gate không đủ).
     const actor = await ensureRbacAdmin();
+    const parsedIn = parseOrFirstError(approveForgotResetRequestSchema, params);
+    if (!parsedIn.ok) return { success: false as const, error: parsedIn.error };
     const supabase = createAdminSupabaseClient();
     const { data: staff, error: sErr } = await supabase
       .from("mdm_nhan_su")
       .select("id, extra_data")
-      .eq("id", params.staffId)
+      .eq("id", parsedIn.data.staffId)
       .maybeSingle();
     if (sErr || !staff) return { success: false as const, error: "Không tìm thấy hồ sơ." };
 
@@ -600,17 +595,17 @@ export async function approveForgotResetRequest(params: {
       "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions"
     );
     const reset = await adminResetStaffPasswordAction({
-      staffId: params.staffId,
-      password: params.password,
-      confirmActorPassword: params.confirmActorPassword,
-      secondApproverEmail: params.secondApproverEmail,
+      staffId: parsedIn.data.staffId,
+      password: parsedIn.data.password,
+      confirmActorPassword: parsedIn.data.confirmActorPassword,
+      secondApproverEmail: parsedIn.data.secondApproverEmail,
     });
     if (!reset.success) return reset;
 
     const { data: fresh } = await supabase
       .from("mdm_nhan_su")
       .select("extra_data")
-      .eq("id", params.staffId)
+      .eq("id", parsedIn.data.staffId)
       .maybeSingle();
     const extra = mergeAccountRequest(fresh?.extra_data as Record<string, unknown> | null, {
       ...req,
@@ -621,16 +616,15 @@ export async function approveForgotResetRequest(params: {
     await supabase
       .from("mdm_nhan_su")
       .update({ extra_data: extra, updated_at: new Date().toISOString() })
-      .eq("id", params.staffId);
+      .eq("id", parsedIn.data.staffId);
     await decideAccessRequestRow(supabase, {
       ticketId: req.ticket_id,
-      staffId: params.staffId,
+      staffId: parsedIn.data.staffId,
       status: "DUYET",
       decidedBy: actor.email ?? actor.id,
     });
 
-    revalidatePath("/quan-tri-he-thong/nhan-su");
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidateNhanSuTaiKhoan();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: errMsg(e) };
@@ -641,16 +635,15 @@ export async function approveForgotResetRequest(params: {
 export async function rejectAccountAccessRequest(params: { staffId: string; reason: string }) {
   try {
     const actor = await ensureRbacAdmin();
+    const parsed = parseOrFirstError(rejectAccountAccessRequestSchema, params);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
     const supabase = createAdminSupabaseClient();
-    const reason = String(params.reason || "").trim();
-    if (reason.length < 3) {
-      return { success: false as const, error: "Lý do từ chối tối thiểu 3 ký tự." };
-    }
+    const reason = parsed.data.reason;
 
     const { data: staff, error: sErr } = await supabase
       .from("mdm_nhan_su")
       .select("id, extra_data, is_active, auth_user_id")
-      .eq("id", params.staffId)
+      .eq("id", parsed.data.staffId)
       .maybeSingle();
     if (sErr || !staff) return { success: false as const, error: "Không tìm thấy hồ sơ." };
 
@@ -713,8 +706,7 @@ export async function rejectAccountAccessRequest(params: { staffId: string; reas
       actorEmail: actor.email,
     });
 
-    revalidatePath("/quan-tri-he-thong/nhan-su");
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidateNhanSuTaiKhoan();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: errMsg(e) };

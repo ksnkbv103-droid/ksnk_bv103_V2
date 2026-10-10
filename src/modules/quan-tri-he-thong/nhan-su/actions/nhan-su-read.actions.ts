@@ -5,7 +5,7 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { sanitizeBusinessMaPrefix } from "@/lib/master-data/business-ma-prefix";
 import { type NhanSu } from "../types";
-import { verifyPermission } from "../../actions/verify-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import { buildNhanSuExportRows } from "./nhan-su-read-export-rows";
 import { errNhanSu } from "./nhan-su-read-errors";
 import { enrichNhanSuListRows } from "./nhan-su-read-list-enrich";

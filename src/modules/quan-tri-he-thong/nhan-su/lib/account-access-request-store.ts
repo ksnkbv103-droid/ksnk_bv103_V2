@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 /**
  * Prefer sys_account_access_request when migration applied; fall back to soft extra_data.
  * Probe once per process; dual-write soft so Nhân sự pending filter keeps working.
@@ -96,15 +97,25 @@ export async function insertAccessRequestRow(
 }
 
 /** Xóa phiếu vừa tạo khi ghi hồ sơ thất bại — tránh cooldown chặn lần gửi lại. */
+/**
+ * Hoàn tác phiếu vừa tạo khi ghi hồ sơ lỗi (không phải xóa nghiệp vụ). Không ném lỗi để lỗi gốc
+ * được trả về, nhưng ghi log để phát hiện phiếu mồ côi.
+ */
 export async function discardAccessRequestRow(
-  supabase: any,
+  supabase: SupabaseClient,
   ticketId: string | null,
 ): Promise<void> {
   if (!ticketId) return;
   try {
-    await supabase.from("sys_account_access_request").delete().eq("id", ticketId);
-  } catch {
-    /* best-effort */
+    const { error } = await supabase.from("sys_account_access_request").delete().eq("id", ticketId);
+    if (error) throw error;
+  } catch (e) {
+    console.error("[account-access-request] discard ticket failed", {
+      module: "nhan-su",
+      action: "discardAccessRequestRow",
+      ticketId,
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 }
 

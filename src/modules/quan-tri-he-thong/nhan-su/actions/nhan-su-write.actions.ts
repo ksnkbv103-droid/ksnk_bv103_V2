@@ -8,7 +8,7 @@ import {
 } from "../../danh-muc/actions/master-crud-core";
 import { formatHoSoNhanSuWriteError } from "./nhan-su-fk-normalize";
 import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";
-import { verifyPermission } from "../../actions/verify-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import { nhanSuSchema } from "@/lib/validations";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { syncStaffAuthEmail } from "@/lib/auth/staff-auth-email";
@@ -17,6 +17,7 @@ import {
   authUserHasAdminRole,
 } from "./nhan-su-login-email.guard";
 import { logAdminAction, maskEmailForAudit } from "@/lib/admin-audit";
+import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 
 function errNhanSuWrite(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -178,7 +179,7 @@ export async function saveNhanSuAction(data: SaveNhanSuInput) {
       savedId = saved?.id ? String(saved.id) : "";
     }
 
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return {
       success: true,
       message: id ? "Cập nhật thành công" : "Thêm nhân sự mới thành công",

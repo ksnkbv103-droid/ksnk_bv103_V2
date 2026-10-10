@@ -29,6 +29,7 @@ import {
   SMART_IMPORT_TABLE_UNIQUE_KEY,
   type SmartImportOptions,
 } from "./smart-import.contract";
+import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 
 interface SmartImportConfig {
   tableName: string;
@@ -446,7 +447,7 @@ export async function smartImportData(
 
     const audit = buildAudit(softDeleteMissing ? "sync_full" : "safe");
     console.info("[IMPORT_AUDIT]", JSON.stringify(audit));
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return {
       success: true,
       audit,

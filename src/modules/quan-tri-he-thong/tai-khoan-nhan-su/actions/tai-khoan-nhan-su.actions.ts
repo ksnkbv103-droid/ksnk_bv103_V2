@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { invalidateUserPermissionsCache } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { logAdminAction } from "@/lib/admin-audit";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
@@ -22,11 +22,37 @@ import {
   selectRolesForStaffKsnkAssignment,
 } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 import { verifyCurrentActorPassword } from "../lib/admin-reauth";
+import {
+  adminResetStaffPasswordSchema,
+  parseOrFirstError,
+  provisionStaffAuthAccountSchema,
+  setStaffKsnkRbacRoleSchema,
+  setupGuestStatsPilotAccountSchema,
+} from "@/lib/validations/tai-khoan-nhan-su.validations";
+import { revalidateNhanSuTaiKhoan } from "@/modules/quan-tri-he-thong/actions/revalidate-quan-tri";
 
 function err(e: unknown) {
   return e instanceof Error ? e.message : String(e);
 }
 
+
+const AUTH_LIST_PAGE_SIZE = 200;
+const AUTH_LIST_MAX_PAGES = 50;
+
+/** supabase-js v2 không có tra theo email — duyệt từng trang cho đến khi thấy (không cắt ở 200 user đầu). */
+async function findAuthUserByEmail(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  email: string,
+) {
+  for (let page = 1; page <= AUTH_LIST_MAX_PAGES; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: AUTH_LIST_PAGE_SIZE });
+    if (error) throw error;
+    const found = data.users.find((u) => normalizeEmail(u.email || "") === email);
+    if (found) return found;
+    if (data.users.length < AUTH_LIST_PAGE_SIZE) return null;
+  }
+  return null;
+}
 
 const AUTH_AUDIT_MAX = 40;
 
@@ -147,12 +173,15 @@ export async function setStaffKsnkRbacRole(params: {
 }) {
   try {
     const actor = await ensureRbacAdmin();
-    const reauth = await verifyCurrentActorPassword(String(params.confirmActorPassword || ""));
+    const parsed = parseOrFirstError(setStaffKsnkRbacRoleSchema, params);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
+    const input = parsed.data;
+    const reauth = await verifyCurrentActorPassword(String(input.confirmActorPassword || ""));
     if (!reauth.ok) return { success: false as const, error: reauth.error };
 
     const supabase = createAdminSupabaseClient();
 
-    const roleNorm = params.roleName.trim();
+    const roleNorm = input.roleName;
     const roleUpper = roleNorm.toUpperCase();
     const canonicalName = roleNorm
       ? RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER.find((x) => x === roleUpper) ?? null
@@ -169,7 +198,7 @@ export async function setStaffKsnkRbacRole(params: {
     const { data: staffRow } = await supabase
       .from("mdm_nhan_su")
       .select("auth_user_id")
-      .eq("id", params.staffId)
+      .eq("id", input.staffId)
       .maybeSingle();
     if (staffRow?.auth_user_id && String(staffRow.auth_user_id) === String(actor.id)) {
       return {
@@ -192,7 +221,7 @@ export async function setStaffKsnkRbacRole(params: {
     }
 
     const { data, error } = await supabase.rpc("rpc_assign_staff_ksnk_role", {
-      p_staff_id: params.staffId,
+      p_staff_id: input.staffId,
       p_role_name: canonicalName || "",
     });
 
@@ -208,19 +237,17 @@ export async function setStaffKsnkRbacRole(params: {
       };
     }
 
-    const { logAdminAction } = await import("@/lib/admin-audit");
     await logAdminAction({
       action: "CHANGE_RBAC_ROLE",
       targetTable: "mdm_nhan_su",
-      targetId: params.staffId,
+      targetId: input.staffId,
       after: { roleName: canonicalName || null },
       actorUserId: actor.id,
       actorEmail: actor.email,
     });
 
     await invalidateUserPermissionsCache();
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
-    revalidatePath("/quan-tri-he-thong/nhan-su");
+    revalidateNhanSuTaiKhoan();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
@@ -238,17 +265,16 @@ export async function provisionStaffAuthAccount(params: {
 }) {
   try {
     const actor = await ensureRbacAdmin();
+    const parsed = parseOrFirstError(provisionStaffAuthAccountSchema, params);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
     const supabase = createAdminSupabaseClient();
 
-    const pw = params.password;
-    if (!pw || pw.length < 8) {
-      return { success: false as const, error: "Mật khẩu tối thiểu 8 ký tự." };
-    }
+    const pw = parsed.data.password;
 
     const { data: staff, error: sErr } = await supabase
       .from("v_mdm_nhan_su_full")
       .select("id, email, ma_nv, auth_user_id, is_active, extra_data, vai_tro_he_thong_ksnk")
-      .eq("id", params.staffId)
+      .eq("id", parsed.data.staffId)
       .maybeSingle();
 
     if (sErr || !staff) return { success: false as const, error: "Không tìm thấy nhân viên." };
@@ -291,6 +317,13 @@ export async function provisionStaffAuthAccount(params: {
       actor_email: actor.email ?? null,
       action: "provision",
     });
+    await logAdminAction({
+      action: "PROVISION_AUTH_ACCOUNT",
+      targetTable: "mdm_nhan_su",
+      targetId: staff.id,
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
 
     // Đồng bộ vai trò KSNK từ hồ sơ (vai_tro → assignable) — cùng hành vi form «Thêm người + Tạo đăng nhập».
     let roleWarning: string | undefined;
@@ -317,8 +350,7 @@ export async function provisionStaffAuthAccount(params: {
       }
     }
 
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
-    revalidatePath("/quan-tri-he-thong/nhan-su");
+    revalidateNhanSuTaiKhoan();
     return {
       success: true as const,
       userId: created.user.id,
@@ -343,20 +375,20 @@ export async function adminResetStaffPasswordAction(params: {
 }) {
   try {
     const actor = await ensureRbacAdmin();
-    const reauth = await verifyCurrentActorPassword(params.confirmActorPassword);
+    const parsed = parseOrFirstError(adminResetStaffPasswordSchema, params);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
+    const input = parsed.data;
+    const reauth = await verifyCurrentActorPassword(input.confirmActorPassword);
     if (!reauth.ok) return { success: false as const, error: reauth.error };
 
     const supabase = createAdminSupabaseClient();
 
-    const pw = params.password;
-    if (!pw || pw.length < 8) {
-      return { success: false as const, error: "Mật khẩu tối thiểu 8 ký tự." };
-    }
+    const pw = input.password;
 
     const { data: staff, error: sErr } = await supabase
       .from("v_mdm_nhan_su_full")
       .select("id, auth_user_id, email, is_active")
-      .eq("id", params.staffId)
+      .eq("id", input.staffId)
       .maybeSingle();
 
     if (sErr || !staff) return { success: false as const, error: "Không tìm thấy nhân viên." };
@@ -368,7 +400,7 @@ export async function adminResetStaffPasswordAction(params: {
     }
 
     const isSelf = staff.auth_user_id === actor.id;
-    const secondEmail = normalizeEmail(String(params.secondApproverEmail || ""));
+    const secondEmail = normalizeEmail(String(input.secondApproverEmail || ""));
     if (isSelf) {
       if (!secondEmail || !secondEmail.includes("@")) {
         return {
@@ -417,9 +449,16 @@ export async function adminResetStaffPasswordAction(params: {
       second_actor_email: secondEmail || null,
       confirm_mode: isSelf ? "reauth+second_email" : "reauth",
     });
+    await logAdminAction({
+      action: "ADMIN_RESET_PASSWORD",
+      targetTable: "mdm_nhan_su",
+      targetId: staff.id,
+      after: { confirmMode: isSelf ? "reauth+second_email" : "reauth" },
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
 
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
-    revalidatePath("/quan-tri-he-thong/nhan-su");
+    revalidateNhanSuTaiKhoan();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
@@ -479,15 +518,13 @@ export async function setupGuestStatsPilotAccountAction(params: {
   email?: string;
 }) {
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
+    const parsed = parseOrFirstError(setupGuestStatsPilotAccountSchema, params);
+    if (!parsed.ok) return { success: false as const, error: parsed.error };
     const supabase = createAdminSupabaseClient();
 
-    const pw = params.password;
-    if (!pw || pw.length < 8) {
-      return { success: false as const, error: "Mật khẩu tối thiểu 8 ký tự." };
-    }
-
-    const email = normalizeEmail(params.email?.trim() || GUEST_STATS_PILOT_EMAIL);
+    const pw = parsed.data.password;
+    const email = normalizeEmail(parsed.data.email || GUEST_STATS_PILOT_EMAIL);
 
     const { data: guestRole } = await supabase
       .from("sys_roles")
@@ -556,9 +593,7 @@ export async function setupGuestStatsPilotAccountAction(params: {
       });
 
       if (createErr?.message?.toLowerCase().includes("already") || createErr?.status === 422) {
-        const { data: listed, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 200 });
-        if (listErr) throw listErr;
-        const found = listed.users.find((u) => normalizeEmail(u.email || "") === email);
+        const found = await findAuthUserByEmail(supabase, email);
         if (!found?.id) {
           return {
             success: false as const,
@@ -610,9 +645,15 @@ export async function setupGuestStatsPilotAccountAction(params: {
       return { success: false as const, error: rpcData?.error || "Không gán được vai trò Khách." };
     }
 
+    await logAdminAction({
+      action: "SETUP_GUEST_STATS_ACCOUNT",
+      targetTable: "mdm_nhan_su",
+      targetId: staffId,
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
     await invalidateUserPermissionsCache();
-    revalidatePath("/quan-tri-he-thong/tai-khoan");
-    revalidatePath("/quan-tri-he-thong/nhan-su");
+    revalidateNhanSuTaiKhoan();
     return { success: true as const, email, staffId };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };

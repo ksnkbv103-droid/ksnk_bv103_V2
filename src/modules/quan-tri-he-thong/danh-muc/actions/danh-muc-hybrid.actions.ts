@@ -3,7 +3,7 @@
 import { unstable_cache } from "next/cache";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "../../actions/verify-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import { ADMIN_MODULE_STATS_TAG } from "@/lib/cache/revalidate-master-data-tags";
 import type { DanhMucStat, TrungTamDanhMucStatsPayload } from "./danh-muc-hybrid.types";
 

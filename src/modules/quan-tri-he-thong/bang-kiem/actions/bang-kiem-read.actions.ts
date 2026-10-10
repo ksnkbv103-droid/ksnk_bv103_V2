@@ -2,7 +2,7 @@
 
 import { sanitizeBusinessMaPrefix } from "@/lib/master-data/business-ma-prefix";
 import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "../../actions/verify-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import type { DanhMucBangKiem, TieuChiBangKiem } from "../bang-kiem.types";

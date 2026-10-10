@@ -20,6 +20,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { MdmCoverageRow, MdmFieldRegistryRow, MdmSuggestionRow } from "@/lib/master-data/governance";
 
 function getErrorMessage(error: unknown): string {
@@ -110,10 +111,10 @@ export async function approveMdmSuggestionAction(
     await verifyPermission("DANH_MUC", "edit");
     const supabase = await createServerSupabaseUserClient();
     
-    // 1. Insert into sys_mdm_registry
+    // 1. Upsert theo (table_name, column_name): dòng đã «xóa» (mềm) được bật lại, không vướng UNIQUE.
     const { data: regData, error: regError } = await supabase
       .from("sys_mdm_registry")
-      .insert([
+      .upsert([
         {
           table_name: payload.table_name,
           column_name: payload.column_name,
@@ -126,7 +127,7 @@ export async function approveMdmSuggestionAction(
           notes: payload.notes || "Phê duyệt tự động từ Gợi ý MDM",
           suggestion_policy: "MANUAL_REVIEW"
         }
-      ])
+      ], { onConflict: "table_name,column_name" })
       .select()
       .single();
       
@@ -140,6 +141,12 @@ export async function approveMdmSuggestionAction(
 
     if (sugError) throw sugError;
 
+    await logAdminAction({
+      action: "APPROVE_MDM_SUGGESTION",
+      targetTable: "sys_mdm_registry",
+      targetId: String(regData?.id ?? suggestionId),
+      after: { table: payload.table_name, column: payload.column_name, suggestionId },
+    });
     return { success: true as const, data: regData };
   } catch (error: unknown) {
     return { success: false as const, error: getErrorMessage(error) };
@@ -157,6 +164,11 @@ export async function rejectMdmSuggestionAction(suggestionId: string) {
       .eq("id", suggestionId);
 
     if (error) throw error;
+    await logAdminAction({
+      action: "REJECT_MDM_SUGGESTION",
+      targetTable: "sys_mdm_suggestion",
+      targetId: suggestionId,
+    });
     return { success: true as const };
   } catch (error: unknown) {
     return { success: false as const, error: getErrorMessage(error) };
@@ -174,32 +186,35 @@ export async function toggleRegistryFieldAction(registryId: string, isActive: bo
       .eq("id", registryId);
 
     if (error) throw error;
+    await logAdminAction({
+      action: "TOGGLE_MDM_REGISTRY",
+      targetTable: "sys_mdm_registry",
+      targetId: registryId,
+      after: { is_active: isActive },
+    });
     return { success: true as const };
   } catch (error: unknown) {
     return { success: false as const, error: getErrorMessage(error) };
   }
 }
 
+/** Xóa mềm (PO chốt 2026-10-10): `is_active=false` — trigger Postgres gỡ ràng buộc khỏi bảng đích. */
 export async function deleteRegistryRowAction(registryId: string) {
   try {
     await verifyPermission("DANH_MUC", "edit");
     const supabase = await createServerSupabaseUserClient();
-    
-    // Set active to false first to safely trigger attachment removal trigger in Postgres
+
     const { error: toggleError } = await supabase
       .from("sys_mdm_registry")
       .update({ is_active: false })
       .eq("id", registryId);
-      
-    if (toggleError) throw toggleError;
-    
-    // Now physically delete it from the registry
-    const { error: deleteError } = await supabase
-      .from("sys_mdm_registry")
-      .delete()
-      .eq("id", registryId);
 
-    if (deleteError) throw deleteError;
+    if (toggleError) throw toggleError;
+    await logAdminAction({
+      action: "DEACTIVATE_MDM_REGISTRY",
+      targetTable: "sys_mdm_registry",
+      targetId: registryId,
+    });
     return { success: true as const };
   } catch (error: unknown) {
     return { success: false as const, error: getErrorMessage(error) };

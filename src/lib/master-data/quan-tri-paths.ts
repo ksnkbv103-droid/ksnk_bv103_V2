@@ -1,7 +1,9 @@
 /** SSOT đường dẫn App Router — Quản trị hệ thống. */
-const QUAN_TRI_HUB_PATH = "/quan-tri-he-thong";
+export const QUAN_TRI_HUB_PATH = "/quan-tri-he-thong";
 const QUAN_TRI_DUNG_CU_PATH = "/quan-tri-he-thong/danh-muc/dung-cu";
 export const QUAN_TRI_TAI_KHOAN_PATH = "/quan-tri-he-thong/tai-khoan";
+export const QUAN_TRI_NHAN_SU_PATH = "/quan-tri-he-thong/nhan-su";
+export const QUAN_TRI_BANG_KIEM_PATH = "/quan-tri-he-thong/bang-kiem";
 
 export function quanTriTaiKhoanHref(): string {
   return QUAN_TRI_TAI_KHOAN_PATH;

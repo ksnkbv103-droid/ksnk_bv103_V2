@@ -2,10 +2,12 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { logAdminAction } from "@/lib/admin-audit";
 import { revalidatePath } from "next/cache";
-import { verifyPermission } from "../../actions/verify-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import { normalizeBangKiemImportGroups } from "./bang-kiem-import-normalize";
 import { syncBangKiemImportToDatabase } from "./bang-kiem-import-sync-db";
+import { QUAN_TRI_BANG_KIEM_PATH } from "@/lib/master-data/quan-tri-paths";
 
 function errImportBk(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -80,7 +82,12 @@ export async function importFullBangKiemData(
     const synced = await syncBangKiemImportToDatabase(supabase, normalized.groups, { softDeleteMissing });
     if (!synced.ok) return { success: false, error: synced.error };
 
-    revalidatePath("/quan-tri-he-thong/bang-kiem");
+    await logAdminAction({
+      action: "IMPORT_BANG_KIEM",
+      targetTable: "gstt_dm_bang_kiem",
+      after: { groups: normalized.groups.length, softDeleteMissing },
+    });
+    revalidatePath(QUAN_TRI_BANG_KIEM_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errImportBk(error) };

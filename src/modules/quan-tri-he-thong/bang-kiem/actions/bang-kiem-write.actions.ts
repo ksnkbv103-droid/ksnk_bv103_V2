@@ -7,7 +7,7 @@ import {
   toggleMasterStatus,
   upsertMasterRow,
 } from "../../danh-muc/actions/master-crud-core";
-import { verifyPermission } from "../../actions/verify-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import {
   normalizeApDungForSave,
   parseApDungJsonb,
@@ -16,6 +16,7 @@ import {
 import type { TieuChiBangKiem } from "../bang-kiem.types";
 import { resolveBangKiemGscPersistFields } from "../lib/bang-kiem-gsc-fields";
 import { resolveTieuChiGscPersistFields } from "../lib/bang-kiem-tieu-chi-gsc-fields";
+import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 
 function errBk(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -62,7 +63,7 @@ export async function saveBangKiemApDungAction(bangKiemId: string, apRaw: unknow
       .eq("id", bangKiemId);
     if (updateErr) throw updateErr;
 
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true as const, data: apDung };
   } catch (error: unknown) {
     return { success: false as const, error: errBk(error) };
@@ -115,7 +116,7 @@ export async function saveBangKiem(data: Record<string, unknown>) {
     };
     const result = await upsertMasterRow("gstt_dm_bang_kiem", id, payload);
     if (!result.success) throw new Error(result.error);
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -127,7 +128,7 @@ export async function deleteBangKiem(id: string) {
     await verifyPermission("BANG_KIEM", "delete");
     const result = await softDeleteMasterRow("gstt_dm_bang_kiem", id);
     if (!result.success) throw new Error(result.error);
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -231,7 +232,7 @@ export async function saveTieuChi(data: Record<string, unknown>) {
       .eq("id", bangKiemId);
     if (updateErr) throw updateErr;
     
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -291,7 +292,7 @@ export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string
       .eq("id", targetBangKiemId);
     if (updateErr) throw updateErr;
     
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -341,7 +342,7 @@ export async function importTieuChis(bangKiemId: string, newCriteria: Record<str
       .eq("id", bangKiemId);
     if (updateErr) throw updateErr;
     
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -392,7 +393,7 @@ export async function deleteMultipleTieuChis(ids: string[]) {
       }
     }
     
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -446,7 +447,7 @@ export async function toggleIsActive(
       }
     }
     
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
@@ -496,7 +497,7 @@ export async function reorderTieuChis(bangKiemId: string) {
       .eq("id", bangKiemId);
     if (updateErr) throw updateErr;
     
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(QUAN_TRI_HUB_PATH);
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errBk(error) };
