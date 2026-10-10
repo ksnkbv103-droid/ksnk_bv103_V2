@@ -53,11 +53,11 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Ô thời điểm thấp, một hàng 5 cột. Hành động cao hơn một chút cho nhãn một dòng. */
-const MOMENT_CELL =
-  "box-border flex h-9 min-w-0 w-full flex-col items-center justify-center overflow-hidden rounded border px-0.5 text-center transition-colors touch-manipulation";
-const CELL =
-  "box-border flex h-11 w-full items-center justify-center rounded border px-1 text-center transition-colors touch-manipulation";
+/** Mọi ô chọn (thời điểm, hành động) cùng chiều cao và padding; thời điểm một hàng 5 cột. */
+const CELL_BASE =
+  "box-border flex h-11 w-full min-w-0 items-center justify-center overflow-hidden rounded border px-1 text-center transition-colors touch-manipulation";
+const MOMENT_CELL = `${CELL_BASE} flex-col !px-0.5`;
+const CELL = CELL_BASE;
 const CELL_IDLE = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
 const CELL_ON = "border-[var(--primary)] bg-[var(--primary)] text-white";
 const CELL_MISS = "border-rose-800 bg-rose-800 text-white";
@@ -68,10 +68,10 @@ function MomentCellLabel({ moment }: { moment: MomentType }) {
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
   return (
     <>
-      <span className="bv103-type-label w-full truncate text-center leading-none font-medium uppercase !text-inherit">
+      <span className="bv103-type-label w-full whitespace-nowrap text-center leading-none font-medium uppercase !text-inherit">
         {timing}
       </span>
-      <span className="bv103-type-label w-full truncate text-center leading-none font-semibold uppercase !text-inherit">
+      <span className="bv103-type-label w-full whitespace-nowrap text-center text-[0.625rem] leading-none font-semibold uppercase tracking-tight !text-inherit">
         {MOMENT_SHORT_CODE[moment]}
       </span>
     </>

@@ -428,7 +428,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="fixed bottom-6 right-6 z-20 flex max-sm:bottom-[5.5rem] flex-col gap-3">
+        <div className="sticky bottom-0 z-20 flex flex-row items-center justify-end gap-3 border-t border-slate-200 bg-white/95 py-3 backdrop-blur max-sm:bottom-[4.5rem]">
           <button
             onClick={() => {
               if (hasUnsavedSession) {
@@ -440,7 +440,7 @@ export default function VSTForm({
               window.print();
             }}
             title="In phiếu A4"
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+            className="inline-flex h-11 items-center justify-center rounded-[var(--radius-control)] border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
           >
             In / PDF
           </button>
@@ -449,7 +449,7 @@ export default function VSTForm({
             <button
               disabled={loading || isLockedForSelectedDate}
               onClick={handleFinalSave}
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-11 items-center justify-center rounded-[var(--radius-control)] bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

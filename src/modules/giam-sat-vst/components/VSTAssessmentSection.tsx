@@ -40,11 +40,11 @@ function YesNoRow({
   return (
     <div className="box-border flex h-14 items-center justify-between gap-3 border-b border-slate-100 px-1 last:border-b-0">
       <span className="bv103-type-label min-w-0 flex-1 text-slate-700 !text-slate-700">{label}</span>
-      <div className={`${C.segmentGroup} h-9 shrink-0`} role="group" aria-label={ariaLabel}>
+      <div className={`${C.segmentGroup} h-11 shrink-0`} role="group" aria-label={ariaLabel}>
         <button
           type="button"
           onClick={onYes}
-          className={`inline-flex h-9 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
+          className={`inline-flex h-11 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
             yesActive
               ? invertYesStyle
                 ? "bg-rose-600 text-white"
@@ -57,7 +57,7 @@ function YesNoRow({
         <button
           type="button"
           onClick={onNo}
-          className={`inline-flex h-9 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
+          className={`inline-flex h-11 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
             noActive
               ? invertYesStyle
                 ? "bg-[var(--primary)] text-white"
