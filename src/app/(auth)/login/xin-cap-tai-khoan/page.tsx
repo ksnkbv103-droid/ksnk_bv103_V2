@@ -9,7 +9,7 @@ import {
   listPublicChucDanhOptionsForAccountRequestAction,
   listPublicKhoaOptionsForAccountRequestAction,
   submitAccountAccessRequestAction,
-} from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request.actions";
+} from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions";
 
 type KhoaOpt = { id: string; ten_khoa: string; ma_khoa: string };
 type ChucDanhOpt = { id: string; ten_chuc_danh: string; ma_chuc_danh: string };

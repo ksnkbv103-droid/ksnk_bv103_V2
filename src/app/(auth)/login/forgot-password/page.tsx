@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { requestPasswordResetEmail } from "@/modules/auth/actions/staff-password.actions";
-import { submitForgotResetAdminRequestAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request.actions";
+import { submitForgotResetAdminRequestAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export default function ForgotPasswordPage() {

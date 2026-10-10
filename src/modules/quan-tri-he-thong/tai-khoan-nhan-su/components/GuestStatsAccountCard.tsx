@@ -7,7 +7,7 @@ import {
   getGuestStatsPilotStatusAction,
   setupGuestStatsPilotAccountAction,
   type GuestStatsPilotStatus,
-} from "../actions/tai-khoan-nhan-su.actions";
+} from "../actions/guest-stats-pilot.actions";
 
 export default function GuestStatsAccountCard({ onUpdated }: { onUpdated?: () => void }) {
   const [status, setStatus] = useState<GuestStatsPilotStatus | null>(null);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
-import { lookupAccountAccessRequestStatusAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request.actions";
+import { lookupAccountAccessRequestStatusAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions";
 
 export default function TraCuuYeuCauPage() {
   const [email, setEmail] = useState("");

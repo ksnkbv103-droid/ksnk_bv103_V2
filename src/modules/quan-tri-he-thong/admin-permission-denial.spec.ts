@@ -30,8 +30,8 @@ import {
   adminResetStaffPasswordAction,
   provisionStaffAuthAccount,
   setStaffKsnkRbacRole,
-  setupGuestStatsPilotAccountAction,
 } from "./tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
+import { setupGuestStatsPilotAccountAction } from "./tai-khoan-nhan-su/actions/guest-stats-pilot.actions";
 import {
   approveAccountAccessRequest,
   approveForgotResetRequest,
