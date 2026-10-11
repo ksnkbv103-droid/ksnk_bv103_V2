@@ -120,7 +120,7 @@ Alias legacy chỉ đọc: `CHUA_BAT_DAU`→`MOI`; `CHO_NHAN_VIEC`/`DANG_THUC_HI
 | Đúng hạn / trễ | Kỳ đóng | `hoan_thanh_luc` vs `han_hoan_thanh` | Thống kê |
 | Định kỳ tuân thủ | Kỳ | Mẫu · spawn · hoàn thành | Quản lý mẫu |
 
-**Hiện có (code):** gate chips (của tôi / cần làm / quá hạn / chờ tôi); `v_qlcv_cong_viec_qua_han`; brief CC — **chưa** đủ báo cáo kỳ §6 → gap P0 vs Nghĩa.
+**Hiện có (code, 2026-10-11):** gate chips (của tôi / cần làm / quá hạn / chờ tôi); tab **Báo cáo** theo kỳ tuần/tháng/quý (`lib/qlcv-bao-cao-ky.ts`, `QlcvBaoCaoPanel`): theo người · theo trạng thái · quá hạn mở · đúng hạn/trễ + CSV; `v_qlcv_cong_viec_qua_han`. **Chưa có:** báo cáo «Định kỳ tuân thủ» (mẫu · spawn · hoàn thành) — P1.
 
 ## §7. A/B (Domain khuyến nghị = A)
 
@@ -138,8 +138,8 @@ Alias legacy chỉ đọc: `CHUA_BAT_DAU`→`MOI`; `CHO_NHAN_VIEC`/`DANG_THUC_HI
 | Gap | Mức | Ghi chú |
 |-----|-----|---------|
 | Chưa có neo SSOT QLCV đủ RACI/Q-rules/báo cáo | P0 domain | File này bổ sung; `02`/`06` chỉ skeleton |
-| Báo cáo kỳ (người–việc–đúng hạn) chưa SSOT / UI mỏng | P0 vs Nghĩa | Có gate + quá hạn; thiếu bảng kỳ |
-| Người duyệt không cột → khó «rõ trách nhiệm duyệt» trên list | P1 | AB-2A: derive từ `nhat_ky` |
+| Báo cáo kỳ (người–việc–đúng hạn) | ~~P0~~ **Đã có** | Tab Báo cáo (§6). Còn thiếu «Định kỳ tuân thủ» → P1 |
+| Người duyệt không cột → khó «rõ trách nhiệm duyệt» trên list | P1 | AB-2A: derive từ `nhat_ky`. **Đã làm ở màn chi tiết** («Người nghiệm thu», `lib/qlcv-close-info.ts`); danh sách chưa hiện cột này |
 | `QUA_HAN` vừa mã vừa cờ — dễ lẫn cổng | P1 | AB-1A + §3 |
 | `04`/`05` pack không có process/use-case QLCV | P1 | Neo bằng file 19; chưa viết lại 04/05 |
 | DD `06` thiếu cột assignment (phối hợp/theo dõi/địa điểm/`nhat_ky`) | P1 | Align khi cập nhật DD |
@@ -166,4 +166,4 @@ Ghi checklist qua `fn_qlcv_update_checklist`. Cloud thiếu cột → `npm run m
 
 ### TEXT+CHECK (đã làm 2026-06-04)
 
-Cột `trang_thai` và `loai_cong_viec` kiểu `text` + CHECK trên `qlcv_fact_cong_viec` (migration `20260604120000_qlcv_text_check_codes.sql`). Trigger `trg_qlcv_sync_code_from_fk` giữ FK lookup đồng bộ lúc chuyển tiếp. App dual-write mã text + FK id. Debt D-QLCV-01 đã đóng. Drop cột FK `trang_thai_id` / `loai_cong_viec_id` là backlog sau dual-read ổn định — không chặn pilot.
+Cột `trang_thai` và `loai_cong_viec` kiểu `text` + CHECK trên `qlcv_fact_cong_viec` (migration `20260604120000_qlcv_text_check_codes.sql`). Debt D-QLCV-01 đã đóng. Cột FK cũ `trang_thai_id` / `loai_cong_viec_id` **đã DROP** (migration `20260927171313_qlcv_wave3_drop_dm_loai_trang_thai.sql`); app chỉ còn ghi mã text, không còn dual-write.
