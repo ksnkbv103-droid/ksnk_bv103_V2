@@ -66,3 +66,24 @@ export function formatGapDeltaPercent(
   const delta = Math.abs(roundSupervisionPercent(tyLeKsnk - tyLeTgs, digits));
   return `Δ ${formatSupervisionPercent(delta, digits)}`;
 }
+
+/**
+ * Khoảng tin cậy Wilson 95% cho tỷ lệ đạt/tổng (đơn vị %). Chỉ để hiển thị độ chắc của tỷ lệ,
+ * không đổi công thức tỷ lệ. tong ≤ 0 → null.
+ */
+export function wilsonInterval95(dat: number, tong: number): { low: number; high: number } | null {
+  if (!Number.isFinite(dat) || !Number.isFinite(tong) || tong <= 0) return null;
+  const z = 1.96;
+  const p = Math.min(Math.max(dat / tong, 0), 1);
+  const z2n = (z * z) / tong;
+  const center = (p + z2n / 2) / (1 + z2n);
+  const half = (z * Math.sqrt((p * (1 - p)) / tong + z2n / (4 * tong))) / (1 + z2n);
+  return { low: Math.max(0, center - half) * 100, high: Math.min(1, center + half) * 100 };
+}
+
+/** «KTC 95% 58–92%» — làm tròn số nguyên, đủ đọc nhanh trên tooltip. */
+export function formatWilsonInterval95(dat: number, tong: number): string | null {
+  const ci = wilsonInterval95(dat, tong);
+  if (!ci) return null;
+  return `KTC 95% ${Math.round(ci.low)}–${Math.round(ci.high)}%`;
+}

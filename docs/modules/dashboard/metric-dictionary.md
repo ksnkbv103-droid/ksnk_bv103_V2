@@ -30,6 +30,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 - **Spec change 2026-08-24:** `ty_le_gsc` trên form / lịch sử / in / thống kê GSC / BCTH thống nhất 2 chữ số từ counts; `ty_le_vst` giữ 1 chữ số.
 - **Spec change 2026-08-22:** `ty_le_gsc` trên điều hành / BCTH / thống kê mặc định **chỉ** bảng kiểm loại tuân thủ (`TUAN_THU` hoặc `loai_giam_sat` trống). Nhật ký vận hành và đánh giá hệ thống không vào mẫu số trừ khi người dùng chọn đúng chuyên đề / `?loai=`.
 - **Null khi:** mẫu số = 0
+- **Độ chắc (hiển thị, 2026-10-12):** biểu đồ «Tỷ lệ tuân thủ theo khoa» VST hiện `n` và khoảng tin cậy Wilson 95% trong tooltip (`wilsonInterval95`, `src/lib/analytics/supervision-percent.ts`). Không đổi công thức tỷ lệ. GSC **không** hiện KTC: tiêu chí trong cùng một phiên tương quan, Wilson sẽ báo chắc hơn thực tế.
 
 ### `ty_le_ccs` (Chỉ số tuân thủ tổng hợp) — **deprecated trên surface điều hành**
 

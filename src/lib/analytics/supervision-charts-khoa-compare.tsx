@@ -45,7 +45,7 @@ import {
   VST_COMPARE_MIN_SAMPLE,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
-import { supervisionPercentDigits } from "@/lib/analytics/supervision-percent";
+import { formatWilsonInterval95, supervisionPercentDigits } from "@/lib/analytics/supervision-percent";
 import { tyLeForLens, type SupervisionSourceLens } from "@/lib/analytics/supervision-source-lens";
 
 function defaultVolumeTitle(moduleLabel?: string): string {
@@ -112,9 +112,12 @@ function SupervisionKhoaComplianceChart({
         }
       : resolveKhoaAggregateVol(r, matrix);
     const thin = minSample != null && vol.tong < minSample;
+    // VST: cơ hội gần độc lập nên KTC Wilson có nghĩa; GSC tiêu chí trong một phiên tương quan → không hiện.
+    const ci = moduleLabel === "VST" ? formatWilsonInterval95(vol.dat, vol.tong) : null;
+    const sampleNote = thin ? `mẫu mỏng (${vol.tong})` : `n=${vol.tong}`;
     return {
       ten: r.label,
-      fullName: thin ? `${r.ten} · mẫu mỏng (${vol.tong})` : r.ten,
+      fullName: moduleLabel === "VST" ? [r.ten, sampleNote, ci].filter(Boolean).join(" · ") : r.ten,
       ty_le_tuan_thu: ty_le,
       dat: vol.dat,
       tong: vol.tong,
@@ -206,7 +209,9 @@ function SupervisionKhoaComplianceChart({
       </KhoaChartViewport>
       <p className="mt-2 text-[11px] text-slate-400">
         Số trên cột: % tuân thủ · đạt/tổng cơ hội. Màu vàng khi tuân thủ &lt;{thresholds.warnPct}%; đỏ khi &lt;{thresholds.redPct}%.
-        {minSample != null ? ` Khoa &lt;${minSample} cơ hội = mẫu mỏng (xám, không tô cảnh báo).` : ""}
+        {minSample != null
+          ? ` Khoa <${minSample} cơ hội = mẫu mỏng (xám, không tô cảnh báo). Di chuột lên cột xem khoảng tin cậy 95% — khoảng rộng nghĩa là tỷ lệ chưa chắc.`
+          : ""}
         {moduleLabel ? ` · ${moduleLabel}` : ""}
       </p>
     </div>
