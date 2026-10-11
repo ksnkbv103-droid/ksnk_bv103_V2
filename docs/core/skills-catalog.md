@@ -37,8 +37,7 @@
 | `/intake` | Khóa scope kỹ thuật | mặc định |
 | `/domain-slice` | Rà + sửa một lát theo SSOT đã chốt | mặc định |
 | `/implement` | Code lát đã duyệt | mặc định |
-| `/review` | Giao subagent `review-bv103` | Sonnet |
-| `/ship-slice` | Verify + review + Go/No-go (chưa deploy) | mặc định |
+| `/review` | Verify theo intake + giao subagent `review-bv103` soát whitelist/DoD, Go/No-go (chưa deploy) | Sonnet |
 | `/uat-cases` | Kịch bản test tay cho PO | Haiku |
 | `/go-live-check` | Cổng sẵn sàng pilot (không deploy) | mặc định |
 | `/explain` | Giải thích, không sửa | mặc định |
@@ -61,8 +60,7 @@
 | `db-verify` | Đối chiếu migration với mapping | Haiku |
 | `acceptance-ui` | ≥3 kịch bản test tay | Haiku |
 | `intake-coach` | Dịch mô tả PO thành intake | Sonnet |
-| `review-bv103` | Review diff, Go/No-go | Sonnet |
-| `slice-supervise` | Soát lát theo whitelist + DoD | Sonnet |
+| `review-bv103` | Review diff + soát whitelist/DoD, Go/No-go | Sonnet |
 | `verify-runner` | Chạy verify, chỉ trả lỗi gọn (giữ log ngoài phiên chính) | Haiku |
 | `test-writer` | Viết spec vitest cho logic thuần của lát đã chốt | Sonnet |
 
@@ -89,7 +87,7 @@ Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 
 
 ## 7. Một lát chuẩn
 
-`/intake-nv` (PO) hoặc `/intake` → duyệt → `/implement` → verify theo bảng ở `CLAUDE.md` → `/review` → PO test tay (`/uat-cases`) → `/ship-slice` → `/commit` chỉ khi PO bảo.
+`/intake-nv` (PO) hoặc `/intake` → duyệt → `/implement` → verify theo bảng ở `CLAUDE.md` → `/review` → PO test tay (`/uat-cases`) → `/commit` chỉ khi PO bảo.
 
 ## 8. MCP (`.mcp.json`)
 

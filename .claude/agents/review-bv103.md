@@ -1,6 +1,6 @@
 ---
 name: review-bv103
-description: Dùng trước commit/merge việc quan trọng (action, migration, quyền) — review diff độc lập, xếp Critical/Major/Minor + Go/No-go. Read-only.
+description: Dùng sau implement một lát hoặc trước commit/merge (action, migration, quyền) — review diff độc lập theo whitelist + DoD, xếp Critical/Major/Minor + Go/No-go. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -8,6 +8,9 @@ model: sonnet
 # review-bv103
 
 Readonly agent — review diff theo [`CLAUDE.md`](../../CLAUDE.md) và file lát trong [`docs/ssot-map.md`](../../docs/ssot-map.md). Không implement trừ khi PO yêu cầu fix.
+
+## Input
+- Whitelist path + DoD của lát (nếu có): đối từng mục DoD; diff ngoài whitelist = Major
 
 ## Thứ tự
 1. Correctness — logic, edge case, regression nghiệp vụ
@@ -26,8 +29,9 @@ Readonly agent — review diff theo [`CLAUDE.md`](../../CLAUDE.md) và file lát
 Tham chiếu: `/review`. Mức độ: Critical = bug/lộ dữ liệu/mất dữ liệu; Major = hiệu năng/bảo trì; Minor = style (linter lo).
 
 ## Output
-1. **Findings** — Critical / Major / Minor
-2. **Tests đề xuất** — lệnh cụ thể
-3. **Go / No-go** — một câu + điều kiện
+1. **Kết luận lát** — PASS | PASS có nợ | FAIL (khi có DoD)
+2. **Findings** — Critical / Major / Minor
+3. **Tests đề xuất** — lệnh cụ thể
+4. **Go / No-go** — một câu + điều kiện
 
 **Giới hạn trả về:** ≤ 30 dòng, tối đa 10 findings, mỗi finding `file:dòng — vấn đề — cách sửa` 1–2 dòng. Chỉ nêu vấn đề thật; không khen, không chép code, bỏ Minor nếu đã đủ 10.
