@@ -53,7 +53,7 @@
 | `react-dev` | Component React 19 / hook mới (không mở khi chỉ sửa action/SQL) |
 | `destructive-change` | DROP, xóa module, đổi không đảo được — dừng chờ PO |
 
-## 5. Subagent (`.claude/agents/`, tất cả read-only)
+## 5. Subagent (`.claude/agents/`; read-only trừ `test-writer` chỉ ghi `*.spec.ts`)
 
 | Agent | Việc | Model |
 |-------|------|-------|
@@ -63,6 +63,8 @@
 | `intake-coach` | Dịch mô tả PO thành intake | Sonnet |
 | `review-bv103` | Review diff, Go/No-go | Sonnet |
 | `slice-supervise` | Soát lát theo whitelist + DoD | Sonnet |
+| `verify-runner` | Chạy verify, chỉ trả lỗi gọn (giữ log ngoài phiên chính) | Haiku |
+| `test-writer` | Viết spec vitest cho logic thuần của lát đã chốt | Sonnet |
 
 ## 6. Chọn model
 

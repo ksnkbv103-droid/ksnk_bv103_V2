@@ -27,7 +27,7 @@ Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103 (pilot). Next.js 16 
   2. Lệnh `/domain-slice` (mục «Đã chốt» + luật vòng)
   3. [`docs/core/handover-roadmap.md`](docs/core/handover-roadmap.md) §5 — việc còn mở
   4. File module của lát (dòng ssot-map). Đọc thêm theo diff: [`docs/core/read-minimum.md`](docs/core/read-minimum.md)
-- Cấu hình agent chỉ nằm trong `.claude/`: `rules/` (luật theo đường dẫn, tự nạp khi chạm file — src, data-access, migrations, cssd, nkbv, giam-sat, qlcv, dashboard, mdm, dao-tao) · `commands/` (11 lệnh) · `skills/` (4: supabase, smart-db-bv103, react-dev, destructive-change) · `agents/` (6 subagent read-only, đã ghim model). Danh mục + cách chọn model: [`docs/core/skills-catalog.md`](docs/core/skills-catalog.md)
+- Cấu hình agent chỉ nằm trong `.claude/`: `rules/` (luật theo đường dẫn, tự nạp khi chạm file — src, data-access, migrations, cssd, nkbv, giam-sat, qlcv, dashboard, mdm, dao-tao) · `commands/` (11 lệnh) · `skills/` (4: supabase, smart-db-bv103, react-dev, destructive-change) · `agents/` (8 subagent đã ghim model: 7 read-only, `test-writer` chỉ ghi `*.spec.ts`). Danh mục + cách chọn model: [`docs/core/skills-catalog.md`](docs/core/skills-catalog.md)
 - Model: `/model opusplan` cho việc nhiều lát (Opus lập plan, Sonnet thực thi — không cần đổi tay) · Sonnet cho việc nhỏ · Haiku cho subagent đọc nhiều
 
 ## Kỷ luật (luôn áp dụng)
