@@ -15,6 +15,7 @@ import {
   computeTyLeVst,
   deltaFromPeriodPoints,
   deltaFromTrend,
+  prevWeekRateFromPeriodPoints,
   shouldFetchSource,
 } from "./bao-cao-tong-hop-core";
 
@@ -434,5 +435,25 @@ describe("bao-cao-tong-hop-core", () => {
     );
     expect(href).toContain("view=bk-toi");
     expect(href).toContain("khoa_ids=k1");
+  });
+
+  it("prevWeekRateFromPeriodPoints đúng tuần mà delta đem so; null khi delta không tính được", () => {
+    const pt = (min_date: string, rate: number, tong: number) => ({
+      label: min_date,
+      min_date,
+      ty_le_vst: null,
+      ty_le_gsc: rate,
+      gsc_tong: tong,
+      gsc_dat: Math.round((rate * tong) / 100),
+    });
+    // 3 tuần liên tiếp; tuần giữa (T40) đủ mẫu → «tuần trước» = 92.58, Δ = 70.7 - 92.58
+    const full = [pt("2026-09-21", 87.47, 300), pt("2026-09-28", 92.58, 364), pt("2026-10-05", 70.7, 157)];
+    expect(prevWeekRateFromPeriodPoints(full as never, "ty_le_gsc")).toBe(92.58);
+    expect(deltaFromPeriodPoints(full as never, "ty_le_gsc")).toBe(-21.88);
+
+    // tuần giữa mỏng (<30 tiêu chí) bị bỏ: tuần trước phải là tuần 21/09, trùng với tuần Δ đem so — nhưng 2 tuần không liên tiếp → cả hai null
+    const thinMiddle = [pt("2026-09-21", 87.47, 300), pt("2026-09-28", 99, 10), pt("2026-10-05", 70.7, 157)];
+    expect(deltaFromPeriodPoints(thinMiddle as never, "ty_le_gsc")).toBeNull();
+    expect(prevWeekRateFromPeriodPoints(thinMiddle as never, "ty_le_gsc")).toBeNull();
   });
 });

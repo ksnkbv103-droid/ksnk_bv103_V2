@@ -27,8 +27,9 @@ export function fmtPct(v: number | null | undefined): string {
   return `${v}%`;
 }
 
+/** Chênh lệch tính bằng ĐIỂM phần trăm (cur − prev) — không phải % tương đối. */
 function signedPct(v: number, digits: 1 | 2): string {
-  const body = digits === 2 ? formatPercent2(v) : formatPercent1(v);
+  const body = (digits === 2 ? formatPercent2(v, { suffix: false }) : formatPercent1(v, { suffix: false })) + " điểm %";
   return v > 0 ? `+${body}` : body;
 }
 

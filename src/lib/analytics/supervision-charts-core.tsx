@@ -110,7 +110,12 @@ export function SupervisionTrendChart({
           <SupervisionResponsiveChart className="h-full w-full min-w-0">
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 10 }}
+                interval={0}
+                {...(chartData.length > 6 ? { angle: -30, textAnchor: "end" as const, height: 52 } : {})}
+              />
               <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
               <Tooltip formatter={percentTooltipFormatter()} />
               <Line type="monotone" dataKey={dataKey} stroke={stroke} strokeWidth={2} name="Tuân thủ (%)" />

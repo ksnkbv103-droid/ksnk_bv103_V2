@@ -88,7 +88,12 @@ export function ComprehensiveTrend({
         <SupervisionResponsiveChart className="h-full w-full min-w-0">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-            <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10 }}
+              interval={0}
+              {...(data.length > 6 ? { angle: -30, textAnchor: "end" as const, height: 52 } : {})}
+            />
             <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
             <Tooltip />
             <Legend />

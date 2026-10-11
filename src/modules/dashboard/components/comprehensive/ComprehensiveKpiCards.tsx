@@ -2,26 +2,13 @@
 
 import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
-import type { BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
+import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { bcthModuleComplianceTone } from "../../lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { prevWeekRateFromPeriodPoints } from "../../lib/bao-cao-tong-hop-core";
 import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
-
-function prevWeekRate(
-  points: BaoCaoTrendPoint[] | undefined,
-  metric: "ty_le_vst" | "ty_le_gsc",
-): number | null {
-  const eligible = (points ?? [])
-    .filter((p) => {
-      if (metric === "ty_le_vst") return (p.vst_tong ?? 0) > 0 && p.ty_le_vst != null;
-      return (p.gsc_tong ?? 0) > 0 && p.ty_le_gsc != null;
-    })
-    .sort((a, b) => a.min_date.localeCompare(b.min_date));
-  if (eligible.length < 2) return null;
-  return eligible[eligible.length - 2]![metric] as number;
-}
 
 function DeltaLine({
   label,
@@ -50,7 +37,7 @@ function DeltaLine({
         >
           <Icon size={12} aria-hidden />
           {delta > 0 ? "+" : ""}
-          {fmt(delta)}
+          <span title="Chênh lệch tính bằng điểm phần trăm (tuần gần nhất trừ tuần liền trước)">{fmt(delta, { suffix: false })} điểm %</span>
         </span>
       ) : (
         <span>—</span>
@@ -153,7 +140,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "—"}
           complianceModule="vst"
           weekDelta={k?.delta_vst}
-          weekPrev={prevWeekRate(trend, "ty_le_vst")}
+          weekPrev={prevWeekRateFromPeriodPoints(trend ?? [], "ty_le_vst")}
           periodDelta={ky?.delta_vst}
           periodPrev={ky?.ty_le_vst}
           periodLabel={periodLabel}
@@ -165,7 +152,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "—"}
           complianceModule="gsc"
           weekDelta={k?.delta_gsc}
-          weekPrev={prevWeekRate(trend, "ty_le_gsc")}
+          weekPrev={prevWeekRateFromPeriodPoints(trend ?? [], "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}
           periodPrev={ky?.ty_le_gsc}
           periodLabel={periodLabel}

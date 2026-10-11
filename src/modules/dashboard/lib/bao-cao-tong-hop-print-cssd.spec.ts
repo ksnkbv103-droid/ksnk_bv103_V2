@@ -86,10 +86,10 @@ describe("bản ký phụ lục CSSD", () => {
       kienNghiDeXuat: "",
     });
 
-    expect(html).toContain("+33.34% so với tuần trước");
-    expect(html).toContain("+33.4% so với tuần trước");
-    expect(html).toContain("vs kỳ trước (01-06→07-06): +33.34%");
-    expect(html).toContain("vs kỳ trước (01-06→07-06): +33.4%");
+    expect(html).toContain("+33.34 điểm % so với tuần trước");
+    expect(html).toContain("+33.4 điểm % so với tuần trước");
+    expect(html).toContain("vs kỳ trước (01-06→07-06): +33.34 điểm %");
+    expect(html).toContain("vs kỳ trước (01-06→07-06): +33.4 điểm %");
   });
 
   it("không ghép % VST với mẫu số GSC trên cùng một ô", () => {

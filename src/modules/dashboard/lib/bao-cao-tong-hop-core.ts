@@ -72,11 +72,11 @@ function pointHasMetricVolume(p: BaoCaoTrendPoint, metric: "ty_le_vst" | "ty_le_
   return (p.gsc_tong ?? 0) >= DOI_SOAT_MIN_SAMPLE.gsc && p.ty_le_gsc != null;
 }
 
-/** So sánh tuần cuối vs tuần liền trước — chỉ khi đủ 2 tuần ISO liên tiếp có dữ liệu. */
-export function deltaFromPeriodPoints(
+/** Hai tuần ISO liên tiếp cuối cùng đủ cỡ mẫu — nguồn chung cho «tỷ lệ tuần trước» và Δ để hai số luôn cùng một tuần. */
+function lastTwoConsecutiveWeeks(
   points: BaoCaoTrendPoint[],
   metric: "ty_le_vst" | "ty_le_gsc",
-): number | null {
+): { prev: BaoCaoTrendPoint; cur: BaoCaoTrendPoint } | null {
   const eligible = points
     .filter((p) => pointHasMetricVolume(p, metric))
     .sort((a, b) => a.min_date.localeCompare(b.min_date));
@@ -90,11 +90,27 @@ export function deltaFromPeriodPoints(
   if (format(expectedCurWeek, "yyyy-MM-dd") !== format(curWeek, "yyyy-MM-dd")) {
     return null;
   }
+  return { prev, cur };
+}
 
-  const prevRate = prev[metric] as number;
-  const curRate = cur[metric] as number;
+/** So sánh tuần cuối vs tuần liền trước — chỉ khi đủ 2 tuần ISO liên tiếp có dữ liệu. Đơn vị: ĐIỂM phần trăm. */
+export function deltaFromPeriodPoints(
+  points: BaoCaoTrendPoint[],
+  metric: "ty_le_vst" | "ty_le_gsc",
+): number | null {
+  const pair = lastTwoConsecutiveWeeks(points, metric);
+  if (!pair) return null;
   const round = metric === "ty_le_gsc" ? roundPercent2 : roundPercent1;
-  return round(curRate - prevRate);
+  return round((pair.cur[metric] as number) - (pair.prev[metric] as number));
+}
+
+/** Tỷ lệ của tuần liền trước đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và liên tiếp). */
+export function prevWeekRateFromPeriodPoints(
+  points: BaoCaoTrendPoint[],
+  metric: "ty_le_vst" | "ty_le_gsc",
+): number | null {
+  const pair = lastTwoConsecutiveWeeks(points, metric);
+  return pair ? (pair.prev[metric] as number) : null;
 }
 
 function mergeTrendMaps(
