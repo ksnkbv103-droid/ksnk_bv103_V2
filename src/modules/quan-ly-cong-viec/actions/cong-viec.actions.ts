@@ -394,7 +394,11 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   }
 
   // Thu thập thông tin đổi metadata nhạy cảm để ghi log kiểm toán
-  const auditLogs: { loai_hoat_dong: "PHAN_CONG" | "GIA_HAN" | "CAP_NHAT"; noi_dung: string }[] = [];
+  const auditLogs: {
+    loai_hoat_dong: "PHAN_CONG" | "GIA_HAN" | "CAP_NHAT";
+    noi_dung: string;
+    trang_thai?: string;
+  }[] = [];
 
   if (updates.han_hoan_thanh !== undefined) {
     const oldHan = normalizeQlcvHanDate(cur.han_hoan_thanh);
@@ -557,6 +561,12 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
     if (st === "MOI") {
       const tt = normalizeQlcvDmFields({ trang_thai: "DANG_LAM" });
       dbUpdates.trang_thai = tt.trang_thai;
+      // Q-08: đổi trạng thái phải để lại dấu vết trong nhật ký (đã có người phụ trách → bắt đầu làm).
+      auditLogs.push({
+        loai_hoat_dong: "CAP_NHAT",
+        noi_dung: "Tự chuyển Mới → Đang làm khi đã có người phụ trách.",
+        trang_thai: String(tt.trang_thai),
+      });
     }
   }
   // QLCV-06: cấm ghi trang_thai qua form sửa (kể cả quản trị) — dùng adminSetTrangThaiCongViec.
@@ -590,6 +600,7 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
       loaiHoatDong: log.loai_hoat_dong,
       nguoiThucHienId: actor,
       noiDung: log.noi_dung,
+      trangThai: log.trang_thai ?? null,
       phanTramHoanThanh:
         updates.phan_tram_hoan_thanh !== undefined ? updates.phan_tram_hoan_thanh : (cur.phan_tram_hoan_thanh ?? 0),
     });

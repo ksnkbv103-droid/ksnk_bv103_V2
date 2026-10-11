@@ -354,5 +354,10 @@ describe("updateCongViec", () => {
         noiDung: expect.stringContaining("Thay đổi người phụ trách từ Nguyễn Văn Cũ sang Trần Thị Mới"),
       }),
     );
+    // Q-08: tự chuyển MOI → DANG_LAM phải có dấu vết trong nhật ký.
+    expect(mocks.appendNhatKy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ loaiHoatDong: "CAP_NHAT", trangThai: "DANG_LAM" }),
+    );
   });
 });
