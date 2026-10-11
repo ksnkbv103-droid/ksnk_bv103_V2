@@ -22,7 +22,11 @@
       "Bash(git commit*)",
       "Bash(git push*)",
       "Bash(vercel*)",
-      "Bash(npx supabase db reset*)"
+      "Bash(npx supabase db reset*)",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__c60a61bd-1601-4bc0-be0f-c5b6c40d5a3f__apply_migration",
+      "mcp__c60a61bd-1601-4bc0-be0f-c5b6c40d5a3f__execute_sql"
     ],
     "deny": [
       "Bash(git reset --hard*)",
