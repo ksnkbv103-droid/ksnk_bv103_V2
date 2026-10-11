@@ -31,6 +31,7 @@ import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { useImportExport } from "@/hooks/useImportExport";
 import { smartImportData } from "../../danh-muc/actions/smart-import.actions";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { promptText } from "@/components/shared/confirm-action";
 
 const NHAN_SU_PAGE_SIZE = 20;
 
@@ -210,7 +211,14 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   };
 
   const handleRejectPending = async (row: NhanSu) => {
-    const reason = window.prompt(`Lý do từ chối phiếu của ${row.ho_ten}:`);
+    const reason = await promptText({
+      title: "Từ chối yêu cầu tài khoản",
+      label: `Lý do từ chối phiếu của ${row.ho_ten}`,
+      minLength: 3,
+      multiline: true,
+      tone: "danger",
+      confirmText: "Từ chối",
+    });
     if (reason == null) return;
     const res = await rejectAccountAccessRequest({ staffId: row.id, reason });
     if (!res.success) {

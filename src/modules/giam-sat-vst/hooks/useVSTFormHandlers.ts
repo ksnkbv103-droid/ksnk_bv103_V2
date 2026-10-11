@@ -26,7 +26,8 @@ import {
 } from "../lib/vst-form-model";
 import { buildVstObservations, validateOpportunityInput } from "../lib/vst-form-submit";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
-import { promptVstEditReasonOrThrow } from "../lib/vst-edit-reason";
+import { VST_EDIT_REASON_MIN_CHARS } from "../lib/vst-edit-reason";
+import { promptText } from "@/components/shared/confirm-action";
 
 export type { ExtendedOpportunity, VSTFormPerson, VSTOppAssessmentField, VSTPersonUpdatableField };
 export { createDefaultVSTFormPersons };
@@ -156,12 +157,16 @@ export function useVSTFormHandlers(
     const sid = String(editingSessionId ?? "").trim();
     let lyDoSua: string | undefined;
     if (sid && requiresEditReason) {
-      try {
-        lyDoSua = promptVstEditReasonOrThrow();
-      } catch (err: unknown) {
-        if (err instanceof Error && err.message === "__VST_EDIT_REASON_CANCELLED__") return;
-        return toast.error(err instanceof Error ? err.message : "Cần lý do sửa phiên.");
-      }
+      const lyDo = await promptText({
+        title: "Sửa phiên giám sát",
+        message: "Phiên đã quá 30 phút — cần ghi lý do sửa để lưu vết.",
+        label: "Lý do sửa phiên",
+        minLength: VST_EDIT_REASON_MIN_CHARS,
+        multiline: true,
+        confirmText: "Lưu",
+      });
+      if (lyDo == null) return;
+      lyDoSua = lyDo;
     }
 
     setLoading(true);

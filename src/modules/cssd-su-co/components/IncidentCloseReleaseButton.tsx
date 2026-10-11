@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { closeIncidentRelease } from "../actions/su-co-report.actions";
+import { promptText } from "@/components/shared/confirm-action";
 
 type Props = {
   incidentId: string;
@@ -15,9 +16,20 @@ export default function IncidentCloseReleaseButton({ incidentId, onClosed, class
   const [loading, setLoading] = useState(false);
 
   const onClick = async () => {
-    const soBienBan = window.prompt("Số biên bản giải phóng (bắt buộc):");
+    const soBienBan = await promptText({
+      title: "Đóng (giải phóng) phiếu sự cố",
+      label: "Số biên bản giải phóng (bắt buộc)",
+      confirmText: "Tiếp",
+    });
     if (soBienBan == null) return;
-    const lyDo = window.prompt("Lý do đóng / giải phóng (bắt buộc):");
+    const lyDo = await promptText({
+      title: "Đóng (giải phóng) phiếu sự cố",
+      message: `Biên bản: ${soBienBan}`,
+      label: "Lý do đóng / giải phóng (bắt buộc)",
+      minLength: 3,
+      multiline: true,
+      confirmText: "Đóng phiếu",
+    });
     if (lyDo == null) return;
     setLoading(true);
     try {

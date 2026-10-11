@@ -117,6 +117,7 @@ import {
   saveBaAnalysisModePref,
 } from "../lib/nkbv-ba-analysis-mode";
 import { toast } from "sonner";
+import { promptText } from "@/components/shared/confirm-action";
 
 type XnCell = ReturnType<typeof splitMilestonesToGridRows>["xn"][number];
 
@@ -1939,12 +1940,19 @@ export default function NkbvBaMultiTimelineWorkspace({
               <button
                 type="button"
                 className="rounded-full border border-slate-300 px-3 py-1.5 text-[11px] font-semibold text-slate-700"
-                onClick={() => {
+                onClick={async () => {
                   const bare =
                     bareViSinhIdFromMilestoneId(openSession.index.id) ||
                     openSession.index.id;
-                  const reason = window.prompt("Lý do bỏ qua XN này (không tạo HAI)?");
-                  if (!reason?.trim()) return;
+                  const reason = await promptText({
+                    title: "Bỏ qua xét nghiệm",
+                    message: "Xét nghiệm này sẽ không tạo ca NKBV (HAI).",
+                    label: "Lý do bỏ qua (bắt buộc)",
+                    minLength: 3,
+                    multiline: true,
+                    confirmText: "Bỏ qua XN",
+                  });
+                  if (!reason) return;
                   onSkipViSinh?.({
                     viSinhId: bare.replace(/^lis:/, ""),
                     reason: reason.trim(),

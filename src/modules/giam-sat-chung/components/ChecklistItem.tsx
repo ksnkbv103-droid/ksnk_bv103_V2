@@ -8,6 +8,7 @@ import LogEntryForm from "./LogEntryForm";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { confirmAction } from "@/components/shared/confirm-action";
+import { toast } from "sonner";
 
 interface ChecklistItemProps {
   criterion: ChecklistCriterion;
@@ -178,7 +179,7 @@ export default function ChecklistItem({
       onChange({ ...result, image_url: publicUrl });
     } catch (err) {
       console.error("Lỗi upload ảnh:", err);
-      alert("Không thể tải lên ảnh bằng chứng. Vui lòng kiểm tra kết nối mạng!");
+      toast.error("Không thể tải lên ảnh bằng chứng. Vui lòng kiểm tra kết nối mạng.");
     } finally {
       setUploading(false);
     }

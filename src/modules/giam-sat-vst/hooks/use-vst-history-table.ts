@@ -15,7 +15,7 @@ import { consumeSupervisionHistoryStale } from "@/lib/supervision-form-nav";
 import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VstPrintData } from "../hooks/use-vst-print";
-import { confirmAction } from "@/components/shared/confirm-action";
+import { confirmAction, promptText } from "@/components/shared/confirm-action";
 
 const MODULE_KEY = "GIAM_SAT_VST";
 
@@ -122,7 +122,14 @@ export function useVstHistoryTable() {
       ) {
         return;
       }
-      const lyDo = window.prompt("Lý do xóa phiên (bắt buộc, tối thiểu 3 ký tự):", "");
+      const lyDo = await promptText({
+        title: "Lý do xóa phiên",
+        label: "Lý do xóa (bắt buộc)",
+        minLength: 3,
+        multiline: true,
+        tone: "danger",
+        confirmText: "Xóa phiên",
+      });
       if (lyDo == null) return;
       const res = await deleteVSTSessions(ids, { lyDo });
       if (res.success) {

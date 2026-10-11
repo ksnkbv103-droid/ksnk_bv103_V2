@@ -11,6 +11,7 @@ import { formatDateTimeVi, formatTimeVi } from "@/lib/format-datetime-vi";
 import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { STATION_LABEL, WORKFLOW_STEPS } from "../../workflow/domain/cssd-stations";
+import { promptText } from "@/components/shared/confirm-action";
 
 const ACTION_VERBS: Record<string, string> = Object.fromEntries(
   WORKFLOW_STEPS.map((s) => [s, `${STATION_LABEL[s]} bởi`]),
@@ -38,7 +39,12 @@ export default function WaitingList({
   const showReject = currentStation === "QC" && typeof onRejectToLamSach === "function";
 
   const handleReject = async (maQR: string) => {
-    const lyDo = window.prompt("Lý do trả về Làm sạch (bắt buộc):");
+    const lyDo = await promptText({
+      title: "Trả bộ về Làm sạch",
+      label: "Lý do trả về Làm sạch (bắt buộc)",
+      multiline: true,
+      confirmText: "Trả về",
+    });
     if (lyDo == null) return;
     if (!String(lyDo).trim()) {
       toast.error("Cần nhập lý do trả về Làm sạch.");

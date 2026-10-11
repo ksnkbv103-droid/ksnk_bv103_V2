@@ -2,7 +2,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { confirmAction } from "@/components/shared/confirm-action";
+import { confirmAction, promptText } from "@/components/shared/confirm-action";
 
 interface MasterDataCrudConfig<T> {
   tableName: string;
@@ -31,7 +31,12 @@ export function useMasterDataCrud<T extends { id: string; is_active?: boolean }>
 
   const quickEditMainField = async (item: T) => {
     const currentValue = String(item[config.mainField as keyof T] ?? "");
-    const nextValue = window.prompt(`Nhập ${config.entityLabel} mới`, currentValue);
+    const nextValue = await promptText({
+      title: `Sửa ${config.entityLabel}`,
+      label: `${config.entityLabel} mới`,
+      defaultValue: currentValue,
+      confirmText: "Lưu",
+    });
     if (!nextValue || nextValue.trim() === currentValue) return;
     const { error } = await supabase
       .from(config.tableName)

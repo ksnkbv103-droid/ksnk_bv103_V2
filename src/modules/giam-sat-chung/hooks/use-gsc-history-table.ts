@@ -15,6 +15,7 @@ import type { GscViewBundle } from "../lib/load-gsc-view-bundle";
 import { assertCanEditGiamSatChungSession } from "../actions/giam-sat-chung-session-meta.actions";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import { consumeSupervisionHistoryStale } from "@/lib/supervision-form-nav";
+import { promptText } from "@/components/shared/confirm-action";
 
 const MODULE_KEY = "GIAM_SAT_CHUNG";
 
@@ -95,9 +96,15 @@ export function useGscHistoryTable(
   const handleDelete = useCallback(async (items: { id: string }[]) => {
     const ids = items.map((i) => String(i.id)).filter(Boolean);
     if (!ids.length) return;
-    const lyDo = window.prompt(
-      `Ngừng sử dụng ${ids.length} phiên giám sát? Phiên được ẩn khỏi báo cáo nhưng vẫn lưu hồ sơ.\nNhập lý do (tối thiểu 3 ký tự):`,
-    );
+    const lyDo = await promptText({
+      title: "Xóa phiên giám sát",
+      message: `Ngừng sử dụng ${ids.length} phiên? Phiên được ẩn khỏi báo cáo nhưng vẫn lưu hồ sơ. Chỉ phiên do bạn giám sát mới xóa được.`,
+      label: "Lý do xóa (bắt buộc)",
+      minLength: 3,
+      multiline: true,
+      tone: "danger",
+      confirmText: "Xóa phiên",
+    });
     if (lyDo === null) return;
     const res = await deleteGiamSatChungSessions(ids, { lyDo });
     if (res.success) {
