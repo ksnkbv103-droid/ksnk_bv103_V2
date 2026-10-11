@@ -33,6 +33,7 @@ Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103 (pilot). Next.js 16 
 ## Kỷ luật (luôn áp dụng)
 
 - Nghiệp vụ y tế / ranh giới CSSD vs MDM mơ hồ → hỏi trước. Có tradeoff (migration vs patch app, RPC vs query) → nói trước khi code.
+- **Đóng băng NKBV, CSSD, QLCV, Đào tạo** (PO 2026-10-12, chưa có người dùng thật): không mở lát mới, không rà soát, không nâng cấp riêng — chỉ sửa lỗi bảo mật/hỏng build. Ưu tiên VST/GSC + thống kê.
 - Không tạo bảng summary/pre-aggregation khi chưa có số đo và PO đồng ý.
 - Mỗi dòng diff truy vết được tới yêu cầu. Boy Scout chỉ trong file vừa chạm.
 - Grep trước khi đọc file > 500 dòng; mục tiêu ≤ 8 file đọc/task; > 3 file ngoài scope → dừng, hỏi PO. Output delta-only.

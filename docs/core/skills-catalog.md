@@ -73,10 +73,19 @@
 | Sửa lát theo SSOT đã chốt, UI, action, docs, verify | **Sonnet** (mặc định) | 90% công việc |
 | Đọc nhiều file, khảo sát, checklist, commit/PR | **Haiku** (subagent/lệnh đã ghim) | Rẻ nhất |
 | Ranh giới CSSD vs MDM mơ hồ, thiết kế migration/RPC khó, KPI lệch, debug sau 2 lần Sonnet thất bại | **`/model opusplan`** | Opus lập kế hoạch, Sonnet thực thi |
-| Kiến trúc đổi lớn (hiếm) | **Opus** | Xong thì `/model sonnet` |
+| Kiến trúc đổi lớn (hiếm) | **Opus** | Phiên riêng; xong thì `/clear`, phiên sau mở bằng Sonnet |
 | Không dùng Opus | — | Sửa nhãn, UI nhỏ, docs, chạy verify |
 
-Giữ credit: `/clear` giữa các lát · `/compact` khi phiên dài · `/context` xem phần đang nạp · Plan mode (`Shift+Tab`) trước việc lớn · đọc ≤ 8 file/task.
+Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 340–480 nghìn token **mỗi lượt** — đây là chỗ tốn nhất):
+
+1. **Một việc = một phiên.** Xong lát → `/clear`. `/clear` chỉ xóa trí nhớ hội thoại; plan (`~/.claude/plans/`), code, memory vẫn còn.
+2. **Chọn model lúc mở phiên, không đổi giữa chừng.** Cache gắn với model: đổi là ghi lại toàn bộ ngữ cảnh.
+3. **Quá ~100 lượt hoặc chậm** → ghi tiến độ vào plan rồi `/clear` (hoặc `/compact`). `/context` xem phần đang nạp.
+4. **Prompt ba phần:** làm gì (một lát) · xong trông thế nào · không đụng gì. Bỏ nhân vật («chuyên gia…») và khẩu hiệu («chính xác tuyệt đối») — luật đã nằm ở `CLAUDE.md`.
+5. **Hỏi quyết định, không hỏi «rà soát toàn bộ».** Một tuần một lần: «việc nào đáng làm nhất theo số liệu dùng thật?».
+6. **Kiểm giao diện bằng `read_page`**, chỉ chụp ảnh khi cần xem bố cục.
+7. **Đọc nhiều file thì giao subagent** (Haiku) để phiên chính gọn. Plan mode (`Shift+Tab`) trước việc lớn · đọc ≤ 8 file/task.
+8. **Prod chỉ `SELECT`.** Thử thì dùng DB local.
 
 ## 7. Một lát chuẩn
 
