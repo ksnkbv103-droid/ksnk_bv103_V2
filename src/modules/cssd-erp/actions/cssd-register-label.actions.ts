@@ -97,15 +97,3 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
   }
 }
 
-/**
- * CSSD-04: tách nhiệt chỉ tại danh mục (parent_bo_id) — không tách SUB trên trạm.
- */
-export async function registerSplitSubQrFromMainMaAction(
-  _maQrMain: string,
-): Promise<{ success: true; ma_vach_qr_phu: string; quy_trinh_cha_id: string } | { success: false; error: string }> {
-  return {
-    success: false,
-    error:
-      "Tách nhiệt làm tại danh mục dụng cụ (bộ thành phần chịu nhiệt / không chịu nhiệt). Không tách trên trạm Đóng gói.",
-  };
-}

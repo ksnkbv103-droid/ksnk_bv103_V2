@@ -25,11 +25,6 @@ async function cssdOperatorLabel(): Promise<string> {
   }
 }
 
-/** Alias: Tiếp nhận chu kỳ mới từ Cấp phát (quét tại TIEP_NHAN). */
-export async function cssdCommandStartNewCycle(maQR: string) {
-  return scanQR(maQR, "TIEP_NHAN");
-}
-
 /** Bước tiếp theo theo ô trạm đang quét — cùng hành vi `scanQR` (kể cả offline replay). */
 export async function cssdCommandAdvanceStation(
   maQR: string,

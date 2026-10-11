@@ -332,47 +332,20 @@ export async function saveGiamSatChung(
     };
 
     let sessionId: string;
-    const isMissingLoaiCol = (err: unknown) =>
-      /loai_giam_sat|schema cache/i.test(
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message?: unknown }).message ?? "")
-          : String(err ?? ""),
-      );
-    const payloadWithoutLoai = (() => {
-      const { loai_giam_sat: _omit, ...rest } = sessionPayload as typeof sessionPayload & {
-        loai_giam_sat?: string | null;
-      };
-      return rest;
-    })();
-
     if (existingSessionId) {
-      let upErr = (
-        await supabase
-          .from("gstt_fact_chung_sessions")
-          .update({
-            ...sessionPayload,
-            is_active: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingSessionId)
-      ).error;
-      if (upErr && isMissingLoaiCol(upErr)) {
-        upErr = (
-          await supabase
-            .from("gstt_fact_chung_sessions")
-            .update({
-              ...payloadWithoutLoai,
-              is_active: true,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", existingSessionId)
-        ).error;
-      }
+      const { error: upErr } = await supabase
+        .from("gstt_fact_chung_sessions")
+        .update({
+          ...sessionPayload,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingSessionId);
       if (upErr) throw upErr;
 
       sessionId = existingSessionId;
     } else {
-      let insertRes = await supabase
+      const insertRes = await supabase
         .from("gstt_fact_chung_sessions")
         .insert({
           ...sessionPayload,
@@ -380,16 +353,6 @@ export async function saveGiamSatChung(
         })
         .select()
         .single();
-      if (insertRes.error && isMissingLoaiCol(insertRes.error)) {
-        insertRes = await supabase
-          .from("gstt_fact_chung_sessions")
-          .insert({
-            ...payloadWithoutLoai,
-            is_active: true,
-          })
-          .select()
-          .single();
-      }
       if (insertRes.error) throw insertRes.error;
       sessionId = insertRes.data.id;
     }
