@@ -1,5 +1,6 @@
 -- SEC-2026-10-11: siết quyền theo Supabase security advisor (prod 2026-10-11).
--- FILE ONLY — chưa apply prod. Prod đi qua Lead/MCP `apply_migration` (CLAUDE.md).
+-- ĐÃ APPLY PROD 2026-10-11 qua MCP `apply_migration` (PO duyệt). Version trên prod do MCP đặt, khác tên file — không đổi tên file.
+-- Kiểm sau apply (prod): picker chỉ còn SELECT; 14 hàm 0/14 authenticated; service_role giữ EXECUTE; hàm RLS + 2 RPC GSC vẫn cho authenticated.
 --
 -- Gốc chung: baseline `ALTER DEFAULT PRIVILEGES … GRANT ALL ON TABLES/FUNCTIONS TO anon, authenticated`
 -- cấp quyền thừa cho mọi object tạo sau; nhiều migration chỉ `REVOKE … FROM PUBLIC, anon` nên sót `authenticated`.
