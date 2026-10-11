@@ -12,7 +12,7 @@ major_version = 17
 [db.seed]
 enabled = true
 # Order: lookup+bang_kiem baseline → RBAC → pilot nhân sự/auth local
-sql_paths = ["./seed.sql", "./seeds/00-rbac.sql", "./seeds/01-pilot-nhan-su.sql"]
+sql_paths = ["./seed.sql", "./seeds/00-rbac.sql", "./seeds/01-pilot-nhan-su.sql", "./seeds/02-reference-lookups.sql"]
 
 [studio]
 enabled = false

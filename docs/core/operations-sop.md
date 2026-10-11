@@ -96,7 +96,7 @@ npm run local:golden:verify
 
 | Bước | Lệnh | Mục đích |
 |------|------|----------|
-| 1 | `npx supabase db reset --local` | Migration + seeds (`00-rbac.sql`, `01-pilot-nhan-su.sql`) |
+| 1 | `npx supabase db reset --local` | Migration + seeds (`00-rbac.sql`, `01-pilot-nhan-su.sql`, `02-reference-lookups.sql` — danh mục tham chiếu: trạm CSSD, nghề nghiệp, hình thức/cách thức giám sát, trạng thái ca NKBV…) |
 | 2 | `npm run mdm:migrate:local` | Head repo = DB local |
 | 3 | `npm run admin:rbac:sync:local` | Registry quyền → `sys_permissions` |
 | 4 | `npm run cssd:demo:reset:local` | (Tuỳ chọn) Demo quy trình CSSD |
