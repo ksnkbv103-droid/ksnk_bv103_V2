@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { getCongViecListPaginated } from "../actions/cong-viec.actions";
+import { getCongViecListPaginated } from "../actions/cong-viec-list.actions";
 import { matchesQlcvBoardFilter, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import type { CongViecView } from "../types";
 

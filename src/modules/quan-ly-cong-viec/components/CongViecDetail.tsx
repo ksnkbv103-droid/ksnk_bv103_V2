@@ -19,8 +19,8 @@ import {
 } from "@/lib/domain/qlcv-checklist";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { getCongViecDetail } from "../actions/cong-viec-list.actions";
 import {
-  getCongViecDetail,
   xacNhanHoanThanh,
   deleteCongViec,
   tuChoiHoanThanhCongViec,

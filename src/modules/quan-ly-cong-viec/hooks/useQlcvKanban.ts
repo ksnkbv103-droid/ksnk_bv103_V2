@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { getCongViecListForBoard } from "../actions/cong-viec.actions";
+import { getCongViecListForBoard } from "../actions/cong-viec-list.actions";
 import { getPendingDeXuat, getMyPendingDeXuat } from "../actions/dexuat.actions";
 import type { CongViecView } from "../types";
 import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
