@@ -68,12 +68,14 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
         return (
           <div className="flex min-w-0 items-center gap-2">
             <span
-              className="bv103-type-label inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 font-bold text-sky-800"
+              className="bv103-type-label hidden h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 font-bold text-sky-800 xl:inline-flex"
               aria-hidden
             >
               {initials}
             </span>
-            <span className={`${Q.cellTitle} truncate`}>{name || "—"}</span>
+            <span className={`${Q.cellTitle} whitespace-normal`} title={name || undefined}>
+              {name || "—"}
+            </span>
           </div>
         );
       },

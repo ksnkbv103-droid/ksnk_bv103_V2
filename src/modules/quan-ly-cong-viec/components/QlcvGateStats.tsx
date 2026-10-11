@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Clock, UserRound, Inbox } from "lucide-react";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isMyQlcvTask, isQlcvChoToiDuyet, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
@@ -35,6 +35,8 @@ export function QlcvGateStats({
 }: Props) {
   const list = tasks ?? [];
   const [rpcCounts, setRpcCounts] = useState<QlcvBoardGateCounts | null>(null);
+  /** Chỉ tự chọn chip một lần, và chỉ khi người dùng chưa đổi bộ lọc mặc định «Của tôi». */
+  const autoPickedRef = useRef(false);
 
   const clientFallback = useMemo((): QlcvBoardGateCounts => {
     const myTasks = actorStaffId
@@ -58,7 +60,15 @@ export function QlcvGateStats({
     void (async () => {
       try {
         const next = await getQlcvBoardCounts(actorStaffId ?? null);
-        if (!cancelled) setRpcCounts(next);
+        if (cancelled) return;
+        setRpcCounts(next);
+        if (!autoPickedRef.current) {
+          autoPickedRef.current = true;
+          // Người duyệt không có việc riêng nhưng có việc chờ duyệt → mở thẳng «Chờ tôi», tránh bảng trống.
+          if (activeFilter === "MY_TASKS" && next.myTasks === 0 && next.choToi > 0) {
+            onFilterChange?.("GATE_CHO_TOI");
+          }
+        }
       } catch (err) {
         console.error("rpc_qlcv_board_counts failed; using client slice fallback", err);
         if (!cancelled) setRpcCounts(null);

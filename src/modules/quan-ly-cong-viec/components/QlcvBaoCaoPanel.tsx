@@ -239,8 +239,13 @@ export function QlcvBaoCaoPanel() {
               return (
                 <>
                   <span>
-                    <span className="font-medium text-slate-500">Số việc</span>{" "}
+                    <span className="font-medium text-slate-500">Việc đang mở</span>{" "}
                     <strong className="tabular-nums">{mo}</strong>
+                  </span>
+                  <span className="text-slate-300">·</span>
+                  <span>
+                    <span className="font-medium text-slate-500">Đã hoàn thành</span>{" "}
+                    <strong className="tabular-nums text-emerald-700">{hoanThanh}</strong>
                   </span>
                   <span className="text-slate-300">·</span>
                   <span>

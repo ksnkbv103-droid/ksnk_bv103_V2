@@ -44,6 +44,7 @@ import { QLCV_TRANG_THAI_MAU_SAC } from "../lib/qlcv-labels";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { hasQlcvChecklistFullResult } from "@/lib/domain/qlcv/close-requires-result";
+import { extractQlcvCloseResultText, extractQlcvLastApproverName } from "../lib/qlcv-close-info";
 import { isQlcvBoardOverdue } from "../lib/qlcv-board-lanes";
 import { labelsForStaffIds, normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { CongViecView } from "../types";
@@ -93,29 +94,6 @@ const qlcvDetailChrome = {
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-transparent px-3 text-xs font-semibold text-red-600 hover:border-red-100 hover:bg-red-50",
 } as const;
 
-
-function extractQlcvCloseResultText(data: {
-  nhat_ky?: unknown;
-  checklist?: unknown;
-  hoat_dong?: { loai_hoat_dong?: string; noi_dung?: string | null }[] | null;
-}): string | null {
-  if (hasQlcvChecklistFullResult(data.checklist)) return "Checklist đủ 100%";
-  const fromHoatDong = Array.isArray(data.hoat_dong) ? data.hoat_dong : [];
-  const fromNhatKy = Array.isArray(data.nhat_ky)
-    ? (data.nhat_ky as { loai_hoat_dong?: string; noi_dung?: string | null }[])
-    : [];
-  const entries = fromHoatDong.length ? fromHoatDong : fromNhatKy;
-  for (let i = entries.length - 1; i >= 0; i--) {
-    const e = entries[i];
-    const loai = String(e.loai_hoat_dong ?? "");
-    const noi = String(e.noi_dung ?? "").trim();
-    if (!noi) continue;
-    if (loai === "HOAN_THANH" || loai === "DUYET_HOAN_THANH" || noi.startsWith("Kết quả:")) {
-      return noi;
-    }
-  }
-  return null;
-}
 
 export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const { isAdmin, allowed, userData } = useModulePermission("CONG_VIEC");
@@ -302,8 +280,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           việc mở bị bỏ quên.
         </div>
       )}
-      <div className="flex flex-col gap-[var(--bv103-space-3)] md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0 space-y-2">
+      <div className="flex flex-col gap-[var(--bv103-space-3)] xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge.className} style={statusBadge.style}>
               {statusDisplay}
@@ -495,6 +473,13 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               val:
                 normalizeQlcvTrangThaiToCanonical(data.trang_thai) === "HOAN_THANH"
                   ? extractQlcvCloseResultText(data) || "Đã hoàn thành"
+                  : "—",
+            },
+            {
+              label: "Người nghiệm thu",
+              val:
+                normalizeQlcvTrangThaiToCanonical(data.trang_thai) === "HOAN_THANH"
+                  ? extractQlcvLastApproverName(data) || "—"
                   : "—",
             },
             { label: "Người phối hợp", val: phoiHopLabel },
