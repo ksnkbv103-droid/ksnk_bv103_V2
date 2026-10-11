@@ -1,6 +1,6 @@
 ---
 name: intake-coach
-description: Dịch mô tả nghiệp vụ tiếng Việt của PO thành intake chuẩn. Read-only.
+description: Dùng khi PO mô tả nghiệp vụ bằng lời và cần dịch thành intake chuẩn trước khi code. Read-only.
 tools: Read, Grep, Glob
 model: sonnet
 ---
@@ -29,3 +29,5 @@ Readonly agent — dịch **mô tả nghiệp vụ thô** sang intake BV103. Kh�
 4. **Câu hỏi** — tối đa 2
 
 Không implement. Chờ user 「OK triển khai」 trước khi chuyển `/implement`.
+
+**Giới hạn trả về:** ≤ 40 dòng; câu hỏi tối đa 2.

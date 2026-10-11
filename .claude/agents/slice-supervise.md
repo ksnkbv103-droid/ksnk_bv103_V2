@@ -1,6 +1,6 @@
 ---
 name: slice-supervise
-description: Soát một lát đã implement theo whitelist và DoD (PASS/FAIL). Read-only.
+description: Dùng ngay sau khi implement xong một lát — soát theo whitelist và DoD, trả PASS/FAIL. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -21,3 +21,5 @@ Readonly — giám sát một lát sau implement theo [`CLAUDE.md`](../../CLAUDE
 
 ## Output
 **PASS** | **PASS có nợ** | **FAIL** + Critical/Major/Minor + verify đề xuất.
+
+**Giới hạn trả về:** ≤ 15 dòng; chỉ mục DoD không đạt + lệnh verify.

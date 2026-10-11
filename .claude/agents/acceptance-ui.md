@@ -1,6 +1,6 @@
 ---
 name: acceptance-ui
-description: Viết ≥3 kịch bản test tay cho PO từ intake hoặc DoD. Read-only.
+description: Dùng khi lát đã có intake/DoD và cần checklist test tay cho PO (≥3 kịch bản). Read-only, trả checklist ngắn.
 tools: Read, Grep, Glob
 model: haiku
 ---
@@ -43,3 +43,5 @@ Case [N] fail:
 - Không chạy browser trừ khi user yêu cầu
 - Không sửa code
 - Giải thích bằng tiếng Việt nghiệp vụ — tránh stack trace trừ khi user hỏi
+
+**Giới hạn trả về:** tối đa 3 case, ≤ 40 dòng tổng. Không giải thích thêm ngoài bảng.

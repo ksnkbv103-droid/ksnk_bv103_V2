@@ -1,6 +1,6 @@
 ---
 name: db-verify
-description: Đối chiếu migration/SQL với implementation-mapping trước khi đặt tên bảng, cột, RPC. Read-only.
+description: Dùng TRƯỚC khi viết migration hoặc đặt tên bảng/cột/RPC — đối chiếu migration thật với implementation-mapping. Read-only.
 tools: Read, Grep, Glob, Bash
 model: haiku
 ---
@@ -29,3 +29,5 @@ Readonly agent — đối chiếu schema thực tế, **cấm đoán** cột/b�
 4. **Risk** — data loss, RLS, rollback
 
 Không tạo bảng summary/pre-aggregation trừ khi user phê duyệt có số liệu đo.
+
+**Giới hạn trả về:** ≤ 25 dòng; trích tên cột/tham số kèm `file:dòng`, không chép nguyên SQL.

@@ -1,6 +1,6 @@
 ---
 name: explore-module
-description: Khảo sát read-only một module (route, action, RPC, ranh giới) khi cần hiểu code trước intake hoặc sửa. Dùng thay vì tự đọc nhiều file ở phiên chính.
+description: Dùng khi cần hiểu một module (route, action, RPC, ranh giới) trước intake/sửa mà chưa biết file nằm đâu — thay vì tự đọc nhiều file ở phiên chính. Read-only.
 tools: Read, Grep, Glob
 model: haiku
 ---
@@ -44,3 +44,5 @@ Readonly agent — khám phá **một** module BV103, không sửa code.
 5. **Đề xuất slice** — 1 vertical slice + verify plan
 
 Không implement. Không migration. ≤ 8 file đọc.
+
+**Giới hạn trả về:** ≤ 25 dòng; mỗi mục 1 dòng `file:dòng — mô tả`. Không chép code.
