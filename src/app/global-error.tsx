@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import "./globals.css";
 
 /** Lỗi ở tầng gốc (layout): không còn khung ứng dụng nên tự dựng html tối giản. */
 export default function GlobalError({
@@ -22,7 +23,7 @@ export default function GlobalError({
           <button
             type="button"
             onClick={() => reset()}
-            style={{ marginTop: 12, minHeight: 44, padding: "0 20px", borderRadius: 8, border: "none", background: "#026f17", color: "#fff", fontSize: 16 }}
+            style={{ marginTop: 12, minHeight: 44, padding: "0 20px", borderRadius: 8, border: "none", background: "var(--primary)", color: "#fff", fontSize: 16 }}
           >
             Tải lại
           </button>
