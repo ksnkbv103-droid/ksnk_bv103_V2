@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:local": "node scripts/dev-local.mjs",
     "dev:webpack": "next dev --webpack",
     "build": "next build",
     "start": "next start",

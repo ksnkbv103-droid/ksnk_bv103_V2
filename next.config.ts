@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Bản dev thứ hai (`npm run dev:local`, DB local) cần thư mục build riêng; production không đặt biến này.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     // Chỉ ảnh hưởng `npm run dev` local — không đụng production / Vercel.
     // Next 16.2.x mặc định ghi cache Turbopack không giới hạn (có thể phình 10–20GB, CPU idle ~300%).
