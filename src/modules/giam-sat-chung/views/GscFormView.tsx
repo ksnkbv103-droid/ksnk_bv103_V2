@@ -218,7 +218,7 @@ export default function GscFormView({
       cancelled = true;
     };
     // Chỉ theo phiên: không đợi danh sách mẫu đang bật (BK-5 mẫu tắt / mạng lưới).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [editSessionId]);
 
   /** Prefill BK + BN từ deep-link MDRO / VST hub (không có edit session). */
@@ -268,7 +268,7 @@ export default function GscFormView({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [patientPrefill, dbTemplates, editSessionId, selectedTemplate, loadingTemplates]);
 
   if (editHydrating) {

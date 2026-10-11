@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  ageYearsFromNgaySinh,
-} from "../../lib/nkbv-age-ui";
+
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import type { BsiVerificationData } from "../../types/nkbv-verification";

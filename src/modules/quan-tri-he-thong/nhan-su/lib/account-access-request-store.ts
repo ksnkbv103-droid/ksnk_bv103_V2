@@ -35,7 +35,7 @@ function isMissingTableError(error: { code?: string; message?: string } | null |
 
 /** Probe whether public.sys_account_access_request is queryable. */
 export async function isAccountAccessRequestTableAvailable(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
 ): Promise<boolean> {
   if (tableAvailableCache != null) return tableAvailableCache;
@@ -63,7 +63,7 @@ export function __resetAccountAccessRequestTableCache() {
 }
 
 export async function insertAccessRequestRow(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   input: {
     kind: AccountRequestKind;
@@ -120,7 +120,7 @@ export async function discardAccessRequestRow(
 }
 
 export async function decideAccessRequestRow(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   params: {
     ticketId?: string | null;
@@ -157,7 +157,7 @@ export async function decideAccessRequestRow(
 
 /** Cooldown bền theo dòng phiếu, không theo bộ nhớ process. */
 export async function hasRecentAccessRequest(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   email: string,
   windowMs: number,
@@ -179,7 +179,7 @@ export async function hasRecentAccessRequest(
 }
 
 export async function lookupAccessRequestFromTable(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   email: string,
   maNv?: string,

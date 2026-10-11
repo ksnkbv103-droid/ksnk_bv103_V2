@@ -25,7 +25,7 @@ import {
 } from "./bo-dung-cu-chi-tiet-alloc-section";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
-import { cssdCatalogEditProposalHref, cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
+import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoRefsByLoaiAction,

@@ -77,7 +77,7 @@ export default function RegistrySelect({
     if (!staticOptions) return null;
     return mapRegistryOptions(staticOptions, loaiDanhMuc);
     // staticFingerprint ổn định khi parent truyền mảng mới cùng nội dung
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- staticOptions đọc theo fingerprint
+     
   }, [staticFingerprint, loaiDanhMuc]);
 
   const options = staticMappedOptions ?? fetchedOptions;

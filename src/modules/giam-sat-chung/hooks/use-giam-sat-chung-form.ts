@@ -280,7 +280,7 @@ export function useGiamSatChungForm(
     }));
     if (sticky.khoa_id || sticky.khu_vuc_id || sticky.vi_tri) setStickyHintActive(true);
     // Chỉ apply sticky một lần sau load header.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [headerLoading, currentHoSoId, editingSessionId, editSession]);
 
   const [loading, setLoading] = useState(false);

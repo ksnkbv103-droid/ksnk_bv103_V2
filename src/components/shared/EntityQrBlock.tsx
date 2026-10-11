@@ -25,7 +25,7 @@ export default function EntityQrBlock({
   if (variant === "screen") {
     return (
       <div className="inline-flex flex-col items-center gap-1 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         <img src={dataUrl} alt={`QR ${displayCode}`} className="h-28 w-28" />
         <p className="max-w-[10rem] break-all text-center font-mono text-[11px] font-bold tracking-wide text-slate-800">
           {displayCode}
@@ -47,7 +47,7 @@ export default function EntityQrBlock({
           flexShrink: 0,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         <img
           src={dataUrl}
           alt={`QR ${displayCode}`}
@@ -76,7 +76,7 @@ export default function EntityQrBlock({
 
   return (
     <div style={{ textAlign: "center", marginBottom: 12, pageBreakInside: "avoid" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      { }
       <img
         src={dataUrl}
         alt={`QR ${displayCode}`}

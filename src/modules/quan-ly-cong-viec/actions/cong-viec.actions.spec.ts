@@ -48,6 +48,8 @@ vi.mock("../lib/qlcv-nhat-ky", () => ({
   appendQlcvNhatKy: mocks.appendNhatKy,
 }));
 
+const NS_NEW = "66666666-6666-4666-8666-666666666666";
+
 describe("updateCongViec", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -327,7 +329,7 @@ describe("updateCongViec", () => {
             eq: () => ({
               eq: () => ({
                 maybeSingle: vi.fn().mockResolvedValue({
-                  data: { id: "ns-new", khoa_id: "ksnk-khoa-id", ho_ten: "Trần Thị Mới" },
+                  data: { id: NS_NEW, khoa_id: "ksnk-khoa-id", ho_ten: "Trần Thị Mới" },
                   error: null,
                 }),
               }),
@@ -343,7 +345,7 @@ describe("updateCongViec", () => {
     });
 
     const result = await updateCongViec("cv-01", {
-      nguoi_phu_trach_id: "ns-new",
+      nguoi_phu_trach_id: NS_NEW,
     });
 
     expect(result.success).toBe(true);

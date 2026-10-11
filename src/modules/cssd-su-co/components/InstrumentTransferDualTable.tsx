@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+
 import { toast } from "sonner";
 import { loadBoCompositionByMaBo } from "@/modules/cssd-erp/contexts/inventory-instrument/entrypoint";
 import {

@@ -25,7 +25,7 @@ export default function InlineEntityQrThumb({
     );
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+     
     <img
       src={dataUrl}
       alt={`QR ${value}`}

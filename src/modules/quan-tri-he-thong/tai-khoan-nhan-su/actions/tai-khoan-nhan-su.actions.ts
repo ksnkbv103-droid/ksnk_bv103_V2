@@ -33,7 +33,7 @@ type AuthAuditEntry = {
 
 /** Append lean auth event onto mdm_nhan_su.extra_data.auth_audit (capped). */
 async function appendStaffAuthAudit(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   staffId: string,
   entry: Omit<AuthAuditEntry, "staff_id" | "ts"> & { staff_id?: string },

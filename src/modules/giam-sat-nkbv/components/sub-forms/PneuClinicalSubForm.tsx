@@ -101,7 +101,7 @@ export default function PneuClinicalSubForm({
     if (coercedAge == null) return;
     if (form.patient_age === coercedAge) return;
     onChange({ ...form, patient_age: coercedAge });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync age from DOB / adult coerce
+     
   }, [coercedAge]);
   const labTier = derivePneuLabTier(form);
   const showPnu3Sx =

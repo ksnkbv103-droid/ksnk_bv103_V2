@@ -114,3 +114,28 @@ export const congViecCreateSchema = congViecSchemaWithHanRule.superRefine((data,
 
 export type CongViecInput = z.infer<typeof congViecSchema>;
 
+/**
+ * Kiểm bản sửa công việc: CHỈ các trường thực sự gửi lên (khác undefined).
+ * Không dùng `.partial()` vì các trường có `.default()` sẽ tự điền và ghi đè dữ liệu đang có.
+ * Trả về dữ liệu đã chuẩn hóa cho đúng các trường đó; trường lạ (trang_thai, %) do action xử lý riêng.
+ */
+export function parseCongViecUpdate(
+  updates: Record<string, unknown>,
+): { ok: true; data: Partial<CongViecInput> } | { ok: false; error: string } {
+  const shape = congViecSchema.shape;
+  const keys = Object.keys(updates).filter(
+    (k) => updates[k] !== undefined && Object.prototype.hasOwnProperty.call(shape, k),
+  ) as (keyof typeof shape)[];
+  if (!keys.length) return { ok: true, data: {} };
+  const mask = Object.fromEntries(keys.map((k) => [k, true])) as { [K in keyof typeof shape]?: true };
+  const picked = Object.fromEntries(keys.map((k) => [k, updates[k]]));
+  const res = congViecSchema.pick(mask).safeParse(picked);
+  if (!res.success) return { ok: false, error: res.error.issues[0]?.message || "Dữ liệu công việc không hợp lệ." };
+  return { ok: true, data: res.data as Partial<CongViecInput> };
+}
+
+export const phanTramHoanThanhSchema = z
+  .number({ error: "Tiến độ phải là số." })
+  .min(0, "Tiến độ không được âm.")
+  .max(100, "Tiến độ tối đa 100%.");
+

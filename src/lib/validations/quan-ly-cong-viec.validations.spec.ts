@@ -106,3 +106,22 @@ describe("congViecCreateSchema — người thực hiện + hạn", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+describe("parseCongViecUpdate — chỉ kiểm trường được gửi", () => {
+  it("không tự điền giá trị mặc định cho trường không gửi", async () => {
+    const { parseCongViecUpdate } = await import("./quan-ly-cong-viec.validations");
+    const res = parseCongViecUpdate({ tieu_de: "  Rà soát  " });
+    expect(res).toEqual({ ok: true, data: { tieu_de: "Rà soát" } });
+  });
+
+  it("từ chối mã người phụ trách sai và tiêu đề rỗng", async () => {
+    const { parseCongViecUpdate } = await import("./quan-ly-cong-viec.validations");
+    expect(parseCongViecUpdate({ nguoi_phu_trach_id: "abc" }).ok).toBe(false);
+    expect(parseCongViecUpdate({ tieu_de: "   " }).ok).toBe(false);
+  });
+
+  it("bỏ qua trường ngoài schema (trang_thai, %) để action tự xử lý", async () => {
+    const { parseCongViecUpdate } = await import("./quan-ly-cong-viec.validations");
+    expect(parseCongViecUpdate({ trang_thai: "HOAN_THANH", phan_tram_hoan_thanh: 50 })).toEqual({ ok: true, data: {} });
+  });
+});

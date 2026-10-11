@@ -176,7 +176,7 @@ export function useNkbvChecklistModalState({
     setBenhAnLoaded(false);
     setBenhAnMissing(false);
     // Identity = mốc BA (không đổi khi nháp → phiếu thật), tránh xóa dữ liệu đang nhập
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional identity
+     
   }, [
     String((row as { _draft_milestone_id?: string })._draft_milestone_id || row.id),
     suggestedType,

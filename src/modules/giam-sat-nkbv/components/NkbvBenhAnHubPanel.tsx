@@ -453,7 +453,7 @@ export default function NkbvBenhAnHubPanel({
     );
     setAnalysisLoading(false);
     setAnalysisError(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [stay, indexMilestone?.id, gatePreview?.gate, linkedCase?.id]);
 
   const createPhieuFromSession = async (input: {

@@ -49,14 +49,15 @@ export default function NkbvBaDayGrid({
   onScrollSync,
   maxHeightClass = "max-h-[min(62vh,640px)]",
 }: Props) {
-  let stickyAccum = 0;
-  const stickyOffsets = columns.map((c) => {
-    if (!c.sticky) return undefined;
-    const w = c.minWidth ?? BA_DAY_COL_W_COMMON;
-    const left = c.stickyLeft ?? stickyAccum;
-    stickyAccum += w;
-    return left;
-  });
+  // Vị trí trái của cột dính = tổng độ rộng các cột dính đứng trước (tính thuần, không đổi biến trong render).
+  const stickyOffsets = columns.reduce<{ offsets: (number | undefined)[]; acc: number }>(
+    (st, c) => {
+      if (!c.sticky) return { offsets: [...st.offsets, undefined], acc: st.acc };
+      const w = c.minWidth ?? BA_DAY_COL_W_COMMON;
+      return { offsets: [...st.offsets, c.stickyLeft ?? st.acc], acc: st.acc + w };
+    },
+    { offsets: [], acc: 0 },
+  ).offsets;
 
   return (
     <div

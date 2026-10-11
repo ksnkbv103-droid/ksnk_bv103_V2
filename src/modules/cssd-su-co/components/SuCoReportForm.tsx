@@ -202,7 +202,7 @@ export default function SuCoReportForm({
     setTypeTen(reason.typeTen);
     if (allowStationOverride) setDetectionStation("TIET_KHUAN");
     setFaultStation("TIET_KHUAN");
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- entry lock once when opening batch-recall
+     
   }, [enabled, batchRecallEntry]);
 
   const activeGroupOptions = useMemo(

@@ -14,7 +14,12 @@ import {
   verifyQlcvDeleteCapability,
   verifyQlcvNghiemThuCapability,
 } from "../lib/qlcv-rbac";
-import { congViecSchema, congViecCreateSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
+import {
+  congViecCreateSchema,
+  parseCongViecUpdate,
+  phanTramHoanThanhSchema,
+  type CongViecInput,
+} from "@/lib/validations/quan-ly-cong-viec.validations";
 import {
   assigneeBlockedFromTaskCrud,
 } from "../lib/qlcv-access";
@@ -336,8 +341,16 @@ type CongViecUpdateInput = Partial<CongViecInput> & {
 };
 
 // ==================== UPDATE ====================
-export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
+export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput) {
   const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("edit");
+  const shape = parseCongViecUpdate(rawUpdates as Record<string, unknown>);
+  if (!shape.ok) throw new Error(shape.error);
+  if (rawUpdates.phan_tram_hoan_thanh !== undefined) {
+    const pct = phanTramHoanThanhSchema.safeParse(rawUpdates.phan_tram_hoan_thanh);
+    if (!pct.success) throw new Error(pct.error.issues[0]?.message || "Tiến độ không hợp lệ.");
+  }
+  // Ghi đè các trường đã kiểm bằng giá trị đã chuẩn hóa (trim, rỗng → null); giữ trang_thai/% để action tự chặn.
+  const updates: CongViecUpdateInput = { ...rawUpdates, ...shape.data };
   const adminBypass = await hasRBACAdminSupervisionBypass();
   const actor = await getActorNhanSuId();
 

@@ -2,25 +2,7 @@
 
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import React, { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  LabelList,
-  Legend,
-  Line,
-  LineChart,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ReferenceLine,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";

@@ -766,7 +766,7 @@ export default function NkbvSyndromeIwpPanel({
         panel === "UTI" ? stripUtiVoidingFromLamSang(next, canThiepDates) : next,
     });
     // iwpDatesKey neo cửa sổ; draft.lamSang để phát hiện thiếu key từ BA
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- tránh loop Set mới mỗi render
+     
   }, [baLamSangByDate, index.date, index.id, iwpDatesKey, panel, canThiepDates, draft.lamSang, onDraftChange]);
 
   const sbsiVerdicts: SecondaryBsiVerdict[] = useMemo(() => {

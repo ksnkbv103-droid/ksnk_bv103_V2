@@ -87,7 +87,7 @@ export default function QRScanSuccessCard({
             <div className="flex flex-col items-center gap-2">
               <div className="rounded-[var(--radius-control)] bg-white p-2">
                 {qrDataUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                   
                   <img src={qrDataUrl} alt="QR" className="h-28 w-28 object-contain" />
                 ) : (
                   <div className="flex h-28 w-28 items-center justify-center font-mono text-[11px] text-slate-400">

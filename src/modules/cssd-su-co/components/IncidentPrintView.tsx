@@ -521,7 +521,7 @@ export default function IncidentPrintView({
           <div style={{ marginBottom: "16px", pageBreakInside: "avoid" }}>
             <strong style={{ display: "block", marginBottom: "6px" }}>Ảnh minh chứng thực địa:</strong>
             <div style={{ display: "flex", justifyContent: "center", border: "1px solid #000", padding: "6px" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img
                 src={directImageLink}
                 alt="Minh chứng sự cố"

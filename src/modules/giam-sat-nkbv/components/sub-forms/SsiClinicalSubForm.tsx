@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import QrCameraButton from "@/components/shared/QrCameraButton";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import {

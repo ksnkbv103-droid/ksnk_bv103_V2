@@ -71,7 +71,7 @@ function mapNv(row: Record<string, unknown>): NhiemVuRow {
 }
 
 async function attachChuTriTen(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   rows: NhiemVuRow[],
 ): Promise<NhiemVuRow[]> {
@@ -85,7 +85,7 @@ async function attachChuTriTen(
 }
 
 async function attachTaskRollup(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   supabase: any,
   rows: NhiemVuRow[],
 ): Promise<NhiemVuRow[]> {
