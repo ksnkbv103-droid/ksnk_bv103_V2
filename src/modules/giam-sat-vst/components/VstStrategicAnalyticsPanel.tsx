@@ -9,6 +9,8 @@ import {
   SupervisionKpiRow,
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
+import { SupervisionCoverageCard } from "@/lib/analytics/SupervisionCoverageCard";
+import { buildCoverageSummary } from "@/lib/analytics/supervision-coverage";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
@@ -66,6 +68,8 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
     [p.payload],
   );
 
+  const coverage = useMemo(() => buildCoverageSummary(gapKhoaRows), [gapKhoaRows]);
+
   return (
     <div className={`${UI.sectionGap} space-y-[var(--bv103-space-3)] pb-8`}>
       {p.loadError ? (
@@ -82,6 +86,8 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
       </div>
+
+      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">

@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { SupervisionCoverageCard } from "@/lib/analytics/SupervisionCoverageCard";
+import { buildCoverageSummary } from "@/lib/analytics/supervision-coverage";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -105,7 +107,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
     () => buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
     [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
   );
-
+  const coverage = useMemo(() => buildCoverageSummary(gapKhoaRows), [gapKhoaRows]);
 
   const chartRows = useMemo(
     () => maskGapRowsForLens(gapRowsWithLensData(gapKhoaRows, sourceLens), sourceLens),
@@ -139,6 +141,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
       </div>
+
+      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 
       <GscChecklistNavigator
         payload={p.payload}
