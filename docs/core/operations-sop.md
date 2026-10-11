@@ -104,6 +104,8 @@ npm run local:golden:verify
 
 **Đăng nhập pilot:** tài khoản trong `supabase/seeds/01-pilot-nhan-su.sql` (sau reset). `trial:auth:precheck:local` phải báo `mdm_email_no_auth` = **0**.
 
+**Chạy app với DB nào (2026-10-12):** `.env.local` đang trỏ Supabase thật, nên `npm run dev` (cổng 3000) đọc/ghi dữ liệu thật. Muốn thử ghi mà không đụng DB thật, dùng `npm run dev:local` (cổng 3001): script tự lấy URL/khóa từ `npx supabase status` (cần Docker + `npx supabase start`), **không sửa file env nào**. Nếu muốn cổng 3000 cũng trỏ DB local, PO tự sửa `.env.local` (agent không sửa): chạy `npx supabase status -o env`, chép `API_URL` → `NEXT_PUBLIC_SUPABASE_URL`, `ANON_KEY` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SERVICE_ROLE_KEY` → `SUPABASE_SERVICE_ROLE_KEY`; giữ bản cũ trong `.env.local.prod.bak` để quay lại.
+
 **Sự cố / backup / restore drill:** [`../reference/guides/incident-backup-playbook.md`](../reference/guides/incident-backup-playbook.md).
 
 **5 vai trò KSNK (probe):** `npm run trial:rbac:roles:local` (hoặc `:linked` khi có token).
