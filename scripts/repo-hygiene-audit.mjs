@@ -51,7 +51,7 @@ function walk(dir, out = []) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, ent.name);
     if (ent.isDirectory()) {
-      if (["node_modules", ".next", ".git", "archive_legacy"].includes(ent.name)) continue;
+      if (["node_modules", ".next", ".next-local", ".git", "archive_legacy"].includes(ent.name)) continue;
       walk(full, out);
     } else if (/\.(ts|tsx|mjs|js)$/.test(ent.name)) out.push(full);
   }
