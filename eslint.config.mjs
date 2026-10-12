@@ -4,7 +4,7 @@ import nextTs from "eslint-config-next/typescript";
 
 /**
  * Giai đoạn làm sạch codebase: một số rule xuống "warn" để CI/build không chặn,
- * vẫn hiện trong IDE để sửa dần theo module (AGENTS: Detect → Fix → Verify).
+ * vẫn hiện trong IDE để sửa dần theo module.
  * Khi codebase đã gần sạch, có thể nâng lại "error".
  */
 const phasedRelaxRules = {

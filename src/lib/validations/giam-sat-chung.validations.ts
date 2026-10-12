@@ -2,7 +2,7 @@
  * Zod Validation Schemas — Giám sát Bảng kiểm chung (GSC)
  * 
  * Sử dụng trong Server Actions trước khi ghi dữ liệu vào DB.
- * Tham chiếu: AGENTS.md 5d (Zod Validation), Playbook 3a
+ * Tham chiếu: CLAUDE.md (Zod ở ranh giới action)
  */
 import { z } from "zod";
 

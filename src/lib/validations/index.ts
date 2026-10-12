@@ -2,7 +2,7 @@
  * Zod Validation Schemas — Re-export tập trung
  * 
  * Import từ "@/lib/validations" để dùng schema validation.
- * Tham chiếu: AGENTS.md + docs/core/lean-execution.md (Zod ở ranh giới action)
+ * Tham chiếu: CLAUDE.md + docs/core/lean-execution.md (Zod ở ranh giới action)
  */
 
 export * from "./giam-sat-chung.validations";

@@ -1,7 +1,7 @@
 /**
  * Resolve local Supabase API URL + service_role key without requiring Docker CLI.
  *
- * Cursor/macOS TCC often blocks `~/.docker/run/docker.sock` and `~/.supabase/telemetry.json`,
+ * macOS TCC (sandbox agent) often blocks `~/.docker/run/docker.sock` and `~/.supabase/telemetry.json`,
  * so `npx supabase status` fails even when Kong/Postgres are healthy on 54321/54322.
  *
  * Order:
@@ -85,7 +85,7 @@ export async function resolveLocalSupabaseEnv(opts = {}) {
   if (!ok) {
     throw new Error(
       "Supabase local không phản hồi tại http://127.0.0.1:54321. " +
-        "Mở Docker Desktop → `npx supabase start` (chạy trong Terminal ngoài Cursor nếu Docker socket bị chặn).",
+        "Mở Docker Desktop → `npx supabase start` (chạy trong Terminal ngoài sandbox agent nếu Docker socket bị chặn).",
     );
   }
   return { url, serviceKey, source: "port-probe-demo-jwt" };

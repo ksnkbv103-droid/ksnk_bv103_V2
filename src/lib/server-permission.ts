@@ -89,7 +89,7 @@ export async function verifyPermission(moduleKey: string, action: string) {
 }
 
 /**
- * Vai trò `ADMIN` trên RBAC + email trusted (AGENTS): được sửa/xóa mọi phiên giám sát,
+ * Vai trò `ADMIN` trên RBAC + email trusted: được sửa/xóa mọi phiên giám sát,
  * bỏ qua ràng buộc chủ phiên và cửa sổ 30 phút ở tầng server action.
  */
 export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {

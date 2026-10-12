@@ -4,7 +4,7 @@
 |--------|---------|
 | Mục đích | Chuẩn bị catalog + tiêu chí bảng kiểm / WHO để **sau này** load `gstt_dm_bang_kiem` (+ tiêu chí) |
 | Phạm vi | Inventory filtered file `12` · Drive folder KSNK_final · extract `/workspace/ipc-updated/QT|QD/` |
-| **DB** | **CHƯA load** — không migration, không insert, không Cursor Cloud UI |
+| **DB** | **CHƯA load** — không migration, không insert |
 | Trạng thái | `draft_from_qt` / `po_in_scope_missing_form` / `who_moments_file` |
 | Ngày | 2026-09-22 (Asia/Saigon) |
 | PO | **Nghĩa chốt 2026-09-22** — cả 15 BM `pending_po`/`can_po` → digital=`co` (đồng bộ QT) |

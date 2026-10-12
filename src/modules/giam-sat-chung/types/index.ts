@@ -2,7 +2,7 @@
  * Giám sát chung - Module Types
  * 
  * SSOT for GSC domain types, including session data and history rows.
- * Reference: AGENTS.md 5d (Contract-First)
+ * Reference: CLAUDE.md (Contract-First)
  */
 
 export type ChecklistResultValue = "DAT" | "KHONG_DAT" | "NA";

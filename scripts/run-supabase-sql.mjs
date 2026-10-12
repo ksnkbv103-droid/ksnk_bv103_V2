@@ -3,7 +3,7 @@
  * Chạy một file SQL qua `supabase db query` với output flag tương thích CLI.
  *
  * Local: ưu tiên `--db-url` Postgres trực tiếp (tránh Docker CLI / TCC trên docker.sock).
- * HOME tạm để tránh EPERM ghi `~/.supabase/telemetry.json` từ Cursor sandbox.
+ * HOME tạm để tránh EPERM ghi `~/.supabase/telemetry.json` từ sandbox của agent.
  *
  * Usage: node scripts/run-supabase-sql.mjs (--local | --linked) --file path.sql
  */

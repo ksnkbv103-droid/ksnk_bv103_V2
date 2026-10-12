@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Kiểm tra link markdown tới file .md/.mdc.
+ * Kiểm tra link markdown tới file .md.
  * Bỏ qua docs/archive và docs/data (cửa CLAUDE.md — không đọc kho).
  */
 import fs from "node:fs";
@@ -9,8 +9,6 @@ import path from "node:path";
 const root = process.cwd();
 const scanRoots = [
   path.join(root, "docs"),
-  path.join(root, ".cursor", "rules"),
-  path.join(root, "AGENTS.md"),
   path.join(root, "CLAUDE.md"),
   path.join(root, "README.md"),
   path.join(root, "supabase", "migrations", "README.md"),
@@ -25,7 +23,7 @@ function existsTarget(fromFile, target) {
   }
   const clean = target.split("#")[0].trim();
   if (!clean || clean.endsWith("/")) return true;
-  const base = fromFile.endsWith(".md") || fromFile.endsWith(".mdc")
+  const base = fromFile.endsWith(".md")
     ? path.dirname(fromFile)
     : root;
   const resolved = path.normalize(path.join(base, clean));
@@ -56,13 +54,13 @@ function walkDir(dir) {
   if (!fs.existsSync(dir)) return;
   if (isClosedTree(dir)) return;
   if (fs.statSync(dir).isFile()) {
-    if (dir.endsWith(".md") || dir.endsWith(".mdc")) walk(dir);
+    if (dir.endsWith(".md")) walk(dir);
     return;
   }
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, ent.name);
     if (ent.isDirectory()) walkDir(full);
-    else if (ent.name.endsWith(".md") || ent.name.endsWith(".mdc")) walk(full);
+    else if (ent.name.endsWith(".md")) walk(full);
   }
 }
 

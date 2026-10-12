@@ -70,7 +70,7 @@ function section(title) {
 let exitCode = 0;
 
 section("Root binaries (nên không commit)");
-for (const name of ["awesome-cursorrules.zip", "docs/archive_legacy.zip"]) {
+for (const name of ["docs/archive_legacy.zip"]) {
   const p = path.join(ROOT, name);
   console.log(p.replace(ROOT + path.sep, "") + ": " + (fs.existsSync(p) ? "STILL PRESENT" : "ok (absent)"));
   if (fs.existsSync(p)) exitCode = 1;
