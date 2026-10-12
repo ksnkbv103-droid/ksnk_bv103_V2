@@ -10,7 +10,14 @@ import {
 import { parseGan } from "@/lib/dao-tao/labels";
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
+import { requireDaoTaoAdmin, requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
+import {
+  daoTaoIdSchema,
+  kyThiInputSchema,
+  parseDaoTaoInput,
+  updateKyThiPatchSchema,
+  updateMucDoThiThuSchema,
+} from "@/lib/dao-tao/schemas";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 export async function listMucDoThiThu() {
@@ -34,6 +41,7 @@ export async function updateMucDoThiThu(input: {
   loai_quota?: Record<string, number>;
 }) {
   await verifyPermission("DAO_TAO", "edit");
+  input = parseDaoTaoInput(updateMucDoThiThuSchema, input);
   const admin = createAdminSupabaseClient();
   const patch: Record<string, unknown> = {
     so_cau: input.so_cau,
@@ -69,6 +77,7 @@ export type KyThiInput = {
 export async function createKyThiThat(input: KyThiInput) {
   await verifyPermission("DAO_TAO", "create");
   const { user } = await requireDaoTaoUser();
+  input = parseDaoTaoInput(kyThiInputSchema, input);
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("dao_tao_cau_hinh")
@@ -118,6 +127,8 @@ export async function updateKyThiThat(
   patch: Partial<KyThiInput> & { trang_thai?: "draft" | "published" | "closed" },
 ) {
   await verifyPermission("DAO_TAO", "edit");
+  id = parseDaoTaoInput(daoTaoIdSchema, id);
+  patch = parseDaoTaoInput(updateKyThiPatchSchema, patch);
   const admin = createAdminSupabaseClient();
   if (patch.trang_thai === "published") {
     const { data: current } = await admin
@@ -143,7 +154,7 @@ export async function updateKyThiThat(
 }
 
 export async function listKyThiThatAdmin() {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("dao_tao_cau_hinh")
@@ -210,7 +221,7 @@ export type KetQuaKyThiRow = {
 };
 
 export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: string }) {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const kyThiId = filters?.kyThiId;
   const khoaId = filters?.khoaId;
@@ -291,7 +302,7 @@ export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: str
 }
 
 export async function listChuaNopKyThi(kyThiId: string) {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const { data: ky, error } = await admin
     .from("dao_tao_cau_hinh")
@@ -347,7 +358,7 @@ export async function listChuaNopKyThi(kyThiId: string) {
 }
 
 export async function listKhoaPhongOptions() {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("mdm_dm_khoa_phong")
@@ -360,7 +371,7 @@ export async function listKhoaPhongOptions() {
 }
 
 export async function listNhanSuOptions(filters?: { khoaIds?: string[]; q?: string }) {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   let q = admin
     .from("mdm_nhan_su")

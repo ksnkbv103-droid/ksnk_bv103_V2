@@ -13,7 +13,13 @@ import type {
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { parseGan } from "@/lib/dao-tao/labels";
 import { parseHanChungChiThang, resolveChungChi, type ChungChiStatus } from "@/lib/dao-tao/chung-chi";
-import { requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
+import { requireDaoTaoAdmin, requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
+import {
+  daoTaoIdSchema,
+  examFormThongTinSchema,
+  parseDaoTaoInput,
+  saveTraLoiInputSchema,
+} from "@/lib/dao-tao/schemas";
 import { randomUUID } from "crypto";
 
 const LATE_GRACE_MS = 30_000;
@@ -110,9 +116,9 @@ function snapshotsToDeJson(questions: ExamQuestionSnapshot[]): DeSnapshotItem[] 
   }));
 }
 
-function validateForm(form: ExamFormThongTin) {
-  if (!form.hoTen?.trim()) throw new Error("Vui lòng nhập họ tên.");
-  if (!form.khoaDonVi?.trim()) throw new Error("Vui lòng nhập khoa / đơn vị.");
+/** Zod: họ tên/khoa bắt buộc, giới hạn độ dài, bỏ khóa lạ — lỗi tiếng Việt. */
+function validateForm(form: unknown): ExamFormThongTin {
+  return parseDaoTaoInput(examFormThongTinSchema, form);
 }
 
 async function userAssignedToCauHinh(
@@ -153,13 +159,14 @@ export async function startThiThuAttempt(input: {
   form: ExamFormThongTin;
 }) {
   const { user } = await requireDaoTaoUser();
-  validateForm(input.form);
+  const form = validateForm(input.form);
+  const mucDoId = parseDaoTaoInput(daoTaoIdSchema, input.mucDoId);
   const admin = createAdminSupabaseClient();
 
   const { data: mucDo, error: mdErr } = await admin
     .from("dao_tao_cau_hinh")
     .select("*")
-    .eq("id", input.mucDoId)
+    .eq("id", mucDoId)
     .eq("loai_cau_hinh", "thi_thu_muc_do")
     .eq("is_active", true)
     .maybeSingle();
@@ -194,7 +201,7 @@ export async function startThiThuAttempt(input: {
       che_do: "thi_thu",
       cau_hinh_id: mucDo.id,
       auth_user_id: user.id,
-      form_thong_tin: input.form,
+      form_thong_tin: form,
       seed,
       so_cau: questions.length,
       thoi_gian_phut: mucDo.thoi_gian_phut,
@@ -278,13 +285,14 @@ export async function startThiThatAttempt(input: {
   form: ExamFormThongTin;
 }) {
   const { user } = await requireDaoTaoUser();
-  validateForm(input.form);
+  const form = validateForm(input.form);
+  const kyThiId = parseDaoTaoInput(daoTaoIdSchema, input.kyThiId);
   const admin = createAdminSupabaseClient();
 
   const { data: ky, error: kErr } = await admin
     .from("dao_tao_cau_hinh")
     .select("*")
-    .eq("id", input.kyThiId)
+    .eq("id", kyThiId)
     .eq("loai_cau_hinh", "thi_that")
     .eq("trang_thai", "published")
     .eq("is_active", true)
@@ -331,7 +339,7 @@ export async function startThiThatAttempt(input: {
       che_do: "thi_that",
       cau_hinh_id: ky.id,
       auth_user_id: user.id,
-      form_thong_tin: input.form,
+      form_thong_tin: form,
       seed,
       so_cau: questions.length,
       thoi_gian_phut: ky.thoi_gian_phut,
@@ -350,6 +358,7 @@ export async function startThiThatAttempt(input: {
 
 export async function getLanThiForTake(lanThiId: string) {
   const { user } = await requireDaoTaoUser();
+  lanThiId = parseDaoTaoInput(daoTaoIdSchema, lanThiId);
   const admin = createAdminSupabaseClient();
   const { data: lanThi, error } = await admin
     .from("dao_tao_lan_thi")
@@ -359,11 +368,11 @@ export async function getLanThiForTake(lanThiId: string) {
   if (error) throw error;
   if (!lanThi) throw new Error("Không tìm thấy lần thi.");
 
+  // Bài của người khác: chỉ quản trị Thi KSNK (khớp cổng admin), không đủ quyền view.
   let isAdminViewer = false;
   if (lanThi.auth_user_id !== user.id) {
     try {
-      const { verifyPermission } = await import("@/lib/server-permission");
-      await verifyPermission("DAO_TAO", "view");
+      await requireDaoTaoAdmin();
       isAdminViewer = true;
     } catch {
       throw new Error("Không tìm thấy lần thi.");
@@ -410,12 +419,13 @@ export async function getLanThiForTake(lanThiId: string) {
   };
 }
 
-export async function saveTraLoiCau(input: {
+export async function saveTraLoiCau(rawInput: {
   lanThiId: string;
   cauId: string;
   traLoi: TraLoi;
 }) {
   const { user } = await requireDaoTaoUser();
+  const input = parseDaoTaoInput(saveTraLoiInputSchema, rawInput);
   const admin = createAdminSupabaseClient();
 
   // Hai lần tự lưu song song cùng đọc–sửa–ghi cả de_snapshot → mất câu trả lời.
@@ -451,6 +461,7 @@ export async function saveTraLoiCau(input: {
 
 export async function submitLanThi(lanThiId: string) {
   const { user } = await requireDaoTaoUser();
+  lanThiId = parseDaoTaoInput(daoTaoIdSchema, lanThiId);
   const admin = createAdminSupabaseClient();
   const { data: lanThi, error } = await admin
     .from("dao_tao_lan_thi")

@@ -1,6 +1,7 @@
 import type { DapAnDung, TraLoi } from "@/lib/dao-tao/types";
 
 function sameIdSet(a: string[], b: string[]): boolean {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
   if (a.length !== b.length) return false;
   const sa = [...a].sort();
   const sb = [...b].sort();
@@ -8,6 +9,7 @@ function sameIdSet(a: string[], b: string[]): boolean {
 }
 
 function sameIdOrder(a: string[], b: string[]): boolean {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
   if (a.length !== b.length) return false;
   return a.every((v, i) => v === b[i]);
 }
@@ -20,16 +22,18 @@ export function gradeAnswer(dapAnDung: DapAnDung, traLoi: TraLoi | null | undefi
     case "single":
       return traLoi.kind === "single" && !!traLoi.optionId && traLoi.optionId === dapAnDung.optionId;
     case "multi":
-      if (!dapAnDung.optionIds.length) return false;
+      if (!dapAnDung.optionIds?.length) return false;
       return traLoi.kind === "multi" && sameIdSet(traLoi.optionIds, dapAnDung.optionIds);
     case "true_false_cluster": {
       if (traLoi.kind !== "true_false_cluster") return false;
-      const keys = Object.keys(dapAnDung.byOptionId);
+      const keys = Object.keys(dapAnDung.byOptionId ?? {});
       if (keys.length === 0) return false;
-      return keys.every((id) => traLoi.byOptionId[id] === dapAnDung.byOptionId[id]);
+      // Dữ liệu cũ có thể thiếu byOptionId → chấm sai thay vì ném lỗi làm hỏng nộp bài.
+      const chon = traLoi.byOptionId ?? {};
+      return keys.every((id) => chon[id] === dapAnDung.byOptionId[id]);
     }
     case "order":
-      if (!dapAnDung.orderedOptionIds.length) return false;
+      if (!dapAnDung.orderedOptionIds?.length) return false;
       return (
         traLoi.kind === "order" &&
         sameIdOrder(traLoi.orderedOptionIds, dapAnDung.orderedOptionIds)

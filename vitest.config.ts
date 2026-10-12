@@ -29,6 +29,7 @@ export default defineConfig({
       "src/modules/giam-sat-nkbv/**/*.spec.ts",
       "src/modules/dashboard/**/*.spec.ts",
       "src/modules/auth/**/*.spec.ts",
+      "src/modules/dao-tao/**/*.spec.ts",
       "src/lib/bv103-feature-config.spec.ts",
     ],
     environment: "node",
