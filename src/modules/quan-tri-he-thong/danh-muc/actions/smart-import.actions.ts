@@ -30,6 +30,10 @@ import {
   type SmartImportOptions,
 } from "./smart-import.contract";
 import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
+import {
+  applyNhanSuImportAllowlist,
+  type NhanSuExistingForImport,
+} from "../lib/smart-import/nhan-su-import-allowlist";
 
 interface SmartImportConfig {
   tableName: string;
@@ -124,11 +128,14 @@ export async function smartImportData(
     const isLoaiDungCu = config.tableName === "cssd_dm_loai_dung_cu";
     const existingReadTable = isLoaiDungCu ? config.tableName : readTable;
     const isChiTietBom = config.tableName === "cssd_dm_bo_dung_cu_chi_tiet";
+    const isNhanSu = config.tableName === "mdm_nhan_su";
     const existingSelect = isLoaiDungCu
       ? "id, ma_loai"
       : isChiTietBom
         ? `id, ${config.uniqueKey}, bo_dung_cu_id, loai_dung_cu_id, so_luong, is_active`
-        : `id, ${config.uniqueKey}`;
+        : isNhanSu
+          ? "id, ma_nv, auth_user_id, is_active, extra_data"
+          : `id, ${config.uniqueKey}`;
     const existingCodeField = isLoaiDungCu ? "ma_loai" : config.uniqueKey;
 
     let query = supabase.from(existingReadTable).select(existingSelect);
@@ -147,7 +154,16 @@ export async function smartImportData(
     const existingCodes = new Set<string>();
     /** Active (bo|loai) → { id, so_luong } — BOM: 1 loại / bộ. */
     const existingBoLoai = new Map<string, { id: string; so_luong: number }>();
+    /** mdm_nhan_su: id → tài khoản/trạng thái/extra_data hiện có (allowlist ACC-2). */
+    const existingNhanSuById = new Map<string, NhanSuExistingForImport>();
     existingRecords.forEach((r) => {
+      if (isNhanSu && r.id) {
+        existingNhanSuById.set(String(r.id), {
+          auth_user_id: (r.auth_user_id as string | null) ?? null,
+          is_active: r.is_active as boolean | null,
+          extra_data: r.extra_data,
+        });
+      }
       const val = r[existingCodeField];
       if (val != null && val !== "") {
         const cStr = isLoaiDungCu ? String(val).trim().toUpperCase() : String(val);
@@ -286,13 +302,23 @@ export async function smartImportData(
         }
       }
 
-      const payload: Record<string, unknown> = {
+      let payload: Record<string, unknown> = {
         id: payloadId,
         [config.uniqueKey]: finalCode,
         ...scopeSafeRest,
         is_active: normalizedIsActive,
         updated_at: new Date().toISOString(),
       };
+      if (isNhanSu) {
+        const allowed = applyNhanSuImportAllowlist(
+          payload,
+          existingId ? existingNhanSuById.get(existingId) : undefined,
+        );
+        payload = allowed.payload;
+        if (allowed.notes.length > 0) {
+          rowWarnings.push(`Dòng ${rowNumber || "?"} (${finalCode}): ${allowed.notes.join("; ")}.`);
+        }
+      }
       if (chiTietAddOntoQty != null) {
         payload.so_luong = chiTietAddOntoQty;
       }
