@@ -5,6 +5,7 @@ import { getErrorMessage, mapFkError, tableHasColumn } from "./cssd-action-commo
 import { parseChecklistJson } from "@/lib/domain/cssd-equipment-pm-checklist";
 import type { FactBaoTriRow, LoaiPhieuBaoTri } from "./cssd-bao-tri.types";
 import { verifyCssdMaintenanceView } from "@/lib/cssd-server-gates";
+import { meChuaKetThucOrFilter } from "../lib/me-tiet-khuan-batch-integrity";
 
 export type BaoTriMachineOption = {
   id: string;
@@ -86,6 +87,7 @@ export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
         .select("thiet_bi_id")
         .eq("is_active", true)
         .is("ket_qua_test", null)
+        .or(meChuaKetThucOrFilter())
         .in("thiet_bi_id", machineIds);
       if (openErr) return { success: false, error: mapFkError(openErr.message) };
       openBatchByMachine = new Set((openRows || []).map((r) => String((r as { thiet_bi_id?: string | null }).thiet_bi_id || "")).filter(Boolean));

@@ -7,6 +7,7 @@ import {
   meQcDraftStorageKey,
   meTrangThaiBadge,
   parseMeQcDraft,
+  resolveMeBadgeState,
   serializeMeQcDraft,
   slipStatusLabel,
 } from "./me-tiet-khuan-slip-ux";
@@ -107,5 +108,26 @@ describe("parseMeQcDraft", () => {
     expect(parseMeQcDraft(raw)?.ciNgoaiGoi).toBe("KHONG_DAT");
     expect(parseMeQcDraft("{")).toBeNull();
     expect(parseMeQcDraft(JSON.stringify({ thongSoVatLy: "MAYBE", trangThaiBi: "X" }))?.thongSoVatLy).toBe("");
+  });
+});
+
+describe("resolveMeBadgeState (CS-ME)", () => {
+  const base = { napLocked: true, qcOpen: true };
+  it("mẻ hỏng ket_qua_test NULL hiện Không đạt, không phải Chờ đánh giá QC", () => {
+    const st = resolveMeBadgeState({ ...base, trangThai: "QC_KHONG_DAT", ketQuaTest: null });
+    expect(st).toBe("QC_KHONG_DAT");
+    expect(meTrangThaiBadge(st).label).toBe("Không đạt");
+  });
+  it("mẻ THU_HOI giữ ket_qua_test=true hiện Thu hồi, không phải Hoàn thành", () => {
+    const st = resolveMeBadgeState({ ...base, trangThai: "THU_HOI", ketQuaTest: true });
+    expect(st).toBe("THU_HOI");
+    expect(meTrangThaiBadge(st).label).toBe("Thu hồi");
+  });
+  it("CHO_BI ưu tiên; mẻ cũ không có trang_thai_me suy từ ket_qua_test / mốc", () => {
+    expect(resolveMeBadgeState({ ...base, choBi: true, trangThai: "", ketQuaTest: null })).toBe("CHO_BI");
+    expect(resolveMeBadgeState({ ...base, trangThai: "", ketQuaTest: true })).toBe("HOAN_THANH");
+    expect(resolveMeBadgeState({ ...base, trangThai: "", ketQuaTest: false })).toBe("QC_KHONG_DAT");
+    expect(resolveMeBadgeState({ napLocked: true, qcOpen: false, trangThai: "DANG_TIET_KHUAN" })).toBe("DANG_TIET_KHUAN");
+    expect(resolveMeBadgeState({ napLocked: false, qcOpen: false, trangThai: "DANG_CHUAN_NAP" })).toBe("DANG_CHUAN_NAP");
   });
 });

@@ -4,11 +4,14 @@ import {
   normalizeMaLoaiDeXuat,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
-import { planAddOntoExistingQty } from "@/lib/master-data/cssd-bom-line-merge";
 import {
-  coalesceActiveBomLinesForLoai,
-  findActiveBomLineByBoLoai,
-} from "@/lib/master-data/cssd-bom-line-merge.application";
+  planSetBomWrites,
+  prevalidateSetBomLines,
+  type SetBomRow,
+  type SetBomStep,
+} from "@/lib/master-data/cssd-set-bom-plan";
+
+const BOM_TABLE = "cssd_dm_bo_dung_cu_chi_tiet";
 
 function newChiTietMa(): string {
   return `DC-R${Date.now().toString(36).slice(-6).toUpperCase()}`;
@@ -30,21 +33,22 @@ async function findLoaiByMa(supabase: SupabaseClient, ma: string) {
   return data?.[0] || null;
 }
 
-async function applyDoiLoaiLine(
+type LoaiRename = { loaiId: string; ma: string; ten: string; specs: Record<string, unknown> };
+
+/** Đọc + quyết định đích của một dòng DOI_LOAI (chưa ghi gì). */
+async function resolveDoiLoaiLine(
   supabase: SupabaseClient,
-  boDungCuId: string,
   line: SetReconcileLineInput,
-  now: string,
-): Promise<void> {
+): Promise<{ step: SetBomStep; rename: LoaiRename | null }> {
   const chiTietId = String(line.chiTietId || "").trim();
   const currentLoaiId = String(line.loaiDungCuId || "").trim();
   const nextMa = normalizeMaLoaiDeXuat(line.maLoaiDeXuat);
   const nextTen = String(line.tenDungCuLeDeXuat || "").trim();
-  if (!chiTietId || !currentLoaiId || !nextMa) {
+  if (!chiTietId || !currentLoaiId || (!nextMa && !doiLoaiIsRelink(line))) {
     throw new Error(`${line.tenDungCuLe}: thiếu dữ liệu đổi mã loại.`);
   }
 
-  const existingByMa = await findLoaiByMa(supabase, nextMa);
+  const existingByMa = nextMa ? await findLoaiByMa(supabase, nextMa) : null;
   let targetLoaiId = currentLoaiId;
   if (doiLoaiIsRelink(line)) {
     targetLoaiId = String(line.loaiDungCuIdDeXuat || "").trim();
@@ -65,8 +69,12 @@ async function applyDoiLoaiLine(
   const tenSau = nextTen || String(target.ten_loai || line.tenDungCuLe);
   const tenChanged = Boolean(nextTen) && nextTen !== String(target.ten_loai || "").trim();
   const shouldRename =
-    (nextMa !== targetMa || tenChanged) && String(target.id) === currentLoaiId && !doiLoaiIsRelink(line);
+    Boolean(nextMa) &&
+    (nextMa !== targetMa || tenChanged) &&
+    String(target.id) === currentLoaiId &&
+    !doiLoaiIsRelink(line);
 
+  let rename: LoaiRename | null = null;
   if (shouldRename) {
     if (existingByMa && String(existingByMa.id) !== String(target.id)) {
       throw new Error(
@@ -77,100 +85,113 @@ async function applyDoiLoaiLine(
       target.specs && typeof target.specs === "object" && !Array.isArray(target.specs)
         ? (target.specs as Record<string, unknown>)
         : {};
-    const { error: renameErr } = await supabase
-      .from("cssd_dm_loai_dung_cu")
-      .update({
-        ma_loai: nextMa,
-        ten_loai: tenSau,
-        specs: { ...prevSpecs, ma_loai_dung_cu: nextMa, ten_loai_dung_cu: tenSau },
-        updated_at: now,
-      })
-      .eq("id", target.id);
-    if (renameErr) throw new Error(renameErr.message);
+    rename = { loaiId: String(target.id), ma: nextMa, ten: tenSau, specs: prevSpecs };
   }
-
-  const { error } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .update({
-      loai_dung_cu_id: targetLoaiId,
-      ten_dung_cu_le: tenSau,
-      ten_chi_tiet: tenSau,
-      updated_at: now,
-    })
-    .eq("id", chiTietId)
-    .eq("bo_dung_cu_id", boDungCuId);
-  if (error) throw new Error(error.message);
-
-  // Relink onto a loai that already has an active row → SUM qty, soft-delete duplicate.
-  if (String(targetLoaiId) !== String(currentLoaiId)) {
-    await coalesceActiveBomLinesForLoai(supabase, boDungCuId, String(targetLoaiId));
-  }
+  return {
+    step: {
+      kind: "DOI_LOAI",
+      chiTietId,
+      currentLoaiId,
+      targetLoaiId: String(target.id),
+      ten: tenSau,
+      label: String(line.tenDungCuLe || "Dòng"),
+    },
+    rename,
+  };
 }
 
-/** Áp đề nghị đổi sổ chuẩn sau khi admin duyệt phiếu. */
+/**
+ * Áp đề nghị đổi sổ chuẩn sau khi admin duyệt phiếu.
+ * KD-1: đọc + kiểm + lập kế hoạch cho TOÀN BỘ dòng trước, chỉ ghi khi hợp lệ; DOI_LOAI sang loại đã có
+ * trong bộ → gộp trước (không chạm unique index). Vẫn nhiều câu lệnh — chưa nguyên tử (cần RPC transaction).
+ */
 export async function applyApprovedBomLines(
   supabase: SupabaseClient,
   boDungCuId: string,
   lines: SetReconcileLineInput[],
 ): Promise<void> {
-  const now = new Date().toISOString();
+  const boId = String(boDungCuId || "").trim();
+  if (!boId) throw new Error("Thiếu bộ dụng cụ.");
+  const invalid = prevalidateSetBomLines(lines);
+  if (invalid) throw new Error(invalid);
+
+  const steps: SetBomStep[] = [];
+  const renames = new Map<string, LoaiRename>();
   for (const line of lines) {
+    const label = String(line.tenDungCuLe || "Dòng");
     if (line.kind === "DOI_CHUAN") {
-      const id = String(line.chiTietId || "").trim();
-      const next = Math.floor(Number(line.soLuongChuanDeXuat) || 0);
-      if (!id || next < 1) throw new Error(`${line.tenDungCuLe}: thiếu dữ liệu đổi chuẩn.`);
-      const { error } = await supabase
-        .from("cssd_dm_bo_dung_cu_chi_tiet")
-        .update({ so_luong: next, updated_at: now })
-        .eq("id", id)
-        .eq("bo_dung_cu_id", boDungCuId);
-      if (error) throw new Error(error.message);
-      continue;
-    }
-    if (line.kind === "DOI_LOAI") {
-      await applyDoiLoaiLine(supabase, boDungCuId, line, now);
-      continue;
-    }
-    if (line.kind === "XOA_DONG") {
-      const id = String(line.chiTietId || "").trim();
-      if (!id) throw new Error(`${line.tenDungCuLe}: thiếu dòng để xóa.`);
-      const { error } = await supabase
-        .from("cssd_dm_bo_dung_cu_chi_tiet")
-        .update({ is_active: false, updated_at: now })
-        .eq("id", id)
-        .eq("bo_dung_cu_id", boDungCuId);
-      if (error) throw new Error(error.message);
-      continue;
-    }
-    if (line.kind === "THEM_DONG") {
-      const loaiId = String(line.loaiDungCuId || "").trim();
-      const ten = String(line.tenDungCuLe || "").trim();
-      const soLuong = Math.max(1, Math.floor(Number(line.soLuongChuan) || 1));
-      if (!loaiId || !ten) throw new Error("Thêm dòng cần loại và tên dụng cụ.");
-      const existing = await findActiveBomLineByBoLoai(supabase, boDungCuId, loaiId);
-      if (existing) {
-        const nextQty = planAddOntoExistingQty(existing.so_luong, soLuong);
-        const { error } = await supabase
-          .from("cssd_dm_bo_dung_cu_chi_tiet")
-          .update({ so_luong: nextQty, updated_at: now })
-          .eq("id", existing.id)
-          .eq("bo_dung_cu_id", boDungCuId);
-        if (error) throw new Error(error.message);
-        // In case >1 active slipped in, coalesce to one SUM row.
-        await coalesceActiveBomLinesForLoai(supabase, boDungCuId, loaiId);
-      } else {
-        const { error } = await supabase.from("cssd_dm_bo_dung_cu_chi_tiet").insert({
-          bo_dung_cu_id: boDungCuId,
-          loai_dung_cu_id: loaiId,
-          ten_dung_cu_le: ten,
-          ten_chi_tiet: ten,
-          so_luong: soLuong,
-          is_active: true,
-          updated_at: now,
-          specs: { ma_chi_tiet: newChiTietMa() },
-        });
-        if (error) throw new Error(error.message);
+      steps.push({ kind: "CHUAN", chiTietId: String(line.chiTietId).trim(), soLuong: Math.floor(Number(line.soLuongChuanDeXuat)), label });
+    } else if (line.kind === "XOA_DONG") {
+      steps.push({ kind: "XOA", chiTietId: String(line.chiTietId).trim(), label });
+    } else if (line.kind === "THEM_DONG") {
+      steps.push({
+        kind: "THEM",
+        loaiId: String(line.loaiDungCuId).trim(),
+        ten: String(line.tenDungCuLe).trim(),
+        soLuong: Math.floor(Number(line.soLuongChuan)),
+        label,
+      });
+    } else if (line.kind === "DOI_LOAI") {
+      const { step, rename } = await resolveDoiLoaiLine(supabase, line);
+      steps.push(step);
+      if (rename) {
+        const prev = renames.get(rename.loaiId);
+        if (prev && (prev.ma !== rename.ma || prev.ten !== rename.ten)) {
+          throw new Error(`${label}: phiếu đổi cùng một loại thành hai mã/tên khác nhau.`);
+        }
+        renames.set(rename.loaiId, rename);
       }
     }
+  }
+
+  const { data: rows, error: rowsErr } = await supabase
+    .from(BOM_TABLE)
+    .select("id, loai_dung_cu_id, so_luong")
+    .eq("bo_dung_cu_id", boId)
+    .eq("is_active", true);
+  if (rowsErr) throw new Error(rowsErr.message);
+  const plan = planSetBomWrites((rows || []) as SetBomRow[], steps);
+  if (!plan.ok) throw new Error(plan.error);
+
+  const now = new Date().toISOString();
+  for (const w of plan.value) {
+    if (w.type === "insert") {
+      const { error } = await supabase.from(BOM_TABLE).insert({
+        bo_dung_cu_id: boId,
+        loai_dung_cu_id: w.loaiId,
+        ten_dung_cu_le: w.ten,
+        ten_chi_tiet: w.ten,
+        so_luong: w.soLuong,
+        is_active: true,
+        updated_at: now,
+        specs: { ma_chi_tiet: newChiTietMa() },
+      });
+      if (error) throw new Error(error.message);
+      continue;
+    }
+    const patch: Record<string, unknown> =
+      w.type === "deactivate" ? { is_active: false } : { ...w.patch };
+    if (w.type === "update" && w.patch.ten !== undefined) {
+      delete patch.ten;
+      patch.ten_dung_cu_le = w.patch.ten;
+      patch.ten_chi_tiet = w.patch.ten;
+    }
+    patch.updated_at = now;
+    const { error } = await supabase.from(BOM_TABLE).update(patch).eq("id", w.id).eq("bo_dung_cu_id", boId);
+    if (error) throw new Error(error.message);
+  }
+
+  // Đổi mã/tên loại toàn cục sau cùng (đã kiểm trùng mã ở bước đọc).
+  for (const r of renames.values()) {
+    const { error } = await supabase
+      .from("cssd_dm_loai_dung_cu")
+      .update({
+        ma_loai: r.ma,
+        ten_loai: r.ten,
+        specs: { ...r.specs, ma_loai_dung_cu: r.ma, ten_loai_dung_cu: r.ten },
+        updated_at: now,
+      })
+      .eq("id", r.loaiId);
+    if (error) throw new Error(error.message);
   }
 }

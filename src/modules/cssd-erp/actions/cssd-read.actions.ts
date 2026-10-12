@@ -119,11 +119,14 @@ export async function getWaitingListByStation(station: Station) {
     if (loIds.length) {
       const { data: los } = await supabase
         .from("cssd_fact_lo_tiet_khuan")
-        .select("id, ket_qua_test, tk_qc_json")
+        .select("id, ket_qua_test, trang_thai_me, tk_qc_json")
         .in("id", loIds);
       for (const lo of los || []) {
         const lid = String((lo as { id: string }).id);
-        if ((lo as { ket_qua_test?: boolean | null }).ket_qua_test === true) passedLoIds.add(lid);
+        const l = lo as { ket_qua_test?: boolean | null; trang_thai_me?: string | null };
+        // CS-ME: mẻ THU_HOI giữ ket_qua_test=true (ME-10) nhưng không còn là mẻ đạt để cấp phát.
+        const stMe = String(l.trang_thai_me || "").trim().toUpperCase();
+        if (l.ket_qua_test === true && stMe !== "THU_HOI" && stMe !== "QC_KHONG_DAT") passedLoIds.add(lid);
         const unload = parseBatchQcJson((lo as { tk_qc_json?: unknown }).tk_qc_json).nguoiUnload;
         if (unload) batchUnloadMap.set(lid, unload);
       }

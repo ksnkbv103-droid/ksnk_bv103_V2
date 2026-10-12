@@ -5,6 +5,7 @@ import {
   type CssdCatalogDeNghiKind,
 } from "@/lib/domain/cssd-catalog-de-nghi";
 
+const BOM_TABLE = "cssd_dm_bo_dung_cu_chi_tiet";
 
 async function insertLoai(
   supabase: SupabaseClient,
@@ -186,6 +187,191 @@ async function applyBo(
   if (data.length > 1) throw new Error("Mã bộ trùng hơn một dòng — không ghi đè.");
 }
 
+type PreparedBomUpsert = {
+  op: "UPSERT";
+  idx: number;
+  chiTietId: string;
+  loaiId: string;
+  maLoai: string;
+  ten: string;
+  soLuong: number;
+  maChiTiet: string;
+  specsPatch: Record<string, unknown>;
+  ghiChu?: string;
+};
+export type PreparedBomLine = { op: "DELETE"; idx: number; chiTietId: string } | PreparedBomUpsert;
+
+/**
+ * Kiểm toàn bộ dòng phiếu BOM TRƯỚC khi ghi (thuần): tên, số lượng ≥ 1, loại, SUDS, trọng lượng,
+ * trùng dòng. Các trường chi tiết (`ma_chi_tiet`, `max_suds_count`, `trong_luong`) nằm trong `specs`
+ * — bảng `cssd_dm_bo_dung_cu_chi_tiet` không có cột cấp bảng cho chúng.
+ */
+export function prepareCatalogBomLines(
+  lines: CssdCatalogDeNghiBomLine[],
+): { ok: true; lines: PreparedBomLine[] } | { ok: false; error: string } {
+  if (!lines.length) return { ok: false, error: "Thiếu dòng thành phần." };
+  const out: PreparedBomLine[] = [];
+  const seenChiTiet = new Set<string>();
+  const seenLoai = new Set<string>();
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    const label = `Dòng ${i + 1}`;
+    const chiTietId = String(line.chiTietId || "").trim();
+    if (chiTietId) {
+      if (seenChiTiet.has(chiTietId)) return { ok: false, error: `${label}: trùng dòng thành phần trong phiếu.` };
+      seenChiTiet.add(chiTietId);
+    }
+    if (line.op === "DELETE") {
+      if (!chiTietId) return { ok: false, error: `${label}: xóa dòng cần chiTietId.` };
+      out.push({ op: "DELETE", idx: i, chiTietId });
+      continue;
+    }
+    if (line.op !== "UPSERT") return { ok: false, error: `${label}: op dòng BOM không hợp lệ.` };
+    const ten = String(line.tenDungCuLe || line.tenChiTiet || "").trim();
+    if (!ten) return { ok: false, error: `${label}: thiếu tên dụng cụ.` };
+    const soLuong = Number(line.soLuong);
+    if (!Number.isInteger(soLuong) || soLuong < 1) {
+      return { ok: false, error: `${label} (${ten}): số lượng chuẩn phải là số nguyên ≥ 1.` };
+    }
+    const loaiId = String(line.loaiDungCuId || "").trim();
+    const maLoai = String(line.maLoai || "").trim().toUpperCase();
+    if (!loaiId && !maLoai) return { ok: false, error: `${label} (${ten}): cần loại dụng cụ.` };
+    const loaiKey = loaiId || `MA:${maLoai}`;
+    if (seenLoai.has(loaiKey)) {
+      return { ok: false, error: `${label} (${ten}): loại dụng cụ lặp trong phiếu — một bộ chỉ một dòng mỗi loại.` };
+    }
+    seenLoai.add(loaiKey);
+    const specsPatch: Record<string, unknown> = {};
+    if (line.maxSudsCount != null && String(line.maxSudsCount) !== "") {
+      const suds = Number(line.maxSudsCount);
+      if (!Number.isInteger(suds) || suds < 1) {
+        return { ok: false, error: `${label} (${ten}): số lần tái sử dụng tối đa phải là số nguyên ≥ 1.` };
+      }
+      specsPatch.max_suds_count = suds;
+    }
+    if (line.trongLuong != null && String(line.trongLuong).trim() !== "") {
+      const tl = Number(String(line.trongLuong).trim().replace(",", "."));
+      if (!Number.isFinite(tl) || tl < 0) return { ok: false, error: `${label} (${ten}): trọng lượng không hợp lệ.` };
+      specsPatch.trong_luong = tl;
+    }
+    out.push({
+      op: "UPSERT",
+      idx: i,
+      chiTietId,
+      loaiId,
+      maLoai,
+      ten,
+      soLuong,
+      maChiTiet: String(line.maChiTiet || "").trim().toUpperCase(),
+      specsPatch,
+      ...(line.ghiChu != null ? { ghiChu: String(line.ghiChu) } : {}),
+    });
+  }
+  return { ok: true, lines: out };
+}
+
+export type BomRowSnapshot = {
+  id: string;
+  loai_dung_cu_id: string | null;
+  is_active: boolean | null;
+  specs: unknown;
+};
+
+export type CatalogBomWrite =
+  | { type: "deactivate"; id: string }
+  | { type: "update"; id: string; patch: Record<string, unknown> }
+  | { type: "insert"; row: Record<string, unknown> };
+
+/**
+ * Lập kế hoạch ghi (thuần) trên ảnh dòng hiện có của bộ. Mô phỏng luật 1 bộ × 1 loại active (D6);
+ * vi phạm → lỗi trước khi ghi. Thứ tự ghi: xóa mềm → sửa → thêm.
+ */
+export function planCatalogBomWrites(
+  boId: string,
+  prepared: PreparedBomLine[],
+  rows: BomRowSnapshot[],
+  now: string,
+  newMaChiTiet: () => string,
+): { ok: true; writes: CatalogBomWrite[] } | { ok: false; error: string } {
+  const byId = new Map(rows.map((r) => [String(r.id), r]));
+  const activeByLoai = new Map<string, string>();
+  for (const r of rows) {
+    const loai = String(r.loai_dung_cu_id || "").trim();
+    if (r.is_active !== false && loai) activeByLoai.set(loai, String(r.id));
+  }
+  const deactivate: CatalogBomWrite[] = [];
+  const updates: CatalogBomWrite[] = [];
+  const inserts: CatalogBomWrite[] = [];
+  const touched = new Set<string>();
+  const label = (l: PreparedBomLine) => `Dòng ${l.idx + 1}`;
+
+  for (const l of prepared) {
+    if (l.op !== "DELETE") continue;
+    const row = byId.get(l.chiTietId);
+    if (!row) return { ok: false, error: `${label(l)}: dòng cần xóa không thuộc bộ này.` };
+    const loai = String(row.loai_dung_cu_id || "").trim();
+    if (loai && activeByLoai.get(loai) === l.chiTietId) activeByLoai.delete(loai);
+    touched.add(l.chiTietId);
+    deactivate.push({ type: "deactivate", id: l.chiTietId });
+  }
+
+  for (const l of prepared) {
+    if (l.op !== "UPSERT") continue;
+    const base: Record<string, unknown> = {
+      loai_dung_cu_id: l.loaiId,
+      ten_dung_cu_le: l.ten,
+      ten_chi_tiet: l.ten,
+      so_luong: l.soLuong,
+      is_active: true,
+      updated_at: now,
+    };
+    if (l.ghiChu !== undefined) base.ghi_chu = l.ghiChu;
+    let targetId = l.chiTietId;
+    if (targetId) {
+      const row = byId.get(targetId);
+      if (!row) return { ok: false, error: `${label(l)} (${l.ten}): dòng cần sửa không thuộc bộ này.` };
+      const oldLoai = String(row.loai_dung_cu_id || "").trim();
+      if (row.is_active !== false && oldLoai && activeByLoai.get(oldLoai) === targetId) activeByLoai.delete(oldLoai);
+    } else {
+      targetId = activeByLoai.get(l.loaiId) || "";
+    }
+    const holder = activeByLoai.get(l.loaiId);
+    if (holder && holder !== targetId) {
+      return {
+        ok: false,
+        error: `${label(l)} (${l.ten}): bộ đã có dòng active cùng loại — sửa dòng đó thay vì đổi loại.`,
+      };
+    }
+    if (targetId && touched.has(targetId)) {
+      return { ok: false, error: `${label(l)} (${l.ten}): dòng thành phần bị sửa hai lần trong phiếu.` };
+    }
+    if (targetId) {
+      const row = byId.get(targetId)!;
+      const prev =
+        row.specs && typeof row.specs === "object" && !Array.isArray(row.specs)
+          ? (row.specs as Record<string, unknown>)
+          : {};
+      const patch = { ...base };
+      if (Object.keys(l.specsPatch).length) patch.specs = { ...prev, ...l.specsPatch };
+      touched.add(targetId);
+      activeByLoai.set(l.loaiId, targetId);
+      updates.push({ type: "update", id: targetId, patch });
+    } else {
+      activeByLoai.set(l.loaiId, `new:${l.idx}`);
+      inserts.push({
+        type: "insert",
+        row: {
+          ...base,
+          bo_dung_cu_id: boId,
+          specs: { ma_chi_tiet: l.maChiTiet || newMaChiTiet(), ...l.specsPatch },
+          created_at: now,
+        },
+      });
+    }
+  }
+  return { ok: true, writes: [...deactivate, ...updates, ...inserts] };
+}
+
 async function applyBom(
   supabase: SupabaseClient,
   targetId: string | null,
@@ -194,94 +380,72 @@ async function applyBom(
 ): Promise<void> {
   const boId = String(targetId || "").trim();
   if (!boId) throw new Error("Thiếu bộ đích cho thành phần.");
-  const lines = Array.isArray(payloadAfter.lines)
+  const rawLines = Array.isArray(payloadAfter.lines)
     ? (payloadAfter.lines as CssdCatalogDeNghiBomLine[])
     : [];
-  if (!lines.length) throw new Error("Thiếu dòng thành phần.");
+  const prep = prepareCatalogBomLines(rawLines);
+  if (!prep.ok) throw new Error(prep.error);
 
-  for (const line of lines) {
-    if (line.op === "DELETE") {
-      const chiTietId = String(line.chiTietId || "").trim();
-      if (!chiTietId) throw new Error("Xóa dòng cần chiTietId.");
-      const { error } = await supabase
-        .from("cssd_dm_bo_dung_cu_chi_tiet")
-        .update({ is_active: false, updated_at: now })
-        .eq("id", chiTietId)
-        .eq("bo_dung_cu_id", boId);
-      if (error) throw new Error(error.message);
-      continue;
-    }
-    if (line.op !== "UPSERT") throw new Error("op dòng BOM không hợp lệ.");
-    let resolvedLoaiId = String(line.loaiDungCuId || "").trim();
-    const maLoai = String(line.maLoai || "").trim().toUpperCase();
-    const ten = String(line.tenDungCuLe || line.tenChiTiet || "").trim();
-    const soLuong = Math.floor(Number(line.soLuong));
-    if (!Number.isFinite(soLuong) || soLuong < 0) throw new Error("Số lượng chuẩn không hợp lệ.");
-    if (!resolvedLoaiId && maLoai) {
+  // Đọc: giải mã loại → id, rồi kiểm trùng loại sau khi giải.
+  const seenResolved = new Set<string>();
+  for (const l of prep.lines) {
+    if (l.op !== "UPSERT") continue;
+    if (!l.loaiId) {
       const { data: loai, error } = await supabase
         .from("cssd_dm_loai_dung_cu")
         .select("id")
         .eq("is_active", true)
-        .ilike("ma_loai", maLoai)
+        .ilike("ma_loai", l.maLoai.replace(/[%_]/g, ""))
         .limit(2);
       if (error) throw new Error(error.message);
-      if (!loai?.length) throw new Error(`Không thấy loại ${maLoai}.`);
-      if (loai.length > 1) throw new Error(`Mã loại ${maLoai} trùng.`);
-      resolvedLoaiId = String(loai[0].id);
+      if (!loai?.length) throw new Error(`Không thấy loại ${l.maLoai}.`);
+      if (loai.length > 1) throw new Error(`Mã loại ${l.maLoai} trùng.`);
+      l.loaiId = String(loai[0].id);
     }
-    if (!resolvedLoaiId) throw new Error("UPSERT cần loaiDungCuId hoặc maLoai.");
+    if (seenResolved.has(l.loaiId)) {
+      throw new Error(`Dòng ${l.idx + 1} (${l.ten}): loại dụng cụ lặp trong phiếu.`);
+    }
+    seenResolved.add(l.loaiId);
+  }
 
-    const patch: Record<string, unknown> = {
-      loai_dung_cu_id: resolvedLoaiId,
-      ten_dung_cu_le: ten || null,
-      ten_chi_tiet: ten || null,
-      so_luong: soLuong,
-      is_active: true,
-      updated_at: now,
-    };
-    if (line.maxSudsCount != null && String(line.maxSudsCount) !== "") {
-      patch.max_suds_count = Math.floor(Number(line.maxSudsCount)) || null;
-    }
-    if (line.trongLuong != null && String(line.trongLuong) !== "") {
-      patch.trong_luong = Number(line.trongLuong);
-    }
-    if (line.ghiChu != null) patch.ghi_chu = String(line.ghiChu);
+  const ids = prep.lines.map((l) => l.chiTietId).filter(Boolean);
+  const { data: activeRows, error: actErr } = await supabase
+    .from(BOM_TABLE)
+    .select("id, loai_dung_cu_id, is_active, specs")
+    .eq("bo_dung_cu_id", boId)
+    .eq("is_active", true);
+  if (actErr) throw new Error(actErr.message);
+  const rows = [...((activeRows || []) as BomRowSnapshot[])];
+  const missing = ids.filter((id) => !rows.some((r) => String(r.id) === id));
+  if (missing.length) {
+    const { data: extra, error } = await supabase
+      .from(BOM_TABLE)
+      .select("id, loai_dung_cu_id, is_active, specs")
+      .eq("bo_dung_cu_id", boId)
+      .in("id", missing);
+    if (error) throw new Error(error.message);
+    rows.push(...((extra || []) as BomRowSnapshot[]));
+  }
 
-    const chiTietId = String(line.chiTietId || "").trim();
-    if (chiTietId) {
+  const plan = planCatalogBomWrites(boId, prep.lines, rows, now, () =>
+    `DC-R${Date.now().toString(36).slice(-6).toUpperCase()}`,
+  );
+  if (!plan.ok) throw new Error(plan.error);
+
+  // Ghi: chưa nguyên tử (nhiều câu lệnh) — đã kiểm hết trước; RPC transaction ở lát sau (KD-1 RPC).
+  for (const w of plan.writes) {
+    if (w.type === "deactivate") {
       const { error } = await supabase
-        .from("cssd_dm_bo_dung_cu_chi_tiet")
-        .update(patch)
-        .eq("id", chiTietId)
+        .from(BOM_TABLE)
+        .update({ is_active: false, updated_at: now })
+        .eq("id", w.id)
         .eq("bo_dung_cu_id", boId);
       if (error) throw new Error(error.message);
-      continue;
-    }
-
-    const { data: existing, error: exErr } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .select("id")
-      .eq("bo_dung_cu_id", boId)
-      .eq("loai_dung_cu_id", resolvedLoaiId)
-      .eq("is_active", true)
-      .limit(1);
-    if (exErr) throw new Error(exErr.message);
-    if (existing?.[0]?.id) {
-      const { error } = await supabase
-        .from("cssd_dm_bo_dung_cu_chi_tiet")
-        .update(patch)
-        .eq("id", existing[0].id);
+    } else if (w.type === "update") {
+      const { error } = await supabase.from(BOM_TABLE).update(w.patch).eq("id", w.id).eq("bo_dung_cu_id", boId);
       if (error) throw new Error(error.message);
     } else {
-      const maChiTiet =
-        String(line.maChiTiet || "").trim().toUpperCase() ||
-        `DC-R${Date.now().toString(36).slice(-6).toUpperCase()}`;
-      const { error } = await supabase.from("cssd_dm_bo_dung_cu_chi_tiet").insert({
-        ...patch,
-        bo_dung_cu_id: boId,
-        ma_chi_tiet: maChiTiet,
-        created_at: now,
-      });
+      const { error } = await supabase.from(BOM_TABLE).insert(w.row);
       if (error) throw new Error(error.message);
     }
   }

@@ -393,10 +393,14 @@ export function computeMeQcSummary(
   let bdHong = 0;
   let so_me_thu_hoi_than_trong = 0;
   for (const m of mes) {
-    if (m.ket_qua_test === true || m.ket_qua_test === false) {
-      so_me_da_qc += 1;
-      if (m.ket_qua_test === true) so_me_dat += 1;
-    }
+    // CS-ME: mẻ hỏng (QC_KHONG_DAT, hoặc THU_HOI chưa từng đạt) vào mẫu số «đã QC» kể cả khi ket_qua_test NULL.
+    // THU_HOI giữ true (ME-10) vẫn tính đạt theo QC gốc; đếm riêng ở so_me_thu_hoi_than_trong.
+    const st = String(m.trang_thai_me || "").trim().toUpperCase();
+    const khongDat =
+      m.ket_qua_test === false || st === "QC_KHONG_DAT" || (st === "THU_HOI" && m.ket_qua_test !== true);
+    const dat = !khongDat && m.ket_qua_test === true;
+    if (khongDat || dat) so_me_da_qc += 1;
+    if (dat) so_me_dat += 1;
     const bi = String(m.trang_thai_bi || m.tk_qc_json?.trang_thai_bi || "")
       .trim()
       .toUpperCase();
@@ -405,7 +409,7 @@ export function computeMeQcSummary(
       .trim()
       .toUpperCase();
     if (bd === "KHONG_DAT") bdHong += 1;
-    if (m.ket_qua_test === true && String(m.trang_thai_me || "").toUpperCase() === "THU_HOI") {
+    if (m.ket_qua_test === true && st === "THU_HOI") {
       so_me_thu_hoi_than_trong += 1;
     }
   }

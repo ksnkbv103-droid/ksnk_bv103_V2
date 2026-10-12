@@ -196,6 +196,20 @@ describe("cssd-analytics-core", () => {
     expect(me10.bdHong).toBe(1);
     expect(me10.so_me_thu_hoi_than_trong).toBe(1);
 
+    // CS-ME: mẻ hỏng còn ket_qua_test NULL (dữ liệu ME-10 trước backfill) vẫn vào mẫu số «đã QC».
+    const csMe = computeMeQcSummary([
+      { ket_qua_test: true, trang_thai_me: "HOAN_THANH" },
+      { ket_qua_test: null, trang_thai_me: "QC_KHONG_DAT" },
+      { ket_qua_test: null, trang_thai_me: "THU_HOI" },
+      { ket_qua_test: true, trang_thai_me: "THU_HOI" },
+      { ket_qua_test: null, trang_thai_me: "CHO_BI" },
+      { ket_qua_test: null, trang_thai_me: "DANG_TIET_KHUAN" },
+    ]);
+    expect(csMe.so_me_da_qc).toBe(4);
+    expect(csMe.so_me_dat).toBe(2);
+    expect(csMe.ty_le_qc_dat_me).toBe(50);
+    expect(csMe.so_me_thu_hoi_than_trong).toBe(1);
+
     expect(
       computeMayUsage([
         { thiet_bi_id: "t1", ten_thiet_bi: "Hấp 1" },

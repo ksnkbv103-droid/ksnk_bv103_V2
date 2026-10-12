@@ -55,7 +55,19 @@ export function derivePassQuyTrinhIds(
   return { ok: true, ids };
 }
 
-/** Mỗi máy một mẻ chưa kết luận (`ket_qua_test` null). */
+/**
+ * CS-ME: mẻ đã đóng theo `trang_thai_me` (khớp `rpc_cssd_me_tao` + `uq_cssd_fact_lo_mo_mot_may`).
+ * Mẻ mở = `ket_qua_test` null VÀ trạng thái không thuộc nhóm này (CHO_BI xét riêng).
+ */
+export const ME_TRANG_THAI_DA_KET_THUC = ["HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"] as const;
+
+/** PostgREST `.or(...)`: trang_thai_me null hoặc không thuộc nhóm đã kết thúc (+ CHO_BI nếu cần). */
+export function meChuaKetThucOrFilter(opts?: { loaiChoBi?: boolean }): string {
+  const states = [...(opts?.loaiChoBi ? ["CHO_BI"] : []), ...ME_TRANG_THAI_DA_KET_THUC];
+  return `trang_thai_me.is.null,trang_thai_me.not.in.(${states.join(",")})`;
+}
+
+/** Mỗi máy một mẻ chưa kết luận (`ket_qua_test` null, trạng thái chưa kết thúc). */
 export function rejectIfMachineHasOpenBatch(openMaLo: string | null | undefined): string | null {
   const ma = String(openMaLo || "").trim();
   if (!ma) return null;
