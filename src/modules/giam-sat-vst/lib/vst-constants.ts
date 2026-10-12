@@ -38,6 +38,12 @@ export const MOMENT_UI_LABEL: Record<MomentType, string> = {
   "Sau khi tiếp xúc xung quanh người bệnh": "SAU TXXQNB",
 };
 
+/** Số thứ tự WHO 1–5 theo MOMENTS — dùng cho chú giải khi người dùng mới chưa quen mã viết tắt. */
+export function momentWhoNumber(raw: string | null | undefined): number | null {
+  const i = (MOMENTS as readonly string[]).indexOf(String(raw ?? "").trim());
+  return i >= 0 ? i + 1 : null;
+}
+
 export function momentUiLabel(raw: string | null | undefined): string {
   const key = String(raw ?? "").trim();
   if ((MOMENTS as readonly string[]).includes(key)) {

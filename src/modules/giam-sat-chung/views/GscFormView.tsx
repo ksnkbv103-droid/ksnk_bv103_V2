@@ -133,7 +133,8 @@ export default function GscFormView({
   } | null>(null);
   const [formProgress, setFormProgress] = useState<GscFormProgress | null>(null);
   const [dbTemplates, setDbTemplates] = useState<BangKiemListRow[]>([]);
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  // true ngay từ lần vẽ đầu — tránh nháy «Không có dữ liệu hiển thị» trong lúc chưa tải xong.
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
   const [editHydrating, setEditHydrating] = useState(Boolean(editSessionId));
 
@@ -175,14 +176,19 @@ export default function GscFormView({
   useEffect(() => {
     async function loadTemplates() {
       setLoadingTemplates(true);
-      const res = await getBangKiemsForGiamSat();
-      if (res.success) {
-        const all = (res.data || []) as BangKiemListRow[];
-        setDbTemplates(filterBangKiemByLoai(all, initialLoaiGiamSat));
-      } else {
-        toast.error(res.error || "Không tải được danh mục bảng kiểm");
+      try {
+        const res = await getBangKiemsForGiamSat();
+        if (res.success) {
+          const all = (res.data || []) as BangKiemListRow[];
+          setDbTemplates(filterBangKiemByLoai(all, initialLoaiGiamSat));
+        } else {
+          toast.error(res.error || "Không tải được danh mục bảng kiểm");
+        }
+      } catch {
+        toast.error("Không tải được danh mục bảng kiểm");
+      } finally {
+        setLoadingTemplates(false);
       }
-      setLoadingTemplates(false);
     }
     void loadTemplates();
   }, [initialLoaiGiamSat]);

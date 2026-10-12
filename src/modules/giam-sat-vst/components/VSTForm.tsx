@@ -16,6 +16,8 @@ import {
   clampMomentsForAction,
   isVstMissedAction,
   maxMomentsForAction,
+  momentDisplayLabel,
+  momentWhoNumber,
   type MomentType,
   type ActionType,
 } from "../lib/vst-constants";
@@ -420,6 +422,24 @@ export default function VSTForm({
             );
           })}
         </div>
+
+        <details className="no-print rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+          <summary className="cursor-pointer select-none font-semibold text-slate-800">
+            Chú giải 5 thời điểm WHO (bấm để xem)
+          </summary>
+          <ol className="mt-2 grid gap-1 sm:grid-cols-2">
+            {MOMENTS.map((m) => (
+              <li key={m}>
+                <span className="mr-1 font-semibold">{momentWhoNumber(m)}.</span>
+                {momentDisplayLabel(m)}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-2 text-slate-500">
+            TXNB = tiếp xúc người bệnh · TTVK = thủ thuật vô khuẩn · TXDCT = tiếp xúc dịch cơ thể · TXXQNB = tiếp xúc xung
+            quanh người bệnh. Rửa/chà tối đa 2 thời điểm, bỏ sót đúng 1.
+          </p>
+        </details>
 
         <div className="grid min-h-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
           {persons.map((p, idx) => {
