@@ -1,6 +1,7 @@
 ---
 description: PO mô tả nghiệp vụ — dịch thành intake, chưa code
 argument-hint: "[mô tả nghiệp vụ]"
+model: sonnet
 ---
 
 # /intake-nv — Khóa phạm vi theo ngôn ngữ nghiệp vụ (PO)

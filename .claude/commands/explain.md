@@ -1,6 +1,7 @@
 ---
 description: Giải thích, không sửa
 argument-hint: "[câu hỏi]"
+model: sonnet
 ---
 
 # /explain — Chỉ giải thích, không sửa code

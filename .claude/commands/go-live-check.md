@@ -1,6 +1,7 @@
 ---
 description: Cổng sẵn sàng pilot — không deploy
 argument-hint: "[module hoặc luồng]"
+model: sonnet
 ---
 
 # /go-live-check — Cổng sẵn sàng vận hành (không deploy)

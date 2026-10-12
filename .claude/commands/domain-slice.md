@@ -1,6 +1,7 @@
 ---
 description: Rà và sửa một lát theo SSOT đã chốt
 argument-hint: "[module hoặc lát]"
+model: sonnet
 ---
 
 # /domain-slice — Rà, phản biện, chọn theo domain, sửa một lát

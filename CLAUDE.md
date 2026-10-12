@@ -45,6 +45,14 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 - Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file
 - Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
+## Ngân sách model và agent (hook `.claude/hooks/guard-agent-model.mjs` chặn cứng)
+
+- Mặc định Sonnet. Haiku: đọc/soát/UAT/verify. Opus **chỉ** `migration-author` (migration/RPC/khóa dòng khó); không Opus cho code thường, docs, rà soát
+- Giao việc bằng agent ghim sẵn ở `.claude/agents` (`slice-fixer` sửa, `security-auditor` rà, `explore-module`, `verify-runner`…); không dùng agent chung kèm `model: opus`
+- Một agent **ghi** repo tại một thời điểm (chung git index, chạm giới hạn phiên là mất việc dở). Agent chỉ đọc tối đa 2 song song
+- Rà soát = một vùng hẹp, chỉ báo Nghiêm trọng/Cao; không «quét toàn bộ». Trước khi giao nhiều agent: kiểm `get_usage`; tuần > 60% chỉ làm lát nghiêm trọng đang chặn pilot, còn lại ghi roadmap
+- Prompt giao agent: lát + file phạm vi + lỗi đã xác minh + lệnh verify. Không bắt đọc lại rules/roadmap
+
 ## Gotchas
 
 - File lớn, chỉ grep rồi đọc đoạn: `docs/core/implementation-mapping.md`, migration `20260530000000_init_pilot_baseline.sql`, `NkbvBaMultiTimelineWorkspace.tsx`

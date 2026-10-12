@@ -33,14 +33,14 @@
 
 | Lệnh | Mục đích | Model |
 |------|----------|-------|
-| `/intake-nv` | PO mô tả nghiệp vụ → intake (chưa code) | mặc định |
-| `/intake` | Khóa scope kỹ thuật | mặc định |
-| `/domain-slice` | Rà + sửa một lát theo SSOT đã chốt | mặc định |
-| `/implement` | Code lát đã duyệt | mặc định |
+| `/intake-nv` | PO mô tả nghiệp vụ → intake (chưa code) | Sonnet |
+| `/intake` | Khóa scope kỹ thuật | Sonnet |
+| `/domain-slice` | Rà + sửa một lát theo SSOT đã chốt | Sonnet |
+| `/implement` | Code lát đã duyệt | Sonnet |
 | `/review` | Verify theo intake + giao subagent `review-bv103` soát whitelist/DoD, Go/No-go (chưa deploy) | Sonnet |
 | `/uat-cases` | Kịch bản test tay cho PO | Haiku |
-| `/go-live-check` | Cổng sẵn sàng pilot (không deploy) | mặc định |
-| `/explain` | Giải thích, không sửa | mặc định |
+| `/go-live-check` | Cổng sẵn sàng pilot (không deploy) | Sonnet |
+| `/explain` | Giải thích, không sửa | Sonnet |
 | `/commit` · `/pr-create` | Chỉ khi PO ra lệnh | Haiku |
 
 ## 4. Skills (`.claude/skills/`)
@@ -52,7 +52,7 @@
 | `react-dev` | Component React 19 / hook mới (không mở khi chỉ sửa action/SQL) |
 | `destructive-change` | DROP, xóa module, đổi không đảo được — dừng chờ PO |
 
-## 5. Subagent (`.claude/agents/`; read-only trừ `test-writer` chỉ ghi `*.spec.ts`)
+## 5. Subagent (`.claude/agents/`; read-only trừ `test-writer` ghi `*.spec.ts`, `slice-fixer` và `migration-author` có ghi)
 
 | Agent | Việc | Model |
 |-------|------|-------|
@@ -63,6 +63,9 @@
 | `review-bv103` | Review diff + soát whitelist/DoD, Go/No-go | Sonnet |
 | `verify-runner` | Chạy verify, chỉ trả lỗi gọn (giữ log ngoài phiên chính) | Haiku |
 | `test-writer` | Viết spec vitest cho logic thuần của lát đã chốt | Sonnet |
+| `slice-fixer` | Sửa MỘT lát code theo mẫu rõ (≤ 8 file), có spec + commit | Sonnet |
+| `security-auditor` | Rà quyền/RLS/DEFINER/IDOR trong MỘT vùng hẹp, chỉ báo Nghiêm trọng/Cao | Sonnet |
+| `migration-author` | Migration/RPC khó (nguyên tử, khóa dòng, ACL), apply local, không prod | **Opus** (duy nhất) |
 
 ## 6. Chọn model
 
@@ -85,6 +88,7 @@ Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 
 6. **Kiểm giao diện bằng `read_page`**, chỉ chụp ảnh khi cần xem bố cục.
 7. **Đọc nhiều file thì giao subagent** (Haiku) để phiên chính gọn. Plan mode (`Shift+Tab`) trước việc lớn · đọc ≤ 8 file/task.
 8. **Prod chỉ `SELECT`.** Thử thì dùng DB local.
+9. **Điều phối agent (bài học 2026-10-12: 9 agent Opus, 5 chạy song song → tuần 70%, agent chết giữa chừng, commit lẫn lát).** Hook `.claude/hooks/guard-agent-model.mjs` chặn: `model: opus/fable` cho bất kỳ agent nào ngoài `migration-author`; agent không ghim model mà không đặt `haiku`/`sonnet`. Quy tắc: một agent ghi tại một thời điểm; rà soát một vùng hẹp, chỉ Nghiêm trọng/Cao; kiểm `get_usage` trước khi giao (tuần > 60% → chỉ lát chặn pilot); lát nào cần cả RPC và code thì `migration-author` trước rồi `slice-fixer`.
 
 ## 7. Một lát chuẩn
 

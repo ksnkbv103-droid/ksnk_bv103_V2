@@ -1,6 +1,7 @@
 ---
 description: Khóa scope kỹ thuật trước khi code
 argument-hint: "[mục tiêu kỹ thuật]"
+model: sonnet
 ---
 
 # /intake — Khóa phạm vi trước khi code (kỹ thuật)
