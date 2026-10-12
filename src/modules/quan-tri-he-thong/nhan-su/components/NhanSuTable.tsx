@@ -417,7 +417,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               <span className="bv103-type-label w-fit rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 font-semibold text-amber-900">
                 Chờ duyệt
               </span>
-              {allowEdit ? (
+              {allowEdit && !readAccountRequest(i.extra_data)?.ticket_only ? (
                 <button
                   type="button"
                   onClick={() => openEditPrefill(i)}
