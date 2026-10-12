@@ -219,12 +219,15 @@ Cổng nghiệp vụ mẻ đã có spec tự động: `persist-me-tiet-khuan.spe
 3. Thử chọn «Không đạt» ở màn kết luận khi cả ba mục QC đều Đạt: hệ thống từ chối.
 
 **K4 — BI dương sau khi mẻ đã nhả: thu hồi cửa sổ cùng máy**
-1. Chuẩn bị 3 mẻ liên tiếp cùng máy: mẻ 1 có BI âm (mốc), mẻ 2 và mẻ 3 đã nhả. Có một bộ của mẻ 3 đã gán ca mổ.
+1. Chuẩn bị 3 mẻ liên tiếp cùng máy: mẻ 1 có BI âm (mốc), mẻ 2 và mẻ 3 đã nhả. Một bộ của mẻ 3 phải được đánh dấu «đã dùng lâm sàng» (`metadata.used_clinically` kèm thời điểm và người ghi); chỉ gán `ma_ca_mo_id` thì RPC vẫn thu hồi bộ đó.
 2. Nhập BI dương cho mẻ 3.
-3. Mong đợi: mẻ 2 và 3 sang `THU_HOI`, mẻ 1 không đổi; bộ chưa dùng về Đóng gói; bộ đã gán ca mổ không đổi trạm nhưng có tên trong phiếu sự cố (`RECALL_LISTED_USED`); máy `HOLD_QC`.
+3. Mong đợi: mẻ 2 và 3 sang `THU_HOI`, mẻ 1 không đổi; bộ chưa dùng về Đóng gói; bộ đã dùng lâm sàng không đổi trạm nhưng có tên trong phiếu sự cố (`RECALL_LISTED_USED`); máy `HOLD_QC`. Giữ nguyên `ket_qua_test` của mẻ (ME-10), không đổi thành không đạt.
 
 **K5 — BI tuần hơi nước sau khi đã nhả**
+0. Lưu ý đã kiểm 2026-10-12: trong danh sách mẻ, mẻ `HOAN_THANH` không có nút mở (bấm hàng chỉ báo «Mẻ đã kết thúc»). Ô «Ghi BI tuần» chỉ hiện ngay sau khi nhả, khi màn mẻ còn mở, và lúc đó hệ thống tự mở hộp thoại in phiếu. Tổ CSSD cần xác nhận cách ghi BI tuần sau vài ngày; nếu không có đường vào thì ghi vào Tồn đọng.
 1. Nhập BI âm kèm sổ BM.02 cho mẻ hơi nước đã nhả.
 2. Mong đợi: trạng thái mẻ giữ nguyên, chỉ ghi sổ BI tuần. Nhập BI âm cho mẻ đang chạy (chưa nhả, chưa chờ BI): bị từ chối.
 
 Đạt lát C2 khi tổ CSSD làm K1–K5 không lệch mong đợi. Lệch → ghi vào mục này, báo PO, không tự đổi quy tắc nhả.
+
+**Kết quả chạy thử 2026-10-12 (DB local, tài khoản thử):** K1, K2, K3 đạt trên giao diện. K4 đạt ở tầng RPC `rpc_cssd_me_thu_hoi` (cửa sổ cùng máy, giữ máy). K5 chưa chạy được trên giao diện. Còn cần tổ CSSD chạy lại trên môi trường có bộ Đóng gói thật (có loại bao gói để kiểm hạn dùng sau nhả).
