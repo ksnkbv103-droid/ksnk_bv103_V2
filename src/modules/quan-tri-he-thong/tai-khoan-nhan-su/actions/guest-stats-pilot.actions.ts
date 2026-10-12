@@ -10,27 +10,10 @@ import { ensureStaffAuthEmailMatchesProfile } from "@/lib/auth/staff-auth-email"
 import { GUEST_STATS_PILOT_EMAIL, GUEST_STATS_PILOT_HO_TEN, GUEST_STATS_PILOT_MA_NV, GUEST_STATS_ROLE_NAME } from "@/lib/auth/guest-stats-pilot";
 import { parseOrFirstError, setupGuestStatsPilotAccountSchema } from "@/lib/validations/tai-khoan-nhan-su.validations";
 import { revalidateNhanSuTaiKhoan } from "@/modules/quan-tri-he-thong/actions/revalidate-quan-tri";
+import { verifyCurrentActorPassword } from "../lib/admin-reauth";
 
 function err(e: unknown) {
   return e instanceof Error ? e.message : String(e);
-}
-
-const AUTH_LIST_PAGE_SIZE = 200;
-const AUTH_LIST_MAX_PAGES = 50;
-
-/** supabase-js v2 không có tra theo email — duyệt từng trang cho đến khi thấy (không cắt ở 200 user đầu). */
-async function findAuthUserByEmail(
-  supabase: ReturnType<typeof createAdminSupabaseClient>,
-  email: string,
-) {
-  for (let page = 1; page <= AUTH_LIST_MAX_PAGES; page++) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: AUTH_LIST_PAGE_SIZE });
-    if (error) throw error;
-    const found = data.users.find((u) => normalizeEmail(u.email || "") === email);
-    if (found) return found;
-    if (data.users.length < AUTH_LIST_PAGE_SIZE) return null;
-  }
-  return null;
 }
 
 export type GuestStatsPilotStatus = {
@@ -84,11 +67,14 @@ export async function getGuestStatsPilotStatusAction() {
 export async function setupGuestStatsPilotAccountAction(params: {
   password: string;
   email?: string;
+  confirmActorPassword: string;
 }) {
   try {
     const actor = await ensureRbacAdmin();
     const parsed = parseOrFirstError(setupGuestStatsPilotAccountSchema, params);
     if (!parsed.ok) return { success: false as const, error: parsed.error };
+    const reauth = await verifyCurrentActorPassword(parsed.data.confirmActorPassword);
+    if (!reauth.ok) return { success: false as const, error: reauth.error };
     const supabase = createAdminSupabaseClient();
 
     const pw = parsed.data.password;
@@ -161,19 +147,17 @@ export async function setupGuestStatsPilotAccountAction(params: {
       });
 
       if (createErr?.message?.toLowerCase().includes("already") || createErr?.status === 422) {
-        const found = await findAuthUserByEmail(supabase, email);
-        if (!found?.id) {
-          return {
-            success: false as const,
-            error: "Email đã tồn tại nhưng không tra được user Auth. Liên hệ kỹ thuật.",
-          };
-        }
-        authUserId = found.id;
-      } else if (createErr || !created.user?.id) {
-        return { success: false as const, error: createErr?.message || "Không tạo được tài khoản Auth." };
-      } else {
-        authUserId = created.user.id;
+        // Không liên kết/đặt lại mật khẩu cho user Auth sẵn có (có thể là tài khoản bootstrap/break-glass).
+        return {
+          success: false as const,
+          error:
+            "Email này đã thuộc một tài khoản đăng nhập khác chưa liên kết hồ sơ khách. Dùng email khác cho tài khoản khách.",
+        };
       }
+      if (createErr || !created.user?.id) {
+        return { success: false as const, error: createErr?.message || "Không tạo được tài khoản Auth." };
+      }
+      authUserId = created.user.id;
 
       const { data: otherStaff } = await supabase
         .from("mdm_nhan_su")

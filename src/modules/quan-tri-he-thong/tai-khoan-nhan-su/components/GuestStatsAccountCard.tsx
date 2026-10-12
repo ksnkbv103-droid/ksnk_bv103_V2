@@ -15,6 +15,7 @@ export default function GuestStatsAccountCard({ onUpdated }: { onUpdated?: () =>
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState(GUEST_STATS_PILOT_EMAIL);
   const [password, setPassword] = useState("");
+  const [actorPassword, setActorPassword] = useState("");
 
   const loadStatus = useCallback(async () => {
     setLoading(true);
@@ -37,8 +38,13 @@ export default function GuestStatsAccountCard({ onUpdated }: { onUpdated?: () =>
       toast.error("Mật khẩu tối thiểu 8 ký tự.");
       return;
     }
+    if (!actorPassword) {
+      toast.error("Nhập mật khẩu của bạn để xác nhận.");
+      return;
+    }
     setSubmitting(true);
-    const res = await setupGuestStatsPilotAccountAction({ password, email });
+    const res = await setupGuestStatsPilotAccountAction({ password, email, confirmActorPassword: actorPassword });
+    setActorPassword("");
     setSubmitting(false);
     if (!res.success) {
       toast.error(res.error || "Không thiết lập được tài khoản khách.");
@@ -101,6 +107,16 @@ export default function GuestStatsAccountCard({ onUpdated }: { onUpdated?: () =>
             placeholder="Tối thiểu 8 ký tự"
             className="bv103-control-h w-full rounded-lg border border-violet-200 bg-white px-3 text-sm"
             autoComplete="new-password"
+          />
+        </div>
+        <div className="min-w-[160px] flex-1">
+          <label className="mb-1 block text-xs font-semibold text-violet-900">Mật khẩu của bạn (xác nhận)</label>
+          <input
+            type="password"
+            value={actorPassword}
+            onChange={(e) => setActorPassword(e.target.value)}
+            className="bv103-control-h w-full rounded-lg border border-violet-200 bg-white px-3 text-sm"
+            autoComplete="current-password"
           />
         </div>
         <button

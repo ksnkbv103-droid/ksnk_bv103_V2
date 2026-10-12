@@ -45,8 +45,14 @@ describe("tai-khoan-nhan-su.validations", () => {
     const r = parseOrFirstError(setupGuestStatsPilotAccountSchema, {
       password: "12345678",
       email: GUEST_STATS_PILOT_EMAIL,
+      confirmActorPassword: "x",
     });
     expect(r.ok).toBe(true);
+  });
+
+  it("tài khoản khách thiếu mật khẩu xác nhận bị từ chối", () => {
+    const r = parseOrFirstError(setupGuestStatsPilotAccountSchema, { password: "12345678" });
+    expect(r.ok).toBe(false);
   });
 });
 
