@@ -4,6 +4,7 @@
  */
 
 import { daysBetween } from "./nkbv-shared-timeline";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type DeviceRegistryType = "CENTRAL_LINE" | "FOLEY" | "VENTILATOR";
 
@@ -94,7 +95,7 @@ export function countPatientDaysFromStay(input: {
   rangeFrom: string;
   rangeTo: string;
 }): number {
-  const start = input.ngay_vao.slice(0, 10);
-  const end = input.ngay_ra ? input.ngay_ra.slice(0, 10) : input.rangeTo.slice(0, 10);
+  const start = vnYmd(input.ngay_vao);
+  const end = input.ngay_ra ? vnYmd(input.ngay_ra) : input.rangeTo.slice(0, 10);
   return clampRangeOverlap(start, end, input.rangeFrom, input.rangeTo);
 }

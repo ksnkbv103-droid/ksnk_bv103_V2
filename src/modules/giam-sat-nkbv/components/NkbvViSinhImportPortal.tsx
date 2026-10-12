@@ -6,7 +6,7 @@ import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import React, { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { parseISO, differenceInCalendarDays } from "date-fns";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, vnYmd } from "@/lib/format-datetime-vi";
 import { isHaiSuspectByDay3Rule } from "../lib/nkbv-timeline-math";
 import { buildViSinhTemplateTsv, type NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
 import {
@@ -596,7 +596,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     <td className="px-3 py-3">
                       <input
                         type="date"
-                        value={r.ngay_vao_vien.slice(0, 10)}
+                        value={vnYmd(r.ngay_vao_vien)}
                         onChange={(e) => updateRow(idx, { ngay_vao_vien: e.target.value })}
                         className={`${C.controlInput} ${!r.ngay_vao_vien ? "border-amber-400" : ""}`}
                       />
@@ -620,7 +620,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                       </span>
                     </td>
                     <td className="px-3 py-3 text-slate-500">
-                      {formatDateVi(r.ngay_lay_mau.slice(0, 10))}
+                      {formatDateVi(vnYmd(r.ngay_lay_mau))}
                       {r.ngay_vao_vien ? <div className="text-[11px]">Ngày {r.diffDays + 1}</div> : null}
                     </td>
                     <td className="px-3 py-3 min-w-[200px]">

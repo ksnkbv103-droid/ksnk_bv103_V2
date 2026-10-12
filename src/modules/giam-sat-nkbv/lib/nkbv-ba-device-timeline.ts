@@ -8,10 +8,11 @@ import {
 } from "./nkbv-criteria-matrix";
 import type { BaTimelineMilestone } from "./nkbv-ba-timeline-core";
 import type { SyndromePanelId } from "./nkbv-specimen-syndrome";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 /** YYYY-MM-DD hoặc rỗng. */
 export function isoDateOnly(d: string | null | undefined): string {
-  return (d || "").slice(0, 10);
+  return vnYmd(d);
 }
 
 /**

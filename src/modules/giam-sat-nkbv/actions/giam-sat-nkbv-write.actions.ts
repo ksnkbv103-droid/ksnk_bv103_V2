@@ -42,6 +42,7 @@ import {
   isNkbvTerminalCaseStatus,
   NKBV_CLINICAL_SUBMIT_LOCKED_VI,
 } from "../lib/nkbv-case-status";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
@@ -265,14 +266,14 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
           }),
         ),
         admissionDate: caRow.ngay_vao_vien
-          ? String(caRow.ngay_vao_vien).slice(0, 10)
+          ? vnYmd(caRow.ngay_vao_vien)
           : null,
       });
     }
 
     // POA/HAI: hydrate ngày VV từ phiếu/BA — bỏ hai_status client
     let ngayVaoVienServer = caRow?.ngay_vao_vien
-      ? String(caRow.ngay_vao_vien).slice(0, 10)
+      ? vnYmd(caRow.ngay_vao_vien)
       : "";
     if (!ngayVaoVienServer && caRow?.ma_benh_an) {
       const { data: baStay } = await supabase
@@ -282,7 +283,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         .eq("is_active", true)
         .maybeSingle();
       if (baStay?.ngay_vao_vien) {
-        ngayVaoVienServer = String(baStay.ngay_vao_vien).slice(0, 10);
+        ngayVaoVienServer = vnYmd(baStay.ngay_vao_vien);
       }
     }
 
@@ -753,22 +754,22 @@ export async function updateNkbvBenhAnStay(input: {
       patch.gioi_tinh = input.gioi_tinh ? String(input.gioi_tinh).trim() : null;
     }
     if (input.ngay_vao_vien !== undefined) {
-      const vv = input.ngay_vao_vien ? String(input.ngay_vao_vien).slice(0, 10) : "";
+      const vv = vnYmd(input.ngay_vao_vien);
       if (vv && !/^\d{4}-\d{2}-\d{2}$/.test(vv)) {
         return { success: false as const, error: "Ngày vào viện không hợp lệ" };
       }
       patch.ngay_vao_vien = vv ? new Date(`${vv}T12:00:00`).toISOString() : null;
     }
     if (input.ngay_ra_vien !== undefined) {
-      const rv = input.ngay_ra_vien ? String(input.ngay_ra_vien).slice(0, 10) : "";
+      const rv = vnYmd(input.ngay_ra_vien);
       if (rv && !/^\d{4}-\d{2}-\d{2}$/.test(rv)) {
         return { success: false as const, error: "Ngày ra viện không hợp lệ" };
       }
       const vvRaw =
         input.ngay_vao_vien !== undefined
-          ? String(input.ngay_vao_vien || "").slice(0, 10)
+          ? vnYmd(input.ngay_vao_vien)
           : prev.ngay_vao_vien
-            ? String(prev.ngay_vao_vien).slice(0, 10)
+            ? vnYmd(prev.ngay_vao_vien)
             : "";
       if (rv && vvRaw && rv < vvRaw) {
         return { success: false as const, error: "Ngày ra viện không được trước ngày vào viện" };
@@ -835,7 +836,7 @@ export async function createNkbvBenhAnStay(input: {
   const ma = String(input.ma_benh_an || "").trim();
   const bn = String(input.ma_benh_nhan || "").trim();
   const ten = String(input.ho_ten_benh_nhan || "").trim();
-  const vv = String(input.ngay_vao_vien || "").slice(0, 10);
+  const vv = vnYmd(input.ngay_vao_vien);
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
   if (!bn) return { success: false as const, error: "Thiếu mã bệnh nhân" };
   if (!ten) return { success: false as const, error: "Thiếu họ tên" };
@@ -903,7 +904,7 @@ export async function syncNkbvAdmissionDate(input: {
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "edit");
   const ma = String(input.ma_benh_an || "").trim();
-  const ngay = String(input.ngay_vao_vien || "").slice(0, 10);
+  const ngay = vnYmd(input.ngay_vao_vien);
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(ngay)) {
     return { success: false as const, error: "Ngày vào viện không hợp lệ" };

@@ -11,7 +11,7 @@ import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import EntityQrBlock from "@/components/shared/EntityQrBlock";
 import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { useEntityQrImage } from "@/hooks/useEntityQr";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 export type NkbvCaseLike = Record<string, unknown> & {
   id?: string;
@@ -29,7 +29,7 @@ type NkbvCaseEditorProps = {
   onSubmit: (payload: Record<string, unknown>) => void;
 };
 
-const toDate = (v: unknown) => (v ? String(v).slice(0, 10) : "");
+const toDate = (v: unknown) => vnYmd(v);
 
 export default function NkbvCaseEditor({
   row,
@@ -64,7 +64,7 @@ export default function NkbvCaseEditor({
     so_luong: "",
   });
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayYmdInVn();
 
   useEffect(() => {
     if (row?.id) {

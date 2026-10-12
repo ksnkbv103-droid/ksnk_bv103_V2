@@ -9,6 +9,7 @@ import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 import NkbvRuledOutSection from "../NkbvRuledOutSection";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 interface BsiClinicalSubFormProps {
   form: BsiVerificationData;
@@ -62,7 +63,7 @@ export default function BsiClinicalSubForm({
   embedded = false,
   omitSections = [],
 }: BsiClinicalSubFormProps) {
-  const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
+  const cleanNgayVaoVien = vnYmd(ngayVaoVien);
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
   const todayStr = new Date().toISOString().slice(0, 10);
 

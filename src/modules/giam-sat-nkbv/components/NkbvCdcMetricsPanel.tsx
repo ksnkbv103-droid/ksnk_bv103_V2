@@ -164,14 +164,20 @@ export default function NkbvCdcMetricsPanel({
           <div className="space-y-1">
             <span className={` text-slate-500`}>Bước 4: Thời gian nằm viện & Phân loại</span>
             <div className={`border p-2.5 rounded-[var(--radius-shell)] flex items-center justify-between ${
-              metrics.haiStatus === "HAI" 
-                ? "bg-rose-50 border-rose-100/60 text-rose-900" 
-                : "bg-emerald-50 border-emerald-100/60 text-emerald-900"
+              metrics.haiStatus === "HAI"
+                ? "bg-rose-50 border-rose-100/60 text-rose-900"
+                : metrics.haiStatus === "POA"
+                  ? "bg-emerald-50 border-emerald-100/60 text-emerald-900"
+                  : "bg-amber-50 border-amber-100/60 text-amber-900"
             }`}>
               <div>
                 <span className="text-[11px] font-medium text-slate-500 block">Thời điểm xuất hiện:</span>
                 <strong className="text-xs font-semibold font-mono">
-                  {metrics.haiStatus === "HAI" ? "🏥 HAI (Bệnh viện)" : "🏡 POA (Cộng đồng)"}
+                  {metrics.haiStatus === "HAI"
+                    ? "🏥 HAI (Bệnh viện)"
+                    : metrics.haiStatus === "POA"
+                      ? "🏡 POA (Cộng đồng)"
+                      : "Chưa xác định — thiếu ngày vào viện/ngày sự kiện"}
                 </strong>
               </div>
               <div className="text-right">

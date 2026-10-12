@@ -1,7 +1,7 @@
 "use server";
 
 import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
-import { todayYmdInVn } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { filterAllowedNkbvLoaiRows } from "../lib/nkbv-loai-labels";
@@ -731,7 +731,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       ma_xet_nghiem: r.ma_xet_nghiem ? String(r.ma_xet_nghiem) : null,
       loai_benh_pham: r.loai_benh_pham ? String(r.loai_benh_pham) : null,
       loai_benh_pham_chuan: r.loai_benh_pham_chuan ? String(r.loai_benh_pham_chuan) : null,
-      ngay_lay_mau: r.ngay_lay_mau ? String(r.ngay_lay_mau).slice(0, 10) : null,
+      ngay_lay_mau: vnYmd(r.ngay_lay_mau) || null,
       tac_nhan: r.tac_nhan ? String(r.tac_nhan) : null,
       so_luong: r.so_luong != null ? String(r.so_luong) : null,
       ket_qua_phan_loai: r.ket_qua_phan_loai ? String(r.ket_qua_phan_loai) : null,

@@ -18,13 +18,14 @@ import {
   labFactsFromXnCell,
 } from "./nkbv-pneu-lab-tier";
 import { countPneuRespiratoryCdcGroupsFromKeys } from "./nkbv-clinical-symptom-catalog";
-import { deviceAssociationFromCanThiepDates, poaOrHai } from "./nkbv-shared-timeline";
+import { deviceAssociationFromCanThiepDates, poaOrHai, knownHaiPoa } from "./nkbv-shared-timeline";
 import { ageYearsFromNgaySinh } from "./nkbv-uti-timeline-verdict";
 import {
   isKnownPatientAge,
   MISSING_DOB_NO_EVENT_REASON,
 } from "./nkbv-pneu-vae-route";
 import type { PneuLabFacts } from "./nkbv-pneu-lab-tier";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 /** Criteria key hô hấp — map nhóm CDC qua catalog `pneu_resp_line`. */
 const RESPIRATORY_CRITERIA_KEYS = new Set([
@@ -342,11 +343,11 @@ export function buildPneuTimelineVerdict(
     microbiology_evidence: "NONE" as const,
     calculated_doe: doe || undefined,
     ngay_vao_vien: input.admissionDate
-      ? String(input.admissionDate).slice(0, 10)
+      ? vnYmd(input.admissionDate)
       : undefined,
     hai_status:
       input.admissionDate && doe
-        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        ? knownHaiPoa(poaOrHai(vnYmd(input.admissionDate), doe).haiStatus)
         : undefined,
     rit_prior_events: input.ritPriorEvents,
     rit_exclude_event_ids: input.ritExcludeEventIds,

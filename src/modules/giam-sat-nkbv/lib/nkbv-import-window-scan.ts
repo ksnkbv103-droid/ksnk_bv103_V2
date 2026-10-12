@@ -2,6 +2,7 @@ import { isBloodSpecimen } from "./nkbv-vi-sinh-template";
 import { addDays } from "./nkbv-timeline-math";
 import { resolveNkbvMajorType, sameMajorType } from "./nkbv-major-type";
 import { clinicalSbapWindow, ssiSbapWindow } from "./nkbv-shared-timeline";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type ImportWindowAlertCode = "RIT" | "SBAP";
 
@@ -48,7 +49,7 @@ export function scanImportWindowAlerts(input: {
   loai_benh_pham: string;
   existingEvents: ExistingNkbvEventForScan[];
 }): ImportWindowAlert[] {
-  const sample = (input.ngay_lay_mau || "").slice(0, 10);
+  const sample = vnYmd(input.ngay_lay_mau);
   if (!sample || !input.ma_benh_an) return [];
 
   const sameStay = (input.existingEvents || []).filter(

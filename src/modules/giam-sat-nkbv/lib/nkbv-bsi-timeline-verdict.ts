@@ -12,12 +12,14 @@ import { organismsMatch } from "./nkbv-secondary-bsi-gate";
 import {
   deviceAssociationFromCanThiepDates,
   poaOrHai,
+  knownHaiPoa,
   resolveClinicalSbap,
   ssiSbapWindow,
 } from "./nkbv-shared-timeline";
 import {
   ageYearsFromNgaySinh,
 } from "./nkbv-uti-timeline-verdict";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 const FEVER_KEYS = ["fever", "fever_or_wbc"];
 const CHILLS_KEYS = ["chills", "rigor"];
@@ -169,7 +171,7 @@ export function buildBsiTimelineVerdict(
         })
       : null);
 
-  const vv = (input.admissionDate || "").slice(0, 10);
+  const vv = vnYmd(input.admissionDate);
   const cvcDates = input.canThiepDates.map((d) => d.slice(0, 10)).sort();
   const cvcDatesInStay = vv ? cvcDates.filter((d) => d >= vv) : cvcDates;
   const cvcAssoc = doe
@@ -266,11 +268,11 @@ export function buildBsiTimelineVerdict(
     calculated_sbap_start: sbapStart,
     calculated_sbap_end: sbapEnd,
     ngay_vao_vien: input.admissionDate
-      ? String(input.admissionDate).slice(0, 10)
+      ? vnYmd(input.admissionDate)
       : undefined,
     hai_status:
       input.admissionDate && doe
-        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        ? knownHaiPoa(poaOrHai(vnYmd(input.admissionDate), doe).haiStatus)
         : undefined,
     rit_prior_events: input.ritPriorEvents,
     rit_exclude_event_ids: input.ritExcludeEventIds,

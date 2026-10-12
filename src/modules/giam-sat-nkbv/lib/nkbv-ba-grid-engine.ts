@@ -9,6 +9,8 @@ import {
   clinicalRitEnd,
   daysBetween,
   deviceAssociationFromCanThiepDates,
+  haiPoaLabel,
+  knownHaiPoa,
 } from "./nkbv-shared-timeline";
 import { resolveNkbvMajorType, sameMajorType, type NkbvMajorType } from "./nkbv-major-type";
 import type { NkbvChecklistTypeCode } from "./nkbv-loai-labels";
@@ -39,6 +41,7 @@ import {
   mergePathogenLists,
 } from "./nkbv-ket-luan-smart";
 import type { SecondaryBsiPrimarySite } from "./nkbv-shared-secondary-bsi";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type BaGridNghiNgo = "PNEU" | "BSI" | "UTI" | "VAE" | "SSI";
 
@@ -132,7 +135,7 @@ export type BaGridColumn = {
 
 /** Hospital Day: VV = HD1; trước VV → null. */
 export function hospitalDayNumber(ngayVaoVien: string, date: string): number | null {
-  const adm = ngayVaoVien.slice(0, 10);
+  const adm = vnYmd(ngayVaoVien);
   const d = date.slice(0, 10);
   if (!adm || !d) return null;
   if (d < adm) return null;
@@ -192,7 +195,7 @@ export function buildGridColumns(input: {
     afterDays?: number;
   } | null;
 }): BaGridColumn[] {
-  const adm = input.ngayVaoVien.slice(0, 10);
+  const adm = vnYmd(input.ngayVaoVien);
   if (!adm) return [];
 
   let start: string;
@@ -206,7 +209,7 @@ export function buildGridColumns(input: {
     end = addDays(ix, after);
   } else {
     // Khung bảng chung: VV−2 → hết (ra viện, hoặc hôm nay khi đang nằm viện)
-    end = input.ngayRaVien ? input.ngayRaVien.slice(0, 10) : todayIso();
+    end = input.ngayRaVien ? vnYmd(input.ngayRaVien) : todayIso();
     if (end < adm) end = adm;
     for (const e of input.evidenceDates) {
       const d = e.slice(0, 10);
@@ -734,7 +737,7 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
 
   const metrics = calculateCdcMetrics({
     ngay_phat_hien: indexDate,
-    ngay_vao_vien: input.ngayVaoVien.slice(0, 10),
+    ngay_vao_vien: vnYmd(input.ngayVaoVien),
     checklistType: metricsChecklist,
     activeForm: {
       pneu_trigger: pneuTrigger,
@@ -891,7 +894,7 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
   const override = input.ketLuanOverride?.trim() || "";
   const suggestedSummary = enough
     ? formatBaKetLuanSummary({
-        haiPoa: metrics.haiStatus,
+        haiPoa: haiPoaLabel(metrics.haiStatus),
         loaiNk,
         secondaryBsi: isSecondaryBsi,
         nsk,
@@ -907,7 +910,7 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
   const ketLuan: BaGridKetLuan | null = nsk
     ? {
         loai_nk: enough ? loaiNk : "đang phân tích",
-        nkbv: enough ? metrics.haiStatus : "THIEU_TC",
+        nkbv: enough ? (knownHaiPoa(metrics.haiStatus) ?? "THIEU_TC") : "THIEU_TC",
         nsk,
         tac_nhan: tacNhan && tacNhan !== "—" ? tacNhan : null,
         noi_xay_ra: noi,

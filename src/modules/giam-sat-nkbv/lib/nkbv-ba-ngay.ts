@@ -9,6 +9,7 @@ import {
   type BaDeviceByDate,
 } from "./nkbv-ba-device-timeline";
 import type { DepartmentStay } from "../types/nkbv-verification";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type NkbvDungCuLoai = "CVC" | "VENT" | "FOLEY";
 
@@ -25,7 +26,7 @@ export type NkbvNgayDungCuRow = {
 
 /** Timestamp ngày lịch Việt Nam — tránh lệch HD vì UTC. */
 export function nkbvVnDateStartIso(dateYmd: string): string {
-  const d = String(dateYmd || "").slice(0, 10);
+  const d = vnYmd(dateYmd);
   return `${d}T00:00:00+07:00`;
 }
 
@@ -68,8 +69,8 @@ export function countDungCuCalendarDays(
   stayFrom: string | null | undefined,
   stayTo: string | null | undefined,
 ): number {
-  const from = String(stayFrom || "").slice(0, 10);
-  const to = String(stayTo || "").slice(0, 10);
+  const from = vnYmd(stayFrom);
+  const to = vnYmd(stayTo);
   const seen = new Set<string>();
   for (const r of rows) {
     if (r.loai_dung_cu !== loai) continue;

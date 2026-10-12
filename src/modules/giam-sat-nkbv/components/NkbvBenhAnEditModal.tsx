@@ -8,7 +8,7 @@ import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { createNkbvBenhAnStay, updateNkbvBenhAnStay } from "../actions/giam-sat-nkbv.actions";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 type KhoaOpt = { id: string; ma_danh_muc?: string; ten_danh_muc?: string };
 
@@ -33,10 +33,10 @@ type Props = {
   onSaved: () => void;
 };
 
-const toDate = (v: unknown) => (v ? String(v).slice(0, 10) : "");
+const toDate = (v: unknown) => vnYmd(v);
 
 export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: Props) {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayYmdInVn();
   const isCreate = !String(stay.ma_benh_an || "").trim();
   const [saving, setSaving] = useState(false);
   const [maBenhAn, setMaBenhAn] = useState("");

@@ -5,6 +5,7 @@ import { verifyAnyPermission } from "@/lib/server-permission";
 import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
 import { criteriaKeyToDungCuLoai } from "../lib/nkbv-ba-ngay";
 import { syncNkbvPhieuFromBaNgay } from "../lib/nkbv-ba-ngay-sync";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 /** Re-export cho ba-analysis (cùng entry server). */
 export { syncNkbvPhieuFromBaNgay };
@@ -23,8 +24,8 @@ async function stayBounds(ma: string): Promise<
   if (!data) return { ok: false, error: "Không tìm thấy bệnh án" };
   return {
     ok: true,
-    vv: data.ngay_vao_vien ? String(data.ngay_vao_vien).slice(0, 10) : "",
-    rv: data.ngay_ra_vien ? String(data.ngay_ra_vien).slice(0, 10) : null,
+    vv: vnYmd(data.ngay_vao_vien),
+    rv: vnYmd(data.ngay_ra_vien) || null,
   };
 }
 

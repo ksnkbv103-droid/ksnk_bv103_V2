@@ -10,6 +10,7 @@ import {
   NKBV_MDRO_PHENOTYPE_LABELS,
   type NkbvMdroPhenotype,
 } from "../lib/nkbv-mdro";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type MdroInpatientRow = {
   ma_benh_an: string;
@@ -75,7 +76,7 @@ export async function listMdroInpatientsByKhoa(params: {
     if (!ba || latestByBa.has(ba)) continue;
     latestByBa.set(ba, {
       phenotype: r.mdro_phenotype ? String(r.mdro_phenotype) : null,
-      ngay: r.ngay_lay_mau ? String(r.ngay_lay_mau).slice(0, 10) : null,
+      ngay: vnYmd(r.ngay_lay_mau) || null,
     });
   }
 

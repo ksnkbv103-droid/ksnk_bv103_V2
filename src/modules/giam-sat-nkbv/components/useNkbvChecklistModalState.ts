@@ -44,6 +44,8 @@ import {
   mergeFormSymptomBooleans,
   type NkbvSymptomReviewMap,
 } from "@/modules/giam-sat-nkbv/lib/nkbv-symptom-review";
+import { vnYmd } from "@/lib/format-datetime-vi";
+import { knownHaiPoa } from "../lib/nkbv-shared-timeline";
 
 /** Legacy tab ids — form xác định ca dùng một màn; giữ type cho tương thích. */
 export type NkbvChecklistTab = "LAM_SANG" | "KSNK";
@@ -77,7 +79,7 @@ export function useNkbvChecklistModalState({
   const [ghiChuTuyBien, setGhiChuTuyBien] = useState("");
   /** Ngày vào viện ưu tiên từ hồ sơ bệnh án (HAI/POA). */
   const [ngayVaoVienEffective, setNgayVaoVienEffective] = useState(() =>
-    String(row.ngay_vao_vien || "").slice(0, 10),
+    vnYmd(row.ngay_vao_vien),
   );
   /** Ngày sinh — từ phiếu / BA; thiếu → form ẩn nhánh nhi. */
   const [ngaySinhEffective, setNgaySinhEffective] = useState<string | null>(() => {
@@ -168,7 +170,7 @@ export function useNkbvChecklistModalState({
       treatment_history: existing.treatment_history,
       symptom_dates: existing.symptom_dates,
     });
-    setNgayVaoVienEffective(String(row.ngay_vao_vien || "").slice(0, 10));
+    setNgayVaoVienEffective(vnYmd(row.ngay_vao_vien));
     {
       const s = String(row.ngay_sinh || "").slice(0, 10);
       setNgaySinhEffective(s || null);
@@ -200,7 +202,7 @@ export function useNkbvChecklistModalState({
         return;
       }
       setBenhAnMissing(false);
-      const fromBa = String(res.data.ngay_vao_vien || "").slice(0, 10);
+      const fromBa = vnYmd(res.data.ngay_vao_vien);
       if (fromBa) setNgayVaoVienEffective(fromBa);
       const dob = String(res.data.ngay_sinh || "").slice(0, 10);
       if (dob) setNgaySinhEffective(dob);
@@ -220,7 +222,7 @@ export function useNkbvChecklistModalState({
 
   // Stay history handlers
   const handleAddStay = (newStay: DepartmentStay) => {
-    const ngayVaoVien = row.ngay_vao_vien ? row.ngay_vao_vien.slice(0, 10) : "";
+    const ngayVaoVien = vnYmd(row.ngay_vao_vien);
     if (ngayVaoVien && newStay.ngay_vao < ngayVaoVien) {
       toast.error(`Sai logic: Ngày vào khoa [${newStay.ngay_vao}] không thể trước Ngày nhập viện [${ngayVaoVien}]!`);
       return;
@@ -475,7 +477,7 @@ export function useNkbvChecklistModalState({
     // 2. Kiểm tra chéo ngày đặt/rút thiết bị xâm lấn
     const dpDate = (activePayload as any).device_placed_date;
     const drDate = (activePayload as any).device_removed_date;
-    const ngayVaoVien = row.ngay_vao_vien ? row.ngay_vao_vien.slice(0, 10) : "";
+    const ngayVaoVien = vnYmd(row.ngay_vao_vien);
 
     if (dpDate) {
       if (ngayVaoVien && dpDate < ngayVaoVien) {
@@ -526,7 +528,7 @@ export function useNkbvChecklistModalState({
         attributed_khoa_name: liveCdcMetrics?.attributedStay
           ? formatKhoaCompactLabel(liveCdcMetrics.attributedStay)
           : "",
-        hai_status: liveCdcMetrics?.haiStatus,
+        hai_status: knownHaiPoa(liveCdcMetrics?.haiStatus),
         
         ...(checklistType === 'BSI' && {
           // ?? — không silent-default 0/false khi liveCdcMetrics thiếu device (khớp preview)

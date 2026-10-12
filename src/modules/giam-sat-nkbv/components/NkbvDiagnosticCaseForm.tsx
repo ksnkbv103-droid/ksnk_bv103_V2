@@ -30,6 +30,8 @@ import {
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { NkbvActiveChecklistType, NkbvSuspectedType } from "./useNkbvChecklistModalState";
+import { vnYmd } from "@/lib/format-datetime-vi";
+import { haiPoaLabel } from "../lib/nkbv-shared-timeline";
 
 function fmtDate(d?: string | null) {
   if (!d) return "—";
@@ -163,12 +165,9 @@ export default function NkbvDiagnosticCaseForm({
   ngaySinhEffective = null,
 }: NkbvDiagnosticCaseFormProps) {
   const ngayVaoVien =
-    String(ngayVaoVienEffective || row.ngay_vao_vien || "").slice(0, 10);
+    vnYmd(ngayVaoVienEffective || row.ngay_vao_vien);
   const ngayRaVienCase =
-    String((row as { ngay_ra_vien?: string | null }).ngay_ra_vien || "").slice(
-      0,
-      10,
-    ) || null;
+    vnYmd((row as { ngay_ra_vien?: string | null }).ngay_ra_vien) || null;
   const ngaySinh =
     (ngaySinhEffective && String(ngaySinhEffective).slice(0, 10)) ||
     (row.ngay_sinh ? String(row.ngay_sinh).slice(0, 10) : null) ||
@@ -434,7 +433,7 @@ export default function NkbvDiagnosticCaseForm({
         hint="So ngày sự kiện với ngày vào viện (HD1–2 = POA; từ HD3 = HAI)."
         milestone={
           <p className="bv103-type-section">
-            {liveCdcMetrics?.haiStatus || "—"}
+            {haiPoaLabel(liveCdcMetrics?.haiStatus)}
             {liveCdcMetrics?.dayOfHospitalization != null ? (
               <span className="ml-2 text-sm font-medium text-slate-500">
                 · Ngày nằm viện #{liveCdcMetrics.dayOfHospitalization}
