@@ -2,13 +2,31 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   insert: vi.fn(),
-  updateEq: vi.fn(),
   from: vi.fn(),
   requireCssdCatalogMasterWrite: vi.fn(async () => undefined),
   logAdminAction: vi.fn(async (_input: unknown) => undefined),
 }));
 
 const KHOA_ID = "33333333-3333-4333-8333-333333333333";
+const LOOKUP_ID = "44444444-4444-4444-8444-444444444444";
+
+/** Builder update giả: ghi lại mọi .eq/.in, .select trả `rows`. */
+function makeUpdateBuilder(rows: Array<{ id: string }>) {
+  const filters: Array<[string, string, unknown]> = [];
+  const b = {
+    filters,
+    eq: vi.fn((col: string, val: unknown) => {
+      filters.push(["eq", col, val]);
+      return b;
+    }),
+    in: vi.fn((col: string, val: unknown) => {
+      filters.push(["in", col, val]);
+      return b;
+    }),
+    select: vi.fn(async () => ({ data: rows, error: null })),
+  };
+  return b;
+}
 
 vi.mock("@/lib/admin-audit", () => ({ logAdminAction: mocks.logAdminAction }));
 
@@ -31,7 +49,6 @@ describe("master-crud-core allowlist", () => {
     vi.clearAllMocks();
     mocks.requireCssdCatalogMasterWrite.mockResolvedValue(undefined);
     mocks.insert.mockResolvedValue({ error: null });
-    mocks.updateEq.mockResolvedValue({ error: null });
     mocks.from.mockImplementation((_table: string) => ({
       select: () => ({
         order: () => ({
@@ -39,7 +56,7 @@ describe("master-crud-core allowlist", () => {
         }),
       }),
       insert: mocks.insert,
-      update: () => ({ eq: mocks.updateEq }),
+      update: () => makeUpdateBuilder([{ id: KHOA_ID }]),
     }));
   });
 
@@ -81,7 +98,7 @@ describe("master-crud-core allowlist", () => {
   });
 
   it("DM-1: tắt khoa ghi is_active, không xóa dòng", async () => {
-    const update = vi.fn(() => ({ eq: mocks.updateEq, in: vi.fn().mockResolvedValue({ error: null }) }));
+    const update = vi.fn(() => makeUpdateBuilder([{ id: KHOA_ID }]));
     const del = vi.fn();
     mocks.from.mockImplementation(() => ({
       update,
@@ -134,5 +151,50 @@ describe("master-crud-core allowlist", () => {
     expect(call.action).toBe("MASTER_CREATE");
     expect(call.after).not.toHaveProperty("password");
     expect(String(call.after.ghi_chu).length).toBeLessThanOrEqual(121);
+  });
+
+  describe("ACC-2: sys_lookup_value chỉ ghi trong đúng category_type", () => {
+    function mockLookupUpdate(rows: Array<{ id: string }>) {
+      const builder = makeUpdateBuilder(rows);
+      const update = vi.fn(() => builder);
+      mocks.from.mockImplementation(() => ({
+        update,
+        select: () => ({
+          eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { code: "CD01" }, error: null }) }) }),
+        }),
+      }));
+      return builder;
+    }
+
+    it.each([
+      ["sửa", async (m: typeof import("./master-crud-core")) =>
+        m.upsertMasterRow("mdm_dm_chuc_danh", LOOKUP_ID, { ma_chuc_danh: "CD01", ten_chuc_danh: "Bác sĩ" })],
+      ["bật/tắt", async (m: typeof import("./master-crud-core")) => m.toggleMasterStatus("mdm_dm_chuc_danh", LOOKUP_ID, true)],
+      ["xóa mềm", async (m: typeof import("./master-crud-core")) => m.softDeleteMasterRow("mdm_dm_chuc_danh", LOOKUP_ID)],
+      ["xóa mềm nhiều", async (m: typeof import("./master-crud-core")) =>
+        m.softDeleteManyMasterRows("mdm_dm_chuc_danh", [LOOKUP_ID])],
+    ])("%s: lọc thêm category_type", async (_label, run) => {
+      const builder = mockLookupUpdate([{ id: LOOKUP_ID }]);
+      const m = await import("./master-crud-core");
+      const res = await run(m);
+      expect(res).toEqual({ success: true });
+      expect(mocks.from).toHaveBeenCalledWith("sys_lookup_value");
+      expect(builder.filters).toContainEqual(["eq", "category_type", "CHUC_DANH"]);
+    });
+
+    it.each([
+      ["sửa", async (m: typeof import("./master-crud-core")) =>
+        m.upsertMasterRow("mdm_dm_chuc_danh", LOOKUP_ID, { ma_chuc_danh: "CD01", ten_chuc_danh: "Bác sĩ" })],
+      ["bật/tắt", async (m: typeof import("./master-crud-core")) => m.toggleMasterStatus("mdm_dm_chuc_danh", LOOKUP_ID, true)],
+      ["xóa mềm", async (m: typeof import("./master-crud-core")) => m.softDeleteMasterRow("mdm_dm_chuc_danh", LOOKUP_ID)],
+      ["xóa mềm nhiều", async (m: typeof import("./master-crud-core")) =>
+        m.softDeleteManyMasterRows("mdm_dm_chuc_danh", [LOOKUP_ID])],
+    ])("%s: id thuộc nhóm khác (0 dòng) → lỗi tiếng Việt, không ghi nhật ký", async (_label, run) => {
+      mockLookupUpdate([]);
+      const m = await import("./master-crud-core");
+      const res = await run(m);
+      expect(res).toMatchObject({ success: false, error: expect.stringContaining("Không tìm thấy mục danh mục") });
+      expect(mocks.logAdminAction).not.toHaveBeenCalled();
+    });
   });
 });
