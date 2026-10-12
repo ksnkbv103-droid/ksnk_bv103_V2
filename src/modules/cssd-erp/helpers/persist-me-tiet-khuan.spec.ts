@@ -246,6 +246,14 @@ describe("thu hồi và nhả sau BI — persistMeBiResultWithClient", () => {
     expect(applyBatchRecallAndHoldMachine).not.toHaveBeenCalled();
   });
 
+  it("BI âm trên mẻ THU_HOI (ket_qua_test vẫn true) → từ chối, không ghi sổ", async () => {
+    const w = fakeClient(world({ batch: { ...released, trang_thai_me: "THU_HOI" } }));
+    const r = await persistMeBiResultWithClient(w.client, { ...biArgs, ketQua: "AM" });
+    expect(r.ok).toBe(false);
+    expect(w.updates).toHaveLength(0);
+    expect(w.rpcCalls).toHaveLength(0);
+  });
+
   it("BI dương trên mẻ đã nhả → thu hồi cửa sổ cùng máy + giữ máy", async () => {
     const w = fakeClient(world({ batch: released }));
     const r = await persistMeBiResultWithClient(w.client, { ...biArgs, ketQua: "DUONG", ongThu: "DUONG" });

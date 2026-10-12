@@ -6,6 +6,7 @@ import {
   INCIDENT_STATUS_LABEL,
   INCIDENT_STATUS_OPEN,
   assertIncidentPhieuCanCloseRelease,
+  countUnlockBlockingIncidents,
   assertIncidentPhieuCanConfirm,
   buildIncidentCloseReleaseAttributePatch,
   buildIncidentConfirmAttributePatch,
@@ -116,5 +117,17 @@ describe("cssd-incident-status", () => {
         { quyTrinhId: "c1" },
       ),
     ).toBe(true);
+  });
+});
+
+describe("countUnlockBlockingIncidents", () => {
+  it("chặn phiếu mở và đã xác nhận; bỏ qua đã đóng và vô hiệu", () => {
+    const rows = [
+      { attributes: {} },
+      { attributes: { INCIDENT_STATUS: "DA_XAC_NHAN" } },
+      { attributes: { INCIDENT_STATUS: "DA_DONG" } },
+      { attributes: { INCIDENT_STATUS: "VO_HIEU" } },
+    ];
+    expect(countUnlockBlockingIncidents(rows)).toBe(2);
   });
 });
