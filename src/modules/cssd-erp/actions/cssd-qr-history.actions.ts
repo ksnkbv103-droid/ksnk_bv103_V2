@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
+import { verifyCssdWorkflowEdit, verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 import { CSSD_BATCH_QR_PREFIX, classifyCssdCode } from "../shared/domain/cssd-qr-core";
 import { fetchCssdBatchPrintDataByMaLo } from "./cssd-print.actions";
@@ -98,7 +98,7 @@ export async function fetchCssdQrHistory(maQr: string) {
  */
 export async function assignCssdCaMoTrace(quyTrinhId: string, maCaMoId: string) {
   try {
-    await verifyCssdWorkflowView();
+    await verifyCssdWorkflowEdit();
     const supabase = createAdminSupabaseClient();
     const id = String(quyTrinhId || "").trim();
     const val = String(maCaMoId || "").trim();

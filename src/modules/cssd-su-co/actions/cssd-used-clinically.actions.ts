@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
+import { verifyCssdIncidentApprove, verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import { markCssdUsedClinically } from "../application/mark-used-clinically.application";
 import type { CssdUsedClinicallySource } from "../domain/cssd-used-clinically";
@@ -24,7 +24,9 @@ export async function markCssdUsedClinicallyAction(input: {
   clear?: boolean;
 }) {
   try {
-    await verifyCssdWorkflowView();
+    await verifyCssdWorkflowEdit();
+    // Xóa cờ «đã dùng» = sửa sai sự kiện lâm sàng → chỉ Trưởng CSSD / Admin / Tổ trưởng mẻ.
+    if (input.clear === true) await verifyCssdIncidentApprove();
     const actor = await resolveActorLabel();
     const supabase = createAdminSupabaseClient();
     const res = await markCssdUsedClinically(supabase, {

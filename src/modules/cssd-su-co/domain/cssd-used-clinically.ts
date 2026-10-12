@@ -163,3 +163,8 @@ export function passesScPickerWhitelist(input: {
   }
   return true;
 }
+
+/** Chỉ đánh dấu «đã dùng lâm sàng» khi chu trình đã cấp phát (thoi_gian_cap_phat khác null). */
+export function canMarkUsedClinically(thoiGianCapPhat: unknown): boolean {
+  return String(thoiGianCapPhat ?? "").trim() !== "";
+}
