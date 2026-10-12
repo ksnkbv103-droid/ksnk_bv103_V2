@@ -214,19 +214,20 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       suCoSource as { quy_trinh_id?: string | null; is_red_alert?: boolean | null; attributes?: Record<string, unknown> | null }[],
     );
 
-    const quyTrinhRows = resQ.rows.filter((x) => !isLegacyHexCycle(x)).map((x: Record<string, unknown>) => {
+    const quyTrinhRows = resQ.rows.filter((x) => !isLegacyHexCycle(x)).map((x: Record<string, unknown>): CssdReportQuyTrinhRow => {
       const id = String(x.id || "");
       const fromSuCo = redIds.has(id);
       return {
         ...x,
+        id: x.id as string | number,
         is_red_alert: x.is_red_alert === true || fromSuCo,
-        ma_vach_qr: x.ma_qr_quy_trinh,
-        trang_thai_hien_tai: x.ma_trang_thai_hien_tai,
+        ma_vach_qr: (x.ma_qr_quy_trinh as string | null) ?? null,
+        trang_thai_hien_tai: (x.ma_trang_thai_hien_tai as string | null) ?? null,
         chu_ky_label: x.is_active === false ? "Đã đóng" : "Đang lưu hành",
       };
     });
 
-    const suCoRows = suCoSource.map((x: Record<string, unknown>) => {
+    const suCoRows = suCoSource.map((x: Record<string, unknown>): CssdReportSuCoRow => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
       const parsed = parseIncidentType(String(x.ma_loai_su_co || ""));
       const viewGroup = String(x.incident_group || "").trim();
@@ -247,9 +248,10 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       const incidentStatus = readIncidentPhieuStatus(attrs);
       return {
         ...x,
-        ma_vach_qr: x.ma_qr_quy_trinh,
-        tram_phat_hien: x.ma_tram_phat_hien,
-        tram_gay_loi: x.ma_tram_gay_loi,
+        id: x.id as string | number,
+        ma_vach_qr: (x.ma_qr_quy_trinh as string | null) ?? null,
+        tram_phat_hien: (x.ma_tram_phat_hien as string | null) ?? null,
+        tram_gay_loi: (x.ma_tram_gay_loi as string | null) ?? null,
         loai_su_co: typeLabel || parsed.typeName,
         incident_group: group,
         incident_group_label: INCIDENT_GROUP_LABEL[group],
@@ -279,6 +281,39 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     return { success: false as const, error: getErrorMessage(e), quyTrinh: [], suCo: [] };
   }
 }
+
+/** Dòng chu trình của báo cáo CSSD (cột view + trường dẫn xuất). */
+export type CssdReportQuyTrinhRow = Record<string, unknown> & {
+  id: string | number;
+  created_at?: string | null;
+  is_red_alert: boolean;
+  ma_vach_qr: string | null;
+  trang_thai_hien_tai: string | null;
+  chu_ky_label: string;
+};
+/** Dòng sự cố của báo cáo CSSD (cột view + trường dẫn xuất từ `attributes`). */
+export type CssdReportSuCoRow = Record<string, unknown> & {
+  id: string | number;
+  created_at?: string | null;
+  attributes?: Record<string, unknown> | null;
+  ma_vach_qr: string | null;
+  tram_phat_hien: string | null;
+  tram_gay_loi: string | null;
+  loai_su_co: string;
+  incident_group: IncidentGroup;
+  incident_group_label: string;
+  fault_operator: string;
+  nguoi_phat_hien: string;
+  reporter_email: string;
+  cause_class: string;
+  cause_label: string;
+  ma_lo: string;
+  mo_ta_ngan: string;
+  incident_status: ReturnType<typeof readIncidentPhieuStatus>;
+  incident_status_label: string;
+  incident_confirmed_at: ReturnType<typeof readIncidentConfirmedAt>;
+  incident_confirmed_by_name: string | null;
+};
 
 export type CssdAnalyticsBundle = {
   stationVolume: CssdStationVolumeRow[];

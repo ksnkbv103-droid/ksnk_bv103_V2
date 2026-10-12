@@ -10,15 +10,27 @@ import {
 } from "../../shared/ui/cssd-ui-chrome";
 import { meListPrimaryAction, meTrangThaiBadge } from "../../lib/me-tiet-khuan-slip-ux";
 
+/** Dòng mẻ tiệt khuẩn trong danh sách (các cột bảng đọc tới). */
+export type MeBatchRow = Record<string, unknown> & {
+  ma_lo_tiet_khuan?: string | null;
+  so_bo_trong_me?: number | null;
+  ten_thiet_bi?: string | null;
+  thiet_bi?: { ten_thiet_bi?: string | null } | null;
+  trang_thai?: string | null;
+  trang_thai_me?: string | null;
+  ket_qua_test?: boolean | null;
+  ghi_chu?: string | null;
+};
+
 export function buildMeTietKhuanBatchColumns(opts?: {
-  onContinue?: (row: any) => void;
-}): Column<any>[] {
-  const cols: Column<any>[] = [
+  onContinue?: (row: MeBatchRow) => void;
+}): Column<MeBatchRow>[] {
+  const cols: Column<MeBatchRow>[] = [
   {
     header: "Mã lô",
     accessorKey: "ma_lo_tiet_khuan",
     sortable: true,
-    cell: (i: any) => {
+    cell: (i) => {
       const code = String(i.ma_lo_tiet_khuan || "").trim();
       return (
         <span className="inline-flex items-center gap-2">
@@ -32,7 +44,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     header: "Số bộ trong mẻ",
     accessorKey: "so_bo_trong_me",
     sortable: true,
-    cell: (i: any) => (
+    cell: (i) => (
       <span className={`${CSSD_UI_CELL_INDEX} tabular-nums text-slate-700`}>
         {typeof i.so_bo_trong_me === "number" ? i.so_bo_trong_me : 0}
       </span>
@@ -42,13 +54,13 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     header: "Thiết bị",
     accessorKey: "thiet_bi.ten_thiet_bi",
     sortable: true,
-    cell: (i: any) => <span className={CSSD_UI_CELL_META}>{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
+    cell: (i) => <span className={CSSD_UI_CELL_META}>{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
   },
   {
     header: "Qc test",
     accessorKey: "ket_qua_test",
     sortable: true,
-    cell: (i: any) => {
+    cell: (i) => {
       const thuHoiThanTrong =
         i.ket_qua_test === true && String(i.trang_thai || i.trang_thai_me || "").toUpperCase() === "THU_HOI";
       const label = thuHoiThanTrong
@@ -72,7 +84,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     header: "Trạng thái",
     accessorKey: "trang_thai",
     sortable: true,
-    cell: (i: any) => {
+    cell: (i) => {
       const badge = meTrangThaiBadge(String(i.trang_thai || ""));
       return <span className={badge.className}>{badge.label}</span>;
     },
@@ -81,12 +93,12 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     header: "Ghi chú",
     accessorKey: "ghi_chu",
     sortable: true,
-    cell: (i: any) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
+    cell: (i) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
   },
   {
     header: "Thao tác",
     accessorKey: "trang_thai",
-    cell: (i: any) => {
+    cell: (i) => {
       const action = meListPrimaryAction(String(i.trang_thai || ""));
       if (!action || !opts?.onContinue) return <span className={CSSD_UI_CELL_META}>—</span>;
       return (

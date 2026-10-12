@@ -103,11 +103,11 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Số bộ theo khoa sở hữu danh mục</h3>
           <AdvancedDataTable
             columns={[
-              { header: "Khoa", accessorKey: "ten_khoa", cell: (v: any) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
+              { header: "Khoa", accessorKey: "ten_khoa", cell: (v) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
               {
                 header: "Số bộ",
                 accessorKey: "so_bo",
-                cell: (v: any) => <span className="tabular-nums font-semibold">{v.so_bo}</span>,
+                cell: (v) => <span className="tabular-nums font-semibold">{v.so_bo}</span>,
               },
             ]}
             data={(data?.boByKhoa || []).map((r) => ({ ...r, id: r.khoa_key }))}
@@ -119,11 +119,11 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Cấp phát theo khoa nhận</h3>
           <AdvancedDataTable
             columns={[
-              { header: "Khoa nhận", accessorKey: "ten_khoa", cell: (v: any) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
+              { header: "Khoa nhận", accessorKey: "ten_khoa", cell: (v) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
               {
                 header: "Lượt cp",
                 accessorKey: "so_cap_phat",
-                cell: (v: any) => (
+                cell: (v) => (
                   <span className="tabular-nums font-semibold">{v.so_cap_phat}</span>
                 ),
               },
@@ -140,25 +140,25 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
               {
                 header: "Bộ",
                 accessorKey: "ma_bo",
-                cell: (v: any) => (
+                cell: (v) => (
                   <div>
                     <p className="font-mono text-[11px] text-[var(--primary)]">{v.ma_bo}</p>
                     <p className="text-xs text-slate-600">{v.ten_bo}</p>
                   </div>
                 ),
               },
-              { header: "Khoa", accessorKey: "ten_khoa", cell: (v: any) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
+              { header: "Khoa", accessorKey: "ten_khoa", cell: (v) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
               {
                 header: "Suds",
                 accessorKey: "suds_hien_tai",
-                cell: (v: any) => (
+                cell: (v) => (
                   <span className="tabular-nums font-semibold">{v.suds_hien_tai}</span>
                 ),
               },
               {
                 header: "Chu trình kỳ",
                 accessorKey: "chu_trinh_ky",
-                cell: (v: any) => (
+                cell: (v) => (
                   <span className="tabular-nums">{v.chu_trinh_ky}</span>
                 ),
               },
@@ -207,12 +207,12 @@ function EquipmentPanel({ data, loading }: { data: CssdAnalyticsBundle | null; l
             {
               header: "Thiết bị",
               accessorKey: "ten_thiet_bi",
-              cell: (v: any) => v.ten_thiet_bi,
+              cell: (v) => v.ten_thiet_bi,
             },
             {
               header: "Số mẻ",
               accessorKey: "so_lan_dung",
-              cell: (v: any) => (
+              cell: (v) => (
                 <span className="tabular-nums font-semibold">{v.so_lan_dung}</span>
               ),
             },
@@ -263,7 +263,7 @@ function StaffPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadi
             {
               header: "Nhân viên",
               accessorKey: "ho_ten",
-              cell: (v: any) => (
+              cell: (v) => (
                 <div>
                   <p className="font-semibold text-slate-700">{v.ho_ten}</p>
                   <p className="text-xs text-slate-400">{v.ma_nv}</p>
@@ -273,12 +273,12 @@ function StaffPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadi
             {
               header: "Tổng quét",
               accessorKey: "tong",
-              cell: (v: any) => <span className="tabular-nums font-semibold">{v.tong}</span>,
+              cell: (v) => <span className="tabular-nums font-semibold">{v.tong}</span>,
             },
             {
               header: "Theo trạm",
               accessorKey: "byStation",
-              cell: (v: any) => (
+              cell: (v) => (
                 <span className="text-[11px] text-slate-600">{v.byStation || "—"}</span>
               ),
             },
