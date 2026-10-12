@@ -21,7 +21,7 @@ npm · Dev `npm run dev` · DB local + seed `npm run trial:prep` (Docker) · Bui
 ## Kỷ luật
 
 - Nghiệp vụ y tế / ranh giới CSSD vs MDM mơ hồ → hỏi trước. Có tradeoff → nói trước khi code
-- **Đóng băng NKBV, CSSD, QLCV, Đào tạo** (PO 2026-10-12): chỉ sửa lỗi bảo mật/hỏng build. Ưu tiên VST/GSC + thống kê
+- **Mục tiêu: triển khai TẤT CẢ module** (PO 2026-10-12, thay lệnh đóng băng cùng ngày). Thứ tự: VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo; mỗi module cần người dùng + kịch bản tay trước khi coi là xong
 - Không tạo bảng summary khi chưa có số đo và PO đồng ý. Không viết lại engine lâm sàng; lệch KPI thì sửa hàm KPI
 - Diff tối thiểu, truy vết được tới yêu cầu. Đọc migration/DB trước khi đặt tên; không đoán schema
 - Grep trước khi đọc file > 500 dòng; ≤ 8 file/task; > 3 file ngoài scope → hỏi PO. Output delta-only, lọc log (`tail -30`)
