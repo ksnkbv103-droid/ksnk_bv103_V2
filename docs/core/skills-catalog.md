@@ -79,6 +79,7 @@ Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 
 1. **Một việc = một phiên.** Xong lát → `/clear`. `/clear` chỉ xóa trí nhớ hội thoại; plan (`~/.claude/plans/`), code, memory vẫn còn.
 2. **Chọn model lúc mở phiên, không đổi giữa chừng.** Cache gắn với model: đổi là ghi lại toàn bộ ngữ cảnh.
 3. **Quá ~100 lượt hoặc chậm** → ghi tiến độ vào plan rồi `/clear` (hoặc `/compact`). `/context` xem phần đang nạp.
+   - **Cuối mỗi trả lời** có khối Bước tiếp theo / Model / `/clear` có-không / Lý do (luật ở `CLAUDE.md`). `/clear` = có khi vừa xong một lát hoặc đổi sang việc khác; không khi còn đang giữa lát.
 4. **Prompt ba phần:** làm gì (một lát) · xong trông thế nào · không đụng gì. Bỏ nhân vật («chuyên gia…») và khẩu hiệu («chính xác tuyệt đối») — luật đã nằm ở `CLAUDE.md`.
 5. **Hỏi quyết định, không hỏi «rà soát toàn bộ».** Một tuần một lần: «việc nào đáng làm nhất theo số liệu dùng thật?».
 6. **Kiểm giao diện bằng `read_page`**, chỉ chụp ảnh khi cần xem bố cục.

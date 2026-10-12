@@ -38,6 +38,7 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 ## Quy trình
 
 - Việc không tầm thường: plan (plan mode hoặc `/intake-nv`, `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt một lần, sau đó tự chạy nối các lát, verify mỗi lát, ghi tiến độ vào plan. Giải thích bằng tiếng Việt nghiệp vụ
+- **Cuối MỖI trả lời** (kể cả ngắn) kết bằng khối: **Bước tiếp theo** (một việc, từ roadmap §5) · **Model** (Haiku/Sonnet/Opus) + **`/clear`: có/không** · **Lý do**. Bắt buộc, không bỏ
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền người dùng thật
 - Plan đã duyệt → tự commit theo lát khi verify pass. Push/PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
@@ -47,5 +48,5 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 ## Gotchas
 
 - File lớn, chỉ grep rồi đọc đoạn: `docs/core/implementation-mapping.md`, migration `20260530000000_init_pilot_baseline.sql`, `NkbvBaMultiTimelineWorkspace.tsx`
-- Script `:local` cần container `supabase_db_ksnk_bv103`; script `--linked` đọc token từ `.env.local`
+- Script `:local` cần container `supabase_db_ksnk_bv103`; `--linked` đọc token từ `.env.local`
 - Kết nối ghim trong [`.mcp.json`](.mcp.json) (Supabase, GitHub `ksnkbv103-droid/ksnk_bv103_V2`, Vercel `ksnk-bv103-v2`)
