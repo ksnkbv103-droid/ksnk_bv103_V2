@@ -94,21 +94,26 @@ async function ensureQuyTrinhForComponent(
   if (hit?.id) return;
 
   const now = new Date().toISOString();
-  let staPatch: Record<string, unknown> = {
-    ma_trang_thai_hien_tai: "TIEP_NHAN",
-    updated_at: now,
-  };
+  // Bảng cssd_fact_quy_trinh chỉ có tram_hien_tai_id; mã trạm đọc qua view v_cssd_quy_trinh_full.
+  let sta = "TIEP_NHAN";
   if (parentQuyTrinhId) {
-    const { data: mainQt } = await supabase
-      .from("cssd_fact_quy_trinh")
+    const { data: mainQt, error: mainErr } = await supabase
+      .from("v_cssd_quy_trinh_full")
       .select("ma_trang_thai_hien_tai")
       .eq("id", parentQuyTrinhId)
       .maybeSingle();
-    const sta = String((mainQt as { ma_trang_thai_hien_tai?: string } | null)?.ma_trang_thai_hien_tai || "TIEP_NHAN");
-    if (!isHeatSplitBlockedStation(sta)) {
-      staPatch = { ma_trang_thai_hien_tai: sta, updated_at: now };
-    }
+    if (mainErr) throw new Error(mainErr.message);
+    const parentSta = String((mainQt as { ma_trang_thai_hien_tai?: string } | null)?.ma_trang_thai_hien_tai || "TIEP_NHAN");
+    if (!isHeatSplitBlockedStation(parentSta)) sta = parentSta;
   }
+  const { data: tram, error: tramErr } = await supabase
+    .from("cssd_dm_tram")
+    .select("id")
+    .eq("ma_tram", sta)
+    .maybeSingle();
+  if (tramErr) throw new Error(tramErr.message);
+  if (!tram?.id) throw new Error(`Không tìm thấy trạm ${sta} trong danh mục.`);
+  const staPatch: Record<string, unknown> = { tram_hien_tai_id: String(tram.id), updated_at: now };
 
   const insertRow: Record<string, unknown> = {
     ma_qr_quy_trinh: childMa,
@@ -195,7 +200,7 @@ export async function applyHeatSplitAfterLoaiDowngrade(
     if (!plan.needsSplit) continue;
 
     const { data: qtRows, error: qtErr } = await supabase
-      .from("cssd_fact_quy_trinh")
+      .from("v_cssd_quy_trinh_full")
       .select("id, ma_trang_thai_hien_tai, ma_vai_tro_bo")
       .eq("bo_dung_cu_id", boId)
       .eq("is_active", true);
