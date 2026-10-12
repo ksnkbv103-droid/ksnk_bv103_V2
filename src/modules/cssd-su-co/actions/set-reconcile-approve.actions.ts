@@ -1,10 +1,11 @@
 "use server";
 
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { applyApprovedBomLines } from "@/lib/master-data/cssd-set-bom-apply-core";
+import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
 import {
   BOM_APPROVE_CLAIM_STATUS,
@@ -127,12 +128,23 @@ export async function approveSetReconcileBomAction(incidentId: string) {
     const id = String(incidentId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase.from("cssd_fact_su_co").select("id, attributes").eq("id", id).maybeSingle();
+    const { data, error } = await supabase
+      .from("cssd_fact_su_co")
+      .select("id, attributes, nguoi_bao_id")
+      .eq("id", id)
+      .maybeSingle();
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
     if (!canClaimBomApprove(readSetReconcileStatus(attrs))) {
       return { success: false as const, error: CLAIMED_MSG };
     }
+    // KD-1: chặn tự duyệt + bắt buộc người duyệt TRƯỚC khi claim.
+    const approver = await resolveCatalogApprover(supabase);
+    const gate = checkCatalogApprover(approver, {
+      nhanSuId: String(data.nguoi_bao_id || attrs.NGUOI_PHAT_HIEN_ID || "").trim() || null,
+      authUserId: String(attrs.REPORTER_AUTH_USER_ID || "").trim() || null,
+    });
+    if (!gate.ok) return { success: false as const, error: gate.error };
     const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
     const boId = readSetReconcileBoId(attrs) || snap?.boDungCuId;
     if (!snap || !boId) return { success: false as const, error: "Thiếu ảnh bảng thành phần." };
@@ -165,22 +177,9 @@ export async function approveSetReconcileBomAction(incidentId: string) {
       };
     }
 
-    let nguoiXacNhanId: string | null = null;
-    try {
-      const uc = await createServerSupabaseUserClient();
-      const u = await uc.auth.getUser();
-      const { data: ns } = await supabase
-        .from("mdm_nhan_su")
-        .select("id")
-        .eq("auth_user_id", u.data.user?.id || "")
-        .maybeSingle();
-      nguoiXacNhanId = ns?.id ? String(ns.id) : null;
-    } catch {
-      /* không gắn người duyệt nếu không map được nhân sự */
-    }
     const nextAttrs = { ...claimAttrs, SET_RECONCILE_STATUS: "BOM_APPROVED" };
     const patch: Record<string, unknown> = { attributes: nextAttrs, updated_at: new Date().toISOString() };
-    if (nguoiXacNhanId) patch.nguoi_xac_nhan_id = nguoiXacNhanId;
+    if (gate.approvedById) patch.nguoi_xac_nhan_id = gate.approvedById;
     const { error: updErr } = await supabase
       .from("cssd_fact_su_co")
       .update(patch)

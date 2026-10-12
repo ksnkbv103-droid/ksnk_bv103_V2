@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import {
@@ -12,6 +12,7 @@ import {
   type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { applyCatalogDeNghiOverwrite } from "@/lib/master-data/cssd-catalog-de-nghi-apply";
+import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 
 async function requireCatalogApprove() {
   try {
@@ -77,6 +78,21 @@ export async function approveCatalogDeNghiAction(id: string) {
     const ticketId = String(id || "").trim();
     if (!ticketId) return { success: false as const, error: "Thiếu phiếu." };
     const supabase = createAdminSupabaseClient();
+    // KD-1: chặn tự duyệt + bắt buộc người duyệt TRƯỚC khi claim (không để phiếu kẹt APPLYING).
+    const { data: ticket, error: ticketErr } = await supabase
+      .from("cssd_catalog_de_nghi")
+      .select("id, status, nguoi_de_nghi_id")
+      .eq("id", ticketId)
+      .maybeSingle();
+    if (ticketErr) throw new Error(ticketErr.message);
+    if (!ticket || String(ticket.status) !== "PENDING") return { success: false as const, error: CLAIMED_MSG };
+    const approver = await resolveCatalogApprover(supabase);
+    const gate = checkCatalogApprover(approver, {
+      nhanSuId: ticket.nguoi_de_nghi_id ? String(ticket.nguoi_de_nghi_id) : null,
+    });
+    if (!gate.ok) return { success: false as const, error: gate.error };
+    const approvedBy = gate.approvedById;
+
     const now = new Date().toISOString();
     const { data: claimed, error: claimErr } = await supabase
       .from("cssd_catalog_de_nghi")
@@ -117,19 +133,6 @@ export async function approveCatalogDeNghiAction(id: string) {
       return { success: false as const, error: msg };
     }
 
-    let approvedBy: string | null = null;
-    try {
-      const uc = await createServerSupabaseUserClient();
-      const u = await uc.auth.getUser();
-      const { data: ns } = await supabase
-        .from("mdm_nhan_su")
-        .select("id")
-        .eq("auth_user_id", u.data.user?.id || "")
-        .maybeSingle();
-      approvedBy = ns?.id ? String(ns.id) : null;
-    } catch {
-      /* ignore */
-    }
     const approvedAt = new Date().toISOString();
     const { error: updErr } = await supabase
       .from("cssd_catalog_de_nghi")
