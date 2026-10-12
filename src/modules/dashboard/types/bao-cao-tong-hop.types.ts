@@ -72,6 +72,8 @@ export type BaoCaoTongHopPayload = {
     /** Chênh 2 tuần ISO cuối trên trendline — không phải so kỳ lọc. */
     delta_vst: number | null;
     delta_gsc: number | null;
+    /** Hai tuần đem so chấm bộ bảng kiểm khác nhau → Δ GSC không phản ánh tuân thủ thật. */
+    delta_gsc_khac_co_cau?: boolean;
   };
   /**
    * So kỳ lãnh đạo: cùng độ dài kỳ lọc liền trước.

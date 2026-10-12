@@ -104,6 +104,23 @@ export function deltaFromPeriodPoints(
   return round((pair.cur[metric] as number) - (pair.prev[metric] as number));
 }
 
+/** Thứ Hai đầu tuần của hai tuần mà Δ GSC đem so; null khi Δ không tính được. */
+export function gscComparedWeekStarts(
+  gsc: GscStrategicPayload | null,
+): { prev: string; cur: string } | null {
+  const points: BaoCaoTrendPoint[] = (gsc?.trendline ?? []).map((r) => ({
+    label: r.label,
+    min_date: r.min_date,
+    ty_le_vst: null,
+    ty_le_gsc: r.ty_le_tuan_thu,
+    gsc_tong: Number(r.tong_quan_sat ?? 0),
+    gsc_dat: Number(r.tong_dat ?? 0),
+  }));
+  const pair = lastTwoConsecutiveWeeks(points, "ty_le_gsc");
+  if (!pair) return null;
+  return { prev: isoWeekBucketKey(pair.prev.min_date), cur: isoWeekBucketKey(pair.cur.min_date) };
+}
+
 /** Tỷ lệ của tuần liền trước đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và liên tiếp). */
 export function prevWeekRateFromPeriodPoints(
   points: BaoCaoTrendPoint[],
@@ -468,6 +485,8 @@ export function composeBaoCaoTongHopPayload(args: {
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
   } | null;
+  /** Hai tuần Δ GSC đem so chấm bộ bảng kiểm khác nhau → true (chú thích «khác cơ cấu»); null = không rõ. */
+  gscKhacCoCau?: boolean | null;
 }): BaoCaoTongHopPayload {
   const tyLeVst = computeTyLeVst(args.vst?.kpis);
   const tyLeGsc = computeTyLeGsc(args.gsc?.kpis);
@@ -512,6 +531,7 @@ export function composeBaoCaoTongHopPayload(args: {
       tong_phieu_nkbv: args.nkbv?.kpis.tong_phieu ?? null,
       delta_vst: deltaFromPeriodPoints(trendWeek, "ty_le_vst"),
       delta_gsc: deltaFromPeriodPoints(trendWeek, "ty_le_gsc"),
+      delta_gsc_khac_co_cau: args.gscKhacCoCau === true,
     },
     ky_truoc,
     trend_week: trendWeek,

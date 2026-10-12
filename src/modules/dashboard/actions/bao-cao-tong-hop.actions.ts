@@ -23,8 +23,10 @@ import {
   composeBaoCaoTongHopPayload,
   computeTyLeGsc,
   computeTyLeVst,
+  gscComparedWeekStarts,
   shouldFetchSource,
 } from "../lib/bao-cao-tong-hop-core";
+import { fetchGscWeeksUseDifferentChecklists } from "../lib/gsc-week-checklist-sets";
 import { previousEqualLengthPeriod } from "../lib/bao-cao-period-compare";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
@@ -275,6 +277,15 @@ export async function getBaoCaoTongHopAnalytics(
 
   await Promise.all(tasks);
 
+  // Δ GSC có thể đem so hai tuần chấm bộ bảng kiểm khác nhau → chú thích (soft-fail, không chặn báo cáo).
+  let gscKhacCoCau: boolean | null = null;
+  const comparedWeeks = gsc ? gscComparedWeekStarts(gsc) : null;
+  if (comparedWeeks) {
+    const supabase = await createServerSupabaseUserClient();
+    const mas = (f.bang_kiem_mas && f.bang_kiem_mas.length > 0 ? f.bang_kiem_mas : gscOpts?.resolvedTuanThuBangKiemMas) ?? null;
+    gscKhacCoCau = await fetchGscWeeksUseDifferentChecklists(supabase as never, comparedWeeks, mas, f.khoa_ids);
+  }
+
   const payload = composeBaoCaoTongHopPayload({
     filters: { ...f, chuyen_de: chuyenDe },
     vst,
@@ -285,6 +296,7 @@ export async function getBaoCaoTongHopAnalytics(
     sources,
     errors,
     kyTruoc,
+    gscKhacCoCau,
   });
 
   const anyOk =

@@ -5,6 +5,9 @@ import React from "react";
 export default function SupervisionPageSkeleton() {
   return (
     <div className="space-y-[var(--bv103-space-3)] px-4 py-6" aria-busy="true">
+      <p role="status" aria-live="polite" className="text-sm font-medium text-slate-500">
+        Đang tải số liệu…
+      </p>
       <div className="h-8 w-64 animate-pulse rounded-xl bg-slate-200" />
       <div className="h-4 w-96 animate-pulse rounded-xl bg-slate-100" />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

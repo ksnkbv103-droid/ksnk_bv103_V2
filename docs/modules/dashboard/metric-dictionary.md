@@ -99,7 +99,7 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 | `target_pct` | Mục tiêu % (0–100) |
 
 - **Hiển thị:** badge «Mục tiêu viện» + Δ trên KPI BCTH (`ComprehensiveKpiCards`) — **chỉ** VST/GSC. Spec 2026-08-22: **một mũi tên** so mục tiêu viện trên thẻ; Δ 2 tuần ISO / `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng / payload).
-- **Đơn vị Δ (sửa hiển thị 2026-10-12, công thức giữ nguyên):** Δ tuần và Δ kỳ trước là chênh lệch **điểm phần trăm** (tuần gần nhất trừ tuần liền trước), hiển thị «+3.4 điểm %», **không** phải % tương đối. «Tỷ lệ tuần trước» in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và hai tuần ISO liên tiếp). Lưu ý: nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm, không phải tuân thủ thật — chờ PO quyết cách cảnh báo.
+- **Đơn vị Δ (sửa hiển thị 2026-10-12, công thức giữ nguyên):** Δ tuần và Δ kỳ trước là chênh lệch **điểm phần trăm** (tuần gần nhất trừ tuần liền trước), hiển thị «+3.4 điểm %», **không** phải % tương đối. «Tỷ lệ tuần trước» in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và hai tuần ISO liên tiếp). Lưu ý: nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm, không phải tuân thủ thật — **PO chọn cách 1 (2026-10-12): hiện chú thích «khác cơ cấu bảng kiểm» cạnh Δ GSC, giữ nguyên công thức và vẫn hiện Δ.** Chú thích so bộ bảng kiểm (TUAN_THU trừ BM.02/03) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
 - **Fallback:** khi bảng chưa migrate / lỗi đọc → `GREEN_MIN`.
 - **Không** đổi công thức CCS; mục tiêu chỉ để so sánh lãnh đạo.
 - Seed mặc định toàn viện = 85% (có thể còn dòng `ty_le_ccs` trong DB — app **không** surface).

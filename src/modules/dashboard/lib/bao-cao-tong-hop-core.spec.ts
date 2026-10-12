@@ -15,6 +15,7 @@ import {
   computeTyLeVst,
   deltaFromPeriodPoints,
   deltaFromTrend,
+  gscComparedWeekStarts,
   prevWeekRateFromPeriodPoints,
   shouldFetchSource,
 } from "./bao-cao-tong-hop-core";
@@ -455,5 +456,12 @@ describe("bao-cao-tong-hop-core", () => {
     const thinMiddle = [pt("2026-09-21", 87.47, 300), pt("2026-09-28", 99, 10), pt("2026-10-05", 70.7, 157)];
     expect(deltaFromPeriodPoints(thinMiddle as never, "ty_le_gsc")).toBeNull();
     expect(prevWeekRateFromPeriodPoints(thinMiddle as never, "ty_le_gsc")).toBeNull();
+  });
+
+  it("gscComparedWeekStarts trả Thứ Hai của hai tuần Δ đem so; null khi không liên tiếp", () => {
+    const tl = (min_date: string, tong: number) => ({ label: min_date, min_date, tong_quan_sat: tong, tong_dat: tong, ty_le_tuan_thu: 90 });
+    expect(gscComparedWeekStarts({ trendline: [tl("2026-09-28", 364), tl("2026-10-05", 157)] } as never)).toEqual({ prev: "2026-09-28", cur: "2026-10-05" });
+    expect(gscComparedWeekStarts({ trendline: [tl("2026-09-21", 364), tl("2026-10-05", 157)] } as never)).toBeNull();
+    expect(gscComparedWeekStarts(null)).toBeNull();
   });
 });

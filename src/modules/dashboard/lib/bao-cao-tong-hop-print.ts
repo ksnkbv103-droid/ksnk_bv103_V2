@@ -27,6 +27,7 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
 import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 import { bcthModuleComplianceTone } from "./bao-cao-tong-hop-thresholds";
+import { GSC_KHAC_CO_CAU_NOTE } from "./gsc-week-checklist-sets";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -82,12 +83,17 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     week: number | null | undefined,
     prior: number | null | undefined,
     digits: 1 | 2,
+    coCauKhac = false,
   ) => {
+    const coCauLine =
+      coCauKhac && week != null
+        ? `<div style="color:#b45309;">${escHtml(GSC_KHAC_CO_CAU_NOTE)}</div>`
+        : "";
     const priorLine =
       ky && prior != null
         ? `<div>${escHtml(fmtKyTruocDelta(prior, ky.tu_ngay, ky.den_ngay, digits))}</div>`
         : "";
-    return `${escHtml(fmtDelta(week, digits))}${priorLine}`;
+    return `${escHtml(fmtDelta(week, digits))}${coCauLine}${priorLine}`;
   };
 
   const vstKpiToneClass = (pct: number | null | undefined) => {
@@ -126,7 +132,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
         <tr>
           <td class="text-left"><strong>Giám sát chung (GSC)</strong></td>
           <td class="${gscKpiToneClass(kpi?.ty_le_gsc ?? null)}"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
-          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_gsc, ky?.delta_gsc, 2)}</td>
+          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_gsc, ky?.delta_gsc, 2, kpi?.delta_gsc_khac_co_cau === true)}</td>
         </tr>
       </tbody>
     </table>

@@ -8,6 +8,7 @@ import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { prevWeekRateFromPeriodPoints } from "../../lib/bao-cao-tong-hop-core";
+import { GSC_KHAC_CO_CAU_NOTE } from "../../lib/gsc-week-checklist-sets";
 import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 
 function DeltaLine({
@@ -66,6 +67,7 @@ function KpiCard({
   volumeNote,
   complianceModule,
   neutralTone,
+  weekCoCauKhac,
 }: {
   label: string;
   value: string;
@@ -80,6 +82,8 @@ function KpiCard({
   volumeNote?: string | null;
   complianceModule?: "vst" | "gsc";
   neutralTone?: boolean;
+  /** Hai tuần đem so chấm bộ bảng kiểm khác nhau. */
+  weekCoCauKhac?: boolean;
 }) {
   const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
   const tone = neutralTone
@@ -99,6 +103,11 @@ function KpiCard({
         <div className="mt-[var(--bv103-space-1)] flex flex-col gap-0.5">
           {weekDelta != null ? (
             <DeltaLine label="So với tuần trước" delta={weekDelta} prevRate={weekPrev} digits={digits} />
+          ) : null}
+          {weekDelta != null && weekCoCauKhac ? (
+            <span className="bv103-type-label leading-snug text-amber-700">
+              {GSC_KHAC_CO_CAU_NOTE}
+            </span>
           ) : null}
           {periodDelta != null && periodLabel ? (
             <DeltaLine label={periodLabel} delta={periodDelta} prevRate={periodPrev} digits={digits} />
@@ -152,6 +161,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "—"}
           complianceModule="gsc"
           weekDelta={k?.delta_gsc}
+          weekCoCauKhac={k?.delta_gsc_khac_co_cau === true}
           weekPrev={prevWeekRateFromPeriodPoints(trend ?? [], "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}
           periodPrev={ky?.ty_le_gsc}
