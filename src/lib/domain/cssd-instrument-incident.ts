@@ -53,7 +53,7 @@ export function mapInstrumentPresetToLedgerType(
  * (dùng ở assertLedger / incident / kho). Helper này chỉ để doc + unit test công thức
  * «chuẩn − hỏng − mất + bổ sung ± DC» — **không** diverge / không thay view.
  *
- * Docs: docs/data/qldcpt/cssd-business-notes.md · domain-overview §6.
+ * Docs: docs/modules/cssd/domain-overview §6.
  */
 export function computeSoLuongThucTeQldcpt(args: {
   soLuongChuan: number;

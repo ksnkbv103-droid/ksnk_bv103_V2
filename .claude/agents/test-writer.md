@@ -22,7 +22,7 @@ Viết spec vitest cho **một** lát đã duyệt. Quy ước project: file `*.
 ## Không làm
 - Không sửa code ngoài `*.spec.ts`; không đổi `vitest.config.ts`
 - Nghiệp vụ lâm sàng mà SSOT im → hỏi, không tự bịa kỳ vọng
-- Không đọc `docs/data/`, `.env*`, `node_modules/`
+- Không đọc `.env*`, `node_modules/`
 
 ## Output
 File spec đã tạo, số ca, kết quả chạy (pass/fail), bug nghi ngờ (nếu có).

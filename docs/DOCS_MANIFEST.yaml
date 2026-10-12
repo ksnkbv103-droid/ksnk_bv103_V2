@@ -20,10 +20,6 @@ tiers:
     description: IA / tương tác — một file principles
     glob: "docs/ux/*.md"
     max_files: 1
-  data:
-    description: Machine source — script parse, không đọc tay
-    glob: "docs/data/**"
-    human_readable: false
 
 entrypoints:
   human: docs/README.md
@@ -48,12 +44,6 @@ routes:
     read:
       - docs/modules/nkbv/README.md
       - docs/modules/nkbv/clinical-forms.md
-    data:
-      - docs/data/nkbv/algorithms/
-  bang-kiem-seed:
-    data:
-      - docs/data/bang-kiem/canonical-36.md
-      - docs/data/bang-kiem/raw-forms-full.md
 
 scan_roots:
   - docs

@@ -16,4 +16,4 @@ Trước khi sửa rules engine, form lâm sàng, timeline, dashboard NKBV:
 
 **Phân biệt GSC:** Giám sát tuân thủ (`giam-sat-chung`) ≠ NKBV lâm sàng — không dùng chung scoring engine. **Không** gộp VST/GSC vào NKBV.
 
-**Cấm** đọc CDC/NHSN thô và `nkbv-sources/extracted/` — dùng SSOT trong `docs/modules/nkbv/`.
+**Cấm** đọc CDC/NHSN thô — dùng SSOT trong `docs/modules/nkbv/`.

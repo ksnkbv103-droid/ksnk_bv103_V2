@@ -2,9 +2,9 @@
  * SSOT scoring metadata — 36 mẫu `gstt_dm_bang_kiem` (cutover canonical-36).
  *
  * Nguồn đối chiếu:
- * - `docs/data/bang-kiem/canonical-36.md` (danh sách 36)
- * - `docs/data/bang-kiem/master-bangkiem.md` (Scoring_Logic → cach_tinh_diem)
- * - `docs/data/bang-kiem/giamsattuanthu.md` (engine mapping)
+ * - canonical-36.md (danh sách 36; git history)
+ * - master-bangkiem.md (git history; Scoring_Logic → cach_tinh_diem)
+ * - giamsattuanthu.md (git history; engine mapping)
  *
  * Ánh xạ Scoring_Logic → `cach_tinh_diem`:
  *   PERCENTAGE → TY_LE | PASS_FAIL → DAT_KHONG_DAT | ALL_OR_NONE → TRON_GOI | LOG_ENTRY → NHAT_KY

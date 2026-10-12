@@ -43,7 +43,7 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền người dùng thật
 - Plan đã duyệt → tự commit theo lát khi verify pass. Push/PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
 - Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file
-- Never mở: `docs/data/`, `_agent-*.md`, CDC/NHSN thô, `nkbv-sources/extracted/`, `node_modules/`, `.next/`, `.env*`
+- Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
 ## Gotchas
 

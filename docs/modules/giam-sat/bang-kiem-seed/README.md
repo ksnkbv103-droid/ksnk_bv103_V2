@@ -174,7 +174,7 @@ Insert **65 BK** vào `gstt_dm_bang_kiem`; **skip WHO** BM.01 (VST module); **0 
 
 ## Gap vs canonical-36
 
-> So sánh `docs/data/bang-kiem/canonical-36.md` (36 mã short thế hệ form cũ) với mã viện `KSNK.QT.*/QĐ.*.BM.*` trong inventory filtered.
+> So sánh `canonical-36.md` (git history) (36 mã short thế hệ form cũ) với mã viện `KSNK.QT.*/QĐ.*.BM.*` trong inventory filtered.
 > **Chưa** normalize seed DB lần này — chỉ ghi lệch để PO / migrate sau.
 
 ## 1. Bảng xref

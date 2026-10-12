@@ -1,7 +1,7 @@
 /**
  * NHSN Ch.4 MBI-LCBI — Soft 20e Domain A.
  * Thresholds/windows ONLY from Soft Soft line-check of
- * `nkbv-sources/extracted/cdc-ch4.txt` (Table 2 · Table 5).
+ * CDC NHSN Ch.4 (git history) (Table 2 · Table 5).
  * Flag PO G.1#1 (confirm) · G.1#5 (MBI organism browser) — do not hard-code closed list.
  */
 

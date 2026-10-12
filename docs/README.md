@@ -40,9 +40,6 @@ Cổng module nằm trên [`ssot-map.md`](ssot-map.md).
 
 **Runbook:** [`ops-go-live`](reference/guides/ops-go-live.md) · [`migration-squash`](reference/guides/migration-squash-runbook.md) · [`json-import-export`](reference/guides/json-import-export.md) · [`incident-backup`](reference/guides/incident-backup-playbook.md) · [`auth-pilot-link`](reference/guides/auth-pilot-link-sop.md)
 
-## Data
-
-[`data/README.md`](data/README.md) — **không đọc tay**; script seed/generator.
 
 ---
 

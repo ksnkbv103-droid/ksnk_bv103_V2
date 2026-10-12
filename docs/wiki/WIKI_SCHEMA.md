@@ -4,7 +4,7 @@
 
 | Lớp | Đường dẫn | Ai sở hữu |
 |-----|-----------|-----------|
-| Raw | [`../data/README.md`](../data/README.md) | Con người + script (immutable) |
+| Raw | _đã gỡ khỏi repo (git history)_ | — |
 | Wiki | `entities.md`, `concepts.md`, `index.md` | **LLM** |
 | Schema vận hành | `CLAUDE.md`, `docs/core/*`, `.claude/skills/*` | Đồng tiến hóa |
 

@@ -11,7 +11,7 @@ Dùng khi PO bảo rà soát, làm chuẩn, hoặc sửa cho bám yêu cầu đ�
 
 ## Vòng
 
-1. Đọc đúng dòng [`docs/ssot-map.md`](../../docs/ssot-map.md) và mục domain của lát. Không đọc `docs/data/`, không đọc CDC/NHSN thô.
+1. Đọc đúng dòng [`docs/ssot-map.md`](../../docs/ssot-map.md) và mục domain của lát. Không đọc CDC/NHSN thô.
 2. Liệt kê chỗ code/SQL đang lệch câu đó. Không liệt kê cả repo.
 3. Nếu câu SSOT hoặc mục «Đã chốt» dưới đây chọn được một cách: sửa một lát, không hỏi lại.
 4. Nếu vẫn hai cách đọc lâm sàng: dừng, đưa hai cách, không code.

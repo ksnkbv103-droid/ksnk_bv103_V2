@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Kiểm tra link markdown tới file .md.
- * Bỏ qua docs/archive và docs/data (cửa CLAUDE.md — không đọc kho).
+ * Bỏ qua docs/archive (cửa CLAUDE.md — không đọc kho).
  */
 import fs from "node:fs";
 import path from "node:path";

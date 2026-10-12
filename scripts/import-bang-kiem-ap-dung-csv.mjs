@@ -1,6 +1,6 @@
 /**
  * Import quy định ap_dung_jsonb từ CSV do KSNK duyệt.
- * Mẫu cột: docs/data/bang-kiem/ap-dung-mapping-template.csv
+ * Mẫu cột: scripts/data/ap-dung-mapping-template.csv
  *
  * Không đoán phạm vi — chỉ cập nhật dòng có trong file.
  * Chạy: node --env-file=.env.local scripts/import-bang-kiem-ap-dung-csv.mjs [path.csv]
@@ -10,7 +10,7 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 
-const CSV_DEFAULT = path.join(process.cwd(), "docs/data/bang-kiem/ap-dung-mapping-template.csv");
+const CSV_DEFAULT = path.join(process.cwd(), "scripts/data/ap-dung-mapping-template.csv");
 
 function parseCsvLine(line) {
   const cols = [];

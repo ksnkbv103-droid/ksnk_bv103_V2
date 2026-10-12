@@ -230,7 +230,7 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
     };
   }
 
-  // MBI-LCBI Soft 20e Domain A — Ch.4 Table 2 (cite nkbv-sources/extracted/cdc-ch4.txt).
+  // MBI-LCBI Soft 20e Domain A — Ch.4 Table 2 (cite CDC NHSN Ch.4, git history).
   // MBI = LCBI (already) + MBI-eligible organism + mucosal barrier. Never «ung thư = MBI».
   // Tick «giảm bạch cầu» đơn (is_neutropenia) không đủ — BSI-P0-1.
   // Tiêu chảy đơn không đủ — chỉ criterion 1b dưới allo HSCT (cite 415-421). Flag PO G.1#1 · G.1#5.

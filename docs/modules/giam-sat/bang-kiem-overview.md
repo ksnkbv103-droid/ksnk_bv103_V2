@@ -1,6 +1,6 @@
 # Bảng kiểm GSC/VST — tóm tắt
 
-> Chi tiết đầy đủ (machine source): [`../../data/bang-kiem/canonical-36.md`](../../data/bang-kiem/canonical-36.md)
+> Nguồn máy (canonical-36.md) đã gỡ khỏi repo — xem git history trước commit gỡ `docs/data`.
 
 ## Canonical 36 mẫu
 
@@ -38,7 +38,7 @@ Engine: `giam-sat-scoring.ts` · UI: `gsc-score-display.ts` · [`concepts.md#gsc
 
 | File | Vai trò |
 |------|---------|
-| `data/bang-kiem/canonical-36.md` | SSOT 36 mẫu 4 phần |
+| `canonical-36.md` (git history) | SSOT 36 mẫu 4 phần |
 | `data/bang-kiem/raw-forms-full.md` | Nguồn trích xuất gốc |
 | `data/bang-kiem/master-bangkiem.md` | Master template list |
 | `data/bang-kiem/master-tieuchi.md` | Master tiêu chí |
