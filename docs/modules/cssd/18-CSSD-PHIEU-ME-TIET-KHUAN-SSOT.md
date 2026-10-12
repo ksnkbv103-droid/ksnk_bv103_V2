@@ -197,3 +197,34 @@ Cấp phát ghi `ma_ca_mo_id` bằng `jsonb ||`, không ghi đè metadata. Lỗi
 ## Schema
 
 Migration `20260925120000_cssd_me_s3_batch_recall.sql`. Thêm giá trị `THU_HOI` vào check `trang_thai_me`. Không bảng mới.
+
+## Kịch bản test tay cho tổ CSSD (lát C2)
+
+Cổng nghiệp vụ mẻ đã có spec tự động: `persist-me-tiet-khuan.spec.ts` (16 ca, DB giả), `me-tiet-khuan-ab-gates.spec.ts`, `me-tiet-khuan-qc.spec.ts`, `me-tiet-khuan-bi.spec.ts`. Test tay dưới đây kiểm phần spec không phủ: màn hình, phân quyền, RPC thật. Làm trên môi trường thử, máy hơi nước và một máy Plasma/EO nếu có. Ghi ngày, người làm, đạt/không đạt cho từng bước.
+
+**K1 — Mẻ hơi nước thường đạt, nhả**
+1. Nạp 2 bộ không implant vào mẻ hơi nước, chạy xong, bấm «Xong máy — mở đánh giá QC».
+2. Chọn thông số vật lý, CI ngoài gói, CI PCD đều Đạt; BI «Chưa có». Kết thúc mẻ bằng tài khoản NV có quyền sửa mẻ.
+3. Mong đợi: mẻ `HOAN_THANH`; cả 2 bộ sang trạm Cấp phát, có hạn dùng; phiếu in đủ ba mục QC. Thử bỏ trống một mục QC thì hệ thống từ chối.
+
+**K2 — Mẻ có implant: chờ BI, nhả bằng tổ trưởng**
+1. Nạp một bộ implant, đánh giá QC đủ Đạt, BI «Chưa có».
+2. Mong đợi: mẻ `CHO_BI`, bộ ở lại trạm tiệt khuẩn, không cấp phát được, không có nút nhả khẩn.
+3. Nhập BI âm kèm sổ BM.02 (đối chứng dương, ống thử âm, số lô, giờ ủ/đọc) bằng tài khoản NV thường: bị từ chối vì thiếu quyền. Bằng tài khoản tổ trưởng: mẻ `HOAN_THANH`, bộ sang Cấp phát.
+4. Làm lại với sổ BM.02 có đối chứng âm: bị từ chối, mẻ vẫn `CHO_BI`.
+
+**K3 — Mẻ không đạt: thu hồi và giữ máy**
+1. Nạp 2 bộ, đánh giá QC với «CI ngoài gói» Không đạt, kết thúc mẻ.
+2. Mong đợi: mẻ `QC_KHONG_DAT`; bộ còn trong CSSD về Đóng gói (chu kỳ mới, Cycle QR mới); máy `HOLD_QC`; có phiếu sự cố «Chất lượng tiệt khuẩn / mẻ không đạt».
+3. Thử chọn «Không đạt» ở màn kết luận khi cả ba mục QC đều Đạt: hệ thống từ chối.
+
+**K4 — BI dương sau khi mẻ đã nhả: thu hồi cửa sổ cùng máy**
+1. Chuẩn bị 3 mẻ liên tiếp cùng máy: mẻ 1 có BI âm (mốc), mẻ 2 và mẻ 3 đã nhả. Có một bộ của mẻ 3 đã gán ca mổ.
+2. Nhập BI dương cho mẻ 3.
+3. Mong đợi: mẻ 2 và 3 sang `THU_HOI`, mẻ 1 không đổi; bộ chưa dùng về Đóng gói; bộ đã gán ca mổ không đổi trạm nhưng có tên trong phiếu sự cố (`RECALL_LISTED_USED`); máy `HOLD_QC`.
+
+**K5 — BI tuần hơi nước sau khi đã nhả**
+1. Nhập BI âm kèm sổ BM.02 cho mẻ hơi nước đã nhả.
+2. Mong đợi: trạng thái mẻ giữ nguyên, chỉ ghi sổ BI tuần. Nhập BI âm cho mẻ đang chạy (chưa nhả, chưa chờ BI): bị từ chối.
+
+Đạt lát C2 khi tổ CSSD làm K1–K5 không lệch mong đợi. Lệch → ghi vào mục này, báo PO, không tự đổi quy tắc nhả.

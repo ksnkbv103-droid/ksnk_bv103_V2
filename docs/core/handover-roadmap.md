@@ -52,7 +52,7 @@ Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). To�
 | Mở (ưu tiên 1) | VST/GSC: nhãn «chưa đủ mẫu» (n < 20) trên bảng khoa (KTC Wilson VST đã có ở biểu đồ khoa); **thẻ độ phủ giám sát** (số khoa/giờ/ca đã giám sát so với kế hoạch); đo độ tin cậy giữa người giám sát (đối chiếu 2 người); spec VST/GSC còn thiếu | Cần PO chốt cách đo độ phủ | Sonnet |
 | Mở (ưu tiên 2) | Bảo mật prod: advisor 2026-10-12 chỉ còn mục đã chủ ý giữ (xem migration `20261011090000`) + **bật chặn mật khẩu rò rỉ ở Supabase Auth** (PO bật trên dashboard) + 2 bảng RLS không policy (`cssd_fact_bowie_dick`, `sys_account_access_request`: xác nhận cố ý chỉ service_role) | PO bật Auth | — |
 | Lát C1 | CSSD: thay `any` ở báo cáo/cột mẻ bằng kiểu thật. `any` CSSD-ERP 61 → 14 (còn hook `use-me-tiet-khuan-workflow`, `InventoryHistoryTable`, vài chỗ nhỏ). tsc, lint, `verify:cssd` pass | Xong 2026-10-12 | Sonnet |
-| Lát C2 | CSSD: spec cho cổng nghiệp vụ mẻ (QC, thu hồi, nhả implant) + kịch bản tay ≥3 cho tổ CSSD | Chưa | Sonnet |
+| Lát C2 | CSSD: spec cho cổng nghiệp vụ mẻ (QC, thu hồi, nhả implant) + kịch bản tay ≥3 cho tổ CSSD | Code xong 2026-10-12: `persist-me-tiet-khuan.spec.ts` 16 ca; 5 kịch bản tay K1–K5 ở `docs/modules/cssd/18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md`. Chờ tổ CSSD chạy tay | Sonnet |
 | Lát N1 | NKBV: thay `any` (`GiamSatNkbvPage` 13, `useNkbvChecklistModalState` 12, `write.actions` 7); tách `NkbvBaMultiTimelineWorkspace` (1984 dòng), `NkbvSyndromeIwpPanel` (1744) — chỉ sau khi có test khóa hành vi | Chưa | Sonnet |
 | Lát Q1 | QLCV: kịch bản tay ≥3 + e2e mở rộng (đã có `qlcv-pilot`) | Chưa | Sonnet |
 | Lát D1 | Đào tạo: spec cho `dao-tao-attempt.actions` (chấm điểm, hết giờ), `dao-tao-auth`; e2e làm bài | Chưa | Sonnet |
