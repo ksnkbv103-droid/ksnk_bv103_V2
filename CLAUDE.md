@@ -47,14 +47,20 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 
 ## Ngân sách model và agent (hook `.claude/hooks/guard-agent-model.mjs` chặn cứng)
 
-- Mặc định Sonnet. Haiku: đọc/soát/UAT/verify. Opus **chỉ** `migration-author` (migration/RPC/khóa dòng khó); không Opus cho code thường, docs, rà soát
-- Giao việc bằng agent ghim sẵn ở `.claude/agents` (`slice-fixer` sửa, `security-auditor` rà, `explore-module`, `verify-runner`…); không dùng agent chung kèm `model: opus`
+- Mặc định Sonnet (đọc, sửa, UAT). Haiku chỉ cho việc cơ học kiểm chứng được (`verify-runner`). Opus chỉ cho `migration-author` và reviewer vùng rủi ro cao (`review-bv103`, `security-auditor`); không Opus cho code thường, docs
+- Giao việc bằng agent ghim sẵn ở `.claude/agents` (`slice-fixer` sửa, `security-auditor` rà, `explore-module`, `verify-runner`…); không dùng agent chung (hook chặn mọi agent ngoài danh sách ghim). Tìm kiếm mã dùng `explore-module` (Sonnet), không dùng `Explore`/`general-purpose`; việc dưới ~3 lần đọc file thì tự làm
 - Một agent **ghi** repo tại một thời điểm (chung git index, chạm giới hạn phiên là mất việc dở). Agent chỉ đọc tối đa 2 song song
 - Rà soát = một vùng hẹp, chỉ báo Nghiêm trọng/Cao; không «quét toàn bộ». Trước khi giao nhiều agent: kiểm `get_usage`; tuần > 60% chỉ làm lát nghiêm trọng đang chặn pilot, còn lại ghi roadmap
+- Reviewer độc lập (`review-bv103`, `security-auditor`) chỉ cho vùng rủi ro cao (RLS, migration, auth), một vòng, đưa yêu cầu + diff + kết quả verify, không đưa lập luận của người viết. Việc nhỏ thì không gọi
 - Prompt giao agent: lát + file phạm vi + lỗi đã xác minh + lệnh verify. Không bắt đọc lại rules/roadmap
 
 ## Gotchas
 
+- Tìm định nghĩa/tham chiếu symbol: ưu tiên LSP (goToDefinition, findReferences) thay vì grep cả thư mục.
+
 - File lớn, chỉ grep rồi đọc đoạn: `docs/core/implementation-mapping.md`, migration `20260530000000_init_pilot_baseline.sql`, `NkbvBaMultiTimelineWorkspace.tsx`
 - Script `:local` cần container `supabase_db_ksnk_bv103`; `--linked` đọc token từ `.env.local`
 - Kết nối ghim trong [`.mcp.json`](.mcp.json) (Supabase, GitHub `ksnkbv103-droid/ksnk_bv103_V2`, Vercel `ksnk-bv103-v2`)
+
+## Compact instructions
+Khi nén hội thoại, giữ: file đã sửa + lý do, kết quả `npm run verify*` gần nhất (nguyên văn lỗi nếu fail), slice đang làm và việc còn dở, quyết định liên quan prod/migration. Bỏ: nội dung file đã đọc, output dài.

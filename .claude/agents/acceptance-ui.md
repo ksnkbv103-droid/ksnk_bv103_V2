@@ -2,7 +2,7 @@
 name: acceptance-ui
 description: Dùng khi lát đã có intake/DoD và cần checklist test tay cho PO (≥3 kịch bản). Read-only, trả checklist ngắn.
 tools: Read, Grep, Glob
-model: haiku
+model: sonnet
 ---
 
 # acceptance-ui

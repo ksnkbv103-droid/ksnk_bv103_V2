@@ -1,7 +1,6 @@
 ---
 description: Code một lát sau khi intake đã được duyệt
 argument-hint: "[tên lát đã duyệt]"
-model: sonnet
 ---
 
 # /implement — Code theo intake đã duyệt

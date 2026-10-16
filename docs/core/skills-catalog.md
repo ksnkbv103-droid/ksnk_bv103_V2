@@ -88,7 +88,7 @@ Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 
 6. **Kiểm giao diện bằng `read_page`**, chỉ chụp ảnh khi cần xem bố cục.
 7. **Đọc nhiều file thì giao subagent** (Haiku) để phiên chính gọn. Plan mode (`Shift+Tab`) trước việc lớn · đọc ≤ 8 file/task.
 8. **Prod chỉ `SELECT`.** Thử thì dùng DB local.
-9. **Điều phối agent (bài học 2026-10-12: 9 agent Opus, 5 chạy song song → tuần 70%, agent chết giữa chừng, commit lẫn lát).** Hook `.claude/hooks/guard-agent-model.mjs` chặn: `model: opus/fable` cho bất kỳ agent nào ngoài `migration-author`; agent không ghim model mà không đặt `haiku`/`sonnet`. Quy tắc: một agent ghi tại một thời điểm; rà soát một vùng hẹp, chỉ Nghiêm trọng/Cao; kiểm `get_usage` trước khi giao (tuần > 60% → chỉ lát chặn pilot); lát nào cần cả RPC và code thì `migration-author` trước rồi `slice-fixer`.
+9. **Điều phối agent (bài học 2026-10-12: 9 agent Opus, 5 chạy song song → tuần 70%, agent chết giữa chừng, commit lẫn lát).** Hook `.claude/hooks/guard-agent-model.mjs` chặn: `model: opus/fable` cho agent ngoài `migration-author`, `review-bv103`, `security-auditor`; mọi agent không có trong danh sách ghim (`general-purpose`/`Explore`/`Plan`...). Quy tắc: một agent ghi tại một thời điểm; rà soát một vùng hẹp, chỉ Nghiêm trọng/Cao; kiểm `get_usage` trước khi giao (tuần > 60% → chỉ lát chặn pilot); lát nào cần cả RPC và code thì `migration-author` trước rồi `slice-fixer`.
 
 ## 7. Một lát chuẩn
 

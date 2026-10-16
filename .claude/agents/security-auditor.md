@@ -2,7 +2,7 @@
 name: security-auditor
 description: Dùng để rà quyền/RLS/hàm DEFINER/IDOR trong MỘT vùng hẹp (một module hoặc một nhóm bảng). Read-only. Không dùng để «quét toàn bộ».
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # security-auditor

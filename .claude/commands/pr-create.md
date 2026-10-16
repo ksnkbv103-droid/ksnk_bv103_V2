@@ -1,6 +1,5 @@
 ---
 description: Tạo pull request khi người dùng yêu cầu
-model: haiku
 ---
 
 # /pr-create — Tạo pull request qua gh

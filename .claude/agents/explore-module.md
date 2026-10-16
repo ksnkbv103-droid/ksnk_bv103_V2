@@ -2,7 +2,7 @@
 name: explore-module
 description: Dùng khi cần hiểu một module (route, action, RPC, ranh giới) trước intake/sửa mà chưa biết file nằm đâu — thay vì tự đọc nhiều file ở phiên chính. Read-only.
 tools: Read, Grep, Glob
-model: haiku
+model: sonnet
 ---
 
 # explore-module

@@ -2,7 +2,8 @@
 name: db-verify
 description: Dùng TRƯỚC khi viết migration hoặc đặt tên bảng/cột/RPC — đối chiếu migration thật với implementation-mapping. Read-only.
 tools: Read, Grep, Glob, Bash
-model: haiku
+model: sonnet
+maxTurns: 20
 ---
 
 # db-verify

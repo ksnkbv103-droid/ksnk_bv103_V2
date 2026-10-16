@@ -2,7 +2,7 @@
 name: review-bv103
 description: Dùng sau implement một lát hoặc trước commit/merge (action, migration, quyền) — review diff độc lập theo whitelist + DoD, xếp Critical/Major/Minor + Go/No-go. Read-only.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # review-bv103
