@@ -3,6 +3,7 @@ name: migration-author
 description: CHỈ dùng cho migration/RPC khó (nguyên tử, khóa dòng, RLS/ACL, backfill) trên DB local. Opus, đắt — không dùng cho code ứng dụng thông thường.
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: opus
+maxTurns: 25
 ---
 
 # migration-author
