@@ -11,6 +11,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-labels";
+import { isNkbvCaTrangThaiChot } from "../lib/nkbv-ba-ngay";
 import { bareViSinhIdFromMilestoneId } from "../lib/nkbv-vi-sinh-analysis-status";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
@@ -132,6 +133,25 @@ async function applyAnalysisSeedToCase(
   return mapped.analyzedViSinhIds;
 }
 
+/**
+ * Bật lại phiếu đã ẩn theo `ma_ca` (unique toàn bảng, kể cả is_active=false).
+ * Chỉ đổi is_active — không đụng trạng thái/nội dung (ca đã duyệt giữ nguyên).
+ */
+async function reactivateHiddenCaseByMaCa(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  maCa: string,
+): Promise<{ id: string | null; error?: string }> {
+  const { data, error } = await supabase
+    .from("nkbv_fact_su_kien")
+    .update({ is_active: true, updated_at: new Date().toISOString() })
+    .eq("ma_ca", maCa)
+    .eq("is_active", false)
+    .select("id")
+    .maybeSingle();
+  if (error) return { id: null, error: `Không kích hoạt lại phiếu: ${error.message}` };
+  return { id: data?.id ?? null };
+}
+
 export async function ensureNkbvBaAnalysisCase(input: {
   ma_benh_an: string;
   ma_benh_nhan?: string | null;
@@ -178,7 +198,9 @@ export async function ensureNkbvBaAnalysisCase(input: {
 
   const finishWithSeed = async (caseRow: Record<string, unknown>) => {
     const caseId = String(caseRow.id || "");
-    if (seed && caseId) {
+    // Ca đã chốt thẩm định: không seed lại verification/clinical_notes
+    const chot = isNkbvCaTrangThaiChot(caseRow.trang_thai_ma as string | null | undefined);
+    if (seed && caseId && !chot) {
       const vd =
         caseRow.verification_data && typeof caseRow.verification_data === "object"
           ? (caseRow.verification_data as Record<string, unknown>)
@@ -222,6 +244,14 @@ export async function ensureNkbvBaAnalysisCase(input: {
     .eq("is_active", true)
     .maybeSingle();
   if (byMaCa) return finishWithSeed(byMaCa as Record<string, unknown>);
+
+  // Phiếu đã ẩn (is_active=false) cùng ma_ca: bật lại, giữ nguyên trạng thái (kể cả đã chốt)
+  const reactivated = await reactivateHiddenCaseByMaCa(supabase, maCa);
+  if (reactivated.error) return { success: false as const, error: reactivated.error };
+  if (reactivated.id) {
+    const back = await reloadCase(reactivated.id);
+    if (back) return finishWithSeed(back);
+  }
 
   const { data: loaiRows, error: loaiErr } = await supabase
     .from("nkbv_dm_loai")
@@ -354,6 +384,11 @@ export async function ensureNkbvBaAnalysisCase(input: {
         .eq("is_active", true)
         .maybeSingle();
       if (again) return finishWithSeed(again as Record<string, unknown>);
+      const re = await reactivateHiddenCaseByMaCa(supabase, maCa);
+      if (re.id) {
+        const back = await reloadCase(re.id);
+        if (back) return finishWithSeed(back);
+      }
     }
     return { success: false as const, error: `Không neo phiếu: ${createErr.message}` };
   }

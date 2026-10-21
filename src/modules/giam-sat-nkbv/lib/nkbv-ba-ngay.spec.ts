@@ -78,3 +78,15 @@ describe("nkbv-ba-ngay", () => {
     expect(nkbvVnDateStartIso("2026-08-01")).toBe("2026-08-01T00:00:00+07:00");
   });
 });
+
+describe("isNkbvCaTrangThaiChot", () => {
+  it("chốt: XAC_NHAN, LOAI_TRU, DA_DONG", async () => {
+    const { isNkbvCaTrangThaiChot } = await import("./nkbv-ba-ngay");
+    expect(["XAC_NHAN", "LOAI_TRU", "DA_DONG"].every(isNkbvCaTrangThaiChot)).toBe(true);
+  });
+  it("chưa chốt / rỗng", async () => {
+    const { isNkbvCaTrangThaiChot } = await import("./nkbv-ba-ngay");
+    expect(isNkbvCaTrangThaiChot("DANG_GHI_NHAN")).toBe(false);
+    expect(isNkbvCaTrangThaiChot(null)).toBe(false);
+  });
+});

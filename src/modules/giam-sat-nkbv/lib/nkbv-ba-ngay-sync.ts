@@ -2,6 +2,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
   eventDateFromVerification,
   khoaIdByDateMap,
+  isNkbvCaTrangThaiChot,
   khoaIdOnOrBefore,
   stripCopiedStayFieldsFromVerification,
 } from "./nkbv-ba-ngay";
@@ -17,8 +18,8 @@ export async function syncNkbvPhieuFromBaNgay(maBenhAn: string) {
   const [{ data: khoaRows }, { data: cases }] = await Promise.all([
     supabase.from("nkbv_fact_ba_ngay_khoa").select("ngay_lich, khoa_id").eq("ma_benh_an", ma),
     supabase
-      .from("nkbv_fact_su_kien")
-      .select("id, ngay_phat_hien, verification_data, khoa_ghi_nhan_id")
+      .from("v_nkbv_su_kien_full")
+      .select("id, ngay_phat_hien, verification_data, khoa_ghi_nhan_id, trang_thai_ma")
       .eq("ma_benh_an", ma)
       .eq("is_active", true),
   ]);
@@ -29,6 +30,8 @@ export async function syncNkbvPhieuFromBaNgay(maBenhAn: string) {
     })),
   );
   for (const c of cases || []) {
+    // Ca đã chốt thẩm định: không đổi khoa quy kết / verification_data
+    if (isNkbvCaTrangThaiChot(c.trang_thai_ma)) continue;
     const vd =
       c.verification_data && typeof c.verification_data === "object"
         ? (c.verification_data as Record<string, unknown>)

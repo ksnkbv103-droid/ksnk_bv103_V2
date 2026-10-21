@@ -205,3 +205,10 @@ export function eventDateFromVerification(
   const d = String(raw || "").slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
 }
+
+/** Trạng thái đã chốt thẩm định — sync lưới / kích hoạt lại không được đụng (khớp trigger `trg_nkbv_su_kien_guard_trang_thai`). */
+export const NKBV_CA_TRANG_THAI_CHOT = ["XAC_NHAN", "LOAI_TRU", "DA_DONG"] as const;
+
+export function isNkbvCaTrangThaiChot(ma: string | null | undefined): boolean {
+  return (NKBV_CA_TRANG_THAI_CHOT as readonly string[]).includes(String(ma ?? "").trim());
+}
