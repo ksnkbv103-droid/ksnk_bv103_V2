@@ -122,6 +122,11 @@ export function cssdVnDay(raw: unknown): string | null {
   return Number.isFinite(t) ? todayYmdInVn(new Date(t)) : m[1];
 }
 
+/** Ngày VN (YMD) nằm trong [from, to]; không có ngày → loại. */
+export function isVnDayInRange(day: string | null, from: string, to: string): boolean {
+  return !!day && day >= from && day <= to;
+}
+
 function parseIsoDatePart(raw: unknown): string | null {
   return cssdVnDay(raw);
 }

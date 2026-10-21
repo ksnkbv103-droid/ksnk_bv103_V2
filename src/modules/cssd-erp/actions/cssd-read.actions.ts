@@ -9,6 +9,8 @@ import { getErrorMessage, STEPS } from "./cssd-action-common";
 import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 import { cssdTiepNhanWaitingItems } from "../helpers/cssd-tiep-nhan-waiting";
 import { quyTrinhIdsWithEffectiveRedAlert } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import { isChoThuVeCycle } from "@/modules/cssd-su-co/domain/cssd-batch-recall-hold";
+import { filterOutRecallPending } from "../helpers/cssd-cap-phat-waiting";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 async function fetchAllActiveRows<T>(
@@ -132,7 +134,21 @@ export async function getWaitingListByStation(station: Station) {
       }
     }
 
-    const filtered = raw.filter((x) => passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim()));
+    const passedRows = raw.filter((x) => passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim()));
+    // CS-FIX: bộ đang trong luồng thu hồi (metadata.thu_hoi = CHO_THU_VE) không được chờ cấp phát.
+    const recallPendingIds = new Set<string>();
+    const passedIds = passedRows.map((x) => String(x.id));
+    for (let i = 0; i < passedIds.length; i += 200) {
+      const { data: metas, error: metaErr } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("id, metadata")
+        .in("id", passedIds.slice(i, i + 200));
+      if (metaErr) throw new Error(metaErr.message);
+      for (const m of metas || []) {
+        if (isChoThuVeCycle((m as { metadata?: unknown }).metadata)) recallPendingIds.add(String((m as { id: string }).id));
+      }
+    }
+    const filtered = filterOutRecallPending(passedRows, recallPendingIds);
     const nguoiIds = [
       ...new Set(filtered.map((x) => String(x[prevCols.nguoiCol] || "").trim()).filter(Boolean)),
     ];
