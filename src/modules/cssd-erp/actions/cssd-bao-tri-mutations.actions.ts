@@ -1,23 +1,36 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { coMeTietKhuanChuaKetThucTheoThietBi } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
 import { getErrorMessage, mapFkError, revalidateCssdMaintenanceSurfaces } from "./cssd-action-common";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { verifyCssdMaintenanceEdit } from "@/lib/cssd-server-gates";
 import { cssdMaintenanceStartInputSchema } from "../shared/contracts/cssd-context.contracts";
-import { buildPmChecklistForLoaiMay, allChecklistDone, parseChecklistJson } from "@/lib/domain/cssd-equipment-pm-checklist";
+import { buildPmChecklistForLoaiMay } from "@/lib/domain/cssd-equipment-pm-checklist";
 import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checklist";
 
 function nextMaPhieu(): string {
   return `BT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
 
-function addDaysIso(dateYmd: string, days: number): string {
-  const d = new Date(`${dateYmd}T12:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
+async function requireSessionActorId(): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
+  try {
+    const uc = await createServerSupabaseUserClient();
+    const { data, error } = await uc.auth.getUser();
+    const userId = data.user?.id ? String(data.user.id) : "";
+    if (error || !userId) return { ok: false, message: "Không xác định được người thực hiện." };
+    return { ok: true, userId };
+  } catch {
+    return { ok: false, message: "Không xác định được người thực hiện." };
+  }
+}
+
+/** Lỗi nghiệp vụ RPC (P0001, tiếng Việt) trả nguyên văn; lỗi khác log và báo chung. */
+function rpcFail(err: { code?: string; message: string }, action: string, userId: string) {
+  if (err.code === "P0001") return { success: false as const, error: err.message };
+  console.error({ module: "cssd-bao-tri", action, userId, error: err.message });
+  return { success: false as const, error: "Không thực hiện được thao tác bảo trì. Vui lòng thử lại." };
 }
 
 /** Bắt đầu bảo trì: phiếu DANG_THUC_HIEN + đặt cssd_dm_thiet_bi = REPAIRING. */
@@ -60,59 +73,30 @@ export async function batDauBaoTriThietBiAction(input: {
 
     const { data: tb, error: tbErr } = await supabase
       .from("cssd_dm_thiet_bi")
-      .select("trang_thai, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may)")
+      .select("loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may)")
       .eq("id", tid)
       .maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
-    const st = String((tb as { trang_thai?: string })?.trang_thai || "").trim();
-    /** ME-03: cho mở bảo trì từ tạm giữ (HOLD_QC). */
-    if (!["READY", "HOAT_DONG", "HOLD_QC"].includes(st)) {
-      return { success: false as const, error: `Thiết bị không mở được bảo trì (${st || "—"}).` };
-    }
 
-    const lm = (tb as { loai_may?: { ma_loai_may?: string } | { ma_loai_may?: string }[] | null }).loai_may;
+    const lm = (tb as { loai_may?: { ma_loai_may?: string } | { ma_loai_may?: string }[] | null } | null)?.loai_may;
     const lmRow = Array.isArray(lm) ? lm[0] : lm;
     const maLoai = String(lmRow?.ma_loai_may || "").trim();
     const checklist = loaiPhieu === "DINH_KY" ? buildPmChecklistForLoaiMay(maLoai) : [];
 
-    const ma_phieu = nextMaPhieu();
-    const now = new Date().toISOString();
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
 
-    const { data: ins, error: insErr } = await supabase
-      .from("cssd_fact_bao_tri")
-      .insert({
-        ma_phieu,
-        thiet_bi_id: tid,
-        trang_thai: "DANG_THUC_HIEN",
-        loai_phieu: loaiPhieu,
-        ly_do: lyDo,
-        checklist_jsonb: checklist,
-        su_co_id: suCoId,
-        thoi_gian_bat_dau: now,
-        updated_at: now,
-      })
-      .select("id, ma_phieu")
-      .single();
-    if (insErr) return { success: false as const, error: mapFkError(insErr.message) };
-
-    const { data: tbFull } = await supabase.from("cssd_dm_thiet_bi").select("specs").eq("id", tid).maybeSingle();
-    const prevSpecs = (tbFull?.specs && typeof tbFull.specs === "object" ? tbFull.specs : {}) as Record<
-      string,
-      unknown
-    >;
-    const { error: upErr } = await supabase
-      .from("cssd_dm_thiet_bi")
-      .update({
-        trang_thai: "REPAIRING",
-        specs: { ...prevSpecs, bao_tri_prev_trang_thai: st },
-        updated_at: now,
-      })
-      .eq("id", tid);
-    if (upErr) {
-      const insId = String((ins as { id?: string })?.id || "");
-      if (insId) await supabase.from("cssd_fact_bao_tri").delete().eq("id", insId);
-      return { success: false as const, error: mapFkError(upErr.message) };
-    }
+    // TB-1: phiếu + trạng thái máy trong một giao dịch DB (kiểm trạng thái, mẻ mở, phiếu trùng nằm ở RPC).
+    const { data: ins, error: insErr } = await supabase.rpc("rpc_cssd_bao_tri_bat_dau", {
+      p_thiet_bi_id: tid,
+      p_actor_user_id: actor.userId,
+      p_ly_do: lyDo,
+      p_loai_phieu: loaiPhieu,
+      p_checklist: checklist,
+      p_su_co_id: suCoId,
+      p_ma_phieu: nextMaPhieu(),
+    });
+    if (insErr) return rpcFail(insErr, "batDauBaoTriThietBiAction", actor.userId);
 
     revalidateCssdMaintenanceSurfaces();
     return { success: true as const, data: ins };
@@ -135,76 +119,21 @@ export async function ketThucBaoTriThietBiAction(input: {
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
     if (!ketQua) return { success: false as const, error: "Nhập kết quả / biên bản bàn giao." };
 
-    const { data: ph, error: pErr } = await supabase
-      .from("cssd_fact_bao_tri")
-      .select("id, trang_thai, thiet_bi_id, loai_phieu, checklist_jsonb")
-      .eq("id", id)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (pErr) return { success: false as const, error: mapFkError(pErr.message) };
-    if (!ph) return { success: false as const, error: "Không tìm thấy phiếu." };
-    if (String((ph as { trang_thai?: string }).trang_thai) !== "DANG_THUC_HIEN") {
-      return { success: false as const, error: "Phiếu không đang ở trạng thái thực hiện." };
-    }
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
 
-    const loaiPhieu = String((ph as { loai_phieu?: string }).loai_phieu || "DINH_KY");
-    const checklist =
-      input.checklist_jsonb && input.checklist_jsonb.length
-        ? input.checklist_jsonb
-        : parseChecklistJson((ph as { checklist_jsonb?: unknown }).checklist_jsonb);
-    if (loaiPhieu === "DINH_KY" && checklist.length && !allChecklistDone(checklist)) {
-      return { success: false as const, error: "Hoàn thành tất cả mục checklist bảo dưỡng định kỳ." };
-    }
-
-    const thietBiId = String((ph as { thiet_bi_id?: string }).thiet_bi_id || "");
-    const now = new Date().toISOString();
-    const today = now.slice(0, 10);
-
-    const { data: tb, error: tbErr } = await supabase
-      .from("cssd_dm_thiet_bi")
-      .select("chu_ky_bao_tri_ngay, specs")
-      .eq("id", thietBiId)
-      .maybeSingle();
-    if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
-
-    const cycle = Math.max(1, Number((tb as { chu_ky_bao_tri_ngay?: number })?.chu_ky_bao_tri_ngay) || 180);
-    const ngayTiepTheo = addDaysIso(today, cycle);
-    const specs = ((tb as { specs?: Record<string, unknown> | null })?.specs || {}) as Record<string, unknown>;
-    const prevTt = String(specs.bao_tri_prev_trang_thai || "").trim().toUpperCase();
-    const fromHold = prevTt === "HOLD_QC";
-    const nextTt = fromHold ? "CHO_THAM_DINH" : "READY";
-    const nextSpecs: Record<string, unknown> = {
-      ...specs,
-      bd_hold_bao_tri_xong_at: fromHold ? now : specs.bd_hold_bao_tri_xong_at,
-    };
-    delete nextSpecs.bao_tri_prev_trang_thai;
-
-    const { error: uPhieu } = await supabase
-      .from("cssd_fact_bao_tri")
-      .update({
-        trang_thai: "HOAN_THANH",
-        ket_qua_ghi_nhan: ketQua,
-        checklist_jsonb: checklist,
-        thoi_gian_ket_thuc: now,
-        updated_at: now,
-      })
-      .eq("id", id);
-    if (uPhieu) return { success: false as const, error: mapFkError(uPhieu.message) };
-
-    const { error: uTb } = await supabase
-      .from("cssd_dm_thiet_bi")
-      .update({
-        trang_thai: nextTt,
-        ngay_bao_tri_gan_nhat: today,
-        ngay_bao_tri_tiep_theo: ngayTiepTheo,
-        specs: nextSpecs,
-        updated_at: now,
-      })
-      .eq("id", thietBiId);
-    if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
+    // TB-1: DB kiểm phiếu/checklist, cập nhật phiếu + máy nguyên tử.
+    const { data, error } = await supabase.rpc("rpc_cssd_bao_tri_ket_thuc", {
+      p_id: id,
+      p_actor_user_id: actor.userId,
+      p_ket_qua: ketQua,
+      p_checklist: input.checklist_jsonb && input.checklist_jsonb.length ? input.checklist_jsonb : null,
+    });
+    if (error) return rpcFail(error, "ketThucBaoTriThietBiAction", actor.userId);
 
     revalidateCssdMaintenanceSurfaces();
-    return { success: true as const, trangThaiMay: nextTt };
+    const trangThaiMay = String((data as { trang_thai_may?: string } | null)?.trang_thai_may || "");
+    return { success: true as const, trangThaiMay };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }
@@ -218,41 +147,11 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
     const id = String(input.id || "").trim();
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
 
-    const { data: ph, error: pErr } = await supabase
-      .from("cssd_fact_bao_tri")
-      .select("id, trang_thai, thiet_bi_id")
-      .eq("id", id)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (pErr) return { success: false as const, error: mapFkError(pErr.message) };
-    if (!ph) return { success: false as const, error: "Không tìm thấy phiếu." };
-    if (String((ph as { trang_thai?: string }).trang_thai) !== "DANG_THUC_HIEN") {
-      return { success: false as const, error: "Chỉ hủy được phiếu đang thực hiện." };
-    }
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
 
-    const thietBiId = String((ph as { thiet_bi_id?: string }).thiet_bi_id || "");
-    const now = new Date().toISOString();
-    const { data: tb } = await supabase.from("cssd_dm_thiet_bi").select("specs").eq("id", thietBiId).maybeSingle();
-    const specs = (tb?.specs && typeof tb.specs === "object" ? tb.specs : {}) as Record<string, unknown>;
-    const restore = String(specs.bao_tri_prev_trang_thai || "READY").trim() || "READY";
-    const nextSpecs = { ...specs };
-    delete nextSpecs.bao_tri_prev_trang_thai;
-
-    const { error: uPhieu } = await supabase
-      .from("cssd_fact_bao_tri")
-      .update({
-        trang_thai: "HUY",
-        thoi_gian_ket_thuc: now,
-        updated_at: now,
-      })
-      .eq("id", id);
-    if (uPhieu) return { success: false as const, error: mapFkError(uPhieu.message) };
-
-    const { error: uTb } = await supabase
-      .from("cssd_dm_thiet_bi")
-      .update({ trang_thai: restore, specs: nextSpecs, updated_at: now })
-      .eq("id", thietBiId);
-    if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
+    const { error } = await supabase.rpc("rpc_cssd_bao_tri_huy", { p_id: id, p_actor_user_id: actor.userId });
+    if (error) return rpcFail(error, "huyBaoTriThietBiAction", actor.userId);
 
     revalidateCssdMaintenanceSurfaces();
     return { success: true as const };
