@@ -253,13 +253,16 @@ export async function listNkbvMedicalRecords(params: {
   if (params.devicePriorityOnly) {
     let devRows: { ma_benh_an?: string | null }[] = [];
     try {
-      devRows = await fetchAllRangeRows((from, to) =>
-        supabase
+      // Lọc ở DB: chỉ ngày dụng cụ của BA còn nằm viện (+ đúng khoa), không tải cả bảng.
+      devRows = await fetchAllRangeRows((from, to) => {
+        let q = supabase
           .from("nkbv_fact_ba_ngay_dung_cu")
-          .select("ma_benh_an")
-          .order("id", { ascending: true })
-          .range(from, to),
-      );
+          .select("ma_benh_an, ba:nkbv_fact_benh_an!inner(ngay_ra_vien, is_active, khoa_dieu_tri_id)")
+          .is("ba.ngay_ra_vien", null)
+          .eq("ba.is_active", true);
+        if (khoaId) q = q.eq("ba.khoa_dieu_tri_id", khoaId);
+        return q.order("id", { ascending: true }).range(from, to);
+      });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Không đọc hết ngày dụng cụ.";
       return { success: false as const, error: msg, data: [], totalCount: 0 };
