@@ -109,6 +109,8 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       authUserId: authData.user?.id,
       email: authData.user?.email || operatorLabel,
     });
+    // Đã cấp phát: quét lại chỉ in lại phiếu, không ghi đè (trigger trg_cssd_guard_cap_phat_khong_ghi_de).
+    const daCapPhat = Boolean(preRow.thoi_gian_cap_phat);
     const nowCap = new Date().toISOString();
     const capUpdate: Record<string, unknown> = {
       thoi_gian_cap_phat: nowCap,
@@ -129,8 +131,10 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
       if (kid) capUpdate.khoa_nhan_id = kid;
     }
-    const { error: capErr } = await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
-    if (capErr) throw new Error(capErr.message);
+    if (!daCapPhat) {
+      const { error: capErr } = await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+      if (capErr) throw new Error(capErr.message);
+    }
     // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
     // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
     if (maCaMoId) {
