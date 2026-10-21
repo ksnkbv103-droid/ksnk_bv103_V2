@@ -5,6 +5,8 @@ import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { readLoTietKhuanId, readIncidentTypeLabel } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export type CssdRcaIncidentRow = {
   id: string;
   moTa: string;
@@ -23,6 +25,8 @@ export type CssdRcaBundle = {
   maLo: string | null;
   ketQuaMe: boolean | null;
   incidents: CssdRcaIncidentRow[];
+  /** Mẻ chưa xác định chắc (đoán theo bộ/ngày) — RCA chỉ tham khảo. */
+  chuaXacDinhMe: boolean;
 };
 
 /** RCA: từ QR / quy trình → mẻ QC + sự cố PROCESS liên quan. */
@@ -36,12 +40,15 @@ export async function fetchCssdRcaBundle(args: {
 
     let quyTrinhId = String(args.quyTrinhId || "").trim();
     let maQr = String(args.maQr || "").trim().toUpperCase();
+    let chuaXacDinhMe = false;
+    if (quyTrinhId && !UUID_RE.test(quyTrinhId)) return { success: false, error: "Mã quy trình không hợp lệ." };
 
     if (!quyTrinhId && maQr) {
       const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr);
       if (link) {
         quyTrinhId = link.quy_trinh_id;
         maQr = link.ma_qr;
+        chuaXacDinhMe = Boolean(link.chua_xac_dinh_me);
       }
     }
     if (!quyTrinhId) return { success: true, data: null };
@@ -101,6 +108,7 @@ export async function fetchCssdRcaBundle(args: {
         maLo,
         ketQuaMe,
         incidents,
+        chuaXacDinhMe,
       },
     };
   } catch (e: unknown) {
@@ -125,6 +133,9 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
     const loId = String(args.loTietKhuanId || "").trim();
     const qtId = String(args.quyTrinhId || "").trim();
     if (!loId && !qtId) return { success: true, cases: [] };
+    if ((loId && !UUID_RE.test(loId)) || (qtId && !UUID_RE.test(qtId))) {
+      return { success: false, error: "Mã mẻ hoặc quy trình không hợp lệ." };
+    }
 
     let q = supabase
       .from("nkbv_fact_su_kien")
