@@ -1,5 +1,5 @@
 -- Siết GHI sổ kho dụng cụ CSSD (cssd_fact_kho_giao_dich) về admin-only.
--- CHƯA APPLY PROD — chờ PO. Local: `npm run mdm:migrate:local`.
+-- Đã apply prod 2026-10-20 (version 20261020231143). Local: `npm run mdm:migrate:local`.
 --
 -- Lỗi (security-auditor): 20260709130000 cho INSERT/UPDATE theo CSSD_KHO_DUNGCU 'edit', DELETE theo 'delete'
 -- → user không phải ADMIN chèn dòng giả / UPDATE is_active=false giấu lịch sử, vòng qua khóa hàm ledger
