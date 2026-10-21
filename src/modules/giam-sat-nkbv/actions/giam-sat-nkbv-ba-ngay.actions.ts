@@ -6,6 +6,7 @@ import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
 import { criteriaKeyToDungCuLoai } from "../lib/nkbv-ba-ngay";
 import { syncNkbvPhieuFromBaNgay } from "../lib/nkbv-ba-ngay-sync";
 import { vnYmd } from "@/lib/format-datetime-vi";
+import { nkbvBaNgayDungCuSchema, nkbvBaNgayKhoaSchema } from "@/lib/validations/giam-sat-nkbv.validations";
 
 /** Re-export cho ba-analysis (cùng entry server). */
 export { syncNkbvPhieuFromBaNgay };
@@ -38,11 +39,9 @@ export async function upsertNkbvBaNgayKhoa(input: {
     { moduleKey: "GIAM_SAT_NKBV", action: "create" },
     { moduleKey: "GIAM_SAT_NKBV", action: "edit" },
   ]);
-  const ma = String(input.ma_benh_an || "").trim();
-  const date = String(input.ngay_lich || "").slice(0, 10);
-  const khoaId = input.khoa_id ? String(input.khoa_id).trim() : "";
-  if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { success: false as const, error: "Ngày không hợp lệ" };
+  const parsed = nkbvBaNgayKhoaSchema.safeParse(input);
+  if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
+  const { ma_benh_an: ma, ngay_lich: date, khoa_id: khoaId } = parsed.data;
 
   const bounds = await stayBounds(ma);
   if (!bounds.ok) return { success: false as const, error: bounds.error };
@@ -93,12 +92,11 @@ export async function toggleNkbvBaNgayDungCu(input: {
     { moduleKey: "GIAM_SAT_NKBV", action: "create" },
     { moduleKey: "GIAM_SAT_NKBV", action: "edit" },
   ]);
-  const ma = String(input.ma_benh_an || "").trim();
-  const date = String(input.ngay_lich || "").slice(0, 10);
-  const loai = criteriaKeyToDungCuLoai(input.criteria_key);
-  if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
+  const parsed = nkbvBaNgayDungCuSchema.safeParse(input);
+  if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
+  const { ma_benh_an: ma, ngay_lich: date } = parsed.data;
+  const loai = criteriaKeyToDungCuLoai(parsed.data.criteria_key);
   if (!loai) return { success: false as const, error: "Loại dụng cụ không hợp lệ" };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { success: false as const, error: "Ngày không hợp lệ" };
 
   const bounds = await stayBounds(ma);
   if (!bounds.ok) return { success: false as const, error: bounds.error };

@@ -8,6 +8,7 @@ import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { giamSatNkbvCaSchema } from "@/lib/validations";
+import { nkbvThamDinhSchema } from "@/lib/validations/giam-sat-nkbv.validations";
 import {
   evaluateBsiClabsi,
   evaluateVaeVap,
@@ -628,6 +629,8 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
 /** KSNK thẩm định: APPROVE → XAC_NHAN chỉ khi is_positive; không-NKBV → LOAI_TRU + lý do tự sinh. */
 export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" | "EXCLUDE", lyDoLoaiTru?: string) {
   await verifyPermission("GIAM_SAT_NKBV", "approve");
+  const parsedIn = nkbvThamDinhSchema.safeParse({ id, decision });
+  if (!parsedIn.success) return { success: false as const, error: parsedIn.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
   const supabase = createAdminSupabaseClient();
 
   try {

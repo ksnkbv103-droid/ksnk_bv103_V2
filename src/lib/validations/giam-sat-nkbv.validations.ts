@@ -49,3 +49,43 @@ export const giamSatNkbvCaSchema = z.object({
 });
 
 export type GiamSatNkbvCaInput = z.infer<typeof giamSatNkbvCaSchema>;
+
+/** Ranh giới action BA (lưới ngày, timeline, nháp phân tích, thẩm định). Thông báo giữ nguyên như kiểm tay cũ. */
+const maBenhAn = z.string({ error: "Thiếu mã bệnh án" }).trim().min(1, "Thiếu mã bệnh án");
+const ngayYmd = (msg: string) =>
+  z
+    .string({ error: msg })
+    .transform((s) => s.slice(0, 10))
+    .pipe(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, msg));
+
+export const nkbvBaNgayKhoaSchema = z.object({
+  ma_benh_an: maBenhAn,
+  ngay_lich: ngayYmd("Ngày không hợp lệ"),
+  khoa_id: z.string().trim().nullish().transform((v) => v || ""),
+});
+
+export const nkbvBaNgayDungCuSchema = z.object({
+  ma_benh_an: maBenhAn,
+  ngay_lich: ngayYmd("Ngày không hợp lệ"),
+  criteria_key: z.string({ error: "Loại dụng cụ không hợp lệ" }),
+  on: z.boolean({ error: "Thiếu trạng thái bật/tắt" }),
+});
+
+export const nkbvBaTimelineDeleteByKeySchema = z.object({
+  ma_benh_an: z.string().trim().min(1, "Thiếu khóa xóa mốc timeline"),
+  milestone_date: ngayYmd("Thiếu khóa xóa mốc timeline"),
+  criteria_key: z.string().trim().min(1, "Thiếu khóa xóa mốc timeline"),
+});
+
+export const nkbvBaPhanTichReplaceSchema = z.object({
+  ma_benh_an: maBenhAn,
+  mode: z.string().optional(),
+  sessions: z.array(z.object({ id: z.string().optional() }).passthrough(), {
+    error: "Danh sách phiên phân tích không hợp lệ",
+  }),
+});
+
+export const nkbvThamDinhSchema = z.object({
+  id: z.string({ error: "Thiếu mã phiếu" }).uuid("Mã phiếu không hợp lệ"),
+  decision: z.enum(["APPROVE", "EXCLUDE"], { error: "Quyết định không hợp lệ" }),
+});

@@ -5,6 +5,7 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { normalizeBaTimelineDbId } from "../lib/nkbv-ba-timeline-id";
 import { isDeviceCriteriaKey } from "../lib/nkbv-criteria-matrix";
+import { nkbvBaTimelineDeleteByKeySchema } from "@/lib/validations/giam-sat-nkbv.validations";
 
 /** Client hub đã patch/reload — không revalidatePath mỗi tick (gây lag RSC). */
 
@@ -193,12 +194,9 @@ export async function softDeleteNkbvBaTimelineByKey(payload: {
     { moduleKey: "GIAM_SAT_NKBV", action: "edit" },
     { moduleKey: "GIAM_SAT_NKBV", action: "delete" },
   ]);
-  const ma = String(payload.ma_benh_an || "").trim();
-  const date = String(payload.milestone_date || "").slice(0, 10);
-  const criteriaKey = String(payload.criteria_key || "").trim();
-  if (!ma || !criteriaKey || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return { success: false as const, error: "Thiếu khóa xóa mốc timeline" };
-  }
+  const parsed = nkbvBaTimelineDeleteByKeySchema.safeParse(payload);
+  if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Thiếu khóa xóa mốc timeline" };
+  const { ma_benh_an: ma, milestone_date: date, criteria_key: criteriaKey } = parsed.data;
   const supabase = createAdminSupabaseClient();
   const { error } = await supabase
     .from("nkbv_fact_ba_timeline")
