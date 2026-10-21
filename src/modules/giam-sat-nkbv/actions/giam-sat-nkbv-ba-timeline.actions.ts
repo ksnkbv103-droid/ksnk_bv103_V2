@@ -1,5 +1,6 @@
 "use server";
 
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { normalizeBaTimelineDbId } from "../lib/nkbv-ba-timeline-id";
@@ -13,6 +14,9 @@ export async function listNkbvBaTimelineManual(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const ma = String(maBenhAn || "").trim();
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án", data: [] as const };
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as const };
+  }
 
   const supabase = await createServerSupabaseUserClient();
   const { data, error } = await supabase

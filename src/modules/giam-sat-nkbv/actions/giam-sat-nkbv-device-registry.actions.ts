@@ -1,5 +1,6 @@
 "use server";
 
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import {
@@ -32,6 +33,9 @@ export type DeviceRegistryRecord = {
 export async function listNkbvDeviceRegistry(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const ma = String(maBenhAn || "").trim();
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as DeviceRegistryRecord[] };
+  }
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("nkbv_v_ba_dung_cu_dat_rut")
