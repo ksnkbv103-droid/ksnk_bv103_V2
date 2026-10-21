@@ -1,6 +1,7 @@
 // src/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions.ts
 "use server";
 
+import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { revalidatePath } from "next/cache";
@@ -140,7 +141,7 @@ export async function smartImportData(
     const isChiTietBom = config.tableName === "cssd_dm_bo_dung_cu_chi_tiet";
     const isNhanSu = config.tableName === "mdm_nhan_su";
     const existingSelect = isLoaiDungCu
-      ? "id, ma_loai"
+      ? "id, ma_loai, is_chiu_nhiet"
       : isChiTietBom
         ? `id, ${config.uniqueKey}, bo_dung_cu_id, loai_dung_cu_id, so_luong, is_active`
         : isNhanSu
@@ -175,6 +176,8 @@ export async function smartImportData(
     }
 
     const existingCodeToId = new Map<string, string>();
+    /** Loại: id → is_chiu_nhiet hiện có (KD-2: phát hiện hạ chịu nhiệt để tách bộ). */
+    const existingLoaiChiuNhiet = new Map<string, boolean>();
     const existingCodes = new Set<string>();
     /** Active (bo|loai) → { id, so_luong } — BOM: 1 loại / bộ. */
     const existingBoLoai = new Map<string, { id: string; so_luong: number }>();
@@ -187,6 +190,9 @@ export async function smartImportData(
           is_active: r.is_active as boolean | null,
           extra_data: r.extra_data,
         });
+      }
+      if (isLoaiDungCu && r.id && typeof r.is_chiu_nhiet === "boolean") {
+        existingLoaiChiuNhiet.set(String(r.id), r.is_chiu_nhiet);
       }
       const val = r[existingCodeField];
       if (val != null && val !== "") {
@@ -357,7 +363,11 @@ export async function smartImportData(
         );
         delete payload[config.uniqueKey];
         if (config.tableName === "cssd_dm_loai_dung_cu") {
-          syncLoaiPhysicalColumnsOnImportPayload(payload, finalCode);
+          const sterileErr = syncLoaiPhysicalColumnsOnImportPayload(payload, finalCode);
+          if (sterileErr) {
+            rowErrors.push(`Dòng ${rowNumber || "?"} (${finalCode}): ${sterileErr}`);
+            continue;
+          }
           applyLoaiKhoDuPhongOnImportPayload(payload, Boolean(existingId));
         }
       }
@@ -495,6 +505,20 @@ export async function smartImportData(
       }
     }
 
+    let heatSplitNotes: string[] = [];
+    if (isLoaiDungCu) {
+      heatSplitNotes = await applyHeatSplitForLoaiChanges(
+        supabase,
+        preparedRows
+          .filter((r) => importedCodes.has(r.code))
+          .map((r) => ({
+            loaiId: String(r.payload.id || ""),
+            prevIsChiuNhiet: existingLoaiChiuNhiet.get(String(r.payload.id || "")),
+            nextIsChiuNhiet: r.payload.is_chiu_nhiet as boolean | undefined,
+          })),
+      );
+    }
+
     const audit = buildAudit(softDeleteMissing ? "sync_full" : "safe");
     console.info("[IMPORT_AUDIT]", JSON.stringify(audit));
     await logAdminAction({
@@ -503,13 +527,14 @@ export async function smartImportData(
       after: { ...audit },
     });
     revalidatePath(QUAN_TRI_HUB_PATH);
+    const warnText =
+      rowWarnings.length > 0
+        ? `Có ${rowWarnings.length} cảnh báo mapping. Ví dụ: ${rowWarnings.slice(0, 3).join(" ; ")}`
+        : undefined;
     return {
       success: true,
       audit,
-      warning:
-        rowWarnings.length > 0
-          ? `Có ${rowWarnings.length} cảnh báo mapping. Ví dụ: ${rowWarnings.slice(0, 3).join(" ; ")}`
-          : undefined,
+      warning: [warnText, ...heatSplitNotes].filter(Boolean).join(" ") || undefined,
     };
   } catch (error: unknown) {
     console.error("[SMART SYNC ERROR]", config.tableName, error);

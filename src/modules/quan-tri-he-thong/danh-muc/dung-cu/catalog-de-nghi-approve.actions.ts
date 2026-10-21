@@ -12,6 +12,7 @@ import {
   type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { applyCatalogDeNghiOverwrite } from "@/lib/master-data/cssd-catalog-de-nghi-apply";
+import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 
 async function requireCatalogApprove() {
@@ -110,8 +111,9 @@ export async function approveCatalogDeNghiAction(id: string) {
     }
 
     const kind = String(claimed.target_kind) as CssdCatalogDeNghiKind;
+    let heatChanges: Awaited<ReturnType<typeof applyCatalogDeNghiOverwrite>> = [];
     try {
-      await applyCatalogDeNghiOverwrite(supabase, {
+      heatChanges = await applyCatalogDeNghiOverwrite(supabase, {
         kind,
         targetId: claimed.target_id ? String(claimed.target_id) : null,
         targetMa: String(claimed.target_ma || ""),
@@ -146,8 +148,19 @@ export async function approveCatalogDeNghiAction(id: string) {
       .eq("id", ticketId)
       .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
     if (updErr) throw new Error(updErr.message);
+    const heatSplitNote =
+      (
+        await applyHeatSplitForLoaiChanges(
+          supabase,
+          heatChanges.map((c) => ({
+            loaiId: c.loaiId,
+            prevIsChiuNhiet: c.prevIsChiuNhiet,
+            nextIsChiuNhiet: c.nextIsChiuNhiet,
+          })),
+        )
+      ).join(" ") || undefined;
     revalidateCssdInventorySurfaces();
-    return { success: true as const };
+    return { success: true as const, heatSplitNote };
   } catch (e: unknown) {
     return {
       success: false as const,

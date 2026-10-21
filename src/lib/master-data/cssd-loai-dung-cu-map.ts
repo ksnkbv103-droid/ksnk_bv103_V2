@@ -80,6 +80,39 @@ export function normalizeSterileMethodForMaster(value: unknown): CssdSterileMeth
   return "STEAM_134";
 }
 
+export type ResolveLoaiSterileMethodResult =
+  | { ok: true; method: CssdSterileMethod }
+  | { ok: false; error: string };
+
+/**
+ * KD-2: tổ hợp hợp lệ giữa «chịu nhiệt» và PP tiệt khuẩn chỉ định.
+ * Không chịu nhiệt chỉ được PLASMA/EO; STEAM_* bị từ chối khi PP được chỉ định rõ,
+ * không chỉ định → giữ PLASMA/EO hiện có, còn lại mặc định PLASMA. Chịu nhiệt giữ như cũ.
+ */
+export function resolveLoaiSterileMethod(input: {
+  isChiuNhiet: boolean;
+  method: unknown;
+  methodExplicit: boolean;
+}): ResolveLoaiSterileMethodResult {
+  const method = normalizeSterileMethodForMaster(input.method);
+  if (input.isChiuNhiet) return { ok: true, method };
+  const steam = method === "STEAM_134" || method === "STEAM_121";
+  if (!steam) return { ok: true, method };
+  if (input.methodExplicit) {
+    return {
+      ok: false,
+      error:
+        "Loại dụng cụ không chịu nhiệt không được tiệt khuẩn bằng hơi nước (134°C/121°C). Chọn Plasma hoặc EO.",
+    };
+  }
+  return { ok: true, method: "PLASMA" };
+}
+
+/** Có giá trị PP do người dùng/tệp chỉ định (không phải ô trống). */
+export function hasExplicitSterileMethod(...values: unknown[]): boolean {
+  return values.some((v) => v !== undefined && v !== null && String(v).trim() !== "");
+}
+
 export function sterileMethodLabel(code: unknown): string {
   switch (normalizeSterileMethodForMaster(code)) {
     case "STEAM_121":
@@ -283,11 +316,17 @@ export function buildLoaiPhysicalUpsertPayload(
     input.phan_loai_spaulding ?? prevSpecs.phan_loai_spaulding,
   );
 
-  const sterile = normalizeSterileMethodForMaster(
+  const rawMethod =
     input.phuong_phap_tiet_khuan_chi_dinh ??
-      input.phuong_phap_tiet_khuan ??
-      prevSpecs.phuong_phap_tiet_khuan,
-  );
+    input.phuong_phap_tiet_khuan ??
+    prevSpecs.phuong_phap_tiet_khuan;
+  const resolved = resolveLoaiSterileMethod({
+    isChiuNhiet,
+    method: rawMethod,
+    methodExplicit: hasExplicitSterileMethod(rawMethod),
+  });
+  if (!resolved.ok) throw new Error(resolved.error);
+  const sterile = resolved.method;
 
   const khaNang = mapIsChiuNhietToKhaNang(isChiuNhiet);
 
@@ -365,7 +404,7 @@ export function normalizeLoaiDungCuExcelImportRow(row: Record<string, unknown>):
 export function syncLoaiPhysicalColumnsOnImportPayload(
   payload: Record<string, unknown>,
   finalCode: string,
-): void {
+): string | null {
   payload.ma_loai = finalCode;
   const specs = (payload.specs as Record<string, unknown>) || {};
   specs.ma_loai_dung_cu = payload.ma_loai;
@@ -382,11 +421,17 @@ export function syncLoaiPhysicalColumnsOnImportPayload(
   const spaulding = normalizeSpauldingForMaster(
     payload.phan_loai_spaulding ?? specs.phan_loai_spaulding,
   );
-  const sterile = normalizeSterileMethodForMaster(
+  const rawMethod =
     payload.phuong_phap_tiet_khuan_chi_dinh ??
-      payload.phuong_phap_tiet_khuan ??
-      specs.phuong_phap_tiet_khuan,
-  );
+    payload.phuong_phap_tiet_khuan ??
+    specs.phuong_phap_tiet_khuan;
+  const resolved = resolveLoaiSterileMethod({
+    isChiuNhiet,
+    method: rawMethod,
+    methodExplicit: hasExplicitSterileMethod(rawMethod),
+  });
+  if (!resolved.ok) return resolved.error;
+  const sterile = resolved.method;
 
   payload.is_chiu_nhiet = isChiuNhiet;
   payload.phan_loai_spaulding = spaulding;
@@ -400,6 +445,7 @@ export function syncLoaiPhysicalColumnsOnImportPayload(
   delete payload.ten_loai_dung_cu;
   delete payload.kha_nang_chiu_nhiet;
   delete payload.phuong_phap_tiet_khuan;
+  return null;
 }
 
 /** Excel nạp loại: CREATE ghi kho ban đầu; UPDATE xóa cột khỏi payload upsert. */

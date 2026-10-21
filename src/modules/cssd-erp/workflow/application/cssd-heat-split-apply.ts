@@ -292,3 +292,37 @@ export function formatHeatSplitToast(result: HeatSplitApplyResult): string | nul
   }
   return parts.join(" ");
 }
+
+export type LoaiHeatChange = {
+  loaiId: string;
+  prevIsChiuNhiet: boolean | null | undefined;
+  nextIsChiuNhiet: boolean | null | undefined;
+};
+
+/**
+ * KD-2: dùng chung cho form, đề nghị và import — loại chịu nhiệt → không chịu nhiệt thì tách bộ
+ * (bộ đang ở trạm luân chuyển bị bỏ qua bên trong applyHeatSplitAfterLoaiDowngrade).
+ * Trả về các ghi chú (không ném lỗi: loại đã lưu).
+ */
+export async function applyHeatSplitForLoaiChanges(
+  supabase: SupabaseClient,
+  changes: LoaiHeatChange[],
+): Promise<string[]> {
+  const notes: string[] = [];
+  for (const c of changes) {
+    try {
+      const res = await applyHeatSplitAfterLoaiDowngrade(
+        supabase,
+        c.loaiId,
+        c.prevIsChiuNhiet,
+        c.nextIsChiuNhiet,
+      );
+      const note = formatHeatSplitToast(res);
+      if (note) notes.push(note);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      notes.push(`Đã lưu loại nhưng tách bộ tự động lỗi: ${msg}`);
+    }
+  }
+  return notes;
+}

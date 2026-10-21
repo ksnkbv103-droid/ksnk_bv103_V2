@@ -4,6 +4,14 @@ import {
   type CssdCatalogDeNghiBomLine,
   type CssdCatalogDeNghiKind,
 } from "@/lib/domain/cssd-catalog-de-nghi";
+import { resolveLoaiSterileMethod } from "@/lib/master-data/cssd-loai-dung-cu-map";
+
+/** Loại đổi chịu nhiệt qua đề nghị — caller gọi tách bộ (module CSSD) sau khi ghi. */
+export type LoaiHeatChangeFromDeNghi = {
+  loaiId: string;
+  prevIsChiuNhiet: boolean | null;
+  nextIsChiuNhiet: boolean;
+};
 
 const BOM_TABLE = "cssd_dm_bo_dung_cu_chi_tiet";
 
@@ -27,12 +35,20 @@ async function insertLoai(
   if (after.hinh_dang != null) specs.hinh_dang = String(after.hinh_dang);
   if (after.kich_thuoc != null) specs.kich_thuoc = String(after.kich_thuoc);
   if (after.cong_dung != null) specs.cong_dung = String(after.cong_dung);
+  const isChiuNhiet = after.is_chiu_nhiet !== false;
+  const rawMethod = after.phuong_phap_tiet_khuan_chi_dinh;
+  const resolved = resolveLoaiSterileMethod({
+    isChiuNhiet,
+    method: rawMethod,
+    methodExplicit: rawMethod != null && String(rawMethod).trim() !== "",
+  });
+  if (!resolved.ok) throw new Error(resolved.error);
   const { error } = await supabase.from("cssd_dm_loai_dung_cu").insert({
     ma_loai: ma,
     ten_loai: ten,
     mo_ta: after.mo_ta != null ? String(after.mo_ta) : null,
-    is_chiu_nhiet: after.is_chiu_nhiet !== false,
-    phuong_phap_tiet_khuan_chi_dinh: String(after.phuong_phap_tiet_khuan_chi_dinh || "STEAM_134"),
+    is_chiu_nhiet: isChiuNhiet,
+    phuong_phap_tiet_khuan_chi_dinh: resolved.method,
     phan_loai_spaulding: String(after.phan_loai_spaulding || "CRITICAL"),
     phan_loai: String(after.phan_loai || "PHAU_THUAT"),
     so_luong_kho_du_phong: Math.max(0, Math.floor(Number(after.so_luong_kho_du_phong) || 0)),
@@ -107,7 +123,7 @@ async function applyLoai(
   targetMa: string,
   payloadAfter: Record<string, unknown>,
   now: string,
-): Promise<void> {
+): Promise<LoaiHeatChangeFromDeNghi | null> {
   const id = String(targetId || "").trim();
   const ma = String(targetMa || asRecord(payloadAfter).ma_loai || "").trim();
   if (!id && !ma) throw new Error("Thiếu loại đích (id hoặc mã).");
@@ -119,34 +135,51 @@ async function applyLoai(
   if (after.hinh_dang != null) specsPatch.hinh_dang = String(after.hinh_dang);
   if (after.kich_thuoc != null) specsPatch.kich_thuoc = String(after.kich_thuoc);
   if (after.cong_dung != null) specsPatch.cong_dung = String(after.cong_dung);
+  if (Object.keys(patch).length <= 1 && !Object.keys(specsPatch).length) {
+    throw new Error("Không có trường loại để ghi đè.");
+  }
+
+  // Đọc hiện trạng: kiểm tổ hợp chịu nhiệt + PP sau patch và biết có hạ chịu nhiệt không.
+  let rq = supabase
+    .from("cssd_dm_loai_dung_cu")
+    .select("id, specs, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh");
+  if (id) rq = rq.eq("id", id);
+  else rq = rq.eq("ma_loai", ma).eq("is_active", true);
+  const { data: curRows, error: curErr } = await rq.limit(2);
+  if (curErr) throw new Error(curErr.message);
+  if (!curRows?.length) throw new Error("Không tìm thấy loại cần ghi đè.");
+  if (curRows.length > 1) throw new Error("Mã loại trùng hơn một dòng — không ghi đè.");
+  const cur = curRows[0] as {
+    id: string;
+    specs: unknown;
+    is_chiu_nhiet: boolean | null;
+    phuong_phap_tiet_khuan_chi_dinh: string | null;
+  };
+
+  const prevIsChiuNhiet = typeof cur.is_chiu_nhiet === "boolean" ? cur.is_chiu_nhiet : null;
+  const nextIsChiuNhiet =
+    typeof patch.is_chiu_nhiet === "boolean" ? patch.is_chiu_nhiet : prevIsChiuNhiet !== false;
+  if (patch.is_chiu_nhiet !== undefined || patch.phuong_phap_tiet_khuan_chi_dinh !== undefined) {
+    const explicit = patch.phuong_phap_tiet_khuan_chi_dinh !== undefined;
+    const resolved = resolveLoaiSterileMethod({
+      isChiuNhiet: nextIsChiuNhiet,
+      method: explicit ? patch.phuong_phap_tiet_khuan_chi_dinh : cur.phuong_phap_tiet_khuan_chi_dinh,
+      methodExplicit: explicit,
+    });
+    if (!resolved.ok) throw new Error(resolved.error);
+    patch.phuong_phap_tiet_khuan_chi_dinh = resolved.method;
+  }
+
   if (Object.keys(specsPatch).length) {
-    let rq = supabase.from("cssd_dm_loai_dung_cu").select("id, specs");
-    if (id) rq = rq.eq("id", id);
-    else rq = rq.eq("ma_loai", ma).eq("is_active", true);
-    const { data: cur, error: curErr } = await rq.limit(1).maybeSingle();
-    if (curErr) throw new Error(curErr.message);
-    if (!cur?.id) throw new Error("Không tìm thấy loại cần ghi đè.");
     const prev =
       cur.specs && typeof cur.specs === "object" && !Array.isArray(cur.specs)
         ? (cur.specs as Record<string, unknown>)
         : {};
     patch.specs = { ...prev, ...specsPatch };
-    const { error } = await supabase
-      .from("cssd_dm_loai_dung_cu")
-      .update(patch)
-      .eq("id", cur.id);
-    if (error) throw new Error(error.message);
-    return;
   }
-
-  if (Object.keys(patch).length <= 1) throw new Error("Không có trường loại để ghi đè.");
-  let uq = supabase.from("cssd_dm_loai_dung_cu").update(patch);
-  if (id) uq = uq.eq("id", id);
-  else uq = uq.eq("ma_loai", ma).eq("is_active", true);
-  const { error, data } = await uq.select("id").limit(2);
+  const { error } = await supabase.from("cssd_dm_loai_dung_cu").update(patch).eq("id", cur.id);
   if (error) throw new Error(error.message);
-  if (!data?.length) throw new Error("Không tìm thấy loại cần ghi đè.");
-  if (data.length > 1) throw new Error("Mã loại trùng hơn một dòng — không ghi đè.");
+  return { loaiId: cur.id, prevIsChiuNhiet, nextIsChiuNhiet };
 }
 
 async function applyBo(
@@ -460,8 +493,9 @@ export async function applyCatalogDeNghiOverwrite(
     payloadAfter: Record<string, unknown>;
     payloadBefore?: Record<string, unknown>;
   },
-): Promise<void> {
+): Promise<LoaiHeatChangeFromDeNghi[]> {
   const now = new Date().toISOString();
+  const heatChanges: LoaiHeatChangeFromDeNghi[] = [];
   const items = normalizeDeNghiItems({
     targetKind: args.kind,
     targetId: args.targetId,
@@ -474,7 +508,10 @@ export async function applyCatalogDeNghiOverwrite(
     const isCreate = it.op === "CREATE";
     if (it.kind === "LOAI") {
       if (isCreate) await insertLoai(supabase, it.after, now);
-      else await applyLoai(supabase, it.targetId || null, String(it.targetMa || ""), it.after, now);
+      else {
+        const ch = await applyLoai(supabase, it.targetId || null, String(it.targetMa || ""), it.after, now);
+        if (ch) heatChanges.push(ch);
+      }
     } else if (it.kind === "BO") {
       if (isCreate) await insertBo(supabase, it.after, now);
       else await applyBo(supabase, it.targetId || null, String(it.targetMa || ""), it.after, now);
@@ -483,4 +520,5 @@ export async function applyCatalogDeNghiOverwrite(
       await applyBom(supabase, it.targetId || null, it.after, now);
     }
   }
+  return heatChanges;
 }
