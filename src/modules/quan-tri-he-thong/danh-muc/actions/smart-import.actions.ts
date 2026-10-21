@@ -16,7 +16,13 @@ import {
   CSSD_ACTIVE_CIRCULATION_TINH_TRANG_OR,
   cssdBoImportDeactivateIds,
 } from "@/lib/domain/cssd-bo-active-cycle";
-import { RANGE_IN_CHUNK } from "@/lib/fetch-all-range";
+import { fetchAllRangeRows, RANGE_IN_CHUNK } from "@/lib/fetch-all-range";
+import { logAdminAction } from "@/lib/admin-audit";
+import {
+  bomReplaceQty,
+  mergeImportSpecs,
+  smartImportRowsSchema,
+} from "../lib/smart-import/smart-import-rules";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { randomUUID } from "crypto";
 import {
@@ -94,8 +100,12 @@ export async function smartImportData(
   const softDeleteMissing = options?.softDeleteMissing === true;
   const dryRun = options?.dryRun === true;
   try {
-    if (!Array.isArray(data) || data.length === 0) {
-      return { success: false, error: "File import không có dữ liệu hợp lệ." };
+    const parsedRows = smartImportRowsSchema.safeParse(data);
+    if (!parsedRows.success) {
+      return {
+        success: false,
+        error: `File import không hợp lệ: ${parsedRows.error.issues[0]?.message ?? "dữ liệu sai định dạng"}.`,
+      };
     }
     if (!isSmartImportTable(config.tableName)) {
       return { success: false, error: `Bảng không được phép Smart Import: ${config.tableName}` };
@@ -138,17 +148,31 @@ export async function smartImportData(
           : `id, ${config.uniqueKey}`;
     const existingCodeField = isLoaiDungCu ? "ma_loai" : config.uniqueKey;
 
-    let query = supabase.from(existingReadTable).select(existingSelect);
-    if (config.fixedValues) {
-      Object.entries(config.fixedValues).forEach(([k, v]) => {
-        query = query.eq(k, v);
-      });
+    // Đọc đủ mọi trang (PostgREST cắt 1000 dòng/lần), sắp theo id để phân trang ổn định.
+    const existingRecords = (await fetchAllRangeRows((from, to) => {
+      let q = supabase.from(existingReadTable).select(existingSelect);
+      if (config.fixedValues) {
+        Object.entries(config.fixedValues).forEach(([k, v]) => {
+          q = q.eq(k, v);
+        });
+      }
+      return q.order("id", { ascending: true }).range(from, to);
+    })) as unknown as Record<string, unknown>[];
+
+    // Bảng hybrid: nạp specs hiện có để merge, không ghi đè mất khóa cũ.
+    const existingSpecsById = new Map<string, unknown>();
+    if (config.tableName in VIEW_MAP_FOR_READ) {
+      const specRows = await fetchAllRangeRows((from, to) =>
+        supabase
+          .from(config.tableName)
+          .select("id, specs")
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+      (specRows as unknown as Array<{ id: string; specs: unknown }>).forEach((r) =>
+        existingSpecsById.set(String(r.id), r.specs),
+      );
     }
-    const { data: existingData } = await query;
-    const existingRecords = (Array.isArray(existingData) ? existingData : []) as unknown as Record<
-      string,
-      unknown
-    >[];
 
     const existingCodeToId = new Map<string, string>();
     const existingCodes = new Set<string>();
@@ -228,6 +252,7 @@ export async function smartImportData(
         scopeSafeRest as Record<string, unknown>,
         rowNumber,
         nhanSuDmSessionCache,
+        { dryRun },
       );
       if (!scoped.ok) {
         rowErrors.push(scoped.error);
@@ -289,14 +314,12 @@ export async function smartImportData(
           if (hit) {
             existingId = hit.id;
             payloadId = hit.id;
-            const incoming = Math.max(
-              1,
-              Math.floor(Number((scopeSafeRest as Record<string, unknown>).so_luong) || 1),
-            );
-            chiTietAddOntoQty = hit.so_luong + incoming;
-            existingBoLoai.set(`${bo}|${loai}`, { id: hit.id, so_luong: chiTietAddOntoQty });
+            // THAY THẾ theo file (idempotent), không cộng dồn.
+            const incoming = bomReplaceQty((scopeSafeRest as Record<string, unknown>).so_luong);
+            chiTietAddOntoQty = incoming;
+            existingBoLoai.set(`${bo}|${loai}`, { id: hit.id, so_luong: incoming });
             rowWarnings.push(
-              `Dòng ${rowNumber || "?"}: trùng (bộ+loại) với dòng đã có — cộng SL (${hit.so_luong}+${incoming}=${chiTietAddOntoQty}).`,
+              `Dòng ${rowNumber || "?"}: trùng (bộ+loại) với dòng đã có — thay SL (${hit.so_luong} → ${incoming}).`,
             );
           }
         }
@@ -326,9 +349,12 @@ export async function smartImportData(
       // If hybrid JSONB table, pack the unique key into specs and delete the flat key
       const isHybrid = config.tableName in VIEW_MAP_FOR_READ;
       if (isHybrid) {
-        const specs = (payload.specs as Record<string, unknown>) || {};
-        specs[config.uniqueKey] = finalCode;
-        payload.specs = specs;
+        payload.specs = mergeImportSpecs(
+          existingId ? existingSpecsById.get(existingId) : undefined,
+          payload.specs,
+          config.uniqueKey,
+          finalCode,
+        );
         delete payload[config.uniqueKey];
         if (config.tableName === "cssd_dm_loai_dung_cu") {
           syncLoaiPhysicalColumnsOnImportPayload(payload, finalCode);
@@ -353,12 +379,10 @@ export async function smartImportData(
           const prevIdx = preparedIndexByBoLoai.get(boLoaiKey);
           if (prevIdx !== undefined) {
             const prev = preparedRows[prevIdx]!;
-            const prevQty = Math.max(0, Math.floor(Number(prev.payload.so_luong) || 0));
-            const addQty = Math.max(1, Math.floor(Number(payload.so_luong) || 1));
-            prev.payload.so_luong = prevQty + addQty;
+            prev.payload.so_luong = bomReplaceQty(payload.so_luong);
             prev.rowNumber = rowNumber;
             rowWarnings.push(
-              `Dòng ${rowNumber || "?"}: trùng (bộ+loại) trong file với dòng trước — cộng SL thành ${prev.payload.so_luong}.`,
+              `Dòng ${rowNumber || "?"}: trùng (bộ+loại) trong file với dòng trước — lấy SL dòng sau (${prev.payload.so_luong}).`,
             );
             continue;
           }
@@ -473,6 +497,11 @@ export async function smartImportData(
 
     const audit = buildAudit(softDeleteMissing ? "sync_full" : "safe");
     console.info("[IMPORT_AUDIT]", JSON.stringify(audit));
+    await logAdminAction({
+      action: "SMART_IMPORT",
+      targetTable: config.tableName,
+      after: { ...audit },
+    });
     revalidatePath(QUAN_TRI_HUB_PATH);
     return {
       success: true,

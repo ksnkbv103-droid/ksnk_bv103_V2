@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { UUID_RE } from "./smart-import-resolvers-shared";
+import { dryRunParentPlaceholderId } from "../lib/smart-import/smart-import-rules";
 
 export async function resolveBoDungCuIdForImport(
   supabase: SupabaseClient,
   row: Record<string, unknown>,
+  opts?: { dryRun?: boolean },
 ): Promise<{ ok: true; row: Record<string, unknown> } | { ok: false; error: string }> {
   const sb = supabase;
   const out = { ...row };
@@ -39,6 +41,10 @@ export async function resolveBoDungCuIdForImport(
     const autoMa = (maLookup || tenBo || boRaw || "").trim().toUpperCase();
     if (!autoMa)
       return { ok: false, error: `Không tìm thấy bộ cha từ bo_dung_cu_id/ma_bo_cha/ten_bo_cha (${boRaw || maBo || tenBo}).` };
+    if (opts?.dryRun) {
+      // Dry-run không ghi gì: không tạo bộ cha, dùng id giữ chỗ.
+      return { ok: true, row: { ...out, bo_dung_cu_id: dryRunParentPlaceholderId(autoMa) } };
+    }
     const { data: created, error } = await sb
       .from("cssd_dm_bo_dung_cu")
       .insert([{ ma_bo: autoMa, ten_bo: `Bộ ${autoMa}`, trang_thai: "ACTIVE", is_active: true }])

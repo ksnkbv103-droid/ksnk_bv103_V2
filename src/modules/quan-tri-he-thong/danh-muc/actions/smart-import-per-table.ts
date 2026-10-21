@@ -33,11 +33,12 @@ export async function resolveSmartImportScopeForTable(
   scopeSafeRest: Record<string, unknown>,
   rowNumber: number,
   nhanSuDmSessionCache?: SmartImportDmSessionCache,
+  opts?: { dryRun?: boolean },
 ): Promise<ScopeResolveResult> {
   let row = scopeSafeRest;
   if (tableName === "cssd_dm_bo_dung_cu_chi_tiet") {
     row = normalizeDmBoDungCuChiTiet(row);
-    const resolved = await resolveBoDungCuIdForImport(supabase, row);
+    const resolved = await resolveBoDungCuIdForImport(supabase, row, opts);
     if (!resolved.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolved.error}` };
     row = resolved.row;
     const resolvedLoai = await resolveLoaiDungCuForChiTietImport(supabase, row);
