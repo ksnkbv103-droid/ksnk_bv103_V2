@@ -4,21 +4,16 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
-import { applyApprovedBomLines } from "@/lib/master-data/cssd-set-bom-apply-core";
 import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
 import {
-  BOM_APPROVE_CLAIM_STATUS,
-  BOM_APPROVE_FAILED_STATUS,
   canClaimBomApprove,
   canRejectBomApprove,
   isBomApproveHistoryStatus,
-  rejectMoveOnlyKindsOnReconcile,
 } from "@/lib/domain/cssd-set-reconcile";
 import { formatCatalogApprovalDiff } from "@/lib/domain/cssd-catalog-master-write";
 import {
   parseSetReconcileSnapshot,
-  readSetReconcileBoId,
   readSetReconcileStatus,
 } from "../domain/cssd-set-reconcile-attrs";
 
@@ -145,47 +140,19 @@ export async function approveSetReconcileBomAction(incidentId: string) {
       authUserId: String(attrs.REPORTER_AUTH_USER_ID || "").trim() || null,
     });
     if (!gate.ok) return { success: false as const, error: gate.error };
-    const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
-    const boId = readSetReconcileBoId(attrs) || snap?.boDungCuId;
-    if (!snap || !boId) return { success: false as const, error: "Thiếu ảnh bảng thành phần." };
-    const moveErr = rejectMoveOnlyKindsOnReconcile(snap.lines);
-    if (moveErr) return { success: false as const, error: moveErr };
-
-    const claimAttrs = { ...attrs, SET_RECONCILE_STATUS: BOM_APPROVE_CLAIM_STATUS };
-    const { data: claimed, error: claimErr } = await supabase
-      .from("cssd_fact_su_co")
-      .update({ attributes: claimAttrs, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .contains("attributes", { SET_RECONCILE_STATUS: "BOM_PENDING" })
-      .select("id")
-      .maybeSingle();
-    if (claimErr) throw new Error(claimErr.message);
-    if (!claimed?.id) return { success: false as const, error: CLAIMED_MSG };
-
-    try {
-      await applyApprovedBomLines(supabase, boId, catalogLinesOf(snap.lines));
-    } catch (applyErr: unknown) {
-      const failAttrs = { ...claimAttrs, SET_RECONCILE_STATUS: BOM_APPROVE_FAILED_STATUS };
-      await supabase
-        .from("cssd_fact_su_co")
-        .update({ attributes: failAttrs, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .contains("attributes", { SET_RECONCILE_STATUS: BOM_APPROVE_CLAIM_STATUS });
-      return {
-        success: false as const,
-        error: applyErr instanceof Error ? applyErr.message : "Không áp dụng được bảng thành phần.",
-      };
+    // KD-1: claim → apply → mark gộp một giao dịch DB; lỗi → rollback, phiếu giữ BOM_PENDING.
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("fn_cssd_apply_bom_lines_tx", {
+      p_incident_id: id,
+      p_approver_auth_user_id: approver.authUserId,
+      p_approver_is_admin: approver.isAdmin,
+    });
+    if (rpcErr) {
+      // P0001 = RAISE EXCEPTION trong RPC (thông báo đã là tiếng Việt cho người dùng).
+      if (rpcErr.code === "P0001" && rpcErr.message) return { success: false as const, error: rpcErr.message };
+      console.error({ module: "cssd-su-co", action: "approveSetReconcileBom", error: rpcErr.message });
+      return { success: false as const, error: "Không áp dụng được bảng thành phần. Phiếu vẫn chờ duyệt — thử lại sau." };
     }
-
-    const nextAttrs = { ...claimAttrs, SET_RECONCILE_STATUS: "BOM_APPROVED" };
-    const patch: Record<string, unknown> = { attributes: nextAttrs, updated_at: new Date().toISOString() };
-    if (gate.approvedById) patch.nguoi_xac_nhan_id = gate.approvedById;
-    const { error: updErr } = await supabase
-      .from("cssd_fact_su_co")
-      .update(patch)
-      .eq("id", id)
-      .contains("attributes", { SET_RECONCILE_STATUS: BOM_APPROVE_CLAIM_STATUS });
-    if (updErr) throw new Error(updErr.message);
+    if (!rpcData) return { success: false as const, error: CLAIMED_MSG };
     revalidateCssdIncidentSurfaces();
     revalidateCssdInventorySurfaces();
     return { success: true as const };

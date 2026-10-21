@@ -103,7 +103,7 @@ async function resolveDoiLoaiLine(
 /**
  * Áp đề nghị đổi sổ chuẩn sau khi admin duyệt phiếu.
  * KD-1: đọc + kiểm + lập kế hoạch cho TOÀN BỘ dòng trước, chỉ ghi khi hợp lệ; DOI_LOAI sang loại đã có
- * trong bộ → gộp trước (không chạm unique index). Vẫn nhiều câu lệnh — chưa nguyên tử (cần RPC transaction).
+ * trong bộ → gộp trước (không chạm unique index). Không còn caller: duyệt thật đã chuyển sang RPC `fn_cssd_apply_bom_lines_tx` (nguyên tử); giữ làm đặc tả cho spec.
  */
 export async function applyApprovedBomLines(
   supabase: SupabaseClient,
