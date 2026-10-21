@@ -11,7 +11,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-labels";
-import { isNkbvCaTrangThaiChot } from "../lib/nkbv-ba-ngay";
+import { isNkbvCaTrangThaiChot, resolveKhoaQuyKet } from "../lib/nkbv-ba-ngay";
 import { bareViSinhIdFromMilestoneId } from "../lib/nkbv-vi-sinh-analysis-status";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
@@ -309,6 +309,20 @@ export async function ensureNkbvBaAnalysisCase(input: {
         error: e instanceof Error && e.message ? e.message : "Khoa ghi nhận không hợp lệ hoặc đã ngừng sử dụng",
       };
     }
+  }
+
+  // Khoa quy kết do server tính từ lưới ngày; khoa client chỉ là dự phòng khi lưới chưa phủ ngày Index
+  {
+    const { data: luoi } = await supabase
+      .from("nkbv_fact_ba_ngay_khoa")
+      .select("ngay_lich, khoa_id")
+      .eq("ma_benh_an", maBa);
+    const fromGrid = resolveKhoaQuyKet(
+      (luoi || []).map((r) => ({ ngay_lich: String(r.ngay_lich).slice(0, 10), khoa_id: String(r.khoa_id) })),
+      null,
+      indexDate,
+    );
+    if (fromGrid) khoaId = fromGrid;
   }
 
   void getActorNhanSuId;

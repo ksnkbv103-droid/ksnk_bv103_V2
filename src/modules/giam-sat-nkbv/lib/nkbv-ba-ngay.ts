@@ -206,6 +206,19 @@ export function eventDateFromVerification(
   return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
 }
 
+/**
+ * Khoa quy kết của ca = khoa trên lưới ngày tại (hoặc trước gần nhất) ngày DOE; null nếu lưới không phủ.
+ * Server tự tính — không tin khoa do client gửi khi lưới đã có dữ liệu.
+ */
+export function resolveKhoaQuyKet(
+  khoaRows: NkbvNgayKhoaRow[],
+  vd: Record<string, unknown> | null | undefined,
+  ngayPhatHien: string | null,
+): string | null {
+  const doe = eventDateFromVerification(vd, ngayPhatHien ? String(ngayPhatHien).slice(0, 10) : null);
+  return doe ? khoaIdOnOrBefore(khoaIdByDateMap(khoaRows), doe) : null;
+}
+
 /** Trạng thái đã chốt thẩm định — sync lưới / kích hoạt lại không được đụng (khớp trigger `trg_nkbv_su_kien_guard_trang_thai`). */
 export const NKBV_CA_TRANG_THAI_CHOT = ["XAC_NHAN", "LOAI_TRU", "DA_DONG"] as const;
 

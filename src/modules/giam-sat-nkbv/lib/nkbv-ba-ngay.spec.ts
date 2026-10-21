@@ -7,8 +7,25 @@ import {
   khoaIdOnOrBefore,
   locationDaysToTreatmentHistory,
   nkbvVnDateStartIso,
+  resolveKhoaQuyKet,
   stripCopiedStayFieldsFromVerification,
 } from "./nkbv-ba-ngay";
+
+describe("resolveKhoaQuyKet", () => {
+  const rows = [
+    { ngay_lich: "2026-08-01", khoa_id: "k1" },
+    { ngay_lich: "2026-08-03", khoa_id: "k2" },
+  ];
+  it("dùng DOE trong verification_data trước, rồi ngày phát hiện", () => {
+    expect(resolveKhoaQuyKet(rows, { cdc_metrics: { doe: "2026-08-02" } }, "2026-08-05")).toBe("k1");
+    expect(resolveKhoaQuyKet(rows, {}, "2026-08-05")).toBe("k2");
+  });
+  it("lưới chưa phủ hoặc không có ngày → null", () => {
+    expect(resolveKhoaQuyKet(rows, {}, "2026-07-30")).toBeNull();
+    expect(resolveKhoaQuyKet([], {}, "2026-08-05")).toBeNull();
+    expect(resolveKhoaQuyKet(rows, {}, null)).toBeNull();
+  });
+});
 
 describe("nkbv-ba-ngay", () => {
   it("đếm ngày thở máy trên lưới, không đếm Foley", () => {
