@@ -3,7 +3,7 @@
 --
 -- Lỗi (security-auditor): 20260709130000 cho INSERT/UPDATE theo CSSD_KHO_DUNGCU 'edit', DELETE theo 'delete'
 -- → user không phải ADMIN chèn dòng giả / UPDATE is_active=false giấu lịch sử, vòng qua khóa hàm ledger
--- của 20261012100000. Bảng không có trigger.
+-- của 20261012163313. Bảng không có trigger.
 -- App: mọi ghi đi qua hàm DEFINER fn_cssd_*/rpc_* hoặc createAdminSupabaseClient (service_role) → đều bỏ qua RLS.
 -- SELECT giữ nguyên (admin hoặc CSSD_KHO_DUNGCU 'view').
 -- Grant: thu INSERT/UPDATE/DELETE/TRUNCATE/TRIGGER/REFERENCES của anon (không có policy anon);

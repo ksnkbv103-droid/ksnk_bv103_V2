@@ -660,7 +660,7 @@ CREATE UNIQUE INDEX uq_cssd_fact_lo_mo_mot_may
     AND thiet_bi_id IS NOT NULL
     AND coalesce(trang_thai_me, '') NOT IN ('CHO_BI', 'HOAN_THANH', 'QC_KHONG_DAT', 'THU_HOI');
 
--- CHƯA APPLY PROD — chờ PO. (ME-10 20261010160000 đã apply prod 10/10 → prod có thể có mẻ kẹt.)
+-- Đã apply prod 2026-10-21 (version 20261021003302). Prod trước apply: 0 mẻ QC_KHONG_DAT còn ket_qua_test NULL, 0 máy vướng mẻ mở. Truy vấn tham chiếu:
 -- Kiểm prod TRƯỚC khi apply (chỉ đọc):
 --   SELECT m.id, m.ma_lo_tiet_khuan, m.trang_thai_me, m.trang_thai_bi, m.updated_at,
 --          tb.ten_thiet_bi, tb.trang_thai AS trang_thai_may

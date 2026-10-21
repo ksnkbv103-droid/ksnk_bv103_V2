@@ -1,5 +1,5 @@
 -- Lát K1 (rà soát kho dụng cụ 2026-10-12): khóa hàm nội bộ ghi sổ + ràng buộc dấu số lượng.
--- CHƯA APPLY PROD — chờ PO duyệt (prod qua MCP apply_migration).
+-- Đã apply prod (version 20261012163313) qua MCP apply_migration.
 --
 -- Lỗi: baseline cấp EXECUTE mặc định cho anon/authenticated; migration 20260925010536 chỉ REVOKE FROM PUBLIC
 -- nên 9 hàm SECURITY DEFINER bên trong vẫn gọi được qua PostgREST /rpc. Hàm `fn_cssd_apply_instrument_ledger_tx`

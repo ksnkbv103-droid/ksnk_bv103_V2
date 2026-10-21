@@ -1,5 +1,5 @@
 -- Lát SEC-1 (handover-roadmap §5): thu quyền EXECUTE + siết RLS — gộp để lên prod một lần.
--- CHƯA APPLY PROD — chờ PO. Local: `npm run mdm:migrate:local`.
+-- Đã apply prod 2026-10-21 (version 20261021003002) qua MCP apply_migration. Local: `npm run mdm:migrate:local`.
 --
 -- Đã grep app trước từng mục (app ghi qua admin client = service_role, BYPASSRLS):
 --  1) rpc_dashboard_vst_strategic_analytics_impl: chỉ src/lib/analytics/strategic-analytics-cache.ts (admin client);
@@ -262,7 +262,7 @@ WITH (security_invoker = true) AS
 COMMIT;
 
 -- ===========================================================================
--- CHƯA APPLY PROD — chờ PO. Trước khi apply prod, chạy kiểm rủi ro khóa admin:
+-- Đã apply prod 2026-10-21; đã kiểm trước (1 ADMIN hồ sơ active, tên FK khớp) và sau (quyền EXECUTE, policy, FK RESTRICT) apply. Truy vấn tham chiếu:
 --   SELECT ur.user_id, ns.id, ns.is_active FROM sys_user_roles ur JOIN sys_roles r ON r.id = ur.role_id
 --     LEFT JOIN mdm_nhan_su ns ON ns.auth_user_id = ur.user_id
 --    WHERE r.name = 'ADMIN' AND (ns.id IS NULL OR ns.is_active IS NOT TRUE);   -- phải 0 dòng (hoặc PO chấp nhận)
