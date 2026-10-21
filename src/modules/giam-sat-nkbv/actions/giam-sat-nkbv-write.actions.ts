@@ -24,6 +24,7 @@ import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import {
   clean,
+  callThamDinhRpc,
   releaseViSinhStampsAfterHide,
   validateLoaiTrangAndLyDo,
   type Payload,
@@ -73,10 +74,18 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     fieldLabel: "Khoa ghi nhận",
     activeOnly: true,
   });
-  if (!raw.loai_nkbv_id || !raw.trang_thai_id) return { success: false as const, error: "Vui lòng chọn loại NKBV và trạng thái phiếu" };
+  if (!raw.loai_nkbv_id) return { success: false as const, error: "Vui lòng chọn loại NKBV" };
 
   try {
-    await validateLoaiTrangAndLyDo(supabase, String(raw.loai_nkbv_id), String(raw.trang_thai_id), raw.ly_do_loai_tru);
+    // NK-AUTH: form sửa không đổi trạng thái; trạng thái chốt chỉ qua rpc_nkbv_tham_dinh_ca.
+    const { data: cur, error: curErr } = await supabase
+      .from("nkbv_fact_su_kien")
+      .select("trang_thai_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (curErr) throw curErr;
+    if (!cur?.trang_thai_id) return { success: false as const, error: "Không tìm thấy phiếu" };
+    await validateLoaiTrangAndLyDo(supabase, String(raw.loai_nkbv_id), String(cur.trang_thai_id), raw.ly_do_loai_tru);
     
     const actorNhanSuId = await getActorNhanSuId();
     const finalNguoiGhiId = raw.nguoi_ghi_id || actorNhanSuId;
@@ -101,7 +110,6 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
         ly_do_loai_tru: raw.ly_do_loai_tru ?? (raw.clinical_notes as any)?.ly_do_loai_tru ?? null,
       },
       loai_nkbv_id: String(raw.loai_nkbv_id),
-      trang_thai_id: String(raw.trang_thai_id),
       nguoi_ghi_id: raw.nguoi_ghi_id ?? null,
       updated_at: new Date().toISOString(),
       ma_benh_an: raw.ma_benh_an ?? null,
@@ -167,14 +175,6 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     if (viTriNhiemKhuan === "LOAI_TRU") {
       // Loại trừ ca = thẩm định của KSNK (SSOT NKBV §4.1) — cần quyền approve, không chỉ edit.
       await verifyPermission("GIAM_SAT_NKBV", "approve");
-      const excludeStatus = await supabase
-        .from("nkbv_dm_trang_thai_ca")
-        .select("id")
-        .eq("ma_trang_thai", "LOAI_TRU")
-        .eq("is_active", true)
-        .maybeSingle()
-        .then((r) => r.data);
-
       const { data: prevCa } = await supabase
         .from("nkbv_fact_su_kien")
         .select("clinical_notes")
@@ -198,22 +198,12 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         ...(ghiChu ? { ghi_chu_tuy_bien: ghiChu } : {}),
       };
 
-      if (!excludeStatus?.id) {
-        return { success: false as const, error: "Thiếu danh mục trạng thái LOAI_TRU — liên hệ quản trị." };
-      }
-
-      const { data, error: updateErr } = await supabase
-        .from("nkbv_fact_su_kien")
-        .update({
-          trang_thai_id: excludeStatus.id,
-          clinical_notes: updatedNotes,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .select()
-        .single();
-      
-      if (updateErr) throw updateErr;
+      const data = await callThamDinhRpc(supabase, {
+        id,
+        decision: "EXCLUDE",
+        lyDo: lyDoLoaiTru,
+        notesPatch: updatedNotes,
+      });
       revalidatePath("/giam-sat-nkbv");
       return { success: true as const, data, evaluation: { is_positive: false, classification: "LOAI_TRU", reason: "Phán quyết loại trừ ca bệnh." } };
     }
@@ -663,39 +653,11 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
       };
     }
 
-    const statusCode = decision === "APPROVE" ? "XAC_NHAN" : "LOAI_TRU";
-    const { data: lookupStatus, error: lErr } = await supabase
-      .from("nkbv_dm_trang_thai_ca")
-      .select("id")
-      .eq("ma_trang_thai", statusCode)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (lErr) throw lErr;
-    if (!lookupStatus) throw new Error(`Không tìm thấy trạng thái ${statusCode}.`);
-
-    const existingNotes =
-      ca?.clinical_notes && typeof ca.clinical_notes === "object" ? ca.clinical_notes : {};
-    const autoReason = nkbvNonHaiCloseReason(classification);
-    const updatedNotes = {
-      ...existingNotes,
-      ly_do_loai_tru:
-        decision === "EXCLUDE"
-          ? (lyDoLoaiTru?.trim() || autoReason)
-          : null,
-    };
-
-    const { data, error: updateErr } = await supabase
-      .from("nkbv_fact_su_kien")
-      .update({
-        trang_thai_id: lookupStatus.id,
-        clinical_notes: updatedNotes,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (updateErr) throw updateErr;
+    const data = await callThamDinhRpc(supabase, {
+      id,
+      decision,
+      lyDo: decision === "EXCLUDE" ? lyDoLoaiTru?.trim() || nkbvNonHaiCloseReason(classification) : null,
+    });
 
     revalidatePath("/giam-sat-nkbv");
     return { success: true as const, data };

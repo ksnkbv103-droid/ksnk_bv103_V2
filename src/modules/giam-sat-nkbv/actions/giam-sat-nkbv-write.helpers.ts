@@ -1,5 +1,5 @@
 import { isAllowedNkbvMdmLoaiCode } from "../lib/nkbv-loai-labels";
-import type { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseUserClient, type createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
   metadataWithoutCaseAnalysisStamp,
   shouldReleaseDaPhanTichOnHide,
@@ -7,6 +7,28 @@ import {
 } from "../lib/nkbv-hide-case-vi-sinh";
 
 export type Payload = Record<string, unknown>;
+
+/** NK-AUTH: mọi thay đổi sang XAC_NHAN/LOAI_TRU đi qua RPC (kiểm trạng thái, lý do, chặn tự duyệt, ghi người/giờ duyệt). */
+export async function callThamDinhRpc(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  args: { id: string; decision: "APPROVE" | "EXCLUDE"; lyDo?: string | null; notesPatch?: Record<string, unknown> | null },
+) {
+  const uc = await createServerSupabaseUserClient();
+  const { data: au } = await uc.auth.getUser();
+  const userId = au.user?.id ? String(au.user.id) : "";
+  if (!userId) throw new Error("Không xác định được người thẩm định.");
+  const { error } = await supabase.rpc("rpc_nkbv_tham_dinh_ca", {
+    p_id: args.id,
+    p_decision: args.decision,
+    p_ly_do: args.lyDo ?? null,
+    p_notes_patch: args.notesPatch ?? null,
+    p_actor_user_id: userId,
+  });
+  if (error) throw new Error(error.message);
+  const { data, error: readErr } = await supabase.from("nkbv_fact_su_kien").select().eq("id", args.id).single();
+  if (readErr) throw new Error(readErr.message);
+  return data;
+}
 
 export function clean(payload: Payload): Payload {
   const o = { ...payload };

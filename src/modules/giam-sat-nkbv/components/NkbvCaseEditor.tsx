@@ -155,7 +155,9 @@ export default function NkbvCaseEditor({
         return;
       }
     }
-    onSubmit({ ...form });
+    // NK-AUTH: không gửi trạng thái — server giữ nguyên trạng thái hiện tại.
+    const { trang_thai_id: _unusedTrangThai, ...payload } = form;
+    onSubmit(payload);
   };
 
   const title = row?.id ? "Sửa phiếu xác định ca NKBV" : "Ghi nhận phiếu xác định ca NKBV / HAI";
@@ -310,26 +312,19 @@ export default function NkbvCaseEditor({
               </select>
             </div>
             <div>
-              <label className={C.formLabel}>Trạng thái phiếu *</label>
-              <select
-                value={form.trang_thai_id}
-                onChange={(e) => setForm({ ...form, trang_thai_id: e.target.value })}
-                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
-              >
-                {trangThaiRows.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.ten}
-                  </option>
-                ))}
-              </select>
+              <label className={C.formLabel}>Trạng thái phiếu</label>
+              <div className="w-full rounded-[var(--radius-shell)] bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+                {trangThaiRows.find((t) => t.id === form.trang_thai_id)?.ten || "—"}
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Trạng thái chỉ đổi qua checklist lâm sàng và thẩm định KSNK.</p>
             </div>
           </div>
           {ttMa === "LOAI_TRU" && (
             <div>
-              <label className={` text-red-600`}>Lý do loại trừ *</label>
+              <label className={` text-red-600`}>Lý do loại trừ</label>
               <textarea
                 value={form.ly_do_loai_tru}
-                onChange={(e) => setForm({ ...form, ly_do_loai_tru: e.target.value })}
+                readOnly
                 rows={2}
                 className="w-full rounded-[var(--radius-shell)] border-0 bg-red-50/40 px-4 py-3 text-sm"
               />
