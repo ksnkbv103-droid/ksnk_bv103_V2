@@ -11,6 +11,7 @@ import {
 } from "@/lib/supervision-mutation-window";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { logAdminAction } from "@/lib/admin-audit";
+import { normalizeSessionIds } from "@/lib/normalize-session-ids";
 
 const VST_OWNER_ONLY_VI = "Chỉ người giám sát đã ghi nhận phiên này mới được sửa hoặc xóa.";
 
@@ -24,7 +25,9 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "delete");
-    const ids = (sessionIds || []).map(String).filter(Boolean);
+    const norm = normalizeSessionIds(sessionIds);
+    if (!norm.ok) return { success: false, error: norm.error };
+    const ids = norm.ids;
     if (!ids.length) return { success: true };
 
     const lyDo = String(opts?.lyDo ?? "").trim();
