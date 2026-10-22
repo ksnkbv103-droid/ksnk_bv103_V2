@@ -19,6 +19,7 @@ export default defineConfig({
       "src/modules/cssd-su-co/application/**/*.spec.ts",
       "src/modules/cssd-erp/shared/**/*.spec.ts",
       "src/modules/cssd-erp/helpers/**/*.spec.ts",
+      "src/modules/cssd-erp/actions/**/*.spec.ts",
       "src/app/**/*.spec.ts",
       "src/modules/cssd-erp/lib/**/*.spec.ts",
       "src/lib/**/*.spec.ts",
