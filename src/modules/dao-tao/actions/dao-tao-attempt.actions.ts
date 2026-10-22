@@ -21,6 +21,11 @@ import {
   saveTraLoiInputSchema,
 } from "@/lib/dao-tao/schemas";
 import { randomUUID } from "crypto";
+import {
+  isWithinLuot,
+  summarizeLuot,
+  TRANG_THAI_TIEU_LUOT,
+} from "@/modules/dao-tao/lib/dao-tao-luot";
 
 const LATE_GRACE_MS = 30_000;
 
@@ -234,16 +239,18 @@ export async function listKyThiThatCuaToi() {
   for (const ky of published ?? []) {
     const ok = await canAccessKyThiThat(admin, user.id, ky);
     if (!ok) continue;
-    const { count } = await admin
+    const { data: luotRows, error: luotErr } = await admin
       .from("dao_tao_lan_thi")
-      .select("id", { count: "exact", head: true })
+      .select("id, trang_thai")
       .eq("cau_hinh_id", ky.id)
       .eq("auth_user_id", user.id)
-      .in("trang_thai", ["da_nop", "het_gio"]);
+      .in("trang_thai", [...TRANG_THAI_TIEU_LUOT]);
+    if (luotErr) throw luotErr;
+    const luot = summarizeLuot(luotRows ?? [], ky.so_lan_cho_phep);
     out.push({
       ...ky,
-      soLanDaNop: count ?? 0,
-      conLuot: (count ?? 0) < (ky.so_lan_cho_phep ?? 1),
+      soLanDaNop: luot.daNop,
+      conLuot: luot.conLuot,
     });
   }
   return out;
@@ -303,13 +310,17 @@ export async function startThiThatAttempt(input: {
   const assigned = await canAccessKyThiThat(admin, user.id, ky);
   if (!assigned) throw new Error("Bạn không được phân công kỳ thi này.");
 
-  const { count } = await admin
-    .from("dao_tao_lan_thi")
-    .select("id", { count: "exact", head: true })
-    .eq("cau_hinh_id", ky.id)
-    .eq("auth_user_id", user.id)
-    .in("trang_thai", ["da_nop", "het_gio", "dang_lam"]);
-  if ((count ?? 0) >= (ky.so_lan_cho_phep ?? 1)) {
+  const fetchLuot = async () => {
+    const { data, error } = await admin
+      .from("dao_tao_lan_thi")
+      .select("id, bat_dau_luc, trang_thai")
+      .eq("cau_hinh_id", ky.id)
+      .eq("auth_user_id", user.id)
+      .in("trang_thai", [...TRANG_THAI_TIEU_LUOT]);
+    if (error) throw error;
+    return data ?? [];
+  };
+  if (!summarizeLuot(await fetchLuot(), ky.so_lan_cho_phep).conLuot) {
     throw new Error("Bạn đã hết lượt thi cho kỳ này.");
   }
 
@@ -352,6 +363,12 @@ export async function startThiThatAttempt(input: {
     .select("id, han_nop_luc")
     .single();
   if (ltErr || !lanThi) throw ltErr ?? new Error("Không tạo được lần thi.");
+
+  // Chống race (chưa có unique/RPC): đếm lại sau insert, lần ngoài hạn mức bị thu hồi.
+  if (!isWithinLuot(await fetchLuot(), lanThi.id as string, ky.so_lan_cho_phep)) {
+    await admin.from("dao_tao_lan_thi").delete().eq("id", lanThi.id).eq("trang_thai", "dang_lam");
+    throw new Error("Bạn đã hết lượt thi cho kỳ này.");
+  }
 
   return { lanThiId: lanThi.id as string, hanNopLuc: lanThi.han_nop_luc as string };
 }
@@ -498,7 +515,7 @@ export async function submitLanThi(lanThiId: string) {
     if (ky?.diem_dat_pct != null) dat = scored.pct >= Number(ky.diem_dat_pct);
   }
 
-  const { error: uErr } = await admin
+  const { data: written, error: uErr } = await admin
     .from("dao_tao_lan_thi")
     .update({
       de_snapshot: snap,
@@ -510,8 +527,12 @@ export async function submitLanThi(lanThiId: string) {
       trang_thai: hetGio || late ? "het_gio" : "da_nop",
       updated_at: new Date().toISOString(),
     })
-    .eq("id", lanThiId);
+    .eq("id", lanThiId)
+    .eq("trang_thai", "dang_lam")
+    .select("id");
   if (uErr) throw uErr;
+  // Khóa lạc quan: nộp song song, bản thứ hai không ghi đè điểm.
+  if (!written?.length) return { lanThiId, alreadySubmitted: true };
 
   return {
     lanThiId,

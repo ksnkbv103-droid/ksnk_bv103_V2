@@ -19,6 +19,7 @@ import {
   updateMucDoThiThuSchema,
 } from "@/lib/dao-tao/schemas";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { TRANG_THAI_DA_NOP } from "@/modules/dao-tao/lib/dao-tao-luot";
 
 export async function listMucDoThiThu() {
   await requireDaoTaoUser();
@@ -349,7 +350,7 @@ export async function listChuaNopKyThi(kyThiId: string) {
     .from("dao_tao_lan_thi")
     .select("auth_user_id")
     .eq("cau_hinh_id", kyThiId)
-    .in("trang_thai", ["da_nop", "het_gio"]);
+    .in("trang_thai", [...TRANG_THAI_DA_NOP]);
   if (aErr) throw aErr;
   const submitted = (attempts ?? [])
     .map((a) => a.auth_user_id as string | null)
