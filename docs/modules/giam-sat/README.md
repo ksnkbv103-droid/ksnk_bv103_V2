@@ -90,6 +90,19 @@ Deep-link thống kê từng khối: `/thong-ke/vst` · `/thong-ke/gsc?bk=KSNK.Q
 3. Picker GSC không có BM.07.01 / WHO.
 4. BCTH → tab Vệ sinh tay → 3 card cạnh nhau (N/A nếu chưa có phiên).
 
+### Đối soát VST: RPC so với tính tay (L1-2, 2026-10-24, DB local)
+
+Tính tay = đếm trực tiếp từ `gstt_fact_vst` (phiên `is_active`, hành động hợp lệ theo `fn_vst_is_valid_opportunity`), mẫu = `tong_co_hoi`, đạt = khác «Bỏ sót», `ty_le = round(đạt/tổng×100, 1)`. So với `rpc_dashboard_vst_strategic_analytics`.
+
+| Tình huống | Kết quả |
+|---|---|
+| A. Một tháng, toàn viện | Khớp tổng cơ hội, đạt, tỉ lệ |
+| B. Kỳ dài, toàn viện | Khớp tổng cơ hội, đạt, tỉ lệ |
+| C. Tháng 2026-09, từng khoa (`matrix_khoa`) | 39 khoa ở cả hai phía, **0 lệch** |
+| D. Lọc một khoa | 109 cơ hội · 89,0% cả hai phía |
+
+Kết luận: không lệch, không sửa hàm KPI. GSC chưa đối soát (ngoài phạm vi L1-2).
+
 ---
 
 ## Khóa sổ GSC / VST
