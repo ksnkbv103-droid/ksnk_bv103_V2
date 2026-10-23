@@ -10,6 +10,7 @@ import {
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { SupervisionCoverageCard } from "@/lib/analytics/SupervisionCoverageCard";
+import { SupervisionMomentsBars } from "@/lib/analytics/SupervisionMomentsBars";
 import { buildCoverageSummary } from "@/lib/analytics/supervision-coverage";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
@@ -39,8 +40,8 @@ type Props = {
 };
 
 /**
- * Thống kê VST — fold 0: toggle nguồn · chart khoa (tab % | khối lượng) · so sánh mở.
- * Nâng cao: đối soát · KPI · (lỗi/moment nằm phân tích sâu / drill).
+ * Thống kê VST, 4 tầng: tổng quan (KPI · độ phủ) · thời điểm WHO · theo khoa · xu hướng và so sánh.
+ * Nâng cao: đối soát chuyên trách và tự giám sát.
  */
 export default function VstStrategicAnalyticsPanel(p: Props) {
   const sourceLens = p.sourceLens;
@@ -87,7 +88,26 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         </p>
       </div>
 
+      <SupervisionKpiRow
+        loading={p.loading}
+        items={[
+          { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
+          { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
+          { label: "Số phiên", value: p.payload?.kpis?.tong_phien ?? 0 },
+          { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
+          {
+            label: "Kỹ thuật quan sát nhanh (phiếu WHO)",
+            value: formatPercent1FromRatio(
+              p.payload?.kpis?.dung_ky_thuat ?? 0,
+              p.payload?.kpis?.danh_gia_ky_thuat ?? 0,
+            ),
+          },
+        ]}
+      />
+
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
+
+      <SupervisionMomentsBars moments={p.payload?.moments ?? []} loading={p.loading} />
 
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
@@ -128,7 +148,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           <SupervisionCompareAccordion
             sections={compareSections}
             loading={p.loading}
-            defaultOpen={false}
+            defaultOpen
             summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
             minSample={VST_COMPARE_MIN_SAMPLE}
           />
@@ -139,26 +159,11 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát · Số liệu gốc
+            Đối soát chuyên trách và tự giám sát
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionDoiSoatPanel rows={gapKhoaRows} source="vst" loading={p.loading} />
-          <SupervisionKpiRow
-            loading={p.loading}
-            items={[
-              { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
-              { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
-              { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-              {
-                label: "Kỹ thuật quan sát nhanh (phiếu WHO)",
-                value: formatPercent1FromRatio(
-                  p.payload?.kpis?.dung_ky_thuat ?? 0,
-                  p.payload?.kpis?.danh_gia_ky_thuat ?? 0,
-                ),
-              },
-            ]}
-          />
         </div>
       </details>
     </div>
