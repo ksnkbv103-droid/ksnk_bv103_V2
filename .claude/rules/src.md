@@ -18,11 +18,11 @@ paths:
 
 - File component/action/hook ≤ 180 dòng khi có thể; tách theo single responsibility.
 - `kebab-case` file/folder; `camelCase` biến/hàm; comment tiếng Việt có dấu khi cần.
-- UI label dùng "và" thay "&"; tránh `any`.
+- Tránh `any`. (Nhãn "và" thay "&" do ESLint cảnh báo.)
 
 ## Domain layer
 
-- Logic thuần → `src/lib/domain/` — **không** import supabase/next/react.
+- Logic thuần → `src/lib/domain/` (ESLint chặn import supabase/next/react).
 - I/O Supabase → `actions/` hoặc `workflow/application/`.
 - `domain-registry.ts` = registry MDM, khác `src/lib/domain/`.
 

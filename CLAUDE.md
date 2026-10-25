@@ -6,6 +6,8 @@ Kiểm soát Nhiễm khuẩn BV103 (pilot). Next.js 16, React 19, TS, Tailwind v
 
 npm · Dev `npm run dev` · DB local + seed `npm run trial:prep` (Docker) · Build = typecheck `npm run build` · Test `npm run test:cssd -- <path>` · Lint `npm run lint` · Schema local `npm run mdm:migrate:local` → `verify:mdm:local`
 
+Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` để xem lệnh sẽ chạy). Bảng dưới là quy tắc nó áp dụng.
+
 | Vừa làm | Lệnh |
 |---|---|
 | Action / `fact_*` | `verify:engineering` |
