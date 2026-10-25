@@ -12,6 +12,8 @@ type Props = {
   readOnly?: boolean;
   /** Việc định kỳ không checklist — bắt kết quả khi đủ 100%. */
   requireKetQuaAt100?: boolean;
+  /** Việc bị trả làm lại (TU_CHOI) còn 100% — vẫn cho nộp lại dù % không đổi. */
+  allowResubmit?: boolean;
   onUpdated?: () => void;
 };
 
@@ -20,6 +22,7 @@ export function QlcvManualProgressPanel({
   initialPercent,
   readOnly,
   requireKetQuaAt100,
+  allowResubmit,
   onUpdated,
 }: Props) {
   const [pct, setPct] = useState(() => Math.min(100, Math.max(0, Number(initialPercent ?? 0))));
@@ -110,7 +113,7 @@ export function QlcvManualProgressPanel({
             <button
               type="button"
               className={C.btnPrimary}
-              disabled={saving || !dirty}
+              disabled={saving || !(dirty || allowResubmit)}
               onClick={() => void persist()}
             >
               {saving ? "Đang lưu…" : "Lưu tiến độ"}

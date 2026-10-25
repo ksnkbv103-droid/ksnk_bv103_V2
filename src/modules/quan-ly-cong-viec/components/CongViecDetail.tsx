@@ -432,6 +432,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               initialPercent={Number(data.phan_tram_hoan_thanh ?? 0)}
               readOnly={checklistReadOnly}
               requireKetQuaAt100={data.loai_cong_viec === "DINH_KY"}
+              allowResubmit={st === "TU_CHOI"}
               onUpdated={() => {
                 fetchDetail();
                 onRefreshList?.();
