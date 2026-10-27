@@ -102,11 +102,11 @@ export function SupervisionKhoaMasterTable({
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[tgsTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, percentDigits)}
-                      {tgsThin ? <span className="block text-[10px] font-medium text-slate-400">mẫu mỏng</span> : null}
+                      {tgsThin ? <span className="block bv103-type-label font-medium text-slate-400">mẫu mỏng</span> : null}
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[ksnkTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, percentDigits)}
-                      {ksnkThin ? <span className="block text-[10px] font-medium text-slate-400">mẫu mỏng</span> : null}
+                      {ksnkThin ? <span className="block bv103-type-label font-medium text-slate-400">mẫu mỏng</span> : null}
                     </td>
                     <td className={`px-2 py-2 text-center text-[11px] font-medium ${momentToneClass[compare.tone]}`}>
                       {compare.label}
