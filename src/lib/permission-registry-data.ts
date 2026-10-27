@@ -128,6 +128,11 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     actions: ["VIEW", "CREATE", "EDIT", "EXPORT"]
   },
   {
+    code: "CSSD_HOA_CHAT",
+    displayName: "CSSD — Duyệt phiếu kho hóa chất",
+    actions: ["APPROVE"]
+  },
+  {
     code: "GIAM_SAT_VST",
     displayName: "Giám sát Vệ sinh tay",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "EXPORT"]

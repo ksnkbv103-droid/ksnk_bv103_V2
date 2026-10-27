@@ -20,6 +20,7 @@ import {
 import { fefoSortLots, isLotNearExpiry, lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
 import { buildDmStockSummary, type DmLite } from "@/lib/domain/cssd-kho-hoa-chat-summary";
+import { duyetPhieuKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat-duyet.actions";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
@@ -108,6 +109,23 @@ export function useKhoHoaChatPage() {
   }, [sheetOpen, moveMode, dmId, tons, prefMaLo]);
 
   const canEdit = allowed.edit;
+
+  const { loading: apprLoading, allowed: apprAllowed } = useModulePermission("CSSD_HOA_CHAT");
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const decide = async (row: KhoHoaChatGiaoDichRow, quyetDinh: "DUYET" | "TU_CHOI") => {
+    let lyDo: string | null = null;
+    if (quyetDinh === "TU_CHOI") {
+      lyDo = (window.prompt(`Lý do từ chối phiếu ${row.ma_phieu}:`) || "").trim();
+      if (!lyDo) return toast.error("Nhập lý do từ chối.");
+    }
+    setDecidingId(row.id);
+    const r = await duyetPhieuKhoHoaChatAction({ giao_dich_id: row.id, quyet_dinh: quyetDinh, ly_do: lyDo });
+    setDecidingId(null);
+    if (!r.success) return toast.error(r.error);
+    toast.success(quyetDinh === "DUYET" ? (r.tu_duyet_ngoai_le ? "Đã duyệt (tự duyệt ngoại lệ)." : "Đã duyệt phiếu.") : "Đã từ chối phiếu.");
+    void reload();
+  };
+  const approve = { canApprove: !apprLoading && apprAllowed.approve, decidingId, onDecide: decide };
 
   const dmLoaiMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -216,7 +234,7 @@ export function useKhoHoaChatPage() {
         ghi_chu: note || null,
       });
       if (!r.success) return toast.error(r.error);
-      toast.success("Đã ghi nhận nhập.");
+      toast.success("Đã lập phiếu, chờ duyệt.");
     } else if (moveMode === "XUAT") {
       const r = await xuatKhoHoaChatAction({
         dm_hoa_chat_id: dmId,
@@ -227,7 +245,7 @@ export function useKhoHoaChatPage() {
         su_co_id: linkedSuCoId,
       });
       if (!r.success) return toast.error(r.error);
-      toast.success(linkedSuCoId ? "Đã ghi xuất và liên kết sự cố." : "Đã ghi nhận xuất.");
+      toast.success(linkedSuCoId ? "Đã lập phiếu xuất liên kết sự cố, chờ duyệt." : "Đã lập phiếu, chờ duyệt.");
     } else {
       const r = await dieuChinhKhoHoaChatAction({
         dm_hoa_chat_id: dmId,
@@ -275,6 +293,6 @@ export function useKhoHoaChatPage() {
       dmId, onDmId: setDmId, lotKey, onLotKey: setLotKey, qty, onQty: setQty, note, onNote: setNote,
       maLoNhap, onMaLoNhap: setMaLoNhap, hanNhap, onHanNhap: setHanNhap, linkedSuCoId,
     },
-    openSheet, openXuatTuSuCo,
+    openSheet, openXuatTuSuCo, approve,
   };
 }

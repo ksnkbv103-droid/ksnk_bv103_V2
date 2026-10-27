@@ -187,7 +187,7 @@ export default function KhoHoaChatKsnkPage() {
 
         {tab === "NHAP_XUAT" ? (
           <div className="animate-in fade-in duration-300">
-            <KhoHoaChatTables tons={[]} movs={h.filteredMovs} loading={h.busy} todayYmd={h.todayYmd} section="mov" />
+            <KhoHoaChatTables tons={[]} movs={h.filteredMovs} loading={h.busy} todayYmd={h.todayYmd} section="mov" approve={h.approve} />
           </div>
         ) : null}
 

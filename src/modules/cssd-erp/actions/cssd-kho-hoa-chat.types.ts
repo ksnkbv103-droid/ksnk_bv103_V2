@@ -25,4 +25,11 @@ export type KhoHoaChatGiaoDichRow = {
   created_at: string | null;
   ten_hoa_chat?: string | null;
   su_co_id?: string | null;
+  /** HC-C */
+  trang_thai?: "CHO_DUYET" | "DA_DUYET" | "TU_CHOI";
+  nguoi_lap_ten?: string | null;
+  nguoi_duyet_ten?: string | null;
+  duyet_at?: string | null;
+  ly_do_tu_choi?: string | null;
+  tu_duyet_ngoai_le?: boolean;
 };

@@ -44,7 +44,9 @@ export async function listSuCoChemicalChuaGhiKhoAction(): Promise<
         .from("cssd_fact_kho_hoa_chat_giao_dich")
         .select("su_co_id")
         .in("su_co_id", ids)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        // HC-C: phiếu xuất bị từ chối không còn liên kết — sự cố hiện lại để lập phiếu mới.
+        .neq("trang_thai", "TU_CHOI");
       for (const g of linkedRows || []) {
         const sid = (g as { su_co_id?: string }).su_co_id;
         if (sid) linked.add(String(sid));

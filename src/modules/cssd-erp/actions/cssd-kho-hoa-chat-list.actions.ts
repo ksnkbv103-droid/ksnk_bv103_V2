@@ -3,6 +3,7 @@
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { normalizeTrangThai } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { KhoHoaChatTonLo, KhoHoaChatGiaoDichRow } from "./cssd-kho-hoa-chat.types";
@@ -111,7 +112,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
     const { data: rows, error } = await supabase
       .from("cssd_fact_kho_hoa_chat_giao_dich")
-      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at")
+      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(lim);
@@ -125,8 +126,29 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
         tenMap.set(String((d as { id?: string }).id), String((d as { ten_hoa_chat?: string }).ten_hoa_chat || ""));
       }
     }
-    const data = rawRows.map((r: Record<string, unknown>) => ({
+    const authIds = [
+      ...new Set(
+        rawRows
+          .flatMap((r: Record<string, unknown>) => [r.created_by, r.nguoi_duyet_id])
+          .map((v) => String(v || ""))
+          .filter(Boolean),
+      ),
+    ];
+    const tenNguoi = new Map<string, string>();
+    if (authIds.length) {
+      const { data: ns } = await supabase.from("mdm_nhan_su").select("auth_user_id, ho_ten").in("auth_user_id", authIds);
+      for (const n of ns || []) {
+        tenNguoi.set(String((n as { auth_user_id?: string }).auth_user_id), String((n as { ho_ten?: string }).ho_ten || ""));
+      }
+    }
+    const data: KhoHoaChatGiaoDichRow[] = rawRows.map((r: Record<string, unknown>) => ({
       id: String(r.id),
+      trang_thai: normalizeTrangThai(r.trang_thai),
+      nguoi_lap_ten: r.created_by ? tenNguoi.get(String(r.created_by)) || null : null,
+      nguoi_duyet_ten: r.nguoi_duyet_id ? tenNguoi.get(String(r.nguoi_duyet_id)) || null : null,
+      duyet_at: r.duyet_at != null ? String(r.duyet_at) : null,
+      ly_do_tu_choi: r.ly_do_tu_choi != null ? String(r.ly_do_tu_choi) : null,
+      tu_duyet_ngoai_le: Boolean(r.tu_duyet_ngoai_le),
       ma_phieu: String(r.ma_phieu || ""),
       dm_hoa_chat_id: String(r.dm_hoa_chat_id || ""),
       loai_giao_dich: String(r.loai_giao_dich || ""),
