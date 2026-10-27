@@ -88,9 +88,11 @@ export async function approveCatalogDeNghiAction(id: string) {
     if (ticketErr) throw new Error(ticketErr.message);
     if (!ticket || String(ticket.status) !== "PENDING") return { success: false as const, error: CLAIMED_MSG };
     const approver = await resolveCatalogApprover(supabase);
-    const gate = checkCatalogApprover(approver, {
-      nhanSuId: ticket.nguoi_de_nghi_id ? String(ticket.nguoi_de_nghi_id) : null,
-    });
+    const gate = checkCatalogApprover(
+      approver,
+      { nhanSuId: ticket.nguoi_de_nghi_id ? String(ticket.nguoi_de_nghi_id) : null },
+      { adminMaySelfApprove: true },
+    );
     if (!gate.ok) return { success: false as const, error: gate.error };
     const approvedBy = gate.approvedById;
 

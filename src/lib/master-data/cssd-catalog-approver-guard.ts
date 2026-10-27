@@ -10,19 +10,22 @@ export const APPROVER_UNMAPPED =
 export type ApproverIdentity = { authUserId: string; nhanSuId: string | null; isAdmin: boolean };
 
 /**
- * Chặn tự duyệt (thuần) — lát KD-1 (C3/TB7).
- * - Người duyệt map được nhân sự: trùng người đề nghị (theo nhân sự hoặc tài khoản) → chặn, kể cả ADMIN.
+ * Chặn tự duyệt (thuần) — lát KD-1 (C3/TB7); PO 2026-10-27: ADMIN được tự duyệt phiếu đề nghị danh mục của mình
+ * (chỉ khi gọi với `adminMaySelfApprove`; rà soát bộ giữ luật cũ vì RPC BOM vẫn chặn cả ADMIN).
+ * - Người duyệt map được nhân sự: trùng người đề nghị (theo nhân sự hoặc tài khoản) → chặn, trừ ADMIN khi có cờ (phiếu ghi rõ người đề nghị = người duyệt).
  * - Không map được nhân sự: chỉ ADMIN (break-glass) được duyệt, người duyệt để trống; vai trò khác → từ chối.
  */
 export function checkCatalogApprover(
   approver: ApproverIdentity,
   requester: { nhanSuId?: string | null; authUserId?: string | null },
+  opts: { adminMaySelfApprove?: boolean } = {},
 ): { ok: true; approvedById: string | null } | { ok: false; error: string } {
   const apNs = String(approver.nhanSuId || "").trim();
   const apAuth = String(approver.authUserId || "").trim();
   const rqNs = String(requester.nhanSuId || "").trim();
   const rqAuth = String(requester.authUserId || "").trim();
-  if ((apNs && rqNs && apNs === rqNs) || (apAuth && rqAuth && apAuth === rqAuth)) {
+  const exempt = approver.isAdmin && opts.adminMaySelfApprove === true;
+  if (!exempt && ((apNs && rqNs && apNs === rqNs) || (apAuth && rqAuth && apAuth === rqAuth))) {
     return { ok: false, error: SELF_APPROVAL_FORBIDDEN };
   }
   if (!apNs) {

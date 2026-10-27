@@ -10,15 +10,27 @@ import {
 } from "./cssd-catalog-approver-guard";
 
 describe("KD-1 C3/TB7 — chặn tự duyệt", () => {
-  it("người duyệt trùng người đề nghị (nhân sự) → chặn, kể cả ADMIN", () => {
-    for (const isAdmin of [false, true]) {
-      const r = checkCatalogApprover({ authUserId: "u1", nhanSuId: "ns1", isAdmin }, { nhanSuId: "ns1" });
-      expect(r).toEqual({ ok: false, error: SELF_APPROVAL_FORBIDDEN });
-    }
+  it("người duyệt trùng người đề nghị (nhân sự) → chặn nếu không phải ADMIN", () => {
+    const r = checkCatalogApprover({ authUserId: "u1", nhanSuId: "ns1", isAdmin: false }, { nhanSuId: "ns1" });
+    expect(r).toEqual({ ok: false, error: SELF_APPROVAL_FORBIDDEN });
   });
 
-  it("trùng tài khoản báo phiếu → chặn", () => {
-    const r = checkCatalogApprover({ authUserId: "u1", nhanSuId: "ns2", isAdmin: true }, { authUserId: "u1" });
+  it("ADMIN tự duyệt phiếu danh mục (có cờ) → cho, ghi người duyệt", () => {
+    const r = checkCatalogApprover(
+      { authUserId: "u1", nhanSuId: "ns1", isAdmin: true },
+      { nhanSuId: "ns1" },
+      { adminMaySelfApprove: true },
+    );
+    expect(r).toEqual({ ok: true, approvedById: "ns1" });
+  });
+
+  it("ADMIN tự duyệt khi không có cờ (rà soát bộ) → vẫn chặn, khớp RPC", () => {
+    const r = checkCatalogApprover({ authUserId: "u1", nhanSuId: "ns1", isAdmin: true }, { nhanSuId: "ns1" });
+    expect(r).toEqual({ ok: false, error: SELF_APPROVAL_FORBIDDEN });
+  });
+
+  it("trùng tài khoản báo phiếu → chặn nếu không phải ADMIN", () => {
+    const r = checkCatalogApprover({ authUserId: "u1", nhanSuId: "ns2", isAdmin: false }, { authUserId: "u1" });
     expect(r.ok).toBe(false);
   });
 

@@ -11,11 +11,13 @@ import {
   type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import { CatalogDeNghiDiff } from "@/components/shared/CatalogDeNghiDiff";
 
-/** Tab lịch sử phiếu đề nghị — sửa nhanh qua dialog trên Loại / Bộ / Thành phần. */
+/** Tab Phiếu — bấm một dòng để xem Cũ → Mới và in. Duyệt/Từ chối ở Quản trị (MDM ghi master). */
 export function CSSDCatalogDeNghiTab() {
   const [rows, setRows] = useState<CssdCatalogDeNghiRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -35,10 +37,9 @@ export function CSSDCatalogDeNghiTab() {
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-[12px] text-slate-600">
-        Chỉ đề nghị tạo hoặc sửa danh mục (Loại, Bộ, Thành phần) — chờ admin duyệt. Không ghi
-        luân chuyển số lượng và không ghi hỏng/mất. Sửa nhanh bằng{" "}
-        <span className="font-semibold">Đề nghị sửa</span> trên từng dòng. Đây là lịch sử phiếu đề
-        nghị, không phải lịch sử kho. Admin duyệt tại Quản trị → Rà soát.
+        Phiếu đề nghị tạo/sửa danh mục (Loại, Bộ). Bấm một dòng để xem <span className="font-semibold">Cũ → Mới</span> và{" "}
+        <span className="font-semibold">In phiếu</span>. Admin được tự duyệt tại Quản trị → Rà soát.
+        Đổi thành phần bộ làm ở Luân chuyển, không qua phiếu.
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -67,7 +68,8 @@ export function CSSDCatalogDeNghiTab() {
               </tr>
             ) : (
               rows.map((r) => (
-                <tr key={r.id} className={L.row}>
+                <React.Fragment key={r.id}>
+                <tr className={`cursor-pointer ${L.row}`} onClick={() => setOpenId(openId === r.id ? null : r.id)}>
                   <td className={`${L.td} whitespace-nowrap text-[11px]`}>
                     {r.createdAt ? new Date(r.createdAt).toLocaleString("vi-VN") : "—"}
                   </td>
@@ -104,6 +106,14 @@ export function CSSDCatalogDeNghiTab() {
                     </span>
                   </td>
                 </tr>
+                {openId === r.id ? (
+                  <tr>
+                    <td colSpan={5} className={`${L.td} bg-slate-50/60`}>
+                      <CatalogDeNghiDiff row={r} />
+                    </td>
+                  </tr>
+                ) : null}
+                </React.Fragment>
               ))
             )}
           </tbody>

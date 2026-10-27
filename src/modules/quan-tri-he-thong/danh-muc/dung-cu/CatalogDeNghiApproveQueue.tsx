@@ -9,19 +9,12 @@ import {
 } from "./catalog-de-nghi-approve.actions";
 import {
   CSSD_CATALOG_DE_NGHI_KIND_LABEL,
-  type CssdCatalogDeNghiKind,
+  type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
+import { CatalogDeNghiDiff } from "@/components/shared/CatalogDeNghiDiff";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
-type Row = {
-  id: string;
-  targetKind: CssdCatalogDeNghiKind;
-  targetMa: string;
-  targetTen: string;
-  note: string;
-  createdAt: string;
-  afterSummary: string;
-};
+type Row = CssdCatalogDeNghiRow & { afterSummary: string };
 
 export function CatalogDeNghiApproveQueue() {
   const { isAdmin, allowed: leAllowed } = useModulePermission("DC_LE");
@@ -30,6 +23,7 @@ export function CatalogDeNghiApproveQueue() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const reload = async () => {
     setLoading(true);
@@ -91,6 +85,13 @@ export function CatalogDeNghiApproveQueue() {
                   {r.targetTen}
                 </div>
                 <div className="mt-0.5 text-slate-600">{r.afterSummary}</div>
+                <button
+                  type="button"
+                  onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                  className="mt-0.5 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                >
+                  {openId === r.id ? "Ẩn chi tiết cũ → mới" : "Xem chi tiết cũ → mới"}
+                </button>
                 {r.note ? <div className="mt-0.5 text-[11px] text-slate-500">{r.note}</div> : null}
                 <div className="mt-0.5 text-[11px] text-slate-400">
                   {r.createdAt ? new Date(r.createdAt).toLocaleString("vi-VN") : ""}
@@ -114,6 +115,11 @@ export function CatalogDeNghiApproveQueue() {
                   >
                     Từ chối
                   </button>
+                </div>
+              ) : null}
+              {openId === r.id ? (
+                <div className="w-full border-t border-slate-100 pt-2">
+                  <CatalogDeNghiDiff row={r} />
                 </div>
               ) : null}
             </li>

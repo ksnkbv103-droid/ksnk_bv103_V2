@@ -1,11 +1,11 @@
 "use client";
 
-/** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại và kho). Hỏng/Mất ở /cssd-su-co. */
+/** Dụng cụ: 3 tab Bộ · Loại và kho · Phiếu; Luân chuyển mở từ panel bộ. Hỏng/Mất ở /cssd-su-co. */
 import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ArrowLeftRight, ClipboardList, Layers, Tag } from "lucide-react";
+import { ClipboardList, Layers, Tag } from "lucide-react";
 import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
@@ -112,65 +112,47 @@ function CssdDungCuPageInner() {
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
         <p className="px-1 text-[11px] leading-relaxed text-slate-500">
-          <span className="font-semibold text-slate-700">Việc</span>
-          {" — "}
-          <span className="font-semibold text-slate-700">Đề nghị danh mục</span>
-          {" (chuẩn Loại/Bộ/Thành phần) · "}
-          <span className="font-semibold text-slate-700">Luân chuyển</span>
-          {" (kho ↔ bộ / bộ ↔ bộ). "}
-          <span className="font-semibold text-slate-700">Tra cứu</span>
-          {" — Bộ · Loại và kho (tồn chưa dùng). "}
+          Chọn một <span className="font-semibold text-slate-700">bộ</span> để xem thành phần, in danh mục hoặc
+          luân chuyển. <span className="font-semibold text-slate-700">Loại và kho</span> cho biết tồn chưa dùng.{" "}
+          <span className="font-semibold text-slate-700">Phiếu</span> xem Cũ → Mới và in.{" "}
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
             Hỏng/Mất
           </Link>
-          {" chỉ tại Sự cố. Luân chuyển số lượng ở tab Luân chuyển."}
+          {" chỉ tại Sự cố."}
         </p>
 
-        <div className="space-y-2">
-          <div className="space-y-1">
-            <p className="bv103-type-label px-1 font-semibold uppercase tracking-wide text-slate-400">
-              Việc
-            </p>
-            <div className={CSSD_UI_TAB_GROUP} role="tablist" aria-label="Việc dụng cụ">
-              <CssdHorizTabButton
-                active={s.tab === "DE_NGHI"}
-                onClick={() => s.setTab("DE_NGHI")}
-                icon={ClipboardList}
-                label="Đề nghị danh mục"
-                mobileLabel="Đề nghị"
-              />
-              <CssdHorizTabButton
-                active={s.tab === "LUAN_CHUYEN"}
-                onClick={() => s.setTab("LUAN_CHUYEN")}
-                icon={ArrowLeftRight}
-                label="Luân chuyển"
-                mobileLabel="Luân chuyển"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <p className="bv103-type-label px-1 font-semibold uppercase tracking-wide text-slate-400">
-              Tra cứu
-            </p>
-            <div className={`${CSSD_UI_TAB_GROUP} opacity-95`} role="tablist" aria-label="Tra cứu dụng cụ">
-              <CssdHorizTabButton
-                active={s.tab === "BO"}
-                onClick={() => s.setTab("BO")}
-                icon={Layers}
-                label="Bộ dụng cụ"
-                mobileLabel="Bộ"
-              />
-              <CssdHorizTabButton
-                active={s.tab === "LOAI"}
-                onClick={() => s.setTab("LOAI")}
-                icon={Tag}
-                label="Loại và kho"
-                mobileLabel="Loại"
-              />
-            </div>
-          </div>
+        <div className={CSSD_UI_TAB_GROUP} role="tablist" aria-label="Dụng cụ">
+          <CssdHorizTabButton
+            active={s.tab === "BO"}
+            onClick={() => s.setTab("BO")}
+            icon={Layers}
+            label="Bộ dụng cụ"
+            mobileLabel="Bộ"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "LOAI"}
+            onClick={() => s.setTab("LOAI")}
+            icon={Tag}
+            label="Loại và kho"
+            mobileLabel="Loại"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "DE_NGHI"}
+            onClick={() => s.setTab("DE_NGHI")}
+            icon={ClipboardList}
+            label="Phiếu"
+            mobileLabel="Phiếu"
+          />
         </div>
+        {s.tab === "LUAN_CHUYEN" ? (
+          <button
+            type="button"
+            className="px-1 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            onClick={() => s.setTab("BO")}
+          >
+            ← Về danh sách bộ
+          </button>
+        ) : null}
 
         {s.loading && isCatalogTab ? (
           <p className="px-2.5 py-3 text-[11px] text-slate-500">Đang tải danh mục…</p>
