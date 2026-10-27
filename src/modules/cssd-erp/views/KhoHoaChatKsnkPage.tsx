@@ -1,40 +1,37 @@
 // src/modules/cssd-erp/views/KhoHoaChatKsnkPage.tsx
 "use client";
 
-import React, { useState } from "react";
-import { Loader2, AlertTriangle, CalendarClock } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import HoaChatMasterPage from "@/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import KhoHoaChatMoveSheet from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
-import KhoHoaChatOverview from "../components/kho-hoa-chat/kho-hoa-chat-overview";
-import KhoHoaChatTables from "../components/kho-hoa-chat/kho-hoa-chat-tables";
-import KhoHoaChatTonSummary from "../components/kho-hoa-chat/kho-hoa-chat-ton-summary";
 import KhoHoaChatSuCoPanel from "../components/kho-hoa-chat/kho-hoa-chat-su-co-panel";
+import KhoHoaChatFilterBar from "../components/kho-hoa-chat/kho-hoa-chat-filter-bar";
+import KhoHoaChatItemTable from "../components/kho-hoa-chat/kho-hoa-chat-item-table";
+import KhoHoaChatDrawer from "../components/kho-hoa-chat/kho-hoa-chat-drawer";
 import { useKhoHoaChatPage } from "../hooks/use-kho-hoa-chat-page";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
-import { NEAR_EXPIRY_DAYS } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
-import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { countCanChuY, filterKhoRows, type KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
 
-type KhoTab = "TON" | "NHAP_XUAT" | "DANH_MUC";
+type KhoTab = "KHO" | "DANH_MUC";
 const TABS: ReadonlyArray<readonly [KhoTab, string]> = [
-  ["TON", "Tồn kho"],
-  ["NHAP_XUAT", "Nhập · Xuất"],
+  ["KHO", "Kho"],
   ["DANH_MUC", "Danh mục"],
 ];
-const LOAI_TABS = [
-  ["ALL", "Tất cả"],
-  ["HOA_CHAT", "Hóa chất"],
-  ["VAT_TU", "Vật tư"],
-] as const;
 
 export default function KhoHoaChatKsnkPage() {
   const h = useKhoHoaChatPage();
-  const [tab, setTab] = useState<KhoTab>(useSearchParams().get("tab") === "danh-muc" ? "DANH_MUC" : "TON");
-  const { canEdit, sheet, duoiNguongItems, sapHetHanItems, totalByDm } = h;
+  const [tab, setTab] = useState<KhoTab>(useSearchParams().get("tab") === "danh-muc" ? "DANH_MUC" : "KHO");
+  const [chip, setChip] = useState<KhoChip>("ALL");
+  const [search, setSearch] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const { canEdit, sheet } = h;
+  const rows = useMemo(() => filterKhoRows(h.dmSummary, chip, search, h.choDuyetByDm), [h.dmSummary, chip, search, h.choDuyetByDm]);
+  const openDm = openId ? h.dmSummary.find((d) => d.id === openId) : undefined;
 
   if (h.permLoading) {
     return (
@@ -60,87 +57,19 @@ export default function KhoHoaChatKsnkPage() {
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Kho hóa chất và vật tư KSNK</span>}
       actions={
-        <div className="flex flex-wrap gap-2">
-          {canEdit && (
-            <>
-              <button type="button" className={CSSD_UI_ACTION_PRIMARY} onClick={() => h.openSheet("NHAP")}>
-                + Nhập
-              </button>
-              <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => h.openSheet("XUAT")}>
-                Xuất
-              </button>
-              <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => h.openSheet("DIEU")}>
-                Điều chỉnh
-              </button>
-            </>
-          )}
-          <Link
-            href={cssdSuCoChemicalHref()}
-            className="bv103-type-label flex cursor-pointer items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 font-semibold text-red-600 shadow-sm transition-all hover:bg-red-100 active:scale-[0.98]"
-          >
-            ⚠️ Báo sự cố HC
+        <div className="flex flex-wrap items-center gap-3">
+          {canEdit ? (
+            <button type="button" className={CSSD_UI_ACTION_PRIMARY} onClick={() => h.openSheet("NHAP")}>
+              + Nhập kho
+            </button>
+          ) : null}
+          <Link href={cssdSuCoChemicalHref()} className="bv103-type-label font-semibold text-red-600 underline">
+            Báo sự cố
           </Link>
         </div>
       }
     >
       <div className="space-y-[var(--bv103-space-3)]">
-        {duoiNguongItems.length > 0 || sapHetHanItems.length > 0 ? (
-          <KsnkContextBanner
-            tone={duoiNguongItems.length > 0 ? "rose" : "amber"}
-            dismissible={false}
-            icon={
-              duoiNguongItems.length > 0 ? (
-                <AlertTriangle className="h-4 w-4" aria-hidden />
-              ) : (
-                <CalendarClock className="h-4 w-4" aria-hidden />
-              )
-            }
-            summary={
-              <span className="text-xs font-semibold">
-                {[
-                  duoiNguongItems.length > 0 ? `${duoiNguongItems.length} mặt hàng dưới ngưỡng` : null,
-                  sapHetHanItems.length > 0
-                    ? `${sapHetHanItems.length} lô cận hạn / quá hạn (≤${NEAR_EXPIRY_DAYS} ngày — FEFO)`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-            }
-            detail={
-              <div className="space-y-2">
-                {duoiNguongItems.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {duoiNguongItems.map((item) => {
-                      const currentStock = totalByDm.get(item.id) || 0;
-                      return (
-                        <span
-                          key={item.id}
-                          className="inline-flex items-center rounded-lg border border-red-200/50 bg-red-100/80 px-2 py-0.5 text-[11px] font-semibold text-red-800"
-                        >
-                          {item.ma_hoa_chat}: {currentStock}/{item.nguong_ton_toi_thieu}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ) : null}
-                {sapHetHanItems.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {sapHetHanItems.map((item) => (
-                      <span
-                        key={item.id}
-                        className="inline-flex items-center rounded-lg border border-amber-200/50 bg-amber-100/80 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
-                      >
-                        Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({formatDateVi(item.han_su_dung)})
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            }
-          />
-        ) : null}
-
         <div className="flex flex-wrap gap-2" role="tablist">
           {TABS.map(([key, label]) => (
             <button
@@ -148,7 +77,10 @@ export default function KhoHoaChatKsnkPage() {
               type="button"
               role="tab"
               aria-selected={tab === key}
-              onClick={() => setTab(key)}
+              onClick={() => {
+                setTab(key);
+                if (key === "KHO") void h.reload();
+              }}
               className={`bv103-type-label rounded-lg px-4 py-1.5 font-semibold ${tab === key ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
             >
               {label}
@@ -156,48 +88,51 @@ export default function KhoHoaChatKsnkPage() {
           ))}
         </div>
 
-        {tab !== "DANH_MUC" ? (
-          <div className="flex flex-wrap gap-2">
-            {LOAI_TABS.map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => h.setLoaiFilter(key)}
-                className={`bv103-type-label rounded-lg px-3 py-1 font-semibold ${h.loaiFilter === key ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        {tab === "TON" ? (
-          <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-300">
+        {tab === "KHO" ? (
+          <div className="space-y-[var(--bv103-space-3)]">
             <KhoHoaChatSuCoPanel rows={h.suCoRows} canEdit={canEdit} onXuatTuSuCo={h.openXuatTuSuCo} />
-            <KhoHoaChatOverview
-              countSapHetHan={h.countSapHetHan}
-              countDuoiNguong={h.countDuoiNguong}
-              dmCount={h.filteredDms.length}
+            <KhoHoaChatFilterBar
+              chip={chip}
+              onChip={setChip}
+              search={search}
+              onSearch={setSearch}
+              canChuY={countCanChuY(h.dmSummary)}
+              choDuyet={h.choDuyetByDm.size}
             />
-            <KhoHoaChatTonSummary rows={h.dmSummary} loading={h.busy} />
-            <p className="bv103-type-label font-semibold text-slate-500">Chi tiết theo lô</p>
-            <KhoHoaChatTables tons={h.filteredTons} movs={[]} loading={h.busy} todayYmd={h.todayYmd} section="ton" />
+            <KhoHoaChatItemTable
+              rows={rows}
+              loading={h.busy}
+              canEdit={canEdit}
+              choDuyetByDm={h.choDuyetByDm}
+              onOpen={setOpenId}
+              onMove={h.openSheet}
+            />
           </div>
-        ) : null}
-
-        {tab === "NHAP_XUAT" ? (
-          <div className="animate-in fade-in duration-300">
-            <KhoHoaChatTables tons={[]} movs={h.filteredMovs} loading={h.busy} todayYmd={h.todayYmd} section="mov" approve={h.approve} />
-          </div>
-        ) : null}
-
-        {tab === "DANH_MUC" ? <HoaChatMasterPage /> : null}
+        ) : (
+          <HoaChatMasterPage />
+        )}
       </div>
+
+      {openDm ? (
+        <KhoHoaChatDrawer
+          dm={openDm}
+          lots={h.tons.filter((t) => t.dm_hoa_chat_id === openDm.id)}
+          movs={h.movs.filter((m) => m.dm_hoa_chat_id === openDm.id)}
+          suCo={h.suCoRows.filter((r) => r.dm_hoa_chat_id === openDm.id)}
+          canEdit={canEdit}
+          approve={h.approve}
+          onXuatTuSuCo={(r) => {
+            setOpenId(null);
+            h.openXuatTuSuCo(r);
+          }}
+          onClose={() => setOpenId(null)}
+        />
+      ) : null}
 
       <KhoHoaChatMoveSheet
         open={sheet.open}
         mode={sheet.mode}
-        dmList={h.filteredDms}
+        dmList={h.dms}
         tonLots={h.tons}
         canSubmit={sheet.canSubmit}
         onClose={sheet.onClose}

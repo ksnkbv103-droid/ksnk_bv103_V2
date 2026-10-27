@@ -17,8 +17,8 @@ import {
   listSuCoChemicalChuaGhiKhoAction,
   type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
-import { fefoSortLots, isLotNearExpiry, lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
-import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
+import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { normalizeTrangThai, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import { buildDmStockSummary, type DmLite } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { duyetPhieuKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat-duyet.actions";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
@@ -39,7 +39,6 @@ export function useKhoHoaChatPage() {
   const [movs, setMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
   const [dms, setDms] = useState<DmLite[]>([]);
   const [busy, setBusy] = useState(true);
-  const [loaiFilter, setLoaiFilter] = useState<HoaChatLoaiFilter>("ALL");
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [moveMode, setMoveMode] = useState<MoveMode>("NHAP");
@@ -112,91 +111,41 @@ export function useKhoHoaChatPage() {
 
   const { loading: apprLoading, allowed: apprAllowed } = useModulePermission("CSSD_HOA_CHAT");
   const [decidingId, setDecidingId] = useState<string | null>(null);
-  const decide = async (row: KhoHoaChatGiaoDichRow, quyetDinh: "DUYET" | "TU_CHOI") => {
-    let lyDo: string | null = null;
-    if (quyetDinh === "TU_CHOI") {
-      lyDo = (window.prompt(`Lý do từ chối phiếu ${row.ma_phieu}:`) || "").trim();
-      if (!lyDo) return toast.error("Nhập lý do từ chối.");
+  const decide = async (row: KhoHoaChatGiaoDichRow, quyetDinh: "DUYET" | "TU_CHOI", lyDoIn?: string): Promise<boolean> => {
+    const lyDo = quyetDinh === "TU_CHOI" ? (lyDoIn ?? "").trim() : null;
+    const loi = validateLyDoTuChoi(quyetDinh, lyDo);
+    if (loi) {
+      toast.error(loi);
+      return false;
     }
     setDecidingId(row.id);
     const r = await duyetPhieuKhoHoaChatAction({ giao_dich_id: row.id, quyet_dinh: quyetDinh, ly_do: lyDo });
     setDecidingId(null);
-    if (!r.success) return toast.error(r.error);
+    if (!r.success) {
+      toast.error(r.error);
+      return false;
+    }
     toast.success(quyetDinh === "DUYET" ? (r.tu_duyet_ngoai_le ? "Đã duyệt (tự duyệt ngoại lệ)." : "Đã duyệt phiếu.") : "Đã từ chối phiếu.");
     void reload();
+    return true;
   };
   const approve = { canApprove: !apprLoading && apprAllowed.approve, decidingId, onDecide: decide };
 
-  const dmLoaiMap = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const d of dms) m.set(d.id, d.loai_hoa_chat ?? "HOA_CHAT");
-    return m;
-  }, [dms]);
-
-  const filteredDms = useMemo(
-    () => dms.filter((d) => matchesLoaiFilter(d.loai_hoa_chat, loaiFilter)),
-    [dms, loaiFilter],
-  );
-
-  const filteredTons = useMemo(
-    () =>
-      fefoSortLots(
-        tons.filter((t) => matchesLoaiFilter(dmLoaiMap.get(t.dm_hoa_chat_id), loaiFilter)),
-      ),
-    [tons, dmLoaiMap, loaiFilter],
-  );
-
-  const filteredMovs = useMemo(
-    () => movs.filter((m) => matchesLoaiFilter(dmLoaiMap.get(m.dm_hoa_chat_id), loaiFilter)),
-    [movs, dmLoaiMap, loaiFilter],
-  );
-
-  const totalByDm = useMemo(() => {
+  /** Số phiếu chờ duyệt theo mặt hàng. */
+  const choDuyetByDm = useMemo(() => {
     const m = new Map<string, number>();
-    for (const t of filteredTons) m.set(t.dm_hoa_chat_id, (m.get(t.dm_hoa_chat_id) || 0) + t.ton_so_luong);
+    for (const x of movs) {
+      if (normalizeTrangThai(x.trang_thai) === "CHO_DUYET") m.set(x.dm_hoa_chat_id, (m.get(x.dm_hoa_chat_id) || 0) + 1);
+    }
     return m;
-  }, [filteredTons]);
+  }, [movs]);
 
-  const countSapHetHan = useMemo(() => {
-    let n = 0;
-    for (const t of filteredTons) {
-      if (!t.han_su_dung || t.ton_so_luong <= 0) continue;
-      if (!isLotNearExpiry(t.han_su_dung, todayYmd)) continue;
-      n++;
-    }
-    return n;
-  }, [filteredTons, todayYmd]);
-
-  const countDuoiNguong = useMemo(() => {
-    let n = 0;
-    for (const dm of filteredDms) {
-      if (dm.nguong_ton_toi_thieu == null) continue;
-      const tot = totalByDm.get(dm.id) || 0;
-      if (tot <= dm.nguong_ton_toi_thieu) n++;
-    }
-    return n;
-  }, [filteredDms, totalByDm]);
-
-  const sapHetHanItems = useMemo(() => {
-    return filteredTons.filter(
-      (t) => t.ton_so_luong > 0 && isLotNearExpiry(t.han_su_dung, todayYmd),
-    );
-  }, [filteredTons, todayYmd]);
-
-  const duoiNguongItems = useMemo(() => {
-    return filteredDms.filter((dm) => {
-      if (dm.nguong_ton_toi_thieu == null) return false;
-      const tot = totalByDm.get(dm.id) || 0;
-      return tot <= dm.nguong_ton_toi_thieu;
-    });
-  }, [filteredDms, totalByDm]);
-
-  const openSheet = (m: MoveMode) => {
+  const openSheet = (m: MoveMode, presetDmId = "") => {
     setMoveMode(m);
     setLinkedSuCoId(null);
     setPrefMaLo(null);
     setSheetOpen(true);
-    setDmId("");
+    setDmId(presetDmId);
   };
 
   const openXuatTuSuCo = (row: SuCoChemicalRow) => {
@@ -274,8 +223,8 @@ export function useKhoHoaChatPage() {
     (moveMode === "DIEU" ? true : qn > 0);
 
   const dmSummary = useMemo(
-    () => buildDmStockSummary(filteredDms, filteredTons, todayYmd),
-    [filteredDms, filteredTons, todayYmd],
+    () => buildDmStockSummary(dms, tons, todayYmd),
+    [dms, tons, todayYmd],
   );
 
   const closeSheet = () => {
@@ -285,14 +234,13 @@ export function useKhoHoaChatPage() {
   };
 
   return {
-    permLoading, allowed, canEdit, busy, loaiFilter, setLoaiFilter,
-    tons, filteredTons, filteredMovs, filteredDms, suCoRows, dmSummary, todayYmd,
-    countSapHetHan, countDuoiNguong, sapHetHanItems, duoiNguongItems, totalByDm,
+    permLoading, allowed, canEdit, busy,
+    tons, movs, dms, suCoRows, dmSummary, todayYmd, choDuyetByDm,
     sheet: {
       open: sheetOpen, mode: moveMode, canSubmit: Boolean(canSubmitSheet), onClose: closeSheet, onSubmit: submitMove,
       dmId, onDmId: setDmId, lotKey, onLotKey: setLotKey, qty, onQty: setQty, note, onNote: setNote,
       maLoNhap, onMaLoNhap: setMaLoNhap, hanNhap, onHanNhap: setHanNhap, linkedSuCoId,
     },
-    openSheet, openXuatTuSuCo, approve,
+    openSheet, openXuatTuSuCo, approve, reload,
   };
 }
