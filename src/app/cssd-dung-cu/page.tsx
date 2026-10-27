@@ -1,10 +1,10 @@
 "use client";
 
-/** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại · Lịch sử kho). Hỏng/Mất ở /cssd-su-co. */
+/** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại và kho). Hỏng/Mất ở /cssd-su-co. */
 import { Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
+import { ArrowLeftRight, ClipboardList, Layers, Tag } from "lucide-react";
 import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
@@ -68,11 +68,6 @@ const CSSDCatalogLuanChuyenTab = dynamic(
   { loading: () => panelFallback },
 );
 
-const InventoryHistoryTable = dynamic(
-  () => import("@/modules/cssd-erp/components/inventory/InventoryHistoryTable"),
-  { loading: () => panelFallback },
-);
-
 const SetCompositionCard = dynamic(
   () => import("@/modules/cssd-erp/components/inventory/SetCompositionCard"),
   { loading: () => <p className="py-6 text-center text-sm text-slate-500">Đang tải thành phần…</p> },
@@ -123,7 +118,7 @@ function CssdDungCuPageInner() {
           <span className="font-semibold text-slate-700">Luân chuyển</span>
           {" (kho ↔ bộ / bộ ↔ bộ). "}
           <span className="font-semibold text-slate-700">Tra cứu</span>
-          {" — Bộ · Loại · Lịch sử kho. "}
+          {" — Bộ · Loại và kho (tồn chưa dùng). "}
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
             Hỏng/Mất
           </Link>
@@ -169,15 +164,8 @@ function CssdDungCuPageInner() {
                 active={s.tab === "LOAI"}
                 onClick={() => s.setTab("LOAI")}
                 icon={Tag}
-                label="Loại dụng cụ"
+                label="Loại và kho"
                 mobileLabel="Loại"
-              />
-              <CssdHorizTabButton
-                active={s.tab === "HISTORY"}
-                onClick={() => s.setTab("HISTORY")}
-                icon={History}
-                label="Lịch sử kho"
-                mobileLabel="Kho"
               />
             </div>
           </div>
@@ -226,9 +214,7 @@ function CssdDungCuPageInner() {
           <CSSDCatalogDeNghiTab />
         ) : s.tab === "LUAN_CHUYEN" ? (
           <CSSDCatalogLuanChuyenTab onSubmitted={() => void s.reload()} />
-        ) : (
-          <InventoryHistoryTable />
-        )}
+        ) : null}
         <CatalogDeNghiCartBar />
       </div>
     </CSSDPageShell>
