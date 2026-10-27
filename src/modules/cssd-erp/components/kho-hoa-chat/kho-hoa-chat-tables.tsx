@@ -90,9 +90,11 @@ type Props = {
   loading: boolean;
   /** Mốc ngày cho highlight cận-date (FEFO / QT.38). */
   todayYmd?: string;
+  /** Tab «Tồn kho» chỉ hiện tồn lô; tab «Nhập · Xuất» chỉ hiện phiếu. */
+  section?: "ton" | "mov" | "both";
 };
 
-export default function KhoHoaChatTables({ tons, movs, loading, todayYmd }: Props) {
+export default function KhoHoaChatTables({ tons, movs, loading, todayYmd, section = "both" }: Props) {
   const tonCols: Column<KhoHoaChatTonLo>[] = useMemo(
     () => [
       {
@@ -163,13 +165,16 @@ export default function KhoHoaChatTables({ tons, movs, loading, todayYmd }: Prop
 
   return (
     <>
-      <div className="mt-4">
-        <AdvancedDataTable columns={tonCols} data={tons} loading={loading} searchPlaceholder="Tìm trong tồn lô..." />
-      </div>
-      <p className="mt-6 text-[11px] font-medium text-slate-500">Phiếu gần đây</p>
-      <div className="mt-2">
-        <AdvancedDataTable columns={movCols} data={movs} loading={loading} searchPlaceholder="Tìm phiếu..." />
-      </div>
+      {section !== "mov" ? (
+        <div className="mt-4">
+          <AdvancedDataTable columns={tonCols} data={tons} loading={loading} searchPlaceholder="Tìm trong tồn lô..." />
+        </div>
+      ) : null}
+      {section !== "ton" ? (
+        <div className="mt-2">
+          <AdvancedDataTable columns={movCols} data={movs} loading={loading} searchPlaceholder="Tìm phiếu..." />
+        </div>
+      ) : null}
     </>
   );
 }
