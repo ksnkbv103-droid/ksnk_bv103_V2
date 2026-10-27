@@ -96,7 +96,6 @@ export default function HoaChatFormModal({
           >
             <option value="HOA_CHAT">{loaiHoaChatLabel("HOA_CHAT")}</option>
             <option value="VAT_TU">{loaiHoaChatLabel("VAT_TU")}</option>
-            <option value="TEST">{loaiHoaChatLabel("TEST")}</option>
           </select>
         </div>
         <BoDungCuTextField label="Đơn vị tính" value={form.don_vi_tinh} onChange={(v) => setForm({ ...form, don_vi_tinh: v })} />

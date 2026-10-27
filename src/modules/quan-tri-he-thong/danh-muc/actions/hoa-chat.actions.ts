@@ -8,6 +8,7 @@ import {
   toggleMasterStatus,
   upsertMasterRow,
 } from "./master-crud-core";
+import { isVatTuLoai } from "@/lib/domain/cssd-hoa-chat-loai";
 import type { HoaChatRow } from "./hoa-chat.types";
 
 export async function getHoaChatRowsAction() {
@@ -50,7 +51,7 @@ export async function saveHoaChatAction(input: Record<string, unknown>) {
   const payload = {
     ma_hoa_chat: ma,
     ten_hoa_chat: ten,
-    loai_hoa_chat: String(input.loai_hoa_chat || "HOA_CHAT").trim() || "HOA_CHAT",
+    loai_hoa_chat: isVatTuLoai(String(input.loai_hoa_chat ?? "")) ? "VAT_TU" : "HOA_CHAT",
     don_vi_tinh: String(input.don_vi_tinh || "").trim() || null,
     han_su_dung: parseDateOnly(input.han_su_dung),
     specs,
