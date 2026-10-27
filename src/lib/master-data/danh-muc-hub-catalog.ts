@@ -71,7 +71,7 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
     id: "hc",
     name: "Hóa chất và vật tư",
-    path: "/quan-tri-he-thong/danh-muc/hoa-chat",
+    path: "/cssd-hoa-chat?tab=danh-muc",
     domain: "CSSD",
     group: "cssd",
     tier: "dedicated",

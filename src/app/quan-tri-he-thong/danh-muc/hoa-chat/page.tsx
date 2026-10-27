@@ -1,11 +1,7 @@
 // src/app/quan-tri-he-thong/danh-muc/hoa-chat/page.tsx
-import HoaChatMasterPage from "@/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Hóa chất",
-  description: "Quản trị danh mục hóa chất và vật tư CSSD",
-};
-
+/** Danh mục hóa chất đã chuyển vào tab «Danh mục» của /cssd-hoa-chat (HC-B). */
 export default function Page() {
-  return <HoaChatMasterPage />;
+  redirect("/cssd-hoa-chat?tab=danh-muc");
 }

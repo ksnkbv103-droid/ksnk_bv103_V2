@@ -4,6 +4,8 @@
 import React, { useState } from "react";
 import { Loader2, AlertTriangle, CalendarClock } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import HoaChatMasterPage from "@/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import KhoHoaChatMoveSheet from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
 import KhoHoaChatOverview from "../components/kho-hoa-chat/kho-hoa-chat-overview";
@@ -28,11 +30,10 @@ const LOAI_TABS = [
   ["HOA_CHAT", "Hóa chất"],
   ["VAT_TU", "Vật tư"],
 ] as const;
-const DANH_MUC_HREF = "/quan-tri-he-thong/danh-muc/hoa-chat";
 
 export default function KhoHoaChatKsnkPage() {
   const h = useKhoHoaChatPage();
-  const [tab, setTab] = useState<KhoTab>("TON");
+  const [tab, setTab] = useState<KhoTab>(useSearchParams().get("tab") === "danh-muc" ? "DANH_MUC" : "TON");
   const { canEdit, sheet, duoiNguongItems, sapHetHanItems, totalByDm } = h;
 
   if (h.permLoading) {
@@ -190,16 +191,7 @@ export default function KhoHoaChatKsnkPage() {
           </div>
         ) : null}
 
-        {tab === "DANH_MUC" ? (
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-center">
-            <p className="bv103-type-label text-slate-600">
-              Thêm/sửa mặt hàng và «Ngừng sử dụng» thực hiện tại Quản trị — Danh mục hóa chất.
-            </p>
-            <Link href={DANH_MUC_HREF} className={`${CSSD_UI_ACTION_PRIMARY} mt-3 inline-flex`}>
-              Mở danh mục hóa chất
-            </Link>
-          </div>
-        ) : null}
+        {tab === "DANH_MUC" ? <HoaChatMasterPage /> : null}
       </div>
 
       <KhoHoaChatMoveSheet
