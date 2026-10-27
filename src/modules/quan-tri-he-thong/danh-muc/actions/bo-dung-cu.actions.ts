@@ -371,6 +371,7 @@ export async function allocateProceduralSetAction(params: {
   quantity: number;
 }) {
   await verifyPermission("BO_DC", "edit");
+  await requireCssdCatalogMasterWrite();
   const shape = parseOrFirstError(allocateProceduralSetSchema, {
     boDungCuId: String(params.boDungCuId || "").trim(),
     khoaPhongId: String(params.khoaPhongId || "").trim(),
