@@ -1,7 +1,7 @@
 import type { Catalog } from "../types/catalog.types";
 
 /** Live dung-cu tabs. CHI_TIET→BO redirect kept in hook; HOA_CHAT lives at /cssd-hoa-chat. */
-export type CatalogTab = "BO" | "LOAI" | "HISTORY" | "DE_NGHI" | "LUAN_CHUYEN";
+export type CatalogTab = "BO" | "LOAI" | "HISTORY" | "DE_NGHI" | "LUAN_CHUYEN" | "QUAN_LY";
 
 export function filterCatalogRows(catalog: Catalog, q: string) {
   const lowerQ = q.trim().toLowerCase();

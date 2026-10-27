@@ -13,7 +13,7 @@ import {
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import { CatalogDeNghiDiff } from "@/components/shared/CatalogDeNghiDiff";
 
-/** Tab Phiếu — bấm một dòng để xem Cũ → Mới và in. Duyệt/Từ chối ở Quản trị (MDM ghi master). */
+/** Tab Phiếu — bấm một dòng để xem Cũ → Mới và in. Hàng đợi duyệt (ADMIN) hiện phía trên, gắn ở trang. */
 export function CSSDCatalogDeNghiTab() {
   const [rows, setRows] = useState<CssdCatalogDeNghiRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +38,7 @@ export function CSSDCatalogDeNghiTab() {
     <div className="space-y-3">
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-[12px] text-slate-600">
         Phiếu đề nghị tạo/sửa danh mục (Loại, Bộ). Bấm một dòng để xem <span className="font-semibold">Cũ → Mới</span> và{" "}
-        <span className="font-semibold">In phiếu</span>. Admin được tự duyệt tại Quản trị → Rà soát.
+        <span className="font-semibold">In phiếu</span>. Chủ nhiệm khoa (ADMIN) duyệt ngay tại tab này.
         Đổi thành phần bộ làm ở Luân chuyển, không qua phiếu.
       </div>
 

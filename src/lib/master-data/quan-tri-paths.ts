@@ -1,6 +1,7 @@
 /** SSOT đường dẫn App Router — Quản trị hệ thống. */
 export const QUAN_TRI_HUB_PATH = "/quan-tri-he-thong";
-const QUAN_TRI_DUNG_CU_PATH = "/quan-tri-he-thong/danh-muc/dung-cu";
+/** PO 2026-10-27: quản lý dụng cụ nằm ở màn CSSD (tab Quản lý/Phiếu); route quản trị cũ chỉ còn redirect. */
+const DUNG_CU_PATH = "/cssd-dung-cu";
 export const QUAN_TRI_TAI_KHOAN_PATH = "/quan-tri-he-thong/tai-khoan";
 export const QUAN_TRI_NHAN_SU_PATH = "/quan-tri-he-thong/nhan-su";
 export const QUAN_TRI_BANG_KIEM_PATH = "/quan-tri-he-thong/bang-kiem";
@@ -64,11 +65,11 @@ export function parseDungCuLoaiSheet(tab: string | null | undefined, sheet: stri
 }
 
 /**
- * Hub / deep-link Quản lý dụng cụ.
- * Mặc định = tab **Loại** (`?tab=loai`). Bộ / chi-tiết → `?tab=bo` (một click trên tab strip).
+ * Deep-link Quản lý dụng cụ trên màn CSSD.
+ * loai → tab Loại và kho · bo/chi-tiet → tab Quản lý (ADMIN) · phieu/lich-su → tab Phiếu (hàng đợi duyệt).
  */
 export function quanTriDungCuHref(tab?: DungCuTab | "chi-tiet" | "bo"): string {
-  if (!tab || tab === "loai") return `${QUAN_TRI_DUNG_CU_PATH}?tab=loai`;
-  if (tab === "bo" || tab === "chi-tiet") return `${QUAN_TRI_DUNG_CU_PATH}?tab=bo`;
-  return `${QUAN_TRI_DUNG_CU_PATH}?tab=${tab}`;
+  if (!tab || tab === "loai") return `${DUNG_CU_PATH}?tab=LOAI`;
+  if (tab === "bo" || tab === "chi-tiet") return `${DUNG_CU_PATH}?tab=QUAN_LY`;
+  return `${DUNG_CU_PATH}?tab=DE_NGHI`;
 }

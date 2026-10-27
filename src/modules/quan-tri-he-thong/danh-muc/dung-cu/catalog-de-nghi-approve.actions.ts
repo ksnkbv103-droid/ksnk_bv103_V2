@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { getActorRoleNames } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import {
   CATALOG_DE_NGHI_CLAIM_STATUS,
@@ -15,12 +15,10 @@ import { applyCatalogDeNghiOverwrite } from "@/lib/master-data/cssd-catalog-de-n
 import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 
+/** PO 2026-10-27: chỉ chủ nhiệm khoa (ADMIN) duyệt phiếu danh mục. */
 async function requireCatalogApprove() {
-  try {
-    await verifyPermission("DC_LE", "edit");
-  } catch {
-    await verifyPermission("BO_DC", "edit");
-  }
+  const roles = await getActorRoleNames();
+  if (!roles.includes("ADMIN")) throw new Error("Chỉ chủ nhiệm khoa (ADMIN) được duyệt phiếu danh mục.");
 }
 
 const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";

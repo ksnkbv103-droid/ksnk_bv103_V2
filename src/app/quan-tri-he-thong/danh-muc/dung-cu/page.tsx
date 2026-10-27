@@ -1,12 +1,10 @@
-import { Suspense } from "react";
-import QuanLyDungCuPage from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/QuanLyDungCuPage";
+import { redirect } from "next/navigation";
+import { parseDungCuLayer, quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 
 export const metadata = { title: "Dụng cụ" };
 
-export default function Page() {
-  return (
-    <Suspense fallback={<div className="p-12 text-center text-sm text-slate-500">Đang tải dụng cụ…</div>}>
-      <QuanLyDungCuPage />
-    </Suspense>
-  );
+/** Route cũ — quản lý dụng cụ đã chuyển sang màn CSSD; giữ redirect cho bookmark. */
+export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string; sheet?: string }> }) {
+  const { tab, sheet } = await searchParams;
+  redirect(quanTriDungCuHref(parseDungCuLayer(tab, sheet)));
 }

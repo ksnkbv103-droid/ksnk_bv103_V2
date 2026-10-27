@@ -1,11 +1,11 @@
 "use client";
 
-/** Dụng cụ: 3 tab Bộ · Loại và kho · Phiếu; Luân chuyển mở từ panel bộ. Hỏng/Mất ở /cssd-su-co. */
+/** Dụng cụ: 3 tab Bộ · Loại và kho · Phiếu (+ Quản lý cho ADMIN); Luân chuyển mở từ panel bộ. Hỏng/Mất ở /cssd-su-co. */
 import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ClipboardList, Layers, Tag } from "lucide-react";
+import { ClipboardList, Layers, Settings2, Tag } from "lucide-react";
 import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
@@ -24,6 +24,7 @@ import {
   CatalogDeNghiCartBar,
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCart";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 /** Lazy per active tab — keep shell/toolbar light (Perf P1 / W5). */
 function TabPanelSkeleton() {
@@ -60,6 +61,22 @@ const CSSDCatalogDeNghiTab = dynamic(
   { loading: () => panelFallback },
 );
 
+const DungCuQuanLyTab = dynamic(
+  () =>
+    import("@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuQuanLyTab").then((m) => ({
+      default: m.DungCuQuanLyTab,
+    })),
+  { loading: () => panelFallback },
+);
+
+const DungCuPhieuAdminPanels = dynamic(
+  () =>
+    import("@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels").then((m) => ({
+      default: m.DungCuPhieuAdminPanels,
+    })),
+  { loading: () => panelFallback },
+);
+
 const CSSDCatalogLuanChuyenTab = dynamic(
   () =>
     import("@/modules/cssd-erp/views/CSSDCatalogLuanChuyenTab").then((m) => ({
@@ -80,6 +97,7 @@ const SetReconcileCampaignPanel = dynamic(
 function CssdDungCuPageInner() {
   const s = useCssdCatalogPage();
   const router = useRouter();
+  const { isAdmin } = useModulePermission("BO_DC");
   const isCatalogTab = s.tab === "BO" || s.tab === "LOAI";
 
   const catalogToolbar = (
@@ -143,6 +161,15 @@ function CssdDungCuPageInner() {
             label="Phiếu"
             mobileLabel="Phiếu"
           />
+          {isAdmin ? (
+            <CssdHorizTabButton
+              active={s.tab === "QUAN_LY"}
+              onClick={() => s.setTab("QUAN_LY")}
+              icon={Settings2}
+              label="Quản lý"
+              mobileLabel="Quản lý"
+            />
+          ) : null}
         </div>
         {s.tab === "LUAN_CHUYEN" ? (
           <button
@@ -198,7 +225,12 @@ function CssdDungCuPageInner() {
             />
           </div>
         ) : s.tab === "DE_NGHI" ? (
-          <CSSDCatalogDeNghiTab />
+          <div className="space-y-3">
+            <DungCuPhieuAdminPanels />
+            <CSSDCatalogDeNghiTab />
+          </div>
+        ) : s.tab === "QUAN_LY" ? (
+          <DungCuQuanLyTab />
         ) : s.tab === "LUAN_CHUYEN" ? (
           <CSSDCatalogLuanChuyenTab onSubmitted={() => void s.reload()} />
         ) : null}

@@ -22,19 +22,19 @@ describe("cửa nhân sự tài khoản", () => {
 });
 
 describe("quanTriDungCuHref", () => {
-  it("mặc định và loai → tab Loại (?tab=loai)", () => {
-    expect(quanTriDungCuHref()).toBe("/quan-tri-he-thong/danh-muc/dung-cu?tab=loai");
-    expect(quanTriDungCuHref("loai")).toBe("/quan-tri-he-thong/danh-muc/dung-cu?tab=loai");
+  it("mặc định và loai → tab Loại và kho trên CSSD", () => {
+    expect(quanTriDungCuHref()).toBe("/cssd-dung-cu?tab=LOAI");
+    expect(quanTriDungCuHref("loai")).toBe("/cssd-dung-cu?tab=LOAI");
   });
 
-  it("bộ / chi-tiết → ?tab=bo (một click khỏi Loại)", () => {
-    expect(quanTriDungCuHref("bo")).toBe("/quan-tri-he-thong/danh-muc/dung-cu?tab=bo");
-    expect(quanTriDungCuHref("chi-tiet")).toBe("/quan-tri-he-thong/danh-muc/dung-cu?tab=bo");
+  it("bộ / chi-tiết → tab Quản lý (ADMIN)", () => {
+    expect(quanTriDungCuHref("bo")).toBe("/cssd-dung-cu?tab=QUAN_LY");
+    expect(quanTriDungCuHref("chi-tiet")).toBe("/cssd-dung-cu?tab=QUAN_LY");
   });
 
-  it("phiếu chờ và lịch sử dùng tab query", () => {
-    expect(quanTriDungCuHref("phieu")).toBe("/quan-tri-he-thong/danh-muc/dung-cu?tab=phieu");
-    expect(quanTriDungCuHref("lich-su")).toBe("/quan-tri-he-thong/danh-muc/dung-cu?tab=lich-su");
+  it("phiếu chờ và sổ rà soát → tab Phiếu", () => {
+    expect(quanTriDungCuHref("phieu")).toBe("/cssd-dung-cu?tab=DE_NGHI");
+    expect(quanTriDungCuHref("lich-su")).toBe("/cssd-dung-cu?tab=DE_NGHI");
   });
 });
 
