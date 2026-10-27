@@ -35,7 +35,7 @@ export default function DoiMatKhauPage() {
     }
     setLoading(true);
     try {
-      const res = await changePasswordWithReauth(email, oldPw, newPw);
+      const res = await changePasswordWithReauth(oldPw, newPw);
       if (!res.ok) {
         toast.error(res.error);
         return;

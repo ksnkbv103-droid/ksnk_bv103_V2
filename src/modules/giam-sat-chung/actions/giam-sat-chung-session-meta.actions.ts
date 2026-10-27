@@ -6,6 +6,7 @@ import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import { logAdminAction } from "@/lib/admin-audit";
+import { normalizeSessionIds } from "@/lib/normalize-session-ids";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -38,7 +39,9 @@ export async function deleteGiamSatChungSessions(sessionIds: string[], opts?: De
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "delete");
-    const ids = (sessionIds || []).map(String).filter(Boolean);
+    const norm = normalizeSessionIds(sessionIds);
+    if (!norm.ok) return { success: false as const, error: norm.error };
+    const ids = norm.ids;
     if (!ids.length) return { success: true as const };
 
     const lyDo = String(opts?.lyDo ?? "").trim();

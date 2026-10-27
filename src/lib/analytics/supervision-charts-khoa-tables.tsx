@@ -16,6 +16,7 @@ import {
   useSortedGapRows,
 } from "@/lib/analytics/supervision-charts-shared";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import { isThinSample, khoaTableMinSample } from "@/lib/analytics/supervision-thresholds";
 
 /** Bảng master khoa: khối lượng · % · trạng thái đối soát · VST/GSC. */
 export function SupervisionKhoaMasterTable({
@@ -40,12 +41,14 @@ export function SupervisionKhoaMasterTable({
 
   const title = moduleLabel ? `Bảng tổng hợp khoa · ${moduleLabel}` : "Bảng tổng hợp khoa";
   const percentDigits = supervisionPercentDigits(moduleLabel);
+  const minSample = khoaTableMinSample(moduleLabel);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="mb-2 text-sm font-bold text-slate-800">{title}</h3>
       <p className="mb-3 text-[11px] text-slate-500">
         Chỉ khoa có dữ liệu · sắp chuyên trách % thấp → cao · tô cảnh báo &lt;{KHOA_COMPLIANCE_WARN_PCT}%.
+        {minSample != null ? ` Dưới ${minSample} mẫu = «mẫu mỏng» (không tô cảnh báo, tỷ lệ chưa chắc).` : ""}
       </p>
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[720px] text-left text-xs">
@@ -73,13 +76,15 @@ export function SupervisionKhoaMasterTable({
               sorted.map((r, index) => {
                 const rank = rankById.get(r.id);
                 const compare = gapCompareStatus(r, percentDigits);
-                const ksnkTone = gapPctTone(r.ty_le_ksnk);
-                const tgsTone = gapPctTone(r.ty_le_tgs);
+                const tgsThin = isThinSample(r.vol_tgs, minSample);
+                const ksnkThin = isThinSample(r.vol_ksnk, minSample);
+                const ksnkTone = ksnkThin ? "neutral" : gapPctTone(r.ty_le_ksnk);
+                const tgsTone = tgsThin ? "neutral" : gapPctTone(r.ty_le_tgs);
                 const vstTone = rank ? complianceToneFromPercent(rank.ty_le_vst) : "neutral";
                 const gscTone = rank ? complianceToneFromPercent(rank.ty_le_gsc) : "neutral";
                 const rowWarn =
-                  (r.ty_le_ksnk != null && r.ty_le_ksnk < KHOA_COMPLIANCE_WARN_PCT) ||
-                  (r.ty_le_tgs != null && r.ty_le_tgs < KHOA_COMPLIANCE_WARN_PCT);
+                  (!ksnkThin && r.ty_le_ksnk != null && r.ty_le_ksnk < KHOA_COMPLIANCE_WARN_PCT) ||
+                  (!tgsThin && r.ty_le_tgs != null && r.ty_le_tgs < KHOA_COMPLIANCE_WARN_PCT);
                 return (
                   <tr
                     key={r.id}
@@ -97,9 +102,11 @@ export function SupervisionKhoaMasterTable({
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[tgsTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, percentDigits)}
+                      {tgsThin ? <span className="block bv103-type-label font-medium text-slate-400">mẫu mỏng</span> : null}
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[ksnkTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, percentDigits)}
+                      {ksnkThin ? <span className="block bv103-type-label font-medium text-slate-400">mẫu mỏng</span> : null}
                     </td>
                     <td className={`px-2 py-2 text-center text-[11px] font-medium ${momentToneClass[compare.tone]}`}>
                       {compare.label}

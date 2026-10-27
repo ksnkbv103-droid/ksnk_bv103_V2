@@ -236,3 +236,58 @@ export async function lookupAccessRequestFromTable(
   };
 }
 
+
+function escapeLike(v: string): string {
+  return v.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/** ACC-1: đếm phiếu theo email / mã NV / hồ sơ (trong cửa sổ thời gian hoặc chỉ phiếu chờ). Lỗi → 0. */
+export async function countAccessRequests(
+  supabase: any,
+  filter: { email?: string; maNv?: string; staffId?: string; sinceMs?: number; pendingOnly?: boolean },
+): Promise<number> {
+  if (!filter.email && !filter.maNv && !filter.staffId) return 0;
+  if (!(await isAccountAccessRequestTableAvailable(supabase))) return 0;
+  let q = supabase.from("sys_account_access_request").select("id", { count: "exact", head: true });
+  if (filter.email) q = q.eq("email", filter.email);
+  if (filter.maNv) q = q.ilike("payload->>ma_nv", escapeLike(filter.maNv));
+  if (filter.staffId) q = q.eq("staff_id", filter.staffId);
+  if (filter.pendingOnly) q = q.eq("status", "CHO_DUYET");
+  if (filter.sinceMs) q = q.gte("created_at", new Date(Date.now() - filter.sinceMs).toISOString());
+  const { count, error } = await q;
+  if (error) return 0;
+  return count ?? 0;
+}
+
+/** ACC-1: đọc một phiếu theo id (admin duyệt / từ chối). */
+export async function getAccessRequestTicket(supabase: any, id: string): Promise<AccessRequestRow | null> {
+  if (!id || !(await isAccountAccessRequestTableAvailable(supabase))) return null;
+  const { data, error } = await supabase
+    .from("sys_account_access_request")
+    .select("id, kind, status, payload, staff_id, email, created_at, decided_by, decided_at, reject_reason")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data as AccessRequestRow;
+}
+
+/** ACC-1: trang phiếu chờ duyệt; null khi bảng chưa có (dùng nhánh cũ). */
+export async function listPendingAccessRequestTickets(
+  supabase: any,
+  params: { start: number; end: number; search?: string },
+): Promise<{ rows: AccessRequestRow[]; total: number } | null> {
+  if (!(await isAccountAccessRequestTableAvailable(supabase))) return null;
+  let q = supabase
+    .from("sys_account_access_request")
+    .select("id, kind, status, payload, staff_id, email, created_at, decided_by, decided_at, reject_reason", {
+      count: "exact",
+    })
+    .eq("status", "CHO_DUYET");
+  const term = String(params.search || "").replace(/[,()]/g, " ").replace(/\s+/g, " ").trim();
+  if (term) {
+    q = q.or(`email.ilike.%${term}%,payload->>ho_ten.ilike.%${term}%,payload->>ma_nv.ilike.%${term}%`);
+  }
+  const { data, error, count } = await q.order("created_at", { ascending: false }).range(params.start, params.end);
+  if (error) throw error;
+  return { rows: (data || []) as AccessRequestRow[], total: count ?? 0 };
+}

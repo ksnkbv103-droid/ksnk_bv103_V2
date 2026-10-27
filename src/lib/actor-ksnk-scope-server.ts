@@ -1,5 +1,7 @@
- 
-"use server";
+/**
+ * Helper chỉ chạy phía server — KHÔNG phải Server Action (lát ACC-2: bỏ "use server" để không lộ thành endpoint gọi từ client).
+ * Chỉ import từ file server (action/route/lib server); client import sẽ vỡ build vì supabase-server dùng next/headers.
+ */
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { getActorAuthUserId } from "@/lib/actor-auth-server";

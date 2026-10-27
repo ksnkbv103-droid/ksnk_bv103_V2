@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   buildClearUsedClinicallyMetadataPatch,
   buildUsedClinicallyMetadataPatch,
+  canMarkUsedClinically,
   type CssdUsedClinicallySource,
   parseUsedClinicallyFromMetadata,
 } from "../domain/cssd-used-clinically";
@@ -31,13 +32,17 @@ export async function markCssdUsedClinically(
 
   const { data: row, error: readErr } = await supabase
     .from("cssd_fact_quy_trinh")
-    .select("id, metadata, is_active")
+    .select("id, metadata, is_active, thoi_gian_cap_phat")
     .eq("id", id)
     .maybeSingle();
   if (readErr) throw new Error(readErr.message);
   if (!row) throw new Error("Không tìm thấy quy trình.");
   if ((row as { is_active?: boolean }).is_active !== true) {
     throw new Error("Chu trình đã đóng — không ghi nhận used_clinically.");
+  }
+
+  if (!args.clear && !canMarkUsedClinically((row as { thoi_gian_cap_phat?: string | null }).thoi_gian_cap_phat)) {
+    throw new Error("Bộ chưa cấp phát — không ghi nhận đã dùng lâm sàng.");
   }
 
   const patch = args.clear

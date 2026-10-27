@@ -7,7 +7,7 @@ import { Pencil, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, dialogContentKeepCentered } from "@/components/ui/dialog";
 import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, vnYmd } from "@/lib/format-datetime-vi";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   getNkbvBenhAnHub,
@@ -34,6 +34,7 @@ import { NKBV_CRITERIA_ADD_CATALOG } from "../lib/nkbv-criteria-matrix";
 import { isBaIndexMilestone } from "../lib/nkbv-symptom-timeline-bridge";
 import { buildNkbvBaAnalysisDraftRow } from "../lib/nkbv-ba-analysis-draft";
 import { nkbvKhoaDisplayName } from "../lib/nkbv-khoa-options";
+import { haiPoaLabel } from "../lib/nkbv-shared-timeline";
 
 const hubIslandLoading = () => (
   <p className="px-4 py-6 text-sm text-slate-500">Đang tải khung phân tích…</p>
@@ -321,7 +322,7 @@ export default function NkbvBenhAnHubPanel({
     return buildCriteriaGatePreview({
       milestone: anchor,
       allMilestones: timeline,
-      admissionDate: stay?.ngay_vao_vien ? String(stay.ngay_vao_vien) : null,
+      admissionDate: vnYmd(stay?.ngay_vao_vien) || null,
       hasActiveVent,
       siteEventsForSbap,
     });
@@ -361,7 +362,7 @@ export default function NkbvBenhAnHubPanel({
         ngay_phat_hien: linkedCase.ngay_phat_hien,
         tac_nhan: linkedCase.tac_nhan_vi_khuan,
       },
-      admissionDate: stay?.ngay_vao_vien ? String(stay.ngay_vao_vien) : null,
+      admissionDate: vnYmd(stay?.ngay_vao_vien) || null,
       bloodMilestones: timeline.filter((m) => m.majorType === "BSI" && m.source === "LIS"),
       devices,
     });
@@ -674,8 +675,8 @@ export default function NkbvBenhAnHubPanel({
           ) : (
             <NkbvBaMultiTimelineWorkspace
               maBenhAn={maBenhAn}
-              ngayVaoVien={String(stay.ngay_vao_vien)}
-              ngayRaVien={stay.ngay_ra_vien ? String(stay.ngay_ra_vien) : null}
+              ngayVaoVien={vnYmd(stay.ngay_vao_vien)}
+              ngayRaVien={vnYmd(stay.ngay_ra_vien) || null}
               ngaySinh={stay.ngay_sinh ? String(stay.ngay_sinh).slice(0, 10) : null}
               defaultKhoa={defaultKhoaMa}
               khoaId={stay.khoa_dieu_tri_id ? String(stay.khoa_dieu_tri_id) : null}
@@ -783,7 +784,7 @@ export default function NkbvBenhAnHubPanel({
               ) : null}
               {postEvent ? (
                 <p className="text-[11px] text-slate-600">
-                  Sau sự kiện: DOE {formatDateVi(postEvent.doe)} · <strong>{postEvent.poaHai}</strong>{" "}
+                  Sau sự kiện: DOE {formatDateVi(postEvent.doe)} · <strong>{haiPoaLabel(postEvent.poaHai)}</strong>{" "}
                   · RIT → {formatDateVi(postEvent.ritEnd)}
                 </p>
               ) : null}

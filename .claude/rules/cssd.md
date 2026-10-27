@@ -15,7 +15,7 @@ Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
 1. [`domain-specification.md`](../../docs/core/domain-specification.md) — luồng CSSD.
 2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/cột thật.
 3. [`read-minimum.md`](../../docs/core/read-minimum.md).
-4. CSSD **read-only** catalog tại `/cssd-dung-cu`; CRUD DM tại `quan-tri-he-thong/danh-muc`. Gate: `npm run imports:cssd-mdm`.
+4. Catalog tại `/cssd-dung-cu`: nhân viên chỉ xem + đề nghị; ADMIN duyệt/sửa/import tại tab Phiếu/Quản lý (PO 2026-10-27, mã nằm ở `quan-tri-he-thong/danh-muc`). Gate: `npm run imports:cssd-mdm`.
 
 **Luật nghiệp vụ:** tiệt khuẩn theo nhiệt/phi nhiệt; bộ chỉ đạt vô khuẩn khi **mọi** thành phần/mẻ liên quan đạt — không shortcut trong action.
 
@@ -25,7 +25,7 @@ Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
 
 - **Tiệt khuẩn:** theo nhiệt / phi nhiệt đúng loại dụng cụ — không shortcut trong Server Action.
 - **Bộ vô khuẩn:** chỉ đạt khi **mọi** thành phần / mẻ liên quan đạt.
-- **Catalog:** CSSD **read-only** danh mục tại `/cssd-dung-cu`; CRUD DM tại `quan-tri-he-thong/danh-muc`. Gate: `npm run imports:cssd-mdm`.
+- **Catalog:** Danh mục tại `/cssd-dung-cu`: nhân viên chỉ xem + đề nghị; ADMIN duyệt/sửa/import tại tab Phiếu/Quản lý (PO 2026-10-27, mã nằm ở `quan-tri-he-thong/danh-muc`). Gate: `npm run imports:cssd-mdm`.
 - **Ranh giới:** workflow CSSD (`cssd_*`) ≠ MDM master data — không coupling chéo module.
 - **RLS / admin client:** không bypass verify permission; tránh mở rộng admin-client trước khi harden RLS.
 

@@ -5,7 +5,6 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { logAdminAction } from "@/lib/admin-audit";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
-import { ensureStaffAuthEmailMatchesProfile } from "@/lib/auth/staff-auth-email";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { StaffAuthRow } from "@/types/nhan-su";
 import { RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER, resolveAssignableRoleName, selectRolesForStaffKsnkAssignment } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
@@ -375,14 +374,8 @@ export async function adminResetStaffPasswordAction(params: {
       }
     }
 
-    const emailSync = await ensureStaffAuthEmailMatchesProfile(
-      supabase,
-      staff.auth_user_id,
-      staff.email,
-    );
-    if (!emailSync.ok) {
-      return { success: false as const, error: emailSync.error };
-    }
+    // ACC-1: đặt lại MK không bao giờ đổi email Auth (trước đây đồng bộ theo email hồ sơ → chiếm TK).
+    // Đổi email chỉ qua luồng ADMIN + nhập lại mật khẩu (ADM-01).
 
     const { data: got } = await supabase.auth.admin.getUserById(staff.auth_user_id);
     const prevMeta =

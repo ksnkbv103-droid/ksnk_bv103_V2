@@ -103,6 +103,9 @@ const CONSOLIDATED_MAPS: Record<
   nkbv_dm_trang_thai_ca: { categoryType: "TRANG_THAI_NKBV_CA", maColumn: "ma_trang_thai", tenColumn: "ten_trang_thai", metadataColumns: ["thu_tu"] },
 };
 
+const LOOKUP_NOT_FOUND_ERROR =
+  "Không tìm thấy mục danh mục trong nhóm này (có thể đã bị xóa hoặc thuộc nhóm khác).";
+
 // @internal — chỉ import từ quan-tri-he-thong/.../actions (gate: npm run imports:master-crud). Caller phải verifyPermission.
 function assertAllowedTable(tableName: string) {
   if (!MASTER_TABLE_ALLOWLIST.has(tableName)) {
@@ -227,6 +230,7 @@ async function assertCodeChangeAllowed(
     .from("sys_lookup_value")
     .select("code")
     .eq("id", id)
+    .eq("category_type", config.categoryType)
     .maybeSingle();
   const oldCode = String(cur?.code || "").trim();
   if (!oldCode || oldCode === nextCode) return null;
@@ -262,11 +266,20 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
       );
       if (codeErr) return { success: false as const, error: codeErr };
     }
-    const { error } = id
-      ? await supabase.from("sys_lookup_value").update(lookupPayload).eq("id", id)
-      : await supabase.from("sys_lookup_value").insert([lookupPayload]);
-
-    if (error) return { success: false as const, error: error.message };
+    if (id) {
+      // Chỉ sửa trong đúng nhóm category_type — chặn sửa chéo nhóm qua id.
+      const { data: updated, error } = await supabase
+        .from("sys_lookup_value")
+        .update(lookupPayload)
+        .eq("id", id)
+        .eq("category_type", config.categoryType)
+        .select("id");
+      if (error) return { success: false as const, error: error.message };
+      if (!updated || updated.length === 0) return { success: false as const, error: LOOKUP_NOT_FOUND_ERROR };
+    } else {
+      const { error } = await supabase.from("sys_lookup_value").insert([lookupPayload]);
+      if (error) return { success: false as const, error: error.message };
+    }
   } else {
     if (id && tableName === "mdm_dm_khoa_phong") {
       const nextCode = String(payload.ma_khoa || payload.ma || "").trim();
@@ -296,14 +309,18 @@ export async function toggleMasterStatus(tableName: string, id: string, currentS
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
-  const targetTable = CONSOLIDATED_MAPS[tableName] ? "sys_lookup_value" : tableName;
+  const lookup = CONSOLIDATED_MAPS[tableName];
+  const targetTable = lookup ? "sys_lookup_value" : tableName;
 
-  const { error } = await supabase
+  let q = supabase
     .from(targetTable)
     .update({ is_active: !currentStatus, updated_at: new Date().toISOString() })
     .eq("id", id);
+  if (lookup) q = q.eq("category_type", lookup.categoryType);
+  const { data: updated, error } = await q.select("id");
 
   if (error) return { success: false as const, error: error.message };
+  if (lookup && (!updated || updated.length === 0)) return { success: false as const, error: LOOKUP_NOT_FOUND_ERROR };
   revalidateMasterDataRowCacheTag(tableName);
   await logAdminAction({
     action: "MASTER_TOGGLE_ACTIVE",
@@ -321,14 +338,18 @@ export async function softDeleteMasterRow(tableName: string, id: string) {
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
-  const targetTable = CONSOLIDATED_MAPS[tableName] ? "sys_lookup_value" : tableName;
+  const lookup = CONSOLIDATED_MAPS[tableName];
+  const targetTable = lookup ? "sys_lookup_value" : tableName;
 
-  const { error } = await supabase
+  let q = supabase
     .from(targetTable)
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq("id", id);
+  if (lookup) q = q.eq("category_type", lookup.categoryType);
+  const { data: updated, error } = await q.select("id");
 
   if (error) return { success: false as const, error: error.message };
+  if (lookup && (!updated || updated.length === 0)) return { success: false as const, error: LOOKUP_NOT_FOUND_ERROR };
   revalidateMasterDataRowCacheTag(tableName);
   await logAdminAction({
     action: "MASTER_SOFT_DELETE",
@@ -345,14 +366,18 @@ export async function softDeleteManyMasterRows(tableName: string, ids: string[])
   assertAllowedTable(tableName);
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
-  const targetTable = CONSOLIDATED_MAPS[tableName] ? "sys_lookup_value" : tableName;
+  const lookup = CONSOLIDATED_MAPS[tableName];
+  const targetTable = lookup ? "sys_lookup_value" : tableName;
 
-  const { error } = await supabase
+  let q = supabase
     .from(targetTable)
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .in("id", ids);
+  if (lookup) q = q.eq("category_type", lookup.categoryType);
+  const { data: updated, error } = await q.select("id");
 
   if (error) return { success: false as const, error: error.message };
+  if (lookup && (!updated || updated.length === 0)) return { success: false as const, error: LOOKUP_NOT_FOUND_ERROR };
   revalidateMasterDataRowCacheTag(tableName);
   await logAdminAction({
     action: "MASTER_SOFT_DELETE_MANY",

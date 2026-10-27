@@ -45,6 +45,7 @@ import {
   VST_COMPARE_MIN_SAMPLE,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
+import { classifyFunnel, funnelOverallRate } from "@/lib/analytics/supervision-funnel";
 import { formatWilsonInterval95, supervisionPercentDigits } from "@/lib/analytics/supervision-percent";
 import { tyLeForLens, type SupervisionSourceLens } from "@/lib/analytics/supervision-source-lens";
 
@@ -100,24 +101,32 @@ function SupervisionKhoaComplianceChart({
   const title = "Tỷ lệ tuân thủ theo khoa";
 
   const minSample = moduleLabel === "VST" ? VST_COMPARE_MIN_SAMPLE : null;
+  const volFor = (r: (typeof sorted)[number]) =>
+    sourceLens
+      ? {
+          dat: sourceLens === "ksnk" ? r.dat_ksnk : r.dat_tgs,
+          tong: sourceLens === "ksnk" ? r.vol_ksnk : r.vol_tgs,
+        }
+      : resolveKhoaAggregateVol(r, matrixById.get(r.id));
+  // Funnel chỉ cho VST (cơ hội gần độc lập) và chỉ khoa đủ mẫu; tỷ lệ chung lấy từ mọi khoa trong bảng.
+  const funnelP0 = moduleLabel === "VST" ? funnelOverallRate(sorted.map(volFor)) : null;
+
   const chartData = sorted.map((r) => {
     const matrix = matrixById.get(r.id);
     const ty_le = sourceLens
       ? tyLeForLens(r, sourceLens)
       : resolveKhoaAggregateTyLe(r, matrix?.ty_le_tuan_thu, matrix);
-    const vol = sourceLens
-      ? {
-          dat: sourceLens === "ksnk" ? r.dat_ksnk : r.dat_tgs,
-          tong: sourceLens === "ksnk" ? r.vol_ksnk : r.vol_tgs,
-        }
-      : resolveKhoaAggregateVol(r, matrix);
+    const vol = volFor(r);
     const thin = minSample != null && vol.tong < minSample;
     // VST: cơ hội gần độc lập nên KTC Wilson có nghĩa; GSC tiêu chí trong một phiên tương quan → không hiện.
     const ci = moduleLabel === "VST" ? formatWilsonInterval95(vol.dat, vol.tong) : null;
     const sampleNote = thin ? `mẫu mỏng (${vol.tong})` : `n=${vol.tong}`;
+    const verdict = funnelP0 != null && !thin ? classifyFunnel(vol.dat, vol.tong, funnelP0) : null;
+    const funnelNote =
+      verdict === "below" ? "thấp hơn mức chung (ngoài dải 95%)" : verdict === "above" ? "cao hơn mức chung (ngoài dải 95%)" : null;
     return {
       ten: r.label,
-      fullName: moduleLabel === "VST" ? [r.ten, sampleNote, ci].filter(Boolean).join(" · ") : r.ten,
+      fullName: moduleLabel === "VST" ? [r.ten, sampleNote, ci, funnelNote].filter(Boolean).join(" · ") : r.ten,
       ty_le_tuan_thu: ty_le,
       dat: vol.dat,
       tong: vol.tong,

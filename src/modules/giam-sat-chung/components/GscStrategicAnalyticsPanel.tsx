@@ -50,7 +50,8 @@ type Props = {
 };
 
 /**
- * Nội dung thống kê GSC — bộ lọc nằm ở `Bv103AnalyticsPageFrame.filterBar` (sticky, luôn hiện).
+ * Thống kê GSC, 4 tầng: tổng quan (KPI · độ phủ) · bảng kiểm · theo khoa · xu hướng và so sánh.
+ * Bộ lọc nằm ở `Bv103AnalyticsPageFrame.filterBar` (sticky, luôn hiện).
  */
 export default function GscStrategicAnalyticsPanel(p: Props) {
   const searchParams = useSearchParams();
@@ -142,6 +143,16 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         </p>
       </div>
 
+      <SupervisionKpiRow
+        loading={p.loading}
+        items={[
+          { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
+          { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
+          { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
+          { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.kpis?.tong_dat ?? 0, p.payload?.kpis?.tong_quan_sat ?? 0) },
+        ]}
+      />
+
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 
       <GscChecklistNavigator
@@ -203,7 +214,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           <SupervisionCompareAccordion
             sections={compareSections}
             loading={p.loading}
-            defaultOpen={false}
+            defaultOpen
             summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
           />
         </div>
@@ -213,7 +224,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát hai nguồn · Bao phủ tự giám sát · Số liệu tổng
+            Đối soát hai nguồn · Bao phủ tự giám sát
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
@@ -222,15 +233,6 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
             tuNgay={p.tuNgay}
             denNgay={p.denNgay}
             selectedKhoaIds={p.selectedKhoaIds}
-          />
-          <SupervisionKpiRow
-            loading={p.loading}
-            items={[
-              { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
-              { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
-              { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
-              { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.kpis?.tong_dat ?? 0, p.payload?.kpis?.tong_quan_sat ?? 0) },
-            ]}
           />
         </div>
       </details>

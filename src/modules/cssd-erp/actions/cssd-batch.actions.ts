@@ -14,6 +14,7 @@ import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { getBatchAddRejectionReason } from "../helpers/me-tiet-khuan-batch-trace";
 import {
   collectParentBoIdsWithActiveChildren,
+  meChuaKetThucOrFilter,
   rejectIfMachineHasOpenBatch,
   rejectParentBoWithSub,
   rejectStartMember,
@@ -663,7 +664,7 @@ export async function createCssdSterilizationBatch(
       .eq("thiet_bi_id", mid)
       .eq("is_active", true)
       .is("ket_qua_test", null)
-      .or("trang_thai_me.is.null,trang_thai_me.neq.CHO_BI")
+      .or(meChuaKetThucOrFilter({ loaiChoBi: true }))
       .limit(1)
       .maybeSingle();
     if (openErr) return { success: false as const, error: mapFkError(openErr.message) };

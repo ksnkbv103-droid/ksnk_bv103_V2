@@ -8,7 +8,8 @@ import {
 } from "../../danh-muc/actions/master-crud-core";
 import { formatHoSoNhanSuWriteError } from "./nhan-su-fk-normalize";
 import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";
-import { verifyPermission } from "@/lib/server-permission";
+import { invalidateUserPermissionsCache, verifyPermission } from "@/lib/server-permission";
+import { syncStaffAuthBan } from "../lib/nhan-su-auth-ban";
 import { nhanSuSchema } from "@/lib/validations";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { syncStaffAuthEmail } from "@/lib/auth/staff-auth-email";
@@ -162,13 +163,17 @@ export async function saveNhanSuAction(data: SaveNhanSuInput) {
     if (id && existingAuthUserId && validatedData.is_active !== undefined && existingIsActive !== null) {
       const nextActive = validatedData.is_active !== false;
       if (existingIsActive !== nextActive) {
+        // Ngưng → ban Auth, bật lại → bỏ ban; xóa cache quyền để không giữ quyền cũ.
+        const ban = await syncStaffAuthBan(supabase, existingAuthUserId, nextActive);
+        await invalidateUserPermissionsCache();
         await logAdminAction({
           action: "LOCK_UNLOCK_ACCOUNT",
           targetTable: "mdm_nhan_su",
           targetId: id,
           before: { is_active: existingIsActive },
-          after: { is_active: nextActive },
+          after: { is_active: nextActive, auth_ban_synced: ban.ok },
         });
+        if (!ban.ok) return { success: false, error: ban.error };
       }
     }
 

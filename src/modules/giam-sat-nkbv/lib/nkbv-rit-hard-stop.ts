@@ -18,6 +18,7 @@ import {
   endoRitSbapToDischarge,
   poaOrHai,
 } from "./nkbv-shared-timeline";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 /** Kết luận không mở RIT (không đủ tiêu chí sự kiện NHSN). */
 const RIT_INELIGIBLE_CLASSIFICATIONS = new Set([
@@ -174,7 +175,7 @@ export function ritPriorFromVerifiedSibling(
   const majorType = resolvePriorMajorType(row);
   if (!majorType) return null;
 
-  const adm = String(row.ngay_vao_vien || "").slice(0, 10);
+  const adm = vnYmd(row.ngay_vao_vien);
   const doe =
     adm && /^\d{4}-\d{2}-\d{2}$/.test(adm)
       ? poaOrHai(adm, rawDoe).doeForRit
@@ -209,7 +210,7 @@ export function resolveServerRitPriors(input: {
   bypass?: boolean;
 }): RitPriorEvent[] {
   if (input.bypass) return [];
-  const adm = input.admissionDate ? String(input.admissionDate).slice(0, 10) : null;
+  const adm = vnYmd(input.admissionDate) || null;
   return (input.siblings || [])
     .map((s) =>
       ritPriorFromVerifiedSibling({
@@ -320,7 +321,7 @@ export function verifiedSiblingFromCaseRow(s: {
   return {
     id: s.id ? String(s.id) : undefined,
     calculated_doe,
-    ngay_vao_vien: s.ngay_vao_vien ? String(s.ngay_vao_vien).slice(0, 10) : null,
+    ngay_vao_vien: vnYmd(s.ngay_vao_vien) || null,
     classification,
     is_positive,
     is_secondary_bsi,

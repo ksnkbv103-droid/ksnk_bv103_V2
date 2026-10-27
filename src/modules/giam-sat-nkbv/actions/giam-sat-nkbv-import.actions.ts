@@ -13,6 +13,7 @@ import {
 import type { NkbvMdroPhenotype, NkbvMdroSource } from "../lib/nkbv-mdro";
 import { decideBenhAnImportRow } from "../lib/nkbv-benh-an-import-policy";
 import { nkbvVnDateStartIso } from "../lib/nkbv-ba-ngay";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type ViSinhRecordInput = {
   ma_benh_nhan: string;
@@ -91,6 +92,19 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
       if (!r.ket_qua) {
         return { success: false as const, error: "Thiếu phân loại kết quả (ket_qua)." };
       }
+      // Không gán ngày import thay ngày vào viện — sai ngày nằm viện → sai POA/HAI.
+      if (!vnYmd(r.ngay_vao_vien)) {
+        return {
+          success: false as const,
+          error: `XN ${r.ma_xet_nghiem} (BA ${r.ma_benh_an}): thiếu hoặc sai ngày vào viện — bổ sung trước khi import.`,
+        };
+      }
+      if (!vnYmd(r.ngay_lay_mau)) {
+        return {
+          success: false as const,
+          error: `XN ${r.ma_xet_nghiem} (BA ${r.ma_benh_an}): thiếu hoặc sai ngày lấy mẫu.`,
+        };
+      }
     }
 
     const uniqueStays = Array.from(
@@ -103,9 +117,8 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
             ho_ten_benh_nhan: r.ho_ten_benh_nhan,
             ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
             gioi_tinh: r.gioi_tinh ?? null,
-            ngay_vao_vien: r.ngay_vao_vien
-              ? nkbvVnDateStartIso(String(r.ngay_vao_vien).slice(0, 10))
-              : nkbvVnDateStartIso(new Date().toISOString().slice(0, 10)),
+            // Lưu 00:00 giờ VN (+07:00); đọc lại bằng vnYmd. Thiếu ngày đã bị từ chối ở trên.
+            ngay_vao_vien: nkbvVnDateStartIso(vnYmd(r.ngay_vao_vien)),
             khoa_dieu_tri_id: r.khoa_yeu_cau_id || null,
             is_active: true,
           },
@@ -128,7 +141,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
           await supabase.from("nkbv_fact_ba_ngay_khoa").upsert(
             {
               ma_benh_an: stay.ma_benh_an,
-              ngay_lich: String(stay.ngay_vao_vien).slice(0, 10),
+              ngay_lich: vnYmd(stay.ngay_vao_vien),
               khoa_id: stay.khoa_dieu_tri_id,
               updated_at: new Date().toISOString(),
             },
@@ -266,8 +279,11 @@ export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
       if (!r.ho_ten_benh_nhan?.trim()) {
         return { success: false as const, error: "Thiếu họ tên bệnh nhân." };
       }
-      if (!r.ngay_vao_vien?.trim()) {
-        return { success: false as const, error: "Thiếu ngày vào viện." };
+      if (!vnYmd(r.ngay_vao_vien)) {
+        return {
+          success: false as const,
+          error: `BA ${r.ma_benh_an}: thiếu hoặc sai ngày vào viện.`,
+        };
       }
     }
 
@@ -310,8 +326,8 @@ export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
         ho_ten_benh_nhan: r.ho_ten_benh_nhan.trim(),
         ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
         gioi_tinh: r.gioi_tinh?.trim() || null,
-        ngay_vao_vien: nkbvVnDateStartIso(r.ngay_vao_vien.slice(0, 10)),
-        ngay_ra_vien: r.ngay_ra_vien ? nkbvVnDateStartIso(r.ngay_ra_vien.slice(0, 10)) : null,
+        ngay_vao_vien: nkbvVnDateStartIso(vnYmd(r.ngay_vao_vien)),
+        ngay_ra_vien: r.ngay_ra_vien ? nkbvVnDateStartIso(vnYmd(r.ngay_ra_vien)) : null,
         khoa_dieu_tri_id: r.khoa_dieu_tri_id || null,
         is_active: true,
         updated_at: nowIso,
@@ -334,7 +350,7 @@ export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
         await supabase.from("nkbv_fact_ba_ngay_khoa").upsert(
           {
             ma_benh_an: ba,
-            ngay_lich: String(r.ngay_vao_vien).slice(0, 10),
+            ngay_lich: vnYmd(r.ngay_vao_vien),
             khoa_id: payload.khoa_dieu_tri_id,
             updated_at: nowIso,
           },

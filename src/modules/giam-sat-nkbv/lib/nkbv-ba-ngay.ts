@@ -9,6 +9,7 @@ import {
   type BaDeviceByDate,
 } from "./nkbv-ba-device-timeline";
 import type { DepartmentStay } from "../types/nkbv-verification";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type NkbvDungCuLoai = "CVC" | "VENT" | "FOLEY";
 
@@ -25,7 +26,7 @@ export type NkbvNgayDungCuRow = {
 
 /** Timestamp ngày lịch Việt Nam — tránh lệch HD vì UTC. */
 export function nkbvVnDateStartIso(dateYmd: string): string {
-  const d = String(dateYmd || "").slice(0, 10);
+  const d = vnYmd(dateYmd);
   return `${d}T00:00:00+07:00`;
 }
 
@@ -68,8 +69,8 @@ export function countDungCuCalendarDays(
   stayFrom: string | null | undefined,
   stayTo: string | null | undefined,
 ): number {
-  const from = String(stayFrom || "").slice(0, 10);
-  const to = String(stayTo || "").slice(0, 10);
+  const from = vnYmd(stayFrom);
+  const to = vnYmd(stayTo);
   const seen = new Set<string>();
   for (const r of rows) {
     if (r.loai_dung_cu !== loai) continue;
@@ -203,4 +204,24 @@ export function eventDateFromVerification(
   const raw = metrics.doe || metrics.DOE || metrics.calculated_doe || fallback;
   const d = String(raw || "").slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
+}
+
+/**
+ * Khoa quy kết của ca = khoa trên lưới ngày tại (hoặc trước gần nhất) ngày DOE; null nếu lưới không phủ.
+ * Server tự tính — không tin khoa do client gửi khi lưới đã có dữ liệu.
+ */
+export function resolveKhoaQuyKet(
+  khoaRows: NkbvNgayKhoaRow[],
+  vd: Record<string, unknown> | null | undefined,
+  ngayPhatHien: string | null,
+): string | null {
+  const doe = eventDateFromVerification(vd, ngayPhatHien ? String(ngayPhatHien).slice(0, 10) : null);
+  return doe ? khoaIdOnOrBefore(khoaIdByDateMap(khoaRows), doe) : null;
+}
+
+/** Trạng thái đã chốt thẩm định — sync lưới / kích hoạt lại không được đụng (khớp trigger `trg_nkbv_su_kien_guard_trang_thai`). */
+export const NKBV_CA_TRANG_THAI_CHOT = ["XAC_NHAN", "LOAI_TRU", "DA_DONG"] as const;
+
+export function isNkbvCaTrangThaiChot(ma: string | null | undefined): boolean {
+  return (NKBV_CA_TRANG_THAI_CHOT as readonly string[]).includes(String(ma ?? "").trim());
 }

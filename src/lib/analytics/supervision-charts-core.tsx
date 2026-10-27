@@ -21,6 +21,7 @@ import {
   khoaCategoryYAxis,
 } from "@/lib/analytics/supervision-charts-shared";
 import { KHOA_COMPLIANCE_WARN_PCT } from "@/lib/analytics/supervision-matrix-mappers";
+import { analyzeRunChart, describeRunSignal, RUN_CHART_MIN_POINTS } from "@/lib/analytics/supervision-run-chart";
 import {
   normalizeGscTrendline,
   normalizeVstTrendline,
@@ -88,6 +89,13 @@ export function SupervisionTrendChart({
     }));
   }, [data, source, granularity]);
 
+  // Run chart chỉ cho VST (cơ hội gần độc lập); kỳ không có mẫu bị bỏ khỏi phép đọc tín hiệu.
+  const runChart = useMemo(
+    () => (source === "vst" ? analyzeRunChart(chartData.filter((r) => r.tong > 0).map((r) => r.ty_le_tuan_thu)) : null),
+    [chartData, source],
+  );
+  const runUnit = { week: "tuần", month: "tháng", quarter: "quý", year: "năm" }[granularity];
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -118,6 +126,14 @@ export function SupervisionTrendChart({
               />
               <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
               <Tooltip formatter={percentTooltipFormatter()} />
+              {runChart ? (
+                <ReferenceLine
+                  y={runChart.median}
+                  stroke="#64748b"
+                  strokeDasharray="4 4"
+                  label={{ value: `Trung vị ${formatPercent1(runChart.median)}`, position: "insideTopRight", fontSize: 9, fill: "#64748b" }}
+                />
+              ) : null}
               <Line type="monotone" dataKey={dataKey} stroke={stroke} strokeWidth={2} name="Tuân thủ (%)" />
             </LineChart>
           </SupervisionResponsiveChart>
@@ -127,6 +143,15 @@ export function SupervisionTrendChart({
           </p>
         )}
       </div>
+      {source === "vst" && !loading && chartData.length > 0 ? (
+        <p className="mt-2 text-[11px] text-slate-500">
+          {runChart == null
+            ? `Chưa đủ ${RUN_CHART_MIN_POINTS} ${runUnit} có mẫu để đọc tín hiệu so với trung vị.`
+            : runChart.signals.length === 0
+              ? "Không thấy tín hiệu bất thường so với trung vị."
+              : runChart.signals.map((s) => describeRunSignal(s, runUnit)).join(" ")}
+        </p>
+      ) : null}
     </div>
   );
 }

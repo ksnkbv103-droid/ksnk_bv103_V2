@@ -20,13 +20,21 @@ export function CSSDCatalogLoaiTab(props: {
   boBySelectedLoai: CSSDBo[];
   toolbar?: ReactNode;
 }) {
-  const { loaiRows, selectedLoaiId, setSelectedLoaiId, selectedLoai, boBySelectedLoai, toolbar } = props;
+  const { selectedLoaiId, setSelectedLoaiId, selectedLoai, boBySelectedLoai, toolbar } = props;
   const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [onlyStock, setOnlyStock] = useState(false);
+  const loaiRows = onlyStock
+    ? props.loaiRows.filter((x) => (x.so_luong_kho_du_phong ?? 0) > 0)
+    : props.loaiRows;
 
   return (
     <div className="space-y-3">
-        <div className="flex justify-end px-1">
+        <div className="flex items-center justify-between gap-3 px-1">
+          <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700">
+            <input type="checkbox" checked={onlyStock} onChange={(e) => setOnlyStock(e.target.checked)} />
+            Chỉ loại còn tồn kho chưa dùng ({props.loaiRows.filter((x) => (x.so_luong_kho_du_phong ?? 0) > 0).length})
+          </label>
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -44,7 +52,7 @@ export function CSSDCatalogLoaiTab(props: {
                 <th className={`${L.th} text-center`}>Phân loại</th>
                 <th className={`${L.th} text-center`}>Tổng</th>
                 <th className={`${L.th} text-center`}>Trong bộ</th>
-                <th className={`${L.th} text-center`}>Trong kho</th>
+                <th className={`${L.th} text-center`}>Tồn kho chưa dùng</th>
                 <th className={L.th}>Hình dáng</th>
                 <th className={L.th}>Kích thước</th>
                 <th className={L.th}>Công dụng</th>
@@ -71,7 +79,7 @@ export function CSSDCatalogLoaiTab(props: {
                     </td>
                     <td className={`${L.td} text-center tabular-nums`}>{x.so_luong_tong ?? 0}</td>
                     <td className={`${L.td} text-center tabular-nums`}>{x.so_luong_trong_bo ?? 0}</td>
-                    <td className={`${L.td} text-center tabular-nums`}>{x.so_luong_kho_du_phong ?? 0}</td>
+                    <td className={`${L.td} text-center font-semibold tabular-nums`}>{x.so_luong_kho_du_phong ?? 0}</td>
                     <td className={L.td}>{x.hinh_dang || "—"}</td>
                     <td className={L.td}>{x.kich_thuoc || "—"}</td>
                     <td className={`${L.td} max-w-[200px] truncate`} title={x.cong_dung || ""}>

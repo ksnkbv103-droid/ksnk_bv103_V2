@@ -7,8 +7,25 @@ import {
   khoaIdOnOrBefore,
   locationDaysToTreatmentHistory,
   nkbvVnDateStartIso,
+  resolveKhoaQuyKet,
   stripCopiedStayFieldsFromVerification,
 } from "./nkbv-ba-ngay";
+
+describe("resolveKhoaQuyKet", () => {
+  const rows = [
+    { ngay_lich: "2026-08-01", khoa_id: "k1" },
+    { ngay_lich: "2026-08-03", khoa_id: "k2" },
+  ];
+  it("dùng DOE trong verification_data trước, rồi ngày phát hiện", () => {
+    expect(resolveKhoaQuyKet(rows, { cdc_metrics: { doe: "2026-08-02" } }, "2026-08-05")).toBe("k1");
+    expect(resolveKhoaQuyKet(rows, {}, "2026-08-05")).toBe("k2");
+  });
+  it("lưới chưa phủ hoặc không có ngày → null", () => {
+    expect(resolveKhoaQuyKet(rows, {}, "2026-07-30")).toBeNull();
+    expect(resolveKhoaQuyKet([], {}, "2026-08-05")).toBeNull();
+    expect(resolveKhoaQuyKet(rows, {}, null)).toBeNull();
+  });
+});
 
 describe("nkbv-ba-ngay", () => {
   it("đếm ngày thở máy trên lưới, không đếm Foley", () => {
@@ -76,5 +93,17 @@ describe("nkbv-ba-ngay", () => {
 
   it("ngày lịch VN không lệch UTC", () => {
     expect(nkbvVnDateStartIso("2026-08-01")).toBe("2026-08-01T00:00:00+07:00");
+  });
+});
+
+describe("isNkbvCaTrangThaiChot", () => {
+  it("chốt: XAC_NHAN, LOAI_TRU, DA_DONG", async () => {
+    const { isNkbvCaTrangThaiChot } = await import("./nkbv-ba-ngay");
+    expect(["XAC_NHAN", "LOAI_TRU", "DA_DONG"].every(isNkbvCaTrangThaiChot)).toBe(true);
+  });
+  it("chưa chốt / rỗng", async () => {
+    const { isNkbvCaTrangThaiChot } = await import("./nkbv-ba-ngay");
+    expect(isNkbvCaTrangThaiChot("DANG_GHI_NHAN")).toBe(false);
+    expect(isNkbvCaTrangThaiChot(null)).toBe(false);
   });
 });

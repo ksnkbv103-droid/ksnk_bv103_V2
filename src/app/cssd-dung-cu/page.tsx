@@ -1,10 +1,11 @@
 "use client";
 
-/** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại · Lịch sử kho). Hỏng/Mất ở /cssd-su-co. */
+/** Dụng cụ: 3 tab Bộ · Loại và kho · Phiếu (+ Quản lý cho ADMIN); Luân chuyển mở từ panel bộ. Hỏng/Mất ở /cssd-su-co. */
 import { Suspense } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
+import { ClipboardList, Layers, Settings2, Tag } from "lucide-react";
 import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
@@ -18,12 +19,12 @@ import {
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/CssdQrLabelKindsNotice";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   CatalogDeNghiCartProvider,
   CatalogDeNghiCartBar,
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCart";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 /** Lazy per active tab — keep shell/toolbar light (Perf P1 / W5). */
 function TabPanelSkeleton() {
@@ -60,16 +61,27 @@ const CSSDCatalogDeNghiTab = dynamic(
   { loading: () => panelFallback },
 );
 
+const DungCuQuanLyTab = dynamic(
+  () =>
+    import("@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuQuanLyTab").then((m) => ({
+      default: m.DungCuQuanLyTab,
+    })),
+  { loading: () => panelFallback },
+);
+
+const DungCuPhieuAdminPanels = dynamic(
+  () =>
+    import("@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels").then((m) => ({
+      default: m.DungCuPhieuAdminPanels,
+    })),
+  { loading: () => panelFallback },
+);
+
 const CSSDCatalogLuanChuyenTab = dynamic(
   () =>
     import("@/modules/cssd-erp/views/CSSDCatalogLuanChuyenTab").then((m) => ({
       default: m.CSSDCatalogLuanChuyenTab,
     })),
-  { loading: () => panelFallback },
-);
-
-const InventoryHistoryTable = dynamic(
-  () => import("@/modules/cssd-erp/components/inventory/InventoryHistoryTable"),
   { loading: () => panelFallback },
 );
 
@@ -84,6 +96,8 @@ const SetReconcileCampaignPanel = dynamic(
 
 function CssdDungCuPageInner() {
   const s = useCssdCatalogPage();
+  const router = useRouter();
+  const { isAdmin } = useModulePermission("BO_DC");
   const isCatalogTab = s.tab === "BO" || s.tab === "LOAI";
 
   const catalogToolbar = (
@@ -116,72 +130,56 @@ function CssdDungCuPageInner() {
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
         <p className="px-1 text-[11px] leading-relaxed text-slate-500">
-          <span className="font-semibold text-slate-700">Việc</span>
-          {" — "}
-          <span className="font-semibold text-slate-700">Đề nghị danh mục</span>
-          {" (chuẩn Loại/Bộ/Thành phần) · "}
-          <span className="font-semibold text-slate-700">Luân chuyển</span>
-          {" (kho ↔ bộ / bộ ↔ bộ). "}
-          <span className="font-semibold text-slate-700">Tra cứu</span>
-          {" — Bộ · Loại · Lịch sử kho. "}
+          Chọn một <span className="font-semibold text-slate-700">bộ</span> để xem thành phần, in danh mục hoặc
+          luân chuyển. <span className="font-semibold text-slate-700">Loại và kho</span> cho biết tồn chưa dùng.{" "}
+          <span className="font-semibold text-slate-700">Phiếu</span> xem Cũ → Mới và in.{" "}
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
             Hỏng/Mất
           </Link>
-          {" chỉ tại Sự cố. Luân chuyển số lượng ở tab Luân chuyển."}
+          {" chỉ tại Sự cố."}
         </p>
 
-        <div className="space-y-2">
-          <div className="space-y-1">
-            <p className="bv103-type-label px-1 font-semibold uppercase tracking-wide text-slate-400">
-              Việc
-            </p>
-            <div className={CSSD_UI_TAB_GROUP} role="tablist" aria-label="Việc dụng cụ">
-              <CssdHorizTabButton
-                active={s.tab === "DE_NGHI"}
-                onClick={() => s.setTab("DE_NGHI")}
-                icon={ClipboardList}
-                label="Đề nghị danh mục"
-                mobileLabel="Đề nghị"
-              />
-              <CssdHorizTabButton
-                active={s.tab === "LUAN_CHUYEN"}
-                onClick={() => s.setTab("LUAN_CHUYEN")}
-                icon={ArrowLeftRight}
-                label="Luân chuyển"
-                mobileLabel="Luân chuyển"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <p className="bv103-type-label px-1 font-semibold uppercase tracking-wide text-slate-400">
-              Tra cứu
-            </p>
-            <div className={`${CSSD_UI_TAB_GROUP} opacity-95`} role="tablist" aria-label="Tra cứu dụng cụ">
-              <CssdHorizTabButton
-                active={s.tab === "BO"}
-                onClick={() => s.setTab("BO")}
-                icon={Layers}
-                label="Bộ dụng cụ"
-                mobileLabel="Bộ"
-              />
-              <CssdHorizTabButton
-                active={s.tab === "LOAI"}
-                onClick={() => s.setTab("LOAI")}
-                icon={Tag}
-                label="Loại dụng cụ"
-                mobileLabel="Loại"
-              />
-              <CssdHorizTabButton
-                active={s.tab === "HISTORY"}
-                onClick={() => s.setTab("HISTORY")}
-                icon={History}
-                label="Lịch sử kho"
-                mobileLabel="Kho"
-              />
-            </div>
-          </div>
+        <div className={CSSD_UI_TAB_GROUP} role="tablist" aria-label="Dụng cụ">
+          <CssdHorizTabButton
+            active={s.tab === "BO"}
+            onClick={() => s.setTab("BO")}
+            icon={Layers}
+            label="Bộ dụng cụ"
+            mobileLabel="Bộ"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "LOAI"}
+            onClick={() => s.setTab("LOAI")}
+            icon={Tag}
+            label="Loại và kho"
+            mobileLabel="Loại"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "DE_NGHI"}
+            onClick={() => s.setTab("DE_NGHI")}
+            icon={ClipboardList}
+            label="Phiếu"
+            mobileLabel="Phiếu"
+          />
+          {isAdmin ? (
+            <CssdHorizTabButton
+              active={s.tab === "QUAN_LY"}
+              onClick={() => s.setTab("QUAN_LY")}
+              icon={Settings2}
+              label="Quản lý"
+              mobileLabel="Quản lý"
+            />
+          ) : null}
         </div>
+        {s.tab === "LUAN_CHUYEN" ? (
+          <button
+            type="button"
+            className="px-1 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            onClick={() => s.setTab("BO")}
+          >
+            ← Về danh sách bộ
+          </button>
+        ) : null}
 
         {s.loading && isCatalogTab ? (
           <p className="px-2.5 py-3 text-[11px] text-slate-500">Đang tải danh mục…</p>
@@ -196,19 +194,23 @@ function CssdDungCuPageInner() {
             {!s.selectedBoId ? (
               <p className="px-2.5 text-[11px] text-slate-500">Chọn một bộ để xem thành phần.</p>
             ) : null}
-            <Dialog
-              open={Boolean(s.selectedBoId)}
-              onOpenChange={(open) => {
-                if (!open) s.setSelectedBoId(null);
-              }}
-            >
-              <DialogContent className="max-w-3xl sm:max-w-4xl max-h-[min(90dvh,880px)] overflow-y-auto">
-                <DialogTitle className="sr-only">Thành phần bộ dụng cụ</DialogTitle>
-                {s.selectedBoId ? (
-                  <SetCompositionCard boDungCuId={s.selectedBoId} />
-                ) : null}
-              </DialogContent>
-            </Dialog>
+            {s.selectedBoId ? (
+              <div className="space-y-1">
+                <div className="flex justify-end px-1">
+                  <button
+                    type="button"
+                    className="text-[11px] font-semibold text-slate-500 hover:underline"
+                    onClick={() => s.setSelectedBoId(null)}
+                  >
+                    Đóng thành phần
+                  </button>
+                </div>
+                <SetCompositionCard
+                  boDungCuId={s.selectedBoId}
+                  onTransfer={(ma) => router.push(`/cssd-dung-cu?tab=LUAN_CHUYEN&ma=${encodeURIComponent(ma)}`)}
+                />
+              </div>
+            ) : null}
           </div>
         ) : s.tab === "LOAI" ? (
           <div className="space-y-2">
@@ -223,12 +225,15 @@ function CssdDungCuPageInner() {
             />
           </div>
         ) : s.tab === "DE_NGHI" ? (
-          <CSSDCatalogDeNghiTab />
+          <div className="space-y-3">
+            <DungCuPhieuAdminPanels />
+            <CSSDCatalogDeNghiTab />
+          </div>
+        ) : s.tab === "QUAN_LY" ? (
+          <DungCuQuanLyTab />
         ) : s.tab === "LUAN_CHUYEN" ? (
           <CSSDCatalogLuanChuyenTab onSubmitted={() => void s.reload()} />
-        ) : (
-          <InventoryHistoryTable />
-        )}
+        ) : null}
         <CatalogDeNghiCartBar />
       </div>
     </CSSDPageShell>

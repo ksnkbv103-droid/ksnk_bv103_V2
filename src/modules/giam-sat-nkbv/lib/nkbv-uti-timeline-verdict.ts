@@ -10,7 +10,8 @@ import {
   UTI_VOIDING_CRITERIA_KEYS,
 } from "./nkbv-ba-grid-engine";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
-import { clinicalSbapWindow, deviceAssociationFromCanThiepDates, poaOrHai } from "./nkbv-shared-timeline";
+import { clinicalSbapWindow, deviceAssociationFromCanThiepDates, poaOrHai, knownHaiPoa } from "./nkbv-shared-timeline";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 const YEAST_RE = /candida|yeast|nấm men|nam men|fungi|ký sinh/i;
 
@@ -237,11 +238,11 @@ export function buildUtiTimelineVerdict(
     calculated_iwp_start: [...input.iwpDates].sort()[0],
     calculated_iwp_end: [...input.iwpDates].sort().at(-1),
     ngay_vao_vien: input.admissionDate
-      ? String(input.admissionDate).slice(0, 10)
+      ? vnYmd(input.admissionDate)
       : undefined,
     hai_status:
       input.admissionDate && doe
-        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        ? knownHaiPoa(poaOrHai(vnYmd(input.admissionDate), doe).haiStatus)
         : undefined,
     rit_prior_events: input.ritPriorEvents,
     rit_exclude_event_ids: input.ritExcludeEventIds,

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_KHOA_CHART_THRESHOLDS,
   VST_KHOA_CHART_THRESHOLDS,
+  isThinSample,
   khoaChartTone,
+  khoaTableMinSample,
 } from "./supervision-thresholds";
 
 describe("khoaChartTone — mặc định GSC/BCTH", () => {
@@ -26,5 +28,21 @@ describe("khoaChartTone — biểu đồ khoa VST", () => {
   it("không tô khi thiếu số liệu", () => {
     expect(khoaChartTone(null, VST_KHOA_CHART_THRESHOLDS)).toBe("neutral");
     expect(khoaChartTone(undefined, VST_KHOA_CHART_THRESHOLDS)).toBe("neutral");
+  });
+});
+
+describe("min-N bảng tổng hợp khoa", () => {
+  it("VST 20, GSC 30, module khác không áp", () => {
+    expect(khoaTableMinSample("VST")).toBe(20);
+    expect(khoaTableMinSample(" gsc ")).toBe(30);
+    expect(khoaTableMinSample("BCTH")).toBeNull();
+    expect(khoaTableMinSample(undefined)).toBeNull();
+  });
+
+  it("mẫu mỏng khi 0 < n < min-N; n=0 và đủ mẫu thì không", () => {
+    expect(isThinSample(19, 20)).toBe(true);
+    expect(isThinSample(20, 20)).toBe(false);
+    expect(isThinSample(0, 20)).toBe(false);
+    expect(isThinSample(5, null)).toBe(false);
   });
 });

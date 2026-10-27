@@ -43,6 +43,7 @@ import {
   evaluateMbiMucosalBarrier,
   isMbiEligibleOrganismFlag,
 } from "./nkbv-mbi-ch4";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 
 /** Ch.2 only: tự tính POA/HAI từ ngày VV + DOE — không tin hai_status client. SSI/VAE không gọi. */
@@ -56,7 +57,7 @@ export function applyCh2PoaGate(
   result: RuleEvaluationResult,
 ): RuleEvaluationResult {
   if (!result.is_positive) return result;
-  const adm = (data.ngay_vao_vien || data.admission_date || "").slice(0, 10);
+  const adm = vnYmd(data.ngay_vao_vien || data.admission_date);
   const doe = (data.calculated_doe || "").slice(0, 10);
   if (!adm || !doe || !/^\d{4}-\d{2}-\d{2}$/.test(adm) || !/^\d{4}-\d{2}-\d{2}$/.test(doe)) {
     return {

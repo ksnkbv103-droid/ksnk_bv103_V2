@@ -138,6 +138,36 @@ export function todayYmdInVn(d = new Date()): string {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
+const WALL_CLOCK_NO_OFFSET_RE =
+  /^(\d{4}-\d{2}-\d{2})[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/;
+
+/**
+ * Ngày lịch Việt Nam `YYYY-MM-DD` của một mốc thời gian (Asia/Ho_Chi_Minh).
+ * - Chuỗi chỉ-ngày `YYYY-MM-DD` (cột `date`) → giữ nguyên, không dịch múi giờ.
+ * - Chuỗi giờ không kèm múi (`YYYY-MM-DDTHH:mm`, input datetime-local) → lấy phần ngày như nhập.
+ * - Timestamp có múi (`…Z`, `…+07:00`, `… +00`) / Date / số ms → quy về ngày VN.
+ *   Ví dụ cột timestamptz lưu `2026-08-09T17:00:00Z` (= 00:00 VN 10/08) → `2026-08-10`.
+ * - null / rỗng / không hợp lệ → `""`.
+ * Thay cho `String(ts).slice(0, 10)` (đọc nhầm ngày UTC, sớm 1 ngày với giờ lưu 00:00 +07).
+ */
+export function vnYmd(value: unknown): string {
+  if (value == null || value === "") return "";
+  if (!(value instanceof Date) && typeof value !== "number") {
+    const raw = String(value).trim();
+    if (!raw) return "";
+    if (DATE_ONLY_RE.test(raw)) return raw;
+    const wall = WALL_CLOCK_NO_OFFSET_RE.exec(raw);
+    if (wall) return wall[1];
+    // Postgres text: `2026-08-09 17:00:00+00` — chuẩn hóa để Date.parse đọc được.
+    const iso = raw.replace(" ", "T").replace(/([+-]\d{2})$/, "$1:00");
+    const d = new Date(iso);
+    if (!Number.isFinite(d.getTime())) return "";
+    return todayYmdInVn(d);
+  }
+  const d = parseDateTimeInput(value as Date | number);
+  return d ? todayYmdInVn(d) : "";
+}
+
 /** Cộng/trừ ngày trên YYYY-MM-DD — UTC noon, tránh lệch lịch local↔ISO. */
 export function addDaysYmd(ymd: string, days: number): string {
   const raw = String(ymd || "").trim().slice(0, 10);

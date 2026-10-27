@@ -10,6 +10,7 @@ import {
   inferPneuLabSpecimenFromBenhPham,
   parsePneuSoLuong,
 } from "./nkbv-pneu-lab-tier";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export interface PathogenClassification {
   isFungiRespiratory: boolean;
@@ -55,7 +56,7 @@ export function classifyPathogen(name: string): PathogenClassification {
 function getSuggestedDays(ngay_vao_vien?: string, ngay_phat_hien?: string): number {
   if (!ngay_vao_vien || !ngay_phat_hien) return 0;
   try {
-    const dVao = parseISO(String(ngay_vao_vien).slice(0, 10));
+    const dVao = parseISO(vnYmd(ngay_vao_vien));
     const dPh = parseISO(String(ngay_phat_hien).slice(0, 10));
     return Math.max(0, differenceInCalendarDays(dPh, dVao) + 1);
   } catch {

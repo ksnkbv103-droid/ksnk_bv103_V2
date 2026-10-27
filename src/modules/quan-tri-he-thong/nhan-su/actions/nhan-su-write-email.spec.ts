@@ -16,10 +16,13 @@ const mocks = vi.hoisted(() => ({
   createAdminSupabaseClient: vi.fn(),
   from: vi.fn(),
   authUserHasAdminRole: vi.fn(),
+  invalidateUserPermissionsCache: vi.fn(),
+  updateUserById: vi.fn(),
 }));
 
 vi.mock("@/lib/server-permission", () => ({
   verifyPermission: mocks.verifyPermission,
+  invalidateUserPermissionsCache: mocks.invalidateUserPermissionsCache,
 }));
 
 vi.mock("@/lib/auth/staff-auth-email", () => ({
@@ -101,7 +104,11 @@ describe("saveNhanSuAction ADM-01 email gate", () => {
         })),
       })),
     });
-    mocks.createAdminSupabaseClient.mockReturnValue({ from: mocks.from });
+    mocks.updateUserById.mockResolvedValue({ error: null });
+    mocks.createAdminSupabaseClient.mockReturnValue({
+      from: mocks.from,
+      auth: { admin: { updateUserById: mocks.updateUserById } },
+    });
   });
 
   it("blocks non-admin changing another user's login email (hole via NHAN_SU.edit)", async () => {
@@ -176,5 +183,44 @@ describe("saveNhanSuAction ADM-01 email gate", () => {
     expect(res.success).toBe(false);
     expect(String(res.error)).toMatch(/quản trị|ADMIN|ngưng/i);
     expect(mocks.upsertMasterRow).not.toHaveBeenCalled();
+  });
+
+  it("ACC-2: ngưng hồ sơ có tài khoản → ban Auth và xóa cache quyền", async () => {
+    const res = await saveNhanSuAction({ ...basePayload, is_active: false } as never);
+
+    expect(res.success).toBe(true);
+    expect(mocks.updateUserById).toHaveBeenCalledWith("auth-target", { ban_duration: "876000h" });
+    expect(mocks.invalidateUserPermissionsCache).toHaveBeenCalled();
+    expect(mocks.logAdminAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "LOCK_UNLOCK_ACCOUNT", after: { is_active: false, auth_ban_synced: true } }),
+    );
+  });
+
+  it("ACC-2: bật lại hồ sơ → bỏ ban Auth", async () => {
+    mocks.from.mockReturnValue({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(async () => ({
+            data: { extra_data: { email: "old@example.test" }, auth_user_id: "auth-target", is_active: false },
+            error: null,
+          })),
+        })),
+      })),
+    });
+
+    const res = await saveNhanSuAction({ ...basePayload, is_active: true } as never);
+
+    expect(res.success).toBe(true);
+    expect(mocks.updateUserById).toHaveBeenCalledWith("auth-target", { ban_duration: "none" });
+    expect(mocks.invalidateUserPermissionsCache).toHaveBeenCalled();
+  });
+
+  it("ACC-2: ban Auth lỗi → báo lỗi tiếng Việt", async () => {
+    mocks.updateUserById.mockResolvedValue({ error: { message: "boom" } });
+
+    const res = await saveNhanSuAction({ ...basePayload, is_active: false } as never);
+
+    expect(res.success).toBe(false);
+    expect(String(res.error)).toMatch(/chưa khóa được tài khoản đăng nhập/);
   });
 });

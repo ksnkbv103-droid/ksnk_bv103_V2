@@ -22,7 +22,44 @@ export type AccountRequestMeta = {
   approved_by?: string | null;
   /** Link to sys_account_access_request.id when dual-written. */
   ticket_id?: string;
+  /** Dòng ảo dựng từ phiếu (chưa/không phải hồ sơ thật) — UI ẩn «Sửa hồ sơ». */
+  ticket_only?: boolean;
 };
+
+/** ACC-1: so email không phân biệt hoa thường, đã trim; rỗng không bao giờ khớp. */
+export function accountEmailsMatch(a: string | null | undefined, b: string | null | undefined): boolean {
+  const x = String(a ?? "").trim().toLowerCase();
+  const y = String(b ?? "").trim().toLowerCase();
+  return x.length > 0 && x === y;
+}
+
+/** ACC-1: phiếu RESET chỉ tạo khi hồ sơ có TK, đang hoạt động và email nhập khớp email hồ sơ. */
+export function canCreateResetTicket(
+  staff: { auth_user_id?: string | null; is_active?: boolean | null; email?: string | null } | null | undefined,
+  submittedEmail: string,
+): boolean {
+  if (!staff?.auth_user_id || staff.is_active === false) return false;
+  return accountEmailsMatch(staff.email, submittedEmail);
+}
+
+/** Giới hạn phiếu công khai: gửi lại theo email / mã NV và số phiếu chờ duyệt còn mở. */
+export const ACCESS_REQUEST_COOLDOWN_MS = 45_000;
+export const ACCESS_REQUEST_MA_NV_WINDOW_MS = 10 * 60_000;
+export const ACCESS_REQUEST_MAX_PENDING = 2;
+
+export function isAccessRequestThrottled(counts: {
+  recentByEmail: number;
+  recentByMaNv: number;
+  pendingByEmail: number;
+  pendingByMaNv: number;
+}): boolean {
+  return (
+    counts.recentByEmail > 0 ||
+    counts.recentByMaNv > 0 ||
+    counts.pendingByEmail >= ACCESS_REQUEST_MAX_PENDING ||
+    counts.pendingByMaNv >= ACCESS_REQUEST_MAX_PENDING
+  );
+}
 
 /** Mã phiếu ngắn để người xin đọc / hỏi quản trị — không phải UUID đầy đủ. */
 export function formatAccountRequestTicketCode(ticketId: string | null | undefined): string | null {

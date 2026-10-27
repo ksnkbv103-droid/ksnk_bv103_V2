@@ -3,8 +3,18 @@
 import { createAdminSupabaseClient, createServerSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 
-/** Gửi link/OTP đặt lại mật khẩu (Supabase Auth). redirectTo phải trùng cấu hình project. */
-export async function requestPasswordResetEmail(emailRaw: string, redirectTo: string) {
+/** Gốc URL ứng dụng do server quyết định — không nhận từ client (chống chuyển hướng link reset ra ngoài). */
+function resolveSiteOrigin(): string {
+  const explicit = (process.env.NEXT_PUBLIC_SITE_URL || "").trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
+  const vercelProd = (process.env.VERCEL_PROJECT_PRODUCTION_URL || "").trim();
+  if (vercelProd) return `https://${vercelProd.replace(/\/+$/, "")}`;
+  return "http://localhost:3000";
+}
+
+/** Gửi link/OTP đặt lại mật khẩu (Supabase Auth). redirectTo dựng ở server, phải trùng cấu hình project. */
+export async function requestPasswordResetEmail(emailRaw: string) {
+  const redirectTo = `${resolveSiteOrigin()}/login/reset-password`;
   const email = normalizeEmail(emailRaw);
   if (!email) return { ok: false as const, error: "Nhập email." };
 
@@ -27,10 +37,12 @@ export async function requestPasswordResetEmail(emailRaw: string, redirectTo: st
   }
 }
 
-/** Đổi mật khẩu khi đã đăng nhập (xác thực lại mật khẩu cũ). Clears must_change_password. */
-export async function changePasswordWithReauth(emailRaw: string, oldPassword: string, newPassword: string) {
-  const email = normalizeEmail(emailRaw);
-  if (!email || !oldPassword || !newPassword) {
+/**
+ * Đổi mật khẩu khi đã đăng nhập (xác thực lại mật khẩu cũ). Clears must_change_password.
+ * Email lấy từ phiên đăng nhập — không nhận từ client.
+ */
+export async function changePasswordWithReauth(oldPassword: string, newPassword: string) {
+  if (!oldPassword || !newPassword) {
     return { ok: false as const, error: "Điền đủ thông tin." };
   }
   if (newPassword.length < 8) {
@@ -41,6 +53,10 @@ export async function changePasswordWithReauth(emailRaw: string, oldPassword: st
     const supabase = await createServerSupabaseUserClient();
     const { data: before } = await supabase.auth.getUser();
     const userId = before?.user?.id;
+    const email = normalizeEmail(before?.user?.email || "");
+    if (!userId || !email) {
+      return { ok: false as const, error: "Phiên đăng nhập đã hết. Đăng nhập lại để đổi mật khẩu." };
+    }
 
     const { error: verifyErr } = await supabase.auth.signInWithPassword({
       email,
@@ -62,7 +78,7 @@ export async function changePasswordWithReauth(emailRaw: string, oldPassword: st
     if (updErr) return { ok: false as const, error: updErr.message };
 
     // Best-effort audit on linked staff row
-    if (userId) {
+    {
       try {
         const admin = createAdminSupabaseClient();
         const { data: staff } = await admin

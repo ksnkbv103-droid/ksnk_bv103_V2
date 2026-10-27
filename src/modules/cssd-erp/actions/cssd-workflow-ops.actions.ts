@@ -11,10 +11,8 @@ import { revalidateCssdIncidentSurfaces, tableHasColumn, appendQuyTrinhException
 import { verifyCssdInventoryEdit } from "@/lib/cssd-server-gates";
 import { createIncidentReport as createIncidentReportImpl } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
-import {
-  INCIDENT_STATUS_OPEN,
-  readIncidentPhieuStatus,
-} from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { countUnlockBlockingIncidents } from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { isChoThuVeCycle } from "@/modules/cssd-su-co/domain/cssd-batch-recall-hold";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 
 export async function createIncidentReport(data: Parameters<typeof createIncidentReportImpl>[0]) {
@@ -32,20 +30,32 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   if (!row?.id) throw new Error("Không tìm thấy mã QR.");
   const quyId = String(row.id);
 
+  const { data: qtRow, error: qtErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select("metadata, lo_tiet_khuan_id")
+    .eq("id", quyId)
+    .maybeSingle();
+  if (qtErr) throw new Error(qtErr.message);
+  if (isChoThuVeCycle((qtRow as { metadata?: unknown } | null)?.metadata)) {
+    throw new Error("Bộ đang chờ thu về do thu hồi mẻ — nhận lại ở Tiếp nhận trước khi mở khóa.");
+  }
+
   const maQrFact = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || code).trim().toUpperCase();
+  const loId = String((qtRow as { lo_tiet_khuan_id?: string | null } | null)?.lo_tiet_khuan_id || "").trim();
+  const orParts = [`quy_trinh_id.eq.${quyId}`, `ma_qr_quy_trinh.eq.${maQrFact}`];
+  if (loId) orParts.push(`attributes->>LO_TIET_KHUAN_ID.eq.${loId}`);
   const { data: suCoRows, error: suCoErr } = await supabase
     .from("cssd_fact_su_co")
     .select("id, attributes, is_active")
-    .eq("ma_qr_quy_trinh", maQrFact)
+    .or(orParts.join(","))
     .eq("is_active", true);
   if (suCoErr) throw new Error(suCoErr.message);
-  const openCount = (suCoRows || []).filter((r) => {
-    const st = readIncidentPhieuStatus((r as { attributes?: Record<string, unknown> | null }).attributes);
-    return st === INCIDENT_STATUS_OPEN;
-  }).length;
+  const openCount = countUnlockBlockingIncidents(
+    (suCoRows || []) as { attributes?: Record<string, unknown> | null }[],
+  );
   if (openCount > 0) {
     throw new Error(
-      `Còn ${openCount} phiếu sự cố chưa xác nhận gắn bộ này — xác nhận/đóng (giải phóng) phiếu trước khi mở khóa.`,
+      `Còn ${openCount} phiếu sự cố chưa đóng (giải phóng) gắn bộ hoặc mẻ này — xác nhận/đóng phiếu trước khi mở khóa.`,
     );
   }
 

@@ -5,6 +5,7 @@ import {
   countActiveLinkedMembers,
   derivePassQuyTrinhIds,
   isLiveBatchMember,
+  meChuaKetThucOrFilter,
   rejectIfMachineHasOpenBatch,
   rejectParentBoWithSub,
   rejectStartMember,
@@ -132,5 +133,14 @@ describe("rejectParentBoWithSub", () => {
     expect(rejectParentBoWithSub({ maVaiTroBo: "SUB", hasActiveSub: false })).toBeNull();
     // Lock A: không còn ma_vai_tro_bo/SUB — thiếu hasChildComponents sẽ bypass (cổng action phải truyền).
     expect(rejectParentBoWithSub({ maVaiTroBo: null, hasActiveSub: false, hasChildComponents: false })).toBeNull();
+  });
+});
+
+describe("meChuaKetThucOrFilter (CS-ME)", () => {
+  it("loại mẻ đã kết thúc theo trang_thai_me; CHO_BI chỉ loại khi yêu cầu", () => {
+    expect(meChuaKetThucOrFilter()).toBe("trang_thai_me.is.null,trang_thai_me.not.in.(HOAN_THANH,QC_KHONG_DAT,THU_HOI)");
+    expect(meChuaKetThucOrFilter({ loaiChoBi: true })).toBe(
+      "trang_thai_me.is.null,trang_thai_me.not.in.(CHO_BI,HOAN_THANH,QC_KHONG_DAT,THU_HOI)",
+    );
   });
 });

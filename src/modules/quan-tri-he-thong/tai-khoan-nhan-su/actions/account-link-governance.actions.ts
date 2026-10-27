@@ -88,6 +88,11 @@ export async function syncAccountLinkAction() {
         return { success: true, linked: false, message: snapshot.message };
       }
 
+      // ACC-1: chỉ tự liên kết khi email Auth đã xác nhận (email hồ sơ do quản trị quản lý, form công khai không ghi được).
+      if (!user.email_confirmed_at) {
+        return { success: true, linked: false, message: "Email đăng nhập chưa xác nhận — liên hệ quản trị để liên kết hồ sơ." };
+      }
+
       // Service-role write OUTSIDE cache. Same email-match predicate as the read.
       const adminClient = createAdminSupabaseClient();
       // Chỉ ghi khi hồ sơ còn trống liên kết: snapshot cache tới 1 giờ, có thể đã bị quản trị gán cho tài khoản khác.
@@ -161,11 +166,11 @@ export async function manualLinkAccountAction(maNv: string) {
   if (!mayLinkAsAdmin) {
     const loginNorm = user.email ? normalizeEmail(user.email) : "";
     const staffNorm = target.email ? normalizeEmail(String(target.email)) : "";
-    if (!loginNorm || !staffNorm || loginNorm !== staffNorm) {
+    if (!user.email_confirmed_at || !loginNorm || !staffNorm || loginNorm !== staffNorm) {
       return {
         success: false,
         error:
-          "Email đăng nhập phải trùng email trên hồ sơ nhân viên để tự liên kết theo mã NV. Nếu cần gán khác, dùng khu vực Tài khoản KSNK (quản trị).",
+          "Email đăng nhập phải đã xác nhận và trùng email trên hồ sơ nhân viên để tự liên kết theo mã NV. Nếu cần gán khác, dùng khu vực Tài khoản KSNK (quản trị).",
       };
     }
   }

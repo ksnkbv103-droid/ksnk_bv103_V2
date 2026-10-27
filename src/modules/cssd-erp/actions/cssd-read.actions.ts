@@ -9,6 +9,8 @@ import { getErrorMessage, STEPS } from "./cssd-action-common";
 import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-active-page";
 import { cssdTiepNhanWaitingItems } from "../helpers/cssd-tiep-nhan-waiting";
 import { quyTrinhIdsWithEffectiveRedAlert } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import { isChoThuVeCycle } from "@/modules/cssd-su-co/domain/cssd-batch-recall-hold";
+import { filterOutRecallPending } from "../helpers/cssd-cap-phat-waiting";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 async function fetchAllActiveRows<T>(
@@ -119,17 +121,34 @@ export async function getWaitingListByStation(station: Station) {
     if (loIds.length) {
       const { data: los } = await supabase
         .from("cssd_fact_lo_tiet_khuan")
-        .select("id, ket_qua_test, tk_qc_json")
+        .select("id, ket_qua_test, trang_thai_me, tk_qc_json")
         .in("id", loIds);
       for (const lo of los || []) {
         const lid = String((lo as { id: string }).id);
-        if ((lo as { ket_qua_test?: boolean | null }).ket_qua_test === true) passedLoIds.add(lid);
+        const l = lo as { ket_qua_test?: boolean | null; trang_thai_me?: string | null };
+        // CS-ME: mẻ THU_HOI giữ ket_qua_test=true (ME-10) nhưng không còn là mẻ đạt để cấp phát.
+        const stMe = String(l.trang_thai_me || "").trim().toUpperCase();
+        if (l.ket_qua_test === true && stMe !== "THU_HOI" && stMe !== "QC_KHONG_DAT") passedLoIds.add(lid);
         const unload = parseBatchQcJson((lo as { tk_qc_json?: unknown }).tk_qc_json).nguoiUnload;
         if (unload) batchUnloadMap.set(lid, unload);
       }
     }
 
-    const filtered = raw.filter((x) => passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim()));
+    const passedRows = raw.filter((x) => passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim()));
+    // CS-FIX: bộ đang trong luồng thu hồi (metadata.thu_hoi = CHO_THU_VE) không được chờ cấp phát.
+    const recallPendingIds = new Set<string>();
+    const passedIds = passedRows.map((x) => String(x.id));
+    for (let i = 0; i < passedIds.length; i += 200) {
+      const { data: metas, error: metaErr } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("id, metadata")
+        .in("id", passedIds.slice(i, i + 200));
+      if (metaErr) throw new Error(metaErr.message);
+      for (const m of metas || []) {
+        if (isChoThuVeCycle((m as { metadata?: unknown }).metadata)) recallPendingIds.add(String((m as { id: string }).id));
+      }
+    }
+    const filtered = filterOutRecallPending(passedRows, recallPendingIds);
     const nguoiIds = [
       ...new Set(filtered.map((x) => String(x[prevCols.nguoiCol] || "").trim()).filter(Boolean)),
     ];

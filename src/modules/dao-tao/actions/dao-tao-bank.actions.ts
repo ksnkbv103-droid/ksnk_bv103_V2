@@ -13,7 +13,7 @@ import {
   type ExportBankRow,
   type ParsedMcqRow,
 } from "@/lib/dao-tao/parse-mcq-excel";
-import { requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
+import { requireDaoTaoAdmin, requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
 import { randomUUID } from "crypto";
 
 const DEFAULT_CHU_DE = {
@@ -109,7 +109,7 @@ export async function listCauHoiDaoTao(filters?: {
   limit?: number;
   includeInactive?: boolean;
 }) {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   let q = admin
     .from("dao_tao_cau_hoi")
@@ -127,7 +127,7 @@ export async function listCauHoiDaoTao(filters?: {
 }
 
 export async function getBankStats() {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const rows = await fetchAllRangeRows<{ loai: string }>((from, to) => {
     const q = admin
@@ -146,7 +146,7 @@ export async function getBankStats() {
 }
 
 export async function getDaoTaoBankForExport(includeInactive = true): Promise<ExportBankRow[]> {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const data = await fetchAllRangeRows<Omit<DbCauHoi, "id">>((from, to) => {
     let q = admin
@@ -468,7 +468,7 @@ function requireBankHeader(): string[] {
 }
 
 export async function getCauHoiDetail(id: string) {
-  await verifyPermission("DAO_TAO", "view");
+  await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("dao_tao_cau_hoi")

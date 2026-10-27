@@ -11,6 +11,7 @@ import {
   computeStationVolumeTrend,
   countCyclesWithProcessIncidents,
   cssdVnDay,
+  isVnDayInRange,
   describeCssdCapPhatByKhoaNhan,
   describeCssdKhoaOwnershipProxy,
   pivotVolumeTrendTotals,
@@ -196,6 +197,20 @@ describe("cssd-analytics-core", () => {
     expect(me10.bdHong).toBe(1);
     expect(me10.so_me_thu_hoi_than_trong).toBe(1);
 
+    // CS-ME: mẻ hỏng còn ket_qua_test NULL (dữ liệu ME-10 trước backfill) vẫn vào mẫu số «đã QC».
+    const csMe = computeMeQcSummary([
+      { ket_qua_test: true, trang_thai_me: "HOAN_THANH" },
+      { ket_qua_test: null, trang_thai_me: "QC_KHONG_DAT" },
+      { ket_qua_test: null, trang_thai_me: "THU_HOI" },
+      { ket_qua_test: true, trang_thai_me: "THU_HOI" },
+      { ket_qua_test: null, trang_thai_me: "CHO_BI" },
+      { ket_qua_test: null, trang_thai_me: "DANG_TIET_KHUAN" },
+    ]);
+    expect(csMe.so_me_da_qc).toBe(4);
+    expect(csMe.so_me_dat).toBe(2);
+    expect(csMe.ty_le_qc_dat_me).toBe(50);
+    expect(csMe.so_me_thu_hoi_than_trong).toBe(1);
+
     expect(
       computeMayUsage([
         { thiet_bi_id: "t1", ten_thiet_bi: "Hấp 1" },
@@ -313,5 +328,25 @@ describe("S-F RP1 — lịch sử chu kỳ + ngày VN", () => {
     const rows = [{ bo_dung_cu_id: "bo-1", thoi_gian_cap_phat: "2026-09-30T23:00:00+00:00" }];
     expect(computeStationVolume(rows as never, "2026-10-01", "2026-10-31").find((v) => v.station === "CAP_PHAT")?.completed).toBe(1);
     expect(computeStationVolume(rows as never, "2026-09-01", "2026-09-30").find((v) => v.station === "CAP_PHAT")?.completed).toBe(0);
+  });
+});
+
+describe("isVnDayInRange (báo cáo lọc theo ngày VN)", () => {
+  it("00:30 VN ngày đầu kỳ (= 17:30Z hôm trước) vẫn trong kỳ", () => {
+    expect(isVnDayInRange(cssdVnDay("2026-09-30T17:30:00Z"), "2026-10-01", "2026-10-31")).toBe(true);
+  });
+  it("07:00 VN ngày sau kỳ (= 00:00Z) bị loại; ngày rỗng bị loại", () => {
+    expect(isVnDayInRange(cssdVnDay("2026-10-31T17:00:00Z"), "2026-10-01", "2026-10-31")).toBe(false);
+    expect(isVnDayInRange(null, "2026-10-01", "2026-10-31")).toBe(false);
+  });
+});
+
+describe("isVnDayInRange (báo cáo lọc theo ngày VN)", () => {
+  it("00:30 VN ngày đầu kỳ (= 17:30Z hôm trước) vẫn trong kỳ", () => {
+    expect(isVnDayInRange(cssdVnDay("2026-09-30T17:30:00Z"), "2026-10-01", "2026-10-31")).toBe(true);
+  });
+  it("07:00 VN ngày sau kỳ (= 00:00Z) bị loại; ngày rỗng bị loại", () => {
+    expect(isVnDayInRange(cssdVnDay("2026-10-31T17:00:00Z"), "2026-10-01", "2026-10-31")).toBe(false);
+    expect(isVnDayInRange(null, "2026-10-01", "2026-10-31")).toBe(false);
   });
 });

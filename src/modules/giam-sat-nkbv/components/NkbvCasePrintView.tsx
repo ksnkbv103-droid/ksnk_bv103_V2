@@ -8,6 +8,7 @@ import type { RuleEvaluationResult } from "@/modules/giam-sat-nkbv/lib/nkbv-rule
 import { formatNkbvChecklistTypeLabel } from "@/modules/giam-sat-nkbv/lib/nkbv-loai-labels";
 import type { NkbvActiveChecklistType } from "@/modules/giam-sat-nkbv/components/useNkbvChecklistModalState";
 import { symptomLabelMap } from "@/modules/giam-sat-nkbv/lib/nkbv-clinical-symptom-catalog";
+import { haiPoaLabel } from "../lib/nkbv-shared-timeline";
 
 type Props = {
   row: Record<string, unknown>;
@@ -131,7 +132,7 @@ export default function NkbvCasePrintView({
             label="POA / HAI"
             value={
               <>
-                {liveCdcMetrics?.haiStatus || "—"}
+                {haiPoaLabel(liveCdcMetrics?.haiStatus)}
                 {liveCdcMetrics?.dayOfHospitalization != null
                   ? ` · Ngày nằm viện #${liveCdcMetrics.dayOfHospitalization}`
                   : ""}

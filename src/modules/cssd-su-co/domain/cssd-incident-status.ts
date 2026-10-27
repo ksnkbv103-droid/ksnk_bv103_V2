@@ -219,3 +219,13 @@ export function readIncidentCloseBienBan(attrs: Record<string, unknown> | null |
   const t = String(attrs?.INCIDENT_CLOSE_BIEN_BAN ?? "").trim();
   return t || null;
 }
+
+/** Phiếu còn chặn mở khóa bộ: chưa xác nhận hoặc đã xác nhận nhưng chưa đóng (giải phóng). */
+export function countUnlockBlockingIncidents(
+  rows: readonly { attributes?: Record<string, unknown> | null }[],
+): number {
+  return rows.filter((r) => {
+    const st = readIncidentPhieuStatus(r.attributes);
+    return st === INCIDENT_STATUS_OPEN || st === INCIDENT_STATUS_CONFIRMED;
+  }).length;
+}

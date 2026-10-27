@@ -1,7 +1,7 @@
 "use server";
 
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { getActorRoleNames } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import {
   CATALOG_DE_NGHI_CLAIM_STATUS,
@@ -12,13 +12,13 @@ import {
   type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { applyCatalogDeNghiOverwrite } from "@/lib/master-data/cssd-catalog-de-nghi-apply";
+import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
+import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 
+/** PO 2026-10-27: chỉ chủ nhiệm khoa (ADMIN) duyệt phiếu danh mục. */
 async function requireCatalogApprove() {
-  try {
-    await verifyPermission("DC_LE", "edit");
-  } catch {
-    await verifyPermission("BO_DC", "edit");
-  }
+  const roles = await getActorRoleNames();
+  if (!roles.includes("ADMIN")) throw new Error("Chỉ chủ nhiệm khoa (ADMIN) được duyệt phiếu danh mục.");
 }
 
 const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";
@@ -77,6 +77,23 @@ export async function approveCatalogDeNghiAction(id: string) {
     const ticketId = String(id || "").trim();
     if (!ticketId) return { success: false as const, error: "Thiếu phiếu." };
     const supabase = createAdminSupabaseClient();
+    // KD-1: chặn tự duyệt + bắt buộc người duyệt TRƯỚC khi claim (không để phiếu kẹt APPLYING).
+    const { data: ticket, error: ticketErr } = await supabase
+      .from("cssd_catalog_de_nghi")
+      .select("id, status, nguoi_de_nghi_id")
+      .eq("id", ticketId)
+      .maybeSingle();
+    if (ticketErr) throw new Error(ticketErr.message);
+    if (!ticket || String(ticket.status) !== "PENDING") return { success: false as const, error: CLAIMED_MSG };
+    const approver = await resolveCatalogApprover(supabase);
+    const gate = checkCatalogApprover(
+      approver,
+      { nhanSuId: ticket.nguoi_de_nghi_id ? String(ticket.nguoi_de_nghi_id) : null },
+      { adminMaySelfApprove: true },
+    );
+    if (!gate.ok) return { success: false as const, error: gate.error };
+    const approvedBy = gate.approvedById;
+
     const now = new Date().toISOString();
     const { data: claimed, error: claimErr } = await supabase
       .from("cssd_catalog_de_nghi")
@@ -94,8 +111,9 @@ export async function approveCatalogDeNghiAction(id: string) {
     }
 
     const kind = String(claimed.target_kind) as CssdCatalogDeNghiKind;
+    let heatChanges: Awaited<ReturnType<typeof applyCatalogDeNghiOverwrite>> = [];
     try {
-      await applyCatalogDeNghiOverwrite(supabase, {
+      heatChanges = await applyCatalogDeNghiOverwrite(supabase, {
         kind,
         targetId: claimed.target_id ? String(claimed.target_id) : null,
         targetMa: String(claimed.target_ma || ""),
@@ -117,19 +135,6 @@ export async function approveCatalogDeNghiAction(id: string) {
       return { success: false as const, error: msg };
     }
 
-    let approvedBy: string | null = null;
-    try {
-      const uc = await createServerSupabaseUserClient();
-      const u = await uc.auth.getUser();
-      const { data: ns } = await supabase
-        .from("mdm_nhan_su")
-        .select("id")
-        .eq("auth_user_id", u.data.user?.id || "")
-        .maybeSingle();
-      approvedBy = ns?.id ? String(ns.id) : null;
-    } catch {
-      /* ignore */
-    }
     const approvedAt = new Date().toISOString();
     const { error: updErr } = await supabase
       .from("cssd_catalog_de_nghi")
@@ -143,8 +148,19 @@ export async function approveCatalogDeNghiAction(id: string) {
       .eq("id", ticketId)
       .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
     if (updErr) throw new Error(updErr.message);
+    const heatSplitNote =
+      (
+        await applyHeatSplitForLoaiChanges(
+          supabase,
+          heatChanges.map((c) => ({
+            loaiId: c.loaiId,
+            prevIsChiuNhiet: c.prevIsChiuNhiet,
+            nextIsChiuNhiet: c.nextIsChiuNhiet,
+          })),
+        )
+      ).join(" ") || undefined;
     revalidateCssdInventorySurfaces();
-    return { success: true as const };
+    return { success: true as const, heatSplitNote };
   } catch (e: unknown) {
     return {
       success: false as const,

@@ -2,8 +2,6 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
-import { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
-import type { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
 import {
@@ -11,8 +9,6 @@ import {
   mapFkError,
   revalidateCssdInventorySurfaces,
   revalidateCssdWorkflowSurfaces,
-  STEPS,
-  tableHasColumn,
   appendQuyTrinhException,
 } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
@@ -75,6 +71,11 @@ export async function recordPackCondition(input: {
   return { success: true as const, tinh_trang: tinh };
 }
 
+/**
+ * Nạp Excel kho CHỈ tạo shell: mã QR mới ở TIEP_NHAN, chưa mẻ/HSD/cờ đỏ/tình trạng.
+ * Mã đã có (đang hoạt động) bị bỏ qua, không cập nhật; cột trạm/lô/HSD/cờ đỏ trong file bị bỏ qua.
+ * Bộ «vô khuẩn» chỉ đi qua quy trình mẻ thật (CS-IMP, giả định chờ PO).
+ */
 export async function importCSSDData(
   rows: Record<string, unknown>[],
   options?: { softDeleteMissing?: boolean; dryRun?: boolean },
@@ -108,10 +109,8 @@ export async function importCSSDData(
     const rowErrors: string[] = [];
     const dbErrors: string[] = [];
     let insertCount = 0;
-    let updateCount = 0;
-    const hasQuyTrinhIsRedAlert = dryRun
-      ? false
-      : await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
+    let skipCount = 0;
+    let ignoredFieldRows = 0;
 
     for (const rawRow of rows || []) {
       const excelRow = Number(rawRow.__excel_row__) || "?";
@@ -129,51 +128,35 @@ export async function importCSSDData(
       }
       const row = parseResult.data;
       const code = row.ma_vach_qr.toUpperCase();
-      const rawSta = row.trang_thai_hien_tai;
-      const station: Station =
-        typeof rawSta === "string" && (STEPS as readonly string[]).includes(rawSta) ? (rawSta as Station) : "TIEP_NHAN";
-      const loIdRaw = String(row.lo_tiet_khuan_id || "").trim();
+      const hasIgnoredField = [
+        row.trang_thai_hien_tai,
+        row.tinh_trang,
+        row.han_su_dung,
+        row.lo_tiet_khuan_id,
+        row.is_red_alert,
+      ].some((v) => v !== undefined && v !== null && String(v).trim() !== "" && v !== false);
+      if (hasIgnoredField) ignoredFieldRows += 1;
 
-      if (dryRun) {
-        if (loIdRaw) {
-          const loNorm = await normalizeNullableFk(supabase, "lo_tiet_khuan", loIdRaw);
-          if (!loNorm) {
-            rowErrors.push(`Dòng ${excelRow} (${code}): mã lô tiệt khuẩn không tồn tại (${loIdRaw})`);
-            continue;
-          }
-        }
-        if (existingMap.has(code)) updateCount += 1;
-        else insertCount += 1;
+      if (existingMap.has(code) || importedCodes.has(code)) {
+        skipCount += 1;
         importedCodes.add(code);
         continue;
       }
-
-      const loNorm = await normalizeNullableFk(supabase, "lo_tiet_khuan", loIdRaw || null);
-      if (loIdRaw && !loNorm) {
-        rowErrors.push(`Dòng ${excelRow} (${code}): mã lô tiệt khuẩn không tồn tại (${loIdRaw})`);
+      importedCodes.add(code);
+      if (dryRun) {
+        insertCount += 1;
         continue;
       }
-      const tramPatch = await buildQuyTrinhTramPatch(supabase, station);
-      const payload: Record<string, unknown> = {
+
+      const tramPatch = await buildQuyTrinhTramPatch(supabase, "TIEP_NHAN");
+      const { error: insErr } = await supabase.from("cssd_fact_quy_trinh").insert({
         ma_qr_quy_trinh: code,
         ...tramPatch,
-        tinh_trang: row.tinh_trang || null,
-        han_su_dung: row.han_su_dung || null,
-        lo_tiet_khuan_id: loNorm,
         is_active: true,
         updated_at: new Date().toISOString(),
-      };
-      if (hasQuyTrinhIsRedAlert) payload.is_red_alert = Boolean(row.is_red_alert);
-      if (existingMap.has(code)) {
-        const { error: upErr } = await supabase.from("cssd_fact_quy_trinh").update(payload).eq("id", existingMap.get(code)!);
-        if (upErr) dbErrors.push(`${code}: ${mapFkError(upErr.message)}`);
-        else updateCount += 1;
-      } else {
-        const { error: insErr } = await supabase.from("cssd_fact_quy_trinh").insert(payload);
-        if (insErr) dbErrors.push(`${code}: ${mapFkError(insErr.message)}`);
-        else insertCount += 1;
-      }
-      importedCodes.add(code);
+      });
+      if (insErr) dbErrors.push(`${code}: ${mapFkError(insErr.message)}`);
+      else insertCount += 1;
     }
 
     const deactivateCount = countCssdKhoImportDeactivations(
@@ -182,17 +165,22 @@ export async function importCSSDData(
       softDeleteMissing,
     );
 
+    const shellNote =
+      `Chỉ tạo shell: ${skipCount} mã đã có bị bỏ qua` +
+      (ignoredFieldRows ? `; ${ignoredFieldRows} dòng có cột trạm/lô/HSD/tình trạng/cờ đỏ bị bỏ qua` : "") +
+      ".";
+
     if (dryRun) {
       return {
         success: true,
         dryRun: true,
-        audit: { insertCount, updateCount, deactivateCount },
+        audit: { insertCount, updateCount: 0, skipCount, ignoredFieldRows, deactivateCount },
         errorLines: rowErrors.slice(0, 20),
         errorTotal: rowErrors.length,
         warning:
           rowErrors.length > 0
-            ? `Dry-run kho: ${insertCount} thêm, ${updateCount} cập nhật; ${rowErrors.length} dòng lỗi.`
-            : `Dry-run kho: ${insertCount} thêm, ${updateCount} cập nhật (không ghi DB).`,
+            ? `Dry-run kho: ${insertCount} shell mới; ${rowErrors.length} dòng lỗi. ${shellNote}`
+            : `Dry-run kho: ${insertCount} shell mới (không ghi DB). ${shellNote}`,
       };
     }
 
@@ -206,7 +194,11 @@ export async function importCSSDData(
     }
     revalidateCssdInventorySurfaces();
     revalidateCssdWorkflowSurfaces();
-    return { success: true, audit: { insertCount, updateCount, deactivateCount } };
+    return {
+      success: true,
+      audit: { insertCount, updateCount: 0, skipCount, ignoredFieldRows, deactivateCount },
+      warning: skipCount || ignoredFieldRows ? shellNote : undefined,
+    };
   } catch (error: unknown) {
     return { success: false, error: getErrorMessage(error) };
   }

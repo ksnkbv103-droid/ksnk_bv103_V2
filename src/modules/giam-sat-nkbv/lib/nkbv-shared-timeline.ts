@@ -7,6 +7,7 @@ import {
   resolveDeviceAssociationDay1,
   type NkbvDeviceAssociationKind,
 } from "./nkbv-ba-device-timeline";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type NkbvTimelineSyndrome =
   | "CLABSI"
@@ -20,8 +21,10 @@ export type NkbvTimelineSyndrome =
 export function addDays(dateStr: string, days: number): string {
   if (!dateStr) return "";
   try {
+    // new Date("YYYY-MM-DD") = 00:00 UTC → cộng theo UTC để không phụ thuộc múi giờ máy chạy.
     const d = new Date(dateStr.slice(0, 10));
-    d.setDate(d.getDate() + days);
+    if (!Number.isFinite(d.getTime())) return "";
+    d.setUTCDate(d.getUTCDate() + days);
     return d.toISOString().slice(0, 10);
   } catch {
     return "";
@@ -142,16 +145,31 @@ export function usesClinicalIwp(syndrome: NkbvTimelineSyndrome): boolean {
   return syndrome === "CLABSI" || syndrome === "BSI" || syndrome === "UTI" || syndrome === "PNEU";
 }
 
+/** POA/HAI theo NHSN day-3; `CHUA_XAC_DINH` khi thiếu ngày vào viện hoặc DOE (không mặc định POA). */
+export type NkbvHaiPoaStatus = "HAI" | "POA" | "CHUA_XAC_DINH";
+
+/** Chỉ HAI/POA đã xác định; `CHUA_XAC_DINH` → undefined (trường `hai_status` tùy chọn). */
+export function knownHaiPoa(status: NkbvHaiPoaStatus | null | undefined): "HAI" | "POA" | undefined {
+  return status === "HAI" || status === "POA" ? status : undefined;
+}
+
+/** Nhãn hiển thị POA/HAI — không in mã thô `CHUA_XAC_DINH`. */
+export function haiPoaLabel(status: NkbvHaiPoaStatus | null | undefined): string {
+  if (status === "HAI" || status === "POA") return status;
+  if (status === "CHUA_XAC_DINH") return "Chưa xác định (thiếu ngày vào viện/DOE)";
+  return "—";
+}
+
 export function poaOrHai(admissionDate: string, doe: string): {
   dayOfHospitalization: number;
-  haiStatus: "HAI" | "POA";
+  haiStatus: NkbvHaiPoaStatus;
   /** DOE dùng cho RIT: DOE trước ngày nhập → HD1 (ngày vào viện). */
   doeForRit: string;
 } {
-  const adm = admissionDate.slice(0, 10);
-  const d = doe.slice(0, 10);
+  const adm = vnYmd(admissionDate);
+  const d = vnYmd(doe);
   if (!adm || !d) {
-    return { dayOfHospitalization: 0, haiStatus: "POA", doeForRit: d || adm };
+    return { dayOfHospitalization: 0, haiStatus: "CHUA_XAC_DINH", doeForRit: d || adm };
   }
   const doeForRit = d < adm ? adm : d;
   const dayOfHospitalization = daysBetween(adm, doeForRit) + 1;
@@ -197,7 +215,7 @@ export function isDeviceAssociated(input: {
   deviceKind?: NkbvDeviceAssociationKind | null;
   firstInpatientAccessDate?: string | null;
 }): DeviceAssociationResult {
-  const vv = input.admissionDate?.slice(0, 10) || "";
+  const vv = vnYmd(input.admissionDate);
   const rawPlaced = input.placedDate?.slice(0, 10) || "";
   let placed = rawPlaced;
 
@@ -345,7 +363,7 @@ export function deviceAssociationFromCanThiepDates(
   if (!d) {
     return { placedDays: 0, activeOnEvent: false, associated: false };
   }
-  const vv = (opts?.admissionDate || "").slice(0, 10);
+  const vv = vnYmd(opts?.admissionDate);
   const rv = (opts?.dischargeDate || "").slice(0, 10);
   const sorted = [
     ...new Set(canThiepDates.map((x) => x.slice(0, 10)).filter(Boolean)),

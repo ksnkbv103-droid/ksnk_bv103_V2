@@ -7,6 +7,7 @@ import {
   clinicalRitEnd,
   clinicalSbapWindow,
   poaOrHai,
+  type NkbvHaiPoaStatus,
   ssiSbapWindow,
   vaeEventPeriod,
   type NkbvTimelineSyndrome,
@@ -28,6 +29,7 @@ import {
   type CriteriaRowState,
   type NkbvCriteriaKey,
 } from "./nkbv-criteria-matrix";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type BaTimelineSource = "LIS" | "MANUAL" | "DEVICE" | "EVENT";
 
@@ -69,7 +71,7 @@ export type CriteriaGatePreview = {
 
 export type PostEventAdminPreview = {
   doe: string;
-  poaHai: "POA" | "HAI";
+  poaHai: NkbvHaiPoaStatus;
   hospitalDay: number;
   ritEnd: string;
   sbapStart: string;
@@ -279,8 +281,9 @@ export function buildPostEventAdminPreview(input: {
   const doe = (input.caseRow.doe || input.caseRow.ngay_phat_hien || "").slice(0, 10);
   if (!doe) return null;
   const majorType = resolveNkbvMajorType({ loai_ma: input.caseRow.loai_ma });
-  const adm = input.admissionDate ? String(input.admissionDate).slice(0, 10) : "";
-  const poa = adm ? poaOrHai(adm, doe) : { dayOfHospitalization: 0, haiStatus: "HAI" as const };
+  const adm = vnYmd(input.admissionDate);
+  // Thiếu ngày vào viện → CHUA_XAC_DINH (trước đây mặc định HAI im lặng).
+  const poa = poaOrHai(adm, doe);
   const ritEnd = clinicalRitEnd(doe);
   const indexForSbap = (input.caseRow.ngay_phat_hien || doe).slice(0, 10);
   const sbap =
@@ -385,7 +388,7 @@ export function mergeBaTimelineMilestones(input: {
   const out: BaTimelineMilestone[] = [];
 
   for (const r of input.lis) {
-    const date = r.ngay_lay_mau ? String(r.ngay_lay_mau).slice(0, 10) : "";
+    const date = vnYmd(r.ngay_lay_mau);
     if (!date) continue;
     const phanLoai = String(r.ket_qua_phan_loai || "").toUpperCase();
     const isPos =

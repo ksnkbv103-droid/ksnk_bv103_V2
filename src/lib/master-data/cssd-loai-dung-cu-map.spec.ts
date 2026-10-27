@@ -9,6 +9,7 @@ import {
   normalizeLoaiDungCuExcelImportRow,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
+  resolveLoaiSterileMethod,
   suggestCssdSterileMethodFromMaster,
   syncLoaiPhysicalColumnsOnImportPayload,
 } from "./cssd-loai-dung-cu-map";
@@ -176,5 +177,54 @@ describe("cssd-loai-dung-cu-map heat/Spaulding", () => {
     expect(payload.is_chiu_nhiet).toBe(true);
     expect(payload.phuong_phap_tiet_khuan_chi_dinh).toBe("STEAM_134");
     expect(payload.phan_loai_spaulding).toBe("CRITICAL");
+  });
+});
+
+describe("KD-2 resolveLoaiSterileMethod", () => {
+  it("không chịu nhiệt + STEAM chỉ định rõ → từ chối", () => {
+    for (const method of ["STEAM_134", "STEAM_121"]) {
+      const r = resolveLoaiSterileMethod({ isChiuNhiet: false, method, methodExplicit: true });
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.error).toContain("không chịu nhiệt");
+    }
+  });
+  it("không chịu nhiệt + không chỉ định → mặc định PLASMA", () => {
+    expect(resolveLoaiSterileMethod({ isChiuNhiet: false, method: undefined, methodExplicit: false })).toEqual({
+      ok: true,
+      method: "PLASMA",
+    });
+  });
+  it("không chịu nhiệt + EO/PLASMA hợp lệ", () => {
+    expect(resolveLoaiSterileMethod({ isChiuNhiet: false, method: "EO", methodExplicit: true })).toEqual({
+      ok: true,
+      method: "EO",
+    });
+    expect(resolveLoaiSterileMethod({ isChiuNhiet: false, method: "PLASMA", methodExplicit: true })).toEqual({
+      ok: true,
+      method: "PLASMA",
+    });
+  });
+  it("chịu nhiệt giữ như cũ", () => {
+    expect(resolveLoaiSterileMethod({ isChiuNhiet: true, method: "STEAM_121", methodExplicit: true })).toEqual({
+      ok: true,
+      method: "STEAM_121",
+    });
+    expect(resolveLoaiSterileMethod({ isChiuNhiet: true, method: undefined, methodExplicit: false })).toEqual({
+      ok: true,
+      method: "STEAM_134",
+    });
+  });
+  it("buildLoaiPhysicalUpsertPayload ném lỗi khi STEAM + không chịu nhiệt; import trả lỗi", () => {
+    expect(() =>
+      buildLoaiPhysicalUpsertPayload(
+        { ma_loai_dung_cu: "A", ten_loai_dung_cu: "A", is_chiu_nhiet: false, phuong_phap_tiet_khuan: "STEAM_134" },
+        "create",
+      ),
+    ).toThrow(/không chịu nhiệt/);
+    const p: Record<string, unknown> = { is_chiu_nhiet: false, phuong_phap_tiet_khuan_chi_dinh: "STEAM_134" };
+    expect(syncLoaiPhysicalColumnsOnImportPayload(p, "A")).toMatch(/không chịu nhiệt/);
+    const q: Record<string, unknown> = { is_chiu_nhiet: false };
+    expect(syncLoaiPhysicalColumnsOnImportPayload(q, "A")).toBeNull();
+    expect(q.phuong_phap_tiet_khuan_chi_dinh).toBe("PLASMA");
   });
 });

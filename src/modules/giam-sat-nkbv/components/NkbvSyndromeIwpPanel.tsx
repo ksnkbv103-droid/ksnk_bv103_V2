@@ -60,6 +60,7 @@ import {
   type BaDayGridColumnDef,
 } from "./NkbvBaDayGrid";
 import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 type Device = {
   id: string;
@@ -171,7 +172,7 @@ export function deviceDatesForPanel(
   for (const d of devices) {
     if (!want.test(d.device_type)) continue;
     const start = d.insertion_date.slice(0, 10);
-    const end = (d.removal_date || ngayRaVien || start).slice(0, 10);
+    const end = vnYmd(d.removal_date || ngayRaVien || start);
     let c = start;
     let g = 0;
     while (c <= end && g < 90) {

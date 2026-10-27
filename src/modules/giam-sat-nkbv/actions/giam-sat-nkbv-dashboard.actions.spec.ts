@@ -33,6 +33,10 @@ vi.mock("@/lib/supabase-server", () => ({
   createServerSupabaseUserClient: vi.fn(),
 }));
 
+vi.mock("../lib/nkbv-khoa-scope.server", () => ({
+  getNkbvKhoaRestriction: vi.fn(async () => ({ kind: "all" })),
+}));
+
 import { getGiamSatNkbvDashboardPayload } from "./giam-sat-nkbv-dashboard.actions";
 
 describe("getGiamSatNkbvDashboardPayload include_rates", () => {

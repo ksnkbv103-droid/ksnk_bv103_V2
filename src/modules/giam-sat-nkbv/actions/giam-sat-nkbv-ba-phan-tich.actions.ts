@@ -4,6 +4,7 @@
  * Nháp phiên phân tích BA — lưu máy chủ (đổi máy / F5 còn nháp).
  */
 
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
@@ -14,6 +15,7 @@ import {
 } from "../lib/nkbv-ba-analysis-session";
 import type { BaAnalysisMode } from "../lib/nkbv-ba-analysis-mode";
 import { parseBaAnalysisMode } from "../lib/nkbv-ba-analysis-mode";
+import { nkbvBaPhanTichReplaceSchema } from "@/lib/validations/giam-sat-nkbv.validations";
 
 async function assertCanWriteDraft() {
   try {
@@ -31,6 +33,9 @@ export async function loadNkbvBaPhanTichSessions(input: {
   const ma = String(input.ma_benh_an || "").trim();
   const mode = parseBaAnalysisMode(input.mode);
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án", sessions: [] as BaAnalysisSession[] };
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, sessions: [] as BaAnalysisSession[] };
+  }
 
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
@@ -51,9 +56,10 @@ export async function replaceNkbvBaPhanTichSessions(input: {
   sessions: BaAnalysisSession[];
 }) {
   await assertCanWriteDraft();
-  const ma = String(input.ma_benh_an || "").trim();
+  const parsed = nkbvBaPhanTichReplaceSchema.safeParse(input);
+  if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
+  const ma = parsed.data.ma_benh_an;
   const mode = parseBaAnalysisMode(input.mode);
-  if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
 
   const supabase = createAdminSupabaseClient();
   const now = new Date().toISOString();

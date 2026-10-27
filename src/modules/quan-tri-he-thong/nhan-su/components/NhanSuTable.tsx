@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { getNhanSus, getNhanSuExportData, getNhanSuFormOptionsAction } from "../actions/nhan-su-read.actions";
 import type { NhanSu } from "../types";
 import NhanSuForm from "./NhanSuForm";
-import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
+import { useNhanSuActiveCrud } from "./use-nhan-su-active-crud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { Plus, KeyRound, ClipboardList } from "lucide-react";
@@ -300,13 +300,8 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       void loadData();
     });
   }, [loadData, refreshKey, externalRefresh]);
-  const crud = useMasterDataCrud<NhanSu>({
-    tableName: "mdm_nhan_su",
-    codeField: "ma_nv",
-    mainField: "ho_ten",
-    entityLabel: "nhân sự",
-    onSuccess: () => setRefreshKey((k) => k + 1),
-  });
+  // ACC-2: bật/tắt/xóa mềm qua server action (ban Auth khi ngưng), không ghi thẳng từ client.
+  const crud = useNhanSuActiveCrud(() => setRefreshKey((k) => k + 1));
   const actionUi = useTableActionUi<NhanSu>({
     onToggleStatus: crud.toggleStatus,
     onEdit: (item) => {
@@ -417,7 +412,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               <span className="bv103-type-label w-fit rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 font-semibold text-amber-900">
                 Chờ duyệt
               </span>
-              {allowEdit ? (
+              {allowEdit && !readAccountRequest(i.extra_data)?.ticket_only ? (
                 <button
                   type="button"
                   onClick={() => openEditPrefill(i)}

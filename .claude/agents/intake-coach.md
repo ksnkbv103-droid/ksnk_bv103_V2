@@ -3,6 +3,7 @@ name: intake-coach
 description: Dùng khi PO mô tả nghiệp vụ bằng lời và cần dịch thành intake chuẩn trước khi code. Read-only.
 tools: Read, Grep, Glob
 model: sonnet
+maxTurns: 15
 ---
 
 # intake-coach

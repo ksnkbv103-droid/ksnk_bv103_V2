@@ -34,35 +34,52 @@ Verify trước push: `npm run verify` (full) — xem [`lean-execution.md`](lean
 - Đang dùng: [`implementation-mapping.md`](implementation-mapping.md) và [`../wiki/entities.md`](../wiki/entities.md).
 - Chủ đề → một file: [`../ssot-map.md`](../ssot-map.md). Mục lục skill: [`skills-catalog.md`](skills-catalog.md).
 
-## 5. Lộ trình rà soát (cửa đang theo)
+## 5. Lộ trình: thang L0–L3 (PO duyệt 2026-10-24)
 
-Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Toàn bộ nhật ký và kế hoạch cũ đã lưu trong git log.
+Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nhật ký các lát cũ (SEC, ACC, KD, HC, TB, NK-*, CS-*, DT, GS, QL…) đã lưu trong git log trước commit này; không chép lại ở đây.
 
-| Mốc | Việc | Trạng thái | Model |
-|------|------|------------|-------|
-| 2026-09-28 | Mốc golive các module chính | Không sửa code theo audit cũ nếu lệch domain-spec | — |
-| 2026-10-08 | Nợ Phase B #85–#93 (GSC scope, CSSD close/QC, NKBV hết cắt dòng, đào tạo, deps) | Đã lên `main`. Không thấy phá §2.1 VST | — |
-| 2026-10-09 | Form VST: nhãn TRƯỚC/SAU + trần app #94–#97 | Đã lên `main` | — |
-| 2026-10-09 | KPI `fn_vst_is_valid_opportunity` #98 `63884e3a`, prod history `20261008225611` | Đã siết: rửa/chà 1–2 thời điểm WHO, bỏ sót đúng 1. 32 034 dòng, 0 dòng rời mẫu số | — |
-| 2026-10-09 | Vòng sửa: `/domain-slice` | Khi SSOT đã chốt thì tự chọn một lát. SSOT im thì hỏi PO. Không tự quét cả repo | — |
-| 2026-10-10 | Rà soát toàn hệ thống + sửa theo lát (NKBV khoa/loại trừ chỉ KSNK/4 tab, GSC xóa mềm, Đào tạo hết giờ, trang lỗi, CSSD cổng cấp phát ở DB, nhả mẻ implant từ DB). 4 migration `20261010120000…150000` đã apply prod qua MCP | Xong | — |
-| 2026-10-10 | PO chốt mẻ hỏng → bộ còn trong CSSD về **Đóng gói**. Code + migration `20261010160000` xong ở local; zod + nhật ký cho CRUD danh mục quản trị xong | Đã apply prod migration `20261010160000` (PO duyệt) | — |
-| 2026-10-12 | **Gỡ đóng băng** — PO xác nhận mục tiêu triển khai tất cả module. Hiện trạng prod 11/10: NKBV 1 phiếu, CSSD 10 chu trình thử, QLCV 0 việc, Đào tạo 1 lần thi = code có, chưa có người dùng thật. Điều kiện vào pilot: NKBV cần HIS/LIS, CSSD cần máy quét + tổ CSSD | Đang áp dụng | — |
-| 2026-10-12 | **Đánh giá tổng thể** (build/lint 0 lỗi/1926 test pass; prod Supabase = repo; Vercel production READY). Kết luận: nghiệp vụ VST/GSC bám SSOT và dùng thật; phần thừa là bộ máy quản trị (≈110 lệnh npm, 222 migration). NKBV/CSSD/QLCV/Đào tạo đã có code lớn nhưng chưa có người dùng thật → việc thiếu là đưa vào pilot, không phải viết thêm. Dấu vết Cursor trong repo đã gỡ; lịch sử git còn trailer `Co-authored-by: Cursor` (không viết lại lịch sử đã push) | Xong | — |
-| Mở (ưu tiên 1) | VST/GSC: nhãn «chưa đủ mẫu» (n < 20) trên bảng khoa (KTC Wilson VST đã có ở biểu đồ khoa); **thẻ độ phủ giám sát** (số khoa/giờ/ca đã giám sát so với kế hoạch); đo độ tin cậy giữa người giám sát (đối chiếu 2 người); spec VST/GSC còn thiếu | Cần PO chốt cách đo độ phủ | Sonnet |
-| Mở (ưu tiên 2) | Bảo mật prod: advisor 2026-10-12 chỉ còn mục đã chủ ý giữ (xem migration `20261011090000`) + **bật chặn mật khẩu rò rỉ ở Supabase Auth** (PO bật trên dashboard) + 2 bảng RLS không policy (`cssd_fact_bowie_dick`, `sys_account_access_request`: xác nhận cố ý chỉ service_role) | PO bật Auth | — |
-| Lát C1 | CSSD: thay `any` ở báo cáo/cột mẻ bằng kiểu thật. `any` CSSD-ERP 61 → 14 (còn hook `use-me-tiet-khuan-workflow`, `InventoryHistoryTable`, vài chỗ nhỏ). tsc, lint, `verify:cssd` pass | Xong 2026-10-12 | Sonnet |
-| Lát C2 | CSSD: spec cho cổng nghiệp vụ mẻ (QC, thu hồi, nhả implant) + kịch bản tay ≥3 cho tổ CSSD | Chưa | Sonnet |
-| Lát N1 | NKBV: thay `any` (`GiamSatNkbvPage` 13, `useNkbvChecklistModalState` 12, `write.actions` 7); tách `NkbvBaMultiTimelineWorkspace` (1984 dòng), `NkbvSyndromeIwpPanel` (1744) — chỉ sau khi có test khóa hành vi | Chưa | Sonnet |
-| Lát Q1 | QLCV: kịch bản tay ≥3 + e2e mở rộng (đã có `qlcv-pilot`) | Chưa | Sonnet |
-| Lát D1 | Đào tạo: spec cho `dao-tao-attempt.actions` (chấm điểm, hết giờ), `dao-tao-auth`; e2e làm bài | Chưa | Sonnet |
-| Lát H1 | Gọn bộ máy: 110 lệnh npm → nhóm theo `verify`/`ops`; bỏ lệnh trùng (`*:local`/`linked` giữ, `cssd:demo:reset(:local)` trùng) | Chưa | Haiku/Sonnet |
-| Mở (ưu tiên 3) | **Đưa 4 module chưa dùng vào pilot thật**, theo thứ tự CSSD → NKBV → QLCV → Đào tạo: chọn khoa/tổ pilot, ≥3 kịch bản tay, đo lại số liệu sau 2 tuần. Nợ kỹ thuật đo được 2026-10-12: Đào tạo 0 spec; NKBV 36 file > 400 dòng + 56 `any`; CSSD-ERP 61 `any`; e2e chỉ có cho CSSD, QLCV, GSC/VST | Cần PO chọn khoa/tổ | Sonnet |
-| Mở | Nguồn ngưỡng 85/70 và 90/85 (quyết định Hội đồng KSNK nào) · đo lượt xem báo cáo (cần migration) · sao lưu prod định kỳ | Chờ PO | — |
-| Mở | Zod chi tiết cho nhập lô (smart-import, generic-dm-import) và duyệt đề nghị danh mục | Lát riêng | Sonnet |
-| Mở | Xóa phiên VST đang là `is_active=false` | Chờ PO — không tự đổi xóa cứng | Sonnet (khi PO chốt đổi) |
-| Mở | UAT tay form VST (≤2 / ≤1, chữ ô chọn đọc được) | PO | Haiku (soát/UAT) |
-| Không mở | Ký nghiệm thu lâm sàng toàn repo; vá giao diện VST thêm | — | — |
+**Thang sẵn sàng (mỗi module)**
+
+| Mức | Nghĩa | Điều kiện đạt |
+|---|---|---|
+| L0 | Code chạy | `verify:engineering` pass |
+| **L1** | **Đưa chạy thử** | Có người dùng đầu mối thật · nhập một phiếu < 60 giây · ≥ 3 kịch bản tay · thống kê khớp tính tay |
+| L2 | Chạy ổn định | Cổng nghiệp vụ nguyên tử · RLS đọc theo phạm vi · đã apply prod |
+| L3 | Tự động hóa | Rules engine, HIS/LIS, quét mã, import hàng loạt |
+
+Mỗi module có 3 màn: **Nhập · Danh sách/lịch sử · Thống kê** (KPI, biểu đồ, bảng, xuất). Nghiệp vụ đặc thù thêm sau khi 3 màn chạy. Chỉ làm lát L2/L3 khi module đã đạt L1 và người dùng báo vướng.
+
+**Luật dừng rà soát**
+
+- Chỉ mở lát gia cố khi: (a) hỏng/lộ dữ liệu ở đường người dùng **đang dùng**, hoặc (b) người dùng thật báo lỗi.
+- Không giao agent «quét» module chưa có người dùng; lỗi tìm được ghi một dòng vào backlog bên dưới.
+- Tối đa 5 lát mở cùng lúc. Một agent ghi/lần.
+- Câu hỏi PO gom một phiên/tuần, mỗi câu kèm phương án mặc định «nếu PO im».
+- Apply prod theo lô mỗi tuần (PO duyệt), không lẻ từng lát.
+
+**Hiện trạng module** (prod 2026-10-11: NKBV 1 phiếu · CSSD 10 chu trình thử · QLCV 0 việc · Đào tạo 1 lần thi)
+
+| Module | Mức | Người đầu mối | Việc tới L1 | Đang chặn |
+|---|---|---|---|---|
+| VST + GSC + thống kê | L1 (đang dùng thật) | Đã có | UAT tay form VST (≤2 / ≤1); nhãn «chưa đủ mẫu» n<20 ở bảng khoa; đo thời gian nhập phiếu | GS-1 RLS đọc cần ma trận «ai xem gì» (L2) |
+| CSSD (+ sự cố) | L0, nhiều cổng L2 đã lên prod | Tổ CSSD (chưa ghi tên) | Tổ CSSD chạy tay K1–K5 ở SSOT 18; kho/hóa chất/BOM tạm nhập tay hoặc Excel | Người đầu mối; máy quét |
+| NKBV | L0 | Chưa có | Ghi ca + danh sách + tỉ lệ; rules engine chỉ gợi ý, không chặn | HIS/LIS (L3); người đầu mối |
+| QLCV | L0 | Nhóm KSNK | Tạo việc, giao, hạn, hoàn thành, xem theo người/khoa; kịch bản tay ≥ 3 | Câu QL-1 (quyền ghi chú, xóa cứng) |
+| Đào tạo | L0 | Chưa có | Thi thử/thi thật + kết quả; kịch bản tay ≥ 3 | 3 câu DT-2 (thi thử dùng chung ngân hàng/lộ đáp án; nộp trễ > 30 giây vẫn «đạt») |
+
+Thứ tự pilot theo khóa PO: CSSD → NKBV → QLCV → Đào tạo. QLCV/Đào tạo không cần phần cứng/HIS nên có thể chạy thử sớm hơn: **chờ PO xác nhận**.
+
+**Đã lên prod (MCP):** K1, SEC-1, CS-ME, KD-1, CS-GATE, TB-1, HC-1, NK-AUTH. **Chưa lên prod:** KD-4 (`20261021040000`, còn nợ khóa deadlock nhiều dòng + sổ ghi ngoài khóa).
+
+**PO chốt 2026-10-24:** DT-2 nộp trễ > 30 giây = không đạt; thi thử ẩn đáp án đến khi nộp · QL-1 xóa mềm, ghi chú theo người tạo · NKBV đóng băng ở mức ghi ca + danh sách + tỉ lệ · kế hoạch 4 tuần: VST funnel/run chart → QLCV → CSSD tay + sửa Đào tạo → đo lại.
+
+**QLCV (2026-10-25):** QL-1 đã chốt (xóa mềm, ghi chú theo người tạo); code xóa mềm chưa kiểm (`deleteCongViec` có ở `cong-viec-write.actions.ts`) · QL-A xong, commit `d258f6c0`: việc «Trả về làm lại» (TU_CHOI) giữ 100% nên nút «Lưu tiến độ» luôn khóa, nay cho nộp lại · Phát hiện: prod không thiếu migration QLCV (ghi theo kết luận của PO phiên này; chưa đối chiếu lại bằng `list_migrations` trong phiên này).
+
+**Chờ PO (gom một phiên/tuần):** tên người đầu mối từng module · ma trận «ai xem gì» (GS-1) · QL-1 · DT-2 (3 câu) · KD-5 (lấy DDL `cssd_fact_kho_kiem_ke` từ prod hay bỏ) · V1 phạm vi vật tư · Plasma–cellulose · nguồn ngưỡng 85/70 và 90/85 · xóa phiên VST (đang `is_active=false`).
+
+**Việc PO ngoài repo:** Supabase Auth (tắt tự đăng ký, xác nhận email, chặn mật khẩu rò rỉ, redirect URL) · `NEXT_PUBLIC_SITE_URL` + `<site>/login/reset-password` · `KSNK_BREAK_GLASS_EMAILS` tài khoản thật · CSP/X-Frame-Options/HSTS · rà phiếu RESET đang chờ trên prod.
+
+**Backlog gia cố (đóng băng, chỉ mở khi đủ luật dừng):** NK-TZ2 («hôm nay» UTC 5 chỗ) · NK-SCOPE nợ lọc phạm vi + RLS DB · N1 (tách file NKBV > 1.700 dòng, thay `any`) · KD-2 form tự đổi PP · KD-3 chạy thử import · KD-4 nợ a–f · K3/QL-1/GS-1 phần RLS · CS-GATE nợ (`recall-receive` chèn+tắt, map lỗi trigger) · D1/Q1 spec + e2e · Zod nhập lô · H1 gọn 110 lệnh npm → ~10 · đo lượt xem báo cáo · sao lưu prod định kỳ.
 
 Model: Haiku cho đọc/soát (UAT, explore-module, db-verify) · Sonnet cho sửa code · Opus chỉ khi debug hoặc kiến trúc khó.
 

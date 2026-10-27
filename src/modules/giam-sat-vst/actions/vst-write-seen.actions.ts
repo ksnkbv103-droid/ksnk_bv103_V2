@@ -7,6 +7,7 @@ import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { assertVstHistoryAccess } from "../lib/vst-read-scope";
 import { resolveVstScopedSessionIds } from "../lib/vst-session-scope";
 import { vstWriteErrorMessage } from "./vst-write.helpers";
+import { normalizeSessionIds } from "@/lib/normalize-session-ids";
 
 /** Đánh dấu phiên VST đã được mở từ lịch sử (in / xem). */
 export async function markVSTSessionsSeen(sessionIds: string[]) {
@@ -19,7 +20,9 @@ export async function markVSTSessionsSeen(sessionIds: string[]) {
       return { success: false as const, error: historyAccess.error };
     }
 
-    const ids = (sessionIds || []).map(String).filter(Boolean);
+    const norm = normalizeSessionIds(sessionIds);
+    if (!norm.ok) return { success: false as const, error: norm.error };
+    const ids = norm.ids;
     if (!ids.length) return { success: true as const };
 
     const { data: rows, error: rowsErr } = await supabase

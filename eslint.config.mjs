@@ -117,6 +117,37 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    // rules/src.md: logic thuần trong src/lib/domain không phụ thuộc supabase/next/react.
+    files: ["src/lib/domain/**/*.ts", "src/lib/domain/**/*.tsx"],
+    ignores: ["**/*.spec.ts", "**/*.spec.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@supabase/*", "@/lib/supabase*", "next", "next/*", "react", "react/*", "react-dom", "react-dom/*"],
+              message: "src/lib/domain là logic thuần: không import supabase/next/react. I/O đặt ở actions/ hoặc workflow/application/.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // rules/src.md: nhãn UI dùng «và», không «&». Warn vì còn tồn đọng cũ.
+    files: ["src/**/*.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "JSXText[value=/\\s&\\s/]",
+          message: "Nhãn UI dùng «và» thay «&».",
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -56,6 +56,7 @@ import {
   type CssdVolumeTrendPoint,
   CSSD_ANALYTICS_STATIONS,
   cssdVnDay,
+  isVnDayInRange,
   stationLabel,
 } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -187,8 +188,8 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         supabase
           .from("v_cssd_quy_trinh_full")
           .select(quyTrinhSelect)
-          .gte("created_at", from)
-          .lte("created_at", `${to}T23:59:59`)
+          .gte("created_at", addDaysYmd(from, -1))
+          .lte("created_at", `${addDaysYmd(to, 1)}T23:59:59`)
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
@@ -196,8 +197,8 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         supabase
           .from("v_cssd_su_co_full")
           .select(SU_CO_REPORT_SELECT)
-          .gte("created_at", from)
-          .lte("created_at", `${to}T23:59:59`)
+          .gte("created_at", addDaysYmd(from, -1))
+          .lte("created_at", `${addDaysYmd(to, 1)}T23:59:59`)
           .order("id", { ascending: true })
           .range(pFrom, pTo),
       ),
@@ -206,7 +207,9 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     if (resQ.error) return { success: false as const, error: resQ.error, quyTrinh: [], suCo: [] };
     if (resS.error) return { success: false as const, error: resS.error, quyTrinh: [], suCo: [] };
 
+    const inVnPeriod = (raw: unknown) => isVnDayInRange(cssdVnDay(raw), from, to);
     const suCoSource = resS.rows.filter((x) => {
+      if (!inVnPeriod(x.created_at)) return false;
       const attrs = (x.attributes as Record<string, unknown>) || {};
       return countsTowardCssdSafetyTally(attrs);
     });
@@ -214,7 +217,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       suCoSource as { quy_trinh_id?: string | null; is_red_alert?: boolean | null; attributes?: Record<string, unknown> | null }[],
     );
 
-    const quyTrinhRows = resQ.rows.filter((x) => !isLegacyHexCycle(x)).map((x: Record<string, unknown>): CssdReportQuyTrinhRow => {
+    const quyTrinhRows = resQ.rows.filter((x) => inVnPeriod(x.created_at) && !isLegacyHexCycle(x)).map((x: Record<string, unknown>): CssdReportQuyTrinhRow => {
       const id = String(x.id || "");
       const fromSuCo = redIds.has(id);
       return {

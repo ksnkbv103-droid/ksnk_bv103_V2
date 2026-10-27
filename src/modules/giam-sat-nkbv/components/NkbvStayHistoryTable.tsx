@@ -10,7 +10,7 @@ import {
   formatKhoaCompactLabel,
   formatKhoaPickerLabel,
 } from "@/lib/domain/khoa-display";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, vnYmd } from "@/lib/format-datetime-vi";
 
 interface NkbvStayHistoryTableProps {
   treatmentHistory: DepartmentStay[];
@@ -75,7 +75,7 @@ export default function NkbvStayHistoryTable({
     setNewStayNgayRa("");
   };
 
-  const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
+  const cleanNgayVaoVien = vnYmd(ngayVaoVien);
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (

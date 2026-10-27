@@ -34,6 +34,8 @@ const PANEL_SKIP = new Set([
   "src/modules/giam-sat-vst/components/VSTForm.tsx",
   // Thin alias → IncidentReportModal (đã wire panel chrome).
   "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
+  // Wrapper mỏng ghép 3 hàng đợi duyệt (đã wire chrome ở từng component con).
+  "src/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels.tsx",
 ]);
 
 /** Chỉ tiêu đề khối — nút touch (btnTouch) giữ IN HOA */

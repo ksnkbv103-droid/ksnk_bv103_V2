@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
-import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import {
   KsnkSupervisionHero,
@@ -1108,7 +1108,7 @@ export default function GiamSatNkbvPage() {
               ngay_sinh: stay.ngay_sinh ? String(stay.ngay_sinh).slice(0, 10) : null,
               gioi_tinh: stay.gioi_tinh ? String(stay.gioi_tinh) : null,
               ngay_vao_vien: stay.ngay_vao_vien
-                ? String(stay.ngay_vao_vien).slice(0, 10)
+                ? vnYmd(stay.ngay_vao_vien)
                 : null,
               khoa_ghi_nhan_id: String(stay.khoa_dieu_tri_id || header.selectedKhoa || "") || null,
               milestone_id: milestone.id,

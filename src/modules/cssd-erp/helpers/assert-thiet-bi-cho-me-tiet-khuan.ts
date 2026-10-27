@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { meChuaKetThucOrFilter } from "../lib/me-tiet-khuan-batch-integrity";
 
 const SAN_SANG_CHO_ME = new Set(["READY", "HOAT_DONG"]);
 
@@ -36,7 +37,10 @@ export async function assertThietBiSanSangChoMeTietKhuan(
   return { ok: true, ten_thiet_bi: String((tb as { ten_thiet_bi?: string }).ten_thiet_bi || "") };
 }
 
-/** Mẻ đã ghi nhận kết quả QC (đạt/không đạt) coi là đã kết thúc; chỉ chặn khi chưa có ket_qua_test. */
+/**
+ * Mẻ đã ghi nhận kết quả QC (đạt/không đạt) hoặc đã HOAN_THANH/QC_KHONG_DAT/THU_HOI coi là đã kết thúc (CS-ME).
+ * CHO_BI vẫn chặn bảo trì như trước.
+ */
 export async function coMeTietKhuanChuaKetThucTheoThietBi(
   client: SupabaseClient,
   thietBiId: string,
@@ -50,6 +54,7 @@ export async function coMeTietKhuanChuaKetThucTheoThietBi(
     .eq("thiet_bi_id", id)
     .eq("is_active", true)
     .is("ket_qua_test", null)
+    .or(meChuaKetThucOrFilter())
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

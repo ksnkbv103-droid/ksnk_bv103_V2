@@ -48,6 +48,28 @@ export function meListPrimaryAction(trangThai: string): { label: string } | null
   }
 }
 
+const ME_BADGE_STORED = new Set(["CHO_BI", "HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"]);
+
+/**
+ * CS-ME: trạng thái badge phiếu mẻ — ưu tiên `trang_thai_me` đã lưu (QC_KHONG_DAT, THU_HOI…),
+ * sau đó mới suy từ ket_qua_test / mốc nạp / mở QC (mẻ cũ chưa có trang_thai_me).
+ */
+export function resolveMeBadgeState(input: {
+  trangThai?: string | null;
+  choBi?: boolean;
+  ketQuaTest?: boolean | null;
+  napLocked: boolean;
+  qcOpen: boolean;
+}): string {
+  const st = String(input.trangThai || "").trim().toUpperCase();
+  if (input.choBi) return "CHO_BI";
+  if (ME_BADGE_STORED.has(st)) return st;
+  if (input.ketQuaTest === true) return "HOAN_THANH";
+  if (input.ketQuaTest === false) return "QC_KHONG_DAT";
+  if (input.napLocked) return input.qcOpen ? "CHO_DANH_GIA_QC" : "DANG_TIET_KHUAN";
+  return "DANG_CHUAN_NAP";
+}
+
 export function slipStatusLabel(input: {
   step: MeSlipStep;
   choBi?: boolean;

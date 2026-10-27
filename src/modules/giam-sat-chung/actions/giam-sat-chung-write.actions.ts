@@ -333,15 +333,17 @@ export async function saveGiamSatChung(
 
     let sessionId: string;
     if (existingSessionId) {
-      const { error: upErr } = await supabase
+      const { data: updated, error: upErr } = await supabase
         .from("gstt_fact_chung_sessions")
         .update({
           ...sessionPayload,
-          is_active: true,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", existingSessionId);
+        .eq("id", existingSessionId)
+        .eq("is_active", true)
+        .select("id");
       if (upErr) throw upErr;
+      if (!updated?.length) throw new Error("Phiên đã bị vô hiệu hoặc không còn tồn tại, không sửa được.");
 
       sessionId = existingSessionId;
     } else {

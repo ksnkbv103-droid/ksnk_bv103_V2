@@ -18,7 +18,7 @@
 | **D5** | Hard-write master loại / bộ / BOM (**CRUD form**) chỉ **ADMIN**. | `BO_DC.edit` = **duyệt phiếu** rà soát → `applyApprovedBomLines`, không mở form master. |
 | **D6** | BOM **1 bộ × 1 loại** (unique active) là **luật vĩnh viễn**. | Không cho nhiều dòng active cùng loại trong một bộ. |
 | **D7** | Dual-code bridge giữ (`B01.SET.*` ↔ `B01.CD*` ↔ `BO-01-*`, QR Hub). | Không mở catalog TSCĐ/BHYT mới. |
-| **D8** | Soft-warning thiếu cấu phần (QLDCPT Q2) giữ — không hard-block đóng gói/cấp phát. | `bom_kiem_dem_at` = audit, không gate. |
+| **D8** | **BOM không áp dụng trong quy trình xử lý** (PO 2026-10-21): BOM chỉ thuộc danh mục, kiểm kê, điều chuyển. Đóng gói/cấp phát không có panel đối chiếu, không gate. | Đã gỡ `prepareDongGoiBomGateScan` + `CompositionReconcilePanel`. Còn lại `bom_kiem_dem_at` (audit) và `assertLedgerDuChoCapPhat` (cảnh báo mềm sổ kho) — không hard-block. |
 | **D9** | **QC trạm** (QT.19) ≠ **QC mẻ** / nhãn (QT.23). | Không thay QC mẻ bằng trạm `QC`. |
 | **D10** | CCS bỏ khỏi UI user. | Không lộ CCS trên màn vận hành người dùng. |
 

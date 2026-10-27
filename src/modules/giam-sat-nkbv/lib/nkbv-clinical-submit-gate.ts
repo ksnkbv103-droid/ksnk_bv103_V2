@@ -7,6 +7,7 @@ import {
   isKnownPatientAge,
   MISSING_DOB_NO_EVENT_REASON,
 } from "./nkbv-pneu-vae-route";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type ClinicalSubmitGateResult =
   | { ok: true }
@@ -49,7 +50,7 @@ export function assertClinicalEvidenceForSubmit(
   verificationInput: Record<string, any>,
 ): ClinicalSubmitGateResult {
   const detection =
-    String(verificationInput?.ngay_phat_hien || verificationInput?.ngay_lay_mau || "").slice(0, 10) ||
+    vnYmd(verificationInput?.ngay_phat_hien || verificationInput?.ngay_lay_mau) ||
     "";
   if (!detection) {
     return { ok: false, error: "Thiếu ngày phát hiện / ngày lấy mẫu để tính khung IWP." };

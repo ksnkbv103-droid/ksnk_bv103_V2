@@ -1,13 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
-import {
-  CatalogDeNghiDialog,
-  type CatalogDeNghiDialogTarget,
-} from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
-import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
+import SetCompositionPrint from "./SetCompositionPrint";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import {
@@ -20,14 +16,14 @@ type Props = {
   boDungCuId: string | null | undefined;
   enabled?: boolean;
   compact?: boolean;
+  /** Mở luân chuyển với bộ này làm nguồn/đích — bổ sung/sửa thành phần đi qua luân chuyển. */
+  onTransfer?: (maBo: string) => void;
 };
 
 /** Thành phần bộ: mã loại / tên loại / số — rà soát trên thanh bảng khi lệch. */
-export default function SetCompositionCard({ boDungCuId, enabled = true, compact }: Props) {
+export default function SetCompositionCard({ boDungCuId, enabled = true, compact, onTransfer }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
-  const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     const id = String(boDungCuId || "").trim();
@@ -79,35 +75,20 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
             {data?.maBo ? (
               <button
                 type="button"
-                className="shrink-0 text-[11px] font-semibold text-[var(--primary)] hover:underline"
-                onClick={() =>
-                  setDeNghi({
-                    kind: "BOM",
-                    targetId: data.boDungCuId,
-                    targetMa: data.maBo,
-                    targetTen: data.tenBo,
-                    ma: data.maBo,
-                    ten: data.tenBo,
-                    bomLines: (data.items || []).map((row) => ({
-                      chiTietId: row.chiTietId,
-                      loaiDungCuId: row.loaiDungCuId,
-                      maLoai: row.maLoai,
-                      tenDungCuLe: row.tenDungCuLe,
-                      soLuong: row.soLuongKeHoach,
-                    })),
-                  })
-                }
+                className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-slate-700 hover:underline"
+                onClick={() => window.print()}
               >
-                Đề nghị sửa thành phần
+                <Printer className="h-3.5 w-3.5" />
+                In danh mục bộ
               </button>
             ) : null}
-            {data?.maBo ? (
+            {data?.maBo && onTransfer ? (
               <button
                 type="button"
-                className="shrink-0 text-[11px] font-semibold text-emerald-800 hover:underline"
-                onClick={() => setCreateOpen(true)}
+                className="shrink-0 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                onClick={() => onTransfer(data.maBo)}
               >
-                + Đề nghị bổ sung thành phần
+                Luân chuyển / bổ sung thành phần
               </button>
             ) : null}
           </div>
@@ -143,21 +124,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
           </tbody>
         </table>
       </ResponsiveTableShell>
-      <CatalogDeNghiDialog
-        open={Boolean(deNghi)}
-        onOpenChange={(open) => {
-          if (!open) setDeNghi(null);
-        }}
-        target={deNghi}
-      />
-      <CatalogDeNghiCreateDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        kind="BOM"
-        boDungCuId={data?.boDungCuId || boDungCuId}
-        boMa={data?.maBo}
-        boTen={data?.tenBo}
-      />
+      {data ? <SetCompositionPrint data={data} /> : null}
     </>
   );
 }

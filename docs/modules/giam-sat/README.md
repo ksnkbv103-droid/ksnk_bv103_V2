@@ -90,6 +90,29 @@ Deep-link thống kê từng khối: `/thong-ke/vst` · `/thong-ke/gsc?bk=KSNK.Q
 3. Picker GSC không có BM.07.01 / WHO.
 4. BCTH → tab Vệ sinh tay → 3 card cạnh nhau (N/A nếu chưa có phiên).
 
+### 3 kịch bản tay L1 (điều dưỡng chạy, bấm giờ)
+
+Chạy trên bản local/staging, tài khoản có quyền VST + GSC. Ghi giờ bắt đầu → bấm «Lưu». Đạt: mỗi phiếu **< 60 giây**.
+
+| # | Kịch bản | Các bước | Kết quả đúng | Giây |
+|---|---|---|---|---|
+| 1 | Nhập phiên VST 5 mốc | `/giam-sat-vst` → chọn khoa, người được giám sát → chọn hành động cho mốc 1 (Rửa tay bằng nước) → thêm mốc thứ 2, 3, 4, 5 trên cùng một hàng → «Lưu» | Lưu thành công; mốc đạt tối đa 2 thời điểm WHO, vượt trần thì bỏ mốc cũ nhất, không hiện toast; «Bỏ sót» chỉ 1 mốc; ô chọn nền xanh `#026f17` chữ trắng | |
+| 2 | Nhập phiên GSC | `/giam-sat-chung/tuan-thu` → chọn khoa, mẫu → tick các mục → «Lưu» | Lưu thành công; phiên xuất hiện đầu `/lich-su/gsc` | |
+| 3 | Xem thống kê một kỳ và in | `/thong-ke/vst` → chọn kỳ (tháng vừa nhập) → xem KPI tổng, bảng khoa → in/xuất; lặp lại ở `/thong-ke/gsc` | KPI tổng ở đầu trang; khoa có < 20 cơ hội VST (< 30 GSC) hiện «mẫu mỏng», không tô cảnh báo; phiên vừa nhập có trong số liệu; số khớp lịch sử | |
+
+### Đối soát VST: RPC so với tính tay (L1-2, 2026-10-24, DB local)
+
+Tính tay = đếm trực tiếp từ `gstt_fact_vst` (phiên `is_active`, hành động hợp lệ theo `fn_vst_is_valid_opportunity`), mẫu = `tong_co_hoi`, đạt = khác «Bỏ sót», `ty_le = round(đạt/tổng×100, 1)`. So với `rpc_dashboard_vst_strategic_analytics`.
+
+| Tình huống | Kết quả |
+|---|---|
+| A. Một tháng, toàn viện | Khớp tổng cơ hội, đạt, tỉ lệ |
+| B. Kỳ dài, toàn viện | Khớp tổng cơ hội, đạt, tỉ lệ |
+| C. Tháng 2026-09, từng khoa (`matrix_khoa`) | 39 khoa ở cả hai phía, **0 lệch** |
+| D. Lọc một khoa | 109 cơ hội · 89,0% cả hai phía |
+
+Kết luận: không lệch, không sửa hàm KPI. GSC chưa đối soát (ngoài phạm vi L1-2).
+
 ---
 
 ## Khóa sổ GSC / VST

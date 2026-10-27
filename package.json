@@ -12,6 +12,7 @@
     "lint:cssd-architecture": "eslint src/app/cssd-erp/batch src/app/cssd-erp/report src/app/cssd-quy-trinh src/app/cssd-dung-cu src/app/cssd-su-co src/app/cssd-thiet-bi src/app/cssd-hoa-chat src/modules/cssd-erp/contexts --cache --cache-location .next/cache/eslint-cssd-architecture --max-warnings=0",
     "verify": "npm run verify:full",
     "verify:quick": "npm run build",
+    "verify:changed": "node scripts/verify-changed.mjs",
     "verify:full": "npm run lint && npm run layout:drift-check && npm run layout:typography-check && npm run verify:cssd && npm run verify:engineering && npm run build",
     "docs:links:check": "node scripts/docs-links-check.mjs",
     "repo:hygiene": "node scripts/repo-hygiene-audit.mjs",

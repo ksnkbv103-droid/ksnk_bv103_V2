@@ -13,7 +13,7 @@ import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai } from "../types/catalog.ty
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
 
-const CATALOG_TABS = new Set(["DE_NGHI", "LOAI", "HISTORY", "BO", "LUAN_CHUYEN"]);
+const CATALOG_TABS = new Set(["DE_NGHI", "LOAI", "BO", "LUAN_CHUYEN", "QUAN_LY"]);
 
 function tabFromQuery(raw: string | null): CatalogTab | null {
   const t = String(raw || "").toUpperCase();

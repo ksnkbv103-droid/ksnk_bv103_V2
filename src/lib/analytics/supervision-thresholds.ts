@@ -17,6 +17,19 @@ export const DOI_SOAT_MIN_SAMPLE = {
 /** VST-07: so sánh khoa/khối/nghề/thời điểm — dưới ngưỡng = «mẫu mỏng», không tô màu. */
 export const VST_COMPARE_MIN_SAMPLE = 20;
 
+/** Min-N bảng tổng hợp khoa theo module: VST 20 cơ hội, GSC 30 (cùng mốc đối soát). Module khác: không áp. */
+export function khoaTableMinSample(moduleLabel?: string | null): number | null {
+  const key = String(moduleLabel ?? "").trim().toUpperCase();
+  if (key === "VST") return VST_COMPARE_MIN_SAMPLE;
+  if (key === "GSC") return DOI_SOAT_MIN_SAMPLE.gsc;
+  return null;
+}
+
+/** Mẫu mỏng: có min-N và 0 < n < min-N. n = 0 là «không có dữ liệu», không phải mẫu mỏng. */
+export function isThinSample(n: number, minSample: number | null): boolean {
+  return minSample != null && n > 0 && n < minSample;
+}
+
 /** Ngưỡng tô cột biểu đồ khoa (warn = vàng, red = đỏ). */
 export type KhoaChartThresholds = {
   warnPct: number;

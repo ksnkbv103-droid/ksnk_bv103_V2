@@ -37,6 +37,8 @@ export const adminResetStaffPasswordSchema = z.object({
 export const setupGuestStatsPilotAccountSchema = z.object({
   password: passwordSchema,
   email: loginEmailSchema.optional(),
+  /** Nhập lại mật khẩu quản trị (cổng ADM-01) — bắt buộc như các thao tác tài khoản khác. */
+  confirmActorPassword: z.string().min(1, "Nhập mật khẩu của bạn để xác nhận.").max(256),
 });
 
 /** Trả `{ ok: true, data }` hoặc `{ ok: false, error }` với câu lỗi tiếng Việt đầu tiên. */

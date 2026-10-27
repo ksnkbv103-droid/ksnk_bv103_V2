@@ -1,7 +1,7 @@
 "use server";
 
 import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
-import { todayYmdInVn } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { filterAllowedNkbvLoaiRows } from "../lib/nkbv-loai-labels";
@@ -10,6 +10,11 @@ import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { NkbvListSortKey } from "@/lib/validations/nkbv-list-pagination";
 import { NKBV_LIST_SORT_KEYS, nkbvListPaginationSchema } from "@/lib/validations/nkbv-list-pagination";
+import {
+  getNkbvKhoaRestriction,
+  isNkbvBenhAnInScope,
+  NKBV_OUT_OF_SCOPE_ERROR,
+} from "../lib/nkbv-khoa-scope.server";
 import { scanStayCrossCaseAlerts } from "../lib/nkbv-import-window-scan";
 import { mergeBaTimelineMilestones } from "../lib/nkbv-ba-timeline-core";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
@@ -45,6 +50,9 @@ function resolveSortColumn(key: string): NkbvListSortKey {
 export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   const supabase = await createServerSupabaseUserClient();
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: true as const, data: [], totalCount: 0 };
+  const khoaGhiNhanId = restriction.kind === "khoa" ? restriction.khoaId : filters.khoa_ghi_nhan_id;
 
   const parsed = nkbvListPaginationSchema.safeParse({
     page: filters.page,
@@ -76,7 +84,7 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
   if (searchFilter) countQ = countQ.or(searchFilter);
-  if (filters.khoa_ghi_nhan_id) countQ = countQ.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id);
+  if (khoaGhiNhanId) countQ = countQ.eq("khoa_ghi_nhan_id", khoaGhiNhanId);
   if (loai_nkbv_id) countQ = countQ.eq("loai_nkbv_id", loai_nkbv_id);
   if (trang_thai_id) countQ = countQ.eq("trang_thai_id", trang_thai_id);
 
@@ -90,7 +98,7 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
     .order(sortCol, { ascending })
     .range(from, to);
   if (searchFilter) dataQ = dataQ.or(searchFilter);
-  if (filters.khoa_ghi_nhan_id) dataQ = dataQ.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id);
+  if (khoaGhiNhanId) dataQ = dataQ.eq("khoa_ghi_nhan_id", khoaGhiNhanId);
   if (loai_nkbv_id) dataQ = dataQ.eq("loai_nkbv_id", loai_nkbv_id);
   if (trang_thai_id) dataQ = dataQ.eq("trang_thai_id", trang_thai_id);
 
@@ -156,6 +164,12 @@ export async function getGiamSatNkbvCaById(caseId: string) {
     if (error) throw error;
     if (!data) return { success: false as const, error: "Không tìm thấy phiếu NKBV" };
     const r = data as Record<string, unknown>;
+    const restriction = await getNkbvKhoaRestriction();
+    if (restriction.kind !== "all") {
+      const inScope =
+        restriction.kind === "khoa" && String(r.khoa_ghi_nhan_id ?? "").trim() === restriction.khoaId;
+      if (!inScope) return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     return {
       success: true as const,
       data: {
@@ -210,7 +224,9 @@ export async function listNkbvMedicalRecords(params: {
   const rawPs = Math.floor(Number(params.pageSize) || 20);
   const pageSize = Math.min(50, Math.max(1, rawPs));
   const search = (params.search || "").trim().toLowerCase();
-  const khoaId = params.khoaId ? String(params.khoaId).trim() : "";
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: true as const, data: [], totalCount: 0 };
+  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : params.khoaId ? String(params.khoaId).trim() : "";
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
@@ -237,13 +253,16 @@ export async function listNkbvMedicalRecords(params: {
   if (params.devicePriorityOnly) {
     let devRows: { ma_benh_an?: string | null }[] = [];
     try {
-      devRows = await fetchAllRangeRows((from, to) =>
-        supabase
+      // Lọc ở DB: chỉ ngày dụng cụ của BA còn nằm viện (+ đúng khoa), không tải cả bảng.
+      devRows = await fetchAllRangeRows((from, to) => {
+        let q = supabase
           .from("nkbv_fact_ba_ngay_dung_cu")
-          .select("ma_benh_an")
-          .order("id", { ascending: true })
-          .range(from, to),
-      );
+          .select("ma_benh_an, ba:nkbv_fact_benh_an!inner(ngay_ra_vien, is_active, khoa_dieu_tri_id)")
+          .is("ba.ngay_ra_vien", null)
+          .eq("ba.is_active", true);
+        if (khoaId) q = q.eq("ba.khoa_dieu_tri_id", khoaId);
+        return q.order("id", { ascending: true }).range(from, to);
+      });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Không đọc hết ngày dụng cụ.";
       return { success: false as const, error: msg, data: [], totalCount: 0 };
@@ -449,6 +468,10 @@ export async function listInpatientsByKhoa(params: {
 
   const khoaId = String(params.khoaId || "").trim();
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvInpatientRow[] };
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind !== "all" && (restriction.kind === "none" || restriction.khoaId !== khoaId)) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as NkbvInpatientRow[] };
+  }
 
   const supabase = await createServerSupabaseUserClient();
   const limit = Math.min(Math.max(params.limit || 200, 1), 500);
@@ -488,6 +511,9 @@ export async function getNkbvBenhAnByMa(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const ma = String(maBenhAn || "").trim();
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
 
   const supabase = await createServerSupabaseUserClient();
   const { data, error } = await supabase
@@ -550,6 +576,9 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const ma = String(maBenhAn || "").trim();
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
 
   const supabase = await createServerSupabaseUserClient();
 
@@ -731,7 +760,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       ma_xet_nghiem: r.ma_xet_nghiem ? String(r.ma_xet_nghiem) : null,
       loai_benh_pham: r.loai_benh_pham ? String(r.loai_benh_pham) : null,
       loai_benh_pham_chuan: r.loai_benh_pham_chuan ? String(r.loai_benh_pham_chuan) : null,
-      ngay_lay_mau: r.ngay_lay_mau ? String(r.ngay_lay_mau).slice(0, 10) : null,
+      ngay_lay_mau: vnYmd(r.ngay_lay_mau) || null,
       tac_nhan: r.tac_nhan ? String(r.tac_nhan) : null,
       so_luong: r.so_luong != null ? String(r.so_luong) : null,
       ket_qua_phan_loai: r.ket_qua_phan_loai ? String(r.ket_qua_phan_loai) : null,

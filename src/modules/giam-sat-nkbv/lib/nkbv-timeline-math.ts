@@ -15,12 +15,14 @@ import {
   endoRitSbapToDischarge,
   isDeviceAssociated,
   poaOrHai,
+  type NkbvHaiPoaStatus,
   ssiSbapWindow,
   subDays,
   usesClinicalIwp,
   vaeEventPeriod,
   type NkbvTimelineSyndrome,
 } from "./nkbv-shared-timeline";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export { addDays, subDays };
 
@@ -50,7 +52,7 @@ export interface CdcMetricsResult {
   /** RIT end = DOE+13 (DOE = ngày 1). */
   rit_end: string;
   dayOfHospitalization: number;
-  haiStatus: "HAI" | "POA";
+  haiStatus: NkbvHaiPoaStatus;
   attributedStay: DepartmentStay | null;
   attributionReason: string;
   device_placed_days: number;
@@ -77,8 +79,8 @@ export function isHaiSuspectByDay3Rule(
   ngayVaoVien: string | null | undefined,
   ngayLayMau: string | null | undefined,
 ): boolean {
-  const vao = ngayVaoVien ? String(ngayVaoVien).slice(0, 10) : "";
-  const mau = ngayLayMau ? String(ngayLayMau).slice(0, 10) : "";
+  const vao = vnYmd(ngayVaoVien);
+  const mau = vnYmd(ngayLayMau);
   if (!vao || !mau) return false;
   return daysBetween(vao, mau) >= 2;
 }
@@ -203,7 +205,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
       sbap_end: "",
       rit_end: "",
       dayOfHospitalization: 0,
-      haiStatus: "POA",
+      haiStatus: "CHUA_XAC_DINH",
       attributedStay: null,
       attributionReason: "Không xác định được ngày phát hiện.",
       device_placed_days: 0,
@@ -383,7 +385,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     sbap_end = w.end;
   }
 
-  const ngay_vao_vien_clean = ngay_vao_vien ? ngay_vao_vien.slice(0, 10) : "";
+  const ngay_vao_vien_clean = vnYmd(ngay_vao_vien);
   const { dayOfHospitalization, haiStatus } = poaOrHai(ngay_vao_vien_clean, doe);
 
   const stays = [...treatmentHistory].sort((a, b) => a.ngay_vao.localeCompare(b.ngay_vao));

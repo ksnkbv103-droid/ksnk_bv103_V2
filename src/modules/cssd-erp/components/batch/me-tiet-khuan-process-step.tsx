@@ -12,7 +12,13 @@ import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
 import { MeTietKhuanSlipStepper } from "./me-tiet-khuan-slip-stepper";
 import { CSSD_UI_ACTION_SECONDARY, CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL } from "../../shared/ui/cssd-ui-chrome";
 import { getSterilizerMethod, type SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
-import { canConfirmBatDauMeSlip, currentMeSlipStep, meTrangThaiBadge, slipStatusLabel } from "../../lib/me-tiet-khuan-slip-ux";
+import {
+  canConfirmBatDauMeSlip,
+  currentMeSlipStep,
+  meTrangThaiBadge,
+  resolveMeBadgeState,
+  slipStatusLabel,
+} from "../../lib/me-tiet-khuan-slip-ux";
 
 type MeRow = {
   id: string;
@@ -158,7 +164,7 @@ export default function MeTietKhuanProcessStep({
     trangThai,
   });
   const statusBadge = meTrangThaiBadge(
-    choBi ? "CHO_BI" : activeMe?.ket_qua_test === true ? "HOAN_THANH" : activeMe?.ket_qua_test === false ? "QC_KHONG_DAT" : napLocked ? (qcOpen ? "CHO_DANH_GIA_QC" : "DANG_TIET_KHUAN") : "DANG_CHUAN_NAP",
+    resolveMeBadgeState({ trangThai, choBi, ketQuaTest: activeMe?.ket_qua_test, napLocked, qcOpen }),
   );
   const canConfirmBatDau = canConfirmBatDauMeSlip({ itemCount: items.length, napLocked });
   const chuongTrinhEmpty = !String(chuongTrinh || "").trim();

@@ -15,4 +15,4 @@
 
 **Không dùng:** `actions/read.actions.ts`, `actions/write.actions.ts` (đã gỡ).
 
-**Deep link:** `/quan-tri-he-thong/phan-quyen` → hub `?tab=phan_quyen`; `/danh-muc/dung-cu/{loai,bo}` → `?tab=`; `/dung-cu/chi-tiet` → tab bộ.
+**Deep link:** `/quan-tri-he-thong/phan-quyen` → hub `?tab=phan_quyen`; `/danh-muc/dung-cu` → redirect sang `/cssd-dung-cu` (tab Loại/Quản lý/Phiếu; PO 2026-10-27).

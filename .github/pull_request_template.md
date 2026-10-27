@@ -38,5 +38,12 @@
 
 ---
 
-## 5. Ảnh chụp / Video minh họa (nếu có thay đổi UI)
+## 5. Testing · Risk · Revert
+* **Đã test thế nào:** (lệnh đã chạy + kết quả; kịch bản tay)
+* **Risk:** `Thấp` / `Vừa` / `Cao` — lý do (tầng theo `.claude/rules/review-flow.md`)
+* **How to revert:** (ví dụ: revert commit; migration down/bù; flag tắt)
+
+---
+
+## 6. Ảnh chụp / Video minh họa (nếu có thay đổi UI)
 *(Kéo thả ảnh hoặc video vào đây để minh họa sự thay đổi trực quan)*

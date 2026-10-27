@@ -497,9 +497,16 @@ export async function persistMeBiResultWithClient(
   };
   const waitingBi = row.trang_thai_me === "CHO_BI" && row.ket_qua_test == null;
   const released = row.trang_thai_me === "HOAN_THANH" || row.ket_qua_test === true;
-  /** ME-01: BI tuần — ghi âm trên mẻ đã nhả (không đổi trạng thái). */
-  if (args.ketQua === "AM" && !waitingBi && !released) {
-    return { ok: false, message: "Chỉ nhập BI âm cho mẻ đang chờ kết quả BI hoặc mẻ đã nhả (BI tuần)." };
+  /** ME-01: BI tuần — chỉ ghi sổ khi mẻ đang HOAN_THANH; mẻ đã thu hồi/không đạt không được xóa dấu BI dương. */
+  const ledgerEligible = row.trang_thai_me === "HOAN_THANH";
+  if (args.ketQua === "AM" && !waitingBi && !ledgerEligible) {
+    const closed = row.trang_thai_me === "THU_HOI" || row.trang_thai_me === "QC_KHONG_DAT";
+    return {
+      ok: false,
+      message: closed
+        ? "Mẻ đã thu hồi hoặc không đạt QC — không ghi BI âm lên mẻ này (tránh xóa dấu BI dương)."
+        : "Chỉ nhập BI âm cho mẻ đang chờ kết quả BI hoặc mẻ đã hoàn thành (BI tuần).",
+    };
   }
   if (args.ketQua === "DUONG" && !waitingBi && !released) {
     return { ok: false, message: "Chỉ ghi BI dương cho mẻ đang chờ BI hoặc đã nhả." };
@@ -542,7 +549,7 @@ export async function persistMeBiResultWithClient(
     return { ok: true, outcome: "HOAN_THANH" };
   }
 
-  if (args.ketQua === "AM" && released) {
+  if (args.ketQua === "AM" && ledgerEligible) {
     const prev = (row.tk_qc_json && typeof row.tk_qc_json === "object" ? row.tk_qc_json : {}) as Record<
       string,
       unknown

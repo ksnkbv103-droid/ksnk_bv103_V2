@@ -1,6 +1,5 @@
 import type { DanhMucHubGroup, DanhMucHubRow } from "./danh-muc-hub-catalog";
 import { isLockedSystemLookup } from "./locked-system-lookups";
-import { quanTriDungCuHref } from "./quan-tri-paths";
 
 export type QuanTriHubJobId = "to-chuc" | "bang-kiem" | "cssd" | "nguoi-dung";
 
@@ -31,8 +30,8 @@ export const QUAN_TRI_HUB_JOBS: QuanTriHubJob[] = [
   {
     id: "cssd",
     title: "Sửa danh mục CSSD",
-    blurb: "Loại (trung tâm), bộ, máy, hóa chất — một cửa.",
-    href: quanTriDungCuHref("loai"),
+    blurb: "Máy, hóa chất. Bộ và loại dụng cụ sửa tại màn Dụng cụ CSSD.",
+    href: "/quan-tri-he-thong/danh-muc/thiet-bi",
     group: "cssd",
   },
   {

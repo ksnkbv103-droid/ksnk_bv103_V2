@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Activity, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
@@ -193,7 +193,7 @@ export default function NkbvViSinhStorePanel({
       ma_benh_an: "",
       ma_benh_nhan: "",
       ho_ten_benh_nhan: "",
-      ngay_lay_mau: new Date().toISOString().slice(0, 10),
+      ngay_lay_mau: todayYmdInVn(),
     });
   };
 

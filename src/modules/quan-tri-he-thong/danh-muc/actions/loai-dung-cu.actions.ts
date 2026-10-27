@@ -4,8 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import {
-  applyHeatSplitAfterLoaiDowngrade,
-  formatHeatSplitToast,
+  applyHeatSplitForLoaiChanges,
 } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
@@ -137,7 +136,12 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   const id = String(input.id || "").trim();
   await verifyPermission("LOAI_DC", id ? "edit" : "create");
   await requireCssdCatalogMasterWrite();
-  const payload = buildLoaiPhysicalUpsertPayload(input, id ? "update" : "create");
+  let payload: Record<string, unknown>;
+  try {
+    payload = buildLoaiPhysicalUpsertPayload(input, id ? "update" : "create");
+  } catch (e: unknown) {
+    return { success: false, error: e instanceof Error ? e.message : "Dữ liệu loại không hợp lệ." };
+  }
   const ma = String(payload.ma_loai || "");
   const ten = String(payload.ten_loai || "");
   if (!ma || !ten) {
@@ -173,21 +177,13 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   const saved = await upsertMasterRow("cssd_dm_loai_dung_cu", id, payload);
   if (!saved.success) return saved;
 
-  let heatSplitNote: string | undefined;
-  if (id) {
-    try {
-      const splitRes = await applyHeatSplitAfterLoaiDowngrade(
-        supabase,
-        id,
-        prevIsChiuNhiet,
-        Boolean(payload.is_chiu_nhiet),
-      );
-      heatSplitNote = formatHeatSplitToast(splitRes) || undefined;
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      heatSplitNote = `Đã lưu loại nhưng tách bộ tự động lỗi: ${msg}`;
-    }
-  }
+  const heatSplitNote = id
+    ? (
+        await applyHeatSplitForLoaiChanges(supabase, [
+          { loaiId: id, prevIsChiuNhiet, nextIsChiuNhiet: Boolean(payload.is_chiu_nhiet) },
+        ])
+      )[0]
+    : undefined;
 
   return { ...saved, heatSplitNote };
 }

@@ -16,6 +16,7 @@ import {
   type NkbvEpidemiologyRate,
 } from "../lib/nkbv-dashboard-aggregate";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
 import { unstable_cache } from "next/cache";
 
 type GiamSatNkbvDashboardFilters = {
@@ -68,8 +69,15 @@ async function loadNkbvDashboardRaw(
 }
 
 /** Phiếu NKBV + thống kê theo khoảng ngày và khoa (dashboard tab). */
-export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboardFilters = {}) {
+export async function getGiamSatNkbvDashboardPayload(rawFilters: GiamSatNkbvDashboardFilters = {}) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: false as const, error: "Tài khoản chưa gán khoa nên chưa xem được thống kê." };
+  // Mạng lưới: ép về khoa mình, bỏ danh sách khoa client gửi.
+  const filters: GiamSatNkbvDashboardFilters =
+    restriction.kind === "khoa"
+      ? { ...rawFilters, khoa_ghi_nhan_id: restriction.khoaId, khoa_ghi_nhan_ids: [] }
+      : rawFilters;
 
   const denStr = filters.den_ngay?.trim() || todayYmdInVn();
   let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
@@ -148,6 +156,9 @@ export async function countGiamSatNkbvChoXn(filters: {
 }): Promise<{ success: true; count: number } | { success: false; error: string }> {
   const supabase = await createServerSupabaseUserClient();
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: true as const, count: 0 };
+  const khoaScoped = restriction.kind === "khoa" ? restriction.khoaId : filters.khoa_ghi_nhan_id?.trim();
 
   const denStr = filters.den_ngay.trim();
   let tuStr = filters.tu_ngay.trim();
@@ -163,9 +174,7 @@ export async function countGiamSatNkbvChoXn(filters: {
     .in("trang_thai_ma", [...NKBV_CHO_TAC_STATUS_MAS])
     .gte("ngay_phat_hien", tuStr)
     .lte("ngay_phat_hien", denStr);
-  if (filters.khoa_ghi_nhan_id?.trim()) {
-    q = q.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id.trim());
-  }
+  if (khoaScoped) q = q.eq("khoa_ghi_nhan_id", khoaScoped);
 
   const { count, error } = await q;
   if (error) return { success: false as const, error: error.message };
