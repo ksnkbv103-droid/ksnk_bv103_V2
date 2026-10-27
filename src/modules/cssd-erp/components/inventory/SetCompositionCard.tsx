@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import SetCompositionPrint from "./SetCompositionPrint";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import {
@@ -71,6 +72,16 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
               ) : null}
             </p>
             {loading ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-slate-400" /> : null}
+            {data?.maBo ? (
+              <button
+                type="button"
+                className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-slate-700 hover:underline"
+                onClick={() => window.print()}
+              >
+                <Printer className="h-3.5 w-3.5" />
+                In danh mục bộ
+              </button>
+            ) : null}
             {data?.maBo && onTransfer ? (
               <button
                 type="button"
@@ -113,6 +124,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
           </tbody>
         </table>
       </ResponsiveTableShell>
+      {data ? <SetCompositionPrint data={data} /> : null}
     </>
   );
 }
