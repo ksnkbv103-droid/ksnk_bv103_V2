@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isDefaultVisibleHubRow, visibleHubRows, QUAN_TRI_HUB_JOBS } from "./quan-tri-hub-jobs";
 import type { DanhMucHubRow } from "./danh-muc-hub-catalog";
-import { quanTriDungCuHref } from "./quan-tri-paths";
 
 function row(partial: Partial<DanhMucHubRow> & Pick<DanhMucHubRow, "id" | "name" | "path">): DanhMucHubRow {
   return {
@@ -40,9 +39,9 @@ describe("visibleHubRows", () => {
 });
 
 describe("QUAN_TRI_HUB_JOBS CSSD", () => {
-  it("Sửa danh mục CSSD mặc định vào tab Loại", () => {
+  it("Sửa danh mục CSSD vào Thiết bị (bộ/loại đã chuyển sang màn CSSD)", () => {
     const cssd = QUAN_TRI_HUB_JOBS.find((j) => j.id === "cssd");
     expect(cssd?.title).toContain("Sửa danh mục");
-    expect(cssd?.href).toBe(quanTriDungCuHref("loai"));
+    expect(cssd?.href).toBe("/quan-tri-he-thong/danh-muc/thiet-bi");
   });
 });
