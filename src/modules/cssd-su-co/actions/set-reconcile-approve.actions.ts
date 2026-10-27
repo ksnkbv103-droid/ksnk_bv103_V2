@@ -2,7 +2,7 @@
 
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { getActorRoleNames, verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
@@ -25,12 +25,10 @@ async function requireCatalogRead() {
   }
 }
 
+/** PO 2026-10-27: chỉ chủ nhiệm khoa (ADMIN) duyệt phiếu rà soát bộ — kiểm ở server, không chỉ ẩn UI. */
 async function requireCatalogApprove() {
-  try {
-    await verifyPermission("DC_LE", "edit");
-  } catch {
-    await verifyPermission("BO_DC", "edit");
-  }
+  const roles = await getActorRoleNames();
+  if (!roles.includes("ADMIN")) throw new Error("Chỉ chủ nhiệm khoa (ADMIN) được duyệt phiếu rà soát bộ.");
 }
 
 const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";
