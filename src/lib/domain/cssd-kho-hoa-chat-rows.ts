@@ -13,13 +13,16 @@ export function countCanChuY(rows: DmStockSummary[]): number {
   return rows.filter(isCanChuY).length;
 }
 
+const foldVi = (v: string) =>
+  v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").toLowerCase();
+
 export function filterKhoRows(
   rows: DmStockSummary[],
   chip: KhoChip,
   search: string,
   choDuyetByDm: ReadonlyMap<string, number>,
 ): DmStockSummary[] {
-  const q = search.trim().toLowerCase();
+  const q = foldVi(search.trim());
   return rows.filter((r) => {
     if (chip === "HOA_CHAT" || chip === "VAT_TU") {
       if (!matchesLoaiFilter(r.loai_hoa_chat, chip)) return false;
@@ -29,6 +32,6 @@ export function filterKhoRows(
       if (!(choDuyetByDm.get(r.id) ?? 0)) return false;
     }
     if (!q) return true;
-    return `${r.ma_hoa_chat} ${r.ten_hoa_chat}`.toLowerCase().includes(q);
+    return foldVi(`${r.ma_hoa_chat} ${r.ten_hoa_chat}`).includes(q);
   });
 }

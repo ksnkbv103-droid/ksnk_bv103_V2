@@ -23,4 +23,7 @@ describe("filterKhoRows", () => {
   it("tìm theo mã hoặc tên", () => {
     expect(filterKhoRows(rows, "ALL", " găng ", cd).map((r) => r.id)).toEqual(["b"]);
   });
+  it("tìm không dấu", () => {
+    expect(filterKhoRows(rows, "ALL", "gang tay", cd).map((r) => r.id)).toEqual(["b"]);
+  });
 });
