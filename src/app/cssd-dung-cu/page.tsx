@@ -3,6 +3,7 @@
 /** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại và kho). Hỏng/Mất ở /cssd-su-co. */
 import { Suspense } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArrowLeftRight, ClipboardList, Layers, Tag } from "lucide-react";
 import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
@@ -18,7 +19,6 @@ import {
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/CssdQrLabelKindsNotice";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   CatalogDeNghiCartProvider,
   CatalogDeNghiCartBar,
@@ -79,6 +79,7 @@ const SetReconcileCampaignPanel = dynamic(
 
 function CssdDungCuPageInner() {
   const s = useCssdCatalogPage();
+  const router = useRouter();
   const isCatalogTab = s.tab === "BO" || s.tab === "LOAI";
 
   const catalogToolbar = (
@@ -184,19 +185,23 @@ function CssdDungCuPageInner() {
             {!s.selectedBoId ? (
               <p className="px-2.5 text-[11px] text-slate-500">Chọn một bộ để xem thành phần.</p>
             ) : null}
-            <Dialog
-              open={Boolean(s.selectedBoId)}
-              onOpenChange={(open) => {
-                if (!open) s.setSelectedBoId(null);
-              }}
-            >
-              <DialogContent className="max-w-3xl sm:max-w-4xl max-h-[min(90dvh,880px)] overflow-y-auto">
-                <DialogTitle className="sr-only">Thành phần bộ dụng cụ</DialogTitle>
-                {s.selectedBoId ? (
-                  <SetCompositionCard boDungCuId={s.selectedBoId} />
-                ) : null}
-              </DialogContent>
-            </Dialog>
+            {s.selectedBoId ? (
+              <div className="space-y-1">
+                <div className="flex justify-end px-1">
+                  <button
+                    type="button"
+                    className="text-[11px] font-semibold text-slate-500 hover:underline"
+                    onClick={() => s.setSelectedBoId(null)}
+                  >
+                    Đóng thành phần
+                  </button>
+                </div>
+                <SetCompositionCard
+                  boDungCuId={s.selectedBoId}
+                  onTransfer={(ma) => router.push(`/cssd-dung-cu?tab=LUAN_CHUYEN&ma=${encodeURIComponent(ma)}`)}
+                />
+              </div>
+            ) : null}
           </div>
         ) : s.tab === "LOAI" ? (
           <div className="space-y-2">

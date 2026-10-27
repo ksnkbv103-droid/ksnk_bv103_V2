@@ -3,11 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  CatalogDeNghiDialog,
-  type CatalogDeNghiDialogTarget,
-} from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
-import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import {
@@ -20,14 +15,14 @@ type Props = {
   boDungCuId: string | null | undefined;
   enabled?: boolean;
   compact?: boolean;
+  /** Mở luân chuyển với bộ này làm nguồn/đích — bổ sung/sửa thành phần đi qua luân chuyển. */
+  onTransfer?: (maBo: string) => void;
 };
 
 /** Thành phần bộ: mã loại / tên loại / số — rà soát trên thanh bảng khi lệch. */
-export default function SetCompositionCard({ boDungCuId, enabled = true, compact }: Props) {
+export default function SetCompositionCard({ boDungCuId, enabled = true, compact, onTransfer }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
-  const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     const id = String(boDungCuId || "").trim();
@@ -76,38 +71,13 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
               ) : null}
             </p>
             {loading ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-slate-400" /> : null}
-            {data?.maBo ? (
+            {data?.maBo && onTransfer ? (
               <button
                 type="button"
                 className="shrink-0 text-[11px] font-semibold text-[var(--primary)] hover:underline"
-                onClick={() =>
-                  setDeNghi({
-                    kind: "BOM",
-                    targetId: data.boDungCuId,
-                    targetMa: data.maBo,
-                    targetTen: data.tenBo,
-                    ma: data.maBo,
-                    ten: data.tenBo,
-                    bomLines: (data.items || []).map((row) => ({
-                      chiTietId: row.chiTietId,
-                      loaiDungCuId: row.loaiDungCuId,
-                      maLoai: row.maLoai,
-                      tenDungCuLe: row.tenDungCuLe,
-                      soLuong: row.soLuongKeHoach,
-                    })),
-                  })
-                }
+                onClick={() => onTransfer(data.maBo)}
               >
-                Đề nghị sửa thành phần
-              </button>
-            ) : null}
-            {data?.maBo ? (
-              <button
-                type="button"
-                className="shrink-0 text-[11px] font-semibold text-emerald-800 hover:underline"
-                onClick={() => setCreateOpen(true)}
-              >
-                + Đề nghị bổ sung thành phần
+                Luân chuyển / bổ sung thành phần
               </button>
             ) : null}
           </div>
@@ -143,21 +113,6 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
           </tbody>
         </table>
       </ResponsiveTableShell>
-      <CatalogDeNghiDialog
-        open={Boolean(deNghi)}
-        onOpenChange={(open) => {
-          if (!open) setDeNghi(null);
-        }}
-        target={deNghi}
-      />
-      <CatalogDeNghiCreateDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        kind="BOM"
-        boDungCuId={data?.boDungCuId || boDungCuId}
-        boMa={data?.maBo}
-        boTen={data?.tenBo}
-      />
     </>
   );
 }
