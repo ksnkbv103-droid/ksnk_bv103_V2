@@ -89,7 +89,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "HOA_CHAT",
-    displayName: "Danh mục Hóa chất",
+    displayName: "Danh mục Hóa chất và vật tư",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
   {
@@ -124,7 +124,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "KSNK_KHO_HOACHAT",
-    displayName: "KSNK - Kho hóa chất / vật tư",
+    displayName: "CSSD - Kho hóa chất và vật tư",
     actions: ["VIEW", "CREATE", "EDIT", "EXPORT"]
   },
   {

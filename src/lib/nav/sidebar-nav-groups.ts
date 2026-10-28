@@ -85,7 +85,7 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     items: [
       { name: "Dụng cụ", href: "/cssd-dung-cu", icon: Box, gate: NAV_GATE_CSSD_DUNG_CU },
       { name: "Thiết bị", href: "/cssd-thiet-bi", icon: Wrench, gate: NAV_GATE_CSSD_THIET_BI },
-      { name: "Hóa chất", href: "/cssd-hoa-chat", icon: Droplets, gate: NAV_GATE_CSSD_HOA_CHAT },
+      { name: "Kho hóa chất và vật tư", href: "/cssd-hoa-chat", icon: Droplets, gate: NAV_GATE_CSSD_HOA_CHAT },
     ],
   },
 ];

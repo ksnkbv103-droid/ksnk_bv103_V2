@@ -177,6 +177,8 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
       don_vi_tinh: string | null;
       nguong_ton_toi_thieu: number | null;
       loai_hoa_chat: string | null;
+      nhom_id: string | null;
+      nhom_ten: string | null;
     }[];
   } | {
     success: false;
@@ -187,8 +189,8 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
     const supabase = createAdminSupabaseClient();
     let q = supabase
-      .from("cssd_dm_hoa_chat")
-      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat")
+      .from("v_cssd_hoa_chat_full")
+      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat, nhom_id, nhom_ten")
       .eq("is_active", true)
       .order("ma_hoa_chat", { ascending: true });
 
@@ -206,6 +208,8 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
         don_vi_tinh: x.don_vi_tinh != null ? String(x.don_vi_tinh) : null,
         nguong_ton_toi_thieu: x.nguong_ton_toi_thieu != null && x.nguong_ton_toi_thieu !== "" ? Number(x.nguong_ton_toi_thieu) : null,
         loai_hoa_chat: x.loai_hoa_chat != null ? String(x.loai_hoa_chat) : "HOA_CHAT",
+        nhom_id: x.nhom_id != null ? String(x.nhom_id) : null,
+        nhom_ten: x.nhom_ten != null ? String(x.nhom_ten) : null,
       })),
     };
   } catch (e: unknown) {

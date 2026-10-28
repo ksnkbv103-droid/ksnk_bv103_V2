@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { isHoaChatLoai } from "@/lib/domain/cssd-hoa-chat-loai";
+import { groupKhoRows } from "@/lib/domain/cssd-kho-hoa-chat-rows";
 import type { DmStockSummary } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 import type { MoveMode } from "./kho-hoa-chat-move-sheet";
@@ -21,13 +21,13 @@ type Props = {
 export default function KhoHoaChatItemTable({ rows, loading, canEdit, choDuyetByDm, onOpen, onMove }: Props) {
   if (loading) return <p className="bv103-type-label py-6 text-center text-slate-500">Đang tải...</p>;
   if (!rows.length) return <p className="bv103-type-label py-6 text-center text-slate-500">Không có mặt hàng phù hợp.</p>;
+  const groups = groupKhoRows(rows);
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full text-left">
         <thead className="bv103-type-label bg-slate-50 text-slate-500">
           <tr>
             <th className="px-3 py-2">Mặt hàng</th>
-            <th className="px-3 py-2">Nhóm</th>
             <th className="px-3 py-2">Tồn</th>
             <th className="px-3 py-2">Định mức</th>
             <th className="px-3 py-2">Hạn gần nhất</th>
@@ -36,14 +36,20 @@ export default function KhoHoaChatItemTable({ rows, loading, canEdit, choDuyetBy
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => {
+          {groups.map((g) => (
+            <React.Fragment key={g.key}>
+              <tr className="bg-slate-100">
+                <td colSpan={canEdit ? 6 : 5} className="bv103-type-label px-3 py-1.5 font-semibold text-slate-700">
+                  {g.loaiLabel} › {g.nhomTen} ({g.rows.length})
+                </td>
+              </tr>
+              {g.rows.map((r) => {
             const cd = choDuyetByDm.get(r.id) ?? 0;
             return (
               <tr key={r.id} className="cursor-pointer border-t border-slate-100 hover:bg-slate-50" onClick={() => onOpen(r.id)}>
                 <td className="bv103-type-label px-3 py-2 font-semibold text-slate-800">
                   <span className="font-mono text-[var(--primary)]">{r.ma_hoa_chat}</span> {r.ten_hoa_chat}
                 </td>
-                <td className="bv103-type-label px-3 py-2 text-slate-600">{isHoaChatLoai(r.loai_hoa_chat) ? "Hóa chất" : "Vật tư"}</td>
                 <td className="bv103-type-label px-3 py-2 font-semibold tabular-nums">{r.tong_ton} {r.don_vi_tinh || ""}</td>
                 <td className="bv103-type-label px-3 py-2 tabular-nums text-slate-600">{r.nguong_ton_toi_thieu ?? "—"}</td>
                 <td className="bv103-type-label px-3 py-2 text-slate-600">{r.han_gan_nhat ? formatDateVi(r.han_gan_nhat) : "—"}</td>
@@ -66,7 +72,9 @@ export default function KhoHoaChatItemTable({ rows, loading, canEdit, choDuyetBy
                 ) : null}
               </tr>
             );
-          })}
+              })}
+            </React.Fragment>
+          ))}
         </tbody>
       </table>
     </div>

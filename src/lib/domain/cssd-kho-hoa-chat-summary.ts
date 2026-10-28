@@ -8,6 +8,8 @@ export type DmLite = {
   don_vi_tinh: string | null;
   nguong_ton_toi_thieu: number | null;
   loai_hoa_chat: string | null;
+  nhom_id?: string | null;
+  nhom_ten?: string | null;
 };
 
 export type LotLite = { dm_hoa_chat_id: string; han_su_dung: string | null; ton_so_luong: number };

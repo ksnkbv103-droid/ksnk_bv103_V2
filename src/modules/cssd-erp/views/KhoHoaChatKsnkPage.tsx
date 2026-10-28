@@ -15,7 +15,7 @@ import KhoHoaChatDrawer from "../components/kho-hoa-chat/kho-hoa-chat-drawer";
 import { useKhoHoaChatPage } from "../hooks/use-kho-hoa-chat-page";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
-import { countCanChuY, filterKhoRows, type KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
+import { countCanChuY, filterKhoRows, nhomOptionsForChip, NHOM_ALL, type KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
 
 type KhoTab = "KHO" | "DANH_MUC";
 const TABS: ReadonlyArray<readonly [KhoTab, string]> = [
@@ -28,9 +28,15 @@ export default function KhoHoaChatKsnkPage() {
   const [tab, setTab] = useState<KhoTab>(useSearchParams().get("tab") === "danh-muc" ? "DANH_MUC" : "KHO");
   const [chip, setChip] = useState<KhoChip>("ALL");
   const [search, setSearch] = useState("");
+  const [nhom, setNhom] = useState(NHOM_ALL);
   const [openId, setOpenId] = useState<string | null>(null);
   const { canEdit, sheet } = h;
-  const rows = useMemo(() => filterKhoRows(h.dmSummary, chip, search, h.choDuyetByDm), [h.dmSummary, chip, search, h.choDuyetByDm]);
+  const nhomOptions = useMemo(() => nhomOptionsForChip(h.dmSummary, chip), [h.dmSummary, chip]);
+  const nhomEff = nhomOptions.some((o) => o.id === nhom) ? nhom : NHOM_ALL;
+  const rows = useMemo(
+    () => filterKhoRows(h.dmSummary, chip, search, h.choDuyetByDm, nhomEff),
+    [h.dmSummary, chip, search, h.choDuyetByDm, nhomEff],
+  );
   const openDm = openId ? h.dmSummary.find((d) => d.id === openId) : undefined;
 
   if (h.permLoading) {
@@ -55,7 +61,7 @@ export default function KhoHoaChatKsnkPage() {
 
   return (
     <CSSDPageShell
-      title={<span className="text-[var(--primary)]">Kho hóa chất và vật tư KSNK</span>}
+      title={<span className="text-[var(--primary)]">Kho hóa chất và vật tư</span>}
       actions={
         <div className="flex flex-wrap items-center gap-3">
           {canEdit ? (
@@ -98,6 +104,9 @@ export default function KhoHoaChatKsnkPage() {
               onSearch={setSearch}
               canChuY={countCanChuY(h.dmSummary)}
               choDuyet={h.choDuyetByDm.size}
+              nhomOptions={nhomOptions}
+              nhom={nhomEff}
+              onNhom={setNhom}
             />
             <KhoHoaChatItemTable
               rows={rows}

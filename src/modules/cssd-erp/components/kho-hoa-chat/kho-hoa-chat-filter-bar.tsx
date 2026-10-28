@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
+import type { KhoChip, NhomOption } from "@/lib/domain/cssd-kho-hoa-chat-rows";
 import { CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../../shared/ui/cssd-ui-chrome";
 
 type Props = {
@@ -11,9 +11,12 @@ type Props = {
   onSearch: (v: string) => void;
   canChuY: number;
   choDuyet: number;
+  nhomOptions: NhomOption[];
+  nhom: string;
+  onNhom: (v: string) => void;
 };
 
-export default function KhoHoaChatFilterBar({ chip, onChip, search, onSearch, canChuY, choDuyet }: Props) {
+export default function KhoHoaChatFilterBar({ chip, onChip, search, onSearch, canChuY, choDuyet, nhomOptions, nhom, onNhom }: Props) {
   const chips: ReadonlyArray<readonly [KhoChip, string]> = [
     ["ALL", "Tất cả"],
     ["HOA_CHAT", "Hóa chất"],
@@ -30,6 +33,17 @@ export default function KhoHoaChatFilterBar({ chip, onChip, search, onSearch, ca
         placeholder="Tìm mặt hàng..."
         className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm sm:w-64"
       />
+      <select
+        aria-label="Lọc theo nhóm"
+        value={nhom}
+        onChange={(e) => onNhom(e.target.value)}
+        className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
+      >
+        <option value="">Tất cả nhóm</option>
+        {nhomOptions.map((o) => (
+          <option key={o.id} value={o.id}>{o.ten}</option>
+        ))}
+      </select>
       {chips.map(([key, label]) => (
         <button
           key={key}

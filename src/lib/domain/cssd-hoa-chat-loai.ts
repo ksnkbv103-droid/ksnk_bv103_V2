@@ -1,4 +1,4 @@
-/** Phân loại danh mục — hóa chất tiệt trùng vs vật tư tiêu hao. */
+/** Phân loại danh mục — hóa chất vs vật tư tiêu hao. */
 
 export type HoaChatLoaiMa = "HOA_CHAT" | "VAT_TU" | "TEST";
 
@@ -14,7 +14,7 @@ export function loaiHoaChatLabel(raw: string | null | undefined): string {
   const v = normalizeLoaiHoaChat(raw);
   if (v === "VAT_TU") return "Vật tư tiêu hao";
   if (v === "TEST") return "Chỉ thị / test";
-  return "Hóa chất tiệt trùng";
+  return "Hóa chất";
 }
 
 export function isHoaChatLoai(raw: string | null | undefined): boolean {
