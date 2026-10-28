@@ -27,6 +27,8 @@ import {
 } from "../actions/cong-viec.actions";
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import { huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
+import { reportQlcvManualProgress } from "../actions/cong-viec-checklist.actions";
+import { getQlcvBaoHoanThanhMode } from "../lib/qlcv-detail-actions";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import {
   canShowDeleteTask,
@@ -117,6 +119,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [reasonHuyOpen, setReasonHuyOpen] = useState(false);
   const [reasonTuChoiOpen, setReasonTuChoiOpen] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const [baoHoanThanhBusy, setBaoHoanThanhBusy] = useState(false);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
 
   const fetchDetail = async () => {
@@ -206,6 +209,34 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     st !== "HOAN_THANH" &&
     st !== "DA_HUY" &&
     !atNghiemThuGate;
+
+  const baoHoanThanhMode = getQlcvBaoHoanThanhMode({
+    trangThai: st,
+    isAssignee:
+      Boolean(accessFlags.actorStaffId) &&
+      String(accessFlags.actorStaffId) === String(data.nguoi_phu_trach_id ?? ""),
+    usesChecklist,
+    requireKetQuaAt100: data.loai_cong_viec === "DINH_KY",
+    blocked: atNghiemThuGate || showNghiemThuToolbar || showApproveDeXuat || isDeXuatChoDuyet(data),
+  });
+
+  const runBaoHoanThanh = async () => {
+    if (baoHoanThanhMode === "scroll") {
+      document.getElementById("qlcv-progress-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setBaoHoanThanhBusy(true);
+    try {
+      await reportQlcvManualProgress(data.id, 100, null);
+      toast.success("Đã báo hoàn thành.");
+      fetchDetail();
+      onRefreshList?.();
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setBaoHoanThanhBusy(false);
+    }
+  };
 
   const runHuyKhongDat = async (lyDo: string) => {
     try {
@@ -335,22 +366,14 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         </div>
 
         <div className={`flex shrink-0 flex-wrap gap-2 ${qlcvDetailChrome.panelToolbar}`}>
-          <button
-            type="button"
-            className={`${qlcvDetailChrome.btnOutline} inline-flex items-center`}
-            onClick={() => setPrinting(true)}
-          >
-            <Printer className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
-            In phiếu
-          </button>
-          {showHuyButton && (
+          {baoHoanThanhMode !== "none" && (
             <button
               type="button"
-              className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
-              onClick={() => setReasonHuyOpen(true)}
+              className={qlcvDetailChrome.btnPrimary}
+              disabled={baoHoanThanhBusy}
+              onClick={() => void runBaoHoanThanh()}
             >
-              <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
-              Hủy công việc
+              {baoHoanThanhBusy ? "Đang gửi…" : "Báo hoàn thành"}
             </button>
           )}
 
@@ -401,18 +424,48 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             </button>
           )}
 
-          {showDelete && (
-            <button type="button" className={qlcvDetailChrome.btnGhost} onClick={() => setConfirmDeleteOpen(true)}>
-              Xóa
-            </button>
-          )}
+          <details className="relative">
+            <summary
+              className={`${qlcvDetailChrome.btnOutline} inline-flex cursor-pointer list-none items-center`}
+            >
+              Khác
+            </summary>
+            <div
+              className={`absolute right-0 z-20 mt-1 flex min-w-[11rem] flex-col gap-1 ${qlcvDetailChrome.panelToolbar}`}
+              onClick={(e) => (e.currentTarget.parentElement as HTMLDetailsElement).removeAttribute("open")}
+            >
+              <button
+                type="button"
+                className={`${qlcvDetailChrome.btnOutline} inline-flex items-center`}
+                onClick={() => setPrinting(true)}
+              >
+                <Printer className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+                In phiếu
+              </button>
+              {showHuyButton && (
+                <button
+                  type="button"
+                  className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
+                  onClick={() => setReasonHuyOpen(true)}
+                >
+                  <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+                  Hủy công việc
+                </button>
+              )}
+              {showDelete && (
+                <button type="button" className={qlcvDetailChrome.btnGhost} onClick={() => setConfirmDeleteOpen(true)}>
+                  Xóa
+                </button>
+              )}
+            </div>
+          </details>
         </div>
       </div>
 
       <div className={`divide-y divide-slate-100 overflow-hidden ${qlcvDetailChrome.panel}`}>
         <div className="p-4 sm:p-5">
           {usesChecklist ? (
-            <div className="space-y-3">
+            <div id="qlcv-progress-panel" className="space-y-3">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <span className={qlcvDetailChrome.sectionLabel}>Tiến độ thực hiện</span>
                 <span className="text-sm font-semibold text-[var(--primary)]">
@@ -427,6 +480,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               </div>
             </div>
           ) : (
+            <div id="qlcv-progress-panel">
             <QlcvManualProgressPanel
               congViecId={data.id}
               initialPercent={Number(data.phan_tram_hoan_thanh ?? 0)}
@@ -438,6 +492,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 onRefreshList?.();
               }}
             />
+            </div>
           )}
         </div>
 
