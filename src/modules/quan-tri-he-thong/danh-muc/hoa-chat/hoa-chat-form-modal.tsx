@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
-import type { HoaChatRow } from "../actions/hoa-chat.types";
+import type { HoaChatNhomRow, HoaChatRow } from "../actions/hoa-chat.types";
 import { saveHoaChatAction } from "../actions/hoa-chat.actions";
+import { listHoaChatNhomAction } from "../actions/hoa-chat-nhom.actions";
+import { locNhomTheoLoai } from "@/lib/domain/cssd-hoa-chat-nhom";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
@@ -17,6 +19,7 @@ function mapForm(row: HoaChatRow | null) {
     ma_hoa_chat: String(row?.ma_hoa_chat || ""),
     ten_hoa_chat: String(row?.ten_hoa_chat || ""),
     loai_hoa_chat: String(row?.loai_hoa_chat || "HOA_CHAT"),
+    nhom_id: String(row?.nhom_id || ""),
     don_vi_tinh: String(row?.don_vi_tinh || ""),
     quy_cach: String(row?.quy_cach || ""),
     nong_do: String(row?.nong_do || ""),
@@ -41,6 +44,27 @@ export default function HoaChatFormModal({
   const [form, setForm] = useState(seed);
   const [loading, setLoading] = useState(false);
   const isEdit = Boolean(initialRow?.id);
+  const [nhoms, setNhoms] = useState<HoaChatNhomRow[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    void listHoaChatNhomAction().then((r) => {
+      if (!active) return;
+      if (r.success) setNhoms(r.data);
+      else toast.error(r.error || "Không tải được danh sách nhóm.");
+    });
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
+  // Nhóm đang dùng cùng loại; giữ nhóm cũ của dòng (dù đã ngừng) để không mất giá trị khi sửa.
+  const nhomOptions = locNhomTheoLoai(nhoms, form.loai_hoa_chat).concat(
+    nhoms.filter(
+      (n) => n.id === initialRow?.nhom_id && !n.is_active && n.loai_hoa_chat === form.loai_hoa_chat,
+    ),
+  );
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,11 +115,27 @@ export default function HoaChatFormModal({
           <label className="ml-1 text-[11px] font-medium text-slate-400">Phân loại kho</label>
           <select
             value={form.loai_hoa_chat}
-            onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value })}
+            onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value, nhom_id: "" })}
             className={C.controlInput}
           >
             <option value="HOA_CHAT">{loaiHoaChatLabel("HOA_CHAT")}</option>
             <option value="VAT_TU">{loaiHoaChatLabel("VAT_TU")}</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="ml-1 text-[11px] font-medium text-slate-400">Nhóm</label>
+          <select
+            value={form.nhom_id}
+            onChange={(e) => setForm({ ...form, nhom_id: e.target.value })}
+            className={C.controlInput}
+          >
+            <option value="">— Chưa chọn nhóm —</option>
+            {nhomOptions.map((n) => (
+              <option key={n.id} value={n.id}>
+                {n.ten}
+                {n.is_active ? "" : " (Ngừng sử dụng)"}
+              </option>
+            ))}
           </select>
         </div>
         <BoDungCuTextField label="Đơn vị tính" value={form.don_vi_tinh} onChange={(v) => setForm({ ...form, don_vi_tinh: v })} />

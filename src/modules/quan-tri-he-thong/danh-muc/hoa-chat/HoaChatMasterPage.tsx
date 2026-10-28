@@ -1,6 +1,6 @@
 // src/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Beaker, BarChart2, ChevronDown, ChevronUp } from "lucide-react";
 import HoaChatStatsPanel from "./HoaChatStatsPanel";
 import { useImportExport } from "@/hooks/useImportExport";
@@ -9,6 +9,8 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { toast } from "sonner";
 import HoaChatFormModal from "./hoa-chat-form-modal";
+import HoaChatNhomManager from "./HoaChatNhomManager";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -32,6 +34,15 @@ function HoaChatMasterPageContent() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<HoaChatRow | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [nhomOpen, setNhomOpen] = useState(false);
+  const [nhomFilter, setNhomFilter] = useState("");
+  const { isAdmin } = useModulePermission("HOA_CHAT");
+
+  const nhomTenList = useMemo(
+    () => Array.from(new Set(data.map((r) => r.nhom_ten).filter((t): t is string => Boolean(t)))).sort((a, b) => a.localeCompare(b, "vi")),
+    [data],
+  );
+  const shown = useMemo(() => (nhomFilter ? data.filter((r) => r.nhom_ten === nhomFilter) : data), [data, nhomFilter]);
 
   useEffect(() => {
     let active = true;
@@ -103,7 +114,7 @@ function HoaChatMasterPageContent() {
     <div className="space-y-3 animate-in fade-in duration-700">
       <KsnkListPageHeader
         icon={Beaker}
-        title="Hóa chất và vật tư"
+        title="Danh mục hóa chất và vật tư"
         eyebrow="Danh mục hóa chất, vật tư và test kit khoa KSNK"
         actions={
           <>
@@ -126,6 +137,11 @@ function HoaChatMasterPageContent() {
                 />
               </div>
             </details>
+            {isAdmin ? (
+              <button type="button" onClick={() => setNhomOpen(true)} className={T.btnSecondary}>
+                Quản lý nhóm
+              </button>
+            ) : null}
             <button type="button" onClick={() => { setEditing(null); setFormOpen(true); }} className={C.ctaPrimary}>
               <Plus size={16} /> Thêm mới
             </button>
@@ -136,10 +152,20 @@ function HoaChatMasterPageContent() {
       {/* Thống kê tóm tắt */}
       {showStats && !loading && <HoaChatStatsPanel data={data} />}
 
+      <div className="flex items-center gap-2">
+        <label className="text-[11px] font-medium text-slate-500" htmlFor="hc-nhom-filter">Nhóm</label>
+        <select id="hc-nhom-filter" value={nhomFilter} onChange={(e) => setNhomFilter(e.target.value)} className={`${C.controlInput} max-w-xs`}>
+          <option value="">Tất cả nhóm</option>
+          {nhomTenList.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
-          data={data}
+          data={shown}
           loading={loading}
           enableMultiSelect={true}
           bodyMaxHeight="max-h-[min(58dvh,560px)]"
@@ -156,6 +182,9 @@ function HoaChatMasterPageContent() {
           }}
         />
       </div>
+      {isAdmin ? (
+        <HoaChatNhomManager open={nhomOpen} onClose={() => setNhomOpen(false)} onChanged={() => setRefreshKey((k) => k + 1)} />
+      ) : null}
       <HoaChatFormModal
         key={modalKey}
         open={formOpen}
