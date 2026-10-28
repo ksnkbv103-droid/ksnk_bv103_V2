@@ -55,7 +55,21 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const [theoDoiIds, setTheoDoiIds] = useState<string[]>(() =>
     normalizeQlcvStaffIdList(initialData?.nguoi_theo_doi_ids),
   );
-  const [showDetails, setShowDetails] = useState(false);
+  /** Mở sẵn «Thêm chi tiết» khi sửa hoặc khi đã có giá trị ở các trường phụ. */
+  const [showDetails, setShowDetails] = useState(
+    () =>
+      Boolean(initialData?.id)
+      || Boolean(
+        initialData?.mo_ta
+        || initialData?.nhiem_vu_id
+        || initialData?.dia_diem_khoa_id
+        || initialData?.vi_tri_thuc_hien
+        || initialData?.to_cong_tac_id
+        || (initialData?.muc_do_uu_tien && initialData.muc_do_uu_tien !== "TRUNG_BINH")
+        || normalizeQlcvStaffIdList(initialData?.nguoi_phoi_hop_ids).length > 0
+        || normalizeQlcvStaffIdList(initialData?.nguoi_theo_doi_ids).length > 0,
+      ),
+  );
 
   useEffect(() => {
     setSelectedNhanSu(String(initialData?.nguoi_phu_trach_id || ""));
@@ -199,21 +213,14 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
 
           <div>
-            <label className={labelStyles}>Mức độ ưu tiên</label>
-            <select
-              name="muc_do_uu_tien"
-              defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
-              className={inputStyles}
-            >
-              <option value="CAO">Cao</option>
-              <option value="TRUNG_BINH">Trung bình</option>
-              <option value="THAP">Thấp</option>
-            </select>
-          </div>
-
-          <div>
             <label className={labelStyles}>Hạn hoàn thành *</label>
-            <input type="date" name="han_hoan_thanh" className={inputStyles} defaultValue={defaultHanHoanThanh} />
+            <input
+              type="date"
+              name="han_hoan_thanh"
+              required={!initialData?.id && resolvedLoai !== "DINH_KY"}
+              className={inputStyles}
+              defaultValue={defaultHanHoanThanh}
+            />
           </div>
           {/* loai_cong_viec ẩn: cách sinh — không chọn Đột xuất/Khẩn trên form */}
           <input type="hidden" name="loai_cong_viec" value={resolvedLoai} />
@@ -235,27 +242,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               </p>
             ) : null}
           </div>
-          <div>
-            <SearchableMultiSelect
-              label="Phối hợp (tuỳ chọn)"
-              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              selected={phoiHopIds}
-              onChange={setPhoiHopIds}
-              disabled={optionsLoading}
-              minWidthClassName="w-full"
-            />
-          </div>
-          <div>
-            <label className={labelStyles}>Gắn Nhiệm vụ/Kế hoạch (tuỳ chọn)</label>
-            <SearchableSelect
-              options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              placeholder={optionsLoading ? "Đang tải..." : "— Không gắn —"}
-              value={selectedNhiemVu}
-              onChange={setSelectedNhiemVu}
-              disabled={optionsLoading}
-              searchPlaceholder="Tìm nhiệm vụ/kế hoạch…"
-            />
-          </div>
         </div>
       </div>
 
@@ -269,9 +255,21 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         </button>
       </div>
 
-      {showDetails ? (
-      <div className={`grid grid-cols-1 gap-[var(--bv103-space-3)] bv103-pad-panel lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
+      <div hidden={!showDetails} className={`grid grid-cols-1 gap-[var(--bv103-space-3)] bv103-pad-panel lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
         <div className="space-y-[var(--bv103-space-3)] lg:pr-6">
+          <div>
+            <label className={labelStyles}>Mức độ ưu tiên</label>
+            <select
+              name="muc_do_uu_tien"
+              defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
+              className={inputStyles}
+            >
+              <option value="CAO">Cao</option>
+              <option value="TRUNG_BINH">Trung bình</option>
+              <option value="THAP">Thấp</option>
+            </select>
+          </div>
+
           <div>
             <label className={labelStyles}>Mô tả chi tiết</label>
             <textarea
@@ -305,6 +303,17 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         </div>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
+            <label className={labelStyles}>Gắn Nhiệm vụ/Kế hoạch (tuỳ chọn)</label>
+            <SearchableSelect
+              options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              placeholder={optionsLoading ? "Đang tải..." : "— Không gắn —"}
+              value={selectedNhiemVu}
+              onChange={setSelectedNhiemVu}
+              disabled={optionsLoading}
+              searchPlaceholder="Tìm nhiệm vụ/kế hoạch…"
+            />
+          </div>
+          <div>
             <label className={labelStyles}>Tổ công tác chuyên trách</label>
             <SearchableSelect
               options={toCongTacOptions}
@@ -313,6 +322,17 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               onChange={setSelectedTo}
               disabled={optionsLoading}
               searchPlaceholder="Tìm tổ theo tên hoặc mã..."
+            />
+          </div>
+
+          <div>
+            <SearchableMultiSelect
+              label="Phối hợp (tuỳ chọn)"
+              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={phoiHopIds}
+              onChange={setPhoiHopIds}
+              disabled={optionsLoading}
+              minWidthClassName="w-full"
             />
           </div>
 
@@ -328,9 +348,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
         </div>
       </div>
-      ) : (
-        <input type="hidden" name="mo_ta" defaultValue={initialData?.mo_ta || ""} />
-      )}
 
       <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:flex-wrap sm:items-center">
         <button
