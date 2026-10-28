@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, Clock, UserRound, Inbox } from "lucide-react";
+import { AlertTriangle, CalendarDays, ListChecks, Clock, UserRound, Inbox } from "lucide-react";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isMyQlcvTask, isQlcvChoToiDuyet, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import {
@@ -83,12 +83,13 @@ export function QlcvGateStats({
   const stats = rpcCounts ?? (list.length > 0 ? clientFallback : EMPTY);
 
   const pick = onFilterChange;
-  const isSel = (f: QlcvBoardFilter) => activeFilter === f;
+  const isSel = (f: QlcvBoardFilter) =>
+    f === "TOTAL" ? activeFilter == null || activeFilter === "TOTAL" : activeFilter === f;
 
   const chip = (
     f: QlcvBoardFilter,
     label: string,
-    value: number,
+    value: number | null,
     icon: React.ReactNode,
     className: string,
   ) => (
@@ -98,12 +99,14 @@ export function QlcvGateStats({
       disabled={!pick}
       onClick={() => pick?.(f)}
       className={`${chipBase} ${className} ${
-        isSel(f) ? "ring-2 ring-[var(--primary)]/40 ring-offset-1" : ""
-      } ${pick ? "hover:bg-white/80 active:scale-[0.99]" : "cursor-default opacity-95"}`}
+        isSel(f) ? "!border-slate-800 !bg-slate-800 !text-white shadow-sm" : ""
+      } ${pick ? (isSel(f) ? "active:scale-[0.99]" : "hover:bg-white/80 active:scale-[0.99]") : "cursor-default opacity-95"}`}
     >
       {icon}
-      <span className="whitespace-nowrap text-slate-600">{label}</span>
-      <span className="tabular-nums text-slate-900">{value}</span>
+      <span className={`whitespace-nowrap ${isSel(f) ? "text-white" : "text-slate-600"}`}>{label}</span>
+      {value == null ? null : (
+        <span className={`tabular-nums ${isSel(f) ? "text-white" : "text-slate-900"}`}>{value}</span>
+      )}
     </button>
   );
 
@@ -143,6 +146,9 @@ export function QlcvGateStats({
             "border-sky-200 bg-sky-50/80",
           )
         : null}
+      {actorStaffId
+        ? chip("HOM_NAY", "Hôm nay", null, <CalendarDays size={14} className="text-emerald-600" />, "border-emerald-200 bg-emerald-50/80")
+        : null}
       {chip("IN_PROGRESS", "Cần làm", stats.inProgress, <Clock size={14} className="text-blue-600" />, "border-slate-200 bg-white")}
       {chip(
         "OVERDUE",
@@ -153,11 +159,12 @@ export function QlcvGateStats({
       )}
       {chip(
         "GATE_CHO_TOI",
-        "Chờ tôi",
+        "Chờ tôi nghiệm thu",
         stats.choToi,
         <Inbox size={14} className="text-violet-600" />,
         "border-violet-200 bg-violet-50/80",
       )}
+      {chip("TOTAL", "Tất cả", null, <ListChecks size={14} className="text-slate-500" />, "border-slate-200 bg-white")}
     </div>
     </div>
   );

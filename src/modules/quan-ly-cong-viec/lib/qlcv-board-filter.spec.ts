@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isMyQlcvTask,
+  isQlcvHomNayCuaToi,
   isQlcvChoToiDuyet,
   matchesQlcvBoardFilter,
 } from "./qlcv-board-filter";
@@ -126,5 +127,28 @@ describe("isQlcvChoToiDuyet Domain 24=A actor lens", () => {
   it("không hiện open global không dính actor", () => {
     expect(isQlcvChoToiDuyet({ ...choNt }, "stranger")).toBe(false);
     expect(isQlcvChoToiDuyet({ ...dexuat }, "stranger")).toBe(false);
+  });
+});
+
+describe("HOM_NAY (lịch VN)", () => {
+  // 2026-10-28 00:30 VN = 2026-10-27T17:30Z
+  const now = new Date("2026-10-27T17:30:00Z");
+  const mine = { nguoi_phu_trach_id: "ns-01", trang_thai: "DANG_LAM" };
+
+  it("hạn 00:00 VN hôm nay (lưu 17:00Z hôm trước) → khớp", () => {
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-27T17:00:00Z" }, "ns-01", now)).toBe(true);
+  });
+
+  it("hạn ngày thuần hôm nay → khớp; hôm qua/mai → không", () => {
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-28" }, "ns-01", now)).toBe(true);
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-27" }, "ns-01", now)).toBe(false);
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-29" }, "ns-01", now)).toBe(false);
+  });
+
+  it("loại việc đã đóng, của người khác, không hạn", () => {
+    const han = "2026-10-28";
+    expect(isQlcvHomNayCuaToi({ ...mine, trang_thai: "HOAN_THANH", han_hoan_thanh: han }, "ns-01", now)).toBe(false);
+    expect(isQlcvHomNayCuaToi({ ...mine, nguoi_phu_trach_id: "ns-09", han_hoan_thanh: han }, "ns-01", now)).toBe(false);
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: null }, "ns-01", now)).toBe(false);
   });
 });

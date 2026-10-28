@@ -1,9 +1,10 @@
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "./qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan, type KanbanColumnId } from "./qlcv-board-lanes";
 import { normalizeQlcvStaffIdList } from "./qlcv-staff-ids";
 
-export type QlcvBoardFilter = "TOTAL" | "MY_TASKS" | "IN_PROGRESS" | "OVERDUE" | "GATE_CHO_TOI";
+export type QlcvBoardFilter = "TOTAL" | "MY_TASKS" | "IN_PROGRESS" | "OVERDUE" | "GATE_CHO_TOI" | "HOM_NAY";
 
 export type QlcvBoardFilterContext = {
   actorStaffId?: string | null;
@@ -64,6 +65,17 @@ export function isQlcvChoToiDuyet(
   return isQlcvChoToiActor(t, actorStaffId);
 }
 
+/** Việc còn mở của tôi có hạn hoàn thành = hôm nay (lịch Việt Nam). */
+export function isQlcvHomNayCuaToi(
+  t: Record<string, unknown>,
+  actorStaffId: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!isMyQlcvTask(t, actorStaffId)) return false;
+  const han = vnYmd(t.han_hoan_thanh);
+  return han !== "" && han === todayYmdInVn(now);
+}
+
 export function formatBoardFilterHint(f: QlcvBoardFilter): string {
   switch (f) {
     case "TOTAL":
@@ -75,7 +87,9 @@ export function formatBoardFilterHint(f: QlcvBoardFilter): string {
     case "OVERDUE":
       return "Quá hạn";
     case "GATE_CHO_TOI":
-      return "Chờ tôi";
+      return "Chờ tôi nghiệm thu";
+    case "HOM_NAY":
+      return "Hôm nay";
     default:
       return f;
   }
@@ -90,6 +104,7 @@ export function matchesQlcvBoardFilter(
   if (!filter || filter === "TOTAL") return true;
   if (filter === "MY_TASKS") return isMyQlcvTask(t, ctx?.actorStaffId);
   if (filter === "GATE_CHO_TOI") return isQlcvChoToiDuyet(t, ctx?.actorStaffId);
+  if (filter === "HOM_NAY") return isQlcvHomNayCuaToi(t, ctx?.actorStaffId);
   if (filter === "OVERDUE") return isBoardLaneQuaHan(t);
   if (filter === "IN_PROGRESS") return isBoardLaneDangLam(t);
   return true;
