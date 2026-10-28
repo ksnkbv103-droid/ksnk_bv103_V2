@@ -1,5 +1,6 @@
 "use client";
 
+import { matchesQlcvSearch } from "../lib/qlcv-search-fold";
 import React, { useMemo, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
@@ -148,13 +149,7 @@ export function QlcvOperationsPanel({
     const term = kanban.kanbanSearchDebounced;
     return scopedTasks.filter((t) => {
       if (!term) return true;
-      return (
-        t.tieu_de?.toLowerCase().includes(term) ||
-        t.nguoi_phu_trach_ten?.toLowerCase().includes(term) ||
-        String(t.nguoi_tao_ten || "")
-          .toLowerCase()
-          .includes(term)
-      );
+      return matchesQlcvSearch([t.tieu_de, t.nguoi_phu_trach_ten, t.nguoi_tao_ten], term);
     });
   }, [scopedTasks, kanban.kanbanSearchDebounced]);
 

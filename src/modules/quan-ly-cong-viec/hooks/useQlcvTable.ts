@@ -70,31 +70,19 @@ export function useQlcvTable({
   const [tableSortDir, setTableSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    const tid = setTimeout(() => setTableSearchDebounced(tableSearchInput.trim().toLowerCase()), 300);
+    const tid = setTimeout(() => setTableSearchDebounced(tableSearchInput.trim()), 300);
     return () => clearTimeout(tid);
   }, [tableSearchInput]);
 
-  const usingClientSlice = boardFilter != null && boardFilter !== "TOTAL";
+  // Có từ khóa: tìm trên toàn bệnh viện qua server, không bó trong lens (lens chỉ là danh sách đã tải).
+  const usingClientSlice = boardFilter != null && boardFilter !== "TOTAL" && tableSearchDebounced === "";
 
   const clientFiltered = useMemo(() => {
     if (!usingClientSlice) return [];
-    const term = tableSearchDebounced;
     return mergedTasks.filter((t) => {
-      if (!matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, boardFilter, { actorStaffId })) {
-        return false;
-      }
-      if (!term) return true;
-      return (
-        t.tieu_de?.toLowerCase().includes(term) ||
-        t.nguoi_phu_trach_ten?.toLowerCase().includes(term) ||
-        t.nguoi_giao_ten?.toLowerCase().includes(term) ||
-        t.nguoi_tao_ten?.toLowerCase().includes(term) ||
-        String(t.trang_thai || "")
-          .toLowerCase()
-          .includes(term)
-      );
+      return matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, boardFilter, { actorStaffId });
     });
-  }, [usingClientSlice, mergedTasks, boardFilter, tableSearchDebounced, actorStaffId]);
+  }, [usingClientSlice, mergedTasks, boardFilter, actorStaffId]);
 
   const applyClientPage = useCallback(() => {
     const sorted = sortRows(clientFiltered, tableSortKey, tableSortDir);
