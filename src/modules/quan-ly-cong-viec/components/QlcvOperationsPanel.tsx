@@ -11,6 +11,7 @@ import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { canShowDirectCreateTask } from "../lib/qlcv-access";
 import { QlcvGateStats } from "./QlcvGateStats";
+import { QlcvNhacHanStrip } from "./QlcvNhacHanStrip";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { deleteCongViec } from "../actions/cong-viec.actions";
@@ -217,6 +218,13 @@ export function QlcvOperationsPanel({
   return (
     <KsnkSupervisionPanel className={UI.sectionGap}>
       {summarySlot}
+
+      <QlcvNhacHanStrip
+        tasks={mergedTasks as unknown as Record<string, unknown>[]}
+        actorStaffId={actorStaffId}
+        activeFilter={kanban.boardFilter}
+        onFilterChange={onBoardFilter}
+      />
 
       {kanban.boardFilter && kanban.boardFilter !== "MY_TASKS" ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/90 bg-slate-50/90 px-3 py-2 text-xs text-slate-700">
