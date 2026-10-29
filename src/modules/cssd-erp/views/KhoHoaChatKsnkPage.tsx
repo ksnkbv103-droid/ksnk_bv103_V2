@@ -1,7 +1,8 @@
 // src/modules/cssd-erp/views/KhoHoaChatKsnkPage.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -12,6 +13,7 @@ import KhoHoaChatSuCoPanel from "../components/kho-hoa-chat/kho-hoa-chat-su-co-p
 import KhoHoaChatFilterBar from "../components/kho-hoa-chat/kho-hoa-chat-filter-bar";
 import KhoHoaChatItemTable from "../components/kho-hoa-chat/kho-hoa-chat-item-table";
 import KhoHoaChatDrawer from "../components/kho-hoa-chat/kho-hoa-chat-drawer";
+import { listGiaoDichKhoHoaChatAction, type KhoHoaChatGiaoDichRow } from "../actions/cssd-kho-hoa-chat.actions";
 import { useKhoHoaChatPage } from "../hooks/use-kho-hoa-chat-page";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
@@ -37,6 +39,20 @@ export default function KhoHoaChatKsnkPage() {
     () => filterKhoRows(h.dmSummary, chip, search, h.choDuyetByDm, nhomEff),
     [h.dmSummary, chip, search, h.choDuyetByDm, nhomEff],
   );
+  const [dmMovs, setDmMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
+  // Lịch sử riêng từng mặt hàng (không cắt theo 120 dòng toàn kho); tải lại sau mỗi reload (duyệt/nhập/xuất).
+  useEffect(() => {
+    if (!openId || h.busy) return;
+    let alive = true;
+    void listGiaoDichKhoHoaChatAction({ limit: 200, dm_hoa_chat_id: openId }).then((r) => {
+      if (!alive) return;
+      if (r.success) setDmMovs(r.data);
+      else toast.error(r.error);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [openId, h.busy]);
   const openDm = openId ? h.dmSummary.find((d) => d.id === openId) : undefined;
 
   if (h.permLoading) {
@@ -127,7 +143,7 @@ export default function KhoHoaChatKsnkPage() {
         <KhoHoaChatDrawer
           dm={openDm}
           lots={h.tons.filter((t) => t.dm_hoa_chat_id === openDm.id)}
-          movs={h.movs.filter((m) => m.dm_hoa_chat_id === openDm.id)}
+          movs={dmMovs}
           suCo={h.suCoRows.filter((r) => r.dm_hoa_chat_id === openDm.id)}
           canEdit={canEdit}
           approve={h.approve}
