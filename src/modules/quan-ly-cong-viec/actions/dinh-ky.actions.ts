@@ -8,6 +8,7 @@ import { formatQlcvDbError, throwQlcvDbError } from "../lib/qlcv-supabase-error"
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
+import { resolveQlcvDiaDiemKhoaIds } from "../lib/qlcv-create-task";
 import { assertQlcvTimeRange, normalizeTimeHHmm } from "../lib/qlcv-time";
 
 export type MaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
@@ -30,6 +31,7 @@ export interface DinhKyMauRow {
   gio_bat_dau: string | null;
   gio_ket_thuc: string | null;
   dia_diem_khoa_id: string | null;
+  dia_diem_khoa_ids?: string[] | null;
   nguoi_phoi_hop_ids: string[] | null;
   nguoi_theo_doi_ids: string[] | null;
   nhiem_vu_id: string | null;
@@ -67,6 +69,7 @@ export async function upsertDinhKyMau(input: {
   gio_bat_dau?: string | null;
   gio_ket_thuc?: string | null;
   dia_diem_khoa_id?: string | null;
+  dia_diem_khoa_ids?: string[] | null;
   nguoi_phoi_hop_ids?: string[];
   nguoi_theo_doi_ids?: string[];
   nhiem_vu_id?: string | null;
@@ -114,6 +117,8 @@ export async function upsertDinhKyMau(input: {
     if (!khoaOk) throw new Error("Khoa/đơn vị địa điểm không hợp lệ hoặc đã ngưng.");
   }
 
+  const diaDiemKhoaIds = await resolveQlcvDiaDiemKhoaIds(supabase, input.dia_diem_khoa_ids);
+
   const gioBat = normalizeTimeHHmm(input.gio_bat_dau);
   const gioKet = normalizeTimeHHmm(input.gio_ket_thuc);
   assertQlcvTimeRange(gioBat, gioKet);
@@ -140,7 +145,8 @@ export async function upsertDinhKyMau(input: {
     vi_tri_thuc_hien: input.vi_tri_thuc_hien?.trim() || null,
     gio_bat_dau: gioBat,
     gio_ket_thuc: gioKet,
-    dia_diem_khoa_id: input.dia_diem_khoa_id || null,
+    dia_diem_khoa_id: diaDiemKhoaIds[0] ?? (input.dia_diem_khoa_id || null),
+    ...(input.dia_diem_khoa_ids !== undefined || diaDiemKhoaIds.length ? { dia_diem_khoa_ids: diaDiemKhoaIds } : {}),
     nguoi_phoi_hop_ids: phoiHop,
     nguoi_theo_doi_ids: theoDoi,
     nhiem_vu_id: input.nhiem_vu_id ?? null,

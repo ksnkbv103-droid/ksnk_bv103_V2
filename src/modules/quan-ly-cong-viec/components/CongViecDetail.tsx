@@ -17,7 +17,7 @@ import {
   percentFromQlcvChecklist,
   taskUsesQlcvChecklistForProgress,
 } from "@/lib/domain/qlcv-checklist";
-import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { formatQlcvDiaDiemKhoaLabels } from "../lib/qlcv-dia-diem-label";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 import { getCongViecDetail } from "../actions/cong-viec-list.actions";
 import {
@@ -68,6 +68,7 @@ type CongViecDetailData = CongViecView & {
   hoat_dong?: Activity[] | null;
   dia_diem_khoa_ten?: string | null;
   dia_diem_khoa_ma?: string | null;
+  dia_diem_khoa_ids?: string[] | null;
   nhiem_vu_ten?: string | null;
 };
 
@@ -121,6 +122,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [printing, setPrinting] = useState(false);
   const [baoHoanThanhBusy, setBaoHoanThanhBusy] = useState(false);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
+  const [khoaOptions, setKhoaOptions] = useState<QlcvSelectOption[]>([]);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -140,7 +142,10 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
   useEffect(() => {
     void getQlcvFormCatalog()
-      .then((c) => setNhanSuOptions(c.nhanSu))
+      .then((c) => {
+        setNhanSuOptions(c.nhanSu);
+        setKhoaOptions(c.khoaPhong);
+      })
       .catch(() => setNhanSuOptions([]));
   }, []);
 
@@ -517,7 +522,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             },
             {
               label: "Khoa địa điểm",
-              val: formatKhoaCompactLabel({
+              val: formatQlcvDiaDiemKhoaLabels(data.dia_diem_khoa_ids, khoaOptions, {
                 ma_khoa: data.dia_diem_khoa_ma,
                 ten_khoa: data.dia_diem_khoa_ten,
               }),

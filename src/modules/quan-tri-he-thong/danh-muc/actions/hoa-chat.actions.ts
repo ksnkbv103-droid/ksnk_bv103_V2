@@ -90,7 +90,32 @@ export async function saveHoaChatAction(input: Record<string, unknown>) {
     ghi_chu: String(input.ghi_chu || "").trim() || null,
   };
 
+  // PO 2026-10-29: ADMIN đặt định mức tối thiểu + % cảnh báo + ngày chờ hàng. Không gửi = giữ nguyên (import không đụng).
+  const canhBao: Record<string, number | null> = {};
+  const soTuyChon = (k: string) => {
+    const raw = input[k];
+    if (raw === undefined) return undefined;
+    const t = String(raw ?? "").trim();
+    return t === "" ? null : Number(t);
+  };
+  const ng = soTuyChon("nguong_ton_toi_thieu");
+  if (ng !== undefined) {
+    if (ng !== null && (!Number.isFinite(ng) || ng < 0)) return { success: false as const, error: "Định mức tồn tối thiểu phải ≥ 0." };
+    canhBao.nguong_ton_toi_thieu = ng;
+  }
+  const pct = soTuyChon("ty_le_canh_bao_pct");
+  if (pct != null) {
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) return { success: false as const, error: "Tỷ lệ cảnh báo phải từ 0 đến 100 (%)." };
+    canhBao.ty_le_canh_bao_pct = pct;
+  }
+  const ngay = soTuyChon("so_ngay_cho_hang");
+  if (ngay != null) {
+    if (!Number.isInteger(ngay) || ngay < 0 || ngay > 365) return { success: false as const, error: "Số ngày chờ hàng phải là số nguyên từ 0 đến 365." };
+    canhBao.so_ngay_cho_hang = ngay;
+  }
+
   const payload = {
+    ...canhBao,
     ma_hoa_chat: ma,
     ten_hoa_chat: ten,
     loai_hoa_chat: loai,

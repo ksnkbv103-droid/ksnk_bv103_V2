@@ -27,6 +27,11 @@ interface Props {
   onCancel?: () => void;
 }
 
+function initialKhoaIds(d?: { dia_diem_khoa_id?: string | null; dia_diem_khoa_ids?: string[] | null } | null): string[] {
+  if (d?.dia_diem_khoa_ids?.length) return d.dia_diem_khoa_ids;
+  return d?.dia_diem_khoa_id ? [d.dia_diem_khoa_id] : [];
+}
+
 /** Tạo / sửa phiếu active — phê duyệt đề xuất dùng `DeXuatApproveForm`. Form chung năm/tuần/đột xuất. */
 export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   /** loai_cong_viec = cách sinh (DINH_KY từ mẫu / DOT_XUAT tạo tay); muc_do_uu_tien = urgency. */
@@ -48,7 +53,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const [selectedTo, setSelectedTo] = useState(() => String(initialData?.to_cong_tac_id || ""));
   const [nhomOptions, setNhomOptions] = useState<QlcvSelectOption[]>([]);
   const [selectedNhom, setSelectedNhom] = useState(() => String(initialData?.nhom_chuyen_mon_id || ""));
-  const [selectedKhoa, setSelectedKhoa] = useState(() => String(initialData?.dia_diem_khoa_id || ""));
+  const [selectedKhoaIds, setSelectedKhoaIds] = useState<string[]>(() => initialKhoaIds(initialData));
   const [selectedNhiemVu, setSelectedNhiemVu] = useState(() => String(initialData?.nhiem_vu_id || ""));
   const [viTri, setViTri] = useState(() => String(initialData?.vi_tri_thuc_hien || ""));
   const [phoiHopIds, setPhoiHopIds] = useState<string[]>(() =>
@@ -65,6 +70,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         initialData?.mo_ta
         || initialData?.nhiem_vu_id
         || initialData?.dia_diem_khoa_id
+        || (initialData?.dia_diem_khoa_ids?.length ?? 0) > 0
         || initialData?.vi_tri_thuc_hien
         || initialData?.to_cong_tac_id
         || (initialData?.muc_do_uu_tien && initialData.muc_do_uu_tien !== "TRUNG_BINH")
@@ -77,7 +83,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     setSelectedNhanSu(String(initialData?.nguoi_phu_trach_id || ""));
     setSelectedTo(String(initialData?.to_cong_tac_id || ""));
     setSelectedNhom(String(initialData?.nhom_chuyen_mon_id || ""));
-    setSelectedKhoa(String(initialData?.dia_diem_khoa_id || ""));
+    setSelectedKhoaIds(initialKhoaIds(initialData));
     setSelectedNhiemVu(String(initialData?.nhiem_vu_id || ""));
     setViTri(String(initialData?.vi_tri_thuc_hien || ""));
     setPhoiHopIds(normalizeQlcvStaffIdList(initialData?.nguoi_phoi_hop_ids));
@@ -146,7 +152,8 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       nguoi_phu_trach_id: selectedNhanSu || null,
       to_cong_tac_id: selectedTo || null,
       nhom_chuyen_mon_id: selectedNhom || null,
-      dia_diem_khoa_id: selectedKhoa || null,
+      dia_diem_khoa_id: selectedKhoaIds[0] || null,
+      dia_diem_khoa_ids: selectedKhoaIds,
       nhiem_vu_id: selectedNhiemVu || null,
       vi_tri_thuc_hien: viTri.trim() || null,
       nguoi_phoi_hop_ids: phoiHopIds,
@@ -286,14 +293,13 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             />
           </div>
           <div>
-            <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
-            <SearchableSelect
-              options={khoaPhongOptions}
-              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa / đơn vị…"}
-              value={selectedKhoa}
-              onChange={setSelectedKhoa}
+            <SearchableMultiSelect
+              label="Khoa / đơn vị địa điểm (tuỳ chọn)"
+              options={khoaPhongOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={selectedKhoaIds}
+              onChange={setSelectedKhoaIds}
               disabled={optionsLoading}
-              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
+              minWidthClassName="w-full"
             />
           </div>
           <div>

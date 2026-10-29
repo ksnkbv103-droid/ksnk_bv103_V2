@@ -23,10 +23,7 @@ import { listNhiemVuOptions, type NhiemVuSelectOption } from "../actions/nhiem-v
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import SearchableMultiSelect from "@/components/shared/SearchableMultiSelect";
-import {
-  formatKhoaCompactLabel,
-  parseMaFromKhoaOptionLabel,
-} from "@/lib/domain/khoa-display";
+import { formatQlcvDiaDiemKhoaLabels } from "../lib/qlcv-dia-diem-label";
 import { nextDinhKySpawnDates } from "../lib/qlcv-dinh-ky-schedule";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
@@ -97,7 +94,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [viTri, setViTri] = useState("");
   const [gioBat, setGioBat] = useState("");
   const [gioKet, setGioKet] = useState("");
-  const [diaDiemKhoaId, setDiaDiemKhoaId] = useState("");
+  const [diaDiemKhoaIds, setDiaDiemKhoaIds] = useState<string[]>([]);
   const [phoiHopIds, setPhoiHopIds] = useState<string[]>([]);
   const [theoDoiIds, setTheoDoiIds] = useState<string[]>([]);
   const [nhiemVuId, setNhiemVuId] = useState("");
@@ -120,7 +117,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setViTri("");
     setGioBat("");
     setGioKet("");
-    setDiaDiemKhoaId("");
+    setDiaDiemKhoaIds([]);
     setPhoiHopIds([]);
     setTheoDoiIds([]);
     setNhiemVuId("");
@@ -140,7 +137,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setViTri(r.vi_tri_thuc_hien || "");
     setGioBat(r.gio_bat_dau || "");
     setGioKet(r.gio_ket_thuc || "");
-    setDiaDiemKhoaId(r.dia_diem_khoa_id || "");
+    setDiaDiemKhoaIds(r.dia_diem_khoa_ids?.length ? r.dia_diem_khoa_ids : r.dia_diem_khoa_id ? [r.dia_diem_khoa_id] : []);
     setPhoiHopIds(normalizeQlcvStaffIdList(r.nguoi_phoi_hop_ids));
     setTheoDoiIds(normalizeQlcvStaffIdList(r.nguoi_theo_doi_ids));
     setNhiemVuId(r.nhiem_vu_id || "");
@@ -216,7 +213,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
         vi_tri_thuc_hien: viTri.trim() || null,
         gio_bat_dau: gioBat,
         gio_ket_thuc: gioKet,
-        dia_diem_khoa_id: diaDiemKhoaId || null,
+        dia_diem_khoa_id: diaDiemKhoaIds[0] || null,
+        dia_diem_khoa_ids: diaDiemKhoaIds,
         nguoi_phoi_hop_ids: phoiHopIds,
         nguoi_theo_doi_ids: theoDoiIds,
         nhiem_vu_id: nhiemVuId || null,
@@ -376,16 +374,13 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
           </div>
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
-          <div className="mt-1.5">
-            <SearchableSelect
-              options={khoaPhong}
-              placeholder="Chọn khoa / đơn vị…"
-              value={diaDiemKhoaId}
-              onChange={setDiaDiemKhoaId}
-              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
-            />
-          </div>
+          <SearchableMultiSelect
+            label="Khoa / đơn vị địa điểm (tuỳ chọn)"
+            options={khoaPhong.map((o) => ({ id: o.id, label: o.label }))}
+            selected={diaDiemKhoaIds}
+            onChange={setDiaDiemKhoaIds}
+            minWidthClassName="w-full"
+          />
         </div>
         <div className="md:col-span-2">
           <button
@@ -533,14 +528,10 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                     <td className="p-3 font-medium text-slate-800">{r.tieu_de}</td>
                     <td className="p-3 text-slate-600">{labelChuKy(r.ma_chu_ky)}</td>
                     <td className="p-3 text-xs text-slate-600">
-                      {(() => {
-                        const opt = khoaPhong.find((k) => k.id === r.dia_diem_khoa_id);
-                        if (!opt) return "—";
-                        return formatKhoaCompactLabel({
-                          ma_khoa: parseMaFromKhoaOptionLabel(opt.label),
-                          ten_khoa: opt.label,
-                        });
-                      })()}
+                      {formatQlcvDiaDiemKhoaLabels(
+                        r.dia_diem_khoa_ids?.length ? r.dia_diem_khoa_ids : r.dia_diem_khoa_id ? [r.dia_diem_khoa_id] : [],
+                        khoaPhong,
+                      )}
                     </td>
                     <td className="p-3 tabular-nums text-slate-600">{formatDateVi(r.ngay_bat_dau)}</td>
                     <td className="p-3">

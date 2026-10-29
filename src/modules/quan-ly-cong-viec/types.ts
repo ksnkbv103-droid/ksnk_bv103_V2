@@ -54,6 +54,8 @@ export interface CongViec {
   vi_tri_thuc_hien?: string | null;
   /** FK khoa MDM — địa điểm bắt buộc. */
   dia_diem_khoa_id?: string | null;
+  /** Nhiều khoa địa điểm (ids[1] = dia_diem_khoa_id). */
+  dia_diem_khoa_ids?: string[] | null;
   /** FK nhiệm vụ (tuỳ chọn). */
   nhiem_vu_id?: string | null;
   /** Nhân sự phối hợp (uuid[]). */
@@ -88,6 +90,7 @@ export interface CongViecView extends CongViec {
   nhom_chuyen_mon_ten?: string | null;
   dia_diem_khoa_ten?: string | null;
   dia_diem_khoa_ma?: string | null;
+  dia_diem_khoa_ids?: string[] | null;
   nhiem_vu_ten?: string | null;
   trang_thai_mau_sac?: string | null;
   is_qua_han?: boolean;

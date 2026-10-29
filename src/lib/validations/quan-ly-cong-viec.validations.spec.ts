@@ -125,3 +125,17 @@ describe("parseCongViecUpdate — chỉ kiểm trường được gửi", () => 
     expect(parseCongViecUpdate({ trang_thai: "HOAN_THANH", phan_tram_hoan_thanh: 50 })).toEqual({ ok: true, data: {} });
   });
 });
+
+describe("congViecSchema — nhiều khoa địa điểm (L3)", () => {
+  const base = {
+    tieu_de: "Việc thử",
+    loai_cong_viec: "DOT_XUAT",
+    muc_do_uu_tien: "TRUNG_BINH",
+    nguoi_phu_trach_id: uuid,
+    han_hoan_thanh: "2026-12-31",
+  };
+  it("nhận mảng dia_diem_khoa_ids hợp lệ, từ chối id sai", () => {
+    expect(congViecSchema.safeParse({ ...base, dia_diem_khoa_ids: [uuid] }).success).toBe(true);
+    expect(congViecSchema.safeParse({ ...base, dia_diem_khoa_ids: ["abc"] }).success).toBe(false);
+  });
+});

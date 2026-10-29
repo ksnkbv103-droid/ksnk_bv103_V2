@@ -2,11 +2,20 @@
 import { isHoaChatLoai, matchesLoaiFilter } from "./cssd-hoa-chat-loai";
 import type { DmStockSummary } from "./cssd-kho-hoa-chat-summary";
 
-export type KhoChip = "ALL" | "HOA_CHAT" | "VAT_TU" | "CAN_CHU_Y" | "CHO_DUYET";
+export type KhoChip = "ALL" | "HOA_CHAT" | "VAT_TU" | "CAN_CHU_Y" | "SAP_HET" | "CHO_DUYET";
 
-/** Cần chú ý = dưới định mức, quá hạn hoặc sắp hết hạn. */
-export function isCanChuY(r: Pick<DmStockSummary, "duoi_dinh_muc" | "qua_han" | "sap_het_han">): boolean {
-  return r.duoi_dinh_muc || r.qua_han || r.sap_het_han;
+/** Sắp hết / hết hàng theo cảnh báo hai tầng (HC-F). */
+export function isSapHet(r: Pick<DmStockSummary, "canh_bao">): boolean {
+  return r.canh_bao.muc !== "OK";
+}
+
+/** Cần chú ý = dưới định mức, sắp hết, quá hạn hoặc sắp hết hạn. */
+export function isCanChuY(r: Pick<DmStockSummary, "duoi_dinh_muc" | "qua_han" | "sap_het_han" | "canh_bao">): boolean {
+  return r.duoi_dinh_muc || isSapHet(r) || r.qua_han || r.sap_het_han;
+}
+
+export function countSapHet(rows: DmStockSummary[]): number {
+  return rows.filter(isSapHet).length;
 }
 
 export function countCanChuY(rows: DmStockSummary[]): number {
@@ -64,6 +73,8 @@ export function filterKhoRows(
       if (!matchesLoaiFilter(r.loai_hoa_chat, chip)) return false;
     } else if (chip === "CAN_CHU_Y") {
       if (!isCanChuY(r)) return false;
+    } else if (chip === "SAP_HET") {
+      if (!isSapHet(r)) return false;
     } else if (chip === "CHO_DUYET") {
       if (!(choDuyetByDm.get(r.id) ?? 0)) return false;
     }

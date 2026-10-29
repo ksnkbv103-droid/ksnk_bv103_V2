@@ -180,6 +180,8 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
       loai_hoa_chat: string | null;
       nhom_id: string | null;
       nhom_ten: string | null;
+      ty_le_canh_bao_pct: number;
+      so_ngay_cho_hang: number;
     }[];
   } | {
     success: false;
@@ -191,7 +193,7 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
     const supabase = createAdminSupabaseClient();
     let q = supabase
       .from("v_cssd_hoa_chat_full")
-      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat, nhom_id, nhom_ten")
+      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat, nhom_id, nhom_ten, ty_le_canh_bao_pct, so_ngay_cho_hang")
       .eq("is_active", true)
       .order("ma_hoa_chat", { ascending: true });
 
@@ -211,6 +213,8 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
         loai_hoa_chat: x.loai_hoa_chat != null ? String(x.loai_hoa_chat) : "HOA_CHAT",
         nhom_id: x.nhom_id != null ? String(x.nhom_id) : null,
         nhom_ten: x.nhom_ten != null ? String(x.nhom_ten) : null,
+        ty_le_canh_bao_pct: x.ty_le_canh_bao_pct != null ? Number(x.ty_le_canh_bao_pct) : 20,
+        so_ngay_cho_hang: x.so_ngay_cho_hang != null ? Number(x.so_ngay_cho_hang) : 14,
       })),
     };
   } catch (e: unknown) {

@@ -9,7 +9,7 @@ import { congViecCreateSchema, parseCongViecUpdate, phanTramHoanThanhSchema, typ
 import { assigneeBlockedFromTaskCrud } from "../lib/qlcv-access";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
-import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, assertQlcvDiaDiemKhoaValid, insertQlcvTaskRow, normalizeQlcvHanDate } from "../lib/qlcv-create-task";
+import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, assertQlcvDiaDiemKhoaValid, resolveQlcvDiaDiemKhoaIds, insertQlcvTaskRow, normalizeQlcvHanDate } from "../lib/qlcv-create-task";
 import { assertQlcvActiveInvariant } from "../lib/qlcv-active-invariant";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
@@ -58,6 +58,7 @@ export async function createCongViec(input: CongViecInput) {
     nhom_chuyen_mon_id: payload.nhom_chuyen_mon_id,
     vi_tri_thuc_hien: payload.vi_tri_thuc_hien,
     dia_diem_khoa_id: payload.dia_diem_khoa_id,
+    dia_diem_khoa_ids: payload.dia_diem_khoa_ids,
     nhiem_vu_id: payload.nhiem_vu_id,
     nguoi_phoi_hop_ids: payload.nguoi_phoi_hop_ids,
     nguoi_theo_doi_ids: payload.nguoi_theo_doi_ids,
@@ -220,6 +221,11 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
     await assertQlcvDiaDiemKhoaValid(supabase, updates.dia_diem_khoa_id, false);
     dbUpdates.dia_diem_khoa_id = updates.dia_diem_khoa_id;
   }
+  if (updates.dia_diem_khoa_ids !== undefined) {
+    const ids = await resolveQlcvDiaDiemKhoaIds(supabase, updates.dia_diem_khoa_ids);
+    dbUpdates.dia_diem_khoa_ids = ids;
+    dbUpdates.dia_diem_khoa_id = ids[0] ?? null;
+  }
   if (updates.nhiem_vu_id !== undefined) {
     const { resolveQlcvNhiemVuId } = await import("../lib/qlcv-nhiem-vu-chain");
     dbUpdates.nhiem_vu_id = await resolveQlcvNhiemVuId(supabase, updates.nhiem_vu_id);
@@ -283,6 +289,10 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
     if (updates.muc_do_uu_tien !== undefined) patch.muc_do_uu_tien = updates.muc_do_uu_tien;
     if (updates.han_hoan_thanh !== undefined) patch.han_hoan_thanh = updates.han_hoan_thanh;
     if (updates.dia_diem_khoa_id !== undefined) patch.dia_diem_khoa_id = updates.dia_diem_khoa_id;
+    if (updates.dia_diem_khoa_ids !== undefined) {
+      patch.dia_diem_khoa_ids = dbUpdates.dia_diem_khoa_ids;
+      patch.dia_diem_khoa_id = dbUpdates.dia_diem_khoa_id;
+    }
     if (updates.nhiem_vu_id !== undefined) patch.nhiem_vu_id = updates.nhiem_vu_id;
 
     await invokeQlcvTransition(supabase, {

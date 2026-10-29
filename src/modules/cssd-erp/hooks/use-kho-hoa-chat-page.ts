@@ -8,9 +8,11 @@ import type { MoveMode } from "../components/kho-hoa-chat/kho-hoa-chat-move-shee
 import {
   listDmHoaChatChoKhoAction,
   listGiaoDichKhoHoaChatAction,
+  listLuuLuongKhoHoaChatAction,
   listTonTheoLoKhoHoaChatAction,
   nhapKhoHoaChatAction,
   type KhoHoaChatGiaoDichRow,
+  type KhoHoaChatLuuLuong,
   type KhoHoaChatTonLo,
   xuatKhoHoaChatAction,
   listSuCoChemicalChuaGhiKhoAction,
@@ -52,17 +54,19 @@ export function useKhoHoaChatPage() {
 
   /** Một lần khi mount — mốc ngày cho cận-date FEFO (tránh Date.now trong thân render). */
   const [todayYmd] = useState(() => todayYmdInVn());
+  const [luuLuong, setLuuLuong] = useState<KhoHoaChatLuuLuong[]>([]);
   const [suCoRows, setSuCoRows] = useState<SuCoChemicalRow[]>([]);
   const [linkedSuCoId, setLinkedSuCoId] = useState<string | null>(null);
   const [prefMaLo, setPrefMaLo] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setBusy(true);
-    const [t1, t2, t3, t4] = await Promise.all([
+    const [t1, t2, t3, t4, t5] = await Promise.all([
       listTonTheoLoKhoHoaChatAction(),
       listGiaoDichKhoHoaChatAction({ limit: 120 }),
       listDmHoaChatChoKhoAction(),
       listSuCoChemicalChuaGhiKhoAction(),
+      listLuuLuongKhoHoaChatAction(),
     ]);
     if (!t1.success) toast.error(t1.error);
     else setTons(t1.data);
@@ -72,6 +76,8 @@ export function useKhoHoaChatPage() {
     else setDms(t3.data);
     if (!t4.success) toast.error(t4.error);
     else setSuCoRows(t4.data);
+    if (!t5.success) toast.error(t5.error);
+    else setLuuLuong(t5.data);
     setBusy(false);
   }, []);
 
@@ -217,7 +223,7 @@ export function useKhoHoaChatPage() {
     (moveMode === "NHAP" || Boolean(lyDoXuat));
 
   const dmSummary = useMemo(
-    () => buildDmStockSummary(dms, tons, todayYmd),
+    () => buildDmStockSummary(dms, tons, todayYmd, luuLuong),
     [dms, tons, todayYmd],
   );
 

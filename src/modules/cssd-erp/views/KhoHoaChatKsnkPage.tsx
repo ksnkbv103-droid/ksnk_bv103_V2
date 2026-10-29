@@ -15,7 +15,7 @@ import KhoHoaChatDrawer from "../components/kho-hoa-chat/kho-hoa-chat-drawer";
 import { useKhoHoaChatPage } from "../hooks/use-kho-hoa-chat-page";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
-import { countCanChuY, filterKhoRows, nhomOptionsForChip, NHOM_ALL, type KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
+import { countCanChuY, countSapHet, filterKhoRows, nhomOptionsForChip, NHOM_ALL, type KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
 
 type KhoTab = "KHO" | "DANH_MUC";
 const TABS: ReadonlyArray<readonly [KhoTab, string]> = [
@@ -103,6 +103,7 @@ export default function KhoHoaChatKsnkPage() {
               search={search}
               onSearch={setSearch}
               canChuY={countCanChuY(h.dmSummary)}
+              sapHet={countSapHet(h.dmSummary)}
               choDuyet={h.choDuyetByDm.size}
               nhomOptions={nhomOptions}
               nhom={nhomEff}

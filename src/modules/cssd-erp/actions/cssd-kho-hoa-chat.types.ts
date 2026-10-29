@@ -13,6 +13,9 @@ export type KhoHoaChatTonLo = {
   loai_hoa_chat?: string | null;
 };
 
+/** Lưu lượng 30 ngày gần nhất của một mặt hàng (đã duyệt) — đầu vào cảnh báo «sắp hết». */
+export type KhoHoaChatLuuLuong = { dm_hoa_chat_id: string; nhap_30n: number; xuat_su_dung_30n: number };
+
 export type KhoHoaChatGiaoDichRow = {
   id: string;
   ma_phieu: string;

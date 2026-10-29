@@ -25,6 +25,9 @@ function mapForm(row: HoaChatRow | null) {
     nong_do: String(row?.nong_do || ""),
     han_su_dung: row?.han_su_dung ? String(row.han_su_dung).slice(0, 10) : "",
     ghi_chu: String(row?.ghi_chu || ""),
+    nguong_ton_toi_thieu: row?.nguong_ton_toi_thieu != null ? String(row.nguong_ton_toi_thieu) : "",
+    ty_le_canh_bao_pct: String(row?.ty_le_canh_bao_pct ?? 20),
+    so_ngay_cho_hang: String(row?.so_ngay_cho_hang ?? 14),
     is_active: row?.is_active !== false,
   };
 }
@@ -82,7 +85,7 @@ export default function HoaChatFormModal({
       open={open}
       onClose={onClose}
       title={isEdit ? "Cập nhật hóa chất" : "Thêm hóa chất"}
-      subtitle="Mã, tên, phân loại kho và hạn dùng."
+      subtitle="Mã, tên, phân loại kho, hạn dùng và ngưỡng cảnh báo tồn."
       size="md"
       onSubmit={submit}
       footer={
@@ -141,6 +144,23 @@ export default function HoaChatFormModal({
         <BoDungCuTextField label="Đơn vị tính" value={form.don_vi_tinh} onChange={(v) => setForm({ ...form, don_vi_tinh: v })} />
         <BoDungCuTextField label="Quy cách" value={form.quy_cach} onChange={(v) => setForm({ ...form, quy_cach: v })} />
         <BoDungCuTextField label="Nồng độ" value={form.nong_do} onChange={(v) => setForm({ ...form, nong_do: v })} />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="space-y-1">
+          <label className="ml-1 text-[11px] font-medium text-slate-400">Định mức tối thiểu</label>
+          <input type="number" min={0} step="0.01" value={form.nguong_ton_toi_thieu} placeholder="Không đặt"
+            onChange={(e) => setForm({ ...form, nguong_ton_toi_thieu: e.target.value })} className={C.controlInput} />
+        </div>
+        <div className="space-y-1">
+          <label className="ml-1 text-[11px] font-medium text-slate-400">Báo khi tồn ≤ % nhập 30 ngày</label>
+          <input type="number" min={0} max={100} step="1" value={form.ty_le_canh_bao_pct}
+            onChange={(e) => setForm({ ...form, ty_le_canh_bao_pct: e.target.value })} className={C.controlInput} />
+        </div>
+        <div className="space-y-1">
+          <label className="ml-1 text-[11px] font-medium text-slate-400">Ngày chờ hàng</label>
+          <input type="number" min={0} max={365} step="1" value={form.so_ngay_cho_hang}
+            onChange={(e) => setForm({ ...form, so_ngay_cho_hang: e.target.value })} className={C.controlInput} />
+        </div>
       </div>
       <div className="space-y-1">
         <label className="ml-1 text-[11px] font-medium text-slate-400">Hạn sử dụng</label>

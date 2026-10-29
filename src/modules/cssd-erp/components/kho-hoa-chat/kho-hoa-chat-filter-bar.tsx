@@ -10,18 +10,20 @@ type Props = {
   search: string;
   onSearch: (v: string) => void;
   canChuY: number;
+  sapHet: number;
   choDuyet: number;
   nhomOptions: NhomOption[];
   nhom: string;
   onNhom: (v: string) => void;
 };
 
-export default function KhoHoaChatFilterBar({ chip, onChip, search, onSearch, canChuY, choDuyet, nhomOptions, nhom, onNhom }: Props) {
+export default function KhoHoaChatFilterBar({ chip, onChip, search, onSearch, canChuY, sapHet, choDuyet, nhomOptions, nhom, onNhom }: Props) {
   const chips: ReadonlyArray<readonly [KhoChip, string]> = [
     ["ALL", "Tất cả"],
     ["HOA_CHAT", "Hóa chất"],
     ["VAT_TU", "Vật tư"],
     ["CAN_CHU_Y", `Cần chú ý (${canChuY})`],
+    ["SAP_HET", `Sắp hết (${sapHet})`],
     ["CHO_DUYET", `Chờ duyệt (${choDuyet})`],
   ];
   return (

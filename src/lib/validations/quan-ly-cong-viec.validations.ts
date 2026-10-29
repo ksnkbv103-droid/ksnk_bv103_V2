@@ -35,6 +35,8 @@ export const congViecSchema = z.object({
   nhom_chuyen_mon_id: optionalUuid("Nhóm chuyên môn"),
   /** Domain A FE-first: địa điểm optional (cột DB giữ soft-optional). */
   dia_diem_khoa_id: optionalUuid("Khoa/đơn vị địa điểm"),
+  /** Nhiều khoa địa điểm (L3); trigger DB đặt dia_diem_khoa_id = phần tử đầu. */
+  dia_diem_khoa_ids: z.array(z.string().uuid("Khoa địa điểm không hợp lệ")).max(50).optional(),
   nhiem_vu_id: optionalUuid("Nhiệm vụ"),
 
   vi_tri_thuc_hien: z.preprocess(qlcvEmptyToNull, z.union([z.string(), z.null()]).optional()),

@@ -55,6 +55,12 @@ export default function KhoHoaChatItemTable({ rows, loading, canEdit, choDuyetBy
                 <td className="bv103-type-label px-3 py-2 text-slate-600">{r.han_gan_nhat ? formatDateVi(r.han_gan_nhat) : "—"}</td>
                 <td className="px-3 py-2">
                   <span className="flex flex-wrap gap-1">
+                    {r.canh_bao.muc !== "OK" ? (
+                      <span title={r.canh_bao.ly_do ?? ""} className={`${BADGE} ${r.canh_bao.muc === "HET_HANG" ? "border-red-300 bg-red-100 text-red-800" : "border-orange-200 bg-orange-50 text-orange-800"}`}>
+                        {r.canh_bao.muc === "HET_HANG" ? "Hết hàng" : "Sắp hết định mức"}
+                        {r.canh_bao.so_ngay_dung_duoc != null && r.canh_bao.muc === "SAP_HET" ? ` · ~${Math.floor(r.canh_bao.so_ngay_dung_duoc)} ngày` : ""}
+                      </span>
+                    ) : null}
                     {r.duoi_dinh_muc ? <span className={`${BADGE} border-red-200 bg-red-50 text-red-700`}>Dưới định mức</span> : null}
                     {r.qua_han ? <span className={`${BADGE} border-red-200 bg-red-50 text-red-700`}>Quá hạn</span> : null}
                     {r.sap_het_han ? <span className={`${BADGE} border-amber-200 bg-amber-50 text-amber-800`}>Sắp hết hạn</span> : null}
