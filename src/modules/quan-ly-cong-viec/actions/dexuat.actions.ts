@@ -8,7 +8,7 @@ import { applyQlcvListScopeToQuery, resolveQlcvListScope } from "../lib/qlcv-lis
 import { verifyQlcvApproveCapability } from "../lib/qlcv-rbac";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
 import {
-  assertQlcvDiaDiemKhoaValid,
+  resolveQlcvDiaDiemKhoaIds,
   assertQlcvHanHoanThanhNotPast,
   assertQlcvHanHoanThanhChangeAllowed,
   insertQlcvTaskRow,
@@ -38,6 +38,7 @@ interface CreateDeXuatInput {
   loai_cong_viec?: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
   muc_do_uu_tien?: "CAO" | "TRUNG_BINH" | "THAP";
   dia_diem_khoa_id?: string | null;
+  dia_diem_khoa_ids?: string[] | null;
 }
 
 type DeXuatRow = CongViecLike & {
@@ -75,6 +76,7 @@ export async function createDeXuat(input: CreateDeXuatInput) {
     muc_do_uu_tien: input.muc_do_uu_tien,
     han_hoan_thanh: input.han_hoan_thanh || null,
     dia_diem_khoa_id: input.dia_diem_khoa_id,
+    dia_diem_khoa_ids: input.dia_diem_khoa_ids,
     ksnkKhoaId: ksnkKhoaId,
     is_active: false,
     nguoi_tao_id: actorNhanSuId,
@@ -158,7 +160,7 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
 
   assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
   await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
-  await assertQlcvDiaDiemKhoaValid(supabase, p.dia_diem_khoa_id, false); // Domain A: optional
+  const khoaIds = await resolveQlcvDiaDiemKhoaIds(supabase, p.dia_diem_khoa_ids?.length ? p.dia_diem_khoa_ids : p.dia_diem_khoa_id ? [p.dia_diem_khoa_id] : []);
   assertQlcvActiveInvariant({
     tieu_de: p.tieu_de,
     nguoi_phu_trach_id: p.nguoi_phu_trach_id,
@@ -196,7 +198,7 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
 
   const { error: locErr } = await supabase
     .from(QLCV_FACT_WRITE_TABLE)
-    .update({ dia_diem_khoa_id: p.dia_diem_khoa_id })
+    .update({ dia_diem_khoa_id: khoaIds[0] ?? null, dia_diem_khoa_ids: khoaIds })
     .eq("id", id);
   if (locErr) throwQlcvDbError(locErr, "Không ghi địa điểm khoa khi phê duyệt.");
 

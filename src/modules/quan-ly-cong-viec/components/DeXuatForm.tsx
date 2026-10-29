@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Send, Clock, BarChart } from "lucide-react";
 import { createDeXuat } from "../actions/dexuat.actions";
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
-import SearchableSelect from "@/components/shared/SearchableSelect";
+import SearchableMultiSelect from "@/components/shared/SearchableMultiSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 
@@ -18,7 +18,7 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [khoaPhongOptions, setKhoaPhongOptions] = useState<QlcvSelectOption[]>([]);
-  const [selectedKhoa, setSelectedKhoa] = useState("");
+  const [selectedKhoaIds, setSelectedKhoaIds] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
@@ -46,7 +46,8 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
       han_hoan_thanh: formData.get("han_hoan_thanh") as string,
       loai_cong_viec: "DOT_XUAT" as const,
       muc_do_uu_tien: formData.get("muc_do_uu_tien") as "CAO" | "TRUNG_BINH" | "THAP" | undefined,
-      dia_diem_khoa_id: selectedKhoa,
+      dia_diem_khoa_id: selectedKhoaIds[0] ?? null,
+      dia_diem_khoa_ids: selectedKhoaIds,
     };
 
     try {
@@ -80,14 +81,13 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
         </div>
 
         <div>
-          <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
-          <SearchableSelect
-            options={khoaPhongOptions}
-            placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
-            value={selectedKhoa}
-            onChange={setSelectedKhoa}
+          <SearchableMultiSelect
+            label="Khoa / đơn vị địa điểm (tuỳ chọn, chọn được nhiều)"
+            options={khoaPhongOptions.map((o) => ({ id: o.id, label: o.label }))}
+            selected={selectedKhoaIds}
+            onChange={setSelectedKhoaIds}
             disabled={optionsLoading}
-            searchPlaceholder="Tìm khoa theo tên hoặc mã…"
+            minWidthClassName="w-full"
           />
         </div>
 
