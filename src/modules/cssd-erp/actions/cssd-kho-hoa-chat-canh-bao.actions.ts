@@ -3,6 +3,8 @@
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
+import type { NxtSoRow } from "@/lib/domain/cssd-kho-hoa-chat-bao-cao-nxt";
 import { CANH_BAO_CUA_SO_NGAY } from "@/lib/domain/cssd-kho-hoa-chat-canh-bao-ton";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import type { KhoHoaChatLuuLuong } from "./cssd-kho-hoa-chat.types";
@@ -41,5 +43,38 @@ export async function listLuuLuongKhoHoaChatAction(): Promise<
   } catch (e: unknown) {
     const msg = getErrorMessage(e);
     return { success: false, error: mapFkError(msg) };
+  }
+}
+
+/** Sổ phiếu đã duyệt đến hết ngày `den` (giờ VN) — đầu vào báo cáo Nhập–Xuất–Tồn; gộp theo kỳ ở domain. */
+export async function listSoKhoHoaChatDenNgayAction(den: string): Promise<
+  { success: true; data: NxtSoRow[] } | { success: false; error: string }
+> {
+  try {
+    await verifyPermission("KSNK_KHO_HOACHAT", "view");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(den)) return { success: false, error: "Ngày kết thúc không hợp lệ." };
+    const hetNgay = new Date(new Date(`${den}T00:00:00+07:00`).getTime() + 86_400_000).toISOString();
+    const supabase = createAdminSupabaseClient();
+    const rows = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
+      supabase
+        .from("cssd_fact_kho_hoa_chat_giao_dich")
+        .select("dm_hoa_chat_id, so_luong_co_dau, ly_do_xuat, created_at")
+        .eq("is_active", true)
+        .eq("trang_thai", "DA_DUYET")
+        .lt("created_at", hetNgay)
+        .order("created_at", { ascending: true })
+        .range(from, to),
+    );
+    return {
+      success: true,
+      data: rows.map((r) => ({
+        dm_hoa_chat_id: String(r.dm_hoa_chat_id || ""),
+        so_luong_co_dau: Number(r.so_luong_co_dau),
+        ly_do_xuat: r.ly_do_xuat != null ? String(r.ly_do_xuat) : null,
+        ngay: todayYmdInVn(new Date(String(r.created_at))),
+      })),
+    };
+  } catch (e: unknown) {
+    return { success: false, error: getErrorMessage(e) };
   }
 }

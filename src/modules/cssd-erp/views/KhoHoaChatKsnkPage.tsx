@@ -12,6 +12,7 @@ import KhoHoaChatMoveSheet from "../components/kho-hoa-chat/kho-hoa-chat-move-sh
 import KhoHoaChatSuCoPanel from "../components/kho-hoa-chat/kho-hoa-chat-su-co-panel";
 import KhoHoaChatFilterBar from "../components/kho-hoa-chat/kho-hoa-chat-filter-bar";
 import KhoHoaChatItemTable from "../components/kho-hoa-chat/kho-hoa-chat-item-table";
+import KhoHoaChatBaoCaoPanel from "../components/kho-hoa-chat/kho-hoa-chat-bao-cao-panel";
 import KhoHoaChatDrawer from "../components/kho-hoa-chat/kho-hoa-chat-drawer";
 import { listGiaoDichKhoHoaChatAction, type KhoHoaChatGiaoDichRow } from "../actions/cssd-kho-hoa-chat.actions";
 import { useKhoHoaChatPage } from "../hooks/use-kho-hoa-chat-page";
@@ -19,9 +20,10 @@ import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "..
 import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
 import { countCanChuY, countSapHet, filterKhoRows, nhomOptionsForChip, NHOM_ALL, type KhoChip } from "@/lib/domain/cssd-kho-hoa-chat-rows";
 
-type KhoTab = "KHO" | "DANH_MUC";
+type KhoTab = "KHO" | "BAO_CAO" | "DANH_MUC";
 const TABS: ReadonlyArray<readonly [KhoTab, string]> = [
   ["KHO", "Kho"],
+  ["BAO_CAO", "Báo cáo"],
   ["DANH_MUC", "Danh mục"],
 ];
 
@@ -134,6 +136,8 @@ export default function KhoHoaChatKsnkPage() {
               onMove={h.openSheet}
             />
           </div>
+        ) : tab === "BAO_CAO" ? (
+          <KhoHoaChatBaoCaoPanel dms={h.dms} />
         ) : (
           <HoaChatMasterPage />
         )}
