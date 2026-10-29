@@ -82,6 +82,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [spawning, setSpawning] = useState(false);
   const [ns, setNs] = useState<QlcvSelectOption[]>([]);
   const [to, setTo] = useState<QlcvSelectOption[]>([]);
+  const [nhomOpts, setNhomOpts] = useState<QlcvSelectOption[]>([]);
+  const [nhomId, setNhomId] = useState("");
   const [khoaPhong, setKhoaPhong] = useState<QlcvSelectOption[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tieuDe, setTieuDe] = useState("");
@@ -113,6 +115,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setNgayKetThuc("");
     setNsId("");
     setToId("");
+    setNhomId("");
     setMucDoUuTien("TRUNG_BINH");
     setViTri("");
     setGioBat("");
@@ -132,6 +135,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setNgayKetThuc(r.ngay_ket_thuc || "");
     setNsId(r.nguoi_phu_trach_id || "");
     setToId(r.to_cong_tac_id || "");
+    setNhomId(r.nhom_chuyen_mon_id || "");
     setMucDoUuTien(r.muc_do_uu_tien || "TRUNG_BINH");
     setViTri(r.vi_tri_thuc_hien || "");
     setGioBat(r.gio_bat_dau || "");
@@ -158,6 +162,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
       const catalog = await getQlcvFormCatalog();
       setNs(catalog.nhanSu);
       setTo(catalog.toCongTac);
+      setNhomOpts(catalog.nhomChuyenMon);
       setKhoaPhong(catalog.khoaPhong);
       const nvOpts = await listNhiemVuOptions();
       setNhiemVuOptions(nvOpts);
@@ -188,6 +193,10 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
       toast.error("Chọn người phụ trách cho mẫu định kỳ.");
       return;
     }
+    if (!nhomId && !editingId) {
+      toast.error("Chọn nhóm chuyên môn cho mẫu định kỳ.");
+      return;
+    }
     if (!gioBat || !gioKet) {
       toast.error("Nhập giờ bắt đầu và giờ kết thúc.");
       return;
@@ -202,6 +211,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
         ngay_ket_thuc: ngayKetThuc || null,
         nguoi_phu_trach_id: nsId || null,
         to_cong_tac_id: toId || null,
+        nhom_chuyen_mon_id: nhomId || null,
         muc_do_uu_tien: mucDoUuTien,
         vi_tri_thuc_hien: viTri.trim() || null,
         gio_bat_dau: gioBat,
@@ -350,6 +360,19 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
           <label className={bv103LayoutChrome.labelBlock}>Người phụ trách *</label>
           <div className="mt-1.5">
             <SearchableSelect options={ns} placeholder="Chọn người phụ trách…" value={nsId} onChange={setNsId} />
+          </div>
+        </div>
+        <div>
+          <label className={bv103LayoutChrome.labelBlock}>
+            Nhóm chuyên môn{editingId && !nhomId ? "" : " *"}
+          </label>
+          <div className="mt-1.5">
+            <SearchableSelect
+              options={nhomOpts}
+              placeholder="Chọn nhóm (giám sát, đào tạo…)"
+              value={nhomId}
+              onChange={setNhomId}
+            />
           </div>
         </div>
         <div>

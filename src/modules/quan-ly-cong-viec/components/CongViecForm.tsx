@@ -46,6 +46,8 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
 
   const [selectedNhanSu, setSelectedNhanSu] = useState(() => String(initialData?.nguoi_phu_trach_id || ""));
   const [selectedTo, setSelectedTo] = useState(() => String(initialData?.to_cong_tac_id || ""));
+  const [nhomOptions, setNhomOptions] = useState<QlcvSelectOption[]>([]);
+  const [selectedNhom, setSelectedNhom] = useState(() => String(initialData?.nhom_chuyen_mon_id || ""));
   const [selectedKhoa, setSelectedKhoa] = useState(() => String(initialData?.dia_diem_khoa_id || ""));
   const [selectedNhiemVu, setSelectedNhiemVu] = useState(() => String(initialData?.nhiem_vu_id || ""));
   const [viTri, setViTri] = useState(() => String(initialData?.vi_tri_thuc_hien || ""));
@@ -74,6 +76,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   useEffect(() => {
     setSelectedNhanSu(String(initialData?.nguoi_phu_trach_id || ""));
     setSelectedTo(String(initialData?.to_cong_tac_id || ""));
+    setSelectedNhom(String(initialData?.nhom_chuyen_mon_id || ""));
     setSelectedKhoa(String(initialData?.dia_diem_khoa_id || ""));
     setSelectedNhiemVu(String(initialData?.nhiem_vu_id || ""));
     setViTri(String(initialData?.vi_tri_thuc_hien || ""));
@@ -88,6 +91,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         const catalog = await getQlcvFormCatalog();
         setNhanSuOptions(catalog.nhanSu);
         setToCongTacOptions(catalog.toCongTac);
+        setNhomOptions(catalog.nhomChuyenMon);
         setKhoaPhongOptions(catalog.khoaPhong);
         try {
           setNhiemVuOptions(await listNhiemVuOptions());
@@ -141,6 +145,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       han_hoan_thanh: hanRaw ? String(hanRaw) : null,
       nguoi_phu_trach_id: selectedNhanSu || null,
       to_cong_tac_id: selectedTo || null,
+      nhom_chuyen_mon_id: selectedNhom || null,
       dia_diem_khoa_id: selectedKhoa || null,
       nhiem_vu_id: selectedNhiemVu || null,
       vi_tri_thuc_hien: viTri.trim() || null,
@@ -311,6 +316,17 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               onChange={setSelectedNhiemVu}
               disabled={optionsLoading}
               searchPlaceholder="Tìm nhiệm vụ/kế hoạch…"
+            />
+          </div>
+          <div>
+            <label className={labelStyles}>Nhóm chuyên môn</label>
+            <SearchableSelect
+              options={nhomOptions}
+              placeholder={optionsLoading ? "Đang tải..." : "— Chưa phân nhóm —"}
+              value={selectedNhom}
+              onChange={setSelectedNhom}
+              disabled={optionsLoading}
+              searchPlaceholder="Tìm nhóm…"
             />
           </div>
           <div>

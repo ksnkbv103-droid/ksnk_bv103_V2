@@ -32,6 +32,7 @@ export const congViecSchema = z.object({
   /** Domain A: Người thực hiện — form create bắt buộc; schema optional để dùng chung update/đề xuất. */
   nguoi_phu_trach_id: optionalUuid("Người thực hiện"),
   to_cong_tac_id: optionalUuid("Tổ công tác"),
+  nhom_chuyen_mon_id: optionalUuid("Nhóm chuyên môn"),
   /** Domain A FE-first: địa điểm optional (cột DB giữ soft-optional). */
   dia_diem_khoa_id: optionalUuid("Khoa/đơn vị địa điểm"),
   nhiem_vu_id: optionalUuid("Nhiệm vụ"),

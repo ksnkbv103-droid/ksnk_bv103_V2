@@ -19,6 +19,7 @@ export type QlcvInsertTaskPayload = {
   /** Dùng validate assignee thuộc KSNK — không ghi DB. */
   ksnkKhoaId: string;
   to_cong_tac_id?: string | null;
+  nhom_chuyen_mon_id?: string | null;
   vi_tri_thuc_hien?: string | null;
   nguoi_phoi_hop_ids?: string[];
   nguoi_theo_doi_ids?: string[];
@@ -162,6 +163,7 @@ export async function insertQlcvTaskRow(
       han_hoan_thanh: payload.han_hoan_thanh || null,
       nguoi_phu_trach_id: payload.nguoi_phu_trach_id || null,
       to_cong_tac_id: payload.to_cong_tac_id || null,
+      nhom_chuyen_mon_id: payload.nhom_chuyen_mon_id || null,
       vi_tri_thuc_hien: payload.vi_tri_thuc_hien?.trim() || null,
       dia_diem_khoa_id: payload.dia_diem_khoa_id || null,
       nhiem_vu_id: nhiemVuId,

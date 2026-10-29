@@ -28,6 +28,7 @@ import {
 } from "@/modules/quan-ly-cong-viec/lib/qlcv-access";
 import { mergeQlcvKanbanTasks } from "@/modules/quan-ly-cong-viec/lib/qlcv-list-merge";
 import { isDeXuatChoDuyet } from "@/modules/quan-ly-cong-viec/lib/qlcv-workflow-display";
+import { NhomChuyenMonManager } from "@/modules/quan-ly-cong-viec/components/NhomChuyenMonManager";
 import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
 import { QLCV_TRANG_THAI_MAU_SAC } from "@/modules/quan-ly-cong-viec/lib/qlcv-labels";
 import { listDinhKyMau } from "@/modules/quan-ly-cong-viec/actions/dinh-ky.actions";
@@ -441,6 +442,7 @@ export default function QuanLyCongViecPage() {
           }
           actions={
             <>
+              {isAdmin ? <NhomChuyenMonManager /> : null}
               {canShowDeXuatButton(qlcvUi) ? (
                 <Dialog open={isSuggesting} onOpenChange={setIsSuggesting}>
                   <DialogTrigger asChild>

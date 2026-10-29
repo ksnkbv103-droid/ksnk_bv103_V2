@@ -55,6 +55,7 @@ export async function createCongViec(input: CongViecInput) {
     nguoi_phu_trach_id: payload.nguoi_phu_trach_id,
     ksnkKhoaId: ksnkKhoaId,
     to_cong_tac_id: payload.to_cong_tac_id,
+    nhom_chuyen_mon_id: payload.nhom_chuyen_mon_id,
     vi_tri_thuc_hien: payload.vi_tri_thuc_hien,
     dia_diem_khoa_id: payload.dia_diem_khoa_id,
     nhiem_vu_id: payload.nhiem_vu_id,
@@ -211,6 +212,7 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
   if (updates.han_hoan_thanh !== undefined) dbUpdates.han_hoan_thanh = updates.han_hoan_thanh;
   if (updates.nguoi_phu_trach_id !== undefined) dbUpdates.nguoi_phu_trach_id = updates.nguoi_phu_trach_id;
   if (updates.to_cong_tac_id !== undefined) dbUpdates.to_cong_tac_id = updates.to_cong_tac_id;
+  if (updates.nhom_chuyen_mon_id !== undefined) dbUpdates.nhom_chuyen_mon_id = updates.nhom_chuyen_mon_id || null;
   if (updates.vi_tri_thuc_hien !== undefined) {
     dbUpdates.vi_tri_thuc_hien = updates.vi_tri_thuc_hien?.trim() || null;
   }

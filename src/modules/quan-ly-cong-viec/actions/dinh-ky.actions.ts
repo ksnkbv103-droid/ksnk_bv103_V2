@@ -23,6 +23,7 @@ export interface DinhKyMauRow {
   ngay_ket_thuc?: string | null;
   nguoi_phu_trach_id: string | null;
   to_cong_tac_id: string | null;
+  nhom_chuyen_mon_id: string | null;
   /** Thêm migration 20260530150000 */
   muc_do_uu_tien: MucDoUuTienDinhKy | null;
   vi_tri_thuc_hien: string | null;
@@ -60,6 +61,7 @@ export async function upsertDinhKyMau(input: {
   ngay_ket_thuc?: string | null;
   nguoi_phu_trach_id?: string | null;
   to_cong_tac_id?: string | null;
+  nhom_chuyen_mon_id?: string | null;
   muc_do_uu_tien?: MucDoUuTienDinhKy | null;
   vi_tri_thuc_hien?: string | null;
   gio_bat_dau?: string | null;
@@ -80,6 +82,19 @@ export async function upsertDinhKyMau(input: {
   }
   if (input.nguoi_phu_trach_id) {
     await validateAssigneeForQlcv(supabase, input.nguoi_phu_trach_id, ksnkKhoaId);
+  }
+  // Mẫu mới bắt buộc có nhóm; mẫu cũ chưa có nhóm vẫn lưu được cho đến khi chọn.
+  const nhomId = input.nhom_chuyen_mon_id?.trim() || null;
+  if (!input.id && !nhomId) throw new Error("Chọn nhóm chuyên môn cho mẫu định kỳ.");
+  if (nhomId) {
+    const { data: nhomOk, error: nhomErr } = await supabase
+      .from("qlcv_dm_nhom_chuyen_mon")
+      .select("id")
+      .eq("id", nhomId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (nhomErr) throwQlcvDbError(nhomErr, "Không kiểm tra được nhóm chuyên môn.");
+    if (!nhomOk) throw new Error("Nhóm chuyên môn không hợp lệ hoặc đã ngừng sử dụng.");
   }
   const phoiHop = normalizeQlcvStaffIdList(input.nguoi_phoi_hop_ids);
   const theoDoi = normalizeQlcvStaffIdList(input.nguoi_theo_doi_ids);
@@ -120,6 +135,7 @@ export async function upsertDinhKyMau(input: {
     ngay_ket_thuc: ketThuc,
     nguoi_phu_trach_id: input.nguoi_phu_trach_id ?? null,
     to_cong_tac_id: input.to_cong_tac_id ?? null,
+    nhom_chuyen_mon_id: nhomId,
     muc_do_uu_tien: input.muc_do_uu_tien ?? "TRUNG_BINH",
     vi_tri_thuc_hien: input.vi_tri_thuc_hien?.trim() || null,
     gio_bat_dau: gioBat,

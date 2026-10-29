@@ -33,6 +33,9 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
           {row.nhiem_vu_ten ? (
             <span className={`${Q.cellMeta} block truncate`}>NV/KH: {row.nhiem_vu_ten}</span>
           ) : null}
+          {row.nhom_chuyen_mon_ten ? (
+            <span className={`${Q.cellMeta} block truncate text-emerald-700`}>{row.nhom_chuyen_mon_ten}</span>
+          ) : null}
           <QlcvDinhKyMauChip
             loaiCongViec={row.loai_cong_viec}
             dinhKyMauId={row.dinh_ky_mau_id}

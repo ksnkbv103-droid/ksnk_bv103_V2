@@ -164,6 +164,11 @@ export default function CongViecKanban({
                     <h4 className="mb-1 line-clamp-2 text-sm font-semibold leading-tight text-slate-800">{task.tieu_de}</h4>
                     <div className="mb-2">
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
+                      {task.nhom_chuyen_mon_ten ? (
+                        <span className="ml-1.5 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                          {task.nhom_chuyen_mon_ten}
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
