@@ -2,7 +2,9 @@
 
 import { lyDoXuatLabel } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Printer, X } from "lucide-react";
+import { buildTheKho } from "@/lib/domain/cssd-kho-hoa-chat-the-kho";
+import KhoHoaChatPrintView, { type KhoPrintState } from "./kho-hoa-chat-print-view";
 import { fefoSortLots } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { canShowDuyetButtons, normalizeTrangThai, trangThaiLabel, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import type { DmStockSummary } from "@/lib/domain/cssd-kho-hoa-chat-summary";
@@ -38,6 +40,19 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  const [printState, setPrintState] = useState<KhoPrintState>(null);
+  const item = { ma_hoa_chat: dm.ma_hoa_chat, ten_hoa_chat: dm.ten_hoa_chat, don_vi_tinh: dm.don_vi_tinh ?? null, tong_ton: dm.tong_ton };
+  // Render vùng in trước, rồi mới gọi hộp thoại in; xong thì gỡ.
+  useEffect(() => {
+    if (!printState) return;
+    const done = () => setPrintState(null);
+    window.addEventListener("afterprint", done);
+    const t = window.setTimeout(() => window.print(), 50);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("afterprint", done);
+    };
+  }, [printState]);
   const sorted = fefoSortLots(lots.filter((l) => l.ton_so_luong > 0));
 
   const reject = async (m: KhoHoaChatGiaoDichRow) => {
@@ -60,6 +75,9 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
               {dm.ma_hoa_chat} · Tồn {dm.tong_ton} {dm.don_vi_tinh || ""}
             </p>
           </div>
+          <button type="button" onClick={() => setPrintState({ kind: "THE_KHO", item, the: buildTheKho(movs, dm.tong_ton) })} className="ml-auto flex items-center gap-1 rounded border border-slate-200 px-2 py-1 bv103-type-label font-semibold text-slate-700 hover:bg-slate-50">
+            <Printer className="h-3.5 w-3.5" /> In thẻ kho
+          </button>
           <button type="button" aria-label="Đóng" onClick={onClose} className="rounded p-1 hover:bg-slate-100">
             <X className="h-4 w-4" />
           </button>
@@ -113,6 +131,11 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
                     {m.nguoi_duyet_ten ? ` · Duyệt: ${m.nguoi_duyet_ten}` : ""}
                     {m.tu_duyet_ngoai_le ? " · tự duyệt ngoại lệ" : ""}
                   </p>
+                  {tt === "DA_DUYET" && m.so_luong_co_dau !== 0 ? (
+                    <button type="button" onClick={() => setPrintState({ kind: "PHIEU", item, mov: m })} className="mt-1 flex items-center gap-1 bv103-type-label font-semibold text-slate-600 underline">
+                      <Printer className="h-3 w-3" /> In phiếu
+                    </button>
+                  ) : null}
                   {tt === "TU_CHOI" && m.ly_do_tu_choi ? <p className="bv103-type-label text-rose-700">Lý do: {m.ly_do_tu_choi}</p> : null}
                   {showBtn ? (
                     rejectId === m.id ? (
@@ -139,6 +162,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
           )}
         </ul>
       </aside>
+      <KhoHoaChatPrintView state={printState} />
     </div>
   );
 }

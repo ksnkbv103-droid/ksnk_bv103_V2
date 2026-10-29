@@ -16,6 +16,10 @@ export type PrintFileLoai =
   | "TEMBO"
   | "TEMMAY"
   | "TEMCYC"
+  /** Kho hóa chất: phiếu nhập, phiếu xuất, thẻ kho. */
+  | "PNK"
+  | "PXK"
+  | "THEKHO"
   /** Phiếu xác định ca NKBV (envelope SSOT §5.2). */
   | "NKBV_PXDC";
 
