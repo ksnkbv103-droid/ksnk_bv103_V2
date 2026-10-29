@@ -4,5 +4,5 @@ export {
   listGiaoDichKhoHoaChatAction,
   listTonTheoLoKhoHoaChatAction,
 } from "./cssd-kho-hoa-chat-list.actions";
-export { dieuChinhKhoHoaChatAction, nhapKhoHoaChatAction, xuatKhoHoaChatAction } from "./cssd-kho-hoa-chat-mutations.actions";
+export { nhapKhoHoaChatAction, xuatKhoHoaChatAction } from "./cssd-kho-hoa-chat-mutations.actions";
 export { listSuCoChemicalChuaGhiKhoAction, type SuCoChemicalRow } from "./cssd-kho-hoa-chat-su-co.actions";

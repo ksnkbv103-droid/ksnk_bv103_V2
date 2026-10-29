@@ -2,11 +2,13 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { isLyDoXuat } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import { normalizeHanIso, normalizeMaLo } from "../helpers/kho-hoa-chat-lot";
 import { getErrorMessage, mapFkError, revalidateCssdChemicalSurfaces } from "./cssd-action-common";
 
+// PO 2026-10-29: cấm sửa số tồn — không còn DIEU_CHINH; tồn chỉ đổi bằng phiếu Nhập / Xuất (có lý do) qua duyệt.
 async function ghiGiaoDich(
-  loai: "NHAP" | "XUAT" | "DIEU_CHINH",
+  loai: "NHAP" | "XUAT",
   input: {
     dm_hoa_chat_id: string;
     so_luong: number;
@@ -14,6 +16,7 @@ async function ghiGiaoDich(
     han_su_dung?: string | null;
     ghi_chu?: string | null;
     su_co_id?: string | null;
+    ly_do_xuat?: string | null;
   },
 ) {
   const uc = await createServerSupabaseUserClient();
@@ -32,6 +35,7 @@ async function ghiGiaoDich(
     p_su_co_id: String(input.su_co_id || "").trim() || null,
     p_actor_user_id: userId,
     p_ma_phieu: null,
+    p_ly_do_xuat: loai === "XUAT" ? input.ly_do_xuat ?? null : null,
   });
   if (error) {
     if (error.code === "P0001") return { success: false as const, error: error.message };
@@ -67,6 +71,7 @@ export async function xuatKhoHoaChatAction(input: {
   han_su_dung?: string | null;
   ghi_chu?: string | null;
   su_co_id?: string | null;
+  ly_do_xuat: string;
 }) {
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "edit");
@@ -74,28 +79,8 @@ export async function xuatKhoHoaChatAction(input: {
     const qty = Number(input.so_luong);
     if (!dmId) return { success: false as const, error: "Chọn hóa chất." };
     if (!Number.isFinite(qty) || qty <= 0) return { success: false as const, error: "Số lượng xuất phải > 0." };
+    if (!isLyDoXuat(input.ly_do_xuat)) return { success: false as const, error: "Chọn lý do xuất." };
     return await ghiGiaoDich("XUAT", { ...input, dm_hoa_chat_id: dmId, so_luong: qty });
-  } catch (e: unknown) {
-    return { success: false as const, error: getErrorMessage(e) };
-  }
-}
-
-/** Điều chỉnh tồn (+/-) trên một khóa lô — dùng kiểm kê; số dương = tăng, âm = giảm. */
-export async function dieuChinhKhoHoaChatAction(input: {
-  dm_hoa_chat_id: string;
-  so_luong_thay_doi: number;
-  ma_lo?: string | null;
-  han_su_dung?: string | null;
-  ghi_chu?: string | null;
-  su_co_id?: string | null;
-}) {
-  try {
-    await verifyPermission("KSNK_KHO_HOACHAT", "edit");
-    const dmId = String(input.dm_hoa_chat_id || "").trim();
-    const delta = Number(input.so_luong_thay_doi);
-    if (!dmId) return { success: false as const, error: "Chọn hóa chất." };
-    if (!Number.isFinite(delta) || delta === 0) return { success: false as const, error: "Số điều chỉnh phải khác 0." };
-    return await ghiGiaoDich("DIEU_CHINH", { ...input, dm_hoa_chat_id: dmId, so_luong: delta });
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }

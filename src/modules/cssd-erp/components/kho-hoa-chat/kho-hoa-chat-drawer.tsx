@@ -1,5 +1,6 @@
 "use client";
 
+import { lyDoXuatLabel } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { fefoSortLots } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
@@ -94,7 +95,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
           )}
         </ul>
 
-        <p className={H}>Lịch sử nhập, xuất, điều chỉnh</p>
+        <p className={H}>Lịch sử nhập, xuất</p>
         <ul className="mt-1 space-y-2">
           {movs.length ? (
             movs.map((m) => {
@@ -104,7 +105,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
               return (
                 <li key={m.id} className="rounded-lg border border-slate-100 px-2.5 py-2">
                   <p className="bv103-type-label flex justify-between font-semibold text-slate-800">
-                    <span>{LOAI[m.loai_giao_dich] ?? "Điều chỉnh"} {m.so_luong_co_dau} · {m.ma_phieu}</span>
+                    <span>{LOAI[m.loai_giao_dich] ?? "Điều chỉnh (cũ)"} {m.so_luong_co_dau} · {m.ma_phieu}{m.ly_do_xuat ? ` · ${lyDoXuatLabel(m.ly_do_xuat)}` : ""}</span>
                     <span className={tt === "CHO_DUYET" ? "text-amber-700" : tt === "TU_CHOI" ? "text-rose-700" : "text-emerald-700"}>{trangThaiLabel(m.trang_thai)}</span>
                   </p>
                   <p className="bv103-type-label text-slate-500">

@@ -4,6 +4,7 @@ import React from "react";
 import {
   isFefoLotKey,
 } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { LY_DO_XUAT, LY_DO_XUAT_LABEL, type LyDoXuat } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import { lotOptsForDm } from "./kho-hoa-chat-lot-opts";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
@@ -19,7 +20,7 @@ type DmOpt = {
 const LBL = "bv103-type-label font-medium text-slate-500";
 const INP = "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm";
 
-export type MoveMode = "NHAP" | "XUAT" | "DIEU";
+export type MoveMode = "NHAP" | "XUAT";
 
 type Props = {
   open: boolean;
@@ -42,6 +43,8 @@ type Props = {
   hanNhap: string;
   onHanNhap: (v: string) => void;
   linkedSuCoId?: string | null;
+  lyDoXuat: LyDoXuat | "";
+  onLyDoXuat: (v: LyDoXuat | "") => void;
 };
 
 export default function KhoHoaChatMoveSheet({
@@ -65,19 +68,21 @@ export default function KhoHoaChatMoveSheet({
   hanNhap,
   onHanNhap,
   linkedSuCoId,
+  lyDoXuat,
+  onLyDoXuat,
 }: Props) {
   if (!open) return null;
 
   const dmRows = tonLots.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
-  const lots = mode === "NHAP" ? [] : lotOptsForDm(dmId, tonLots);
+  const lots = mode === "NHAP" ? [] : lotOptsForDm(dmId, tonLots, lyDoXuat === "HET_HAN_HUY");
   const showFefoWarning = mode === "XUAT" && Boolean(lotKey && dmId && !isFefoLotKey(lotKey, dmRows));
 
   const title =
-    mode === "NHAP" ? "Nhập kho" : mode === "XUAT" ? "Xuất kho (theo lô)" : "Điều chỉnh tồn (kiểm kê)";
+    mode === "NHAP" ? "Nhập kho (lĩnh hàng về kho)" : "Xuất kho (theo lô)";
   const subtitle = linkedSuCoId
     ? "Phiếu này sẽ liên kết với báo cáo sự cố CHEMICAL đã chọn."
     : mode === "XUAT"
-      ? "Lô được sắp theo FEFO (hết hạn trước). Không xuất lô quá hạn."
+      ? "Lô được sắp theo FEFO (hết hạn trước). Lô quá hạn chỉ xuất với lý do «Hết hạn, hủy»."
       : "Đơn vị theo danh mục (chai, lọ, kg…).";
 
   return (
@@ -109,9 +114,23 @@ export default function KhoHoaChatMoveSheet({
           </div>
 
           <div>
-            <label className={LBL}>{mode === "NHAP" ? "Số lượng nhập" : mode === "XUAT" ? "Số lượng xuất" : "Điều chỉnh (+ hoặc -)"}</label>
+            <label className={LBL}>{mode === "NHAP" ? "Số lượng nhập" : "Số lượng xuất"}</label>
             <input type="number" step="0.01" className={INP} value={qty} onChange={(e) => onQty(e.target.value)} />
           </div>
+
+          {mode === "XUAT" ? (
+            <div>
+              <label className={LBL}>Lý do xuất</label>
+              <select className={INP} value={lyDoXuat} onChange={(e) => onLyDoXuat(e.target.value as LyDoXuat | "")}>
+                <option value="">— Chọn lý do —</option>
+                {LY_DO_XUAT.map((k) => (
+                  <option key={k} value={k}>
+                    {LY_DO_XUAT_LABEL[k]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
 
           {mode === "NHAP" ? (
             <div className="grid grid-cols-2 gap-3">
@@ -126,10 +145,10 @@ export default function KhoHoaChatMoveSheet({
             </div>
           ) : null}
 
-          {(mode === "XUAT" || mode === "DIEU") && dmId ? (
-            <details className="rounded-lg border border-slate-200 px-3 py-2" open={mode === "DIEU" || showFefoWarning}>
+          {mode === "XUAT" && dmId ? (
+            <details className="rounded-lg border border-slate-200 px-3 py-2" open={showFefoWarning}>
               <summary className="bv103-type-label cursor-pointer font-medium text-slate-600">
-                {mode === "XUAT" ? "Lô xuất: tự chọn theo FEFO — đổi lô" : "Lô điều chỉnh"}
+                Lô xuất: tự chọn theo FEFO — đổi lô
               </summary>
               <select className={INP} value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
                 <option value="">— Không lô / không HSD —</option>

@@ -112,7 +112,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
     const { data: rows, error } = await supabase
       .from("cssd_fact_kho_hoa_chat_giao_dich")
-      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le")
+      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le, ly_do_xuat")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(lim);
@@ -157,6 +157,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
       han_su_dung: r.han_su_dung != null ? String(r.han_su_dung).slice(0, 10) : null,
       ghi_chu: r.ghi_chu != null ? String(r.ghi_chu) : null,
       su_co_id: r.su_co_id != null ? String(r.su_co_id) : null,
+      ly_do_xuat: r.ly_do_xuat != null ? String(r.ly_do_xuat) : null,
       created_at: r.created_at != null ? String(r.created_at) : null,
       ten_hoa_chat: tenMap.get(String(r.dm_hoa_chat_id)) || null,
     }));

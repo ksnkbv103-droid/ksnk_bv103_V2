@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { MoveMode } from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
 import {
-  dieuChinhKhoHoaChatAction,
   listDmHoaChatChoKhoAction,
   listGiaoDichKhoHoaChatAction,
   listTonTheoLoKhoHoaChatAction,
@@ -17,7 +16,8 @@ import {
   listSuCoChemicalChuaGhiKhoAction,
   type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
-import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { fefoSortLots, isLotExpired, lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { validateLyDoXuat, type LyDoXuat } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import { normalizeTrangThai, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import { buildDmStockSummary, type DmLite } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { duyetPhieuKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat-duyet.actions";
@@ -48,6 +48,7 @@ export function useKhoHoaChatPage() {
   const [note, setNote] = useState("");
   const [maLoNhap, setMaLoNhap] = useState("");
   const [hanNhap, setHanNhap] = useState("");
+  const [lyDoXuat, setLyDoXuat] = useState<LyDoXuat | "">("CAP_SU_DUNG");
 
   /** Một lần khi mount — mốc ngày cho cận-date FEFO (tránh Date.now trong thân render). */
   const [todayYmd] = useState(() => todayYmdInVn());
@@ -83,6 +84,7 @@ export function useKhoHoaChatPage() {
     setNote("");
     setMaLoNhap("");
     setHanNhap("");
+    setLyDoXuat("CAP_SU_DUNG");
     if (!sheetOpen) {
       setLotKey("");
       return;
@@ -155,6 +157,7 @@ export function useKhoHoaChatPage() {
     setMoveMode("XUAT");
     setDmId(row.dm_hoa_chat_id);
     setQty("");
+    setLyDoXuat("");
     setNote(
       row.mo_ta
         ? `Xuất theo sự cố — ${row.incident_type_label || "CHEMICAL"}: ${row.mo_ta}`
@@ -168,9 +171,7 @@ export function useKhoHoaChatPage() {
     if (!dmId.trim()) return toast.error("Chọn mặt hàng.");
     if (!canEdit) return toast.error("Không có quyền sửa.");
     if (!Number.isFinite(q) || q === 0) return toast.error("Nhập số lượng hợp lệ.");
-    if (moveMode === "NHAP" || moveMode === "XUAT") {
-      if (q <= 0) return toast.error("Số lượng phải dương.");
-    }
+    if (q <= 0) return toast.error("Số lượng phải dương.");
 
     const { ma_lo: loXp, han_su_dung: hxp } = parseLotKey(lotKey);
 
@@ -184,7 +185,10 @@ export function useKhoHoaChatPage() {
       });
       if (!r.success) return toast.error(r.error);
       toast.success("Đã lập phiếu, chờ duyệt.");
-    } else if (moveMode === "XUAT") {
+    } else {
+      const quaHan = isLotExpired(hxp);
+      const loiLyDo = validateLyDoXuat(lyDoXuat, quaHan);
+      if (loiLyDo) return toast.error(loiLyDo);
       const r = await xuatKhoHoaChatAction({
         dm_hoa_chat_id: dmId,
         so_luong: q,
@@ -192,20 +196,10 @@ export function useKhoHoaChatPage() {
         han_su_dung: hxp,
         ghi_chu: note || null,
         su_co_id: linkedSuCoId,
+        ly_do_xuat: lyDoXuat,
       });
       if (!r.success) return toast.error(r.error);
       toast.success(linkedSuCoId ? "Đã lập phiếu xuất liên kết sự cố, chờ duyệt." : "Đã lập phiếu, chờ duyệt.");
-    } else {
-      const r = await dieuChinhKhoHoaChatAction({
-        dm_hoa_chat_id: dmId,
-        so_luong_thay_doi: q,
-        ma_lo: loXp,
-        han_su_dung: hxp,
-        ghi_chu: note || null,
-        su_co_id: linkedSuCoId,
-      });
-      if (!r.success) return toast.error(r.error);
-      toast.success("Đã điều chỉnh tồn.");
     }
     setSheetOpen(false);
     setLinkedSuCoId(null);
@@ -219,13 +213,25 @@ export function useKhoHoaChatPage() {
     dmId.trim() &&
     qty.trim() &&
     Number.isFinite(qn) &&
-    qn !== 0 &&
-    (moveMode === "DIEU" ? true : qn > 0);
+    qn > 0 &&
+    (moveMode === "NHAP" || Boolean(lyDoXuat));
 
   const dmSummary = useMemo(
     () => buildDmStockSummary(dms, tons, todayYmd),
     [dms, tons, todayYmd],
   );
+
+  /** Đổi lý do xuất: «Hết hạn, hủy» chuyển sang lô quá hạn, lý do khác về lô FEFO còn hạn. */
+  const changeLyDoXuat = (v: LyDoXuat | "") => {
+    setLyDoXuat(v);
+    const lots = tons.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
+    if (v === "HET_HAN_HUY") {
+      const het = fefoSortLots(lots.filter((t) => isLotExpired(t.han_su_dung)))[0];
+      setLotKey(het ? lotRowToKey(het) : "");
+    } else {
+      setLotKey(pickFefoLotKey(lots));
+    }
+  };
 
   const closeSheet = () => {
     setSheetOpen(false);
@@ -240,6 +246,7 @@ export function useKhoHoaChatPage() {
       open: sheetOpen, mode: moveMode, canSubmit: Boolean(canSubmitSheet), onClose: closeSheet, onSubmit: submitMove,
       dmId, onDmId: setDmId, lotKey, onLotKey: setLotKey, qty, onQty: setQty, note, onNote: setNote,
       maLoNhap, onMaLoNhap: setMaLoNhap, hanNhap, onHanNhap: setHanNhap, linkedSuCoId,
+      lyDoXuat, onLyDoXuat: changeLyDoXuat,
     },
     openSheet, openXuatTuSuCo, approve, reload,
   };

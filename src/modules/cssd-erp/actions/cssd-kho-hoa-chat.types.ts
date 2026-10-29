@@ -25,6 +25,8 @@ export type KhoHoaChatGiaoDichRow = {
   created_at: string | null;
   ten_hoa_chat?: string | null;
   su_co_id?: string | null;
+  /** HC-E: lý do phiếu xuất (CAP_SU_DUNG, HET_HAN_HUY, VO_HONG, THAT_THOAT, KIEM_KE_THIEU). */
+  ly_do_xuat?: string | null;
   /** HC-C */
   trang_thai?: "CHO_DUYET" | "DA_DUYET" | "TU_CHOI";
   nguoi_lap_ten?: string | null;

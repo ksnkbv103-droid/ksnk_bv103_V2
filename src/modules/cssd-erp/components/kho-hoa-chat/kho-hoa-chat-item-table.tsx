@@ -66,7 +66,6 @@ export default function KhoHoaChatItemTable({ rows, loading, canEdit, choDuyetBy
                     <span className="inline-flex items-center gap-1">
                       <button type="button" className={BTN} onClick={() => onMove("NHAP", r.id)}>Nhập</button>
                       <button type="button" className={BTN} onClick={() => onMove("XUAT", r.id)}>Xuất</button>
-                      <button type="button" className={BTN} onClick={() => onMove("DIEU", r.id)}>Điều chỉnh</button>
                     </span>
                   </td>
                 ) : null}

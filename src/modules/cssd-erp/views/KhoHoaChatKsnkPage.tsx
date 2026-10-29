@@ -159,6 +159,8 @@ export default function KhoHoaChatKsnkPage() {
         hanNhap={sheet.hanNhap}
         onHanNhap={sheet.onHanNhap}
         linkedSuCoId={sheet.linkedSuCoId}
+        lyDoXuat={sheet.lyDoXuat}
+        onLyDoXuat={sheet.onLyDoXuat}
       />
     </CSSDPageShell>
   );
