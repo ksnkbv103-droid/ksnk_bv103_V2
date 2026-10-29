@@ -25,7 +25,8 @@ import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
 
 // ==================== CREATE ====================
 export async function createCongViec(input: CongViecInput) {
-  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("create");
+  // Tạo việc trực tiếp = edit (khớp canShowDirectCreateTask); create chỉ dành cho gửi đề xuất.
+  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("edit");
   const parsed = congViecCreateSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error("Dữ liệu không hợp lệ: " + parsed.error.issues.map((i) => i.message).join(", "));
