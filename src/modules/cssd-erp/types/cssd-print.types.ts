@@ -75,6 +75,27 @@ export type CssdCapPhatPrintIncident = {
   loai: string;
 };
 
+/** Người + giờ một mốc của mẻ (ISO); null = mẻ cũ không có nhật ký. */
+export type CssdCapPhatMeMoc = { ten: string; thoiGian: string };
+
+export type CssdCapPhatMeTestRow = {
+  loai: string;
+  ketQua: string;
+  dat: boolean;
+  nguoi: string;
+  thoiGian: string | null;
+};
+
+export type CssdCapPhatMeInfo = {
+  tests: CssdCapPhatMeTestRow[];
+  ketLuan: "DAT" | "KHONG_DAT" | "KHONG_CO_DU_LIEU";
+  nap: CssdCapPhatMeMoc | null;
+  batDau: CssdCapPhatMeMoc | null;
+  ketThuc: CssdCapPhatMeMoc | null;
+  /** kết thúc − bắt đầu (phút); null nếu thiếu mốc. */
+  phutTietKhuan: number | null;
+};
+
 export type CssdCapPhatPrintData = {
   quyTrinhId: string;
   maLo: string;
@@ -99,6 +120,8 @@ export type CssdCapPhatPrintData = {
   testCI: string;
   testBowieDick: string;
   thoiGianKetThucMe: string | null;
+  /** Bảng test + mốc nạp/bắt đầu/kết thúc từ nhật ký mẻ. */
+  meInfo: CssdCapPhatMeInfo;
   instruments: CssdPrintInstrumentRow[];
   /** Rỗng → dòng phủ định trên phiếu. */
   suCo: CssdCapPhatPrintIncident[];

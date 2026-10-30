@@ -14,6 +14,7 @@ import {
   loadNhanSuHoTen,
   resolveMeNguoiNapHoTen,
 } from "../shared/application/cssd-operator-resolve";
+import { buildCapPhatMeInfo } from "../lib/cssd-cap-phat-me-nhat-ky";
 import { parseNguoiNapIdFromGhiChu } from "../lib/me-nguoi-nap-ghi-chu";
 import { loadPackBatchReleaseGate } from "../helpers/pack-batch-release-gate";
 import {
@@ -317,6 +318,10 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       testCI: qc.testCI,
       testBowieDick: qc.testBowieDick,
       thoiGianKetThucMe: (batch.thoi_gian_ket_thuc as string | null) ?? null,
+      meInfo: buildCapPhatMeInfo({
+        tk_qc_json: batch.tk_qc_json,
+        ket_qua_test: (batch.ket_qua_test as boolean | null) ?? null,
+      }),
       instruments,
       suCo: mapCapPhatPrintIncidents(suCoRows),
     };
