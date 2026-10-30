@@ -14,6 +14,7 @@ import {
   loadNhanSuHoTen,
   resolveMeNguoiNapHoTen,
 } from "../shared/application/cssd-operator-resolve";
+import { buildCapPhatMeInfo } from "../lib/cssd-cap-phat-me-nhat-ky";
 import { parseNguoiNapIdFromGhiChu } from "../lib/me-nguoi-nap-ghi-chu";
 import { loadPackBatchReleaseGate } from "../helpers/pack-batch-release-gate";
 import {
@@ -156,6 +157,7 @@ async function mapBatchPrintData(
     qcCiNgoai: qcTri(batch.tk_qc_json, "ci_ngoai_goi"),
     qcCiPcd: qcTri(batch.tk_qc_json, "ci_pcd"),
     ghiChuQc: String(batch.ghi_chu_qc || batch.ghi_chu || ""),
+    tkQcJson: batch.tk_qc_json,
     members: members.map((m) => ({
       maBo: String(m.ma_bo || m.ma_vach_qr || m.ma_qr_quy_trinh || "—"),
       tenBo: String((m.bo as { ten_bo?: string } | null)?.ten_bo || m.ten_bo || "—"),
@@ -317,6 +319,10 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       testCI: qc.testCI,
       testBowieDick: qc.testBowieDick,
       thoiGianKetThucMe: (batch.thoi_gian_ket_thuc as string | null) ?? null,
+      meInfo: buildCapPhatMeInfo({
+        tk_qc_json: batch.tk_qc_json,
+        ket_qua_test: (batch.ket_qua_test as boolean | null) ?? null,
+      }),
       instruments,
       suCo: mapCapPhatPrintIncidents(suCoRows),
     };

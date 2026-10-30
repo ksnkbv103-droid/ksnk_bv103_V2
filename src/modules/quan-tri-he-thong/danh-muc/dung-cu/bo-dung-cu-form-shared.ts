@@ -37,6 +37,9 @@ export interface BoDungCuTableRow {
   tong_so_luong_dung_cu?: number;
   tong_phan_bo?: number;
   is_active?: boolean;
+  /** Giao phương pháp được phép của các loại trong BOM (chỉ hiển thị). */
+  phuong_phap_chung?: string[];
+  co_dong_loai?: boolean;
 }
 
 export function mapBoDungCuRowToForm(row: BoDungCuTableRow | null): BoDungCuFormValues {

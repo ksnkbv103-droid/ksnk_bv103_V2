@@ -22,7 +22,8 @@ describe("meTrangThaiBadge", () => {
     expect(meTrangThaiBadge("CHO_DANH_GIA_QC").label).toBe("Chờ QC");
     expect(meTrangThaiBadge("CHO_BI").label).toBe("Chờ BI");
     expect(meTrangThaiBadge("HOAN_THANH").label).toBe("Hoàn thành");
-    expect(meTrangThaiBadge("QC_KHONG_DAT").label).toBe("Không đạt");
+    expect(meTrangThaiBadge("QC_KHONG_DAT").label).toBe("Lô hỏng, cần xem lại");
+    expect(meTrangThaiBadge("DA_CHOT_NAP").label).toBe("Đã kết thúc nạp");
     expect(meTrangThaiBadge("THU_HOI").label).toBe("Thu hồi");
   });
 });
@@ -30,13 +31,14 @@ describe("meTrangThaiBadge", () => {
 describe("meListPrimaryAction", () => {
   it("một primary CTA theo trạng thái; terminal → null", () => {
     expect(meListPrimaryAction("DANG_CHUAN_NAP")).toEqual({ label: "Tiếp tục nạp" });
+    expect(meListPrimaryAction("DA_CHOT_NAP")).toEqual({ label: "Bắt đầu tiệt khuẩn" });
     expect(meListPrimaryAction("DANG_TIET_KHUAN")).toEqual({ label: "Kết thúc" });
     expect(meListPrimaryAction("CHO_DANH_GIA_QC")).toEqual({ label: "Nhập QC" });
     expect(meListPrimaryAction("CHO_BI")).toEqual({ label: "Nhập BI" });
     expect(meListPrimaryAction("Quarantine_BI")).toEqual({ label: "Nhập BI" });
-    expect(meListPrimaryAction("HOAN_THANH")).toBeNull();
-    expect(meListPrimaryAction("QC_KHONG_DAT")).toBeNull();
-    expect(meListPrimaryAction("THU_HOI")).toBeNull();
+    expect(meListPrimaryAction("HOAN_THANH")).toEqual({ label: "Xem / In" });
+    expect(meListPrimaryAction("QC_KHONG_DAT")).toEqual({ label: "Xem / In" });
+    expect(meListPrimaryAction("THU_HOI")).toEqual({ label: "Xem / In" });
     expect(meListPrimaryAction("SOMETHING_ELSE")).toEqual({ label: "Mở phiếu" });
     expect(meListPrimaryAction("")).toEqual({ label: "Mở phiếu" });
   });
@@ -47,9 +49,10 @@ describe("currentMeSlipStep", () => {
     expect(currentMeSlipStep({ chuongTrinh: "", itemCount: 0, napLocked: false, qcOpen: false })).toBe(2);
     expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 0, napLocked: false, qcOpen: false })).toBe(3);
     expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: false, qcOpen: false })).toBe(4);
-    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: false })).toBe(5);
-    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: true })).toBe(5);
-    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: true, choBi: true })).toBe(6);
+    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: false, trangThai: "DA_CHOT_NAP" })).toBe(5);
+    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: false, trangThai: "DANG_TIET_KHUAN" })).toBe(6);
+    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: true })).toBe(7);
+    expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: true, choBi: true })).toBe(7);
   });
 
   it("đã nạp ≥1 bộ → bước 4 dù chương trình trống", () => {
@@ -69,9 +72,11 @@ describe("canConfirmBatDauMeSlip", () => {
 describe("slipStatusLabel", () => {
   it("đang nạp trước khi chạy, chờ BI khi giữ", () => {
     expect(slipStatusLabel({ step: 3 })).toBe("Đang nạp");
-    expect(slipStatusLabel({ step: 5 })).toBe("Đang chạy");
-    expect(slipStatusLabel({ step: 6, choBi: true })).toBe("Chờ BI");
-    expect(slipStatusLabel({ step: 6, ketQuaTest: true })).toBe("Hoàn thành");
+    expect(slipStatusLabel({ step: 5, trangThai: "DA_CHOT_NAP" })).toBe("Đã kết thúc nạp");
+    expect(slipStatusLabel({ step: 6 })).toBe("Đang chạy");
+    expect(slipStatusLabel({ step: 7, choBi: true })).toBe("Chờ BI");
+    expect(slipStatusLabel({ step: 7, ketQuaTest: true })).toBe("Hoàn thành");
+    expect(slipStatusLabel({ step: 7, trangThai: "QC_KHONG_DAT" })).toBe("Lô hỏng, cần xem lại");
   });
 });
 
@@ -116,7 +121,7 @@ describe("resolveMeBadgeState (CS-ME)", () => {
   it("mẻ hỏng ket_qua_test NULL hiện Không đạt, không phải Chờ đánh giá QC", () => {
     const st = resolveMeBadgeState({ ...base, trangThai: "QC_KHONG_DAT", ketQuaTest: null });
     expect(st).toBe("QC_KHONG_DAT");
-    expect(meTrangThaiBadge(st).label).toBe("Không đạt");
+    expect(meTrangThaiBadge(st).label).toBe("Lô hỏng, cần xem lại");
   });
   it("mẻ THU_HOI giữ ket_qua_test=true hiện Thu hồi, không phải Hoàn thành", () => {
     const st = resolveMeBadgeState({ ...base, trangThai: "THU_HOI", ketQuaTest: true });

@@ -6,7 +6,7 @@ import { mapLoaiPhysicalToListRow, splitLoaiStock } from "@/lib/master-data/cssd
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { CSSD_KHO_CATALOG_PERMISSION_CANDIDATES } from "../lib/cssd-catalog-permission-candidates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
-import type { CSSDBo, CSSDChiTiet, CSSDLoai } from "../types/catalog.types";
+import { KHO_CATALOG_PAGE_SIZE, type CSSDBo, type CSSDChiTiet, type CSSDLoai } from "../types/catalog.types";
 
 async function verifyCanViewKhoCatalog(): Promise<void> {
   for (const [moduleKey, action] of CSSD_KHO_CATALOG_PERMISSION_CANDIDATES) {
@@ -20,10 +20,10 @@ async function verifyCanViewKhoCatalog(): Promise<void> {
   await verifyPermission("CSSD_KHO_DUNGCU", "view");
 }
 
-const PAGE = 20;
+const PAGE = KHO_CATALOG_PAGE_SIZE;
 
-export async function searchKhoCatalogLoaiAction(q: string): Promise<
-  { success: true; data: CSSDLoai[] } | { success: false; error: string }
+export async function searchKhoCatalogLoaiAction(q: string, page = 1): Promise<
+  { success: true; data: CSSDLoai[]; totalCount: number } | { success: false; error: string }
 > {
   try {
     await verifyCanViewKhoCatalog();
@@ -31,12 +31,14 @@ export async function searchKhoCatalogLoaiAction(q: string): Promise<
     let query = supabase
       .from("cssd_dm_loai_dung_cu")
       .select(
-        "id, ma_loai, ten_loai, specs, is_active, is_chiu_nhiet, phan_loai, so_luong_kho_du_phong, phuong_phap_tiet_khuan_chi_dinh",
+        "id, ma_loai, ten_loai, specs, is_active, is_chiu_nhiet, phan_loai, so_luong_kho_du_phong, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep",
+        { count: "exact" },
       )
       .eq("is_active", true);
     const filter = buildSupabaseSearchFilter(q, ["ma_loai", "ten_loai"]);
     if (filter) query = query.or(filter);
-    const { data, error } = await query.order("ma_loai").limit(PAGE);
+    const from = (Math.max(1, Math.floor(page)) - 1) * PAGE;
+    const { data, error, count } = await query.order("ma_loai").range(from, from + PAGE - 1);
     if (error) throw error;
     const mapped = (data || []).map((x) => {
       const m = mapLoaiPhysicalToListRow(x as Record<string, unknown>);
@@ -53,7 +55,7 @@ export async function searchKhoCatalogLoaiAction(q: string): Promise<
         kich_thuoc: m.kich_thuoc,
         cong_dung: m.cong_dung,
         kha_nang_chiu_nhiet: m.kha_nang_chiu_nhiet,
-        phuong_phap_tiet_khuan: m.phuong_phap_tiet_khuan,
+        phuong_phap_tiet_khuan: m.phuong_phap_tiet_khuan_label,
       };
     });
     const ids = mapped.map((r) => r.id);
@@ -73,6 +75,7 @@ export async function searchKhoCatalogLoaiAction(q: string): Promise<
     }
     return {
       success: true,
+      totalCount: count ?? mapped.length,
       data: mapped.map((r) => ({
         ...r,
         ...splitLoaiStock(r.so_luong_kho_du_phong, trongBo.get(r.id) || 0),

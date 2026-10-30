@@ -244,6 +244,12 @@ export function pickDefaultChuongTrinh(
   return options[0] ?? null;
 }
 
+/** Ô nhập chỉ nhận số: khoảng chuẩn như "4-18" thì để trống cho NV nhập số đo thật. */
+export function soHoacRong(raw: string): string {
+  const s = String(raw ?? "").trim();
+  return s !== "" && Number.isFinite(Number(s.replace(",", "."))) ? s : "";
+}
+
 export function prefillFromChuongTrinh(opt: ChuongTrinhMayOption): ChuongTrinhPrefill {
   return {
     chuongTrinh: opt.ten.slice(0, 80),

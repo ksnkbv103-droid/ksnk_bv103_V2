@@ -174,6 +174,16 @@ export async function applyHeatSplitAfterLoaiDowngrade(
     if (boErr) throw new Error(boErr.message);
     if (!bo?.id) continue;
     const maBo = normalizeBoMa(String((bo as { ma_bo?: string }).ma_bo || ""));
+    const { data: splitInfo } = useParentCols
+      ? await supabase.from("cssd_dm_bo_dung_cu").select("parent_bo_id, vai_tro_tach").eq("id", boId).maybeSingle()
+      : { data: null };
+    // Bộ đã là con của lần tách trước: không tách lồng (-CN-KCN…). Bộ -KCN chứa loại nhiệt thấp là đúng.
+    if (splitInfo?.parent_bo_id) {
+      if (splitInfo.vai_tro_tach !== "KHONG_CHIU_NHIET") {
+        out.skipped.push({ maBo, reason: "Bộ con -CN chứa loại nhiệt thấp — chuyển dòng sang bộ -KCN thủ công." });
+      }
+      continue;
+    }
 
     const { data: lineRows, error: lineErr } = await supabase
       .from("cssd_dm_bo_dung_cu_chi_tiet")
@@ -325,4 +335,26 @@ export async function applyHeatSplitForLoaiChanges(
     }
   }
   return notes;
+}
+
+/**
+ * Tách hàng loạt theo phương pháp: mọi loại chỉ có phương pháp nhiệt thấp (không STEAM_*) →
+ * bộ chứa loại đó tách thành -CN / -KCN. Bộ đã tách hoặc đang ở tiệt khuẩn/cấp phát được bỏ qua.
+ */
+export async function applyHeatSplitForAllLowHeatLoai(
+  supabase: SupabaseClient,
+): Promise<{ loaiCount: number; result: HeatSplitApplyResult }> {
+  const { data, error } = await supabase
+    .from("cssd_dm_loai_dung_cu")
+    .select("id, phuong_phap_cho_phep")
+    .eq("is_chiu_nhiet", false);
+  if (error) throw new Error(error.message);
+  const result: HeatSplitApplyResult = { split: [], skipped: [] };
+  const loais = data || [];
+  for (const l of loais) {
+    const res = await applyHeatSplitAfterLoaiDowngrade(supabase, String((l as { id: string }).id), true, false);
+    result.split.push(...res.split);
+    result.skipped.push(...res.skipped);
+  }
+  return { loaiCount: loais.length, result };
 }

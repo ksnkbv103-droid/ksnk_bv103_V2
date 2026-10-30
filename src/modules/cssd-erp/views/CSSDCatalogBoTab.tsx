@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import type { CSSDBo } from "../types/catalog.types";
+import React, { useEffect, useState } from "react";
+import { KHO_CATALOG_PAGE_SIZE, type CSSDBo } from "../types/catalog.types";
+import ServerPaginationBar from "@/components/shared/ServerPaginationBar";
 import { Loader2 } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
@@ -16,7 +17,7 @@ import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 export function CSSDCatalogBoTab({
-  boRows,
+  boRows: allBoRows,
   selectedBoId,
   setSelectedBoId,
   toolbar,
@@ -27,6 +28,13 @@ export function CSSDCatalogBoTab({
   toolbar?: React.ReactNode;
 }) {
 
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(allBoRows.length / KHO_CATALOG_PAGE_SIZE));
+  // Đổi bộ lọc/tìm kiếm → số bộ đổi → về trang 1.
+  useEffect(() => {
+    setPage(1);
+  }, [allBoRows.length]);
+  const boRows = allBoRows.slice((page - 1) * KHO_CATALOG_PAGE_SIZE, page * KHO_CATALOG_PAGE_SIZE);
   const { printBoLabel } = usePrint();
   const [printingId, setPrintingId] = useState<string | null>(null);
   const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
@@ -203,6 +211,13 @@ export function CSSDCatalogBoTab({
             </tbody>
           </table>
         </ResponsiveTableShell>
+      <ServerPaginationBar
+        page={page}
+        totalPages={totalPages}
+        totalCount={allBoRows.length}
+        pageSize={KHO_CATALOG_PAGE_SIZE}
+        onPageChange={setPage}
+      />
       <CatalogDeNghiDialog
         open={Boolean(deNghi)}
         onOpenChange={(open) => {

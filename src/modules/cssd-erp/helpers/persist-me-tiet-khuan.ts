@@ -1,3 +1,4 @@
+import { ghiCacTestMe } from "./me-tiet-khuan-ghi-test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { KitHeatLine } from "../lib/me-tiet-khuan-batch-heat";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
@@ -356,6 +357,10 @@ export async function persistMeTietKhuanFinishWithClient(
     hoTen: p.nguoiUnload,
   });
 
+  // Ghi người + giờ từng test trước khi kết luận; test không đạt → RPC đặt mẻ «Lô hỏng, cần xem lại».
+  const ghi = await ghiCacTestMe(client, { meId: p.activeMeId, actorUserId, tests: p });
+  if (!ghi.ok) return ghi;
+
   if (decision.outcome === "HOAN_THANH") {
     const derived = derivePassQuyTrinhIds(linked.rows, p.activeMeId);
     if (!derived.ok) return { ok: false, message: derived.message };
@@ -517,6 +522,17 @@ export async function persistMeBiResultWithClient(
     email: args.operatorEmail,
     hoTen: args.nguoiLabel,
   });
+
+  // Ghi người + giờ đọc BI vào nhật ký mẻ (BI dương → RPC đặt QC_KHONG_DAT, rồi thu hồi bên dưới).
+  // Mẻ đã THU_HOI / QC_KHONG_DAT: RPC từ chối ghi test, bỏ qua để không chặn việc thu hồi.
+  if (row.trang_thai_me !== "THU_HOI" && row.trang_thai_me !== "QC_KHONG_DAT") {
+    const ghi = await ghiCacTestMe(client, {
+      meId: args.batchId,
+      actorUserId,
+      tests: { thongSoVatLy: "", ciNgoaiGoi: "", ciPcd: "", trangThaiBi: args.ketQua },
+    });
+    if (!ghi.ok) return ghi;
+  }
 
   if (args.ketQua === "AM" && waitingBi) {
     const { error: rpcErr } = await client.rpc("rpc_cssd_me_nhap_bi_am", {

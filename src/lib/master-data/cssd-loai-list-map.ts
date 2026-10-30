@@ -1,5 +1,6 @@
 import {
   mapIsChiuNhietToKhaNang,
+  normalizePhuongPhapChoPhep,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
   resolveLoaiAlias,
@@ -20,6 +21,7 @@ export type LoaiDungCuListRow = {
   phan_loai_spaulding_label: string;
   phuong_phap_tiet_khuan: string;
   phuong_phap_tiet_khuan_label: string;
+  phuong_phap_cho_phep: string[];
   phan_loai: string;
   so_luong_kho_du_phong: number;
   so_luong_trong_bo: number;
@@ -50,6 +52,8 @@ export function mapLoaiPhysicalToListRow(r: Record<string, unknown>): LoaiDungCu
   const sterile = normalizeSterileMethodForMaster(
     r.phuong_phap_tiet_khuan_chi_dinh ?? r.phuong_phap_tiet_khuan,
   );
+  const choPhepRaw = normalizePhuongPhapChoPhep(r.phuong_phap_cho_phep);
+  const choPhep = choPhepRaw.length ? choPhepRaw : [sterile];
   const spaulding = normalizeSpauldingForMaster(r.phan_loai_spaulding);
   const strOrNull = (v: unknown) => (v == null || v === "" ? null : String(v));
   const duPhong = Number(r.so_luong_kho_du_phong || 0);
@@ -66,7 +70,8 @@ export function mapLoaiPhysicalToListRow(r: Record<string, unknown>): LoaiDungCu
     phan_loai_spaulding: spaulding,
     phan_loai_spaulding_label: spauldingLabel(spaulding),
     phuong_phap_tiet_khuan: sterile,
-    phuong_phap_tiet_khuan_label: sterileMethodLabel(sterile),
+    phuong_phap_tiet_khuan_label: choPhep.map(sterileMethodLabel).join(" + "),
+    phuong_phap_cho_phep: choPhep,
     phan_loai: String(r.phan_loai || "PHAU_THUAT"),
     so_luong_kho_du_phong: stock.so_luong_kho_du_phong,
     so_luong_trong_bo: stock.so_luong_trong_bo,

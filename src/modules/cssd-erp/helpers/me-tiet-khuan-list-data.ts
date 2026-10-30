@@ -6,6 +6,7 @@ import { getSterilizerMethod } from "./me-tiet-khuan-machine-kind";
 
 const ME_TRANG_THAI = new Set([
   "DANG_CHUAN_NAP",
+  "DA_CHOT_NAP",
   "DANG_TIET_KHUAN",
   "CHO_DANH_GIA_QC",
   "CHO_BI",

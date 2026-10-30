@@ -17,7 +17,8 @@ const LOAI_FIELDS: Array<[string, string]> = [
   ["kich_thuoc", "Kích thước"],
   ["cong_dung", "Công dụng"],
   ["is_chiu_nhiet", "Chịu nhiệt"],
-  ["phuong_phap_tiet_khuan_chi_dinh", "Tiệt khuẩn chỉ định"],
+  ["phuong_phap_tiet_khuan_chi_dinh", "Tiệt khuẩn ưu tiên"],
+  ["phuong_phap_cho_phep", "Phương pháp tiệt khuẩn cho phép"],
   ["phan_loai_spaulding", "Phân loại Spaulding"],
   ["phan_loai", "Phân loại"],
   ["so_luong_kho_du_phong", "Tồn kho chưa dùng"],
@@ -38,6 +39,7 @@ function show(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
   if (v === true) return "Có";
   if (v === false) return "Không";
+  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
   return String(v);
 }
 

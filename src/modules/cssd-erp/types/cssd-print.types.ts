@@ -66,13 +66,38 @@ export type CssdBatchPrintData = {
   ghiChuQc: string;
   anhMinhChung: CssdBatchAnhMinhChung;
   members: CssdBatchPrintMember[];
+  /** Nhật ký chu trình: từng bước/test kèm người + giờ (phục vụ lưu trữ, đoàn kiểm tra). */
+  nhatKy: CssdBatchNhatKyRow[];
 };
+
+export type CssdBatchNhatKyRow = { buoc: string; nguoi: string; gio: string | null; ketQua: string };
 
 /** Một dòng sự cố trên phiếu cấp phát (CSSD-05 / §8). */
 export type CssdCapPhatPrintIncident = {
   ma: string;
   trangThai: string;
   loai: string;
+};
+
+/** Người + giờ một mốc của mẻ (ISO); null = mẻ cũ không có nhật ký. */
+export type CssdCapPhatMeMoc = { ten: string; thoiGian: string };
+
+export type CssdCapPhatMeTestRow = {
+  loai: string;
+  ketQua: string;
+  dat: boolean;
+  nguoi: string;
+  thoiGian: string | null;
+};
+
+export type CssdCapPhatMeInfo = {
+  tests: CssdCapPhatMeTestRow[];
+  ketLuan: "DAT" | "KHONG_DAT" | "KHONG_CO_DU_LIEU";
+  nap: CssdCapPhatMeMoc | null;
+  batDau: CssdCapPhatMeMoc | null;
+  ketThuc: CssdCapPhatMeMoc | null;
+  /** kết thúc − bắt đầu (phút); null nếu thiếu mốc. */
+  phutTietKhuan: number | null;
 };
 
 export type CssdCapPhatPrintData = {
@@ -99,6 +124,8 @@ export type CssdCapPhatPrintData = {
   testCI: string;
   testBowieDick: string;
   thoiGianKetThucMe: string | null;
+  /** Bảng test + mốc nạp/bắt đầu/kết thúc từ nhật ký mẻ. */
+  meInfo: CssdCapPhatMeInfo;
   instruments: CssdPrintInstrumentRow[];
   /** Rỗng → dòng phủ định trên phiếu. */
   suCo: CssdCapPhatPrintIncident[];

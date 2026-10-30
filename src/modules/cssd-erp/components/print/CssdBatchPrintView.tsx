@@ -111,6 +111,34 @@ export default function CssdBatchPrintView({
         </tbody>
       </table>
 
+      {data.nhatKy?.length ? (
+        <div style={{ pageBreakInside: "avoid" }}>
+          <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "10px 0 4px" }}>
+            Nhật ký chu trình (người thực hiện · thời gian)
+          </p>
+          <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+            <thead>
+              <tr>
+                <th style={{ ...tableTh, width: "36%" }}>Bước / test</th>
+                <th style={{ ...tableTh, width: "28%" }}>Người thực hiện</th>
+                <th style={{ ...tableTh, width: "24%" }}>Thời gian</th>
+                <th style={{ ...tableTh, width: "12%" }}>Kết quả</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.nhatKy.map((r, i) => (
+                <tr key={`${r.buoc}-${i}`}>
+                  <td style={tableTd}>{r.buoc}</td>
+                  <td style={tableTd}>{r.nguoi}</td>
+                  <td style={{ ...tableTd, fontSize: 11 }}>{formatCssdPrintDateTime(r.gio)}</td>
+                  <td style={{ ...tableTd, textAlign: "center" }}>{r.ketQua || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
       {data.ghiChuQc ? (
         <p style={{ marginTop: 8, fontSize: 11, pageBreakInside: "avoid", wordBreak: "break-word" }}>
           <strong>Ghi chú QC:</strong> {data.ghiChuQc}
