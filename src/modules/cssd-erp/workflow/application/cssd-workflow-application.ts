@@ -285,6 +285,17 @@ export async function executeRejectToPreviousStation(
     clearStations,
   );
 
+  // Nhật ký chu kỳ ghi trước khi xóa dấu trạm: người trả lui lấy từ phiên đăng nhập; không có hồ sơ nhân sự thì dừng.
+  const { data: nkRes, error: nkErr } = await supabase.rpc("rpc_cssd_nhat_ky_ghi", {
+    p_quy_trinh_id: q.id,
+    p_su_kien: "TRA_VE",
+    p_tram: currentStatus,
+    p_chi_tiet: { tu: currentStatus, den: prev, ly_do: lyDo, truoc: beforeStamps },
+  });
+  if (nkErr) throw new Error(`Lỗi hệ thống: ${nkErr.message}`);
+  const nk = nkRes as { success: boolean; message?: string } | null;
+  if (!nk?.success) throw new Error(nk?.message || "Không ghi được nhật ký trả lui.");
+
   const patch: Record<string, unknown> = {
     ...tramPatch,
     ...clearPatch,
