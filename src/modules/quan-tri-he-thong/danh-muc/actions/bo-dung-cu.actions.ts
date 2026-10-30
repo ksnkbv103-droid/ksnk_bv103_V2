@@ -2,6 +2,8 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { resolveLoaiAlias, CSSD_LOAI_PHYSICAL_SELECT } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import { mapLoaiPhysicalToListRow } from "@/lib/master-data/cssd-loai-list-map";
+import { intersectPhuongPhapBo } from "@/lib/domain/cssd-bo-phuong-phap";
 import { verifyPermission } from "@/lib/server-permission";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
@@ -111,8 +113,35 @@ export async function getBoDungCuRowsAction() {
     }),
   );
   const khoaMap = new Map((khoaResult.data || []).map((x) => [x.id, x] as const));
+  const boIds = rows.map((r) => r.id);
+  const { data: lineRows, error: lineErr } = await supabase
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .select("bo_dung_cu_id, loai_dung_cu_id")
+    .in("bo_dung_cu_id", boIds);
+  if (lineErr) return { success: false, error: lineErr.message };
+  const lineLoaiIds = [...new Set((lineRows || []).map((l) => String(l.loai_dung_cu_id || "")).filter(Boolean))];
+  const ppByLoai = new Map<string, string[]>();
+  if (lineLoaiIds.length) {
+    const { data: ppRows, error: ppErr } = await supabase
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep")
+      .in("id", lineLoaiIds);
+    if (ppErr) return { success: false, error: ppErr.message };
+    for (const p of ppRows || []) {
+      ppByLoai.set(String(p.id), mapLoaiPhysicalToListRow(p as Record<string, unknown>).phuong_phap_cho_phep);
+    }
+  }
+  const loaiByBo = new Map<string, string[][]>();
+  for (const l of lineRows || []) {
+    const pp = ppByLoai.get(String(l.loai_dung_cu_id || ""));
+    if (!pp) continue;
+    const key = String(l.bo_dung_cu_id);
+    loaiByBo.set(key, [...(loaiByBo.get(key) || []), pp]);
+  }
   const enriched = rows.map((r) => ({
     ...r,
+    phuong_phap_chung: intersectPhuongPhapBo(loaiByBo.get(r.id) || []),
+    co_dong_loai: (loaiByBo.get(r.id) || []).length > 0,
     loai_dung_cu: r.loai_dung_cu_id ? loaiMap.get(r.loai_dung_cu_id) || null : null,
     khoa_su_dung: r.khoa_su_dung_id ? khoaMap.get(r.khoa_su_dung_id) || null : null,
   }));

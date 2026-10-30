@@ -10,6 +10,7 @@ import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fet
 import {
   applySterileMethodSuggestionToLoaiSpecs,
   buildLoaiPhysicalUpsertPayload,
+  normalizePhuongPhapChoPhep,
   suggestCssdSterileMethodFromMaster,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { loaiListSortColumn, mapLoaiPhysicalToListRow, mergeLoaiListTrongBo } from "@/lib/master-data/cssd-loai-list-map";
@@ -204,4 +205,32 @@ export async function softDeleteManyLoaiDungCuAction(ids: string[]) {
   await verifyPermission("LOAI_DC", "delete");
   await requireCssdCatalogMasterWrite();
   return softDeleteManyMasterRows("cssd_dm_loai_dung_cu", ids);
+}
+
+/** Gán cùng một bộ phương pháp cho nhiều loại; đi qua saveLoaiDungCuAction để giữ tách bộ khi đổi chịu nhiệt. */
+export async function setPhuongPhapChoPhepManyLoaiAction(ids: string[], methods: string[]) {
+  await verifyPermission("LOAI_DC", "edit");
+  await requireCssdCatalogMasterWrite();
+  const choPhep = normalizePhuongPhapChoPhep(methods);
+  const uniq = [...new Set(ids.map((x) => String(x || "").trim()).filter(Boolean))].slice(0, 100);
+  if (!uniq.length) return { success: false as const, error: "Chưa chọn loại nào." };
+  if (!choPhep.length) return { success: false as const, error: "Chọn ít nhất một phương pháp." };
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase.from("cssd_dm_loai_dung_cu").select(LOAI_LIST_SELECT).in("id", uniq);
+  if (error) return { success: false as const, error: error.message };
+  const failed: { ma: string; error: string }[] = [];
+  let ok = 0;
+  for (const r of data || []) {
+    const row = mapLoaiPhysicalToListRow(r as Record<string, unknown>);
+    const res = await saveLoaiDungCuAction({
+      ...row,
+      specs: (r as { specs?: unknown }).specs,
+      phuong_phap_cho_phep: choPhep,
+      phuong_phap_tiet_khuan_chi_dinh: undefined,
+      phuong_phap_tiet_khuan: undefined,
+    });
+    if (res.success) ok += 1;
+    else failed.push({ ma: row.ma_danh_muc || row.id, error: String((res as { error?: string }).error || "Lỗi") });
+  }
+  return { success: true as const, updated: ok, failed };
 }
