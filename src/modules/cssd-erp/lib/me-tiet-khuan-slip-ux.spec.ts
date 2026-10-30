@@ -36,9 +36,9 @@ describe("meListPrimaryAction", () => {
     expect(meListPrimaryAction("CHO_DANH_GIA_QC")).toEqual({ label: "Nhập QC" });
     expect(meListPrimaryAction("CHO_BI")).toEqual({ label: "Nhập BI" });
     expect(meListPrimaryAction("Quarantine_BI")).toEqual({ label: "Nhập BI" });
-    expect(meListPrimaryAction("HOAN_THANH")).toBeNull();
-    expect(meListPrimaryAction("QC_KHONG_DAT")).toBeNull();
-    expect(meListPrimaryAction("THU_HOI")).toBeNull();
+    expect(meListPrimaryAction("HOAN_THANH")).toEqual({ label: "Xem / In" });
+    expect(meListPrimaryAction("QC_KHONG_DAT")).toEqual({ label: "Xem / In" });
+    expect(meListPrimaryAction("THU_HOI")).toEqual({ label: "Xem / In" });
     expect(meListPrimaryAction("SOMETHING_ELSE")).toEqual({ label: "Mở phiếu" });
     expect(meListPrimaryAction("")).toEqual({ label: "Mở phiếu" });
   });

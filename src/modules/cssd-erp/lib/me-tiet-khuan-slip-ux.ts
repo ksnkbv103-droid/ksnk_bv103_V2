@@ -34,7 +34,7 @@ const ME_LIST_TERMINAL = new Set(["HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"]);
 export function meListPrimaryAction(trangThai: string): { label: string } | null {
   const key = String(trangThai || "").trim();
   if (!key) return { label: "Mở phiếu" };
-  if (ME_LIST_TERMINAL.has(key)) return null;
+  if (ME_LIST_TERMINAL.has(key)) return { label: "Xem / In" };
   switch (key) {
     case "DANG_CHUAN_NAP":
       return { label: "Tiếp tục nạp" };

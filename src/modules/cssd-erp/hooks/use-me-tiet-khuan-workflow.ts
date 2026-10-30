@@ -581,16 +581,6 @@ export function useMeTietKhuanWorkflow() {
   };
 
   const openRowForProcess = (row: any) => {
-    const releasedOk =
-      row.ket_qua_test === true &&
-      String(row.trang_thai_me || "").toUpperCase() === "HOAN_THANH" &&
-      String(row.phuong_phap || "").toUpperCase() === "HOI_NUOC";
-    if ((row.ket_qua_test === true || row.ket_qua_test === false) && !releasedOk) {
-      toast.message("Mẻ đã kết thúc", {
-        description: "Dùng báo cáo / kho để tra cứu theo mã lô hoặc mã QR bộ.",
-      });
-      return;
-    }
     setActiveMe(row);
     setStep("PROCESS");
     resetQcFields();
