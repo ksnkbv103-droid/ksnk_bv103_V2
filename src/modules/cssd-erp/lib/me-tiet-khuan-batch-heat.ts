@@ -86,6 +86,48 @@ export function assertSteamKitHeatAllowed(input: {
   return { ok: true };
 }
 
+const STEAM_METHODS = ["STEAM_134", "STEAM_121"];
+const METHOD_LABEL: Record<string, string> = {
+  STEAM_134: "hơi nước 134°C",
+  STEAM_121: "hơi nước 121°C",
+  PLASMA: "Plasma",
+  EO: "EO",
+};
+
+function machineAllows(method: SterilizerMethod, cho: string[]): boolean {
+  if (method === "HOI_NUOC") return cho.some((m) => STEAM_METHODS.includes(m));
+  if (method === "PLASMA_H2O2") return cho.includes("PLASMA");
+  return cho.includes("EO");
+}
+
+/**
+ * Cổng theo phương pháp cho phép của từng cấu phần: mỗi dòng phải cho phép loại máy đang nạp.
+ * Thiếu dữ liệu phương pháp → chặn (fail-closed). Bộ chưa tách có cấu phần chỉ nhiệt thấp
+ * nạp máy hơi nước → báo đích danh cấu phần và yêu cầu tách tại danh mục.
+ */
+export function assertKitLinesAllowMachine(input: {
+  method: SterilizerMethod | null;
+  lines: Array<{ ten?: string | null; phuong_phap_cho_phep?: string[] | null }> | null;
+  loadError?: boolean;
+}): { ok: true } | { ok: false; message: string } {
+  if (input.loadError || input.lines == null || input.lines.length === 0) {
+    return { ok: false, message: MSG_HEAT_UNKNOWN };
+  }
+  if (!input.method) return { ok: false, message: MSG_METHOD_UNKNOWN };
+  for (const line of input.lines) {
+    const cho = (line.phuong_phap_cho_phep ?? []).map((m) => String(m).toUpperCase());
+    if (cho.length === 0) return { ok: false, message: MSG_HEAT_UNKNOWN };
+    if (machineAllows(input.method, cho)) continue;
+    const ten = String(line.ten || "").trim() || "(không tên)";
+    const chi = cho.map((m) => METHOD_LABEL[m] ?? m).join(" / ");
+    return {
+      ok: false,
+      message: `Cấu phần «${ten}» chỉ được tiệt khuẩn bằng ${chi} — không nạp máy này. Nếu là bộ gộp, tách thành phần tại danh mục.`,
+    };
+  }
+  return { ok: true };
+}
+
 export type KitHeatLine = KitDesignatedLine & { is_chiu_nhiet: boolean | null };
 
 export type KitHeatClass = "CHIU_NHIET" | "KHONG_CHIU_NHIET" | "THIEU_DU_LIEU";

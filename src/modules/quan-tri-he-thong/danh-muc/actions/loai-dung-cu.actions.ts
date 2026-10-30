@@ -25,7 +25,7 @@ import {
 type LoaiDungCuPayload = Record<string, unknown>;
 
 const LOAI_LIST_SELECT =
-  "id, ma_loai, ten_loai, specs, is_active, is_chiu_nhiet, phan_loai_spaulding, phuong_phap_tiet_khuan_chi_dinh, phan_loai, so_luong_kho_du_phong";
+  "id, ma_loai, ten_loai, specs, is_active, is_chiu_nhiet, phan_loai_spaulding, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep, phan_loai, so_luong_kho_du_phong";
 
 export async function getLoaiDungCuRowsAction(params?: Partial<FactListPaginationInput>) {
   await verifyPermission("LOAI_DC", "view");

@@ -326,3 +326,25 @@ export async function applyHeatSplitForLoaiChanges(
   }
   return notes;
 }
+
+/**
+ * Tách hàng loạt theo phương pháp: mọi loại chỉ có phương pháp nhiệt thấp (không STEAM_*) →
+ * bộ chứa loại đó tách thành -CN / -KCN. Bộ đã tách hoặc đang ở tiệt khuẩn/cấp phát được bỏ qua.
+ */
+export async function applyHeatSplitForAllLowHeatLoai(
+  supabase: SupabaseClient,
+): Promise<{ loaiCount: number; result: HeatSplitApplyResult }> {
+  const { data, error } = await supabase
+    .from("cssd_dm_loai_dung_cu")
+    .select("id, phuong_phap_cho_phep")
+    .eq("is_chiu_nhiet", false);
+  if (error) throw new Error(error.message);
+  const result: HeatSplitApplyResult = { split: [], skipped: [] };
+  const loais = data || [];
+  for (const l of loais) {
+    const res = await applyHeatSplitAfterLoaiDowngrade(supabase, String((l as { id: string }).id), true, false);
+    result.split.push(...res.split);
+    result.skipped.push(...res.skipped);
+  }
+  return { loaiCount: loais.length, result };
+}

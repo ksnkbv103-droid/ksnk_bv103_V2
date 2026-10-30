@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assertKitFitsSterilizerMethod,
+  assertKitLinesAllowMachine,
   evaluateBatchSterilizationHeatRisk,
   MSG_HEAT_LOW_TEMP_ONLY,
   MSG_HEAT_STEAM_BLOCK,
@@ -161,5 +162,33 @@ describe("bỏ bộ khỏi phiếu", () => {
       rejectRemoveKitFromBatch({ tkChotNapAt: "2026-09-25T10:00:00Z", trangThaiMe: "DANG_TIET_KHUAN" }),
     ).toMatch(/đã bắt đầu/i);
     expect(rejectRemoveKitFromBatch({ tkChotNapAt: null, trangThaiMe: "DANG_TIET_KHUAN" })).toMatch(/đang nạp/i);
+  });
+});
+
+describe("assertKitLinesAllowMachine", () => {
+  const steamLine = { ten: "Kẹp", phuong_phap_cho_phep: ["STEAM_134"] };
+  const plasmaLine = { ten: "Ống soi", phuong_phap_cho_phep: ["PLASMA"] };
+  const bothLine = { ten: "Silicone", phuong_phap_cho_phep: ["STEAM_134", "PLASMA"] };
+
+  it("hơi nước nhận cấu phần chịu nhiệt và cấu phần chọn nhiều phương pháp", () => {
+    expect(assertKitLinesAllowMachine({ method: "HOI_NUOC", lines: [steamLine, bothLine] }).ok).toBe(true);
+  });
+  it("Plasma nhận cấu phần chỉ-Plasma và cấu phần chọn nhiều phương pháp", () => {
+    expect(assertKitLinesAllowMachine({ method: "PLASMA_H2O2", lines: [plasmaLine, bothLine] }).ok).toBe(true);
+  });
+  it("bộ chưa tách: cấu phần chỉ-Plasma chặn máy hơi nước, nêu đích danh", () => {
+    const r = assertKitLinesAllowMachine({ method: "HOI_NUOC", lines: [steamLine, plasmaLine] });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toContain("Ống soi");
+  });
+  it("cấu phần chỉ hơi nước chặn máy Plasma và EO", () => {
+    expect(assertKitLinesAllowMachine({ method: "PLASMA_H2O2", lines: [steamLine] }).ok).toBe(false);
+    expect(assertKitLinesAllowMachine({ method: "EO", lines: [plasmaLine] }).ok).toBe(false);
+  });
+  it("thiếu dữ liệu / lỗi tải / không có dòng → chặn", () => {
+    expect(assertKitLinesAllowMachine({ method: "HOI_NUOC", lines: null }).ok).toBe(false);
+    expect(assertKitLinesAllowMachine({ method: "HOI_NUOC", lines: [] }).ok).toBe(false);
+    expect(assertKitLinesAllowMachine({ method: "HOI_NUOC", lines: [{ ten: "x", phuong_phap_cho_phep: [] }] }).ok).toBe(false);
+    expect(assertKitLinesAllowMachine({ method: "HOI_NUOC", lines: [steamLine], loadError: true }).ok).toBe(false);
   });
 });

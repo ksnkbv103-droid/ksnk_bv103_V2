@@ -54,7 +54,7 @@ import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
 import {
   assertKitFitsSterilizerMethod,
-  assertSteamKitHeatAllowed,
+  assertKitLinesAllowMachine,
   evaluateBatchSterilizationHeatRisk,
   partitionWaitingKitsByMethod,
   rejectRemoveKitFromBatch,
@@ -373,9 +373,14 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       });
       if (parentMsg) return { success: false as const, error: `${parentMsg} Bộ ${code}.` };
       const loaded = await loadBomLinesWithLoaiSpec(supabase, String(row.id));
-      const heat = assertSteamKitHeatAllowed({
-        isSteam: steam,
-        lines: loaded.ok ? loaded.bomLines.map((line) => ({ is_chiu_nhiet: line.is_chiu_nhiet })) : null,
+      const heat = assertKitLinesAllowMachine({
+        method: getSterilizerMethod(tb),
+        lines: loaded.ok
+          ? loaded.bomLines.map((line) => ({
+              ten: line.ten_dung_cu_le,
+              phuong_phap_cho_phep: line.phuong_phap_cho_phep,
+            }))
+          : null,
         loadError: !loaded.ok,
       });
       if (!heat.ok) return { success: false as const, error: `${heat.message} Bộ ${code}.` };

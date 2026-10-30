@@ -8,7 +8,9 @@ import { saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import {
   mapIsChiuNhietToKhaNang,
+  isSteamMethod,
   mapKhaNangToIsChiuNhiet,
+  normalizePhuongPhapChoPhep,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
   sterileMethodLabel,
@@ -26,12 +28,27 @@ type FormData = {
   kich_thuoc: string;
   cong_dung: string;
   kha_nang_chiu_nhiet: "Cao" | "Thấp";
-  phuong_phap_tiet_khuan: CssdSterileMethod;
+  phuong_phap_cho_phep: CssdSterileMethod[];
   phan_loai_spaulding: CssdSpaulding;
   phan_loai: string;
   so_luong_kho_du_phong: number;
   is_active: boolean;
 };
+
+function choPhepSeed(input: Record<string, unknown>): CssdSterileMethod[] {
+  const arr = normalizePhuongPhapChoPhep(input.phuong_phap_cho_phep);
+  if (arr.length) return arr;
+  return [
+    normalizeSterileMethodForMaster(input.phuong_phap_tiet_khuan || input.phuong_phap_tiet_khuan_chi_dinh),
+  ];
+}
+
+const PP_OPTIONS: { v: CssdSterileMethod; l: string }[] = [
+  { v: "STEAM_134", l: "Hơi nước 134°C" },
+  { v: "STEAM_121", l: "Hơi nước 121°C" },
+  { v: "PLASMA", l: "Plasma" },
+  { v: "EO", l: "Khí EO" },
+];
 
 function mapForm(input: Record<string, unknown> | null): FormData {
   if (!input) {
@@ -42,7 +59,7 @@ function mapForm(input: Record<string, unknown> | null): FormData {
       kich_thuoc: "",
       cong_dung: "",
       kha_nang_chiu_nhiet: "Cao",
-      phuong_phap_tiet_khuan: "STEAM_134",
+      phuong_phap_cho_phep: ["STEAM_134"],
       phan_loai_spaulding: "CRITICAL",
       phan_loai: "PHAU_THUAT",
       so_luong_kho_du_phong: 0,
@@ -61,9 +78,7 @@ function mapForm(input: Record<string, unknown> | null): FormData {
     kich_thuoc: String(input.kich_thuoc || ""),
     cong_dung: String(input.cong_dung || ""),
     kha_nang_chiu_nhiet: mapIsChiuNhietToKhaNang(isChiu),
-    phuong_phap_tiet_khuan: normalizeSterileMethodForMaster(
-      input.phuong_phap_tiet_khuan || input.phuong_phap_tiet_khuan_chi_dinh,
-    ),
+    phuong_phap_cho_phep: choPhepSeed(input),
     phan_loai_spaulding: normalizeSpauldingForMaster(input.phan_loai_spaulding),
     phan_loai: String(input.phan_loai || "PHAU_THUAT"),
     so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
@@ -86,14 +101,15 @@ export default function LoaiDungCuFormModal({
   const [form, setForm] = useState<FormData>(seed);
   const [loading, setLoading] = useState(false);
   const isEdit = Boolean(initialData?.id);
+  const coNhietCao = form.phuong_phap_cho_phep.some(isSteamMethod);
   const methodHint = useMemo(
     () =>
       suggestCssdSterileMethodFromMaster({
         spaulding: form.phan_loai_spaulding,
-        sterileMethod: form.phuong_phap_tiet_khuan,
-        isChiuNhiet: form.kha_nang_chiu_nhiet === "Cao",
+        sterileMethod: form.phuong_phap_cho_phep[0],
+        isChiuNhiet: coNhietCao,
       }),
-    [form.phan_loai_spaulding, form.phuong_phap_tiet_khuan, form.kha_nang_chiu_nhiet],
+    [form.phan_loai_spaulding, form.phuong_phap_cho_phep, coNhietCao],
   );
 
   useEffect(() => {
@@ -102,6 +118,7 @@ export default function LoaiDungCuFormModal({
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.phuong_phap_cho_phep.length) return toast.error("Chọn ít nhất một phương pháp tiệt khuẩn.");
     setLoading(true);
     const result = await saveLoaiDungCuAction({
       id: form.id,
@@ -110,9 +127,9 @@ export default function LoaiDungCuFormModal({
       hinh_dang: form.hinh_dang,
       kich_thuoc: form.kich_thuoc,
       cong_dung: form.cong_dung,
-      kha_nang_chiu_nhiet: form.kha_nang_chiu_nhiet,
-      is_chiu_nhiet: form.kha_nang_chiu_nhiet === "Cao",
-      phuong_phap_tiet_khuan: form.phuong_phap_tiet_khuan,
+      kha_nang_chiu_nhiet: coNhietCao ? "Cao" : "Thấp",
+      is_chiu_nhiet: coNhietCao,
+      phuong_phap_cho_phep: form.phuong_phap_cho_phep,
       phan_loai_spaulding: form.phan_loai_spaulding,
       phan_loai: form.phan_loai,
       ...(isEdit ? {} : { so_luong_kho_du_phong: form.so_luong_kho_du_phong }),
@@ -168,28 +185,8 @@ export default function LoaiDungCuFormModal({
             { v: "NON_CRITICAL", l: "Không thiết yếu (Non-critical)" },
           ]}
         />
-        <S
-          l="Khả năng chịu nhiệt"
-          v={form.kha_nang_chiu_nhiet}
-          o={(v) => setForm({ ...form, kha_nang_chiu_nhiet: v === "Thấp" ? "Thấp" : "Cao" })}
-          options={[
-            { v: "Cao", l: "Chịu nhiệt cao (hấp hơi được)" },
-            { v: "Thấp", l: "Không chịu nhiệt (Plasma/EO)" },
-          ]}
-        />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <S
-          l="Phương pháp tiệt khuẩn chỉ định"
-          v={form.phuong_phap_tiet_khuan}
-          o={(v) => setForm({ ...form, phuong_phap_tiet_khuan: normalizeSterileMethodForMaster(v) })}
-          options={[
-            { v: "STEAM_134", l: "Hơi nước 134°C" },
-            { v: "STEAM_121", l: "Hơi nước 121°C" },
-            { v: "PLASMA", l: "Plasma" },
-            { v: "EO", l: "Khí EO" },
-          ]}
-        />
         <S
           l="Phân loại dụng cụ"
           v={form.phan_loai}
@@ -200,6 +197,39 @@ export default function LoaiDungCuFormModal({
           ]}
         />
       </div>
+      <fieldset className="space-y-1">
+        <legend className="text-[11px] font-medium text-slate-400 ml-1">
+          Phương pháp tiệt khuẩn được phép (chọn nhiều; ô đầu tiên chọn là ưu tiên)
+        </legend>
+        <div className="flex flex-wrap gap-3">
+          {PP_OPTIONS.map((o) => {
+            const on = form.phuong_phap_cho_phep.includes(o.v);
+            return (
+              <label key={o.v} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() =>
+                    setForm({
+                      ...form,
+                      phuong_phap_cho_phep: on
+                        ? form.phuong_phap_cho_phep.filter((x) => x !== o.v)
+                        : [...form.phuong_phap_cho_phep, o.v],
+                    })
+                  }
+                />
+                {o.l}
+                <span className="text-[11px] text-slate-500">{isSteamMethod(o.v) ? "(nhiệt cao)" : "(nhiệt thấp)"}</span>
+              </label>
+            );
+          })}
+        </div>
+        {!coNhietCao ? (
+          <p className="text-[11px] text-amber-700 ml-1">
+            Loại chỉ nhiệt thấp: bộ chứa loại này sẽ được tách thành bộ thành phần riêng, không nạp máy hơi nước.
+          </p>
+        ) : null}
+      </fieldset>
       <div className="space-y-1">
         <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
         {isEdit ? (
