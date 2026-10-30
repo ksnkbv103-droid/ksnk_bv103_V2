@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Catalog, CSSDBo, CSSDLoai } from "../types/catalog.types";
+import { KHO_CATALOG_PAGE_SIZE, type Catalog, type CSSDBo, type CSSDLoai } from "../types/catalog.types";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { useState } from "react";
 import {
@@ -10,6 +10,8 @@ import {
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
 import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import ServerPaginationBar from "@/components/shared/ServerPaginationBar";
+
 
 export function CSSDCatalogLoaiTab(props: {
   catalog: Catalog;
@@ -19,6 +21,9 @@ export function CSSDCatalogLoaiTab(props: {
   selectedLoai: CSSDLoai | null;
   boBySelectedLoai: CSSDBo[];
   toolbar?: ReactNode;
+  page: number;
+  totalCount: number;
+  onPageChange: (page: number) => void;
 }) {
   const { selectedLoaiId, setSelectedLoaiId, selectedLoai, boBySelectedLoai, toolbar } = props;
   const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
@@ -126,6 +131,13 @@ export function CSSDCatalogLoaiTab(props: {
             </tbody>
           </table>
         </ResponsiveTableShell>
+        <ServerPaginationBar
+          page={props.page}
+          totalPages={Math.max(1, Math.ceil(props.totalCount / KHO_CATALOG_PAGE_SIZE))}
+          totalCount={props.totalCount}
+          pageSize={KHO_CATALOG_PAGE_SIZE}
+          onPageChange={props.onPageChange}
+        />
 
         {!selectedLoai ? (
           <p className="px-2.5 text-[11px] text-slate-500">Chọn một loại để xem các bộ đang chứa.</p>
