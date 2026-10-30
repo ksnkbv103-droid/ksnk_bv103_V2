@@ -1,3 +1,4 @@
+import { ghiCacTestMe } from "./me-tiet-khuan-ghi-test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { KitHeatLine } from "../lib/me-tiet-khuan-batch-heat";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
@@ -355,6 +356,10 @@ export async function persistMeTietKhuanFinishWithClient(
     email: p.operatorEmail,
     hoTen: p.nguoiUnload,
   });
+
+  // Ghi người + giờ từng test trước khi kết luận; test không đạt → RPC đặt mẻ «Lô hỏng, cần xem lại».
+  const ghi = await ghiCacTestMe(client, { meId: p.activeMeId, actorUserId, tests: p });
+  if (!ghi.ok) return ghi;
 
   if (decision.outcome === "HOAN_THANH") {
     const derived = derivePassQuyTrinhIds(linked.rows, p.activeMeId);

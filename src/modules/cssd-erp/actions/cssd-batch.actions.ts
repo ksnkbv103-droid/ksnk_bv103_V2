@@ -241,7 +241,31 @@ export async function fetchCssdBatchWorkflowState(batchId: string) {
   }
 }
 
-/** Chốt nạp: khóa thêm bộ, chuyển toàn bộ bộ trong mẻ sang trạng thái TIET_KHUAN. */
+/** Kết thúc nạp: khóa thêm bộ, ghi người nạp (= người tạo phiếu) + giờ. Chưa bắt đầu tiệt khuẩn. */
+export async function confirmKetThucNapBatch(batchId: string) {
+  try {
+    await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
+    const id = String(batchId || "").trim();
+    if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+    const { data, error: rpcErr } = await supabase.rpc("rpc_cssd_me_ket_thuc_nap", {
+      p_me_id: id,
+      p_actor_user_id: actor.userId,
+    });
+    if (rpcErr) return { success: false as const, error: mapFkError(rpcErr.message) };
+    // RPC trả {success:false,message} chứ không ném lỗi.
+    const r = data as { success?: boolean; message?: string } | null;
+    if (!r || r.success !== true) return { success: false as const, error: r?.message || "Không kết thúc nạp được." };
+    revalidateCssdBatchSurfaces();
+    return { success: true as const };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}
+
+/** Bắt đầu tiệt khuẩn (sau kết thúc nạp): ghi người + giờ bắt đầu, bộ sang trạm TIET_KHUAN. */
 export async function confirmBatDauTietKhuanBatch(batchId: string) {
   try {
     await verifyCssdBatchEdit();
@@ -250,13 +274,17 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
-      .select("id, tk_chot_nap_at, ket_qua_test, thiet_bi_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))")
+      .select("id, tk_chot_nap_at, trang_thai_me, ket_qua_test, thiet_bi_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))")
       .eq("id", id)
       .maybeSingle();
     if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
     if (!me) return { success: false as const, error: "Không tìm thấy mẻ." };
-    if ((me as { tk_chot_nap_at?: string | null }).tk_chot_nap_at) {
+    const meSt = (me as { trang_thai_me?: string | null; tk_chot_nap_at?: string | null });
+    if (meSt.trang_thai_me === "DANG_TIET_KHUAN") {
       return { success: false as const, error: "Mẻ đã bắt đầu tiệt khuẩn trước đó." };
+    }
+    if (!meSt.tk_chot_nap_at || meSt.trang_thai_me !== "DA_CHOT_NAP") {
+      return { success: false as const, error: "Cần kết thúc nạp trước khi bắt đầu tiệt khuẩn." };
     }
     const tbRaw = (me as { thiet_bi?: unknown }).thiet_bi;
     const tb = (tbRaw && Array.isArray(tbRaw) ? tbRaw[0] : tbRaw) as {
@@ -355,11 +383,13 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
 
     const actor = await requireSessionActorId();
     if (!actor.ok) return { success: false as const, error: actor.message };
-    const { error: rpcErr } = await supabase.rpc("rpc_cssd_me_bat_dau", {
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_cssd_me_bat_dau", {
       p_me_id: id,
       p_actor_user_id: actor.userId,
     });
     if (rpcErr) return { success: false as const, error: mapFkError(rpcErr.message) };
+    const bd = rpcData as { success?: boolean; message?: string } | null;
+    if (!bd || bd.success !== true) return { success: false as const, error: bd?.message || "Không bắt đầu tiệt khuẩn được." };
     revalidateCssdBatchSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
@@ -376,28 +406,24 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
-      .select("id, tk_chot_nap_at, tk_mo_form_qc_at, ket_qua_test")
+      .select("id, trang_thai_me, tk_mo_form_qc_at, ket_qua_test")
       .eq("id", id)
       .maybeSingle();
     if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
     if (!me) return { success: false as const, error: "Không tìm thấy mẻ." };
-    const m = me as { tk_chot_nap_at?: string | null; tk_mo_form_qc_at?: string | null; ket_qua_test?: boolean | null };
-    if (!m.tk_chot_nap_at) return { success: false as const, error: "Cần xác nhận bắt đầu tiệt khuẩn trước." };
+    const m = me as { trang_thai_me?: string | null; tk_mo_form_qc_at?: string | null; ket_qua_test?: boolean | null };
+    if (m.trang_thai_me !== "DANG_TIET_KHUAN") return { success: false as const, error: "Cần xác nhận bắt đầu tiệt khuẩn trước." };
     if (m.tk_mo_form_qc_at) return { success: false as const, error: "Đã mở form QC — không lặp bước này." };
     if (m.ket_qua_test != null) return { success: false as const, error: "Mẻ đã có kết quả QC." };
     const actor = await requireSessionActorId();
     if (!actor.ok) return { success: false as const, error: actor.message };
-    const now = new Date().toISOString();
-    const { error: upLo } = await supabase
-      .from("cssd_fact_lo_tiet_khuan")
-      .update({
-        tk_mo_form_qc_at: now,
-        trang_thai_me: "CHO_DANH_GIA_QC",
-        nguoi_ket_thuc_id: actor.userId,
-        updated_at: now,
-      })
-      .eq("id", id);
+    const { data: kt, error: upLo } = await supabase.rpc("rpc_cssd_me_ket_thuc_tiet_khuan", {
+      p_me_id: id,
+      p_actor_user_id: actor.userId,
+    });
     if (upLo) return { success: false as const, error: mapFkError(upLo.message) };
+    const r = kt as { success?: boolean; message?: string } | null;
+    if (!r || r.success !== true) return { success: false as const, error: r?.message || "Không kết thúc tiệt khuẩn được." };
     revalidateCssdBatchSurfaces();
     return { success: true as const };
   } catch (e: unknown) {

@@ -124,6 +124,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         onBackToList={w.backToList}
         onAddItemByCode={(code) => void w.addItem(code)}
         onRemoveItem={(id) => void w.removeItem(id)}
+        onConfirmKetThucNap={() => void w.confirmKetThucNap()}
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
         onFinishQc={(isPass) => void w.finishQc(isPass)}

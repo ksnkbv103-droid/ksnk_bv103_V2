@@ -27,6 +27,7 @@ type World = {
 /** Client giả: trả dữ liệu theo bảng, ghi lại rpc và update. */
 function fakeClient(world: World) {
   const rpcCalls: { name: string; args: Record<string, unknown> }[] = [];
+  const ghiTestCalls: Record<string, unknown>[] = [];
   const updates: { table: string; patch: Rows }[] = [];
   const resultFor = (table: string): { data: unknown; error: null } => {
     if (table === "cssd_fact_lo_tiet_khuan") return { data: world.batch, error: null };
@@ -47,10 +48,15 @@ function fakeClient(world: World) {
     return chain;
   };
   const rpc = async (name: string, args: Record<string, unknown>) => {
+    // ghi_test (người + giờ từng test) tách riêng để các kiểm cũ về kết luận mẻ giữ nguyên.
+    if (name === "rpc_cssd_me_ghi_test") {
+      ghiTestCalls.push(args);
+      return { data: { success: true, dat: args.p_ket_qua !== "KHONG_DAT" && args.p_ket_qua !== "DUONG" }, error: null };
+    }
     rpcCalls.push({ name, args });
-    return { data: { quy_trinh_ids: ["qt-1", "qt-2"] }, error: null };
+    return { data: { success: true, dat: true, quy_trinh_ids: ["qt-1", "qt-2"] }, error: null };
   };
-  return { client: { from, rpc } as unknown as SupabaseClient, rpcCalls, updates };
+  return { client: { from, rpc } as unknown as SupabaseClient, rpcCalls, ghiTestCalls, updates };
 }
 
 const BATCH_ID = "me-1";
@@ -144,6 +150,7 @@ describe("cổng QC mẻ — persistMeTietKhuanFinishWithClient", () => {
     const r = await persistMeTietKhuanFinishWithClient(w.client, finishInput);
     expect(r).toEqual({ ok: true, outcome: "HOAN_THANH" });
     expect(w.rpcCalls.map((c) => c.name)).toEqual(["rpc_cssd_me_ket_luan_dat"]);
+    expect(w.ghiTestCalls.map((c) => c.p_loai)).toEqual(["THONG_SO_VAT_LY", "CI_NGOAI_GOI", "CI_PCD"]);
     expect(appendQuyTrinhException).toHaveBeenCalledTimes(2);
     expect(appendQuyTrinhException.mock.calls[0][2]).toMatchObject({ su_kien: "HOAN_ME_TIET_KHUAN_DAT", den_tram: "CAP_PHAT" });
     expect(applyBatchRecallAndHoldMachine).not.toHaveBeenCalled();

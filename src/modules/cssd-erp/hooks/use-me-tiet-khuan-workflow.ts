@@ -7,6 +7,7 @@ import {
   addQuyTrinhToSterilizationBatch,
   removeQuyTrinhFromSterilizationBatch,
   confirmBatDauTietKhuanBatch,
+  confirmKetThucNapBatch,
   confirmKetThucChuTrinhTietKhuan,
   createCssdSterilizationBatch,
   fetchCssdMeNguoiNapPickerOptions,
@@ -40,6 +41,7 @@ import { isLiveBatchMember } from "../lib/me-tiet-khuan-batch-integrity";
 
 /** Trạng thái sau chốt nạp — không còn panel waiting / heat partition. */
 const ME_NAP_LOCKED_STATUSES = new Set([
+  "DA_CHOT_NAP",
   "DANG_TIET_KHUAN",
   "CHO_DANH_GIA_QC",
   "CHO_BI",
@@ -387,7 +389,8 @@ export function useMeTietKhuanWorkflow() {
     return true;
   };
 
-  const confirmBatDau = async () => {
+  /** Kết thúc nạp: khóa bộ, ghi người nạp + giờ (chưa chạy máy). */
+  const confirmKetThucNap = async () => {
     if (!activeMe?.id) return;
     if (!items.length) return toast.error("Chưa có bộ trong mẻ.");
     const heat = await fetchCssdBatchHeatRisk(activeMe.id);
@@ -395,21 +398,36 @@ export function useMeTietKhuanWorkflow() {
       toast.warning(heat.risk.messages[0] || "Cảnh báo nhiệt/Spaulding", { duration: 8000 });
     }
     const ok = await askConfirm({
-      title: "Bắt đầu chu trình",
-      body: "Xác nhận bắt đầu tiệt khuẩn? Sau bước này không thể nạp thêm bộ vào mẻ.",
-      confirmLabel: "Bắt đầu chu trình",
+      title: "Kết thúc nạp",
+      body: "Xác nhận kết thúc nạp? Sau bước này không thể nạp thêm bộ vào mẻ.",
+      confirmLabel: "Kết thúc nạp",
+    });
+    if (!ok) return;
+    const r = await confirmKetThucNapBatch(activeMe.id);
+    if (!r.success) return toast.error(r.error);
+    toast.success("Đã kết thúc nạp — ghi người nạp và giờ.");
+    await reloadProcessContext();
+  };
+
+  /** Bắt đầu tiệt khuẩn (sau kết thúc nạp): bộ chuyển sang trạm tiệt khuẩn. */
+  const confirmBatDau = async () => {
+    if (!activeMe?.id) return;
+    const ok = await askConfirm({
+      title: "Bắt đầu tiệt khuẩn",
+      body: "Xác nhận đã bấm chạy máy? Hệ thống ghi người và giờ bắt đầu.",
+      confirmLabel: "Bắt đầu tiệt khuẩn",
     });
     if (!ok) return;
     const r = await confirmBatDauTietKhuanBatch(activeMe.id);
     if (!r.success) return toast.error(r.error);
-    toast.success("Đã chốt nạp — các bộ chuyển sang trạng thái đang tiệt khuẩn.");
+    toast.success("Đã bắt đầu tiệt khuẩn — các bộ chuyển sang trạng thái đang tiệt khuẩn.");
     await reloadProcessContext();
   };
 
   const confirmKetThucChuTrinh = async () => {
     if (!activeMe?.id) return;
     const ok = await askConfirm({
-      title: "Kết thúc",
+      title: "Kết thúc tiệt khuẩn",
       body: "Xác nhận đã kết thúc chu trình tiệt khuẩn trên máy? Form đánh giá sẽ mở.",
       confirmLabel: "Kết thúc",
     });
@@ -663,6 +681,7 @@ export function useMeTietKhuanWorkflow() {
     createMe,
     addItem,
     removeItem,
+    confirmKetThucNap,
     confirmBatDau,
     confirmKetThucChuTrinh,
     finishQc,
