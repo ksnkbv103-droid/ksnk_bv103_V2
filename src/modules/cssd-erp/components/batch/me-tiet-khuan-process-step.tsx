@@ -144,7 +144,7 @@ export default function MeTietKhuanProcessStep({
     () => getSterilizerMethod(batchGate?.thiet_bi ?? activeMe?.thiet_bi ?? null) || getSterilizerMethod({ phuong_phap: (batchGate as { phuong_phap?: string | null } | null)?.phuong_phap }),
     [batchGate, activeMe?.thiet_bi],
   );
-  const trangThai = String(activeMe?.trang_thai || (batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || "");
+  const trangThai = String((batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || activeMe?.trang_thai || "");
   const choBi = trangThai === "CHO_BI";
   const biTuanSauNha =
     !choBi &&
