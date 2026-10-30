@@ -27,6 +27,18 @@ describe("applyLoai kho dự phòng", () => {
   });
 });
 
+describe("applyLoai nhiều phương pháp cho phép", () => {
+  it("ghi mảng cho phép, ưu tiên = phần tử đầu, chịu nhiệt suy từ mảng", () => {
+    const patch = buildLoaiCatalogUpdatePatch(
+      { phuong_phap_cho_phep: ["PLASMA", "STEAM_134", "XX"], is_chiu_nhiet: false },
+      "2026-10-30T00:00:00.000Z",
+    );
+    expect(patch.phuong_phap_cho_phep).toEqual(["PLASMA", "STEAM_134"]);
+    expect(patch.phuong_phap_tiet_khuan_chi_dinh).toBe("PLASMA");
+    expect(patch.is_chiu_nhiet).toBe(true);
+  });
+});
+
 describe("S-C claim ordering (pure)", () => {
   it("FAILED không claim lại — tránh double CREATE/THEM_DONG", () => {
     expect(canClaimCatalogDeNghi("APPLY_FAILED")).toBe(false);

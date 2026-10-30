@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { PhuongPhapChoPhepPicker } from "./PhuongPhapChoPhepPicker";
 import {
   createCatalogDeNghiAction,
   listKhoaOptionsForDeNghiAction,
@@ -84,7 +85,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
   const [kichThuoc, setKichThuoc] = useState("");
   const [congDung, setCongDung] = useState("");
   const [isChiuNhiet, setIsChiuNhiet] = useState<"true" | "false">("true");
-  const [ppTk, setPpTk] = useState("STEAM_134");
+  const [ppCho, setPpCho] = useState<string[]>(["STEAM_134"]);
   const [spaulding, setSpaulding] = useState("CRITICAL");
   const [phanLoai, setPhanLoai] = useState("PHAU_THUAT");
   const [khoHienTai, setKhoHienTai] = useState<number | null>(null);
@@ -179,7 +180,11 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
         setKichThuoc(String(f.kich_thuoc || ""));
         setCongDung(String(f.cong_dung || ""));
         setIsChiuNhiet(f.is_chiu_nhiet === false ? "false" : "true");
-        setPpTk(String(f.phuong_phap_tiet_khuan_chi_dinh || "STEAM_134"));
+        setPpCho(
+          Array.isArray(f.phuong_phap_cho_phep) && f.phuong_phap_cho_phep.length
+            ? f.phuong_phap_cho_phep.map(String)
+            : [String(f.phuong_phap_tiet_khuan_chi_dinh || "STEAM_134")],
+        );
         setSpaulding(String(f.phan_loai_spaulding || "CRITICAL"));
         setPhanLoai(String(f.phan_loai || "PHAU_THUAT"));
         setKhoHienTai(res.khoHienTai);
@@ -231,8 +236,9 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
         hinh_dang: hinhDang,
         kich_thuoc: kichThuoc,
         cong_dung: congDung,
-        is_chiu_nhiet: isChiuNhiet === "true",
-        phuong_phap_tiet_khuan_chi_dinh: ppTk,
+        is_chiu_nhiet: ppCho.length ? ppCho.some((m) => m === "STEAM_134" || m === "STEAM_121") : isChiuNhiet === "true",
+        phuong_phap_tiet_khuan_chi_dinh: ppCho[0] ?? null,
+        phuong_phap_cho_phep: ppCho,
         phan_loai_spaulding: spaulding,
         phan_loai: phanLoai,
         is_active: loaiActive,
@@ -351,12 +357,6 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
             <label className={labelCls}>Kích thước<input className={inputCls} value={kichThuoc} onChange={(e) => setKichThuoc(e.target.value)} /></label>
             <label className={`${labelCls} sm:col-span-2`}>Công dụng<input className={inputCls} value={congDung} onChange={(e) => setCongDung(e.target.value)} /></label>
             <label className={`${labelCls} sm:col-span-2`}>Mô tả<input className={inputCls} value={moTa} onChange={(e) => setMoTa(e.target.value)} /></label>
-            <label className={labelCls}>Chịu nhiệt
-              <select className={inputCls} value={isChiuNhiet} onChange={(e) => setIsChiuNhiet(e.target.value as "true" | "false")}>
-                <option value="true">Chịu nhiệt cao</option>
-                <option value="false">Không chịu nhiệt</option>
-              </select>
-            </label>
             <label className={labelCls}>Spaulding
               <select className={inputCls} value={spaulding} onChange={(e) => setSpaulding(e.target.value)}>
                 <option value="CRITICAL">Critical</option>
@@ -364,14 +364,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                 <option value="NON_CRITICAL">Non-critical</option>
               </select>
             </label>
-            <label className={labelCls}>Phương pháp TK
-              <select className={inputCls} value={ppTk} onChange={(e) => setPpTk(e.target.value)}>
-                <option value="STEAM_134">Hơi 134°C</option>
-                <option value="STEAM_121">Hơi 121°C</option>
-                <option value="PLASMA">Plasma</option>
-                <option value="EO">EO</option>
-              </select>
-            </label>
+            <PhuongPhapChoPhepPicker value={ppCho} onChange={setPpCho} />
             <label className={labelCls}>Phân loại
               <select className={inputCls} value={phanLoai} onChange={(e) => setPhanLoai(e.target.value)}>
                 <option value="PHAU_THUAT">Phẫu thuật</option>

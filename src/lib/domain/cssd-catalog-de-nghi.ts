@@ -58,6 +58,7 @@ export type CssdCatalogDeNghiLoaiPayload = {
   cong_dung?: string | null;
   is_chiu_nhiet?: boolean | null;
   phuong_phap_tiet_khuan_chi_dinh?: string | null;
+  phuong_phap_cho_phep?: string[] | null;
   phan_loai_spaulding?: string | null;
   phan_loai?: string | null;
   so_luong_kho_du_phong?: number | null;

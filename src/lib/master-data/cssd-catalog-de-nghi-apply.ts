@@ -4,7 +4,11 @@ import {
   type CssdCatalogDeNghiBomLine,
   type CssdCatalogDeNghiKind,
 } from "@/lib/domain/cssd-catalog-de-nghi";
-import { resolveLoaiSterileMethod } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import {
+  isSteamMethod,
+  normalizePhuongPhapChoPhep,
+  resolveLoaiSterileMethod,
+} from "@/lib/master-data/cssd-loai-dung-cu-map";
 
 /** Loại đổi chịu nhiệt qua đề nghị — caller gọi tách bộ (module CSSD) sau khi ghi. */
 export type LoaiHeatChangeFromDeNghi = {
@@ -35,20 +39,30 @@ async function insertLoai(
   if (after.hinh_dang != null) specs.hinh_dang = String(after.hinh_dang);
   if (after.kich_thuoc != null) specs.kich_thuoc = String(after.kich_thuoc);
   if (after.cong_dung != null) specs.cong_dung = String(after.cong_dung);
-  const isChiuNhiet = after.is_chiu_nhiet !== false;
-  const rawMethod = after.phuong_phap_tiet_khuan_chi_dinh;
-  const resolved = resolveLoaiSterileMethod({
-    isChiuNhiet,
-    method: rawMethod,
-    methodExplicit: rawMethod != null && String(rawMethod).trim() !== "",
-  });
-  if (!resolved.ok) throw new Error(resolved.error);
+  const choPhep = normalizePhuongPhapChoPhep(after.phuong_phap_cho_phep);
+  let isChiuNhiet = after.is_chiu_nhiet !== false;
+  let method: string;
+  if (choPhep.length) {
+    isChiuNhiet = choPhep.some(isSteamMethod);
+    method = choPhep[0];
+  } else {
+    const rawMethod = after.phuong_phap_tiet_khuan_chi_dinh;
+    const resolved = resolveLoaiSterileMethod({
+      isChiuNhiet,
+      method: rawMethod,
+      methodExplicit: rawMethod != null && String(rawMethod).trim() !== "",
+    });
+    if (!resolved.ok) throw new Error(resolved.error);
+    method = resolved.method;
+    choPhep.push(resolved.method);
+  }
   const { error } = await supabase.from("cssd_dm_loai_dung_cu").insert({
     ma_loai: ma,
     ten_loai: ten,
     mo_ta: after.mo_ta != null ? String(after.mo_ta) : null,
     is_chiu_nhiet: isChiuNhiet,
-    phuong_phap_tiet_khuan_chi_dinh: resolved.method,
+    phuong_phap_tiet_khuan_chi_dinh: method,
+    phuong_phap_cho_phep: choPhep,
     phan_loai_spaulding: String(after.phan_loai_spaulding || "CRITICAL"),
     phan_loai: String(after.phan_loai || "PHAU_THUAT"),
     so_luong_kho_du_phong: Math.max(0, Math.floor(Number(after.so_luong_kho_du_phong) || 0)),
@@ -108,7 +122,12 @@ export function buildLoaiCatalogUpdatePatch(
   if (after.ten_loai != null) patch.ten_loai = String(after.ten_loai).trim();
   if (after.mo_ta != null) patch.mo_ta = String(after.mo_ta);
   if (typeof after.is_chiu_nhiet === "boolean") patch.is_chiu_nhiet = after.is_chiu_nhiet;
-  if (after.phuong_phap_tiet_khuan_chi_dinh != null) {
+  const choPhep = normalizePhuongPhapChoPhep(after.phuong_phap_cho_phep);
+  if (choPhep.length) {
+    patch.phuong_phap_cho_phep = choPhep;
+    patch.phuong_phap_tiet_khuan_chi_dinh = choPhep[0];
+    patch.is_chiu_nhiet = choPhep.some(isSteamMethod);
+  } else if (after.phuong_phap_tiet_khuan_chi_dinh != null) {
     patch.phuong_phap_tiet_khuan_chi_dinh = String(after.phuong_phap_tiet_khuan_chi_dinh);
   }
   if (after.phan_loai_spaulding != null) patch.phan_loai_spaulding = String(after.phan_loai_spaulding);
@@ -159,7 +178,10 @@ async function applyLoai(
   const prevIsChiuNhiet = typeof cur.is_chiu_nhiet === "boolean" ? cur.is_chiu_nhiet : null;
   const nextIsChiuNhiet =
     typeof patch.is_chiu_nhiet === "boolean" ? patch.is_chiu_nhiet : prevIsChiuNhiet !== false;
-  if (patch.is_chiu_nhiet !== undefined || patch.phuong_phap_tiet_khuan_chi_dinh !== undefined) {
+  if (
+    patch.phuong_phap_cho_phep === undefined &&
+    (patch.is_chiu_nhiet !== undefined || patch.phuong_phap_tiet_khuan_chi_dinh !== undefined)
+  ) {
     const explicit = patch.phuong_phap_tiet_khuan_chi_dinh !== undefined;
     const resolved = resolveLoaiSterileMethod({
       isChiuNhiet: nextIsChiuNhiet,
@@ -168,6 +190,8 @@ async function applyLoai(
     });
     if (!resolved.ok) throw new Error(resolved.error);
     patch.phuong_phap_tiet_khuan_chi_dinh = resolved.method;
+    // Trigger DB ép phương pháp ưu tiên về mảng cho phép — ghi mảng cùng lúc kẻo bị hoàn lại.
+    patch.phuong_phap_cho_phep = [resolved.method];
   }
 
   if (Object.keys(specsPatch).length) {

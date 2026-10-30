@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { PhuongPhapChoPhepPicker } from "./PhuongPhapChoPhepPicker";
 import {
   createCatalogDeNghiAction,
   listKhoaOptionsForDeNghiAction,
@@ -55,7 +56,7 @@ export function CatalogDeNghiCreateDialog({
   const [kichThuoc, setKichThuoc] = useState("");
   const [congDung, setCongDung] = useState("");
   const [isChiuNhiet, setIsChiuNhiet] = useState<"true" | "false">("true");
-  const [ppTk, setPpTk] = useState("STEAM_134");
+  const [ppCho, setPpCho] = useState<string[]>(["STEAM_134"]);
   const [spaulding, setSpaulding] = useState("CRITICAL");
   const [phanLoai, setPhanLoai] = useState("PHAU_THUAT");
   const [khoDuPhong, setKhoDuPhong] = useState(0);
@@ -85,7 +86,7 @@ export function CatalogDeNghiCreateDialog({
     setKichThuoc("");
     setCongDung("");
     setIsChiuNhiet("true");
-    setPpTk("STEAM_134");
+    setPpCho(["STEAM_134"]);
     setSpaulding("CRITICAL");
     setPhanLoai("PHAU_THUAT");
     setKhoDuPhong(0);
@@ -140,8 +141,9 @@ export function CatalogDeNghiCreateDialog({
         hinh_dang: hinhDang,
         kich_thuoc: kichThuoc,
         cong_dung: congDung,
-        is_chiu_nhiet: isChiuNhiet === "true",
-        phuong_phap_tiet_khuan_chi_dinh: ppTk,
+        is_chiu_nhiet: ppCho.length ? ppCho.some((m) => m === "STEAM_134" || m === "STEAM_121") : isChiuNhiet === "true",
+        phuong_phap_tiet_khuan_chi_dinh: ppCho[0] ?? null,
+        phuong_phap_cho_phep: ppCho,
         phan_loai_spaulding: spaulding,
         phan_loai: phanLoai,
         so_luong_kho_du_phong: khoDuPhong,
@@ -265,13 +267,6 @@ export function CatalogDeNghiCreateDialog({
               <input className={inputCls} value={congDung} onChange={(e) => setCongDung(e.target.value)} />
             </label>
             <label className={labelCls}>
-              Chịu nhiệt
-              <select className={inputCls} value={isChiuNhiet} onChange={(e) => setIsChiuNhiet(e.target.value as "true" | "false")}>
-                <option value="true">Chịu nhiệt cao</option>
-                <option value="false">Không chịu nhiệt</option>
-              </select>
-            </label>
-            <label className={labelCls}>
               Spaulding
               <select className={inputCls} value={spaulding} onChange={(e) => setSpaulding(e.target.value)}>
                 <option value="CRITICAL">Critical</option>
@@ -279,15 +274,7 @@ export function CatalogDeNghiCreateDialog({
                 <option value="NON_CRITICAL">Non-critical</option>
               </select>
             </label>
-            <label className={labelCls}>
-              Phương pháp TK
-              <select className={inputCls} value={ppTk} onChange={(e) => setPpTk(e.target.value)}>
-                <option value="STEAM_134">Hơi 134°C</option>
-                <option value="STEAM_121">Hơi 121°C</option>
-                <option value="PLASMA">Plasma</option>
-                <option value="EO">EO</option>
-              </select>
-            </label>
+            <PhuongPhapChoPhepPicker value={ppCho} onChange={setPpCho} />
             <label className={labelCls}>
               Phân loại
               <select className={inputCls} value={phanLoai} onChange={(e) => setPhanLoai(e.target.value)}>
