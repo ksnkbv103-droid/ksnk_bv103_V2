@@ -22,6 +22,7 @@ import {
 import { isMeMaLoScan } from "../lib/me-tiet-khuan-qc";
 import {
   prefillFromChuongTrinh,
+  soHoacRong,
   pickDefaultChuongTrinh,
   resolveChuongTrinhOptionsForMachine,
   type ChuongTrinhMayOption,
@@ -308,9 +309,9 @@ export function useMeTietKhuanWorkflow() {
     const pre = prefillFromChuongTrinh(opt);
     chuongPrefillRef.current = pre;
     setChuongTrinh(pre.chuongTrinh);
-    setNhietDo(pre.nhietDo);
-    setApSuat(pre.apSuat);
-    setThoiGianChuKy(pre.thoiGianChuKy);
+    setNhietDo(soHoacRong(pre.nhietDo));
+    setApSuat(soHoacRong(pre.apSuat));
+    setThoiGianChuKy(soHoacRong(pre.thoiGianChuKy));
   };
 
   const createMe = async () => {
@@ -606,9 +607,9 @@ export function useMeTietKhuanWorkflow() {
         chuongPrefillRef.current = pre;
         if (!ct) {
           setChuongTrinh(pre.chuongTrinh);
-          setNhietDo(pre.nhietDo);
-          setApSuat(pre.apSuat);
-          setThoiGianChuKy(pre.thoiGianChuKy);
+          setNhietDo(soHoacRong(pre.nhietDo));
+          setApSuat(soHoacRong(pre.apSuat));
+          setThoiGianChuKy(soHoacRong(pre.thoiGianChuKy));
         } else {
           setChuongTrinh(ct);
         }
