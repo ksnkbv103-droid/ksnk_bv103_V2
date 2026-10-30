@@ -114,18 +114,22 @@ export async function getBoDungCuRowsAction() {
   );
   const khoaMap = new Map((khoaResult.data || []).map((x) => [x.id, x] as const));
   const boIds = rows.map((r) => r.id);
-  const { data: lineRows, error: lineErr } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("bo_dung_cu_id, loai_dung_cu_id")
-    .in("bo_dung_cu_id", boIds);
-  if (lineErr) return { success: false, error: lineErr.message };
+  const lineRows: { bo_dung_cu_id: string; loai_dung_cu_id: string | null }[] = [];
+  for (let i = 0; i < boIds.length; i += 50) {
+    const { data: part, error: lineErr } = await supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .select("bo_dung_cu_id, loai_dung_cu_id")
+      .in("bo_dung_cu_id", boIds.slice(i, i + 50));
+    if (lineErr) return { success: false, error: lineErr.message };
+    lineRows.push(...(part || []));
+  }
   const lineLoaiIds = [...new Set((lineRows || []).map((l) => String(l.loai_dung_cu_id || "")).filter(Boolean))];
   const ppByLoai = new Map<string, string[]>();
-  if (lineLoaiIds.length) {
+  for (let i = 0; i < lineLoaiIds.length; i += 50) {
     const { data: ppRows, error: ppErr } = await supabase
       .from("cssd_dm_loai_dung_cu")
       .select("id, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep")
-      .in("id", lineLoaiIds);
+      .in("id", lineLoaiIds.slice(i, i + 50));
     if (ppErr) return { success: false, error: ppErr.message };
     for (const p of ppRows || []) {
       ppByLoai.set(String(p.id), mapLoaiPhysicalToListRow(p as Record<string, unknown>).phuong_phap_cho_phep);
