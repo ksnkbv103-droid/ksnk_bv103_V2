@@ -168,7 +168,7 @@ export async function applyHeatSplitAfterLoaiDowngrade(
   for (const boId of boIds) {
     const { data: bo, error: boErr } = await supabase
       .from("cssd_dm_bo_dung_cu")
-      .select("id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo, parent_bo_id, vai_tro_tach")
+      .select(useParentCols ? "id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo, parent_bo_id, vai_tro_tach" : "id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo")
       .eq("id", boId)
       .maybeSingle();
     if (boErr) throw new Error(boErr.message);
