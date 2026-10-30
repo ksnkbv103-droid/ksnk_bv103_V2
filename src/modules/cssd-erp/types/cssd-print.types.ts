@@ -66,7 +66,11 @@ export type CssdBatchPrintData = {
   ghiChuQc: string;
   anhMinhChung: CssdBatchAnhMinhChung;
   members: CssdBatchPrintMember[];
+  /** Nhật ký chu trình: từng bước/test kèm người + giờ (phục vụ lưu trữ, đoàn kiểm tra). */
+  nhatKy: CssdBatchNhatKyRow[];
 };
+
+export type CssdBatchNhatKyRow = { buoc: string; nguoi: string; gio: string | null; ketQua: string };
 
 /** Một dòng sự cố trên phiếu cấp phát (CSSD-05 / §8). */
 export type CssdCapPhatPrintIncident = {

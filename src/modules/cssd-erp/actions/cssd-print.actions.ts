@@ -157,6 +157,7 @@ async function mapBatchPrintData(
     qcCiNgoai: qcTri(batch.tk_qc_json, "ci_ngoai_goi"),
     qcCiPcd: qcTri(batch.tk_qc_json, "ci_pcd"),
     ghiChuQc: String(batch.ghi_chu_qc || batch.ghi_chu || ""),
+    tkQcJson: batch.tk_qc_json,
     members: members.map((m) => ({
       maBo: String(m.ma_bo || m.ma_vach_qr || m.ma_qr_quy_trinh || "—"),
       tenBo: String((m.bo as { ten_bo?: string } | null)?.ten_bo || m.ten_bo || "—"),

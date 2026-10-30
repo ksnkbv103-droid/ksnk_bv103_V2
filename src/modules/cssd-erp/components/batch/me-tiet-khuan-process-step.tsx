@@ -177,6 +177,7 @@ export default function MeTietKhuanProcessStep({
   const chuongTrinhEmpty = !String(chuongTrinh || "").trim();
   const maLoMo = String(activeMe?.ma_lo_tiet_khuan || "").trim();
   const canPrint =
+    napLocked ||
     choBi ||
     activeMe?.ket_qua_test === true ||
     activeMe?.ket_qua_test === false ||

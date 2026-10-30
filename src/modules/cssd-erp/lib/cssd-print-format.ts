@@ -4,6 +4,7 @@ import { isCssdCycleUsedClinically } from "@/modules/cssd-su-co/domain/cssd-used
 import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
 import type {
   CssdBatchAnhMinhChung,
+  CssdBatchNhatKyRow,
   CssdBatchPrintData,
   CssdCapPhatPrintIncident,
   CssdQcProofRow,
@@ -71,7 +72,7 @@ const METHOD_LABEL: Record<string, string> = {
   EO: "EO",
 };
 
-const PRINTABLE_BATCH_STATUS = new Set(["CHO_BI", "QC_KHONG_DAT", "THU_HOI", "HOAN_THANH"]);
+const PRINTABLE_BATCH_STATUS = new Set(["DA_CHOT_NAP", "DANG_TIET_KHUAN", "CHO_DANH_GIA_QC", "CHO_BI", "QC_KHONG_DAT", "THU_HOI", "HOAN_THANH"]);
 
 /** Đạt / Không đạt bằng chữ. Không in mã `[DAT]`. */
 export function formatQcTriWord(raw: string | null | undefined): string {
@@ -180,7 +181,36 @@ export type CssdBatchTicketSource = {
   ghiChuQc?: string | null;
   bowieDickLine?: string | null;
   members: { maBo: string; tenBo: string; xuLyLabel?: string }[];
+  /** `tk_qc_json` của mẻ — chứa `nhat_ky`. */
+  tkQcJson?: unknown;
 };
+
+const NHAT_KY_BUOC: Record<string, string> = {
+  KET_THUC_NAP: "Kết thúc nạp",
+  BAT_DAU_TIET_KHUAN: "Bắt đầu tiệt khuẩn",
+  KET_THUC_TIET_KHUAN: "Kết thúc tiệt khuẩn",
+  GHI_TEST: "Ghi kết quả test",
+};
+const NHAT_KY_TEST: Record<string, string> = {
+  THONG_SO_VAT_LY: "Thông số vật lý",
+  CI_NGOAI_GOI: "CI ngoài gói",
+  CI_PCD: "CI PCD",
+  BI: "Chỉ thị sinh học (BI)",
+};
+
+/** Nhật ký chu trình → dòng in (theo thứ tự thời gian). Sự kiện lạ giữ nguyên mã. */
+export function formatNhatKyPrintRows(tkQcJson: unknown): CssdBatchNhatKyRow[] {
+  const arr = (tkQcJson as { nhat_ky?: unknown } | null)?.nhat_ky;
+  if (!Array.isArray(arr)) return [];
+  return arr.map((raw) => {
+    const r = raw as { su_kien?: string; ten?: string; thoi_gian?: string; chi_tiet?: { loai?: string; ket_qua?: string; dat?: boolean } | null };
+    const sk = String(r.su_kien || "");
+    const loai = String(r.chi_tiet?.loai || "");
+    const buoc = sk === "GHI_TEST" && loai ? `Test: ${NHAT_KY_TEST[loai] || loai}` : NHAT_KY_BUOC[sk] || sk || "—";
+    const ketQua = sk === "GHI_TEST" ? (r.chi_tiet?.dat === true ? "Đạt" : r.chi_tiet?.dat === false ? "Không đạt" : "—") : "";
+    return { buoc, nguoi: String(r.ten || "").trim() || "—", gio: r.thoi_gian || null, ketQua };
+  }).sort((a, b) => String(a.gio || "").localeCompare(String(b.gio || "")));
+}
 
 export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPrintData {
   const trangThaiLabel = formatBatchTicketStatus(source.trangThaiMe, source.ketQuaTest);
@@ -236,6 +266,7 @@ export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPr
     thoiGianKetThuc: source.tkMoFormQcAt ?? null,
     ghiChuQc: String(source.ghiChuQc || ""),
     anhMinhChung: { may: "", tiepXuc: "", daThongSo: "", sinhHoc: "", bowieDick: "" },
+    nhatKy: formatNhatKyPrintRows(source.tkQcJson),
   };
 }
 

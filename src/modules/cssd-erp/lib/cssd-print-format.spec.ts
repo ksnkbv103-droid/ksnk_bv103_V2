@@ -4,6 +4,7 @@ import {
   buildCssdQcProofRows,
   CAP_PHAT_NO_INCIDENT_LINE,
   formatCapPhatIncidentStatus,
+  formatNhatKyPrintRows,
   formatQcTriWord,
   isCssdPrintImageUrl,
   mapCapPhatPrintIncidents,
@@ -20,6 +21,7 @@ const basePrintData: CssdBatchPrintData = {
   trangThaiLabel: "Đạt",
   ketQuaDat: true,
   coTheIn: true,
+  nhatKy: [],
   thietBi: "Máy A",
   phuongPhap: "Hơi nước",
   chuongTrinh: "134",
@@ -197,5 +199,19 @@ describe("CSSD-05 cap phát print incidents", () => {
     expect(rows[0]?.loai).toBe("PROCESS_STERILIZATION_FAIL");
     expect(CAP_PHAT_NO_INCIDENT_LINE).toMatch(/Không có sự cố/);
     expect(formatCapPhatIncidentStatus({ INCIDENT_STATUS: "DA_DONG" })).toMatch(/Đã đóng/);
+  });
+});
+
+describe("formatNhatKyPrintRows", () => {
+  it("sắp theo thời gian, dịch tên bước/test, test có kết quả", () => {
+    const rows = formatNhatKyPrintRows({
+      nhat_ky: [
+        { su_kien: "GHI_TEST", ten: "B", thoi_gian: "2026-10-30T07:00:00Z", chi_tiet: { loai: "CI_PCD", dat: false } },
+        { su_kien: "KET_THUC_NAP", ten: "A", thoi_gian: "2026-10-30T06:00:00Z" },
+      ],
+    });
+    expect(rows.map((r) => r.buoc)).toEqual(["Kết thúc nạp", "Test: CI PCD"]);
+    expect(rows[1].ketQua).toBe("Không đạt");
+    expect(formatNhatKyPrintRows(null)).toEqual([]);
   });
 });
