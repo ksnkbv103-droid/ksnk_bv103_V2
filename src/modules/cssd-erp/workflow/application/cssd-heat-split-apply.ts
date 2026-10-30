@@ -168,15 +168,18 @@ export async function applyHeatSplitAfterLoaiDowngrade(
   for (const boId of boIds) {
     const { data: bo, error: boErr } = await supabase
       .from("cssd_dm_bo_dung_cu")
-      .select(useParentCols ? "id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo, parent_bo_id, vai_tro_tach" : "id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo")
+      .select("id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo")
       .eq("id", boId)
       .maybeSingle();
     if (boErr) throw new Error(boErr.message);
     if (!bo?.id) continue;
     const maBo = normalizeBoMa(String((bo as { ma_bo?: string }).ma_bo || ""));
+    const { data: splitInfo } = useParentCols
+      ? await supabase.from("cssd_dm_bo_dung_cu").select("parent_bo_id, vai_tro_tach").eq("id", boId).maybeSingle()
+      : { data: null };
     // Bộ đã là con của lần tách trước: không tách lồng (-CN-KCN…). Bộ -KCN chứa loại nhiệt thấp là đúng.
-    if ((bo as { parent_bo_id?: string | null }).parent_bo_id) {
-      if ((bo as { vai_tro_tach?: string | null }).vai_tro_tach !== "KHONG_CHIU_NHIET") {
+    if (splitInfo?.parent_bo_id) {
+      if (splitInfo.vai_tro_tach !== "KHONG_CHIU_NHIET") {
         out.skipped.push({ maBo, reason: "Bộ con -CN chứa loại nhiệt thấp — chuyển dòng sang bộ -KCN thủ công." });
       }
       continue;
