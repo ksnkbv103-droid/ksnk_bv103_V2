@@ -16,6 +16,9 @@ import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-mat
 import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { VST_COMPARE_MIN_SAMPLE, VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
+import { SupervisionAttentionBlock } from "@/lib/analytics/SupervisionAttentionBlock";
+import { buildSupervisionAlerts } from "@/lib/analytics/supervision-alerts";
+import { buildActionBoardModel } from "@/lib/analytics/supervision-action-board";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
@@ -69,6 +72,19 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
     [p.payload],
   );
 
+  const khoaScope = useMemo(
+    () => (p.selectedKhoaIds.length ? p.khoaOptions.filter((k) => p.selectedKhoaIds.includes(k.id)) : p.khoaOptions),
+    [p.khoaOptions, p.selectedKhoaIds],
+  );
+  const alerts = useMemo(
+    () => buildSupervisionAlerts({ source: "vst", matrixKhoa: p.payload?.matrix_khoa, khoaScope }),
+    [p.payload?.matrix_khoa, khoaScope],
+  );
+  const board = useMemo(
+    () => buildActionBoardModel({ source: "vst", matrixKhoa: p.payload?.matrix_khoa, moments: p.payload?.moments, vstKpis: p.payload?.kpis }),
+    [p.payload],
+  );
+
   const coverage = useMemo(() => buildCoverageSummary(gapKhoaRows), [gapKhoaRows]);
 
   return (
@@ -105,10 +121,20 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         ]}
       />
 
+      <SupervisionAttentionBlock alerts={alerts} board={board} loading={p.loading} />
+
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 
       <SupervisionMomentsBars moments={p.payload?.moments ?? []} loading={p.loading} />
 
+      <details className={`${UI.shell} group`}>
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Chi tiết
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            Thống kê theo khoa · xu hướng · so sánh · đối soát — bấm để mở
+          </span>
+        </summary>
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 p-4">
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
@@ -130,7 +156,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         />
       </section>
 
-      <details className={`${UI.shell}`} open>
+      <details className={`${UI.shell}`}>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           So sánh & xu hướng
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
@@ -164,6 +190,8 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionDoiSoatPanel rows={gapKhoaRows} source="vst" loading={p.loading} />
+        </div>
+      </details>
         </div>
       </details>
     </div>

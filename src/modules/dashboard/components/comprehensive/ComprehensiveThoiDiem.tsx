@@ -118,7 +118,7 @@ function MomentTable({
                 className={thin ? "bg-slate-50" : r.ty_le < KHOA_COMPLIANCE_WARN_PCT ? "bg-amber-50/60" : undefined}
               >
                 <td className="px-3 py-1.5 font-medium text-slate-700">
-                  {thin ? `${r.ten} · mẫu mỏng (${r.tong})` : r.ten}
+                  {thin ? `${r.ten} · chưa đủ mẫu (${r.tong})` : r.ten}
                 </td>
                 <td className="px-3 py-1.5 text-right font-bold tabular-nums">{r.ty_le}%</td>
                 <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{r.sample}</td>

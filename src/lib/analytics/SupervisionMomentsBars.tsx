@@ -22,7 +22,7 @@ export function SupervisionMomentsBars({
       <h2 className="bv103-type-section text-slate-800">{title}</h2>
       <p className="mt-1 text-[11px] text-slate-500">
         Dưới {VST_KHOA_CHART_THRESHOLDS.warnPct}% vàng, dưới {VST_KHOA_CHART_THRESHOLDS.redPct}% đỏ; dưới{" "}
-        {VST_COMPARE_MIN_SAMPLE} cơ hội thì xám (mẫu mỏng).
+        {VST_COMPARE_MIN_SAMPLE} cơ hội thì xám (chưa đủ mẫu).
       </p>
       {loading ? (
         <p className="mt-3 text-sm text-slate-400">Đang tải…</p>

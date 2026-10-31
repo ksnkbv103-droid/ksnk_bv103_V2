@@ -19,6 +19,9 @@ import { GscChecklistNavigator } from "./GscChecklistNavigator";
 import { GscBkAnalyticsDashboard } from "./GscBkAnalyticsDashboard";
 import GscTgsCoverageRankingPanel from "./GscTgsCoverageRankingPanel";
 import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
+import { SupervisionAttentionBlock } from "@/lib/analytics/SupervisionAttentionBlock";
+import { buildSupervisionAlerts } from "@/lib/analytics/supervision-alerts";
+import { buildActionBoardModel } from "@/lib/analytics/supervision-action-board";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
@@ -108,6 +111,19 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
     () => buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
     [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
   );
+  const khoaScope = useMemo(
+    () => (p.selectedKhoaIds.length ? p.khoaOptions.filter((k) => p.selectedKhoaIds.includes(k.id)) : p.khoaOptions),
+    [p.khoaOptions, p.selectedKhoaIds],
+  );
+  const alerts = useMemo(
+    () => buildSupervisionAlerts({ source: "gsc", matrixKhoa: p.payload?.matrix_khoa, khoaScope }),
+    [p.payload?.matrix_khoa, khoaScope],
+  );
+  const board = useMemo(
+    () => buildActionBoardModel({ source: "gsc", matrixKhoa: p.payload?.matrix_khoa, topViolations: p.payload?.top_violations }),
+    [p.payload],
+  );
+
   const coverage = useMemo(() => buildCoverageSummary(gapKhoaRows), [gapKhoaRows]);
 
   const chartRows = useMemo(
@@ -153,6 +169,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         ]}
       />
 
+      <SupervisionAttentionBlock alerts={alerts} board={board} loading={p.loading} />
+
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 
       <GscChecklistNavigator
@@ -178,6 +196,14 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       ) : null}
 
+      <details className={`${UI.shell} group`}>
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Chi tiết
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            Thống kê theo khoa · xu hướng · so sánh · đối soát — bấm để mở
+          </span>
+        </summary>
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 p-4">
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
@@ -197,7 +223,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       </section>
 
-      <details className={`${UI.shell}`} open>
+      <details className={`${UI.shell}`}>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           So sánh & xu hướng
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
@@ -234,6 +260,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
             denNgay={p.denNgay}
             selectedKhoaIds={p.selectedKhoaIds}
           />
+        </div>
+      </details>
         </div>
       </details>
     </div>

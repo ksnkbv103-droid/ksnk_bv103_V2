@@ -1,4 +1,4 @@
-/** @park — 2026-11: Action board không render trên BCTH (BCTH-08); giữ component cho VST/GSC module nếu cần. */
+/** Action board: dùng ở khối «Cần chú ý» của /thong-ke/vst, /thong-ke/gsc; không render trên BCTH (BCTH-08). */
 "use client";
 
 import React from "react";
@@ -78,12 +78,14 @@ type Props = {
   loading?: boolean;
   /** Ghi chú ngắn dưới tiêu đề */
   hint?: string;
+  /** false: ẩn cột «Điển hình» (khối «Cần chú ý» chỉ cần khoa yếu + lỗi hay gặp). */
+  showHighest?: boolean;
 };
 
 /**
  * Bảng hành động cô đúc: thấp nhất · điển hình · lỗi hay gặp — tách VST / GSC.
  */
-export function SupervisionActionBoard({ model, loading, hint }: Props) {
+export function SupervisionActionBoard({ model, loading, hint, showHighest = true }: Props) {
   const thresholds = model.source === "vst" ? VST_KHOA_CHART_THRESHOLDS : undefined;
   const title = model.source === "vst" ? "Vệ sinh tay — việc cần làm" : "Giám sát chung — việc cần làm";
 
@@ -108,7 +110,7 @@ export function SupervisionActionBoard({ model, loading, hint }: Props) {
             }. Lỗi = thời điểm WHO (VST) hoặc tiêu chí vi phạm (GSC).`}
         </p>
       </header>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className={`grid grid-cols-1 gap-3 ${showHighest ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
         <RankList
           title="Tuân thủ thấp nhất"
           icon={ArrowDownRight}
@@ -118,15 +120,17 @@ export function SupervisionActionBoard({ model, loading, hint }: Props) {
           empty="Chưa đủ mẫu hoặc chưa có khoa dưới ngưỡng."
           thresholds={thresholds}
         />
-        <RankList
-          title="Điển hình (cao nhất)"
-          icon={Award}
-          iconClass="text-emerald-600"
-          rows={model.highest}
-          source={model.source}
-          empty={`Chưa có khoa đạt mẫu số ≥ ${model.minSample}.`}
-          thresholds={thresholds}
-        />
+        {showHighest ? (
+          <RankList
+            title="Điển hình (cao nhất)"
+            icon={Award}
+            iconClass="text-emerald-600"
+            rows={model.highest}
+            source={model.source}
+            empty={`Chưa có khoa đạt mẫu số ≥ ${model.minSample}.`}
+            thresholds={thresholds}
+          />
+        ) : null}
         <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
           <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
             <AlertTriangle size={14} className="text-amber-600" aria-hidden />

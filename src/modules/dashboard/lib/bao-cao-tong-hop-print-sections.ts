@@ -218,7 +218,7 @@ function khoaRankGroupLabel(
   minSample: number,
   thresholds: KhoaChartThresholds,
 ): string {
-  if (sample < minSample) return `mẫu mỏng (${sample})`;
+  if (sample < minSample) return `chưa đủ mẫu (${sample}/${minSample})`;
   if (rate == null) return "—";
   const tone = khoaChartTone(rate, thresholds);
   if (tone === "green") return "Nhóm cao";
@@ -247,7 +247,7 @@ function renderKhoaRankMetricTable(
   const red = thresholds.redPct;
   return `
     <h4>${escHtml(title)}</h4>
-    <p class="muted">Sắp xếp % thấp → cao · xanh ≥${warn}%, vàng ≥${red}% · dưới ${minSample} mẫu = mẫu mỏng (không tô màu).</p>
+    <p class="muted">Sắp xếp % thấp → cao · xanh ≥${warn}%, vàng ≥${red}% · dưới ${minSample} mẫu = chưa đủ mẫu (không tô màu).</p>
     <div class="table-wrap">
     <table>
       <thead>

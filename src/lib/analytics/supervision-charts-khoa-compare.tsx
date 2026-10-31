@@ -120,7 +120,7 @@ function SupervisionKhoaComplianceChart({
     const thin = minSample != null && vol.tong < minSample;
     // VST: cơ hội gần độc lập nên KTC Wilson có nghĩa; GSC tiêu chí trong một phiên tương quan → không hiện.
     const ci = moduleLabel === "VST" ? formatWilsonInterval95(vol.dat, vol.tong) : null;
-    const sampleNote = thin ? `mẫu mỏng (${vol.tong})` : `n=${vol.tong}`;
+    const sampleNote = thin ? `chưa đủ mẫu (${vol.tong}/${minSample})` : `n=${vol.tong}`;
     const verdict = funnelP0 != null && !thin ? classifyFunnel(vol.dat, vol.tong, funnelP0) : null;
     const funnelNote =
       verdict === "below" ? "thấp hơn mức chung (ngoài dải 95%)" : verdict === "above" ? "cao hơn mức chung (ngoài dải 95%)" : null;
@@ -219,7 +219,7 @@ function SupervisionKhoaComplianceChart({
       <p className="mt-2 text-[11px] text-slate-400">
         Số trên cột: % tuân thủ · đạt/tổng cơ hội. Màu vàng khi tuân thủ &lt;{thresholds.warnPct}%; đỏ khi &lt;{thresholds.redPct}%.
         {minSample != null
-          ? ` Khoa <${minSample} cơ hội = mẫu mỏng (xám, không tô cảnh báo). Di chuột lên cột xem khoảng tin cậy 95% — khoảng rộng nghĩa là tỷ lệ chưa chắc.`
+          ? ` Khoa <${minSample} cơ hội = chưa đủ mẫu (xám, không tô cảnh báo). Di chuột lên cột xem khoảng tin cậy 95% — khoảng rộng nghĩa là tỷ lệ chưa chắc.`
           : ""}
         {moduleLabel ? ` · ${moduleLabel}` : ""}
       </p>
