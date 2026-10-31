@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import type { GapKhoaRow } from "@/lib/analytics/supervision-matrix-mappers";
 import { comparableGapRows } from "@/lib/analytics/supervision-source-lens";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
-import { DOI_SOAT_MIN_SAMPLE } from "@/lib/analytics/supervision-thresholds";
+import { DOI_SOAT_MIN_SAMPLE, TGS_OVER_KSNK_ALERT_POINTS } from "@/lib/analytics/supervision-thresholds";
 import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 type Props = {
@@ -47,7 +47,7 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
         Chỉ khoa đủ mẫu cả hai nguồn (tối thiểu {minN}{" "}
         {source === "vst" ? "cơ hội" : "khảo sát"} / nguồn). Lệch ={" "}
         <span className="font-medium">Tự GS − Chuyên trách</span> (tự giám sát trừ chuyên trách) — không
-        đảo dấu. Dương = tự báo cao hơn chuyên trách.
+        đảo dấu. Dương = tự báo cao hơn chuyên trách; từ +{TGS_OVER_KSNK_ALERT_POINTS} điểm là cảnh báo.
       </p>
       {data.length === 0 ? (
         <p className={`mt-3 ${P.emptyBody}`}>
@@ -72,7 +72,7 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
                   <td className="py-1.5 px-2 text-right tabular-nums text-sky-800">{fmt(source, r.ty_le_ksnk)}</td>
                   <td
                     className={`py-1.5 pl-2 text-right tabular-nums font-semibold ${
-                      r.delta > 5 ? "text-red-700" : r.delta < -5 ? "text-emerald-700" : "text-slate-600"
+                      r.delta >= TGS_OVER_KSNK_ALERT_POINTS ? "text-red-700" : "text-slate-600"
                     }`}
                   >
                     {r.delta > 0 ? "+" : ""}

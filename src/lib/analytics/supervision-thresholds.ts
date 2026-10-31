@@ -61,3 +61,6 @@ export function khoaChartTone(
   if (value >= thresholds.redPct) return "yellow";
   return "red";
 }
+
+/** Tự giám sát cao hơn chuyên trách từ mức này (điểm %) thì cảnh báo — PO chốt 2026-11-01. */
+export const TGS_OVER_KSNK_ALERT_POINTS = 10;

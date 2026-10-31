@@ -22,7 +22,8 @@ import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
 import { SupervisionAttentionBlock } from "@/lib/analytics/SupervisionAttentionBlock";
 import { buildSupervisionAlerts } from "@/lib/analytics/supervision-alerts";
 import { buildActionBoardModel } from "@/lib/analytics/supervision-action-board";
-import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
+import { SupervisionSourceTabs } from "@/lib/analytics/SupervisionSourceTabs";
+import { defaultSourceView, type SupervisionSourceView } from "@/lib/analytics/supervision-source-tabs";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
   gapRowsWithLensData,
@@ -62,6 +63,17 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   const router = useRouter();
   const [selectedMaBk, setSelectedMaBk] = useState<string | null>(() => searchParams.get("bk"));
   const sourceLens = p.sourceLens;
+  const [view, setView] = useState<SupervisionSourceView>(() => defaultSourceView(p.khoaFilterLocked));
+  const { onSourceLensChange } = p;
+  useEffect(() => {
+    const first = defaultSourceView(p.khoaFilterLocked);
+    if (first !== "ksnk") onSourceLensChange(first);
+    // chỉ áp tab mặc định theo vai trò một lần
+  }, []);
+  const changeView = (v: SupervisionSourceView) => {
+    setView(v);
+    if (v !== "sosanh") onSourceLensChange(v);
+  };
 
   useEffect(() => {
     const fromUrl = searchParams.get("bk");
@@ -149,15 +161,16 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       <div id="so-sanh" className="scroll-mt-24 flex flex-wrap items-center justify-between gap-2">
-        <SupervisionSourceLensToggle
-          value={sourceLens}
-          onChange={p.onSourceLensChange}
-          disabled={p.loading}
-        />
+        <SupervisionSourceTabs value={view} onChange={changeView} disabled={p.loading} />
         <p className="text-[11px] text-slate-500">
-          Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
+          Kỳ {p.tuNgay} → {p.denNgay} · {view === "sosanh" ? "so sánh hai nguồn" : `nguồn ${sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}`}
         </p>
       </div>
+
+      {view === "sosanh" ? (
+        <SupervisionDoiSoatPanel rows={gapKhoaRows} source="gsc" loading={p.loading} />
+      ) : (
+        <>
 
       <SupervisionKpiRow
         loading={p.loading}
@@ -250,11 +263,10 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Đối soát hai nguồn · Bao phủ tự giám sát
+            Bao phủ tự giám sát
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
-          <SupervisionDoiSoatPanel rows={gapKhoaRows} source="gsc" loading={p.loading} />
           <GscTgsCoverageRankingPanel
             tuNgay={p.tuNgay}
             denNgay={p.denNgay}
@@ -264,6 +276,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       </details>
         </div>
       </details>
+        </>
+      )}
     </div>
   );
 }
