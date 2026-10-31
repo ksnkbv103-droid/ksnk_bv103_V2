@@ -210,8 +210,8 @@ describe("supervision-matrix-mappers", () => {
     expect(matrix.khoaRows).toHaveLength(1);
   });
 
-  it("KHOA_COMPLIANCE_WARN_PCT is 80 for dashboard highlight", () => {
-    expect(KHOA_COMPLIANCE_WARN_PCT).toBe(80);
+  it("KHOA_COMPLIANCE_WARN_PCT is 85 for dashboard highlight", () => {
+    expect(KHOA_COMPLIANCE_WARN_PCT).toBe(85);
   });
 
   it("resolveKhoaAggregateTyLe prefers KSNK then TGS then matrix aggregate", () => {

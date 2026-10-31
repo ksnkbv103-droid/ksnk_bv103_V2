@@ -249,7 +249,7 @@ function highlightBarFill(base: string, highlight: boolean): string {
   return highlight ? "#ef4444" : base;
 }
 
-/** Tô cột % dưới ngưỡng cảnh báo (mặc định vàng <80%, đỏ <70%). VST-07: mẫu mỏng → xám. */
+/** Tô cột % dưới ngưỡng cảnh báo (mặc định vàng <90%, đỏ <85%). VST-07: mẫu mỏng → xám. */
 function complianceBarColor(
   base: string,
   pct: number | null | undefined,

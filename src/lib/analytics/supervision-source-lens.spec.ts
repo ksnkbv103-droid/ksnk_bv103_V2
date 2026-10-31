@@ -52,21 +52,21 @@ describe("supervision-source-lens", () => {
         id: "ok",
         label: "OK",
         ty_le_ksnk: 90,
-        vol_ksnk: 25,
+        vol_ksnk: 55,
         ty_le_tgs: 80,
-        vol_tgs: 25,
+        vol_tgs: 55,
       }),
       row({
         id: "thin",
         label: "Thin",
         ty_le_ksnk: 90,
-        vol_ksnk: 10,
+        vol_ksnk: 40,
         ty_le_tgs: 80,
-        vol_tgs: 25,
+        vol_tgs: 55,
       }),
     ];
     expect(comparableGapRows(rows, { source: "vst" }).map((r) => r.id)).toEqual(["ok"]);
-    expect(comparableGapRows(rows, { source: "gsc" }).map((r) => r.id)).toEqual([]);
+    expect(comparableGapRows(rows, { source: "gsc" }).map((r) => r.id)).toEqual(["ok"]);
   });
 
   it("tyLeForLens returns null without volume", () => {

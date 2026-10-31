@@ -1,23 +1,23 @@
-/** Ngưỡng tuân thủ giám sát — SSOT pilot (chart · bảng · in · KPI). Số chờ N-GS-3. */
+/** Ngưỡng tuân thủ giám sát — SSOT, khóa PO 2026-11-01: <85 đỏ · 85–<90 vàng · ≥90 xanh. */
 export const SUPERVISION_COMPLIANCE_THRESHOLDS = {
-  /** Mốc tham chiếu xanh (pilot) */
+  /** Mục tiêu viện — dưới mốc này là đỏ (cũng là fallback `ksnk_dm_muc_tieu_kpi`) */
   GREEN_MIN: 85,
-  /** Mốc tham chiếu vàng (pilot) */
-  YELLOW_MIN: 70,
-  /** Tô cảnh báo cột/bảng theo khoa */
-  KHOA_WARN_PCT: 80,
+  /** Mốc xanh (lộ trình) */
+  GOAL: 90,
+  /** Tô cảnh báo cột/bảng theo khoa — cùng mốc đỏ */
+  KHOA_WARN_PCT: 85,
 } as const;
 
-/** GS-07: min-N đối soát — tạm dùng cùng mốc Action board (20 VST / 30 GSC). */
+/** Cỡ mẫu tối thiểu % theo khoa/kỳ — khóa PO 2026-11-01: 50 cơ hội VST · 50 tiêu chí GSC. */
 export const DOI_SOAT_MIN_SAMPLE = {
-  vst: 20,
-  gsc: 30,
+  vst: 50,
+  gsc: 50,
 } as const;
 
-/** VST-07: so sánh khoa/khối/nghề/thời điểm — dưới ngưỡng = «mẫu mỏng», không tô màu. */
-export const VST_COMPARE_MIN_SAMPLE = 20;
+/** So sánh khoa/khối/nghề/thời điểm — dưới ngưỡng = «chưa đủ mẫu», không tô màu. */
+export const VST_COMPARE_MIN_SAMPLE = DOI_SOAT_MIN_SAMPLE.vst;
 
-/** Min-N bảng tổng hợp khoa theo module: VST 20 cơ hội, GSC 30 (cùng mốc đối soát). Module khác: không áp. */
+/** Min-N bảng tổng hợp khoa theo module (VST/GSC cùng 50). Module khác: không áp. */
 export function khoaTableMinSample(moduleLabel?: string | null): number | null {
   const key = String(moduleLabel ?? "").trim().toUpperCase();
   if (key === "VST") return VST_COMPARE_MIN_SAMPLE;
@@ -36,25 +36,20 @@ export type KhoaChartThresholds = {
   redPct: number;
 };
 
-/** Mặc định GSC / BCTH — vàng <80%, đỏ <70%. */
+/** Hai mức dùng chung VST/GSC/BCTH — vàng từ 85%, xanh từ 90%. */
 export const DEFAULT_KHOA_CHART_THRESHOLDS: KhoaChartThresholds = {
-  warnPct: SUPERVISION_COMPLIANCE_THRESHOLDS.KHOA_WARN_PCT,
-  redPct: SUPERVISION_COMPLIANCE_THRESHOLDS.YELLOW_MIN,
+  warnPct: SUPERVISION_COMPLIANCE_THRESHOLDS.GOAL,
+  redPct: SUPERVISION_COMPLIANCE_THRESHOLDS.GREEN_MIN,
 };
 
-/** Biểu đồ khoa VST — vàng <90%, đỏ <85%. Không đổi GREEN_MIN/YELLOW_MIN dashboard. */
-export const VST_KHOA_CHART_THRESHOLDS: KhoaChartThresholds = {
-  warnPct: 90,
-  redPct: 85,
-};
+/** Giữ tên cũ cho nơi gọi VST — cùng hai mức với mặc định. */
+export const VST_KHOA_CHART_THRESHOLDS: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS;
 
 export type ComplianceTone = "green" | "yellow" | "red" | "neutral";
 
 export function complianceToneFromPercent(value: number | null | undefined): ComplianceTone {
   if (value == null || Number.isNaN(value)) return "neutral";
-  if (value >= SUPERVISION_COMPLIANCE_THRESHOLDS.GREEN_MIN) return "green";
-  if (value >= SUPERVISION_COMPLIANCE_THRESHOLDS.YELLOW_MIN) return "yellow";
-  return "red";
+  return khoaChartTone(value, DEFAULT_KHOA_CHART_THRESHOLDS);
 }
 
 export function khoaChartTone(
