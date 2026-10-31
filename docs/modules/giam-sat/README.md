@@ -111,7 +111,22 @@ Tính tay = đếm trực tiếp từ `gstt_fact_vst` (phiên `is_active`, hành
 | C. Tháng 2026-09, từng khoa (`matrix_khoa`) | 39 khoa ở cả hai phía, **0 lệch** |
 | D. Lọc một khoa | 109 cơ hội · 89,0% cả hai phía |
 
-Kết luận: không lệch, không sửa hàm KPI. GSC chưa đối soát (ngoài phạm vi L1-2).
+Kết luận: không lệch, không sửa hàm KPI.
+
+### Đối soát GSC: RPC so với tính tay (2026-11-01, DB local)
+
+Tính tay = đếm trực tiếp từ `gstt_fact_chung_sessions.results_jsonb` (phiên `is_active`, chỉ `TUAN_THU`, mẫu = tiêu chí khác `NA`/rỗng, đạt = `DAT`, `ty_le = round(đạt/mẫu×100, 2)`). So với `rpc_dashboard_gsc_strategic_analytics_impl` (wrapper cần đăng nhập nên gọi `_impl`, cùng logic).
+
+| Tình huống | Tay (mẫu · đạt · %) | RPC (mẫu · đạt · %) |
+|---|---|---|
+| A. Tháng 2026-08, toàn viện | 5333 · 4876 · 91,43 | 5333 · 4876 · 91,43 |
+| B. 2026-05 → 2026-10, toàn viện | 13003 · 11645 · 89,56 | 13003 · 11645 · 89,56 |
+| C. Tháng 2026-08, từng khoa (`matrix_khoa`) | 33 khoa | 33 khoa, **0 lệch** |
+| D. Lọc khoa B11 (Hồi sức ngoại), 2026-08 | 1840 · 1767 · 96,03 | 1840 · 1767 · 96,03 |
+
+Ghi chú: ở B, `tong_phien` RPC = 1175, đếm tay phiên có tiêu chí = 1173; 2 phiên không có tiêu chí vẫn tính là phiên, không ảnh hưởng tỉ lệ.
+
+Kết luận: không lệch, không sửa hàm KPI.
 
 ---
 
