@@ -79,14 +79,15 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 ---
 
-## Ngưỡng cảnh báo (pilot)
+## Ngưỡng cảnh báo (khóa PO 2026-11-01)
 
 | Ngưỡng | Giá trị | Ý nghĩa UI |
 |--------|---------|------------|
-| `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) |
-| `YELLOW_MIN` | 70% | Cần theo dõi |
-| `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) |
-| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi mục tiêu viện / CCS |
+| `TARGET_MIN` | 85% | Dưới 85% = **đỏ** (dưới mục tiêu viện) |
+| `GOAL` | 90% | 85% đến dưới 90% = **vàng**; từ 90% = **xanh** |
+| Cỡ mẫu tối thiểu | 50 | % theo khoa trong một kỳ: VST = 50 cơ hội hợp lệ, GSC = 50 tiêu chí áp dụng. Dưới 50: hiện số mờ «chưa đủ mẫu (n/50)», không tô màu, không xếp hạng; n = 0: «chưa có phiên» |
+
+Hai mức dùng chung VST/GSC/BCTH/biểu đồ khoa; bỏ các mốc cũ 70% và 80%. Con số 50 là quyết định PO, không phải chuẩn WHO. Quy trình giám sát tuân thủ: **QT.KSNK.33**.
 
 SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
@@ -100,7 +101,7 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
 - **Hiển thị:** badge «Mục tiêu viện» + Δ trên KPI BCTH (`ComprehensiveKpiCards`) — **chỉ** VST/GSC. Spec 2026-08-22: **một mũi tên** so mục tiêu viện trên thẻ; Δ 2 tuần ISO / `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng / payload).
 - **Đơn vị Δ (sửa hiển thị 2026-10-12, công thức giữ nguyên):** Δ tuần và Δ kỳ trước là chênh lệch **điểm phần trăm** (tuần gần nhất trừ tuần liền trước), hiển thị «+3.4 điểm %», **không** phải % tương đối. «Tỷ lệ tuần trước» in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và hai tuần ISO liên tiếp). Lưu ý: nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm, không phải tuân thủ thật — **PO chọn cách 1 (2026-10-12): hiện chú thích «khác cơ cấu bảng kiểm» cạnh Δ GSC, giữ nguyên công thức và vẫn hiện Δ.** Chú thích so bộ bảng kiểm (TUAN_THU trừ BM.02/03) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
-- **Fallback:** khi bảng chưa migrate / lỗi đọc → `GREEN_MIN`.
+- **Fallback:** khi bảng chưa migrate / lỗi đọc → `TARGET_MIN`.
 - **Không** đổi công thức CCS; mục tiêu chỉ để so sánh lãnh đạo.
 - Seed mặc định toàn viện = 85% (có thể còn dòng `ty_le_ccs` trong DB — app **không** surface).
 
@@ -204,7 +205,7 @@ Gộp song song vào payload VST/GSC (và detail BK khi lọc 1 BK). Công thứ
 | `so_bo_danh_muc` | `COUNT` bộ dụng cụ active (danh mục) | Snapshot tài sản danh mục — **không** = cấp phát kỳ |
 | Trạm tốt nhất / kém nhất | Xếp `rate = incidents/station_volume` ASC/DESC trong kỳ overview | Hero overview CSSD — **error-rate ranking**, ngoài CCS |
 
-Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 5%` — độc lập với `GREEN_MIN` / `YELLOW_MIN` của giám sát.
+Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 5%` — độc lập với `TARGET_MIN` / `GOAL` của giám sát.
 
 **Cấm:** mọi chỉ số CSSD dưới đây **không** vào công thức `ty_le_ccs`.
 
