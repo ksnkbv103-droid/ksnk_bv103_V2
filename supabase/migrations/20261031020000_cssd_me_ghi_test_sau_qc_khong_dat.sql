@@ -1,5 +1,6 @@
 -- CSSD K3 (PO 2026-11-01): test không đạt vẫn phải ghi các test còn lại (CI PCD...) với người + giờ.
 -- rpc_cssd_me_ghi_test nhận thêm trạng thái QC_KHONG_DAT: chỉ ghi nhật ký GHI_TEST, không đổi trạng thái, không thu hồi lại.
+-- Mẻ QC_KHONG_DAT đã có phiếu sự cố (đã thu hồi) → từ chối ghi thêm test (PO 2026-11-01).
 -- Hoàn tác: CREATE OR REPLACE lại hàm từ migration 20261030020000 (bỏ 'QC_KHONG_DAT' khỏi danh sách trạng thái và nhánh mới).
 
 CREATE OR REPLACE FUNCTION public.rpc_cssd_me_ghi_test(
@@ -41,6 +42,14 @@ BEGIN
   IF coalesce(v_me.trang_thai_me, '') NOT IN ('DA_CHOT_NAP', 'DANG_TIET_KHUAN', 'CHO_DANH_GIA_QC', 'CHO_BI', 'HOAN_THANH', 'QC_KHONG_DAT') THEN
     RETURN jsonb_build_object('success', false, 'ok', false,
       'message', 'Mẻ ở trạng thái ' || coalesce(v_me.trang_thai_me, '—') || ' — không ghi test.');
+  END IF;
+  -- Mẻ QC_KHONG_DAT đã thu hồi (có phiếu sự cố gắn mẻ) thì chốt sổ: không ghi thêm test (PO 2026-11-01).
+  IF v_me.trang_thai_me = 'QC_KHONG_DAT' AND EXISTS (
+    SELECT 1 FROM public.cssd_fact_su_co sc
+    WHERE sc.is_active = true AND sc.attributes ->> 'LO_TIET_KHUAN_ID' = p_me_id::text
+  ) THEN
+    RETURN jsonb_build_object('success', false, 'ok', false,
+      'message', 'Mẻ đã thu hồi — không ghi thêm test.');
   END IF;
 
   PERFORM public.fn_cssd_me_nhat_ky_them(p_me_id, 'GHI_TEST', v_ns,
