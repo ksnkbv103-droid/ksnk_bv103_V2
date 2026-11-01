@@ -20,6 +20,7 @@ import { GscBkAnalyticsDashboard } from "./GscBkAnalyticsDashboard";
 import GscTgsCoverageRankingPanel from "./GscTgsCoverageRankingPanel";
 import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
 import { SupervisionAttentionBlock } from "@/lib/analytics/SupervisionAttentionBlock";
+import { SupervisionKeHoachCard } from "@/lib/analytics/SupervisionKeHoachCard";
 import { buildSupervisionAlerts } from "@/lib/analytics/supervision-alerts";
 import { buildActionBoardModel } from "@/lib/analytics/supervision-action-board";
 import { SupervisionSourceTabs } from "@/lib/analytics/SupervisionSourceTabs";
@@ -183,6 +184,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       />
 
       <SupervisionAttentionBlock alerts={alerts} board={board} loading={p.loading} />
+
+      <SupervisionKeHoachCard loai="GSC" denNgay={p.denNgay} khoaOptions={p.khoaOptions} />
 
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 

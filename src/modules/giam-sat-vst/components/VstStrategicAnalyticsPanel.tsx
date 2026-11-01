@@ -17,6 +17,7 @@ import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { VST_COMPARE_MIN_SAMPLE, VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
 import { SupervisionAttentionBlock } from "@/lib/analytics/SupervisionAttentionBlock";
+import { SupervisionKeHoachCard } from "@/lib/analytics/SupervisionKeHoachCard";
 import { buildSupervisionAlerts } from "@/lib/analytics/supervision-alerts";
 import { buildActionBoardModel } from "@/lib/analytics/supervision-action-board";
 import { SupervisionSourceTabs } from "@/lib/analytics/SupervisionSourceTabs";
@@ -135,6 +136,8 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       />
 
       <SupervisionAttentionBlock alerts={alerts} board={board} loading={p.loading} />
+
+      <SupervisionKeHoachCard loai="VST" denNgay={p.denNgay} khoaOptions={p.khoaOptions} />
 
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
 
