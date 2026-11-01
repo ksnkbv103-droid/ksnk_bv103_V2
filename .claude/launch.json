@@ -13,8 +13,10 @@
     },
     {
       "name": "dev-local",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "env",
       "runtimeArgs": [
+        "SUPABASE_PROJECT_ID=ksnk_bv103",
+        "node",
         "scripts/dev-local.mjs"
       ],
       "port": 3001
