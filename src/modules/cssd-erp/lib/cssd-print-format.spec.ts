@@ -26,7 +26,7 @@ const basePrintData: CssdBatchPrintData = {
   phuongPhap: "Hơi nước",
   chuongTrinh: "134",
   nhietDo: "134 °C",
-  apSuat: "2 áp suất",
+  apSuat: "2 bar",
   thoiGianChuKy: "4 phút",
   nguoiNap: "NV1",
   nguoiDo: "NV2",
@@ -86,7 +86,7 @@ describe("cssd-print-format", () => {
     expect(capPhat.testCI).toBe("KHONG_DAT");
     expect(capPhat.chiThiDaThongSo).toBe("DAT");
     expect(capPhat.testSinhHoc).toBe("AM");
-    expect(capPhat.nhietDoApSuat).toBe("134 °C / 2.1 áp suất");
+    expect(capPhat.nhietDoApSuat).toBe("134 °C / 2.1 bar");
     expect(capPhat.thongSoMay).toBe("4 phút");
     expect(capPhat.nguoiUnload).toBe("NV dỡ");
   });
