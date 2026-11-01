@@ -524,7 +524,7 @@ export async function persistMeBiResultWithClient(
   });
 
   // Ghi người + giờ đọc BI vào nhật ký mẻ (BI dương → RPC đặt QC_KHONG_DAT, rồi thu hồi bên dưới).
-  // Mẻ đã THU_HOI / QC_KHONG_DAT: RPC từ chối ghi test, bỏ qua để không chặn việc thu hồi.
+  // Mẻ đã THU_HOI / QC_KHONG_DAT: app chủ động bỏ qua ghi test BI, không ghi thêm sau khi mẻ đã hỏng.
   // Mẻ đã nhả + BI dương: không ghi test, vì RPC sẽ đặt QC_KHONG_DAT và rpc_cssd_me_thu_hoi không còn
   // chuyển HOAN_THANH → THU_HOI (SSOT 18 K4); thu hồi bên dưới đã đặt trang_thai_bi = DUONG.
   const releasedPositive = args.ketQua === "DUONG" && row.trang_thai_me === "HOAN_THANH";
