@@ -269,6 +269,13 @@ describe("thu hồi và nhả sau BI — persistMeBiResultWithClient", () => {
     const r = await persistMeBiResultWithClient(w.client, { ...biArgs, ketQua: "DUONG", ongThu: "DUONG" });
     expect(r).toMatchObject({ ok: true, outcome: "QC_KHONG_DAT", recalledCount: 1, machineHeld: true });
     expect(applyBatchRecallAndHoldMachine.mock.calls[0][1]).toMatchObject({ mode: "BI_DUONG", trangThaiBi: "DUONG" });
+    // Không ghi test trước thu hồi: nếu ghi, RPC đặt QC_KHONG_DAT và mẻ không sang THU_HOI (K4).
+    expect(w.ghiTestCalls).toHaveLength(0);
+  });
+
+  it("BI dương trên mẻ chờ BI → vẫn ghi test (mẻ sang QC_KHONG_DAT) rồi thu hồi", async () => {
+    const w = fakeClient(world({ batch: waiting }));
+    await persistMeBiResultWithClient(w.client, { ...biArgs, ketQua: "DUONG", ongThu: "DUONG" });
     expect(w.ghiTestCalls[0]).toMatchObject({ p_loai: "BI", p_ket_qua: "DUONG" });
   });
 
