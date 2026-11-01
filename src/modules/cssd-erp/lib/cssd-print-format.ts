@@ -219,7 +219,7 @@ export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPr
   const qcCiPcd = formatQcTriWord(source.qcCiPcd);
   const biLabel = formatBiPrintLabel(source.trangThaiBi);
   const nhietDo = formatCycleMeasure(source.nhietDo, "°C");
-  const apSuat = formatCycleMeasure(source.apSuat, "áp suất");
+  const apSuat = formatCycleMeasure(source.apSuat, "bar");
   const thoiGianChuKy = formatCycleMeasure(source.thoiGianChuKy, "phút");
   const nguoiNap = String(source.nguoiNap || "").trim() || "—";
   const nguoiDo = String(source.nguoiDo || "").trim() || "—";
@@ -332,7 +332,7 @@ export function mapCapPhatQcFromBatch(batch: {
   const testSinhHoc = biRaw || "NA";
 
   const nhietDo = formatCycleMeasure(batch.nhiet_do, "°C");
-  const apSuat = formatCycleMeasure(batch.ap_suat, "áp suất");
+  const apSuat = formatCycleMeasure(batch.ap_suat, "bar");
   const thoiGianChuKy = formatCycleMeasure(batch.thoi_gian_chu_ky, "phút");
   const nhietDoApSuat =
     legacy.nhietDoApSuat ||
