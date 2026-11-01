@@ -29,17 +29,11 @@ describe("ghi test mẻ", () => {
     const f = fake((a) => ({ success: true, dat: a.p_loai !== "CI_NGOAI_GOI" }));
     expect(await ghiCacTestMe(f.client, { meId: "m", actorUserId: "u", tests })).toEqual({ ok: true, loHong: true });
   });
-  it("test không đạt ở giữa → dừng ghi test kế (RPC từ chối mẻ QC_KHONG_DAT), vẫn loHong=true", async () => {
-    const f = fake((a) =>
-      a.p_loai === "CI_NGOAI_GOI"
-        ? { success: true, dat: false }
-        : a.p_loai === "CI_PCD"
-          ? { success: false, message: "Mẻ ở trạng thái QC_KHONG_DAT — không ghi test." }
-          : { success: true, dat: true },
-    );
+  it("test không đạt ở giữa → vẫn ghi test kế (CI PCD), loHong=true", async () => {
+    const f = fake((a) => ({ success: true, dat: a.p_loai !== "CI_NGOAI_GOI" }));
     const t = { ...tests, ciNgoaiGoi: "KHONG_DAT", ciPcd: "DAT" };
     expect(await ghiCacTestMe(f.client, { meId: "m", actorUserId: "u", tests: t })).toEqual({ ok: true, loHong: true });
-    expect(f.calls.map((c) => c.p_loai)).toEqual(["THONG_SO_VAT_LY", "CI_NGOAI_GOI"]);
+    expect(f.calls.map((c) => c.p_loai)).toEqual(["THONG_SO_VAT_LY", "CI_NGOAI_GOI", "CI_PCD"]);
   });
   it("RPC trả success:false → báo lỗi, dừng", async () => {
     const f = fake(() => ({ success: false, message: "Chưa gắn nhân sự" }));

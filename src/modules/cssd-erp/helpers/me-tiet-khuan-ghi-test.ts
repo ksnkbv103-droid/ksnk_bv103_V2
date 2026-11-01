@@ -44,11 +44,8 @@ export async function ghiCacTestMe(
     const r = data as { success?: boolean; message?: string; dat?: boolean } | null;
     if (error) return { ok: false, message: error.message };
     if (!r || r.success !== true) return { ok: false, message: r?.message || "Không ghi được kết quả test." };
-    if (r.dat === false) {
-      // Mẻ đã QC_KHONG_DAT: RPC từ chối test kế tiếp → dừng ghi để luồng đi tiếp sang thu hồi.
-      loHong = true;
-      break;
-    }
+    // Test không đạt vẫn ghi các test còn lại (PO 2026-11-01, K3); RPC chỉ ghi nhật ký khi mẻ đã QC_KHONG_DAT.
+    if (r.dat === false) loHong = true;
   }
   return { ok: true, loHong };
 }
