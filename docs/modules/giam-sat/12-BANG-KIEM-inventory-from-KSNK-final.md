@@ -234,3 +234,164 @@ Corpus QT.01–38 + QĐ.01–21 có **135** BM có mã. Sau lọc: **69** EXCLUD
 
 4. **Không** «để nguyên» theo nghĩa trộn BM.01 vào BK; **có** giữ nguyên tách form WHO vs BK như đã triển khai; **có** bổ sung tag chuyên đề để thống kê BK dễ hơn.
 
+
+
+---
+
+## 8. Phân loại 132 BM theo khung 7 lĩnh vực × 5 loại nguồn (S1, 2026-11-02)
+
+> **Chuẩn đánh số:** kho tri thức `DANH_MUC_HD_VA_BM.md` [HIỆN HÀNH] 2026 (37 QT + 21 QĐ = **132 BM**: 90 gắn nhãn bảng kiểm + 42 biểu mẫu/sổ) — PO chốt «Kho tri thức là chuẩn». Các mục 1–7 ở trên dùng đánh số repo cũ (38 QT, 135 BM); khi lệch, **mục 8 là chuẩn**. Ví dụ KB→repo: VST QT.06→QT.07 · VSMT QT.10→QT.11 · chất thải QT.11→QT.12 · đồ vải QT.12→QT.13 · đường lây QT.13→QT.14 · vi sinh MT QT.36→QT.37 · hóa chất QT.37→QT.38.
+>
+> **Loại nguồn:** A quan sát bảng kiểm · B nhật ký/thống kê (số lượng, mẫu số) · C kết quả xét nghiệm · D ca & sự kiện · E hệ thống/kế hoạch/biên bản. **Lĩnh vực:** L0 Quản trị · L1 Thực hành tại điểm chăm sóc · L2 NKBV & gói · L3 Dịch tễ/MDRO · L4 CSSD/dụng cụ · L5 Môi trường · L6 An toàn nghề. `KV` = QĐ khu vực đặc thù (nhãn phủ, không phải lĩnh vực). **Module chứa** tách khỏi lĩnh vực sở hữu (vd hóa chất: L5, nằm trong `cssd-erp`). `CHƯA CÓ` = chưa có bảng/form nhập; `giam-sat-chung` ghi nhận mức thiết kế, chưa đối chiếu từng mã với seed (việc S3).
+>
+> **Cách phân loại:** nhãn «BẢNG KIỂM GIÁM SÁT» của KB **không** đồng nghĩa nguồn A (vd QT.03.BM.01 kế hoạch đào tạo, QT.05.BM.01 báo cáo tháng, QT.16.BM.02/03 danh sách/nhật ký có nhãn này nhưng là E/D/B). Nguồn A = tên bắt đầu «Bảng kiểm»; còn lại gán theo bản chất biểu mẫu (script `gen` ở scratchpad, quy tắc + ngoại lệ gán tay). **Cần PO/chuyên gia rà** các ca ranh giới: QT.02.BM.04 (E), QT.10.BM.01 (B), QT.30.BM.02 (B), QT.26.BM.01 (E), QĐ.07.BM.03 (B/L6), QT.16 (cả họ gán L3).
+
+### 8.1 Ma trận số BM (lĩnh vực × nguồn)
+
+| Lĩnh vực | A quan sát | B nhật ký/thống kê | C xét nghiệm | D ca/sự kiện | E hệ thống/kế hoạch | Tổng |
+|---|---|---|---|---|---|---|
+| L0 Quản trị | 5 | 0 | 0 | 3 | 16 | 24 |
+| L1 Thực hành | 13 | 2 | 0 | 1 | 0 | 16 |
+| L2 NKBV & gói | 12 | 3 | 0 | 2 | 1 | 18 |
+| L3 Dịch tễ/MDRO | 8 | 2 | 0 | 5 | 0 | 15 |
+| L4 CSSD/dụng cụ | 12 | 10 | 2 | 4 | 1 | 29 |
+| L5 Môi trường | 11 | 8 | 3 | 0 | 0 | 22 |
+| L6 An toàn nghề | 3 | 1 | 1 | 3 | 0 | 8 |
+| **Tổng** | 64 | 26 | 6 | 18 | 18 | 132 |
+
+### 8.2 Danh sách đầy đủ
+
+| Mã BM (KB) | Tên | Nguồn | Lĩnh vực | Module chứa |
+|---|---|---|---|---|
+| `KSNK.QT.01.BM.01` | Biên bản họp HĐ.KSNK về đánh giá rủi ro | E | L0 | quan-tri-he-thong |
+| `KSNK.QT.01.BM.02` | Kế hoạch hành động và cải tiến KSNK | E | L0 | quan-tri-he-thong |
+| `KSNK.QT.01.BM.03` | Bảng tổng hợp dữ liệu sự cố và nguy cơ KSNK | D | L0 | CHƯA CÓ |
+| `KSNK.QT.01.BM.04` | Bảng kiểm giám sát tuân thủ quy trình đánh giá rủi ro | A | L0 | giam-sat-chung |
+| `KSNK.QT.02.BM.01` | Phiếu thông báo can thiệp cơ sở hạ tầng | D | L0 | CHƯA CÓ |
+| `KSNK.QT.02.BM.02` | Phiếu ICRA và kế hoạch hành động | D | L0 | CHƯA CÓ |
+| `KSNK.QT.02.BM.03` | Bảng kiểm giám sát tuân thủ ICRA | A | L0 | giam-sat-chung |
+| `KSNK.QT.02.BM.04` | Biên bản nghiệm thu KSNK | E | L0 | quan-tri-he-thong |
+| `KSNK.QT.03.BM.01` | Kế hoạch đào tạo KSNK hàng năm | E | L0 | dao-tao |
+| `KSNK.QT.03.BM.02` | Ma trận nhu cầu đào tạo KSNK | E | L0 | dao-tao |
+| `KSNK.QT.03.BM.03` | Hồ sơ theo dõi đào tạo cá nhân | E | L0 | dao-tao |
+| `KSNK.QT.03.BM.04` | Phiếu khảo sát nhu cầu đào tạo KSNK | E | L0 | dao-tao |
+| `KSNK.QT.03.BM.05` | Bài kiểm tra đánh giá kiến thức KSNK | E | L0 | dao-tao |
+| `KSNK.QT.03.BM.06` | Bảng kiểm giám sát năng lực thực hành KSNK | A | L0 | dao-tao |
+| `KSNK.QT.04.BM.01` | Kế hoạch hoạt động năm của HĐ.KSNK | E | L0 | quan-ly-cong-viec |
+| `KSNK.QT.04.BM.02` | Thông báo/Giấy mời họp HĐ.KSNK | E | L0 | quan-ly-cong-viec |
+| `KSNK.QT.04.BM.03` | Biên bản/Nghị quyết họp HĐ.KSNK | E | L0 | quan-ly-cong-viec |
+| `KSNK.QT.04.BM.04` | Bảng kiểm giám sát hoạt động HĐ.KSNK | A | L0 | quan-ly-cong-viec |
+| `KSNK.QT.05.BM.01` | Báo cáo KSNK hàng tháng | E | L0 | quan-ly-cong-viec |
+| `KSNK.QT.05.BM.02` | Biên bản họp ML.KSNK | E | L0 | quan-ly-cong-viec |
+| `KSNK.QT.05.BM.03` | Bảng kiểm giám sát hoạt động của ML.KSNK | A | L0 | quan-ly-cong-viec |
+| `KSNK.QT.06.BM.01` | Bảng kiểm giám sát tuân thủ VST năm thời điểm | A | L1 | giam-sat-vst |
+| `KSNK.QT.06.BM.02` | Bảng kiểm đánh giá kỹ thuật VST thường quy | A | L1 | giam-sat-vst |
+| `KSNK.QT.06.BM.03` | Bảng kiểm đánh giá kỹ thuật VST ngoại khoa | A | L1 | giam-sat-vst |
+| `KSNK.QT.06.BM.04` | Biểu mẫu tổng hợp tỷ lệ tuân thủ VST | B | L1 | giam-sat-vst (thống kê) |
+| `KSNK.QT.07.BM.01` | Bảng kiểm giám sát tuân thủ chỉ định sử dụng phương tiện phòng hộ | A | L1 | giam-sat-chung |
+| `KSNK.QT.07.BM.02` | Bảng kiểm đánh giá kỹ thuật mặc và tháo bỏ phương tiện phòng hộ | A | L1 | giam-sat-chung |
+| `KSNK.QT.08.BM.01` | Bảng kiểm giám sát thực hành tiêm an toàn | A | L1 | giam-sat-chung |
+| `KSNK.QT.09.BM.01` | Biên bản báo cáo tai nạn rủi ro nghề nghiệp | D | L6 | CHƯA CÓ |
+| `KSNK.QT.09.BM.02` | Phiếu đồng ý tham gia xét nghiệm (dành cho NB nguồn) | D | L6 | CHƯA CÓ |
+| `KSNK.QT.09.BM.03` | Sổ theo dõi sức khỏe nhân viên sau phơi nhiễm | D | L6 | CHƯA CÓ |
+| `KSNK.QT.09.BM.04` | Bảng kiểm giám sát tuân thủ hệ thống xử lý phơi nhiễm | A | L6 | giam-sat-chung |
+| `KSNK.QT.10.BM.01` | Phiếu phân công và bảng kiểm công việc vệ sinh | B | L5 | CHƯA CÓ (S4) |
+| `KSNK.QT.10.BM.02` | Bảng kiểm giám sát thực hành vệ sinh môi trường bề mặt | A | L5 | giam-sat-chung |
+| `KSNK.QT.10.BM.03` | Bảng kiểm giám sát chất lượng vệ sinh môi trường bề mặt | A | L5 | giam-sat-chung |
+| `KSNK.QT.10.BM.04` | Bảng kiểm vệ sinh môi trường khu vực phẫu thuật | A | L5 | giam-sat-chung |
+| `KSNK.QT.11.BM.01` | Bảng kiểm giám sát tuân thủ quản lý chất thải y tế | A | L5 | giam-sat-chung |
+| `KSNK.QT.11.BM.02` | Sổ bàn giao chất thải đã khử khuẩn phục vụ mục đích tái chế | B | L5 | CHƯA CÓ (S4) |
+| `KSNK.QT.11.BM.03` | Sổ giao nhận chất thải y tế nguy hại | B | L5 | CHƯA CÓ (S4) |
+| `KSNK.QT.12.BM.01` | Bảng kiểm giám sát tuân thủ thu gom đồ vải | A | L5 | giam-sat-chung |
+| `KSNK.QT.12.BM.02` | Bảng kiểm giám sát quy trình tại ĐVGL | A | L5 | giam-sat-chung |
+| `KSNK.QT.12.BM.03` | Sổ giao nhận đồ vải hàng ngày | B | L5 | CHƯA CÓ (S4) |
+| `KSNK.QT.13.BM.01` | Bảng kiểm giám sát tuân thủ phòng ngừa dựa trên đường lây truyền | A | L1 | giam-sat-chung |
+| `KSNK.QT.14.BM.01` | Bảng kiểm giám sát tuân thủ quy trình vận chuyển NB | A | L1 | giam-sat-chung |
+| `KSNK.QT.14.BM.02` | Sổ theo dõi khử khuẩn phương tiện vận chuyển | B | L1 | CHƯA CÓ |
+| `KSNK.QT.15.BM.01` | Bảng kiểm giám sát tuân thủ KSNK trong xử lý tử thi | A | L1 | giam-sat-chung |
+| `KSNK.QT.15.BM.02` | Biên bản bàn giao tử thi | D | L1 | CHƯA CÓ |
+| `KSNK.QT.16.BM.01` | Bảng kiểm giám sát chéo mặc/cởi PTPH cấp cao | A | L3 | giam-sat-chung |
+| `KSNK.QT.16.BM.02` | Danh sách theo dõi người tiếp xúc gần | D | L3 | CHƯA CÓ |
+| `KSNK.QT.16.BM.03` | Nhật ký ra vào khu vực cách ly đặc biệt | B | L3 | CHƯA CÓ |
+| `KSNK.QT.17.BM.01` | Sổ giao nhận dụng cụ tái xử lý | B | L4 | cssd-erp |
+| `KSNK.QT.17.BM.02` | Bảng kiểm giám sát quy trình làm sạch | A | L4 | giam-sat-chung |
+| `KSNK.QT.18.BM.01` | Sổ theo dõi dụng cụ hỏng và đề nghị sửa chữa, thanh lý | B | L4 | cssd-erp |
+| `KSNK.QT.18.BM.02` | Bảng kiểm giám sát quy trình kiểm tra và bảo dưỡng dụng cụ | A | L4 | giam-sat-chung |
+| `KSNK.QT.19.BM.01` | Bảng kiểm giám sát tuân thủ quy trình đóng gói | A | L4 | giam-sat-chung |
+| `KSNK.QT.20.BM.01` | Bảng kiểm giám sát quy trình vận hành hệ thống tiệt khuẩn | A | L4 | giam-sat-chung |
+| `KSNK.QT.21.BM.01` | Nhật ký theo dõi môi trường kho vô khuẩn | B | L4 | cssd-erp |
+| `KSNK.QT.21.BM.02` | Sổ cấp phát dụng cụ vô khuẩn | B | L4 | cssd-erp |
+| `KSNK.QT.21.BM.03` | Phiếu lĩnh dụng cụ vô khuẩn | B | L4 | cssd-erp |
+| `KSNK.QT.21.BM.04` | Bảng kiểm giám sát tuân thủ quy trình lưu trữ và cấp phát | A | L4 | giam-sat-chung |
+| `KSNK.QT.22.BM.01` | Nhật ký mẻ tiệt khuẩn (tổng hợp kiểm soát chất lượng) | B | L4 | cssd-erp |
+| `KSNK.QT.22.BM.02` | Sổ theo dõi kết quả giám sát sinh học | C | L4 | cssd-erp |
+| `KSNK.QT.22.BM.03` | Sổ theo dõi kết quả thử nghiệm Bowie-Dick | C | L4 | cssd-erp |
+| `KSNK.QT.22.BM.04` | Bảng kiểm giám sát tuân thủ kiểm soát chất lượng tiệt khuẩn | A | L4 | giam-sat-chung |
+| `KSNK.QT.23.BM.01` | Biên bản thu hồi dụng cụ tiệt khuẩn | D | L4 | cssd-su-co |
+| `KSNK.QT.23.BM.02` | Báo cáo sự cố tiệt khuẩn và hỏng hóc thiết bị | D | L4 | cssd-su-co |
+| `KSNK.QT.23.BM.03` | Bảng kiểm giám sát quy trình xử lý sự cố dụng cụ | A | L4 | cssd-su-co |
+| `KSNK.QT.24.BM.01` | Bảng kiểm giám sát quy trình KKMĐC | A | L4 | giam-sat-chung |
+| `KSNK.QT.24.BM.02` | Sổ theo dõi hóa chất KKMĐC | B | L4 | cssd-erp |
+| `KSNK.QT.24.BM.03` | Nhật ký xử lý ống nội soi mềm | B | L4 | cssd-erp |
+| `KSNK.QT.25.BM.01` | Nhật ký xử lý dụng cụ PTNS | B | L4 | cssd-erp |
+| `KSNK.QT.25.BM.02` | Bảng kiểm giám sát quy trình KKMĐC dụng cụ PTNS | A | L4 | giam-sat-chung |
+| `KSNK.QT.26.BM.01` | Danh mục dụng cụ được phép tái sử dụng | E | L4 | CHƯA CÓ |
+| `KSNK.QT.26.BM.02` | Sổ theo dõi lịch sử tái sử dụng dụng cụ | B | L4 | cssd-erp |
+| `KSNK.QT.26.BM.03` | Bảng kiểm giám sát tuân thủ quy trình quản lý dụng cụ | A | L4 | giam-sat-chung |
+| `KSNK.QT.27.BM.01` | Phiếu tiếp nhận và bàn giao dụng cụ mượn hoặc ký gửi | D | L4 | CHƯA CÓ |
+| `KSNK.QT.27.BM.02` | Bảng kiểm giám sát quy trình quản lý dụng cụ mượn | A | L4 | giam-sat-chung |
+| `KSNK.QT.27.BM.03` | Phiếu bảo lãnh cấp phát khẩn cấp dụng cụ cấy ghép | D | L4 | CHƯA CÓ |
+| `KSNK.QT.28.BM.01` | Bảng kiểm an toàn phẫu thuật | A | L2 | giam-sat-chung |
+| `KSNK.QT.28.BM.02` | Bảng kiểm giám sát tuân thủ gói phòng ngừa SSI | A | L2 | giam-sat-chung |
+| `KSNK.QT.29.BM.01` | Bảng kiểm an toàn đặt CVC (Insertion Bundle) | A | L2 | giam-sat-chung |
+| `KSNK.QT.29.BM.02` | Bảng kiểm giám sát tuân thủ chăm sóc CVC (Maintenance Bundle) | A | L2 | giam-sat-chung |
+| `KSNK.QT.30.BM.01` | Bảng kiểm giám sát tuân thủ gói phòng ngừa CAUTI | A | L2 | giam-sat-chung |
+| `KSNK.QT.30.BM.02` | Phiếu theo dõi chỉ định và đánh giá rút thông tiểu hàng ngày | B | L2 | CHƯA CÓ |
+| `KSNK.QT.31.BM.01` | Bảng kiểm giám sát tuân thủ gói phòng ngừa VAP | A | L2 | giam-sat-chung |
+| `KSNK.QT.31.BM.02` | Bảng kiểm thực hành hằng ngày phòng ngừa VAP | A | L2 | giam-sat-chung |
+| `KSNK.QT.32.BM.01` | Báo cáo phản hồi kết quả giám sát tuân thủ | E | L0 | quan-tri-he-thong |
+| `KSNK.QT.32.BM.02` | Sổ tổng hợp, phân tích dữ liệu giám sát | E | L0 | quan-tri-he-thong |
+| `KSNK.QT.33.BM.01` | Phiếu điều tra ca bệnh NKBV | D | L2 | giam-sat-nkbv |
+| `KSNK.QT.33.BM.02` | Phiếu thu thập mẫu số (ngày-thiết bị) hàng ngày | B | L2 | giam-sat-nkbv |
+| `KSNK.QT.33.BM.03` | Phiếu báo cáo ca nghi ngờ NKBV | D | L2 | giam-sat-nkbv |
+| `KSNK.QT.33.BM.04` | Sổ tổng hợp NKBV | B | L2 | giam-sat-nkbv |
+| `KSNK.QT.33.BM.05` | Báo cáo phản hồi tỷ suất NKBV | E | L2 | giam-sat-nkbv |
+| `KSNK.QT.34.BM.01` | Danh sách ca bệnh vụ dịch (Line-list) | D | L3 | CHƯA CÓ |
+| `KSNK.QT.34.BM.03` | Báo cáo điều tra vụ dịch (Nhanh/Tổng kết) | D | L3 | CHƯA CÓ |
+| `KSNK.QT.34.BM.04` | Bảng kiểm giám sát tuân thủ xử lý vụ dịch | A | L3 | giam-sat-chung |
+| `KSNK.QT.35.BM.01` | Phiếu cảnh báo NB mang vi khuẩn đa kháng | D | L3 | CHƯA CÓ |
+| `KSNK.QT.35.BM.02` | Cơ sở dữ liệu theo dõi NB mang vi khuẩn đa kháng | D | L3 | CHƯA CÓ |
+| `KSNK.QT.35.BM.03` | Bảng kiểm giám sát tuân thủ phòng ngừa vi khuẩn đa kháng | A | L3 | giam-sat-chung |
+| `KSNK.QT.36.BM.01` | Biên bản lấy mẫu môi trường | C | L5 | CHƯA CÓ (S5) |
+| `KSNK.QT.36.BM.02` | Sổ theo dõi, tổng hợp kết quả vi sinh môi trường | C | L5 | CHƯA CÓ (S5) |
+| `KSNK.QT.36.BM.03` | Bảng kiểm giám sát tuân thủ quy trình lấy mẫu vi sinh môi trường | A | L5 | giam-sat-chung |
+| `KSNK.QT.37.BM.01` | Nhật ký theo dõi điều kiện kho hóa chất | B | L5 | cssd-erp (kho hóa chất) |
+| `KSNK.QT.37.BM.02` | Thẻ kho / Sổ theo dõi xuất nhập tồn hóa chất | B | L5 | cssd-erp (kho hóa chất) |
+| `KSNK.QT.37.BM.03` | Bảng kiểm giám sát tuân thủ quản lý và sử dụng hóa chất | A | L5 | giam-sat-chung |
+| `KSNK.QĐ.01.BM.01` | Bảng kiểm đánh giá mức độ thiết lập và vận hành hệ thống KSNK | E | L0 | quan-tri-he-thong |
+| `KSNK.QĐ.02.BM.01` | Bảng kiểm đánh giá hoạt động bảo đảm an toàn nghề nghiệp | A | L6 | giam-sat-chung |
+| `KSNK.QĐ.03.BM.01` | Bảng kiểm giám sát tuân thủ KSNK đối với khách thăm và người nhà | A | L1 | giam-sat-chung |
+| `KSNK.QĐ.04.BM.01` | Bảng kiểm giám sát tuân thủ KSNK tại Khoa Khám bệnh và Ngoại trú | A | L1 · KV | giam-sat-chung |
+| `KSNK.QĐ.05.BM.01` | Bảng kiểm giám sát hệ thống KSNK tại Khoa Cấp cứu | A | L1 · KV | giam-sat-chung |
+| `KSNK.QĐ.06.BM.01` | Bảng kiểm giám sát tuân thủ KSNK tại Khoa Truyền nhiễm | A | L3 · KV | giam-sat-chung |
+| `KSNK.QĐ.07.BM.01` | Bảng kiểm đánh giá tuân thủ quy định kiểm soát lây nhiễm lao | A | L3 · KV | giam-sat-chung |
+| `KSNK.QĐ.07.BM.02` | Sổ theo dõi kiểm tra áp suất phòng AIIR | B | L3 · KV | CHƯA CÓ |
+| `KSNK.QĐ.07.BM.03` | Hồ sơ theo dõi thử độ khít khẩu trang (Fit-test) N95 | B | L6 · KV | CHƯA CÓ |
+| `KSNK.QĐ.07.BM.04` | Danh sách tầm soát lao định kỳ NVYT | C | L6 · KV | CHƯA CÓ |
+| `KSNK.QĐ.08.BM.01` | Bảng kiểm giám sát KSNK tại phòng mổ | A | L2 · KV | giam-sat-chung |
+| `KSNK.QĐ.09.BM.01` | Bảng kiểm giám sát tuân thủ KSNK tại phòng can thiệp mạch | A | L2 · KV | giam-sat-chung |
+| `KSNK.QĐ.10.BM.01` | Bảng kiểm giám sát tuân thủ KSNK tại nha khoa | A | L1 · KV | giam-sat-chung |
+| `KSNK.QĐ.11.BM.01` | Bảng kiểm giám sát an toàn KSNK tại phòng nội soi | A | L4 · KV | giam-sat-chung |
+| `KSNK.QĐ.12.BM.01` | Bảng kiểm giám sát chính sách KSNK tại Khoa Hồi sức nội | A | L2 · KV | giam-sat-chung |
+| `KSNK.QĐ.13.BM.01` | Bảng kiểm giám sát hệ thống KSNK tại Khoa Hồi sức ngoại | A | L2 · KV | giam-sat-chung |
+| `KSNK.QĐ.14.BM.01` | Bảng kiểm vệ sinh lồng ấp và giường sưởi | A | L5 · KV | giam-sat-chung |
+| `KSNK.QĐ.15.BM.01` | Bảng kiểm giám sát KSNK tại Đơn vị Lọc máu | A | L2 · KV | giam-sat-chung |
+| `KSNK.QĐ.15.BM.02` | Nhật ký theo dõi chất lượng nước RO | C | L5 · KV | CHƯA CÓ (S5) |
+| `KSNK.QĐ.16.BM.01` | Bảng kiểm giám sát tuân thủ môi trường bảo vệ (PE) | A | L3 · KV | giam-sat-chung |
+| `KSNK.QĐ.17.BM.01` | Bảng kiểm giám sát an toàn KSNK tại Trung tâm Ung bướu | A | L3 · KV | giam-sat-chung |
+| `KSNK.QĐ.18.BM.01` | Bảng kiểm sàng lọc KSNK và giám sát an toàn môi trường ghép tạng | A | L3 · KV | giam-sat-chung |
+| `KSNK.QĐ.19.BM.01` | Bảng kiểm giám sát tuân thủ ATSH tại Khoa Xét nghiệm | A | L6 · KV | giam-sat-chung |
+| `KSNK.QĐ.20.BM.01` | Bảng kiểm giám sát tuân thủ KSNK tại khu vực pha chế | A | L5 · KV | giam-sat-chung |
+| `KSNK.QĐ.20.BM.02` | Nhật ký theo dõi thông số môi trường phòng sạch | B | L5 · KV | CHƯA CÓ (S4) |
+| `KSNK.QĐ.21.BM.01` | Sổ kiểm thực ba bước và lưu mẫu thức ăn | B | L5 | CHƯA CÓ (S4) |
+| `KSNK.QĐ.21.BM.02` | Bảng kiểm giám sát an toàn KSNK tại bếp ăn | A | L5 | giam-sat-chung |
