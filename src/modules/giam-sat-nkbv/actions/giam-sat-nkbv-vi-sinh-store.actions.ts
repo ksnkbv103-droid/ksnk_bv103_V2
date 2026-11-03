@@ -4,7 +4,7 @@
  * Kho vi sinh toàn viện — CRUD + chuẩn hóa bệnh phẩm (không điều tra HAI).
  */
 
-import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
@@ -79,6 +79,14 @@ async function isViSinhInUse(
     return true;
   }
   return false;
+}
+
+/** Kho XN thô không gắn khoa (cùng chính sách với list): chỉ actor xem toàn viện mới được ghi/xóa. */
+async function denyIfStoreOutOfScope() {
+  if ((await getNkbvKhoaRestriction()).kind !== "all") {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+  return null;
 }
 
 export async function listNkbvViSinhStore(params?: {
@@ -160,6 +168,8 @@ export async function createNkbvViSinhStoreRecord(input: {
   mdro_phenotype?: NkbvMdroPhenotype | null;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "edit");
+  const outOfScope = await denyIfStoreOutOfScope();
+  if (outOfScope) return outOfScope;
   const maXn = String(input.ma_xet_nghiem || "").trim();
   const maBa = String(input.ma_benh_an || "").trim();
   const khoaId = String(input.khoa_yeu_cau_id || "").trim();
@@ -237,6 +247,8 @@ export async function updateNkbvViSinhStoreRecord(
   },
 ) {
   await verifyPermission("GIAM_SAT_NKBV", "edit");
+  const outOfScope = await denyIfStoreOutOfScope();
+  if (outOfScope) return outOfScope;
   const rowId = String(id || "").trim();
   if (!rowId) return { success: false as const, error: "Thiếu id xét nghiệm" };
 
@@ -296,6 +308,8 @@ export async function quickToggleNkbvViSinhMdro(input: {
   mdro_phenotype?: NkbvMdroPhenotype | null;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "edit");
+  const outOfScope = await denyIfStoreOutOfScope();
+  if (outOfScope) return outOfScope;
   const rowId = String(input.id || "").trim();
   if (!rowId) return { success: false as const, error: "Thiếu id xét nghiệm" };
 
@@ -322,6 +336,8 @@ export async function quickToggleNkbvViSinhMdro(input: {
 /** Xóa cứng — chặn nếu đã dùng trên phân tích BA. */
 export async function deleteNkbvViSinhStoreRecordHard(id: string) {
   await verifyPermission("GIAM_SAT_NKBV", "edit");
+  const outOfScope = await denyIfStoreOutOfScope();
+  if (outOfScope) return outOfScope;
   const rowId = String(id || "").trim();
   if (!rowId) return { success: false as const, error: "Thiếu id xét nghiệm" };
 

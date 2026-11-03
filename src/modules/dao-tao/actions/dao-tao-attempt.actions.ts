@@ -512,7 +512,8 @@ export async function submitLanThi(lanThiId: string) {
       .select("diem_dat_pct")
       .eq("id", lanThi.cau_hinh_id)
       .maybeSingle();
-    if (ky?.diem_dat_pct != null) dat = scored.pct >= Number(ky.diem_dat_pct);
+    // PO 2026-10-24 (DT-2): nộp trễ quá ân hạn 30 giây = không đạt.
+    if (ky?.diem_dat_pct != null) dat = !late && scored.pct >= Number(ky.diem_dat_pct);
   }
 
   const { data: written, error: uErr } = await admin

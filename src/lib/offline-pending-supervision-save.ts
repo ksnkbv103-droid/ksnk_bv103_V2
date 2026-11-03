@@ -6,6 +6,7 @@
 import type { SessionInput } from "@/modules/giam-sat-vst/actions/vst-write.helpers";
 import type { VSTObservation } from "@/modules/giam-sat-vst/lib/vst-constants";
 import type { GscSessionInput } from "@/modules/giam-sat-chung/actions/giam-sat-chung-write-helpers";
+import { SUPERVISION_SESSION_MUTATION_EXPIRED_VI } from "@/lib/supervision-mutation-window";
 import type { ChecklistResult } from "@/types/giam-sat-chung";
 
 const STORAGE_KEY = "bv103_supervision_offline_queue_v1";
@@ -104,6 +105,11 @@ export function isLikelyOfflineOrNetworkFailure(err: unknown): boolean {
   );
 }
 
+/** Lỗi không thể khỏi khi retry (quá cửa sổ sửa 30 phút) → bỏ khỏi hàng đợi, tránh kẹt vĩnh viễn. */
+export function isPermanentSupervisionFlushError(message: string | null | undefined): boolean {
+  return !!message && message.includes(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
+}
+
 /** Gửi lại toàn bộ hàng đợi; mục lỗi được giữ lại. */
 export async function flushPendingSupervisionSaves(): Promise<{
   synced: number;
@@ -139,7 +145,7 @@ export async function flushPendingSupervisionSaves(): Promise<{
         else {
           failed++;
           lastError = res.error || lastError;
-          remaining.push(item);
+          if (!isPermanentSupervisionFlushError(res.error)) remaining.push(item);
         }
       } else {
         const sid = String(item.existingSessionId ?? "").trim();
@@ -152,13 +158,13 @@ export async function flushPendingSupervisionSaves(): Promise<{
         else {
           failed++;
           lastError = res.error || lastError;
-          remaining.push(item);
+          if (!isPermanentSupervisionFlushError(res.error)) remaining.push(item);
         }
       }
     } catch (err) {
       failed++;
       lastError = err instanceof Error ? err.message : String(err);
-      remaining.push(item);
+      if (!isPermanentSupervisionFlushError(lastError)) remaining.push(item);
     }
   }
 
