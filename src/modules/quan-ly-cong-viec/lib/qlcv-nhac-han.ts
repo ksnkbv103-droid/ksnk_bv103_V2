@@ -25,7 +25,7 @@ export function countQlcvNhacHan(
   let quaHan = 0;
   let homNay = 0;
   for (const t of tasks) {
-    if (isMyQlcvTask(t, actorStaffId) && isBoardLaneQuaHan(t)) quaHan++;
+    if (isMyQlcvTask(t, actorStaffId) && isBoardLaneQuaHan(t, now)) quaHan++;
     if (isQlcvHomNayCuaToi(t, actorStaffId, now)) homNay++;
   }
   return { quaHan, homNay };

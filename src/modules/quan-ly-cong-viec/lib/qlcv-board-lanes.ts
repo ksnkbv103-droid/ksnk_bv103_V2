@@ -27,15 +27,15 @@ export type KanbanColumnId =
   | "HOAN_THANH"
   | "DA_HUY";
 
-function isDeadlinePastOpen(t: CongViecBoardInput): boolean {
-  return isQlcvHanPastVn(t.han_hoan_thanh);
+function isDeadlinePastOpen(t: CongViecBoardInput, now?: Date): boolean {
+  return isQlcvHanPastVn(t.han_hoan_thanh, now);
 }
 
 /** Phiếu mở + quá hạn (mã / cờ view / hạn) — cùng ý với view + cron. */
-export function isQlcvBoardOverdue(t: CongViecBoardInput): boolean {
+export function isQlcvBoardOverdue(t: CongViecBoardInput, now?: Date): boolean {
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "HOAN_THANH" || st === "DA_HUY") return false;
-  return st === "QUA_HAN" || t.is_qua_han === true || isDeadlinePastOpen(t);
+  return st === "QUA_HAN" || t.is_qua_han === true || isDeadlinePastOpen(t, now);
 }
 
 export function getBoardLaneId(t: CongViecBoardInput): QlcvBoardLaneId {
@@ -65,8 +65,8 @@ export function getKanbanColumnIdForTask(t: CongViecBoardInput, showProposalColu
   return boardLaneToKanbanColumn(getBoardLaneId(t), showProposalColumn);
 }
 
-export function isBoardLaneQuaHan(t: CongViecBoardInput): boolean {
-  return isQlcvBoardOverdue(t);
+export function isBoardLaneQuaHan(t: CongViecBoardInput, now?: Date): boolean {
+  return isQlcvBoardOverdue(t, now);
 }
 
 export function isBoardLaneDangLam(t: CongViecBoardInput): boolean {
