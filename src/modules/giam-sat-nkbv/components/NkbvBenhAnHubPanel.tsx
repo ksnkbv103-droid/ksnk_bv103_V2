@@ -110,7 +110,7 @@ export default function NkbvBenhAnHubPanel({
   const [alerts, setAlerts] = useState<ImportWindowAlert[]>([]);
   const [mdroCount, setMdroCount] = useState(0);
   const [hasActiveVent, setHasActiveVent] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [_selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [criteriaPick, setCriteriaPick] = useState(NKBV_CRITERIA_ADD_CATALOG[0].criteriaKey);
   const [manualDate, setManualDate] = useState("");
@@ -127,7 +127,6 @@ export default function NkbvBenhAnHubPanel({
     [],
   );
   const [chuaPhanTichCount, setChuaPhanTichCount] = useState(0);
-  const ensureSeqRef = React.useRef(0);
   const ensureCaseRef = React.useRef(onEnsureAnalysisCase);
   useEffect(() => {
     ensureCaseRef.current = onEnsureAnalysisCase;
@@ -476,6 +475,7 @@ export default function NkbvBenhAnHubPanel({
       PNEU: "HAP",
       VAE: "VAE",
       SSI: "SSI",
+      CH17: "CH17",
     };
     const gate =
       input.analysisSeed?.checklistGate ||

@@ -53,25 +53,28 @@ function Para({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionTitle({ n, title }: { n: number; title: string }) {
+function SectionTitle({ n, title }: { n: string; title: string }) {
   return (
-    <p
+    <div
       style={{
-        margin: "14px 0 6px 0",
-        fontSize: "13px",
-        fontWeight: 700,
+        margin: "12px 0 6px 0",
+        padding: "2px 6px",
+        backgroundColor: "#f8fafc",
+        borderLeft: "3px solid #1e293b",
+        fontSize: "12px",
+        fontWeight: 800,
         textTransform: "uppercase",
         letterSpacing: "0.03em",
       }}
     >
       {n}. {title}
-    </p>
+    </div>
   );
 }
 
 /**
- * Biên bản / phiếu xác định ca NKBV — dạng văn bản (không bảng),
- * cùng khung mục với form báo cáo ca bệnh (clinical-forms hàng 0–9).
+ * Biên bản / phiếu xác định ca NKBV — chuẩn BM.01/QT.33
+ * theo Quy trình KSNK.QT.33 và Quyết định 3916/QĐ-BYT.
  */
 export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps) {
   const typeLabel = formatNkbvChecklistTypeLabel(props.checklistType as never);
@@ -101,30 +104,51 @@ export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps)
 
   return (
     <PrintLayout
-      title={`PHIẾU XÁC ĐỊNH CA NKBV — ${typeLabel}`}
+      title="PHIẾU ĐIỀU TRA CA BỆNH NHIỄM KHUẨN BỆNH VIỆN"
+      subtitle={`(Ban hành kèm theo Quy trình KSNK.QT.33 — Quyết định 3916/QĐ-BYT) · ${typeLabel}`}
       headerTitle="BỆNH VIỆN QUÂN Y 103"
       departmentTitle="KHOA KIỂM SOÁT NHIỄM KHUẨN"
       density="compact"
-      leftSignatureTitle="NGƯỜI XÁC NHẬN LÂM SÀNG"
-      rightSignatureTitle="KSNK XÁC NHẬN CHỐT CA"
+      leftSignatureTitle="NGƯỜI ĐIỀU TRA LÂM SÀNG"
+      rightSignatureTitle="KHOA KIỂM SOÁT NHIỄM KHUẨN"
       fileTitle={() =>
         buildPrintFileTitle({
-          loai: "NKBV_PXDC",
+          loai: "NKBV_BM01",
           ma: `${props.maBenhAn}_${props.indexDate.replace(/-/g, "")}`,
         })
       }
     >
-      <div style={{ color: "#000" }}>
-        <Para>
-          <strong>
-            Trạng thái phiếu:{" "}
-            {props.lockStatus === "DA_CHOT" ? "ĐÃ CHỐT" : "NHÁP (DRAFT)"}
-          </strong>
-          . Tài liệu này là biên bản phân tích nhiễm khuẩn bệnh viện theo tiêu chuẩn CDC/NHSN,
-          lập trên bệnh án sau khi hoàn tất phân tích trên lưới thời gian.
-        </Para>
+      <div style={{ color: "#000", lineHeight: 1.4 }}>
+        {/* === META BAR === */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+            paddingBottom: 4,
+            borderBottom: "1px dashed #cbd5e1",
+            fontSize: "11px",
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 700,
+              padding: "1px 6px",
+              borderRadius: "3px",
+              border: props.lockStatus === "DA_CHOT" ? "1px solid #059669" : "1px solid #d97706",
+              color: props.lockStatus === "DA_CHOT" ? "#065f46" : "#92400e",
+              backgroundColor: props.lockStatus === "DA_CHOT" ? "#ecfdf5" : "#fffbeb",
+            }}
+          >
+            Trạng thái phiếu: {props.lockStatus === "DA_CHOT" ? "ĐÃ CHỐT CA BỆNH" : "BẢN NHÁP (DRAFT)"}
+          </span>
+          <span style={{ fontWeight: 800, letterSpacing: "0.05em", color: "#1e293b" }}>
+            Biểu mẫu: BM.01/QT.33
+          </span>
+        </div>
 
-        <SectionTitle n={1} title="Hành chính" />
+        <SectionTitle n="I" title="Hành chính & Vào viện" />
         <Para>
           Bệnh nhân <strong>{props.hoTen || "—"}</strong>, mã bệnh nhân (PID){" "}
           <strong>{props.maBenhNhan || "—"}</strong>, mã bệnh án{" "}
@@ -145,7 +169,7 @@ export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps)
           . Loại sự kiện nghi ngờ / xác định: <strong>{typeLabel}</strong> ({props.nghiNgo}).
         </Para>
 
-        <SectionTitle n={2} title="Yếu tố xác định khung (Index)" />
+        <SectionTitle n="II" title="Yếu tố xác định khung (Index)" />
         <Para>
           Yếu tố xác định khung là {indexKindLabel} ngày <strong>{fmtDate(props.indexDate)}</strong>
           {props.benhPham ? (
@@ -161,7 +185,7 @@ export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps)
           . Ngày này được dùng làm Index (Ngày X) để dựng cửa sổ thời gian và quy kết bằng chứng.
         </Para>
 
-        <SectionTitle n={3} title="Cửa sổ thời gian · DOE · POA/HAI" />
+        <SectionTitle n="III" title="Cửa sổ chẩn đoán · DOE · POA/HAI" />
         <Para>
           Cửa sổ {windowLabel}
           {props.iwpStart && props.iwpEnd
@@ -175,12 +199,12 @@ export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps)
           <strong>{props.haiStatus || "—"}</strong>.
         </Para>
 
-        <SectionTitle n={4} title="Tiêu chuẩn trong cửa sổ" />
+        <SectionTitle n="IV" title="Tiêu chuẩn trong cửa sổ" />
         <Para>
           Các tiêu chuẩn / triệu chứng đã ghi nhận trong cửa sổ phân tích: {criteriaText}
         </Para>
 
-        <SectionTitle n={5} title="Dụng cụ xâm lấn · RIT · SBAP" />
+        <SectionTitle n="V" title="Yếu tố can thiệp · RIT · SBAP" />
         <Para>
           Can thiệp xâm lấn theo dõi: <strong>{props.canThiepLabel || "—"}</strong>
           {props.lienQuanXamLan
@@ -203,7 +227,7 @@ export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps)
           .
         </Para>
 
-        <SectionTitle n={6} title="Kết luận" />
+        <SectionTitle n="VI" title="Kết luận & Khuyến cáo KSNK" />
         <Para>
           Kết luận phân tích trên bệnh án: <strong>{props.ketLuanSummary || "—"}</strong>.
         </Para>
@@ -212,10 +236,8 @@ export default function NkbvBaGridCasePrintView(props: NkbvBaGridCasePrintProps)
             Ghi chú bổ sung: {props.ghiChu}
           </Para>
         ) : null}
-
         <Para>
-          Đề nghị người xác nhận lâm sàng và Khoa Kiểm soát Nhiễm khuẩn ký xác nhận bên dưới để hoàn
-          tất hồ sơ giám sát nhiễm khuẩn bệnh viện.
+          Khuyến cáo: Thực hiện phòng ngừa chuẩn kết hợp phòng ngừa theo đường lây truyền. Khoa điều trị phối hợp Khoa Kiểm soát Nhiễm khuẩn giám sát chặt chẽ diễn biến lâm sàng của bệnh nhân.
         </Para>
       </div>
     </PrintLayout>

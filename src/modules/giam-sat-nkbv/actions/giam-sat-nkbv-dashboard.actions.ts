@@ -80,13 +80,12 @@ export async function getGiamSatNkbvDashboardPayload(rawFilters: GiamSatNkbvDash
       : rawFilters;
 
   const denStr = filters.den_ngay?.trim() || todayYmdInVn();
-  let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
+  const tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
 
-  let tuD = parseISO(tuStr);
+  const tuD = parseISO(tuStr);
   const denD = parseISO(denStr);
   if (tuD > denD) {
-    tuStr = bv103DefaultTuNgayFromDenIso(denStr);
-    tuD = parseISO(tuStr);
+    return { success: false as const, error: "Từ ngày không được lớn hơn Đến ngày." };
   }
 
   const khoaIds = (filters.khoa_ghi_nhan_ids || []).map((x) => String(x || "").trim()).filter(Boolean);
@@ -130,7 +129,14 @@ export async function getGiamSatNkbvDashboardPayload(rawFilters: GiamSatNkbvDash
     };
   }
 
-  const epidemiologyRates = ((raw.rpcData || []) as Array<Record<string, unknown>>).map((r) => ({
+  let rpcRows = (raw.rpcData || []) as Array<Record<string, unknown>>;
+  if (khoaIds.length > 0) {
+    rpcRows = rpcRows.filter((r) => r.khoa_id && khoaIds.includes(String(r.khoa_id)));
+  } else if (khoaId) {
+    rpcRows = rpcRows.filter((r) => r.khoa_id && String(r.khoa_id) === khoaId);
+  }
+
+  const epidemiologyRates = rpcRows.map((r) => ({
     ...r,
     ten_khoa: formatKhoaCompactLabel({
       ma_khoa: r.ma_khoa != null ? String(r.ma_khoa) : null,

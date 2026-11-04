@@ -192,7 +192,7 @@ export default function NkbvSyndromeIwpPanel({
   ngayVaoVien,
   ngayRaVien,
   ngaySinh,
-  columns,
+  columns: _columns,
   index,
   xn,
   cdha,

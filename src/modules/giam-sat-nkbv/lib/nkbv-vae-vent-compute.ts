@@ -8,6 +8,8 @@
  * Cite: cdc-ch10.txt:126-131 · 1460-1472
  */
 
+import { addDays } from "./nkbv-shared-timeline";
+
 export type VaeVentDailyRow = {
   /** YYYY-MM-DD */
   date: string;
@@ -52,9 +54,7 @@ function sortRows(rows: VaeVentDailyRow[]): VaeVentDailyRow[] {
 }
 
 function addOneCalendarDay(iso: string): string {
-  const d = new Date(`${iso}T12:00:00`);
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return addDays(iso, 1);
 }
 
 function isCalendarAdjacent(a: string, b: string): boolean {
@@ -153,15 +153,21 @@ export function computeVacFromDailyVent(
     if (!isStablePair(s0, s1)) continue;
 
     const aprvWindow = !!(s0.on_aprv || s1.on_aprv || w0.on_aprv || w1.on_aprv);
+    const peep0 = effectivePeep(s0);
     const baselinePeep = effectivePeep(s1);
+    const peepStable =
+      !aprvWindow && peep0 != null && baselinePeep != null && baselinePeep <= peep0;
     const baselineFio = s1.fio2_min;
+    const fioStable =
+      s0.fio2_min != null && baselineFio != null && baselineFio <= s0.fio2_min;
     const w0Peep = effectivePeep(w0);
     const w1Peep = effectivePeep(w1);
 
     let peepHit = false;
     let fioHit = false;
-    // PEEP path only when none of baseline/worsening days are APRV (effectivePeep null).
+    // PEEP path requires PEEP itself to be stable in the 2-day baseline (CDC/NHSN Ch.10).
     if (
+      peepStable &&
       baselinePeep != null &&
       w0Peep != null &&
       w1Peep != null &&
@@ -170,6 +176,7 @@ export function computeVacFromDailyVent(
       peepHit = true;
     }
     if (
+      fioStable &&
       baselineFio != null &&
       w0.fio2_min != null &&
       w1.fio2_min != null &&

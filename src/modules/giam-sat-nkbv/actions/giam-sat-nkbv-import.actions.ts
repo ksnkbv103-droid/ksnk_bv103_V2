@@ -3,6 +3,8 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { buildViSinhUniqueKey } from "../lib/nkbv-vi-sinh-unique-key";
 import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
 import {
@@ -79,6 +81,15 @@ export async function previewViSinhImportAlerts(
 /** Nạp kết quả vi sinh LIS theo mẫu cố định (âm / dương / nhiễu). */
 export async function importViSinhExcel(records: ViSinhRecordInput[]) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+  for (const r of records) {
+    if (r.khoa_yeu_cau_id && !nkbvKhoaVisible(restriction, [r.khoa_yeu_cau_id])) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+  }
   const supabase = createAdminSupabaseClient();
 
   try {

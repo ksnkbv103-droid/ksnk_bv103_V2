@@ -30,7 +30,7 @@ import {
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { NkbvActiveChecklistType, NkbvSuspectedType } from "./useNkbvChecklistModalState";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 import { haiPoaLabel } from "../lib/nkbv-shared-timeline";
 
 function fmtDate(d?: string | null) {
@@ -166,8 +166,6 @@ export default function NkbvDiagnosticCaseForm({
 }: NkbvDiagnosticCaseFormProps) {
   const ngayVaoVien =
     vnYmd(ngayVaoVienEffective || row.ngay_vao_vien);
-  const ngayRaVienCase =
-    vnYmd((row as { ngay_ra_vien?: string | null }).ngay_ra_vien) || null;
   const ngaySinh =
     (ngaySinhEffective && String(ngaySinhEffective).slice(0, 10)) ||
     (row.ngay_sinh ? String(row.ngay_sinh).slice(0, 10) : null) ||
@@ -945,7 +943,7 @@ function DeviceDateEditors({
   ngayVaoVien: string;
   ngayPhatHien: string;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayYmdInVn();
   if (checklistType === "BSI" && bsiForm) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

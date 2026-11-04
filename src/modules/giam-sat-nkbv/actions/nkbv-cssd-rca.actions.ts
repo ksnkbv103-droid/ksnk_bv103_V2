@@ -2,6 +2,8 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
+import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { readLoTietKhuanId, readIncidentTypeLabel } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 
@@ -14,6 +16,7 @@ export type CssdRcaIncidentRow = {
   station: string | null;
   createdAt: string | null;
   loTietKhuanId: string | null;
+  isRedAlert?: boolean;
 };
 
 export type CssdRcaBundle = {
@@ -24,6 +27,11 @@ export type CssdRcaBundle = {
   loTietKhuanId: string | null;
   maLo: string | null;
   ketQuaMe: boolean | null;
+  trangThaiMe?: string | null;
+  trangThaiBi?: string | null;
+  ketQuaBi?: boolean | null;
+  isRecalledBatch?: boolean;
+  hasRedAlertIncident?: boolean;
   incidents: CssdRcaIncidentRow[];
   /** Mẻ chưa xác định chắc (đoán theo bộ/ngày) — RCA chỉ tham khảo. */
   chuaXacDinhMe: boolean;
@@ -64,29 +72,51 @@ export async function fetchCssdRcaBundle(args: {
     const loId = qt.lo_tiet_khuan_id ? String(qt.lo_tiet_khuan_id) : null;
     let maLo: string | null = null;
     let ketQuaMe: boolean | null = null;
+    let trangThaiMe: string | null = null;
+    let trangThaiBi: string | null = null;
+    let ketQuaBi: boolean | null = null;
+
     if (loId) {
       const { data: me } = await supabase
         .from("cssd_fact_lo_tiet_khuan")
-        .select("ma_lo_tiet_khuan, ket_qua_test")
+        .select("ma_lo_tiet_khuan, ket_qua_test, trang_thai_me, trang_thai_bi, ket_qua_bi")
         .eq("id", loId)
         .maybeSingle();
       maLo = me?.ma_lo_tiet_khuan ? String(me.ma_lo_tiet_khuan) : null;
       ketQuaMe = typeof me?.ket_qua_test === "boolean" ? me.ket_qua_test : null;
+      trangThaiMe = me?.trang_thai_me ? String(me.trang_thai_me) : null;
+      trangThaiBi = me?.trang_thai_bi ? String(me.trang_thai_bi) : null;
+      ketQuaBi = typeof me?.ket_qua_bi === "boolean" ? me.ket_qua_bi : null;
     }
 
-    const { data: suCoRows } = await supabase
+    let suCoQ = supabase
       .from("cssd_fact_su_co")
       .select("id, mo_ta, ma_tram_phat_hien, attributes, created_at, quy_trinh_id")
-      .eq("quy_trinh_id", quyTrinhId)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(20);
 
+    if (loId) {
+      suCoQ = suCoQ.or(`quy_trinh_id.eq.${quyTrinhId},attributes->>LO_TIET_KHUAN_ID.eq.${loId}`);
+    } else {
+      suCoQ = suCoQ.eq("quy_trinh_id", quyTrinhId);
+    }
+
+    const { data: suCoRows } = await suCoQ;
+
+    let hasRedAlertIncident = false;
     const incidents: CssdRcaIncidentRow[] = (suCoRows || []).map((r) => {
       const attrs = (r.attributes && typeof r.attributes === "object" ? r.attributes : {}) as Record<
         string,
         unknown
       >;
+      const isRedAlert =
+        attrs.IS_RED_ALERT === true ||
+        attrs.IS_RED_ALERT === "1" ||
+        attrs.INCIDENT_TYPE_CODE === "PROCESS_BI_POSITIVE" ||
+        attrs.INCIDENT_TYPE_CODE === "PROCESS_STERILIZATION_FAIL" ||
+        attrs.BATCH_RECALL === "1";
+      if (isRedAlert) hasRedAlertIncident = true;
       return {
         id: String(r.id),
         moTa: String(r.mo_ta || ""),
@@ -94,8 +124,16 @@ export async function fetchCssdRcaBundle(args: {
         station: r.ma_tram_phat_hien ? String(r.ma_tram_phat_hien) : null,
         createdAt: r.created_at ? String(r.created_at) : null,
         loTietKhuanId: readLoTietKhuanId(attrs),
+        isRedAlert,
       };
     });
+
+    const isRecalledBatch =
+      trangThaiMe === "THU_HOI" ||
+      trangThaiMe === "QC_KHONG_DAT" ||
+      trangThaiBi === "DUONG" ||
+      ketQuaBi === false ||
+      ketQuaMe === false;
 
     return {
       success: true,
@@ -107,6 +145,11 @@ export async function fetchCssdRcaBundle(args: {
         loTietKhuanId: loId,
         maLo,
         ketQuaMe,
+        trangThaiMe,
+        trangThaiBi,
+        ketQuaBi,
+        isRecalledBatch,
+        hasRedAlertIncident,
         incidents,
         chuaXacDinhMe,
       },
@@ -139,7 +182,7 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
 
     let q = supabase
       .from("nkbv_fact_su_kien")
-      .select("id, ma_ca, ho_ten_benh_nhan, ngay_phat_hien")
+      .select("id, ma_ca, ho_ten_benh_nhan, ngay_phat_hien, khoa_ghi_nhan_id")
       .eq("is_active", true)
       .limit(20);
 
@@ -153,10 +196,14 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
 
     const { data, error } = await q;
     if (error) throw new Error(error.message);
+    const restriction = await getNkbvKhoaRestriction();
+    const visibleRows = (data || []).filter((r) =>
+      nkbvKhoaVisible(restriction, [r.khoa_ghi_nhan_id as string | null]),
+    );
 
     return {
       success: true,
-      cases: (data || []).map((r) => ({
+      cases: visibleRows.map((r) => ({
         id: String(r.id),
         maCa: r.ma_ca != null ? String(r.ma_ca) : null,
         hoTen: r.ho_ten_benh_nhan != null ? String(r.ho_ten_benh_nhan) : null,

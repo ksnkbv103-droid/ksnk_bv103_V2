@@ -19,13 +19,14 @@ import type {
 import { SSI_DIAGNOSTIC_CRITERIA_KEYS } from "./nkbv-ba-grid-engine";
 import type { ViSinhAnalysisStatus } from "./nkbv-vi-sinh-analysis-status";
 
-export type SyndromePanelId = "PNEU" | "UTI" | "BSI" | "VAE" | "SSI";
+export type SyndromePanelId = "PNEU" | "UTI" | "BSI" | "VAE" | "SSI" | "CH17";
 
 const SITE_PANELS: ReadonlySet<SyndromePanelId> = new Set([
   "PNEU",
   "UTI",
   "SSI",
   "VAE",
+  "CH17",
 ]);
 
 /** Gợi ý mở phiên — chỉ từ Index hợp lệ trên bảng chung. */
@@ -44,7 +45,7 @@ export function specimenToSyndromePanel(input: {
   lis_goc?: string | null;
   preferVae?: boolean;
 }): SyndromePanelId | null {
-  if (isNkbvCh17SpecimenOnly(input)) return null;
+  if (isNkbvCh17SpecimenOnly(input)) return "CH17";
   const major = resolveNkbvMajorType({
     loai_benh_pham: input.loai_benh_pham,
     loai_benh_pham_chuan: input.loai_benh_pham_chuan,
@@ -54,6 +55,7 @@ export function specimenToSyndromePanel(input: {
   if (major === "VAE") return "VAE";
   if (major === "PNEU") return input.preferVae ? "VAE" : "PNEU";
   if (major === "BSI") return "BSI";
+  if (major === "CH17" || major === "OTHER") return "CH17";
   return null;
 }
 

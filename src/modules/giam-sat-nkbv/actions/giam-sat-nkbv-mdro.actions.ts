@@ -83,12 +83,9 @@ export async function listMdroInpatientsByKhoa(params: {
   const mdroStays = stays.filter((s) => latestByBa.has(String(s.ma_benh_an)));
   if (!mdroStays.length) return { success: true as const, data: [] as MdroInpatientRow[] };
 
-  const baKeys = mdroStays.map((s) => String(s.ma_benh_an));
-  const pidKeys = mdroStays.map((s) => String(s.ma_benh_nhan)).filter(Boolean);
-
   const since = new Date();
   since.setDate(since.getDate() - 30);
-  const sinceIso = since.toISOString().slice(0, 10);
+  const sinceIso = vnYmd(since);
 
   let sessions: {
     ma_benh_an?: string | null;

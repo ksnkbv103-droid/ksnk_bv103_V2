@@ -8,7 +8,7 @@ import {
 } from "./nkbv-criteria-matrix";
 import type { BaTimelineMilestone } from "./nkbv-ba-timeline-core";
 import type { SyndromePanelId } from "./nkbv-specimen-syndrome";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 /** YYYY-MM-DD hoặc rỗng. */
 export function isoDateOnly(d: string | null | undefined): string {
@@ -45,7 +45,7 @@ export function isDeviceDateInStay(
     return { ok: false, reason: "Không ghi can thiệp sau ngày ra viện" };
   }
   const asOf =
-    isoDateOnly(opts?.asOfDate) || new Date().toISOString().slice(0, 10);
+    isoDateOnly(opts?.asOfDate) || todayYmdInVn();
   if (!rv && d > asOf) {
     return { ok: false, reason: "Không ghi can thiệp sau hôm nay" };
   }

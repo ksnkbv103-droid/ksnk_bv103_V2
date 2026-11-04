@@ -3,6 +3,7 @@
  */
 
 import { calculateCdcMetrics, type CdcMetricsResult } from "./nkbv-timeline-math";
+import { classifyPathogen } from "./nkbv-pathogen-rules";
 import {
   addDays,
   clinicalIwp,
@@ -31,8 +32,9 @@ import {
   displaySymptomLabel,
   type CriteriaMapContext,
 } from "./nkbv-clinical-symptom-catalog";
-import { displaySpecimenOnGrid, isNkbvSpecimenCode } from "./nkbv-specimen-canonical";
+import { displaySpecimenOnGrid, isNkbvCh17SpecimenOnly, isNkbvSpecimenCode } from "./nkbv-specimen-canonical";
 import { locationDaysToTreatmentHistory } from "./nkbv-ba-ngay";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import {
   collectRitPathogens,
   detectSecondaryBsiFromSbap,
@@ -43,7 +45,7 @@ import {
 import type { SecondaryBsiPrimarySite } from "./nkbv-shared-secondary-bsi";
 import { vnYmd } from "@/lib/format-datetime-vi";
 
-export type BaGridNghiNgo = "PNEU" | "BSI" | "UTI" | "VAE" | "SSI";
+export type BaGridNghiNgo = "PNEU" | "BSI" | "UTI" | "VAE" | "SSI" | "CH17";
 
 export type BaGridXnCell = {
   id: string;
@@ -124,6 +126,10 @@ export type BaGridSessionInput = {
   /** Đủ TC cấu thành sự kiện — bắt buộc để tô RIT/SBAP và gom mẫu */
   criteriaMetPreview?: boolean;
   lockedEvent?: { nsk: string; majorType: NkbvMajorType; chot: boolean } | null;
+  /** Ngày phẫu thuật (SSI) */
+  surgeryDate?: string | null;
+  /** Thông tin bổ sung cho form CDC (ví dụ SSI depth, NHSN code...) */
+  extraFormFields?: Record<string, unknown>;
 };
 
 export type BaGridColumn = {
@@ -175,7 +181,7 @@ export const GRID_PRE_ADMISSION_DAYS = 2;
 export const GRID_MAX_COLUMNS = 120;
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayYmdInVn();
 }
 
 export function buildGridColumns(input: {
@@ -247,6 +253,7 @@ export function nghiNgoToChecklistType(
   if (nghiNgo === "UTI") return "UTI";
   if (nghiNgo === "SSI") return "SSI";
   if (nghiNgo === "VAE") return "VAE";
+  if (nghiNgo === "CH17") return "CH17";
   return deviceAssociatedOnDoe ? "VAP" : "HAP";
 }
 
@@ -261,14 +268,17 @@ export function suggestNghiNgoFromIndex(input: {
     if (cat?.gates.includes("BSI") && !cat.gates.includes("HAP")) return "BSI";
     if (cat?.gates.includes("UTI") && !cat.gates.includes("HAP")) return "UTI";
     if (cat?.gates.includes("SSI") && !cat.gates.includes("HAP")) return "SSI";
+    if (cat?.gates.includes("CH17") && !cat.gates.includes("HAP")) return "CH17";
     return "PNEU";
   }
+  if (isNkbvCh17SpecimenOnly({ loai_benh_pham: input.benh_pham })) return "CH17";
   const major = resolveNkbvMajorType({ loai_benh_pham: input.benh_pham });
   if (major === "BSI") return "BSI";
   if (major === "UTI") return "UTI";
   if (major === "SSI") return "SSI";
   if (major === "VAE") return "VAE";
   if (major === "PNEU") return "PNEU";
+  if (major === "CH17") return "CH17";
   return "PNEU";
 }
 
@@ -277,6 +287,7 @@ export function canThiepLabelForNghiNgo(nghiNgo: BaGridNghiNgo): string {
   if (nghiNgo === "UTI") return "Foley";
   if (nghiNgo === "SSI") return "Phẫu thuật";
   if (nghiNgo === "VAE") return "Thở máy";
+  if (nghiNgo === "CH17") return "Thủ thuật / Can thiệp";
   return "Thở máy";
 }
 
@@ -285,6 +296,7 @@ export function sbapLabelForNghiNgo(nghiNgo: BaGridNghiNgo): string {
   if (nghiNgo === "UTI") return "UTI SBAP";
   if (nghiNgo === "SSI") return "SSI SBAP";
   if (nghiNgo === "VAE") return "VAE Event Period";
+  if (nghiNgo === "CH17") return "CH17 SBAP";
   return "PNEU SBAP";
 }
 
@@ -293,6 +305,7 @@ function gatesForNghiNgo(nghiNgo: BaGridNghiNgo): NkbvChecklistTypeCode[] {
   if (nghiNgo === "BSI") return ["BSI"];
   if (nghiNgo === "UTI") return ["UTI"];
   if (nghiNgo === "SSI") return ["SSI"];
+  if (nghiNgo === "CH17") return ["CH17"];
   return ["VAE"];
 }
 
@@ -643,15 +656,17 @@ function buildSymptomDatesForMetrics(
       if (!prev || day < prev) out[formKey] = day;
     }
   }
-  for (const c of cdha) {
-    const day = c.ngay.slice(0, 10);
-    if (!inIwp(day)) continue;
-    if (
-      c.tieu_chuan_key === "imaging_chest" ||
-      /viêm phổi|thâm nhiễm|đông đặc/i.test(c.mo_ta_benh_ly)
-    ) {
-      const prev = out.has_chest_imaging_abnormal;
-      if (!prev || day < prev) out.has_chest_imaging_abnormal = day;
+  if (nghiNgo === "PNEU" || nghiNgo === "VAE") {
+    for (const c of cdha) {
+      const day = c.ngay.slice(0, 10);
+      if (!inIwp(day)) continue;
+      if (
+        c.tieu_chuan_key === "imaging_chest" ||
+        /viêm phổi|thâm nhiễm|đông đặc/i.test(c.mo_ta_benh_ly)
+      ) {
+        const prev = out.has_chest_imaging_abnormal;
+        if (!prev || day < prev) out.has_chest_imaging_abnormal = day;
+      }
     }
   }
   // Index = tiêu chí chẩn đoán: đảm bảo ngày Index vào tập DOE
@@ -735,12 +750,25 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
       ? checklistType
       : ("HAP" as const);
 
+  const activeXn =
+    input.activeIndex?.kind === "XN"
+      ? input.xn.find((x) => x.id === input.activeIndex?.id)
+      : null;
+  const activeViKhuan = activeXn?.vi_khuan || null;
+
   const metrics = calculateCdcMetrics({
     ngay_phat_hien: indexDate,
     ngay_vao_vien: vnYmd(input.ngayVaoVien),
     checklistType: metricsChecklist,
     activeForm: {
       pneu_trigger: pneuTrigger,
+      ...(input.surgeryDate ? { ngay_phau_thuat: input.surgeryDate } : {}),
+      ...(input.nghiNgo === "BSI" && activeViKhuan
+        ? {
+            pathogen_type: classifyPathogen(activeViKhuan).suggestedType,
+            vi_khuan: activeViKhuan,
+          }
+        : {}),
       ...(input.nghiNgo === "PNEU" || input.nghiNgo === "VAE"
         ? {
             vent_days: deviceAssociationFromCanThiepDates(
@@ -753,6 +781,7 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
             ).placedDays,
           }
         : {}),
+      ...(input.extraFormFields || {}),
     },
     symptomDates,
     treatmentHistory: locationDaysToTreatmentHistory(

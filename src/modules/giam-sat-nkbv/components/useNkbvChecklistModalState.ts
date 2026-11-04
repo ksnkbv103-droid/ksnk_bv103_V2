@@ -44,7 +44,7 @@ import {
   mergeFormSymptomBooleans,
   type NkbvSymptomReviewMap,
 } from "@/modules/giam-sat-nkbv/lib/nkbv-symptom-review";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 import { knownHaiPoa } from "../lib/nkbv-shared-timeline";
 
 /** Legacy tab ids — form xác định ca dùng một màn; giữ type cho tương thích. */
@@ -493,7 +493,7 @@ export function useNkbvChecklistModalState({
           toast.error(`Lỗi logic thiết bị: Ngày rút [${drDate}] không thể trước Ngày đặt [${dpDate}]!`);
           return;
         }
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayStr = todayYmdInVn();
         if (drDate > todayStr) {
           toast.error(`Lỗi logic thiết bị: Ngày rút [${drDate}] không thể ở tương lai!`);
           return;

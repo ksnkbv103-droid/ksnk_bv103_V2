@@ -61,13 +61,13 @@ describe("nkbv-specimen-canonical", () => {
     expect(resolveNkbvMajorType({ loai_benh_pham_chuan: "URT" })).toBe("OTHER");
     expect(resolveNkbvMajorType({ loai_benh_pham: "ETA" })).toBe("PNEU");
     expect(specimenToSyndromePanel({ loai_benh_pham: "ETA" })).toBe("PNEU");
-    expect(specimenToSyndromePanel({ loai_benh_pham_chuan: "URT" })).toBeNull();
+    expect(specimenToSyndromePanel({ loai_benh_pham_chuan: "URT" })).toBe("CH17");
     expect(
       specimenToSyndromePanel({
         loai_benh_pham_chuan: "SURGICAL_SITE_FLUID",
         lis_goc: "Dịch / mô thận (không phải nước tiểu)",
       }),
-    ).toBeNull();
+    ).toBe("CH17");
     expect(isBloodSpecimen("BLOOD_CULTURE")).toBe(true);
     expect(isBloodSpecimen("BLOOD_NCT")).toBe(true);
     expect(isBloodSpecimen("ETA")).toBe(false);

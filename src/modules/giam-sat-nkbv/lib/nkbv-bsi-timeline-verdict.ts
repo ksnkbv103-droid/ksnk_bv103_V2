@@ -73,10 +73,19 @@ export function countCommensalBloodInIwp(
     (b) =>
       iwpDates.has(b.ngay.slice(0, 10)) && organismsMatch(b.vi_khuan, org),
   );
-  const dates = new Set(matches.map((b) => b.ngay.slice(0, 10)));
+  const sortedDates = Array.from(new Set(matches.map((b) => b.ngay.slice(0, 10)))).sort();
+  let hasConsecutiveDays = false;
+  for (let i = 0; i < sortedDates.length - 1; i += 1) {
+    const d0 = new Date(`${sortedDates[i]}T12:00:00Z`).getTime();
+    const d1 = new Date(`${sortedDates[i + 1]}T12:00:00Z`).getTime();
+    if (Math.round((d1 - d0) / 86_400_000) <= 1) {
+      hasConsecutiveDays = true;
+      break;
+    }
+  }
   return {
     count: matches.length,
-    drawnSeparate: dates.size >= 2,
+    drawnSeparate: sortedDates.length >= 2 && hasConsecutiveDays,
   };
 }
 
@@ -160,16 +169,14 @@ export function buildBsiTimelineVerdict(
   const hasChills = anyKeyInIwp(input.lamSang, input.iwpDates, CHILLS_KEYS);
   const hasHypotension = anyKeyInIwp(input.lamSang, input.iwpDates, HYPO_KEYS);
 
-  const doe =
-    input.nsk ||
-    (bloodDate
-      ? resolveBsiDoe({
-          bloodDate,
-          lamSang: input.lamSang,
-          iwpDates: input.iwpDates,
-          pathogenType,
-        })
-      : null);
+  const doe = bloodDate
+    ? resolveBsiDoe({
+        bloodDate,
+        lamSang: input.lamSang,
+        iwpDates: input.iwpDates,
+        pathogenType,
+      })
+    : input.nsk || null;
 
   const vv = vnYmd(input.admissionDate);
   const cvcDates = input.canThiepDates.map((d) => d.slice(0, 10)).sort();
@@ -307,12 +314,6 @@ export function buildBsiTimelineVerdict(
     criteriaMet,
     ketLuanLabel,
   };
-}
-
-function addDay(iso: string, n: number): string {
-  const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
 }
 
 export { ageYearsFromNgaySinh };

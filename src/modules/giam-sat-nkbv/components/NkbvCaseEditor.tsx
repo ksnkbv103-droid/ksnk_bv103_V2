@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @deprecated KHÔNG SỬ DỤNG TRỰC TIẾP CHO LUỒNG TẠO/SỬA CA NKBV MỚI.
+ * Tất cả ca NKBV được tạo từ Hub Bệnh Án Timeline (`NkbvBenhAnHubPanel`)
+ * và chỉnh sửa qua Bảng kiểm Tiêu chuẩn Lâm sàng (`NkbvClinicalChecklistModal`).
+ * File này được giữ lại nhằm đảm bảo tương thích ngược.
+ */
+
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -49,7 +56,7 @@ export default function NkbvCaseEditor({
     ngay_sinh: "",
     gioi_tinh: "",
     ngay_vao_vien: "",
-    ngay_phat_hien: new Date().toISOString().slice(0, 10),
+    ngay_phat_hien: todayYmdInVn(),
     vi_tri_nhiem_khuan: "",
     tac_nhan_vi_khuan: "",
     tom_tat_dien_bien: "",
@@ -76,7 +83,7 @@ export default function NkbvCaseEditor({
         ngay_sinh: toDate(row.ngay_sinh),
         gioi_tinh: String(row.gioi_tinh || ""),
         ngay_vao_vien: toDate(row.ngay_vao_vien),
-        ngay_phat_hien: toDate(row.ngay_phat_hien) || new Date().toISOString().slice(0, 10),
+        ngay_phat_hien: toDate(row.ngay_phat_hien) || todayYmdInVn(),
         vi_tri_nhiem_khuan: String(row.vi_tri_nhiem_khuan || ""),
         tac_nhan_vi_khuan: String(row.tac_nhan_vi_khuan || ""),
         tom_tat_dien_bien: String(row.tom_tat_dien_bien || ""),

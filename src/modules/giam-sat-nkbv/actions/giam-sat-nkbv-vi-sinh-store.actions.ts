@@ -6,6 +6,7 @@
 
 import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
 import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
@@ -110,9 +111,16 @@ export async function listNkbvViSinhStore(params?: {
     .limit(limit);
 
   if (q) {
-    query = query.or(
-      `ma_xet_nghiem.ilike.%${q}%,ma_benh_an.ilike.%${q}%,tac_nhan.ilike.%${q}%,ho_ten_benh_nhan.ilike.%${q}%,loai_benh_pham.ilike.%${q}%`,
-    );
+    const searchFilter = buildSupabaseSearchFilter(q, [
+      "ma_xet_nghiem",
+      "ma_benh_an",
+      "tac_nhan",
+      "ho_ten_benh_nhan",
+      "loai_benh_pham",
+    ]);
+    if (searchFilter) {
+      query = query.or(searchFilter);
+    }
   }
 
   const { data, error } = await query;

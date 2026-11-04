@@ -43,7 +43,7 @@ export const NKBV_CHECKLIST_TYPE_PICKER_LABELS: Record<NkbvChecklistTypeCode, st
 };
 
 /** Tầng phân loại trong một ca VAE (không phải loại ca MDM). */
-const NKBV_VAE_TIER_LABELS: Record<string, string> = {
+export const NKBV_VAE_TIER_LABELS: Record<string, string> = {
   VAC: "VAC",
   IVAC: "IVAC",
   PVAP: "PVAP",
@@ -51,7 +51,7 @@ const NKBV_VAE_TIER_LABELS: Record<string, string> = {
 };
 
 /** Tầng PNEU (HAP/VAP lâm sàng). */
-const NKBV_PNEU_TIER_LABELS: Record<string, string> = {
+export const NKBV_PNEU_TIER_LABELS: Record<string, string> = {
   PNU1: "PNU1 — lâm sàng",
   PNU2: "PNU2 — vi sinh",
   PNU3: "PNU3 — suy giảm miễn dịch",

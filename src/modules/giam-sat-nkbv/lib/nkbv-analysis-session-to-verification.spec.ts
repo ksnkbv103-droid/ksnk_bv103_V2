@@ -214,4 +214,47 @@ describe("nkbv-analysis-session-to-verification", () => {
     expect(sbap_labs.map((l) => l.id)).toEqual(["b1"]);
     expect(rit_labs[0].is_index).toBe(true);
   });
+
+  it("mapLamSangToFormFields lọc bỏ triệu chứng ngoài cửa sổ IWP", () => {
+    const r = mapLamSangToFormFields(
+      {
+        "2026-07-10": [{ key: "fever", label: "Sốt cũ" }],
+        "2026-07-19": [{ key: "fever", label: "Sốt IWP" }],
+        "2026-07-25": [{ key: "fever", label: "Sốt muộn" }],
+      },
+      { syndrome: "UTI" },
+      { windowStart: "2026-07-16", windowEnd: "2026-07-22" },
+    );
+    expect(r.flags.has_fever).toBe(true);
+    expect(r.symptom_dates.has_fever).toBe("2026-07-19");
+  });
+
+  it("mapAnalysisSessionToVerificationSeed SSI giữ ngay_phau_thuat", () => {
+    const seed = mapAnalysisSessionToVerificationSeed({
+      panel: "SSI",
+      indexMilestoneId: "lis:s-1",
+      indexKind: "XN",
+      nsk: "2026-07-20",
+      surgeryDate: "2026-07-10",
+      windows: {
+        iwp_start: "2026-07-10",
+        iwp_end: "2026-08-09",
+        doe: "2026-07-20",
+      },
+      draft: {
+        lamSang: {
+          "2026-07-20": [{ key: "ssi_purulent_drainage", label: "Mủ vết mổ" }],
+        },
+        bloodCriterionIds: [],
+        ketLuan: "",
+        notesByDate: {},
+        readyToChot: true,
+        canThiepDates: [],
+        ssiDepth: "SUPERFICIAL",
+      },
+    });
+    expect(seed.verification_data.ngay_phau_thuat).toBe("2026-07-10");
+    expect(seed.verification_data.surgery_date).toBe("2026-07-10");
+    expect(seed.verification_data.calculated_doe).toBe("2026-07-20");
+  });
 });

@@ -257,4 +257,30 @@ describe("nkbv-bsi-timeline-verdict", () => {
     });
     expect(v.result.classification).toBe("CLABSI");
   });
+
+  it("LCBI 1 DOE bug fix: Sốt ngày 2 (POA) nhưng cấy máu Recognized Pathogen ngày 4 (HAI) → DOE = ngày 4, kết luận CLABSI", () => {
+    // Vào viện 2026-07-01 (HD1). Ngày 2026-07-02 (HD2 = POA) có sốt.
+    // Ngày 2026-07-04 (HD4 = HAI) cấy máu ra S. aureus (RECOGNIZED PATHOGEN).
+    // Có CVC từ ngày vào viện (2026-07-01 đến 2026-07-04 = 4 ngày).
+    // CDC Chapter 4: Sốt không phải yếu tố của LCBI 1 → DOE bắt buộc là 2026-07-04 (HAI), KHÔNG BỊ SỐT KÉO THÀNH POA!
+    const bloodDate = "2026-07-04";
+    const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
+      indexXn: blood({ id: "b-sa", ngay: bloodDate, vi_khuan: "Staphylococcus aureus" }),
+      bloodXn: [blood({ id: "b-sa", ngay: bloodDate, vi_khuan: "Staphylococcus aureus" })],
+      lamSang: {
+        "2026-07-02": [{ key: "fever", label: "Sốt > 38.0°C" }],
+      },
+      canThiepDates: ["2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04"],
+      iwpDates: iwpAround(bloodDate),
+      // Giả sử nsk truyền vào bị nhầm là ngày 2026-07-02 do sốt
+      nsk: "2026-07-02",
+      devicePlacedDate: "2026-07-01",
+    });
+
+    expect(v.gate.doe).toBe("2026-07-04");
+    expect(v.gate.pathogenType).toBe("RECOGNIZED");
+    expect(v.result.classification).toBe("CLABSI");
+    expect(v.result.is_positive).toBe(true);
+  });
 });

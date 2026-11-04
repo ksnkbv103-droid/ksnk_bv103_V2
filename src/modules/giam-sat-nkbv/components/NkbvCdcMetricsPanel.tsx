@@ -162,7 +162,7 @@ export default function NkbvCdcMetricsPanel({
             4
           </div>
           <div className="space-y-1">
-            <span className={` text-slate-500`}>Bước 4: Thời gian nằm viện & Phân loại</span>
+            <span className={` text-slate-500`}>Bước 4: Thời gian nằm viện và Phân loại</span>
             <div className={`border p-2.5 rounded-[var(--radius-shell)] flex items-center justify-between ${
               metrics.haiStatus === "HAI"
                 ? "bg-rose-50 border-rose-100/60 text-rose-900"
@@ -197,7 +197,7 @@ export default function NkbvCdcMetricsPanel({
             5
           </div>
           <div className="space-y-1">
-            <span className={` text-slate-500`}>Bước 5: Định vị Khoa chịu lỗi (LOA) & Lịch sử nằm khoa</span>
+            <span className={` text-slate-500`}>Bước 5: Định vị Khoa chịu lỗi (LOA) và Lịch sử nằm khoa</span>
             <div className="bg-indigo-50 border border-indigo-100/70 p-2.5 rounded-[var(--radius-shell)] space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-[11px] font-medium text-slate-500 block">Khoa chịu trách nhiệm KPI:</span>

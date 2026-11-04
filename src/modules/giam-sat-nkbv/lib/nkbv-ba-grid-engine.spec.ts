@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import {
   attributeWithinRit,
   buildGridColumns,
@@ -306,7 +307,7 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
   });
 
   it("bảng chung đang nằm viện: kéo đến hôm nay", () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayYmdInVn();
     const cols = buildGridColumns({
       ngayVaoVien: "2026-07-25",
       ngayRaVien: null,

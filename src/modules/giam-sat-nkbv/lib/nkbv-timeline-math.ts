@@ -5,6 +5,7 @@ import {
   doeFormFieldsForSsiDepth,
 } from "./nkbv-clinical-symptom-catalog";
 import { resolveSsiSurveillanceDays } from "./nkbv-ssi-nhsn-catalog";
+import { classifyPathogen } from "./nkbv-pathogen-rules";
 import {
   addDays,
   clinicalIwp,
@@ -287,6 +288,18 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   let symptomKeys: string[] = [];
   if (checklistType === "SSI") {
     symptomKeys = doeFormFieldsForSsiDepth(activeForm?.ssi_depth || "SUPERFICIAL");
+  } else if (checklistType === "BSI") {
+    const rawPathogenType =
+      activeForm?.pathogen_type ||
+      activeForm?.bsi_pathogen_type ||
+      (activeForm?.vi_khuan ? classifyPathogen(String(activeForm.vi_khuan)).suggestedType : undefined);
+    // CDC Ch. 4 (BSI): LCBI 1 (Recognized Pathogen) criteria do NOT include clinical signs/symptoms.
+    // Signs/symptoms (fever, chills, hypotension) are ONLY elements for LCBI 2 / MBI-LCBI 2 (Common Commensal).
+    if (rawPathogenType === "RECOGNIZED") {
+      symptomKeys = [];
+    } else {
+      symptomKeys = doeFormFieldsForChecklist("BSI");
+    }
   } else {
     symptomKeys = doeFormFieldsForChecklist(checklistType);
   }

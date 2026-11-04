@@ -8,6 +8,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-labels";
@@ -43,6 +44,8 @@ export type NkbvBaAnalysisSeedInput = {
   windows?: BaCdcWindowSeed | null;
   ritLabs?: BaSeedLabRow[];
   sbapLabs?: BaSeedLabRow[];
+  /** Ngày phẫu thuật (SSI) */
+  surgeryDate?: string | null;
   /** HAP vs VAP (PNEU) — cổng phiếu; mặc định suy từ panel. */
   checklistGate?: NkbvChecklistTypeCode | null;
 };
@@ -102,6 +105,7 @@ async function applyAnalysisSeedToCase(
     windows: seed.windows,
     ritLabs: seed.ritLabs,
     sbapLabs: seed.sbapLabs,
+    surgeryDate: seed.surgeryDate,
   });
 
   const verification_data = {
@@ -183,6 +187,9 @@ export async function ensureNkbvBaAnalysisCase(input: {
   if (!milestoneId) return { success: false as const, error: "Thiếu mốc Index" };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(indexDate)) {
     return { success: false as const, error: "Ngày Index không hợp lệ" };
+  }
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), maBa))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
 
   const reloadCase = async (id: string) => {

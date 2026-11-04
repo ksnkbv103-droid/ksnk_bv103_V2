@@ -7,7 +7,7 @@ import {
   resolveDeviceAssociationDay1,
   type NkbvDeviceAssociationKind,
 } from "./nkbv-ba-device-timeline";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 export type NkbvTimelineSyndrome =
   | "CLABSI"
@@ -82,7 +82,7 @@ export function endoRitSbapToDischarge(input: {
   const end =
     (input.dischargeDate && String(input.dischargeDate).slice(0, 10)) ||
     (input.asOfDate && String(input.asOfDate).slice(0, 10)) ||
-    new Date().toISOString().slice(0, 10);
+    todayYmdInVn();
   return { ritEnd: end, sbapStart: iwp.start, sbapEnd: end };
 }
 

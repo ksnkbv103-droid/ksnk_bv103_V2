@@ -56,7 +56,7 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
 
   const parsed = nkbvListPaginationSchema.safeParse({
     page: filters.page,
-    pageSize: 20,
+    pageSize: filters.pageSize ?? 20,
     search: filters.search ?? "",
     sortKey: filters.sortKey ?? "ngay_phat_hien",
     sortDir: filters.sortDir ?? "desc",
@@ -586,7 +586,6 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
   let stay: HubRow | null = null;
   let lisRaw: HubRow[] = [];
   let casesRaw: HubRow[] = [];
-  let devicesRaw: HubRow[] = [];
   let manualRaw: HubRow[] = [];
   let locationDaysRaw: HubRow[] = [];
   let deviceDaysRaw: HubRow[] = [];
@@ -607,7 +606,6 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     stay = hub.stay;
     lisRaw = hub.lis || [];
     casesRaw = hub.cases || [];
-    devicesRaw = hub.devices || [];
     manualRaw = hub.manual || [];
     locationDaysRaw = hub.location_days || [];
     deviceDaysRaw = hub.device_days || [];
@@ -694,7 +692,6 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     deviceDaysRaw = deviceDaysRes;
     locationDaysRaw = locationDaysRes;
     manualRaw = manualRes;
-    devicesRaw = [];
   }
 
   const cases: NkbvBenhAnHubCase[] = (casesRaw || []).map((c) => {

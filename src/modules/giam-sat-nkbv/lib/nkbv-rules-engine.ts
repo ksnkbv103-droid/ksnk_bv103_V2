@@ -91,8 +91,14 @@ export interface RuleEvaluationResult {
   ssi_engine_depth?: "SUPERFICIAL" | "DEEP" | "ORGAN_SPACE";
 }
 
-/** Triệu chứng lâm sàng LCBI (người lớn). */
+/** Triệu chứng lâm sàng LCBI-2 (mọi lứa tuổi) và LCBI-3 (trẻ nhũ nhi ≤ 1 tuổi). */
 export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
+  const isInfant = data.patient_age != null && data.patient_age <= 1;
+  if (isInfant) {
+    if (data.has_fever || data.has_hypothermia || data.has_apnea || data.has_bradycardia) {
+      return true;
+    }
+  }
   if (data.has_fever || data.has_chills || data.has_hypotension) return true;
   return Boolean(data.symptoms_window_7days);
 }
@@ -123,7 +129,11 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
   } else if (data.pathogen_type === "COMMON_COMMENSAL") {
     if (data.commensal_culture_count >= 2 && data.commensal_drawn_separate && hasSx) {
       isLcbi = true;
-      lcbiType = "LCBI_2";
+      const isInfantLcbi3 =
+        data.patient_age != null &&
+        data.patient_age <= 1 &&
+        Boolean(data.has_fever || data.has_hypothermia || data.has_apnea || data.has_bradycardia);
+      lcbiType = isInfantLcbi3 ? "LCBI_3" : "LCBI_2";
     }
   }
 
@@ -429,7 +439,10 @@ function evaluateVaeVapCore(
   // BV103: thuật toán người lớn.
   const localCount = data.respiratory_symptoms_count;
   const needLocalPnu1 = 2;
-  const hasSystemic = derivePneuSystemic(data) || data.altered_mental_status_ge_70yo;
+  const amsEligible =
+    Boolean(data.altered_mental_status_ge_70yo) &&
+    (data.patient_age == null || data.patient_age >= 70);
+  const hasSystemic = derivePneuSystemic(data) || amsEligible;
   const wideListMet =
     localCount >= 1 || !!data.has_hemoptysis || !!data.has_pleuritic_chest_pain;
 
@@ -600,8 +613,12 @@ function evaluateUtiCautiCore(data: UtiVerificationData): RuleEvaluationResult {
   const hasVoidingSymptom =
     !foleyBlockingVoiding &&
     (data.has_dysuria || Boolean(data.has_urgency) || Boolean(data.has_frequency));
+  // CDC/NHSN Ch.7: SUTI 1b (không lưu sonde tiểu) chỉ dùng sốt đơn độc khi bệnh nhân ≤ 65 tuổi.
+  const feverEligible =
+    Boolean(data.has_fever) &&
+    (Boolean(data.foley_active_on_event) || isCauti || data.patient_age == null || data.patient_age <= 65);
   const hasAnySymptom =
-    data.has_fever ||
+    feverEligible ||
     data.has_suprapubic_tenderness ||
     data.has_costovertebral_pain ||
     hasVoidingSymptom;

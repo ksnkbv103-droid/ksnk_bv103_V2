@@ -40,10 +40,14 @@ export interface BsiVerificationData extends NkbvAnalysisIndexFields {
   commensal_drawn_separate: boolean; // Lấy mẫu ở các thời điểm/vị trí khác nhau
   /** Legacy OR — vẫn sync từ has_fever|chills|hypotension khi lưu form. */
   symptoms_window_7days: boolean;
-  /** SSOT §6 — tách triệu chứng LCBI 2 */
+  /** SSOT §6 — tách triệu chứng LCBI 2 / LCBI 3 (nhũ nhi ≤1 tuổi) */
+  patient_age?: number | null;
   has_fever?: boolean;
   has_chills?: boolean;
   has_hypotension?: boolean;
+  has_hypothermia?: boolean;
+  has_apnea?: boolean;
+  has_bradycardia?: boolean;
   cvc_placed_days: number; // Số ngày đặt CVC
   cvc_active_on_event: boolean; // CVC còn lưu trong ngày DOE hoặc ngày ngay trước đó
   device_placed_date?: string; // Ngày đặt CVC (Mới)
@@ -246,6 +250,7 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
 }
 
 export interface UtiVerificationData extends NkbvAnalysisIndexFields {
+  patient_age?: number | null; // Tuổi bệnh nhân (SUTI 1b sốt đơn độc chỉ áp dụng khi ≤ 65 tuổi)
   urine_cfu_count: number; // Số lượng vi khuẩn trong nước tiểu (ví dụ: >= 10^5 CFU/ml)
   pathogen_count: number; // Số lượng tác nhân vi sinh phân lập được (nếu > 2 -> tạp nhiễm)
   has_fungi_yeast_parasite: boolean; // Có chứa Nấm Candida, nấm men, nấm mốc hoặc ký sinh trùng

@@ -129,6 +129,26 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-13");
   });
 
+  it("BSI LCBI 1 (Recognized Pathogen): Sốt trong IWP không kéo lùi DOE, DOE = ngày cấy máu", () => {
+    // BN vào viện 2026-05-10 (HD1). Ngày 2026-05-11 (HD2 = POA) có sốt.
+    // Ngày 2026-05-13 (HD4 = HAI) cấy máu ra S. aureus (Recognized Pathogen).
+    // CDC Chapter 4: Sốt không phải yếu tố của LCBI 1 → DOE phải là 2026-05-13, haiStatus = HAI!
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-13",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "BSI",
+      activeForm: {
+        has_fever: true,
+        pathogen_type: "RECOGNIZED",
+        vi_khuan: "Staphylococcus aureus",
+      },
+      symptomDates: { has_fever: "2026-05-11" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-05-13");
+    expect(metrics.haiStatus).toBe("HAI");
+  });
+
   it("PNEU: DOE đọc ngày thở khó / hô hấp tại chỗ trong IWP", () => {
     const metrics = calculateCdcMetrics({
       ngay_phat_hien: "2026-05-15",

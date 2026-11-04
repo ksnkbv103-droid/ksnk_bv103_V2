@@ -6,7 +6,7 @@ import {
   type NkbvMdroPhenotype,
 } from "./nkbv-mdro";
 
-const NKBV_VI_SINH_KET_QUA = ["DUONG_TINH", "AM_TINH", "NHIEU"] as const;
+export const NKBV_VI_SINH_KET_QUA = ["DUONG_TINH", "AM_TINH", "NHIEU"] as const;
 export type NkbvViSinhKetQua = (typeof NKBV_VI_SINH_KET_QUA)[number];
 
 /** Header bắt buộc đúng thứ tự khuyến nghị (paste vẫn nhận nếu đủ tên cột chuẩn). */
@@ -29,7 +29,7 @@ const NKBV_VI_SINH_TEMPLATE_HEADERS = [
   "ma_benh_pham",
 ] as const;
 
-const NKBV_VI_SINH_REQUIRED_HEADERS = [
+export const NKBV_VI_SINH_REQUIRED_HEADERS = [
   "ma_benh_an",
   "ma_xet_nghiem",
   "ma_benh_nhan",

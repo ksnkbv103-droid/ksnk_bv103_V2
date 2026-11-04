@@ -3,6 +3,8 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { missingMauSoDays } from "../lib/nkbv-mau-so-daily-rules";
 
@@ -57,6 +59,9 @@ export async function getNkbvMauSoMonthCoverage(input: {
   if (!khoa_id || month < 1 || month > 12) {
     return { success: false as const, error: "Thiếu khoa hoặc tháng không hợp lệ" };
   }
+  if (!nkbvKhoaVisible(await getNkbvKhoaRestriction(), [khoa_id])) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
 
   const from = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -109,6 +114,9 @@ export async function getNkbvMauSoMonthCoverage(input: {
 /** Ghi nhận số liệu mẫu số ngày-thiết bị hàng ngày (Hồi sức, tích cực...). */
 export async function saveNkbvMauSoDaily(payload: DailyPayload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
+  if (!nkbvKhoaVisible(await getNkbvKhoaRestriction(), [payload.khoa_id])) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
   const supabase = createAdminSupabaseClient();
   const actorNhanSuId = await getActorNhanSuId();
 
@@ -128,11 +136,12 @@ export async function saveNkbvMauSoDaily(payload: DailyPayload) {
 
     let result;
     if (payload.id) {
-      // Cập nhật theo ID
+      // Cập nhật theo ID (ràng buộc khoa_id chống IDOR)
       const { data, error } = await supabase
         .from("nkbv_fact_mau_so_daily")
         .update(row)
         .eq("id", payload.id)
+        .eq("khoa_id", payload.khoa_id)
         .select()
         .single();
       if (error) throw error;
@@ -161,6 +170,9 @@ export async function saveNkbvMauSoDaily(payload: DailyPayload) {
 /** Ghi nhận mẫu số ca phẫu thuật phục vụ SSI. */
 export async function saveNkbvMauSoPhauThuat(payload: SurgeryPayload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
+  if (!nkbvKhoaVisible(await getNkbvKhoaRestriction(), [payload.khoa_id])) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
   const supabase = createAdminSupabaseClient();
 
   try {
@@ -194,6 +206,7 @@ export async function saveNkbvMauSoPhauThuat(payload: SurgeryPayload) {
         .from("nkbv_fact_mau_so_phau_thuat")
         .update(row)
         .eq("id", payload.id)
+        .eq("khoa_id", payload.khoa_id)
         .select()
         .single();
       if (error) throw error;

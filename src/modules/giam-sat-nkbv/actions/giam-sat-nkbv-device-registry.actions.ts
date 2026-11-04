@@ -1,6 +1,7 @@
 "use server";
 
 import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import {
@@ -108,24 +109,50 @@ export async function previewMauSoFromDeviceRegistryAction(input: {
   ma_benh_an?: string;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+  if (input.khoa_id && !nkbvKhoaVisible(restriction, [input.khoa_id])) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+  if (input.ma_benh_an && !(await isNkbvBenhAnInScope(restriction, input.ma_benh_an))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
   const supabase = createAdminSupabaseClient();
+  const effectiveKhoaId =
+    restriction.kind === "khoa" ? restriction.khoaId : (input.khoa_id ?? null);
+
   let q = supabase.from("nkbv_v_ba_dung_cu_dat_rut").select("ma_benh_an, loai_dung_cu, ngay_dat, ngay_rut");
   if (input.ma_benh_an) q = q.eq("ma_benh_an", input.ma_benh_an);
   const { data, error } = await q;
   if (error) return { success: false as const, error: error.message };
+
+  const maList = Array.from(new Set((data || []).map((r) => String(r.ma_benh_an || "").trim()).filter(Boolean)));
+  const baKhoaMap = new Map<string, string | null>();
+  if (maList.length > 0) {
+    const { data: baRows } = await supabase
+      .from("nkbv_fact_benh_an")
+      .select("ma_benh_an, khoa_dieu_tri_id")
+      .in("ma_benh_an", maList)
+      .eq("is_active", true);
+    for (const b of baRows || []) {
+      baKhoaMap.set(String(b.ma_benh_an).trim(), (b.khoa_dieu_tri_id as string | null) ?? null);
+    }
+  }
 
   const rows: DeviceRegistryRow[] = (data || []).map((r) => ({
     device_type: dungCuLoaiToRegistryType(String(r.loai_dung_cu) as NkbvDungCuLoai),
     insertion_date: String(r.ngay_dat).slice(0, 10),
     removal_date: String(r.ngay_rut).slice(0, 10),
     first_access_date: null,
-    khoa_id: input.khoa_id ?? null,
+    khoa_id: baKhoaMap.get(String(r.ma_benh_an || "").trim()) ?? null,
   }));
   const preview = previewMauSoFromRegistry(
     rows,
     input.from.slice(0, 10),
     input.to.slice(0, 10),
-    input.khoa_id,
+    effectiveKhoaId,
   );
   return { success: true as const, data: preview };
 }
