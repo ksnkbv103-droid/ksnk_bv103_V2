@@ -27,6 +27,10 @@ async function requireCatalogApprove() {
 const ticketIdSchema = z.string().trim().uuid("Mã phiếu không hợp lệ.");
 
 const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";
+/** Tiền tố reject_reason khi danh mục đã ghi nhưng chưa chốt APPROVED (enum DB không có trạng thái riêng). */
+const APPLIED_PREFIX = "Đã ghi danh mục";
+const APPLIED_REJECT_MSG =
+  "Phiếu này đã ghi vào danh mục nhưng chưa chốt được trạng thái, không thể từ chối. Hãy kiểm tra danh mục và nhờ kỹ thuật chốt phiếu thành APPROVED thủ công.";
 
 function mapRow(r: Record<string, unknown>): CssdCatalogDeNghiRow & { afterSummary: string } {
   const targetKind = String(r.target_kind) as CssdCatalogDeNghiKind;
@@ -167,7 +171,7 @@ export async function approveCatalogDeNghiAction(id: string) {
       .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
     if (updErr) {
       // Dữ liệu đã ghi nhưng không chốt được APPROVED: không để kẹt APPLYING.
-      const msg = `Đã ghi danh mục nhưng không chốt được phiếu: ${updErr.message}`;
+      const msg = `${APPLIED_PREFIX} nhưng không chốt được phiếu: ${updErr.message}`;
       await markClaimFailed(supabase, ticketId, msg.slice(0, 400));
       return { success: false as const, error: msg };
     }
@@ -215,13 +219,16 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
     const supabase = createAdminSupabaseClient();
     const { data: row, error: loadErr } = await supabase
       .from("cssd_catalog_de_nghi")
-      .select("id, status")
+      .select("id, status, reject_reason")
       .eq("id", ticketId)
       .maybeSingle();
     if (loadErr || !row) return { success: false as const, error: loadErr?.message || "Không thấy phiếu." };
     const st = String(row.status || "");
     if (!canRejectCatalogDeNghi(st)) {
       return { success: false as const, error: CLAIMED_MSG };
+    }
+    if (st === CATALOG_DE_NGHI_FAILED_STATUS && String(row.reject_reason || "").startsWith(APPLIED_PREFIX)) {
+      return { success: false as const, error: APPLIED_REJECT_MSG };
     }
     const now = new Date().toISOString();
     const { data: rejected, error } = await supabase
