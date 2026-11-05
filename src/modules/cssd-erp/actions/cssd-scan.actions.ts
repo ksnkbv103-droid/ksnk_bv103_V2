@@ -1,7 +1,9 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { z } from "zod";
 import type { Station } from "../types/cssd.types";
+import { assertMergeGateForCapPhat } from "../workflow/application/cssd-merge-gate";
 import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
 import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
@@ -30,8 +32,25 @@ async function cssdScanOperatorLabel(): Promise<string> {
 }
 
 
-export async function scanQR(maQR: string, station: Station, extraPayload?: Record<string, any>) {
+const scanQrInputSchema = z.object({
+  maQR: z.string().trim().min(1, "Thiếu mã QR.").max(200, "Mã QR quá dài."),
+  extraPayload: z
+    .object({
+      ma_ca_mo_id: z.string().trim().max(200).optional().nullable(),
+      khoa_nhan_id: z.union([z.literal(""), z.string().uuid("khoa_nhan_id không hợp lệ.")]).optional().nullable(),
+    })
+    .passthrough()
+    .optional(),
+});
+
+export async function scanQR(maQRInput: string, station: Station, extraPayloadInput?: Record<string, any>) {
   await verifyCssdWorkflowEdit();
+  const parsedInput = scanQrInputSchema.safeParse({ maQR: maQRInput, extraPayload: extraPayloadInput ?? undefined });
+  if (!parsedInput.success) {
+    throw new Error(parsedInput.error.issues[0]?.message || "Dữ liệu quét không hợp lệ.");
+  }
+  const maQR = parsedInput.data.maQR;
+  const extraPayload = parsedInput.data.extraPayload as Record<string, any> | undefined;
   const supabase = createAdminSupabaseClient();
 
   /** TK chỉ qua phiếu/mẻ (/cssd-erp/batch): không có quét «trạm tiệt khuẩn» trên luồng 6 trạm. */
@@ -111,6 +130,33 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     });
     // Đã cấp phát: quét lại chỉ in lại phiếu, không ghi đè (trigger trg_cssd_guard_cap_phat_khong_ghi_de).
     const daCapPhat = Boolean(preRow.thoi_gian_cap_phat);
+    // Gate chạy TRƯỚC khi ghi (đồng bộ nhánh executeWorkflowStationScan): merge gate, kết quả mẻ, sổ cấu phần.
+    // validateStationAdvance không áp dụng: CAP_PHAT→CAP_PHAT luôn bị engine từ chối; nhánh này đã khóa ở trạm CAP_PHAT.
+    const ledger = await assertLedgerDuChoCapPhat(supabase, String(preRow.id));
+    if (!daCapPhat) {
+      const mergeGate = await assertMergeGateForCapPhat(supabase, {
+        id: String(preRow.id),
+        ma_trang_thai_hien_tai: "CAP_PHAT",
+      });
+      if (!mergeGate.ok) throw new Error(mergeGate.message);
+      const loGateId = String(preRow.lo_tiet_khuan_id || "").trim();
+      if (!loGateId) throw new Error("Bộ dụng cụ này CHƯA VÀO MẺ TIỆT KHUẨN. Không thể cấp phát.");
+      const { data: me } = await supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select("ma_lo_tiet_khuan, ket_qua_test")
+        .eq("id", loGateId)
+        .maybeSingle();
+      const meRow = me as { ma_lo_tiet_khuan?: string; ket_qua_test?: boolean | null } | null;
+      if (!meRow || meRow.ket_qua_test === null || meRow.ket_qua_test === undefined) {
+        throw new Error(
+          `Mẻ tiệt khuẩn ${meRow?.ma_lo_tiet_khuan || "liên quan"} CHƯA CÓ KẾT QUẢ NỘI KIỂM. Vui lòng xác nhận kết quả mẻ trước.`,
+        );
+      }
+      if (meRow.ket_qua_test === false) {
+        throw new Error(`Mẻ tiệt khuẩn ${meRow.ma_lo_tiet_khuan} KHÔNG ĐẠT chuẩn. Bộ dụng cụ này phải được tái xử lý.`);
+      }
+      if (!ledger.ok) throw new Error(ledger.message);
+    }
     const nowCap = new Date().toISOString();
     const capUpdate: Record<string, unknown> = {
       thoi_gian_cap_phat: nowCap,
@@ -132,8 +178,16 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       if (kid) capUpdate.khoa_nhan_id = kid;
     }
     if (!daCapPhat) {
-      const { error: capErr } = await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+      const { data: capRows, error: capErr } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .update(capUpdate)
+        .eq("id", preRow.id)
+        .is("thoi_gian_cap_phat", null)
+        .select("id");
       if (capErr) throw new Error(capErr.message);
+      if (!capRows || capRows.length === 0) {
+        throw new Error("Bộ dụng cụ đã được cấp phát trước đó (hoặc vừa được người khác cấp phát). Tải lại để xem.");
+      }
     }
     // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
     // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
@@ -155,7 +209,6 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       maLoTietKhuan = String((me as { ma_lo_tiet_khuan?: string } | null)?.ma_lo_tiet_khuan || "");
     }
     revalidateCssdWorkflowSurfaces();
-    const ledger = await assertLedgerDuChoCapPhat(supabase, String(preRow.id));
     return {
       success: true as const,
       maQr: code,
@@ -245,6 +298,8 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     maCycleQr,
     maLoTietKhuan,
     ledgerWarning: exec.ledgerWarning,
+    tenKhoa: (fullQt?.ten_khoa as string | null) || (fullQt?.ten_khoa_nhan as string | null) || null,
+    maBo: (fullQt?.ma_bo as string | null) || null,
   };
 }
 
