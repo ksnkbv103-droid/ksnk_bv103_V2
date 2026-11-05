@@ -168,4 +168,98 @@ describe("KD-1 N2 — duyệt đề nghị thêm dòng thành phần", () => {
     );
     expect(plan.ok).toBe(false);
   });
+
+  it("DATA-01: gọi RPC fn_cssd_apply_bom_plan_tx nguyên tử khi client có rpc", async () => {
+    let rpcCalledWith: Record<string, unknown> | null = null;
+    const { client } = mockSupabase({ cssd_dm_bo_dung_cu_chi_tiet: [] });
+    (client as any).rpc = async (fn: string, params: Record<string, unknown>) => {
+      if (fn === "fn_cssd_apply_bom_plan_tx") {
+        rpcCalledWith = params;
+        return { data: { success: true }, error: null };
+      }
+      return { data: null, error: { message: "unknown rpc" } };
+    };
+
+    await applyCatalogDeNghiOverwrite(client, {
+      kind: "BOM",
+      targetId: BO,
+      targetMa: "B1",
+      payloadAfter: {
+        lines: [
+          {
+            op: "UPSERT",
+            loaiDungCuId: LOAI_A,
+            tenDungCuLe: "Kéo Mayo",
+            soLuong: 1,
+          },
+        ],
+      },
+    });
+
+    expect(rpcCalledWith).not.toBeNull();
+    expect((rpcCalledWith as any).p_bo_id).toBe(BO);
+    expect(Array.isArray((rpcCalledWith as any).p_writes)).toBe(true);
+  });
+
+  it("DATA-01: lỗi thật 42703/42P01 trong hàm RPC (kể cả message 'does not exist') phải ném, không fallback", async () => {
+    for (const code of ["42703", "42P01"]) {
+      const { client } = mockSupabase({ cssd_dm_bo_dung_cu_chi_tiet: [] });
+      (client as any).rpc = async () => ({
+        data: null,
+        error: { code, message: 'column "x" does not exist' },
+      });
+      await expect(
+        applyCatalogDeNghiOverwrite(client, {
+          kind: "BOM",
+          targetId: BO,
+          targetMa: "B1",
+          payloadAfter: {
+            lines: [{ op: "UPSERT", loaiDungCuId: LOAI_A, tenDungCuLe: "Kéo Mayo", soLuong: 1 }],
+          },
+        }),
+      ).rejects.toThrow(/does not exist/);
+    }
+  });
+
+  it("DATA-01: RPC thiếu thật (PGRST202) mới fallback ghi tuần tự", async () => {
+    const { client } = mockSupabase({ cssd_dm_bo_dung_cu_chi_tiet: [] });
+    (client as any).rpc = async () => ({
+      data: null,
+      error: { code: "PGRST202", message: "Could not find the function" },
+    });
+    await applyCatalogDeNghiOverwrite(client, {
+      kind: "BOM",
+      targetId: BO,
+      targetMa: "B1",
+      payloadAfter: {
+        lines: [{ op: "UPSERT", loaiDungCuId: LOAI_A, tenDungCuLe: "Kéo Mayo", soLuong: 1 }],
+      },
+    });
+  });
+
+  it("DATA-01: ném lỗi khi RPC transaction thất bại", async () => {
+    const { client } = mockSupabase({ cssd_dm_bo_dung_cu_chi_tiet: [] });
+    (client as any).rpc = async () => ({
+      data: null,
+      error: { code: "23505", message: "Trùng khóa unique khi ghi BOM" },
+    });
+
+    await expect(
+      applyCatalogDeNghiOverwrite(client, {
+        kind: "BOM",
+        targetId: BO,
+        targetMa: "B1",
+        payloadAfter: {
+          lines: [
+            {
+              op: "UPSERT",
+              loaiDungCuId: LOAI_A,
+              tenDungCuLe: "Kéo Mayo",
+              soLuong: 1,
+            },
+          ],
+        },
+      }),
+    ).rejects.toThrow("Trùng khóa unique khi ghi BOM");
+  });
 });

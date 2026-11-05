@@ -64,6 +64,15 @@ async function isViSinhInUse(
     .limit(1);
   if (indexed && indexed.length > 0) return true;
 
+  // Cột FK thật vi_sinh_record_id (ON DELETE SET NULL: xóa sẽ âm thầm làm mất liên kết ca).
+  const { data: linked } = await supabase
+    .from("nkbv_fact_su_kien")
+    .select("id")
+    .eq("is_active", true)
+    .eq("vi_sinh_record_id", viSinhId)
+    .limit(1);
+  if (linked && linked.length > 0) return true;
+
   const { data: row } = await supabase
     .from("nkbv_fact_vi_sinh")
     .select("metadata")

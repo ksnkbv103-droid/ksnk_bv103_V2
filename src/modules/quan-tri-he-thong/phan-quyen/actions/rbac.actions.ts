@@ -48,6 +48,7 @@ export async function syncPermissionRegistry() {
       targetTable: "sys_permissions",
       actorUserId: actor.id,
       actorEmail: actor.email,
+      failClosed: true,
     });
     await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
@@ -81,6 +82,7 @@ export async function resetKsnkRolePermissionPresets() {
       targetTable: "sys_role_permissions",
       actorUserId: actor.id,
       actorEmail: actor.email,
+      failClosed: true,
     });
     await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
@@ -197,6 +199,18 @@ export async function saveFullRBACMatrix(
       allPerms.forEach((p: { id: string }) => records.push({ role_id: adminRoleId, permission_id: p.id }));
     }
 
+    // Ảnh chụp trước để ghi diff trước/sau vào audit.
+    const { data: beforeRows, error: beforeErr } = await supabase
+      .from("sys_role_permissions")
+      .select("role_id, permission_id");
+    if (beforeErr) throw beforeErr;
+    const beforeKeys = new Set(
+      (beforeRows || []).map((r) => `${(r as { role_id: string }).role_id}:${(r as { permission_id: string }).permission_id}`),
+    );
+    const afterKeys = new Set(records.map((r) => `${r.role_id}:${r.permission_id}`));
+    const added = [...afterKeys].filter((k) => !beforeKeys.has(k));
+    const removed = [...beforeKeys].filter((k) => !afterKeys.has(k));
+
     // Ưu tiên RPC nguyên tử (ADM-03); fallback delta khi migration chưa apply.
     const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_save_rbac_matrix", {
       p_rows: records,
@@ -251,9 +265,11 @@ export async function saveFullRBACMatrix(
     await logAdminAction({
       action: "CHANGE_RBAC_MATRIX",
       targetTable: "sys_role_permissions",
-      after: { roleIds: Object.keys(matrix), via: rpcMissing ? "delta_fallback" : "rpc" },
+      before: { removed, count: beforeKeys.size },
+      after: { added, roleIds: Object.keys(matrix), count: afterKeys.size, via: rpcMissing ? "delta_fallback" : "rpc" },
       actorUserId: actor.id,
       actorEmail: actor.email,
+      failClosed: true,
     });
 
     await invalidateUserPermissionsCache();
