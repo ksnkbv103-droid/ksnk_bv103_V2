@@ -68,7 +68,9 @@ export function TabNhapSoCan() {
 
   // Tải danh mục khoa
   useEffect(() => {
-    listKhoaPhongDropdown().then((res) => setKhoaList(res));
+    listKhoaPhongDropdown()
+      .then((res) => setKhoaList(res))
+      .catch(() => toast.error("Không thể tải danh mục khoa. Bạn có thể thiếu quyền xem."));
   }, []);
 
   // Tải số liệu ngày khi đổi ngày

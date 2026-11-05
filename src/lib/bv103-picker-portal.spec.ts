@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isBv103PickerPortalOpen,
   isBv103PickerPortalTarget,
   resolveBv103PickerPortalRoot,
   unlockBv103PickerPortalKeyboard,
@@ -43,5 +44,17 @@ describe("unlockBv103PickerPortalKeyboard", () => {
     expect(el.getAttribute("aria-hidden")).toBeNull();
     expect(el.hasAttribute("inert")).toBe(false);
     stop();
+  });
+});
+
+describe("isBv103PickerPortalOpen", () => {
+  it("true khi có panel picker trong document, false khi không", () => {
+    const g = globalThis as unknown as { document?: unknown };
+    const prev = g.document;
+    g.document = { querySelector: () => ({}) };
+    expect(isBv103PickerPortalOpen()).toBe(true);
+    g.document = { querySelector: () => null };
+    expect(isBv103PickerPortalOpen()).toBe(false);
+    g.document = prev;
   });
 });

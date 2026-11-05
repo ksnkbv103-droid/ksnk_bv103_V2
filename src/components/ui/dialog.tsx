@@ -4,7 +4,7 @@ import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { isBv103PickerPortalTarget } from "@/lib/bv103-picker-portal"
+import { isBv103PickerPortalOpen, isBv103PickerPortalTarget } from "@/lib/bv103-picker-portal"
 import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack"
 
 const Dialog = DialogPrimitive.Root
@@ -35,7 +35,8 @@ function preventDismissForPickerPortal(event: {
   target: EventTarget | null
   preventDefault: () => void
 }) {
-  if (isBv103PickerPortalTarget(event.target)) {
+  const originalTarget = (event as unknown as { detail?: { originalEvent?: { target?: EventTarget | null } } })?.detail?.originalEvent?.target ?? null;
+  if (isBv103PickerPortalTarget(event.target) || isBv103PickerPortalTarget(originalTarget)) {
     event.preventDefault()
   }
 }
@@ -55,11 +56,12 @@ type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, overlayClassName, hideCloseButton = false, closeButtonClassName, onPointerDownOutside, onFocusOutside, onInteractOutside, ...props }, ref) => (
+>(({ className, children, overlayClassName, hideCloseButton = false, closeButtonClassName, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
+      data-radix-dialog-content=""
       className={cn(
         `fixed left-[50%] top-[50%] ${BV103_DIALOG_STACK.hubContent} grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[min(92dvh,720px)] max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:rounded-t-2xl max-sm:p-4 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-[2rem]`,
         className
@@ -71,6 +73,10 @@ const DialogContent = React.forwardRef<
       onFocusOutside={(event) => {
         preventDismissForPickerPortal(event)
         onFocusOutside?.(event)
+      }}
+      onEscapeKeyDown={(event) => {
+        if (isBv103PickerPortalOpen()) event.preventDefault()
+        onEscapeKeyDown?.(event)
       }}
       onInteractOutside={(event) => {
         preventDismissForPickerPortal(event)

@@ -6,6 +6,12 @@ export function isBv103PickerPortalTarget(target: EventTarget | null): boolean {
   return Boolean((target as Element).closest(`[${BV103_PICKER_PORTAL_ATTR}]`));
 }
 
+/** Có panel picker đang mở (Esc nên đóng picker trước, không đóng Dialog bên dưới). */
+export function isBv103PickerPortalOpen(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.querySelector(`[${BV103_PICKER_PORTAL_ATTR}]`) !== null;
+}
+
 /**
  * Gắn panel cạnh overlay Dialog (cùng portal Radix) — không bị `aria-hidden`/`inert`,
  * và `position: fixed` vẫn theo viewport (không nằm trong khối `transform` của content).
@@ -14,8 +20,11 @@ export function resolveBv103PickerPortalRoot(): HTMLElement {
   if (typeof document === "undefined") {
     throw new Error("resolveBv103PickerPortalRoot chỉ chạy trên trình duyệt.");
   }
-  const content = document.querySelector("[data-radix-dialog-content][data-state='open']");
-  const host = content?.parentElement;
+  const dialogs = document.querySelectorAll(
+    "[data-radix-dialog-content][data-state='open'], [role='dialog'][data-state='open'], [role='alertdialog'][data-state='open']"
+  );
+  const topDialog = dialogs.length > 0 ? dialogs[dialogs.length - 1] : null;
+  const host = topDialog?.parentElement;
   if (host instanceof HTMLElement) return host;
   return document.body;
 }
