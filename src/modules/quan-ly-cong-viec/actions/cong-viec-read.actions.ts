@@ -5,6 +5,8 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options";
 import { getQlcvTrangThaiMauSacMap } from "../lib/qlcv-labels";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
+import { getActorNhanSuId } from "@/lib/actor-auth-server";
+import { hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 async function getKsnkNhanSuOptions(ksnkKhoaId: string): Promise<QlcvSelectOption[]> {
@@ -96,14 +98,21 @@ export type QlcvBoardGateCounts = {
   inProgress: number;
   overdue: number;
   choToi: number;
+  watching: number;
 };
 
+/** Actor luôn lấy từ phiên server; tham số từ client chỉ được dùng khi trùng actor hoặc là quản trị. */
 export async function getQlcvBoardCounts(
   actorStaffId?: string | null,
 ): Promise<QlcvBoardGateCounts> {
   const { supabase } = await ensureQlcvKsnkAccess("view");
+  const sessionActorId = await getActorNhanSuId();
+  const resolvedActorId =
+    actorStaffId && actorStaffId !== sessionActorId && (await hasRBACAdminSupervisionBypass())
+      ? actorStaffId
+      : sessionActorId;
   const { data, error } = await supabase.rpc("rpc_qlcv_board_counts", {
-    p_actor_staff_id: actorStaffId ?? null,
+    p_actor_staff_id: resolvedActorId ?? null,
   });
   if (error) throw error;
 
@@ -122,5 +131,6 @@ export async function getQlcvBoardCounts(
     inProgress: n(gates.in_progress),
     overdue: n(gates.overdue),
     choToi: n(gates.cho_toi),
+    watching: n(gates.watching),
   };
 }

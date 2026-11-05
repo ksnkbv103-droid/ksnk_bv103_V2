@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { updateCongViec } from "./cong-viec.actions";
+import { tuChoiHoanThanhCongViec, updateCongViec } from "./cong-viec.actions";
 import { clearQlcvLookupIdCacheForTests } from "../lib/qlcv-persist-dm-fields";
 
 const mocks = vi.hoisted(() => {
@@ -74,11 +74,7 @@ describe("updateCongViec", () => {
         update: (payload: Record<string, unknown>) => {
           mocks.setUpdatePayload(payload);
           return {
-            eq: () => ({
-              select: () => ({
-                single: mocks.updateSingle,
-              }),
-            }),
+            eq: () => ({ not: () => ({ select: () => ({ single: mocks.updateSingle }) }) }),
           };
         },
       };
@@ -118,11 +114,7 @@ describe("updateCongViec", () => {
           update: (payload: Record<string, unknown>) => {
             mocks.setUpdatePayload(payload);
             return {
-              eq: () => ({
-                select: () => ({
-                  single: mocks.updateSingle,
-                }),
-              }),
+              eq: () => ({ not: () => ({ select: () => ({ single: mocks.updateSingle }) }) }),
             };
           },
         };
@@ -252,11 +244,7 @@ describe("updateCongViec", () => {
           update: (payload: Record<string, unknown>) => {
             mocks.setUpdatePayload(payload);
             return {
-              eq: () => ({
-                select: () => ({
-                  single: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
-                }),
-              }),
+              eq: () => ({ not: () => ({ select: () => ({ single: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }) }) }) }),
             };
           },
         };
@@ -314,11 +302,7 @@ describe("updateCongViec", () => {
           update: (payload: Record<string, unknown>) => {
             mocks.setUpdatePayload(payload);
             return {
-              eq: () => ({
-                select: () => ({
-                  single: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
-                }),
-              }),
+              eq: () => ({ not: () => ({ select: () => ({ single: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }) }) }) }),
             };
           },
         };
@@ -360,6 +344,43 @@ describe("updateCongViec", () => {
     expect(mocks.appendNhatKy).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ loaiHoatDong: "CAP_NHAT", trangThai: "DANG_LAM" }),
+    );
+  });
+
+  it("blocks modifying a closed task (HOAN_THANH or DA_HUY)", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_qlcv_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-closed",
+                  tieu_de: "Việc đã xong",
+                  trang_thai: "HOAN_THANH",
+                  is_active: true,
+                  nguoi_phu_trach_id: "ns-1",
+                  han_hoan_thanh: "2099-12-31",
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    await expect(
+      updateCongViec("cv-closed", { tieu_de: "Sửa lại tiêu đề sau khi đóng" }),
+    ).rejects.toThrow(/Công việc đã đóng/i);
+  });
+
+  it("rejects empty reason in tuChoiHoanThanhCongViec", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    await expect(tuChoiHoanThanhCongViec("cv-01", "   ")).rejects.toThrow(
+      /Nhập lý do từ chối nghiệm thu/i,
     );
   });
 });

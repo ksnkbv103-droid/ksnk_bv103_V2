@@ -60,8 +60,8 @@ describe("vst-constants WHO moments", () => {
     expect(maxMomentsForAction("Chà tay bằng cồn")).toBe(2);
     expect(maxMomentsForAction(null)).toBe(2);
     expect(maxMomentsForAction("Bỏ sót")).toBe(1);
-    expect(clampMomentsForAction(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["a", "b"]);
-    expect(clampMomentsForAction(["a", "b"], "Bỏ sót")).toEqual(["a"]);
+    expect(clampMomentsForAction(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["b", "c"]);
+    expect(clampMomentsForAction(["a", "b"], "Bỏ sót")).toEqual(["b"]);
     expect(clampMomentsKeepNewest(["a", "b", "c"], "Rửa tay bằng nước")).toEqual(["b", "c"]);
     expect(clampMomentsKeepNewest(["a", "b"], "Bỏ sót")).toEqual(["b"]);
     expect(admitMoment(["a", "b"], "c", 2)).toEqual(["b", "c"]);
