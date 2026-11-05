@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { FACT_CONG_VIEC_DINH_KY_ROW_SELECT } from "../lib/qlcv-dinh-ky-select";
 import { QLCV_DINH_KY_TABLE } from "../lib/qlcv-dinh-ky-write";
@@ -9,6 +11,7 @@ import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import { resolveQlcvDiaDiemKhoaIds } from "../lib/qlcv-create-task";
+import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { assertQlcvTimeRange, normalizeTimeHHmm } from "../lib/qlcv-time";
 
 export type MaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
@@ -38,6 +41,27 @@ export interface DinhKyMauRow {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+const dinhKyIdSchema = z.string().trim().uuid("Mã mẫu định kỳ không hợp lệ.");
+
+/** Đọc mẫu theo id + kiểm phạm vi; không tồn tại → lỗi. */
+async function loadDinhKyMauInScope(supabase: SupabaseClient, idRaw: unknown) {
+  const parsed = dinhKyIdSchema.safeParse(idRaw);
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message || "Mã mẫu định kỳ không hợp lệ.");
+  const id = parsed.data;
+  const { data, error } = await supabase
+    .from(QLCV_DINH_KY_TABLE)
+    .select("id, nguoi_phu_trach_id, nguoi_tao_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throwQlcvDbError(error, "Không tải được mẫu định kỳ.");
+  if (!data) throw new Error("Không tìm thấy mẫu định kỳ.");
+  assertQlcvRowInListScope(
+    { nguoi_phu_trach_id: data.nguoi_phu_trach_id, nguoi_tao_id: data.nguoi_tao_id },
+    await resolveQlcvListScope(supabase),
+  );
+  return { id, nguoi_phu_trach_id: (data.nguoi_phu_trach_id as string | null) ?? null };
 }
 
 export async function listDinhKyMau(): Promise<DinhKyMauRow[]> {
@@ -79,6 +103,18 @@ export async function upsertDinhKyMau(input: {
   const actor = await getActorNhanSuId();
   const now = new Date().toISOString();
   const willActive = input.is_active ?? true;
+  if (input.id) await loadDinhKyMauInScope(supabase, input.id);
+  const tieuDe = String(input.tieu_de ?? "").trim();
+  if (!tieuDe) {
+    throw new Error("Nhập tiêu đề mẫu định kỳ.");
+  }
+  if (!["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"].includes(String(input.ma_chu_ky))) {
+    throw new Error("Chu kỳ định kỳ không hợp lệ.");
+  }
+  const ngayBatDau = String(input.ngay_bat_dau ?? "").trim().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ngayBatDau)) {
+    throw new Error("Ngày bắt đầu mẫu định kỳ không hợp lệ.");
+  }
 
   if (willActive && !input.nguoi_phu_trach_id) {
     throw new Error("Mẫu định kỳ đang bật phải có người phụ trách.");
@@ -105,19 +141,14 @@ export async function upsertDinhKyMau(input: {
     await validateAssigneeForQlcv(supabase, sid, ksnkKhoaId);
   }
 
-  // QLCV-08: địa điểm tùy chọn.
-  if (input.dia_diem_khoa_id) {
-    const { data: khoaOk, error: khoaErr } = await supabase
-      .from("mdm_dm_khoa_phong")
-      .select("id")
-      .eq("id", input.dia_diem_khoa_id)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (khoaErr) throwQlcvDbError(khoaErr, "Không kiểm tra được khoa địa điểm.");
-    if (!khoaOk) throw new Error("Khoa/đơn vị địa điểm không hợp lệ hoặc đã ngưng.");
-  }
-
-  const diaDiemKhoaIds = await resolveQlcvDiaDiemKhoaIds(supabase, input.dia_diem_khoa_ids);
+  // QLCV-08: địa điểm tùy chọn — đồng bộ cả dia_diem_khoa_id và dia_diem_khoa_ids.
+  const rawKhoaIds =
+    input.dia_diem_khoa_ids !== undefined
+      ? input.dia_diem_khoa_ids
+      : input.dia_diem_khoa_id
+        ? [input.dia_diem_khoa_id]
+        : [];
+  const diaDiemKhoaIds = await resolveQlcvDiaDiemKhoaIds(supabase, rawKhoaIds);
 
   const gioBat = normalizeTimeHHmm(input.gio_bat_dau);
   const gioKet = normalizeTimeHHmm(input.gio_ket_thuc);
@@ -127,16 +158,16 @@ export async function upsertDinhKyMau(input: {
     throw new Error("Tài khoản cần gắn hồ sơ nhân sự (mdm_nhan_su) mới tạo được mẫu định kỳ.");
   }
 
-  const ketThuc = input.ngay_ket_thuc ? String(input.ngay_ket_thuc).trim() || null : null;
-  if (ketThuc && ketThuc < input.ngay_bat_dau) {
+  const ketThuc = input.ngay_ket_thuc ? String(input.ngay_ket_thuc).trim().slice(0, 10) || null : null;
+  if (ketThuc && ketThuc < ngayBatDau) {
     throw new Error("Ngày kết thúc không được trước ngày bắt đầu.");
   }
 
   const row = {
-    tieu_de: input.tieu_de,
+    tieu_de: tieuDe,
     mo_ta: input.mo_ta ?? null,
     ma_chu_ky: input.ma_chu_ky,
-    ngay_bat_dau: input.ngay_bat_dau,
+    ngay_bat_dau: ngayBatDau,
     ngay_ket_thuc: ketThuc,
     nguoi_phu_trach_id: input.nguoi_phu_trach_id ?? null,
     to_cong_tac_id: input.to_cong_tac_id ?? null,
@@ -145,8 +176,8 @@ export async function upsertDinhKyMau(input: {
     vi_tri_thuc_hien: input.vi_tri_thuc_hien?.trim() || null,
     gio_bat_dau: gioBat,
     gio_ket_thuc: gioKet,
-    dia_diem_khoa_id: diaDiemKhoaIds[0] ?? (input.dia_diem_khoa_id || null),
-    ...(input.dia_diem_khoa_ids !== undefined || diaDiemKhoaIds.length ? { dia_diem_khoa_ids: diaDiemKhoaIds } : {}),
+    dia_diem_khoa_id: diaDiemKhoaIds[0] ?? null,
+    dia_diem_khoa_ids: diaDiemKhoaIds,
     nguoi_phoi_hop_ids: phoiHop,
     nguoi_theo_doi_ids: theoDoi,
     nhiem_vu_id: input.nhiem_vu_id ?? null,
@@ -167,10 +198,14 @@ export async function upsertDinhKyMau(input: {
 
 export async function setDinhKyMauActive(id: string, is_active: boolean) {
   const { supabase } = await ensureQlcvKsnkAccess("edit");
+  const mau = await loadDinhKyMauInScope(supabase, id);
+  if (is_active && !mau.nguoi_phu_trach_id) {
+    throw new Error("Mẫu định kỳ đang bật phải có người phụ trách.");
+  }
   const { error } = await supabase
     .from(QLCV_DINH_KY_TABLE)
     .update({ is_active, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", mau.id);
   if (error) throwQlcvDbError(error, "Không đổi trạng thái mẫu.");
   revalidatePath("/quan-ly-cong-viec");
 }
@@ -180,8 +215,9 @@ export async function setDinhKyMauActive(id: string, is_active: boolean) {
  * - Còn phiếu gắn `dinh_ky_mau_id` → chỉ tắt (`is_active=false`), giữ lịch sử.
  * - Không còn phiếu → hard delete.
  */
-export async function deleteDinhKyMau(id: string): Promise<{ mode: "deleted" | "deactivated" }> {
+export async function deleteDinhKyMau(idRaw: string): Promise<{ mode: "deleted" | "deactivated" }> {
   const { supabase } = await ensureQlcvKsnkAccess("edit");
+  const { id } = await loadDinhKyMauInScope(supabase, idRaw);
 
   const { count, error: countErr } = await supabase
     .from("qlcv_fact_cong_viec")
@@ -200,7 +236,18 @@ export async function deleteDinhKyMau(id: string): Promise<{ mode: "deleted" | "
   }
 
   const { error } = await supabase.from(QLCV_DINH_KY_TABLE).delete().eq("id", id);
-  if (error) throwQlcvDbError(error, "Không xóa được mẫu định kỳ.");
+  if (error) {
+    if ((error as { code?: string }).code === "23503") {
+      const { error: deactErr } = await supabase
+        .from(QLCV_DINH_KY_TABLE)
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (deactErr) throwQlcvDbError(deactErr, "Không ngừng mẫu định kỳ.");
+      revalidatePath("/quan-ly-cong-viec");
+      return { mode: "deactivated" };
+    }
+    throwQlcvDbError(error, "Không xóa được mẫu định kỳ.");
+  }
   revalidatePath("/quan-ly-cong-viec");
   return { mode: "deleted" };
 }

@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
-import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { buildViSinhUniqueKey } from "../lib/nkbv-vi-sinh-unique-key";
 import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
@@ -44,9 +44,15 @@ export async function previewViSinhImportAlerts(
   rows: Array<{ ma_benh_an: string; ngay_lay_mau: string; loai_benh_pham: string; ma_xet_nghiem: string }>,
 ): Promise<{ success: true; alertsByXn: Record<string, ImportWindowAlert[]> } | { success: false; error: string }> {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: false, error: NKBV_OUT_OF_SCOPE_ERROR };
   const supabase = createAdminSupabaseClient();
   try {
-    const stayIds = Array.from(new Set(rows.map((r) => r.ma_benh_an).filter(Boolean)));
+    let stayIds = Array.from(new Set(rows.map((r) => r.ma_benh_an).filter(Boolean)));
+    if (restriction.kind !== "all") {
+      const inScope = await Promise.all(stayIds.map((ma) => isNkbvBenhAnInScope(restriction, ma)));
+      stayIds = stayIds.filter((_, i) => inScope[i]);
+    }
     if (stayIds.length === 0) return { success: true, alertsByXn: {} };
 
     const { data: existingEvents, error } = await supabase
@@ -86,7 +92,8 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
   for (const r of records) {
-    if (r.khoa_yeu_cau_id && !nkbvKhoaVisible(restriction, [r.khoa_yeu_cau_id])) {
+    // Fail-closed: restriction kiểu 'khoa' bắt buộc có khoa_yeu_cau_id và đúng khoa của actor.
+    if (!nkbvKhoaVisible(restriction, [r.khoa_yeu_cau_id]) || (restriction.kind !== "all" && !r.khoa_yeu_cau_id)) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
     }
   }
@@ -277,6 +284,12 @@ export type BenhAnRecordInput = {
  */
 export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
+  const restriction = await getNkbvKhoaRestriction();
+  for (const r of records) {
+    if (!nkbvKhoaVisible(restriction, [r.khoa_dieu_tri_id])) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+  }
   const supabase = createAdminSupabaseClient();
 
   try {

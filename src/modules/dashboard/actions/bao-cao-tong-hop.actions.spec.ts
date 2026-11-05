@@ -41,6 +41,15 @@ const mocks = vi.hoisted(() => ({
     },
   })),
   createUserClient: vi.fn(async () => ({})),
+  getScope: vi.fn(async (): Promise<{ isAdmin: boolean; isNhanVienKsnk: boolean; isMangLuoiKsnk: boolean; actorKhoaId: string | null }> => ({ isAdmin: true, isNhanVienKsnk: true, isMangLuoiKsnk: false, actorKhoaId: null })),
+  verifyPerm: vi.fn(async () => undefined),
+  thongKe: vi.fn(async () => ({ stats: {}, insights: [] })),
+}));
+
+vi.mock("@/lib/actor-ksnk-scope-server", () => ({ getActorKsnkScope: mocks.getScope }));
+vi.mock("@/lib/server-permission", () => ({ verifyPermission: mocks.verifyPerm }));
+vi.mock("@/modules/chat-thai-do-vai/actions/chat-thai-do-vai.actions", () => ({
+  getThongKeKyAction: mocks.thongKe,
 }));
 
 vi.mock("../lib/dashboard-command-center-access", () => ({
@@ -142,5 +151,38 @@ describe("getBaoCaoTongHopAnalytics RPC wiring", () => {
     expect(mocks.getNkbv).toHaveBeenCalledWith(
       expect.objectContaining({ include_rates: false }),
     );
+  });
+
+  const range = { tu_ngay: "2026-09-01", den_ngay: "2026-09-30", chuyen_de: "ALL" as const };
+
+  it("tài khoản mạng lưới khóa khoa: NKBV dùng effectiveKhoaIds, phụ lục chất thải bị từ chối", async () => {
+    mocks.getScope.mockResolvedValueOnce({
+      isAdmin: false,
+      isNhanVienKsnk: false,
+      isMangLuoiKsnk: true,
+      actorKhoaId: "khoa-A",
+    });
+    const res = await getBaoCaoTongHopAnalytics({ ...range, khoa_ids: ["khoa-B"] });
+    expect(res.success).toBe(true);
+    expect(mocks.getNkbv).toHaveBeenCalledWith(expect.objectContaining({ khoa_ghi_nhan_ids: ["khoa-A"] }));
+    expect(mocks.thongKe).not.toHaveBeenCalled();
+    const p = (res as unknown as { data: { sources: { chat_thai_do_vai: string } } }).data;
+    expect(p.sources.chat_thai_do_vai).toBe("denied");
+  });
+
+  it("thiếu quyền HAU_CAN_MOI_TRUONG: phụ lục denied, không gọi thống kê", async () => {
+    mocks.verifyPerm.mockRejectedValueOnce(new Error("Bạn không có quyền"));
+    const res = await getBaoCaoTongHopAnalytics(range);
+    expect(mocks.thongKe).not.toHaveBeenCalled();
+    const p = (res as unknown as { data: { sources: { chat_thai_do_vai: string } } }).data;
+    expect(p.sources.chat_thai_do_vai).toBe("denied");
+  });
+
+  it("nhánh BM.02/03 lỗi: ghi vào errors.gsc, không nuốt", async () => {
+    mocks.getGsc.mockResolvedValueOnce({ success: true as const, data: { kpis: {} } } as never);
+    mocks.getGsc.mockResolvedValueOnce({ success: false as const, error: "boom" } as never);
+    const res = await getBaoCaoTongHopAnalytics(range);
+    const p = (res as unknown as { data: { errors: { gsc?: string } } }).data;
+    expect(p.errors.gsc).toMatch(/BM\.02\/03: boom/);
   });
 });

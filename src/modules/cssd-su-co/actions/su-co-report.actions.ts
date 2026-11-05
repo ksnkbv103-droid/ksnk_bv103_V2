@@ -1,5 +1,8 @@
 "use server";
 
+import { z } from "zod";
+import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { canPrintIncidentInScope } from "../domain/cssd-incident-print-scope";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
@@ -43,6 +46,7 @@ export async function createIncidentReport(data: {
   desc: string;
   errorQR?: string;
   machineId?: string;
+  chemicalId?: string;
   anhMinhChung?: string;
   instrumentPayload?: {
     chiTietId?: string;
@@ -89,8 +93,12 @@ export async function createIncidentReport(data: {
 }) {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentCreate();
-  const parsed = cssdIncidentReportInputSchema.parse(data);
-  
+  const safe = cssdIncidentReportInputSchema.safeParse(data);
+  if (!safe.success) {
+    throw new Error(safe.error.issues[0]?.message || "Dữ liệu báo sự cố không hợp lệ.");
+  }
+  const parsed = safe.data;
+
   let qr: string | undefined = undefined;
   let q: Record<string, unknown> | null = null;
   const isSetReconcile = Boolean(parsed.setReconcilePayload);
@@ -415,9 +423,30 @@ export async function listRecentSuCoForReporter() {
   };
 }
 
-export async function getIncidentForPrint(id: string) {
+export async function getIncidentForPrint(idRaw: string) {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentPrint();
+  const idParsed = z.string().trim().uuid().safeParse(idRaw);
+  if (!idParsed.success) throw new Error("Mã sự cố không hợp lệ.");
+  const id = idParsed.data;
+
+  // Khoa nào in sự cố khoa đó; KSNK/toàn viện in tất cả (khoa sự cố = khoa người báo).
+  const scope = await getActorKsnkScope();
+  if (!canPrintIncidentInScope(scope, null)) {
+    const { data: head } = await supabase.from("cssd_fact_su_co").select("nguoi_bao_id").eq("id", id).maybeSingle();
+    let incidentKhoaId: string | null = null;
+    if (head?.nguoi_bao_id) {
+      const { data: ns } = await supabase
+        .from("mdm_nhan_su")
+        .select("khoa_id")
+        .eq("id", head.nguoi_bao_id as string)
+        .maybeSingle();
+      incidentKhoaId = ns?.khoa_id ? String(ns.khoa_id) : null;
+    }
+    if (!canPrintIncidentInScope(scope, incidentKhoaId)) {
+      throw new Error("Sự cố thuộc khoa khác — bạn chỉ in được sự cố của khoa mình.");
+    }
+  }
 
   // 1. Lấy thông tin sự cố cơ bản
   const { data: incident, error: incErr } = await supabase
@@ -449,7 +478,7 @@ export async function getIncidentForPrint(id: string) {
   }
 
   // 2. Chuyển đổi cột attributes JSONB sang định dạng chi tiết EAV để tương thích ngược hoàn hảo với UI
-  const details = Object.entries((incident as any).attributes || {}).map(([key, val]) => ({
+  const details = Object.entries(attrs).map(([key, val]) => ({
     id: `${id}-${key}`,
     su_co_id: id,
     ma_chi_tiet_su_co: key,
