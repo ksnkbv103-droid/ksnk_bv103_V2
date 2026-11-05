@@ -21,6 +21,7 @@ import {
   type SessionInput,
   validateVstModeFields,
   vstWriteErrorMessage,
+  withVstClientRequestId,
 } from "./vst-write.helpers";
 import { buildVstBoSungNbMetadata } from "../lib/vst-bo-sung-nguoi-benh";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
@@ -37,6 +38,8 @@ type SaveVSTSessionOpts = {
   existingSessionId?: string | null;
   /** Bắt buộc khi Admin sửa sau 30 phút (VST-05). */
   lyDoSua?: string | null;
+  /** uuid do client sinh một lần cho phiên mới (idempotency); bỏ qua khi sửa. */
+  clientRequestId?: string | null;
 };
 
 function countDistinctPersons(observations: VSTObservation[]): number {
@@ -67,8 +70,9 @@ export async function saveVSTSession(
     const lockedSession = parsed.data.session;
     const lockedKhuVucId = lockedSession.khu_vuc_id;
     const actorScope = await getActorKsnkScope();
+    const isMangLuoiOnly = actorScope.isMangLuoiKsnk && !actorScope.isAdmin && !actorScope.isNhanVienKsnk;
     const khoaScoped = resolveVstScopedKhoaId(
-      { isMangLuoiKsnk: actorScope.isMangLuoiKsnk, actorKhoaId: actorScope.actorKhoaId ?? null },
+      { isMangLuoiKsnk: isMangLuoiOnly, actorKhoaId: actorScope.actorKhoaId ?? null },
       lockedSession.khoa_id || null,
     );
     if (!khoaScoped.ok) {
@@ -86,30 +90,28 @@ export async function saveVSTSession(
       fieldLabel: "Khu vực giám sát",
     });
 
-    if (!existingSessionId) {
-      const firstObs = observations[0];
-      const dimErr = validateSixSessionDimensions({
-        khoa_id: khoaSessionNorm,
-        khu_vuc_id: lockedKhuVucId,
-        vi_tri: lockedSession.vi_tri,
-        doi_tuong_loai: "NHAN_VIEN",
-        nhan_vien_id: firstObs?.nhan_vien_id,
-        ten_nhan_vien_ngoai: firstObs?.ten_nhan_vien_ngoai,
-        gan_nb: Boolean(lockedSession.is_bo_sung_nguoi_benh),
-      });
-      if (dimErr) return { success: false, error: dimErr };
-      for (let i = 0; i < observations.length; i++) {
-        const nvErr = validateVstObservationNhanVien(observations[i]!);
-        if (nvErr) {
-          return { success: false, error: `Đối tượng ${i + 1}: ${nvErr}` };
-        }
+    const firstObs = observations[0];
+    const dimErr = validateSixSessionDimensions({
+      khoa_id: khoaSessionNorm,
+      khu_vuc_id: lockedKhuVucId,
+      vi_tri: lockedSession.vi_tri,
+      doi_tuong_loai: "NHAN_VIEN",
+      nhan_vien_id: firstObs?.nhan_vien_id,
+      ten_nhan_vien_ngoai: firstObs?.ten_nhan_vien_ngoai,
+      gan_nb: Boolean(lockedSession.is_bo_sung_nguoi_benh),
+    });
+    if (dimErr) return { success: false, error: dimErr };
+    for (let i = 0; i < observations.length; i++) {
+      const nvErr = validateVstObservationNhanVien(observations[i]!);
+      if (nvErr) {
+        return { success: false, error: `Đối tượng ${i + 1}: ${nvErr}` };
       }
-      await assertKhuVucAllowedForKhoa({
-        supabase,
-        khoaId: String(khoaSessionNorm ?? "").trim(),
-        khuVucId: String(lockedKhuVucId ?? "").trim(),
-      });
     }
+    await assertKhuVucAllowedForKhoa({
+      supabase,
+      khoaId: String(khoaSessionNorm ?? "").trim(),
+      khuVucId: String(lockedKhuVucId ?? "").trim(),
+    });
 
     for (const obs of observations) {
       const ngheId = String(obs.nghe_nghiep_id || "").trim();
@@ -126,7 +128,11 @@ export async function saveVSTSession(
 
     const actorAuthUserId = await getActorAuthUserId();
     const actorNhanSuId = await getActorNhanSuId();
-    const nguoiGsId = sessionData.nguoi_giam_sat_id || actorNhanSuId;
+    const adminBypass = await hasRBACAdminSupervisionBypass();
+    const nguoiGsId =
+      adminBypass && sessionData.nguoi_giam_sat_id
+        ? sessionData.nguoi_giam_sat_id
+        : actorNhanSuId || sessionData.nguoi_giam_sat_id;
     const nguoiGsNorm = await normalizeHoSoNhanVienOptionalOrThrow(
       supabase,
       nguoiGsId,
@@ -161,20 +167,30 @@ export async function saveVSTSession(
     const personCount = countDistinctPersons(observations);
     let grandfatherPersonCap = VST_MAX_PERSONS_NEW;
     let requiresEditReason = false;
+    let existingMeta: Record<string, unknown> = {};
 
     if (existingSessionId) {
-      const adminBypass = await hasRBACAdminSupervisionBypass();
       if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
       const { data: existing, error: exErr } = await supabase
         .from("gstt_fact_vst_sessions")
-        .select("id,nguoi_giam_sat_id,is_active,created_at")
+        .select("id,nguoi_giam_sat_id,is_active,created_at,metadata,ngay_giam_sat")
         .eq("id", existingSessionId)
         .maybeSingle();
       if (exErr) throw exErr;
       if (!existing) throw new Error("Phiên không còn tồn tại.");
       if (typeof existing.is_active === "boolean" && existing.is_active === false) {
         throw new Error("Phiên đã bị vô hiệu, không sửa được.");
+      }
+      if (existing.ngay_giam_sat) {
+        await assertSupervisionNotLockedForDate(
+          supabase,
+          "VST",
+          String(existing.ngay_giam_sat).slice(0, 10),
+        );
+      }
+      if (existing.metadata && typeof existing.metadata === "object") {
+        existingMeta = existing.metadata as Record<string, unknown>;
       }
       const expired = isSupervisionSessionMutationExpired(existing.created_at);
       if (!adminBypass) {
@@ -242,7 +258,7 @@ export async function saveVSTSession(
       return { ...obs, khoa_id: kId };
     });
 
-    const patientMetadata = buildVstBoSungNbMetadata(sessionData);
+    const patientMetadata = { ...existingMeta, ...buildVstBoSungNbMetadata(sessionData) };
     const sessionPayload = {
       khoa_id: khoaSessionNorm,
       khu_vuc_id: lockedKhuVucId,
@@ -279,7 +295,7 @@ export async function saveVSTSession(
 
     const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_vst_save_session", {
       p_session_id: existingSessionId || null,
-      p_session: sessionPayload,
+      p_session: withVstClientRequestId(sessionPayload, opts?.clientRequestId, !!existingSessionId),
       p_observations: observationsPayload,
     });
     if (rpcErr) throw rpcErr;
@@ -307,7 +323,8 @@ export async function saveVSTSession(
       "@/lib/analytics/strategic-analytics-cache"
     );
     invalidateVstStrategicAnalyticsCache();
-    return { success: true, sessionId, message: "Lưu phiên giám sát thành công" };
+    const deduplicated = (rpcData as { deduplicated?: boolean } | null)?.deduplicated === true;
+    return { success: true, sessionId, message: "Lưu phiên giám sát thành công", deduplicated };
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {
       console.error("[VST save] Lỗi:", error instanceof Error ? error.message : error);

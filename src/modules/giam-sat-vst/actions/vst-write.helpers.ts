@@ -89,3 +89,16 @@ export function formatVstKhoaFkViolation(message: string | undefined): string {
     "Liên hệ đội vận hành DB để rà soát orphan khoa_id và áp fix chuẩn hiện hành."
   );
 }
+
+const CLIENT_REQUEST_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Idempotency key (B2b): chỉ gắn khi TẠO MỚI và là uuid hợp lệ; nhánh sửa không gửi key. */
+export function withVstClientRequestId<T extends object>(
+  payload: T,
+  clientRequestId: string | null | undefined,
+  isUpdate: boolean,
+): T | (T & { client_request_id: string }) {
+  const id = String(clientRequestId ?? "").trim();
+  if (isUpdate || !CLIENT_REQUEST_ID_RE.test(id)) return payload;
+  return { ...payload, client_request_id: id };
+}

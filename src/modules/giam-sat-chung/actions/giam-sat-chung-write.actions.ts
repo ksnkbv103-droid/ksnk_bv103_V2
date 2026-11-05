@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
@@ -44,7 +45,14 @@ import {
 import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
 import { gscCanSaveResults, isGscNhatKyCach } from "../lib/gsc-score-display";
 
-type SaveGiamSatChungOpts = { existingSessionId?: string | null };
+type SaveGiamSatChungOpts = {
+  existingSessionId?: string | null;
+  /** uuid do client sinh một lần cho phiên mới (idempotency); bỏ qua khi sửa. */
+  clientRequestId?: string | null;
+};
+
+const GSC_CLIENT_REQUEST_ID_SCHEMA = z.string().uuid().optional();
+const GSC_CLIENT_REQUEST_ID_INDEX = "uq_gstt_fact_chung_sessions_client_request_id";
 
 /** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) nếu `existingSessionId` — chỉ chủ phiên; chặn khi ngày đã khóa sổ. */
 export async function saveGiamSatChung(
@@ -65,8 +73,9 @@ export async function saveGiamSatChung(
       return { success: false, error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map((e) => e.message).join(", ") };
     }
     const scope = await getActorKsnkScope();
+    const isMangLuoiOnly = scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk;
     const scopedKhoa = resolveGscScopedKhoaId(
-      { isMangLuoiKsnk: scope.isMangLuoiKsnk, actorKhoaId: scope.actorKhoaId ?? null },
+      { isMangLuoiKsnk: isMangLuoiOnly, actorKhoaId: scope.actorKhoaId ?? null },
       String(sessionData.khoa_id || "").trim() || null,
     );
     if (!scopedKhoa.ok) {
@@ -92,7 +101,11 @@ export async function saveGiamSatChung(
     const actorAuthUserId = await getActorAuthUserId();
     const actorNhanSuId = await getActorNhanSuId();
 
-    const nguoiGsId = sessionData.nguoi_giam_sat_id || actorNhanSuId;
+    const adminBypass = await hasRBACAdminSupervisionBypass();
+    const nguoiGsId =
+      adminBypass && sessionData.nguoi_giam_sat_id
+        ? sessionData.nguoi_giam_sat_id
+        : actorNhanSuId || sessionData.nguoi_giam_sat_id;
     const nguoiGsNorm = await normalizeHoSoNhanVienOptionalOrThrow(
       supabase,
       nguoiGsId,
@@ -174,18 +187,28 @@ export async function saveGiamSatChung(
 
     let existingFrozenSnap: GscBangKiemSnapshot | null = null;
     let previousBangKiemId: string | null = null;
+    let existingMeta: Record<string, unknown> = {};
     if (existingSessionId) {
-      const adminBypass = await hasRBACAdminSupervisionBypass();
       if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
       const { data: existing, error: exErr } = await supabase
         .from("gstt_fact_chung_sessions")
-        .select("id,nguoi_giam_sat_id,is_active,metadata,bang_kiem_id")
+        .select("id,nguoi_giam_sat_id,is_active,metadata,bang_kiem_id,ngay_giam_sat")
         .eq("id", existingSessionId)
         .maybeSingle();
       if (exErr) throw exErr;
       if (!existing) throw new Error("Phiên không còn tồn tại.");
       if (existing.is_active === false) throw new Error("Phiên đã bị vô hiệu, không sửa được.");
+      if (existing.ngay_giam_sat) {
+        await assertSupervisionNotLockedForDate(
+          supabase,
+          "GSC",
+          String(existing.ngay_giam_sat).slice(0, 10),
+        );
+      }
+      if (existing.metadata && typeof existing.metadata === "object") {
+        existingMeta = existing.metadata as Record<string, unknown>;
+      }
       if (!adminBypass) {
         if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
           throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
@@ -319,6 +342,7 @@ export async function saveGiamSatChung(
           .gia_tri_lua_chon ?? null,
       })),
       metadata: {
+        ...existingMeta,
         is_manual_nhan_vien: isManualNv,
         ten_manual_nhan_vien: tenManualNv,
         is_bo_sung_nguoi_benh: boSungEffective,
@@ -347,15 +371,37 @@ export async function saveGiamSatChung(
 
       sessionId = existingSessionId;
     } else {
+      const crParsed = GSC_CLIENT_REQUEST_ID_SCHEMA.safeParse(
+        String(opts?.clientRequestId ?? "").trim() || undefined,
+      );
+      const clientRequestId = crParsed.success ? crParsed.data : undefined;
       const insertRes = await supabase
         .from("gstt_fact_chung_sessions")
         .insert({
           ...sessionPayload,
+          ...(clientRequestId ? { client_request_id: clientRequestId } : {}),
           is_active: true,
         })
         .select()
         .single();
-      if (insertRes.error) throw insertRes.error;
+      if (insertRes.error) {
+        const e = insertRes.error;
+        if (clientRequestId && e.code === "23505" && String(e.message ?? "").includes(GSC_CLIENT_REQUEST_ID_INDEX)) {
+          const { data: dup, error: dupErr } = await supabase
+            .from("gstt_fact_chung_sessions")
+            .select("id, nguoi_giam_sat_id")
+            .eq("client_request_id", clientRequestId)
+            .maybeSingle();
+          if (dupErr) throw dupErr;
+          if (!dup?.id) throw e;
+          if ((dup.nguoi_giam_sat_id ?? null) !== (nguoiGsNorm ?? null)) {
+            throw new Error("Mã yêu cầu đã thuộc phiên của người giám sát khác.");
+          }
+          revalidateGscPaths();
+          return { success: true, sessionId: String(dup.id), deduplicated: true };
+        }
+        throw e;
+      }
       sessionId = insertRes.data.id;
     }
 

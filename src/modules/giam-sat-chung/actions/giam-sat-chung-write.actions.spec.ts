@@ -171,4 +171,47 @@ describe("saveGiamSatChung", () => {
       expect(await run()).toEqual({ success: false, error: "Phiên không còn tồn tại." });
     });
   });
+
+  describe("tạo mới với client_request_id (idempotency)", () => {
+    const CRID = "11111111-2222-4333-8444-555555555555";
+    const IDX = "uq_gstt_fact_chung_sessions_client_request_id";
+    let inserted: Record<string, unknown> | null;
+
+    function setupCreate(dup: { id: string; nguoi_giam_sat_id: string | null } | null) {
+      inserted = null;
+      mocks.hasAdminBypass.mockResolvedValue(true);
+      mocks.from.mockImplementation(() => {
+        const b: Record<string, unknown> = {};
+        let isInsert = false;
+        b.insert = (row: Record<string, unknown>) => ((inserted = row), (isInsert = true), b);
+        b.select = () => b;
+        b.eq = () => b;
+        b.single = async () => ({
+          data: null,
+          error: { code: "23505", message: `duplicate key value violates unique constraint "${IDX}"` },
+        });
+        b.maybeSingle = async () => ({ data: isInsert ? null : dup, error: null });
+        return b;
+      });
+    }
+    const run = () =>
+      saveGiamSatChung(
+        { khoa_id: "khoa-01", khu_vuc_id: "kv-01", loai_bang_kiem: "GSC", vi_tri: "P1", nguoi_giam_sat_id: "ns-1", nhan_vien_id: "nv-1" } as never,
+        [{ criterionId: "c1", value: "DAT" }],
+        { clientRequestId: CRID },
+      );
+
+    it("23505 đúng index + cùng người giám sát: deduplicated, insert có key", async () => {
+      setupCreate({ id: "sess-dup", nguoi_giam_sat_id: "ns-1" });
+      const r = await run();
+      expect(inserted?.client_request_id).toBe(CRID);
+      expect(r).toEqual({ success: true, sessionId: "sess-dup", deduplicated: true });
+    });
+
+    it("23505 nhưng lệch người giám sát: báo lỗi", async () => {
+      setupCreate({ id: "sess-dup", nguoi_giam_sat_id: "ns-khac" });
+      const r = await run();
+      expect(r).toEqual({ success: false, error: "Mã yêu cầu đã thuộc phiên của người giám sát khác." });
+    });
+  });
 });

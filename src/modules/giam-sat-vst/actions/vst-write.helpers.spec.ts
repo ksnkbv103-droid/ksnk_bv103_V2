@@ -4,6 +4,7 @@ import {
   normalizeVstModeFields,
   validateVstModeFields,
   vstWriteErrorMessage,
+  withVstClientRequestId,
 } from "./vst-write.helpers";
 
 describe("vst-write.helpers", () => {
@@ -29,5 +30,17 @@ describe("vst-write.helpers", () => {
     expect(formatVstKhoaFkViolation("lỗi lạ")).toBe("lỗi lạ");
     expect(formatVstKhoaFkViolation("giam_sat_vst_sessions_khoa_id_fkey")).toMatch(/orphan/);
     expect(formatVstKhoaFkViolation("giam_sat_vst_khoa_id_fkey")).toMatch(/mdm_dm_khoa_phong/);
+  });
+
+  describe("withVstClientRequestId", () => {
+    const ID = "11111111-2222-4333-8444-555555555555";
+    it("tạo mới: payload mang client_request_id", () => {
+      expect(withVstClientRequestId({ a: 1 }, ID, false)).toEqual({ a: 1, client_request_id: ID });
+    });
+    it("sửa phiên / thiếu key / key sai định dạng: không gửi key", () => {
+      expect(withVstClientRequestId({ a: 1 }, ID, true)).toEqual({ a: 1 });
+      expect(withVstClientRequestId({ a: 1 }, undefined, false)).toEqual({ a: 1 });
+      expect(withVstClientRequestId({ a: 1 }, "abc", false)).toEqual({ a: 1 });
+    });
   });
 });
