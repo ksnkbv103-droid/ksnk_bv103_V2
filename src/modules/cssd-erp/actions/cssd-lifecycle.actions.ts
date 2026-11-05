@@ -212,38 +212,18 @@ export async function decommissionInstrumentsAction(payload: DecommissionInstrum
     const ghiChu = segments.join(" · ");
 
     if (payload.sourceKind === "KHO_LE") {
-      const { data: loai, error: loaiErr } = await supabase
-        .from("cssd_dm_loai_dung_cu")
-        .select("so_luong_kho_du_phong")
-        .eq("id", loaiId)
-        .maybeSingle();
-      if (loaiErr) throw loaiErr;
-      const ton = Number(loai?.so_luong_kho_du_phong ?? 0);
-      if (ton < qty) {
-        return { success: false, error: `Kho lẻ không đủ số lượng để loại biên (hiện có ${ton}).` };
-      }
-
-      const { error: upErr } = await supabase
-        .from("cssd_dm_loai_dung_cu")
-        .update({
-          so_luong_kho_du_phong: ton - qty,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", loaiId);
-      if (upErr) throw upErr;
-
-      const { error: insErr } = await supabase.from("cssd_fact_kho_giao_dich").insert({
-        loai_dung_cu_id: loaiId,
-        bo_dung_cu_id: null,
-        loai_giao_dich: "BAO_HONG",
-        so_luong_thay_doi: -qty,
-        ghi_chu: ghiChu,
-        su_co_id: null,
-        nguoi_thuc_hien_id: actorNhanSuId || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      // Một RPC atomic: trừ tồn có điều kiện + ghi sổ giao dịch (không lost update, không âm tồn).
+      const { data: res, error } = await supabase.rpc("rpc_cssd_decommission_kho_le", {
+        p_loai_dung_cu_id: loaiId,
+        p_so_luong: qty,
+        p_ghi_chu: ghiChu,
+        p_nguoi_thuc_hien_id: actorNhanSuId || null,
       });
-      if (insErr) throw insErr;
+      if (error) throw new Error(`Lỗi hệ thống: ${error.message}`);
+      const r = res as { success?: boolean; message?: string } | null;
+      if (!r?.success) {
+        return { success: false, error: r?.message || "Không loại biên được khỏi kho lẻ." };
+      }
     } else {
       const boId = String(payload.boDungCuId || "").trim();
       if (!boId) return { success: false, error: "Vui lòng chọn bộ dụng cụ nguồn." };

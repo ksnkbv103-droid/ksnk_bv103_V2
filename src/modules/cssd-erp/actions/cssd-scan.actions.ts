@@ -157,41 +157,22 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
       }
       if (!ledger.ok) throw new Error(ledger.message);
     }
-    const nowCap = new Date().toISOString();
-    const capUpdate: Record<string, unknown> = {
-      thoi_gian_cap_phat: nowCap,
-      updated_at: nowCap,
-    };
-    if (operatorId) capUpdate.nguoi_cap_phat_id = operatorId;
     const maCaMoId = String(extraPayload?.ma_ca_mo_id || "").trim();
-    // SSOT khoa nhận: ưu tiên payload; không có thì giữ sẵn có / bootstrap từ khoa sở hữu bộ.
+    // SSOT khoa nhận: ưu tiên payload; không có thì giữ sẵn có / bootstrap từ khoa sở hữu bộ (trong RPC).
     const khoaNhanPayload = String(extraPayload?.khoa_nhan_id || "").trim();
-    if (khoaNhanPayload) {
-      capUpdate.khoa_nhan_id = khoaNhanPayload;
-    } else if (!preRow.khoa_nhan_id && preRow.bo_dung_cu_id) {
-      const { data: bo } = await supabase
-        .from("cssd_dm_bo_dung_cu")
-        .select("khoa_su_dung_id")
-        .eq("id", String(preRow.bo_dung_cu_id))
-        .maybeSingle();
-      const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
-      if (kid) capUpdate.khoa_nhan_id = kid;
-    }
-    if (!daCapPhat) {
-      const { data: capRows, error: capErr } = await supabase
-        .from("cssd_fact_quy_trinh")
-        .update(capUpdate)
-        .eq("id", preRow.id)
-        .is("thoi_gian_cap_phat", null)
-        .select("id");
-      if (capErr) throw new Error(capErr.message);
-      if (!capRows || capRows.length === 0) {
-        throw new Error("Bộ dụng cụ đã được cấp phát trước đó (hoặc vừa được người khác cấp phát). Tải lại để xem.");
-      }
-    }
     // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
     // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
-    if (maCaMoId) {
+    if (!daCapPhat) {
+      const { data: capRes, error: capErr } = await supabase.rpc("rpc_cssd_cap_phat_commit", {
+        p_quy_trinh_id: String(preRow.id),
+        p_nguoi_cap_phat_id: operatorId || null,
+        p_khoa_nhan_id: khoaNhanPayload || null,
+        p_ma_ca_mo_id: maCaMoId || null,
+      });
+      if (capErr) throw new Error(`Lỗi hệ thống: ${capErr.message}`);
+      const cap = capRes as { success?: boolean; message?: string } | null;
+      if (!cap?.success) throw new Error(cap?.message || "Không xác nhận được cấp phát.");
+    } else if (maCaMoId) {
       const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
         p_id: preRow.id,
         p_patch: { ma_ca_mo_id: maCaMoId },
@@ -245,49 +226,8 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
     maLoTietKhuan = String((me as { ma_lo_tiet_khuan?: string } | null)?.ma_lo_tiet_khuan || "");
   }
 
-  if (station === "CAP_PHAT" && fullQt?.id) {
-    const khoaNhanPayload = String(extraPayload?.khoa_nhan_id || "").trim();
-    const patch: Record<string, unknown> = {};
-    if (khoaNhanPayload) patch.khoa_nhan_id = khoaNhanPayload;
-    else if (!fullQt.khoa_nhan_id && fullQt.bo_dung_cu_id) {
-      const { data: bo } = await supabase
-        .from("cssd_dm_bo_dung_cu")
-        .select("khoa_su_dung_id")
-        .eq("id", String(fullQt.bo_dung_cu_id))
-        .maybeSingle();
-      const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
-      if (kid) patch.khoa_nhan_id = kid;
-    }
-    if (Object.keys(patch).length > 0) {
-      const { error: khoaErr } = await supabase
-        .from("cssd_fact_quy_trinh")
-        .update(patch)
-        .eq("id", String(fullQt.id));
-      if (khoaErr) throw khoaErr;
-    }
-  }
-
-  if (station === "DONG_GOI" && fullQt?.id) {
-    const qtId = String(fullQt.id);
-    const { data: cycleRes, error: cycleErr } = await supabase.rpc("rpc_cssd_assign_cycle_qr", {
-      p_quy_trinh_id: qtId,
-    });
-    if (cycleErr) throw cycleErr;
-    maCycleQr = String((cycleRes as { ma_cycle_qr?: string | null } | null)?.ma_cycle_qr || "").trim() || null;
-
-    if (!maCycleQr) {
-      const { data: refreshed, error: refErr } = await supabase
-        .from("cssd_fact_quy_trinh")
-        .select("ma_cycle_qr")
-        .eq("id", qtId)
-        .maybeSingle();
-      if (refErr) throw refErr;
-      maCycleQr = String((refreshed as { ma_cycle_qr?: string | null } | null)?.ma_cycle_qr || "").trim() || null;
-    }
-    if (!maCycleQr) {
-      throw new Error("Đóng gói đã ghi nhưng chưa gán được mã chu trình — thử quét lại hoặc báo quản trị.");
-    }
-  }
+  // Khoa nhận (CAP_PHAT) và mã chu trình (DONG_GOI) đã được RPC atomic xử lý cùng lần quét.
+  if (station === "DONG_GOI") maCycleQr = exec.maCycleQr;
 
   return {
     success: true as const,

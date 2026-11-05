@@ -155,69 +155,43 @@ describe("cssd-lifecycle.actions", () => {
   });
 
   describe("decommissionInstrumentsAction (BIZ-04.2)", () => {
-    it("decommissions from kho le by reducing reserve and inserting ledger", async () => {
-      mocks.from.mockImplementation((table: string) => {
-        if (table === "cssd_dm_loai_dung_cu") {
-          return {
-            select: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({
-                  data: { so_luong_kho_du_phong: 5 },
-                  error: null,
-                }),
-              }),
-            }),
-            update: () => ({
-              eq: async () => ({ error: null }),
-            }),
-          };
-        }
-        if (table === "cssd_fact_kho_giao_dich") {
-          return {
-            insert: async () => ({ error: null }),
-          };
-        }
-        return {};
-      });
+    const khoLeInput = {
+      sourceKind: "KHO_LE" as const,
+      loaiDungCuId: "loai-1",
+      soLuong: 2,
+      lyDoLoaiBien: "HAO_MON_CO_HOC" as const,
+      soBienBan: "BBTL-01",
+    };
 
-      const res = await decommissionInstrumentsAction({
-        sourceKind: "KHO_LE",
-        loaiDungCuId: "loai-1",
-        soLuong: 2,
-        lyDoLoaiBien: "HAO_MON_CO_HOC",
-        soBienBan: "BBTL-01",
-      });
-
+    it("decommissions from kho le via one atomic RPC", async () => {
+      mocks.rpc.mockResolvedValue({ data: { success: true, ton_con_lai: 3 }, error: null });
+      const res = await decommissionInstrumentsAction(khoLeInput);
       expect(res.success).toBe(true);
+      expect(mocks.rpc).toHaveBeenCalledTimes(1);
+      const [name, args] = mocks.rpc.mock.calls[0];
+      expect(name).toBe("rpc_cssd_decommission_kho_le");
+      expect(args).toMatchObject({ p_loai_dung_cu_id: "loai-1", p_so_luong: 2, p_nguoi_thuc_hien_id: "ns-test-01" });
+      expect(mocks.from).not.toHaveBeenCalled();
       expect(mocks.revalidateCssdInventorySurfaces).toHaveBeenCalled();
     });
 
-    it("rejects when kho le has insufficient reserve", async () => {
-      mocks.from.mockImplementation((table: string) => {
-        if (table === "cssd_dm_loai_dung_cu") {
-          return {
-            select: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({
-                  data: { so_luong_kho_du_phong: 1 },
-                  error: null,
-                }),
-              }),
-            }),
-          };
-        }
-        return {};
+    it("rejects KHONG_DU_TON with RPC message and does not revalidate", async () => {
+      mocks.rpc.mockResolvedValue({
+        data: { success: false, code: "KHONG_DU_TON", ton: 1, message: "Kho lẻ không đủ số lượng để loại biên (hiện có 1)." },
+        error: null,
       });
-
-      const res = await decommissionInstrumentsAction({
-        sourceKind: "KHO_LE",
-        loaiDungCuId: "loai-1",
-        soLuong: 5,
-        lyDoLoaiBien: "HAO_MON_CO_HOC",
-      });
-
+      const res = await decommissionInstrumentsAction({ ...khoLeInput, soLuong: 5 });
       expect(res.success).toBe(false);
       expect((res as { error: string }).error).toMatch(/không đủ số lượng/);
+      expect(mocks.revalidateCssdInventorySurfaces).not.toHaveBeenCalled();
+    });
+
+    it("surfaces RPC RAISE error (rolled back) as failure", async () => {
+      mocks.rpc.mockResolvedValue({ data: null, error: { message: "deadlock detected" } });
+      const res = await decommissionInstrumentsAction(khoLeInput);
+      expect(res.success).toBe(false);
+      expect((res as { error: string }).error).toMatch(/Lỗi hệ thống: deadlock detected/);
+      expect(mocks.revalidateCssdInventorySurfaces).not.toHaveBeenCalled();
     });
 
     it("decommissions from a set via RPC without incident", async () => {

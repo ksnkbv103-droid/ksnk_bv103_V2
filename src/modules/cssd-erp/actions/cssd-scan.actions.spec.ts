@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   ledger: { ok: true } as unknown,
   execScan: vi.fn(),
   updateResult: { data: [{ id: "x" }], error: null } as unknown,
+  rpc: vi.fn(),
 }));
 
 const QT_ID = "11111111-1111-4111-8111-111111111111";
@@ -24,7 +25,7 @@ vi.mock("@/lib/supabase-server", () => ({
         },
       };
     },
-    rpc: async () => ({ error: null }),
+    rpc: mocks.rpc,
   }),
   createServerSupabaseUserClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: "u", email: "a@b.c" } } }) } }),
 }));
@@ -61,6 +62,7 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     mocks.loMe = { data: { ma_lo_tiet_khuan: "L1", ket_qua_test: true } };
     mocks.ledger = { ok: true };
     mocks.updateResult = { data: [{ id: QT_ID }], error: null };
+    mocks.rpc.mockResolvedValue({ data: { success: true }, error: null });
   });
 
   it("mẻ chưa có kết quả nội kiểm thì không ghi", async () => {
@@ -81,19 +83,55 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     expect(mocks.update).not.toHaveBeenCalled();
   });
 
-  it("UPDATE 0 hàng (đã cấp phát đồng thời) trả lỗi rõ ràng", async () => {
-    mocks.updateResult = { data: [], error: null };
+  it("DA_CAP_PHAT từ RPC (cấp phát đồng thời) trả lỗi rõ ràng", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: { success: false, code: "DA_CAP_PHAT", message: "Bộ dụng cụ đã được cấp phát trước đó (hoặc vừa được người khác cấp phát). Tải lại để xem." },
+      error: null,
+    });
     await expect(scanQR("B01.SET.01", "CAP_PHAT")).rejects.toThrow(/đã được cấp phát/);
   });
 
-  it("đủ gate thì ghi và trả issuanceOnly", async () => {
+  it("KHOA_NHAN_KHONG_TON_TAI từ RPC trả lỗi rõ ràng", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: { success: false, code: "KHOA_NHAN_KHONG_TON_TAI", message: "Khoa nhận không tồn tại trong danh mục." },
+      error: null,
+    });
+    await expect(
+      scanQR("B01.SET.01", "CAP_PHAT", { khoa_nhan_id: "22222222-2222-4222-8222-222222222222" }),
+    ).rejects.toThrow(/Khoa nhận không tồn tại/);
+  });
+
+  it("RPC RAISE (error, đã hoàn tác) được báo là lỗi hệ thống", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { message: "guard_pack_issuance: gói không an toàn" } });
+    await expect(scanQR("B01.SET.01", "CAP_PHAT")).rejects.toThrow(/Lỗi hệ thống: guard_pack_issuance/);
+  });
+
+  it("đủ gate thì gọi rpc_cssd_cap_phat_commit một lần và trả issuanceOnly", async () => {
+    const res = await scanQR("B01.SET.01", "CAP_PHAT", {
+      khoa_nhan_id: "22222222-2222-4222-8222-222222222222",
+      ma_ca_mo_id: "CM1",
+    });
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+    expect(mocks.rpc).toHaveBeenCalledWith("rpc_cssd_cap_phat_commit", {
+      p_quy_trinh_id: QT_ID,
+      p_nguoi_cap_phat_id: null,
+      p_khoa_nhan_id: "22222222-2222-4222-8222-222222222222",
+      p_ma_ca_mo_id: "CM1",
+    });
+    expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
+  });
+
+  it("đã cấp phát: quét lại chỉ in phiếu, không gọi cap_phat_commit", async () => {
+    mocks.qt = { ...mocks.qt, thoi_gian_cap_phat: "2026-11-05T01:00:00Z" };
     const res = await scanQR("B01.SET.01", "CAP_PHAT");
-    expect(mocks.update).toHaveBeenCalledTimes(1);
+    expect(mocks.rpc).not.toHaveBeenCalled();
     expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
   });
 
   it("khoa_nhan_id không phải uuid bị từ chối trước mọi thao tác", async () => {
     await expect(scanQR("B01.SET.01", "CAP_PHAT", { khoa_nhan_id: "abc" })).rejects.toThrow(/khoa_nhan_id/);
     expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });
