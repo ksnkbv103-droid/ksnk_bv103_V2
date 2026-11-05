@@ -221,7 +221,14 @@ export async function getBaoCaoTongHopAnalytics(
   // CSSD phụ lục — luôn cố gắng tải khi chuyên đề ALL (không đổi CCS). Soft-fail.
   if (chuyenDe === "ALL") {
     tasks.push(
-      fetchCssdAnalyticsBundle({ from: f.tu_ngay, to: f.den_ngay, station: "ALL" }).then((res) => {
+      // Bundle CSSD là số liệu toàn viện (không lọc khoa) → tài khoản mạng lưới khóa khoa không được xem.
+      (lockNetwork
+        ? Promise.resolve({
+            success: false as const,
+            error: "Phụ lục CSSD chỉ dành cho KSNK/toàn viện — không có quyền (denied).",
+          })
+        : fetchCssdAnalyticsBundle({ from: f.tu_ngay, to: f.den_ngay, station: "ALL" })
+      ).then((res) => {
         if (!res.success) {
           sources.cssd = /permission|quyền|denied|403/i.test(res.error) ? "denied" : "error";
           errors.cssd = res.error;

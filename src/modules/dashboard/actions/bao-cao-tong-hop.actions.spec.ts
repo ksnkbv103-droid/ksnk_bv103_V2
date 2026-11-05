@@ -166,8 +166,10 @@ describe("getBaoCaoTongHopAnalytics RPC wiring", () => {
     expect(res.success).toBe(true);
     expect(mocks.getNkbv).toHaveBeenCalledWith(expect.objectContaining({ khoa_ghi_nhan_ids: ["khoa-A"] }));
     expect(mocks.thongKe).not.toHaveBeenCalled();
-    const p = (res as unknown as { data: { sources: { chat_thai_do_vai: string } } }).data;
+    expect(mocks.fetchCssd).not.toHaveBeenCalled();
+    const p = (res as unknown as { data: { sources: { chat_thai_do_vai: string; cssd: string } } }).data;
     expect(p.sources.chat_thai_do_vai).toBe("denied");
+    expect(p.sources.cssd).toBe("denied");
   });
 
   it("thiếu quyền HAU_CAN_MOI_TRUONG: phụ lục denied, không gọi thống kê", async () => {

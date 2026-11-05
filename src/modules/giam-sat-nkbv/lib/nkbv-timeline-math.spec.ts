@@ -404,3 +404,31 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.rit_end).toBe("2026-08-30");
   });
 });
+
+describe("DOE trước ngày nhập viện → RIT và HD cùng quy về ngày nhập viện (PO 2026-11-05)", () => {
+  const run = (doe: string) =>
+    calculateCdcMetrics({
+      ngay_phat_hien: doe,
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "UTI" as const,
+      activeForm: {},
+      symptomDates: {},
+      treatmentHistory: [],
+    });
+
+  it("DOE < nhập viện: HD=1, RIT = nhập viện + 13", () => {
+    const m = run("2026-05-08");
+    expect(m.dayOfHospitalization).toBe(1);
+    expect(m.rit_end).toBe("2026-05-23");
+  });
+  it("DOE = nhập viện: HD=1, RIT = DOE + 13", () => {
+    const m = run("2026-05-10");
+    expect(m.dayOfHospitalization).toBe(1);
+    expect(m.rit_end).toBe("2026-05-23");
+  });
+  it("DOE > nhập viện: giữ nguyên DOE", () => {
+    const m = run("2026-05-12");
+    expect(m.dayOfHospitalization).toBe(3);
+    expect(m.rit_end).toBe("2026-05-25");
+  });
+});
