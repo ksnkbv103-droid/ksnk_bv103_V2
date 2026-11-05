@@ -162,4 +162,9 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     displayName: "Đào tạo — Thi KSNK",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
+  {
+    code: "HAU_CAN_MOI_TRUONG",
+    displayName: "Hậu cần môi trường — Chất thải và đồ vải",
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE"]
+  },
 ];
