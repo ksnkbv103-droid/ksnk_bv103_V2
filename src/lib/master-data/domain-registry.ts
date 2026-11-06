@@ -100,7 +100,7 @@ export const DM_HUB_LABELS: Record<string, string> = {
   KHOA_PHONG: "Khoa phòng",
   TO_CONG_TAC: "Tổ công tác",
   CHUC_VU: "Chức vụ",
-  CHUC_DANH: "Chức danh",
+  CHUC_DANH: "Học vị / Học hàm",
   VAI_TRO_HE_THONG_KSNK: "Vai trò hệ thống KSNK",
   KHU_VUC_GIAM_SAT: "Khu vực giám sát",
   NGHE_NGHIEP: "Nghề nghiệp",

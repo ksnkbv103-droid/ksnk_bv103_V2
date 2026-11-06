@@ -217,6 +217,9 @@ function CssdDungCuPageInner() {
             <CSSDCatalogLoaiTab
               catalog={s.catalog}
               loaiRows={s.loaiRows}
+              page={s.loaiPage}
+              totalCount={s.loaiTotal}
+              onPageChange={s.setLoaiPage}
               selectedLoaiId={s.selectedLoaiId}
               setSelectedLoaiId={s.setSelectedLoaiId}
               selectedLoai={s.selectedLoai}

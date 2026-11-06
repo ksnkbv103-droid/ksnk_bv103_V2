@@ -80,6 +80,21 @@ export function normalizeSterileMethodForMaster(value: unknown): CssdSterileMeth
   return "STEAM_134";
 }
 
+export function isSteamMethod(m: CssdSterileMethod): boolean {
+  return m === "STEAM_134" || m === "STEAM_121";
+}
+
+/** Mảng phương pháp được phép: bỏ giá trị lạ + trùng, giữ thứ tự (phần tử đầu = ưu tiên). */
+export function normalizePhuongPhapChoPhep(raw: unknown): CssdSterileMethod[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CssdSterileMethod[] = [];
+  for (const v of raw) {
+    const m = String(v ?? "").trim().toUpperCase() as CssdSterileMethod;
+    if (STERILE.has(m) && !out.includes(m)) out.push(m);
+  }
+  return out;
+}
+
 export type ResolveLoaiSterileMethodResult =
   | { ok: true; method: CssdSterileMethod }
   | { ok: false; error: string };
@@ -305,8 +320,11 @@ export function buildLoaiPhysicalUpsertPayload(
       ? (input.specs as Record<string, unknown>)
       : {};
 
-  const isChiuNhiet =
-    input.is_chiu_nhiet !== undefined && input.is_chiu_nhiet !== null
+  const choPhep = normalizePhuongPhapChoPhep(input.phuong_phap_cho_phep);
+
+  const isChiuNhiet = choPhep.length
+    ? choPhep.some(isSteamMethod)
+    : input.is_chiu_nhiet !== undefined && input.is_chiu_nhiet !== null
       ? Boolean(input.is_chiu_nhiet)
       : mapKhaNangToIsChiuNhiet(
           input.kha_nang_chiu_nhiet ?? prevSpecs.kha_nang_chiu_nhiet,
@@ -316,10 +334,11 @@ export function buildLoaiPhysicalUpsertPayload(
     input.phan_loai_spaulding ?? prevSpecs.phan_loai_spaulding,
   );
 
-  const rawMethod =
-    input.phuong_phap_tiet_khuan_chi_dinh ??
-    input.phuong_phap_tiet_khuan ??
-    prevSpecs.phuong_phap_tiet_khuan;
+  const rawMethod = choPhep.length
+    ? choPhep[0]
+    : (input.phuong_phap_tiet_khuan_chi_dinh ??
+      input.phuong_phap_tiet_khuan ??
+      prevSpecs.phuong_phap_tiet_khuan);
   const resolved = resolveLoaiSterileMethod({
     isChiuNhiet,
     method: rawMethod,
@@ -355,6 +374,7 @@ export function buildLoaiPhysicalUpsertPayload(
     is_chiu_nhiet: isChiuNhiet,
     phan_loai_spaulding: spaulding,
     phuong_phap_tiet_khuan_chi_dinh: sterile,
+    phuong_phap_cho_phep: choPhep.length ? choPhep : [sterile],
   };
   if (mode === "create") {
     payload.so_luong_kho_du_phong = khoDuPhongBanDau(input.so_luong_kho_du_phong);

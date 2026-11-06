@@ -24,6 +24,7 @@ import {
   toggleLoaiDungCuStatusAction,
 } from "../actions/loai-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
+import { LoaiBulkPhuongPhapDialog } from "./loai-bulk-phuong-phap-dialog";
 
 function clip(s: string | null | undefined, n: number) {
   const t = String(s ?? "").trim();
@@ -58,6 +59,7 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
+  const [bulkPpIds, setBulkPpIds] = useState<string[] | null>(null);
   const modalKey = editing?.id ? `edit-${String(editing.id)}` : "create";
 
   const fetchAction = React.useCallback(async (params: ServerPaginationParams) => {
@@ -270,6 +272,13 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
                 r.id === selectedLoaiId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
               }
               onRowClick={(r) => setSelectedLoaiId((cur) => (cur === r.id ? null : r.id))}
+              bulkActions={(items) =>
+                canWriteMaster ? (
+                  <button type="button" onClick={() => setBulkPpIds(items.map((x) => x.id))} className={C.ctaAmber}>
+                    Sửa phương pháp ({items.length})
+                  </button>
+                ) : null
+              }
               onDeleteSelected={async (items) => {
                 if (!items.length) return;
                 if (!(await confirmAction(`Ngừng sử dụng ${items.length} loại dụng cụ?`))) return;
@@ -309,6 +318,14 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
           ) : null}
         </>
       )}
+      {canWriteMaster && bulkPpIds ? (
+        <LoaiBulkPhuongPhapDialog
+          ids={bulkPpIds}
+          open
+          onClose={() => setBulkPpIds(null)}
+          onDone={() => table.refresh()}
+        />
+      ) : null}
       {canWriteMaster ? (
       <LoaiDungCuFormModal
         key={modalKey}

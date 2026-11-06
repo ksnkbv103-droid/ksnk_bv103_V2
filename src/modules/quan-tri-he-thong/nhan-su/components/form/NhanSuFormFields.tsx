@@ -129,7 +129,7 @@ export default function NhanSuFormFields({
       </div>
 
       <div className="space-y-2">
-        <label className={F.formLabelInset}>Chức danh</label>
+        <label className={F.formLabelInset}>Học vị / Học hàm</label>
         <SearchableSelect
           value={formData.chuc_danh_id ?? ""}
           onChange={(id) => {

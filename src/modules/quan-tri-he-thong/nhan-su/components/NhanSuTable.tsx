@@ -375,7 +375,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       ) 
     },
     { 
-      header: "Chức vụ và chức danh",
+      header: "Chức vụ và học vị",
       accessorKey: "chuc_danh", 
       sortable: true, 
       cell: (i) => (

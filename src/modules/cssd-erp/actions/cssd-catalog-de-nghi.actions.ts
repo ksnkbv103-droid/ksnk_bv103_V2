@@ -193,7 +193,7 @@ export async function loadCatalogDeNghiPrefillAction(input: {
       let q = supabase
         .from("cssd_dm_loai_dung_cu")
         .select(
-          "id, ma_loai, ten_loai, mo_ta, specs, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh, phan_loai_spaulding, phan_loai, so_luong_kho_du_phong, is_active",
+          "id, ma_loai, ten_loai, mo_ta, specs, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep, phan_loai_spaulding, phan_loai, so_luong_kho_du_phong, is_active",
         )
         .limit(1);
       if (id) q = q.eq("id", id);
@@ -221,6 +221,7 @@ export async function loadCatalogDeNghiPrefillAction(input: {
           cong_dung: specs.cong_dung ?? "",
           is_chiu_nhiet: data.is_chiu_nhiet !== false,
           phuong_phap_tiet_khuan_chi_dinh: data.phuong_phap_tiet_khuan_chi_dinh || "STEAM_134",
+          phuong_phap_cho_phep: Array.isArray(data.phuong_phap_cho_phep) ? (data.phuong_phap_cho_phep as string[]) : [],
           phan_loai_spaulding: data.phan_loai_spaulding || "CRITICAL",
           phan_loai: data.phan_loai || "PHAU_THUAT",
           is_active: data.is_active !== false,

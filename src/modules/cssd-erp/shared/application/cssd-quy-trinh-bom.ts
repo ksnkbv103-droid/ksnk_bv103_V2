@@ -103,6 +103,7 @@ export type BomLineWithSpec = QuyTrinhBomLine & {
   is_chiu_nhiet: boolean;
   phan_loai_spaulding: string;
   phuong_phap_tiet_khuan_chi_dinh: string;
+  phuong_phap_cho_phep: string[];
 };
 
 /** Tải BOM runtime kèm thông số loại dụng cụ (Spaulding / chịu nhiệt). */
@@ -133,7 +134,8 @@ export async function loadBomLinesWithLoaiSpec(
           id,
           is_chiu_nhiet,
           phan_loai_spaulding,
-          phuong_phap_tiet_khuan_chi_dinh
+          phuong_phap_tiet_khuan_chi_dinh,
+          phuong_phap_cho_phep
         )
       `,
       )
@@ -156,6 +158,9 @@ export async function loadBomLinesWithLoaiSpec(
       is_chiu_nhiet: spec?.is_chiu_nhiet === true,
       phan_loai_spaulding: normalizeSpaulding(spec?.phan_loai_spaulding),
       phuong_phap_tiet_khuan_chi_dinh: normalizeSteamMethod(spec?.phuong_phap_tiet_khuan_chi_dinh),
+      phuong_phap_cho_phep: Array.isArray(spec?.phuong_phap_cho_phep)
+        ? (spec.phuong_phap_cho_phep as unknown[]).map((m) => String(m))
+        : [],
     };
   });
 

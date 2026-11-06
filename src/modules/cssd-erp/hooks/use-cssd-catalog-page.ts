@@ -40,7 +40,13 @@ export function useCssdCatalogPage() {
     setTabState(tabFromQuery(searchParams.get("tab")) || "BO");
   }, [searchParams]);
   const [catalog, setCatalog] = useState<Catalog>({ bo: [], chi_tiet: [], loai: [], hoa_chat: [] });
-  const [q, setQ] = useState("");
+  const [q, setQState] = useState("");
+  const [loaiPage, setLoaiPage] = useState(1);
+  const [loaiTotal, setLoaiTotal] = useState(0);
+  const setQ = useCallback((v: string) => {
+    setQState(v);
+    setLoaiPage(1);
+  }, []);
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
   const [boBySelectedLoai, setBoBySelectedLoai] = useState<CSSDBo[]>([]);
@@ -64,11 +70,14 @@ export function useCssdCatalogPage() {
   useEffect(() => {
     if (tab !== "LOAI") return;
     const t = window.setTimeout(async () => {
-      const res = await searchKhoCatalogLoaiAction(q);
-      if (res.success) setCatalog((c) => ({ ...c, loai: res.data }));
+      const res = await searchKhoCatalogLoaiAction(q, loaiPage);
+      if (res.success) {
+        setCatalog((c) => ({ ...c, loai: res.data }));
+        setLoaiTotal(res.totalCount);
+      }
     }, 300);
     return () => window.clearTimeout(t);
-  }, [tab, q]);
+  }, [tab, q, loaiPage]);
 
   useEffect(() => {
     if (!selectedLoaiId) {
@@ -166,6 +175,9 @@ export function useCssdCatalogPage() {
     reload,
     boRows,
     loaiRows: catalog.loai,
+    loaiPage,
+    setLoaiPage,
+    loaiTotal,
     selectedBo,
     selectedLoai,
     boBySelectedLoai,

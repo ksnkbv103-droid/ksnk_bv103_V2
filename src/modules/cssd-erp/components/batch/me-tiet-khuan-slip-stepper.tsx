@@ -2,18 +2,21 @@
 
 import { Check } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import type { MeMocByStep } from "../../lib/me-tiet-khuan-moc";
 import type { MeSlipStep } from "../../lib/me-tiet-khuan-slip-ux";
 
 const STEPS: { n: MeSlipStep; label: string }[] = [
   { n: 1, label: "Máy" },
   { n: 2, label: "Chương trình" },
   { n: 3, label: "Quét bộ" },
-  { n: 4, label: "Bắt đầu" },
-  { n: 5, label: "Kết thúc" },
-  { n: 6, label: "Nhả" },
+  { n: 4, label: "Kết thúc nạp" },
+  { n: 5, label: "Bắt đầu tiệt khuẩn" },
+  { n: 6, label: "Kết thúc tiệt khuẩn" },
+  { n: 7, label: "Nhả" },
 ];
 
-export function MeTietKhuanSlipStepper({ current }: { current: MeSlipStep }) {
+/** `moc`: người + giờ từng mốc (từ nhật ký mẻ) — hiện dưới tên bước đã làm. */
+export function MeTietKhuanSlipStepper({ current, moc = {} }: { current: MeSlipStep; moc?: MeMocByStep }) {
   return (
     <ol className="flex gap-1 overflow-x-auto rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50 p-2" aria-label="Các bước phiếu mẻ">
       {STEPS.map((step) => {
@@ -22,7 +25,7 @@ export function MeTietKhuanSlipStepper({ current }: { current: MeSlipStep }) {
           <li
             key={step.n}
             aria-current={state === "current" ? "step" : undefined}
-            className={`flex min-w-[6.5rem] flex-1 items-center gap-2 rounded-xl border px-2 py-2 ${
+            className={`flex min-w-[7.5rem] flex-1 items-center gap-2 rounded-xl border px-2 py-2 ${
               state === "current"
                 ? "border-emerald-600 bg-white shadow-sm"
                 : state === "done"
@@ -43,6 +46,11 @@ export function MeTietKhuanSlipStepper({ current }: { current: MeSlipStep }) {
             </span>
             <span className={`text-xs font-semibold ${state === "todo" ? "text-slate-400" : "text-slate-800"}`}>
               {step.label}
+              {moc[step.n] ? (
+                <span className="block text-[11px] font-normal text-slate-500">
+                  {moc[step.n]?.ten} · {moc[step.n]?.gio}
+                </span>
+              ) : null}
             </span>
           </li>
         );

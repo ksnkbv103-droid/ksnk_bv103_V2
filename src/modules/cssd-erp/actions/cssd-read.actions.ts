@@ -10,7 +10,7 @@ import { CSSD_ACTIVE_PAGE_SIZE, nextActivePageFrom } from "../helpers/cssd-activ
 import { cssdTiepNhanWaitingItems } from "../helpers/cssd-tiep-nhan-waiting";
 import { quyTrinhIdsWithEffectiveRedAlert } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import { isChoThuVeCycle } from "@/modules/cssd-su-co/domain/cssd-batch-recall-hold";
-import { filterOutRecallPending } from "../helpers/cssd-cap-phat-waiting";
+import { filterOutExpiredPacks, filterOutRecallPending } from "../helpers/cssd-cap-phat-waiting";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 async function fetchAllActiveRows<T>(
@@ -103,7 +103,7 @@ export async function getWaitingListByStation(station: Station) {
       supabase
         .from("v_cssd_quy_trinh_full")
         .select(
-          "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, ma_ca_mo_id, lo_tiet_khuan_id",
+          "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, ma_ca_mo_id, lo_tiet_khuan_id, han_su_dung, ngay_het_han",
         )
         .eq("tram_hien_tai_id", capTramId)
         .eq("is_active", true)
@@ -148,7 +148,7 @@ export async function getWaitingListByStation(station: Station) {
         if (isChoThuVeCycle((m as { metadata?: unknown }).metadata)) recallPendingIds.add(String((m as { id: string }).id));
       }
     }
-    const filtered = filterOutRecallPending(passedRows, recallPendingIds);
+    const filtered = filterOutExpiredPacks(filterOutRecallPending(passedRows, recallPendingIds));
     const nguoiIds = [
       ...new Set(filtered.map((x) => String(x[prevCols.nguoiCol] || "").trim()).filter(Boolean)),
     ];
