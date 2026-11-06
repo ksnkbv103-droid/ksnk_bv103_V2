@@ -120,7 +120,7 @@ export async function resolveKhoiForKhoaPhongImport(
     const like = await sb
       .from("mdm_dm_khoi_khoa")
       .select("id")
-      .ilike("ten_khoi", `%${t.replace(/%/g, "\\%")}%`)
+      .ilike("ten_khoi", `%${t.replace(/[\\%_]/g, "\\$&")}%`)
       .limit(1)
       .maybeSingle();
     if (!like.error && like.data?.id) return like.data as { id: string };
