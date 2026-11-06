@@ -26,14 +26,14 @@ WHERE r.name = 'ADMIN'
   AND p.module_name = 'HAU_CAN_MOI_TRUONG'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
--- Gán quyền cho NHAN_VIEN_KSNK (view, create, edit)
+-- Gán quyền cho NHAN_VIEN_KSNK (chỉ create — PO 2026-11-06)
 INSERT INTO public.sys_role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM public.sys_roles r
 CROSS JOIN public.sys_permissions p
 WHERE r.name = 'NHAN_VIEN_KSNK'
   AND p.module_name = 'HAU_CAN_MOI_TRUONG'
-  AND p.action IN ('view', 'create', 'edit')
+  AND p.action = 'create'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
 -- Gán quyền cho HOI_DONG_KSNK (view)
