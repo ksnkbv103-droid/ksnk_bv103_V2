@@ -185,7 +185,7 @@ Luật thuần: `src/lib/dao-tao/exam-engine.ts` + `shuffle.ts`.
 | Đồng hồ | Hạn nộp = giờ bắt đầu + số phút cấu hình, theo **máy chủ** (không tin đồng hồ máy thí sinh) |
 | Lưu từng câu | Chỉ khi bài còn `dang_lam` và đúng chủ bài |
 | Nộp đúng hạn | Trạng thái `da_nop` |
-| Nộp sau hạn | Vẫn chấm điểm; trạng thái `het_gio`. Có **ân hạn 30 giây** trước khi coi là muộn (vẫn `het_gio` nếu đã quá hạn) |
+| Nộp sau hạn | Vẫn chấm điểm; trạng thái `het_gio`; thi thật nộp quá ân hạn → `dat=false` (PO 2026-10-24). Có **ân hạn 30 giây** trước khi coi là muộn (vẫn `het_gio` nếu đã quá hạn) |
 | Xem lại | Thí sinh xem bài của mình. Quản trị (`DAO_TAO` xem) chỉ xem bài **đã nộp** của người khác |
 | Sửa ngân hàng sau khi phát đề | **Không** đổi đề / đáp án của lần đã phát |
 

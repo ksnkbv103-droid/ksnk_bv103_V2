@@ -8,7 +8,7 @@ import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 import NkbvRuledOutSection from "../NkbvRuledOutSection";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 interface UtiClinicalSubFormProps {
   form: UtiVerificationData;
@@ -39,7 +39,7 @@ export default function UtiClinicalSubForm({
   liveDeviceActive,
   ngayVaoVien,
   ngayPhatHien,
-  ngaySinh,
+  ngaySinh: _ngaySinh,
   iwpStart,
   iwpEnd,
   activeTab = "LAM_SANG",
@@ -52,7 +52,7 @@ export default function UtiClinicalSubForm({
   const isMicrobiologyBlocked = form.pathogen_count > 2 || form.has_fungi_yeast_parasite;
   const cleanNgayVaoVien = vnYmd(ngayVaoVien);
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayYmdInVn();
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
   const foleyActive =

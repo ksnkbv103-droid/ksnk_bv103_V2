@@ -75,13 +75,23 @@ export type BaAnalysisSessionDraft = {
     priorEventId?: string | null;
     secondarySites?: string[];
   } | null;
-  /**
-   * XN (và CĐHA) ∈ RIT của phiên đang phân tích — user đã bấm xác nhận «Đã phân tích».
+  /** XN (và CĐHA) ∈ RIT của phiên đang phân tích — user đã bấm xác nhận «Đã phân tích».
    * Không khóa tạo phiếu Index; chỉ gắn attributed khi chốt phiếu.
    */
   ritAttributedIds?: string[];
   /** Chế độ phiên — CDC máy gợi ý / MANUAL IP tự KL. */
   analysisMode?: BaAnalysisMode;
+  /** VAE — thông số máy thở theo ngày + cờ ngoại trừ / IVAC / PVAP. */
+  vaeVentDailyParams?: import("./nkbv-vae-vent-compute").VaeVentDailyRow[];
+  vaeOnEcmo?: boolean;
+  vaeOnHfv?: boolean;
+  vaeOnAprv?: boolean;
+  vaeNewAntimicrobial4d?: boolean;
+  vaePurulentSputum?: boolean;
+  vaeTempOrWbcAbnormal?: boolean;
+  /** Chapter 17 — mã loại site cụ thể (SKIN, IAB, BONE...) + cờ tiêu chuẩn. */
+  ch17TypeCode?: string;
+  ch17Flags?: Record<string, boolean>;
 };
 
 export type BaAnalysisSession = {

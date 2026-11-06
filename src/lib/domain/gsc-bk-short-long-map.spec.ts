@@ -10,6 +10,9 @@ describe("gsc-bk-short-long-map GSC-02/VST-04", () => {
   it("canonicalizes short → dài", () => {
     expect(canonicalizeBangKiemMaForStats("BM.26.01")).toBe("KSNK.QT.32.BM.01");
     expect(canonicalizeBangKiemMaForStats("KSNK.QT.32.BM.01")).toBe("KSNK.QT.32.BM.01");
+    expect(canonicalizeBangKiemMaForStats("BM.12.01")).toBe("KSNK.QT.12.BM.01");
+    expect(canonicalizeBangKiemMaForStats("BM.13.01")).toBe("KSNK.QT.13.BM.01");
+    expect(canonicalizeBangKiemMaForStats("BM.13.02")).toBe("KSNK.QT.13.BM.02");
   });
 
   it("nhật ký MEC/BSC không map sang QT.19 / QĐ.20", () => {

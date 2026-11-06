@@ -408,45 +408,47 @@ export function SubmittedSuccessView({
   const incidentId = incident && typeof incident === "object" ? String(incident.id || "") : "";
   const journalHref = incidentId ? cssdSuCoIncidentJournalHref(incidentId) : cssdSuCoIncidentJournalHref();
   return (
-    <div className="mx-auto my-4 max-w-2xl animate-in space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-slate-200 bg-white p-5 text-center shadow-sm fade-in duration-300 sm:my-6 sm:p-6">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-        <CheckCircle2 size={28} />
-      </div>
-      <h3 className={UI.modalTitle}>{luanChuyen ? "Đã ghi luân chuyển" : "Ghi nhận thành công!"}</h3>
-      <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
-        {luanChuyen
-          ? "Số lượng đã chuyển kho ↔ bộ hoặc bộ ↔ bộ. Xem sổ tại Lịch sử kho."
-          : "Biên bản đã lưu — in hoặc mở nhật ký để xem lại."}
-      </p>
-      <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row sm:flex-wrap">
-        {luanChuyen ? null : (
-          <button type="button" onClick={() => window.print()} className={`${T.btnPrimary} w-full justify-center sm:w-auto`}>
-            <Printer size={16} /> In biên bản
+    <>
+      <div className="mx-auto my-4 max-w-2xl animate-in space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-slate-200 bg-white p-5 text-center shadow-sm fade-in duration-300 sm:my-6 sm:p-6 print:hidden">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <CheckCircle2 size={28} />
+        </div>
+        <h3 className={UI.modalTitle}>{luanChuyen ? "Đã ghi luân chuyển" : "Ghi nhận thành công!"}</h3>
+        <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
+          {luanChuyen
+            ? "Số lượng đã chuyển kho ↔ bộ hoặc bộ ↔ bộ. Xem sổ tại Lịch sử kho."
+            : "Biên bản đã lưu — in hoặc mở nhật ký để xem lại."}
+        </p>
+        <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row sm:flex-wrap">
+          {luanChuyen ? null : (
+            <button type="button" onClick={() => window.print()} className={`${T.btnPrimary} w-full justify-center sm:w-auto`}>
+              <Printer size={16} /> In biên bản
+            </button>
+          )}
+          <Link
+            href={luanChuyen ? "/cssd-dung-cu?tab=HISTORY" : journalHref}
+            className={`${T.btnSecondary} w-full justify-center sm:w-auto`}
+          >
+            {luanChuyen ? "Xem lịch sử kho" : "Xem nhật ký"}
+          </Link>
+          <button type="button" onClick={onReset} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
+            <PlusCircle size={16} /> {luanChuyen ? "Ghi tiếp" : "Báo cáo mới"}
           </button>
-        )}
-        <Link
-          href={luanChuyen ? "/cssd-dung-cu?tab=HISTORY" : journalHref}
-          className={`${T.btnSecondary} w-full justify-center sm:w-auto`}
-        >
-          {luanChuyen ? "Xem lịch sử kho" : "Xem nhật ký"}
-        </Link>
-        <button type="button" onClick={onReset} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
-          <PlusCircle size={16} /> {luanChuyen ? "Ghi tiếp" : "Báo cáo mới"}
-        </button>
-        {onClose ? (
-          <button type="button" onClick={onClose} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
-            Đóng
-          </button>
-        ) : null}
+          {onClose ? (
+            <button type="button" onClick={onClose} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
+              Đóng
+            </button>
+          ) : null}
+        </div>
       </div>
       {luanChuyen ? null : <IncidentPrintView incident={incident} details={details} />}
-    </div>
+    </>
   );
 }
 
 export function ChemicalContextFields({
-  machineId,
-  setMachineId,
+  chemicalId,
+  setChemicalId,
   maLo,
   setMaLo,
   chemicals,
@@ -457,8 +459,8 @@ export function ChemicalContextFields({
   wide = false,
   renderStationOverride,
 }: {
-  machineId: string;
-  setMachineId: (v: string) => void;
+  chemicalId: string;
+  setChemicalId: (v: string) => void;
   maLo: string;
   setMaLo: (v: string) => void;
   chemicals: { id: string; ten: string; ma: string }[];
@@ -475,8 +477,8 @@ export function ChemicalContextFields({
       <div className="space-y-1.5">
         <label className={bv103LayoutChrome.labelBlock}>Hóa chất / vật tư *</label>
         <select
-          value={machineId}
-          onChange={(e) => setMachineId(e.target.value)}
+          value={chemicalId}
+          onChange={(e) => setChemicalId(e.target.value)}
           className={`${bv103LayoutChrome.controlSelectNative} bg-slate-50`}
           required
         >

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   isMyQlcvTask,
+  isWatchingQlcvTask,
+  isQlcvHomNayCuaToi,
   isQlcvChoToiDuyet,
   matchesQlcvBoardFilter,
 } from "./qlcv-board-filter";
@@ -23,6 +25,15 @@ describe("isMyQlcvTask", () => {
 
   it("rejects without actor", () => {
     expect(isMyQlcvTask({ nguoi_phu_trach_id: "ns-01" }, null)).toBe(false);
+  });
+
+  it("matches collaborator", () => {
+    expect(
+      isMyQlcvTask(
+        { nguoi_phu_trach_id: "ns-01", nguoi_phoi_hop_ids: ["ns-02", "ns-03"] },
+        "ns-02",
+      ),
+    ).toBe(true);
   });
 
   it("excludes closed tasks", () => {
@@ -126,5 +137,63 @@ describe("isQlcvChoToiDuyet Domain 24=A actor lens", () => {
   it("không hiện open global không dính actor", () => {
     expect(isQlcvChoToiDuyet({ ...choNt }, "stranger")).toBe(false);
     expect(isQlcvChoToiDuyet({ ...dexuat }, "stranger")).toBe(false);
+  });
+});
+
+describe("HOM_NAY (lịch VN)", () => {
+  // 2026-10-28 00:30 VN = 2026-10-27T17:30Z
+  const now = new Date("2026-10-27T17:30:00Z");
+  const mine = { nguoi_phu_trach_id: "ns-01", trang_thai: "DANG_LAM" };
+
+  it("hạn 00:00 VN hôm nay (lưu 17:00Z hôm trước) → khớp", () => {
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-27T17:00:00Z" }, "ns-01", now)).toBe(true);
+  });
+
+  it("hạn ngày thuần hôm nay → khớp; hôm qua/mai → không", () => {
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-28" }, "ns-01", now)).toBe(true);
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-27" }, "ns-01", now)).toBe(false);
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: "2026-10-29" }, "ns-01", now)).toBe(false);
+  });
+
+  it("loại việc đã đóng, của người khác, không hạn", () => {
+    const han = "2026-10-28";
+    expect(isQlcvHomNayCuaToi({ ...mine, trang_thai: "HOAN_THANH", han_hoan_thanh: han }, "ns-01", now)).toBe(false);
+    expect(isQlcvHomNayCuaToi({ ...mine, nguoi_phu_trach_id: "ns-09", han_hoan_thanh: han }, "ns-01", now)).toBe(false);
+    expect(isQlcvHomNayCuaToi({ ...mine, han_hoan_thanh: null }, "ns-01", now)).toBe(false);
+  });
+});
+
+describe("isWatchingQlcvTask", () => {
+  it("khớp khi actorStaffId nằm trong nguoi_theo_doi_ids", () => {
+    expect(
+      isWatchingQlcvTask({ nguoi_theo_doi_ids: ["ns-01", "ns-02"] }, "ns-01"),
+    ).toBe(true);
+  });
+
+  it("không khớp khi actorStaffId không nằm trong danh sách theo dõi", () => {
+    expect(
+      isWatchingQlcvTask({ nguoi_theo_doi_ids: ["ns-02"] }, "ns-01"),
+    ).toBe(false);
+  });
+
+  it("không khớp với việc đã đóng", () => {
+    expect(
+      isWatchingQlcvTask(
+        { nguoi_theo_doi_ids: ["ns-01"], trang_thai: "HOAN_THANH" },
+        "ns-01",
+      ),
+    ).toBe(false);
+  });
+
+  it("lọc đúng qua matchesQlcvBoardFilter WATCHING", () => {
+    const rows = [
+      { id: "1", nguoi_theo_doi_ids: ["ns-01"] },
+      { id: "2", nguoi_theo_doi_ids: ["ns-02"] },
+    ];
+    const watching = rows.filter((r) =>
+      matchesQlcvBoardFilter(r, "WATCHING", { actorStaffId: "ns-01" }),
+    );
+    expect(watching).toHaveLength(1);
+    expect(watching[0]?.id).toBe("1");
   });
 });

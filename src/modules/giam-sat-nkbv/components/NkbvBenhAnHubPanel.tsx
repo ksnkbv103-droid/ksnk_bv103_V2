@@ -17,6 +17,7 @@ import {
   upsertNkbvBaTimelineMilestone,
   type NkbvBenhAnHubCase,
 } from "../actions/giam-sat-nkbv.actions";
+import { getGiamSatNkbvCaById } from "../actions/giam-sat-nkbv-read.actions";
 import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { ImportWindowAlert } from "../lib/nkbv-import-window-scan";
@@ -46,10 +47,11 @@ const NkbvBaMultiTimelineWorkspace = dynamic(
   { loading: hubIslandLoading },
 );
 
-/** Case sheet + diagnostic form — only when «Tạo phiếu» sheet is open. */
-const NkbvBaCaseSheet = dynamic(() => import("./NkbvBaCaseSheet"), {
-  loading: () => <p className="text-xs text-slate-500">Đang tải form phiếu…</p>,
-});
+/** Modal chẩn đoán ca bệnh lâm sàng chuẩn hóa toàn diện CDC/NHSN */
+const NkbvClinicalChecklistModal = dynamic(
+  () => import("./NkbvClinicalChecklistModal"),
+  { ssr: false },
+);
 
 type KhoaOpt = { id: string; ma_danh_muc?: string; ten_danh_muc?: string };
 
@@ -110,7 +112,7 @@ export default function NkbvBenhAnHubPanel({
   const [alerts, setAlerts] = useState<ImportWindowAlert[]>([]);
   const [mdroCount, setMdroCount] = useState(0);
   const [hasActiveVent, setHasActiveVent] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [_selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [criteriaPick, setCriteriaPick] = useState(NKBV_CRITERIA_ADD_CATALOG[0].criteriaKey);
   const [manualDate, setManualDate] = useState("");
@@ -127,7 +129,6 @@ export default function NkbvBenhAnHubPanel({
     [],
   );
   const [chuaPhanTichCount, setChuaPhanTichCount] = useState(0);
-  const ensureSeqRef = React.useRef(0);
   const ensureCaseRef = React.useRef(onEnsureAnalysisCase);
   useEffect(() => {
     ensureCaseRef.current = onEnsureAnalysisCase;
@@ -429,7 +430,6 @@ export default function NkbvBenhAnHubPanel({
     const milestoneId = indexMilestone.id;
     const cachedId = caseIdByMilestone[milestoneId] || linkedCase?.id || null;
     if (cachedId) {
-      setPhieuSheetOpen(true);
       setAnalysisLoading(true);
       void ensureCaseRef
         .current({
@@ -476,6 +476,7 @@ export default function NkbvBenhAnHubPanel({
       PNEU: "HAP",
       VAE: "VAE",
       SSI: "SSI",
+      CH17: "CH17",
     };
     const gate =
       input.analysisSeed?.checklistGate ||
@@ -549,25 +550,18 @@ export default function NkbvBenhAnHubPanel({
     void reload({ silent: true });
   };
 
-  const persistDraftForSheet = async (): Promise<Record<string, unknown> | null> => {
-    if (!stay || !indexMilestone || !gatePreview) return null;
-    const res = await ensureCaseRef.current({
-      stay,
-      milestone: indexMilestone,
-      gate: gatePreview.gate,
-      existingCaseId: linkedCase?.id || caseIdByMilestone[indexMilestone.id] || null,
-    });
-    if (!res.success || !res.caseRow) {
-      setAnalysisError(res.error || "Không neo được phiếu");
-      return null;
-    }
-    const cid = String(res.caseRow.id || "");
-    if (cid) {
-      setCaseIdByMilestone((prev) => ({ ...prev, [indexMilestone.id]: cid }));
-    }
-    setAnalysisRow(res.caseRow);
-    setAnalysisError(null);
-    return res.caseRow;
+  const handleOpenCase = (caseId: string) => {
+    void (async () => {
+      setAnalysisLoading(true);
+      const res = await getGiamSatNkbvCaById(caseId);
+      setAnalysisLoading(false);
+      if (res.success && res.data) {
+        setAnalysisRow(res.data as unknown as Record<string, unknown>);
+        setPhieuSheetOpen(true);
+      } else {
+        onOpenCase(caseId);
+      }
+    })();
   };
 
   const defaultKhoaMa = (() => {
@@ -642,6 +636,55 @@ export default function NkbvBenhAnHubPanel({
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </button>
+            {allowedCreate ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAddOpen((v) => !v)}
+                  className={`${C.ctaSecondary} inline-flex min-h-10 items-center gap-1.5 px-3 text-xs`}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Thêm CĐHA / mốc
+                </button>
+                {addOpen ? (
+                  <div className="absolute right-0 top-full mt-1.5 z-50 flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2.5 shadow-xl">
+                    <select
+                      value={criteriaPick}
+                      onChange={(e) => setCriteriaPick(e.target.value as typeof criteriaPick)}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-800"
+                    >
+                      {NKBV_CRITERIA_ADD_CATALOG.map((k) => (
+                        <option key={k.criteriaKey} value={k.criteriaKey}>
+                          {k.title}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      value={manualDate}
+                      onChange={(e) => setManualDate(e.target.value)}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void saveManual();
+                        setAddOpen(false);
+                      }}
+                      className={`${C.ctaPrimary} px-3 py-1.5 text-xs`}
+                    >
+                      Lưu
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddOpen(false)}
+                      className="rounded-lg px-2 py-1 text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      Đóng
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             {allowedEdit && stay ? (
               <button
                 type="button"
@@ -722,131 +765,36 @@ export default function NkbvBenhAnHubPanel({
               onReload={() => void reload({ silent: true })}
               onTimelineUpsertLocal={upsertTimelineLocal}
               onTimelineRemoveLocal={removeTimelineLocal}
+              onOpenCase={handleOpenCase}
             />
           )}
           </div>
-
-          <details
-            className="relative z-0 max-h-[28vh] shrink-0 overflow-hidden border-t border-slate-200 bg-slate-50/90 open:max-h-[36vh]"
-            open={phieuSheetOpen}
-          >
-            <summary className="cursor-pointer px-3 py-1.5 text-xs font-medium text-slate-600">
-              Kho phiếu / form sau khi tạo phiếu
-              {gatePreview
-                ? ` · ${NKBV_CHECKLIST_TYPE_LABELS[gatePreview.gate]} · Index ${formatDateVi(gatePreview.indexDate)}`
-                : ""}
-              {cases.length ? ` · ${cases.length} sự kiện` : ""}
-              {chuaPhanTichCount ? ` · ${chuaPhanTichCount} XN chưa PT` : ""}
-            </summary>
-            <div className="max-h-[40vh] space-y-2 overflow-y-auto border-t border-slate-50 px-3 py-2">
-              {allowedCreate ? (
-                <div className="flex flex-wrap items-end gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setAddOpen((v) => !v)}
-                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700"
-                  >
-                    <Plus className="h-3 w-3" /> Thêm CĐHA / yếu tố
-                  </button>
-                  {addOpen ? (
-                    <>
-                      <select
-                        value={criteriaPick}
-                        onChange={(e) => setCriteriaPick(e.target.value as typeof criteriaPick)}
-                        className="rounded-lg border-0 bg-slate-50 px-2 py-1.5"
-                      >
-                        {NKBV_CRITERIA_ADD_CATALOG.map((k) => (
-                          <option key={k.criteriaKey} value={k.criteriaKey}>
-                            {k.title}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="date"
-                        value={manualDate}
-                        onChange={(e) => setManualDate(e.target.value)}
-                        className="rounded-lg border-0 bg-slate-50 px-2 py-1.5"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void saveManual()}
-                        className={`${C.ctaPrimary} text-xs`}
-                      >
-                        Lưu
-                      </button>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {analysisError ? (
-                <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-900">{analysisError}</p>
-              ) : null}
-              {postEvent ? (
-                <p className="text-[11px] text-slate-600">
-                  Sau sự kiện: DOE {formatDateVi(postEvent.doe)} · <strong>{haiPoaLabel(postEvent.poaHai)}</strong>{" "}
-                  · RIT → {formatDateVi(postEvent.ritEnd)}
-                </p>
-              ) : null}
-
-              {analysisLoading ? (
-                <p className="text-xs text-slate-500">Đang tạo / tải phiếu…</p>
-              ) : phieuSheetOpen && indexMilestone && gatePreview && analysisRow ? (
-                <NkbvBaCaseSheet
-                  key={`sheet-${indexMilestone.id}-${String(analysisRow.id || "")}`}
-                  row={analysisRow}
-                  allowedEdit={allowedEdit || allowedCreate}
-                  khoas={khoas.map((k) => ({
-                    id: k.id,
-                    ten_danh_muc: k.ten_danh_muc || k.ma_danh_muc || k.id,
-                  }))}
-                  milestoneLabel={`${formatDateVi(indexMilestone.date)} · ${indexMilestone.title}`}
-                  timelineMilestones={timeline}
-                  attachSymptomRef={attachSymptomRef}
-                  persistDraft={persistDraftForSheet}
-                  onTimelineSynced={() => void reload()}
-                  onSuccess={() => {
-                    void reload();
-                    onCaseMutated?.();
-                  }}
-                />
-              ) : (
-                <p className="text-xs text-slate-500">
-                  Phân tích trên bảng hội chứng trước. Khi xong kết luận, bấm «Tạo phiếu phân tích trên
-                  bệnh án» — form mẫu mới hiện tại đây.
-                </p>
-              )}
-
-              <details className="text-xs">
-                <summary className="cursor-pointer font-semibold text-slate-600">
-                  Phiếu đã chốt trên bệnh án
-                </summary>
-                <div className="mt-2 space-y-2">
-                  <p className="text-[11px] text-slate-500">
-                    Foley / máy / CVC và khoa: sửa trên lưới ngày. Phiếu đọc theo bệnh án.
-                  </p>
-                  <ul className="divide-y divide-slate-100">
-                    {cases.map((c) => (
-                      <li key={c.id} className="flex justify-between gap-2 py-1.5">
-                        <span>
-                          {c.loai_ten || c.loai_ma} · DOE {c.doe ? formatDateVi(c.doe) : "—"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onOpenCase(c.id)}
-                          className="font-semibold text-[var(--primary)]"
-                        >
-                          Mở
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </details>
-            </div>
-          </details>
         </div>
       </DialogContent>
+
+      {phieuSheetOpen && analysisRow ? (
+        <NkbvClinicalChecklistModal
+          row={analysisRow}
+          onClose={() => {
+            setPhieuSheetOpen(false);
+            setAnalysisRow(null);
+          }}
+          onSuccess={() => {
+            setPhieuSheetOpen(false);
+            setAnalysisRow(null);
+            void reload();
+            onCaseMutated?.();
+          }}
+          allowedEdit={allowedEdit || allowedCreate}
+          khoas={khoas.map((k) => ({
+            id: k.id,
+            ten_danh_muc: k.ten_danh_muc || k.ma_danh_muc || k.id,
+          }))}
+          onOpenTimeline={() => {
+            setPhieuSheetOpen(false);
+          }}
+        />
+      ) : null}
     </Dialog>
   );
 }

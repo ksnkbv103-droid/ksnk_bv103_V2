@@ -2,9 +2,12 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
 import { criteriaKeyToDungCuLoai } from "../lib/nkbv-ba-ngay";
 import { syncNkbvPhieuFromBaNgay } from "../lib/nkbv-ba-ngay-sync";
+import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
+import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { vnYmd } from "@/lib/format-datetime-vi";
 import { nkbvBaNgayDungCuSchema, nkbvBaNgayKhoaSchema } from "@/lib/validations/giam-sat-nkbv.validations";
 
@@ -42,6 +45,13 @@ export async function upsertNkbvBaNgayKhoa(input: {
   const parsed = nkbvBaNgayKhoaSchema.safeParse(input);
   if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
   const { ma_benh_an: ma, ngay_lich: date, khoa_id: khoaId } = parsed.data;
+  const restriction = await getNkbvKhoaRestriction();
+  if (!(await isNkbvBenhAnInScope(restriction, ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+  if (khoaId && !nkbvKhoaVisible(restriction, [khoaId])) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
 
   const bounds = await stayBounds(ma);
   if (!bounds.ok) return { success: false as const, error: bounds.error };
@@ -57,8 +67,21 @@ export async function upsertNkbvBaNgayKhoa(input: {
       .eq("ma_benh_an", ma)
       .eq("ngay_lich", date);
     if (error) return { success: false as const, error: error.message };
+    if (date === vv) {
+      // Ô khoa ngày vào viện đã xóa → BA không còn hiện theo khoa điều trị cũ.
+      await supabase
+        .from("nkbv_fact_benh_an")
+        .update({ khoa_dieu_tri_id: null, updated_at: new Date().toISOString() })
+        .eq("ma_benh_an", ma);
+    }
     await syncNkbvPhieuFromBaNgay(ma);
     return { success: true as const, khoa_id: null as string | null };
+  }
+
+  try {
+    await normalizeAndValidateDmKhoaPhong({ supabase, idRaw: khoaId, fieldLabel: "Khoa", activeOnly: true });
+  } catch (e) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Khoa không hợp lệ" };
   }
 
   const { error } = await supabase.from("nkbv_fact_ba_ngay_khoa").upsert(
@@ -95,6 +118,9 @@ export async function toggleNkbvBaNgayDungCu(input: {
   const parsed = nkbvBaNgayDungCuSchema.safeParse(input);
   if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
   const { ma_benh_an: ma, ngay_lich: date } = parsed.data;
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
   const loai = criteriaKeyToDungCuLoai(parsed.data.criteria_key);
   if (!loai) return { success: false as const, error: "Loại dụng cụ không hợp lệ" };
 

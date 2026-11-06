@@ -48,9 +48,9 @@ export function resolveAnalyticsRpcFilters(
     return {
       p_khoi_ids: null,
       p_khoa_ids: [scope.actorKhoaId!],
-      p_nghe_nghiep_ids: null,
-      p_khu_vuc_ids: null,
-      p_hinh_thuc_ids: null,
+      p_nghe_nghiep_ids: pickIds(filters.nghe_nghiep_ids),
+      p_khu_vuc_ids: pickIds(filters.khu_vuc_ids),
+      p_hinh_thuc_ids: pickIds(filters.hinh_thuc_ids),
     };
   }
 

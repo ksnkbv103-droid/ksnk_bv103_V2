@@ -153,10 +153,32 @@ export async function manualLinkAccountAction(maNv: string) {
 
   const adminClient = createAdminSupabaseClient();
 
+  const cacheTag = `account_sync_${user.id}`;
+
+  // Kiểm tra tài khoản hiện tại đã được liên kết với hồ sơ nào chưa
+  const { data: currentStaff } = await adminClient
+    .from("mdm_nhan_su")
+    .select("id, ma_nv, ho_ten")
+    .eq("auth_user_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  const targetMaNv = maNv.trim().toUpperCase();
+
+  if (currentStaff) {
+    if (currentStaff.ma_nv?.toUpperCase() === targetMaNv) {
+      return { success: true, message: "Tài khoản của bạn đã được liên kết với hồ sơ này." };
+    }
+    return {
+      success: false,
+      error: `Tài khoản của bạn đã được liên kết với nhân sự ${currentStaff.ma_nv} (${currentStaff.ho_ten}). Không thể liên kết thêm hồ sơ khác.`,
+    };
+  }
+
   const { data: target, error: tErr } = await adminClient
     .from("v_mdm_nhan_su_full")
     .select("id, auth_user_id, email")
-    .eq("ma_nv", maNv.trim().toUpperCase())
+    .eq("ma_nv", targetMaNv)
     .eq("is_active", true)
     .maybeSingle();
 
@@ -196,6 +218,7 @@ export async function manualLinkAccountAction(maNv: string) {
     actorUserId: user.id,
   });
 
+  revalidateTag(cacheTag, "default");
   revalidatePath("/");
   return { success: true };
 }

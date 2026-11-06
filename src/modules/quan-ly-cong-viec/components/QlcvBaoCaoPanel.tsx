@@ -6,12 +6,13 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, RefreshCw, ChevronLeft, ChevronRight, BarChart3, Table as TableIcon } from "lucide-react";
 import { toast } from "sonner";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 import { getQlcvBaoCaoKy } from "../actions/bao-cao-ky.actions";
+import { QlcvThongKeCharts } from "./QlcvThongKeCharts";
 import {
   ketQuaDongHanLabel,
   QLCV_BAO_CAO_PERIOD_KINDS,
@@ -59,6 +60,7 @@ function downloadCsv(filename: string, csv: string) {
 export function QlcvBaoCaoPanel() {
   const [periodKind, setPeriodKind] = useState<QlcvBaoCaoPeriodKind>("MONTH");
   const [shift, setShift] = useState(0);
+  const [viewMode, setViewMode] = useState<"CHARTS" | "TABLES">("CHARTS");
   const [tableId, setTableId] = useState<ReportTableId>("NGUOI");
   const [payload, setPayload] = useState<QlcvBaoCaoKyPayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -131,6 +133,28 @@ export function QlcvBaoCaoPanel() {
       })),
     };
   }, [payload, tableId]);
+
+  const thongKeSummary = useMemo(() => {
+    if (!payload) return null;
+    const mo = payload.theoNguoi.reduce((s, r) => s + r.mo, 0);
+    const hoanThanh = payload.theoNguoi.reduce((s, r) => s + r.hoan_thanh, 0);
+    const quaHan = payload.theoNguoi.reduce((s, r) => s + r.qua_han, 0);
+    const dungHan = payload.theoNguoi.reduce((s, r) => s + r.dung_han, 0);
+    const tong = mo + hoanThanh;
+    const pctHoanThanh = tong > 0 ? Math.round((hoanThanh / tong) * 1000) / 10 : null;
+    const pctQuaHan = mo > 0 ? Math.round((quaHan / mo) * 1000) / 10 : null;
+    const pctDungHan = hoanThanh > 0 ? Math.round((dungHan / hoanThanh) * 1000) / 10 : null;
+    return {
+      tong,
+      mo,
+      hoanThanh,
+      quaHan,
+      dungHan,
+      pctHoanThanh,
+      pctQuaHan,
+      pctDungHan,
+    };
+  }, [payload]);
 
   const emptyTitle = "Chưa có dòng phù hợp kỳ này.";
   const emptyState = (
@@ -223,75 +247,72 @@ export function QlcvBaoCaoPanel() {
         <p className="text-xs text-slate-500">
           Đã tải {payload?.fetched ?? 0} phiếu trong kỳ.
         </p>
+      </div>
 
-        {payload ? (
-          <div
-            className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-white px-3 py-2 text-xs text-slate-700"
-            title="Số việc mở · % hoàn thành · % quá hạn trong việc đang mở"
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            className={viewMode === "CHARTS" ? bv103LayoutChrome.btnPrimary : bv103LayoutChrome.btnSecondary}
+            onClick={() => setViewMode("CHARTS")}
           >
-            {(() => {
-              const mo = payload.theoNguoi.reduce((s, r) => s + r.mo, 0);
-              const hoanThanh = payload.theoNguoi.reduce((s, r) => s + r.hoan_thanh, 0);
-              const quaHan = payload.theoNguoi.reduce((s, r) => s + r.qua_han, 0);
-              const mauHt = mo + hoanThanh;
-              const fmt = (n: number, d: number) =>
-                d <= 0 ? "—" : `${Math.round((n / d) * 1000) / 10}%`;
-              return (
-                <>
-                  <span>
-                    <span className="font-medium text-slate-500">Việc đang mở</span>{" "}
-                    <strong className="tabular-nums">{mo}</strong>
-                  </span>
-                  <span className="text-slate-300">·</span>
-                  <span>
-                    <span className="font-medium text-slate-500">Đã hoàn thành</span>{" "}
-                    <strong className="tabular-nums text-emerald-700">{hoanThanh}</strong>
-                  </span>
-                  <span className="text-slate-300">·</span>
-                  <span>
-                    <span className="font-medium text-slate-500">% hoàn thành</span>{" "}
-                    <strong className="tabular-nums text-emerald-700">{fmt(hoanThanh, mauHt)}</strong>
-                  </span>
-                  <span className="text-slate-300">·</span>
-                  <span>
-                    <span className="font-medium text-slate-500">% quá hạn</span>{" "}
-                    <strong className="tabular-nums text-red-700">{fmt(quaHan, mo)}</strong>
-                  </span>
-                </>
-              );
-            })()}
-          </div>
+            <BarChart3 size={14} aria-hidden /> Biểu đồ thống kê
+          </button>
+          <button
+            type="button"
+            className={viewMode === "TABLES" ? bv103LayoutChrome.btnPrimary : bv103LayoutChrome.btnSecondary}
+            onClick={() => setViewMode("TABLES")}
+          >
+            <TableIcon size={14} aria-hidden /> Bảng dữ liệu chi tiết
+          </button>
+        </div>
+
+        {viewMode === "TABLES" ? (
+          <button
+            type="button"
+            className={`${bv103LayoutChrome.btnSecondary} ml-auto`}
+            disabled={!csvBundle || csvBundle.rows.length === 0}
+            onClick={() => {
+              if (!csvBundle) return;
+              downloadCsv(csvBundle.name, rowsToCsv(csvBundle.rows));
+              toast.success("Đã tải CSV");
+            }}
+          >
+            <Download size={14} aria-hidden /> CSV bảng đang xem
+          </button>
         ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {TABLE_TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={tableId === t.id ? bv103LayoutChrome.btnPrimary : bv103LayoutChrome.btnSecondary}
-            onClick={() => setTableId(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-        <button
-          type="button"
-          className={`${bv103LayoutChrome.btnSecondary} ml-auto`}
-          disabled={!csvBundle || csvBundle.rows.length === 0}
-          onClick={() => {
-            if (!csvBundle) return;
-            downloadCsv(csvBundle.name, rowsToCsv(csvBundle.rows));
-            toast.success("Đã tải CSV");
-          }}
-        >
-          <Download size={14} aria-hidden /> CSV bảng đang xem
-        </button>
-      </div>
+      {loading && !payload ? (
+        <p className="p-6 text-center text-sm text-slate-500">Đang tải báo cáo…</p>
+      ) : null}
 
-      <p className="bv103-type-body text-slate-600">{activeHint}</p>
+      {viewMode === "CHARTS" && payload && thongKeSummary ? (
+        <QlcvThongKeCharts
+          theoNguoi={payload.theoNguoi}
+          theoTrangThai={payload.theoTrangThai}
+          summary={thongKeSummary}
+        />
+      ) : null}
 
-      <div className={`${bv103TableLayout.frame} overflow-x-auto`}>
+      {viewMode === "TABLES" ? (
+        <>
+          <div className="flex flex-wrap gap-1.5">
+            {TABLE_TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={tableId === t.id ? bv103LayoutChrome.btnPrimary : bv103LayoutChrome.btnSecondary}
+                onClick={() => setTableId(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="bv103-type-body text-slate-600">{activeHint}</p>
+
+          <div className={`${bv103TableLayout.frame} overflow-x-auto`}>
         {loading && !payload ? (
           <p className="p-6 text-center text-sm text-slate-500">Đang tải báo cáo…</p>
         ) : null}
@@ -426,6 +447,8 @@ export function QlcvBaoCaoPanel() {
           )
         ) : null}
       </div>
+      </>
+      ) : null}
 
       <p className="text-xs text-slate-400">
         P1 defer: Định kỳ tuân thủ (mẫu · spawn · hoàn thành). GateStats / Điều hành không đổi.

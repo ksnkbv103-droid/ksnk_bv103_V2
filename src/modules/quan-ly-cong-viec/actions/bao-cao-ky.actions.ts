@@ -48,7 +48,7 @@ async function loadStaffNameMap(
     const { data, error } = await supabase.from("mdm_nhan_su").select("id, ho_ten").in("id", slice);
     if (error) {
       console.error("bao-cao-ky: mdm_nhan_su names", error);
-      continue;
+      throw new Error(`Không tải được danh mục nhân sự cho báo cáo: ${error.message}`);
     }
     for (const row of data ?? []) {
       map.set(String(row.id), String(row.ho_ten ?? "").trim());
@@ -84,6 +84,7 @@ export async function getQlcvBaoCaoKy(input: GetQlcvBaoCaoKyInput): Promise<Qlcv
           `and(han_hoan_thanh.gte.${start},han_hoan_thanh.lte.${end})`,
           `and(hoan_thanh_luc.gte.${startTs},hoan_thanh_luc.lte.${endTs})`,
           `and(created_at.gte.${startTs},created_at.lte.${endTs})`,
+          `and(is_active.eq.true,trang_thai.not.in.(HOAN_THANH,DA_HUY),han_hoan_thanh.lte.${end})`,
         ].join(","),
       )
       .order("created_at", { ascending: false })

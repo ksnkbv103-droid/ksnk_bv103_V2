@@ -24,7 +24,7 @@ import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 import NkbvRuledOutSection from "../NkbvRuledOutSection";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 const TABLE3_ROWS: Array<{ field: keyof VaeVerificationData; label: string }> = [
   { field: "pneu_t3_influenza", label: "Influenza (PCR/Ag)" },
@@ -111,7 +111,7 @@ export default function PneuClinicalSubForm({
     form.microbiology_evidence === "PNU3";
   const cleanNgayVaoVien = vnYmd(ngayVaoVien);
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayYmdInVn();
   /** Ngày X-quang là mốc Index khi chọn hình ảnh — không khóa trong IWP (IWP suy ra từ ngày này). */
   const imagingDateMin = cleanNgayVaoVien || undefined;
   const imagingDateMax = cleanNgayPhatHien || todayStr;

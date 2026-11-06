@@ -164,10 +164,35 @@ export async function toggleThietBiStatusAction(id: string, currentStatus: boole
 
 export async function softDeleteThietBiAction(id: string) {
   await verifyPermission("THIET_BI", "delete");
+  const supabase = createAdminSupabaseClient();
+  const { count, error } = await supabase
+    .from("cssd_fact_lo_tiet_khuan")
+    .select("id", { count: "exact", head: true })
+    .eq("thiet_bi_id", id)
+    .eq("is_active", true);
+  if (!error && count && count > 0) {
+    return {
+      success: false as const,
+      error: `Không thể xóa thiết bị đã phát sinh ${count} mẻ tiệt khuẩn. Hãy chuyển trạng thái sang ngưng hoạt động.`,
+    };
+  }
   return softDeleteMasterRow("cssd_dm_thiet_bi", id);
 }
 
 export async function softDeleteManyThietBiAction(ids: string[]) {
   await verifyPermission("THIET_BI", "delete");
+  if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
+  const supabase = createAdminSupabaseClient();
+  const { data: activeBatches } = await supabase
+    .from("cssd_fact_lo_tiet_khuan")
+    .select("id, thiet_bi_id")
+    .in("thiet_bi_id", ids)
+    .eq("is_active", true);
+  if (activeBatches && activeBatches.length > 0) {
+    return {
+      success: false as const,
+      error: `Có ${activeBatches.length} mẻ tiệt khuẩn gắn với các thiết bị được chọn. Không thể xóa, hãy chuyển ngưng hoạt động.`,
+    };
+  }
   return softDeleteManyMasterRows("cssd_dm_thiet_bi", ids);
 }

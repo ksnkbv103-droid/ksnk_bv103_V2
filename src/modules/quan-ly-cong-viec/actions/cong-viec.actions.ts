@@ -9,7 +9,7 @@ import { congViecCreateSchema, parseCongViecUpdate, phanTramHoanThanhSchema, typ
 import { assigneeBlockedFromTaskCrud } from "../lib/qlcv-access";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
-import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, assertQlcvDiaDiemKhoaValid, insertQlcvTaskRow, normalizeQlcvHanDate } from "../lib/qlcv-create-task";
+import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, assertQlcvDiaDiemKhoaValid, resolveQlcvDiaDiemKhoaIds, insertQlcvTaskRow, normalizeQlcvHanDate } from "../lib/qlcv-create-task";
 import { assertQlcvActiveInvariant } from "../lib/qlcv-active-invariant";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
@@ -22,10 +22,13 @@ import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
+import { QLCV_FACT_WRITE_TABLE } from "../lib/qlcv-fact-write";
+import { throwQlcvDbError } from "../lib/qlcv-supabase-error";
 
 // ==================== CREATE ====================
 export async function createCongViec(input: CongViecInput) {
-  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("create");
+  // Tạo việc trực tiếp = edit (khớp canShowDirectCreateTask); create chỉ dành cho gửi đề xuất.
+  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("edit");
   const parsed = congViecCreateSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error("Dữ liệu không hợp lệ: " + parsed.error.issues.map((i) => i.message).join(", "));
@@ -54,11 +57,14 @@ export async function createCongViec(input: CongViecInput) {
     nguoi_phu_trach_id: payload.nguoi_phu_trach_id,
     ksnkKhoaId: ksnkKhoaId,
     to_cong_tac_id: payload.to_cong_tac_id,
+    nhom_chuyen_mon_id: payload.nhom_chuyen_mon_id,
     vi_tri_thuc_hien: payload.vi_tri_thuc_hien,
     dia_diem_khoa_id: payload.dia_diem_khoa_id,
+    dia_diem_khoa_ids: payload.dia_diem_khoa_ids,
     nhiem_vu_id: payload.nhiem_vu_id,
     nguoi_phoi_hop_ids: payload.nguoi_phoi_hop_ids,
     nguoi_theo_doi_ids: payload.nguoi_theo_doi_ids,
+    checklist: payload.checklist,
     is_active: true,
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,
@@ -108,6 +114,10 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
 
   if (fetchErr || !cur) throw new Error("Không tìm thấy công việc.");
   const curMa = qlcvWorkflowMaFromViewRow(cur);
+  const curCanonicalSt = normalizeQlcvTrangThaiToCanonical(curMa.trang_thai);
+  if (curCanonicalSt === "HOAN_THANH" || curCanonicalSt === "DA_HUY") {
+    throw new Error("Công việc đã đóng (hoàn thành hoặc đã hủy) — không được sửa nội dung.");
+  }
 
   if (!adminBypass) {
     await verifyPermission("CONG_VIEC", "edit");
@@ -210,12 +220,21 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
   if (updates.han_hoan_thanh !== undefined) dbUpdates.han_hoan_thanh = updates.han_hoan_thanh;
   if (updates.nguoi_phu_trach_id !== undefined) dbUpdates.nguoi_phu_trach_id = updates.nguoi_phu_trach_id;
   if (updates.to_cong_tac_id !== undefined) dbUpdates.to_cong_tac_id = updates.to_cong_tac_id;
+  if (updates.nhom_chuyen_mon_id !== undefined) dbUpdates.nhom_chuyen_mon_id = updates.nhom_chuyen_mon_id || null;
   if (updates.vi_tri_thuc_hien !== undefined) {
     dbUpdates.vi_tri_thuc_hien = updates.vi_tri_thuc_hien?.trim() || null;
   }
   if (updates.dia_diem_khoa_id !== undefined) {
     await assertQlcvDiaDiemKhoaValid(supabase, updates.dia_diem_khoa_id, false);
     dbUpdates.dia_diem_khoa_id = updates.dia_diem_khoa_id;
+    if (updates.dia_diem_khoa_ids === undefined) {
+      dbUpdates.dia_diem_khoa_ids = updates.dia_diem_khoa_id ? [updates.dia_diem_khoa_id] : [];
+    }
+  }
+  if (updates.dia_diem_khoa_ids !== undefined) {
+    const ids = await resolveQlcvDiaDiemKhoaIds(supabase, updates.dia_diem_khoa_ids);
+    dbUpdates.dia_diem_khoa_ids = ids;
+    dbUpdates.dia_diem_khoa_id = ids[0] ?? null;
   }
   if (updates.nhiem_vu_id !== undefined) {
     const { resolveQlcvNhiemVuId } = await import("../lib/qlcv-nhiem-vu-chain");
@@ -280,7 +299,34 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
     if (updates.muc_do_uu_tien !== undefined) patch.muc_do_uu_tien = updates.muc_do_uu_tien;
     if (updates.han_hoan_thanh !== undefined) patch.han_hoan_thanh = updates.han_hoan_thanh;
     if (updates.dia_diem_khoa_id !== undefined) patch.dia_diem_khoa_id = updates.dia_diem_khoa_id;
+    if (updates.dia_diem_khoa_ids !== undefined) {
+      patch.dia_diem_khoa_ids = dbUpdates.dia_diem_khoa_ids;
+      patch.dia_diem_khoa_id = dbUpdates.dia_diem_khoa_id;
+    }
     if (updates.nhiem_vu_id !== undefined) patch.nhiem_vu_id = updates.nhiem_vu_id;
+
+    const extraProposalCols = [
+      "dia_diem_khoa_id",
+      "dia_diem_khoa_ids",
+      "nhiem_vu_id",
+      "nhom_chuyen_mon_id",
+      "vi_tri_thuc_hien",
+      "nguoi_phoi_hop_ids",
+      "nguoi_theo_doi_ids",
+    ] as const;
+    const extraProposalUpdates: Record<string, unknown> = {};
+    for (const col of extraProposalCols) {
+      if (dbUpdates[col] !== undefined) {
+        extraProposalUpdates[col] = dbUpdates[col];
+      }
+    }
+    if (Object.keys(extraProposalUpdates).length > 0) {
+      const { error: extraErr } = await supabase
+        .from(QLCV_FACT_WRITE_TABLE)
+        .update(extraProposalUpdates)
+        .eq("id", id);
+      if (extraErr) throwQlcvDbError(extraErr, "Không lưu trường mở rộng khi kích hoạt đề xuất.");
+    }
 
     await invokeQlcvTransition(supabase, {
       congViecId: id,
@@ -343,9 +389,14 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
     .from("qlcv_fact_cong_viec")
     .update(dbUpdates)
     .eq("id", id)
+    // Chặn race: việc vừa bị đóng/hủy sau lúc đọc thì không ghi đè.
+    .not("trang_thai", "in", "(HOAN_THANH,DA_HUY)")
     .select()
     .single();
 
+  if (error?.code === "PGRST116") {
+    throw new Error("Công việc đã thay đổi trạng thái (đã đóng hoặc bị xử lý bởi người khác) — tải lại và thử lại.");
+  }
   if (error) {
     console.error("Lỗi cập nhật DB:", error);
     throw new Error(`Cập nhật thất bại: ${error.message}`);
@@ -477,6 +528,10 @@ export async function adminSetTrangThaiCongViec(
 /** Trả việc về làm lại sau khi báo 100% (từ chối nghiệm thu). */
 export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
   await verifyQlcvNghiemThuCapability();
+  const reason = String(lyDo ?? "").trim();
+  if (!reason) {
+    throw new Error("Nhập lý do từ chối nghiệm thu.");
+  }
   const { supabase } = await ensureQlcvKsnkAccess("approve");
   const actorNhanSuId = await getActorNhanSuId();
   const scope = await resolveQlcvListScope(supabase);
@@ -512,7 +567,7 @@ export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
     congViecId: id,
     action: "TU_CHOI_NGHIEM_THU",
     actorNhanSuId: actorNhanSuId,
-    lyDo: lyDo,
+    lyDo: reason,
     patch: { phan_tram_hoan_thanh: pct },
   });
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { parseISO } from "date-fns";
@@ -11,7 +11,6 @@ import {
   mapNkbvDashboardCasFromViewRow,
   matchNkbvDashboardLoaKhoa,
   nkbvDashboardFetchBounds,
-  NKBV_CHO_TAC_STATUS_MAS,
   type NkbvCasRowMinimal,
   type NkbvEpidemiologyRate,
 } from "../lib/nkbv-dashboard-aggregate";
@@ -80,13 +79,12 @@ export async function getGiamSatNkbvDashboardPayload(rawFilters: GiamSatNkbvDash
       : rawFilters;
 
   const denStr = filters.den_ngay?.trim() || todayYmdInVn();
-  let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
+  const tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
 
-  let tuD = parseISO(tuStr);
+  const tuD = parseISO(tuStr);
   const denD = parseISO(denStr);
   if (tuD > denD) {
-    tuStr = bv103DefaultTuNgayFromDenIso(denStr);
-    tuD = parseISO(tuStr);
+    return { success: false as const, error: "Từ ngày không được lớn hơn Đến ngày." };
   }
 
   const khoaIds = (filters.khoa_ghi_nhan_ids || []).map((x) => String(x || "").trim()).filter(Boolean);
@@ -130,7 +128,14 @@ export async function getGiamSatNkbvDashboardPayload(rawFilters: GiamSatNkbvDash
     };
   }
 
-  const epidemiologyRates = ((raw.rpcData || []) as Array<Record<string, unknown>>).map((r) => ({
+  let rpcRows = (raw.rpcData || []) as Array<Record<string, unknown>>;
+  if (khoaIds.length > 0) {
+    rpcRows = rpcRows.filter((r) => r.khoa_id && khoaIds.includes(String(r.khoa_id)));
+  } else if (khoaId) {
+    rpcRows = rpcRows.filter((r) => r.khoa_id && String(r.khoa_id) === khoaId);
+  }
+
+  const epidemiologyRates = rpcRows.map((r) => ({
     ...r,
     ten_khoa: formatKhoaCompactLabel({
       ma_khoa: r.ma_khoa != null ? String(r.ma_khoa) : null,
@@ -154,7 +159,6 @@ export async function countGiamSatNkbvChoXn(filters: {
   den_ngay: string;
   khoa_ghi_nhan_id?: string;
 }): Promise<{ success: true; count: number } | { success: false; error: string }> {
-  const supabase = await createServerSupabaseUserClient();
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const restriction = await getNkbvKhoaRestriction();
   if (restriction.kind === "none") return { success: true as const, count: 0 };
@@ -166,17 +170,14 @@ export async function countGiamSatNkbvChoXn(filters: {
     tuStr = bv103DefaultTuNgayFromDenIso(denStr);
   }
 
-  // Giữ exact — số nghiệp vụ chờ xác nhận.
-  let q = supabase
-    .from("v_nkbv_su_kien_full")
-    .select("ngay_phat_hien", { count: "exact", head: true })
-    .eq("is_active", true)
-    .in("trang_thai_ma", [...NKBV_CHO_TAC_STATUS_MAS])
-    .gte("ngay_phat_hien", tuStr)
-    .lte("ngay_phat_hien", denStr);
-  if (khoaScoped) q = q.eq("khoa_ghi_nhan_id", khoaScoped);
-
-  const { count, error } = await q;
-  if (error) return { success: false as const, error: error.message };
-  return { success: true as const, count: count ?? 0 };
+  // Cùng predicate với dashboard: report_date (DOE/ngày mổ SSI) + khoa theo LOA — không lọc khoa_ghi_nhan/ngay_phat_hien ở SQL.
+  try {
+    const raw = await loadNkbvDashboardRaw(tuStr, denStr, null, false);
+    const rows = raw.data
+      .map((x) => mapNkbvDashboardCasFromViewRow(x))
+      .filter((r) => matchNkbvDashboardLoaKhoa(r, khoaScoped || null, [])) as NkbvCasRowMinimal[];
+    return { success: true as const, count: aggregateNkbvDashboard(rows, tuStr, denStr).kpis.dang_va_cho_xn };
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đếm được phiếu chờ xác nhận" };
+  }
 }

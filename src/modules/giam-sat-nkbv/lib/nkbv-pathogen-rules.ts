@@ -36,7 +36,7 @@ export function isExcludedPvapPathogen(name: string): boolean {
 export function classifyPathogen(name: string): PathogenClassification {
   const p = name.trim().toLowerCase();
   
-  const isIntestinal = /enteroc|escher|e\.?\s*coli|klebs|bacteroid|candida|clostrid|salmonel|shigel|pseudomon|enterobac|proteus|serratia/i.test(p);
+  const isIntestinal = /enteroc|escher|e\.?\s*coli|klebs|bacteroid|candida|clostrid|salmonel|shigel|enterobac|proteus|serratia/i.test(p);
   const isFungiRespiratory = /blastomyc|histoplasm|coccidioid|paracoccidioid|cryptoc/i.test(p);
   const isCommensal = /coagulase|epidermidis|hominis|haemolyticus|saprophyticus|micrococcus|cutibacterium|propionibacterium|corynebacter|diphtheroid|bacillus|viridans/i.test(p);
   const isCandidaOrParasite = /candida|aspergil|yeast|men|nấm|fungi|parasite|trùng|sán/i.test(p);

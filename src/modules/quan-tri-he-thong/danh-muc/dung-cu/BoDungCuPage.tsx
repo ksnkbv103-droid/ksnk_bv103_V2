@@ -22,6 +22,7 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoDungCuRowsAction,
   getKhoaPhongOptionsForBoAction,
+  getLoaiDungCuOptionsAction,
   softDeleteBoDungCuAction,
   softDeleteManyBoDungCuAction,
   toggleBoDungCuStatusAction,
@@ -37,7 +38,7 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BoDungCuTableRow | null>(null);
-  const [loaiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
+  const [loaiOptions, setLoaiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [khoaOptions, setKhoaOptions] = useState<{ id: string; ten_khoa: string }[]>([]);
   const [loadingLoai, setLoadingLoai] = useState(true);
   const [loadingKhoa, setLoadingKhoa] = useState(true);
@@ -47,9 +48,15 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
   useEffect(() => {
     async function loadOptions() {
       setLoadingKhoa(true);
-      const khoaResult = await getKhoaPhongOptionsForBoAction();
+      setLoadingLoai(true);
+      const [khoaResult, loaiResult] = await Promise.all([
+        getKhoaPhongOptionsForBoAction(),
+        getLoaiDungCuOptionsAction(),
+      ]);
       if (!khoaResult.success) toast.error("Không tải được khoa sử dụng: " + khoaResult.error);
       setKhoaOptions(khoaResult.success ? khoaResult.data ?? [] : []);
+      if (!loaiResult.success) toast.error("Không tải được loại dụng cụ: " + loaiResult.error);
+      setLoaiOptions(loaiResult.success ? loaiResult.data ?? [] : []);
       setLoadingKhoa(false);
       setLoadingLoai(false);
     }

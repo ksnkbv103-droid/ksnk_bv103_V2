@@ -199,7 +199,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
 
       <details className={`${UI.shell}`} open>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          So sánh & xu hướng
+          So sánh và xu hướng
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
             Xu hướng · khối · khu vực · đối tượng — bấm để thu gọn
           </span>

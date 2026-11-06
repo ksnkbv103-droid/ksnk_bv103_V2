@@ -5,6 +5,8 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options";
 import { getQlcvTrangThaiMauSacMap } from "../lib/qlcv-labels";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
+import { getActorNhanSuId } from "@/lib/actor-auth-server";
+import { hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 async function getKsnkNhanSuOptions(ksnkKhoaId: string): Promise<QlcvSelectOption[]> {
@@ -50,6 +52,18 @@ async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
+async function getNhomChuyenMonOptions(): Promise<QlcvSelectOption[]> {
+  const { supabase } = await ensureQlcvKsnkAccess("view");
+  const { data, error } = await supabase
+    .from("qlcv_dm_nhom_chuyen_mon")
+    .select("id, ten")
+    .eq("is_active", true)
+    .order("thu_tu", { ascending: true })
+    .order("ten", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({ id: String(r.id), label: String(r.ten) }));
+}
+
 async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   const rows = await getCachedDmKhoaPhong();
   return rows.map((item) => ({
@@ -61,12 +75,13 @@ async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
 /** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm; màu trạng thái hardcode (Wave 3). */
 export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
   const { ksnkKhoaId } = await ensureQlcvKsnkAccess("view");
-  const [nhanSu, toCongTac, khoaPhong] = await Promise.all([
+  const [nhanSu, toCongTac, nhomChuyenMon, khoaPhong] = await Promise.all([
     getKsnkNhanSuOptions(ksnkKhoaId),
     getToCongTacOptions(),
+    getNhomChuyenMonOptions(),
     getKhoaPhongOptions(),
   ]);
-  return { nhanSu, toCongTac, khoaPhong, trangThaiMauSac: getQlcvTrangThaiMauSacMap() };
+  return { nhanSu, toCongTac, nhomChuyenMon, khoaPhong, trangThaiMauSac: getQlcvTrangThaiMauSacMap() };
 }
 
 /**
@@ -83,14 +98,21 @@ export type QlcvBoardGateCounts = {
   inProgress: number;
   overdue: number;
   choToi: number;
+  watching: number;
 };
 
+/** Actor luôn lấy từ phiên server; tham số từ client chỉ được dùng khi trùng actor hoặc là quản trị. */
 export async function getQlcvBoardCounts(
   actorStaffId?: string | null,
 ): Promise<QlcvBoardGateCounts> {
   const { supabase } = await ensureQlcvKsnkAccess("view");
+  const sessionActorId = await getActorNhanSuId();
+  const resolvedActorId =
+    actorStaffId && actorStaffId !== sessionActorId && (await hasRBACAdminSupervisionBypass())
+      ? actorStaffId
+      : sessionActorId;
   const { data, error } = await supabase.rpc("rpc_qlcv_board_counts", {
-    p_actor_staff_id: actorStaffId ?? null,
+    p_actor_staff_id: resolvedActorId ?? null,
   });
   if (error) throw error;
 
@@ -109,5 +131,6 @@ export async function getQlcvBoardCounts(
     inProgress: n(gates.in_progress),
     overdue: n(gates.overdue),
     choToi: n(gates.cho_toi),
+    watching: n(gates.watching),
   };
 }

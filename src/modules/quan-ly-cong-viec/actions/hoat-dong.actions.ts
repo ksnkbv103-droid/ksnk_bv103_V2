@@ -10,6 +10,7 @@ import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
+import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 
 interface CreateHoatDongInput {
   id_cong_viec: string;
@@ -33,7 +34,7 @@ export async function createHoatDong(input: CreateHoatDongInput) {
   const { data: task, error: te } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, nguoi_phu_trach_id, trang_thai, is_active, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+      "id, nguoi_phu_trach_id, trang_thai, is_active, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han, nguoi_phoi_hop_ids, nguoi_theo_doi_ids, nguoi_giao_viec_id",
     )
     .eq("id", input.id_cong_viec)
     .maybeSingle();
@@ -50,33 +51,52 @@ export async function createHoatDong(input: CreateHoatDongInput) {
 
   const wf = qlcvWorkflowMaFromViewRow(task);
 
+  if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
+  const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
+  if (stClosed === "HOAN_THANH" || stClosed === "DA_HUY") {
+    throw new Error("Phiếu đã đóng.");
+  }
+
   if (input.loai_hoat_dong === "BAO_CAO_TIEN_DO") {
-    if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
     if (isEligibleForNghiemThu({ ...task, ...wf })) {
       throw new Error("Việc đang chờ nghiệm thu — không ghi chú tiến độ tại đây.");
     }
-    const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
-    if (stClosed === "HOAN_THANH" || stClosed === "DA_HUY") {
-      throw new Error("Phiếu đã đóng.");
-    }
+  }
 
-    const adminBypass = await hasRBACAdminSupervisionBypass();
-    if (!adminBypass) {
-      const isAssignee =
-        Boolean(actorNhanSuId && task.nguoi_phu_trach_id) &&
-        String(actorNhanSuId) === String(task.nguoi_phu_trach_id);
-      const st = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
-      const assigneeMayNote =
-        isAssignee &&
-        (st === "DANG_LAM" ||
-          st === "TU_CHOI" ||
-          st === "QUA_HAN" ||
-          (st === "MOI" && Boolean(task.nguoi_phu_trach_id)));
+  const adminBypass = await hasRBACAdminSupervisionBypass();
+  if (!adminBypass) {
+    const isAssignee =
+      Boolean(actorNhanSuId && task.nguoi_phu_trach_id) &&
+      String(actorNhanSuId) === String(task.nguoi_phu_trach_id);
+    const isCollaborator = Boolean(
+      actorNhanSuId &&
+      normalizeQlcvStaffIdList(task.nguoi_phoi_hop_ids).includes(String(actorNhanSuId)),
+    );
+    const isSupervisor = Boolean(
+      actorNhanSuId &&
+      normalizeQlcvStaffIdList(task.nguoi_theo_doi_ids).includes(String(actorNhanSuId)),
+    );
+    const isAssigner = Boolean(
+      actorNhanSuId &&
+      (String(actorNhanSuId) === String(task.nguoi_giao_viec_id) || String(actorNhanSuId) === String(task.nguoi_tao_id)),
+    );
+    const st = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
+    const validState =
+      st === "DANG_LAM" ||
+      st === "TU_CHOI" ||
+      st === "QUA_HAN" ||
+      (st === "MOI" && Boolean(task.nguoi_phu_trach_id));
 
-      if (!assigneeMayNote) {
-        await verifyPermission("CONG_VIEC", "edit");
-      }
+    const participantMayNote = (isAssignee || isCollaborator || isSupervisor || isAssigner) && validState;
+
+    if (!participantMayNote) {
+      await verifyPermission("CONG_VIEC", "edit");
     }
+  }
+
+  const cleanNoiDung = String(input.noi_dung ?? "").trim();
+  if (!cleanNoiDung) {
+    throw new Error("Nhập nội dung hoạt động / ghi chú.");
   }
 
   const snapshotPct = Number(task.phan_tram_hoan_thanh ?? 0);
@@ -85,7 +105,7 @@ export async function createHoatDong(input: CreateHoatDongInput) {
     congViecId: input.id_cong_viec,
     loaiHoatDong: input.loai_hoat_dong,
     nguoiThucHienId: actorNhanSuId,
-    noiDung: input.noi_dung,
+    noiDung: cleanNoiDung,
     phanTramHoanThanh: snapshotPct,
   });
 

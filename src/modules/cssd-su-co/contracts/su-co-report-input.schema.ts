@@ -86,6 +86,7 @@ export const cssdIncidentReportInputSchema = z.object({
   desc: z.string().trim().min(1, "Thiếu mô tả sự cố."),
   errorQR: z.string().trim().optional(),
   machineId: z.string().trim().optional(),
+  chemicalId: z.string().trim().optional(),
   anhMinhChung: z.string().trim().optional(),
   instrumentPayload: instrumentIncidentPayloadSchema.optional(),
   setReconcilePayload: setReconcilePayloadSchema.optional(),

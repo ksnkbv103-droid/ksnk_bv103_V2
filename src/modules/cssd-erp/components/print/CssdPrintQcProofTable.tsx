@@ -59,7 +59,7 @@ export default function CssdPrintQcProofTable({
           pageBreakAfter: "avoid",
         }}
       >
-        Đánh giá QC &amp; minh chứng
+        Đánh giá QC và minh chứng
       </p>
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", maxWidth: "100%" }}>
         <thead>

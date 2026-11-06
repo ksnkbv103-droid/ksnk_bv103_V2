@@ -100,7 +100,9 @@ export function pickDominoRollbackToUndo(
   events: readonly VoidRollbackEvent[],
   ticket: { id: string; moTa: string; detectionStation: string; targetStation: string },
 ): Record<string, unknown> | null {
-  const rollbacks = events.filter((e) => String(e.su_kien || "") === "SU_CO_DOMINO_ROLLBACK");
+  const rollbacks = events.filter(
+    (e) => String(e.su_kien || "") === "SU_CO_DOMINO_ROLLBACK" || String(e.su_kien || "") === "REPORT_INCIDENT",
+  );
   const last = rollbacks[rollbacks.length - 1];
   if (!last) return null;
   const detail = last.chi_tiet || {};

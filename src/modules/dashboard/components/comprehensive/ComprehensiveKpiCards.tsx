@@ -94,7 +94,7 @@ function KpiCard({
   return (
     <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
       <p className={D.kpiLabel}>{label}</p>
-      <p className={`mt-[var(--bv103-space-1)] ${D.kpiValue}`}>
+      <p className={`mt-[var(--bv103-space-1)] ${D.kpiValue}`} title="Tỷ lệ tích lũy trong toàn bộ phạm vi lọc">
         {value}
         {suffix ? <span className="ml-1 bv103-type-body font-medium opacity-70">{suffix}</span> : null}
       </p>
@@ -178,7 +178,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         />
       </div>
       <p className="bv103-type-label text-slate-500">
-        So với tuần trước = hai tuần ISO liền kề trên xu hướng. Dòng kỳ trước = cùng độ dài kỳ lọc, lùi liền trước.
+        Tỷ lệ % hiển thị là kết quả tích lũy trong toàn bộ kỳ lọc. So với tuần trước = biến động giữa hai tuần ISO liền kề cuối trên xu hướng. Dòng kỳ trước = cùng độ dài kỳ lọc, lùi liền trước.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

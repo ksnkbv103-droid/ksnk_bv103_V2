@@ -139,7 +139,7 @@ export default function NkbvChecklistKsnkTab({
       {/* Right Column: CDC Live Timeline (5 cols) */}
       <div className={`lg:col-span-5 flex flex-col h-full space-y-[var(--bv103-space-3)] ${C.panelInset} p-4 overflow-y-auto`}>
         <span className={`${C.blockSection} block border-b border-slate-200 pb-2 text-slate-500`}>
-          🗓️ CDC LIVE TIMELINE & ATTRIBUTION
+          🗓️ CDC LIVE TIMELINE VÀ ATTRIBUTION
         </span>
         
         {suspectedType !== "LOAI_TRU" && (

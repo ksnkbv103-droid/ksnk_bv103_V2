@@ -11,6 +11,8 @@ export const GSC_BK_SHORT_LONG_PAIRS: ReadonlyArray<{ short: string; long: strin
   { short: "BM.08.01", long: "KSNK.QT.08.BM.01" },
   { short: "BM.09.01", long: "KSNK.QT.09.BM.01" },
   { short: "BM.12.01", long: "KSNK.QT.12.BM.01" },
+  { short: "BM.13.01", long: "KSNK.QT.13.BM.01" },
+  { short: "BM.13.02", long: "KSNK.QT.13.BM.02" },
   { short: "BM.14.01", long: "KSNK.QT.14.BM.01" },
   { short: "BM.15.01", long: "KSNK.QT.15.BM.01" },
   { short: "BM.16.01", long: "KSNK.QT.16.BM.01" },

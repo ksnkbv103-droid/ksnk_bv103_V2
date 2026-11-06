@@ -4,6 +4,8 @@
  * Dùng UTC date-only để khớp `YYYY-MM-DD` không giờ.
  */
 
+import { qlcvTodayVn } from "./qlcv-today-vn";
+
 export type QlcvMaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
 export function parseIsoDateOnlyUtc(iso: string): Date {
@@ -30,13 +32,22 @@ function addDaysUtc(d: Date, n: number): Date {
 }
 
 /**
- * `true` iff RPC would set `match_due := true` cho `due` (cùng `ma_chu_ky` + `ngay_bat_dau`).
+ * `true` iff RPC would set `match_due := true` cho `due` (cùng `ma_chu_ky` + `ngay_bat_dau` + `ngay_ket_thuc`).
  */
-export function dinhKyMatchDueOnDate(maChuKy: QlcvMaChuKyDinhKy, ngayBatDauIso: string, due: Date): boolean {
+export function dinhKyMatchDueOnDate(
+  maChuKy: QlcvMaChuKyDinhKy,
+  ngayBatDauIso: string,
+  due: Date,
+  ngayKetThucIso?: string | null,
+): boolean {
   const anchor = parseIsoDateOnlyUtc(ngayBatDauIso);
   if (Number.isNaN(anchor.getTime())) return false;
   const d = new Date(Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate()));
   if (anchor > d) return false;
+  if (ngayKetThucIso && ngayKetThucIso.trim()) {
+    const endBound = parseIsoDateOnlyUtc(ngayKetThucIso.trim());
+    if (!Number.isNaN(endBound.getTime()) && d > endBound) return false;
+  }
   if (maChuKy === "DAILY") {
     // Mỗi ngày từ mốc trở đi
     return true;
@@ -68,6 +79,8 @@ export type NextDinhKySpawnDatesOptions = {
   maxScanDays?: number;
   /** Số ngày khớp tối đa trả về (mặc định 12). */
   maxMatches?: number;
+  /** Ngày dừng sinh phiếu định kỳ (`YYYY-MM-DD`, tuỳ chọn). */
+  ngayKetThucIso?: string | null;
 };
 
 /**
@@ -81,11 +94,13 @@ export function nextDinhKySpawnDates(
 ): string[] {
   const maxScan = options?.maxScanDays ?? 731;
   const maxMatch = options?.maxMatches ?? 12;
+  const ngayKetThucIso = options?.ngayKetThucIso;
   const out: string[] = [];
-  const start = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+  const start = parseIsoDateOnlyUtc(qlcvTodayVn(from));
+  if (Number.isNaN(start.getTime())) return out;
   for (let i = 0; i < maxScan && out.length < maxMatch; i++) {
     const test = addDaysUtc(start, i);
-    if (dinhKyMatchDueOnDate(maChuKy, ngayBatDauIso, test)) {
+    if (dinhKyMatchDueOnDate(maChuKy, ngayBatDauIso, test, ngayKetThucIso)) {
       out.push(formatIsoDateOnlyUtc(test));
     }
   }

@@ -3,6 +3,8 @@
  * No weekly interpolation: month metrics = SUM of submitted daily rows only.
  */
 
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
+
 export type MauSoDailyCensus = {
   so_ngay_dieu_tri: number;
   so_ngay_catheter_cvc: number;
@@ -33,7 +35,7 @@ export function missingMauSoDays(
   todayIso?: string,
 ): string[] {
   const submitted = new Set(submittedDates.map((d) => d.slice(0, 10)));
-  const today = (todayIso || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  const today = (todayIso || todayYmdInVn()).slice(0, 10);
   return listCalendarDaysInMonth(year, month1to12).filter((day) => {
     if (day > today) return false;
     return !submitted.has(day);

@@ -32,8 +32,11 @@ export const congViecSchema = z.object({
   /** Domain A: Người thực hiện — form create bắt buộc; schema optional để dùng chung update/đề xuất. */
   nguoi_phu_trach_id: optionalUuid("Người thực hiện"),
   to_cong_tac_id: optionalUuid("Tổ công tác"),
+  nhom_chuyen_mon_id: optionalUuid("Nhóm chuyên môn"),
   /** Domain A FE-first: địa điểm optional (cột DB giữ soft-optional). */
   dia_diem_khoa_id: optionalUuid("Khoa/đơn vị địa điểm"),
+  /** Nhiều khoa địa điểm (L3); trigger DB đặt dia_diem_khoa_id = phần tử đầu. */
+  dia_diem_khoa_ids: z.array(z.string().uuid("Khoa địa điểm không hợp lệ")).max(50).optional(),
   nhiem_vu_id: optionalUuid("Nhiệm vụ"),
 
   vi_tri_thuc_hien: z.preprocess(qlcvEmptyToNull, z.union([z.string(), z.null()]).optional()),
@@ -49,6 +52,7 @@ export const congViecSchema = z.object({
     .default([]),
 
   han_hoan_thanh: z.preprocess(qlcvEmptyToNull, z.union([z.string().min(1), z.null()]).optional()),
+  checklist: z.unknown().optional(),
 
   /** PDCA từ analytics — map sang cột analytics_meta. */
   analytics_meta: z

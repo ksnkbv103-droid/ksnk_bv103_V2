@@ -164,6 +164,11 @@ export default function CongViecKanban({
                     <h4 className="mb-1 line-clamp-2 text-sm font-semibold leading-tight text-slate-800">{task.tieu_de}</h4>
                     <div className="mb-2">
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
+                      {task.nhom_chuyen_mon_ten ? (
+                        <span className="ml-1.5 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                          {task.nhom_chuyen_mon_ten}
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
@@ -199,6 +204,30 @@ export default function CongViecKanban({
                                   ))}
                                   {ph.extra > 0 ? (
                                     <span className="bv103-type-label font-semibold text-slate-400">+{ph.extra}</span>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+                            {(() => {
+                              const td = formatQlcvPhoiHopChips(
+                                task.nguoi_theo_doi_ids,
+                                staffLabelOpts,
+                                2,
+                              );
+                              if (td.empty) return null;
+                              return (
+                                <div className="mt-0.5 flex flex-wrap items-center gap-0.5" title={`Theo dõi: ${td.title}`}>
+                                  <span className="text-[11px] font-medium text-teal-700">TĐ:</span>
+                                  {td.chips.map((c) => (
+                                    <span
+                                      key={c.id}
+                                      className="bv103-type-label inline-flex max-w-[4.5rem] truncate rounded-full border border-teal-200 bg-teal-50 px-1 py-px font-medium text-teal-700"
+                                    >
+                                      {c.label}
+                                    </span>
+                                  ))}
+                                  {td.extra > 0 ? (
+                                    <span className="bv103-type-label font-semibold text-teal-600">+{td.extra}</span>
                                   ) : null}
                                 </div>
                               );

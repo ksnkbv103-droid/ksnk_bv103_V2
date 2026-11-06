@@ -509,6 +509,9 @@ export function renderChecklistTrends(
     gsc,
     Object.keys(details).length || list.length,
   );
+  if (printList.length === 0) {
+    return `<p class="muted">Không có chuyên đề đủ điều kiện phân tích xu hướng trong kỳ.</p>`;
+  }
 
   const blocks = printList.map((bk) => {
     const detail = details[bk.ma_bk];

@@ -39,7 +39,7 @@ function isDashboardCcExport(p: PermRow): boolean {
   return mod(p) === "DASHBOARD_CC_EXPORT" && act(p) === "export";
 }
 
-/** Nhập liệu mạng lưới — giám sát + công việc + sự cố; Thống kê qua GIAM_SAT_* view (không Command Center). */
+/** Nhập liệu mạng lưới — giám sát + sự cố + đào tạo (không QLCV vì theo ksnk-boundary.ts QLCV chỉ thuộc nội bộ Khoa KSNK); Thống kê qua GIAM_SAT_* view (không Command Center). */
 function isNetworkOperatorPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
@@ -48,7 +48,6 @@ function isNetworkOperatorPerm(p: PermRow): boolean {
   if (m === "BAO_SU_CO" && ["view", "create"].includes(a)) return true;
   if (m === "GIAM_SAT_VST" && ["view", "create", "edit", "delete"].includes(a)) return true;
   if (m === "GIAM_SAT_CHUNG" && ["view", "create", "edit", "delete"].includes(a)) return true;
-  if (m === "CONG_VIEC" && ["view", "create", "edit", "delete"].includes(a)) return true;
   if (m === "DAO_TAO" && ["view", "create"].includes(a)) return true;
   return false;
 }
@@ -73,7 +72,7 @@ function isKsnkStaffPerm(p: PermRow): boolean {
   if (m === "DANH_MUC" && a === "view") return true;
   if (["DANH_MUC_ORG", "DANH_MUC_GSTT", "DANH_MUC_CSSD_LOOKUP"].includes(m) && a === "view") return true;
 
-  if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC", "DAO_TAO"].includes(m)) {
+  if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC", "DAO_TAO", "HAU_CAN_MOI_TRUONG"].includes(m)) {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 
@@ -128,6 +127,11 @@ const matchers: Record<(typeof KSNK_RBAC_ROLE_NAMES)[number], (p: PermRow) => bo
 /** Kiểm preset nhân viên KSNK (không đọc DB) — dùng test + review quyền. */
 export function ksnkStaffAllows(moduleName: string, action: string): boolean {
   return isKsnkStaffPerm({ id: "t", module_name: moduleName, action });
+}
+
+/** Kiểm preset mạng lưới KSNK (không đọc DB) — dùng test + review quyền. */
+export function networkOperatorAllows(moduleName: string, action: string): boolean {
+  return isNetworkOperatorPerm({ id: "t", module_name: moduleName, action });
 }
 
 /**

@@ -152,11 +152,35 @@ export async function toggleKhoaPhongStatusAction(id: string, currentStatus: boo
 
 export async function softDeleteKhoaPhongAction(id: string) {
   await verifyPermission("KHOA_PHONG", "delete");
+  const supabase = createAdminSupabaseClient();
+  const { count, error } = await supabase
+    .from("mdm_nhan_su")
+    .select("id", { count: "exact", head: true })
+    .eq("khoa_id", id)
+    .eq("is_active", true);
+  if (!error && count && count > 0) {
+    return {
+      success: false as const,
+      error: `Không thể xóa khoa phòng đang có ${count} nhân sự hoạt động. Vui lòng chuyển công tác nhân sự trước.`,
+    };
+  }
   return softDeleteMasterRow("mdm_dm_khoa_phong", id);
 }
 
 export async function softDeleteManyKhoaPhongAction(ids: string[]) {
   await verifyPermission("KHOA_PHONG", "delete");
   if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
+  const supabase = createAdminSupabaseClient();
+  const { data: activeStaff } = await supabase
+    .from("mdm_nhan_su")
+    .select("id, khoa_id")
+    .in("khoa_id", ids)
+    .eq("is_active", true);
+  if (activeStaff && activeStaff.length > 0) {
+    return {
+      success: false as const,
+      error: `Có ${activeStaff.length} nhân sự đang hoạt động thuộc các khoa phòng được chọn. Vui lòng chuyển công tác trước khi xóa.`,
+    };
+  }
   return softDeleteManyMasterRows("mdm_dm_khoa_phong", ids);
 }

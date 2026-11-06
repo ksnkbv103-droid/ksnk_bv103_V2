@@ -130,9 +130,9 @@ export async function decideAccessRequestRow(
     decidedBy: string;
     rejectReason?: string | null;
   },
-): Promise<void> {
+): Promise<boolean> {
   const available = await isAccountAccessRequestTableAvailable(supabase);
-  if (!available) return;
+  if (!available) return true;
 
   const patch: Record<string, unknown> = {
     status: params.status,
@@ -144,15 +144,27 @@ export async function decideAccessRequestRow(
   }
 
   if (params.ticketId) {
-    await supabase.from("sys_account_access_request").update(patch).eq("id", params.ticketId);
-    return;
+    const { data, error } = await supabase
+      .from("sys_account_access_request")
+      .update(patch)
+      .eq("id", params.ticketId)
+      .eq("status", "CHO_DUYET")
+      .select("id");
+    if (error) throw error;
+    return !!(data && data.length > 0);
   }
 
-  let q = supabase.from("sys_account_access_request").update(patch).eq("status", "CHO_DUYET");
+  let q = supabase
+    .from("sys_account_access_request")
+    .update(patch)
+    .eq("status", "CHO_DUYET")
+    .select("id");
   if (params.staffId) q = q.eq("staff_id", params.staffId);
   else if (params.email) q = q.eq("email", params.email);
-  else return;
-  await q;
+  else return false;
+  const { data, error } = await q;
+  if (error) throw error;
+  return !!(data && data.length > 0);
 }
 
 /** Cooldown bền theo dòng phiếu, không theo bộ nhớ process. */

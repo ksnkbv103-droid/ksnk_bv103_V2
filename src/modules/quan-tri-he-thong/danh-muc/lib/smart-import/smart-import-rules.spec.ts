@@ -5,6 +5,7 @@ import {
   mergeImportSpecs,
   smartImportRowsSchema,
 } from "./smart-import-rules";
+import { normalizeImportedRowTypedValues } from "./row-typed-values";
 
 describe("smart-import-rules", () => {
   it("BOM: số lượng theo file, idempotent (không cộng dồn)", () => {
@@ -37,5 +38,16 @@ describe("smart-import-rules", () => {
 
   it("dry-run: id giữ chỗ không phải UUID", () => {
     expect(dryRunParentPlaceholderId("B1")).toBe("dry-run:B1");
+  });
+
+  it("parse ngày tháng linh hoạt: hỗ trợ YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY", () => {
+    const resIso = normalizeImportedRowTypedValues("mdm_nhan_su", { ngay_sinh: "1995-10-25" });
+    expect(resIso.ngay_sinh).toBe("1995-10-25");
+
+    const resSlash = normalizeImportedRowTypedValues("mdm_nhan_su", { ngay_sinh: "25/10/1995" });
+    expect(resSlash.ngay_sinh).toBe("1995-10-25");
+
+    const resDash = normalizeImportedRowTypedValues("mdm_nhan_su", { ngay_sinh: "5-3-1990" });
+    expect(resDash.ngay_sinh).toBe("1990-03-05");
   });
 });

@@ -49,7 +49,7 @@ export function parseNgayGiamSatOrNull(raw: unknown): string | null {
 }
 
 /** Chuẩn hóa FK UUID tùy chọn khi đọc từ dòng import (unknown). */
-function optionalFkFromUnknown(raw: unknown): string | null {
+export function optionalFkFromUnknown(raw: unknown): string | null {
   if (raw == null || raw === "") return null;
   if (typeof raw === "string") return raw.trim() || null;
   return String(raw).trim() || null;

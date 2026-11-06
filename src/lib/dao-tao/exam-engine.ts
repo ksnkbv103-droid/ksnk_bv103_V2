@@ -144,8 +144,28 @@ export function selectBalancedExam(input: SelectExamInput): SelectExamResult {
   const used = new Set<string>();
   const selected: BankQuestion[] = [];
 
+  let activeBank = input.bank;
+  if (input.targetRole && input.targetRole !== "ALL") {
+    const roleFiltered = activeBank.filter((q) => q.targetRoles?.includes(input.targetRole!));
+    if (roleFiltered.length >= soCau) {
+      activeBank = roleFiltered;
+    }
+  }
+  if (input.chuDeMas && input.chuDeMas.length > 0) {
+    const topicFiltered = activeBank.filter((q) => input.chuDeMas!.includes(q.chuDeMa));
+    if (topicFiltered.length >= soCau) {
+      activeBank = topicFiltered;
+    }
+  }
+  if (input.sopRefs && input.sopRefs.length > 0) {
+    const sopFiltered = activeBank.filter((q) => q.sopRefs?.some((s) => input.sopRefs!.includes(s)));
+    if (sopFiltered.length >= soCau) {
+      activeBank = sopFiltered;
+    }
+  }
+
   const poolByCell = new Map<string, BankQuestion[]>();
-  for (const q of input.bank) {
+  for (const q of activeBank) {
     const k = cellKey(q.loai, q.bloomLevel);
     const list = poolByCell.get(k) ?? [];
     list.push(q);
@@ -180,7 +200,7 @@ export function selectBalancedExam(input: SelectExamInput): SelectExamResult {
       }
     }
     if (missing > 0) {
-      const rest = input.bank.filter((q) => !used.has(q.id));
+      const rest = activeBank.filter((q) => !used.has(q.id));
       const got = pickBalancedByChuDe(rest, missing, rng, used);
       selected.push(...got);
       if (got.length < missing) notes.push(`Bank không đủ: thiếu ${missing - got.length} câu`);

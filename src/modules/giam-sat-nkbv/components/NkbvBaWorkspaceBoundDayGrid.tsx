@@ -54,6 +54,12 @@ export type NkbvBaWorkspaceDayGridBind = {
   ) => void;
   onAddSurgery: (date: string) => Promise<void>;
   onToggleSsiTc: (date: string, criteriaKey: string, title: string) => Promise<void>;
+  onToggleLamSang?: (
+    date: string,
+    criteriaKey: string,
+    title: string,
+    turnOn: boolean,
+  ) => Promise<void>;
   onToggleDevice?: (
     date: string,
     key: "device_foley" | "device_ventilator" | "device_central_line",

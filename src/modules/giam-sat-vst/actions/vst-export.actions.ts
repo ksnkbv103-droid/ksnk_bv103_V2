@@ -6,7 +6,7 @@ import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { actionDisplayLabel, momentDisplayLabel } from "../lib/vst-constants";
-import { assertVstHistoryAccess } from "../lib/vst-read-scope";
+import { applyVstHistoryReadScope, assertVstHistoryAccess } from "../lib/vst-read-scope";
 
 export type VstExportRow = {
   session_id: string;
@@ -52,26 +52,29 @@ export async function exportVstOpportunitiesRaw(params: {
 }): Promise<{ success: true; rows: VstExportRow[] } | { success: false; error: string }> {
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
+    const ymdRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!ymdRegex.test(params.tu_ngay) || !ymdRegex.test(params.den_ngay)) {
+      return { success: false, error: "Định dạng ngày không hợp lệ (YYYY-MM-DD)." };
+    }
+    if (params.tu_ngay > params.den_ngay) {
+      return { success: false, error: "Từ ngày không được lớn hơn Đến ngày." };
+    }
+
     const scope = await getActorKsnkScope();
     const historyAccess = assertVstHistoryAccess(scope);
     if (!historyAccess.ok) return { success: false, error: historyAccess.error };
     const supabase = createAdminSupabaseClient();
-    const scopeKhoa =
-      scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk ? scope.actorKhoaId : null;
-    if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk && !scopeKhoa) {
-      return { success: true, rows: [] };
-    }
 
     const sessionList = await fetchAllRangeRows<Record<string, unknown>>((from, to) => {
       let sessionQ = supabase
         .from("v_gstt_giam_sat_vst_sessions_full")
         .select(
-          "id, ngay_giam_sat, ma_khoa_phong, ten_khoa_phong, ten_khu_vuc_giam_sat, ten_nguoi_giam_sat, khoa_id, hinh_thuc_giam_sat, vi_tri_cu_the, thoi_gian_bat_dau, thoi_gian_ket_thuc",
+          "id, ngay_giam_sat, ma_khoa_phong, ten_khoa_phong, ten_khu_vuc_giam_sat, ten_nguoi_giam_sat, khoa_id, hinh_thuc_giam_sat, vi_tri_cu_the, thoi_gian_bat_dau, thoi_gian_ket_thuc, nguoi_giam_sat_id",
         )
         .eq("is_active", true)
         .gte("ngay_giam_sat", params.tu_ngay)
         .lte("ngay_giam_sat", params.den_ngay);
-      if (scopeKhoa) sessionQ = sessionQ.eq("khoa_id", scopeKhoa);
+      sessionQ = applyVstHistoryReadScope(sessionQ, scope);
       return sessionQ
         .order("ngay_giam_sat", { ascending: false })
         .order("id", { ascending: true })

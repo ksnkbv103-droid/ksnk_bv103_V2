@@ -144,6 +144,15 @@ export async function saveBangKiem(data: Record<string, unknown>) {
 export async function deleteBangKiem(id: string) {
   try {
     await verifyPermission("BANG_KIEM", "delete");
+    const supabase = createAdminSupabaseClient();
+    const { data: cur } = await supabase
+      .from("gstt_dm_bang_kiem")
+      .select("is_system, ten_bk")
+      .eq("id", id)
+      .maybeSingle();
+    if (cur?.is_system) {
+      return { success: false, error: "Không được xóa bảng kiểm hệ thống (is_system = true)." };
+    }
     const result = await softDeleteMasterRow("gstt_dm_bang_kiem", id);
     if (!result.success) throw new Error(result.error);
     revalidatePath(QUAN_TRI_HUB_PATH);

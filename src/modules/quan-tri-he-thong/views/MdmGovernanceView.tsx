@@ -24,7 +24,6 @@ import {
 } from "../danh-muc/actions/mdm-governance.actions";
 import type { MdmFieldRegistryRow, MdmSuggestionRow, MdmCoverageRow } from "@/lib/master-data/governance";
 import MdmSuggestionApproveModal from "../components/MdmSuggestionApproveModal";
-import RbacItDangerActions from "../phan-quyen/views/RbacItDangerActions";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -155,7 +154,7 @@ export default function MdmGovernanceView() {
   // Registry columns
   const registryColumns: Column<MdmFieldRegistryRow>[] = [
     {
-      header: "Bảng ngiệp vụ",
+      header: "Bảng nghiệp vụ",
       accessorKey: "table_name",
       sortable: true,
       cell: (r) => <span className="font-mono font-bold text-slate-700 text-[11px]">{r.table_name}</span>
@@ -247,8 +246,6 @@ export default function MdmGovernanceView() {
   return (
     <div className="space-y-[var(--bv103-space-3)] text-sm">
       <h2 className={bv103DesignTokens.sectionTitle}>Bảo vệ liên kết dữ liệu</h2>
-
-      <RbacItDangerActions />
 
       <p className={`${bv103LayoutChrome.noticeAmber} mb-4`} role="note">
         IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>

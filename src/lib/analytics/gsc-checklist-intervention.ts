@@ -7,7 +7,6 @@ import { filterOutVstHubFromGscGenericList } from "@/lib/domain/gsc-lop-giam-sat
 import {
   partitionChecklistOverviewByMinN,
   pickTopInterventionChecklists,
-  sortChecklistOverviewByRisk,
 } from "@/lib/analytics/gsc-checklist-analytics";
 
 /** BCTH-01: list GSC generic không gồm BM.02/03 (hub Vệ sinh tay). */

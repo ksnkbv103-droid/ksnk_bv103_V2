@@ -141,7 +141,8 @@ export function normalizeDmHoaChat(rest: Record<string, unknown>): Record<string
   const out = { ...rest };
   
   const loai = String(out.loai_hoa_chat || "").trim().toUpperCase();
-  out.loai_hoa_chat = loai || "HOA_CHAT";
+  // DB CHECK chỉ nhận HOA_CHAT/VAT_TU; chỉ thị/test sinh học (TEST cũ) thuộc Vật tư
+  out.loai_hoa_chat = loai === "TEST" ? "VAT_TU" : loai || "HOA_CHAT";
 
   const quy_cach = String(out.quy_cach || "").trim() || null;
   const nong_do = String(out.nong_do || "").trim() || null;

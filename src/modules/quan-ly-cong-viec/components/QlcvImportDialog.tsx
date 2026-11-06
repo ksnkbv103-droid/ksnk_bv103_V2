@@ -142,7 +142,8 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
 
     setBusy(true);
     try {
-      const result = await importCongViecRows(rows);
+      const validRawRows = rows.filter((_, idx) => validation[idx]?.ok);
+      const result = await importCongViecRows(validRawRows);
       toast.success(`Đã thêm ${result.inserted} công việc.`);
       setRows([]);
       onImported();

@@ -284,7 +284,7 @@ export function buildPostEventAdminPreview(input: {
   const adm = vnYmd(input.admissionDate);
   // Thiếu ngày vào viện → CHUA_XAC_DINH (trước đây mặc định HAI im lặng).
   const poa = poaOrHai(adm, doe);
-  const ritEnd = clinicalRitEnd(doe);
+  const ritEnd = clinicalRitEnd(poa.doeForRit || doe);
   const indexForSbap = (input.caseRow.ngay_phat_hien || doe).slice(0, 10);
   const sbap =
     majorType === "SSI" ? ssiSbapWindow(doe) : clinicalSbapWindow(indexForSbap, doe);

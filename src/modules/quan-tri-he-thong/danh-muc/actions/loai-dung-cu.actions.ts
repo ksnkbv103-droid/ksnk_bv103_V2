@@ -198,12 +198,37 @@ export async function toggleLoaiDungCuStatusAction(id: string, currentStatus: bo
 export async function softDeleteLoaiDungCuAction(id: string) {
   await verifyPermission("LOAI_DC", "delete");
   await requireCssdCatalogMasterWrite();
+  const supabase = createAdminSupabaseClient();
+  const { count, error } = await supabase
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .select("id", { count: "exact", head: true })
+    .eq("loai_dung_cu_id", id)
+    .eq("is_active", true);
+  if (!error && count && count > 0) {
+    return {
+      success: false as const,
+      error: `Không thể xóa loại dụng cụ đang được sử dụng trong ${count} chi tiết bộ dụng cụ đang hoạt động.`,
+    };
+  }
   return softDeleteMasterRow("cssd_dm_loai_dung_cu", id);
 }
 
 export async function softDeleteManyLoaiDungCuAction(ids: string[]) {
   await verifyPermission("LOAI_DC", "delete");
   await requireCssdCatalogMasterWrite();
+  if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
+  const supabase = createAdminSupabaseClient();
+  const { data: inSets } = await supabase
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .select("loai_dung_cu_id")
+    .in("loai_dung_cu_id", ids)
+    .eq("is_active", true);
+  if (inSets && inSets.length > 0) {
+    return {
+      success: false as const,
+      error: `Có ${inSets.length} chi tiết bộ đang sử dụng các loại dụng cụ được chọn. Vui lòng gỡ khỏi bộ trước khi xóa.`,
+    };
+  }
   return softDeleteManyMasterRows("cssd_dm_loai_dung_cu", ids);
 }
 

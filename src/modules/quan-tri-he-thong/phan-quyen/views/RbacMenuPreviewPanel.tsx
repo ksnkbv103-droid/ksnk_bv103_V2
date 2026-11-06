@@ -5,6 +5,7 @@ import { SIDEBAR_NAV_GROUPS } from "@/lib/nav/sidebar-nav-groups";
 import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
 import { canSeeCommandCenterNav, canSeeNavGate } from "@/lib/nav/ksnk-nav-gates";
 import type { RBACRoleRow } from "../rbac.types";
+import { RBAC_MATRIX_ROLE_HEADER_LABEL } from "../rbac.types";
 import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 type Props = {
@@ -70,7 +71,7 @@ export default function RbacMenuPreviewPanel({
         >
           {roles.map((r) => (
             <option key={r.id} value={r.id}>
-              {r.name}
+              {RBAC_MATRIX_ROLE_HEADER_LABEL[String(r.name).trim().toUpperCase()] ?? r.name}
             </option>
           ))}
         </select>

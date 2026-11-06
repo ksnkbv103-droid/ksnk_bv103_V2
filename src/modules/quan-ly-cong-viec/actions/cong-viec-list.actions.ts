@@ -1,6 +1,7 @@
 "use server";
 
 /** Danh sách, bảng điều hành và chi tiết công việc (đọc). Ghi / chuyển trạng thái ở `cong-viec.actions.ts`. */
+import { matchesQlcvSearch, qlcvServerSearchTerm } from "../lib/qlcv-search-fold";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { applyQlcvListScopeToQuery, assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability } from "../lib/qlcv-rbac";
@@ -18,7 +19,11 @@ async function fetchAllActiveRootTasksInScope(
   opts?: { boardFilter?: QlcvBoardFilter | null; actorStaffId?: string | null },
 ) {
   const rows: Record<string, unknown>[] = [];
-  const actor = opts?.actorStaffId ? String(opts.actorStaffId) : "";
+  const actor = opts?.actorStaffId
+    ? String(opts.actorStaffId)
+    : scope.actorStaffId
+      ? String(scope.actorStaffId)
+      : "";
   const lens = opts?.boardFilter ?? null;
 
   for (let page = 0; page < QLCV_BOARD_FETCH_MAX_PAGES; page++) {
@@ -40,7 +45,7 @@ async function fetchAllActiveRootTasksInScope(
         .eq("nguoi_phu_trach_id", actor)
         .not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
     } else if (lens === "IN_PROGRESS") {
-      query = query.eq("trang_thai", "DANG_LAM");
+      query = query.not("trang_thai", "in", "(HOAN_THANH,DA_HUY,CHO_DUYET)");
     } else if (lens === "OVERDUE") {
       query = query.eq("is_qua_han", true).not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
     }
@@ -76,6 +81,7 @@ export async function getCongViecList() {
 /** Chuẩn hóa dòng đề xuất (fact inactive) về cùng hình dạng view danh sách gốc. */
 function mapProposalToRootListRow(p: Record<string, unknown>) {
   return {
+    ...p,
     id: p.id,
     tieu_de: p.tieu_de,
     mo_ta: p.mo_ta ?? null,
@@ -100,15 +106,7 @@ function mapProposalToRootListRow(p: Record<string, unknown>) {
 }
 
 function proposalMatchesTableSearch(p: Record<string, unknown>, search: string): boolean {
-  const q = search.trim().toLowerCase();
-  if (!q) return true;
-  const hay = (v: unknown) => String(v ?? "").toLowerCase();
-  return (
-    hay(p.tieu_de).includes(q) ||
-    hay(p.nguoi_tao_ten).includes(q) ||
-    hay(p.trang_thai).includes(q) ||
-    hay(p.nguoi_phu_trach_ten).includes(q)
-  );
+  return matchesQlcvSearch([p.tieu_de, p.nguoi_tao_ten, p.trang_thai, p.nguoi_phu_trach_ten], search);
 }
 
 /** Danh sách gốc phân trang server (tab Bảng) — không cap cứng Kanban. */
@@ -139,7 +137,7 @@ export async function getCongViecListPaginated(params: {
   const sortCol = allowedSortCols.has(rawSort) ? rawSort : "created_at";
   const ascending = params.sortDir === "asc";
 
-  const searchFilter = buildSupabaseSearchFilter(params.search, [
+  const searchFilter = buildSupabaseSearchFilter(qlcvServerSearchTerm(params.search ?? ""), [
     "tieu_de",
     "nguoi_phu_trach_ten",
     "trang_thai",

@@ -3,7 +3,7 @@
 import { unstable_cache } from "next/cache";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { canAccessQuanTriHub } from "@/lib/auth/quan-tri-access";
 import { ADMIN_MODULE_STATS_TAG } from "@/lib/cache/revalidate-master-data-tags";
 import type { DanhMucStat, TrungTamDanhMucStatsPayload } from "./danh-muc-hybrid.types";
 
@@ -50,7 +50,10 @@ const loadAdminStatsRaw = unstable_cache(
 /** Thống kê nhanh cho Trung tâm Danh mục — 1 round-trip + cache 60s. */
 export async function getTrungTamDanhMucStatsAction(options?: { includeRegistry?: boolean }) {
   try {
-    await verifyPermission("DANH_MUC", "view");
+    const hasAccess = await canAccessQuanTriHub();
+    if (!hasAccess) {
+      throw new Error("Không có quyền truy cập số liệu Quản trị danh mục.");
+    }
     const raw = await loadAdminStatsRaw();
 
     const core = STATS_CORE_KEYS.reduce<Record<string, DanhMucStat>>((acc, key) => {

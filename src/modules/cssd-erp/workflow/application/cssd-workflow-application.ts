@@ -49,7 +49,13 @@ export async function executeWorkflowStationScan(
     operatorLabel?: string;
     extraPayload?: Record<string, any>;
   },
-): Promise<{ tenBoDungCu: string; ledgerWarning?: string }> {
+): Promise<{
+  tenBoDungCu: string;
+  ledgerWarning?: string;
+  quyTrinhId: string | null;
+  maCycleQr: string | null;
+  khoaNhanId: string | null;
+}> {
   const qr = String(opts.maQR || "").trim().toUpperCase();
   const operator = String(opts.operatorLabel || "").trim() || "CSSD";
   const targetStation = opts.station;
@@ -59,6 +65,10 @@ export async function executeWorkflowStationScan(
     opts.quyTrinh?.id
       ? opts.quyTrinh
       : (await fetchLatestActiveWorkflowByQr(supabase, qr)) ?? opts.quyTrinh;
+
+  if (opts.hasDongBangColumn && quyTrinh.is_dong_bang === true) {
+    throw new Error("Bộ dụng cụ này đang bị KHÓA AN TOÀN do sự cố cấu phần hoặc quy trình.");
+  }
 
   const currentStatus = String(quyTrinh.ma_trang_thai_hien_tai || "").trim() as Station | "";
   const tiepNhanPending =
@@ -194,30 +204,40 @@ export async function executeWorkflowStationScan(
     }
   }
 
-  // 2. Gọi RPC duy nhất để xử lý logic, phân quyền và ghi log tại Database
-  const { data, error } = await supabase.rpc("rpc_scan_workflow_station", {
+  // 2. Một RPC atomic: quét trạm + (CAP_PHAT) khoa nhận/ma_ca_mo_id + (DONG_GOI) mã chu trình.
+  // Domain 23: CAP_PHAT chỉ lưu ma_ca_mo_id để truy vết — KHÔNG set used_clinically.
+  const isCapPhat = targetStation === "CAP_PHAT";
+  const khoaNhanRaw = String(opts.extraPayload?.khoa_nhan_id || "").trim();
+  const maCaMoRaw = String(opts.extraPayload?.ma_ca_mo_id || "").trim();
+  const { data, error } = await supabase.rpc("rpc_cssd_scan_station_commit", {
     p_ma_qr: qr,
     p_target_station: targetStation,
     p_operator_label: operator,
+    p_khoa_nhan_id: isCapPhat && khoaNhanRaw ? khoaNhanRaw : null,
+    p_ma_ca_mo_id: isCapPhat && maCaMoRaw ? maCaMoRaw : null,
   });
 
   if (error) throw new Error(`Lỗi hệ thống: ${error.message}`);
-  
-  const result = data as { success: boolean; message?: string };
-  if (!result.success) {
-    throw new Error(result.message || "Không thể thực hiện quét trạm.");
+
+  const result = data as {
+    success?: boolean;
+    code?: string;
+    message?: string;
+    quy_trinh_id?: string | null;
+    ma_cycle_qr?: string | null;
+    khoa_nhan_id?: string | null;
+  } | null;
+  if (!result?.success) {
+    throw new Error(result?.message || "Không thể thực hiện quét trạm.");
   }
 
-  // 3. CAP_PHAT may patch ma_ca_mo_id for trace — Domain 23: do NOT set used_clinically here.
-  if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id && quyTrinh.id) {
-    const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
-      p_id: quyTrinh.id,
-      p_patch: { ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id) },
-    });
-    if (metaErr) throw new Error(metaErr.message);
-  }
-
-  return { tenBoDungCu: qr, ledgerWarning };
+  return {
+    tenBoDungCu: qr,
+    ledgerWarning,
+    quyTrinhId: result.quy_trinh_id ? String(result.quy_trinh_id) : null,
+    maCycleQr: result.ma_cycle_qr ? String(result.ma_cycle_qr) : null,
+    khoaNhanId: result.khoa_nhan_id ? String(result.khoa_nhan_id) : null,
+  };
 }
 
 /** Trả bộ lui đúng 1 trạm (ngoại lệ vận hành có kiểm soát — không áp TK/CP). */

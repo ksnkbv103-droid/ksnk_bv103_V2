@@ -29,7 +29,7 @@ export async function getKhoCatalogPayloadAction(): Promise<
     const supabase = createAdminSupabaseClient();
 
     // Lấy trực tiếp từ bảng DM để không phụ thuộc category của RPC registry.
-    const [boRes, boMetaRes, hoaChatRes, khoaRes] = await Promise.all([
+    const [boRes, boMetaRes, khoaRes] = await Promise.all([
       supabase
         .from("v_cssd_bo_dung_cu_summary")
         .select(
@@ -41,17 +41,11 @@ export async function getKhoCatalogPayloadAction(): Promise<
         .from("cssd_dm_bo_dung_cu")
         .select("id, phan_loai_bo, co_ma_dinh_danh_rieng")
         .eq("is_active", true),
-      supabase
-        .from("cssd_dm_hoa_chat")
-        .select("id, ma_hoa_chat, ten_hoa_chat, loai_hoa_chat, don_vi_tinh, is_active")
-        .eq("is_active", true)
-        .order("ma_hoa_chat"),
       supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa"),
     ]);
 
     if (boRes.error) throw boRes.error;
     if (boMetaRes.error) throw boMetaRes.error;
-    if (hoaChatRes.error) throw hoaChatRes.error;
     if (khoaRes.error) throw khoaRes.error;
 
     const khoaMap = new Map<string, string>(
@@ -91,15 +85,7 @@ export async function getKhoCatalogPayloadAction(): Promise<
 
     const loai: Catalog["loai"] = [];
     const chi_tiet: Catalog["chi_tiet"] = [];
-
-    const hoa_chat: CSSDHoaChat[] = (hoaChatRes.data || []).map((x) => ({
-      id: String(x.id),
-      ma_hoa_chat: String(x.ma_hoa_chat || ""),
-      ten_hoa_chat: String(x.ten_hoa_chat || ""),
-      loai_hoa_chat: x.loai_hoa_chat ? String(x.loai_hoa_chat) : null,
-      don_vi_tinh: x.don_vi_tinh ? String(x.don_vi_tinh) : null,
-      is_active: x.is_active !== false,
-    }));
+    const hoa_chat: CSSDHoaChat[] = [];
 
     return { success: true, data: { bo, chi_tiet, loai, hoa_chat } };
   } catch (e: unknown) {

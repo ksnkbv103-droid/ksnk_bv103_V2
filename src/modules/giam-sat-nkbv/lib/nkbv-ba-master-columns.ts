@@ -20,6 +20,9 @@ export const BA_MASTER_TAIL_IDS = [
   "ssi_gc",
   "vae_ket_luan",
   "vae_ghi_chu",
+  "ch17_ket_luan",
+  "ch17_ghi_chu",
+  "ch17_gc",
   "master_ket_luan",
 ] as const;
 
@@ -42,7 +45,20 @@ export const BA_MASTER_WINDOW_IDS_BY_PANEL: Record<
     "ssi_ket_luan",
     "ssi_ghi_chu",
   ],
-  VAE: ["vae_index", "vae_ep", "vae_ket_luan", "vae_ghi_chu"],
+  VAE: [
+    "vae_index",
+    "vae_peep",
+    "vae_fio2",
+    "vae_ep",
+    "vae_ket_luan",
+    "vae_ghi_chu",
+  ],
+  CH17: [
+    "ch17_index",
+    "ch17_iwp",
+    "ch17_ket_luan",
+    "ch17_ghi_chu",
+  ],
 };
 
 /** Cột CT phiên cũ — đã chuyển sang bảng chung, luôn lọc bỏ. */
@@ -64,6 +80,7 @@ export function filterPanelAnalysisColumns(
     if (allow.has(c.id)) return true;
     if (panel === "SSI" && c.id.startsWith("ssi_")) return true;
     if (panel === "VAE" && c.id.startsWith("vae_")) return true;
+    if (panel === "CH17" && c.id.startsWith("ch17_")) return true;
     if (
       (panel === "UTI" || panel === "PNEU" || panel === "BSI") &&
       c.id.startsWith("ax_") &&

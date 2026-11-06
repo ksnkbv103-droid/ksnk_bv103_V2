@@ -12,7 +12,7 @@ import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 import NkbvRuledOutSection from "../NkbvRuledOutSection";
-import { vnYmd } from "@/lib/format-datetime-vi";
+import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
 interface VaeClinicalSubFormProps {
   form: VaeVerificationData;
@@ -48,7 +48,7 @@ export default function VaeClinicalSubForm({
   const isVaeInvalid = form.patient_age < 18;
   const cleanNgayVaoVien = vnYmd(ngayVaoVien);
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayYmdInVn();
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
 

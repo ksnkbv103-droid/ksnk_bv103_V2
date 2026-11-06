@@ -489,7 +489,23 @@ async function applyBom(
   );
   if (!plan.ok) throw new Error(plan.error);
 
-  // Ghi: chưa nguyên tử (nhiều câu lệnh) — đã kiểm hết trước; RPC transaction ở lát sau (KD-1 RPC).
+  // DATA-01: Ghi qua PostgreSQL RPC transaction nguyên tử (all-or-nothing rollback)
+  if (typeof (supabase as unknown as { rpc?: unknown }).rpc === "function") {
+    const { error: rpcErr } = await supabase.rpc("fn_cssd_apply_bom_plan_tx", {
+      p_bo_id: boId,
+      p_writes: plan.writes,
+      p_now: now,
+    });
+    if (!rpcErr) return;
+    // Chỉ fallback khi hàm RPC thiếu thật (PGRST202 không thấy trong schema cache / 42883 undefined_function).
+    // 42703/42P01 là lỗi thật bên trong hàm → phải ném.
+    const isMissingRpc = rpcErr.code === "PGRST202" || rpcErr.code === "42883";
+    if (!isMissingRpc) {
+      throw new Error(rpcErr.message);
+    }
+  }
+
+  // Fallback tuần tự cho môi trường mock / test đơn vị
   for (const w of plan.writes) {
     if (w.type === "deactivate") {
       const { error } = await supabase

@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Copy, Pencil, Trash2 } from "lucide-react";
 import { getQlcvWorkflowGateLabel } from "../lib/qlcv-workflow-display";
 import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { formatMucDoUuTienLabel } from "../lib/qlcv-labels";
@@ -17,6 +17,7 @@ export type QlcvTableColumnHandlers = {
   /** KSNK staff roster for resolving phối hợp / theo dõi names (C/I). */
   staffLabelOpts?: { id: string; label: string }[];
   onEdit: (row: CongViecView) => void;
+  onClone?: (row: CongViecView) => void;
   onDelete: (row: CongViecView) => Promise<void>;
 };
 
@@ -32,6 +33,9 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
           <span className={Q.cellTitle}>{row.tieu_de}</span>
           {row.nhiem_vu_ten ? (
             <span className={`${Q.cellMeta} block truncate`}>NV/KH: {row.nhiem_vu_ten}</span>
+          ) : null}
+          {row.nhom_chuyen_mon_ten ? (
+            <span className={`${Q.cellMeta} block truncate text-emerald-700`}>{row.nhom_chuyen_mon_ten}</span>
           ) : null}
           <QlcvDinhKyMauChip
             loaiCongViec={row.loai_cong_viec}
@@ -107,6 +111,40 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             ))}
             {extra > 0 ? (
               <span className="bv103-type-label rounded-full border border-slate-200 bg-white px-1.5 py-0.5 font-semibold text-slate-500">
+                +{extra}
+              </span>
+            ) : null}
+          </div>
+        );
+      },
+      sortable: false,
+    },
+    {
+      header: "Theo dõi",
+      accessorKey: "nguoi_theo_doi_ids",
+      headerClassName: "w-[12%] min-w-[5.5rem] hidden md:table-cell",
+      cellClassName: "align-middle hidden md:table-cell",
+      cell: (row: CongViecView) => {
+        const { chips, extra, empty, title } = formatQlcvPhoiHopChips(
+          row.nguoi_theo_doi_ids,
+          h.staffLabelOpts ?? [],
+          2,
+        );
+        if (empty) {
+          return <span className={`${Q.cellBody} text-slate-400`}>—</span>;
+        }
+        return (
+          <div className="flex max-w-[11rem] flex-wrap gap-1" title={title}>
+            {chips.map((c) => (
+              <span
+                key={c.id}
+                className="bv103-type-label inline-flex max-w-[5.5rem] truncate rounded-full border border-teal-200 bg-teal-50/70 px-1.5 py-0.5 font-medium text-teal-700"
+              >
+                {c.label}
+              </span>
+            ))}
+            {extra > 0 ? (
+              <span className="bv103-type-label rounded-full border border-teal-200 bg-white px-1.5 py-0.5 font-semibold text-teal-600">
                 +{extra}
               </span>
             ) : null}
@@ -192,6 +230,16 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cellClassName: "align-middle text-right",
       cell: (row: CongViecView) => (
         <div className="flex flex-wrap items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          {h.onClone ? (
+            <button
+              type="button"
+              title="Sao chép / Nhân bản công việc này"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+              onClick={() => h.onClone?.(row)}
+            >
+              <Copy size={12} aria-hidden /> Nhân bản
+            </button>
+          ) : null}
           {canShowEditTaskMetadata(row, h.qlcvUi) ? (
             <button
               type="button"

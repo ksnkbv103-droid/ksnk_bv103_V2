@@ -62,6 +62,9 @@ export default function RbacItDangerActions() {
       const res = await resetKsnkRolePermissionPresets();
       if (res.success) {
         toast.success("Đã đặt lại quyền mặc định cho vai trò KSNK.");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("rbac:invalidate"));
+        }
       } else {
         toast.error("Lỗi đặt lại quyền mặc định: " + (res.error || ""));
       }

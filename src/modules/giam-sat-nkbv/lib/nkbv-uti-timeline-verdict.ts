@@ -94,9 +94,10 @@ export function gateUtiIndexLab(indexXn: BaGridXnCell | null): UtiIndexLabGate {
   const parts = splitUrineOrganisms(indexXn.vi_khuan);
   const bacteria = parts.filter((p) => !isYeastOrganism(p));
   const yeastOnly = parts.length > 0 && bacteria.length === 0;
-  const mixed = /tạp nhiễm|mixed\s*flora|≥\s*3|>=\s*3/i.test(
-    `${indexXn.so_luong || ""} ${indexXn.vi_khuan || ""}`,
-  );
+  const mixed =
+    /tạp nhiễm|mixed\s*flora|≥\s*3|>=\s*3/i.test(
+      `${indexXn.so_luong || ""} ${indexXn.vi_khuan || ""}`,
+    ) || parts.length >= 3;
   const pathogenCount = mixed ? 3 : countUrineSpecies(indexXn.vi_khuan, indexXn.so_luong);
   const bacterialCount = mixed ? pathogenCount : bacteria.length || (yeastOnly ? 0 : pathogenCount);
   if (yeastOnly) warnings.push("Nấm/Candida — không đủ làm Index UTI");
@@ -279,12 +280,6 @@ export function buildUtiTimelineVerdict(
     .join(" · ");
 
   return { lab, result, criteriaMet, ketLuanLabel };
-}
-
-function addDay(iso: string, n: number): string {
-  const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
 }
 
 export function ageYearsFromNgaySinh(

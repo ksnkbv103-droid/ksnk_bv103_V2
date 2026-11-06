@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
+import { useRef, type Dispatch, type SetStateAction } from "react";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { SessionInput } from "../actions/vst-write.helpers";
@@ -48,10 +48,20 @@ export function useVSTFormHandlers(
   /** Admin sửa phiên quá 30 phút — bắt buộc lyDoSua (N-VST-9). */
   requiresEditReason = false,
 ) {
+  /** Một uuid cho mỗi phiên mới; giữ qua retry/hàng đợi, chỉ xóa khi lưu thành công. */
+  const clientRequestIdRef = useRef<string | null>(null);
   const mutatePersons = (mutator: (draft: VSTFormPerson[]) => void) => {
-    const next = [...persons];
-    mutator(next);
-    setPersons(next);
+    setPersons((prev) => {
+      const next: VSTFormPerson[] = prev.map((p) => ({
+        ...p,
+        opportunities: p.opportunities.map((o) => ({
+          ...o,
+          thoi_diems: [...o.thoi_diems],
+        })),
+      }));
+      mutator(next);
+      return next;
+    });
   };
 
   const updatePerson = <K extends VSTPersonUpdatableField>(idx: number, field: K, value: VSTFormPerson[K]) => {
@@ -170,9 +180,11 @@ export function useVSTFormHandlers(
     }
 
     setLoading(true);
+    if (!sid && !clientRequestIdRef.current) clientRequestIdRef.current = crypto.randomUUID();
+    const clientRequestId = sid ? null : clientRequestIdRef.current;
     const saveOpts = sid
       ? { existingSessionId: sid, ...(lyDoSua ? { lyDoSua } : {}) }
-      : undefined;
+      : { clientRequestId };
     try {
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         enqueueOfflineVstSave({
@@ -180,6 +192,7 @@ export function useVSTFormHandlers(
           observations,
           existingSessionId: sid || null,
           lyDoSua: lyDoSua ?? null,
+          clientRequestId,
         });
         toast.warning(
           "Chưa lên máy chủ — phiên đang chờ mạng. Khi có internet, bấm «Đồng bộ» ở góc màn hình hoặc mở lại trang.",
@@ -193,6 +206,7 @@ export function useVSTFormHandlers(
         saveOpts,
       );
       if (res.success) {
+        clientRequestIdRef.current = null;
         toast.success(res.message);
         setSession((prev) => ({ ...prev, thoi_gian_ket_thuc: ketThucIso }));
         if (sid) {
@@ -212,6 +226,7 @@ export function useVSTFormHandlers(
           observations,
           existingSessionId: sid || null,
           lyDoSua: lyDoSua ?? null,
+          clientRequestId,
         });
         toast.warning(
           "Chưa lên máy chủ — mạng lỗi, phiên đang chờ. Khi có internet, bấm «Đồng bộ» ở góc màn hình.",

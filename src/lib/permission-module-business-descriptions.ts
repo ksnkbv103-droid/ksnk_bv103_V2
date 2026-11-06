@@ -27,6 +27,7 @@ const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
   CSSD_WORKFLOW: "Quy trình luân chuyển QR trạm CSSD.",
   CSSD_ME_TIET_KHUAN: "Mẻ tiệt khuẩn — QC, khóa an toàn.",
   KSNK_KHO_HOACHAT: "Kho hóa chất — nhập xuất theo lô FEFO.",
+  CSSD_HOA_CHAT: "Duyệt / từ chối phiếu nhập·xuất kho hóa chất (người duyệt khác người lập).",
   GIAM_SAT_VST: "Phiên giám sát vệ sinh tay (WHO).",
   GIAM_SAT_CHUNG: "Phiên giám sát bảng kiểm chung (GSC).",
   GIAM_SAT_NKBV: "Giám sát nhiễm khuẩn bệnh viện / HAI.",

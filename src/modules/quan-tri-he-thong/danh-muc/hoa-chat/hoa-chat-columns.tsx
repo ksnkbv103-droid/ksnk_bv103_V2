@@ -43,6 +43,12 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
       cell: (i) => <span className={TC.cellMeta}>{loaiHoaChatLabel(i.loai_hoa_chat)}</span>,
     },
     {
+      header: "Nhóm",
+      accessorKey: "nhom_ten",
+      sortable: true,
+      cell: (i) => <span className={TC.cellMeta}>{i.nhom_ten || "—"}</span>,
+    },
+    {
       header: "Nồng độ",
       accessorKey: "nong_do",
       sortable: true,

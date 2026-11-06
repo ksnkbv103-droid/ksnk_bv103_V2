@@ -62,14 +62,6 @@ export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
         error: `Bộ "${boMa || "?"}" chưa có mã chuẩn (B01.SET.01). Sửa tại tab Bộ dụng cụ trước khi thêm thành phần.`,
       };
     }
-    const headerLoai = String((bo as { loai_dung_cu_id?: string | null }).loai_dung_cu_id || "").trim();
-    if (headerLoai && headerLoai !== loaiRaw) {
-      return {
-        success: false as const,
-        error:
-          "Loại dụng cụ của dòng chi tiết phải khớp loại header trên bộ (hoặc cập nhật loại header bộ trước).",
-      };
-    }
   }
 
   let finalTen = ten;

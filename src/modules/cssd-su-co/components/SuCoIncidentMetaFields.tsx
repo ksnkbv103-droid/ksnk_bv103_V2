@@ -1,10 +1,43 @@
 "use client";
 
-import React from "react";
-import { Camera } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { Camera, Image as ImageIcon, Link as LinkIcon, Trash2, UploadCloud } from "lucide-react";
 import SearchableSelect, { type SearchableSelectOption } from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { getGoogleDriveDirectLink } from "./IncidentPrintView";
+
+function compressAndLoadImage(file: File, callback: (base64: string) => void) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 1200;
+      let width = img.width;
+      let height = img.height;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        callback(canvas.toDataURL("image/jpeg", 0.75));
+      } else {
+        callback(String(e.target?.result || ""));
+      }
+    };
+    img.src = String(e.target?.result || "");
+  };
+  reader.readAsDataURL(file);
+}
 
 export type SuCoIncidentMetaState = {
   thoiGianPhatHien: string;
@@ -55,6 +88,8 @@ export default function SuCoIncidentMetaFields({
   onSelectDetector,
   onSelectRelated,
 }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showLinkInput, setShowLinkInput] = useState(false);
   const peopleGrid = `grid grid-cols-1 gap-4 sm:grid-cols-2 ${wide ? "lg:grid-cols-4" : ""}`;
   const detailGrid = wide
     ? `grid grid-cols-1 gap-4 ${imageHidden ? "" : "lg:grid-cols-2"}`
@@ -125,22 +160,72 @@ export default function SuCoIncidentMetaFields({
         </div>
         {!imageHidden ? (
           <div className={`space-y-1.5 ${wide ? "" : "border-t border-slate-100 pt-2"}`}>
-            <label className={bv103LayoutChrome.labelBlock}>
-              Ảnh minh chứng{imageRequired ? " *" : " (tùy chọn)"}
-            </label>
-            <div className="relative">
-              <input
-                value={values.anhMinhChung}
-                onChange={(e) => onChange("anhMinhChung", e.target.value)}
-                className={`${bv103LayoutChrome.controlInput} bg-slate-50 pr-10`}
-                placeholder="Dán link ảnh hoặc link Google Drive..."
-              />
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <Camera size={16} />
-              </div>
+            <div className="flex items-center justify-between">
+              <label className={bv103LayoutChrome.labelBlock}>
+                Ảnh minh chứng{imageRequired ? " *" : " (tùy chọn)"}
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowLinkInput(!showLinkInput)}
+                className="text-[11px] font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+              >
+                <LinkIcon size={12} />
+                {showLinkInput ? "Chụp/Tải ảnh" : "Dán link ảnh"}
+              </button>
             </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  compressAndLoadImage(file, (dataUrl) => {
+                    onChange("anhMinhChung", dataUrl);
+                  });
+                }
+              }}
+            />
+
+            {showLinkInput ? (
+              <div className="relative">
+                <input
+                  value={values.anhMinhChung}
+                  onChange={(e) => onChange("anhMinhChung", e.target.value)}
+                  className={`${bv103LayoutChrome.controlInput} bg-slate-50 pr-10`}
+                  placeholder="Dán link ảnh hoặc link Google Drive..."
+                />
+                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <LinkIcon size={16} />
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-95"
+                >
+                  <Camera size={15} className="text-[var(--primary)]" />
+                  Chụp ảnh / Tải ảnh lên
+                </button>
+                {values.anhMinhChung ? (
+                  <button
+                    type="button"
+                    onClick={() => onChange("anhMinhChung", "")}
+                    className="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                  >
+                    <Trash2 size={14} /> Xóa ảnh
+                  </button>
+                ) : null}
+              </div>
+            )}
+
             {values.anhMinhChung ? (
-              <div className="mt-3 flex max-h-48 flex-col items-center justify-center overflow-hidden rounded-[var(--radius-control)] border border-slate-200 bg-slate-50 p-3">
+              <div className="mt-2.5 flex max-h-48 flex-col items-center justify-center overflow-hidden rounded-[var(--radius-control)] border border-slate-200 bg-slate-50 p-2 relative group">
                 <img
                   src={getGoogleDriveDirectLink(values.anhMinhChung)}
                   alt="Preview ảnh minh chứng"

@@ -107,6 +107,8 @@ export function useGiamSatChungForm(
   const editResults = opts?.editPayload?.results;
   const editingSessionId = opts?.editingSessionId ?? null;
   const locPrefill = opts?.locPrefill ?? null;
+  /** Một uuid cho mỗi phiên mới; giữ qua retry/hàng đợi, chỉ xóa khi lưu thành công. */
+  const clientRequestIdRef = useRef<string | null>(null);
   const stickyAppliedRef = useRef(false);
   const locAppliedRef = useRef(false);
 
@@ -363,12 +365,15 @@ export function useGiamSatChungForm(
         loai_bang_kiem: template.id,
       } as GscSessionInput;
       const sid = String(editingSessionId ?? "").trim();
+      if (!sid && !clientRequestIdRef.current) clientRequestIdRef.current = crypto.randomUUID();
+      const clientRequestId = sid ? null : clientRequestIdRef.current;
 
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         enqueueOfflineGscSave({
           session: payload,
           results,
           existingSessionId: sid || null,
+          clientRequestId,
         });
         toast.warning(
           "Chưa lên máy chủ — phiên đang chờ mạng. Khi có internet, bấm «Đồng bộ» ở góc màn hình hoặc mở lại trang.",
@@ -377,8 +382,13 @@ export function useGiamSatChungForm(
         return;
       }
 
-      const res = await saveGiamSatChung(payload, results, sid ? { existingSessionId: sid } : undefined);
+      const res = await saveGiamSatChung(
+        payload,
+        results,
+        sid ? { existingSessionId: sid } : { clientRequestId },
+      );
       if (res.success) {
+        clientRequestIdRef.current = null;
         toast.success(sid ? "Đã cập nhật phiên giám sát." : "Đã lưu kết quả!");
         if (sid) {
           onSuccess();
@@ -452,10 +462,12 @@ export function useGiamSatChungForm(
           loai_bang_kiem: template.id,
         } as GscSessionInput;
         const sid = String(editingSessionId ?? "").trim();
+        if (!sid && !clientRequestIdRef.current) clientRequestIdRef.current = crypto.randomUUID();
         enqueueOfflineGscSave({
           session: payload,
           results,
           existingSessionId: sid || null,
+          clientRequestId: sid ? null : clientRequestIdRef.current,
         });
         toast.warning(
           "Chưa lên máy chủ — mạng lỗi, phiên đang chờ. Khi có internet, bấm «Đồng bộ» ở góc màn hình.",

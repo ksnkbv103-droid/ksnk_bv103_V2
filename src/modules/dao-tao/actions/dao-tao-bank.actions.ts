@@ -106,6 +106,7 @@ export async function listChuDeDaoTao() {
 export async function listCauHoiDaoTao(filters?: {
   chuDeMa?: string;
   loai?: string;
+  targetRole?: string;
   limit?: number;
   includeInactive?: boolean;
 }) {
@@ -114,13 +115,16 @@ export async function listCauHoiDaoTao(filters?: {
   let q = admin
     .from("dao_tao_cau_hoi")
     .select(
-      "id, ma_cau, chu_de_ma, chu_de_ten, loai, bloom_level, stem, giai_thich, is_active, import_stt, created_at, phuong_an, dap_an_dung",
+      "id, ma_cau, chu_de_ma, chu_de_ten, loai, bloom_level, bloom_code, clinical_vignette, stem, giai_thich, distractor_rationales, evidence_lock, target_roles, sop_refs, is_active, import_stt, created_at, phuong_an, dap_an_dung",
     )
-    .order("import_stt", { ascending: true, nullsFirst: false })
+    .order("ma_cau", { ascending: true })
     .limit(filters?.limit ?? 500);
   if (!filters?.includeInactive) q = q.eq("is_active", true);
   if (filters?.chuDeMa) q = q.eq("chu_de_ma", filters.chuDeMa);
   if (filters?.loai) q = q.eq("loai", filters.loai);
+  if (filters?.targetRole && filters.targetRole !== "ALL") {
+    q = q.contains("target_roles", [filters.targetRole]);
+  }
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
@@ -129,20 +133,26 @@ export async function listCauHoiDaoTao(filters?: {
 export async function getBankStats() {
   await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
-  const rows = await fetchAllRangeRows<{ loai: string }>((from, to) => {
+  const rows = await fetchAllRangeRows<{ loai: string; bloom_level: number; target_roles: string[] }>((from, to) => {
     const q = admin
       .from("dao_tao_cau_hoi")
-      .select("loai")
+      .select("loai, bloom_level, target_roles")
       .eq("is_active", true)
       .order("id", { ascending: true })
       .range(from, to);
     return q;
   });
   const byLoai: Record<string, number> = {};
+  const byBloom: Record<string, number> = {};
+  const byRole: Record<string, number> = {};
   for (const row of rows) {
     byLoai[row.loai] = (byLoai[row.loai] ?? 0) + 1;
+    byBloom[String(row.bloom_level)] = (byBloom[String(row.bloom_level)] ?? 0) + 1;
+    for (const r of row.target_roles ?? []) {
+      byRole[r] = (byRole[r] ?? 0) + 1;
+    }
   }
-  return { total: rows.length, byLoai };
+  return { total: rows.length, byLoai, byBloom, byRole };
 }
 
 export async function getDaoTaoBankForExport(includeInactive = true): Promise<ExportBankRow[]> {

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
-import { resolveChecklistOverview, resolveTopInterventionChecklists } from "@/lib/analytics/gsc-checklist-intervention";
+import { resolveAllSortedChecklistOverview, resolveTopInterventionChecklists } from "@/lib/analytics/gsc-checklist-intervention";
 import { printHtmlDocument } from "@/lib/print-html";
 import { getGscChecklistDetail } from "@/modules/giam-sat-chung/actions/gsc-checklist-detail.actions";
 import type { GscChecklistDetailPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
@@ -65,7 +65,7 @@ export function useBaoCaoTongHopPrint(args: {
         selectedKhoaIds: args.selectedKhoaIds,
         selectedNgheIds: args.selectedNgheIds,
         selectedKhuVucIds: args.selectedKhuVucIds,
-        selectedHinhThucIds: args.selectedHinhThucIds,
+        selectedHinhThucIds: args.selectedHinhThucIdsGsc ?? args.selectedHinhThucIds,
         selectedBangKiemMas: args.selectedBangKiemMas,
         khoiOptionCount: args.khoiOptionCount,
         khoaOptionCount: args.khoaOptionCount,
@@ -73,9 +73,10 @@ export function useBaoCaoTongHopPrint(args: {
         khuOptionCount: args.khuOptionCount,
       });
 
+      const allOverview = resolveAllSortedChecklistOverview(args.gscPayload);
       const topList = resolveTopInterventionChecklists(args.gscPayload, MAX_CHECKLIST_DETAILS);
       const topMas = topList.map((r) => r.ma_bk);
-      const truncated = Math.max(0, resolveChecklistOverview(args.gscPayload).length - topMas.length);
+      const truncated = topMas.length > 0 ? Math.max(0, allOverview.length - topMas.length) : 0;
 
       const details: Record<string, GscChecklistDetailPayload> = {};
       if (topMas.length > 0) {

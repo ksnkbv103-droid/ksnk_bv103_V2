@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SmartImportDmSessionCache } from "../lib/smart-import/dm-import-session-cache";
 import { lookupKhoaByTenFlexible, looksLikeShortBusinessCode, UUID_RE } from "./smart-import-resolvers-shared";
 
 export async function resolveLoaiDungCuForBoImport(
   supabase: SupabaseClient,
-  row: Record<string, unknown>
+  row: Record<string, unknown>,
+  sessionCache?: SmartImportDmSessionCache,
 ): Promise<{ ok: true; row: Record<string, unknown> } | { ok: false; error: string }> {
   const sb = supabase;
   const out = { ...row };
@@ -15,14 +17,22 @@ export async function resolveLoaiDungCuForBoImport(
   let ref: { id: string } | null = null;
   const maLookup = raw && !UUID_RE.test(raw) ? raw.toUpperCase() : maLoai;
   if (maLookup) {
-    const { data, error } = await sb
-      .from("v_cssd_loai_dung_cu_summary")
-      .select("id")
-      .eq("ma_loai_dung_cu", maLookup)
-      .limit(1)
-      .maybeSingle();
-    if (error) return { ok: false, error: error.message };
-    ref = data as { id: string } | null;
+    if (sessionCache) {
+      const res = await sessionCache.resolveDanhMucId(maLookup, "LOAI_DUNG_CU");
+      if (typeof res === "object" && res !== null && "error" in res) {
+        return { ok: false, error: res.error };
+      }
+      if (res) ref = { id: res };
+    } else {
+      const { data, error } = await sb
+        .from("v_cssd_loai_dung_cu_summary")
+        .select("id")
+        .eq("ma_loai_dung_cu", maLookup)
+        .limit(1)
+        .maybeSingle();
+      if (error) return { ok: false, error: error.message };
+      ref = data as { id: string } | null;
+    }
   }
   if (!ref && tenLoai) {
     const { data, error } = await sb
@@ -43,7 +53,8 @@ export async function resolveLoaiDungCuForBoImport(
 
 export async function resolveKhoaUsageForBoImport(
   supabase: SupabaseClient,
-  row: Record<string, unknown>
+  row: Record<string, unknown>,
+  sessionCache?: SmartImportDmSessionCache,
 ): Promise<{ ok: true; row: Record<string, unknown> } | { ok: false; error: string }> {
   const sb = supabase;
   const out = { ...row };
@@ -61,9 +72,17 @@ export async function resolveKhoaUsageForBoImport(
   const maLookupCandidate = raw && !UUID_RE.test(raw) ? raw : maKhoaCol;
   if (maLookupCandidate && looksLikeShortBusinessCode(maLookupCandidate)) {
     const m = maLookupCandidate.toUpperCase();
-    const { data, error } = await sb.from("mdm_dm_khoa_phong").select("id").eq("ma_khoa", m).maybeSingle();
-    if (error) return { ok: false, error: error.message };
-    ref = data as { id: string } | null;
+    if (sessionCache) {
+      const res = await sessionCache.resolveDanhMucId(m, "KHOA_PHONG");
+      if (typeof res === "object" && res !== null && "error" in res) {
+        return { ok: false, error: res.error };
+      }
+      if (res) ref = { id: res };
+    } else {
+      const { data, error } = await sb.from("mdm_dm_khoa_phong").select("id").eq("ma_khoa", m).maybeSingle();
+      if (error) return { ok: false, error: error.message };
+      ref = data as { id: string } | null;
+    }
   }
   if (!ref && tenKhoa) {
     const { data, error } = await sb.from("mdm_dm_khoa_phong").select("id").eq("ten_khoa", tenKhoa).maybeSingle();
@@ -83,7 +102,8 @@ export async function resolveKhoaUsageForBoImport(
 
 export async function resolveKhoiForKhoaPhongImport(
   supabase: SupabaseClient,
-  row: Record<string, unknown>
+  row: Record<string, unknown>,
+  sessionCache?: SmartImportDmSessionCache,
 ): Promise<{ ok: true; row: Record<string, unknown> } | { ok: false; error: string }> {
   const sb = supabase;
   const out = { ...row };
@@ -100,7 +120,7 @@ export async function resolveKhoiForKhoaPhongImport(
     const like = await sb
       .from("mdm_dm_khoi_khoa")
       .select("id")
-      .ilike("ten_khoi", `%${t.replace(/%/g, "\\%")}%`)
+      .ilike("ten_khoi", `%${t.replace(/[\\%_]/g, "\\$&")}%`)
       .limit(1)
       .maybeSingle();
     if (!like.error && like.data?.id) return like.data as { id: string };
@@ -111,9 +131,17 @@ export async function resolveKhoiForKhoaPhongImport(
   const maProbe = maKhoiRaw.toUpperCase();
 
   if (maKhoiRaw && looksLikeShortBusinessCode(maKhoiRaw)) {
-    const r = await sb.from("mdm_dm_khoi_khoa").select("id").eq("ma_khoi", maProbe).maybeSingle();
-    if (r.error) return { ok: false, error: r.error.message };
-    data = (r.data as { id: string }) || null;
+    if (sessionCache) {
+      const res = await sessionCache.resolveDanhMucId(maProbe, "KHOI_KHOA");
+      if (typeof res === "object" && res !== null && "error" in res) {
+        return { ok: false, error: res.error };
+      }
+      if (res) data = { id: res };
+    } else {
+      const r = await sb.from("mdm_dm_khoi_khoa").select("id").eq("ma_khoi", maProbe).maybeSingle();
+      if (r.error) return { ok: false, error: r.error.message };
+      data = (r.data as { id: string }) || null;
+    }
   }
   if (!data && maKhoiRaw && !looksLikeShortBusinessCode(maKhoiRaw) && !tenKhoi) tenKhoi = maKhoiRaw;
 

@@ -20,6 +20,7 @@ import {
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { collectRitPathogens, detectSecondaryBsiFromSbap } from "../lib/nkbv-ket-luan-smart";
 import type { NkbvBaAnalysisSeedInput } from "../actions/giam-sat-nkbv-ba-analysis.actions";
+import NkbvPatientSynthesisBar from "./NkbvPatientSynthesisBar";
 import {
   openSessionsToSecondarySites,
   priorEventsToSecondarySites,
@@ -37,6 +38,7 @@ import {
   type SessionIndexSuggestion,
   type SyndromePanelId,
 } from "../lib/nkbv-specimen-syndrome";
+import { validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
 import { isNkbvCh17SpecimenOnly } from "../lib/nkbv-specimen-canonical";
 import {
   loadBaAnalysisSessions,
@@ -137,6 +139,10 @@ const NkbvSyndromeSsiPanel = dynamic(() => import("./NkbvSyndromeSsiPanel"), {
 const NkbvSyndromeShellPanel = dynamic(() => import("./NkbvSyndromeShellPanel"), {
   loading: panelLoading,
 });
+/** Chương 17 — localized site infections (SST, IAB, BJ, CNS, CVS, etc.). */
+const NkbvSyndromeCh17Panel = dynamic(() => import("./NkbvSyndromeCh17Panel"), {
+  loading: panelLoading,
+});
 
 /**
  * Multi-timeline: bảng chung bằng chứng đầy đủ + phiên hội chứng độc lập.
@@ -166,6 +172,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   onReload,
   onTimelineUpsertLocal,
   onTimelineRemoveLocal,
+  onOpenCase,
   priorEvents = [],
 }: NkbvBaMultiTimelineWorkspaceProps) {
   const [addXnDate, setAddXnDate] = useState<string | null>(null);
@@ -794,18 +801,6 @@ export default function NkbvBaMultiTimelineWorkspace({
     const label = [x.benh_pham, x.vi_khuan].filter(Boolean).join(" · ");
 
     if (!panel) {
-      if (
-        isNkbvCh17SpecimenOnly({
-          loai_benh_pham: x.benh_pham,
-          loai_benh_pham_chuan: x.loai_benh_pham_chuan,
-          lis_goc: x.lis_goc,
-        })
-      ) {
-        toast.message(
-          "Bệnh phẩm Chương 17 (UR / USI / hô hấp trên) — không mở khung UTI hay HAP. Xem trên lưới; tạo phiếu Ch.17 khi đủ bằng chứng.",
-        );
-        return;
-      }
       toast.message(
         "Chưa map được hội chứng từ bệnh phẩm chuẩn — chuẩn hóa loại bệnh phẩm ở kho vi sinh trước.",
       );
@@ -818,6 +813,22 @@ export default function NkbvBaMultiTimelineWorkspace({
         eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
         ketLuan: "",
       });
+      return;
+    }
+
+    // Quy tắc CDC & Bộ Y tế: Phân tích tuần tự theo thời gian, không nhảy cóc xét nghiệm
+    const chronoCheck = validateChronoPrecedence({
+      targetDate: x.ngay,
+      targetId: x.id,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!chronoCheck.allowed) {
+      toast.warning(chronoCheck.message, { duration: 6000 });
+      const earlierXn = split.xn.find((it) => it.id === chronoCheck.earliestUnresolved.id);
+      if (earlierXn) {
+        void openFromXn(earlierXn);
+      }
       return;
     }
 
@@ -909,6 +920,23 @@ export default function NkbvBaMultiTimelineWorkspace({
       });
       return;
     }
+
+    // Quy tắc CDC & Bộ Y tế: Phân tích tuần tự theo thời gian, không nhảy cóc cận lâm sàng
+    const chronoCheck = validateChronoPrecedence({
+      targetDate: c.ngay,
+      targetId: c.id,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!chronoCheck.allowed) {
+      toast.warning(chronoCheck.message, { duration: 6000 });
+      const earlierXn = split.xn.find((it) => it.id === chronoCheck.earliestUnresolved.id);
+      if (earlierXn) {
+        void openFromXn(earlierXn);
+      }
+      return;
+    }
+
     const localCdhaKl = findBaSampleConclusion(sampleConclusions, c.id);
     if (localCdhaKl?.disposition === "KHONG_DU_TC") {
       toast.message(localCdhaKl.label);
@@ -1263,6 +1291,7 @@ export default function NkbvBaMultiTimelineWorkspace({
     onOpenSurgeryOrSsi: stableOpenFromSurgeryOrSsi,
     onAddSurgery: stableAddSurgery,
     onToggleSsiTc: stableToggleSsiTc,
+    onToggleLamSang: allowedEdit ? persistPanelLamSang : undefined,
   };
 
 
@@ -1288,6 +1317,30 @@ export default function NkbvBaMultiTimelineWorkspace({
       });
       return;
     }
+
+    // Quy tắc CDC & Bộ Y tế: Phân tích tuần tự theo thời gian, không nhảy cóc xét nghiệm/cận lâm sàng
+    const chronoCheck = validateChronoPrecedence({
+      targetDate: s.index.date,
+      targetId: s.index.id,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!chronoCheck.allowed) {
+      toast.warning(chronoCheck.message, { duration: 6000 });
+      const earlierSugg = sessionSuggestions.find(
+        (it) => it.index.id === chronoCheck.earliestUnresolved.id,
+      );
+      if (earlierSugg) {
+        openFromSuggestion(earlierSugg);
+      } else {
+        const earlierXn = split.xn.find((it) => it.id === chronoCheck.earliestUnresolved.id);
+        if (earlierXn) {
+          void openFromXn(earlierXn);
+        }
+      }
+      return;
+    }
+
     const xnCell = split.xn.find((x) => x.id === s.index.id);
     const specimen =
       xnCell?.benh_pham ||
@@ -1427,6 +1480,16 @@ export default function NkbvBaMultiTimelineWorkspace({
         onPreferVaeChange={setPreferVae}
       />
 
+      <NkbvPatientSynthesisBar
+        maBenhAn={maBenhAn}
+        ngayVaoVien={ngayVaoVien}
+        ngayRaVien={ngayRaVien}
+        priorEvents={priorEvents}
+        xnList={split.xn}
+        statusById={xnStatusById}
+        onSelectEvent={onOpenCase}
+      />
+
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {!sessionSuggestions.length ? (
           <p className="mt-3 text-xs text-slate-500">
@@ -1440,6 +1503,8 @@ export default function NkbvBaMultiTimelineWorkspace({
           sessions={sessions}
           openSessionId={openSessionId}
           establishedSiteSbaps={establishedSiteSbaps}
+          xnList={split.xn}
+          xnStatusById={xnStatusById}
           onOpenSuggestion={openFromSuggestion}
           onSelectSession={setOpenSessionId}
           onRemoveSession={removeSession}
@@ -1656,6 +1721,60 @@ export default function NkbvBaMultiTimelineWorkspace({
               );
             }}
           </NkbvSyndromeSsiPanel>
+        ) : openSession && openSession.panel === "CH17" ? (
+          <NkbvSyndromeCh17Panel
+            columns={panelColumns}
+            index={openSession.index}
+            indexLabel={openSession.indexLabel}
+            ngayVaoVien={ngayVaoVien}
+            ngayRaVien={ngayRaVien}
+            xn={split.xn}
+            cdha={cdhaList}
+            draft={openSession.draft}
+            onDraftChange={(patch) => patchDraft(openSession.id, patch)}
+            allowedEdit={allowedEdit}
+            analysisDispositions={mergedDispositions}
+            sampleConclusions={sampleConclusions}
+            analysisMode={analysisMode}
+            onManualSampleConclude={persistManualSampleConclusion}
+            onManualSampleClear={(p) => clearManualSampleConclusion(p.indexId)}
+            priorEvents={priorEvents}
+            openSiteSessions={openSiteSessionsForSbap}
+            onClose={() => setOpenSessionId(null)}
+            onCloseInsufficient={closeInsufficient}
+            onConfirmSecondaryBlood={(payload) => {
+              if (isManual) return;
+              applySecondaryBsiVeto({
+                sampleId: payload.sampleId,
+                sampleDate: payload.date,
+                ketLuanLabel: payload.label,
+                sites: [],
+              });
+            }}
+            onOpenPrimaryBsi={(bloodId) => {
+              const b = split.xn.find((x) => x.id === bloodId);
+              if (!b) return;
+              openOrCreateSession(
+                "BSI",
+                { kind: "XN", id: b.id, date: b.ngay },
+                [b.benh_pham, b.vi_khuan].filter(Boolean).join(" · "),
+              );
+            }}
+          >
+            {({ analysisColumns }) => {
+              const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
+              return (
+                <NkbvBaWorkspaceBoundDayGrid
+                  {...dayGridBind}
+                  activeXnId={
+                    openSession.index.kind === "XN" ? openSession.index.id : null
+                  }
+                  windowColumns={slots.windowColumns}
+                  tailColumns={slots.tailColumns}
+                />
+              );
+            }}
+          </NkbvSyndromeCh17Panel>
         ) : openSession && isShellPanel(openSession.panel) ? (
           <NkbvSyndromeShellPanel
             panel={openSession.panel}
@@ -1765,6 +1884,18 @@ export default function NkbvBaMultiTimelineWorkspace({
                   toast.message("Đã thuộc sự kiện trước — không tạo phiếu mới.");
                   return;
                 }
+                if (!isManual) {
+                  const chronoCheck = validateChronoPrecedence({
+                    targetDate: openSession.index.date,
+                    targetId: openSession.index.id,
+                    xnList: split.xn,
+                    statusById: xnStatusById,
+                  });
+                  if (!chronoCheck.allowed) {
+                    toast.error(chronoCheck.message, { duration: 6000 });
+                    return;
+                  }
+                }
                 if (isManual && !manualKl) {
                   toast.message("Tự phân tích: nhập kết luận sự kiện trước khi tạo phiếu.");
                   return;
@@ -1791,7 +1922,8 @@ export default function NkbvBaMultiTimelineWorkspace({
                   openSession.panel === "BSI" ||
                   openSession.panel === "UTI" ||
                   openSession.panel === "SSI" ||
-                  openSession.panel === "VAE"
+                  openSession.panel === "VAE" ||
+                  openSession.panel === "CH17"
                     ? (openSession.panel as BaGridNghiNgo)
                     : ("BSI" as BaGridNghiNgo);
                 const canThiep = canThiepDatesForPanel(
@@ -1803,6 +1935,28 @@ export default function NkbvBaMultiTimelineWorkspace({
                   baClinicalLamSang,
                   openSession.draft.lamSang,
                 );
+                const ssiSurgeryDate =
+                  openSession.panel === "SSI"
+                    ? Object.keys(split.surgeryByDate).find(
+                        (d) => d <= openSession.index.date.slice(0, 10),
+                      ) ||
+                      Object.keys(split.surgeryByDate).sort()[0] ||
+                      undefined
+                    : undefined;
+
+                const ssiExtraFields =
+                  openSession.panel === "SSI"
+                    ? {
+                        ngay_phau_thuat: ssiSurgeryDate,
+                        surgery_date: ssiSurgeryDate,
+                        ssi_depth: openSession.draft.ssiDepth || "SUPERFICIAL",
+                        loai_phau_thuat_nhsn: openSession.draft.loaiPhauThuatNhsn,
+                        ssi_event_type: openSession.draft.ssiEventType,
+                        has_implant: openSession.draft.hasImplant,
+                        is_patos: openSession.draft.isPatos,
+                      }
+                    : {};
+
                 const session = computeBaGridSession({
                   ngayVaoVien,
                   ngayRaVien,
@@ -1813,11 +1967,17 @@ export default function NkbvBaMultiTimelineWorkspace({
                   symptomDates: {},
                   tieuChuanByDate: mergedLamSang,
                   trieuChungLamSangByDate: mergedLamSang,
-                  khoaByDate: defaultKhoa
-                    ? { [openSession.index.date.slice(0, 10)]: defaultKhoa }
-                    : {},
+                  khoaByDate:
+                    Object.keys(khoaByDate).length > 0
+                      ? khoaByDate
+                      : defaultKhoa
+                        ? { [openSession.index.date.slice(0, 10)]: defaultKhoa }
+                        : {},
                   canThiepDates: canThiep,
                   criteriaMetPreview: true,
+                  surgeryDate: ssiSurgeryDate,
+                  extraFormFields: ssiExtraFields,
+                  khoas,
                 });
                 const majorType = resolveNkbvMajorType({
                   loai_ma: openSession.panel,
@@ -1841,10 +2001,15 @@ export default function NkbvBaMultiTimelineWorkspace({
                   session.metrics?.sbap_end &&
                   (openSession.panel === "UTI" ||
                     openSession.panel === "PNEU" ||
-                    openSession.panel === "SSI")
+                    openSession.panel === "SSI" ||
+                    openSession.panel === "CH17")
                     ? detectSecondaryBsiFromSbap({
                         primarySite:
-                          openSession.panel === "SSI" ? "SSI" : openSession.panel,
+                          openSession.panel === "SSI"
+                            ? "SSI"
+                            : openSession.panel === "CH17"
+                              ? "OTHER"
+                              : openSession.panel,
                         sbapStart: session.metrics.sbap_start,
                         sbapEnd: session.metrics.sbap_end,
                         xn: split.xn,
@@ -1916,13 +2081,15 @@ export default function NkbvBaMultiTimelineWorkspace({
                       : null,
                   ritLabs: rit_labs,
                   sbapLabs: sbap_labs,
+                  surgeryDate: ssiSurgeryDate,
                   checklistGate:
                     session.checklistType === "VAP" ||
                     session.checklistType === "HAP" ||
                     session.checklistType === "BSI" ||
                     session.checklistType === "UTI" ||
                     session.checklistType === "SSI" ||
-                    session.checklistType === "VAE"
+                    session.checklistType === "VAE" ||
+                    session.checklistType === "CH17"
                       ? session.checklistType
                       : null,
                 };

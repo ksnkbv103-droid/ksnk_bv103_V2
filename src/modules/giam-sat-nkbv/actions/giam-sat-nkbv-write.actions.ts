@@ -4,6 +4,8 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
@@ -81,11 +83,19 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     // NK-AUTH: form sửa không đổi trạng thái; trạng thái chốt chỉ qua rpc_nkbv_tham_dinh_ca.
     const { data: cur, error: curErr } = await supabase
       .from("nkbv_fact_su_kien")
-      .select("trang_thai_id")
+      .select("trang_thai_id, ma_benh_an, khoa_ghi_nhan_id")
       .eq("id", id)
       .maybeSingle();
     if (curErr) throw curErr;
     if (!cur?.trang_thai_id) return { success: false as const, error: "Không tìm thấy phiếu" };
+    const restriction = await getNkbvKhoaRestriction();
+    if (cur.ma_benh_an) {
+      if (!(await isNkbvBenhAnInScope(restriction, String(cur.ma_benh_an)))) {
+        return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+      }
+    } else if (!nkbvKhoaVisible(restriction, [cur.khoa_ghi_nhan_id as string | null])) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     await validateLoaiTrangAndLyDo(supabase, String(raw.loai_nkbv_id), String(cur.trang_thai_id), raw.ly_do_loai_tru);
     
     const actorNhanSuId = await getActorNhanSuId();
@@ -137,11 +147,19 @@ export async function softDeleteGiamSatNkbvCa(id: string) {
   const supabase = createAdminSupabaseClient();
   const { data: row, error: loadErr } = await supabase
     .from("nkbv_fact_su_kien")
-    .select("id, verification_data")
+    .select("id, verification_data, ma_benh_an, khoa_ghi_nhan_id")
     .eq("id", id)
     .maybeSingle();
   if (loadErr) return { success: false as const, error: loadErr.message };
   if (!row) return { success: false as const, error: "Không tìm thấy phiếu" };
+  const restriction = await getNkbvKhoaRestriction();
+  if (row.ma_benh_an) {
+    if (!(await isNkbvBenhAnInScope(restriction, String(row.ma_benh_an)))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+  } else if (!nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null])) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
 
   const releaseErr = await releaseViSinhStampsAfterHide(supabase, id, row.verification_data);
   if (releaseErr) return { success: false as const, error: releaseErr };

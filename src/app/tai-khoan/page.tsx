@@ -42,6 +42,7 @@ export default function AccountPage() {
     } catch (e) {
       console.warn("[tai-khoan] signOut", e);
     }
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = "/login";
   };
 
@@ -174,7 +175,7 @@ export default function AccountPage() {
             <div className="rounded-[var(--radius-shell)] bg-white/10 p-3 text-[var(--primary)]">
               <Shield size={24} />
             </div>
-            <h3 className="text-sm font-semibold text-white">An toàn & Bảo mật</h3>
+            <h3 className="text-sm font-semibold text-white">An toàn và Bảo mật</h3>
           </div>
 
           <div className="space-y-[var(--bv103-space-3)] pt-4">
@@ -193,6 +194,7 @@ export default function AccountPage() {
           </div>
 
           <button 
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             onClick={() => window.location.href = "/tai-khoan/doi-mat-khau"}
             className={`${C.btnSecondary} mt-6 h-12 w-full border-white/20 bg-transparent text-white hover:bg-white/5`}
           >

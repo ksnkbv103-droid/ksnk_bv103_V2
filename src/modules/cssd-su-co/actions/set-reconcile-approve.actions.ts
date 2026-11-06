@@ -37,23 +37,18 @@ export async function listPendingBomApprovalsAction() {
   try {
     await requireCatalogRead();
     const supabase = createAdminSupabaseClient();
-    // PA1: đọc hết phiếu INSTRUMENT rồi lọc BOM_PENDING — hết cắt 80 làm mất hàng chờ cũ.
-    const data = await fetchAllRangeRows<{
-      id: string;
-      mo_ta: string | null;
-      created_at: string | null;
-      ma_qr_quy_trinh: string | null;
-      attributes: Record<string, unknown> | null;
-    }>((from, to) =>
-      supabase
-        .from("v_cssd_su_co_full")
-        .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
-        .eq("incident_group", "INSTRUMENT")
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: true })
-        .range(from, to),
-    );
-    const rows = data
+    // PERF-01: Lọc trực tiếp jsonb containment trên DB thay vì quét toàn bộ bảng sự cố
+    const { data, error } = await supabase
+      .from("v_cssd_su_co_full")
+      .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
+      .eq("incident_group", "INSTRUMENT")
+      .contains("attributes", { SET_RECONCILE_STATUS: "BOM_PENDING" })
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw new Error(error.message);
+
+    const rows = (data || [])
       .filter((r) => readSetReconcileStatus((r.attributes as Record<string, unknown>) || {}) === "BOM_PENDING")
       .map((r) => {
         const attrs = (r.attributes as Record<string, unknown>) || {};

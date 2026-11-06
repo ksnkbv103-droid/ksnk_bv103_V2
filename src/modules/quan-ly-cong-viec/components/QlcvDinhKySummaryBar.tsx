@@ -10,6 +10,7 @@ import {
   type QlcvPeriodKind,
 } from "../lib/qlcv-period-range";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
+import { qlcvDateVnFromInstant } from "../lib/qlcv-today-vn";
 import type { CongViecView } from "../types";
 
 export type QlcvLoaiFilter = "ALL" | "DOT_XUAT" | "DINH_KY";
@@ -64,9 +65,9 @@ export function QlcvDinhKySummaryBar({
 
   const periodTasks = useMemo(() => {
     return tasks.filter((t) => {
-      const han = t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : "";
+      const han = qlcvDateVnFromInstant(t.han_hoan_thanh);
       if (han && han >= period.startIso && han <= period.endIso) return true;
-      const created = t.created_at ? String(t.created_at).slice(0, 10) : "";
+      const created = qlcvDateVnFromInstant(t.created_at);
       if (!han && created && created >= period.startIso && created <= period.endIso) return true;
       return false;
     });

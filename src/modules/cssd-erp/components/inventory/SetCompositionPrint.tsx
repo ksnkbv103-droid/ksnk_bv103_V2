@@ -23,9 +23,15 @@ export default function SetCompositionPrint({ data }: { data: CompositionReconci
       density="compact"
       fileTitle={`DANHMUC_BO_${data.maBo || ""}`}
     >
-      <p style={{ margin: "0 0 6px 0" }}>
-        Ngày in: {today} · {formatSetQtyLine(sum.can, sum.thuc, sum.thieu)}
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "0 0 6px 0", fontSize: 12 }}>
+        <div>
+          <span>Khoa sử dụng: <strong>{data.tenKhoa || "Chưa phân bổ"}</strong></span>
+          {data.phanLoaiBo ? <span> · Phân loại: <strong>{data.phanLoaiBo}</strong></span> : null}
+        </div>
+        <div>
+          <span>Ngày in: {today}</span> · <span>{formatSetQtyLine(sum.can, sum.thuc, sum.thieu)}</span>
+        </div>
+      </div>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -41,6 +41,15 @@ export function ComprehensiveTrend({
   selectedBangKiemMas = [],
 }: ComprehensiveTrendProps) {
   const [granularity, setGranularity] = useState<BaoCaoTrendGranularity>("week");
+  const userChangedGranularityRef = useRef(false);
+
+  // Khi kỳ lọc dài (> 35 tuần) và người dùng chưa tự bấm đổi granularity, tự động hiển thị theo tháng
+  useEffect(() => {
+    if (!userChangedGranularityRef.current && (payload?.trend_week?.length ?? 0) > 35) {
+      setGranularity("month");
+    }
+  }, [payload?.trend_week?.length]);
+
   const multiMode = selectedBangKiemMas.length > 0 && chuyenDeSeries.length > 0;
 
   const aggData = useMemo(() => {
@@ -71,7 +80,10 @@ export function ComprehensiveTrend({
             <button
               key={id}
               type="button"
-              onClick={() => setGranularity(id)}
+              onClick={() => {
+                userChangedGranularityRef.current = true;
+                setGranularity(id);
+              }}
               className={`rounded-md px-3 py-1.5 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
@@ -91,7 +103,7 @@ export function ComprehensiveTrend({
             <XAxis
               dataKey="label"
               tick={{ fontSize: 10 }}
-              interval={0}
+              interval={data.length > 24 ? "preserveStartEnd" : 0}
               {...(data.length > 6 ? { angle: -30, textAnchor: "end" as const, height: 52 } : {})}
             />
             <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />

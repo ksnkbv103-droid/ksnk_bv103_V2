@@ -147,6 +147,7 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
   );
 
   const setPeriodKind = (kind: KeHoachNamPeriodKind) => {
+    const currentMonthVn = defaultPeriodFilterNow().value;
     if (kind === "NAM") {
       setPeriod({ kind: "NAM", value: 0 });
       return;
@@ -157,11 +158,11 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
           ? Math.ceil(period.value / 3)
           : period.kind === "QUY"
             ? period.value
-            : Math.ceil((new Date().getMonth() + 1) / 3);
+            : Math.ceil(currentMonthVn / 3);
       setPeriod({ kind: "QUY", value: q });
       return;
     }
-    const m = period.kind === "THANG" ? period.value : new Date().getMonth() + 1;
+    const m = period.kind === "THANG" ? period.value : currentMonthVn;
     setPeriod({ kind: "THANG", value: m });
   };
 

@@ -166,6 +166,7 @@ export async function setStaffKsnkRbacRole(params: {
       };
     }
 
+    let targetRoleId: string | null = null;
     if (canonicalName) {
       const { data: roleExists } = await supabase
         .from("sys_roles")
@@ -177,6 +178,7 @@ export async function setStaffKsnkRbacRole(params: {
       if (!roleExists) {
         return { success: false as const, error: "Vai trò không hợp lệ hoặc đã ngưng hoạt động." };
       }
+      targetRoleId = roleExists.id;
     }
 
     const { data, error } = await supabase.rpc("rpc_assign_staff_ksnk_role", {
@@ -195,6 +197,15 @@ export async function setStaffKsnkRbacRole(params: {
             : "Chưa gỡ được vai trò đăng nhập — cần apply migrate clear RPC, hoặc gỡ tại Phân quyền."),
       };
     }
+
+    // Đồng bộ vai_tro_he_thong_id trên mdm_nhan_su để view v_mdm_nhan_su_full và các bộ lọc luôn nhất quán
+    await supabase
+      .from("mdm_nhan_su")
+      .update({
+        vai_tro_he_thong_id: targetRoleId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", input.staffId);
 
     await logAdminAction({
       action: "CHANGE_RBAC_ROLE",

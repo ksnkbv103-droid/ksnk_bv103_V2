@@ -13,6 +13,9 @@ export type KhoHoaChatTonLo = {
   loai_hoa_chat?: string | null;
 };
 
+/** Lưu lượng 30 ngày gần nhất của một mặt hàng (đã duyệt) — đầu vào cảnh báo «sắp hết». */
+export type KhoHoaChatLuuLuong = { dm_hoa_chat_id: string; nhap_30n: number; xuat_su_dung_30n: number };
+
 export type KhoHoaChatGiaoDichRow = {
   id: string;
   ma_phieu: string;
@@ -25,4 +28,13 @@ export type KhoHoaChatGiaoDichRow = {
   created_at: string | null;
   ten_hoa_chat?: string | null;
   su_co_id?: string | null;
+  /** HC-E: lý do phiếu xuất (CAP_SU_DUNG, HET_HAN_HUY, VO_HONG, THAT_THOAT, KIEM_KE_THIEU). */
+  ly_do_xuat?: string | null;
+  /** HC-C */
+  trang_thai?: "CHO_DUYET" | "DA_DUYET" | "TU_CHOI";
+  nguoi_lap_ten?: string | null;
+  nguoi_duyet_ten?: string | null;
+  duyet_at?: string | null;
+  ly_do_tu_choi?: string | null;
+  tu_duyet_ngoai_le?: boolean;
 };

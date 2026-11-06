@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addMonthsIso,
   DEFAULT_HAN_CHUNG_CHI_THANG,
   labelChungChiKind,
   parseHanChungChiThang,
@@ -53,5 +54,11 @@ describe("dao-tao chứng chỉ", () => {
       }).kind,
     ).toBe("chua_co");
     expect(labelChungChiKind("het_han")).toMatch(/Hết hạn/);
+  });
+
+  it("addMonthsIso kẹp ngày cuối tháng không bị tràn sang tháng kế tiếp", () => {
+    expect(addMonthsIso("2026-01-31T10:00:00.000Z", 1)).toBe("2026-02-28T10:00:00.000Z");
+    expect(addMonthsIso("2024-01-31T10:00:00.000Z", 1)).toBe("2024-02-29T10:00:00.000Z");
+    expect(addMonthsIso("2026-03-31T10:00:00.000Z", 1)).toBe("2026-04-30T10:00:00.000Z");
   });
 });

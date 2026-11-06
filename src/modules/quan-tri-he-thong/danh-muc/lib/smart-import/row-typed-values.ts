@@ -28,6 +28,13 @@ function coerceDateOnly(v: unknown): string | null | undefined {
   if (!s) return null;
   const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
   if (m) return m[1];
+  const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dmy) {
+    const day = dmy[1].padStart(2, "0");
+    const month = dmy[2].padStart(2, "0");
+    const year = dmy[3];
+    return `${year}-${month}-${day}`;
+  }
   return undefined;
 }
 
@@ -40,6 +47,16 @@ function coerceTimestamp(v: unknown): string | null | undefined {
   const s = String(v).trim();
   if (!s) return null;
   if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s;
+  const dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (dmyMatch) {
+    const day = dmyMatch[1].padStart(2, "0");
+    const month = dmyMatch[2].padStart(2, "0");
+    const year = dmyMatch[3];
+    const hour = (dmyMatch[4] || "00").padStart(2, "0");
+    const min = (dmyMatch[5] || "00").padStart(2, "0");
+    const sec = (dmyMatch[6] || "00").padStart(2, "0");
+    return `${year}-${month}-${day}T${hour}:${min}:${sec}.000Z`;
+  }
   const d = Date.parse(s);
   if (!Number.isNaN(d)) return new Date(d).toISOString();
   return undefined;

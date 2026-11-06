@@ -1,13 +1,13 @@
 "use client";
 
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
-import { formatPercent1, formatPercent2, roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1, roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
   momentRowBg,
@@ -73,6 +73,14 @@ export function SupervisionTrendChart({
   stroke?: string;
 }) {
   const [granularity, setGranularity] = useState<BaoCaoTrendGranularity>("week");
+  const userChangedGranularityRef = useRef(false);
+
+  // Khi kỳ lọc dài (> 35 tuần) và người dùng chưa tự bấm đổi granularity, tự động hiển thị theo tháng
+  useEffect(() => {
+    if (!userChangedGranularityRef.current && (data?.length ?? 0) > 35) {
+      setGranularity("month");
+    }
+  }, [data?.length]);
 
   const chartData = useMemo(() => {
     const weekly =
@@ -105,7 +113,10 @@ export function SupervisionTrendChart({
             <button
               key={id}
               type="button"
-              onClick={() => setGranularity(id)}
+              onClick={() => {
+                userChangedGranularityRef.current = true;
+                setGranularity(id);
+              }}
               className={`rounded-md px-3 py-1.5 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
@@ -121,7 +132,7 @@ export function SupervisionTrendChart({
               <XAxis
                 dataKey="label"
                 tick={{ fontSize: 10 }}
-                interval={0}
+                interval={chartData.length > 24 ? "preserveStartEnd" : 0}
                 {...(chartData.length > 6 ? { angle: -30, textAnchor: "end" as const, height: 52 } : {})}
               />
               <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />

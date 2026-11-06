@@ -191,11 +191,14 @@ export function buildPneuTimelineVerdict(
   ) {
     films.push(input.indexCdha);
   }
-  const imagingCount = Math.max(films.length, input.indexKind === "CDHA" ? 1 : 0);
+  const distinctFilmDates = new Set(films.map((f) => f.ngay.slice(0, 10))).size;
+  const imagingCount = Math.max(distinctFilmDates, input.indexKind === "CDHA" ? 1 : 0);
   const hasImaging = imagingCount >= 1;
 
   const hasFeverOrWbc = anyKeyInIwp(input.lamSang, input.iwpDates, SYSTEMIC_FEVER_KEYS);
-  const hasAms = anyKeyInIwp(input.lamSang, input.iwpDates, [PNEU_AMS_CRITERIA_KEY]);
+  const hasAms =
+    (input.patientAge == null || input.patientAge >= 70) &&
+    anyKeyInIwp(input.lamSang, input.iwpDates, [PNEU_AMS_CRITERIA_KEY]);
   const hasSystemic = hasFeverOrWbc || hasAms;
   const respiratoryCount = countPneuRespiratoryCdcGroupsFromKeys(
     collectKeysInIwp(input.lamSang, input.iwpDates, RESPIRATORY_CRITERIA_KEYS),

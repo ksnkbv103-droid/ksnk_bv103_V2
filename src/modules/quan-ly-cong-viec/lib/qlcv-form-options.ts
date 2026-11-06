@@ -9,6 +9,8 @@ export type QlcvSelectOption = {
 export type QlcvFormCatalog = {
   nhanSu: QlcvSelectOption[];
   toCongTac: QlcvSelectOption[];
+  /** Nhóm chuyên môn đang dùng (loại việc KSNK). */
+  nhomChuyenMon: QlcvSelectOption[];
   /** Khoa/đơn vị địa điểm (toàn viện) — khác roster KSNK. */
   khoaPhong: QlcvSelectOption[];
   trangThaiMauSac: Record<string, string>;

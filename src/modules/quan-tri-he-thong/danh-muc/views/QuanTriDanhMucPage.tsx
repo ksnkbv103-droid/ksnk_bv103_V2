@@ -37,7 +37,8 @@ export default function QuanTriDanhMucPage() {
   const [hubSearch, setHubSearch] = useState("");
   const { loading: permLoading, isAdmin, canView } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
-  const canViewRbac = isAdmin || canView("PHAN_QUYEN");
+  // ADM-03: ma trận phân quyền chỉ dành riêng cho ADMIN
+  const canViewRbac = isAdmin;
   const canAccessIt = canViewDanhMuc || isAdmin;
   const catalogRows = useMemo(
     () =>
@@ -61,6 +62,7 @@ export default function QuanTriDanhMucPage() {
 
   useEffect(() => {
     if (!canAccessJobs && canViewRbac && uiTab !== "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
+    if (!canViewRbac && uiTab === "PHAN_QUYEN") setHubTab("DANH_MUC");
   }, [canAccessJobs, canViewRbac, uiTab, setHubTab]);
 
   useEffect(() => {
@@ -148,20 +150,19 @@ export default function QuanTriDanhMucPage() {
               onChange={setHubSearch}
               placeholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
             />
-            {hubSearch.trim() ? (
-              <AdvancedDataTable
-                columns={columns}
-                data={unifiedFlat}
-                loading={loading}
-                onRowClick={(r) => go(r.path)}
-                hideSearch
-                tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-              />
-            ) : (
-              <p className="px-2 py-3 text-xs text-slate-500">
-                Gõ để tìm mọi danh mục, kể cả mục hệ thống (trạm, trạng thái, vai trò).
+            <AdvancedDataTable
+              columns={columns}
+              data={unifiedFlat}
+              loading={loading}
+              onRowClick={(r) => go(r.path)}
+              hideSearch
+              tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+            />
+            {!hubSearch.trim() ? (
+              <p className="px-2 py-1 text-xs text-slate-500">
+                Hiển thị danh mục nghiệp vụ mặc định. Gõ từ khóa để tra cứu thêm các danh mục hệ thống.
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       ) : uiTab === "PHAN_QUYEN" && canViewRbac ? (

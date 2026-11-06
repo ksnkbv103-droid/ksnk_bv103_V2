@@ -322,3 +322,61 @@ Hiển thị: bảng NV Khoa KSNK trên `/` (lazy). **Không** gộp với `so_q
 | `rpc_gsc_checklist_detail` | Lazy khi chọn BK (`?bk=`) | KPI · trend · gap TGS/KSNK · `matrix_criterion[]` (mọi tiêu chí áp dụng) · `criterion_khoa[]` (drill khoa) |
 | `rpc_gsc_compare_matrices` | Gộp vào strategic + detail BK | **Khối** · chức năng phòng · đối tượng · hình thức · cách thức (accordion) |
 | Xếp hạng rủi ro | App `sortChecklistOverviewByRisk` / `sortCriterionMatrix` | BK và tiêu chí: tuân thủ ASC · vi phạm DESC — **không đổi CCS** |
+
+---
+
+## Danh mục chỉ số theo lĩnh vực (S2, 2026-11-02)
+
+> Khung lĩnh vực L0–L6, loại nguồn A–E và mã BM theo kho tri thức: [`12-BANG-KIEM-inventory-from-KSNK-final.md`](../giam-sat/12-BANG-KIEM-inventory-from-KSNK-final.md) §8. Làm từng lĩnh vực; mục nào chưa viết thì chưa có trong bảng này. **Module chứa** tách khỏi lĩnh vực sở hữu. Cột «Trạng thái»: `CÓ` = đã tính trong code; `ĐỀ XUẤT` = chưa có form/bảng nhập, công thức chỉ để PO duyệt, **không** coi là SSOT cho tới khi PO chốt.
+
+### L5 Môi trường (22 BM: A 11 · B 8 · C 3)
+
+**Nguồn A — bảng kiểm quan sát (11 BM).** Cùng một chỉ số `ty_le_gsc` (mục «Chỉ số process»): `đạt ÷ tiêu chí có áp dụng` (loại NA), **2 chữ số thập phân**, mẫu số `tong_quan_sat`, nguồn RPC `rpc_dashboard_gsc_strategic_analytics`. Lĩnh vực L5 ánh xạ vào `doi_tuong_giam_sat = 'MOI_TRUONG'` (migration `20261005175200`, khớp tên `VSMT|vệ sinh môi trường|đồ vải` hoặc mã `QT.(11|13)`/`BM.(11|13)` — đánh số repo cũ). Module chứa: `giam-sat-chung`. Chưa đối chiếu từng mã KB với seed (việc S3), nên cột Trạng thái là mức thiết kế.
+
+| Mã BM (KB) | Đối tượng | Chỉ số | Trạng thái |
+|---|---|---|---|
+| `KSNK.QT.10.BM.02` | Thực hành vệ sinh bề mặt | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.10.BM.03` | Chất lượng vệ sinh bề mặt | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.10.BM.04` | Vệ sinh khu phẫu thuật | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.11.BM.01` | Quản lý chất thải y tế | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.12.BM.01` | Thu gom đồ vải | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.12.BM.02` | Quy trình tại ĐVGL | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.36.BM.03` | Tuân thủ quy trình lấy mẫu vi sinh MT | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QT.37.BM.03` | Quản lý và sử dụng hóa chất | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QĐ.14.BM.01` | Lồng ấp, giường sưởi (KV) | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QĐ.20.BM.01` | Khu vực pha chế (KV) | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+| `KSNK.QĐ.21.BM.02` | Bếp ăn | `ty_le_gsc` theo BK | CÓ (chờ S3) |
+
+Lọc theo loại giám sát (`TUAN_THU` hay trống) giữ nguyên quy tắc 2026-08-22. Lệch số liệu: hỏi PO, không tự đổi công thức.
+
+**Nguồn B — kho hóa chất (2 BM, module `cssd-erp`, route `/cssd-hoa-chat`).** Tồn chỉ đổi bằng phiếu Nhập/Xuất đã duyệt; **cấm sửa số tồn** (PO 2026-10-29), «Điều chỉnh» chỉ là hạn mức do ADMIN đặt.
+
+| Mã BM (KB) | Chỉ số | Công thức | Mẫu số / phạm vi | Nguồn code | Trạng thái |
+|---|---|---|---|---|---|
+| `KSNK.QT.37.BM.02` | `ton_cuoi` | `ton_dau + nhap − xuat_cap_su_dung − xuat_khac` theo mặt hàng, kỳ `[tu, den]`; dòng trước `tu` vào `ton_dau`, sau `den` bỏ | Phiếu đã duyệt; phiếu xuất cũ chưa có lý do tính là `xuat_cap_su_dung`. Xuất `xuat_khac` = mọi lý do ≠ `CAP_SU_DUNG` | `buildBaoCaoNxt` (`src/lib/domain/cssd-kho-hoa-chat-bao-cao-nxt.ts`) | CÓ |
+| `KSNK.QT.37.BM.02` | `tong_ton` | Σ `ton_so_luong` các lô còn > 0 | Theo mặt hàng, tính tại ngày xem | `buildDmStockSummary` (`cssd-kho-hoa-chat-summary.ts`) | CÓ |
+| `KSNK.QT.37.BM.02` | `duoi_dinh_muc` | `tong_ton ≤ nguong_ton_toi_thieu` (chỉ khi có định mức) | Theo mặt hàng | như trên | CÓ |
+| `KSNK.QT.37.BM.02` | `qua_han` / `sap_het_han` | `qua_han`: hạn gần nhất < hôm nay; `sap_het_han`: chưa quá hạn và còn ≤ `NEAR_EXPIRY_DAYS` = 30 ngày | Hạn gần nhất trong các lô tồn > 0 | `cssd-kho-hoa-chat-fefo.ts` | CÓ |
+| `KSNK.QT.37.BM.02` | `canh_bao.muc` (`OK`/`SAP_HET`/`HET_HANG`) | `HET_HANG` khi tồn ≤ 0 và đã có số liệu. `SAP_HET` khi tồn ≤ ngưỡng, ngưỡng = `nhap_30n × ty_le_canh_bao_pct/100` (mặc định 20%), hoặc `nguong_ton_toi_thieu` khi 30 ngày chưa có nhập; hoặc khi `so_ngay_dung_duoc = tong_ton ÷ (xuat_su_dung_30n/30) < so_ngay_cho_hang` (mặc định 14) | Cửa sổ 30 ngày, chỉ xuất lý do «Cấp sử dụng» | `tinhCanhBaoTon` (`cssd-kho-hoa-chat-canh-bao-ton.ts`) | CÓ |
+| `KSNK.QT.37.BM.01` | Điều kiện kho (nhiệt độ, độ ẩm…) | — | — | Chưa tìm thấy trong code ở lượt này (chưa kiểm schema) | CẦN KIỂM |
+
+**Nguồn B còn lại — chưa có form nhập (S4).** Chỉ liệt kê để không mất; công thức dưới đây là **ĐỀ XUẤT**, cần PO duyệt trước khi dựng.
+
+| Mã BM (KB) | Nội dung sổ | Chỉ số đề xuất | Mẫu số đề xuất |
+|---|---|---|---|
+| `KSNK.QT.10.BM.01` | Phân công và bảng kiểm công việc vệ sinh | Tỷ lệ công việc vệ sinh hoàn thành = hoàn thành ÷ được phân công | Số công việc được phân công trong kỳ |
+| `KSNK.QT.11.BM.02` | Bàn giao chất thải khử khuẩn để tái chế | Khối lượng bàn giao theo kỳ (kg) | — (đếm/khối lượng) |
+| `KSNK.QT.11.BM.03` | Giao nhận chất thải y tế nguy hại | Khối lượng giao nhận theo kỳ (kg) | — (đếm/khối lượng) |
+| `KSNK.QT.12.BM.03` | Giao nhận đồ vải hằng ngày | Số lượt/khối lượng giao nhận; chênh lệch giao–nhận | Số lượt giao trong ngày |
+| `KSNK.QĐ.20.BM.02` | Thông số môi trường phòng sạch (KV) | Tỷ lệ lần đo trong ngưỡng = đo đạt ÷ tổng lần đo | Tổng lần đo; ngưỡng do PO/chuyên gia chốt |
+| `KSNK.QĐ.21.BM.01` | Kiểm thực ba bước, lưu mẫu thức ăn | Tỷ lệ ngày có đủ ba bước và lưu mẫu = ngày đủ ÷ ngày hoạt động | Số ngày hoạt động bếp |
+
+**Nguồn C — kết quả xét nghiệm môi trường (3 BM, chưa có form, S5).** Chỉ số **ĐỀ XUẤT**; ngưỡng đạt/không đạt là quyết định chuyên môn, SSOT im → hỏi PO/chuyên gia, không tự đặt.
+
+| Mã BM (KB) | Nội dung | Chỉ số đề xuất | Mẫu số đề xuất |
+|---|---|---|---|
+| `KSNK.QT.36.BM.01` | Biên bản lấy mẫu môi trường | Số mẫu lấy theo kỳ, theo khu vực | — |
+| `KSNK.QT.36.BM.02` | Sổ tổng hợp kết quả vi sinh môi trường | Tỷ lệ mẫu đạt = mẫu đạt ÷ mẫu có kết quả | Mẫu đã có kết quả |
+| `KSNK.QĐ.15.BM.02` | Chất lượng nước RO (KV) | Tỷ lệ lần đo nước RO đạt = đạt ÷ tổng lần đo | Tổng lần đo |
+
+**Ghi chú:** (1) đánh số mã BM theo KB (§8 của inventory), file `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ. (2) Mọi chỉ số L5 **không** vào `ty_le_ccs`. (3) Chưa viết: L0–L4, L6.

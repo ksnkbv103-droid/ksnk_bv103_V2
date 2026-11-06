@@ -75,8 +75,6 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
       if (expired.length) {
         return { success: false, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
       }
-    } else if (expired.length && lyDo.length < 3) {
-      return { success: false, error: "Sau 30 phút chỉ Admin được xóa và phải ghi lý do." };
     }
 
     const inactive = ids.filter((id) => {
@@ -94,7 +92,7 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
     }
 
     const nowIso = new Date().toISOString();
-    const { error: sessionErr } = await supabase
+    const { data: updated, error: sessionErr } = await supabase
       .from("gstt_fact_vst_sessions")
       .update({
         is_active: false,
@@ -103,8 +101,13 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
         ly_do_xoa: lyDo,
         updated_at: nowIso,
       })
-      .in("id", ids);
+      .in("id", ids)
+      .eq("is_active", true)
+      .select("id");
     if (sessionErr) throw sessionErr;
+    if ((updated?.length ?? 0) !== ids.length) {
+      return { success: false, error: "Phiên đã bị vô hiệu hoặc thay đổi trước đó, vui lòng tải lại." };
+    }
 
     for (const id of ids) {
       const before = rowById.get(String(id));
@@ -149,7 +152,7 @@ export async function assertCanEditVSTSession(sessionId: string) {
 
     const { data: row, error: qErr } = await supabase
       .from("gstt_fact_vst_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at")
+      .select("id,nguoi_giam_sat_id,is_active,created_at,ngay_giam_sat")
       .eq("id", id)
       .maybeSingle();
 
@@ -158,6 +161,14 @@ export async function assertCanEditVSTSession(sessionId: string) {
 
     if (typeof row.is_active === "boolean" && row.is_active === false) {
       return { success: false as const, error: "Phiên đã bị vô hiệu, không sửa được." };
+    }
+
+    if (row.ngay_giam_sat) {
+      await assertSupervisionNotLockedForDate(
+        supabase,
+        "VST",
+        String(row.ngay_giam_sat).slice(0, 10),
+      );
     }
 
     const expired = isSupervisionSessionMutationExpired(row.created_at);

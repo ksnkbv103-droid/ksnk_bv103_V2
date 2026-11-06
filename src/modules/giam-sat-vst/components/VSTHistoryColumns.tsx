@@ -13,7 +13,7 @@ import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
-import { formatDateVi, formatTimeVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, formatTimeVi, vnYmd } from "@/lib/format-datetime-vi";
 
 function formatHHmm(value: unknown): string {
   return formatTimeVi(value as string | null | undefined);
@@ -39,7 +39,7 @@ export function getVSTHistoryColumns(
       cellClassName: "w-[7rem] min-w-[7rem]",
       cell: (s: Record<string, unknown>) => {
         const raw = (s.ngay_giam_sat as string) || (s.created_at as string);
-        const dateLine = formatDateVi(raw ? raw.slice(0, 10) : null);
+        const dateLine = formatDateVi(raw ? vnYmd(raw) : null);
         return <span className={`text-xs ${G.cellBody}`}>{dateLine}</span>;
       },
     },

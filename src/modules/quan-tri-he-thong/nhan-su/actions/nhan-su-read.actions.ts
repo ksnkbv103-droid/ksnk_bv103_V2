@@ -81,7 +81,16 @@ export async function getNhanSus(params: {
       query = query.eq("chuc_danh_id", chucDanhId);
     }
     if (vaiTroId && vaiTroId !== "Tất cả") {
-      query = query.eq("vai_tro_he_thong_id", vaiTroId);
+      const { data: roleUsers } = await supabase
+        .from("sys_user_roles")
+        .select("user_id")
+        .eq("role_id", vaiTroId);
+      const authUserIds = (roleUsers || []).map((x) => x.user_id).filter(Boolean);
+      if (authUserIds.length > 0) {
+        query = query.or(`vai_tro_he_thong_id.eq.${vaiTroId},auth_user_id.in.(${authUserIds.join(",")})`);
+      } else {
+        query = query.eq("vai_tro_he_thong_id", vaiTroId);
+      }
     }
     if (ngheNghiepId && ngheNghiepId !== "Tất cả") {
       query = query.eq("nghe_nghiep_id", ngheNghiepId);
@@ -209,6 +218,7 @@ export async function getNhanSuFormOptionsAction() {
           (roleRes.data || []) as Array<{ id: string; name: string }>,
         ).map((r) => ({
           id: r.id,
+          name: r.name,
           ten_danh_muc: staffKsnkRoleDisplayLabel(r.name),
         })),
         ngheNghieps: ngheData.map((x) => ({

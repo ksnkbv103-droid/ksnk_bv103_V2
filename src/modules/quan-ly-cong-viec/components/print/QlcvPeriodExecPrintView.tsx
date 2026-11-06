@@ -5,6 +5,7 @@ import PrintLayout from "@/components/shared/PrintLayout";
 import { buildPrintFileTitle } from "@/lib/print/print-file-title";
 import { formatLoaiCongViecLabel } from "../../lib/qlcv-labels";
 import type { QlcvPeriodRange } from "../../lib/qlcv-period-range";
+import { qlcvDateVnFromInstant } from "../../lib/qlcv-today-vn";
 import type { CongViecView } from "../../types";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -15,8 +16,8 @@ type Props = {
 
 export function QlcvPeriodExecPrintView({ period, tasks }: Props) {
   const sorted = [...tasks].sort((a, b) => {
-    const ha = String(a.han_hoan_thanh || a.created_at || "").slice(0, 10);
-    const hb = String(b.han_hoan_thanh || b.created_at || "").slice(0, 10);
+    const ha = qlcvDateVnFromInstant(a.han_hoan_thanh) || qlcvDateVnFromInstant(a.created_at) || "";
+    const hb = qlcvDateVnFromInstant(b.han_hoan_thanh) || qlcvDateVnFromInstant(b.created_at) || "";
     return ha.localeCompare(hb) || String(a.tieu_de).localeCompare(String(b.tieu_de));
   });
 

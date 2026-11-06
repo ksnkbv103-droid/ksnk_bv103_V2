@@ -1,6 +1,7 @@
 "use client";
 
 import type { TraLoi } from "@/lib/dao-tao/types";
+import { TARGET_ROLE_LABELS } from "@/lib/dao-tao/types";
 import { cn } from "@/lib/utils";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
@@ -14,6 +15,10 @@ type Option = {
 type Props = {
   loai: string;
   stem: string;
+  clinicalVignette?: string | null;
+  bloomCode?: string | null;
+  targetRoles?: string[];
+  sopRefs?: string[];
   options: Option[];
   value: TraLoi | null;
   onChange: (v: TraLoi) => void;
@@ -21,6 +26,8 @@ type Props = {
   showResult?: boolean;
   dung?: boolean | null;
   giaiThich?: string | null;
+  distractorRationales?: Record<string, string>;
+  evidenceLock?: any;
 };
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
@@ -37,6 +44,10 @@ const optionBtn = (active: boolean, disabled?: boolean) =>
 export function DaoTaoQuestionCard({
   loai,
   stem,
+  clinicalVignette,
+  bloomCode,
+  targetRoles,
+  sopRefs,
   options,
   value,
   onChange,
@@ -44,6 +55,8 @@ export function DaoTaoQuestionCard({
   showResult,
   dung,
   giaiThich,
+  distractorRationales: _distractorRationales,
+  evidenceLock,
 }: Props) {
   const ordered = [...(options ?? [])].sort(
     (a, b) => (a.displayIndex ?? 0) - (b.displayIndex ?? 0),
@@ -51,7 +64,42 @@ export function DaoTaoQuestionCard({
 
   return (
     <div className="rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
-      <p className="mb-4 whitespace-pre-wrap text-sm font-medium leading-relaxed text-slate-800">
+      {/* Huy hiệu thông số SOP & Thang nhận thức Bloom */}
+      {(sopRefs?.length || bloomCode || targetRoles?.length) ? (
+        <div className="mb-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+          {bloomCode && (
+            <span className="rounded bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700 border border-indigo-200/60">
+              Bloom: {bloomCode}
+            </span>
+          )}
+          {sopRefs?.map((s) => (
+            <span key={s} className="rounded bg-amber-50 px-2 py-0.5 font-medium text-amber-800 border border-amber-200/60">
+              SOP: {s}
+            </span>
+          ))}
+          {targetRoles?.slice(0, 2).map((r) => (
+            <span key={r} className="rounded bg-blue-50 px-2 py-0.5 font-medium text-blue-700 border border-blue-200/60" title={TARGET_ROLE_LABELS[r] || r}>
+              {TARGET_ROLE_LABELS[r] ? TARGET_ROLE_LABELS[r].split("(")[0].trim() : r.replace("ROLE_", "")}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Bối cảnh tình huống lâm sàng chuẩn NBME */}
+      {clinicalVignette ? (
+        <div className="mb-3.5 rounded-[var(--radius-control)] border border-blue-200/80 bg-blue-50/50 p-3 text-slate-800">
+          <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-700">
+            <span className="inline-block h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+            Tình huống lâm sàng / Bối cảnh thực tế
+          </div>
+          <p className="text-sm leading-relaxed text-slate-700 font-normal">
+            &ldquo;{clinicalVignette}&rdquo;
+          </p>
+        </div>
+      ) : null}
+
+      {/* Câu hỏi chính (Stem) */}
+      <p className="mb-4 whitespace-pre-wrap text-sm font-semibold leading-relaxed text-slate-900">
         {stem}
       </p>
 
@@ -182,15 +230,35 @@ export function DaoTaoQuestionCard({
       {showResult && (
         <div
           className={cn(
-            "mt-4 rounded-[var(--radius-control)] px-3 py-2.5 text-sm",
-            dung ? "bg-emerald-50 text-emerald-900" : "bg-rose-50 text-rose-900",
+            "mt-4 rounded-[var(--radius-control)] border p-3.5 text-sm",
+            dung
+              ? "border-emerald-200 bg-emerald-50/80 text-emerald-950"
+              : "border-rose-200 bg-rose-50/80 text-rose-950",
           )}
         >
-          <p className="font-semibold">{dung ? "Đúng" : "Chưa đúng"}</p>
-          {giaiThich ? (
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed opacity-90">
-              {giaiThich}
+          <div className="flex items-center justify-between">
+            <p className="font-bold flex items-center gap-1.5 text-sm">
+              {dung ? "✓ Trả lời Đúng" : "✗ Chưa chính xác"}
             </p>
+            {evidenceLock?.sources?.[0]?.source_id ? (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-white/90 border border-slate-200 text-slate-800 shadow-xs">
+                Căn cứ: {evidenceLock.sources[0].source_id}
+              </span>
+            ) : null}
+          </div>
+
+          {giaiThich ? (
+            <div className="mt-2.5 text-xs leading-relaxed text-slate-800">
+              <span className="font-bold text-slate-900">Giải thích chuyên môn: </span>
+              {giaiThich}
+            </div>
+          ) : null}
+
+          {evidenceLock?.sources?.[0]?.verbatim_quote ? (
+            <div className="mt-2 text-xs rounded bg-white/80 p-2.5 border border-slate-200/70 text-slate-700">
+              <span className="font-semibold not-italic text-slate-900">Trích dẫn quy chuẩn: </span>
+              &ldquo;{evidenceLock.sources[0].verbatim_quote}&rdquo;
+            </div>
           ) : null}
         </div>
       )}

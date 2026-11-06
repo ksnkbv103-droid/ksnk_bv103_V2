@@ -15,6 +15,7 @@ import { logAdminAction } from "@/lib/admin-audit";
 import { invalidateUserPermissionsCache } from "@/lib/server-permission";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
+import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
 import { ensureRbacAdmin } from "./rbac-auth.helpers";
 import { hasSelfRolePermissionEdits } from "./rbac-matrix-self-edit";
@@ -30,6 +31,37 @@ function errRbac(e: unknown) {
   return e instanceof Error ? e.message : String(e);
 }
 
+const AUDIT_FAILED_MSG =
+  "Đã lưu thay đổi quyền nhưng chưa ghi được nhật ký — kiểm tra nhật ký trước khi thử lại";
+
+/**
+ * Quyền đã commit: luôn xóa cache quyền trước, rồi mới ghi audit (fail-closed).
+ * Audit lỗi → trả success:false với thông báo rõ, cache đã được làm mới.
+ */
+async function invalidateThenAudit(
+  audit: () => Promise<void>,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await invalidateUserPermissionsCache();
+  try {
+    await audit();
+    return { ok: true };
+  } catch (e: unknown) {
+    console.error("[rbac] audit failed after permission write", { module: "phan-quyen", error: errRbac(e) });
+    return { ok: false, error: `${AUDIT_FAILED_MSG} (${errRbac(e)})` };
+  }
+}
+
+async function fetchAllRolePermissionRows(supabase: ReturnType<typeof createAdminSupabaseClient>) {
+  return fetchAllRangeRows<{ role_id: string; permission_id: string }>((from, to) =>
+    supabase
+      .from("sys_role_permissions")
+      .select("role_id, permission_id")
+      .order("role_id")
+      .order("permission_id")
+      .range(from, to),
+  );
+}
+
 /**
  * Đồng bộ Permission Registry → DB + full quyền ADMIN.
  * Không ghi đè ma trận vai trò KSNK (dùng `resetKsnkRolePermissionPresets`).
@@ -43,13 +75,16 @@ export async function syncPermissionRegistry() {
 
     await upsertRegistryPermissionsAndAdminMappings(supabase);
 
-    await logAdminAction({
-      action: "SYNC_PERMISSION_REGISTRY",
-      targetTable: "sys_permissions",
-      actorUserId: actor.id,
-      actorEmail: actor.email,
-    });
-    await invalidateUserPermissionsCache();
+    const audited = await invalidateThenAudit(() =>
+      logAdminAction({
+        action: "SYNC_PERMISSION_REGISTRY",
+        targetTable: "sys_permissions",
+        actorUserId: actor.id,
+        actorEmail: actor.email,
+        failClosed: true,
+      }),
+    );
+    if (!audited.ok) return { success: false, error: audited.error };
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };
@@ -76,13 +111,16 @@ export async function resetKsnkRolePermissionPresets() {
 
     await applyKsnkRolePermissionPresets(supabase);
 
-    await logAdminAction({
-      action: "RESET_KSNK_ROLE_PRESETS",
-      targetTable: "sys_role_permissions",
-      actorUserId: actor.id,
-      actorEmail: actor.email,
-    });
-    await invalidateUserPermissionsCache();
+    const audited = await invalidateThenAudit(() =>
+      logAdminAction({
+        action: "RESET_KSNK_ROLE_PRESETS",
+        targetTable: "sys_role_permissions",
+        actorUserId: actor.id,
+        actorEmail: actor.email,
+        failClosed: true,
+      }),
+    );
+    if (!audited.ok) return { success: false, error: audited.error };
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };
@@ -197,6 +235,13 @@ export async function saveFullRBACMatrix(
       allPerms.forEach((p: { id: string }) => records.push({ role_id: adminRoleId, permission_id: p.id }));
     }
 
+    // Ảnh chụp trước để ghi diff trước/sau vào audit.
+    const beforeRows = await fetchAllRolePermissionRows(supabase);
+    const beforeKeys = new Set(beforeRows.map((r) => `${r.role_id}:${r.permission_id}`));
+    const afterKeys = new Set(records.map((r) => `${r.role_id}:${r.permission_id}`));
+    const added = [...afterKeys].filter((k) => !beforeKeys.has(k));
+    const removed = [...beforeKeys].filter((k) => !afterKeys.has(k));
+
     // Ưu tiên RPC nguyên tử (ADM-03); fallback delta khi migration chưa apply.
     const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_save_rbac_matrix", {
       p_rows: records,
@@ -216,20 +261,15 @@ export async function saveFullRBACMatrix(
         };
       }
     } else {
-      const { data: existingRows, error: existingErr } = await supabase
-        .from("sys_role_permissions")
-        .select("role_id, permission_id");
-      if (existingErr) throw existingErr;
+      const existingRows = await fetchAllRolePermissionRows(supabase);
 
       const toKey = (r: { role_id: string; permission_id: string }) => `${r.role_id}:${r.permission_id}`;
       const existing = new Set(
-        (existingRows || []).map((r) => toKey(r as { role_id: string; permission_id: string })),
+        existingRows.map((r) => toKey(r)),
       );
       const incoming = new Set(records.map((r) => toKey(r)));
       const inserts = records.filter((r) => !existing.has(toKey(r)));
-      const removals = (existingRows || []).filter(
-        (r) => !incoming.has(toKey(r as { role_id: string; permission_id: string })),
-      ) as Array<{ role_id: string; permission_id: string }>;
+      const removals = existingRows.filter((r) => !incoming.has(toKey(r)));
 
       if (inserts.length > 0) {
         const { error: insertError } = await supabase
@@ -247,16 +287,19 @@ export async function saveFullRBACMatrix(
       }
     }
 
-    const { logAdminAction } = await import("@/lib/admin-audit");
-    await logAdminAction({
-      action: "CHANGE_RBAC_MATRIX",
-      targetTable: "sys_role_permissions",
-      after: { roleIds: Object.keys(matrix), via: rpcMissing ? "delta_fallback" : "rpc" },
-      actorUserId: actor.id,
-      actorEmail: actor.email,
-    });
+    const audited = await invalidateThenAudit(() =>
+      logAdminAction({
+        action: "CHANGE_RBAC_MATRIX",
+        targetTable: "sys_role_permissions",
+        before: { removed, count: beforeKeys.size },
+        after: { added, roleIds: Object.keys(matrix), count: afterKeys.size, via: rpcMissing ? "delta_fallback" : "rpc" },
+        actorUserId: actor.id,
+        actorEmail: actor.email,
+        failClosed: true,
+      }),
+    );
+    if (!audited.ok) return { success: false, error: audited.error };
 
-    await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };

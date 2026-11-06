@@ -9,6 +9,7 @@ import {
   getDaoTaoBankForExport,
   importMcqMatrixAction,
   listCauHoiDaoTao,
+  listChuDeDaoTao,
   setCauHoiActive,
   updateCauHoiDaoTao,
 } from "@/modules/dao-tao/actions/dao-tao-bank.actions";
@@ -20,6 +21,7 @@ import {
   serializeMcqRowsToMatrix,
 } from "@/lib/dao-tao/parse-mcq-excel";
 import type { BloomLevel, DaoTaoQuestionLoai, DapAnDung } from "@/lib/dao-tao/types";
+import { CANONICAL_TARGET_ROLES, TARGET_ROLE_LABELS } from "@/lib/dao-tao/types";
 import { requestImportContract } from "@/hooks/import-confirm-contract";
 import { DaoTaoAdminTabs } from "@/modules/dao-tao/components/DaoTaoAdminTabs";
 import {
@@ -47,6 +49,11 @@ type ListRow = {
   ma_cau: string;
   loai: string;
   stem: string;
+  clinical_vignette?: string | null;
+  chu_de_ma?: string;
+  chu_de_ten?: string;
+  target_roles?: string[];
+  sop_refs?: string[];
   is_active: boolean;
 };
 
@@ -112,20 +119,35 @@ export default function AdminNganHangPage() {
   const [pending, startTransition] = useTransition();
   const [edit, setEdit] = useState<EditState | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+  const [filterRole, setFilterRole] = useState("ALL");
+  const [filterChuDe, setFilterChuDe] = useState("ALL");
+  const [chuDeList, setChuDeList] = useState<Array<{ id: string; ma: string; ten: string }>>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reload = async () => {
-    const [s, list] = await Promise.all([
+    const [s, list, cds] = await Promise.all([
       getBankStats(),
-      listCauHoiDaoTao({ limit: 500, includeInactive: showInactive }),
+      listCauHoiDaoTao({
+        limit: 500,
+        includeInactive: showInactive,
+        chuDeMa: filterChuDe !== "ALL" ? filterChuDe : undefined,
+        targetRole: filterRole !== "ALL" ? filterRole : undefined,
+      }),
+      listChuDeDaoTao(),
     ]);
     setStats(s);
+    setChuDeList(cds);
     setRows(
-      list.map((r) => ({
+      list.map((r: any) => ({
         id: r.id,
-        ma_cau: (r as { ma_cau?: string }).ma_cau ?? "",
+        ma_cau: r.ma_cau ?? "",
         loai: r.loai,
         stem: r.stem,
+        clinical_vignette: r.clinical_vignette,
+        chu_de_ma: r.chu_de_ma,
+        chu_de_ten: r.chu_de_ten,
+        target_roles: r.target_roles,
+        sop_refs: r.sop_refs,
         is_active: r.is_active,
       })),
     );
@@ -135,7 +157,7 @@ export default function AdminNganHangPage() {
     void reload().catch((e) =>
       toast.error(e instanceof Error ? e.message : "Lỗi tải ngân hàng"),
     );
-  }, [showInactive]);
+  }, [showInactive, filterRole, filterChuDe]);
 
   const openEdit = (id: string) => {
     startTransition(async () => {
@@ -343,29 +365,86 @@ export default function AdminNganHangPage() {
         </label>
       </DaoTaoPanel>
 
+      {/* Thanh bộ lọc đa chiều */}
+      <DaoTaoPanel className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold text-slate-500">Lọc theo:</span>
+        <select
+          value={filterRole}
+          onChange={(e) => setFilterRole(e.target.value)}
+          className="rounded-[var(--radius-control)] border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-xs"
+        >
+          <option value="ALL">Tất cả 9 vai trò chuẩn</option>
+          {CANONICAL_TARGET_ROLES.map((r) => (
+            <option key={r.code} value={r.code}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filterChuDe}
+          onChange={(e) => setFilterChuDe(e.target.value)}
+          className="max-w-xs truncate rounded-[var(--radius-control)] border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-xs"
+        >
+          <option value="ALL">Tất cả 35 chuyên đề KSNK</option>
+          {chuDeList.map((c) => (
+            <option key={c.ma} value={c.ma}>
+              {c.ten}
+            </option>
+          ))}
+        </select>
+
+        <span className="ml-auto text-xs font-medium text-slate-500">
+          Hiển thị: <strong className="text-slate-800">{rows.length}</strong> câu
+        </span>
+      </DaoTaoPanel>
+
       <DaoTaoPanel className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50">
               <tr>
-                <th className={cn("px-3 py-2.5", T.tableHeader)}>Mã</th>
+                <th className={cn("px-3 py-2.5", T.tableHeader)}>Mã câu</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Loại</th>
-                <th className={cn("px-3 py-2.5", T.tableHeader)}>Nội dung</th>
+                <th className={cn("px-3 py-2.5", T.tableHeader)}>Nội dung câu hỏi và Tình huống lâm sàng</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>TT</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-t border-slate-100">
-                  <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] text-slate-500">
-                    {r.ma_cau || "—"}
+                <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/50">
+                  <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] font-semibold text-slate-700">
+                    <div>{r.ma_cau || "—"}</div>
+                    {r.sop_refs && r.sop_refs.length > 0 && (
+                      <span className="mt-0.5 inline-block rounded bg-amber-50 px-1.5 py-0.2 text-[11px] font-medium text-amber-800 border border-amber-200/60">
+                        {r.sop_refs[0]}
+                      </span>
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-xs font-medium text-slate-600">
                     {labelLoaiCau(r.loai)}
                   </td>
-                  <td className={cn("max-w-xl truncate px-3 py-2.5", T.tableCellBody)}>
-                    {r.stem}
+                  <td className="px-3 py-2.5 text-xs">
+                    {r.clinical_vignette && (
+                      <p className="mb-0.5 text-[11px] text-slate-500 line-clamp-1">
+                        &ldquo;{r.clinical_vignette}&rdquo;
+                      </p>
+                    )}
+                    <p className="font-medium text-slate-800 line-clamp-2">{r.stem}</p>
+                    {r.target_roles && r.target_roles.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {r.target_roles.slice(0, 3).map((role) => (
+                          <span
+                            key={role}
+                            className="rounded bg-blue-50 px-1.5 py-0.2 text-[11px] text-blue-700 border border-blue-200/50 font-normal"
+                            title={TARGET_ROLE_LABELS[role] || role}
+                          >
+                            {TARGET_ROLE_LABELS[role] ? TARGET_ROLE_LABELS[role].split("(")[0].trim() : role.replace("ROLE_", "")}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </td>
                   <td className="px-3 py-2.5">
                     <button

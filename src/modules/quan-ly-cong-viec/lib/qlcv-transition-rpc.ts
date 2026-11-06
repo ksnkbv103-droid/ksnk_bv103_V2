@@ -32,6 +32,9 @@ export async function invokeQlcvTransition(
   });
 
   if (error) {
+    if (isQlcvTransitionStaleError(error.message)) {
+      throw new Error("Công việc đã thay đổi trạng thái do người khác thao tác — tải lại và thử lại.");
+    }
     throw new Error(error.message);
   }
 

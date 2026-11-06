@@ -10,6 +10,11 @@ describe("samePermissionIdSet", () => {
     expect(samePermissionIdSet(["a"], ["a", "b"])).toBe(false);
     expect(samePermissionIdSet(["a"], ["b"])).toBe(false);
   });
+
+  it("handles duplicates correctly without false diff", () => {
+    expect(samePermissionIdSet(["a", "a", "b"], ["a", "b"])).toBe(true);
+    expect(samePermissionIdSet(["a", "b"], ["b", "a", "b"])).toBe(true);
+  });
 });
 
 describe("hasSelfRolePermissionEdits", () => {

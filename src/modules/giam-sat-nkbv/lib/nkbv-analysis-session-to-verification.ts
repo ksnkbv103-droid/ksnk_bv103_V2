@@ -54,6 +54,7 @@ function syndromeCtx(
   if (panel === "VAE") return { syndrome: "VAE" };
   if (panel === "UTI") return { syndrome: "UTI" };
   if (panel === "BSI") return { syndrome: "BSI" };
+  if (panel === "CH17") return { syndrome: "OTHER" };
   return {};
 }
 
@@ -61,12 +62,16 @@ function syndromeCtx(
 export function mapLamSangToFormFields(
   lamSang: BaGridSymptomByDate,
   ctx: CriteriaMapContext,
+  opts?: { windowStart?: string; windowEnd?: string },
 ): { symptom_dates: Record<string, string>; flags: Record<string, boolean> } {
   const symptom_dates: Record<string, string> = {};
   const flags: Record<string, boolean> = {};
+  const winStart = opts?.windowStart?.slice(0, 10);
+  const winEnd = opts?.windowEnd?.slice(0, 10);
   for (const [date, items] of Object.entries(lamSang || {})) {
     const d = String(date || "").slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+    if (winStart && winEnd && (d < winStart || d > winEnd)) continue;
     for (const it of items || []) {
       const field = criteriaKeyToFormField(it.key, ctx);
       if (!field) continue;
@@ -194,13 +199,24 @@ export function mapAnalysisSessionToVerificationSeed(input: {
   windows?: BaCdcWindowSeed | null;
   ritLabs?: BaSeedLabRow[];
   sbapLabs?: BaSeedLabRow[];
+  surgeryDate?: string | null;
 }): {
   verification_data: Record<string, unknown>;
   clinical_notes_patch: Record<string, unknown>;
   analyzedViSinhIds: string[];
 } {
   const ctx = syndromeCtx(input.panel, input.draft);
-  const { symptom_dates, flags } = mapLamSangToFormFields(input.draft.lamSang, ctx);
+  const iwpStart = input.windows?.iwp_start
+    ? String(input.windows.iwp_start).slice(0, 10)
+    : undefined;
+  const iwpEnd = input.windows?.iwp_end
+    ? String(input.windows.iwp_end).slice(0, 10)
+    : undefined;
+  const { symptom_dates, flags } = mapLamSangToFormFields(
+    input.draft.lamSang,
+    ctx,
+    iwpStart && iwpEnd ? { windowStart: iwpStart, windowEnd: iwpEnd } : undefined,
+  );
   const indexId = bareViSinhIdFromMilestoneId(input.indexMilestoneId);
   const analyzedViSinhIds = collectAnalyzedViSinhIds({
     indexMilestoneId: input.indexMilestoneId,
@@ -225,12 +241,6 @@ export function mapAnalysisSessionToVerificationSeed(input: {
   }
 
   const doe = String(input.nsk || input.windows?.doe || "").slice(0, 10) || undefined;
-  const iwpStart = input.windows?.iwp_start
-    ? String(input.windows.iwp_start).slice(0, 10)
-    : undefined;
-  const iwpEnd = input.windows?.iwp_end
-    ? String(input.windows.iwp_end).slice(0, 10)
-    : undefined;
   const sbapStart = input.windows?.sbap_start
     ? String(input.windows.sbap_start).slice(0, 10)
     : undefined;
@@ -285,6 +295,42 @@ export function mapAnalysisSessionToVerificationSeed(input: {
     }
   }
 
+  if (input.panel === "VAE") {
+    if (input.draft.vaeVentDailyParams?.length) {
+      verification_data.vent_daily_params = input.draft.vaeVentDailyParams;
+    }
+    if (input.draft.vaeOnEcmo != null) verification_data.on_ecmo = input.draft.vaeOnEcmo;
+    if (input.draft.vaeOnHfv != null) verification_data.on_hfv = input.draft.vaeOnHfv;
+    if (input.draft.vaeOnAprv != null) verification_data.on_aprv = input.draft.vaeOnAprv;
+    if (input.draft.vaeNewAntimicrobial4d != null) {
+      verification_data.new_antimicrobial_ge_4days = input.draft.vaeNewAntimicrobial4d;
+    }
+    if (input.draft.vaePurulentSputum != null) {
+      verification_data.has_purulent_sputum_and_positive_culture = input.draft.vaePurulentSputum;
+    }
+    if (input.draft.vaeTempOrWbcAbnormal != null) {
+      verification_data.temp_fever_or_hypothermia = input.draft.vaeTempOrWbcAbnormal;
+    }
+    const kl = (input.ketLuan || input.draft.ketLuan || "").toUpperCase();
+    if (kl.includes("PVAP")) {
+      verification_data.has_purulent_sputum_and_positive_culture = true;
+      verification_data.new_antimicrobial_ge_4days = true;
+      verification_data.has_stable_baseline_peep_fio2 = true;
+    } else if (kl.includes("IVAC")) {
+      verification_data.new_antimicrobial_ge_4days = true;
+      verification_data.has_stable_baseline_peep_fio2 = true;
+    } else if (kl.includes("VAC")) {
+      verification_data.has_stable_baseline_peep_fio2 = true;
+    }
+  }
+
+  if (input.panel === "CH17") {
+    verification_data.ch17_type_code = input.draft.ch17TypeCode || "CH17";
+    if (input.draft.ch17Flags) {
+      verification_data.chapter17_flags = input.draft.ch17Flags;
+    }
+  }
+
   if (input.panel === "UTI" && (input.draft.bloodCriterionIds?.length || 0) > 0) {
     verification_data.has_blood_culture_positive_in_window = true;
     verification_data.blood_urine_pathogen_matches = true;
@@ -331,6 +377,11 @@ export function mapAnalysisSessionToVerificationSeed(input: {
   }
 
   if (input.panel === "SSI") {
+    const surg = input.surgeryDate || input.windows?.iwp_start;
+    if (surg) {
+      verification_data.ngay_phau_thuat = surg;
+      verification_data.surgery_date = surg;
+    }
     if (input.draft.ssiDepth) {
       verification_data.infection_depth = input.draft.ssiDepth;
       verification_data.ssi_depth = input.draft.ssiDepth;

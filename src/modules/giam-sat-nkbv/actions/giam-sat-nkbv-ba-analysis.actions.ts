@@ -7,7 +7,9 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-labels";
@@ -30,6 +32,17 @@ async function assertCanWriteNkbvAnalysis() {
   }
 }
 
+const viSinhIdSchema = z.string().trim().uuid();
+
+/** Fail-closed: XN phải có ma_benh_an và BA đó nằm trong phạm vi khoa của actor. */
+async function viSinhRowInScope(row: { ma_benh_an?: unknown }): Promise<boolean> {
+  const ma = String(row.ma_benh_an ?? "").trim();
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "all") return true;
+  if (!ma) return false;
+  return isNkbvBenhAnInScope(restriction, ma);
+}
+
 export type NkbvBaAnalysisSeedInput = {
   panel: SyndromePanelId;
   draft: BaAnalysisSessionDraft;
@@ -43,6 +56,8 @@ export type NkbvBaAnalysisSeedInput = {
   windows?: BaCdcWindowSeed | null;
   ritLabs?: BaSeedLabRow[];
   sbapLabs?: BaSeedLabRow[];
+  /** Ngày phẫu thuật (SSI) */
+  surgeryDate?: string | null;
   /** HAP vs VAP (PNEU) — cổng phiếu; mặc định suy từ panel. */
   checklistGate?: NkbvChecklistTypeCode | null;
 };
@@ -102,6 +117,7 @@ async function applyAnalysisSeedToCase(
     windows: seed.windows,
     ritLabs: seed.ritLabs,
     sbapLabs: seed.sbapLabs,
+    surgeryDate: seed.surgeryDate,
   });
 
   const verification_data = {
@@ -183,6 +199,9 @@ export async function ensureNkbvBaAnalysisCase(input: {
   if (!milestoneId) return { success: false as const, error: "Thiếu mốc Index" };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(indexDate)) {
     return { success: false as const, error: "Ngày Index không hợp lệ" };
+  }
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), maBa))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
 
   const reloadCase = async (id: string) => {
@@ -446,16 +465,18 @@ export async function markNkbvViSinhKhongDuTc(input: {
   await assertCanWriteNkbvAnalysis();
   const id = String(input.vi_sinh_id || "").trim();
   if (!id) return { success: false as const, error: "Thiếu mã XN vi sinh" };
+  if (!viSinhIdSchema.safeParse(id).success) return { success: false as const, error: "Mã XN vi sinh không hợp lệ" };
 
   const supabase = createAdminSupabaseClient();
   const { data: row, error: loadErr } = await supabase
     .from("nkbv_fact_vi_sinh")
-    .select("id, metadata")
+    .select("id, metadata, ma_benh_an")
     .eq("id", id)
     .eq("is_active", true)
     .maybeSingle();
   if (loadErr) return { success: false as const, error: loadErr.message };
   if (!row) return { success: false as const, error: "Không tìm thấy XN" };
+  if (!(await viSinhRowInScope(row))) return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
 
   const prev =
     row.metadata && typeof row.metadata === "object"
@@ -494,16 +515,18 @@ export async function clearNkbvViSinhAnalysisDisposition(input: {
   await assertCanWriteNkbvAnalysis();
   const id = String(input.vi_sinh_id || "").trim();
   if (!id) return { success: false as const, error: "Thiếu mã XN vi sinh" };
+  if (!viSinhIdSchema.safeParse(id).success) return { success: false as const, error: "Mã XN vi sinh không hợp lệ" };
 
   const supabase = createAdminSupabaseClient();
   const { data: row, error: loadErr } = await supabase
     .from("nkbv_fact_vi_sinh")
-    .select("id, metadata")
+    .select("id, metadata, ma_benh_an")
     .eq("id", id)
     .eq("is_active", true)
     .maybeSingle();
   if (loadErr) return { success: false as const, error: loadErr.message };
   if (!row) return { success: false as const, error: "Không tìm thấy XN" };
+  if (!(await viSinhRowInScope(row))) return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
 
   const prev =
     row.metadata && typeof row.metadata === "object"
@@ -549,17 +572,19 @@ export async function skipNkbvViSinhAnalysis(input: {
   const id = String(input.vi_sinh_id || "").trim();
   const reason = String(input.reason || "").trim();
   if (!id) return { success: false as const, error: "Thiếu mã XN vi sinh" };
+  if (!viSinhIdSchema.safeParse(id).success) return { success: false as const, error: "Mã XN vi sinh không hợp lệ" };
   if (!reason) return { success: false as const, error: "Nhập lý do bỏ qua" };
 
   const supabase = createAdminSupabaseClient();
   const { data: row, error: loadErr } = await supabase
     .from("nkbv_fact_vi_sinh")
-    .select("id, metadata")
+    .select("id, metadata, ma_benh_an")
     .eq("id", id)
     .eq("is_active", true)
     .maybeSingle();
   if (loadErr) return { success: false as const, error: loadErr.message };
   if (!row) return { success: false as const, error: "Không tìm thấy XN" };
+  if (!(await viSinhRowInScope(row))) return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
 
   const prev =
     row.metadata && typeof row.metadata === "object"

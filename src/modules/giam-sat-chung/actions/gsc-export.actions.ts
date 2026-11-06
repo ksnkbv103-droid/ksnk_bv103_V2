@@ -24,9 +24,19 @@ export async function exportGscSessionsRaw(params: {
   tu_ngay: string;
   den_ngay: string;
   loaiGiamSat?: GscLoaiGiamSatRoute;
+  bang_kiem_id?: string | null;
+  maBk?: string | null;
 }): Promise<{ success: true; rows: GscExportRow[] } | { success: false; error: string }> {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
+    const ymdRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!ymdRegex.test(params.tu_ngay) || !ymdRegex.test(params.den_ngay)) {
+      return { success: false, error: "Định dạng ngày không hợp lệ (YYYY-MM-DD)." };
+    }
+    if (params.tu_ngay > params.den_ngay) {
+      return { success: false, error: "Từ ngày không được lớn hơn Đến ngày." };
+    }
+
     const scope = await getActorKsnkScope();
     const historyAccess = assertGscHistoryAccess(scope);
     if (!historyAccess.ok) return { success: false, error: historyAccess.error };
@@ -41,6 +51,12 @@ export async function exportGscSessionsRaw(params: {
         .lte("ngay_giam_sat", params.den_ngay);
       q = applyGscHistoryReadScope(q, scope);
       q = applyGscLoaiFilter(q, params.loaiGiamSat);
+      if (params.bang_kiem_id) {
+        q = q.eq("bang_kiem_id", params.bang_kiem_id);
+      }
+      if (params.maBk) {
+        q = q.eq("ma_bang_kiem", params.maBk);
+      }
       return q.order("ngay_giam_sat", { ascending: false }).order("id", { ascending: true }).range(from, to);
     });
     const ids = listRows.map((r) => String(r.id ?? "").trim()).filter(Boolean);

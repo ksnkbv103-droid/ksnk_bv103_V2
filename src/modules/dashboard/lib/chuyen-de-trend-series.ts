@@ -56,7 +56,7 @@ function bucketLabel(minDate: string, granularity: BaoCaoTrendGranularity): stri
   if (granularity === "month") return format(startOfMonth(d), "MM/yyyy", { locale: vi });
   if (granularity === "quarter") return format(startOfQuarter(d), "'Q'Q/yyyy", { locale: vi });
   if (granularity === "year") return format(startOfYear(d), "yyyy");
-  return format(startOfWeek(d, { weekStartsOn: 1 }), "'T'II/yyyy", { locale: vi });
+  return format(startOfWeek(d, { weekStartsOn: 1 }), "'T'II/RRRR", { locale: vi });
 }
 
 /** Gộp nhiều series BK thành rows Recharts; chỉ giữ bucket có ≥1 series có mẫu số > 0. */
@@ -87,7 +87,7 @@ export function mergeMultiChuyenDeTrendRows(
   }
 
   return [...buckets.entries()]
-    .sort((a, b) => a[1].min_date.localeCompare(b[1].min_date))
+    .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([, acc]) => {
       const row: Record<string, string | number | null> = {
         label: acc.label,

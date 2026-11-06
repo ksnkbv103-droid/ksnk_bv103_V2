@@ -8,9 +8,9 @@ import { spawnSync } from "node:child_process";
 const strict = process.env.DEAD_CODE_STRICT === "1";
 
 console.log("[dead-code:scan] Fallow dead-code analysis…");
-const r = spawnSync("npx", ["fallow", "dead-code", "--format", "json"], {
+const r = spawnSync("npx", ["--no-install", "fallow", "dead-code", "--format", "json"], {
   encoding: "utf8",
-  stdio: ["inherit", "pipe", "pipe"],
+  stdio: ["ignore", "pipe", "pipe"],
 });
 
 if (r.error) {

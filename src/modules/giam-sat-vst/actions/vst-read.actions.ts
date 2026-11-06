@@ -160,9 +160,17 @@ export async function getVSTSessionDetail(sessionId: string) {
       }
     }
 
+    // Query metadata directly from gstt_fact_vst_sessions to preserve patient risk factors (bn_*)
+    const { data: rawMetaRow } = await supabase
+      .from("gstt_fact_vst_sessions")
+      .select("metadata")
+      .eq("id", sessionId)
+      .maybeSingle();
+
     // Map view fields back to the format expected by the UI
     const session = {
       ...sessionView,
+      metadata: (rawMetaRow?.metadata as Record<string, unknown> | undefined) ?? sessionView.metadata,
       danh_muc_khoa: { ten_danh_muc: sessionView.ten_khoa_phong || "—" },
       danh_muc_khu_vuc: { ten_danh_muc: sessionView.ten_khu_vuc_giam_sat || "—" },
       nguoi_giam_sat: { ho_ten: sessionView.ten_nguoi_giam_sat || "—" },
@@ -221,7 +229,7 @@ export async function getVstHeaderDmDropdowns() {
       getCachedDmKhoaPhong(),
       (() => {
         // A) Full active list. B) limit 400 (+ filter khoa mạng lưới) — chọn B.
-        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
+        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id, nghe_nghiep_id").eq("is_active", true);
         if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
         return q.order("ho_ten").limit(400);
       })(),
@@ -249,7 +257,12 @@ export async function getVstHeaderDmDropdowns() {
       loai_danh_muc: "KHOA_PHONG",
     }));
 
-    const nhanSus = (nhanSuRes.data || []).map((x) => ({ id: x.id, ho_ten: x.ho_ten }));
+    const nhanSus = (nhanSuRes.data || []).map((x) => ({
+      id: x.id,
+      ho_ten: x.ho_ten,
+      khoa_id: x.khoa_id,
+      nghe_nghiep_id: (x as { nghe_nghiep_id?: string | null }).nghe_nghiep_id || null,
+    }));
 
     const registry = (registriesRes.data || {}) as Record<string, Array<{ id: string; ten: string; ma?: string }>>;
     const rpcKhuVucs = Array.isArray(registry.KHU_VUC_GIAM_SAT) ? registry.KHU_VUC_GIAM_SAT : [];

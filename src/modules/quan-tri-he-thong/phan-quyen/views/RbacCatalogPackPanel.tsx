@@ -1,7 +1,7 @@
 "use client";
 
 import { Layers } from "lucide-react";
-import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103DesignTokens as UI } from "@/lib/bv103-design-tokens";
 import {
   ALL_CATALOG_MODULES,
   applyCatalogPackToSet,
@@ -50,7 +50,7 @@ export default function RbacCatalogPackPanel({
         Gom ~13 ô sửa danh mục thành vài gói. Không đổi cửa RLS. Còn chỉnh từng ô bên dưới nếu cần. Quản trị (ADMIN) giữ đủ quyền — không áp gói.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <label className={T.labelBlock} htmlFor="rbac-pack-role">
+        <label className={UI.labelBlock} htmlFor="rbac-pack-role">
           Áp cho vai trò
         </label>
         <select

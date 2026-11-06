@@ -1,8 +1,11 @@
 "use server";
 
+import { z } from "zod";
+import { logAdminAction } from "@/lib/admin-audit";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { getActorRoleNames } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
+import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import {
   CATALOG_DE_NGHI_CLAIM_STATUS,
   CATALOG_DE_NGHI_FAILED_STATUS,
@@ -21,7 +24,13 @@ async function requireCatalogApprove() {
   if (!roles.includes("ADMIN")) throw new Error("Chỉ chủ nhiệm khoa (ADMIN) được duyệt phiếu danh mục.");
 }
 
+const ticketIdSchema = z.string().trim().uuid("Mã phiếu không hợp lệ.");
+
 const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";
+/** Tiền tố reject_reason khi danh mục đã ghi nhưng chưa chốt APPROVED (enum DB không có trạng thái riêng). */
+const APPLIED_PREFIX = "Đã ghi danh mục";
+const APPLIED_REJECT_MSG =
+  "Phiếu này đã ghi vào danh mục nhưng chưa chốt được trạng thái, không thể từ chối. Hãy kiểm tra danh mục và nhờ kỹ thuật chốt phiếu thành APPROVED thủ công.";
 
 function mapRow(r: Record<string, unknown>): CssdCatalogDeNghiRow & { afterSummary: string } {
   const targetKind = String(r.target_kind) as CssdCatalogDeNghiKind;
@@ -43,6 +52,26 @@ function mapRow(r: Record<string, unknown>): CssdCatalogDeNghiRow & { afterSumma
     createdAt: r.created_at ? String(r.created_at) : "",
     afterSummary: summarizeDeNghiAfter(targetKind, payloadAfter),
   };
+}
+
+/** Đưa phiếu đang APPLYING sang APPLY_FAILED (không kẹt); lỗi ghi trạng thái chỉ log. */
+async function markClaimFailed(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  ticketId: string,
+  reason: string,
+) {
+  const { error } = await supabase
+    .from("cssd_catalog_de_nghi")
+    .update({
+      status: CATALOG_DE_NGHI_FAILED_STATUS,
+      reject_reason: reason,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", ticketId)
+    .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
+  if (error) {
+    console.error({ module: "catalog-de-nghi", action: "markClaimFailed", ticketId, error: error.message });
+  }
 }
 
 export async function listPendingCatalogDeNghiAction() {
@@ -74,8 +103,9 @@ export async function listPendingCatalogDeNghiAction() {
 export async function approveCatalogDeNghiAction(id: string) {
   try {
     await requireCatalogApprove();
-    const ticketId = String(id || "").trim();
-    if (!ticketId) return { success: false as const, error: "Thiếu phiếu." };
+    const parsedId = ticketIdSchema.safeParse(id);
+    if (!parsedId.success) return { success: false as const, error: parsedId.error.issues[0]?.message || "Thiếu phiếu." };
+    const ticketId = parsedId.data;
     const supabase = createAdminSupabaseClient();
     // KD-1: chặn tự duyệt + bắt buộc người duyệt TRƯỚC khi claim (không để phiếu kẹt APPLYING).
     const { data: ticket, error: ticketErr } = await supabase
@@ -123,15 +153,7 @@ export async function approveCatalogDeNghiAction(id: string) {
     } catch (applyErr: unknown) {
       const msg = applyErr instanceof Error ? applyErr.message : "Không ghi được danh mục.";
       const short = msg.slice(0, 400);
-      await supabase
-        .from("cssd_catalog_de_nghi")
-        .update({
-          status: CATALOG_DE_NGHI_FAILED_STATUS,
-          reject_reason: short,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", ticketId)
-        .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
+      await markClaimFailed(supabase, ticketId, short);
       return { success: false as const, error: msg };
     }
 
@@ -147,19 +169,38 @@ export async function approveCatalogDeNghiAction(id: string) {
       })
       .eq("id", ticketId)
       .eq("status", CATALOG_DE_NGHI_CLAIM_STATUS);
-    if (updErr) throw new Error(updErr.message);
-    const heatSplitNote =
-      (
-        await applyHeatSplitForLoaiChanges(
-          supabase,
-          heatChanges.map((c) => ({
-            loaiId: c.loaiId,
-            prevIsChiuNhiet: c.prevIsChiuNhiet,
-            nextIsChiuNhiet: c.nextIsChiuNhiet,
-          })),
-        )
-      ).join(" ") || undefined;
+    if (updErr) {
+      // Dữ liệu đã ghi nhưng không chốt được APPROVED: không để kẹt APPLYING.
+      const msg = `${APPLIED_PREFIX} nhưng không chốt được phiếu: ${updErr.message}`;
+      await markClaimFailed(supabase, ticketId, msg.slice(0, 400));
+      return { success: false as const, error: msg };
+    }
+    await logAdminAction({
+      action: "APPROVE_CATALOG_DE_NGHI",
+      targetTable: "cssd_catalog_de_nghi",
+      targetId: ticketId,
+      before: { status: "PENDING", payload_before: claimed.payload_before ?? null },
+      after: { status: "APPROVED", kind, target_ma: claimed.target_ma ?? null, payload_after: claimed.payload_after ?? null },
+    });
+    let heatSplitNote: string | undefined;
+    try {
+      heatSplitNote =
+        (
+          await applyHeatSplitForLoaiChanges(
+            supabase,
+            heatChanges.map((c) => ({
+              loaiId: c.loaiId,
+              prevIsChiuNhiet: c.prevIsChiuNhiet,
+              nextIsChiuNhiet: c.nextIsChiuNhiet,
+            })),
+          )
+        ).join(" ") || undefined;
+    } catch (heatErr: unknown) {
+      // Phiếu đã APPROVED và danh mục đã ghi; lỗi tách nhiệt chỉ cảnh báo.
+      heatSplitNote = `Phiếu đã duyệt nhưng tách nhiệt lỗi: ${heatErr instanceof Error ? heatErr.message : "không rõ"}`;
+    }
     revalidateCssdInventorySurfaces();
+    revalidateMasterDataRowCacheTag(kind === "BO" ? "cssd_dm_bo_dung_cu" : "cssd_dm_loai_dung_cu");
     return { success: true as const, heatSplitNote };
   } catch (e: unknown) {
     return {
@@ -172,18 +213,22 @@ export async function approveCatalogDeNghiAction(id: string) {
 export async function rejectCatalogDeNghiAction(id: string, reason?: string | null) {
   try {
     await requireCatalogApprove();
-    const ticketId = String(id || "").trim();
-    if (!ticketId) return { success: false as const, error: "Thiếu phiếu." };
+    const parsedId = ticketIdSchema.safeParse(id);
+    if (!parsedId.success) return { success: false as const, error: parsedId.error.issues[0]?.message || "Thiếu phiếu." };
+    const ticketId = parsedId.data;
     const supabase = createAdminSupabaseClient();
     const { data: row, error: loadErr } = await supabase
       .from("cssd_catalog_de_nghi")
-      .select("id, status")
+      .select("id, status, reject_reason")
       .eq("id", ticketId)
       .maybeSingle();
     if (loadErr || !row) return { success: false as const, error: loadErr?.message || "Không thấy phiếu." };
     const st = String(row.status || "");
     if (!canRejectCatalogDeNghi(st)) {
       return { success: false as const, error: CLAIMED_MSG };
+    }
+    if (st === CATALOG_DE_NGHI_FAILED_STATUS && String(row.reject_reason || "").startsWith(APPLIED_PREFIX)) {
+      return { success: false as const, error: APPLIED_REJECT_MSG };
     }
     const now = new Date().toISOString();
     const { data: rejected, error } = await supabase
@@ -199,6 +244,13 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!rejected?.id) return { success: false as const, error: CLAIMED_MSG };
+    await logAdminAction({
+      action: "REJECT_CATALOG_DE_NGHI",
+      targetTable: "cssd_catalog_de_nghi",
+      targetId: ticketId,
+      before: { status: st },
+      after: { status: "REJECTED", reject_reason: String(reason || "").trim() || null },
+    });
     revalidateCssdInventorySurfaces();
     return { success: true as const };
   } catch (e: unknown) {

@@ -23,6 +23,10 @@ type ComprehensiveCompareProps = {
   khoaOptions: MultiSelectOption[];
   /** Hiển thị một module — dùng khi tách section VST/GSC trên báo cáo. */
   module?: "vst" | "gsc" | "all";
+  vstLens?: SupervisionSourceLens;
+  onVstLensChange?: (lens: SupervisionSourceLens) => void;
+  gscLens?: SupervisionSourceLens;
+  onGscLensChange?: (lens: SupervisionSourceLens) => void;
 };
 
 export function ComprehensiveCompare({
@@ -30,9 +34,18 @@ export function ComprehensiveCompare({
   selectedKhoaIds,
   khoaOptions,
   module = "all",
+  vstLens: controlledVstLens,
+  onVstLensChange,
+  gscLens: controlledGscLens,
+  onGscLensChange,
 }: ComprehensiveCompareProps) {
-  const [vstLens, setVstLens] = useState<SupervisionSourceLens>("ksnk");
-  const [gscLens, setGscLens] = useState<SupervisionSourceLens>("ksnk");
+  const [internalVstLens, setInternalVstLens] = useState<SupervisionSourceLens>("ksnk");
+  const [internalGscLens, setInternalGscLens] = useState<SupervisionSourceLens>("ksnk");
+
+  const vstLens = controlledVstLens ?? internalVstLens;
+  const setVstLens = onVstLensChange ?? setInternalVstLens;
+  const gscLens = controlledGscLens ?? internalGscLens;
+  const setGscLens = onGscLensChange ?? setInternalGscLens;
 
   const vstChartRows = useMemo(() => {
     const rows = buildGapKhoaRows(payload?.vst?.gap_analysis, selectedKhoaIds, khoaOptions, khoaOptions.length);

@@ -40,6 +40,7 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
                 </span>
                 <div>
                   <h3 className="text-sm font-semibold text-slate-800">{job.title}</h3>
+                  <p className="mt-0.5 text-xs text-slate-500">{job.blurb}</p>
                 </div>
               </div>
               <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-400" aria-hidden />

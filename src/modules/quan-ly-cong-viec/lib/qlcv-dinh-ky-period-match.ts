@@ -7,6 +7,7 @@ export type DinhKyMauForPeriod = {
   mo_ta: string | null;
   ma_chu_ky: QlcvMaChuKyDinhKy;
   ngay_bat_dau: string;
+  ngay_ket_thuc?: string | null;
   is_active: boolean;
   muc_do_uu_tien?: string | null;
   vi_tri_thuc_hien?: string | null;
@@ -18,7 +19,7 @@ export type DinhKyMauForPeriod = {
 
 /** Các ngày trong kỳ mà mẫu sẽ (hoặc đã) đến hạn sinh phiếu. */
 export function spawnDatesInPeriod(
-  mau: Pick<DinhKyMauForPeriod, "ma_chu_ky" | "ngay_bat_dau">,
+  mau: Pick<DinhKyMauForPeriod, "ma_chu_ky" | "ngay_bat_dau" | "ngay_ket_thuc">,
   period: QlcvPeriodRange,
 ): string[] {
   const start = parseIsoDateOnlyUtc(period.startIso);
@@ -27,7 +28,7 @@ export function spawnDatesInPeriod(
   const out: string[] = [];
   for (let t = start.getTime(); t <= end.getTime(); t += 86400000) {
     const day = new Date(t);
-    if (dinhKyMatchDueOnDate(mau.ma_chu_ky, mau.ngay_bat_dau, day)) {
+    if (dinhKyMatchDueOnDate(mau.ma_chu_ky, mau.ngay_bat_dau, day, mau.ngay_ket_thuc)) {
       out.push(formatIsoDateOnlyUtc(day));
     }
   }

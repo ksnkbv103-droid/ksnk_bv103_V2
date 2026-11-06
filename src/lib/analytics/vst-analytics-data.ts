@@ -42,8 +42,6 @@ function remapVstGapRows(rows: VstStrategicPayload["gap_analysis"] | undefined) 
 export function normalizeVstStrategicPercents(payload: VstStrategicPayload): VstStrategicPayload {
   const kpis = payload.kpis;
   const tong = Number(kpis?.tong_co_hoi ?? 0);
-  const daTuanThu = Number(kpis?.da_tuan_thu ?? 0);
-  const boSot = Number(kpis?.bo_sot ?? 0);
   const normalized = {
     ...payload,
     kpis: kpis
@@ -58,8 +56,8 @@ export function normalizeVstStrategicPercents(payload: VstStrategicPayload): Vst
             rateFromTotals(kpis.du_thoi_gian, Number(kpis.danh_gia_thoi_gian ?? 0)) ??
             (Number(kpis.danh_gia_thoi_gian ?? 0) > 0 ? kpis.ty_le_du_thoi_gian : null),
           ty_le_lam_dung_gang:
-            rateFromTotals(kpis.lam_dung_gang, Number(kpis.danh_gia_gang ?? boSot)) ??
-            (Number(kpis.danh_gia_gang ?? boSot) > 0 ? kpis.ty_le_lam_dung_gang : null),
+            rateFromTotals(kpis.lam_dung_gang, Number(kpis.danh_gia_gang ?? 0)) ??
+            (Number(kpis.danh_gia_gang ?? 0) > 0 ? kpis.ty_le_lam_dung_gang : null),
         }
       : kpis,
     trendline: (payload.trendline ?? []).map(withCountsPercent),

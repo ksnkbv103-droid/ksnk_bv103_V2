@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
+import { vnYmd } from "@/lib/format-datetime-vi";
 import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
@@ -167,7 +168,7 @@ export async function assertCanEditGiamSatChungSession(sessionId: string) {
     await assertSupervisionNotLockedForDate(
       supabase,
       "GSC",
-      row.ngay_giam_sat ? String(row.ngay_giam_sat).slice(0, 10) : null,
+      row.ngay_giam_sat ? vnYmd(row.ngay_giam_sat) || null : null,
     );
 
     return { success: true as const };

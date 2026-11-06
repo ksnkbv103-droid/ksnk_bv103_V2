@@ -89,7 +89,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "HOA_CHAT",
-    displayName: "Danh mục Hóa chất",
+    displayName: "Danh mục Hóa chất và vật tư",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
   {
@@ -124,8 +124,13 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "KSNK_KHO_HOACHAT",
-    displayName: "KSNK - Kho hóa chất / vật tư",
+    displayName: "CSSD - Kho hóa chất và vật tư",
     actions: ["VIEW", "CREATE", "EDIT", "EXPORT"]
+  },
+  {
+    code: "CSSD_HOA_CHAT",
+    displayName: "CSSD — Duyệt phiếu kho hóa chất",
+    actions: ["APPROVE"]
   },
   {
     code: "GIAM_SAT_VST",
@@ -156,5 +161,10 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     code: "DAO_TAO",
     displayName: "Đào tạo — Thi KSNK",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+  },
+  {
+    code: "HAU_CAN_MOI_TRUONG",
+    displayName: "Hậu cần môi trường — Chất thải và đồ vải",
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE"]
   },
 ];

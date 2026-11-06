@@ -2,13 +2,10 @@
 
 import React from "react";
 import {
-  fefoSortLots,
-  pickFefoLotKey,
   isFefoLotKey,
-  isLotExpired,
-  lotRowToKey,
 } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { LY_DO_XUAT, LY_DO_XUAT_LABEL, type LyDoXuat } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
+import { lotOptsForDm } from "./kho-hoa-chat-lot-opts";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
 
@@ -20,7 +17,10 @@ type DmOpt = {
   nguong_ton_toi_thieu: number | null;
 };
 
-export type MoveMode = "NHAP" | "XUAT" | "DIEU";
+const LBL = "bv103-type-label font-medium text-slate-500";
+const INP = "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm";
+
+export type MoveMode = "NHAP" | "XUAT";
 
 type Props = {
   open: boolean;
@@ -43,23 +43,9 @@ type Props = {
   hanNhap: string;
   onHanNhap: (v: string) => void;
   linkedSuCoId?: string | null;
+  lyDoXuat: LyDoXuat | "";
+  onLyDoXuat: (v: LyDoXuat | "") => void;
 };
-
-function lotOptsForDm(dmId: string, tons: KhoHoaChatTonLo[]): { key: string; label: string; ton: number; disabled: boolean }[] {
-  const rows = tons.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
-  const fefoKey = pickFefoLotKey(rows);
-  return fefoSortLots(rows).map((t) => {
-    const expired = isLotExpired(t.han_su_dung);
-    const key = lotRowToKey(t);
-    const fefoHint = fefoKey && key === fefoKey ? " ★ FEFO" : "";
-    return {
-      key,
-      label: `${t.ma_lo?.length ? `Lô ${t.ma_lo}` : "Không lô"}${t.han_su_dung ? ` — HSD ${formatDateVi(t.han_su_dung)}` : ""} — Tồn ${t.ton_so_luong}${fefoHint}${expired ? " (HẾT HẠN)" : ""}`,
-      ton: t.ton_so_luong,
-      disabled: expired,
-    };
-  });
-}
 
 export default function KhoHoaChatMoveSheet({
   open,
@@ -82,19 +68,21 @@ export default function KhoHoaChatMoveSheet({
   hanNhap,
   onHanNhap,
   linkedSuCoId,
+  lyDoXuat,
+  onLyDoXuat,
 }: Props) {
   if (!open) return null;
 
   const dmRows = tonLots.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
-  const lots = mode === "NHAP" ? [] : lotOptsForDm(dmId, tonLots);
+  const lots = mode === "NHAP" ? [] : lotOptsForDm(dmId, tonLots, lyDoXuat === "HET_HAN_HUY");
   const showFefoWarning = mode === "XUAT" && Boolean(lotKey && dmId && !isFefoLotKey(lotKey, dmRows));
 
   const title =
-    mode === "NHAP" ? "Nhập kho" : mode === "XUAT" ? "Xuất kho (theo lô)" : "Điều chỉnh tồn (kiểm kê)";
+    mode === "NHAP" ? "Nhập kho (lĩnh hàng về kho)" : "Xuất kho (theo lô)";
   const subtitle = linkedSuCoId
     ? "Phiếu này sẽ liên kết với báo cáo sự cố CHEMICAL đã chọn."
     : mode === "XUAT"
-      ? "Lô được sắp theo FEFO (hết hạn trước). Không xuất lô quá hạn."
+      ? "Lô được sắp theo FEFO (hết hạn trước). Lô quá hạn chỉ xuất với lý do «Hết hạn, hủy»."
       : "Đơn vị theo danh mục (chai, lọ, kg…).";
 
   return (
@@ -109,13 +97,13 @@ export default function KhoHoaChatMoveSheet({
 
         <div className="shrink-0 border-b border-slate-100 px-5 py-4 pr-14">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <p className="text-xs text-slate-500">{subtitle}</p>
+          <p className="bv103-type-label text-slate-500">{subtitle}</p>
         </div>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-5 py-4">
           <div>
-            <label className="text-[11px] font-medium text-slate-500">Mặt hàng</label>
-            <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={dmId} onChange={(e) => onDmId(e.target.value)}>
+            <label className={LBL}>Mặt hàng</label>
+            <select className={INP} value={dmId} onChange={(e) => onDmId(e.target.value)}>
               <option value="">— Chọn —</option>
               {dmList.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -125,10 +113,44 @@ export default function KhoHoaChatMoveSheet({
             </select>
           </div>
 
-          {(mode === "XUAT" || mode === "DIEU") && dmId ? (
+          <div>
+            <label className={LBL}>{mode === "NHAP" ? "Số lượng nhập" : "Số lượng xuất"}</label>
+            <input type="number" step="0.01" className={INP} value={qty} onChange={(e) => onQty(e.target.value)} />
+          </div>
+
+          {mode === "XUAT" ? (
             <div>
-              <label className="text-[11px] font-medium text-slate-500">{mode === "XUAT" ? "Lô xuất" : "Lô điều chỉnh"}</label>
-              <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
+              <label className={LBL}>Lý do xuất</label>
+              <select className={INP} value={lyDoXuat} onChange={(e) => onLyDoXuat(e.target.value as LyDoXuat | "")}>
+                <option value="">— Chọn lý do —</option>
+                {LY_DO_XUAT.map((k) => (
+                  <option key={k} value={k}>
+                    {LY_DO_XUAT_LABEL[k]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+          {mode === "NHAP" ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={LBL}>Mã lô (tuỳ chọn)</label>
+                <input className={INP} value={maLoNhap} onChange={(e) => onMaLoNhap(e.target.value)} />
+              </div>
+              <div>
+                <label className={LBL}>Hạn sử dụng (tuỳ chọn)</label>
+                <input type="date" className={INP} value={hanNhap} onChange={(e) => onHanNhap(e.target.value)} />
+              </div>
+            </div>
+          ) : null}
+
+          {mode === "XUAT" && dmId ? (
+            <details className="rounded-lg border border-slate-200 px-3 py-2" open={showFefoWarning}>
+              <summary className="bv103-type-label cursor-pointer font-medium text-slate-600">
+                Lô xuất: tự chọn theo FEFO — đổi lô
+              </summary>
+              <select className={INP} value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
                 <option value="">— Không lô / không HSD —</option>
                 {lots.map((l) => (
                   <option key={l.key} value={l.key} disabled={l.disabled}>
@@ -137,42 +159,16 @@ export default function KhoHoaChatMoveSheet({
                 ))}
               </select>
               {showFefoWarning ? (
-                <p className="mt-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800">
+                <p className="bv103-type-label mt-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 font-medium text-amber-800">
                   Bạn đang chọn lô không theo FEFO — nên ưu tiên lô có hạn sử dụng gần nhất.
                 </p>
               ) : null}
-            </div>
-          ) : null}
-
-          {mode === "NHAP" ? (
-            <>
-              <div>
-                <label className="text-[11px] font-medium text-slate-500">Mã lô (tuỳ chọn)</label>
-                <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={maLoNhap} onChange={(e) => onMaLoNhap(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-[11px] font-medium text-slate-500">Hạn SD (tuỳ chọn)</label>
-                <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={hanNhap} onChange={(e) => onHanNhap(e.target.value)} />
-              </div>
-            </>
+            </details>
           ) : null}
 
           <div>
-            <label className="text-[11px] font-medium text-slate-500">
-              {mode === "NHAP" ? "Số lượng nhập" : mode === "XUAT" ? "Số lượng xuất" : "Điều chỉnh (+ hoặc -)"}
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={qty}
-              onChange={(e) => onQty(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-medium text-slate-500">Ghi chú</label>
-            <textarea className="mt-1 min-h-[64px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={note} onChange={(e) => onNote(e.target.value)} />
+            <label className={LBL}>Ghi chú</label>
+            <input className={INP} value={note} onChange={(e) => onNote(e.target.value)} />
           </div>
         </div>
 

@@ -41,7 +41,8 @@ export async function executeVoidIncidentReport(
     .from("cssd_fact_kho_hoa_chat_giao_dich")
     .select("id", { count: "exact", head: true })
     .eq("su_co_id", id)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .neq("trang_thai", "TU_CHOI");
   if (stockErr) return { ok: false, error: stockErr.message };
   if ((stockCount || 0) > 0) {
     return { ok: false, error: "Đã ghi xuất kho hóa chất theo phiếu này. Hủy phiếu kho trước." };

@@ -68,6 +68,8 @@ export type NkbvBaMultiTimelineWorkspaceProps = {
     criteria_key?: string | null;
   }) => void;
   onTimelineRemoveLocal?: (milestoneId: string) => void;
+  /** Mở ca bệnh/phiếu điều tra trực tiếp theo caseId */
+  onOpenCase?: (caseId: string) => void;
   /** Phiếu đã có trên BA — cảnh báo RIT khi mở Index mới. */
   priorEvents?: Array<{
     id: string;

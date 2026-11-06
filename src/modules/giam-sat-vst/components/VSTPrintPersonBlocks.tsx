@@ -103,10 +103,10 @@ export function VSTPrintPersonBlocks({
                         {hd}
                       </td>
                       <td style={{ textAlign: "center", border, padding: "6px", fontSize: "16px" }}>
-                        {isMiss ? "—" : opp.dung_ky_thuat ? "✓" : "✕"}
+                        {isMiss ? "—" : opp.dung_ky_thuat === true ? "✓" : opp.dung_ky_thuat === false ? "✕" : "—"}
                       </td>
                       <td style={{ textAlign: "center", border, padding: "6px", fontSize: "16px" }}>
-                        {isMiss ? "—" : opp.du_thoi_gian ? "✓" : "✕"}
+                        {isMiss ? "—" : opp.du_thoi_gian === true ? "✓" : opp.du_thoi_gian === false ? "✕" : "—"}
                       </td>
                       <td style={{ textAlign: "center", border, padding: "6px" }}>
                         {getVstPrintGloveDisplay(isMiss, opp.co_deo_gang)}

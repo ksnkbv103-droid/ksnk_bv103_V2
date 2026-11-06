@@ -23,10 +23,7 @@ import { listNhiemVuOptions, type NhiemVuSelectOption } from "../actions/nhiem-v
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import SearchableMultiSelect from "@/components/shared/SearchableMultiSelect";
-import {
-  formatKhoaCompactLabel,
-  parseMaFromKhoaOptionLabel,
-} from "@/lib/domain/khoa-display";
+import { formatQlcvDiaDiemKhoaLabels } from "../lib/qlcv-dia-diem-label";
 import { nextDinhKySpawnDates } from "../lib/qlcv-dinh-ky-schedule";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
@@ -45,9 +42,13 @@ function labelChuKy(ma: string): string {
   return ma;
 }
 
-function previewSpawnLabels(ma: MaChuKyDinhKy, ngayBatDau: string): string {
+function previewSpawnLabels(ma: MaChuKyDinhKy, ngayBatDau: string, ngayKetThuc?: string | null): string {
   const maxMatches = ma === "DAILY" ? 14 : ma === "YEARLY" ? 4 : 8;
-  const dates = nextDinhKySpawnDates(ma, ngayBatDau, new Date(), { maxScanDays: 1200, maxMatches });
+  const dates = nextDinhKySpawnDates(ma, ngayBatDau, new Date(), {
+    maxScanDays: 1200,
+    maxMatches,
+    ngayKetThucIso: ngayKetThuc,
+  });
   if (dates.length === 0) return "—";
   const fmt = (iso: string) => formatDateVi(iso, iso);
   return dates.map(fmt).join(" · ");
@@ -82,6 +83,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [spawning, setSpawning] = useState(false);
   const [ns, setNs] = useState<QlcvSelectOption[]>([]);
   const [to, setTo] = useState<QlcvSelectOption[]>([]);
+  const [nhomOpts, setNhomOpts] = useState<QlcvSelectOption[]>([]);
+  const [nhomId, setNhomId] = useState("");
   const [khoaPhong, setKhoaPhong] = useState<QlcvSelectOption[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tieuDe, setTieuDe] = useState("");
@@ -95,14 +98,15 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [viTri, setViTri] = useState("");
   const [gioBat, setGioBat] = useState("");
   const [gioKet, setGioKet] = useState("");
-  const [diaDiemKhoaId, setDiaDiemKhoaId] = useState("");
+  const [diaDiemKhoaIds, setDiaDiemKhoaIds] = useState<string[]>([]);
   const [phoiHopIds, setPhoiHopIds] = useState<string[]>([]);
   const [theoDoiIds, setTheoDoiIds] = useState<string[]>([]);
   const [nhiemVuId, setNhiemVuId] = useState("");
   const [nhiemVuOptions, setNhiemVuOptions] = useState<NhiemVuSelectOption[]>([]);
   const [printPeriod, setPrintPeriod] = useState<QlcvPeriodKind>("MONTH");
   const [showDetails, setShowDetails] = useState(false);
-  const { isAdmin } = useModulePermission("CONG_VIEC");
+  const { isAdmin, allowed } = useModulePermission("CONG_VIEC");
+  const canManage = Boolean(isAdmin || allowed.create || allowed.edit);
 
   const resetForm = () => {
     setEditingId(null);
@@ -113,11 +117,12 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setNgayKetThuc("");
     setNsId("");
     setToId("");
+    setNhomId("");
     setMucDoUuTien("TRUNG_BINH");
     setViTri("");
     setGioBat("");
     setGioKet("");
-    setDiaDiemKhoaId("");
+    setDiaDiemKhoaIds([]);
     setPhoiHopIds([]);
     setTheoDoiIds([]);
     setNhiemVuId("");
@@ -132,11 +137,12 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
     setNgayKetThuc(r.ngay_ket_thuc || "");
     setNsId(r.nguoi_phu_trach_id || "");
     setToId(r.to_cong_tac_id || "");
+    setNhomId(r.nhom_chuyen_mon_id || "");
     setMucDoUuTien(r.muc_do_uu_tien || "TRUNG_BINH");
     setViTri(r.vi_tri_thuc_hien || "");
     setGioBat(r.gio_bat_dau || "");
     setGioKet(r.gio_ket_thuc || "");
-    setDiaDiemKhoaId(r.dia_diem_khoa_id || "");
+    setDiaDiemKhoaIds(r.dia_diem_khoa_ids?.length ? r.dia_diem_khoa_ids : r.dia_diem_khoa_id ? [r.dia_diem_khoa_id] : []);
     setPhoiHopIds(normalizeQlcvStaffIdList(r.nguoi_phoi_hop_ids));
     setTheoDoiIds(normalizeQlcvStaffIdList(r.nguoi_theo_doi_ids));
     setNhiemVuId(r.nhiem_vu_id || "");
@@ -158,6 +164,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
       const catalog = await getQlcvFormCatalog();
       setNs(catalog.nhanSu);
       setTo(catalog.toCongTac);
+      setNhomOpts(catalog.nhomChuyenMon);
       setKhoaPhong(catalog.khoaPhong);
       const nvOpts = await listNhiemVuOptions();
       setNhiemVuOptions(nvOpts);
@@ -188,6 +195,10 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
       toast.error("Chọn người phụ trách cho mẫu định kỳ.");
       return;
     }
+    if (!nhomId && !editingId) {
+      toast.error("Chọn nhóm chuyên môn cho mẫu định kỳ.");
+      return;
+    }
     if (!gioBat || !gioKet) {
       toast.error("Nhập giờ bắt đầu và giờ kết thúc.");
       return;
@@ -202,11 +213,13 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
         ngay_ket_thuc: ngayKetThuc || null,
         nguoi_phu_trach_id: nsId || null,
         to_cong_tac_id: toId || null,
+        nhom_chuyen_mon_id: nhomId || null,
         muc_do_uu_tien: mucDoUuTien,
         vi_tri_thuc_hien: viTri.trim() || null,
         gio_bat_dau: gioBat,
         gio_ket_thuc: gioKet,
-        dia_diem_khoa_id: diaDiemKhoaId || null,
+        dia_diem_khoa_id: diaDiemKhoaIds[0] || null,
+        dia_diem_khoa_ids: diaDiemKhoaIds,
         nguoi_phoi_hop_ids: phoiHopIds,
         nguoi_theo_doi_ids: theoDoiIds,
         nhiem_vu_id: nhiemVuId || null,
@@ -270,7 +283,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
               </button>
             </div>
           ) : null}
-          {isAdmin ? (
+          {canManage ? (
             <button
               type="button"
               onClick={() => void runSpawn()}
@@ -353,16 +366,26 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
           </div>
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
+          <label className={bv103LayoutChrome.labelBlock}>
+            Nhóm chuyên môn{editingId && !nhomId ? "" : " *"}
+          </label>
           <div className="mt-1.5">
             <SearchableSelect
-              options={khoaPhong}
-              placeholder="Chọn khoa / đơn vị…"
-              value={diaDiemKhoaId}
-              onChange={setDiaDiemKhoaId}
-              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
+              options={nhomOpts}
+              placeholder="Chọn nhóm (giám sát, đào tạo…)"
+              value={nhomId}
+              onChange={setNhomId}
             />
           </div>
+        </div>
+        <div>
+          <SearchableMultiSelect
+            label="Khoa / đơn vị địa điểm (tuỳ chọn)"
+            options={khoaPhong.map((o) => ({ id: o.id, label: o.label }))}
+            selected={diaDiemKhoaIds}
+            onChange={setDiaDiemKhoaIds}
+            minWidthClassName="w-full"
+          />
         </div>
         <div className="md:col-span-2">
           <button
@@ -510,14 +533,10 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                     <td className="p-3 font-medium text-slate-800">{r.tieu_de}</td>
                     <td className="p-3 text-slate-600">{labelChuKy(r.ma_chu_ky)}</td>
                     <td className="p-3 text-xs text-slate-600">
-                      {(() => {
-                        const opt = khoaPhong.find((k) => k.id === r.dia_diem_khoa_id);
-                        if (!opt) return "—";
-                        return formatKhoaCompactLabel({
-                          ma_khoa: parseMaFromKhoaOptionLabel(opt.label),
-                          ten_khoa: opt.label,
-                        });
-                      })()}
+                      {formatQlcvDiaDiemKhoaLabels(
+                        r.dia_diem_khoa_ids?.length ? r.dia_diem_khoa_ids : r.dia_diem_khoa_id ? [r.dia_diem_khoa_id] : [],
+                        khoaPhong,
+                      )}
                     </td>
                     <td className="p-3 tabular-nums text-slate-600">{formatDateVi(r.ngay_bat_dau)}</td>
                     <td className="p-3">
@@ -580,7 +599,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                       </div>
                     </td>
                     <td className="max-w-[14rem] p-3 text-[11px] leading-snug text-slate-500">
-                      {previewSpawnLabels(r.ma_chu_ky, r.ngay_bat_dau)}
+                      {r.is_active ? previewSpawnLabels(r.ma_chu_ky, r.ngay_bat_dau, r.ngay_ket_thuc) : "—"}
                     </td>
                   </tr>
                 ))}

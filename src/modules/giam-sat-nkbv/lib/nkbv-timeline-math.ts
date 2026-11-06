@@ -5,6 +5,7 @@ import {
   doeFormFieldsForSsiDepth,
 } from "./nkbv-clinical-symptom-catalog";
 import { resolveSsiSurveillanceDays } from "./nkbv-ssi-nhsn-catalog";
+import { classifyPathogen } from "./nkbv-pathogen-rules";
 import {
   addDays,
   clinicalIwp,
@@ -287,6 +288,18 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   let symptomKeys: string[] = [];
   if (checklistType === "SSI") {
     symptomKeys = doeFormFieldsForSsiDepth(activeForm?.ssi_depth || "SUPERFICIAL");
+  } else if (checklistType === "BSI") {
+    const rawPathogenType =
+      activeForm?.pathogen_type ||
+      activeForm?.bsi_pathogen_type ||
+      (activeForm?.vi_khuan ? classifyPathogen(String(activeForm.vi_khuan)).suggestedType : undefined);
+    // CDC Ch. 4 (BSI): LCBI 1 (Recognized Pathogen) criteria do NOT include clinical signs/symptoms.
+    // Signs/symptoms (fever, chills, hypotension) are ONLY elements for LCBI 2 / MBI-LCBI 2 (Common Commensal).
+    if (rawPathogenType === "RECOGNIZED") {
+      symptomKeys = [];
+    } else {
+      symptomKeys = doeFormFieldsForChecklist("BSI");
+    }
   } else {
     symptomKeys = doeFormFieldsForChecklist(checklistType);
   }
@@ -357,9 +370,12 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     }
   }
 
+  const ngay_vao_vien_clean = vnYmd(ngay_vao_vien);
+  // PO 2026-11-05: DOE trước ngày nhập viện → coi DOE = ngày nhập viện (cùng quy tắc cho RIT và HD).
+  const doeForRit = doe ? poaOrHai(ngay_vao_vien_clean, doe).doeForRit || doe : "";
   let sbap_start = "";
   let sbap_end = "";
-  let rit_end = doe ? clinicalRitEnd(doe) : "";
+  let rit_end = doeForRit ? clinicalRitEnd(doeForRit) : "";
   if (syndrome === "SSI") {
     const w = ssiSbapWindow(doe);
     sbap_start = w.start;
@@ -385,7 +401,6 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     sbap_end = w.end;
   }
 
-  const ngay_vao_vien_clean = vnYmd(ngay_vao_vien);
   const { dayOfHospitalization, haiStatus } = poaOrHai(ngay_vao_vien_clean, doe);
 
   const stays = [...treatmentHistory].sort((a, b) => a.ngay_vao.localeCompare(b.ngay_vao));

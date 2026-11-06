@@ -129,4 +129,69 @@ describe("createHoatDong", () => {
       }),
     );
   });
+
+  it("blocks CAP_NHAT on closed task and enforces edit permission for non-assignee", async () => {
+    mocks.taskMaybeSingle.mockResolvedValue({
+      data: {
+        id: "cv-01",
+        nguoi_phu_trach_id: "ns-01",
+        trang_thai: "HOAN_THANH",
+        is_active: true,
+        phan_tram_hoan_thanh: 100,
+        nguoi_tao_id: "ns-01",
+      },
+      error: null,
+    });
+
+    await expect(
+      createHoatDong({
+        id_cong_viec: "cv-01",
+        loai_hoat_dong: "CAP_NHAT",
+        noi_dung: "Ghi chú trái phép khi đã đóng",
+      }),
+    ).rejects.toThrow("Phiếu đã đóng.");
+
+    mocks.taskMaybeSingle.mockResolvedValue({
+      data: {
+        id: "cv-01",
+        nguoi_phu_trach_id: "ns-other",
+        trang_thai: "DANG_LAM",
+        is_active: true,
+        phan_tram_hoan_thanh: 50,
+        nguoi_tao_id: "ns-other",
+      },
+      error: null,
+    });
+    mocks.verifyPermission.mockRejectedValueOnce(new Error("Forbidden"));
+
+    await expect(
+      createHoatDong({
+        id_cong_viec: "cv-01",
+        loai_hoat_dong: "CAP_NHAT",
+        noi_dung: "Không phải người phụ trách và không có quyền edit",
+      }),
+    ).rejects.toThrow("Forbidden");
+  });
+
+  it("rejects empty or whitespace-only noi_dung", async () => {
+    mocks.taskMaybeSingle.mockResolvedValue({
+      data: {
+        id: "cv-01",
+        nguoi_phu_trach_id: "ns-01",
+        trang_thai: "DANG_LAM",
+        is_active: true,
+        phan_tram_hoan_thanh: 50,
+        nguoi_tao_id: "ns-01",
+      },
+      error: null,
+    });
+
+    await expect(
+      createHoatDong({
+        id_cong_viec: "cv-01",
+        loai_hoat_dong: "BAO_CAO_TIEN_DO",
+        noi_dung: "   ",
+      }),
+    ).rejects.toThrow("Nhập nội dung hoạt động / ghi chú.");
+  });
 });

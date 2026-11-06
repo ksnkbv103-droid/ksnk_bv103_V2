@@ -48,10 +48,14 @@ export interface CongViec {
   nguoi_giao_viec_id?: string | null;
   nguoi_phu_trach_id?: string | null;
   to_cong_tac_id?: string | null;
+  /** FK nhóm chuyên môn (null = Chưa phân nhóm). */
+  nhom_chuyen_mon_id?: string | null;
   /** Vị trí thực hiện (text tùy biến). */
   vi_tri_thuc_hien?: string | null;
   /** FK khoa MDM — địa điểm bắt buộc. */
   dia_diem_khoa_id?: string | null;
+  /** Nhiều khoa địa điểm (ids[1] = dia_diem_khoa_id). */
+  dia_diem_khoa_ids?: string[] | null;
   /** FK nhiệm vụ (tuỳ chọn). */
   nhiem_vu_id?: string | null;
   /** Nhân sự phối hợp (uuid[]). */
@@ -83,8 +87,10 @@ export interface CongViecView extends CongViec {
   nguoi_giao_ten?: string | null;
   nguoi_phu_trach_ten?: string | null;
   to_cong_tac_ten?: string | null;
+  nhom_chuyen_mon_ten?: string | null;
   dia_diem_khoa_ten?: string | null;
   dia_diem_khoa_ma?: string | null;
+  dia_diem_khoa_ids?: string[] | null;
   nhiem_vu_ten?: string | null;
   trang_thai_mau_sac?: string | null;
   is_qua_han?: boolean;
@@ -99,6 +105,16 @@ export interface CongViecInput {
   han_hoan_thanh?: string | null;
   nguoi_phu_trach_id?: string | null;
   to_cong_tac_id?: string | null;
+  nhom_chuyen_mon_id?: string | null;
+}
+
+/** Danh mục nhóm chuyên môn (qlcv_dm_nhom_chuyen_mon). */
+export interface NhomChuyenMonRow {
+  id: string;
+  ma: string;
+  ten: string;
+  thu_tu: number;
+  is_active: boolean;
 }
 
 // ---------- Nhật ký JSON trên qlcv_fact_cong_viec.nhat_ky ----------

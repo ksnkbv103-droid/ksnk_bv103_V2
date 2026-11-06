@@ -52,7 +52,7 @@ export function ComprehensiveThoiDiem({ payload }: { payload: BaoCaoTongHopPaylo
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className={`mb-1 flex items-center gap-2 ${D.sectionHeading}`}>
         <Clock size={18} className="text-amber-600" aria-hidden />
-        Thời điểm & hình thức
+        Thời điểm và hình thức
       </h3>
       <p className="mb-4 text-xs text-slate-500">
         Chỉ hiện nhóm có dữ liệu · sắp tuân thủ thấp → cao · cảnh báo &lt;{KHOA_COMPLIANCE_WARN_PCT}%.

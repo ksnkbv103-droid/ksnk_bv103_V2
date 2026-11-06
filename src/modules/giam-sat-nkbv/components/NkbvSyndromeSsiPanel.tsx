@@ -89,10 +89,10 @@ type Props = {
 };
 
 export default function NkbvSyndromeSsiPanel({
-  columns,
+  columns: _columns,
   index,
   indexLabel,
-  ngayVaoVien,
+  ngayVaoVien: _ngayVaoVien,
   xn,
   cdha,
   surgeryByDate,

@@ -3,6 +3,7 @@
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { normalizeTrangThai } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { KhoHoaChatTonLo, KhoHoaChatGiaoDichRow } from "./cssd-kho-hoa-chat.types";
@@ -101,20 +102,21 @@ export async function listTonTheoLoKhoHoaChatAction(): Promise<
   }
 }
 
-/** Nhật ký giao dịch gần nhất. */
-export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }): Promise<
+/** Nhật ký giao dịch gần nhất; `dm_hoa_chat_id` = lịch sử riêng một mặt hàng (drawer). */
+export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number; dm_hoa_chat_id?: string }): Promise<
   { success: true; data: KhoHoaChatGiaoDichRow[] } | { success: false; error: string }
 > {
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
     const supabase = createAdminSupabaseClient();
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
-    const { data: rows, error } = await supabase
+    const dmFilter = String(params?.dm_hoa_chat_id || "").trim();
+    let q = supabase
       .from("cssd_fact_kho_hoa_chat_giao_dich")
-      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(lim);
+      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le, ly_do_xuat")
+      .eq("is_active", true);
+    if (dmFilter) q = q.eq("dm_hoa_chat_id", dmFilter);
+    const { data: rows, error } = await q.order("created_at", { ascending: false }).limit(lim);
     if (error) return { success: false, error: mapFkError(error.message) };
     const rawRows = rows || [];
     const dmIds = [...new Set(rawRows.map((r: { dm_hoa_chat_id?: string }) => String(r.dm_hoa_chat_id || "")).filter(Boolean))];
@@ -125,8 +127,29 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
         tenMap.set(String((d as { id?: string }).id), String((d as { ten_hoa_chat?: string }).ten_hoa_chat || ""));
       }
     }
-    const data = rawRows.map((r: Record<string, unknown>) => ({
+    const authIds = [
+      ...new Set(
+        rawRows
+          .flatMap((r: Record<string, unknown>) => [r.created_by, r.nguoi_duyet_id])
+          .map((v) => String(v || ""))
+          .filter(Boolean),
+      ),
+    ];
+    const tenNguoi = new Map<string, string>();
+    if (authIds.length) {
+      const { data: ns } = await supabase.from("mdm_nhan_su").select("auth_user_id, ho_ten").in("auth_user_id", authIds);
+      for (const n of ns || []) {
+        tenNguoi.set(String((n as { auth_user_id?: string }).auth_user_id), String((n as { ho_ten?: string }).ho_ten || ""));
+      }
+    }
+    const data: KhoHoaChatGiaoDichRow[] = rawRows.map((r: Record<string, unknown>) => ({
       id: String(r.id),
+      trang_thai: normalizeTrangThai(r.trang_thai),
+      nguoi_lap_ten: r.created_by ? tenNguoi.get(String(r.created_by)) || null : null,
+      nguoi_duyet_ten: r.nguoi_duyet_id ? tenNguoi.get(String(r.nguoi_duyet_id)) || null : null,
+      duyet_at: r.duyet_at != null ? String(r.duyet_at) : null,
+      ly_do_tu_choi: r.ly_do_tu_choi != null ? String(r.ly_do_tu_choi) : null,
+      tu_duyet_ngoai_le: Boolean(r.tu_duyet_ngoai_le),
       ma_phieu: String(r.ma_phieu || ""),
       dm_hoa_chat_id: String(r.dm_hoa_chat_id || ""),
       loai_giao_dich: String(r.loai_giao_dich || ""),
@@ -135,6 +158,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
       han_su_dung: r.han_su_dung != null ? String(r.han_su_dung).slice(0, 10) : null,
       ghi_chu: r.ghi_chu != null ? String(r.ghi_chu) : null,
       su_co_id: r.su_co_id != null ? String(r.su_co_id) : null,
+      ly_do_xuat: r.ly_do_xuat != null ? String(r.ly_do_xuat) : null,
       created_at: r.created_at != null ? String(r.created_at) : null,
       ten_hoa_chat: tenMap.get(String(r.dm_hoa_chat_id)) || null,
     }));
@@ -155,6 +179,10 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
       don_vi_tinh: string | null;
       nguong_ton_toi_thieu: number | null;
       loai_hoa_chat: string | null;
+      nhom_id: string | null;
+      nhom_ten: string | null;
+      ty_le_canh_bao_pct: number;
+      so_ngay_cho_hang: number;
     }[];
   } | {
     success: false;
@@ -165,8 +193,8 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
     const supabase = createAdminSupabaseClient();
     let q = supabase
-      .from("cssd_dm_hoa_chat")
-      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat")
+      .from("v_cssd_hoa_chat_full")
+      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat, nhom_id, nhom_ten, ty_le_canh_bao_pct, so_ngay_cho_hang")
       .eq("is_active", true)
       .order("ma_hoa_chat", { ascending: true });
 
@@ -184,6 +212,10 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
         don_vi_tinh: x.don_vi_tinh != null ? String(x.don_vi_tinh) : null,
         nguong_ton_toi_thieu: x.nguong_ton_toi_thieu != null && x.nguong_ton_toi_thieu !== "" ? Number(x.nguong_ton_toi_thieu) : null,
         loai_hoa_chat: x.loai_hoa_chat != null ? String(x.loai_hoa_chat) : "HOA_CHAT",
+        nhom_id: x.nhom_id != null ? String(x.nhom_id) : null,
+        nhom_ten: x.nhom_ten != null ? String(x.nhom_ten) : null,
+        ty_le_canh_bao_pct: x.ty_le_canh_bao_pct != null ? Number(x.ty_le_canh_bao_pct) : 20,
+        so_ngay_cho_hang: x.so_ngay_cho_hang != null ? Number(x.so_ngay_cho_hang) : 14,
       })),
     };
   } catch (e: unknown) {

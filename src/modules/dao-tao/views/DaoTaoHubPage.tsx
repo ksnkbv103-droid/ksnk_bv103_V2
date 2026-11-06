@@ -25,14 +25,14 @@ import {
 const TILES = [
   {
     href: "/dao-tao/thi-thu",
-    title: "Ôn tập",
-    desc: "Làm bài theo mức dễ / vừa / khó",
+    title: "Ôn luyện năng lực (Practice Hub)",
+    desc: "Luyện tập theo Vị trí việc làm & 35 chuyên đề / SOP chuẩn BV103",
     icon: PenLine,
   },
   {
     href: "/dao-tao/thi-that",
-    title: "Thi chính thức",
-    desc: "Kỳ thi phòng KSNK đã mở cho khoa",
+    title: "Thi sát hạch & Chứng nhận",
+    desc: "Kỳ kiểm tra sát hạch định kỳ quy trình kiểm soát nhiễm khuẩn",
     icon: ClipboardCheck,
   },
 ] as const;

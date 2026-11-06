@@ -129,6 +129,26 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-13");
   });
 
+  it("BSI LCBI 1 (Recognized Pathogen): Sốt trong IWP không kéo lùi DOE, DOE = ngày cấy máu", () => {
+    // BN vào viện 2026-05-10 (HD1). Ngày 2026-05-11 (HD2 = POA) có sốt.
+    // Ngày 2026-05-13 (HD4 = HAI) cấy máu ra S. aureus (Recognized Pathogen).
+    // CDC Chapter 4: Sốt không phải yếu tố của LCBI 1 → DOE phải là 2026-05-13, haiStatus = HAI!
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-13",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "BSI",
+      activeForm: {
+        has_fever: true,
+        pathogen_type: "RECOGNIZED",
+        vi_khuan: "Staphylococcus aureus",
+      },
+      symptomDates: { has_fever: "2026-05-11" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-05-13");
+    expect(metrics.haiStatus).toBe("HAI");
+  });
+
   it("PNEU: DOE đọc ngày thở khó / hô hấp tại chỗ trong IWP", () => {
     const metrics = calculateCdcMetrics({
       ngay_phat_hien: "2026-05-15",
@@ -382,5 +402,33 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.sbap_start).toBe("2026-07-31");
     expect(metrics.sbap_end).toBe("2026-08-30");
     expect(metrics.rit_end).toBe("2026-08-30");
+  });
+});
+
+describe("DOE trước ngày nhập viện → RIT và HD cùng quy về ngày nhập viện (PO 2026-11-05)", () => {
+  const run = (doe: string) =>
+    calculateCdcMetrics({
+      ngay_phat_hien: doe,
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "UTI" as const,
+      activeForm: {},
+      symptomDates: {},
+      treatmentHistory: [],
+    });
+
+  it("DOE < nhập viện: HD=1, RIT = nhập viện + 13", () => {
+    const m = run("2026-05-08");
+    expect(m.dayOfHospitalization).toBe(1);
+    expect(m.rit_end).toBe("2026-05-23");
+  });
+  it("DOE = nhập viện: HD=1, RIT = DOE + 13", () => {
+    const m = run("2026-05-10");
+    expect(m.dayOfHospitalization).toBe(1);
+    expect(m.rit_end).toBe("2026-05-23");
+  });
+  it("DOE > nhập viện: giữ nguyên DOE", () => {
+    const m = run("2026-05-12");
+    expect(m.dayOfHospitalization).toBe(3);
+    expect(m.rit_end).toBe("2026-05-25");
   });
 });

@@ -5,6 +5,7 @@ import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/applic
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { revalidatePath } from "next/cache";
+import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import { formatHoSoKhoaFkViolation, formatHoSoNhanSuWriteError } from "@/modules/quan-tri-he-thong/nhan-su/actions/nhan-su-fk-normalize";
 import { createDmImportSessionCache } from "../lib/smart-import/dm-import-session-cache";
 import { buildImportErrorMessage } from "../lib/smart-import/dm-row-normalizers";
@@ -123,12 +124,15 @@ export async function smartImportData(
       return { success: false, error: `Chưa map quyền import cho bảng: ${config.tableName}` };
     }
     await verifyDanhMucLookupPermission(importModule, "import");
+    // Đồng bộ đầy đủ = ngưng hàng thiếu trong file → bắt buộc thêm quyền xóa.
+    if (softDeleteMissing) {
+      await verifyDanhMucLookupPermission(importModule, "delete");
+    }
     if (isCssdCatalogMasterTable(config.tableName)) {
       await requireCssdCatalogMasterWrite();
     }
     const supabase = createAdminSupabaseClient();
-    const nhanSuDmSessionCache =
-      config.tableName === "mdm_nhan_su" ? createDmImportSessionCache(supabase) : undefined;
+    const sessionCache = createDmImportSessionCache(supabase);
 
     // Mapped views to query existing data correctly and retrieve JSONB attributes as flat fields
     const VIEW_MAP_FOR_READ: Record<string, string> = {
@@ -199,6 +203,9 @@ export async function smartImportData(
         const cStr = isLoaiDungCu ? String(val).trim().toUpperCase() : String(val);
         if (r.id) {
           existingCodeToId.set(cStr, String(r.id));
+          if (r.is_active !== false) {
+            existingCodes.add(cStr);
+          }
         }
       }
       if (isChiTietBom && r.id && r.is_active !== false) {
@@ -257,7 +264,7 @@ export async function smartImportData(
         config.tableName,
         scopeSafeRest as Record<string, unknown>,
         rowNumber,
-        nhanSuDmSessionCache,
+        sessionCache,
         { dryRun },
       );
       if (!scoped.ok) {
@@ -414,8 +421,7 @@ export async function smartImportData(
       const deactivateIds = cssdBoImportDeactivateIds({
         existingCodeToId,
         rows: preparedRows.map((r) => ({ code: r.code, isActive: r.payload.is_active !== false })),
-        // existingCodes không được nạp — nhánh ẩn mã thiếu hiện không ghi. Chỉ chặn ô is_active=false trên bộ đã có.
-        softDeleteMissing: false,
+        softDeleteMissing,
       });
       const blocked = await blockCssdBoImportIfCirculating(supabase, deactivateIds);
       if (blocked) return blocked;
@@ -425,7 +431,14 @@ export async function smartImportData(
     const insertCount = preparedRows.length - updateCount;
     const plannedCodes = new Set(preparedRows.map((r) => r.code));
     const deactivateCount = softDeleteMissing
-      ? Array.from(existingCodes).filter((c) => !plannedCodes.has(c)).length
+      ? Array.from(existingCodes).filter((c) => {
+          if (plannedCodes.has(c)) return false;
+          if (isNhanSu) {
+            const id = existingCodeToId.get(c);
+            if (id && existingNhanSuById.get(id)?.auth_user_id) return false;
+          }
+          return true;
+        }).length
       : 0;
 
     const buildAudit = (mode: SmartImportAudit["mode"]): SmartImportAudit => ({
@@ -489,10 +502,21 @@ export async function smartImportData(
       };
     }
 
+    let skippedAccountsCount = 0;
     if (softDeleteMissing) {
       const codesToDelete = Array.from(existingCodes).filter((c) => !importedCodes.has(c));
       if (codesToDelete.length > 0) {
-        const idsToDelete = codesToDelete.map((c) => existingCodeToId.get(c)).filter(Boolean) as string[];
+        let idsToDelete = codesToDelete.map((c) => existingCodeToId.get(c)).filter(Boolean) as string[];
+        if (isNhanSu) {
+          idsToDelete = idsToDelete.filter((id) => {
+            const info = existingNhanSuById.get(id);
+            if (info?.auth_user_id) {
+              skippedAccountsCount++;
+              return false;
+            }
+            return true;
+          });
+        }
         if (idsToDelete.length > 0) {
           const { error } = await supabase
             .from(config.tableName)
@@ -527,14 +551,19 @@ export async function smartImportData(
       after: { ...audit },
     });
     revalidatePath(QUAN_TRI_HUB_PATH);
+    revalidateMasterDataRowCacheTag(config.tableName);
     const warnText =
       rowWarnings.length > 0
         ? `Có ${rowWarnings.length} cảnh báo mapping. Ví dụ: ${rowWarnings.slice(0, 3).join(" ; ")}`
         : undefined;
+    const accountWarn =
+      skippedAccountsCount > 0
+        ? `Đã giữ nguyên trạng thái ${skippedAccountsCount} hồ sơ nhân sự có tài khoản đăng nhập (không tự ngưng qua Excel).`
+        : undefined;
     return {
       success: true,
       audit,
-      warning: [warnText, ...heatSplitNotes].filter(Boolean).join(" ") || undefined,
+      warning: [warnText, accountWarn, ...heatSplitNotes].filter(Boolean).join(" ") || undefined,
     };
   } catch (error: unknown) {
     console.error("[SMART SYNC ERROR]", config.tableName, error);

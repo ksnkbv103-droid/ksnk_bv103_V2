@@ -14,27 +14,41 @@ import {
 } from "@/lib/domain/cssd-catalog-de-nghi";
 
 async function requireCatalogRead() {
-  try {
-    await verifyPermission("BO_DC", "view");
-  } catch {
+  const candidates: Array<[string, string]> = [
+    ["BO_DC", "view"],
+    ["DC_LE", "view"],
+    ["LOAI_DC", "view"],
+    ["CSSD_KHO_DUNGCU", "view"],
+  ];
+  for (const [mod, act] of candidates) {
     try {
-      await verifyPermission("DC_LE", "view");
+      await verifyPermission(mod, act);
+      return;
     } catch {
-      await verifyPermission("LOAI_DC", "view");
+      /* next candidate */
     }
   }
+  await verifyPermission("BO_DC", "view");
 }
 
 async function requireCatalogPropose() {
-  try {
-    await verifyPermission("BO_DC", "edit");
-  } catch {
+  const candidates: Array<[string, string]> = [
+    ["BO_DC", "edit"],
+    ["DC_LE", "edit"],
+    ["LOAI_DC", "edit"],
+    ["CSSD_KHO_DUNGCU", "create"],
+    ["CSSD_KHO_DUNGCU", "edit"],
+    ["CSSD_WORKFLOW", "create"],
+  ];
+  for (const [mod, act] of candidates) {
     try {
-      await verifyPermission("DC_LE", "edit");
+      await verifyPermission(mod, act);
+      return;
     } catch {
-      await verifyPermission("LOAI_DC", "edit");
+      /* next candidate */
     }
   }
+  await verifyPermission("CSSD_KHO_DUNGCU", "create");
 }
 
 async function currentNhanSuId(

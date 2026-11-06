@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, HeartPulse } from "lucide-react";
+import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, HeartPulse, Printer, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { formatDateVi, todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
@@ -35,13 +36,13 @@ import {
 } from "../actions/giam-sat-nkbv.actions";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import dynamic from "next/dynamic";
-import type { NkbvCaseLike } from "../components/NkbvCaseEditor";
 import NkbvCdcLocationBanner from "../components/NkbvCdcLocationBanner";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
 import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
 import { confirmAction } from "@/components/shared/confirm-action";
 import { NkbvNapDuLieuSwitch } from "../components/NkbvNapDuLieuSwitch";
+import NkbvCaseSummaryBookPrintView from "../components/NkbvCaseSummaryBookPrintView";
 
 const tabPulse = () => (
   <div className="h-56 animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90" />
@@ -68,9 +69,6 @@ const NkbvMdroCensusPanel = dynamic(() => import("../components/NkbvMdroCensusPa
 const NkbvBenhAnImportPortal = dynamic(() => import("../components/NkbvBenhAnImportPortal"), {
   loading: tabPulse,
 });
-const NkbvCaseEditor = dynamic(() => import("../components/NkbvCaseEditor"), {
-  loading: modalPulse,
-});
 const NkbvClinicalChecklistModal = dynamic(
   () => import("../components/NkbvClinicalChecklistModal"),
   { loading: modalPulse },
@@ -83,6 +81,11 @@ const NkbvBenhAnEditModal = dynamic(() => import("../components/NkbvBenhAnEditMo
 });
 
 const MODULE_KEY = "GIAM_SAT_NKBV";
+
+export type NkbvCaseLike = Record<string, unknown> & {
+  id?: string;
+  ma_ca?: string;
+};
 
 type NkbvTableRow = NkbvCaseLike & { id: string };
 
@@ -151,10 +154,8 @@ export default function GiamSatNkbvPage() {
   });
   const [loaiRows, setLoaiRows] = useState<RegistrySelectRow[]>([]);
   const [ttRows, setTtRows] = useState<RegistrySelectRow[]>([]);
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [draft, setDraft] = useState<NkbvCaseLike | null>(null);
   const [checklistOpen, setChecklistOpen] = useState(false);
-  const [checklistCase, setChecklistCase] = useState<NkbvTableRow | null>(null);
+  const [checklistCase, setChecklistCase] = useState<Record<string, unknown> | null>(null);
   const [mainTab, setMainTab] = useState<NkbvMainTab>("records");
   const [dashTu, setDashTu] = useState(() => bv103DefaultTuNgayFromToday());
   const [dashDen, setDashDen] = useState(() => todayYmdInVn());
@@ -164,6 +165,41 @@ export default function GiamSatNkbvPage() {
   const [hubXn, setHubXn] = useState<string | null>(null);
   const [hubNonce, setHubNonce] = useState(0);
   const [editStay, setEditStay] = useState<Record<string, unknown> | null>(null);
+  const [summaryBookPrintOpen, setSummaryBookPrintOpen] = useState(false);
+  const [summaryBookCases, setSummaryBookCases] = useState<Array<Record<string, unknown>>>([]);
+  const [summaryBookLoading, setSummaryBookLoading] = useState(false);
+
+  const handlePrintSummaryBook = useCallback(async () => {
+    setSummaryBookLoading(true);
+    try {
+      if (totalCount <= rows.length) {
+        setSummaryBookCases(rows as Array<Record<string, unknown>>);
+      } else {
+        const res = await listGiamSatNkbvCas({
+          page: 1,
+          pageSize: Math.min(totalCount, 500),
+          search: searchTerm,
+          loai_nkbv_id: filterLoaiId || undefined,
+          trang_thai_id: filterTrangThaiId || undefined,
+          khoa_ghi_nhan_id: header.selectedKhoa || undefined,
+        });
+        if (res.success && Array.isArray(res.data)) {
+          setSummaryBookCases(res.data as Array<Record<string, unknown>>);
+        } else {
+          setSummaryBookCases(rows as Array<Record<string, unknown>>);
+        }
+      }
+      setSummaryBookPrintOpen(true);
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => setSummaryBookPrintOpen(false), 500);
+      }, 200);
+    } catch {
+      toast.error("Không tải được dữ liệu sổ tổng hợp.");
+    } finally {
+      setSummaryBookLoading(false);
+    }
+  }, [totalCount, rows, searchTerm, filterLoaiId, filterTrangThaiId, header.selectedKhoa]);
 
   const setSelectedKhoa = header.setSelectedKhoa;
 
@@ -208,8 +244,8 @@ export default function GiamSatNkbvPage() {
           toast.error(res.error || "Không mở được phiếu NKBV từ mã QR");
           return;
         }
-        setDraft(res.data as NkbvCaseLike);
-        setEditorOpen(true);
+        setChecklistCase(res.data as Record<string, unknown>);
+        setChecklistOpen(true);
         setMainTab("cases");
         toast.success("Đã mở phiếu NKBV từ mã QR / liên kết");
       })();
@@ -575,13 +611,22 @@ export default function GiamSatNkbvPage() {
         header: "Cảnh báo",
         accessorKey: "import_alerts",
         cell: (item: NkbvCaseLike) => {
-          const notes = (item as { clinical_notes?: { import_alerts?: Array<{ code?: string }>; can_phan_tich_sbap?: boolean } }).clinical_notes;
+          const notes = (
+            item as {
+              clinical_notes?: {
+                import_alerts?: Array<{ code?: string }>;
+                can_phan_tich_sbap?: boolean;
+                cssd_recall_alert?: Record<string, unknown>;
+              };
+            }
+          ).clinical_notes;
           const codes = new Set(
             (Array.isArray(notes?.import_alerts) ? notes!.import_alerts! : [])
               .map((a) => a.code)
               .filter(Boolean) as string[],
           );
           if (notes?.can_phan_tich_sbap) codes.add("SBAP");
+          if (notes?.cssd_recall_alert) codes.add("CSSD_RECALL");
           if (codes.size === 0) return <span className="text-slate-300">—</span>;
           return (
             <div className="flex flex-wrap gap-1">
@@ -589,11 +634,19 @@ export default function GiamSatNkbvPage() {
                 <span
                   key={c}
                   className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    c === "SBAP" ? "bg-violet-100 text-violet-800" : "bg-amber-100 text-amber-900"
+                    c === "CSSD_RECALL"
+                      ? "bg-rose-100 text-rose-800 border border-rose-200"
+                      : c === "SBAP"
+                        ? "bg-violet-100 text-violet-800"
+                        : "bg-amber-100 text-amber-900"
                   }`}
-                  title="Cần phân tích khung thời gian — chưa tự chốt"
+                  title={
+                    c === "CSSD_RECALL"
+                      ? "Dụng cụ thuộc mẻ CSSD bị thu hồi/sự cố — cần giám sát vết mổ khẩn"
+                      : "Cần phân tích khung thời gian — chưa tự chốt"
+                  }
                 >
-                  {c}
+                  {c === "CSSD_RECALL" ? "CSSD-THU HỒI" : c}
                 </span>
               ))}
             </div>
@@ -630,8 +683,8 @@ export default function GiamSatNkbvPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setDraft(item);
-                    setEditorOpen(true);
+                    setChecklistCase(item);
+                    setChecklistOpen(true);
                   }}
                   className="rounded-full px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10"
                 >
@@ -754,6 +807,24 @@ export default function GiamSatNkbvPage() {
             </>
           ) : null}
         </div>
+        {mainTab === "cases" ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrintSummaryBook}
+              disabled={summaryBookLoading || rows.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-shell)] border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors disabled:opacity-50 touch-manipulation"
+              title="In Sổ theo dõi, tổng hợp ca bệnh NKBV theo biểu mẫu BM.04/QT.33"
+            >
+              {summaryBookLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+              ) : (
+                <Printer className="h-4 w-4 text-slate-600" />
+              )}
+              In Sổ tổng hợp NKBV (BM.04)
+            </button>
+          </div>
+        ) : null}
         {mainTab === "records" && allowed.create ? (
           <button
             type="button"
@@ -909,8 +980,8 @@ export default function GiamSatNkbvPage() {
                     toast.error(res.error || "Không mở được phiếu từ QR");
                     return;
                   }
-                  setDraft(res.data as NkbvCaseLike);
-                  setEditorOpen(true);
+                  setChecklistCase(res.data as Record<string, unknown>);
+                  setChecklistOpen(true);
                 })();
                 return;
               }
@@ -1021,27 +1092,6 @@ export default function GiamSatNkbvPage() {
             />
           </div>
         </div>
-      ) : null}
-
-      {editorOpen && draft?.id && loaiRows.length > 0 && ttRows.length > 0 && allowed.edit ? (
-        <NkbvCaseEditor
-          row={draft}
-          onClose={() => setEditorOpen(false)}
-          khoas={header.khoas}
-          loaiRows={loaiRows}
-          trangThaiRows={ttRows}
-          defaultTrangThaiId={defaultTrangThaiId}
-          maTuDong={maTuDong}
-          onSubmit={async (payload) => {
-            const res = await updateGiamSatNkbvCa(String(draft.id), payload);
-            if (res.success) {
-              toast.success("Đã lưu");
-              setEditorOpen(false);
-              void refresh();
-              fetchRecords();
-            } else toast.error(res.error);
-          }}
-        />
       ) : null}
 
       {checklistOpen && checklistCase && (allowed.edit || allowed.create) && (
@@ -1156,6 +1206,19 @@ export default function GiamSatNkbvPage() {
           }}
         />
       ) : null}
+
+      {summaryBookPrintOpen && typeof document !== "undefined"
+        ? createPortal(
+            <NkbvCaseSummaryBookPrintView
+              cases={summaryBookCases}
+              khoaFilterLabel={header.khoas.find((k) => k.id === header.selectedKhoa)?.ten_danh_muc}
+              loaiFilterLabel={loaiRows.find((l) => l.id === filterLoaiId)?.ten}
+              trangThaiFilterLabel={ttRows.find((t) => t.id === filterTrangThaiId)?.ten}
+              totalCount={totalCount}
+            />,
+            document.body,
+          )
+        : null}
 
     </div>
   );

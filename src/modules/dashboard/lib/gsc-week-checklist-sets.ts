@@ -5,6 +5,7 @@
  * Logic thuần ở `weeksUseDifferentChecklists`; `fetchGscWeeksUseDifferentChecklists` chỉ đọc dữ liệu.
  */
 import { addDays, format, parseISO } from "date-fns";
+import { vnYmd } from "@/lib/format-datetime-vi";
 
 export type GscSessionRow = { bang_kiem_id: string | null; ngay_giam_sat: string | null };
 export type ComparedWeeks = { prev: string; cur: string };
@@ -20,7 +21,7 @@ export function weeksUseDifferentChecklists(
   const curEnd = format(addDays(parseISO(`${weeks.cur}T12:00:00`), 6), "yyyy-MM-dd");
   for (const r of rows) {
     const id = r.bang_kiem_id;
-    const day = String(r.ngay_giam_sat ?? "").slice(0, 10);
+    const day = r.ngay_giam_sat ? vnYmd(r.ngay_giam_sat) : "";
     if (!id || !day) continue;
     if (allowedBangKiemIds && !allowedBangKiemIds.has(id)) continue;
     if (day > curEnd) continue;
@@ -57,13 +58,22 @@ export async function fetchGscWeeksUseDifferentChecklists(
   weeks: ComparedWeeks,
   bangKiemMas: string[] | null,
   khoaIds?: string[] | null,
+  hinhThucIds?: string[] | null,
 ): Promise<boolean | null> {
   if (!bangKiemMas || bangKiemMas.length === 0) return null;
+  const filteredMas = bangKiemMas.filter(
+    (m) =>
+      m !== "BM.02" &&
+      m !== "BM.03" &&
+      m !== "KSNK.QT.07.BM.02" &&
+      m !== "KSNK.QT.07.BM.03",
+  );
+  if (filteredMas.length === 0) return null;
   try {
     const end = format(addDays(parseISO(`${weeks.cur}T12:00:00`), 6), "yyyy-MM-dd");
     const dm = await (supabase.from("gstt_dm_bang_kiem").select("id") as unknown as {
       in: (c: string, v: string[]) => PromiseLike<{ data: { id: string }[] | null; error: unknown }>;
-    }).in("ma_bk", bangKiemMas);
+    }).in("ma_bk", filteredMas);
     if (dm.error || !dm.data) {
       console.error({ module: "dashboard", action: "gsc-week-sets", step: "dm_bang_kiem" });
       return null;
@@ -72,15 +82,19 @@ export async function fetchGscWeeksUseDifferentChecklists(
 
     type Rows = PromiseLike<{ data: GscSessionRow[] | null; error: unknown }>;
     type Lte = { lte: (c: string, v: string) => { limit: (n: number) => Rows; in: (c: string, v: string[]) => { limit: (n: number) => Rows } } };
-    const base = (supabase.from("v_gstt_giam_sat_chung_sessions_full").select("bang_kiem_id, ngay_giam_sat") as unknown as {
+    let base = (supabase.from("v_gstt_giam_sat_chung_sessions_full").select("bang_kiem_id, ngay_giam_sat") as unknown as {
       eq: (c: string, v: boolean) => { gte: (c: string, v: string) => Lte };
     })
       .eq("is_active", true)
       .gte("ngay_giam_sat", weeks.prev)
       .lte("ngay_giam_sat", end);
-    const res = await (khoaIds && khoaIds.length > 0
-      ? base.in("khoa_id", khoaIds).limit(GSC_WEEK_SETS_ROW_CAP)
-      : base.limit(GSC_WEEK_SETS_ROW_CAP));
+    if (khoaIds && khoaIds.length > 0) {
+      base = (base as unknown as { in: (c: string, v: string[]) => typeof base }).in("khoa_id", khoaIds);
+    }
+    if (hinhThucIds && hinhThucIds.length > 0) {
+      base = (base as unknown as { in: (c: string, v: string[]) => typeof base }).in("hinh_thuc_id", hinhThucIds);
+    }
+    const res = await (base as unknown as { limit: (n: number) => Rows }).limit(GSC_WEEK_SETS_ROW_CAP);
     if (res.error || !res.data) {
       console.error({ module: "dashboard", action: "gsc-week-sets", step: "sessions" });
       return null;

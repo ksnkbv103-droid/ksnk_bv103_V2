@@ -37,7 +37,7 @@ vi.mock("../lib/nkbv-khoa-scope.server", () => ({
   getNkbvKhoaRestriction: vi.fn(async () => ({ kind: "all" })),
 }));
 
-import { getGiamSatNkbvDashboardPayload } from "./giam-sat-nkbv-dashboard.actions";
+import { countGiamSatNkbvChoXn, getGiamSatNkbvDashboardPayload } from "./giam-sat-nkbv-dashboard.actions";
 
 describe("getGiamSatNkbvDashboardPayload include_rates", () => {
   beforeEach(() => {
@@ -70,5 +70,12 @@ describe("getGiamSatNkbvDashboardPayload include_rates", () => {
         p_den_ngay: "2026-09-30",
       }),
     );
+  });
+});
+
+describe("countGiamSatNkbvChoXn dùng cùng predicate với dashboard", () => {
+  it("không có phiếu → 0 và không lỗi", async () => {
+    const res = await countGiamSatNkbvChoXn({ tu_ngay: "2026-09-01", den_ngay: "2026-09-30" });
+    expect(res).toEqual({ success: true, count: 0 });
   });
 });

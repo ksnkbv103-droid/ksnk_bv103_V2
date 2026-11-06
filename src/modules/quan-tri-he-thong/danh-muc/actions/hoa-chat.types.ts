@@ -11,5 +11,19 @@ export type HoaChatRow = {
   han_su_dung: string | null;
   ghi_chu: string | null;
   is_active: boolean;
+  nguong_ton_toi_thieu?: number | null;
+  ty_le_canh_bao_pct?: number | null;
+  so_ngay_cho_hang?: number | null;
+  nhom_id?: string | null;
+  nhom_ten?: string | null;
   specs?: Record<string, any> | null;
+};
+
+export type HoaChatNhomRow = {
+  id: string;
+  ma: string;
+  ten: string;
+  loai_hoa_chat: "HOA_CHAT" | "VAT_TU";
+  thu_tu: number;
+  is_active: boolean;
 };

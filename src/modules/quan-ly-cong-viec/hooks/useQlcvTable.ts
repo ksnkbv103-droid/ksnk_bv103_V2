@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { getCongViecListPaginated } from "../actions/cong-viec-list.actions";
 import { matchesQlcvBoardFilter, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
@@ -70,36 +70,35 @@ export function useQlcvTable({
   const [tableSortDir, setTableSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    const tid = setTimeout(() => setTableSearchDebounced(tableSearchInput.trim().toLowerCase()), 300);
+    const tid = setTimeout(() => setTableSearchDebounced(tableSearchInput.trim()), 300);
     return () => clearTimeout(tid);
   }, [tableSearchInput]);
 
-  const usingClientSlice = boardFilter != null && boardFilter !== "TOTAL";
+  useEffect(() => {
+    setTablePage(1);
+  }, [boardFilter]);
+
+  // Có từ khóa: tìm trên toàn bệnh viện qua server, không bó trong lens (lens chỉ là danh sách đã tải).
+  const usingClientSlice = boardFilter != null && boardFilter !== "TOTAL" && tableSearchDebounced === "";
 
   const clientFiltered = useMemo(() => {
     if (!usingClientSlice) return [];
-    const term = tableSearchDebounced;
     return mergedTasks.filter((t) => {
-      if (!matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, boardFilter, { actorStaffId })) {
-        return false;
-      }
-      if (!term) return true;
-      return (
-        t.tieu_de?.toLowerCase().includes(term) ||
-        t.nguoi_phu_trach_ten?.toLowerCase().includes(term) ||
-        t.nguoi_giao_ten?.toLowerCase().includes(term) ||
-        t.nguoi_tao_ten?.toLowerCase().includes(term) ||
-        String(t.trang_thai || "")
-          .toLowerCase()
-          .includes(term)
-      );
+      return matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, boardFilter, { actorStaffId });
     });
-  }, [usingClientSlice, mergedTasks, boardFilter, tableSearchDebounced, actorStaffId]);
+  }, [usingClientSlice, mergedTasks, boardFilter, actorStaffId]);
+
+  const reqSeqRef = useRef(0);
 
   const applyClientPage = useCallback(() => {
     const sorted = sortRows(clientFiltered, tableSortKey, tableSortDir);
     const total = sorted.length;
-    const start = (tablePage - 1) * tablePageSize;
+    const maxPage = Math.max(1, Math.ceil(total / tablePageSize));
+    const safePage = Math.min(tablePage, maxPage);
+    if (safePage !== tablePage) {
+      setTablePage(safePage);
+    }
+    const start = (safePage - 1) * tablePageSize;
     setTableRows(sorted.slice(start, start + tablePageSize));
     setTableTotal(total);
     setTableLoading(false);
@@ -112,6 +111,7 @@ export function useQlcvTable({
       return;
     }
 
+    const seq = ++reqSeqRef.current;
     setTableLoading(true);
     try {
       const r = await getCongViecListPaginated({
@@ -122,13 +122,15 @@ export function useQlcvTable({
         sortDir: tableSortDir,
         includePendingProposals: canApprove,
       });
+      if (seq !== reqSeqRef.current) return;
       setTableRows((r.rows || []) as CongViecView[]);
       setTableTotal(r.totalCount);
     } catch (err) {
+      if (seq !== reqSeqRef.current) return;
       console.error("Lỗi tải bảng:", err);
       toast.error("Không tải được bảng công việc.");
     } finally {
-      setTableLoading(false);
+      if (seq === reqSeqRef.current) setTableLoading(false);
     }
   }, [
     usingClientSlice,

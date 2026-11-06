@@ -16,8 +16,14 @@ export type PrintFileLoai =
   | "TEMBO"
   | "TEMMAY"
   | "TEMCYC"
-  /** Phiếu xác định ca NKBV (envelope SSOT §5.2). */
-  | "NKBV_PXDC";
+  /** Kho hóa chất: phiếu nhập, phiếu xuất, thẻ kho. */
+  | "PNK"
+  | "PXK"
+  | "THEKHO"
+  /** Phiếu xác định ca NKBV (envelope SSOT §5.2) & Sổ tổng hợp BM.01–BM.04. */
+  | "NKBV_PXDC"
+  | "NKBV_BM01"
+  | "NKBV_BM04";
 
 export type BuildPrintFileTitleInput = {
   loai: PrintFileLoai;

@@ -1231,7 +1231,14 @@ export function criteriaKeyToFormField(
   let pool = candidates;
   if (syn) {
     const bySyn = candidates.filter((s) => s.syndromes.includes(syn));
-    if (bySyn.length) pool = bySyn;
+    if (bySyn.length) {
+      pool = bySyn;
+    } else {
+      // Key thuộc hội chứng khác hoàn toàn — không làm ô nhiễm hội chứng đang xét
+      if (criteriaKey !== "fever" && criteriaKey !== "fever_or_wbc") {
+        return null;
+      }
+    }
   }
   if (depth && (syn === "SSI" || !syn)) {
     const byDepth = pool.filter((s) => !s.ssi_depth || s.ssi_depth === depth);
@@ -1250,6 +1257,9 @@ export function criteriaKeyToFormField(
   // PNEU: key "fever" từ timeline UTI/BA chung → atom sốt PNEU (DOE ∈ IWP)
   if (syn === "PNEU" && criteriaKey === "fever") {
     return "has_pneu_fever";
+  }
+  if (syn) {
+    return pool[0]?.form_field ?? null;
   }
   return pool[0]?.form_field ?? CRITERIA_TO_FORM[criteriaKey] ?? null;
 }

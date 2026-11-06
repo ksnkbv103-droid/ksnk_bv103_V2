@@ -12,7 +12,9 @@ import {
   percentFromQlcvChecklist,
   taskUsesQlcvChecklistForProgress,
 } from "@/lib/domain/qlcv-checklist";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
+import { qlcvDateVnFromInstant } from "../lib/qlcv-today-vn";
 
 const NV_TABLE = "qlcv_fact_nhiem_vu";
 
@@ -63,7 +65,7 @@ function mapNv(row: Record<string, unknown>): NhiemVuRow {
     thang: row.thang != null ? Number(row.thang) : null,
     nguoi_chu_tri_id: (row.nguoi_chu_tri_id as string) ?? null,
     nguoi_phoi_hop_ids: normalizeQlcvStaffIdList(row.nguoi_phoi_hop_ids as string[]),
-    han_hoan_thanh: row.han_hoan_thanh ? String(row.han_hoan_thanh).slice(0, 10) : null,
+    han_hoan_thanh: qlcvDateVnFromInstant(row.han_hoan_thanh as string | null) || null,
     trang_thai: row.trang_thai as NhiemVuTrangThai,
     thu_tu: Number(row.thu_tu ?? 0),
     is_active: Boolean(row.is_active),
@@ -98,6 +100,7 @@ async function attachTaskRollup(
         .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active,checklist")
         .in("nhiem_vu_id", idChunk)
         .eq("is_active", true)
+        .neq("trang_thai", "DA_HUY")
         .order("id", { ascending: true })
         .range(from, to),
     );
@@ -110,8 +113,9 @@ async function attachTaskRollup(
   for (const t of data) {
     const nvId = t.nhiem_vu_id as string | null;
     if (!nvId) continue;
+    const tt = normalizeQlcvTrangThaiToCanonical(t.trang_thai as string | null);
+    if (tt === "DA_HUY") continue;
     const list = byNv.get(nvId) || [];
-    const tt = String(t.trang_thai ?? "");
     list.push({
       pct: taskUsesQlcvChecklistForProgress(t.checklist)
         ? percentFromQlcvChecklist(normalizeQlcvChecklist(t.checklist))
@@ -199,6 +203,12 @@ export async function upsertNhiemVu(input: {
   const ten = input.ten.trim();
   if (!ten) throw new Error("Nhập tên nhiệm vụ.");
   if (!input.nam || input.nam < 2000) throw new Error("Năm nhiệm vụ không hợp lệ.");
+  if (input.quy != null && (!Number.isInteger(input.quy) || input.quy < 1 || input.quy > 4)) {
+    throw new Error("Quý nhiệm vụ phải từ 1 đến 4.");
+  }
+  if (input.thang != null && (!Number.isInteger(input.thang) || input.thang < 1 || input.thang > 12)) {
+    throw new Error("Tháng nhiệm vụ phải từ 1 đến 12.");
+  }
   if (!input.nguoi_chu_tri_id && !input.id) throw new Error("Chọn người phụ trách.");
   if (!input.id && input.quy == null && input.thang == null && !input.han_hoan_thanh) {
     throw new Error("Nhập ít nhất Quý, Tháng hoặc Hạn thực hiện.");
@@ -227,7 +237,7 @@ export async function upsertNhiemVu(input: {
     thang: input.thang ?? null,
     nguoi_chu_tri_id: input.nguoi_chu_tri_id || null,
     nguoi_phoi_hop_ids: phoiHop,
-    han_hoan_thanh: input.han_hoan_thanh?.slice(0, 10) || null,
+    han_hoan_thanh: qlcvDateVnFromInstant(input.han_hoan_thanh) || null,
     trang_thai: input.trang_thai ?? "DANG_LAM",
     thu_tu: input.thu_tu ?? 0,
     updated_at: now,
@@ -268,24 +278,30 @@ export async function huyNhiemVu(id: string): Promise<void> {
  */
 export async function deleteOrHuyNhiemVu(id: string): Promise<{ mode: "deleted" | "huy" }> {
   const { supabase } = await ensureQlcvKsnkAccess("edit");
-  const [{ count: cvCount }, { count: dkCount }] = await Promise.all([
+  const [{ count: cvCount, error: cvErr }, { count: dkCount, error: dkErr }] = await Promise.all([
     supabase
       .from("qlcv_fact_cong_viec")
       .select("id", { count: "exact", head: true })
-      .eq("nhiem_vu_id", id)
-      .eq("is_active", true),
+      .eq("nhiem_vu_id", id),
     supabase
       .from("qlcv_fact_cong_viec_dinh_ky")
       .select("id", { count: "exact", head: true })
-      .eq("nhiem_vu_id", id)
-      .eq("is_active", true),
+      .eq("nhiem_vu_id", id),
   ]);
+  if (cvErr) throwQlcvDbError(cvErr, "Không kiểm tra được công việc gắn nhiệm vụ.");
+  if (dkErr) throwQlcvDbError(dkErr, "Không kiểm tra được mẫu định kỳ gắn nhiệm vụ.");
   if ((cvCount ?? 0) > 0 || (dkCount ?? 0) > 0) {
     await huyNhiemVu(id);
     return { mode: "huy" };
   }
   const { error } = await supabase.from(NV_TABLE).delete().eq("id", id);
-  if (error) throwQlcvDbError(error, "Không xóa nhiệm vụ.");
+  if (error) {
+    if ((error as { code?: string }).code === "23503") {
+      await huyNhiemVu(id);
+      return { mode: "huy" };
+    }
+    throwQlcvDbError(error, "Không xóa nhiệm vụ.");
+  }
   revalidatePath("/quan-ly-cong-viec");
   return { mode: "deleted" };
 }
