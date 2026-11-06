@@ -49,6 +49,13 @@ const ComprehensiveCssdAppendix = dynamic(
     })),
   { loading: () => <ChartSectionSkeleton /> },
 );
+const ComprehensiveWasteLinenAppendix = dynamic(
+  () =>
+    import("../components/comprehensive/ComprehensiveWasteLinenAppendix").then((m) => ({
+      default: m.ComprehensiveWasteLinenAppendix,
+    })),
+  { loading: () => <ChartSectionSkeleton /> },
+);
 const ComprehensiveGscBkIntervention = dynamic(
   () =>
     import("../components/comprehensive/ComprehensiveGscBkIntervention").then((m) => ({
@@ -259,6 +266,8 @@ export function BaoCaoTongHopPage() {
             selectedKhoaIds={d.selectedKhoaIds}
             khoaOptions={d.khoaOptions}
             module="vst"
+            vstLens={d.vstLens}
+            onVstLensChange={d.setVstLens}
           />
         </ReportSection>
         <ReportSection id="bc-gsc" title="Giám sát chung">
@@ -267,6 +276,8 @@ export function BaoCaoTongHopPage() {
             selectedKhoaIds={d.selectedKhoaIds}
             khoaOptions={d.khoaOptions}
             module="gsc"
+            gscLens={d.gscLens}
+            onGscLensChange={d.setGscLens}
           />
         </ReportSection>
         {moreSectionsOpen ? (
@@ -294,6 +305,9 @@ export function BaoCaoTongHopPage() {
             </ReportSection>
             <ReportSection id="bc-cssd" title="Phụ lục CSSD">
               <ComprehensiveCssdAppendix payload={d.payload} />
+            </ReportSection>
+            <ReportSection id="bc-waste-linen" title="Phụ lục Chất thải & Đồ vải">
+              <ComprehensiveWasteLinenAppendix payload={d.payload} />
             </ReportSection>
             <ReportSection id="bc-chuyen-de" title="Chuyên đề GSC">
               <ComprehensiveTopicHybrid payload={d.payload} chuyenDe={d.chuyenDe} onChuyenDeChange={d.setChuyenDe} />

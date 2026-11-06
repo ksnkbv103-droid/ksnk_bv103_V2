@@ -32,6 +32,7 @@ import type { QlcvUiAccessFlags } from "../lib/qlcv-access";
 import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
 import type { QlcvLoaiFilter } from "./QlcvDinhKySummaryBar";
 import { resolveQlcvPeriodRange, type QlcvPeriodKind } from "../lib/qlcv-period-range";
+import { qlcvDateVnFromInstant } from "../lib/qlcv-today-vn";
 
 const CongViecKanban = dynamic(() => import("./CongViecKanban"), {
   ssr: false,
@@ -49,10 +50,10 @@ function matchesLoaiFilter(t: CongViecView, loai: QlcvLoaiFilter): boolean {
 function matchesPeriodHan(t: CongViecView, periodKind: QlcvPeriodKind | null): boolean {
   if (!periodKind) return true;
   const period = resolveQlcvPeriodRange(periodKind);
-  const han = t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : "";
+  const han = qlcvDateVnFromInstant(t.han_hoan_thanh);
   if (han && han >= period.startIso && han <= period.endIso) return true;
   // Việc chưa ghi hạn: vẫn hiện nếu ngày tạo nằm trong kỳ (giám sát bao phủ)
-  const created = t.created_at ? String(t.created_at).slice(0, 10) : "";
+  const created = qlcvDateVnFromInstant(t.created_at);
   if (!han && created && created >= period.startIso && created <= period.endIso) return true;
   return false;
 }
@@ -70,6 +71,7 @@ export type QlcvOperationsPanelProps = {
   onApproveFromKanban: (row: CongViecView) => void;
   mauSacByMa?: Record<string, string | null | undefined>;
   onEditTask: (row: CongViecView) => void;
+  onCloneTask?: (row: CongViecView) => void;
   onRefreshAll: () => Promise<void>;
   onBoardFilter: (f: QlcvBoardFilter) => void;
   /** Empty board CTA — mở form tạo việc (header «Tạo công việc»). */
@@ -95,6 +97,7 @@ export function QlcvOperationsPanel({
   onSelectTask,
   onApproveFromKanban,
   onEditTask,
+  onCloneTask,
   onRefreshAll,
   onBoardFilter,
   onCreateTask,
@@ -149,7 +152,10 @@ export function QlcvOperationsPanel({
     const term = kanban.kanbanSearchDebounced;
     return scopedTasks.filter((t) => {
       if (!term) return true;
-      return matchesQlcvSearch([t.tieu_de, t.nguoi_phu_trach_ten, t.nguoi_tao_ten], term);
+      return matchesQlcvSearch(
+        [t.tieu_de, t.mo_ta, t.nguoi_phu_trach_ten, t.nguoi_giao_ten, t.nguoi_tao_ten, t.nhiem_vu_ten],
+        term,
+      );
     });
   }, [scopedTasks, kanban.kanbanSearchDebounced]);
 
@@ -203,12 +209,31 @@ export function QlcvOperationsPanel({
         mauSacByMa,
         staffLabelOpts,
         onEdit: onEditTask,
+        onClone: onCloneTask,
         onDelete: handleDelete,
       }),
-    [qlcvUi, mauSacByMa, staffLabelOpts, onEditTask, handleDelete],
+    [qlcvUi, mauSacByMa, staffLabelOpts, onEditTask, onCloneTask, handleDelete],
   );
 
-  const tableData = useClientLoaiPeriod ? scopedTasks : table.tableRows;
+  const tableData = useMemo(() => {
+    if (!useClientLoaiPeriod) return table.tableRows;
+    let base = scopedTasks;
+    if (kanban.boardFilter != null) {
+      base = base.filter((t) =>
+        matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, kanban.boardFilter, {
+          actorStaffId,
+        }),
+      );
+    }
+    const term = table.tableSearchInput.trim();
+    if (!term) return base;
+    return base.filter((t) =>
+      matchesQlcvSearch(
+        [t.tieu_de, t.mo_ta, t.nguoi_phu_trach_ten, t.nguoi_giao_ten, t.nguoi_tao_ten, t.nhiem_vu_ten],
+        term,
+      ),
+    );
+  }, [useClientLoaiPeriod, table.tableRows, kanban.boardFilter, scopedTasks, actorStaffId, table.tableSearchInput]);
 
   return (
     <KsnkSupervisionPanel className={UI.sectionGap}>
@@ -315,7 +340,7 @@ export function QlcvOperationsPanel({
               searchValue={table.tableSearchInput}
               onSearch={table.handleTableSearch}
               searchPlaceholder="Tìm tiêu đề, người giao, thực hiện…"
-              onSort={table.handleTableSort}
+              onSort={useClientLoaiPeriod ? undefined : table.handleTableSort}
               serverPagination={
                 useClientLoaiPeriod
                   ? undefined

@@ -80,6 +80,7 @@ export type SuCoReportFormProps = {
   initialLoTietKhuanId?: string;
   /** Id máy từ deep-link `?group=EQUIPMENT&machine=`. */
   initialMachineId?: string;
+  initialChemicalId?: string;
   /** QT.24 entry rõ: thu hồi theo mẻ (không lẫn 3 cửa dụng cụ). */
   batchRecallEntry?: boolean;
   allowStationOverride?: boolean;
@@ -111,12 +112,13 @@ export default function SuCoReportForm({
   initialGroup,
   initialMaQR,
   initialChiTietId,
-  initialLoaiDungCuId,
+  initialLoaiDungCuId: _initialLoaiDungCuId,
   initialTypeId,
   quyTrinhId,
   initialMaLo,
   initialLoTietKhuanId,
   initialMachineId,
+  initialChemicalId,
   batchRecallEntry = false,
   allowStationOverride = false,
   enabled,
@@ -165,6 +167,7 @@ export default function SuCoReportForm({
   const [cycleQuyTrinhId, setCycleQuyTrinhId] = useState("");
   const [faultStation, setFaultStation] = useState<Station>(initialStation);
   const [machineId, setMachineId] = useState(initialMachineId || "");
+  const [chemicalId, setChemicalId] = useState(initialChemicalId || "");
   const [maLo, setMaLo] = useState(initialMaLo || "");
   const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
   const [batchRecallReason, setBatchRecallReason] = useState<BatchRecallReasonCode>(() => {
@@ -191,7 +194,8 @@ export default function SuCoReportForm({
     if (initialMaLo) setMaLo(initialMaLo);
     if (initialLoTietKhuanId) setLoTietKhuanId(initialLoTietKhuanId);
     if (initialMachineId) setMachineId(initialMachineId);
-  }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId, initialMachineId]);
+    if (initialChemicalId) setChemicalId(initialChemicalId);
+  }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId, initialMachineId, initialChemicalId]);
 
   useEffect(() => {
     if (!enabled || !batchRecallEntry) return;
@@ -511,7 +515,7 @@ export default function SuCoReportForm({
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
       return toast.error("Vui lòng chọn hoặc quét máy gặp sự cố.");
     }
-    if (incidentGroup === "CHEMICAL" && !machineId.trim()) {
+    if (incidentGroup === "CHEMICAL" && !chemicalId.trim()) {
       return toast.error("Vui lòng chọn hóa chất / vật tư liên quan.");
     }
     if (imageRequired && !meta.anhMinhChung.trim()) {
@@ -558,6 +562,7 @@ export default function SuCoReportForm({
         desc: descText,
         errorQR: maLo.trim() || undefined,
         machineId: machineId.trim() || undefined,
+        chemicalId: chemicalId.trim() || undefined,
         faultOperator: meta.nguoiLienQuan.trim() || undefined,
         faultOperatorId: meta.nguoiLienQuanId.trim() || undefined,
         nguoiPhatHien: meta.nguoiPhatHien.trim() || undefined,
@@ -676,6 +681,7 @@ export default function SuCoReportForm({
   const resetAfterSubmit = () => {
     setMaQR("");
     setMachineId("");
+    setChemicalId("");
     setMaLo("");
     setViTriPhatHien("");
     setCyclePerformers([]);
@@ -900,8 +906,8 @@ export default function SuCoReportForm({
 
           {incidentGroup === "CHEMICAL" ? (
             <ChemicalContextFields
-              machineId={machineId}
-              setMachineId={setMachineId}
+              chemicalId={chemicalId}
+              setChemicalId={setChemicalId}
               maLo={maLo}
               setMaLo={setMaLo}
               chemicals={chemicals}

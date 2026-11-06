@@ -2,6 +2,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import {
   normalizeMdroPhenotype,
   type NkbvMdroPhenotype,
@@ -25,7 +26,7 @@ export async function getGscBoSungPatientHints(maBenhAn: string) {
   }
 
   const supabase = await createServerSupabaseUserClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayYmdInVn();
 
   const [devRes, tlRes, stayRes, mdroRes] = await Promise.all([
     supabase

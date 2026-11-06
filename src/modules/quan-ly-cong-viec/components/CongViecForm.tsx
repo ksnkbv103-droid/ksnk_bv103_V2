@@ -11,6 +11,7 @@ import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { congViecSchema, congViecCreateSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
+import { qlcvDateVnFromInstant } from "../lib/qlcv-today-vn";
 import type { CongViecView } from "../types";
 
 type QlcvLoaiCongViec = "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
@@ -158,6 +159,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       vi_tri_thuc_hien: viTri.trim() || null,
       nguoi_phoi_hop_ids: phoiHopIds,
       nguoi_theo_doi_ids: theoDoiIds,
+      checklist: !initialData?.id ? initialData?.checklist ?? undefined : undefined,
       analytics_meta: !initialData?.id ? initialData?.analytics_meta ?? undefined : undefined,
       nguon_lien_ket: !initialData?.id ? initialData?.nguon_lien_ket ?? undefined : undefined,
     };
@@ -206,7 +208,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const labelStyles = bv103LayoutChrome.labelBlock;
 
   const defaultHanHoanThanh = initialData?.han_hoan_thanh
-    ? String(initialData.han_hoan_thanh).split("T")[0]
+    ? (qlcvDateVnFromInstant(initialData.han_hoan_thanh) ?? String(initialData.han_hoan_thanh).split("T")[0])
     : "";
 
   return (
@@ -253,6 +255,28 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
                 Không có nhân sự gắn tổ đã chọn; đang hiển thị toàn roster KSNK.
               </p>
             ) : null}
+          </div>
+
+          <div>
+            <SearchableMultiSelect
+              label="Người theo dõi / giám sát (tuỳ chọn)"
+              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={theoDoiIds}
+              onChange={setTheoDoiIds}
+              disabled={optionsLoading}
+              minWidthClassName="w-full"
+            />
+          </div>
+
+          <div>
+            <SearchableMultiSelect
+              label="Phối hợp (tuỳ chọn)"
+              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={phoiHopIds}
+              onChange={setPhoiHopIds}
+              disabled={optionsLoading}
+              minWidthClassName="w-full"
+            />
           </div>
         </div>
       </div>
@@ -344,28 +368,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               onChange={setSelectedTo}
               disabled={optionsLoading}
               searchPlaceholder="Tìm tổ theo tên hoặc mã..."
-            />
-          </div>
-
-          <div>
-            <SearchableMultiSelect
-              label="Phối hợp (tuỳ chọn)"
-              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              selected={phoiHopIds}
-              onChange={setPhoiHopIds}
-              disabled={optionsLoading}
-              minWidthClassName="w-full"
-            />
-          </div>
-
-          <div>
-            <SearchableMultiSelect
-              label="Theo dõi (tuỳ chọn)"
-              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              selected={theoDoiIds}
-              onChange={setTheoDoiIds}
-              disabled={optionsLoading}
-              minWidthClassName="w-full"
             />
           </div>
         </div>

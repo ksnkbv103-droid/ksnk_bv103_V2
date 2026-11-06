@@ -134,7 +134,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           />
         </div>
         <div className="space-y-2">
-          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Tái sử dụng &amp; tần suất (top)</h3>
+          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Tái sử dụng và tần suất (top)</h3>
           <AdvancedDataTable
             columns={[
               {

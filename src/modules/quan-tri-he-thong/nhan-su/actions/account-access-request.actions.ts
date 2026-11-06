@@ -31,10 +31,22 @@ function errMsg(e: unknown) {
 
 type AdminClient = ReturnType<typeof createAdminSupabaseClient>;
 
-function genPendingMaNv(): string {
-  const stamp = Date.now().toString(36).toUpperCase();
-  const rnd = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `YCTK-${stamp}-${rnd}`;
+async function genNextMaNv(supabase: AdminClient): Promise<string> {
+  try {
+    const { data, error } = await supabase.rpc("rpc_mdm_nhan_su_max_numeric_suffix", {
+      p_prefix: "NV",
+    });
+    if (!error && data !== null && data !== undefined) {
+      const maxSuffix = typeof data === "number" ? data : Number.parseInt(String(data ?? "0"), 10);
+      const maxSafe = Number.isFinite(maxSuffix) ? maxSuffix : 0;
+      const nextNum = maxSafe + 1;
+      return `NV${nextNum.toString().padStart(3, "0")}`;
+    }
+  } catch {
+    // fallback nếu RPC lỗi hoặc offline
+  }
+  const stamp = Date.now().toString(36).toUpperCase().slice(-4);
+  return `NV${stamp}`;
 }
 
 /**
@@ -259,6 +271,7 @@ export async function approveAccountAccessRequest(params: {
         return { success: false as const, error: "Email đã thuộc một hồ sơ khác — kiểm tra hồ sơ đó hoặc từ chối phiếu." };
       }
       const maNv = String(p.ma_nv || "").trim();
+      const finalMaNv = maNv || (await genNextMaNv(supabase));
       if (maNv) {
         const { data: clash } = await supabase.from("mdm_nhan_su").select("id").eq("ma_nv", maNv).maybeSingle();
         if (clash) return { success: false as const, error: "Mã NV trên phiếu đã có hồ sơ — kiểm tra hồ sơ đó hoặc từ chối phiếu." };
@@ -268,7 +281,7 @@ export async function approveAccountAccessRequest(params: {
         .from("mdm_nhan_su")
         .insert({
           ho_ten: String(p.ho_ten || "").trim() || email,
-          ma_nv: maNv || genPendingMaNv(),
+          ma_nv: finalMaNv,
           khoa_id: (p.khoa_id as string | null) || null,
           chuc_danh_id: (p.chuc_danh_id as string | null) || null,
           is_active: true,
@@ -295,7 +308,10 @@ export async function approveAccountAccessRequest(params: {
 
     const by = actor.email ?? actor.id;
     await closeLegacySoftRequest(supabase, staffId, "DUYET", by);
-    await decideAccessRequestRow(supabase, { ticketId: ticket.id, status: "DUYET", decidedBy: by });
+    const decided = await decideAccessRequestRow(supabase, { ticketId: ticket.id, status: "DUYET", decidedBy: by });
+    if (!decided) {
+      return { success: false as const, error: "Phiếu này đã được xử lý bởi một quản trị viên khác." };
+    }
 
     const { logAdminAction } = await import("@/lib/admin-audit");
     await logAdminAction({
@@ -369,7 +385,10 @@ export async function approveForgotResetRequest(params: {
 
     const by = actor.email ?? actor.id;
     await closeLegacySoftRequest(supabase, String(staff.id), "DUYET", by);
-    await decideAccessRequestRow(supabase, { ticketId: ticket.id, status: "DUYET", decidedBy: by });
+    const decided = await decideAccessRequestRow(supabase, { ticketId: ticket.id, status: "DUYET", decidedBy: by });
+    if (!decided) {
+      return { success: false as const, error: "Phiếu này đã được xử lý bởi một quản trị viên khác." };
+    }
 
     revalidateNhanSuTaiKhoan();
     return { success: true as const };

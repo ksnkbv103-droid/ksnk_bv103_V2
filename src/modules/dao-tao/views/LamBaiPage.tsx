@@ -24,6 +24,10 @@ type Q = {
   thuTu: number;
   loai: string;
   stem: string;
+  clinicalVignette?: string | null;
+  bloomCode?: string | null;
+  targetRoles?: string[];
+  sopRefs?: string[];
   options: Array<{ id: string; noiDung: string; displayIndex: number }>;
   traLoi: TraLoi | null;
 };
@@ -133,6 +137,10 @@ export default function LamBaiPage() {
       <DaoTaoQuestionCard
         loai={current.loai}
         stem={current.stem}
+        clinicalVignette={current.clinicalVignette}
+        bloomCode={current.bloomCode}
+        targetRoles={current.targetRoles}
+        sopRefs={current.sopRefs}
         options={current.options}
         value={current.traLoi}
         onChange={(v) => {

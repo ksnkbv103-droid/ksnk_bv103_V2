@@ -31,6 +31,10 @@ export default function BoDungCuPrintQrButton({
       await printBoLabel({
         qrCode: res.ma_vach_qr,
         tenBo: res.ten_bo,
+        tenKhoa: res.ten_khoa,
+        tongSoLuong: res.tong_so_luong_dung_cu,
+        soKhoan: res.so_khoan,
+        phanLoaiBo: res.phan_loai_bo,
       });
       window.dispatchEvent(new CustomEvent("cssd:kho-refetch"));
     } catch (err: unknown) {

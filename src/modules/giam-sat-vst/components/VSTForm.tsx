@@ -13,7 +13,7 @@ import VstModuleLockBanner from "./VstModuleLockBanner";
 import {
   MOMENTS,
   ACTIONS,
-  clampMomentsForAction,
+  clampMomentsKeepNewest,
   isVstMissedAction,
   maxMomentsForAction,
   momentDisplayLabel,
@@ -40,6 +40,7 @@ type VstObservationInput = {
   id?: string;
   nhan_vien_id?: string | null;
   ten_nhan_vien_ngoai?: string | null;
+  nghe_nghiep_id?: string | null;
   nghe_nghiep?: string | null;
   hanh_dong?: string | null;
   thoi_diem?: string | null;
@@ -204,7 +205,8 @@ export default function VSTForm({
         const byName = String(row.ten_nhan_vien_ngoai ?? "").trim();
         const personKey = byNv || byName || "__MISSING_PERSON__";
 
-        const nghe_nghiep_id = ngheFindId(row.nghe_nghiep);
+        const nghe_nghiep_id =
+          String(row.nghe_nghiep_id ?? "").trim() || ngheFindId(row.nghe_nghiep);
         if (!byPerson.has(personKey)) {
           byPerson.set(personKey, {
             nhan_vien_id: byNv,
@@ -233,7 +235,7 @@ export default function VSTForm({
           // Domain §2.1: cắt trần khi nạp (tuân thủ ≤2, bỏ sót ≤1).
           const rawMoments = splitMoments(row.thoi_diem);
           if (rawMoments.length > maxMomentsForAction(action)) trimmedMoments += 1;
-          const thoi_diems = clampMomentsForAction(rawMoments, action);
+          const thoi_diems = clampMomentsKeepNewest(rawMoments, action);
 
           const thoi_gian_ghi_nhan = isReplayCamera ? undefined : parseRecordedAt(row.thoi_gian_ghi_nhan);
 
@@ -304,7 +306,7 @@ export default function VSTForm({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-[var(--bv103-space-3)]">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
-        <p className={`animate-pulse ${UI.emptyBody}`}>Đang tải dữ liệu danh mục & nhân sự...</p>
+        <p className={`animate-pulse ${UI.emptyBody}`}>Đang tải dữ liệu danh mục và nhân sự...</p>
       </div>
     );
   }

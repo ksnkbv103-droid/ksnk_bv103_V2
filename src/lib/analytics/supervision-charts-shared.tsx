@@ -162,7 +162,7 @@ function useSortedGapRows(
   }, [rows, rankRows, sortMetric, sortOrder]);
 }
 
-function GapSortToolbar({
+export function GapSortToolbar({
   sortMetric,
   sortOrder,
   onSortOrderChange,
@@ -230,7 +230,7 @@ function percentTooltipFormatter(digits: SupervisionPercentDigits = 2) {
 }
 
 /** Chỉ số cột % thấp nhất (mặc định 3) — tô đậm can thiệp. Bỏ qua mẫu mỏng (VST-07). */
-function bottomPercentHighlightIndices(
+export function bottomPercentHighlightIndices(
   values: (number | null | undefined)[],
   count = 3,
   eligible?: boolean[],
@@ -245,7 +245,7 @@ function bottomPercentHighlightIndices(
   return new Set(ranked.slice(0, count).map((x) => x.i));
 }
 
-function highlightBarFill(base: string, highlight: boolean): string {
+export function highlightBarFill(base: string, highlight: boolean): string {
   return highlight ? "#ef4444" : base;
 }
 

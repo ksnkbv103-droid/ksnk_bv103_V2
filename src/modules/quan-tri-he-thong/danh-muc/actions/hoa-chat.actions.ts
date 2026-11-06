@@ -137,10 +137,33 @@ export async function toggleHoaChatStatusAction(id: string, currentStatus: boole
 
 export async function softDeleteHoaChatAction(id: string) {
   await verifyPermission("HOA_CHAT", "delete");
+  const supabase = createAdminSupabaseClient();
+  const { count, error } = await supabase
+    .from("cssd_fact_kho_hoa_chat_giao_dich")
+    .select("id", { count: "exact", head: true })
+    .eq("dm_hoa_chat_id", id);
+  if (!error && count && count > 0) {
+    return {
+      success: false as const,
+      error: `Không thể xóa hóa chất đã phát sinh ${count} giao dịch kho. Hãy chuyển trạng thái sang ngưng sử dụng.`,
+    };
+  }
   return softDeleteMasterRow("cssd_dm_hoa_chat", id);
 }
 
 export async function softDeleteManyHoaChatAction(ids: string[]) {
   await verifyPermission("HOA_CHAT", "delete");
+  if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
+  const supabase = createAdminSupabaseClient();
+  const { data: activeTx } = await supabase
+    .from("cssd_fact_kho_hoa_chat_giao_dich")
+    .select("id, dm_hoa_chat_id")
+    .in("dm_hoa_chat_id", ids);
+  if (activeTx && activeTx.length > 0) {
+    return {
+      success: false as const,
+      error: `Có ${activeTx.length} giao dịch kho gắn với các hóa chất được chọn. Hãy chuyển sang ngưng sử dụng.`,
+    };
+  }
   return softDeleteManyMasterRows("cssd_dm_hoa_chat", ids);
 }

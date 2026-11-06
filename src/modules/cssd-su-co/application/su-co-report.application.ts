@@ -23,6 +23,7 @@ import {
 } from "../domain/cssd-incident-taxonomy";
 import { applyBatchRecallAndHoldMachine } from "./batch-recall-hold.application";
 import { spawnRecallFollowupQlcvTask } from "./recall-followup-qlcv.application";
+import { tagNkbvEpidemiologicalAlertForRecalledBatches } from "./recall-followup-nkbv.application";
 import { nextMachineStatusAfterBatchQcFail } from "../domain/cssd-batch-recall";
 import {
   CAUSE_CLASS_LABEL,
@@ -71,6 +72,7 @@ export async function executeIncidentReportAndRollback(
     desc: string;
     errorQR?: string;
     machineId?: string;
+    chemicalId?: string;
     anhMinhChung?: string;
     reporterEmail?: string | null;
     reporterAuthUserId?: string | null;
@@ -161,6 +163,12 @@ export async function executeIncidentReportAndRollback(
         maLo,
         listedUsed: rec.listedUsed,
       });
+      await tagNkbvEpidemiologicalAlertForRecalledBatches(supabase, {
+        incidentId: rec.incidentId,
+        loTietKhuanId,
+        maLo,
+        listedUsed: rec.listedUsed,
+      });
     }
     return {
       incident_id: rec.incidentId,
@@ -219,7 +227,7 @@ export async function executeIncidentReportAndRollback(
       }[],
       cycleId,
     );
-    isRedAlert = shouldRaiseRedAlert(prior);
+    isRedAlert = shouldRaiseRedAlert(prior, typeId);
   }
 
   const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
@@ -244,6 +252,7 @@ export async function executeIncidentReportAndRollback(
     rollbackTargetStation: rollbackStation ? rollbackStation.targetStation : "NONE",
     errorQR: data.errorQR || processPayload.maLo,
     machineId: data.machineId,
+    chemicalId: data.chemicalId,
     faultOperator: data.faultOperator,
     faultOperatorId: data.faultOperatorId,
     nguoiPhatHien: data.nguoiPhatHien,
@@ -445,12 +454,12 @@ export async function executeIncidentReportAndRollback(
         supabase,
         q.id,
         {
-          su_kien: "REPORT_INCIDENT",
+          su_kien: "SU_CO_DOMINO_ROLLBACK",
           tu_tram: data.station,
           den_tram: rollbackStation.targetStation,
           ly_do: `Sự cố ${data.typeTen}. ${data.desc?.slice(0, 160) || ""}`,
           nguoi_thao_tac: data.faultOperator || data.reporterEmail || "Nhân viên báo cáo",
-          chi_tiet: { clear_stations: clearStations, before: beforeStamps },
+          chi_tiet: { su_co_id: incident.id, clear_stations: clearStations, before: beforeStamps },
         },
         { soft: true },
       );

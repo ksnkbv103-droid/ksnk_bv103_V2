@@ -21,6 +21,7 @@ import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
 import { updateCongViecTrangThaiByMa } from "../lib/qlcv-workflow-mutate";
+import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 
@@ -94,7 +95,7 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+      "id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han, nguoi_phoi_hop_ids",
     )
     .eq("id", id)
     .maybeSingle();
@@ -124,7 +125,11 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
     const isAssignee =
       Boolean(actorNhanSuId && cur.nguoi_phu_trach_id) &&
       String(actorNhanSuId) === String(cur.nguoi_phu_trach_id);
-    if (!isAssignee) await verifyPermission("CONG_VIEC", "edit");
+    const isCollaborator = Boolean(
+      actorNhanSuId &&
+      normalizeQlcvStaffIdList(cur.nguoi_phoi_hop_ids).includes(String(actorNhanSuId)),
+    );
+    if (!isAssignee && !isCollaborator) await verifyPermission("CONG_VIEC", "edit");
   }
 
   const stMoi = trangThaiCongViecSauBaoCaoTienDo(
@@ -186,12 +191,16 @@ export async function reportQlcvManualProgress(
   const { supabase } = await ensureQlcvKsnkAccess("view");
   const scope = await resolveQlcvListScope(supabase);
   const actorNhanSuId = await getActorNhanSuId();
-  const pct = Math.min(100, Math.max(0, Math.round(Number(phanTram))));
+  const rawPct = Number(phanTram);
+  if (!Number.isFinite(rawPct)) {
+    throw new Error("Phần trăm hoàn thành không hợp lệ.");
+  }
+  const pct = Math.min(100, Math.max(0, Math.round(rawPct)));
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, checklist, loai_cong_viec, han_hoan_thanh, is_qua_han",
+      "id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, checklist, loai_cong_viec, han_hoan_thanh, is_qua_han, nguoi_phoi_hop_ids",
     )
     .eq("id", congViecId)
     .maybeSingle();
@@ -225,7 +234,11 @@ export async function reportQlcvManualProgress(
     const isAssignee =
       Boolean(actorNhanSuId && cur.nguoi_phu_trach_id) &&
       String(actorNhanSuId) === String(cur.nguoi_phu_trach_id);
-    if (!isAssignee) await verifyPermission("CONG_VIEC", "edit");
+    const isCollaborator = Boolean(
+      actorNhanSuId &&
+      normalizeQlcvStaffIdList(cur.nguoi_phoi_hop_ids).includes(String(actorNhanSuId)),
+    );
+    if (!isAssignee && !isCollaborator) await verifyPermission("CONG_VIEC", "edit");
   }
 
   const stMoi = trangThaiCongViecSauBaoCaoTienDo(

@@ -59,6 +59,26 @@ export const DANH_MUC_DOMAIN_BADGE: Record<DanhMucDomain, { label: string; class
 
 const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
+    id: "bo",
+    name: "Bộ dụng cụ",
+    path: "/cssd-dung-cu?tab=bo",
+    domain: "CSSD",
+    group: "cssd",
+    tier: "dedicated",
+    moduleKey: "BO_DC",
+    sourceTable: "cssd_dm_bo_dung_cu",
+  },
+  {
+    id: "loai",
+    name: "Loại dụng cụ (Quy cách)",
+    path: "/cssd-dung-cu?tab=loai",
+    domain: "CSSD",
+    group: "cssd",
+    tier: "dedicated",
+    moduleKey: "LOAI_DC",
+    sourceTable: "cssd_dm_loai_dung_cu",
+  },
+  {
     id: "tb",
     name: "Thiết bị và máy",
     path: "/quan-tri-he-thong/danh-muc/thiet-bi",
@@ -142,6 +162,8 @@ function statsKeyForDedicated(id: string): keyof TrungTamDanhMucStatsPayload | n
     ns: "ns",
     bk: "bk",
     tk: "tk",
+    bo: "bo",
+    loai: "loai",
   };
   return map[id] ?? null;
 }

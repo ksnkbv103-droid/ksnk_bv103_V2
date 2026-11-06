@@ -13,6 +13,7 @@ export type IncidentAttributeInput = {
   rollbackTargetStation: string;
   errorQR?: string;
   machineId?: string;
+  chemicalId?: string;
   faultOperator?: string;
   /** FK mdm_nhan_su — người liên quan (khâu lỗi / chọn tay). */
   faultOperatorId?: string;
@@ -42,6 +43,7 @@ export function buildIncidentAttributes(data: IncidentAttributeInput): Record<st
   }
   if (data.errorQR) attributes.ERROR_QR = data.errorQR;
   if (data.machineId) attributes.MACHINE_ID = data.machineId;
+  if (data.chemicalId) attributes.CHEMICAL_ID = data.chemicalId;
   if (data.faultOperator) attributes.FAULT_OPERATOR = data.faultOperator;
   if (data.faultOperatorId) attributes.FAULT_OPERATOR_ID = data.faultOperatorId;
   if (data.nguoiPhatHien) attributes.NGUOI_PHAT_HIEN = data.nguoiPhatHien;
@@ -194,7 +196,13 @@ export function countPriorSafetyIncidentsOnCycle(
   return n;
 }
 
-export function shouldRaiseRedAlert(priorCount: number): boolean {
+export function shouldRaiseRedAlert(priorCount: number, typeId?: string | null): boolean {
+  if (typeId) {
+    const code = String(typeId).trim().toUpperCase();
+    if (code === "PROCESS_BI_POSITIVE" || code === "PROCESS_STERILIZATION_FAIL") {
+      return true;
+    }
+  }
   return priorCount >= CSSD_RED_ALERT_PRIOR_THRESHOLD;
 }
 

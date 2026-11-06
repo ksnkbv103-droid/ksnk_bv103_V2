@@ -17,6 +17,7 @@ import {
   GraduationCap,
   PanelsTopLeft,
   ShieldCheck,
+  Trash2,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -30,6 +31,7 @@ import {
   NAV_GATE_DAO_TAO,
   NAV_GATE_DASHBOARD,
   NAV_GATE_GIAM_SAT_HUB,
+  NAV_GATE_HAU_CAN_MT,
   type NavGate,
 } from "@/lib/nav/ksnk-nav-gates";
 
@@ -69,6 +71,7 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     items: [
       { name: "Công việc", href: "/quan-ly-cong-viec", icon: PanelsTopLeft, gate: NAV_GATE_CONG_VIEC },
       { name: "Thi KSNK", href: "/dao-tao", icon: GraduationCap, gate: NAV_GATE_DAO_TAO },
+      { name: "Chất thải & Đồ vải", href: "/chat-thai-do-vai", icon: Trash2, gate: NAV_GATE_HAU_CAN_MT },
     ],
   },
   {

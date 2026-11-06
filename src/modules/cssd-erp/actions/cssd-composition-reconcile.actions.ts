@@ -32,6 +32,8 @@ export type CompositionReconcilePayload = {
   boDungCuId: string;
   maBo: string;
   tenBo: string;
+  tenKhoa?: string | null;
+  phanLoaiBo?: string | null;
   items: CompositionReconcileRow[];
   heat: ReturnType<typeof evaluateHeatCompatibility>;
   hasGap: boolean;
@@ -86,14 +88,27 @@ async function fetchBoCompositionPayload(boId: string) {
   const list = rows || [];
   let maBo = String((list[0] as { ma_bo?: string } | undefined)?.ma_bo || "").trim();
   let tenBo = String((list[0] as { ten_bo?: string } | undefined)?.ten_bo || "").trim();
-  if (!maBo || !tenBo) {
-    const { data: header } = await supabase
-      .from("cssd_dm_bo_dung_cu")
-      .select("ma_bo, ten_bo")
-      .eq("id", boId)
-      .maybeSingle();
-    maBo = maBo || String(header?.ma_bo || "").trim();
-    tenBo = tenBo || String(header?.ten_bo || "").trim();
+  let tenKhoa: string | null = null;
+  let phanLoaiBo: string | null = null;
+
+  const { data: header } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("ma_bo, ten_bo, phan_loai_bo, khoa_su_dung_id")
+    .eq("id", boId)
+    .maybeSingle();
+
+  if (header) {
+    maBo = maBo || String(header.ma_bo || "").trim();
+    tenBo = tenBo || String(header.ten_bo || "").trim();
+    phanLoaiBo = (header.phan_loai_bo as string | null) || null;
+    if (header.khoa_su_dung_id) {
+      const { data: khoa } = await supabase
+        .from("mdm_dm_khoa_phong")
+        .select("ten_khoa")
+        .eq("id", header.khoa_su_dung_id)
+        .maybeSingle();
+      tenKhoa = (khoa as { ten_khoa?: string } | null)?.ten_khoa || null;
+    }
   }
 
   const loaiIds = [
@@ -193,6 +208,8 @@ async function fetchBoCompositionPayload(boId: string) {
       boDungCuId: boId,
       maBo,
       tenBo,
+      tenKhoa,
+      phanLoaiBo,
       items,
       heat,
       hasGap,

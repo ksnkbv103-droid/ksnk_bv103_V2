@@ -77,11 +77,11 @@ export async function canAccessQuanTriHub(): Promise<boolean> {
   return QUAN_TRI_ENTRY_MODULE_KEYS.some((key) => snap.canView(key));
 }
 
-/** Deep link / tab Phân quyền — cần PHAN_QUYEN view hoặc ADMIN. */
+/** Deep link / tab Phân quyền — ADM-03: ma trận RBAC chỉ dành riêng cho ADMIN. */
 export async function canAccessPhanQuyenRoute(): Promise<boolean> {
   const snap = await getServerAccessSnapshot();
   if (!snap) return false;
-  return snap.isAdmin || snap.canView("PHAN_QUYEN");
+  return snap.isAdmin;
 }
 
 /** Tài khoản & truy cập (hub + legacy redirect) — khớp UI: PHAN_QUYEN edit hoặc ADMIN. */

@@ -155,4 +155,21 @@ describe("nextDinhKySpawnDates", () => {
     const dates = nextDinhKySpawnDates("YEARLY", "2026-03-15", from, { maxScanDays: 800, maxMatches: 3 });
     expect(dates).toEqual(["2026-03-15", "2027-03-15", "2028-03-15"]);
   });
+
+  it("tôn trọng ngayKetThucIso và dừng sinh phiếu sau ngày kết thúc", () => {
+    const from = parseIsoDateOnlyUtc("2026-01-01");
+    const dates = nextDinhKySpawnDates("WEEKLY", "2026-01-01", from, {
+      maxScanDays: 60,
+      maxMatches: 10,
+      ngayKetThucIso: "2026-01-15",
+    });
+    expect(dates).toEqual(["2026-01-01", "2026-01-08", "2026-01-15"]);
+  });
+
+  it("chuyển đổi from theo ngày lịch Việt Nam (02:00 sáng VN không lùi về ngày UTC hôm trước)", () => {
+    // 2026-11-03T19:00:00Z = 2026-11-04 02:00:00 giờ VN
+    const from = new Date("2026-11-03T19:00:00.000Z");
+    const dates = nextDinhKySpawnDates("DAILY", "2026-11-01", from, { maxScanDays: 5, maxMatches: 2 });
+    expect(dates).toEqual(["2026-11-04", "2026-11-05"]);
+  });
 });

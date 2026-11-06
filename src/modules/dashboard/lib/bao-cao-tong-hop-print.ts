@@ -228,6 +228,69 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     <p class="muted">Chi tiết đầy đủ: mở «Báo cáo CSSD» trên hệ thống (cùng kỳ lọc).</p>`
         : ""
     }
+    ${
+      p.payload?.chat_thai_do_vai
+        ? `
+    <h3>6. Phụ lục Hậu cần KSNK — Chất thải & Đồ vải y tế (Toàn viện)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th class="text-left">Chỉ số cốt lõi</th>
+          <th>Giá trị</th>
+          <th>Ghi chú / Tiêu chuẩn</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-left">Tổng phát sinh CTYT</td>
+          <td>${p.payload.chat_thai_do_vai.stats.chat_thai.tong_chat_thai_kg.toLocaleString("vi-VN")} kg</td>
+          <td>Tất cả các nhóm chất thải</td>
+        </tr>
+        <tr>
+          <td class="text-left">Tỷ lệ chất thải lây nhiễm</td>
+          <td>${p.payload.chat_thai_do_vai.stats.chat_thai.ty_le_ctln_pct}%</td>
+          <td>Chuẩn &le; 20% (${p.payload.chat_thai_do_vai.stats.chat_thai.tong_ctln_kg.toLocaleString("vi-VN")} kg)</td>
+        </tr>
+        <tr>
+          <td class="text-left">Chất thải lây nhiễm sắc nhọn</td>
+          <td>${p.payload.chat_thai_do_vai.stats.chat_thai.kg_sac_nhon.toLocaleString("vi-VN")} kg</td>
+          <td>Hộp kháng thủng vàng</td>
+        </tr>
+        <tr>
+          <td class="text-left">Suất CTYT / 1.000 ngày-giường</td>
+          <td>${p.payload.chat_thai_do_vai.stats.chat_thai.chat_thai_per_1000_ngay_giuong.toLocaleString("vi-VN")} kg</td>
+          <td>Mẫu số: ${p.payload.chat_thai_do_vai.stats.tong_ngay_giuong.toLocaleString("vi-VN")} ng-g</td>
+        </tr>
+        <tr>
+          <td class="text-left">Tổng đồ vải bẩn giao giặt</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.tong_ban_kg.toLocaleString("vi-VN")} kg</td>
+          <td>Bẩn thường + bẩn lây nhiễm</td>
+        </tr>
+        <tr>
+          <td class="text-left">Tỷ lệ đồ bẩn lây nhiễm</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.ty_le_ban_ln_pct}%</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.kg_ban_lay_nhiem.toLocaleString("vi-VN")} kg túi vàng</td>
+        </tr>
+        <tr>
+          <td class="text-left">Chênh lệch đồ vải bẩn - sạch</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.chenh_lech_kg > 0 ? `+${p.payload.chat_thai_do_vai.stats.do_vai.chenh_lech_kg}` : p.payload.chat_thai_do_vai.stats.do_vai.chenh_lech_kg} kg</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.ty_le_chenh_lech_pct}% (Sạch về: ${p.payload.chat_thai_do_vai.stats.do_vai.kg_sach_ve.toLocaleString("vi-VN")} kg)</td>
+        </tr>
+        <tr>
+          <td class="text-left">Suất đồ vải / 1.000 ngày-giường</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.do_vai_per_1000_ngay_giuong.toLocaleString("vi-VN")} kg</td>
+          <td>Mẫu số: ${p.payload.chat_thai_do_vai.stats.tong_ngay_giuong.toLocaleString("vi-VN")} ng-g</td>
+        </tr>
+        <tr>
+          <td class="text-left">Sự cố an toàn sinh học phát hiện</td>
+          <td>CT: ${p.payload.chat_thai_do_vai.stats.chat_thai.so_su_co} vụ · Sắc nhọn đồ vải: ${p.payload.chat_thai_do_vai.stats.do_vai.so_su_co_sac_nhon} vụ</td>
+          <td>${p.payload.chat_thai_do_vai.stats.do_vai.so_su_co_sac_nhon > 0 ? "NGUY CƠ CAO PHƠI NHIỄM" : "An toàn"}</td>
+        </tr>
+      </tbody>
+    </table>
+    `
+        : ""
+    }
   `;
 
   const phanTichCheo = `

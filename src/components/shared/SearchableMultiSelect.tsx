@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FocusScope } from "@radix-ui/react-focus-scope";
+import { DismissableLayerBranch } from "@radix-ui/react-dismissable-layer";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import {
@@ -183,151 +185,187 @@ export default function SearchableMultiSelect({
       {open && canUseDOM
         ? createPortal(
             isMobileSheet ? (
-              <div
-                data-bv103-picker-portal=""
-                className="pointer-events-auto fixed inset-0 z-[10060] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
-                role="presentation"
-              >
-                <button
-                  type="button"
-                  aria-label="Đóng"
-                  className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
-                  onClick={() => setOpen(false)}
-                />
-                <div
-                  ref={panelRef}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="searchable-multi-sheet-title"
-                  className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-shell)] bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-200/80"
-                  onPointerDown={(e) => e.stopPropagation()}
+              <DismissableLayerBranch asChild>
+                <FocusScope
+                  asChild
+                  loop={false}
+                  trapped={false}
+                  onMountAutoFocus={(e) => {
+                    e.preventDefault();
+                    try {
+                      inputRef.current?.focus({ preventScroll: true });
+                    } catch {
+                      inputRef.current?.focus();
+                    }
+                  }}
                 >
-                  <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
-                    <span
-                      id="searchable-multi-sheet-title"
-                      className="min-w-0 truncate text-sm font-semibold text-slate-800"
-                    >
-                      {label}
-                    </span>
+                  <div
+                    data-bv103-picker-portal=""
+                    className="pointer-events-auto fixed inset-0 z-[10060] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
+                    role="presentation"
+                  >
                     <button
                       type="button"
+                      aria-label="Đóng"
+                      className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
                       onClick={() => setOpen(false)}
-                      className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
+                    />
+                    <div
+                      ref={panelRef}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="searchable-multi-sheet-title"
+                      className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-shell)] bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-200/80"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Đóng
-                    </button>
+                      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
+                        <span
+                          id="searchable-multi-sheet-title"
+                          className="min-w-0 truncate text-sm font-semibold text-slate-800"
+                        >
+                          {label}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setOpen(false)}
+                          className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
+                        >
+                          Đóng
+                        </button>
+                      </div>
+                      <div className="shrink-0 border-b border-slate-100 p-3">
+                        <input
+                          ref={inputRef}
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          onFocus={(e) => e.stopPropagation()}
+                          placeholder={`Tìm ${label.toLowerCase()}...`}
+                          className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
+                          autoComplete="off"
+                          enterKeyHint="search"
+                        />
+                      </div>
+                      <div className="flex shrink-0 gap-2 border-b border-slate-100 px-3 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => onChange(allSelected ? [] : options.map((opt) => opt.id))}
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[11px] font-bold text-slate-800 active:bg-slate-100"
+                        >
+                          {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+                        </button>
+                      </div>
+                      <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,440px)] flex-1 space-y-0.5 px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                        {filtered.length === 0 ? (
+                          <p className="px-2 py-6 text-center text-sm text-slate-500">
+                            {options.length === 0 ? "Chưa có danh mục để chọn" : "Không tìm thấy"}
+                          </p>
+                        ) : (
+                          filtered.map((opt) => {
+                            const checked = selected.includes(opt.id);
+                            return (
+                              <label
+                                key={opt.id}
+                                className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-3.5 hover:bg-slate-50 active:bg-slate-100"
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="h-5 w-5 shrink-0 accent-[var(--primary)]"
+                                  checked={checked}
+                                  onChange={(e) =>
+                                    onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
+                                  }
+                                />
+                                <span className="min-w-0 flex-1 text-base leading-snug">{opt.label}</span>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="shrink-0 border-b border-slate-100 p-3">
+                </FocusScope>
+              </DismissableLayerBranch>
+            ) : (
+              <DismissableLayerBranch asChild>
+                <FocusScope
+                  asChild
+                  loop={false}
+                  trapped={false}
+                  onMountAutoFocus={(e) => {
+                    e.preventDefault();
+                    try {
+                      inputRef.current?.focus({ preventScroll: true });
+                    } catch {
+                      inputRef.current?.focus();
+                    }
+                  }}
+                >
+                  <div
+                    ref={panelRef}
+                    data-bv103-picker-portal=""
+                    style={{ ...dropdownStyle, pointerEvents: "auto" }}
+                    className="pointer-events-auto rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 shadow-[var(--shadow-app-soft)]"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       ref={inputRef}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={(e) => e.stopPropagation()}
+                      onFocus={(e) => e.stopPropagation()}
                       placeholder={`Tìm ${label.toLowerCase()}...`}
-                      className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
-                      autoComplete="off"
-                      enterKeyHint="search"
+                      className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
                     />
-                  </div>
-                  <div className="flex shrink-0 gap-2 border-b border-slate-100 px-3 py-2.5">
-                    <button
-                      type="button"
-                      onClick={() => onChange(allSelected ? [] : options.map((opt) => opt.id))}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[11px] font-bold text-slate-800 active:bg-slate-100"
+
+                    <div className="mb-2 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onChange(allSelected ? [] : options.map((opt) => opt.id))}
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold"
+                      >
+                        {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOpen(false)}
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold"
+                      >
+                        Đóng
+                      </button>
+                    </div>
+
+                    <div
+                      className="custom-scrollbar space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1"
+                      style={{ maxHeight: `${listMaxHeight}px` }}
                     >
-                      {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
-                    </button>
+                      {filtered.length === 0 ? (
+                        <p className="px-2 py-4 text-center text-sm text-slate-500">
+                          {options.length === 0 ? "Chưa có danh mục để chọn" : "Không tìm thấy"}
+                        </p>
+                      ) : (
+                        filtered.map((opt) => {
+                          const checked = selected.includes(opt.id);
+                          return (
+                            <label key={opt.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(e) =>
+                                  onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
+                                }
+                              />
+                              <span className="text-sm">{opt.label}</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                  <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,440px)] flex-1 space-y-0.5 px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                    {filtered.length === 0 ? (
-                      <p className="px-2 py-6 text-center text-sm text-slate-500">
-                        {options.length === 0 ? "Chưa có danh mục để chọn" : "Không tìm thấy"}
-                      </p>
-                    ) : (
-                      filtered.map((opt) => {
-                        const checked = selected.includes(opt.id);
-                        return (
-                          <label
-                            key={opt.id}
-                            className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-3.5 hover:bg-slate-50 active:bg-slate-100"
-                          >
-                            <input
-                              type="checkbox"
-                              className="h-5 w-5 shrink-0 accent-[var(--primary)]"
-                              checked={checked}
-                              onChange={(e) =>
-                                onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
-                              }
-                            />
-                            <span className="min-w-0 flex-1 text-base leading-snug">{opt.label}</span>
-                          </label>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                ref={panelRef}
-                data-bv103-picker-portal=""
-                style={{ ...dropdownStyle, pointerEvents: "auto" }}
-                className="pointer-events-auto rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 shadow-[var(--shadow-app-soft)]"
-                onPointerDown={(e) => e.stopPropagation()}
-              >
-                <input
-                  ref={inputRef}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  placeholder={`Tìm ${label.toLowerCase()}...`}
-                  className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
-                />
-
-                <div className="mb-2 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onChange(allSelected ? [] : options.map((opt) => opt.id))}
-                    className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold"
-                  >
-                    {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold"
-                  >
-                    Đóng
-                  </button>
-                </div>
-
-                <div
-                  className="custom-scrollbar space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1"
-                  style={{ maxHeight: `${listMaxHeight}px` }}
-                >
-                  {filtered.length === 0 ? (
-                    <p className="px-2 py-4 text-center text-sm text-slate-500">
-                      {options.length === 0 ? "Chưa có danh mục để chọn" : "Không tìm thấy"}
-                    </p>
-                  ) : (
-                    filtered.map((opt) => {
-                      const checked = selected.includes(opt.id);
-                      return (
-                        <label key={opt.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(e) =>
-                              onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
-                            }
-                          />
-                          <span className="text-sm">{opt.label}</span>
-                        </label>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
+                </FocusScope>
+              </DismissableLayerBranch>
             ),
             resolveBv103PickerPortalRoot(),
           )

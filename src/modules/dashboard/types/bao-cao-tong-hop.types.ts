@@ -1,6 +1,8 @@
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
+import type { ThongKeKyHauCan } from "@/modules/chat-thai-do-vai/types";
+import type { CanhBaoGoiY } from "@/modules/chat-thai-do-vai/lib/chat-thai-do-vai-core";
 
 export type BaoCaoChuyenDe = "ALL" | "VST" | "GSC" | "NKBV";
 
@@ -48,6 +50,30 @@ export type BaoCaoKhoaRankRow = {
   has_data?: boolean;
 };
 
+/** Tóm tắt CSSD trên BCTH — không gộp vào VST/GSC. */
+export type BaoCaoCssdAppendix = {
+  san_luong_cap_phat: number;
+  tong_hoan_thanh_tram: number;
+  ty_le_quy_trinh_khong_su_co: number | null;
+  so_bo_danh_muc: number;
+  so_me_ky: number;
+  ty_le_qc_dat_me: number | null;
+  may_ready: number;
+  may_repairing: number;
+  station_volume: { station: string; label: string; completed: number }[];
+  /** Proxy sở hữu danh mục — chưa SSOT khoa nhận cấp phát. */
+  khoa_ownership_proxy?: {
+    disclaimer: string;
+    top: { ten_khoa: string; so_bo: number }[];
+  } | null;
+};
+
+/** Tóm tắt Hậu cần Chất thải & Đồ vải trên BCTH. */
+export type BaoCaoChatThaiDoVaiAppendix = {
+  stats: ThongKeKyHauCan;
+  insights: CanhBaoGoiY[];
+};
+
 export type BaoCaoTongHopPayload = {
   filters: BaoCaoTongHopFilters;
   sources: {
@@ -55,8 +81,9 @@ export type BaoCaoTongHopPayload = {
     gsc: SourceLoadStatus;
     nkbv: SourceLoadStatus;
     cssd: SourceLoadStatus;
+    chat_thai_do_vai?: SourceLoadStatus;
   };
-  errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string };
+  errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string; chat_thai_do_vai?: string };
   vst: VstStrategicPayload | null;
   gsc: GscStrategicPayload | null;
   /** BCTH-01: payload GSC chỉ BM.02/03 — khối Vệ sinh tay, độc lập lọc BK GSC. */
@@ -64,6 +91,8 @@ export type BaoCaoTongHopPayload = {
   nkbv: NkbvDashboardPayload | null;
   /** Phụ lục vận hành CSSD — không gộp vào VST/GSC. */
   cssd: BaoCaoCssdAppendix | null;
+  /** Phụ lục Hậu cần: Chất thải y tế & Đồ vải y tế — tinh gọn, không gộp vào VST/GSC. */
+  chat_thai_do_vai?: BaoCaoChatThaiDoVaiAppendix | null;
   kpis: {
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
@@ -95,27 +124,10 @@ export type BaoCaoTongHopPayload = {
     topic_gsc: boolean;
     topic_nkbv: boolean;
     topic_cssd: boolean;
+    topic_chat_thai_do_vai?: boolean;
     compare_khoa: boolean;
     compare_khoi: boolean;
     compare_khu_vuc: boolean;
     compare_doi_tuong: boolean;
   };
-};
-
-/** Tóm tắt CSSD trên BCTH — không gộp vào VST/GSC. */
-export type BaoCaoCssdAppendix = {
-  san_luong_cap_phat: number;
-  tong_hoan_thanh_tram: number;
-  ty_le_quy_trinh_khong_su_co: number | null;
-  so_bo_danh_muc: number;
-  so_me_ky: number;
-  ty_le_qc_dat_me: number | null;
-  may_ready: number;
-  may_repairing: number;
-  station_volume: { station: string; label: string; completed: number }[];
-  /** Proxy sở hữu danh mục — chưa SSOT khoa nhận cấp phát. */
-  khoa_ownership_proxy?: {
-    disclaimer: string;
-    top: { ten_khoa: string; so_bo: number }[];
-  } | null;
 };

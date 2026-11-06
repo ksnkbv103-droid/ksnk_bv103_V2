@@ -57,6 +57,10 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     void printCycleLabel({
       qrCode: String(lastScan.maCycleQr),
       tenBo: String(lastScan.tenBoDungCu || "Bộ dụng cụ CSSD"),
+      maBo: lastScan.maBo || null,
+      tenKhoa: lastScan.tenKhoa || null,
+      nguoiDongGoi: lastScan.nguoiThucHien || "CSSD",
+      ngayDongGoi: new Date().toLocaleDateString("vi-VN"),
     }).catch(() => {
       toast.message(`Đã đóng gói — mã chu trình: ${lastScan.maCycleQr}`);
     });

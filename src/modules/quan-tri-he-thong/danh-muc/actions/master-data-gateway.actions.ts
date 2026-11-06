@@ -27,6 +27,25 @@ type LocationRow = { vi_tri_cu_the?: string | null; khoa_id?: string | null };
 
 import { unstable_cache } from "next/cache";
 
+const getCachedRegistries = unstable_cache(
+  async (includeNgheNghiep: boolean) => {
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase.rpc("rpc_get_registry_options", {
+      p_categories: [
+        "KHOA_PHONG",
+        "KHU_VUC_GIAM_SAT",
+        "HINH_THUC_GIAM_SAT",
+        "CACH_THUC_GIAM_SAT",
+        includeNgheNghiep ? "NGHE_NGHIEP" : null,
+      ].filter(Boolean) as string[],
+    });
+    if (error) throw error;
+    return data as any;
+  },
+  ["master-registries"],
+  { revalidate: 600, tags: ["registries"] },
+);
+
 export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) {
   const ctx = options.permissionContext ?? "admin";
   const includeNhanSu = options.includeNhanSu === true; // Default false for header performance
@@ -44,26 +63,8 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
 
     const supabase = createAdminSupabaseClient();
 
-    const getCachedRegistries = unstable_cache(
-      async () => {
-        const { data, error } = await supabase.rpc("rpc_get_registry_options", {
-          p_categories: [
-            "KHOA_PHONG",
-            "KHU_VUC_GIAM_SAT",
-            "HINH_THUC_GIAM_SAT",
-            "CACH_THUC_GIAM_SAT",
-            includeNgheNghiep ? "NGHE_NGHIEP" : null,
-          ].filter(Boolean) as string[],
-        });
-        if (error) throw error;
-        return data as any;
-      },
-      [`master-registries-${ctx}-${includeNgheNghiep}`],
-      { revalidate: 600, tags: ["registries"] }
-    );
-
     const [registry, nhanSuRows, locationRes, khuVucFallbackRes] = await Promise.all([
-      getCachedRegistries(),
+      getCachedRegistries(includeNgheNghiep),
       includeNhanSu
         ? // A) select(*). B) cột form giám sát — chọn B (payload MDM picker).
           fetchAllRangeRows<Record<string, unknown>>((from, to) =>

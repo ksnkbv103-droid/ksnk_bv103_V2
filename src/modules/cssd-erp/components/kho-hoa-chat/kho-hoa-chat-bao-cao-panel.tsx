@@ -6,10 +6,11 @@ import { toast } from "sonner";
 import { buildBaoCaoNxt, type NxtSoRow } from "@/lib/domain/cssd-kho-hoa-chat-bao-cao-nxt";
 import type { DmLite } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { downloadRowsAsExcel } from "@/lib/analytics/download-supervision-excel";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { listSoKhoHoaChatDenNgayAction } from "../../actions/cssd-kho-hoa-chat.actions";
 
-const TH = "bv103-type-label px-2 py-1.5 text-right font-semibold text-slate-500";
+const TH = `${bv103LayoutChrome.labelField} px-2 py-1.5 text-right font-semibold text-slate-500`;
 const TD = "px-2 py-1.5 text-right tabular-nums";
 
 export default function KhoHoaChatBaoCaoPanel({ dms }: { dms: DmLite[] }) {

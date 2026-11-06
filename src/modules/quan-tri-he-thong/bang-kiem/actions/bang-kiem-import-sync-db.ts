@@ -139,26 +139,24 @@ export async function syncBangKiemImportToDatabase(
         }
       }
 
-      // Soft-delete tiêu chí thiếu trong file (chỉ khi đồng bộ đầy đủ)
+      // Xử lý tiêu chí hiện có trong DB nhưng không nằm trong file import
       if (softDeleteMissing) {
         for (const oldTc of currentTcs) {
-          if (oldTc.ma_tc && !importedTCCodes.has(oldTc.ma_tc)) {
-            const alreadyAdded = newTcArray.find((t) => t.id === oldTc.id);
-            if (!alreadyAdded) {
-              newTcArray.push({
-                ...oldTc,
-                is_active: false,
-                updated_at: new Date().toISOString(),
-              });
-            }
+          const alreadyAdded = newTcArray.some((t) => t.id === oldTc.id);
+          if (!alreadyAdded) {
+            // Tiêu chí có mã và không có trong file thì chuyển is_active = false; tiêu chí không có mã vẫn bảo toàn
+            const isMissingFromImport = oldTc.ma_tc ? !importedTCCodes.has(oldTc.ma_tc) : false;
+            newTcArray.push({
+              ...oldTc,
+              is_active: isMissingFromImport ? false : (oldTc.is_active !== false),
+              updated_at: new Date().toISOString(),
+            });
           }
         }
       } else {
         for (const oldTc of currentTcs) {
-          if (oldTc.ma_tc && !importedTCCodes.has(oldTc.ma_tc)) {
-            const alreadyAdded = newTcArray.find((t) => t.id === oldTc.id);
-            if (!alreadyAdded) newTcArray.push(oldTc);
-          }
+          const alreadyAdded = newTcArray.some((t) => t.id === oldTc.id);
+          if (!alreadyAdded) newTcArray.push(oldTc);
         }
       }
       
@@ -177,10 +175,12 @@ export async function syncBangKiemImportToDatabase(
   if (softDeleteMissing) {
     const bksToDelete = Array.from(existingBKs.keys()).filter((c) => !importedBKCodes.has(c));
     if (bksToDelete.length > 0) {
+      // Chỉ soft-delete bảng kiểm tùy chỉnh của đơn vị, bảo vệ bảng kiểm hệ thống (is_system = true)
       const { error } = await supabase
         .from("gstt_dm_bang_kiem")
         .update({ is_active: false })
-        .in("ma_bk", bksToDelete);
+        .in("ma_bk", bksToDelete)
+        .eq("is_system", false);
       if (error) dbErrors.push(`BK delete missing: ${error.message}`);
     }
   }

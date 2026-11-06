@@ -20,14 +20,18 @@ async function verifyCanViewKhoCatalog(): Promise<void> {
   await verifyPermission("CSSD_KHO_DUNGCU", "view");
 }
 
-const PAGE = 20;
+const DEFAULT_PAGE_LIMIT = 200;
 
-export async function searchKhoCatalogLoaiAction(q: string): Promise<
+export async function searchKhoCatalogLoaiAction(
+  q: string,
+  options?: { limit?: number },
+): Promise<
   { success: true; data: CSSDLoai[] } | { success: false; error: string }
 > {
   try {
     await verifyCanViewKhoCatalog();
     const supabase = createAdminSupabaseClient();
+    const limit = options?.limit ?? DEFAULT_PAGE_LIMIT;
     let query = supabase
       .from("cssd_dm_loai_dung_cu")
       .select(
@@ -36,7 +40,7 @@ export async function searchKhoCatalogLoaiAction(q: string): Promise<
       .eq("is_active", true);
     const filter = buildSupabaseSearchFilter(q, ["ma_loai", "ten_loai"]);
     if (filter) query = query.or(filter);
-    const { data, error } = await query.order("ma_loai").limit(PAGE);
+    const { data, error } = await query.order("ma_loai").limit(limit);
     if (error) throw error;
     const mapped = (data || []).map((x) => {
       const m = mapLoaiPhysicalToListRow(x as Record<string, unknown>);
@@ -97,7 +101,7 @@ export async function searchKhoCatalogChiTietAction(q: string): Promise<
       .eq("is_active", true);
     const filter = buildSupabaseSearchFilter(q, ["ma_chi_tiet", "ten_chi_tiet", "ten_bo", "ten_loai_dung_cu"]);
     if (filter) query = query.or(filter);
-    const { data, error } = await query.order("ma_chi_tiet").limit(PAGE);
+    const { data, error } = await query.order("ma_chi_tiet").limit(DEFAULT_PAGE_LIMIT);
     if (error) throw error;
     return {
       success: true,
@@ -139,6 +143,29 @@ export async function getBosContainingLoaiAction(loaiId: string): Promise<
       .eq("loai_dung_cu_id", id)
       .eq("is_active", true);
     if (error) throw error;
+
+    const khoaIds = [
+      ...new Set(
+        (data || [])
+          .map((row) => {
+            const rel = (row as { bo?: Record<string, unknown> | Record<string, unknown>[] | null }).bo;
+            const bo = Array.isArray(rel) ? rel[0] : rel;
+            return bo?.khoa_su_dung_id ? String(bo.khoa_su_dung_id).trim() : "";
+          })
+          .filter(Boolean),
+      ),
+    ];
+    const khoaMap = new Map<string, string>();
+    if (khoaIds.length > 0) {
+      const { data: khoaRows } = await supabase
+        .from("mdm_dm_khoa_phong")
+        .select("id, ten_khoa, ma_khoa")
+        .in("id", khoaIds);
+      for (const k of khoaRows || []) {
+        khoaMap.set(String(k.id), String(k.ten_khoa || k.ma_khoa || ""));
+      }
+    }
+
     const byId = new Map<string, CSSDBo>();
     for (const row of data || []) {
       const rel = (row as { bo?: Record<string, unknown> | Record<string, unknown>[] | null }).bo;
@@ -150,6 +177,7 @@ export async function getBosContainingLoaiAction(loaiId: string): Promise<
         existing.co_so_loai_dang_xem = (existing.co_so_loai_dang_xem ?? 0) + qty;
         continue;
       }
+      const kid = bo.khoa_su_dung_id ? String(bo.khoa_su_dung_id) : null;
       byId.set(String(bo.id), {
         id: String(bo.id),
         ma_bo: String(bo.ma_bo || ""),
@@ -157,6 +185,8 @@ export async function getBosContainingLoaiAction(loaiId: string): Promise<
         loai_dung_cu_id: null,
         is_active: true,
         phan_loai_bo: bo.phan_loai_bo ? String(bo.phan_loai_bo) : null,
+        khoa_su_dung_id: kid,
+        ten_khoa: kid ? khoaMap.get(kid) || null : null,
         co_so_loai_dang_xem: qty,
       });
     }

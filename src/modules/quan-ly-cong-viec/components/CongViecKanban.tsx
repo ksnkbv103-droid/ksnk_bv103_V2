@@ -208,6 +208,30 @@ export default function CongViecKanban({
                                 </div>
                               );
                             })()}
+                            {(() => {
+                              const td = formatQlcvPhoiHopChips(
+                                task.nguoi_theo_doi_ids,
+                                staffLabelOpts,
+                                2,
+                              );
+                              if (td.empty) return null;
+                              return (
+                                <div className="mt-0.5 flex flex-wrap items-center gap-0.5" title={`Theo dõi: ${td.title}`}>
+                                  <span className="text-[10px] font-medium text-teal-700">TĐ:</span>
+                                  {td.chips.map((c) => (
+                                    <span
+                                      key={c.id}
+                                      className="bv103-type-label inline-flex max-w-[4.5rem] truncate rounded-full border border-teal-200 bg-teal-50 px-1 py-px font-medium text-teal-700"
+                                    >
+                                      {c.label}
+                                    </span>
+                                  ))}
+                                  {td.extra > 0 ? (
+                                    <span className="bv103-type-label font-semibold text-teal-600">+{td.extra}</span>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </div>

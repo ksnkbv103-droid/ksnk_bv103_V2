@@ -25,8 +25,14 @@ export function parseHanChungChiThang(gan: unknown): number {
 export function addMonthsIso(iso: string, months: number): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
+  const origDay = d.getUTCDate();
   const out = new Date(d.getTime());
-  out.setMonth(out.getMonth() + months);
+  out.setUTCDate(1);
+  out.setUTCMonth(out.getUTCMonth() + months);
+  const daysInTargetMonth = new Date(
+    Date.UTC(out.getUTCFullYear(), out.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  out.setUTCDate(Math.min(origDay, daysInTargetMonth));
   return out.toISOString();
 }
 

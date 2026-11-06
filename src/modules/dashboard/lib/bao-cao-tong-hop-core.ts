@@ -15,6 +15,7 @@ import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dash
 import type {
   BaoCaoChuyenDe,
   BaoCaoCssdAppendix,
+  BaoCaoChatThaiDoVaiAppendix,
   BaoCaoKhoaRankRow,
   BaoCaoTrendGranularity,
   BaoCaoTrendPoint,
@@ -476,8 +477,9 @@ export function composeBaoCaoTongHopPayload(args: {
   gscVeSinhTay?: GscStrategicPayload | null;
   nkbv: NkbvDashboardPayload | null;
   cssd?: BaoCaoCssdAppendix | null;
-  sources: { vst: SourceLoadStatus; gsc: SourceLoadStatus; nkbv: SourceLoadStatus; cssd?: SourceLoadStatus };
-  errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string };
+  chat_thai_do_vai?: BaoCaoChatThaiDoVaiAppendix | null;
+  sources: { vst: SourceLoadStatus; gsc: SourceLoadStatus; nkbv: SourceLoadStatus; cssd?: SourceLoadStatus; chat_thai_do_vai?: SourceLoadStatus };
+  errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string; chat_thai_do_vai?: string };
   /** Kỳ trước cùng độ dài — chỉ số process; null nếu không tải. */
   kyTruoc?: {
     tu_ngay: string;
@@ -517,6 +519,7 @@ export function composeBaoCaoTongHopPayload(args: {
       gsc: args.sources.gsc,
       nkbv: args.sources.nkbv,
       cssd: cssdStatus,
+      chat_thai_do_vai: args.sources.chat_thai_do_vai ?? "skipped",
     },
     errors: args.errors,
     vst: args.vst,
@@ -524,6 +527,7 @@ export function composeBaoCaoTongHopPayload(args: {
     gsc_ve_sinh_tay: args.gscVeSinhTay ?? null,
     nkbv: args.nkbv,
     cssd: args.cssd ?? null,
+    chat_thai_do_vai: args.chat_thai_do_vai ?? null,
     kpis: {
       ty_le_vst: tyLeVst,
       ty_le_gsc: tyLeGsc,
@@ -542,6 +546,7 @@ export function composeBaoCaoTongHopPayload(args: {
       topic_gsc: args.sources.gsc === "ok",
       topic_nkbv: args.sources.nkbv === "ok",
       topic_cssd: cssdStatus === "ok",
+      topic_chat_thai_do_vai: (args.sources.chat_thai_do_vai ?? "skipped") === "ok",
       compare_khoa: khoaRank.length > 0 || (args.filters.khoa_ids?.length ?? 0) > 0,
       compare_khoi:
         (args.vst?.matrix_khoi?.length ?? 0) > 0 || (args.gsc?.matrix_khoi?.length ?? 0) > 0,

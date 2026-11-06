@@ -148,6 +148,8 @@ export async function getWaitingListByStation(station: Station) {
         if (isChoThuVeCycle((m as { metadata?: unknown }).metadata)) recallPendingIds.add(String((m as { id: string }).id));
       }
     }
+    const redKeys = await loadRedAlertKeys(supabase);
+    for (const redId of redKeys) recallPendingIds.add(redId);
     const filtered = filterOutRecallPending(passedRows, recallPendingIds);
     const nguoiIds = [
       ...new Set(filtered.map((x) => String(x[prevCols.nguoiCol] || "").trim()).filter(Boolean)),

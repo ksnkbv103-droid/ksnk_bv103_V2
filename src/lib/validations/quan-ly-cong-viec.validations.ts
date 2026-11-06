@@ -52,6 +52,7 @@ export const congViecSchema = z.object({
     .default([]),
 
   han_hoan_thanh: z.preprocess(qlcvEmptyToNull, z.union([z.string().min(1), z.null()]).optional()),
+  checklist: z.unknown().optional(),
 
   /** PDCA từ analytics — map sang cột analytics_meta. */
   analytics_meta: z

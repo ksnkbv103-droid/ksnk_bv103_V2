@@ -23,6 +23,7 @@ export type QlcvInsertTaskPayload = {
   vi_tri_thuc_hien?: string | null;
   nguoi_phoi_hop_ids?: string[];
   nguoi_theo_doi_ids?: string[];
+  checklist?: unknown;
   is_active: boolean;
   nguoi_tao_id: string;
   nguoi_giao_viec_id?: string | null;
@@ -178,7 +179,11 @@ export async function insertQlcvTaskRow(
       nhom_chuyen_mon_id: payload.nhom_chuyen_mon_id || null,
       vi_tri_thuc_hien: payload.vi_tri_thuc_hien?.trim() || null,
       dia_diem_khoa_id: diaDiemKhoaIds[0] ?? (payload.dia_diem_khoa_id || null),
-      ...(diaDiemKhoaIds.length ? { dia_diem_khoa_ids: diaDiemKhoaIds } : {}),
+      ...(diaDiemKhoaIds.length
+        ? { dia_diem_khoa_ids: diaDiemKhoaIds }
+        : payload.dia_diem_khoa_id
+          ? { dia_diem_khoa_ids: [payload.dia_diem_khoa_id] }
+          : {}),
       nhiem_vu_id: nhiemVuId,
       nguoi_phoi_hop_ids: phoiHop,
       nguoi_theo_doi_ids: theoDoi,
@@ -187,6 +192,7 @@ export async function insertQlcvTaskRow(
       trang_thai: dm.trang_thai,
       phan_tram_hoan_thanh: 0,
       is_active: payload.is_active,
+      checklist: Array.isArray(payload.checklist) ? payload.checklist : [],
       nhat_ky: [],
       analytics_meta,
       ...(nguon_lien_ket ? { nguon_lien_ket } : {}),

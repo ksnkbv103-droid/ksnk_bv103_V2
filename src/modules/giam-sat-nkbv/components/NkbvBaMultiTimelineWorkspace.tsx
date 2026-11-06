@@ -38,6 +38,7 @@ import {
   type SessionIndexSuggestion,
   type SyndromePanelId,
 } from "../lib/nkbv-specimen-syndrome";
+import { validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
 import { isNkbvCh17SpecimenOnly } from "../lib/nkbv-specimen-canonical";
 import {
   loadBaAnalysisSessions,
@@ -171,6 +172,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   onReload,
   onTimelineUpsertLocal,
   onTimelineRemoveLocal,
+  onOpenCase,
   priorEvents = [],
 }: NkbvBaMultiTimelineWorkspaceProps) {
   const [addXnDate, setAddXnDate] = useState<string | null>(null);
@@ -814,6 +816,22 @@ export default function NkbvBaMultiTimelineWorkspace({
       return;
     }
 
+    // Quy tắc CDC & Bộ Y tế: Phân tích tuần tự theo thời gian, không nhảy cóc xét nghiệm
+    const chronoCheck = validateChronoPrecedence({
+      targetDate: x.ngay,
+      targetId: x.id,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!chronoCheck.allowed) {
+      toast.warning(chronoCheck.message, { duration: 6000 });
+      const earlierXn = split.xn.find((it) => it.id === chronoCheck.earliestUnresolved.id);
+      if (earlierXn) {
+        void openFromXn(earlierXn);
+      }
+      return;
+    }
+
     const disp = resolveIndexEventDisposition({
       indexId: x.id,
       indexDate: x.ngay,
@@ -902,6 +920,23 @@ export default function NkbvBaMultiTimelineWorkspace({
       });
       return;
     }
+
+    // Quy tắc CDC & Bộ Y tế: Phân tích tuần tự theo thời gian, không nhảy cóc cận lâm sàng
+    const chronoCheck = validateChronoPrecedence({
+      targetDate: c.ngay,
+      targetId: c.id,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!chronoCheck.allowed) {
+      toast.warning(chronoCheck.message, { duration: 6000 });
+      const earlierXn = split.xn.find((it) => it.id === chronoCheck.earliestUnresolved.id);
+      if (earlierXn) {
+        void openFromXn(earlierXn);
+      }
+      return;
+    }
+
     const localCdhaKl = findBaSampleConclusion(sampleConclusions, c.id);
     if (localCdhaKl?.disposition === "KHONG_DU_TC") {
       toast.message(localCdhaKl.label);
@@ -1282,6 +1317,30 @@ export default function NkbvBaMultiTimelineWorkspace({
       });
       return;
     }
+
+    // Quy tắc CDC & Bộ Y tế: Phân tích tuần tự theo thời gian, không nhảy cóc xét nghiệm/cận lâm sàng
+    const chronoCheck = validateChronoPrecedence({
+      targetDate: s.index.date,
+      targetId: s.index.id,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!chronoCheck.allowed) {
+      toast.warning(chronoCheck.message, { duration: 6000 });
+      const earlierSugg = sessionSuggestions.find(
+        (it) => it.index.id === chronoCheck.earliestUnresolved.id,
+      );
+      if (earlierSugg) {
+        openFromSuggestion(earlierSugg);
+      } else {
+        const earlierXn = split.xn.find((it) => it.id === chronoCheck.earliestUnresolved.id);
+        if (earlierXn) {
+          void openFromXn(earlierXn);
+        }
+      }
+      return;
+    }
+
     const xnCell = split.xn.find((x) => x.id === s.index.id);
     const specimen =
       xnCell?.benh_pham ||
@@ -1428,6 +1487,7 @@ export default function NkbvBaMultiTimelineWorkspace({
         priorEvents={priorEvents}
         xnList={split.xn}
         statusById={xnStatusById}
+        onSelectEvent={onOpenCase}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
@@ -1443,6 +1503,8 @@ export default function NkbvBaMultiTimelineWorkspace({
           sessions={sessions}
           openSessionId={openSessionId}
           establishedSiteSbaps={establishedSiteSbaps}
+          xnList={split.xn}
+          xnStatusById={xnStatusById}
           onOpenSuggestion={openFromSuggestion}
           onSelectSession={setOpenSessionId}
           onRemoveSession={removeSession}
@@ -1822,6 +1884,18 @@ export default function NkbvBaMultiTimelineWorkspace({
                   toast.message("Đã thuộc sự kiện trước — không tạo phiếu mới.");
                   return;
                 }
+                if (!isManual) {
+                  const chronoCheck = validateChronoPrecedence({
+                    targetDate: openSession.index.date,
+                    targetId: openSession.index.id,
+                    xnList: split.xn,
+                    statusById: xnStatusById,
+                  });
+                  if (!chronoCheck.allowed) {
+                    toast.error(chronoCheck.message, { duration: 6000 });
+                    return;
+                  }
+                }
                 if (isManual && !manualKl) {
                   toast.message("Tự phân tích: nhập kết luận sự kiện trước khi tạo phiếu.");
                   return;
@@ -1903,6 +1977,7 @@ export default function NkbvBaMultiTimelineWorkspace({
                   criteriaMetPreview: true,
                   surgeryDate: ssiSurgeryDate,
                   extraFormFields: ssiExtraFields,
+                  khoas,
                 });
                 const majorType = resolveNkbvMajorType({
                   loai_ma: openSession.panel,

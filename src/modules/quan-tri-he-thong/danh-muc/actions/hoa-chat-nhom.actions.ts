@@ -86,7 +86,12 @@ export async function createHoaChatNhomAction(input: { ten: string; loai_hoa_cha
     .select(COLS)
     .single();
   if (error) return { success: false as const, error: dbErr(error) };
-  await logAdminAction({ action: "MASTER_CREATE", targetTable: "cssd_dm_hoa_chat_nhom", targetId: data.id });
+  await logAdminAction({
+    action: "MASTER_CREATE",
+    targetTable: "cssd_dm_hoa_chat_nhom",
+    targetId: data.id,
+    after: data,
+  });
   return { success: true as const, data: data as HoaChatNhomRow };
 }
 
@@ -109,7 +114,12 @@ export async function updateHoaChatNhomAction(id: string, patch: { ten?: string;
     .select(COLS);
   if (error) return { success: false as const, error: dbErr(error) };
   if (!data?.length) return { success: false as const, error: "Nhóm không tồn tại." };
-  await logAdminAction({ action: "MASTER_UPDATE", targetTable: "cssd_dm_hoa_chat_nhom", targetId: nid });
+  await logAdminAction({
+    action: "MASTER_UPDATE",
+    targetTable: "cssd_dm_hoa_chat_nhom",
+    targetId: nid,
+    after: data[0],
+  });
   return { success: true as const, data: data[0] as HoaChatNhomRow };
 }
 
@@ -135,6 +145,7 @@ export async function setHoaChatNhomActiveAction(id: string, isActive: boolean) 
     action: isActive ? "MASTER_RESTORE" : "MASTER_SOFT_DELETE",
     targetTable: "cssd_dm_hoa_chat_nhom",
     targetId: parsed.data.id,
+    after: { is_active: parsed.data.isActive },
   });
   return { success: true as const, data: data[0] as HoaChatNhomRow };
 }

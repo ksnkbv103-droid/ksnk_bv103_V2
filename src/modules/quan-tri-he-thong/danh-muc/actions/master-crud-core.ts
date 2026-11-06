@@ -120,13 +120,18 @@ async function gateCssdCatalogMasterWrite(tableName: string) {
 }
 
 
-function convertToLookupPayload(tableName: string, payload: Record<string, unknown>, categoryType: string) {
+function convertToLookupPayload(
+  tableName: string,
+  payload: Record<string, unknown>,
+  categoryType: string,
+  existingRecord?: { code?: string; metadata?: Record<string, any> | null } | null,
+) {
   const config = CONSOLIDATED_MAPS[tableName];
   if (!config) return payload;
 
   const { maColumn, tenColumn, metadataColumns } = config;
 
-  const code = String(
+  let code = String(
     payload[maColumn] ?? 
     payload["ma_loai"] ?? 
     payload["ma_loai_dung_cu"] ?? 
@@ -137,8 +142,13 @@ function convertToLookupPayload(tableName: string, payload: Record<string, unkno
     payload["ma_trang_thai"] ??
     payload["ma"] ??
     payload["ma_khu_vuc"] ??
+    payload["code"] ??
     ""
   ).trim();
+
+  if (!code && existingRecord?.code) {
+    code = existingRecord.code;
+  }
 
   const name = String(
     payload[tenColumn] ?? 
@@ -151,6 +161,7 @@ function convertToLookupPayload(tableName: string, payload: Record<string, unkno
     payload["ten_trang_thai"] ??
     payload["ten"] ??
     payload["ten_khu_vuc"] ??
+    payload["name"] ??
     ""
   ).trim();
 
@@ -166,15 +177,29 @@ function convertToLookupPayload(tableName: string, payload: Record<string, unkno
     updated_at: new Date().toISOString(),
   };
 
-  // Xử lý metadata động cho các trường đặc thù
+  const existingMetadata = existingRecord?.metadata;
+
+  // Xử lý metadata động cho các trường đặc thù (giữ nguyên metadata cũ nếu không được truyền mới)
   if (metadataColumns && metadataColumns.length > 0) {
-    const metadata: Record<string, any> = {};
+    const metadata: Record<string, any> = { ...(existingMetadata || {}) };
+    let hasMetadataChange = Boolean(existingMetadata && Object.keys(existingMetadata).length > 0);
     for (const col of metadataColumns) {
       if (payload[col] !== undefined) {
         metadata[col] = payload[col];
+        hasMetadataChange = true;
       }
     }
-    lookupPayload.metadata = metadata;
+    if (payload["metadata"] && typeof payload["metadata"] === "object") {
+      Object.assign(metadata, payload["metadata"]);
+      hasMetadataChange = true;
+    }
+    if (hasMetadataChange || existingRecord === null || existingRecord === undefined) {
+      lookupPayload.metadata = metadata;
+    }
+  } else if (payload["metadata"] && typeof payload["metadata"] === "object") {
+    lookupPayload.metadata = { ...(existingMetadata || {}), ...(payload["metadata"] as Record<string, unknown>) };
+  } else if (existingMetadata) {
+    lookupPayload.metadata = existingMetadata;
   }
 
   return lookupPayload;
@@ -196,45 +221,55 @@ async function assertCodeChangeAllowed(
   tableName: string,
   id: string,
   nextCode: string,
-): Promise<string | null> {
-  if (!id || !nextCode) return null;
+): Promise<{ error: string | null; existingRecord?: { code: string; metadata?: Record<string, any> | null } | null }> {
+  if (!id) return { error: null };
 
   if (tableName === "mdm_dm_khoa_phong") {
+    if (!nextCode) return { error: null };
     const { data: cur } = await supabase
       .from("mdm_dm_khoa_phong")
       .select("ma_khoa")
       .eq("id", id)
       .maybeSingle();
     const oldCode = String(cur?.ma_khoa || "").trim();
-    if (!oldCode || oldCode === nextCode) return null;
+    if (!oldCode || oldCode === nextCode) return { error: null };
     const { count } = await supabase
       .from("gstt_fact_vst")
       .select("id", { count: "exact", head: true })
       .eq("khoa_id", id);
     if ((count || 0) > 0) {
-      return "Không được sửa mã khoa đã có phiên giám sát — chỉ sửa tên.";
+      return { error: "Không được sửa mã khoa đã có phiên giám sát — chỉ sửa tên." };
     }
     const { count: gscCount } = await supabase
       .from("gstt_fact_chung_sessions")
       .select("id", { count: "exact", head: true })
       .eq("khoa_id", id);
     if ((gscCount || 0) > 0) {
-      return "Không được sửa mã khoa đã có phiên giám sát — chỉ sửa tên.";
+      return { error: "Không được sửa mã khoa đã có phiên giám sát — chỉ sửa tên." };
     }
-    return null;
+    return { error: null };
   }
 
   const config = CONSOLIDATED_MAPS[tableName];
-  if (!config) return null;
+  if (!config) return { error: null };
   const { data: cur } = await supabase
     .from("sys_lookup_value")
-    .select("code")
+    .select("code, metadata")
     .eq("id", id)
     .eq("category_type", config.categoryType)
     .maybeSingle();
   const oldCode = String(cur?.code || "").trim();
-  if (!oldCode || oldCode === nextCode) return null;
-  return "Không được sửa mã danh mục đã tồn tại — chỉ sửa tên (hoặc dùng migration).";
+  const existingRecord = cur
+    ? {
+        code: oldCode,
+        metadata: cur.metadata && typeof cur.metadata === "object" ? (cur.metadata as Record<string, any>) : null,
+      }
+    : null;
+
+  if (nextCode && oldCode && oldCode !== nextCode) {
+    return { error: "Không được sửa mã danh mục đã tồn tại — chỉ sửa tên (hoặc dùng migration).", existingRecord };
+  }
+  return { error: null, existingRecord };
 }
 
 /** Nhật ký chỉ giữ tên trường + vài giá trị ngắn — không chép nguyên payload (tránh lộ dữ liệu dài/nhạy cảm). */
@@ -256,16 +291,22 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
   const config = CONSOLIDATED_MAPS[tableName];
 
   if (config) {
-    const lookupPayload = convertToLookupPayload(tableName, payload, config.categoryType);
+    let existingRecord: { code: string; metadata?: Record<string, any> | null } | null = null;
     if (id) {
-      const codeErr = await assertCodeChangeAllowed(
-        supabase,
-        tableName,
-        id,
-        String(lookupPayload.code || ""),
-      );
-      if (codeErr) return { success: false as const, error: codeErr };
+      const candidateCode = String(
+        payload[config.maColumn] ??
+          payload["code"] ??
+          payload["ma"] ??
+          payload["ma_khu_vuc"] ??
+          payload["ma_tram"] ??
+          payload["ma_trang_thai"] ??
+          "",
+      ).trim();
+      const codeCheck = await assertCodeChangeAllowed(supabase, tableName, id, candidateCode);
+      if (codeCheck.error) return { success: false as const, error: codeCheck.error };
+      existingRecord = codeCheck.existingRecord ?? null;
     }
+    const lookupPayload = convertToLookupPayload(tableName, payload, config.categoryType, existingRecord);
     if (id) {
       // Chỉ sửa trong đúng nhóm category_type — chặn sửa chéo nhóm qua id.
       const { data: updated, error } = await supabase
@@ -283,8 +324,8 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
   } else {
     if (id && tableName === "mdm_dm_khoa_phong") {
       const nextCode = String(payload.ma_khoa || payload.ma || "").trim();
-      const codeErr = await assertCodeChangeAllowed(supabase, tableName, id, nextCode);
-      if (codeErr) return { success: false as const, error: codeErr };
+      const codeCheck = await assertCodeChangeAllowed(supabase, tableName, id, nextCode);
+      if (codeCheck.error) return { success: false as const, error: codeCheck.error };
     }
     const { error } = id
       ? await supabase.from(tableName).update(payload).eq("id", id)

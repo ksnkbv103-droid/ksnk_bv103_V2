@@ -13,6 +13,7 @@ export type ReportSectionId =
   | "bc-thoi-diem"
   | "bc-nkbv"
   | "bc-cssd"
+  | "bc-waste-linen"
   | "bc-chuyen-de"
   | "bc-phan-iii";
 
@@ -32,6 +33,7 @@ export const BCTH_MORE_SECTIONS: { id: ReportSectionId; label: string }[] = [
   { id: "bc-thoi-diem", label: "Thời điểm" },
   { id: "bc-chuyen-de", label: "Chuyên đề" },
   { id: "bc-cssd", label: "Phụ lục CSSD" },
+  { id: "bc-waste-linen", label: "Chất thải & Đồ vải" },
 ];
 
 const MORE_SECTIONS = BCTH_MORE_SECTIONS;

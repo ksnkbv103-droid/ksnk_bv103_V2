@@ -4,17 +4,18 @@
  */
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { getActorAuthUserId } from "@/lib/actor-auth-server";
+import { getActorAuthUser } from "@/lib/actor-auth-server";
 import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
 import { isGuestStatsOnlyRole } from "@/lib/auth/guest-stats-access";
+import { withBreakGlassAdminRole } from "@/lib/auth/trusted-admin-email";
 
 function normRole(r: unknown): string {
   return String(r || "").trim().toUpperCase();
 }
 
 export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
-  const authUserId = await getActorAuthUserId();
-  if (!authUserId) {
+  const user = await getActorAuthUser();
+  if (!user?.id) {
     return {
       roles: [],
       actorNhanSuId: null,
@@ -25,6 +26,9 @@ export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
       isGuestStatsOnly: false,
     };
   }
+
+  const authUserId = user.id;
+  const userEmail = user.email;
 
   const supabase = createAdminSupabaseClient();
 
@@ -38,8 +42,8 @@ export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
       .maybeSingle(),
   ]);
 
-  const roles = (permData?.roles as string[] | null) || [];
-  const rolesNorm = roles.map(normRole).filter(Boolean);
+  const rawRoles = (permData?.roles as string[] | null) || [];
+  const rolesNorm = withBreakGlassAdminRole(rawRoles.map(normRole).filter(Boolean), userEmail);
 
   const actorNhanSuId = staffData?.id ? String(staffData.id) : null;
   const actorKhoaId = staffData?.khoa_id ? String(staffData.khoa_id) : null;

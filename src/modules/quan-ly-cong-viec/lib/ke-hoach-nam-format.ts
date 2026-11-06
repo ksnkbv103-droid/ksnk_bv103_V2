@@ -1,4 +1,5 @@
 import type { NhiemVuRow } from "../actions/nhiem-vu.actions";
+import { qlcvTodayVn } from "./qlcv-today-vn";
 
 export type KeHoachNamPeriodKind = "THANG" | "QUY" | "NAM";
 
@@ -93,7 +94,8 @@ export function parseQuickNhiemVuInput(raw: string): {
   return { ten: trimmed, quy: null, thang: null };
 }
 
-function defaultPeriodFilterNow(now = new Date()): KeHoachNamPeriodFilter {
-  const month = now.getMonth() + 1;
+export function defaultPeriodFilterNow(now = new Date()): KeHoachNamPeriodFilter {
+  const [, mm] = qlcvTodayVn(now).split("-");
+  const month = Number(mm) || now.getMonth() + 1;
   return { kind: "THANG", value: month };
 }

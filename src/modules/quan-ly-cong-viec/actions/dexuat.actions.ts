@@ -95,18 +95,22 @@ export async function createDeXuat(input: CreateDeXuatInput) {
 
 export async function pheDuyetDeXuat(id: string, duyet: boolean, lyDo?: string) {
   await verifyQlcvApproveCapability();
-  const { supabase } = await ensureQlcvKsnkAccess("approve");
+  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("approve");
   const actorNhanSuId = await getActorNhanSuId();
 
   const { data: row, error: fetchErr } = await supabase
     .from("qlcv_fact_cong_viec")
-    .select("tieu_de, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, loai_cong_viec")
+    .select("tieu_de, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, loai_cong_viec, is_active, trang_thai")
     .eq("id", id)
     .maybeSingle();
 
   if (fetchErr || !row) throw new Error("Không tìm thấy đề xuất.");
+  if (!isDeXuatChoDuyet(row)) {
+    throw new Error("Công việc không ở trạng thái đề xuất chờ duyệt.");
+  }
 
   if (duyet) {
+    await validateAssigneeForQlcv(supabase, row.nguoi_phu_trach_id, ksnkKhoaId);
     assertQlcvActiveInvariant({
       tieu_de: row.tieu_de,
       nguoi_phu_trach_id: row.nguoi_phu_trach_id,
@@ -129,11 +133,15 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, lyDo?: string) 
       },
     });
   } else {
+    const reason = String(lyDo ?? "").trim();
+    if (!reason) {
+      throw new Error("Nhập lý do từ chối đề xuất.");
+    }
     await invokeQlcvTransition(supabase, {
       congViecId: id,
       action: "TU_CHOI_DEXUAT",
       actorNhanSuId: actorNhanSuId,
-      lyDo: lyDo,
+      lyDo: reason,
     });
   }
 
@@ -150,23 +158,63 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
   const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("approve");
   const actorNhanSuId = await getActorNhanSuId();
   const p = parsed.data;
+  if (p.loai_cong_viec === "DINH_KY") {
+    throw new Error("Đề xuất chỉ dùng việc đột xuất (không tạo từ mẫu định kỳ tại đây).");
+  }
 
   const { data: cur, error: fetchErr } = await supabase
     .from("qlcv_fact_cong_viec")
-    .select("han_hoan_thanh")
+    .select("han_hoan_thanh, is_active, trang_thai")
     .eq("id", id)
     .maybeSingle();
   if (fetchErr || !cur) throw new Error("Không tìm thấy đề xuất.");
+  if (!isDeXuatChoDuyet(cur)) {
+    throw new Error("Công việc không ở trạng thái đề xuất chờ duyệt.");
+  }
 
   assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
   await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
-  const khoaIds = await resolveQlcvDiaDiemKhoaIds(supabase, p.dia_diem_khoa_ids?.length ? p.dia_diem_khoa_ids : p.dia_diem_khoa_id ? [p.dia_diem_khoa_id] : []);
+  const khoaIds = await resolveQlcvDiaDiemKhoaIds(
+    supabase,
+    p.dia_diem_khoa_ids?.length ? p.dia_diem_khoa_ids : p.dia_diem_khoa_id ? [p.dia_diem_khoa_id] : [],
+  );
   assertQlcvActiveInvariant({
     tieu_de: p.tieu_de,
     nguoi_phu_trach_id: p.nguoi_phu_trach_id,
     han_hoan_thanh: p.han_hoan_thanh,
     loai_cong_viec: p.loai_cong_viec,
   });
+
+  const extraFields: Record<string, unknown> = {
+    dia_diem_khoa_id: khoaIds[0] ?? null,
+    dia_diem_khoa_ids: khoaIds,
+  };
+  if (p.nhiem_vu_id !== undefined) {
+    const { resolveQlcvNhiemVuId } = await import("../lib/qlcv-nhiem-vu-chain");
+    extraFields.nhiem_vu_id = await resolveQlcvNhiemVuId(supabase, p.nhiem_vu_id);
+  }
+  if (p.nhom_chuyen_mon_id !== undefined) {
+    extraFields.nhom_chuyen_mon_id = p.nhom_chuyen_mon_id || null;
+  }
+  if (p.vi_tri_thuc_hien !== undefined) {
+    extraFields.vi_tri_thuc_hien = p.vi_tri_thuc_hien?.trim() || null;
+  }
+  if (p.nguoi_phoi_hop_ids !== undefined) {
+    const ids = p.nguoi_phoi_hop_ids ?? [];
+    for (const sid of ids) await validateAssigneeForQlcv(supabase, sid, ksnkKhoaId);
+    extraFields.nguoi_phoi_hop_ids = ids;
+  }
+  if (p.nguoi_theo_doi_ids !== undefined) {
+    const ids = p.nguoi_theo_doi_ids ?? [];
+    for (const sid of ids) await validateAssigneeForQlcv(supabase, sid, ksnkKhoaId);
+    extraFields.nguoi_theo_doi_ids = ids;
+  }
+
+  const { error: locErr } = await supabase
+    .from(QLCV_FACT_WRITE_TABLE)
+    .update(extraFields)
+    .eq("id", id);
+  if (locErr) throwQlcvDbError(locErr, "Không lưu trường mở rộng khi phê duyệt.");
 
   const trangThai = resolveQlcvTrangThaiMaForTask({
     isActive: true,
@@ -195,12 +243,6 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
       noi_dung_hoat_dong: "Phê duyệt đề xuất và giao nhiệm vụ KSNK",
     },
   });
-
-  const { error: locErr } = await supabase
-    .from(QLCV_FACT_WRITE_TABLE)
-    .update({ dia_diem_khoa_id: khoaIds[0] ?? null, dia_diem_khoa_ids: khoaIds })
-    .eq("id", id);
-  if (locErr) throwQlcvDbError(locErr, "Không ghi địa điểm khoa khi phê duyệt.");
 
   revalidatePath("/quan-ly-cong-viec");
 }

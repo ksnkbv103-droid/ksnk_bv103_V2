@@ -17,6 +17,7 @@ import { RBAC_ACTION_FALLBACK_META, RBAC_ACTION_META } from "./rbac-matrix-actio
 import { RBACMatrixDataGrid } from "./rbac-matrix-data-grid";
 import RbacMenuPreviewPanel from "./RbacMenuPreviewPanel";
 import RbacCatalogPackPanel from "./RbacCatalogPackPanel";
+import RbacItDangerActions from "./RbacItDangerActions";
 
 export default function RBACMatrixView() {
   const { isAdmin, loading: permLoading } = useModulePermission("PHAN_QUYEN");
@@ -128,6 +129,9 @@ export default function RBACMatrixView() {
     if (res.success) {
       toast.success("Đã cập nhật ma trận phân quyền hệ thống!");
       setConfirmActorPassword("");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("rbac:invalidate"));
+      }
     } else toast.error("Lỗi: " + res.error);
     setIsSaving(false);
   };
@@ -229,8 +233,10 @@ export default function RBACMatrixView() {
         </div>
       ) : null}
 
-      <details className="rounded-[var(--radius-shell)] border border-slate-200 bg-white">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-700">Tinh chỉnh</summary>
+      <details open className="rounded-[var(--radius-shell)] border border-slate-200 bg-white">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-700">
+          Bảng ma trận phân quyền chi tiết (Theo module & hành động)
+        </summary>
         <div className="px-2 pb-4">
           <RBACMatrixDataGrid
             roles={roles}
@@ -244,6 +250,8 @@ export default function RBACMatrixView() {
           />
         </div>
       </details>
+
+      <RbacItDangerActions />
     </div>
   );
 }

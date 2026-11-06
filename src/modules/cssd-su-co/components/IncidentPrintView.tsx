@@ -104,6 +104,9 @@ export default function IncidentPrintView({
   const errorQr = detailsMap["ERROR_QR"];
   const maLo = detailsMap["MA_LO"] || (incident.incident_group === "PROCESS" ? errorQr : "");
   const machineId = detailsMap["MACHINE_ID"];
+  const chemicalId =
+    detailsMap["CHEMICAL_ID"] ||
+    (incident.incident_group === "CHEMICAL" ? detailsMap["MACHINE_ID"] : "");
   const faultOperator = detailsMap["FAULT_OPERATOR"];
   const nguoiPhatHien = detailsMap["NGUOI_PHAT_HIEN"];
   const thoiGianPhatHienAttr = detailsMap["THOI_GIAN_PHAT_HIEN"];
@@ -330,9 +333,9 @@ export default function IncidentPrintView({
               </div>
             ) : null}
 
-            {machineId && incident.incident_group === "CHEMICAL" ? (
+            {chemicalId && incident.incident_group === "CHEMICAL" ? (
               <div>
-                <strong>Hóa chất / Vật tư liên quan:</strong> <span>{machineId}</span>
+                <strong>Hóa chất / Vật tư liên quan:</strong> <span>{chemicalId}</span>
               </div>
             ) : null}
 

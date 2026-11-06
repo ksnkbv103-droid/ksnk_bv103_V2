@@ -58,12 +58,18 @@ async function resolveToIdByMa(
   return String(data.id);
 }
 
-async function importOneRow(
+type ResolvedQlcvImportRow = {
+  row: QlcvImportRow;
+  nguoi_phu_trach_id: string;
+  to_cong_tac_id: string | null;
+  dia_diem_khoa_id: string | null;
+};
+
+async function resolveAndValidateImportRow(
   supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
   ksnkKhoaId: string,
-  actor: string,
   row: QlcvImportRow,
-) {
+): Promise<ResolvedQlcvImportRow> {
   assertQlcvHanHoanThanhNotPast(row.han_hoan_thanh);
   const nguoi_phu_trach_id = await resolveKsnkNhanSuIdByMa(supabase, ksnkKhoaId, row.ma_nv);
   const to_cong_tac_id = await resolveToIdByMa(supabase, row.ma_to);
@@ -74,7 +80,21 @@ async function importOneRow(
     han_hoan_thanh: row.han_hoan_thanh,
     loai_cong_viec: row.loai_cong_viec,
   });
+  return {
+    row,
+    nguoi_phu_trach_id,
+    to_cong_tac_id,
+    dia_diem_khoa_id,
+  };
+}
 
+async function insertResolvedImportRow(
+  supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
+  ksnkKhoaId: string,
+  actor: string,
+  resolved: ResolvedQlcvImportRow,
+) {
+  const { row, nguoi_phu_trach_id, to_cong_tac_id, dia_diem_khoa_id } = resolved;
   const data = await insertQlcvTaskRow(supabase, {
     tieu_de: row.tieu_de,
     mo_ta: row.mo_ta,
@@ -85,6 +105,7 @@ async function importOneRow(
     ksnkKhoaId,
     to_cong_tac_id,
     dia_diem_khoa_id,
+    dia_diem_khoa_ids: dia_diem_khoa_id ? [dia_diem_khoa_id] : [],
     is_active: true,
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,
@@ -117,10 +138,21 @@ export async function importCongViecRows(rows: Record<string, unknown>[]) {
     }
   }
 
-  let inserted = 0;
+  const resolvedRows: ResolvedQlcvImportRow[] = [];
   for (const item of parsed) {
     if (!item.ok) continue;
-    await importOneRow(supabase, ksnkKhoaId, actor, item.row);
+    try {
+      const resolved = await resolveAndValidateImportRow(supabase, ksnkKhoaId, item.row);
+      resolvedRows.push(resolved);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Dòng ${item.rowIdx}: ${msg}`);
+    }
+  }
+
+  let inserted = 0;
+  for (const resolved of resolvedRows) {
+    await insertResolvedImportRow(supabase, ksnkKhoaId, actor, resolved);
     inserted += 1;
   }
 

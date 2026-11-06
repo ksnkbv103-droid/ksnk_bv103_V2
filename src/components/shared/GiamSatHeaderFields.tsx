@@ -247,6 +247,7 @@ export default function GiamSatHeaderFields({
               ) : (
                 <button
                   type="button"
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                   onClick={() => (window.location.href = "/tai-khoan")}
                   className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-amber-700"
                 >

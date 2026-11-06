@@ -47,13 +47,21 @@ export function planCssdBoBootstrap(row: CssdBoBootstrapRow | null | undefined):
 export async function bootstrapCssdQuyTrinhFromBoId(
   supabase: SupabaseClient,
   boId: string,
-): Promise<{ ma_vach_qr: string; ten_bo: string; bo_id: string }> {
+): Promise<{
+  ma_vach_qr: string;
+  ten_bo: string;
+  bo_id: string;
+  ten_khoa?: string | null;
+  tong_so_luong_dung_cu?: number | null;
+  so_khoan?: number | null;
+  phan_loai_bo?: string | null;
+}> {
   const id = String(boId || "").trim();
   if (!id) throw new Error("Thiếu bộ dụng cụ (danh mục bộ).");
 
   const { data: bo, error: boErr } = await supabase
     .from("cssd_dm_bo_dung_cu")
-    .select("id, ten_bo, ma_bo")
+    .select("id, ten_bo, ma_bo, phan_loai_bo, tong_so_luong_dung_cu, so_khoan, khoa_su_dung_id")
     .eq("id", id)
     .eq("is_active", true)
     .maybeSingle();
@@ -61,6 +69,23 @@ export async function bootstrapCssdQuyTrinhFromBoId(
   if (!bo) throw new Error("Không tìm thấy bộ dụng cụ hoạt động trong danh mục bộ.");
 
   const ma_vach_qr = assertUnifiedBoMaFromRow(bo as { ma_bo?: string | null });
+
+  let ten_khoa: string | null = null;
+  const boRow = bo as {
+    ten_bo?: string;
+    phan_loai_bo?: string | null;
+    tong_so_luong_dung_cu?: number | null;
+    so_khoan?: number | null;
+    khoa_su_dung_id?: string | null;
+  };
+  if (boRow.khoa_su_dung_id) {
+    const { data: khoa } = await supabase
+      .from("mdm_dm_khoa_phong")
+      .select("ten_khoa")
+      .eq("id", boRow.khoa_su_dung_id)
+      .maybeSingle();
+    ten_khoa = (khoa as { ten_khoa?: string } | null)?.ten_khoa || null;
+  }
 
   const { data: latest, error: latestErr } = await supabase
     .from("cssd_fact_quy_trinh")
@@ -105,8 +130,12 @@ export async function bootstrapCssdQuyTrinhFromBoId(
 
   return {
     ma_vach_qr,
-    ten_bo: String((bo as { ten_bo?: string }).ten_bo || "").trim() || "Bộ dụng cụ",
+    ten_bo: String(boRow.ten_bo || "").trim() || "Bộ dụng cụ",
     bo_id: id,
+    ten_khoa,
+    tong_so_luong_dung_cu: boRow.tong_so_luong_dung_cu ?? null,
+    so_khoan: boRow.so_khoan ?? null,
+    phan_loai_bo: boRow.phan_loai_bo ?? null,
   };
 }
 
@@ -114,7 +143,15 @@ export async function bootstrapCssdQuyTrinhFromBoId(
 export async function bootstrapCssdQuyTrinhFromMaBo(
   supabase: SupabaseClient,
   rawMaBo: string,
-): Promise<{ ma_vach_qr: string; ten_bo: string; bo_id: string }> {
+): Promise<{
+  ma_vach_qr: string;
+  ten_bo: string;
+  bo_id: string;
+  ten_khoa?: string | null;
+  tong_so_luong_dung_cu?: number | null;
+  so_khoan?: number | null;
+  phan_loai_bo?: string | null;
+}> {
   const maBo = normalizeBoMa(rawMaBo);
   if (!isCssdUnifiedBoMa(maBo)) {
     throw new Error(

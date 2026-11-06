@@ -72,6 +72,7 @@ export default function LoginPage() {
                 "Phiên chưa đồng bộ trình duyệt. Thử tải lại trang hoặc đăng nhập lại.",
         );
         if (!isAuthNetworkError(browserErr)) {
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.assign("/");
         }
         return;

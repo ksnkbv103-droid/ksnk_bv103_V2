@@ -7,7 +7,7 @@ import NhanSuForm from "./NhanSuForm";
 import { useNhanSuActiveCrud } from "./use-nhan-su-active-crud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Plus, KeyRound, ClipboardList } from "lucide-react";
+import { Plus, KeyRound, ClipboardList, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
 import {
@@ -25,6 +25,7 @@ import { staffKsnkRoleDisplayLabel } from "@/modules/quan-tri-he-thong/phan-quye
 import StaffAuthPasswordDialog, {
   type StaffAuthPasswordMode,
 } from "./StaffAuthPasswordDialog";
+import StaffKsnkRoleDialog from "./StaffKsnkRoleDialog";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
@@ -73,6 +74,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     staff: NhanSu;
   } | null>(null);
   const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [roleDialogStaff, setRoleDialogStaff] = useState<NhanSu | null>(null);
 
   useEffect(() => {
     try {
@@ -463,15 +465,27 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               {provisioningId === i.id ? "Đang tạo…" : "Tạo tài khoản"}
             </button>
           ) : canProvisionTk && i.auth_user_id ? (
-            <button
-              type="button"
-              disabled={i.is_active === false}
-              onClick={() => setAuthDialog({ mode: "reset", staff: i })}
-              className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <KeyRound size={12} aria-hidden />
-              Đặt lại mật khẩu
-            </button>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1">
+              <button
+                type="button"
+                disabled={i.is_active === false}
+                onClick={() => setRoleDialogStaff(i)}
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-teal-200 bg-teal-50 px-2 text-[11px] font-semibold text-teal-800 hover:bg-teal-100 disabled:opacity-40"
+                title="Gán hoặc đổi vai trò KSNK"
+              >
+                <Shield size={12} aria-hidden />
+                Đổi vai trò
+              </button>
+              <button
+                type="button"
+                disabled={i.is_active === false}
+                onClick={() => setAuthDialog({ mode: "reset", staff: i })}
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+              >
+                <KeyRound size={12} aria-hidden />
+                Đặt lại MK
+              </button>
+            </div>
           ) : null}
         </div>
       ),
@@ -585,6 +599,14 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           onSubmit={(payload) => void handleAuthDialogSubmit(payload)}
         />
       ) : null}
+      <StaffKsnkRoleDialog
+        open={Boolean(roleDialogStaff)}
+        onOpenChange={(open) => {
+          if (!open) setRoleDialogStaff(null);
+        }}
+        staff={roleDialogStaff}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

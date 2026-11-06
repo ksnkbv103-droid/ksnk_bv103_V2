@@ -156,6 +156,13 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
     );
   }
 
+  if (payload.chat_thai_do_vai) {
+    const hw = payload.chat_thai_do_vai.stats;
+    lines.push(
+      `Phụ lục Hậu cần (toàn viện): CTYT phát sinh ${hw.chat_thai.tong_chat_thai_kg.toLocaleString()} kg (tỷ lệ lây nhiễm ${hw.chat_thai.ty_le_ctln_pct}%) · Đồ vải bẩn ${hw.do_vai.tong_ban_kg.toLocaleString()} kg (chênh lệch bẩn-sạch ${hw.do_vai.chenh_lech_kg > 0 ? `+${hw.do_vai.chenh_lech_kg}` : hw.do_vai.chenh_lech_kg} kg).`,
+    );
+  }
+
   const nhanXet = lines.join(" ");
 
   const kn: string[] = [];
@@ -183,6 +190,20 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
     payload.cssd.ty_le_quy_trinh_khong_su_co < 90
   ) {
     kn.push("Rà soát sự cố quy trình CSSD trong kỳ — tỷ lệ không sự cố thấp hơn ngưỡng vận hành.");
+  }
+  if (
+    payload.chat_thai_do_vai?.stats.do_vai.so_su_co_sac_nhon &&
+    payload.chat_thai_do_vai.stats.do_vai.so_su_co_sac_nhon > 0
+  ) {
+    kn.push(
+      `Khẩn cấp: Rà soát các khoa phát sinh sự cố lẫn vật sắc nhọn trong đồ vải bẩn (${payload.chat_thai_do_vai.stats.do_vai.so_su_co_sac_nhon} vụ) để ngăn ngừa phơi nhiễm nghề nghiệp.`,
+    );
+  }
+  if (
+    payload.chat_thai_do_vai?.stats.chat_thai.ty_le_ctln_pct &&
+    payload.chat_thai_do_vai.stats.chat_thai.ty_le_ctln_pct > 25
+  ) {
+    kn.push("Tăng cường kiểm tra phân loại chất thải tại nguồn (tỷ lệ chất thải lây nhiễm vượt 25%).");
   }
   kn.push("Báo cáo này do hệ thống gợi ý từ số liệu — Chủ nhiệm khoa KSNK chỉnh sửa trước khi ký gửi Ban Giám đốc.");
 

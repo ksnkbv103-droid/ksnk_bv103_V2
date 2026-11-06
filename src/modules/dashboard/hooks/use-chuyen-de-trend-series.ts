@@ -34,6 +34,7 @@ export function useChuyenDeTrendSeries(
     if (!enabled || selectedBangKiemMas.length === 0) {
       setSeries([]);
       setTruncated(0);
+      setLoading(false);
       return;
     }
     let cancelled = false;
@@ -57,6 +58,9 @@ export function useChuyenDeTrendSeries(
       .then((rows) => {
         if (cancelled) return;
         setSeries(rows.filter((r): r is ChuyenDeTrendSeries => r != null && r.weeks.length > 0));
+      })
+      .catch(() => {
+        if (!cancelled) setSeries([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

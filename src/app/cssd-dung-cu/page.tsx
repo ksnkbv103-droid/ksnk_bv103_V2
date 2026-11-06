@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { ClipboardList, Layers, Settings2, Tag } from "lucide-react";
+import { ArrowLeftRight, ClipboardList, Layers, Settings2, Tag } from "lucide-react";
 import { useCssdCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
@@ -160,6 +160,13 @@ function CssdDungCuPageInner() {
             icon={ClipboardList}
             label="Phiếu"
             mobileLabel="Phiếu"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "LUAN_CHUYEN"}
+            onClick={() => s.setTab("LUAN_CHUYEN")}
+            icon={ArrowLeftRight}
+            label="Vòng đời & Luân chuyển"
+            mobileLabel="Vòng đời"
           />
           {isAdmin ? (
             <CssdHorizTabButton

@@ -25,7 +25,7 @@ export default function NhanSuLoginFields({
   if (hasAuth) {
     return (
       <p className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-900">
-        Đã có tài khoản. Đổi vai trò phía trên sẽ cập nhật quyền đăng nhập.
+        Đã có tài khoản đăng nhập. Để thay đổi vai trò KSNK hoặc đặt lại mật khẩu, vui lòng dùng nút &quot;Đổi vai trò&quot; trên danh sách nhân sự.
       </p>
     );
   }

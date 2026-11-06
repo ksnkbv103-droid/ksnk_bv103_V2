@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FocusScope } from "@radix-ui/react-focus-scope";
+import { DismissableLayerBranch } from "@radix-ui/react-dismissable-layer";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -317,127 +319,163 @@ export default function SearchableSelect({
       {open && !disabled && canUseDOM
         ? createPortal(
             isMobileSheet ? (
-              <div
-                data-bv103-picker-portal=""
-                className="pointer-events-auto fixed inset-0 z-[10060] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
-                role="presentation"
-              >
-                <button
-                  type="button"
-                  aria-label="Đóng"
-                  className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
-                  onClick={() => setOpen(false)}
-                />
-                <div
-                  ref={panelRef}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="searchable-select-sheet-title"
-                  className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-shell)] bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-200/80"
-                  onPointerDown={(e) => e.stopPropagation()}
+              <DismissableLayerBranch asChild>
+                <FocusScope
+                  asChild
+                  loop={false}
+                  trapped={false}
+                  onMountAutoFocus={(e) => {
+                    e.preventDefault();
+                    try {
+                      searchInputRef.current?.focus({ preventScroll: true });
+                    } catch {
+                      searchInputRef.current?.focus();
+                    }
+                  }}
                 >
-                  <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
-                    <span
-                      id="searchable-select-sheet-title"
-                      className="min-w-0 truncate text-sm font-semibold text-slate-800"
-                    >
-                      {placeholder}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setOpen(false)}
-                      className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
-                    >
-                      Đóng
-                    </button>
-                  </div>
-                  <div className="shrink-0 border-b border-slate-100 p-3">
-                    <input
-                      ref={searchInputRef}
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      onKeyDown={(e) => {
-                        e.stopPropagation();
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          commitTypedQuery();
-                        }
-                      }}
-                      placeholder={searchPlaceholder}
-                      className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
-                      autoComplete="off"
-                      enterKeyHint="search"
-                    />
-                  </div>
-                  <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,420px)] flex-1 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
-                    <button
-                      type="button"
-                      onClick={() => handleSelect("")}
-                      className="mb-2 w-full rounded-xl border border-slate-100 px-3 py-3.5 text-left text-base text-slate-500 hover:bg-slate-50 active:bg-slate-100"
-                    >
-                      {placeholder}
-                    </button>
-                    {renderOptionButtons(
-                      filtered,
-                      "mb-2 w-full rounded-xl px-3 py-3.5 text-left text-base leading-snug hover:bg-slate-50 active:bg-slate-100",
-                    )}
-                    {renderCustomCreate(
-                      "mb-2 w-full rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-3 py-3.5 text-left text-base",
-                    )}
-                    {filtered.length === 0 && !showCustomCreate ? (
-                      <p className="px-2 py-8 text-center text-base text-slate-400">Không có kết quả phù hợp</p>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                ref={panelRef}
-                data-bv103-picker-portal=""
-                style={{ ...dropdownStyle, pointerEvents: "auto" }}
-                className="pointer-events-auto rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 shadow-[var(--shadow-app-soft)] animate-in fade-in zoom-in-95 duration-200"
-                onPointerDown={(e) => e.stopPropagation()}
-              >
-                {inputTrigger ? null : (
-                  <input
-                    ref={searchInputRef}
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitTypedQuery();
-                      }
-                    }}
-                    placeholder={searchPlaceholder}
-                    className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[var(--primary)]"
-                  />
-                )}
-
-                <div
-                  className="custom-scrollbar overflow-y-auto overflow-x-hidden overscroll-contain pr-1"
-                  style={{ maxHeight: `${listMaxHeight}px` }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleSelect("")}
-                    className="mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-500 hover:bg-slate-50"
+                  <div
+                    data-bv103-picker-portal=""
+                    className="pointer-events-auto fixed inset-0 z-[10060] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
+                    role="presentation"
                   >
-                    {placeholder}
-                  </button>
-                  {renderOptionButtons(
-                    filtered,
-                    "mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-50",
-                  )}
-                  {renderCustomCreate(
-                    "mb-1 w-full rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-2 py-1.5 text-left text-sm",
-                  )}
-                  {filtered.length === 0 && !showCustomCreate ? (
-                    <p className="px-2 py-2 text-sm text-slate-400">Không có kết quả phù hợp</p>
-                  ) : null}
-                </div>
-              </div>
+                    <button
+                      type="button"
+                      aria-label="Đóng"
+                      className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
+                      onClick={() => setOpen(false)}
+                    />
+                    <div
+                      ref={panelRef}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="searchable-select-sheet-title"
+                      className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-shell)] bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-200/80"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
+                        <span
+                          id="searchable-select-sheet-title"
+                          className="min-w-0 truncate text-sm font-semibold text-slate-800"
+                        >
+                          {placeholder}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setOpen(false)}
+                          className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
+                        >
+                          Đóng
+                        </button>
+                      </div>
+                      <div className="shrink-0 border-b border-slate-100 p-3">
+                        <input
+                          ref={searchInputRef}
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              commitTypedQuery();
+                            }
+                          }}
+                          onFocus={(e) => e.stopPropagation()}
+                          placeholder={searchPlaceholder}
+                          className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
+                          autoComplete="off"
+                          enterKeyHint="search"
+                        />
+                      </div>
+                      <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,420px)] flex-1 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSelect("")}
+                          className="mb-2 w-full rounded-xl border border-slate-100 px-3 py-3.5 text-left text-base text-slate-500 hover:bg-slate-50 active:bg-slate-100"
+                        >
+                          {placeholder}
+                        </button>
+                        {renderOptionButtons(
+                          filtered,
+                          "mb-2 w-full rounded-xl px-3 py-3.5 text-left text-base leading-snug hover:bg-slate-50 active:bg-slate-100",
+                        )}
+                        {renderCustomCreate(
+                          "mb-2 w-full rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-3 py-3.5 text-left text-base",
+                        )}
+                        {filtered.length === 0 && !showCustomCreate ? (
+                          <p className="px-2 py-8 text-center text-base text-slate-400">Không có kết quả phù hợp</p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </FocusScope>
+              </DismissableLayerBranch>
+            ) : (
+              <DismissableLayerBranch asChild>
+                <FocusScope
+                  asChild
+                  loop={false}
+                  trapped={false}
+                  onMountAutoFocus={(e) => {
+                    e.preventDefault();
+                    try {
+                      searchInputRef.current?.focus({ preventScroll: true });
+                    } catch {
+                      searchInputRef.current?.focus();
+                    }
+                  }}
+                >
+                  <div
+                    ref={panelRef}
+                    data-bv103-picker-portal=""
+                    style={{ ...dropdownStyle, pointerEvents: "auto" }}
+                    className="pointer-events-auto rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 shadow-[var(--shadow-app-soft)] animate-in fade-in zoom-in-95 duration-200"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {inputTrigger ? null : (
+                      <input
+                        ref={searchInputRef}
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            commitTypedQuery();
+                          }
+                        }}
+                        onFocus={(e) => e.stopPropagation()}
+                        placeholder={searchPlaceholder}
+                        className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[var(--primary)]"
+                      />
+                    )}
+
+                    <div
+                      className="custom-scrollbar overflow-y-auto overflow-x-hidden overscroll-contain pr-1"
+                      style={{ maxHeight: `${listMaxHeight}px` }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleSelect("")}
+                        className="mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-500 hover:bg-slate-50"
+                      >
+                        {placeholder}
+                      </button>
+                      {renderOptionButtons(
+                        filtered,
+                        "mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-50",
+                      )}
+                      {renderCustomCreate(
+                        "mb-1 w-full rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-2 py-1.5 text-left text-sm",
+                      )}
+                      {filtered.length === 0 && !showCustomCreate ? (
+                        <p className="px-2 py-2 text-sm text-slate-400">Không có kết quả phù hợp</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </FocusScope>
+              </DismissableLayerBranch>
             ),
             resolveBv103PickerPortalRoot(),
           )

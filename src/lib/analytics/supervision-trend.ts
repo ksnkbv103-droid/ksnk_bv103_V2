@@ -41,31 +41,35 @@ function finalizeSupervisionTrendPoint(
 }
 
 export function normalizeVstTrendline(rows: VstTrendRow[]): SupervisionTrendPoint[] {
-  return (rows ?? []).map((r) =>
-    finalizeSupervisionTrendPoint(
-      {
-        label: r.label,
-        min_date: r.min_date,
-        tong: Number(r.tong_co_hoi ?? 0),
-        dat: Number(r.da_tuan_thu ?? 0),
-      },
-      "vst",
-    ),
-  );
+  return (rows ?? [])
+    .filter((r) => Number(r.tong_co_hoi ?? 0) > 0)
+    .map((r) =>
+      finalizeSupervisionTrendPoint(
+        {
+          label: r.label,
+          min_date: r.min_date,
+          tong: Number(r.tong_co_hoi ?? 0),
+          dat: Number(r.da_tuan_thu ?? 0),
+        },
+        "vst",
+      ),
+    );
 }
 
 export function normalizeGscTrendline(rows: GscTrendRow[]): SupervisionTrendPoint[] {
-  return (rows ?? []).map((r) =>
-    finalizeSupervisionTrendPoint(
-      {
-        label: r.label,
-        min_date: r.min_date,
-        tong: Number(r.tong_quan_sat ?? 0),
-        dat: Number(r.tong_dat ?? 0),
-      },
-      "gsc",
-    ),
-  );
+  return (rows ?? [])
+    .filter((r) => Number(r.tong_quan_sat ?? 0) > 0)
+    .map((r) =>
+      finalizeSupervisionTrendPoint(
+        {
+          label: r.label,
+          min_date: r.min_date,
+          tong: Number(r.tong_quan_sat ?? 0),
+          dat: Number(r.tong_dat ?? 0),
+        },
+        "gsc",
+      ),
+    );
 }
 
 /** Gộp trend theo bucket — cộng mẫu số/mẫu tử rồi tính % (không trung bình % từng tuần). */

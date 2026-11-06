@@ -114,7 +114,6 @@ export function rowTouchesPeriod(row: QlcvBaoCaoRow, period: QlcvPeriodRange): b
   const done = isoDateOnly(row.hoan_thanh_luc);
   if (done && inPeriod(done, period)) return true;
   const created = isoDateOnly(row.created_at);
-  if (!han && created && inPeriod(created, period)) return true;
   if (created && inPeriod(created, period)) return true;
   return false;
 }
@@ -199,6 +198,7 @@ export function aggregateTheoTrangThai(rows: QlcvBaoCaoRow[]): QlcvBaoCaoTheoTra
       counts.set("DE_XUAT", (counts.get("DE_XUAT") ?? 0) + 1);
       continue;
     }
+    if (r.is_active === false) continue;
     const st = normalizeQlcvTrangThaiToCanonical(r.trang_thai);
     if (counts.has(st)) {
       counts.set(st, (counts.get(st) ?? 0) + 1);

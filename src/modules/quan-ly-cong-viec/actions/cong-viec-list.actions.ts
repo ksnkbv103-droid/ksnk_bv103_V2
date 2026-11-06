@@ -19,7 +19,11 @@ async function fetchAllActiveRootTasksInScope(
   opts?: { boardFilter?: QlcvBoardFilter | null; actorStaffId?: string | null },
 ) {
   const rows: Record<string, unknown>[] = [];
-  const actor = opts?.actorStaffId ? String(opts.actorStaffId) : "";
+  const actor = opts?.actorStaffId
+    ? String(opts.actorStaffId)
+    : scope.actorStaffId
+      ? String(scope.actorStaffId)
+      : "";
   const lens = opts?.boardFilter ?? null;
 
   for (let page = 0; page < QLCV_BOARD_FETCH_MAX_PAGES; page++) {
@@ -41,7 +45,7 @@ async function fetchAllActiveRootTasksInScope(
         .eq("nguoi_phu_trach_id", actor)
         .not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
     } else if (lens === "IN_PROGRESS") {
-      query = query.eq("trang_thai", "DANG_LAM");
+      query = query.not("trang_thai", "in", "(HOAN_THANH,DA_HUY,CHO_DUYET)");
     } else if (lens === "OVERDUE") {
       query = query.eq("is_qua_han", true).not("trang_thai", "in", "(HOAN_THANH,DA_HUY)");
     }
@@ -77,6 +81,7 @@ export async function getCongViecList() {
 /** Chuẩn hóa dòng đề xuất (fact inactive) về cùng hình dạng view danh sách gốc. */
 function mapProposalToRootListRow(p: Record<string, unknown>) {
   return {
+    ...p,
     id: p.id,
     tieu_de: p.tieu_de,
     mo_ta: p.mo_ta ?? null,

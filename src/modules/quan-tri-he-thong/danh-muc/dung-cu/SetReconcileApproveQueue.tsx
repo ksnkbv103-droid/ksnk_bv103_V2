@@ -22,9 +22,8 @@ type QueueRow = {
 };
 
 export function SetReconcileApproveQueue() {
-  const { isAdmin, allowed: leAllowed } = useModulePermission("DC_LE");
-  const { allowed: boAllowed } = useModulePermission("BO_DC");
-  const canApprove = Boolean(isAdmin || leAllowed.edit || boAllowed.edit);
+  const { isAdmin } = useModulePermission("DC_LE");
+  const canApprove = Boolean(isAdmin);
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loading, setLoading] = useState(true);
 

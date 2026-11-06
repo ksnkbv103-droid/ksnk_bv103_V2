@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, CalendarDays, ListChecks, Clock, UserRound, Inbox } from "lucide-react";
+import { AlertTriangle, CalendarDays, ListChecks, Clock, UserRound, Inbox, Eye } from "lucide-react";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
-import { isMyQlcvTask, isQlcvChoToiDuyet, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
+import { isMyQlcvTask, isQlcvChoToiDuyet, isWatchingQlcvTask, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import {
   getQlcvBoardCounts,
   type QlcvBoardGateCounts,
@@ -24,7 +24,7 @@ interface Props {
 const chipBase =
   "inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[11px] font-semibold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1";
 
-const EMPTY: QlcvBoardGateCounts = { myTasks: 0, inProgress: 0, overdue: 0, choToi: 0 };
+const EMPTY: QlcvBoardGateCounts = { myTasks: 0, inProgress: 0, overdue: 0, choToi: 0, watching: 0 };
 
 export function QlcvGateStats({
   tasks,
@@ -37,6 +37,13 @@ export function QlcvGateStats({
   const [rpcCounts, setRpcCounts] = useState<QlcvBoardGateCounts | null>(null);
   /** Chỉ tự chọn chip một lần, và chỉ khi người dùng chưa đổi bộ lọc mặc định «Của tôi». */
   const autoPickedRef = useRef(false);
+  const activeFilterRef = useRef(activeFilter);
+  const onFilterChangeRef = useRef(onFilterChange);
+
+  useEffect(() => {
+    activeFilterRef.current = activeFilter;
+    onFilterChangeRef.current = onFilterChange;
+  }, [activeFilter, onFilterChange]);
 
   const clientFallback = useMemo((): QlcvBoardGateCounts => {
     const myTasks = actorStaffId
@@ -49,7 +56,10 @@ export function QlcvGateStats({
           isQlcvChoToiDuyet(t as unknown as Record<string, unknown>, actorStaffId),
         ).length
       : 0;
-    return { myTasks, inProgress, overdue, choToi };
+    const watching = actorStaffId
+      ? list.filter((t) => isWatchingQlcvTask(t as unknown as Record<string, unknown>, actorStaffId)).length
+      : 0;
+    return { myTasks, inProgress, overdue, choToi, watching };
   }, [list, actorStaffId]);
 
   /** Domain A MVP: client-side from loaded rows (RPC board_counts insufficient). */
@@ -65,8 +75,8 @@ export function QlcvGateStats({
         if (!autoPickedRef.current) {
           autoPickedRef.current = true;
           // Người duyệt không có việc riêng nhưng có việc chờ duyệt → mở thẳng «Chờ tôi», tránh bảng trống.
-          if (activeFilter === "MY_TASKS" && next.myTasks === 0 && next.choToi > 0) {
-            onFilterChange?.("GATE_CHO_TOI");
+          if (activeFilterRef.current === "MY_TASKS" && next.myTasks === 0 && next.choToi > 0) {
+            onFilterChangeRef.current?.("GATE_CHO_TOI");
           }
         }
       } catch (err) {
@@ -97,7 +107,10 @@ export function QlcvGateStats({
       type="button"
       key={f}
       disabled={!pick}
-      onClick={() => pick?.(f)}
+      onClick={() => {
+        autoPickedRef.current = true;
+        pick?.(f);
+      }}
       className={`${chipBase} ${className} ${
         isSel(f) ? "!border-slate-800 !bg-slate-800 !text-white shadow-sm" : ""
       } ${pick ? (isSel(f) ? "active:scale-[0.99]" : "hover:bg-white/80 active:scale-[0.99]") : "cursor-default opacity-95"}`}
@@ -144,6 +157,15 @@ export function QlcvGateStats({
             stats.myTasks,
             <UserRound size={14} className="text-sky-600" />,
             "border-sky-200 bg-sky-50/80",
+          )
+        : null}
+      {actorStaffId
+        ? chip(
+            "WATCHING",
+            "Tôi theo dõi",
+            stats.watching,
+            <Eye size={14} className="text-teal-600" />,
+            "border-teal-200 bg-teal-50/80",
           )
         : null}
       {actorStaffId

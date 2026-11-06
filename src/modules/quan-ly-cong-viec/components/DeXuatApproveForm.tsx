@@ -10,6 +10,8 @@ import SearchableMultiSelect from "@/components/shared/SearchableMultiSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { congViecSchemaWithHanRule } from "@/lib/validations/quan-ly-cong-viec.validations";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
+import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
+import { qlcvDateVnFromInstant } from "../lib/qlcv-today-vn";
 import type { CongViecView } from "../types";
 
 function proposalKhoaIds(p: CongViecView): string[] {
@@ -36,8 +38,12 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
   const [toCongTacOptions, setToCongTacOptions] = useState<QlcvSelectOption[]>([]);
-  const [selectedNhanSu, setSelectedNhanSu] = useState("");
-  const [selectedTo, setSelectedTo] = useState("");
+  const [selectedNhanSu, setSelectedNhanSu] = useState(
+    proposal.nguoi_phu_trach_id ? String(proposal.nguoi_phu_trach_id) : "",
+  );
+  const [selectedTo, setSelectedTo] = useState(
+    proposal.to_cong_tac_id ? String(proposal.to_cong_tac_id) : "",
+  );
   const [tieuDe, setTieuDe] = useState(proposal.tieu_de);
   const [moTa, setMoTa] = useState(proposal.mo_ta ?? "");
   const [loaiCongViec, setLoaiCongViec] = useState<QlcvLoaiCongViec>(
@@ -47,20 +53,34 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
     (proposal.muc_do_uu_tien as QlcvMucDoUuTien) || "TRUNG_BINH",
   );
   const [hanHoanThanh, setHanHoanThanh] = useState(
-    proposal.han_hoan_thanh ? String(proposal.han_hoan_thanh).split("T")[0] : "",
+    proposal.han_hoan_thanh
+      ? (qlcvDateVnFromInstant(proposal.han_hoan_thanh) ?? String(proposal.han_hoan_thanh).split("T")[0])
+      : "",
   );
   const [khoaPhongOptions, setKhoaPhongOptions] = useState<QlcvSelectOption[]>([]);
   const [selectedKhoaIds, setSelectedKhoaIds] = useState<string[]>(() => proposalKhoaIds(proposal));
+  const [phoiHopIds, setPhoiHopIds] = useState<string[]>(() =>
+    normalizeQlcvStaffIdList(proposal.nguoi_phoi_hop_ids),
+  );
+  const [theoDoiIds, setTheoDoiIds] = useState<string[]>(() =>
+    normalizeQlcvStaffIdList(proposal.nguoi_theo_doi_ids),
+  );
 
   useEffect(() => {
     setTieuDe(proposal.tieu_de);
     setMoTa(proposal.mo_ta ?? "");
     setLoaiCongViec(proposal.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT");
     setMucDoUuTien((proposal.muc_do_uu_tien as QlcvMucDoUuTien) || "TRUNG_BINH");
-    setHanHoanThanh(proposal.han_hoan_thanh ? String(proposal.han_hoan_thanh).split("T")[0] : "");
+    setHanHoanThanh(
+      proposal.han_hoan_thanh
+        ? (qlcvDateVnFromInstant(proposal.han_hoan_thanh) ?? String(proposal.han_hoan_thanh).split("T")[0])
+        : "",
+    );
     setSelectedKhoaIds(proposalKhoaIds(proposal));
-    setSelectedNhanSu("");
-    setSelectedTo("");
+    setSelectedNhanSu(proposal.nguoi_phu_trach_id ? String(proposal.nguoi_phu_trach_id) : "");
+    setSelectedTo(proposal.to_cong_tac_id ? String(proposal.to_cong_tac_id) : "");
+    setPhoiHopIds(normalizeQlcvStaffIdList(proposal.nguoi_phoi_hop_ids));
+    setTheoDoiIds(normalizeQlcvStaffIdList(proposal.nguoi_theo_doi_ids));
   }, [proposal]);
 
   useEffect(() => {
@@ -119,6 +139,11 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
       to_cong_tac_id: selectedTo || null,
       dia_diem_khoa_id: selectedKhoaIds[0] ?? null,
       dia_diem_khoa_ids: selectedKhoaIds,
+      nhom_chuyen_mon_id: proposal.nhom_chuyen_mon_id ?? null,
+      nhiem_vu_id: proposal.nhiem_vu_id ?? null,
+      vi_tri_thuc_hien: proposal.vi_tri_thuc_hien ?? null,
+      nguoi_phoi_hop_ids: phoiHopIds,
+      nguoi_theo_doi_ids: theoDoiIds,
     };
 
     const validation = congViecSchemaWithHanRule.safeParse(payload);
@@ -231,6 +256,28 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
                 Không có nhân sự gắn tổ đã chọn; đang hiển thị toàn roster KSNK.
               </p>
             ) : null}
+          </div>
+
+          <div>
+            <SearchableMultiSelect
+              label="Người phối hợp (tuỳ chọn, chọn được nhiều)"
+              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={phoiHopIds}
+              onChange={setPhoiHopIds}
+              disabled={optionsLoading}
+              minWidthClassName="w-full"
+            />
+          </div>
+
+          <div>
+            <SearchableMultiSelect
+              label="Người theo dõi / giám sát (tuỳ chọn, chọn được nhiều)"
+              options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              selected={theoDoiIds}
+              onChange={setTheoDoiIds}
+              disabled={optionsLoading}
+              minWidthClassName="w-full"
+            />
           </div>
         </div>
       </div>

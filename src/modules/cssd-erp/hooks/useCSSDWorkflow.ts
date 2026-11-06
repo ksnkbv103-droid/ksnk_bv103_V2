@@ -23,6 +23,8 @@ type ScanResultPayload = {
   maLoTietKhuan?: string;
   issuanceOnly?: boolean;
   ledgerWarning?: string;
+  tenKhoa?: string | null;
+  maBo?: string | null;
 };
 
 export function useCSSDWorkflow() {
@@ -82,6 +84,8 @@ export function useCSSDWorkflow() {
         maCycleQr: scanRes.maCycleQr,
         maLoTietKhuan: scanRes.maLoTietKhuan,
         issuanceOnly: scanRes.issuanceOnly,
+        tenKhoa: scanRes.tenKhoa ?? null,
+        maBo: scanRes.maBo ?? null,
         // CSSD-L02 / 17b: soft-allow silent — do not surface ledgerWarning on card
       });
       toast.success(`Đã xử lý: ${displayQr}`);

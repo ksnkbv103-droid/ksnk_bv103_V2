@@ -130,6 +130,8 @@ export type BaGridSessionInput = {
   surgeryDate?: string | null;
   /** Thông tin bổ sung cho form CDC (ví dụ SSI depth, NHSN code...) */
   extraFormFields?: Record<string, unknown>;
+  /** Danh mục khoa phòng để giải mã mã UUID thành tên khoa chuẩn */
+  khoas?: Array<{ id: string; ten_danh_muc?: string; ma_danh_muc?: string; ten?: string; ma?: string }>;
 };
 
 export type BaGridColumn = {
@@ -789,7 +791,15 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
         ngay_lich,
         khoa_id,
       })),
-      (id) => ({ ten_khoa: id }),
+      (id) => {
+        const clean = String(id || "").trim();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
+        const k = input.khoas?.find((x) => x.id === clean || x.ma_danh_muc === clean || x.ma === clean);
+        return {
+          ma_khoa: k?.ma_danh_muc || k?.ma || (isUuid ? undefined : clean),
+          ten_khoa: k?.ten_danh_muc || k?.ten || (isUuid ? "Khoa điều trị" : clean),
+        };
+      },
     ),
     indexDateOverride: indexDate,
   });
@@ -856,12 +866,27 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
         })
       : { attributedXnIds: [], attributedCdhaIds: [] };
 
-  const noi =
+  const rawNoi =
+    metrics.attributedStay?.ten_khoa ||
     (nsk && input.khoaByDate[nsk]) ||
     Object.entries(input.khoaByDate)
       .sort(([a], [b]) => a.localeCompare(b))
       .find(([d]) => nsk && d <= nsk)?.[1] ||
     null;
+
+  const noi = (() => {
+    if (!rawNoi) return null;
+    const clean = String(rawNoi).trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
+    if (isUuid) {
+      const match = input.khoas?.find((k) => k.id === clean);
+      if (match) {
+        return match.ma_danh_muc || match.ma || match.ten_danh_muc || match.ten || "Khoa điều trị";
+      }
+      return "Khoa điều trị";
+    }
+    return clean;
+  })();
 
   const ritPathogens = nsk
     ? collectRitPathogens({

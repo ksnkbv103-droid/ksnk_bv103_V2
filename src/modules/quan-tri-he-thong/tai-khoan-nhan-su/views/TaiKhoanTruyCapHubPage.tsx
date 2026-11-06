@@ -5,6 +5,7 @@ import Link from "next/link";
 import { KeyRound, Users, Shield, BookOpen, ClipboardList } from "lucide-react";
 import { countPendingAccountRequestsAction } from "@/modules/quan-tri-he-thong/nhan-su/actions/account-access-request.actions";
 import GuestStatsAccountCard from "../components/GuestStatsAccountCard";
+import StaffAuthTableSection from "../components/StaffAuthTableSection";
 import { quanTriHubHref, quanTriNhanSuPendingHref } from "@/lib/master-data/quan-tri-paths";
 
 /**
@@ -125,6 +126,8 @@ export default function TaiKhoanTruyCapHubPage() {
           </ul>
         </div>
       </section>
+
+      <StaffAuthTableSection />
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-slate-800">Tài khoản khách pilot</h2>

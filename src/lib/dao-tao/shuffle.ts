@@ -27,11 +27,18 @@ export function buildShuffledSnapshot(
   return {
     cauHoiId: q.id,
     chuDeMa: q.chuDeMa,
+    chuDeTen: q.chuDeTen,
     loai: q.loai,
     bloomLevel: q.bloomLevel,
+    bloomCode: q.bloomCode,
+    clinicalVignette: q.clinicalVignette,
     stem: q.stem,
     giaiThich: q.giaiThich,
     options,
     dapAnDung,
+    distractorRationales: q.distractorRationales,
+    evidenceLock: q.evidenceLock,
+    targetRoles: q.targetRoles,
+    sopRefs: q.sopRefs,
   };
 }

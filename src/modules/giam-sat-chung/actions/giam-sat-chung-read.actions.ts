@@ -162,8 +162,9 @@ export async function getGscHeaderDmDropdowns() {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
+    const isMangLuoiOnly = scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk;
     const actorKhoaId = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
-    if (scope.isMangLuoiKsnk && !actorKhoaId) {
+    if (isMangLuoiOnly && !actorKhoaId) {
       return {
         success: true as const,
         data: { khoas: [], khuVucs: [], ngheNghieps: [], nhanSus: [] },
@@ -178,8 +179,8 @@ export async function getGscHeaderDmDropdowns() {
       getCachedDmKhoaPhong(),
       (() => {
         // A) Full active list. B) limit 400 (+ filter khoa mạng lưới) — chọn B.
-        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
-        if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id, nghe_nghiep_id").eq("is_active", true);
+        if (isMangLuoiOnly && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
         return q.order("ho_ten").limit(400);
       })(),
       supabase
@@ -193,7 +194,7 @@ export async function getGscHeaderDmDropdowns() {
     if (nhanSuRes.error) throw nhanSuRes.error;
     if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
 
-    const khoaFiltered = scope.isMangLuoiKsnk
+    const khoaFiltered = isMangLuoiOnly
       ? actorKhoaId
         ? khoaData.filter((x) => String(x.id) === actorKhoaId)
         : []
@@ -206,7 +207,12 @@ export async function getGscHeaderDmDropdowns() {
       loai_danh_muc: "KHOA_PHONG"
     }));
 
-    const nhanSus = (nhanSuRes.data || []).map((x) => ({ id: x.id, ho_ten: x.ho_ten }));
+    const nhanSus = (nhanSuRes.data || []).map((x) => ({
+      id: x.id,
+      ho_ten: x.ho_ten,
+      khoa_id: x.khoa_id,
+      nghe_nghiep_id: (x as { nghe_nghiep_id?: string | null }).nghe_nghiep_id || null,
+    }));
 
     const registry = (registriesRes.data || {}) as Record<
       string,

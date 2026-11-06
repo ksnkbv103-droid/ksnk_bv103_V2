@@ -396,11 +396,12 @@ export async function allocateProceduralSetAction(params: {
 
   if (existing) {
     const diff = qty - Number(existing.so_luong_co_so || 0);
+    const nextHienTai = Math.max(0, Number(existing.so_luong_hien_tai || 0) + diff);
     const { error: updErr } = await supabase
       .from("cssd_dm_bo_phan_bo")
       .update({
         so_luong_co_so: qty,
-        so_luong_hien_tai: Number(existing.so_luong_hien_tai || 0) + diff,
+        so_luong_hien_tai: nextHienTai,
         updated_at: new Date().toISOString(),
       })
       .eq("id", existing.id);

@@ -156,12 +156,17 @@ export function formatBaKetLuanSummary(input: {
     input.secondaryBsi && !/secondary\s*bsi/i.test(input.loaiNk)
       ? `${input.loaiNk}; Secondary BSI`
       : input.loaiNk;
+  const cleanNoi = input.noi
+    ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(input.noi).trim())
+      ? "Khoa điều trị"
+      : input.noi
+    : null;
   return [
     input.haiPoa,
     loai,
     input.nsk ? `NSK ${dayLabel(input.nsk)}` : null,
     input.tacNhan && input.tacNhan !== "—" ? input.tacNhan : null,
-    input.noi || null,
+    cleanNoi,
   ]
     .filter(Boolean)
     .join(" · ");

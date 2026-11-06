@@ -12,9 +12,7 @@ const root = path.join(__dirname, "..");
 const app = path.join(root, "src", "app", "quan-tri-he-thong");
 
 const routes = [
-  "danh-muc/dung-cu/loai/page.tsx",
-  "danh-muc/dung-cu/bo/page.tsx",
-  "danh-muc/dung-cu/chi-tiet/page.tsx",
+  "danh-muc/dung-cu/page.tsx",
   "danh-muc/thiet-bi/page.tsx",
   "danh-muc/hoa-chat/page.tsx",
   "danh-muc/khoa-phong/page.tsx",

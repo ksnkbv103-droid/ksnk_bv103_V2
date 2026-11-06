@@ -57,4 +57,44 @@ describe("parseQlcvImportRow", () => {
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.row.loai_cong_viec).toBe("DOT_XUAT");
   });
+
+  it("chấp nhận đúng tiêu đề cột của file Excel mẫu (downloadTemplate) và ngày YYYY/MM/DD hoặc Excel serial", () => {
+    const r = parseQlcvImportRow(
+      {
+        "Tiêu đề*": "Rà soát checklist IPC nội bộ KSNK",
+        "Mô tả": "Theo quy trình KSNK BV103",
+        "Ưu tiên (thap|trung_binh|cao)": "cao",
+        "Hạn (yyyy-mm-dd)*": "2026/12/31",
+        "Mã nv phụ trách*": "ADMIN01",
+        "Mã khoa địa điểm": "KSNK",
+        "Mã tổ": "TO01",
+      },
+      7,
+    );
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.row).toEqual({
+        tieu_de: "Rà soát checklist IPC nội bộ KSNK",
+        mo_ta: "Theo quy trình KSNK BV103",
+        loai_cong_viec: "DOT_XUAT",
+        muc_do_uu_tien: "CAO",
+        han_hoan_thanh: "2026-12-31",
+        ma_nv: "ADMIN01",
+        ma_khoa: "KSNK",
+        ma_to: "TO01",
+      });
+    }
+  });
+
+  it("từ chối ngày không tồn tại trên lịch (2026-02-31)", () => {
+    const r = parseQlcvImportRow(
+      {
+        tieu_de: "X",
+        ma_nv: "NV001",
+        han_hoan_thanh: "2026-02-31",
+      },
+      8,
+    );
+    expect(r.ok).toBe(false);
+  });
 });

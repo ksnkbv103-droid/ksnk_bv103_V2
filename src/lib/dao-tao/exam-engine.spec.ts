@@ -40,6 +40,7 @@ function q(partial: Partial<BankQuestion> & Pick<BankQuestion, "id" | "loai" | "
     id: partial.id,
     loai: partial.loai,
     bloomLevel: partial.bloomLevel,
+    targetRoles: partial.targetRoles,
   };
 }
 
@@ -115,6 +116,48 @@ describe("selectBalancedExam", () => {
     expect(questions).toHaveLength(20);
     expect(report.selected).toBe(20);
     expect(Object.keys(report.byLoai).length).toBeGreaterThan(1);
+  });
+
+  it("filters by targetRole when available", () => {
+    const bank: BankQuestion[] = [
+      ...Array.from({ length: 5 }, (_, i) =>
+        q({ id: `doc-${i}`, loai: "single", bloomLevel: 1, targetRoles: ["ROLE_PHYSICIAN_SPECIALTY"] }),
+      ),
+      ...Array.from({ length: 5 }, (_, i) =>
+        q({ id: `nurse-${i}`, loai: "single", bloomLevel: 1, targetRoles: ["ROLE_NURSE_GENERAL"] }),
+      ),
+      ...Array.from({ length: 5 }, (_, i) =>
+        q({ id: `cssd-${i}`, loai: "single", bloomLevel: 1, targetRoles: ["ROLE_CSSD_STAFF"] }),
+      ),
+      ...Array.from({ length: 5 }, (_, i) =>
+        q({ id: `laundry-${i}`, loai: "single", bloomLevel: 1, targetRoles: ["ROLE_LAUNDRY_STAFF"] }),
+      ),
+    ];
+    const { questions: docExam } = selectBalancedExam({
+      bank,
+      soCau: 3,
+      bloomQuota: { "1": 1 },
+      loaiQuota: { single: 1 },
+      seed: "role-test-doc",
+      targetRole: "ROLE_PHYSICIAN_SPECIALTY",
+    });
+    expect(docExam).toHaveLength(3);
+    for (const item of docExam) {
+      expect(item.targetRoles).toContain("ROLE_PHYSICIAN_SPECIALTY");
+    }
+
+    const { questions: cssdExam } = selectBalancedExam({
+      bank,
+      soCau: 3,
+      bloomQuota: { "1": 1 },
+      loaiQuota: { single: 1 },
+      seed: "role-test-cssd",
+      targetRole: "ROLE_CSSD_STAFF",
+    });
+    expect(cssdExam).toHaveLength(3);
+    for (const item of cssdExam) {
+      expect(item.targetRoles).toContain("ROLE_CSSD_STAFF");
+    }
   });
 });
 

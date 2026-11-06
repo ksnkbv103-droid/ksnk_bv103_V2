@@ -196,5 +196,52 @@ describe("master-crud-core allowlist", () => {
       expect(res).toMatchObject({ success: false, error: expect.stringContaining("Không tìm thấy mục danh mục") });
       expect(mocks.logAdminAction).not.toHaveBeenCalled();
     });
+
+    it("P0-2: sửa khu vực giám sát không truyền thu_tu vẫn bảo toàn metadata.thu_tu hiện có", async () => {
+      let updatePayload: Record<string, any> | null = null;
+      const updateBuilder = {
+        filters: [] as Array<[string, string, unknown]>,
+        eq: vi.fn((col: string, val: unknown) => {
+          updateBuilder.filters.push(["eq", col, val]);
+          return updateBuilder;
+        }),
+        select: vi.fn(async () => ({ data: [{ id: LOOKUP_ID }], error: null })),
+      };
+      const updateMock = vi.fn((payload: any) => {
+        updatePayload = payload;
+        return updateBuilder;
+      });
+
+      mocks.from.mockImplementation((table: string) => {
+        if (table === "sys_lookup_value") {
+          return {
+            update: updateMock,
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({
+                    data: { code: "KV01", metadata: { thu_tu: 7, extra_flag: true } },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null }) }) }) };
+      });
+
+      const { upsertMasterRow } = await import("./master-crud-core");
+      const res = await upsertMasterRow("gstt_dm_khu_vuc_giam_sat", LOOKUP_ID, {
+        ma_khu_vuc: "KV01",
+        ten_khu_vuc: "Phòng mổ 1 - Đã đổi tên",
+      });
+
+      expect(res).toEqual({ success: true });
+      expect(updatePayload).not.toBeNull();
+      const payloadRecord = updatePayload as Record<string, any> | null;
+      expect(payloadRecord?.name).toBe("Phòng mổ 1 - Đã đổi tên");
+      expect(payloadRecord?.metadata).toEqual({ thu_tu: 7, extra_flag: true });
+    });
   });
 });

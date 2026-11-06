@@ -43,9 +43,16 @@ type DeSnapshotItem = {
   thu_tu: number;
   loai: string;
   bloom_level: number;
+  bloom_code?: string | null;
   chu_de_ma: string;
+  chu_de_ten?: string | null;
+  clinical_vignette?: string | null;
   stem: string;
   giai_thich: string | null;
+  distractor_rationales?: Record<string, string>;
+  evidence_lock?: any;
+  target_roles?: string[];
+  sop_refs?: string[];
   options: Array<{ id: string; noiDung: string; displayIndex: number; tfDung?: boolean | null }>;
   dap_an_dung: DapAnDung;
   tra_loi: TraLoi | null;
@@ -56,11 +63,18 @@ function mapBankRows(
   rows: Array<{
     id: string;
     chu_de_ma: string;
+    chu_de_ten?: string | null;
     loai: string;
     bloom_level: number;
+    bloom_code?: string | null;
+    clinical_vignette?: string | null;
     stem: string;
     giai_thich: string | null;
     dap_an_dung: DapAnDung;
+    distractor_rationales?: Record<string, string>;
+    evidence_lock?: any;
+    target_roles?: string[];
+    sop_refs?: string[];
     phuong_an: PhuongAnJson[] | null;
   }>,
 ): BankQuestion[] {
@@ -80,25 +94,35 @@ function mapBankRows(
     return {
       id: r.id,
       chuDeMa: r.chu_de_ma,
+      chuDeTen: r.chu_de_ten ?? undefined,
       loai: r.loai as BankQuestion["loai"],
       bloomLevel: r.bloom_level as BankQuestion["bloomLevel"],
+      bloomCode: r.bloom_code ?? undefined,
+      clinicalVignette: r.clinical_vignette,
       stem: r.stem,
       giaiThich: r.giai_thich,
       dapAnDung: r.dap_an_dung,
       options: opts,
+      distractorRationales: r.distractor_rationales,
+      evidenceLock: r.evidence_lock,
+      targetRoles: r.target_roles,
+      sopRefs: r.sop_refs,
     };
   });
 }
 
-async function loadActiveBank(chuDeMas?: string[]) {
+async function loadActiveBank(chuDeMas?: string[], targetRole?: string) {
   const admin = createAdminSupabaseClient();
   let q = admin
     .from("dao_tao_cau_hoi")
     .select(
-      "id, chu_de_ma, loai, bloom_level, stem, giai_thich, dap_an_dung, phuong_an",
+      "id, chu_de_ma, chu_de_ten, loai, bloom_level, bloom_code, clinical_vignette, stem, giai_thich, dap_an_dung, phuong_an, distractor_rationales, evidence_lock, target_roles, sop_refs",
     )
     .eq("is_active", true);
   if (chuDeMas?.length) q = q.in("chu_de_ma", chuDeMas);
+  if (targetRole && targetRole !== "ALL") {
+    q = q.contains("target_roles", [targetRole]);
+  }
   const { data, error } = await q;
   if (error) throw error;
   return mapBankRows((data ?? []) as never);
@@ -111,9 +135,16 @@ function snapshotsToDeJson(questions: ExamQuestionSnapshot[]): DeSnapshotItem[] 
     thu_tu: idx + 1,
     loai: q.loai,
     bloom_level: q.bloomLevel,
+    bloom_code: q.bloomCode ?? null,
     chu_de_ma: q.chuDeMa,
+    chu_de_ten: q.chuDeTen ?? null,
+    clinical_vignette: q.clinicalVignette ?? null,
     stem: q.stem,
     giai_thich: q.giaiThich ?? null,
+    distractor_rationales: q.distractorRationales ?? {},
+    evidence_lock: q.evidenceLock ?? {},
+    target_roles: q.targetRoles ?? [],
+    sop_refs: q.sopRefs ?? [],
     options: q.options,
     dap_an_dung: q.dapAnDung,
     tra_loi: null,
@@ -162,6 +193,10 @@ async function canAccessKyThiThat(
 export async function startThiThuAttempt(input: {
   mucDoId: string;
   form: ExamFormThongTin;
+  targetRole?: string;
+  chuDeMas?: string[];
+  soCau?: number;
+  thoiGianPhut?: number;
 }) {
   const { user } = await requireDaoTaoUser();
   const form = validateForm(input.form);
@@ -178,26 +213,34 @@ export async function startThiThuAttempt(input: {
   if (mdErr) throw mdErr;
   if (!mucDo) throw new Error("Mức độ thi thử không tồn tại.");
 
-  const bank = await loadActiveBank(
-    Array.isArray(mucDo.chu_de_mas) && mucDo.chu_de_mas.length
-      ? mucDo.chu_de_mas
-      : undefined,
-  );
-  if (bank.length === 0) throw new Error("Ngân hàng câu hỏi trống. Vui lòng import trước.");
+  const selectedChuDeMas =
+    input.chuDeMas && input.chuDeMas.length > 0
+      ? input.chuDeMas
+      : Array.isArray(mucDo.chu_de_mas) && mucDo.chu_de_mas.length
+        ? mucDo.chu_de_mas
+        : undefined;
+
+  const bank = await loadActiveBank(selectedChuDeMas, input.targetRole);
+  if (bank.length === 0) throw new Error("Ngân hàng câu hỏi trống cho tiêu chí này. Vui lòng chọn lại vai trò hoặc chuyên đề.");
+
+  const soCauChon = input.soCau && input.soCau > 0 ? input.soCau : mucDo.so_cau;
+  const thoiGianPhut = input.thoiGianPhut && input.thoiGianPhut > 0 ? input.thoiGianPhut : mucDo.thoi_gian_phut;
 
   const seed = randomUUID();
   const { questions, report } = selectBalancedExam({
     bank,
-    soCau: mucDo.so_cau,
+    soCau: Math.min(soCauChon, bank.length),
     bloomQuota: (mucDo.bloom_quota ?? {}) as Record<string, number>,
     loaiQuota: (mucDo.loai_quota ?? {}) as Record<string, number>,
     seed,
     shuffleCau: mucDo.shuffle_cau !== false,
     shuffleDapAn: mucDo.shuffle_dap_an !== false,
+    targetRole: input.targetRole,
+    chuDeMas: selectedChuDeMas,
   });
 
   const batDau = new Date();
-  const hanNop = new Date(batDau.getTime() + mucDo.thoi_gian_phut * 60_000);
+  const hanNop = new Date(batDau.getTime() + thoiGianPhut * 60_000);
   const deSnapshot = snapshotsToDeJson(questions);
 
   const { data: lanThi, error: ltErr } = await admin
@@ -209,7 +252,7 @@ export async function startThiThuAttempt(input: {
       form_thong_tin: form,
       seed,
       so_cau: questions.length,
-      thoi_gian_phut: mucDo.thoi_gian_phut,
+      thoi_gian_phut: thoiGianPhut,
       bat_dau_luc: batDau.toISOString(),
       han_nop_luc: hanNop.toISOString(),
       trang_thai: "dang_lam",
@@ -410,10 +453,24 @@ export async function getLanThiForTake(lanThiId: string) {
       thuTu: c.thu_tu,
       loai: c.loai,
       stem: c.stem,
-      options: c.options,
+      clinicalVignette: c.clinical_vignette ?? null,
+      bloomCode: c.bloom_code ?? null,
+      chuDeMa: c.chu_de_ma,
+      chuDeTen: c.chu_de_ten ?? null,
+      targetRoles: c.target_roles ?? [],
+      sopRefs: c.sop_refs ?? [],
+      options: submitted
+        ? c.options
+        : c.options.map((o) => ({ id: o.id, noiDung: o.noiDung, displayIndex: o.displayIndex })),
       traLoi: c.tra_loi,
       ...(submitted
-        ? { dung: c.dung, giaiThich: c.giai_thich, dapAnDung: c.dap_an_dung }
+        ? {
+            dung: c.dung,
+            giaiThich: c.giai_thich,
+            dapAnDung: c.dap_an_dung,
+            distractorRationales: c.distractor_rationales ?? {},
+            evidenceLock: c.evidence_lock ?? {},
+          }
         : {}),
     }));
 

@@ -34,6 +34,7 @@ export const NAV_GATE_CSSD_SU_CO: NavGate = { id: "cssd-su-co", moduleKeys: ["BA
 export const NAV_GATE_CSSD_DUNG_CU: NavGate = { id: "cssd-dung-cu", moduleKeys: ["CSSD_KHO_DUNGCU"] };
 export const NAV_GATE_CSSD_THIET_BI: NavGate = { id: "cssd-thiet-bi", moduleKeys: ["THIET_BI"] };
 export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys: ["KSNK_KHO_HOACHAT"] };
+export const NAV_GATE_HAU_CAN_MT: NavGate = { id: "hau-can-mt", moduleKeys: ["HAU_CAN_MOI_TRUONG"] };
 
 
 /**
@@ -54,6 +55,7 @@ export const QUAN_TRI_ENTRY_MODULE_KEYS = [
   "DC_LE",
   "THIET_BI",
   "HOA_CHAT",
+  "GIAM_SAT_NKBV",
 ] as const;
 
 export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: QUAN_TRI_ENTRY_MODULE_KEYS };

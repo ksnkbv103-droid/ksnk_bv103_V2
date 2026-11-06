@@ -17,8 +17,16 @@ export function lotRowToKey(row: { ma_lo?: string | null; han_su_dung?: string |
   return `${row.ma_lo ?? ""}|${row.han_su_dung ?? ""}`;
 }
 
-export function isLotExpired(han_su_dung: string | null | undefined, todayYmd?: string): boolean {
+function normalizeExpiryYmd(han_su_dung: string | null | undefined): string {
   const raw = String(han_su_dung || "").trim().slice(0, 10);
+  if (!raw) return "";
+  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  return raw;
+}
+
+export function isLotExpired(han_su_dung: string | null | undefined, todayYmd?: string): boolean {
+  const raw = normalizeExpiryYmd(han_su_dung);
   if (!raw) return false;
   const today = todayYmd || todayYmdInVn();
   return raw < today;
@@ -29,7 +37,7 @@ export function isLotNearExpiry(
   todayYmd?: string,
   withinDays: number = NEAR_EXPIRY_DAYS,
 ): boolean {
-  const raw = String(han_su_dung || "").trim().slice(0, 10);
+  const raw = normalizeExpiryYmd(han_su_dung);
   if (!raw) return false;
   const today = todayYmd || todayYmdInVn();
   if (raw < today) return true;
@@ -38,9 +46,9 @@ export function isLotNearExpiry(
 }
 
 function expirySortKey(han_su_dung: string | null | undefined): number {
-  const raw = String(han_su_dung || "").trim().slice(0, 10);
+  const raw = normalizeExpiryYmd(han_su_dung);
   if (!raw) return Number.MAX_SAFE_INTEGER;
-  const t = new Date(`${raw}T12:00:00`).getTime();
+  const t = new Date(`${raw}T12:00:00Z`).getTime();
   return Number.isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
 }
 

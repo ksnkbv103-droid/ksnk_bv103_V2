@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import SearchableMultiSelect, { type MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { dashboardChrome as UI } from "@/modules/dashboard/lib/dashboard-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { getBv103AnalyticsPresets } from "@/lib/bv103-analytics-default-range";
 
 type DashboardFilterPanelProps = {
   hideBangKiem?: boolean;
@@ -75,26 +76,55 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
   const selectSize = "compact" as const;
   const selectMin = "min-w-0 w-full";
 
+  const presets = React.useMemo(() => getBv103AnalyticsPresets(p.denNgay), [p.denNgay]);
+
   return (
     <div className={`${UI.sectionGap} space-y-2`}>
       <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="w-7 shrink-0 text-xs font-medium text-slate-500">Kỳ</span>
-          <input
-            type="date"
-            value={p.tuNgay}
-            onChange={(e) => p.setTuNgay(e.target.value)}
-            aria-label="Từ ngày"
-            className={ctl}
-          />
-          <span className="text-xs text-slate-300">–</span>
-          <input
-            type="date"
-            value={p.denNgay}
-            onChange={(e) => p.setDenNgay(e.target.value)}
-            aria-label="Đến ngày"
-            className={ctl}
-          />
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="w-7 shrink-0 text-xs font-medium text-slate-500">Kỳ</span>
+            <input
+              type="date"
+              value={p.tuNgay}
+              max={p.denNgay || undefined}
+              onChange={(e) => p.setTuNgay(e.target.value)}
+              aria-label="Từ ngày"
+              className={ctl}
+            />
+            <span className="text-xs text-slate-300">–</span>
+            <input
+              type="date"
+              value={p.denNgay}
+              min={p.tuNgay || undefined}
+              onChange={(e) => p.setDenNgay(e.target.value)}
+              aria-label="Đến ngày"
+              className={ctl}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-1 pl-8">
+            {presets.map((preset) => {
+              const active = p.tuNgay === preset.tuNgay && p.denNgay === preset.denNgay;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => {
+                    p.setTuNgay(preset.tuNgay);
+                    p.setDenNgay(preset.denNgay);
+                  }}
+                  className={`rounded px-1.5 py-0.5 text-[11px] font-medium transition-colors ${
+                    active
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                  title={`${preset.label}: ${preset.tuNgay} → ${preset.denNgay}`}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="min-w-0 sm:max-w-xs">

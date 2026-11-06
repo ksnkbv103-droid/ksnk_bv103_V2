@@ -42,9 +42,13 @@ function labelChuKy(ma: string): string {
   return ma;
 }
 
-function previewSpawnLabels(ma: MaChuKyDinhKy, ngayBatDau: string): string {
+function previewSpawnLabels(ma: MaChuKyDinhKy, ngayBatDau: string, ngayKetThuc?: string | null): string {
   const maxMatches = ma === "DAILY" ? 14 : ma === "YEARLY" ? 4 : 8;
-  const dates = nextDinhKySpawnDates(ma, ngayBatDau, new Date(), { maxScanDays: 1200, maxMatches });
+  const dates = nextDinhKySpawnDates(ma, ngayBatDau, new Date(), {
+    maxScanDays: 1200,
+    maxMatches,
+    ngayKetThucIso: ngayKetThuc,
+  });
   if (dates.length === 0) return "—";
   const fmt = (iso: string) => formatDateVi(iso, iso);
   return dates.map(fmt).join(" · ");
@@ -101,7 +105,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
   const [nhiemVuOptions, setNhiemVuOptions] = useState<NhiemVuSelectOption[]>([]);
   const [printPeriod, setPrintPeriod] = useState<QlcvPeriodKind>("MONTH");
   const [showDetails, setShowDetails] = useState(false);
-  const { isAdmin } = useModulePermission("CONG_VIEC");
+  const { isAdmin, allowed } = useModulePermission("CONG_VIEC");
+  const canManage = Boolean(isAdmin || allowed.create || allowed.edit);
 
   const resetForm = () => {
     setEditingId(null);
@@ -278,7 +283,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
               </button>
             </div>
           ) : null}
-          {isAdmin ? (
+          {canManage ? (
             <button
               type="button"
               onClick={() => void runSpawn()}
@@ -594,7 +599,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                       </div>
                     </td>
                     <td className="max-w-[14rem] p-3 text-[11px] leading-snug text-slate-500">
-                      {previewSpawnLabels(r.ma_chu_ky, r.ngay_bat_dau)}
+                      {r.is_active ? previewSpawnLabels(r.ma_chu_ky, r.ngay_bat_dau, r.ngay_ket_thuc) : "—"}
                     </td>
                   </tr>
                 ))}

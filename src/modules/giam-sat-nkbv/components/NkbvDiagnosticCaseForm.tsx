@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Ban, CheckCircle } from "lucide-react";
 import BsiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/BsiClinicalSubForm";
 import UtiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/UtiClinicalSubForm";
@@ -10,6 +10,9 @@ import SsiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Ssi
 import Ch17ClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Ch17ClinicalSubForm";
 import NkbvStayHistoryTable from "@/modules/giam-sat-nkbv/components/NkbvStayHistoryTable";
 import NkbvDiagnosticRow from "@/modules/giam-sat-nkbv/components/NkbvDiagnosticRow";
+import NkbvClinicalRationaleCard from "./NkbvClinicalRationaleCard";
+import { buildClinicalDeduction } from "../lib/nkbv-clinical-rationale";
+import { symptomLabelMap } from "../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { addDays } from "@/modules/giam-sat-nkbv/lib/nkbv-timeline-math";
 import type { CdcMetricsResult } from "@/modules/giam-sat-nkbv/lib/nkbv-timeline-math";
@@ -215,6 +218,64 @@ export default function NkbvDiagnosticCaseForm({
     vd.calculated_sbap_start && vd.calculated_sbap_end
       ? `${fmtDate(String(vd.calculated_sbap_start))} → ${fmtDate(String(vd.calculated_sbap_end))}`
       : null;
+
+  const symptomLabels = useMemo(() => symptomLabelMap(), []);
+
+  const positiveCriteria = useMemo(() => {
+    const list: Array<{ label: string; date?: string }> = [];
+    for (const [k, d] of Object.entries(symptomDates || {})) {
+      if (d && typeof d === "string" && d.trim()) {
+        list.push({
+          label: symptomLabels[k] || k,
+          date: d.slice(0, 10),
+        });
+      }
+    }
+    if (checklistType === "UTI" && utiForm) {
+      if (utiForm.has_dysuria && !list.some((x) => x.label.includes("tiểu buốt"))) {
+        list.push({ label: "Tiểu buốt / tiểu rắt (Dysuria)", date: symptomDates.dysuria || symptomDates.has_dysuria });
+      }
+      if (utiForm.has_suprapubic_tenderness && !list.some((x) => x.label.includes("trên xương mu"))) {
+        list.push({ label: "Đau tức trên xương mu (Suprapubic tenderness)", date: symptomDates.suprapubic_tenderness || symptomDates.has_suprapubic_tenderness });
+      }
+      if (utiForm.has_costovertebral_pain && !list.some((x) => x.label.includes("góc sườn sống"))) {
+        list.push({ label: "Đau tức góc sườn sống (CVA tenderness)", date: symptomDates.costovertebral_angle_pain || symptomDates.has_costovertebral_pain });
+      }
+      if (utiForm.has_fever && !list.some((x) => x.label.includes("Sốt"))) {
+        list.push({ label: "Sốt > 38°C", date: symptomDates.fever_gt_38 || symptomDates.has_fever });
+      }
+    } else if (checklistType === "BSI" && bsiForm) {
+      if (bsiForm.has_fever && !list.some((x) => x.label.includes("Sốt"))) {
+        list.push({ label: "Sốt > 38°C", date: symptomDates.fever_gt_38 || symptomDates.has_fever });
+      }
+      if (bsiForm.has_chills && !list.some((x) => x.label.includes("Rét run"))) {
+        list.push({ label: "Rét run (Chills)", date: symptomDates.chills || symptomDates.has_chills });
+      }
+      if (bsiForm.has_hypotension && !list.some((x) => x.label.includes("Tụt huyết áp"))) {
+        list.push({ label: "Tụt huyết áp", date: symptomDates.hypotension || symptomDates.has_hypotension });
+      }
+    } else if (checklistType === "VAE" && vaeForm) {
+      if (vaeForm.temp_fever_or_hypothermia && !list.some((x) => x.label.includes("Nhiệt độ"))) {
+        list.push({ label: "Nhiệt độ bất thường (< 36°C hoặc > 38°C)", date: symptomDates.temp_fever_or_hypothermia || symptomDates.temperature_abnormal });
+      }
+      if (vaeForm.wbc_abnormal && !list.some((x) => x.label.includes("Bạch cầu"))) {
+        list.push({ label: "Bạch cầu bất thường (≤ 4.000 hoặc ≥ 12.000)", date: symptomDates.wbc_abnormal });
+      }
+    }
+    return list;
+  }, [symptomDates, symptomLabels, checklistType, utiForm, bsiForm, vaeForm]);
+
+  const clinicalDeduction = useMemo(() => {
+    return buildClinicalDeduction({
+      checklistType,
+      evaluation: liveEvaluation,
+      cdcMetrics: liveCdcMetrics,
+      row: row as Record<string, unknown>,
+      positiveCriteria,
+      ngayVaoVien,
+      khoas,
+    });
+  }, [checklistType, liveEvaluation, liveCdcMetrics, row, positiveCriteria, ngayVaoVien, khoas]);
 
   if (suspectedType === "LOAI_TRU") {
     return (
@@ -662,8 +723,8 @@ export default function NkbvDiagnosticCaseForm({
       {/* 9 Conclusion */}
       <NkbvDiagnosticRow
         step={9}
-        title="Kết luận tiêu chuẩn"
-        hint="Đề xuất từ engine — chưa phải xác nhận cuối cùng."
+        title="Biện luận lâm sàng & Kết luận tiêu chuẩn"
+        hint="Đề xuất từ engine suy luận lâm sàng CDC/NHSN 2026 — Bác sĩ / KSNK thẩm định trước khi ký duyệt."
         tone={liveEvaluation.is_positive ? "emerald" : "default"}
         milestone={
           <div className="flex items-center gap-2">
@@ -673,22 +734,16 @@ export default function NkbvDiagnosticCaseForm({
               <Ban className="h-5 w-5 text-slate-400" />
             )}
             <span className="bv103-type-section">
-              {liveEvaluation.is_positive ? "Dương tính" : "Âm tính / chưa đủ tiêu chuẩn"}
+              {liveEvaluation.is_positive ? "Dương tính NKBV" : "Âm tính / Chưa đủ tiêu chuẩn"}
             </span>
           </div>
         }
       >
-        <div className="space-y-2 text-sm">
-          <p>
-            Phân loại:{" "}
-            <span className="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 bv103-type-label font-semibold uppercase">
-              {liveEvaluation.classification || formatNkbvChecklistTypeLabel(checklistType)}
-            </span>
-          </p>
-          <p className="leading-relaxed text-slate-600">{liveEvaluation.reason}</p>
+        <div className="space-y-3">
+          <NkbvClinicalRationaleCard deduction={clinicalDeduction} />
           {liveEvaluation.warnings?.length ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-950">
-              <strong>Cảnh báo độ sâu SSI:</strong>{" "}
+              <strong>Cảnh báo bổ sung:</strong>{" "}
               {liveEvaluation.warnings.join(" · ")}
             </div>
           ) : null}

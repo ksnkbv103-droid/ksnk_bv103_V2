@@ -4,7 +4,7 @@ import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "./qlcv-workflow-displ
 import { isBoardLaneDangLam, isBoardLaneQuaHan, type KanbanColumnId } from "./qlcv-board-lanes";
 import { normalizeQlcvStaffIdList } from "./qlcv-staff-ids";
 
-export type QlcvBoardFilter = "TOTAL" | "MY_TASKS" | "IN_PROGRESS" | "OVERDUE" | "GATE_CHO_TOI" | "HOM_NAY";
+export type QlcvBoardFilter = "TOTAL" | "MY_TASKS" | "WATCHING" | "IN_PROGRESS" | "OVERDUE" | "GATE_CHO_TOI" | "HOM_NAY";
 
 export type QlcvBoardFilterContext = {
   actorStaffId?: string | null;
@@ -27,17 +27,31 @@ function isQlcvClosed(t: Record<string, unknown>): boolean {
   return st === "HOAN_THANH" || st === "DA_HUY";
 }
 
-/** Việc giao cho tôi hoặc đề xuất do tôi gửi — chỉ việc còn mở. */
+/** Việc giao cho tôi, tôi phối hợp hoặc đề xuất do tôi gửi — chỉ việc còn mở. */
 export function isMyQlcvTask(
   t: Record<string, unknown>,
   actorStaffId: string | null | undefined,
 ): boolean {
   if (!actorStaffId) return false;
   if (isQlcvClosed(t)) return false;
+  const me = String(actorStaffId);
   const assignee = String(t.nguoi_phu_trach_id ?? "");
-  if (assignee && assignee === actorStaffId) return true;
-  if (isDeXuatChoDuyet(t) && String(t.nguoi_tao_id ?? "") === actorStaffId) return true;
+  if (assignee && assignee === me) return true;
+  const phoiHop = normalizeQlcvStaffIdList(t.nguoi_phoi_hop_ids);
+  if (phoiHop.includes(me)) return true;
+  if (isDeXuatChoDuyet(t) && String(t.nguoi_tao_id ?? "") === me) return true;
   return false;
+}
+
+/** Việc tôi được phân công theo dõi / giám sát — chỉ việc còn mở. */
+export function isWatchingQlcvTask(
+  t: Record<string, unknown>,
+  actorStaffId: string | null | undefined,
+): boolean {
+  if (!actorStaffId) return false;
+  if (isQlcvClosed(t)) return false;
+  const theoDoi = normalizeQlcvStaffIdList(t.nguoi_theo_doi_ids);
+  return theoDoi.includes(String(actorStaffId));
 }
 
 /**
@@ -82,6 +96,8 @@ export function formatBoardFilterHint(f: QlcvBoardFilter): string {
       return "Tất cả";
     case "MY_TASKS":
       return "Của tôi";
+    case "WATCHING":
+      return "Tôi theo dõi";
     case "IN_PROGRESS":
       return "Cần làm";
     case "OVERDUE":
@@ -103,6 +119,7 @@ export function matchesQlcvBoardFilter(
 ): boolean {
   if (!filter || filter === "TOTAL") return true;
   if (filter === "MY_TASKS") return isMyQlcvTask(t, ctx?.actorStaffId);
+  if (filter === "WATCHING") return isWatchingQlcvTask(t, ctx?.actorStaffId);
   if (filter === "GATE_CHO_TOI") return isQlcvChoToiDuyet(t, ctx?.actorStaffId);
   if (filter === "HOM_NAY") return isQlcvHomNayCuaToi(t, ctx?.actorStaffId);
   if (filter === "OVERDUE") return isBoardLaneQuaHan(t);

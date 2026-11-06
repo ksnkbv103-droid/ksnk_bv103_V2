@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import type { SuCoChemicalRow } from "../../actions/cssd-kho-hoa-chat-su-co.actions";
 
 type Props = {
@@ -14,7 +15,7 @@ export default function KhoHoaChatSuCoPanel({ rows, canEdit, onXuatTuSuCo }: Pro
   if (!rows.length) return null;
   return (
     <details className="rounded-lg border border-violet-200 bg-violet-50/60 px-3 py-1.5">
-      <summary className="bv103-type-label cursor-pointer font-semibold text-violet-800">
+      <summary className={`${bv103LayoutChrome.labelField} cursor-pointer font-semibold text-violet-800`}>
         {rows.length} sự cố hóa chất chưa ghi xuất kho
       </summary>
       <ul className="mt-1.5 space-y-1">

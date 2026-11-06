@@ -20,12 +20,16 @@ export function useVstAnalyticsData() {
     hinhThucIdsOverride: lensHinhThucIds,
   });
 
+  const seqRef = useRef(0);
+
   const loadAnalytics = useCallback(async () => {
     if (!filters.initDone) return;
+    const currentSeq = ++seqRef.current;
     setLoading(true);
     setLoadError(null);
     try {
       const { vst: res } = await fetchStrategicAnalytics(filterPayload(), ["vst"]);
+      if (currentSeq !== seqRef.current) return;
       if (!res) {
         setLoadError("Không nhận được phản hồi thống kê VST.");
         return;
@@ -33,9 +37,12 @@ export function useVstAnalyticsData() {
       if (res.success) setPayload(res.data);
       else setLoadError(res.error);
     } catch (err) {
+      if (currentSeq !== seqRef.current) return;
       setLoadError(err instanceof Error ? err.message : "Có lỗi khi tải thống kê VST");
     } finally {
-      setLoading(false);
+      if (currentSeq === seqRef.current) {
+        setLoading(false);
+      }
     }
   }, [filters.initDone, filterPayload]);
 

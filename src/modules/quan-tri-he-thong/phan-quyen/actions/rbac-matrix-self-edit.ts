@@ -1,8 +1,12 @@
 /** So sánh tập permission_id (không phụ thuộc thứ tự / trùng). */
 export function samePermissionIdSet(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  const right = new Set(b.map(String));
-  return a.every((id) => right.has(String(id)));
+  const setA = new Set(a.map(String));
+  const setB = new Set(b.map(String));
+  if (setA.size !== setB.size) return false;
+  for (const id of setA) {
+    if (!setB.has(id)) return false;
+  }
+  return true;
 }
 
 /**

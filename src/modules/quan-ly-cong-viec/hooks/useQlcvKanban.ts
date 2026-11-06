@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { getCongViecListForBoard } from "../actions/cong-viec-list.actions";
 import { getPendingDeXuat, getMyPendingDeXuat } from "../actions/dexuat.actions";
@@ -45,6 +45,8 @@ export function useQlcvKanban({ canApprove, actorStaffId = null }: UseQlcvKanban
   const [kanbanSearchDebounced, setKanbanSearchDebounced] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const reqSeqRef = useRef(0);
+
   // Debounce search
   useEffect(() => {
     const tid = window.setTimeout(() => setKanbanSearchDebounced(searchTerm.trim().toLowerCase()), 220);
@@ -55,6 +57,8 @@ export function useQlcvKanban({ canApprove, actorStaffId = null }: UseQlcvKanban
     // Chờ actor khi lens MY_TASKS — tránh dump full board trước khi biết user.
     if (boardFilter === "MY_TASKS" && !actorStaffId) return;
 
+    const seq = ++reqSeqRef.current;
+
     // Parallel list + pending đề xuất — lỗi đề xuất không nuốt thành «không có chờ duyệt».
     const pendingPromise: Promise<CongViecView[]> = canApprove
       ? getPendingDeXuat().then((p) => p as CongViecView[])
@@ -64,6 +68,7 @@ export function useQlcvKanban({ canApprove, actorStaffId = null }: UseQlcvKanban
       getCongViecListForBoard({ boardFilter, actorStaffId }),
       pendingPromise,
     ]);
+    if (seq !== reqSeqRef.current) return;
     setTasks((data || []) as unknown as CongViecView[]);
     setPendingKanbanExtras(pending);
   }, [actorStaffId, boardFilter, canApprove]);

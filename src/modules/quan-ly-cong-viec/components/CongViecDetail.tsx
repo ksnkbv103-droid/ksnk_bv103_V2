@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, MessageSquare, Ban, Printer } from "lucide-react";
+import { CheckCircle2, MessageSquare, Ban, Printer, Copy, CalendarClock } from "lucide-react";
 import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
 import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
+import { QlcvSaveDinhKyDialog } from "./dialogs/QlcvSaveDinhKyDialog";
 import { ActivityTimeline, type Activity } from "./ActivityTimeline";
 import { CongViecForm } from "./CongViecForm";
 import { HoatDongForm } from "./HoatDongForm";
@@ -56,6 +57,7 @@ interface Props {
   id: string;
   onClose: () => void;
   onRefreshList?: () => void;
+  onCloneTask?: (task: CongViecView) => void;
 }
 
 type QlcvHoTenRef = { ho_ten?: string | null; is_active?: boolean | null };
@@ -98,7 +100,7 @@ const qlcvDetailChrome = {
 } as const;
 
 
-export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
+export function CongViecDetail({ id, onClose, onRefreshList, onCloneTask }: Props) {
   const { isAdmin, allowed, userData } = useModulePermission("CONG_VIEC");
   const accessFlags = {
     isRBACAdmin: isAdmin,
@@ -111,7 +113,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CongViecDetailData | null>(null);
   const mauSacByMa = QLCV_TRANG_THAI_MAU_SAC;
-  const [activeId] = useState(id);
   /** Inline subpanels inside OpsDetailSheet — no nested Dialog for Edit/Approve */
   const [detailPanel, setDetailPanel] = useState<"view" | "edit" | "approve">("view");
   // Dialog state — thay thế browser prompt()/confirm()
@@ -119,26 +120,28 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [reasonHuyOpen, setReasonHuyOpen] = useState(false);
   const [reasonTuChoiOpen, setReasonTuChoiOpen] = useState(false);
+  const [saveDinhKyOpen, setSaveDinhKyOpen] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [baoHoanThanhBusy, setBaoHoanThanhBusy] = useState(false);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
   const [khoaOptions, setKhoaOptions] = useState<QlcvSelectOption[]>([]);
 
-  const fetchDetail = async () => {
+  const fetchDetail = React.useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getCongViecDetail(activeId);
+      const res = await getCongViecDetail(id);
       setData(res as CongViecDetailData);
     } catch (err) {
       console.error("Lỗi tải chi tiết:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    fetchDetail();
-  }, [activeId]);
+    setDetailPanel("view");
+    void fetchDetail();
+  }, [fetchDetail]);
 
   useEffect(() => {
     void getQlcvFormCatalog()
@@ -205,8 +208,23 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     st !== "DA_HUY";
   const showHoatDong = canShowHoatDongProgressSection(data, accessFlags);
   const atNghiemThuGate = isEligibleForNghiemThu(data);
+  const isAssignee =
+    Boolean(accessFlags.actorStaffId) &&
+    String(accessFlags.actorStaffId) === String(data.nguoi_phu_trach_id ?? "");
+  const isCollaborator = Boolean(
+    accessFlags.actorStaffId &&
+      Array.isArray(data.nguoi_phoi_hop_ids) &&
+      data.nguoi_phoi_hop_ids.some((id) => String(id) === String(accessFlags.actorStaffId)),
+  );
+  const canUpdateProgress =
+    accessFlags.isRBACAdmin || accessFlags.hasEdit || isAssignee || isCollaborator;
+
   const checklistReadOnly =
-    isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || atNghiemThuGate;
+    !canUpdateProgress ||
+    isDeXuatChoDuyet(data) ||
+    st === "HOAN_THANH" ||
+    st === "DA_HUY" ||
+    atNghiemThuGate;
   const showNghiemThuToolbar = canShowQlcvNghiemThuActions(data, accessFlags);
   const showHuyKhiNghiemThuKhongDat = canShowHuyKhiNghiemThuKhongDat(data, accessFlags);
   const showHuyButton =
@@ -217,9 +235,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
   const baoHoanThanhMode = getQlcvBaoHoanThanhMode({
     trangThai: st,
-    isAssignee:
-      Boolean(accessFlags.actorStaffId) &&
-      String(accessFlags.actorStaffId) === String(data.nguoi_phu_trach_id ?? ""),
+    isAssignee: isAssignee || isCollaborator,
     usesChecklist,
     requireKetQuaAt100: data.loai_cong_viec === "DINH_KY",
     blocked: atNghiemThuGate || showNghiemThuToolbar || showApproveDeXuat || isDeXuatChoDuyet(data),
@@ -404,7 +420,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               ) : null}
 
               <button type="button" className={qlcvDetailChrome.btnPrimary} onClick={() => setConfirmNghiemThuOpen(true)}>
-                Nghiệm thu & Đóng
+                Nghiệm thu và Đóng
               </button>
             </>
           )}
@@ -415,7 +431,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               className={qlcvDetailChrome.btnPrimary}
               onClick={() => setDetailPanel("approve")}
             >
-              Phê duyệt & giao
+              Phê duyệt và giao
             </button>
           )}
 
@@ -426,6 +442,30 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               onClick={() => setDetailPanel("edit")}
             >
               Sửa việc
+            </button>
+          )}
+
+          {onCloneTask && (
+            <button
+              type="button"
+              className={`${qlcvDetailChrome.btnOutline} inline-flex items-center text-slate-700`}
+              onClick={() => onCloneTask(data)}
+              title="Sao chép / nhân bản công việc này"
+            >
+              <Copy className="mr-1.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden />
+              Sao chép việc
+            </button>
+          )}
+
+          {Boolean(isAdmin || allowed.create || allowed.edit) && (
+            <button
+              type="button"
+              className={`${qlcvDetailChrome.btnOutline} inline-flex items-center text-slate-700`}
+              onClick={() => setSaveDinhKyOpen(true)}
+              title="Tạo quy tắc mẫu định kỳ từ công việc này"
+            >
+              <CalendarClock className="mr-1.5 h-3.5 w-3.5 shrink-0 text-indigo-600" aria-hidden />
+              Lưu mẫu định kỳ
             </button>
           )}
 
@@ -503,7 +543,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 sm:grid-cols-3 sm:p-5 lg:grid-cols-4">
           {[
-            { label: "Người đề xuất", val: data.nguoi_tao?.ho_ten || "—" },
             {
               label: "Người giao",
               val:
@@ -515,6 +554,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                     : "—"),
             },
             { label: "Người phụ trách", val: data.nguoi_phu_trach?.ho_ten || "—" },
+            { label: "Người theo dõi / giám sát", val: theoDoiLabel },
+            { label: "Người phối hợp", val: phoiHopLabel },
             { label: "Tổ công tác", val: data.to_cong_tac?.ten_to || "—" },
             {
               label: "Hạn chót",
@@ -529,6 +570,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             },
             { label: "Vị trí chi tiết", val: data.vi_tri_thuc_hien || "—" },
             { label: "Nằm trong (NV/KH)", val: data.nhiem_vu_ten || "—" },
+            { label: "Người đề xuất", val: data.nguoi_tao?.ho_ten || "—" },
             {
               label: "Kết quả",
               val:
@@ -543,8 +585,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                   ? extractQlcvLastApproverName(data) || "—"
                   : "—",
             },
-            { label: "Người phối hợp", val: phoiHopLabel },
-            { label: "Người theo dõi", val: theoDoiLabel },
           ].map((item) => (
             <div key={item.label} className="min-w-0">
               <dt className={`${qlcvDetailChrome.sectionLabel} mb-0.5`}>{item.label}</dt>
@@ -687,6 +727,15 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           }
         }}
       />
+
+      {data ? (
+        <QlcvSaveDinhKyDialog
+          open={saveDinhKyOpen}
+          onOpenChange={setSaveDinhKyOpen}
+          task={data}
+          onSuccess={() => onRefreshList?.()}
+        />
+      ) : null}
       </div>
       {printing ? (
         <QlcvTaskPrintView task={data} phoiHopLabels={phoiHopLabel} theoDoiLabels={theoDoiLabel} />

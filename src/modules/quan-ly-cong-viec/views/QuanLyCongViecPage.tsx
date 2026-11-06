@@ -187,7 +187,7 @@ export default function QuanLyCongViecPage() {
     const tab = searchParams.get("tab")?.trim().toUpperCase();
     if (tab === "DINH_KY" && canManageDinhKy) setActiveTab("DINH_KY");
     else if (tab === "NHIEM_VU" && canManageDinhKy) setActiveTab("NHIEM_VU");
-    else if (tab === "BAO_CAO" && canManageDinhKy) setActiveTab("BAO_CAO");
+    else if (tab === "BAO_CAO" || tab === "THONG_KE") setActiveTab("BAO_CAO");
     else if (tab === "DIEN_HANH") setActiveTab("DIEN_HANH");
     else if (tab === "PHAN_CONG_TUAN" || tab === "TUAN" || tab === "CHUONG_TRINH" || tab === "KE_HOACH_NAM") {
       setActiveTab("DIEN_HANH");
@@ -244,6 +244,7 @@ export default function QuanLyCongViecPage() {
           mo_ta: r.mo_ta,
           ma_chu_ky: r.ma_chu_ky,
           ngay_bat_dau: r.ngay_bat_dau,
+          ngay_ket_thuc: r.ngay_ket_thuc,
           is_active: r.is_active,
           muc_do_uu_tien: r.muc_do_uu_tien,
           vi_tri_thuc_hien: r.vi_tri_thuc_hien,
@@ -364,6 +365,42 @@ export default function QuanLyCongViecPage() {
     [activeTab],
   );
 
+  const handleCloneTask = useCallback(
+    (row: CongViecView) => {
+      const rawChecklist = row.checklist;
+      let clonedChecklist: unknown = undefined;
+      if (Array.isArray(rawChecklist)) {
+        clonedChecklist = rawChecklist.map((it: unknown) => {
+          if (it && typeof it === "object") {
+            return { ...(it as Record<string, unknown>), done: false };
+          }
+          return it;
+        });
+      }
+      const prefill: Partial<CongViecView> = {
+        tieu_de: `${row.tieu_de} (bản sao)`,
+        mo_ta: row.mo_ta,
+        loai_cong_viec: row.loai_cong_viec === "DINH_KY" ? "DOT_XUAT" : row.loai_cong_viec,
+        muc_do_uu_tien: row.muc_do_uu_tien,
+        nguoi_phu_trach_id: row.nguoi_phu_trach_id,
+        to_cong_tac_id: row.to_cong_tac_id,
+        nhom_chuyen_mon_id: row.nhom_chuyen_mon_id,
+        dia_diem_khoa_id: row.dia_diem_khoa_id,
+        dia_diem_khoa_ids: row.dia_diem_khoa_ids,
+        vi_tri_thuc_hien: row.vi_tri_thuc_hien,
+        nhiem_vu_id: row.nhiem_vu_id,
+        nguoi_phoi_hop_ids: row.nguoi_phoi_hop_ids,
+        nguoi_theo_doi_ids: row.nguoi_theo_doi_ids,
+        checklist: clonedChecklist,
+        han_hoan_thanh: null,
+      };
+      closeTaskDetail();
+      openCreateCongViec(prefill, "DIEN_HANH");
+      toast.info("Đã sao chép nội dung công việc. Vui lòng chọn hạn hoàn thành mới.");
+    },
+    [closeTaskDetail, openCreateCongViec],
+  );
+
   const handleBoardFilter = useCallback(
     (f: QlcvBoardFilter) => {
       setActiveTab("DIEN_HANH");
@@ -385,8 +422,8 @@ export default function QuanLyCongViecPage() {
     if (canManageDinhKy) {
       tabs.push({ id: "NHIEM_VU", label: "Nhiệm vụ", mobileLabel: "Nhiệm vụ", icon: ListChecks });
       tabs.push({ id: "DINH_KY", label: "Danh mục định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
-      tabs.push({ id: "BAO_CAO", label: "Báo cáo", mobileLabel: "Báo cáo", icon: BarChart3 });
     }
+    tabs.push({ id: "BAO_CAO", label: "Thống kê & Báo cáo", mobileLabel: "Thống kê", icon: BarChart3 });
     return tabs;
   }, [canManageDinhKy]);
 
@@ -421,6 +458,7 @@ export default function QuanLyCongViecPage() {
             key={selectedTaskId}
             id={selectedTaskId}
             onClose={closeTaskDetail}
+            onCloneTask={handleCloneTask}
             onRefreshList={() => {
               void refreshAll();
               router.refresh();
@@ -578,6 +616,7 @@ export default function QuanLyCongViecPage() {
               }
               setEditingTask(row);
             }}
+            onCloneTask={handleCloneTask}
             onRefreshAll={refreshAll}
             onBoardFilter={handleBoardFilter}
             onCreateTask={() => openCreateCongViec(undefined, "DIEN_HANH")}
@@ -633,11 +672,9 @@ export default function QuanLyCongViecPage() {
           </Tabs.Content>
         ) : null}
 
-        {canManageDinhKy ? (
-          <Tabs.Content value="BAO_CAO" className="outline-none">
-            <QlcvBaoCaoPanel />
-          </Tabs.Content>
-        ) : null}
+        <Tabs.Content value="BAO_CAO" className="outline-none">
+          <QlcvBaoCaoPanel />
+        </Tabs.Content>
       </Tabs.Root>
       </div>
 
