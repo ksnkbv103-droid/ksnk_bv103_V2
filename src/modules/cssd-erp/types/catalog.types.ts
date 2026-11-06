@@ -65,3 +65,6 @@ export interface Catalog {
   hoa_chat: CSSDHoaChat[];
 }
 
+
+/** Số dòng mỗi trang ở màn danh mục CSSD (Loại, chi tiết). */
+export const KHO_CATALOG_PAGE_SIZE = 20;

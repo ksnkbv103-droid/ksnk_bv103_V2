@@ -1,6 +1,7 @@
 /** UX phiếu mẻ (ME-S4) — thuần, không I/O. */
 
-export type MeSlipStep = 1 | 2 | 3 | 4 | 5 | 6;
+/** 1 Máy · 2 Chương trình · 3 Quét bộ · 4 Kết thúc nạp · 5 Bắt đầu · 6 Kết thúc · 7 Nhả. */
+export type MeSlipStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type MeTrangThaiBadge = { label: string; className: string };
 
@@ -8,12 +9,13 @@ const BADGE = "inline-flex items-center rounded-full border px-2 py-0.5 text-[11
 
 const TRANG_THAI_BADGE: Record<string, MeTrangThaiBadge> = {
   DANG_CHUAN_NAP: { label: "Đang nạp", className: `${BADGE} border-sky-200 bg-sky-50 text-sky-800` },
+  DA_CHOT_NAP: { label: "Đã kết thúc nạp", className: `${BADGE} border-sky-300 bg-sky-50 text-sky-900` },
   DANG_TIET_KHUAN: { label: "Đang chạy", className: `${BADGE} border-blue-200 bg-blue-50 text-blue-800` },
   CHO_DANH_GIA_QC: { label: "Chờ QC", className: `${BADGE} border-amber-200 bg-amber-50 text-amber-800` },
   CHO_BI: { label: "Chờ BI", className: `${BADGE} border-violet-200 bg-violet-50 text-violet-800` },
   Quarantine_BI: { label: "Chờ BI", className: `${BADGE} border-violet-200 bg-violet-50 text-violet-800` },
   HOAN_THANH: { label: "Hoàn thành", className: `${BADGE} border-emerald-200 bg-emerald-50 text-emerald-800` },
-  QC_KHONG_DAT: { label: "Không đạt", className: `${BADGE} border-red-200 bg-red-50 text-red-700` },
+  QC_KHONG_DAT: { label: "Lô hỏng, cần xem lại", className: `${BADGE} border-red-200 bg-red-50 text-red-700` },
   THU_HOI: { label: "Thu hồi", className: `${BADGE} border-red-300 bg-red-50 text-red-800` },
 };
 
@@ -32,10 +34,12 @@ const ME_LIST_TERMINAL = new Set(["HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"]);
 export function meListPrimaryAction(trangThai: string): { label: string } | null {
   const key = String(trangThai || "").trim();
   if (!key) return { label: "Mở phiếu" };
-  if (ME_LIST_TERMINAL.has(key)) return null;
+  if (ME_LIST_TERMINAL.has(key)) return { label: "Xem / In" };
   switch (key) {
     case "DANG_CHUAN_NAP":
       return { label: "Tiếp tục nạp" };
+    case "DA_CHOT_NAP":
+      return { label: "Bắt đầu tiệt khuẩn" };
     case "DANG_TIET_KHUAN":
       return { label: "Kết thúc" };
     case "CHO_DANH_GIA_QC":
@@ -48,7 +52,7 @@ export function meListPrimaryAction(trangThai: string): { label: string } | null
   }
 }
 
-const ME_BADGE_STORED = new Set(["CHO_BI", "HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"]);
+const ME_BADGE_STORED = new Set(["DA_CHOT_NAP", "CHO_BI", "HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"]);
 
 /**
  * CS-ME: trạng thái badge phiếu mẻ — ưu tiên `trang_thai_me` đã lưu (QC_KHONG_DAT, THU_HOI…),
@@ -79,16 +83,17 @@ export function slipStatusLabel(input: {
   const st = String(input.trangThai || "").trim();
   if (input.choBi || st === "CHO_BI" || st === "Quarantine_BI") return "Chờ BI";
   if (st === "THU_HOI") return "Thu hồi";
-  if (input.ketQuaTest === false || st === "QC_KHONG_DAT") return "Không đạt";
+  if (input.ketQuaTest === false || st === "QC_KHONG_DAT") return "Lô hỏng, cần xem lại";
   if (input.ketQuaTest === true || st === "HOAN_THANH") return "Hoàn thành";
+  if (st === "DA_CHOT_NAP") return "Đã kết thúc nạp";
   if (input.step <= 4) return "Đang nạp";
   return "Đang chạy";
 }
 
 /**
- * Bước hiện tại trên phiếu: Máy → Chương trình → Quét bộ → Bắt đầu → Kết thúc → Nhả.
+ * Bước hiện tại trên phiếu: Máy → Chương trình → Quét bộ → Kết thúc nạp → Bắt đầu → Kết thúc → Nhả.
  * Máy đã chọn khi phiếu tồn tại.
- * Chương trình trống không chặn bước 4 khi đã có ≥1 bộ (khớp server confirmBatDau).
+ * Chương trình trống không chặn bước 4 khi đã có ≥1 bộ (khớp server confirmKetThucNap).
  */
 export function currentMeSlipStep(input: {
   chuongTrinh?: string | null;
@@ -100,7 +105,7 @@ export function currentMeSlipStep(input: {
   trangThai?: string | null;
 }): MeSlipStep {
   const st = String(input.trangThai || "").trim();
-  if (input.choBi || st === "CHO_BI" || st === "Quarantine_BI") return 6;
+  if (input.choBi || st === "CHO_BI" || st === "Quarantine_BI") return 7;
   if (
     input.ketQuaTest === true ||
     input.ketQuaTest === false ||
@@ -108,10 +113,12 @@ export function currentMeSlipStep(input: {
     st === "QC_KHONG_DAT" ||
     st === "THU_HOI"
   ) {
-    return 6;
+    return 7;
   }
-  if (input.qcOpen || st === "CHO_DANH_GIA_QC") return 5;
-  if (input.napLocked || st === "DANG_TIET_KHUAN") return 5;
+  if (input.qcOpen || st === "CHO_DANH_GIA_QC") return 7;
+  if (st === "DA_CHOT_NAP") return 5;
+  // Đang chạy; mẻ cũ đã chốt nạp mà chưa có trang_thai_me cũng coi là đang chạy.
+  if (input.napLocked || st === "DANG_TIET_KHUAN") return 6;
   // Đã nạp ≥1 bộ → bước Bắt đầu (chương trình chỉ soft-hint, không hard-gate).
   if (input.itemCount > 0) return 4;
   if (!String(input.chuongTrinh || "").trim()) return 2;
@@ -119,7 +126,7 @@ export function currentMeSlipStep(input: {
 }
 
 /**
- * FE gate khớp server confirmBatDau: cần ≥1 bộ và chưa chốt nạp.
+ * FE gate khớp server confirmKetThucNap: cần ≥1 bộ và chưa chốt nạp.
  * Không yêu cầu chuongTrinh.
  */
 export function canConfirmBatDauMeSlip(input: {

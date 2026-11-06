@@ -4,6 +4,7 @@ import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import BoDungCuPrintQrButton from "./bo-dung-cu-print-qr-button";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { sterileMethodLabel } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 interface ActionCells {
@@ -75,6 +76,20 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
           </span>
         </span>
       ),
+    },
+    {
+      header: "Tiệt khuẩn chung",
+      accessorKey: "phuong_phap_chung",
+      cell: (i) =>
+        !i.co_dong_loai ? (
+          <span className="text-[11px] text-slate-400">—</span>
+        ) : i.phuong_phap_chung?.length ? (
+          <span className="text-xs font-semibold text-blue-600">
+            {i.phuong_phap_chung.map(sterileMethodLabel).join(" + ")}
+          </span>
+        ) : (
+          <span className="text-xs font-semibold text-red-600">Không có PP chung — cần tách bộ</span>
+        ),
     },
     {
       header: "Tem",

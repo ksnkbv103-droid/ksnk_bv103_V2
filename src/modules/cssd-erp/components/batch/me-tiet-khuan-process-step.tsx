@@ -9,6 +9,7 @@ import MeTietKhuanProcessQcPanel from "./me-tiet-khuan-process-qc-panel";
 import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-waiting-panel";
 import MeTietKhuanHeatBanner from "./me-tiet-khuan-heat-banner";
 import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
+import { mocTuNhatKy } from "../../lib/me-tiet-khuan-moc";
 import { MeTietKhuanSlipStepper } from "./me-tiet-khuan-slip-stepper";
 import { CSSD_UI_ACTION_SECONDARY, CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL } from "../../shared/ui/cssd-ui-chrome";
 import { getSterilizerMethod, type SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
@@ -25,6 +26,7 @@ type MeRow = {
   ma_lo_tiet_khuan?: string;
   tk_chot_nap_at?: string | null;
   tk_mo_form_qc_at?: string | null;
+  tk_qc_json?: unknown;
   ket_qua_test?: boolean | null;
   trang_thai?: string | null;
   thiet_bi?: { ten_thiet_bi?: string | null; loai_thiet_bi?: string | null } | null;
@@ -68,6 +70,7 @@ export default function MeTietKhuanProcessStep({
   onBackToList,
   onAddItemByCode,
   onRemoveItem,
+  onConfirmKetThucNap,
   onConfirmBatDau,
   onConfirmKetThucChuTrinh,
   onFinishQc,
@@ -115,6 +118,7 @@ export default function MeTietKhuanProcessStep({
   onBackToList: () => void;
   onAddItemByCode: (code: string) => void;
   onRemoveItem: (quyTrinhId: string) => void;
+  onConfirmKetThucNap: () => void | Promise<void>;
   onConfirmBatDau: () => void | Promise<void>;
   onConfirmKetThucChuTrinh: () => void | Promise<void>;
   onFinishQc: (isPass: boolean) => void | Promise<void>;
@@ -140,7 +144,7 @@ export default function MeTietKhuanProcessStep({
     () => getSterilizerMethod(batchGate?.thiet_bi ?? activeMe?.thiet_bi ?? null) || getSterilizerMethod({ phuong_phap: (batchGate as { phuong_phap?: string | null } | null)?.phuong_phap }),
     [batchGate, activeMe?.thiet_bi],
   );
-  const trangThai = String(activeMe?.trang_thai || (batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || "");
+  const trangThai = String((batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || activeMe?.trang_thai || "");
   const choBi = trangThai === "CHO_BI";
   const biTuanSauNha =
     !choBi &&
@@ -166,10 +170,14 @@ export default function MeTietKhuanProcessStep({
   const statusBadge = meTrangThaiBadge(
     resolveMeBadgeState({ trangThai, choBi, ketQuaTest: activeMe?.ket_qua_test, napLocked, qcOpen }),
   );
-  const canConfirmBatDau = canConfirmBatDauMeSlip({ itemCount: items.length, napLocked });
+  // Nạp xong (≥1 bộ, chưa chốt) → «Kết thúc nạp»; sau đó mới «Bắt đầu tiệt khuẩn».
+  const canKetThucNap = canConfirmBatDauMeSlip({ itemCount: items.length, napLocked });
+  const loHong = trangThai === "QC_KHONG_DAT";
+  const moc = useMemo(() => mocTuNhatKy(batchGate?.tk_qc_json ?? activeMe?.tk_qc_json), [batchGate?.tk_qc_json, activeMe?.tk_qc_json]);
   const chuongTrinhEmpty = !String(chuongTrinh || "").trim();
   const maLoMo = String(activeMe?.ma_lo_tiet_khuan || "").trim();
   const canPrint =
+    napLocked ||
     choBi ||
     activeMe?.ket_qua_test === true ||
     activeMe?.ket_qua_test === false ||
@@ -203,7 +211,7 @@ export default function MeTietKhuanProcessStep({
     <div className={suppressShell ? "space-y-3" : `${CSSD_PAGE_OUTER} space-y-3 animate-in slide-in-from-right-6 duration-300`}>
       {toolbar}
       <div className="space-y-3">
-        <MeTietKhuanSlipStepper current={slipStep} />
+        <MeTietKhuanSlipStepper current={slipStep} moc={moc} />
 
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
@@ -214,24 +222,34 @@ export default function MeTietKhuanProcessStep({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge.className}>{statusBadge.label}</span>
-            {canConfirmBatDau ? (
+            {canKetThucNap ? (
+              <button
+                type="button"
+                onClick={() => void onConfirmKetThucNap()}
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
+              >
+                <Lock size={16} aria-hidden="true" />
+                Kết thúc nạp
+              </button>
+            ) : null}
+            {slipStep === 5 && !loHong ? (
               <button
                 type="button"
                 onClick={() => void onConfirmBatDau()}
                 className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
               >
-                <Lock size={16} aria-hidden="true" />
-                Bắt đầu chu trình
+                <Timer size={16} aria-hidden="true" />
+                Bắt đầu tiệt khuẩn
               </button>
             ) : null}
-            {slipStep === 5 && !qcOpen ? (
+            {slipStep === 6 && !qcOpen ? (
               <button
                 type="button"
                 onClick={() => void onConfirmKetThucChuTrinh()}
                 className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/30 bg-white/15 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-white/25 active:scale-95"
               >
                 <StopCircle size={16} aria-hidden="true" />
-                Kết thúc
+                Kết thúc tiệt khuẩn
               </button>
             ) : null}
           </div>
@@ -295,11 +313,11 @@ export default function MeTietKhuanProcessStep({
                 />
               </div>
             </div>
-            {canConfirmBatDau ? (
+            {canKetThucNap ? (
               <div className="sticky bottom-2 z-10 flex flex-col gap-2 rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/95 p-3 shadow-md backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 space-y-0.5">
                   <p className="text-xs font-semibold text-slate-800">
-                    Đã nạp <strong>{items.length}</strong> bộ — sẵn sàng bắt đầu chu trình
+                    Đã nạp <strong>{items.length}</strong> bộ — sẵn sàng kết thúc nạp
                   </p>
                   {chuongTrinhEmpty ? (
                     <p className="text-[11px] font-medium text-amber-800/90">
@@ -309,18 +327,30 @@ export default function MeTietKhuanProcessStep({
                 </div>
                 <button
                   type="button"
-                  onClick={() => void onConfirmBatDau()}
+                  onClick={() => void onConfirmKetThucNap()}
                   className="bv103-control-h inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
                 >
                   <Lock size={16} aria-hidden="true" />
-                  Bắt đầu chu trình
+                  Kết thúc nạp
                 </button>
               </div>
             ) : null}
           </div>
         ) : null}
 
-        {slipStep === 5 && !qcOpen ? (
+        {loHong ? (
+          <div role="alert" className="rounded-[var(--radius-shell)] border border-red-300 bg-red-50 p-4 text-sm font-semibold text-red-800">
+            Lô hỏng, cần xem lại — có test không đạt, mẻ không được lưu kho vô khuẩn.
+          </div>
+        ) : null}
+
+        {slipStep === 5 && !loHong ? (
+          <div className="rounded-[var(--radius-shell)] border-2 border-dashed border-sky-200 bg-sky-50/60 p-6 text-center text-sm font-semibold text-sky-800">
+            Đã kết thúc nạp {items.length} bộ — bấm «Bắt đầu tiệt khuẩn» khi chạy máy.
+          </div>
+        ) : null}
+
+        {slipStep === 6 && !qcOpen ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-[var(--radius-shell)] border-2 border-dashed border-blue-200 bg-blue-50/60 p-12 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-300 bg-blue-100">
               <Timer className="h-8 w-8 animate-pulse text-blue-600" />
@@ -331,7 +361,7 @@ export default function MeTietKhuanProcessStep({
                 Đã chốt <strong>{items.length} bộ</strong> trong phiếu
               </p>
               <p className="max-w-md text-[11px] font-medium leading-relaxed text-blue-500">
-                Chờ máy xong, rồi bấm «Kết thúc».
+                Chờ máy xong, rồi bấm «Kết thúc tiệt khuẩn».
               </p>
             </div>
           </div>
@@ -339,7 +369,7 @@ export default function MeTietKhuanProcessStep({
 
         {qcOpen || choBi || biTuanSauNha ? (
           <MeTietKhuanProcessQcPanel
-            showForm={qcOpen && !biTuanSauNha}
+            showForm={qcOpen && !biTuanSauNha && !loHong}
             method={method}
             coImplant={coImplant}
             steamBiReminder={steamBiReminder}

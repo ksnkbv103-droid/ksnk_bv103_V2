@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import type { CSSDBo } from "../types/catalog.types";
+import React, { useEffect, useState } from "react";
+import { KHO_CATALOG_PAGE_SIZE, type CSSDBo } from "../types/catalog.types";
+import ServerPaginationBar from "@/components/shared/ServerPaginationBar";
 import { Loader2 } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import ServerPaginationBar from "@/components/shared/ServerPaginationBar";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "../contexts/instrument-catalog/entrypoint";
@@ -17,7 +17,7 @@ import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 export function CSSDCatalogBoTab({
-  boRows,
+  boRows: allBoRows,
   selectedBoId,
   setSelectedBoId,
   toolbar,
@@ -27,17 +27,18 @@ export function CSSDCatalogBoTab({
   setSelectedBoId: (id: string) => void;
   toolbar?: React.ReactNode;
 }) {
+
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(allBoRows.length / KHO_CATALOG_PAGE_SIZE));
+  // Đổi bộ lọc/tìm kiếm → số bộ đổi → về trang 1.
+  useEffect(() => {
+    setPage(1);
+  }, [allBoRows.length]);
+  const boRows = allBoRows.slice((page - 1) * KHO_CATALOG_PAGE_SIZE, page * KHO_CATALOG_PAGE_SIZE);
   const { printBoLabel } = usePrint();
   const [printingId, setPrintingId] = useState<string | null>(null);
   const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-
-  const totalCount = boRows.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const currentPage = Math.min(Math.max(1, page), totalPages);
-  const pagedRows = boRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   async function handlePrintQr(e: React.MouseEvent, boId: string) {
     e.stopPropagation();
@@ -52,10 +53,6 @@ export function CSSDCatalogBoTab({
       await printBoLabel({
         qrCode: res.ma_vach_qr,
         tenBo: res.ten_bo,
-        tenKhoa: res.ten_khoa,
-        tongSoLuong: res.tong_so_luong_dung_cu,
-        soKhoan: res.so_khoan,
-        phanLoaiBo: res.phan_loai_bo,
       });
       window.dispatchEvent(new CustomEvent("cssd:kho-refetch"));
     } catch (err: any) {
@@ -67,24 +64,7 @@ export function CSSDCatalogBoTab({
 
   return (
     <>
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-3 px-1">
-          <div className="flex items-center gap-1 text-[11px] text-slate-500">
-            <span>Hiển thị:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-              className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
-            >
-              <option value={20}>20</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="ml-1 text-slate-400">({totalCount} bộ)</span>
-          </div>
+        <div className="mb-2 flex justify-end px-1">
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -97,11 +77,11 @@ export function CSSDCatalogBoTab({
           maxHeight="max-h-[350px]"
           toolbar={toolbar}
           mobileCards={
-            pagedRows.length === 0 ? (
+            boRows.length === 0 ? (
               <p className="py-6 text-center text-sm text-slate-500">Không tìm thấy bộ dụng cụ nào khớp từ khóa.</p>
             ) : (
               <ul className="divide-y divide-slate-100">
-                {pagedRows.map((x) => {
+                {boRows.map((x) => {
                   const isSelected = selectedBoId === x.id;
                   return (
                     <li key={x.id}>
@@ -123,7 +103,7 @@ export function CSSDCatalogBoTab({
                           <div className="flex min-w-0 items-start gap-2">
                             {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={20} /> : null}
                             <div className="min-w-0">
-                              <p className="font-bold text-[var(--primary)]">{x.ma_bo || "—"} </p>
+                              <p className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</p>
                               <p className="font-semibold text-slate-800">{x.ten_bo || "—"}</p>
                             </div>
                           </div>
@@ -161,7 +141,7 @@ export function CSSDCatalogBoTab({
               </tr>
             </thead>
             <tbody className={L.tbody}>
-              {pagedRows.map((x) => {
+              {boRows.map((x) => {
                 const isSelected = selectedBoId === x.id;
                 return (
                   <tr
@@ -231,18 +211,13 @@ export function CSSDCatalogBoTab({
             </tbody>
           </table>
         </ResponsiveTableShell>
-
-        {totalCount > 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white">
-            <ServerPaginationBar
-              page={currentPage}
-              totalPages={totalPages}
-              totalCount={totalCount}
-              pageSize={pageSize}
-              onPageChange={setPage}
-            />
-          </div>
-        ) : null}
+      <ServerPaginationBar
+        page={page}
+        totalPages={totalPages}
+        totalCount={allBoRows.length}
+        pageSize={KHO_CATALOG_PAGE_SIZE}
+        onPageChange={setPage}
+      />
       <CatalogDeNghiDialog
         open={Boolean(deNghi)}
         onOpenChange={(open) => {

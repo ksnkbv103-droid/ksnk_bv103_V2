@@ -4,6 +4,7 @@ import React from "react";
 import PrintLayout from "@/components/shared/PrintLayout";
 import CssdCapPhatQrStrip from "./CssdCapPhatQrStrip";
 import CssdPrintInstrumentTable from "./CssdPrintInstrumentTable";
+import { CAP_PHAT_KHONG_CO_DU_LIEU } from "../../lib/cssd-cap-phat-me-nhat-ky";
 import {
   CAP_PHAT_NO_INCIDENT_LINE,
   formatCssdPrintDate,
@@ -20,6 +21,58 @@ const labelRow = (label: string, value: string) => (
     <strong>{label}:</strong> {value}
   </p>
 );
+
+const cellStyle: React.CSSProperties = { border: "1px solid #000", padding: "4px 6px", fontSize: 12 };
+
+function mocText(m: { ten: string; thoiGian: string } | null): string {
+  return m ? `${m.ten} — ${formatCssdPrintDateTime(m.thoiGian)}` : CAP_PHAT_KHONG_CO_DU_LIEU;
+}
+
+function MeInfoBlock({ info }: { info: CssdCapPhatPrintData["meInfo"] }) {
+  const ketLuan =
+    info.ketLuan === "DAT" ? "ĐẠT" : info.ketLuan === "KHONG_DAT" ? "KHÔNG ĐẠT" : CAP_PHAT_KHONG_CO_DU_LIEU;
+  return (
+    <>
+      {info.tests.length === 0 ? (
+        <p style={{ margin: "0 0 6px", fontSize: 12, fontStyle: "italic" }}>
+          Bảng test chi tiết: {CAP_PHAT_KHONG_CO_DU_LIEU}
+        </p>
+      ) : (
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 6 }}>
+          <thead>
+            <tr>
+              {["Loại test", "Kết quả", "Người ghi", "Giờ"].map((h) => (
+                <th key={h} style={{ ...cellStyle, fontSize: 11, background: "#f5f5f5", textTransform: "uppercase" }}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {info.tests.map((t, i) => (
+              <tr key={`${t.loai}-${i}`}>
+                <td style={cellStyle}>{t.loai}</td>
+                <td style={cellStyle}>{t.ketQua}</td>
+                <td style={cellStyle}>{t.nguoi}</td>
+                <td style={cellStyle}>{formatCssdPrintDateTime(t.thoiGian)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p style={{ margin: "0 0 4px", fontSize: 13 }}>
+        <strong>Kết luận mẻ:</strong> {ketLuan}
+      </p>
+      {labelRow("Nạp mẻ (người — giờ)", mocText(info.nap))}
+      {labelRow("Bắt đầu tiệt khuẩn", mocText(info.batDau))}
+      {labelRow("Kết thúc tiệt khuẩn", mocText(info.ketThuc))}
+      {labelRow(
+        "Thời gian tiệt khuẩn",
+        info.phutTietKhuan == null ? CAP_PHAT_KHONG_CO_DU_LIEU : `${info.phutTietKhuan} phút`,
+      )}
+    </>
+  );
+}
 
 export default function CssdCapPhatPrintView({
   data,
@@ -91,6 +144,11 @@ export default function CssdCapPhatPrintView({
         <span><strong>BI:</strong> {formatBiPrintLabel(data.testSinhHoc)}</span>
         <span><strong>Bowie–Dick:</strong> {formatCssdTriLabel(data.testBowieDick)}</span>
       </div>
+
+      <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "20px 0 6px" }}>
+        Kết quả test và mốc tiệt khuẩn của mẻ
+      </p>
+      <MeInfoBlock info={data.meInfo} />
 
       <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "20px 0 6px" }}>
         Danh mục dụng cụ trong bộ cấp phát

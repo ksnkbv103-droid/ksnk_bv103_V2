@@ -7,6 +7,7 @@ import {
   mapKhaNangToIsChiuNhiet,
   mapLoaiDungCuExcelExportRow,
   normalizeLoaiDungCuExcelImportRow,
+  normalizePhuongPhapChoPhep,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
   resolveLoaiSterileMethod,
@@ -226,5 +227,31 @@ describe("KD-2 resolveLoaiSterileMethod", () => {
     const q: Record<string, unknown> = { is_chiu_nhiet: false };
     expect(syncLoaiPhysicalColumnsOnImportPayload(q, "A")).toBeNull();
     expect(q.phuong_phap_tiet_khuan_chi_dinh).toBe("PLASMA");
+  });
+});
+
+describe("phuong_phap_cho_phep", () => {
+  it("chuẩn hóa: bỏ lạ + trùng, giữ thứ tự", () => {
+    expect(normalizePhuongPhapChoPhep(["plasma", "X", "PLASMA", "steam_134"])).toEqual(["PLASMA", "STEAM_134"]);
+    expect(normalizePhuongPhapChoPhep("PLASMA")).toEqual([]);
+  });
+  it("payload: có hơi nước → chịu nhiệt, ưu tiên = phần tử đầu", () => {
+    const p = buildLoaiPhysicalUpsertPayload({
+      ma_danh_muc: "x1",
+      ten_danh_muc: "X",
+      phuong_phap_cho_phep: ["STEAM_134", "PLASMA"],
+    });
+    expect(p.is_chiu_nhiet).toBe(true);
+    expect(p.phuong_phap_tiet_khuan_chi_dinh).toBe("STEAM_134");
+    expect(p.phuong_phap_cho_phep).toEqual(["STEAM_134", "PLASMA"]);
+  });
+  it("payload: chỉ nhiệt thấp → không chịu nhiệt", () => {
+    const p = buildLoaiPhysicalUpsertPayload({
+      ma_danh_muc: "x2",
+      ten_danh_muc: "Y",
+      phuong_phap_cho_phep: ["PLASMA", "EO"],
+    });
+    expect(p.is_chiu_nhiet).toBe(false);
+    expect(p.phuong_phap_cho_phep).toEqual(["PLASMA", "EO"]);
   });
 });

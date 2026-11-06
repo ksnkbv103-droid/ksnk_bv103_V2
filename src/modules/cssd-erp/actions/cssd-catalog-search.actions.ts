@@ -6,7 +6,7 @@ import { mapLoaiPhysicalToListRow, splitLoaiStock } from "@/lib/master-data/cssd
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { CSSD_KHO_CATALOG_PERMISSION_CANDIDATES } from "../lib/cssd-catalog-permission-candidates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
-import type { CSSDBo, CSSDChiTiet, CSSDLoai } from "../types/catalog.types";
+import { KHO_CATALOG_PAGE_SIZE, type CSSDBo, type CSSDChiTiet, type CSSDLoai } from "../types/catalog.types";
 
 async function verifyCanViewKhoCatalog(): Promise<void> {
   for (const [moduleKey, action] of CSSD_KHO_CATALOG_PERMISSION_CANDIDATES) {
@@ -20,27 +20,25 @@ async function verifyCanViewKhoCatalog(): Promise<void> {
   await verifyPermission("CSSD_KHO_DUNGCU", "view");
 }
 
-const DEFAULT_PAGE_LIMIT = 200;
+const PAGE = KHO_CATALOG_PAGE_SIZE;
 
-export async function searchKhoCatalogLoaiAction(
-  q: string,
-  options?: { limit?: number },
-): Promise<
-  { success: true; data: CSSDLoai[] } | { success: false; error: string }
+export async function searchKhoCatalogLoaiAction(q: string, page = 1): Promise<
+  { success: true; data: CSSDLoai[]; totalCount: number } | { success: false; error: string }
 > {
   try {
     await verifyCanViewKhoCatalog();
     const supabase = createAdminSupabaseClient();
-    const limit = options?.limit ?? DEFAULT_PAGE_LIMIT;
     let query = supabase
       .from("cssd_dm_loai_dung_cu")
       .select(
-        "id, ma_loai, ten_loai, specs, is_active, is_chiu_nhiet, phan_loai, so_luong_kho_du_phong, phuong_phap_tiet_khuan_chi_dinh",
+        "id, ma_loai, ten_loai, specs, is_active, is_chiu_nhiet, phan_loai, so_luong_kho_du_phong, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep",
+        { count: "exact" },
       )
       .eq("is_active", true);
     const filter = buildSupabaseSearchFilter(q, ["ma_loai", "ten_loai"]);
     if (filter) query = query.or(filter);
-    const { data, error } = await query.order("ma_loai").limit(limit);
+    const from = (Math.max(1, Math.floor(page)) - 1) * PAGE;
+    const { data, error, count } = await query.order("ma_loai").range(from, from + PAGE - 1);
     if (error) throw error;
     const mapped = (data || []).map((x) => {
       const m = mapLoaiPhysicalToListRow(x as Record<string, unknown>);
@@ -57,7 +55,7 @@ export async function searchKhoCatalogLoaiAction(
         kich_thuoc: m.kich_thuoc,
         cong_dung: m.cong_dung,
         kha_nang_chiu_nhiet: m.kha_nang_chiu_nhiet,
-        phuong_phap_tiet_khuan: m.phuong_phap_tiet_khuan,
+        phuong_phap_tiet_khuan: m.phuong_phap_tiet_khuan_label,
       };
     });
     const ids = mapped.map((r) => r.id);
@@ -77,6 +75,7 @@ export async function searchKhoCatalogLoaiAction(
     }
     return {
       success: true,
+      totalCount: count ?? mapped.length,
       data: mapped.map((r) => ({
         ...r,
         ...splitLoaiStock(r.so_luong_kho_du_phong, trongBo.get(r.id) || 0),
@@ -101,7 +100,7 @@ export async function searchKhoCatalogChiTietAction(q: string): Promise<
       .eq("is_active", true);
     const filter = buildSupabaseSearchFilter(q, ["ma_chi_tiet", "ten_chi_tiet", "ten_bo", "ten_loai_dung_cu"]);
     if (filter) query = query.or(filter);
-    const { data, error } = await query.order("ma_chi_tiet").limit(DEFAULT_PAGE_LIMIT);
+    const { data, error } = await query.order("ma_chi_tiet").limit(PAGE);
     if (error) throw error;
     return {
       success: true,
@@ -143,29 +142,6 @@ export async function getBosContainingLoaiAction(loaiId: string): Promise<
       .eq("loai_dung_cu_id", id)
       .eq("is_active", true);
     if (error) throw error;
-
-    const khoaIds = [
-      ...new Set(
-        (data || [])
-          .map((row) => {
-            const rel = (row as { bo?: Record<string, unknown> | Record<string, unknown>[] | null }).bo;
-            const bo = Array.isArray(rel) ? rel[0] : rel;
-            return bo?.khoa_su_dung_id ? String(bo.khoa_su_dung_id).trim() : "";
-          })
-          .filter(Boolean),
-      ),
-    ];
-    const khoaMap = new Map<string, string>();
-    if (khoaIds.length > 0) {
-      const { data: khoaRows } = await supabase
-        .from("mdm_dm_khoa_phong")
-        .select("id, ten_khoa, ma_khoa")
-        .in("id", khoaIds);
-      for (const k of khoaRows || []) {
-        khoaMap.set(String(k.id), String(k.ten_khoa || k.ma_khoa || ""));
-      }
-    }
-
     const byId = new Map<string, CSSDBo>();
     for (const row of data || []) {
       const rel = (row as { bo?: Record<string, unknown> | Record<string, unknown>[] | null }).bo;
@@ -177,7 +153,6 @@ export async function getBosContainingLoaiAction(loaiId: string): Promise<
         existing.co_so_loai_dang_xem = (existing.co_so_loai_dang_xem ?? 0) + qty;
         continue;
       }
-      const kid = bo.khoa_su_dung_id ? String(bo.khoa_su_dung_id) : null;
       byId.set(String(bo.id), {
         id: String(bo.id),
         ma_bo: String(bo.ma_bo || ""),
@@ -185,8 +160,6 @@ export async function getBosContainingLoaiAction(loaiId: string): Promise<
         loai_dung_cu_id: null,
         is_active: true,
         phan_loai_bo: bo.phan_loai_bo ? String(bo.phan_loai_bo) : null,
-        khoa_su_dung_id: kid,
-        ten_khoa: kid ? khoaMap.get(kid) || null : null,
         co_so_loai_dang_xem: qty,
       });
     }
