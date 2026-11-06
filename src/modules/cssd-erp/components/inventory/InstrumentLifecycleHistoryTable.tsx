@@ -116,7 +116,7 @@ export default function InstrumentLifecycleHistoryTable() {
                 <li key={item.id} className="p-3.5 space-y-1.5 bg-white">
                   <div className="flex items-center justify-between gap-2">
                     <span
-                      className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-bold ${
+                      className={`inline-block rounded-md border px-2 py-0.5 text-[11px] font-bold ${
                         VARIANT_STYLES[item.badge_variant]
                       }`}
                     >
@@ -144,7 +144,7 @@ export default function InstrumentLifecycleHistoryTable() {
                     </span>
                   </div>
                   {item.ghi_chu ? (
-                    <p className="text-[11px] text-slate-600 italic bg-slate-50 p-1.5 rounded">
+                    <p className="text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded">
                       {item.ghi_chu}
                     </p>
                   ) : null}
@@ -210,7 +210,7 @@ export default function InstrumentLifecycleHistoryTable() {
                         <span className="text-xs text-slate-700">{item.ten_bo}</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-500 font-medium italic">Kho lẻ CSSD</span>
+                      <span className="text-xs text-slate-500 font-medium">Kho lẻ CSSD</span>
                     )}
                   </td>
                   <td className={`${L.td} text-center tabular-nums font-bold`}>

@@ -118,7 +118,7 @@ export default function NkbvBaWorkspaceSessionChips({
                 {isBlockedByChrono ? (
                   <span className="text-amber-600 font-normal">⏳ {orderNum}.</span>
                 ) : isPriority && !opened && !active ? (
-                  <span className="rounded bg-sky-200/80 px-1 py-0.2 text-[9px] font-bold text-sky-900">
+                  <span className="rounded bg-sky-200/80 px-1 py-0.2 text-[11px] font-bold text-sky-900">
                     {orderNum}. Ưu tiên
                   </span>
                 ) : (
@@ -129,7 +129,7 @@ export default function NkbvBaWorkspaceSessionChips({
                 </span>
                 {bloodInSiteSbap ? <span className="text-amber-800">· rà SBAP</span> : null}
                 {isBlockedByChrono && chronoCheck.earliestUnresolved ? (
-                  <span className="text-[10px] text-amber-700 font-medium">
+                  <span className="text-[11px] text-amber-700 font-medium">
                     · chờ {chronoCheck.earliestUnresolved.date.slice(5)}
                   </span>
                 ) : null}

@@ -92,7 +92,7 @@ export function DaoTaoQuestionCard({
             <span className="inline-block h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
             Tình huống lâm sàng / Bối cảnh thực tế
           </div>
-          <p className="text-sm leading-relaxed text-slate-700 font-normal italic">
+          <p className="text-sm leading-relaxed text-slate-700 font-normal">
             &ldquo;{clinicalVignette}&rdquo;
           </p>
         </div>
@@ -255,7 +255,7 @@ export function DaoTaoQuestionCard({
           ) : null}
 
           {evidenceLock?.sources?.[0]?.verbatim_quote ? (
-            <div className="mt-2 text-xs rounded bg-white/80 p-2.5 border border-slate-200/70 text-slate-700 italic">
+            <div className="mt-2 text-xs rounded bg-white/80 p-2.5 border border-slate-200/70 text-slate-700">
               <span className="font-semibold not-italic text-slate-900">Trích dẫn quy chuẩn: </span>
               &ldquo;{evidenceLock.sources[0].verbatim_quote}&rdquo;
             </div>

@@ -30,7 +30,7 @@ export default function ChatThaiDoVaiPage() {
                 <ShieldCheck className="w-4 h-4" />
                 Hậu cần & Môi trường y tế &bull; Bệnh viện Quân y 103
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
                 Quản lý Chất thải y tế & Đồ vải y tế
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">

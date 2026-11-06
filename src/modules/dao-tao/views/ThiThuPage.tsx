@@ -130,10 +130,10 @@ export default function ThiThuPage() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                       {r.badge}
                     </span>
-                    <span className="rounded bg-slate-100 px-1 py-0.2 text-[9px] font-medium text-slate-500">
+                    <span className="rounded bg-slate-100 px-1 py-0.2 text-[11px] font-medium text-slate-500">
                       {r.defaultQuestions}c / {r.durationMinutes}p
                     </span>
                   </div>

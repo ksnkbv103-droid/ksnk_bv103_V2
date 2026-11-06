@@ -202,7 +202,7 @@ export default function KetQuaPage() {
                 Câu {q.thuTu} · {labelLoaiCau(q.loai)}
               </span>
               {q.chuDeTen && (
-                <span className="truncate max-w-[280px] italic text-[11px] text-slate-500">
+                <span className="truncate max-w-[280px] text-[11px] text-slate-500">
                   {q.chuDeTen}
                 </span>
               )}

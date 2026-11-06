@@ -416,7 +416,7 @@ export default function NkbvSyndromeShellPanel({
             }`}
           >
             <div className="font-medium">{vacResult.reason}</div>
-            <div className="mt-1 text-[10px] text-slate-600">
+            <div className="mt-1 text-[11px] text-slate-600">
               Nhập PEEP tối thiểu (cmH₂O) và FiO₂ tối thiểu (%) trên các cột ngày bên dưới. CDC tự quét chuỗi ≥2 ngày ổn định rồi ≥2 ngày suy giảm (ΔPEEP ≥ 3 hoặc ΔFiO₂ ≥ 20%).
             </div>
           </div>
@@ -470,7 +470,7 @@ export default function NkbvSyndromeShellPanel({
                 <span>Đờm mủ (≥25 BCĐN và ≤10 TBBM / vi trường) hoặc cấy định lượng dịch hô hấp (+)</span>
               </label>
 
-              <div className="flex items-center gap-3 pt-0.5 text-[10px] text-slate-700">
+              <div className="flex items-center gap-3 pt-0.5 text-[11px] text-slate-700">
                 <label className="flex items-center gap-1 cursor-pointer">
                   <input
                     type="checkbox"

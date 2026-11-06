@@ -93,7 +93,7 @@ export default function NkbvClinicalRationaleCard({ deduction, className = "" }:
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
-                  <span className="text-[10px] text-slate-400 font-mono hidden md:inline">
+                  <span className="text-[11px] text-slate-400 font-mono hidden md:inline">
                     {s.citation}
                   </span>
                   {isOpen ? (

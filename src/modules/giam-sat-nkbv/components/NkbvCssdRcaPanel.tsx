@@ -160,7 +160,7 @@ export default function NkbvCssdRcaPanel({ maQr, quyTrinhId, showEmptyHint = fal
                     {inc.typeLabel || "Sự cố"}
                   </Link>
                   {inc.isRedAlert ? (
-                    <span className="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
+                    <span className="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[11px] font-bold text-rose-700">
                       Khẩn cấp
                     </span>
                   ) : null}

@@ -338,7 +338,7 @@ export function TabLichSuSuCo() {
                         {sc.ten_khoa ? (
                           <span className="font-semibold text-indigo-700">{sc.ten_khoa}</span>
                         ) : (
-                          <span className="text-slate-400 italic">Chưa xác định</span>
+                          <span className="text-slate-400">Chưa xác định</span>
                         )}
                       </td>
                       <td className="px-5 py-2.5 text-slate-700 max-w-xs truncate">

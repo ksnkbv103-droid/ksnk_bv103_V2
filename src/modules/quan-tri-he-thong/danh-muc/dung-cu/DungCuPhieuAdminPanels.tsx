@@ -215,7 +215,7 @@ export function DungCuPhieuAdminPanels() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                    <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
                       ĐỀ NGHỊ {CSSD_CATALOG_DE_NGHI_KIND_LABEL[r.targetKind]}
                     </span>
                     <span className="font-mono text-[12px] font-bold text-violet-700">
@@ -227,7 +227,7 @@ export function DungCuPhieuAdminPanels() {
                   </div>
                   <p className="text-[12px] text-slate-600">{r.afterSummary}</p>
                   {r.note ? (
-                    <p className="text-[11px] text-slate-500 italic">Ghi chú: {r.note}</p>
+                    <p className="text-[11px] text-slate-500">Ghi chú: {r.note}</p>
                   ) : null}
                   <div className="flex items-center gap-3 pt-0.5 text-[11px] text-slate-400">
                     <span>
@@ -287,7 +287,7 @@ export function DungCuPhieuAdminPanels() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-md border border-amber-300 bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                    <span className="rounded-md border border-amber-300 bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-900">
                       RÀ SOÁT CẤU PHẦN BỘ (BOM)
                     </span>
                     <span className="font-mono text-[12px] font-bold text-slate-800">
@@ -312,7 +312,7 @@ export function DungCuPhieuAdminPanels() {
                         </li>
                       ))}
                       {r.catalogDiffs.length > 5 ? (
-                        <li className="text-slate-400 italic">
+                        <li className="text-slate-400">
                           … và {r.catalogDiffs.length - 5} dòng thay đổi nữa
                         </li>
                       ) : null}

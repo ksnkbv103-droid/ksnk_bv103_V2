@@ -126,7 +126,7 @@ export default function StaffAuthTableSection() {
                       <td className="px-4 py-3 font-mono font-bold text-slate-800">{r.ma_nv || "—"}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{r.ho_ten || "—"}</td>
                       <td className="px-4 py-3 text-slate-600 max-w-[200px] truncate" title={r.email || undefined}>
-                        {r.email || <span className="text-slate-400 italic">Chưa có email</span>}
+                        {r.email || <span className="text-slate-400">Chưa có email</span>}
                       </td>
                       <td className="px-4 py-3">
                         {r.auth_user_id ? (
@@ -146,7 +146,7 @@ export default function StaffAuthTableSection() {
                             {staffKsnkRoleDisplayLabel(mainRole)}
                           </span>
                         ) : (
-                          <span className="text-slate-400 italic">— chưa gán vai trò —</span>
+                          <span className="text-slate-400">— chưa gán vai trò —</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">

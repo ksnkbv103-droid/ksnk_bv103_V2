@@ -236,7 +236,7 @@ export default function NkbvBaCommonDayGrid({
         return (
           <div className="flex flex-col items-center gap-0.5">
             <select
-              className="w-full max-w-full bg-transparent text-center text-[10px] font-medium outline-none"
+              className="w-full max-w-full bg-transparent text-center text-[11px] font-medium outline-none"
               value={khoaId}
               disabled={!allowedEdit || !onChangeKhoa || !inStay}
               onChange={(e) => onChangeKhoa?.(day.date, e.target.value)}
@@ -251,7 +251,7 @@ export default function NkbvBaCommonDayGrid({
             </select>
             {isTransfer ? (
               <span
-                className="rounded bg-indigo-100 px-0.5 text-[9px] font-bold text-indigo-900 border border-indigo-200"
+                className="rounded bg-indigo-100 px-0.5 text-[11px] font-bold text-indigo-900 border border-indigo-200"
                 title={`Chuyển từ [${prevKhoa}] sang [${khoaId}]. Áp dụng Transfer Rule 48h (ngày chuyển & ngày kế tiếp vẫn quy kết khoa cũ nếu DOE xảy ra).`}
               >
                 ⇄
@@ -286,7 +286,7 @@ export default function NkbvBaCommonDayGrid({
             type="button"
             disabled={!enabled}
             onClick={() => onToggleDevice?.(day.date, "device_central_line")}
-            className={`w-full rounded py-0.5 text-[10px] leading-tight ${cls} ${
+            className={`w-full rounded py-0.5 text-[11px] leading-tight ${cls} ${
               !enabled && !on ? "opacity-30" : ""
             }`}
             title={
@@ -327,7 +327,7 @@ export default function NkbvBaCommonDayGrid({
             type="button"
             disabled={!enabled}
             onClick={() => onToggleDevice?.(day.date, "device_ventilator")}
-            className={`w-full rounded py-0.5 text-[10px] leading-tight ${cls} ${
+            className={`w-full rounded py-0.5 text-[11px] leading-tight ${cls} ${
               !enabled && !on ? "opacity-30" : ""
             }`}
             title={
@@ -368,7 +368,7 @@ export default function NkbvBaCommonDayGrid({
             type="button"
             disabled={!enabled}
             onClick={() => onToggleDevice?.(day.date, "device_foley")}
-            className={`w-full rounded py-0.5 text-[10px] leading-tight ${cls} ${
+            className={`w-full rounded py-0.5 text-[11px] leading-tight ${cls} ${
               !enabled && !on ? "opacity-30" : ""
             }`}
             title={

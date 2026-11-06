@@ -217,7 +217,7 @@ export default function CongViecKanban({
                               if (td.empty) return null;
                               return (
                                 <div className="mt-0.5 flex flex-wrap items-center gap-0.5" title={`Theo dõi: ${td.title}`}>
-                                  <span className="text-[10px] font-medium text-teal-700">TĐ:</span>
+                                  <span className="text-[11px] font-medium text-teal-700">TĐ:</span>
                                   {td.chips.map((c) => (
                                     <span
                                       key={c.id}

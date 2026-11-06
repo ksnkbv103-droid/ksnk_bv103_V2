@@ -432,7 +432,7 @@ export default function NkbvSyndromeCh17Panel({
               ))}
             </select>
 
-            <span className="text-slate-600 text-[10px]">
+            <span className="text-slate-600 text-[11px]">
               Index: <b>{indexDate}</b> · Cửa sổ IWP: <b>{iwp.start} → {iwp.end}</b> ({activeTypeCode === "ENDO" ? "21d" : "7d"}) · Ngày nằm viện: <b>HD {hospitalDayOfDoe}</b> ({isHai ? "HAI" : "POA"})
             </span>
           </div>
@@ -443,7 +443,7 @@ export default function NkbvSyndromeCh17Panel({
               <span className="font-semibold text-emerald-950">
                 Tiêu chuẩn chẩn đoán {currentDef.name_vi} ({currentDef.code}):
               </span>
-              <span className="text-[10px] text-slate-500 font-medium">
+              <span className="text-[11px] text-slate-500 font-medium">
                 {evalResult.reason}
               </span>
             </div>
@@ -487,7 +487,7 @@ export default function NkbvSyndromeCh17Panel({
                       label: `Secondary BSI (${currentDef.code})`,
                     })
                   }
-                  className="rounded-full bg-rose-600 px-2 py-0.5 text-white font-semibold text-[10px] hover:bg-rose-700 shrink-0 ml-2"
+                  className="rounded-full bg-rose-600 px-2 py-0.5 text-white font-semibold text-[11px] hover:bg-rose-700 shrink-0 ml-2"
                 >
                   Xác nhận Secondary
                 </button>
@@ -508,7 +508,7 @@ export default function NkbvSyndromeCh17Panel({
             <button
               type="button"
               onClick={onCloseInsufficient}
-              className="rounded-full px-2 py-0.5 text-[10px] text-slate-600 hover:bg-slate-200"
+              className="rounded-full px-2 py-0.5 text-[11px] text-slate-600 hover:bg-slate-200"
             >
               Đóng (chưa đủ TC)
             </button>
