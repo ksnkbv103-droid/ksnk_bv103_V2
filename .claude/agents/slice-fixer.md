@@ -22,6 +22,7 @@ Sửa **một** lát, diff tối thiểu, truy vết được tới dòng roadma
 ## Không làm
 - Không tạo migration/RPC (giao `migration-author`), không đụng prod/MCP, không push
 - Không mở rộng phạm vi; việc phát sinh → ghi vào báo cáo
+- Dừng và báo nếu lát chưa có ở roadmap §5 hoặc `npm run module:gate -- <module>` exit 1
 - Không chạy song song với agent khác cùng ghi repo
 
 **Giới hạn trả về:** ≤ 20 dòng: file đổi, test pass/fail, điều cần PO.

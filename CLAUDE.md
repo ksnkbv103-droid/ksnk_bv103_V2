@@ -40,6 +40,7 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 ## Quy trình
 
 - Việc không tầm thường: plan (plan mode hoặc `/intake-nv`, `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt một lần, sau đó tự chạy nối các lát, verify mỗi lát, ghi tiến độ vào plan. Giải thích bằng tiếng Việt nghiệp vụ
+- Trước khi mở lát: `npm run module:gate -- <module>` (không tham số = bảng 5 module); trạng thái chưa cho phép lát đó thì dừng, hỏi PO
 - **Cuối MỖI trả lời** (kể cả ngắn) kết bằng khối: **Bước tiếp theo** (một việc, từ roadmap §5) · **Model** (Haiku/Sonnet/Opus) + **`/clear`: có/không** · **Lý do**. Bắt buộc, không bỏ
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền người dùng thật

@@ -1,5 +1,8 @@
 # Đào tạo / Thi KSNK — Vấn đề & giá trị
 
+Trạng thái: KHÁM_PHÁ
+Đầu mối: CHƯA CÓ
+
 > Bước 1–2 vòng đời sản phẩm. Chỉ trỏ SSOT, không chép nghiệp vụ. Nhãn: `[SSOT]` đã chốt · `[GIẢ THUYẾT]` suy từ domain, chưa kiểm · `[CẦN XÁC NHẬN]` hỏi người dùng thật · `[ĐỀ XUẤT]` ngưỡng chờ PO sửa.
 > Nghiệp vụ: [`domain-overview.md`](domain-overview.md) · Mức sẵn sàng: [`handover-roadmap.md`](../../core/handover-roadmap.md) §5.
 

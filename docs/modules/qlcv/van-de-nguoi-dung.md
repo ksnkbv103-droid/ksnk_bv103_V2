@@ -1,5 +1,8 @@
 # QLCV — Vấn đề & giá trị
 
+Trạng thái: XÁC_NHẬN
+Đầu mối: CHƯA CÓ
+
 > Bước 1–2 vòng đời sản phẩm. Chỉ trỏ SSOT, không chép nghiệp vụ. Nhãn: `[SSOT]` đã chốt · `[GIẢ THUYẾT]` suy từ domain, chưa kiểm · `[CẦN XÁC NHẬN]` hỏi người dùng thật · `[ĐỀ XUẤT]` ngưỡng chờ PO sửa.
 > Nghiệp vụ: [`19-QLCV-DOMAIN-SSOT.md`](19-QLCV-DOMAIN-SSOT.md) · Mức sẵn sàng: [`handover-roadmap.md`](../../core/handover-roadmap.md) §5.
 

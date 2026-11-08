@@ -11,6 +11,10 @@ Dành cho **người không rành code**. **Không sửa code** — chỉ lập 
 
 Agent gợi ý: `intake-coach` khi chưa rõ module. Luôn đọc `read-minimum.md` dòng module; rule `.claude/rules/*` tự nạp khi chạm file.
 
+## Bước 0 — cổng module
+
+Chạy `npm run module:gate -- <module>`. Exit 1 hoặc trạng thái không cho phép loại việc này → dừng, báo PO. Module mới chưa có `docs/modules/<m>/van-de-nguoi-dung.md` → tạo từ trang `giam-sat` (làm mẫu) trước khi lập intake.
+
 ## User điền (tiếng Việt nghiệp vụ)
 
 1. **Module / màn hình** — QLCV, CSSD, Giám sát VST/GSC, Dashboard, Danh mục, NKBV, …
