@@ -9,6 +9,7 @@ import CSSDPageShell from "../components/layout/cssd-page-shell";
 import MeTietKhuanCreateStep from "../components/batch/me-tiet-khuan-create-step";
 import MeTietKhuanProcessStep from "../components/batch/me-tiet-khuan-process-step";
 import { buildMeTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
+import MeKhoaBoDialog from "../components/batch/MeKhoaBoDialog";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { usePermission } from "@/hooks/usePermission";
@@ -33,15 +34,25 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     />
   );
 
+  const [khoaMe, setKhoaMe] = React.useState<{ id: string; maLo: string } | null>(null);
   const batchColumns = React.useMemo(
     () =>
       buildMeTietKhuanBatchColumns({
         onContinue: w.openRowForProcess,
+        onShowKhoa: (row) => {
+          const id = String(row.id || "").trim();
+          if (id) setKhoaMe({ id, maLo: String(row.ma_lo_tiet_khuan || id) });
+        },
       }),
     [w.openRowForProcess],
   );
 
-  const printPortal = <CssdPrintPortal printState={w.printState} />;
+  const printPortal = (
+    <>
+      <CssdPrintPortal printState={w.printState} />
+      <MeKhoaBoDialog me={khoaMe} onClose={() => setKhoaMe(null)} />
+    </>
+  );
   const [listSearch, setListSearch] = React.useState("");
 
   const filteredBatches = React.useMemo(() => {

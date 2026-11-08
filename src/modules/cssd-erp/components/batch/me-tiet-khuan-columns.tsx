@@ -24,6 +24,7 @@ export type MeBatchRow = Record<string, unknown> & {
 
 export function buildMeTietKhuanBatchColumns(opts?: {
   onContinue?: (row: MeBatchRow) => void;
+  onShowKhoa?: (row: MeBatchRow) => void;
 }): Column<MeBatchRow>[] {
   const cols: Column<MeBatchRow>[] = [
   {
@@ -100,8 +101,23 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     accessorKey: "trang_thai",
     cell: (i) => {
       const action = meListPrimaryAction(String(i.trang_thai || ""));
-      if (!action || !opts?.onContinue) return <span className={CSSD_UI_CELL_META}>—</span>;
+      const khoaBtn = opts?.onShowKhoa ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            opts.onShowKhoa?.(i);
+          }}
+          className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-2 py-1.5 bv103-type-label font-semibold text-slate-700 hover:bg-slate-50"
+          title="Xem mẻ này đã cấp cho khoa/phòng nào"
+        >
+          Khoa nhận
+        </button>
+      ) : null;
+      if (!action || !opts?.onContinue) return khoaBtn || <span className={CSSD_UI_CELL_META}>—</span>;
       return (
+        <span className="inline-flex items-center gap-1">
+        {khoaBtn}
         <button
           type="button"
           onClick={(e) => {
@@ -113,6 +129,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
         >
           {action.label}
         </button>
+        </span>
       );
     },
   },
