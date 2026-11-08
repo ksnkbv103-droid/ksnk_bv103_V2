@@ -16,6 +16,7 @@
     "verify:full": "npm run lint && npm run layout:drift-check && npm run layout:typography-check && npm run verify:cssd && npm run verify:engineering && npm run build",
     "docs:links:check": "node scripts/docs-links-check.mjs",
     "module:gate": "node scripts/module-gate.mjs",
+    "module:audit": "node scripts/module-audit.mjs",
     "repo:hygiene": "node scripts/repo-hygiene-audit.mjs",
     "local:golden:verify": "node scripts/local-golden-verify.mjs",
     "local:golden:reset": "npx supabase db reset --local && npm run mdm:migrate:local && npx tsx scripts/admin-rbac-sync.ts --local --with-presets",

@@ -43,3 +43,22 @@ Ba kịch bản tay: README «3 kịch bản tay L1» (đã bấm giờ). `[SSOT
 - Thu hẹp: nhập vẫn < 60 giây nhưng ít người dùng, quay lại hỏi mục 6.
 - Dừng/đóng băng: không ai nhập sau 4 tuần.
 - Chủ quyết định: PO. Ngày xem lại: `[CẦN XÁC NHẬN]`.
+
+## 8. Rà vòng đời (2026-11-09)
+Bằng chứng cơ học: `npm run module:audit -- giam-sat`. Module duy nhất có người dùng thật.
+
+| Bước | Chấm | Bằng chứng |
+|---|---|---|
+| 1–2 Vấn đề, giải pháp | hợp, thiếu số «trước» | mục 2 chưa có cách ghi/thời gian tổng hợp cũ nên chưa so được «sau app» (mục 5) |
+| 3–4 MVP, DoD | hợp | Khóa PO 2026-10-09, README, 10 nhãn `[SSOT]` |
+| 5 Thiết kế | hợp | nhập/lịch sử/thống kê/in đủ (mục 4); KPI RPC khớp tay 2026-10-24 |
+| 6–7 Xây, kiểm chứng | hợp | 27 action, 37 spec |
+| 8 Chạy thử | hợp | đã có người dùng thật |
+| 9 Vận hành | **thiếu** | chưa ghi ai hỗ trợ, ai khóa sổ, khi lỗi báo ai |
+| 10 Đo | **thiếu** | chưa đo thời gian nhập một phiếu (<60 s) và số phiên/tuần |
+
+### Câu hỏi PO
+1. **Đầu mối + số người nhập/tuần** (bước 1): tên? Mặc định: ghi «chưa có tên», module vẫn CHẠY_THỬ.
+2. **Số «trước khi dùng app»** (bước 2/10): trước đây tổng hợp một kỳ mất bao lâu, ai làm? Mặc định: không đo, bỏ tiêu chí mục 5 dòng 3.
+3. **N phiên VST/tuần** (bước 10): chọn N? Mặc định: lấy trung bình 4 tuần gần nhất làm mốc.
+4. **Vận hành** (bước 9): ai nhận báo lỗi? Mặc định: bất kỳ ai báo, như CSSD.

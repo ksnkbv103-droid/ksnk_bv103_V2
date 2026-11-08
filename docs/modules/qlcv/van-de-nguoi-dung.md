@@ -43,3 +43,20 @@ Ba kịch bản tay: tạo việc → giao → hoàn thành → xem báo cáo th
 - Thu hẹp: chỉ giữ tạo việc + danh sách + quá hạn, bỏ Kanban/định kỳ nếu không ai dùng.
 - Dừng/đóng băng: nhóm vẫn dùng Zalo sau 4 tuần.
 - Chủ quyết định: PO. Ngày xem lại: `[CẦN XÁC NHẬN]`.
+
+## 8. Rà vòng đời (2026-11-09)
+Bằng chứng cơ học: `npm run module:audit -- qlcv`. Trên prod 0 việc (roadmap §5).
+
+| Bước | Chấm | Bằng chứng |
+|---|---|---|
+| 1 Vấn đề | **thiếu** | chưa có đầu mối; cách giao việc hiện nay (Zalo/sổ) còn `[GIẢ THUYẾT]` |
+| 2–4 Giải pháp, MVP, DoD | hợp | SSOT 19, 11 nhãn `[SSOT]`, mẫu định kỳ |
+| 5–6 Thiết kế, xây | hợp | 15 action, list/Kanban/báo cáo/định kỳ |
+| 7 Kiểm chứng | hợp, 1 điểm chưa chắc | 27 spec. QL-1 xóa mềm: đã kiểm, hủy việc chuyển `DA_HUY`, không xóa bản ghi (`cong-viec-write.actions.ts:13`). «Ghi chú theo người tạo»: chưa tìm thấy chỗ kiểm quyền trong action, **chưa chắc** |
+| 8 Chạy thử | **thiếu** | 0 việc, chưa ai dùng, ba kịch bản tay chưa viết đủ |
+| 9–10 | **thiếu** | chưa có người dùng |
+
+### Câu hỏi PO
+1. **Đầu mối + số người nhóm KSNK** (bước 1). Mặc định: giữ XÁC_NHẬN.
+2. **Công cụ giao việc hiện nay** và việc quên gần nhất (bước 1). Mặc định: giữ `[GIẢ THUYẾT]`.
+3. Cho phép Claude viết ba kịch bản tay và chạy với dữ liệu thử? Mặc định: có (không đổi nghiệp vụ).

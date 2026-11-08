@@ -44,3 +44,20 @@ Ba kịch bản tay: chưa có kịch bản được ghi. Cần viết khi có �
 - Thu hẹp: chỉ giữ ghi ca + danh sách + tỉ lệ (đang là mức đóng băng).
 - Dừng/đóng băng: chưa có đầu mối sau 4 tuần, không mở thêm lát.
 - Chủ quyết định: PO. Ngày xem lại: `[CẦN XÁC NHẬN]`.
+
+## 8. Rà vòng đời (2026-11-09)
+Bằng chứng cơ học: `npm run module:audit -- nkbv`. Phạm vi đóng băng ở ghi ca + danh sách + tỉ lệ (roadmap §5).
+
+| Bước | Chấm | Bằng chứng |
+|---|---|---|
+| 1 Vấn đề | **thiếu** | chưa có đầu mối; mục 2 chưa biết cách theo dõi ca hiện nay |
+| 2 Giải pháp | hợp | route `/giam-sat-nkbv`, quy trình trạng thái (mục 4) |
+| 3–4 MVP, DoD | hợp | đóng băng PO, 17 file docs (domain-specification, HAI) |
+| 5–7 Thiết kế, xây, kiểm chứng | hợp | 21 action, 79 spec (nhiều nhất các module) |
+| 8 Chạy thử | **thiếu** | 1 phiếu trên prod, chưa có kịch bản tay ghi lại, chưa có người dùng |
+| 9–10 Vận hành, đo | **thiếu** | chưa có ai dùng nên chưa đo |
+
+### Câu hỏi PO
+1. **Đầu mối KSNK chuyên trách** (bước 1): tên? Mặc định: giữ KHÁM_PHÁ, không mở lát mới. Đây là điều chặn mọi bước sau.
+2. **Cách theo dõi ca hiện nay** (bước 1): sổ hay Excel, ai quyết định, mất mấy ngày từ XN dương tới kết luận? Mặc định: giữ `[GIẢ THUYẾT]`.
+3. Có người chạy thử 10 ca thật (mục 5) khi có đầu mối? Mặc định: chưa lên lịch.

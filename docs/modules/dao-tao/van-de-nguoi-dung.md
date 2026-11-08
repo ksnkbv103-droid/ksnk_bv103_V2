@@ -43,3 +43,20 @@ Ba kịch bản tay: ôn tập → thi kỳ chính thức → xem sổ kết qu�
 - Thu hẹp: chỉ giữ thi chính thức + sổ kết quả, bỏ ôn tập nếu không ai dùng.
 - Dừng/đóng băng: không có kỳ thi thật nào trong 8 tuần.
 - Chủ quyết định: PO. Ngày xem lại: `[CẦN XÁC NHẬN]`.
+
+## 8. Rà vòng đời (2026-11-09)
+Bằng chứng cơ học: `npm run module:audit -- dao-tao`. Trên prod 1 lần thi.
+
+| Bước | Chấm | Bằng chứng |
+|---|---|---|
+| 1 Vấn đề | **thiếu** | chưa có đầu mối; số nhân viên phải thi, cách kiểm tra hiện nay còn `[GIẢ THUYẾT]` |
+| 2–4 Giải pháp, MVP, DoD | hợp | domain-overview, ranh giới hẹp (thi trắc nghiệm + sổ kết quả) |
+| 5–6 Thiết kế, xây | hợp | 5 action, ngân hàng 4 loại câu, chấm tự động |
+| 7 Kiểm chứng | **thiếu** | chỉ 3 spec cho 27 file. DT-2 đã kiểm: nộp trễ quá 30 s = không đạt (`dao-tao-attempt.actions.ts:30,572`). «Thi thử ẩn đáp án đến khi nộp»: chưa kiểm, **chưa chắc** |
+| 8 Chạy thử | **thiếu** | chưa có kỳ thi thật, ba kịch bản tay chưa viết đủ |
+| 9–10 | **thiếu** | chưa có người dùng |
+
+### Câu hỏi PO
+1. **Đầu mối + số nhân viên thi/năm** (bước 1). Mặc định: giữ KHÁM_PHÁ.
+2. **Ai ra đề, ai chấm, lưu ở đâu hiện nay** (bước 1). Mặc định: giữ `[GIẢ THUYẾT]`.
+3. Cho Claude bổ sung spec cho đường chấm điểm và ẩn đáp án (bước 7, việc nhỏ, không đổi nghiệp vụ)? Mặc định: có.

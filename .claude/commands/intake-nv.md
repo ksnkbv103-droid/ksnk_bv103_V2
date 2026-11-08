@@ -14,6 +14,7 @@ Agent gợi ý: `intake-coach` khi chưa rõ module. Luôn đọc `read-minimum.
 ## Bước 0 — cổng module
 
 Chạy `npm run module:gate -- <module>`. Exit 1 hoặc trạng thái không cho phép loại việc này → dừng, báo PO. Module mới chưa có `docs/modules/<m>/van-de-nguoi-dung.md` → tạo từ trang `giam-sat` (làm mẫu) trước khi lập intake.
+Module đã có: chạy `/ra-soat <m>` trước; chỉ hỏi phần còn thiếu, không phỏng vấn lại từ đầu, không hỏi điều trang/SSOT/code đã trả lời.
 
 ## User điền (tiếng Việt nghiệp vụ)
 
