@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FileBarChart, ExternalLink } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
+import CSSDPageShell from "@/modules/cssd-erp/shared/ui/cssd-page-shell";
 import { cssdLuanChuyenHref, cssdSuCoIncidentJournalHref, isLuanChuyenTypeId } from "@/lib/cssd-routes";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import {

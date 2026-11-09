@@ -64,14 +64,11 @@
     "src/modules/cssd-erp/shared/contracts/cssd-context.contracts.ts -> @/modules/cssd-su-co/contracts/su-co-report-input.schema"
   ],
   "cssd-su-co-chi-import-loi": [
-    "src/modules/cssd-su-co/application/su-co-report.application.ts -> @/modules/cssd-erp/lib/cssd-tram-persist",
-    "src/modules/cssd-su-co/application/void-incident.application.ts -> @/modules/cssd-erp/lib/cssd-tram-persist",
     "src/modules/cssd-su-co/components/InstrumentIncidentFields.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
     "src/modules/cssd-su-co/components/InstrumentReplenishDualTable.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
     "src/modules/cssd-su-co/components/InstrumentSetReconcileTable.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
     "src/modules/cssd-su-co/components/InstrumentTransferDualTable.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
-    "src/modules/cssd-su-co/components/SuCoReportForm.tsx -> @/modules/cssd-erp/actions/cssd-qr.actions",
-    "src/modules/cssd-su-co/views/SuCoBaoCaoPage.tsx -> @/modules/cssd-erp/components/layout/cssd-page-shell"
+    "src/modules/cssd-su-co/components/SuCoReportForm.tsx -> @/modules/cssd-erp/actions/cssd-qr.actions"
   ],
   "ui-khong-goi-db-truc-tiep": [
     "src/modules/giam-sat-chung/components/ChecklistItem.tsx -> .from(\"…\")"

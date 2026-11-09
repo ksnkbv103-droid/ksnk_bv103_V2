@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
-import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
+import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/shared/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "@/modules/cssd-erp/shared/application/cssd-lifecycle-events";
 import {
   buildClearAfterKeepPatch,
