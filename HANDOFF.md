@@ -36,7 +36,7 @@ Ghi chú đo/báo cáo agent (scratchpad phiên cũ, có thể mất): `/private
 
 ## Giả định
 - Chưa có PO xác nhận: ủy quyền Supabase MCP; module làm dứt điểm đầu tiên (gợi ý VST + GSC + thống kê).
-- Hook `guard-agent-model` chặn agent ngoài danh sách ghim (`doc-tai-lieu` bị chặn → dùng `explore-module`).
+- Hook toàn cục `guard-agent` chặn agent không có file ghim (từ 2026-11-10 bỏ hook dự án `guard-agent-model`; `doc-tai-lieu`, `tim-kiem`, `chay-kiem` dùng được).
 
 ## Kết quả trục G + F (2026-11-06, phiên 2, chỉ đọc)
 **F — 4 RPC "nghi lệch": KHÔNG lệch.** Đều có CREATE trong migrations (handoff cũ grep thiếu): `fn_admin_module_stats` + `mdm_refresh_governance_suggestions` + `rpc_mdm_nhan_su_max_numeric_suffix` ở `20260530000000_init_pilot_baseline.sql`; `rpc_vst_compare_matrices_impl` là RENAME ở `20260704110000_vst_security_hardening.sql:101`. Prod (cvzwslpxwgqiugzzhqej) vs local: md5(prosrc), độ dài, SECURITY DEFINER giống hệt cả 4. ACL: 2 hàm DEFINER chỉ postgres+service_role (đúng hardening); 2 hàm INVOKER prod chỉ `=X` (PUBLIC)+service_role, local liệt kê thêm anon/authenticated — tương đương hiệu lực.

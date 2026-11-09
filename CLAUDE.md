@@ -26,7 +26,7 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 - **Mục tiêu: triển khai TẤT CẢ module** (PO 2026-10-12, thay lệnh đóng băng cùng ngày). Thứ tự: VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo; mỗi module cần người dùng + kịch bản tay trước khi coi là xong
 - Không tạo bảng summary khi chưa có số đo và PO đồng ý. Không viết lại engine lâm sàng; lệch KPI thì sửa hàm KPI
 - Diff tối thiểu, truy vết được tới yêu cầu. Đọc migration/DB trước khi đặt tên; không đoán schema
-- Grep trước khi đọc file > 500 dòng; ≤ 8 file/task; > 3 file ngoài scope → hỏi PO. Output delta-only, lọc log (`tail -30`)
+- ≤ 8 file/task; > 3 file ngoài scope → hỏi PO. Output delta-only, lọc log (`tail -30`)
 - Pilot DoD một lát: người dùng/môi trường rõ · ≥ 3 kịch bản tay · migration + RPC apply đúng · `verify:engineering` pass
 
 ## Khóa PO (2026-10-09)
@@ -40,17 +40,17 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 ## Quy trình
 
 - Việc không tầm thường: plan (plan mode hoặc `/intake-nv`, `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt một lần, sau đó tự chạy nối các lát, verify mỗi lát, ghi tiến độ vào plan. Giải thích bằng tiếng Việt nghiệp vụ
-- **Cuối MỖI trả lời** (kể cả ngắn) kết bằng khối: **Bước tiếp theo** (một việc, từ roadmap §5) · **Model** (Haiku/Sonnet/Opus) + **`/clear`: có/không** · **Lý do**. Bắt buộc, không bỏ
+- **Cuối MỖI trả lời** (kể cả ngắn) kết bằng khối 4 dòng của CLAUDE.md toàn cục (Lộ trình · Clear · Bước kế · Model); **Bước kế** lấy một việc từ roadmap §5. Bắt buộc, không thêm khối thứ hai
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền người dùng thật
 - Plan đã duyệt → tự commit theo lát khi verify pass. Push/PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
 - Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file
 - Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
-## Ngân sách model và agent (hook `.claude/hooks/guard-agent-model.mjs` chặn cứng)
+## Ngân sách model và agent (hook toàn cục `~/.claude/hooks/guard-agent.mjs` chặn cứng)
 
-- Mặc định Sonnet (đọc, sửa, UAT). Haiku chỉ cho việc cơ học kiểm chứng được (`verify-runner`). Opus chỉ cho `migration-author` và reviewer vùng rủi ro cao (`review-bv103`, `security-auditor`); không Opus cho code thường, docs
-- Giao việc bằng agent ghim sẵn ở `.claude/agents` (`slice-fixer` sửa, `security-auditor` rà, `explore-module`, `verify-runner`…); không dùng agent chung (hook chặn mọi agent ngoài danh sách ghim). Tìm kiếm mã dùng `explore-module` (Sonnet), không dùng `Explore`/`general-purpose`; việc dưới ~3 lần đọc file thì tự làm
+- Mặc định Sonnet (đọc, sửa, UAT). Haiku chỉ cho việc cơ học kiểm chứng được (`chay-kiem`). Opus chỉ cho `migration-author` và reviewer vùng rủi ro cao (`review-bv103`, `security-auditor`); không Opus cho code thường, docs
+- Giao việc bằng agent ghim sẵn ở `.claude/agents` (`slice-fixer` sửa, `security-auditor` rà, `explore-module`…) hoặc `~/.claude/agents` (`chay-kiem` chạy verify, `doc-tai-lieu`, `tim-kiem`); không dùng agent chung (hook chặn mọi agent không có file ghim). Tìm kiếm mã dùng `explore-module` (Sonnet), không dùng `Explore`/`general-purpose`; việc dưới ~3 lần đọc file thì tự làm
 - Một agent **ghi** repo tại một thời điểm (chung git index, chạm giới hạn phiên là mất việc dở). Agent chỉ đọc tối đa 2 song song
 - Rà soát = một vùng hẹp, chỉ báo Nghiêm trọng/Cao; không «quét toàn bộ». Trước khi giao nhiều agent: kiểm `get_usage`; tuần > 60% chỉ làm lát nghiêm trọng đang chặn pilot, còn lại ghi roadmap
 - Reviewer độc lập (`review-bv103`, `security-auditor`) chỉ cho vùng rủi ro cao (RLS, migration, auth), một vòng, đưa yêu cầu + diff + kết quả verify, không đưa lập luận của người viết. Việc nhỏ thì không gọi
