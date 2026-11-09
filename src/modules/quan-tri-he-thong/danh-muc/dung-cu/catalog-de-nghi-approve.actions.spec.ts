@@ -13,6 +13,7 @@ vi.mock("@/modules/cssd-erp/workflow/application/cssd-heat-split-apply", () => (
 }));
 vi.mock("@/lib/master-data/cssd-catalog-approver-guard", () => ({
   checkCatalogApprover: vi.fn(),
+  requireCssdCatalogApprove: async () => undefined,
   resolveCatalogApprover: vi.fn(),
 }));
 vi.mock("@/lib/supabase-server", () => ({

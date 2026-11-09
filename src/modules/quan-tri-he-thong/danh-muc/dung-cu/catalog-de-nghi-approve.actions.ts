@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { logAdminAction } from "@/lib/admin-audit";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { getActorRoleNames } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import {
@@ -16,12 +15,15 @@ import {
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { applyCatalogDeNghiOverwrite } from "@/lib/master-data/cssd-catalog-de-nghi-apply";
 import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
-import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
+import {
+  checkCatalogApprover,
+  requireCssdCatalogApprove,
+  resolveCatalogApprover,
+} from "@/lib/master-data/cssd-catalog-approver-guard";
 
-/** PO 2026-10-27: chỉ chủ nhiệm khoa (ADMIN) duyệt phiếu danh mục. */
+/** PO 2026-10-27 + AR-1 (2026-11-10): chủ nhiệm khoa duyệt phiếu danh mục — kiểm quyền `approve`. */
 async function requireCatalogApprove() {
-  const roles = await getActorRoleNames();
-  if (!roles.includes("ADMIN")) throw new Error("Chỉ chủ nhiệm khoa (ADMIN) được duyệt phiếu danh mục.");
+  await requireCssdCatalogApprove("phiếu danh mục");
 }
 
 const ticketIdSchema = z.string().trim().uuid("Mã phiếu không hợp lệ.");

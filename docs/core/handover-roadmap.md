@@ -80,7 +80,7 @@ Thứ tự pilot theo khóa PO: CSSD → NKBV → QLCV → Đào tạo. QLCV/Đ�
 | Lát | Việc | Trạng thái |
 |---|---|---|
 | AR-0 | Ghi quyết định vào docs | Xong 2026-11-10 |
-| AR-1 | Vai trò `CHU_NHIEM_KHOA`; 2 action duyệt kiểm quyền `approve` thay tên `ADMIN` | Chưa làm; prod chờ PO |
+| AR-1 | Vai trò `CHU_NHIEM_KHOA`; 2 action duyệt kiểm quyền `approve` thay tên `ADMIN` | Code xong local 2026-11-10 (migration `20261110100000`, áp local bằng psql vì lịch sử migration local lệch với worktree khác; `verify:mdm:local` chưa chạy do worktree thiếu `.env.local`). Chưa gán vai trò cho ai; vai trò này cộng thêm, không gán qua dropdown nhân sự (RPC `rpc_assign_staff_ksnk_role` thay thế vai trò). Còn nợ: test tay UI bằng tài khoản không phải ADMIN. **Chờ PO:** áp prod + gán người |
 | AR-2 | Luật import bằng lint (`warn`, ghi số ban đầu) | Chưa làm |
 | AR-3 | Gateway đọc danh mục từ Quản trị về `src/lib/master-data` | Chưa làm |
 | AR-4 | Màn Phê duyệt của chủ nhiệm khoa (gom hàng duyệt đã có, không bảng mới) | Chưa làm |

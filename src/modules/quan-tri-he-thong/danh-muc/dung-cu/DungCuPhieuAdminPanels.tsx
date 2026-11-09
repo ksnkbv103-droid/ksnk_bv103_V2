@@ -40,10 +40,12 @@ type BomRow = {
  * Rà soát cấu phần Bộ (cssd_fact_su_co) vào một giao diện đồng nhất.
  */
 export function DungCuPhieuAdminPanels() {
-  const { loading: boLoading, isAdmin: boAdmin, allowed: boAllowed } = useModulePermission("BO_DC");
-  const { loading: leLoading, isAdmin: leAdmin, allowed: leAllowed } = useModulePermission("DC_LE");
+  const { loading: boLoading, allowed: boAllowed } = useModulePermission("BO_DC");
+  const { loading: leLoading, allowed: leAllowed } = useModulePermission("DC_LE");
+  const { allowed: loaiAllowed } = useModulePermission("LOAI_DC");
   const loading = boLoading || leLoading;
-  const canApprove = Boolean(boAdmin || leAdmin || boAllowed.edit || leAllowed.edit);
+  // AR-1: khớp server (requireCssdCatalogApprove) — quyền approve, không phải edit.
+  const canApprove = boAllowed.approve || leAllowed.approve || loaiAllowed.approve;
 
   const [catalogRows, setCatalogRows] = useState<CatalogRow[]>([]);
   const [bomRows, setBomRows] = useState<BomRow[]>([]);

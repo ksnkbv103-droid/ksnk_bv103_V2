@@ -17,8 +17,10 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 type Row = CssdCatalogDeNghiRow & { afterSummary: string };
 
 export function CatalogDeNghiApproveQueue() {
-  const { isAdmin } = useModulePermission("DC_LE");
-  const canApprove = Boolean(isAdmin);
+  const { allowed: leAllowed } = useModulePermission("DC_LE");
+  const { allowed: boAllowed } = useModulePermission("BO_DC");
+  const { allowed: loaiAllowed } = useModulePermission("LOAI_DC");
+  const canApprove = leAllowed.approve || boAllowed.approve || loaiAllowed.approve;
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
