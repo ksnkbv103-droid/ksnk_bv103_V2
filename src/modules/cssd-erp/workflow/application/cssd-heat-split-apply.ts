@@ -21,6 +21,13 @@ async function hasParentBoColumn(supabase: SupabaseClient): Promise<boolean> {
   return !error;
 }
 
+type SplitRole = "CHIU_NHIET" | "KHONG_CHIU_NHIET" | "KHONG_CHIU_NHIET_EO";
+
+async function baoGoiIdByMa(supabase: SupabaseClient, ma: string): Promise<string | null> {
+  const { data } = await supabase.from("cssd_dm_loai_bao_goi").select("id").eq("ma", ma).maybeSingle();
+  return data?.id ? String(data.id) : null;
+}
+
 async function ensureComponentBo(
   supabase: SupabaseClient,
   parent: {
@@ -30,10 +37,10 @@ async function ensureComponentBo(
     khoa_su_dung_id: string | null;
     phan_loai_bo: string | null;
   },
-  role: "CHIU_NHIET" | "KHONG_CHIU_NHIET",
+  role: SplitRole,
   useParentCols: boolean,
 ): Promise<{ id: string; ma_bo: string }> {
-  const suffix = role === "KHONG_CHIU_NHIET" ? "-KCN" : "-CN";
+  const suffix = role === "KHONG_CHIU_NHIET_EO" ? "-EO" : role === "KHONG_CHIU_NHIET" ? "-KCN" : "-CN";
   const childMa =
     role === "KHONG_CHIU_NHIET" && !useParentCols
       ? buildCssdSubBoMa(parent.ma_bo)
@@ -50,7 +57,7 @@ async function ensureComponentBo(
   }
 
   const now = new Date().toISOString();
-  const label = role === "KHONG_CHIU_NHIET" ? "không chịu nhiệt" : "chịu nhiệt";
+  const label = role === "KHONG_CHIU_NHIET_EO" ? "EO" : role === "KHONG_CHIU_NHIET" ? "không chịu nhiệt" : "chịu nhiệt";
   const row: Record<string, unknown> = {
     ma_bo: childMa,
     ten_bo: `${String(parent.ten_bo || parent.ma_bo).trim()} (${label})`,
@@ -66,6 +73,9 @@ async function ensureComponentBo(
     row.parent_bo_id = parent.id;
     row.vai_tro_tach = role;
   }
+  // Bao gói mặc định theo nhóm: hơi nước → giấy; nhiệt thấp (Plasma/EO) → túi ép. Hạn dùng lấy từ đây khi nhả mẻ.
+  const baoGoiId = await baoGoiIdByMa(supabase, role === "CHIU_NHIET" ? "GIAY" : "TUI_EP");
+  if (baoGoiId) row.loai_bao_goi_id = baoGoiId;
 
   const { data: inserted, error: insErr } = await supabase
     .from("cssd_dm_bo_dung_cu")
@@ -179,7 +189,7 @@ export async function applyHeatSplitAfterLoaiDowngrade(
       : { data: null };
     // Bộ đã là con của lần tách trước: không tách lồng (-CN-KCN…). Bộ -KCN chứa loại nhiệt thấp là đúng.
     if (splitInfo?.parent_bo_id) {
-      if (splitInfo.vai_tro_tach !== "KHONG_CHIU_NHIET") {
+      if (splitInfo.vai_tro_tach === "CHIU_NHIET") {
         out.skipped.push({ maBo, reason: "Bộ con -CN chứa loại nhiệt thấp — chuyển dòng sang bộ -KCN thủ công." });
       }
       continue;
@@ -188,19 +198,21 @@ export async function applyHeatSplitAfterLoaiDowngrade(
     const { data: lineRows, error: lineErr } = await supabase
       .from("cssd_dm_bo_dung_cu_chi_tiet")
       .select(
-        "id, so_luong, ten_dung_cu_le, loai_dung_cu_id, loai:cssd_dm_loai_dung_cu!loai_dung_cu_id(is_chiu_nhiet)",
+        "id, so_luong, ten_dung_cu_le, loai_dung_cu_id, loai:cssd_dm_loai_dung_cu!loai_dung_cu_id(is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh)",
       )
       .eq("bo_dung_cu_id", boId)
       .eq("is_active", true);
     if (lineErr) throw new Error(lineErr.message);
 
     const lines: HeatSplitBomLine[] = (lineRows || []).map((r) => {
-      const loaiRel = (r as { loai?: { is_chiu_nhiet?: boolean } | { is_chiu_nhiet?: boolean }[] | null }).loai;
+      type LoaiHeat = { is_chiu_nhiet?: boolean; phuong_phap_tiet_khuan_chi_dinh?: string | null };
+      const loaiRel = (r as { loai?: LoaiHeat | LoaiHeat[] | null }).loai;
       const loai = Array.isArray(loaiRel) ? loaiRel[0] : loaiRel;
       return {
         chiTietId: String((r as { id: string }).id),
         loaiId: String((r as { loai_dung_cu_id?: string }).loai_dung_cu_id || ""),
         isChiuNhiet: loai?.is_chiu_nhiet !== false,
+        phuongPhap: loai?.phuong_phap_tiet_khuan_chi_dinh ?? null,
         ten: String((r as { ten_dung_cu_le?: string }).ten_dung_cu_le || ""),
         soLuong: Number((r as { so_luong?: number }).so_luong || 0),
       };
@@ -240,33 +252,39 @@ export async function applyHeatSplitAfterLoaiDowngrade(
       phan_loai_bo: ((bo as { phan_loai_bo?: string | null }).phan_loai_bo as string | null) ?? null,
     };
 
-    const coldChild = await ensureComponentBo(supabase, parentMeta, "KHONG_CHIU_NHIET", useParentCols);
     const now = new Date().toISOString();
-    const { error: moveColdErr } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .update({ bo_dung_cu_id: coldChild.id, updated_at: now })
-      .in("id", plan.subChiTietIds)
-      .eq("bo_dung_cu_id", boId);
-    if (moveColdErr) throw new Error(moveColdErr.message);
+    const moveLines = async (ids: string[], childId: string) => {
+      if (!ids.length) return;
+      const { error } = await supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .update({ bo_dung_cu_id: childId, updated_at: now })
+        .in("id", ids)
+        .eq("bo_dung_cu_id", boId);
+      if (error) throw new Error(error.message);
+    };
+    const groups: { role: SplitRole; ids: string[] }[] = [
+      { role: "KHONG_CHIU_NHIET", ids: plan.subChiTietIds },
+      { role: "CHIU_NHIET", ids: plan.mainChiTietIds },
+      { role: "KHONG_CHIU_NHIET_EO", ids: plan.eoChiTietIds },
+    ];
 
     if (useParentCols) {
-      const heatChild = await ensureComponentBo(supabase, parentMeta, "CHIU_NHIET", true);
-      if (plan.mainChiTietIds.length) {
-        const { error: moveHeatErr } = await supabase
-          .from("cssd_dm_bo_dung_cu_chi_tiet")
-          .update({ bo_dung_cu_id: heatChild.id, updated_at: now })
-          .in("id", plan.mainChiTietIds)
-          .eq("bo_dung_cu_id", boId);
-        if (moveHeatErr) throw new Error(moveHeatErr.message);
+      const made: string[] = [];
+      for (const g of groups) {
+        if (!g.ids.length) continue;
+        const child = await ensureComponentBo(supabase, parentMeta, g.role, true);
+        await moveLines(g.ids, child.id);
+        await ensureQuyTrinhForComponent(supabase, parentQtId, child.id, child.ma_bo, true);
+        made.push(child.ma_bo);
       }
-      await ensureQuyTrinhForComponent(supabase, parentQtId, heatChild.id, heatChild.ma_bo, true);
-      await ensureQuyTrinhForComponent(supabase, parentQtId, coldChild.id, coldChild.ma_bo, true);
       out.split.push({
         maBo,
-        maSub: `${heatChild.ma_bo}+${coldChild.ma_bo}`,
-        movedLines: plan.subChiTietIds.length + plan.mainChiTietIds.length,
+        maSub: made.join("+"),
+        movedLines: plan.subChiTietIds.length + plan.mainChiTietIds.length + plan.eoChiTietIds.length,
       });
     } else {
+      const coldChild = await ensureComponentBo(supabase, parentMeta, "KHONG_CHIU_NHIET", false);
+      await moveLines(plan.subChiTietIds, coldChild.id);
       if (parentQtId) {
         await supabase
           .from("cssd_fact_quy_trinh")
@@ -274,11 +292,7 @@ export async function applyHeatSplitAfterLoaiDowngrade(
           .eq("id", parentQtId);
       }
       await ensureQuyTrinhForComponent(supabase, parentQtId, coldChild.id, coldChild.ma_bo, false);
-      out.split.push({
-        maBo,
-        maSub: coldChild.ma_bo,
-        movedLines: plan.subChiTietIds.length,
-      });
+      out.split.push({ maBo, maSub: coldChild.ma_bo, movedLines: plan.subChiTietIds.length });
     }
   }
 

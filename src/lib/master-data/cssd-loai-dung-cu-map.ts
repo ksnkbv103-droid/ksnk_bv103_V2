@@ -376,6 +376,10 @@ export function buildLoaiPhysicalUpsertPayload(
     phuong_phap_tiet_khuan_chi_dinh: sterile,
     phuong_phap_cho_phep: choPhep.length ? choPhep : [sterile],
   };
+  // Chỉ ghi khi form gửi (import/đề nghị không có trường này → giữ nguyên giá trị cũ).
+  if ("loai_bao_goi_mac_dinh_id" in input) {
+    payload.loai_bao_goi_mac_dinh_id = String(input.loai_bao_goi_mac_dinh_id || "").trim() || null;
+  }
   if (mode === "create") {
     payload.so_luong_kho_du_phong = khoDuPhongBanDau(input.so_luong_kho_du_phong);
   }
@@ -406,6 +410,7 @@ export function mapLoaiDungCuExcelExportRow(r: Record<string, unknown>): Record<
     phan_loai_spaulding: r.phan_loai_spaulding ?? specs.phan_loai_spaulding ?? null,
     phan_loai: r.phan_loai ?? "PHAU_THUAT",
     so_luong_kho_du_phong: r.so_luong_kho_du_phong ?? 0,
+    loai_bao_goi_mac_dinh_id: r.loai_bao_goi_mac_dinh_id ?? null,
     is_active: r.is_active !== false,
   };
 }
