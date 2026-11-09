@@ -75,6 +75,18 @@ Thứ tự pilot theo khóa PO: CSSD → NKBV → QLCV → Đào tạo. QLCV/Đ�
 
 **QLCV (2026-10-25):** QL-1 đã chốt (xóa mềm, ghi chú theo người tạo); code xóa mềm chưa kiểm (`deleteCongViec` có ở `cong-viec-write.actions.ts`) · QL-A xong, commit `d258f6c0`: việc «Trả về làm lại» (TU_CHOI) giữ 100% nên nút «Lưu tiến độ» luôn khóa, nay cho nộp lại · Phát hiện: prod không thiếu migration QLCV (ghi theo kết luận của PO phiên này; chưa đối chiếu lại bằng `list_migrations` trong phiên này).
 
+**Kiến trúc module (PO duyệt 2026-11-10):** Quản trị chỉ lo hệ thống (tài khoản, nhân sự, khoa phòng, tổ, phân quyền, nhật ký); module nghiệp vụ giao về tổ và tự giữ danh mục riêng; chủ nhiệm khoa duyệt chuyên môn qua vai trò `CHU_NHIEM_KHOA` (giữ kèm `ADMIN`). Phụ thuộc một chiều: Quản trị → Điều hành khoa → module nghiệp vụ → `lib/master-data` → nền tảng. Danh mục CSSD: thay đổi liên quan an toàn phải đề nghị + duyệt, sửa nhỏ làm trực tiếp có nhật ký. Menu danh mục CSSD và bảng kiểm về module của tổ (thay câu «Master CSSD: CRUD tại Quản trị» khi lát AR-5 xong).
+
+| Lát | Việc | Trạng thái |
+|---|---|---|
+| AR-0 | Ghi quyết định vào docs | Xong 2026-11-10 |
+| AR-1 | Vai trò `CHU_NHIEM_KHOA`; 2 action duyệt kiểm quyền `approve` thay tên `ADMIN` | Chưa làm; prod chờ PO |
+| AR-2 | Luật import bằng lint (`warn`, ghi số ban đầu) | Chưa làm |
+| AR-3 | Gateway đọc danh mục từ Quản trị về `src/lib/master-data` | Chưa làm |
+| AR-4 | Màn Phê duyệt của chủ nhiệm khoa (gom hàng duyệt đã có, không bảng mới) | Chưa làm |
+| AR-5 | Chuyển danh mục dụng cụ/hóa chất/thiết bị về `cssd-erp`, bảng kiểm về `giam-sat-chung`; quy tắc duyệt theo rủi ro (PO xác nhận danh sách trường) | Chưa làm |
+| AR-6 | Gộp `cssd-erp` + `cssd-su-co`; dọn `cssd-*` trong `lib/domain`; áp mô hình cho NKBV/QLCV/Đào tạo | Backlog |
+
 **Chờ PO (gom một phiên/tuần):** tên người đầu mối các module còn lại (CSSD đã có) · ma trận «ai xem gì» (GS-1) · QL-1 · DT-2 (3 câu) · KD-5 (lấy DDL `cssd_fact_kho_kiem_ke` từ prod hay bỏ) · V1 phạm vi vật tư · Plasma–cellulose · nguồn ngưỡng 85/70 và 90/85 · xóa phiên VST (đang `is_active=false`).
 
 **Việc PO ngoài repo:** Supabase Auth (tắt tự đăng ký, xác nhận email, chặn mật khẩu rò rỉ, redirect URL) · `NEXT_PUBLIC_SITE_URL` + `<site>/login/reset-password` · `KSNK_BREAK_GLASS_EMAILS` tài khoản thật · CSP/X-Frame-Options/HSTS · rà phiếu RESET đang chờ trên prod.
