@@ -83,7 +83,7 @@ else {
   );
 }
 
-const mdmGateway = read("src/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions.ts");
+const mdmGateway = read("src/lib/master-data/master-data-gateway.actions.ts");
 if (!mdmGateway.ok) failures.push(mdmGateway.error);
 else {
   mustInclude(

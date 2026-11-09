@@ -3,8 +3,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { MasterOption } from "@/lib/master-data/gateway";
-import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
-import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
+import { getSupervisionMasterDataBundle } from "@/lib/master-data/master-data-gateway.actions";
+import type { VstSessionLocationHistoryRow } from "@/lib/master-data/master-data-gateway.actions";
 import { getGscHeaderDmDropdowns } from "@/modules/giam-sat-chung/actions/giam-sat-chung-read.actions";
 import { resolveDefaultKhoaId } from "@/lib/supervision-admin-context";
 import { usePermission } from "@/hooks/usePermission";
@@ -43,7 +43,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
       setLoading(true);
       setKhoaDefaultsApplied(false);
       try {
-        const result = await mdmGetSupervisionMasterDataBundle({ permissionContext, includeNhanSu });
+        const result = await getSupervisionMasterDataBundle({ permissionContext, includeNhanSu });
         if (cancelled) return;
         if (result.success) {
           let nextKhoas = result.data.khoas || [];

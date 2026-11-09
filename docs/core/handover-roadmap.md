@@ -82,7 +82,7 @@ Thứ tự pilot theo khóa PO: CSSD → NKBV → QLCV → Đào tạo. QLCV/Đ�
 | AR-0 | Ghi quyết định vào docs | Xong 2026-11-10 |
 | AR-1 | Vai trò `CHU_NHIEM_KHOA`; 2 action duyệt kiểm quyền `approve` thay tên `ADMIN` | Code xong local 2026-11-10 (migration `20261110100000`, áp local bằng psql vì lịch sử migration local lệch với worktree khác; `verify:mdm:local` chưa chạy do worktree thiếu `.env.local`). Chưa gán vai trò cho ai; vai trò này cộng thêm, không gán qua dropdown nhân sự (RPC `rpc_assign_staff_ksnk_role` thay thế vai trò). Còn nợ: test tay UI bằng tài khoản không phải ADMIN. **Chờ PO:** áp prod + gán người |
 | AR-2 | Luật import bằng lint (`warn`, ghi số ban đầu) | Xong 2026-11-10. Số cảnh báo ban đầu (`@typescript-eslint/no-restricted-imports`): `src/lib` import module 63 · module nghiệp vụ import Quản trị 7 · Quản trị import module nghiệp vụ 13. Chỉ bắt import dạng `@/modules/...`, không bắt đường dẫn tương đối. Vùng nào về 0 thì nâng `error` |
-| AR-3 | Gateway đọc danh mục từ Quản trị về `src/lib/master-data` | Chưa làm |
+| AR-3 | Gateway đọc danh mục từ Quản trị về `src/lib/master-data` | Xong 2026-11-10: `master-data-gateway.actions.ts` về `src/lib/master-data`; `mdm-gateway.actions.ts` ở Quản trị chỉ còn phần quản trị danh mục. Cảnh báo import: lib 63 · nghiệp vụ 5 (từ 7) · Quản trị 13 |
 | AR-4 | Màn Phê duyệt của chủ nhiệm khoa (gom hàng duyệt đã có, không bảng mới) | Chưa làm |
 | AR-5 | Chuyển danh mục dụng cụ/hóa chất/thiết bị về `cssd-erp`, bảng kiểm về `giam-sat-chung`; quy tắc duyệt theo rủi ro (PO xác nhận danh sách trường) | Chưa làm |
 | AR-6 | Gộp `cssd-erp` + `cssd-su-co`; dọn `cssd-*` trong `lib/domain`; áp mô hình cho NKBV/QLCV/Đào tạo | Backlog |

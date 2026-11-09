@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
-import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import { getSupervisionMasterDataBundle } from "@/lib/master-data/master-data-gateway.actions";
 import { getVstHeaderDmDropdowns } from "../actions/vst-read.actions";
-import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
+import type { VstSessionLocationHistoryRow } from "@/lib/master-data/master-data-gateway.actions";
 import { toast } from "sonner";
 import { createDefaultVSTFormPersons, type VSTFormPerson, useVSTFormHandlers } from "./useVSTFormHandlers";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
@@ -97,7 +97,7 @@ export function useVSTForm(
       try {
         // A) Bundle rồi header tuần tự. B) Promise.all độc lập — chọn B (TTFD form).
         const [result, scoped] = await Promise.all([
-          mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true }),
+          getSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true }),
           getVstHeaderDmDropdowns(),
         ]);
         if (cancelled) return;

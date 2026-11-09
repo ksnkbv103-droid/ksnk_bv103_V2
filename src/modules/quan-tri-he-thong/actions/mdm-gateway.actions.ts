@@ -1,8 +1,5 @@
 "use server";
 
-import {
-  getSupervisionMasterDataBundle,
-} from "../danh-muc/actions/master-data-gateway.actions";
 import { getTrungTamDanhMucStatsAction } from "../danh-muc/actions/danh-muc-hybrid.actions";
 import type { TrungTamDanhMucStatsPayload } from "../danh-muc/actions/danh-muc-hybrid.types";
 import type { MdmGatewayResult } from "./mdm-gateway.types";
@@ -14,16 +11,6 @@ import {
   softDeleteGenericDmAction,
   softDeleteManyGenericDmAction,
 } from "../danh-muc/actions/generic-dm.actions";
-
-export async function mdmGetSupervisionMasterDataBundle(options: {
-  includeNhanSu?: boolean;
-  includeNgheNghiep?: boolean;
-  /** Mặc định không tải gợi ý vị trí từ phiên VST (tránh dữ liệu import cũ). */
-  includeHistoryLocations?: boolean;
-  permissionContext?: "admin" | "vst" | "gsc" | "nkbv";
-} = {}) {
-  return getSupervisionMasterDataBundle(options);
-}
 
 export async function mdmGetTrungTamDanhMucStats(options?: { includeRegistry?: boolean }) {
   return getTrungTamDanhMucStatsAction(options) as Promise<MdmGatewayResult<TrungTamDanhMucStatsPayload>>;
