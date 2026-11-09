@@ -135,6 +135,64 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // AR-2 (PO 2026-11-10): phụ thuộc một chiều giữa các tầng. Dùng rule @typescript-eslint
+  // (tên khác) để không ghi đè các khối `no-restricted-imports` mức error ở trên.
+  // Warn vì còn tồn đọng; vùng nào về 0 thì nâng lên error (số ban đầu: handover-roadmap §5).
+  {
+    files: ["src/lib/**/*.ts", "src/lib/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "warn",
+        {
+          patterns: [
+            { group: ["@/modules/*"], message: "Tầng lib không import module (phụ thuộc một chiều: module → lib)." },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/modules/**/*.ts", "src/modules/**/*.tsx"],
+    ignores: ["src/modules/quan-tri-he-thong/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "warn",
+        {
+          patterns: [
+            {
+              group: ["@/modules/quan-tri-he-thong/*"],
+              message: "Module nghiệp vụ không import Quản trị hệ thống; đọc danh mục qua src/lib/master-data.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/modules/quan-tri-he-thong/**/*.ts", "src/modules/quan-tri-he-thong/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "warn",
+        {
+          patterns: [
+            {
+              group: [
+                "@/modules/cssd-erp/*",
+                "@/modules/cssd-su-co/*",
+                "@/modules/giam-sat-*/*",
+                "@/modules/quan-ly-cong-viec/*",
+                "@/modules/dao-tao/*",
+                "@/modules/dashboard/*",
+                "@/modules/entity-qr/*",
+                "@/modules/chat-thai-do-vai/*",
+              ],
+              message: "Quản trị hệ thống không import module nghiệp vụ.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     // rules/src.md: nhãn UI dùng «và», không «&». Warn vì còn tồn đọng cũ.
     files: ["src/**/*.tsx"],
