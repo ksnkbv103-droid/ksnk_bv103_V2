@@ -27,7 +27,10 @@ export async function listNoiNhanCapPhatAction() {
       .eq("is_active", true)
       .order("ten_khoa")
       .limit(500);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error({ module: "cssd", action: "listNoiNhanCapPhat", error: error.message });
+      throw new Error("Không tải được nơi nhận.");
+    }
     return {
       success: true as const,
       data: (data || []).map((r) => ({
@@ -60,6 +63,19 @@ export async function capPhatNhieuBoAction(input: {
     if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ." };
     const codes = normalizeCapPhatCodes(parsed.data.maQrs);
     if (codes.length === 0) return { success: false, error: "Chưa quét bộ nào." };
+
+    // RPC chỉ kiểm khoa tồn tại, không kiểm is_active → chặn nơi nhận đã ngưng ở đây.
+    const { data: khoa, error: khoaErr } = await createAdminSupabaseClient()
+      .from("mdm_dm_khoa_phong")
+      .select("id")
+      .eq("id", parsed.data.khoaNhanId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (khoaErr) {
+      console.error({ module: "cssd", action: "capPhatNhieuBo", error: khoaErr.message });
+      return { success: false, error: "Không kiểm tra được nơi nhận." };
+    }
+    if (!khoa) return { success: false, error: "Nơi nhận không tồn tại hoặc đã ngưng hoạt động." };
 
     const items: CapPhatBatchItem[] = [];
     for (const maQr of codes) {

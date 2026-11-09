@@ -28,7 +28,10 @@ export async function getMeKhoaBoAction(loTietKhuanId: string): Promise<
       .eq("lo_tiet_khuan_id", id)
       .eq("is_active", true)
       .limit(500);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error({ module: "cssd", action: "getMeKhoaBo", error: error.message });
+      throw new Error("Không tải được danh sách khoa.");
+    }
     const rows = ((data || []) as unknown as QtRow[]).map((r) => ({
       maBo: String(r.bo?.ma_bo || r.ma_qr_quy_trinh || "?"),
       tenBo: String(r.bo?.ten_bo || "—"),
