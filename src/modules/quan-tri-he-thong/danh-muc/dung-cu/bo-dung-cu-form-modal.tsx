@@ -7,7 +7,7 @@ import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "./bo-dung-cu-form-field";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { BoDungCuFormValues, BoDungCuTableRow, mapBoDungCuRowToForm } from "./bo-dung-cu-form-shared";
-import { saveBoDungCuAction, suggestNextBoMaAction } from "../actions/bo-dung-cu.actions";
+import { getLoaiBaoGoiOptionsAction, saveBoDungCuAction, suggestNextBoMaAction } from "../actions/bo-dung-cu.actions";
 import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
 import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
 
@@ -29,6 +29,13 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions: _loai
   const [loading, setLoading] = useState(false);
   const [suggestingMa, setSuggestingMa] = useState(false);
   const isEdit = Boolean(initialRow?.id);
+  const [baoGoiOptions, setBaoGoiOptions] = useState<{ id: string; ten: string }[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    void getLoaiBaoGoiOptionsAction().then((r) => {
+      if (r.success) setBaoGoiOptions(r.data);
+    });
+  }, [open]);
 
   useEffect(() => {
     setForm(formSeed);
@@ -67,6 +74,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions: _loai
       ma_bo: form.ma_bo.trim().toUpperCase(),
       ten_bo,
       loai_dung_cu_id: form.loai_dung_cu_id.trim() ? form.loai_dung_cu_id.trim() : null,
+      loai_bao_goi_id: form.loai_bao_goi_id.trim() ? form.loai_bao_goi_id.trim() : null,
       khoa_su_dung_id: form.khoa_su_dung_id.trim() ? form.khoa_su_dung_id.trim() : null,
       quy_cach: form.quy_cach.trim() || null,
       ghi_chu: form.ghi_chu.trim() || null,
@@ -135,6 +143,19 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions: _loai
           disabled={loadingLoai}
           onChange={(id) => setForm({ ...form, loai_dung_cu_id: id })}
         />
+        <div className="space-y-1">
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Loại bao gói (quyết định hạn dùng)</label>
+          <select
+            value={form.loai_bao_goi_id}
+            onChange={(e) => setForm({ ...form, loai_bao_goi_id: e.target.value })}
+            className={C.controlInput}
+          >
+            <option value="">— Chưa gán (bộ sẽ không có hạn dùng) —</option>
+            {baoGoiOptions.map((o) => (
+              <option key={o.id} value={o.id}>{o.ten}</option>
+            ))}
+          </select>
+        </div>
         <div className="space-y-1">
           <label className="text-[11px] font-medium text-slate-400 ml-1">Khoa sử dụng chính</label>
           <select

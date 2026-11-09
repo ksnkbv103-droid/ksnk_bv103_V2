@@ -44,7 +44,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
                 {clip(i.ten_bo, 40)}
               </span>
               <span className={`block ${TC.cellMeta}`}>
-                {loai} · {kind}
+                {loai} · {kind} · {i.loai_bao_goi ? `Bao gói: ${clip(i.loai_bao_goi.ten, 18)}` : "Chưa gán bao gói"}
               </span>
             </span>
           </span>
