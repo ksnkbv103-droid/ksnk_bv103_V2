@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeVstStrategicPercents } from "./vst-analytics-data";
+import { normalizeVstStrategicPercents, withCountsPercent } from "./vst-analytics-data";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
 function emptyPayload(): VstStrategicPayload {
@@ -103,5 +103,46 @@ describe("normalizeVstStrategicPercents", () => {
     p.kpis.ty_le_tuan_thu = 0;
     const out = normalizeVstStrategicPercents(p);
     expect(out.kpis.ty_le_tuan_thu).toBeNull();
+  });
+});
+
+describe("withCountsPercent", () => {
+  it("preserves item.ty_le from RPC when da_tuan_thu is missing/undefined instead of overwriting with 0%", () => {
+    const item = {
+      tong_co_hoi: 20,
+      ty_le: 85.5,
+    };
+    const res = withCountsPercent(item);
+    expect(res.ty_le_tuan_thu).toBe(85.5);
+    expect(res.ty_le).toBe(85.5);
+  });
+
+  it("preserves item.ty_le when both counts are missing", () => {
+    const item = {
+      ty_le: 78.2,
+    };
+    const res = withCountsPercent(item);
+    expect(res.ty_le_tuan_thu).toBe(78.2);
+    expect(res.ty_le).toBe(78.2);
+  });
+
+  it("recomputes ty_le_tuan_thu when both da_tuan_thu and tong_co_hoi are present", () => {
+    const item = {
+      tong_co_hoi: 3,
+      da_tuan_thu: 2,
+      ty_le_tuan_thu: 0,
+    };
+    const res = withCountsPercent(item);
+    expect(res.ty_le_tuan_thu).toBe(66.7);
+  });
+
+  it("returns null when tong_co_hoi is 0 (mẫu số = 0)", () => {
+    const item = {
+      tong_co_hoi: 0,
+      da_tuan_thu: 0,
+      ty_le_tuan_thu: 0,
+    };
+    const res = withCountsPercent(item);
+    expect(res.ty_le_tuan_thu).toBeNull();
   });
 });

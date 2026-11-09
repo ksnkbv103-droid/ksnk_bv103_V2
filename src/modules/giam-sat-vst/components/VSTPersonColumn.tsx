@@ -178,8 +178,9 @@ export default function VSTPersonColumn({
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-stretch">
               {person.is_manual ? (
                 <input
-                  className={`${C.controlInput} w-full`}
+                  className={`${C.controlInput} min-h-[40px] w-full touch-manipulation`}
                   placeholder={requireKhoa ? "Chọn khoa trước…" : "Nhập họ tên…"}
+                  aria-label="Họ tên nhân viên ngoài danh mục"
                   value={person.ten_manual}
                   onChange={(e) => updatePerson(pIdx, "ten_manual", e.target.value)}
                   disabled={requireKhoa}
@@ -202,11 +203,12 @@ export default function VSTPersonColumn({
                 />
               )}
 
-              <label className="box-border flex h-[var(--bv103-control-h)] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:border-slate-400 sm:w-36">
+              <label className="box-border flex h-[var(--bv103-control-h)] min-h-[40px] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:border-slate-400 sm:w-36 touch-manipulation">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs checkbox-primary rounded border-slate-300"
                   checked={person.is_manual}
+                  aria-label="Nhập tên nhân viên ngoài danh mục"
                   onChange={(e) => {
                     const checked = e.target.checked;
                     updatePerson(pIdx, "is_manual", checked);
@@ -230,6 +232,7 @@ export default function VSTPersonColumn({
         ref={scrollContainerRef}
         className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden overscroll-contain p-3 print:max-h-none print:overflow-visible"
         aria-label={`Danh sách cơ hội — nhân viên ${pIdx + 1}`}
+        role="region"
       >
         {person.opportunities.map((opp: ExtendedOpportunity, oIdx: number) => (
           <div

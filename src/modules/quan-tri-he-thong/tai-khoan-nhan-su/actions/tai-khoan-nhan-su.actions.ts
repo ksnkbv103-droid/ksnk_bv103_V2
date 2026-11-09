@@ -262,6 +262,7 @@ export async function provisionStaffAuthAccount(params: {
       password: pw,
       email_confirm: true,
       user_metadata: { ma_nv: staff.ma_nv, must_change_password: true },
+      app_metadata: { must_change_password: true },
     });
 
     if (createErr || !created.user?.id) {
@@ -393,6 +394,10 @@ export async function adminResetStaffPasswordAction(params: {
       got?.user?.user_metadata && typeof got.user.user_metadata === "object"
         ? { ...(got.user.user_metadata as Record<string, unknown>) }
         : {};
+    const prevAppMeta =
+      got?.user?.app_metadata && typeof got.user.app_metadata === "object"
+        ? { ...(got.user.app_metadata as Record<string, unknown>) }
+        : {};
 
     const { error: updateErr } = await supabase.auth.admin.updateUserById(
       staff.auth_user_id,
@@ -400,6 +405,7 @@ export async function adminResetStaffPasswordAction(params: {
         password: pw,
         email_confirm: true,
         user_metadata: { ...prevMeta, must_change_password: true },
+        app_metadata: { ...prevAppMeta, must_change_password: true },
       },
     );
 

@@ -1,6 +1,7 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { getDb } from "@/lib/data-access";
+import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
 import { VSTObservation } from "../lib/vst-constants";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
@@ -58,7 +59,7 @@ export async function saveVSTSession(
   observations: VSTObservation[],
   opts?: SaveVSTSessionOpts,
 ) {
-  const supabase = createAdminSupabaseClient();
+  const supabase = await getDb("admin");
   const existingSessionId = String(opts?.existingSessionId ?? "").trim();
   try {
     await verifyPermission("GIAM_SAT_VST", existingSessionId ? "edit" : "create");
@@ -90,19 +91,24 @@ export async function saveVSTSession(
       fieldLabel: "Khu vực giám sát",
     });
 
-    const firstObs = observations[0];
+    const firstObs = observations?.[0];
+    if (!firstObs) {
+      return { success: false, error: "Phiên giám sát phải có ít nhất một cơ hội / đối tượng quan sát." };
+    }
     const dimErr = validateSixSessionDimensions({
       khoa_id: khoaSessionNorm,
       khu_vuc_id: lockedKhuVucId,
       vi_tri: lockedSession.vi_tri,
       doi_tuong_loai: "NHAN_VIEN",
-      nhan_vien_id: firstObs?.nhan_vien_id,
-      ten_nhan_vien_ngoai: firstObs?.ten_nhan_vien_ngoai,
+      nhan_vien_id: firstObs.nhan_vien_id,
+      ten_nhan_vien_ngoai: firstObs.ten_nhan_vien_ngoai,
       gan_nb: Boolean(lockedSession.is_bo_sung_nguoi_benh),
     });
     if (dimErr) return { success: false, error: dimErr };
-    for (let i = 0; i < observations.length; i++) {
-      const nvErr = validateVstObservationNhanVien(observations[i]!);
+    for (let i = 0; i < (observations || []).length; i++) {
+      const obs = observations[i];
+      if (!obs) continue;
+      const nvErr = validateVstObservationNhanVien(obs);
       if (nvErr) {
         return { success: false, error: `Đối tượng ${i + 1}: ${nvErr}` };
       }
@@ -152,7 +158,7 @@ export async function saveVSTSession(
 
     let effectiveHinhThucId = hinh_id;
     if (!effectiveHinhThucId) {
-      const { data: ht } = await supabase.from("gstt_dm_hinh_thuc_giam_sat").select("id").eq("ten_hinh_thuc", hinh).maybeSingle();
+      const { data: ht } = await vstRepo.findVstHinhThucByName(hinh);
       if (ht) effectiveHinhThucId = ht.id;
     }
 
@@ -172,11 +178,7 @@ export async function saveVSTSession(
     if (existingSessionId) {
       if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
-      const { data: existing, error: exErr } = await supabase
-        .from("gstt_fact_vst_sessions")
-        .select("id,nguoi_giam_sat_id,is_active,created_at,metadata,ngay_giam_sat")
-        .eq("id", existingSessionId)
-        .maybeSingle();
+      const { data: existing, error: exErr } = await vstRepo.findExistingVstSessionForSave(existingSessionId);
       if (exErr) throw exErr;
       if (!existing) throw new Error("Phiên không còn tồn tại.");
       if (typeof existing.is_active === "boolean" && existing.is_active === false) {
@@ -208,10 +210,7 @@ export async function saveVSTSession(
         }
       }
 
-      const { data: prevObs, error: prevErr } = await supabase
-        .from("gstt_fact_vst")
-        .select("nhan_vien_id, metadata")
-        .eq("session_id", existingSessionId);
+      const { data: prevObs, error: prevErr } = await vstRepo.findActiveVstObservations(existingSessionId);
       if (prevErr) throw prevErr;
       const prevKeys = new Set<string>();
       for (const row of prevObs || []) {
@@ -241,7 +240,7 @@ export async function saveVSTSession(
     const allKhoaIds = Array.from(new Set(observations.map((o) => o.khoa_id).filter(Boolean)));
     const khoaMap = new Map<string, string>();
     if (allKhoaIds.length > 0) {
-      const { data: khoas } = await supabase.from("mdm_dm_khoa_phong").select("id").in("id", allKhoaIds);
+      const { data: khoas } = await vstRepo.findKhoaPhongIds(allKhoaIds);
       (khoas || []).forEach((k) => khoaMap.set(k.id, k.id));
     }
 
@@ -293,10 +292,10 @@ export async function saveVSTSession(
       }),
     );
 
-    const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_vst_save_session", {
-      p_session_id: existingSessionId || null,
-      p_session: withVstClientRequestId(sessionPayload, opts?.clientRequestId, !!existingSessionId),
-      p_observations: observationsPayload,
+    const { data: rpcData, error: rpcErr } = await vstRepo.saveVstSessionViaRpc({
+      sessionId: existingSessionId || null,
+      session: withVstClientRequestId(sessionPayload, opts?.clientRequestId, !!existingSessionId),
+      observations: observationsPayload,
     });
     if (rpcErr) throw rpcErr;
 

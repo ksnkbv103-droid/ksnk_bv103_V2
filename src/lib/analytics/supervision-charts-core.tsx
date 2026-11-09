@@ -126,7 +126,11 @@ export function SupervisionTrendChart({
       </div>
       <div className="h-[240px]">
         {!loading && chartData.length > 0 ? (
-          <SupervisionResponsiveChart className="h-full w-full min-w-0">
+          <SupervisionResponsiveChart
+            className="h-full w-full min-w-0"
+            role="img"
+            ariaLabel={`Biểu đồ xu hướng ${title}`}
+          >
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
@@ -208,7 +212,11 @@ function SupervisionCompareBarChart({
       <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
       <KhoaChartViewport rowCount={data.length}>
         {!loading && data.length > 0 ? (
-          <SupervisionResponsiveChart className="h-full w-full min-w-0">
+          <SupervisionResponsiveChart
+            className="h-full w-full min-w-0"
+            role="img"
+            ariaLabel={`Biểu đồ cột so sánh ${title}`}
+          >
             {layout === "vertical" ? (
               <BarChart data={data} layout="vertical" margin={KHOA_BAR_CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -299,7 +307,11 @@ export function SupervisionMomentsPanel({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="h-[240px] min-h-[200px]">
           {!loading && rows.length > 0 ? (
-            <SupervisionResponsiveChart className="h-full w-full min-w-0">
+            <SupervisionResponsiveChart
+              className="h-full w-full min-w-0"
+              role="img"
+              ariaLabel={`Biểu đồ radar ${title}`}
+            >
               <RadarChart data={rows}>
                 <PolarGrid />
                 <PolarAngleAxis dataKey="ten" tick={{ fontSize: 9 }} />
@@ -340,10 +352,10 @@ export function SupervisionMomentsPanel({
                       <tr key={m.ten} className={`border-b border-slate-100 last:border-0 ${momentRowBg[tone]}`}>
                         <td className="px-3 py-2 text-left text-xs font-medium text-slate-800">{m.ten}</td>
                         <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                          {m.tong_co_hoi.toLocaleString()}
+                          {m.tong_co_hoi.toLocaleString("vi-VN")}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                          {m.da_tuan_thu.toLocaleString()}
+                          {m.da_tuan_thu.toLocaleString("vi-VN")}
                         </td>
                         <td className={`px-3 py-2 text-right font-bold tabular-nums ${momentToneClass[tone]}`}>
                           {formatPercent1(m.ty_le_tuan_thu)}

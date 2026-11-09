@@ -81,12 +81,12 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 ## Ngưỡng cảnh báo (pilot)
 
-| Ngưỡng | Giá trị | Ý nghĩa UI |
-|--------|---------|------------|
-| `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) |
-| `YELLOW_MIN` | 70% | Cần theo dõi |
-| `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) |
-| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi mục tiêu viện / CCS |
+| Ngưỡng | Giá trị | Ý nghĩa UI & Căn cứ |
+|--------|---------|---------------------|
+| `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `YELLOW_MIN` | 70% | Cần theo dõi — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi mục tiêu viện / CCS. Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 
 SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 

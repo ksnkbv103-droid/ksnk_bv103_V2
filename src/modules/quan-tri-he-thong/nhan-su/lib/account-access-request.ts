@@ -46,6 +46,13 @@ export function canCreateResetTicket(
 export const ACCESS_REQUEST_COOLDOWN_MS = 45_000;
 export const ACCESS_REQUEST_MA_NV_WINDOW_MS = 10 * 60_000;
 export const ACCESS_REQUEST_MAX_PENDING = 2;
+/** Chặn theo IP (băm): tối đa N phiếu công khai / cửa sổ, chống gửi dồn bằng nhiều email giả. */
+export const ACCESS_REQUEST_IP_WINDOW_MS = 10 * 60_000;
+export const ACCESS_REQUEST_IP_MAX = 5;
+
+export function isIpThrottled(recentByIp: number): boolean {
+  return recentByIp >= ACCESS_REQUEST_IP_MAX;
+}
 
 export function isAccessRequestThrottled(counts: {
   recentByEmail: number;

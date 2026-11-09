@@ -181,9 +181,16 @@ export async function saveGiamSatChung(
     }
     const ngayGs = parseNgayGiamSatOrNull(sessionData.ngay_giam_sat);
     await assertSupervisionNotLockedForDate(supabase, "GSC", ngayGs);
-    const thoiGianGhiNhan = isReplayCamera
-      ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
-      : new Date().toISOString();
+    const parseIsoTimeOrNull = (val: unknown): string | null => {
+      const s = String(val ?? "").trim();
+      if (!s) return null;
+      const ms = Date.parse(s);
+      return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+    };
+    const thoiGianGhiNhan =
+      parseIsoTimeOrNull(sessionData.thoi_gian_ket_thuc) ||
+      parseIsoTimeOrNull(sessionData.thoi_gian_bat_dau) ||
+      new Date().toISOString();
 
     let existingFrozenSnap: GscBangKiemSnapshot | null = null;
     let previousBangKiemId: string | null = null;

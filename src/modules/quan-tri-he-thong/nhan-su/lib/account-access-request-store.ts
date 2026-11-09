@@ -249,21 +249,22 @@ export async function lookupAccessRequestFromTable(
 }
 
 
-function escapeLike(v: string): string {
+export function escapeLike(v: string): string {
   return v.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 
 /** ACC-1: đếm phiếu theo email / mã NV / hồ sơ (trong cửa sổ thời gian hoặc chỉ phiếu chờ). Lỗi → 0. */
 export async function countAccessRequests(
   supabase: any,
-  filter: { email?: string; maNv?: string; staffId?: string; sinceMs?: number; pendingOnly?: boolean },
+  filter: { email?: string; maNv?: string; staffId?: string; ipHash?: string; sinceMs?: number; pendingOnly?: boolean },
 ): Promise<number> {
-  if (!filter.email && !filter.maNv && !filter.staffId) return 0;
+  if (!filter.email && !filter.maNv && !filter.staffId && !filter.ipHash) return 0;
   if (!(await isAccountAccessRequestTableAvailable(supabase))) return 0;
   let q = supabase.from("sys_account_access_request").select("id", { count: "exact", head: true });
   if (filter.email) q = q.eq("email", filter.email);
   if (filter.maNv) q = q.ilike("payload->>ma_nv", escapeLike(filter.maNv));
   if (filter.staffId) q = q.eq("staff_id", filter.staffId);
+  if (filter.ipHash) q = q.eq("payload->>ip_hash", filter.ipHash);
   if (filter.pendingOnly) q = q.eq("status", "CHO_DUYET");
   if (filter.sinceMs) q = q.gte("created_at", new Date(Date.now() - filter.sinceMs).toISOString());
   const { count, error } = await q;

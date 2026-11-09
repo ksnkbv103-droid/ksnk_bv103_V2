@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isPathBlockedUnderActivePilot } from "@/lib/ksnk-pilot-route-scope";
+import { isPasswordChangeExemptPath, metaMustChangePassword } from "@/lib/auth/password-change-gate";
 import { GUEST_STATS_HOME_PATH } from "@/lib/auth/guest-stats-access";
 import {
   classifyGuestRoleLookup,
@@ -145,14 +146,26 @@ export async function proxy(request: NextRequest) {
   // A) getUser() → /auth/v1/user mỗi navigation. B) getClaims() verify JWT/JWKS local — chọn B.
   // Fallback getUser nếu claims lỗi (symmetric JWT / WebCrypto thiếu).
   let user: { id: string } | null = null;
+  let mustChangePassword = false;
   try {
     const claimsRes = await supabase.auth.getClaims();
     const sub = claimsRes.data?.claims?.sub;
     if (typeof sub === "string" && sub.length > 0) {
       user = { id: sub };
+      const rawClaims = claimsRes.data?.claims as
+        | { user_metadata?: unknown; app_metadata?: unknown }
+        | undefined;
+      mustChangePassword = metaMustChangePassword(
+        rawClaims?.user_metadata,
+        rawClaims?.app_metadata,
+      );
     } else if (claimsRes.error) {
       const { data } = await supabase.auth.getUser();
       user = data.user;
+      mustChangePassword = metaMustChangePassword(
+        data.user?.user_metadata,
+        data.user?.app_metadata,
+      );
     }
   } catch (err) {
     console.error("[proxy] Supabase auth.getClaims/getUser failed:", err);
@@ -172,6 +185,16 @@ export async function proxy(request: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.search = "";
     const redirectResponse = NextResponse.redirect(loginUrl);
+    copyResponseCookies(supabaseResponse, redirectResponse);
+    return redirectResponse;
+  }
+
+  // Ép đổi mật khẩu ở server: cờ must_change_password chặn mọi trang trừ đổi mật khẩu/đăng nhập.
+  if (user && mustChangePassword && !isPasswordChangeExemptPath(pathname)) {
+    const changeUrl = request.nextUrl.clone();
+    changeUrl.pathname = "/tai-khoan/doi-mat-khau";
+    changeUrl.search = "";
+    const redirectResponse = NextResponse.redirect(changeUrl);
     copyResponseCookies(supabaseResponse, redirectResponse);
     return redirectResponse;
   }

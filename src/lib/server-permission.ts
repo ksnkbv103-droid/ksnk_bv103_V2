@@ -18,7 +18,7 @@ export async function invalidateUserPermissionsCache() {
   revalidateTag(USER_PERMISSIONS_CACHE_TAG, "default");
 }
 
-/** Fetch and cache permissions for 5 minutes per user. */
+/** Fetch and cache permissions for 60 seconds per user (thu hồi quyền có hiệu lực ≤ 1 phút). */
 const fetchUserPermissions = unstable_cache(
   async (userId: string) => {
     const admin = createAdminSupabaseClient();
@@ -34,7 +34,7 @@ const fetchUserPermissions = unstable_cache(
     };
   },
   [USER_PERMISSIONS_CACHE_TAG],
-  { revalidate: 300, tags: [USER_PERMISSIONS_CACHE_TAG] },
+  { revalidate: 60, tags: [USER_PERMISSIONS_CACHE_TAG] },
 );
 
 /** Request-scope deduplication for permissions. */

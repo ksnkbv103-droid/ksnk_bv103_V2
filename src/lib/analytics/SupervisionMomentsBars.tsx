@@ -52,8 +52,8 @@ export function SupervisionMomentsBars({
                 />
               </div>
               <span className="min-w-[8.5rem] text-right text-xs tabular-nums text-slate-600">
-                <b className="text-sm text-slate-800">{formatPercent1(m.pct)}</b> · {m.da_tuan_thu.toLocaleString()}/
-                {m.tong_co_hoi.toLocaleString()}
+                <b className="text-sm text-slate-800">{formatPercent1(m.pct)}</b> · {m.da_tuan_thu.toLocaleString("vi-VN")}/
+                {m.tong_co_hoi.toLocaleString("vi-VN")}
               </span>
             </li>
           ))}
