@@ -63,12 +63,12 @@ export default function NkbvPatientSynthesisBar({
   }, [priorEvents]);
 
   return (
-    <div className="mx-2 mb-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2 text-[11px] shadow-xs">
+    <div className="mx-2 mb-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2 text-xs shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
         {/* Trục trái: Tổng quan bệnh án & Mẫu vi sinh */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700 text-[11px] text-white">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-700 text-xs text-white">
               Σ
             </span>
             <span>Tổng Hợp Bệnh Án</span>
@@ -89,7 +89,7 @@ export default function NkbvPatientSynthesisBar({
               <span className="text-slate-600">({labStats.daPt} thuộc SK)</span>
             ) : null}
             {labStats.khongDuTc + labStats.boQua > 0 ? (
-              <span className="text-slate-500 text-[11px]">
+              <span className="text-slate-500 text-xs">
                 [{labStats.khongDuTc + labStats.boQua} loại trừ]
               </span>
             ) : null}
@@ -107,7 +107,7 @@ export default function NkbvPatientSynthesisBar({
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="text-[11px] font-semibold text-sky-700 hover:text-sky-900 underline"
+            className="text-xs font-semibold text-sky-700 hover:text-sky-900 underline"
           >
             {expanded ? "Thu gọn bản đồ SK ▲" : "Xem bản đồ SK chi tiết ▼"}
           </button>
@@ -117,7 +117,7 @@ export default function NkbvPatientSynthesisBar({
       {/* Danh sách các sự kiện đã xác lập (Pill preview khi thu gọn) */}
       {!expanded && establishedEvents.length > 0 ? (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-200/60">
-          <span className="text-[11px] text-slate-500">Chuỗi sự kiện:</span>
+          <span className="text-xs text-slate-500">Chuỗi sự kiện:</span>
           {establishedEvents.map((ev) => (
             <button
               key={ev.id}
@@ -128,7 +128,7 @@ export default function NkbvPatientSynthesisBar({
             >
               <span className="font-bold text-sky-800">#{ev.order}</span>
               <span className="font-semibold">{ev.loai}</span>
-              <span className="text-slate-500 text-[11px]">(DOE {ev.doe})</span>
+              <span className="text-slate-500 text-xs">(DOE {ev.doe})</span>
               <span className="text-slate-600 truncate max-w-[130px] font-normal">
                 · {ev.tacNhan}
               </span>
@@ -164,7 +164,7 @@ export default function NkbvPatientSynthesisBar({
               <button
                 type="button"
                 onClick={() => onSelectEvent?.(ev.id)}
-                className="text-[11px] font-semibold text-sky-700 hover:underline"
+                className="text-xs font-semibold text-sky-700 hover:underline"
               >
                 Mở phiếu →
               </button>
