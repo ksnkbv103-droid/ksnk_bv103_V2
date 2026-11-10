@@ -306,34 +306,34 @@ function CSSDReportPageInner() {
             </div>
           ) : null}
           <ReportCharts pieData={pieData} barData={barData} />
-          <p className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             Biểu đồ cột trạm = <strong>lượt hoàn thành trong kỳ</strong> theo giờ quét (ngày VN, gồm chu kỳ đã đóng) và
             sự cố phát hiện tại trạm. Tồn hiện tại xem ở Kho dụng cụ.
           </p>
           <div className="space-y-2 print:hidden">
-            <h3 className="text-[11px] font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
+            <h3 className="text-xs font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
             <AdvancedDataTable
               columns={[
-                { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v) => <span className="font-mono text-[11px] font-medium text-[var(--primary)]">{v.ma_vach_qr}</span> },
+                { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v) => <span className="font-mono text-xs font-medium text-[var(--primary)]">{v.ma_vach_qr}</span> },
                 {
                   header: "Trạm cuối",
                   accessorKey: "trang_thai_hien_tai",
-                  cell: (v) => <span className="text-[11px] font-medium text-slate-600">{stationLabel(v.trang_thai_hien_tai)}</span>,
+                  cell: (v) => <span className="text-xs font-medium text-slate-600">{stationLabel(v.trang_thai_hien_tai)}</span>,
                 },
                 {
                   header: "Chu kỳ",
                   accessorKey: "chu_ky_label",
-                  cell: (v) => <span className="text-[11px] font-medium text-slate-600">{v.chu_ky_label}</span>,
+                  cell: (v) => <span className="text-xs font-medium text-slate-600">{v.chu_ky_label}</span>,
                 },
                 {
                   header: "Cảnh báo",
                   accessorKey: "is_red_alert",
-                  cell: (v) => (v.is_red_alert ? <span className="font-mono text-[11px] font-medium text-red-600">Cảnh báo đỏ</span> : <span className="bv103-type-label text-emerald-600">Bình thường</span>),
+                  cell: (v) => (v.is_red_alert ? <span className="font-mono text-xs font-medium text-red-600">Cảnh báo đỏ</span> : <span className="bv103-type-label text-emerald-600">Bình thường</span>),
                 },
                 {
                   header: "Ngày tạo",
                   accessorKey: "created_at",
-                  cell: (v) => <span className="text-[11px] font-medium text-slate-500">{formatDateVi(v.created_at)}</span>,
+                  cell: (v) => <span className="text-xs font-medium text-slate-500">{formatDateVi(v.created_at)}</span>,
                 },
               ]}
               data={raw.quyTrinh}
@@ -369,23 +369,23 @@ function CSSDReportPageInner() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {incidentGroupStats.map((x) => (
               <div key={x.group} className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
-                <p className="text-[11px] font-medium text-slate-500">{x.label}</p>
+                <p className="text-xs font-medium text-slate-500">{x.label}</p>
                 <p className={`mt-2 ${CSSD_UI_STAT_VALUE}`}>{x.count}</p>
               </div>
             ))}
           </div>
           <div className="space-y-2 print:hidden">
-            <h3 className="text-[11px] font-medium text-slate-500">Nhật ký sự cố theo nhóm nghiệp vụ</h3>
+            <h3 className="text-xs font-medium text-slate-500">Nhật ký sự cố theo nhóm nghiệp vụ</h3>
             <AdvancedDataTable
               columns={[
-                { header: "Mã QR", accessorKey: "ma_vach_qr", cell: (v) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
-                { header: "Nhóm", accessorKey: "incident_group_label", cell: (v) => <span className="text-[11px] font-medium text-slate-700">{v.incident_group_label}</span> },
-                { header: "Bản chất", accessorKey: "cause_label", cell: (v) => <span className="text-[11px] font-medium text-slate-700">{v.cause_label || "Chưa phân loại"}</span> },
+                { header: "Mã QR", accessorKey: "ma_vach_qr", cell: (v) => <span className="font-mono text-xs font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+                { header: "Nhóm", accessorKey: "incident_group_label", cell: (v) => <span className="text-xs font-medium text-slate-700">{v.incident_group_label}</span> },
+                { header: "Bản chất", accessorKey: "cause_label", cell: (v) => <span className="text-xs font-medium text-slate-700">{v.cause_label || "Chưa phân loại"}</span> },
                 { header: "Tình huống", accessorKey: "loai_su_co", cell: (v) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
-                { header: "Mã lô", accessorKey: "ma_lo", cell: (v) => <span className="font-mono text-[11px]">{v.ma_lo || "—"}</span> },
-                { header: "Mô tả", accessorKey: "mo_ta_ngan", cell: (v) => <span className="line-clamp-2 text-[11px] text-slate-600">{v.mo_ta_ngan || "—"}</span> },
-                { header: "Người phát hiện", accessorKey: "nguoi_phat_hien", cell: (v) => <span className="text-[11px]">{v.nguoi_phat_hien || v.reporter_email || "—"}</span> },
-                { header: "Thời điểm", accessorKey: "created_at", cell: (v) => <span className="text-[11px] text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
+                { header: "Mã lô", accessorKey: "ma_lo", cell: (v) => <span className="font-mono text-xs">{v.ma_lo || "—"}</span> },
+                { header: "Mô tả", accessorKey: "mo_ta_ngan", cell: (v) => <span className="line-clamp-2 text-xs text-slate-600">{v.mo_ta_ngan || "—"}</span> },
+                { header: "Người phát hiện", accessorKey: "nguoi_phat_hien", cell: (v) => <span className="text-xs">{v.nguoi_phat_hien || v.reporter_email || "—"}</span> },
+                { header: "Thời điểm", accessorKey: "created_at", cell: (v) => <span className="text-xs text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
                 {
                   header: "Trạng thái",
                   accessorKey: "incident_status_label",
@@ -393,16 +393,16 @@ function CSSDReportPageInner() {
                     <span
                       className={
                         v.incident_status === INCIDENT_STATUS_CONFIRMED
-                          ? "text-[11px] font-semibold text-emerald-700"
-                          : "text-[11px] font-semibold text-amber-800"
+                          ? "text-xs font-semibold text-emerald-700"
+                          : "text-xs font-semibold text-amber-800"
                       }
                     >
                       {v.incident_status_label || "Chưa xác nhận"}
                     </span>
                   ),
                 },
-                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
-                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
+                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v) => <span className="text-xs font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
+                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v) => <span className="text-xs font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
                 {
                   header: "Thao tác",
                   accessorKey: "id",
@@ -464,17 +464,17 @@ function CSSDReportPageInner() {
 
       {tab === "ACCOUNTABILITY" && (
         <div className="space-y-2 print:hidden">
-          <h3 className="text-[11px] font-medium text-slate-500">Khâu gây lỗi</h3>
+          <h3 className="text-xs font-medium text-slate-500">Khâu gây lỗi</h3>
           <AdvancedDataTable
             columns={[
-              { header: "Mã QR", accessorKey: "ma_vach_qr", cell: (v) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
-              { header: "Bản chất", accessorKey: "cause_label", cell: (v) => <span className="text-[11px] font-medium">{v.cause_label || "Chưa phân loại"}</span> },
+              { header: "Mã QR", accessorKey: "ma_vach_qr", cell: (v) => <span className="font-mono text-xs font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+              { header: "Bản chất", accessorKey: "cause_label", cell: (v) => <span className="text-xs font-medium">{v.cause_label || "Chưa phân loại"}</span> },
               { header: "Tình huống", accessorKey: "loai_su_co", cell: (v) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
-              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
-              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
+              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v) => <span className="text-xs font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
+              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v) => <span className="text-xs font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
               { header: "Người thao tác", accessorKey: "fault_operator", cell: (v) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa xác định"}</span> },
-              { header: "Người phát hiện", accessorKey: "nguoi_phat_hien", cell: (v) => <span className="text-[11px] text-slate-600">{v.nguoi_phat_hien || "—"}</span> },
-              { header: "Thời gian", accessorKey: "created_at", cell: (v) => <span className="text-[11px] font-medium text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
+              { header: "Người phát hiện", accessorKey: "nguoi_phat_hien", cell: (v) => <span className="text-xs text-slate-600">{v.nguoi_phat_hien || "—"}</span> },
+              { header: "Thời gian", accessorKey: "created_at", cell: (v) => <span className="text-xs font-medium text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
             ]}
             data={processAccountabilityRows}
             loading={loading}
