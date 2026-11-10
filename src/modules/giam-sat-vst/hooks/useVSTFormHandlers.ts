@@ -132,6 +132,15 @@ export function useVSTFormHandlers(
       }
     }
 
+    const personsMissingIdentity = persons.filter((p) => {
+      const hasIdentity = Boolean(p.nhan_vien_id || (p.is_manual && p.ten_manual));
+      const hasCompletedOpp = p.opportunities.some((o) => o.thoi_diems.length > 0 && o.hanh_dong);
+      return !hasIdentity && hasCompletedOpp;
+    });
+    if (personsMissingIdentity.length > 0) {
+      return toast.error("Vui lòng chọn nhân viên được giám sát, hoặc bật «Ngoài danh mục» và nhập tên.");
+    }
+
     const personsMissingNghe = persons.filter((p) => {
       const hasIdentity = Boolean(p.nhan_vien_id || (p.is_manual && p.ten_manual));
       const hasCompletedOpp = p.opportunities.some((o) => o.thoi_diems.length > 0 && o.hanh_dong);
@@ -151,6 +160,9 @@ export function useVSTFormHandlers(
     });
 
     if (!observations.length) return toast.error("Vui lòng hoàn thành ít nhất 1 cơ hội thực tế");
+    if (observations.some((o) => !String(o.vi_tri || "").trim())) {
+      return toast.error("Vui lòng nhập Vị trí giám sát.");
+    }
     if (observations.some((o) => !String(o.nghe_nghiep_id || "").trim())) {
       return toast.error("Vui lòng chọn Nghề nghiệp cho mọi đối tượng giám sát trước khi lưu.");
     }
