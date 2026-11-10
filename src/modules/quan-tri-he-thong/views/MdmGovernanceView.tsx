@@ -139,9 +139,10 @@ export default function MdmGovernanceView() {
   const stats = useMemo(() => {
     const totalReg = registry.length;
     const pendingSug = suggestions.length;
-    const totalCandidates = totalReg + pendingSug;
-    const score = totalCandidates > 0 ? Math.round((totalReg / totalCandidates) * 100) : 100;
     const activeTriggers = registry.filter((r) => r.is_active && r.field_role === "FK_TO_DM").length;
+    // Phủ = cột đang được bảo vệ / (đang bảo vệ + gợi ý chờ duyệt); dòng đã ngừng không tính là phủ.
+    const totalCandidates = activeTriggers + pendingSug;
+    const score = totalCandidates > 0 ? Math.round((activeTriggers / totalCandidates) * 100) : 100;
 
     return {
       coverageScore: score,
