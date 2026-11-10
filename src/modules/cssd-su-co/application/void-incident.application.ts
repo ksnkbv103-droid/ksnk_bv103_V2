@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
-import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions";
 import { tableHasColumn } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import { planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
 
@@ -74,6 +73,7 @@ export async function executeVoidIncidentReport(
   let events: VoidRollbackEvent[] = [];
   let currentLoId: string | null = null;
   let currentStation: string | null = null;
+  let currentTramId: string | null = null;
   if (quyId) {
     const { data: peerRows, error: peerErr } = await supabase
       .from("cssd_fact_su_co")
@@ -85,14 +85,22 @@ export async function executeVoidIncidentReport(
     peers = (peerRows || []) as VoidPeer[];
     const { data: qt, error: qtErr } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select("metadata, lo_tiet_khuan_id, ma_trang_thai_hien_tai")
+      .select("lo_tiet_khuan_id, ma_trang_thai_hien_tai, tram_hien_tai_id")
       .eq("id", quyId)
       .maybeSingle();
     if (qtErr) return { ok: false, error: qtErr.message };
-    const meta = (qt as { metadata?: { ngoai_le?: unknown }; lo_tiet_khuan_id?: string | null } | null)?.metadata;
+    // `metadata` nằm ở bảng gốc, view v_cssd_quy_trinh_full không có cột này.
+    const { data: qtMeta, error: qtMetaErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("metadata")
+      .eq("id", quyId)
+      .maybeSingle();
+    if (qtMetaErr) return { ok: false, error: qtMetaErr.message };
+    const meta = (qtMeta as { metadata?: { ngoai_le?: unknown } } | null)?.metadata;
     const list = Array.isArray(meta?.ngoai_le) ? meta.ngoai_le : [];
     events = list.filter((e): e is VoidRollbackEvent => Boolean(e) && typeof e === "object");
     currentLoId = String((qt as { lo_tiet_khuan_id?: string | null } | null)?.lo_tiet_khuan_id || "").trim() || null;
+    currentTramId = String((qt as { tram_hien_tai_id?: string | null } | null)?.tram_hien_tai_id || "").trim() || null;
     currentStation =
       String((qt as { ma_trang_thai_hien_tai?: string | null } | null)?.ma_trang_thai_hien_tai || "").trim() ||
       null;
@@ -122,79 +130,12 @@ export async function executeVoidIncidentReport(
   if (!plan.ok) return plan;
   if (plan.already) return { ok: true, already: true };
 
-  if (plan.khoDelta.length) {
-    for (const delta of plan.khoDelta) {
-      const { data: loai, error: loaiErr } = await supabase
-        .from("cssd_dm_loai_dung_cu")
-        .select("id, so_luong_kho_du_phong")
-        .eq("id", delta.loaiDungCuId)
-        .maybeSingle();
-      if (loaiErr) return { ok: false, error: loaiErr.message };
-      const cur = Number((loai as { so_luong_kho_du_phong?: number } | null)?.so_luong_kho_du_phong ?? 0);
-      if (cur + delta.delta < 0) {
-        return { ok: false, error: "Kho dự phòng không đủ để hoàn phiếu nhập kho." };
-      }
-    }
-  }
-
-  if (plan.deactivateLedgerIds.length) {
-    const { error: offErr } = await supabase
-      .from("cssd_fact_kho_giao_dich")
-      .update({ is_active: false, updated_at: new Date().toISOString() })
-      .in("id", plan.deactivateLedgerIds);
-    if (offErr) return { ok: false, error: offErr.message };
-  }
-
-  const appliedKho: { loaiDungCuId: string; delta: number }[] = [];
-  const undoKho = async () => {
-    for (const prev of appliedKho) {
-      const { data: loai } = await supabase
-        .from("cssd_dm_loai_dung_cu")
-        .select("so_luong_kho_du_phong")
-        .eq("id", prev.loaiDungCuId)
-        .maybeSingle();
-      const cur = Number((loai as { so_luong_kho_du_phong?: number } | null)?.so_luong_kho_du_phong ?? 0);
-      await supabase
-        .from("cssd_dm_loai_dung_cu")
-        .update({ so_luong_kho_du_phong: cur - prev.delta, updated_at: new Date().toISOString() })
-        .eq("id", prev.loaiDungCuId);
-    }
-    if (plan.deactivateLedgerIds.length) {
-      await supabase.from("cssd_fact_kho_giao_dich").update({ is_active: true }).in("id", plan.deactivateLedgerIds);
-    }
-  };
-  for (const delta of plan.khoDelta) {
-    const { data: loai, error: loaiErr } = await supabase
-      .from("cssd_dm_loai_dung_cu")
-      .select("so_luong_kho_du_phong")
-      .eq("id", delta.loaiDungCuId)
-      .maybeSingle();
-    if (loaiErr) {
-      await undoKho();
-      return { ok: false, error: loaiErr.message };
-    }
-    const cur = Number((loai as { so_luong_kho_du_phong?: number } | null)?.so_luong_kho_du_phong ?? 0);
-    const next = cur + delta.delta;
-    if (next < 0) {
-      await undoKho();
-      return { ok: false, error: "Kho dự phòng không đủ để hoàn phiếu nhập kho." };
-    }
-    const { error: khoErr } = await supabase
-      .from("cssd_dm_loai_dung_cu")
-      .update({ so_luong_kho_du_phong: next, updated_at: new Date().toISOString() })
-      .eq("id", delta.loaiDungCuId);
-    if (khoErr) {
-      await undoKho();
-      return { ok: false, error: khoErr.message };
-    }
-    appliedKho.push(delta);
-  }
-
+  let quyTrinhPatch: Record<string, unknown> | null = null;
+  let event: Record<string, unknown> | null = null;
   if (plan.cycle && quyId) {
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const patch: Record<string, unknown> = {};
     if (plan.cycle.restoreStation) {
-      const tram = await buildQuyTrinhTramPatch(supabase, plan.cycle.restoreStation);
-      Object.assign(patch, tram);
+      Object.assign(patch, await buildQuyTrinhTramPatch(supabase, plan.cycle.restoreStation));
     }
     Object.assign(patch, plan.cycle.stamps);
     if (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert")) {
@@ -204,38 +145,31 @@ export async function executeVoidIncidentReport(
       patch.is_dong_bang = plan.cycle.isDongBang;
     }
     if (plan.cycle.restoreLoId) patch.lo_tiet_khuan_id = plan.cycle.restoreLoId;
-    const { error: qErr } = await supabase.from("cssd_fact_quy_trinh").update(patch).eq("id", quyId);
-    if (qErr) {
-      await undoKho();
-      return { ok: false, error: qErr.message };
-    }
-    await appendQuyTrinhException(
-      supabase,
-      quyId,
-      {
-        su_kien: "VO_HIEU_SU_CO",
-        tu_tram: plan.cycle.restoreStation || undefined,
-        ly_do: `Vô hiệu phiếu sự cố ${id.slice(0, 8)}.`,
-        nguoi_thao_tac: opts.actorHoTen || "Nhân viên",
-        chi_tiet: { su_co_id: id, is_red_alert: plan.cycle.isRedAlert },
-      },
-      { soft: true },
-    );
+    quyTrinhPatch = patch;
+    event = {
+      su_kien: "VO_HIEU_SU_CO",
+      thoi_gian: new Date().toISOString(),
+      nguoi_thao_tac: opts.actorHoTen || "Nhân viên",
+      ly_do: `Vô hiệu phiếu sự cố ${id.slice(0, 8)}.`,
+      chi_tiet: { su_co_id: id, is_red_alert: plan.cycle.isRedAlert },
+      ...(plan.cycle.restoreStation ? { tu_tram: plan.cycle.restoreStation } : {}),
+    };
   }
 
-  const { error: updErr } = await supabase
-    .from("cssd_fact_su_co")
-    .update({
-      is_active: false,
-      is_red_alert: false,
-      attributes: plan.attributes,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .eq("is_active", true);
-  if (updErr) {
-    await undoKho();
-    return { ok: false, error: updErr.message };
-  }
+  // Một transaction: tắt sổ + hoàn kho dự phòng + chu trình + đóng phiếu (khóa dòng, không để âm kho).
+  const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_cssd_apply_incident_void", {
+    p_su_co_id: id,
+    p_attributes: plan.attributes,
+    p_deactivate_ledger_ids: plan.deactivateLedgerIds,
+    p_kho_delta: plan.khoDelta,
+    p_quy_trinh_id: plan.cycle && quyId ? quyId : null,
+    p_quy_trinh_patch: quyTrinhPatch,
+    p_event: event,
+    // Giá trị app đã dựa vào để lập kế hoạch; RPC kiểm lại dưới khóa.
+    p_expected_status: typeof row.attributes?.INCIDENT_STATUS === "string" ? row.attributes.INCIDENT_STATUS : null,
+    p_expected_tram_id: plan.cycle && quyId ? currentTramId : null,
+  });
+  if (rpcErr) return { ok: false, error: rpcErr.message };
+  if ((rpcData as { already?: boolean } | null)?.already) return { ok: true, already: true };
   return { ok: true };
 }
