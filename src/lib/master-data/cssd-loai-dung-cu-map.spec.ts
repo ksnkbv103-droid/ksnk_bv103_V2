@@ -7,6 +7,7 @@ import {
   mapKhaNangToIsChiuNhiet,
   mapLoaiDungCuExcelExportRow,
   normalizeLoaiDungCuExcelImportRow,
+  resolveLoaiImportNextChiuNhiet,
   normalizePhuongPhapChoPhep,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
@@ -253,5 +254,16 @@ describe("phuong_phap_cho_phep", () => {
     });
     expect(p.is_chiu_nhiet).toBe(false);
     expect(p.phuong_phap_cho_phep).toEqual(["PLASMA", "EO"]);
+  });
+});
+
+describe("resolveLoaiImportNextChiuNhiet", () => {
+  it("suy từ phuong_phap_cho_phep dù is_chiu_nhiet mặc định true", () => {
+    expect(resolveLoaiImportNextChiuNhiet({ is_chiu_nhiet: true, phuong_phap_cho_phep: ["PLASMA", "EO"] })).toBe(false);
+    expect(resolveLoaiImportNextChiuNhiet({ is_chiu_nhiet: false, phuong_phap_cho_phep: ["STEAM_134", "EO"] })).toBe(true);
+  });
+  it("không có mảng → dùng cờ trong payload", () => {
+    expect(resolveLoaiImportNextChiuNhiet({ is_chiu_nhiet: false })).toBe(false);
+    expect(resolveLoaiImportNextChiuNhiet({ phuong_phap_cho_phep: [] })).toBeUndefined();
   });
 });

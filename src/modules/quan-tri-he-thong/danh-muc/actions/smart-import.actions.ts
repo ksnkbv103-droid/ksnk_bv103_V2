@@ -30,6 +30,7 @@ import { randomUUID } from "crypto";
 import {
   applyLoaiKhoDuPhongOnImportPayload,
   normalizeLoaiDungCuExcelImportRow,
+  resolveLoaiImportNextChiuNhiet,
   syncLoaiPhysicalColumnsOnImportPayload,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import {
@@ -538,7 +539,7 @@ export async function smartImportData(
           .map((r) => ({
             loaiId: String(r.payload.id || ""),
             prevIsChiuNhiet: existingLoaiChiuNhiet.get(String(r.payload.id || "")),
-            nextIsChiuNhiet: r.payload.is_chiu_nhiet as boolean | undefined,
+            nextIsChiuNhiet: resolveLoaiImportNextChiuNhiet(r.payload),
           })),
       );
     }
