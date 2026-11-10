@@ -16,7 +16,7 @@ import {
   type CssdReportQuyTrinhRow,
   type CssdReportSuCoRow,
 } from "../actions/cssd-report-read.actions";
-import { formatDateVi, formatDateTimeVi } from "@/lib/format-datetime-vi";
+import { addDaysYmd, formatDateVi, formatDateTimeVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useImportExport } from "@/hooks/useImportExport";
 import ReportFilters from "../components/report/ReportFilters";
@@ -121,11 +121,10 @@ function CSSDReportPageInner() {
     const toParam = String(searchParams.get("to") || searchParams.get("den_ngay") || "").trim();
     const fromParam = String(searchParams.get("from") || searchParams.get("tu_ngay") || "").trim();
     const stationParam = String(searchParams.get("station") || "").trim();
-    const to = toParam || new Date().toISOString().split("T")[0];
+    // Ngày VN (không dùng ngày UTC: 00:00–07:00 VN sẽ lệch 1 ngày, phiếu hôm nay biến mất).
+    const to = toParam || todayYmdInVn();
     const fromDays = highlightIncidentId ? 365 : 30;
-    const from =
-      fromParam ||
-      new Date(new Date().setDate(new Date().getDate() - fromDays)).toISOString().split("T")[0];
+    const from = fromParam || addDaysYmd(to, -fromDays);
     return { from, to, station: stationParam || "ALL" };
   });
   const [raw, setRaw] = useState<{ quyTrinh: CssdReportQuyTrinhRow[]; suCo: CssdReportSuCoRow[] }>({ quyTrinh: [], suCo: [] });
