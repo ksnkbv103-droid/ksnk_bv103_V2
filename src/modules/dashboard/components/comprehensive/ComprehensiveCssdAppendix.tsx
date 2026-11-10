@@ -45,7 +45,7 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
         </Link>
       </div>
       {payload.filters.khoa_ids?.length ? (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-xs text-slate-500">
           Bộ lọc khoa không đổi phụ lục này — số máy và sản lượng vẫn toàn viện.
         </p>
       ) : null}

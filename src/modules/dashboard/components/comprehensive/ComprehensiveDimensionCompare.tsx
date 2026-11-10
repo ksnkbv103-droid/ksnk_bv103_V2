@@ -129,7 +129,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
         {title} · thấp → cao
       </div>
       <table className="w-full text-sm">
-        <thead className="text-[11px] text-slate-400">
+        <thead className="text-xs text-slate-400">
           <tr>
             <th className="px-3 py-2 text-left font-semibold">Nhóm</th>
             <th className="px-3 py-2 text-right font-semibold">%</th>

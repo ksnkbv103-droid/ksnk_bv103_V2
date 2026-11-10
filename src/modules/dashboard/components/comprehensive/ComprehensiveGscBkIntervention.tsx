@@ -60,14 +60,14 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
               <tr key={r.ma_bk} className="border-b border-slate-100">
                 <td className="px-3 py-2">
                   <p className="font-semibold text-slate-800">{r.ma_bk}</p>
-                  <p className="max-w-[200px] truncate text-[11px] text-slate-500">{r.ten_bang_kiem}</p>
+                  <p className="max-w-[200px] truncate text-xs text-slate-500">{r.ten_bang_kiem}</p>
                 </td>
                 <td className="px-2 py-2 text-right font-bold tabular-nums text-red-700">
                   {formatPercent2(gscTyLeFromMatrixCounts(r) ?? r.ty_le_tuan_thu)}
                 </td>
                 <td className="px-2 py-2 text-right tabular-nums">{r.tong_vi_pham}</td>
-                <td className="px-2 py-2 text-[11px] text-slate-600">{r.top_violation_ten ?? "—"}</td>
-                <td className="px-2 py-2 text-[11px] text-slate-600">{r.worst_khoa_ten ?? "—"}</td>
+                <td className="px-2 py-2 text-xs text-slate-600">{r.top_violation_ten ?? "—"}</td>
+                <td className="px-2 py-2 text-xs text-slate-600">{r.worst_khoa_ten ?? "—"}</td>
                 <td className="px-2 py-2">
                   <Link
                     href={deepBase ? buildGscAnalyticsDeepLink(deepBase, r.ma_bk) : `/thong-ke/gsc?bk=${r.ma_bk}`}
