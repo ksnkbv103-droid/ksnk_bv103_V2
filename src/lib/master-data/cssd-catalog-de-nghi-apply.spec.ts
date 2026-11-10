@@ -275,3 +275,37 @@ describe("KD-1 N2 — duyệt đề nghị thêm dòng thành phần", () => {
     ).rejects.toThrow("Trùng khóa unique khi ghi BOM");
   });
 });
+
+describe("applyLoai — đổi PP ưu tiên không làm mất lưỡng dụng", () => {
+  const dual = {
+    id: "loai-d",
+    specs: {},
+    is_chiu_nhiet: true,
+    phuong_phap_tiet_khuan_chi_dinh: "STEAM_134",
+    phuong_phap_cho_phep: ["STEAM_134", "PLASMA", "EO"],
+  };
+  it("loại lưỡng dụng chỉ đổi ưu tiên sang PLASMA: giữ nguyên mảng cho phép", async () => {
+    const { client, ops } = mockSupabase({ cssd_dm_loai_dung_cu: [dual] });
+    const res = await applyCatalogDeNghiOverwrite(client, {
+      kind: "LOAI",
+      targetId: "loai-d",
+      targetMa: "L",
+      payloadAfter: { phuong_phap_tiet_khuan_chi_dinh: "PLASMA" },
+    });
+    const upd = ops.find((o) => o.method === "update")!.payload as Record<string, unknown>;
+    expect(upd.phuong_phap_cho_phep).toEqual(["STEAM_134", "PLASMA", "EO"]);
+    expect(upd.phuong_phap_tiet_khuan_chi_dinh).toBe("PLASMA");
+    expect(res[0]?.nextIsChiuNhiet).toBe(true);
+  });
+  it("hạ cờ chịu nhiệt rõ ràng: thay mảng bằng PP không hơi nước", async () => {
+    const { client, ops } = mockSupabase({ cssd_dm_loai_dung_cu: [dual] });
+    await applyCatalogDeNghiOverwrite(client, {
+      kind: "LOAI",
+      targetId: "loai-d",
+      targetMa: "L",
+      payloadAfter: { is_chiu_nhiet: false },
+    });
+    const upd = ops.find((o) => o.method === "update")!.payload as Record<string, unknown>;
+    expect(upd.phuong_phap_cho_phep).toEqual(["PLASMA"]);
+  });
+});
