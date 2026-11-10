@@ -11,6 +11,8 @@ interface GiamSatChungFormActionsProps {
   /** In mẫu trống (tiêu chí chưa chấm) — dùng giấy ngoại tuyến. */
   onPrintBlank?: () => void;
   onSave: () => void;
+  /** Tóm tắt tiến độ bên trái thanh đáy (cùng mẫu VST). */
+  summary?: string;
 }
 
 export default function GiamSatChungFormActions({
@@ -19,9 +21,11 @@ export default function GiamSatChungFormActions({
   onPrint,
   onPrintBlank,
   onSave,
+  summary,
 }: GiamSatChungFormActionsProps) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-end gap-2 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur no-print sm:px-6">
+    <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-end gap-3 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur no-print sm:px-6">
+      {summary ? <p className="mr-2 hidden text-sm text-slate-600 sm:block">{summary}</p> : null}
       {onPrintBlank ? (
         <Bv103Button variant="secondary" size="lg" onClick={onPrintBlank} title="In mẫu bảng kiểm trống">
           In mẫu trống

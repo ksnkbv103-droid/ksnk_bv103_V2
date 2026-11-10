@@ -266,20 +266,20 @@ export default function ChecklistItem({
     <div
       tabIndex={0}
       onKeyDown={handleRowKeyDown}
-      className={`${gscFormChrome.panelShell} border-l-4 border-transparent transition-all hover:border-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`}
+      className="bv103-card p-4 transition-colors hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20"
     >
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div className="flex-1 space-y-1.5">
-          <div className="flex items-start gap-2">
-            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 bv103-type-label font-semibold text-slate-700">
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 px-1.5 text-xs font-semibold text-slate-700">
               {order || "#"}
             </span>
             <div className="min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <h4 className="text-sm font-semibold leading-tight text-slate-800 sm:text-base">{criterion.label}</h4>
+              <div className="flex flex-wrap items-center gap-2">
+                <h4 className="text-sm font-semibold leading-snug text-slate-900">{criterion.label}</h4>
                 {renderWeightBadge(criterion.weightType, criterion.isRedFlag)}
               </div>
-              <p className="hidden text-[11px] font-medium text-slate-400 sm:block sm:text-[11px]">
+              <p className="hidden text-xs text-slate-400 sm:block">
                 Phím <kbd className="rounded border border-slate-200 bg-slate-50 px-1">1</kbd> Đạt ·{" "}
                 <kbd className="rounded border border-slate-200 bg-slate-50 px-1">2</kbd> Không đạt ·{" "}
                 <kbd className="rounded border border-slate-200 bg-slate-50 px-1">3</kbd> Không áp dụng
@@ -288,11 +288,12 @@ export default function ChecklistItem({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center md:flex-nowrap">
+        {/* Cụm nút: cột bằng nhau (2 cột mobile, chia đều trên desktop) — rộng cố định để mọi thẻ thẳng hàng. */}
+        <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:w-full lg:w-[38rem] [&>button]:sm:flex-1 [&>button]:sm:basis-0 [&>button]:sm:px-2">
           <button
             type="button"
             onClick={() => pickValue("DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[5.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} w-full ${
               result.value === "DAT" ? gscFormChrome.choiceBtnActive : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -302,7 +303,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("KHONG_DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[6.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} w-full ${
               result.value === "KHONG_DAT" ? gscFormChrome.choiceBtnActiveDanger : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -312,7 +313,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("NA")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} w-full ${
               result.value === "NA" ? "border-slate-500 bg-slate-600 text-white shadow-sm" : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -322,7 +323,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => setNoteOpen((v) => !v)}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} w-full ${
               noteOpen || String(result.note || "").trim()
                 ? gscFormChrome.choiceBtnNote
                 : gscFormChrome.choiceBtnIdle
@@ -337,7 +338,7 @@ export default function ChecklistItem({
                 type="button"
                 onClick={handleCameraClick}
                 disabled={uploading}
-                className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+                className={`${gscFormChrome.choiceBtnRow} w-full ${
                   result.image_url ? gscFormChrome.choiceBtnEvidence : gscFormChrome.choiceBtnIdle
                 }`}
               >

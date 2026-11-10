@@ -113,7 +113,7 @@ export default function GiamSatChungForm({
   };
 
   return (
-    <div className="space-y-7 pb-28">
+    <div className="space-y-6 pb-28">
       <GscModuleLockBanner lockedUntilDate={lockedUntilDate} lockMessage={isLockedForSelectedDate ? lockMessage : null} />
       <GiamSatChungPrintView
         session={sessionForPrint}
@@ -127,7 +127,7 @@ export default function GiamSatChungForm({
         qrDataUrl={printQrDataUrl || undefined}
       />
 
-      <div className="print:hidden space-y-7">
+      <div className="print:hidden space-y-6">
         <GiamSatHeader
           session={headerSession}
           setSession={setSessionFromHeader}
@@ -158,6 +158,7 @@ export default function GiamSatChungForm({
           onPrint={() => runPrint(false)}
           onPrintBlank={() => runPrint(true)}
           onSave={handleSave}
+          summary={`Đã đánh giá ${formProgress.evaluated}/${formProgress.total} tiêu chí`}
         />
       ) : null}
 
@@ -176,13 +177,18 @@ export default function GiamSatChungForm({
           })}
         </div>
 
-        <div className={`space-y-3 ${gscFormChrome.panelShell}`}>
-          <label className={gscFormChrome.labelBlockAccent}>Nhận xét / Kiến nghị</label>
+        <div className="bv103-card">
+          <label htmlFor="gsc-ghi-chu-chung" className="bv103-card-head flex h-14 items-center px-4 text-base font-semibold text-slate-900">
+            Nhận xét / Kiến nghị
+          </label>
+          <div className="p-4">
           <textarea
+            id="gsc-ghi-chu-chung"
             className={gscFormChrome.textareaLarge}
             value={session.ghi_chu_chung}
             onChange={(e) => setSession({ ...session, ghi_chu_chung: e.target.value })}
           />
+          </div>
         </div>
 
         {showContinuePrompt ? (
