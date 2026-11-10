@@ -1,5 +1,6 @@
 "use client";
 
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import React, { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
@@ -59,7 +60,7 @@ export function SupervisionExcelExportButton({
       type="button"
       onClick={() => void onClick()}
       disabled={busy}
-      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+      className={bv103LayoutChrome.btnSecondary}
     >
       <Download size={14} aria-hidden />
       {busy ? "Đang xuất…" : label}
