@@ -38,7 +38,7 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
       headerClassName: "min-w-[12rem]",
       cellClassName: "min-w-[12rem]",
       cell: (i) => (
-        <div className={`${TC.cellTitle} text-[11px] leading-tight`}>
+        <div className={`${TC.cellTitle} text-xs leading-tight`}>
           {i.ten_danh_muc}
         </div>
       ),
@@ -49,7 +49,7 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
       headerClassName: "w-[18rem] min-w-[18rem]",
       cellClassName: "w-[18rem] min-w-[18rem]",
       cell: (i) => (
-        <div className="text-[11px] leading-snug">
+        <div className="text-xs leading-snug">
           <span className="font-semibold text-slate-700">{i.ten_khoi || "Chưa gán khối"}</span>
           <span className="text-slate-500">
             {" · "}BS {i.so_bac_si || 0} / ĐD {i.so_dieu_duong || 0} · Giường {i.so_giuong_benh_thuong || 0}/{i.so_giuong_cap_cuu || 0}

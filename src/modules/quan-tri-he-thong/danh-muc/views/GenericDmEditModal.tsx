@@ -63,13 +63,13 @@ export default function GenericDmEditModal({
     >
       <div>
         <div className="mb-1 flex items-center justify-between gap-2">
-          <label className="block text-[11px] font-medium text-slate-500">Mã</label>
+          <label className="block text-xs font-medium text-slate-500">Mã</label>
           {!editMode && onSuggestMa ? (
             <button
               type="button"
               disabled={suggestLoading}
               onClick={() => void onSuggestMa()}
-              className={`${C.btnSecondary} h-auto min-h-0 px-2 py-1 text-[11px] text-[var(--primary)]`}
+              className={`${C.btnSecondary} h-auto min-h-0 px-2 py-1 text-xs text-[var(--primary)]`}
             >
               <Sparkles className="h-3 w-3" />
               {suggestLoading ? "…" : "Gợi ý mã"}
@@ -84,13 +84,13 @@ export default function GenericDmEditModal({
           className={C.controlInput}
         />
         {!editMode ? (
-          <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">
+          <p className="mt-1 text-xs font-medium leading-relaxed text-slate-400">
             Mặc định gợi ý DM-xxxx; có thể sửa tay (ví dụ mã trạng thái workflow).
           </p>
         ) : null}
       </div>
       <div>
-        <label className="mb-1 block text-[11px] font-medium text-slate-500">Tên hiển thị</label>
+        <label className="mb-1 block text-xs font-medium text-slate-500">Tên hiển thị</label>
         <input value={ten} onChange={(e) => onTen(e.target.value)} className={C.controlInput} />
       </div>
       <MdmFormActiveToggleRow active={active} onChange={onActive} />
