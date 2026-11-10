@@ -395,21 +395,21 @@ export default function NkbvBaCaseSheet({
               <FileText className="h-4 w-4 text-[var(--primary)]" />
               Phiếu phân tích trên bệnh án
             </h3>
-            <span className="rounded-full bg-[var(--primary)]/10 px-2.5 py-1 font-mono text-[11px] font-medium text-[var(--primary)]">
+            <span className="rounded-full bg-[var(--primary)]/10 px-2.5 py-1 font-mono text-xs font-medium text-[var(--primary)]">
               {formatNkbvChecklistTypeLabel(checklistType)}
             </span>
             {liveCdcMetrics?.iwp_start && liveCdcMetrics?.iwp_end ? (
-              <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+              <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">
                 IWP: {liveCdcMetrics.iwp_start} → {liveCdcMetrics.iwp_end}
               </span>
             ) : null}
           </div>
           {milestoneLabel ? (
-            <p className="mt-1 text-[11px] text-slate-500">
+            <p className="mt-1 text-xs text-slate-500">
               Neo mốc Index: <strong className="text-slate-800">{milestoneLabel}</strong>
             </p>
           ) : null}
-          <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-[11px] md:grid-cols-3">
+          <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs md:grid-cols-3">
             <div>
               <span className="text-slate-400">Mã phiếu</span>
               <p className="font-semibold text-slate-800">{String(row.ma_ca || "—")}</p>
@@ -426,7 +426,7 @@ export default function NkbvBaCaseSheet({
             </div>
           </div>
           {benhAnLoaded && benhAnMissing ? (
-            <p className="mt-1 text-[11px] text-amber-700">Chưa liên kết đủ hồ sơ bệnh án</p>
+            <p className="mt-1 text-xs text-amber-700">Chưa liên kết đủ hồ sơ bệnh án</p>
           ) : null}
           {(checklistType === "SSI" ||
             (row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan) && (
