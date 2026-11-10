@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
+import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/shared/cssd-tram-persist";
 import { tableHasColumn } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import { planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
 

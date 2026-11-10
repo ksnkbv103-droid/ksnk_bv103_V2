@@ -36,6 +36,9 @@ const PANEL_SKIP = new Set([
   "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
   // Wrapper mỏng ghép 3 hàng đợi duyệt (đã wire chrome ở từng component con).
   "src/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels.tsx",
+  // Sau tách N1 (lát C, D): chỉ ghép hook + panel con, không còn token chrome (chrome nằm ở NkbvSyndromeIwpGrid).
+  "src/modules/giam-sat-nkbv/components/NkbvSyndromeIwpPanel.tsx",
+  "src/modules/giam-sat-nkbv/components/NkbvBaWorkspaceSessionPanels.tsx",
 ]);
 
 /** Chỉ tiêu đề khối — nút touch (btnTouch) giữ IN HOA */
