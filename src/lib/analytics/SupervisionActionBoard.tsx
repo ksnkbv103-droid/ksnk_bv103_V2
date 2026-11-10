@@ -101,7 +101,7 @@ export function SupervisionActionBoard({ model, loading, hint }: Props) {
     <section className="space-y-2">
       <header className="px-0.5">
         <h3 className="bv103-type-section text-slate-800">{title}</h3>
-        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+        <p className="mt-0.5 text-xs leading-snug text-slate-500">
           {hint ??
             `Xếp hạng khoa có mẫu số ≥ ${model.minSample} ${
               model.source === "vst" ? "cơ hội" : "quan sát"
@@ -142,7 +142,7 @@ export function SupervisionActionBoard({ model, loading, hint }: Props) {
                   className="rounded-lg border border-amber-100 bg-amber-50/80 px-2.5 py-1.5 text-sm text-amber-950"
                 >
                   <p className="font-medium leading-snug">{e.ten}</p>
-                  <p className="text-[11px] text-amber-800/90">
+                  <p className="text-xs text-amber-800/90">
                     {[e.detail, e.count != null ? `${e.count} lượt` : null, e.tyLe != null ? fmtPct(model.source, e.tyLe) : null]
                       .filter(Boolean)
                       .join(" · ")}

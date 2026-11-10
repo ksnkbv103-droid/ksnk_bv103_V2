@@ -157,7 +157,7 @@ export function SupervisionTrendChart({
         )}
       </div>
       {source === "vst" && !loading && chartData.length > 0 ? (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-xs text-slate-500">
           {runChart == null
             ? `Chưa đủ ${RUN_CHART_MIN_POINTS} ${runUnit} có mẫu để đọc tín hiệu so với trung vị.`
             : runChart.signals.length === 0
@@ -328,7 +328,7 @@ export function SupervisionMomentsPanel({
             <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(280px,40dvh)]">
               <table className="w-full min-w-[280px] text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
                     <th className="px-3 py-2 text-left">Thời điểm</th>
                     <th className="px-3 py-2 text-right">Cơ hội</th>
                     <th className="px-3 py-2 text-right">Tuân thủ</th>
@@ -359,7 +359,7 @@ export function SupervisionMomentsPanel({
           ) : (
             <p className="text-sm text-slate-400">{loading ? "Đang tải…" : "Chưa có dữ liệu"}</p>
           )}
-          <p className="mt-2 text-[11px] text-slate-400">
+          <p className="mt-2 text-xs text-slate-400">
             Số liệu hiển thị cố định — phù hợp trình bày và in màn hình; radar thể hiện chênh lệch giữa các moment.
           </p>
         </div>
@@ -421,7 +421,7 @@ export function SupervisionCompareAccordion({
       <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="inline-flex items-center gap-2">
           {summaryLabel}
-          <span className="text-[11px] font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
+          <span className="text-xs font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
         </span>
       </summary>
       <div className="border-t border-slate-200 p-4">

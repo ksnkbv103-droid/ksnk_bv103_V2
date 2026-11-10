@@ -52,7 +52,7 @@ export function useTableActionUi<T>(config: ActionUiConfig<T>) {
 
   const renderManagementCell = (item: T) => {
     if (!ce && !cd) {
-      return <span className="text-[11px] font-medium text-slate-400">—</span>;
+      return <span className="text-xs font-medium text-slate-400">—</span>;
     }
     return (
       <div className="flex gap-2" onClick={(e) => e.stopPropagation()} role="presentation">
