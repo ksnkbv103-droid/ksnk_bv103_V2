@@ -26,7 +26,7 @@ Readonly agent — khám phá **một** module BV103, không sửa code.
 | `dashboard` | `src/modules/dashboard/`, `src/lib/analytics/` |
 | `command-center` | `src/modules/dashboard/views/command-center-*` |
 | `danh-muc` / `mdm` | `src/modules/quan-tri-he-thong/danh-muc/` |
-| `bang-kiem` | `src/modules/quan-tri-he-thong/bang-kiem/` |
+| `bang-kiem` | `src/modules/giam-sat-chung/bang-kiem/` |
 | `dao-tao` | `src/modules/dao-tao/`, `src/app/dao-tao/`, `src/lib/dao-tao/` |
 
 ## Quy trình

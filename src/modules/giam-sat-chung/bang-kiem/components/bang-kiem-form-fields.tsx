@@ -5,7 +5,7 @@ import React from "react";
 import { Sparkles } from "lucide-react";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
-import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import {
   BANG_KIEM_CACH_TINH_DIEM,
   BANG_KIEM_CACH_TINH_DIEM_LABEL,

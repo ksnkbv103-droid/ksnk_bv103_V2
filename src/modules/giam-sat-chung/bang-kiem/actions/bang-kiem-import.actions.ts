@@ -1,4 +1,4 @@
-// src/modules/quan-tri-he-thong/bang-kiem/actions/bang-kiem-import.actions.ts
+// src/modules/giam-sat-chung/bang-kiem/actions/bang-kiem-import.actions.ts
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";

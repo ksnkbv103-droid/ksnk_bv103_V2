@@ -12,7 +12,7 @@ import {
   TAN_SUAT_DON_VI_LABELS,
   type BkTanSuatDonVi,
 } from "@/lib/domain/bang-kiem-ap-dung";
-import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 export type BangKiemApDungFormState = BangKiemApDungJsonb;
 

@@ -1,4 +1,4 @@
-// src/modules/quan-tri-he-thong/bang-kiem/components/TieuChiTable.tsx
+// src/modules/giam-sat-chung/bang-kiem/components/TieuChiTable.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";

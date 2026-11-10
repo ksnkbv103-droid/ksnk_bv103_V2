@@ -12,7 +12,7 @@
 |-------|------|------|---------|
 | `giam-sat-vst` | `dashboard` | RPC read | `rpc_dashboard_vst_strategic_analytics` |
 | `giam-sat-chung` | `dashboard` | RPC read | `rpc_get_compliance_dashboard_v4`, GSC strategic |
-| `giam-sat-chung` | `quan-tri-he-thong/bang-kiem` | FK read | `gstt_dm_bang_kiem` |
+| `giam-sat-chung` | `giam-sat-chung/bang-kiem` | FK read | `gstt_dm_bang_kiem` |
 | `giam-sat-nkbv` | `mdm` | FK read | `mdm_dm_khoa_phong`, lookup NKBV |
 | `cssd-erp` | `mdm` (facade) | Server Action | `requestReplenishFromReserveAction` — CSSD_WORKFLOW.edit |
 | `cssd-erp` | `cssd-su-co` | Domain event | Sự cố → rollback domino |

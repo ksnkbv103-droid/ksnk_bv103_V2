@@ -1,4 +1,4 @@
-// src/modules/quan-tri-he-thong/bang-kiem/views/BangKiemView.tsx
+// src/modules/giam-sat-chung/bang-kiem/views/BangKiemView.tsx
 "use client";
 
 import React, { useState } from "react";

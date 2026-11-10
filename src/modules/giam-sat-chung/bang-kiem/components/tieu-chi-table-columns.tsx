@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
 import { labelTieuChiKieuDuLieu } from "../lib/bang-kiem-tieu-chi-gsc-fields";
 
 type ActionUi = {

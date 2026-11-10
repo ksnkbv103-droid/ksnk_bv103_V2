@@ -3,8 +3,8 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
-import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriTableChrome as TC } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 type TieuChiTableToolbarProps = {

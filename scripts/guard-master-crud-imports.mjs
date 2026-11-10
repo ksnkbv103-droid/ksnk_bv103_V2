@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Chỉ cho phép import master-crud-core từ actions trong module quan-tri-he-thong (+ bang-kiem/nhan-su).
+ * Chỉ cho phép import master-crud-core từ actions trong module quan-tri-he-thong (+ nhan-su) và giam-sat-chung/bang-kiem.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -11,7 +11,7 @@ const needle = "master-crud-core";
 
 const allowed = [
   /src\/modules\/quan-tri-he-thong\/danh-muc\/actions\//,
-  /src\/modules\/quan-tri-he-thong\/bang-kiem\/actions\//,
+  /src\/modules\/giam-sat-chung\/bang-kiem\/actions\//,
   /src\/modules\/quan-tri-he-thong\/nhan-su\/actions\//,
 ];
 

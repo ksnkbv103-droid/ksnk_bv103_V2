@@ -120,7 +120,7 @@ export async function fetchSystemHealthBrief(): Promise<
       count: thieuApDung,
       total,
       hint: "Chưa chọn khoa áp dụng — thống kê bao phủ dễ lệch.",
-      href: "/quan-tri-he-thong/bang-kiem",
+      href: "/giam-sat-chung/bang-kiem",
       severity: thieuApDung > 0 ? "warn" : "ok",
     });
   }

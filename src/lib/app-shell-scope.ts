@@ -51,6 +51,7 @@ export function getKsnkAppHeaderBreadcrumb(
   if (p.startsWith("/giam-sat-chung/tuan-thu") && isVeSinhTayGscBangKiem(query?.bk)) {
     return { zone: "Giám sát", page: "Vệ sinh tay" };
   }
+  if (p.startsWith("/giam-sat-chung/bang-kiem")) return { zone: "Giám sát", page: "Bảng kiểm" };
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };
   if (p.startsWith("/giam-sat-nkbv")) return { zone: "Giám sát", page: "NKBV" };
   if (p === "/giam-sat") return { zone: "Giám sát", page: "Cổng giám sát" };
@@ -91,7 +92,6 @@ export function getKsnkAppHeaderBreadcrumb(
       return { zone: "Quản trị", page: "Tài khoản & truy cập" };
     }
     if (p.startsWith("/quan-tri-he-thong/nhan-su")) return { zone: "Quản trị", page: "Nhân sự" };
-    if (p.startsWith("/quan-tri-he-thong/bang-kiem")) return { zone: "Quản trị", page: "Bảng kiểm" };
     if (p.startsWith("/quan-tri-he-thong/danh-muc/khoa-phong")) return { zone: "Quản trị", page: "Khoa phòng" };
     if (p.startsWith("/quan-tri-he-thong/danh-muc/thiet-bi")) return { zone: "Quản trị", page: "Thiết bị" };
     if (p.startsWith("/quan-tri-he-thong/danh-muc/hoa-chat")) return { zone: "Quản trị", page: "Hóa chất" };

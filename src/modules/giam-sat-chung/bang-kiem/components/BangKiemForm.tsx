@@ -15,8 +15,8 @@ import { parseApDungJsonb, suggestDefaultApDungJsonb, validateApDungForSave } fr
 import { toast } from "sonner";
 import BangKiemApDungFields, { type BangKiemApDungFormState } from "./bang-kiem-ap-dung-fields";
 import BangKiemFormFields, { BangKiemFormState } from "./bang-kiem-form-fields";
-import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
 import {
   DEFAULT_BANG_KIEM_CACH_TINH_DIEM,
   DEFAULT_BANG_KIEM_LOAI_GIAM_SAT,

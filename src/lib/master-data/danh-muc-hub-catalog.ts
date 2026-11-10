@@ -122,7 +122,7 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
     id: "bk",
     name: "Mẫu bảng kiểm",
-    path: "/quan-tri-he-thong/bang-kiem",
+    path: "/giam-sat-chung/bang-kiem",
     domain: "GSTT",
     group: "giam-sat",
     tier: "dedicated",

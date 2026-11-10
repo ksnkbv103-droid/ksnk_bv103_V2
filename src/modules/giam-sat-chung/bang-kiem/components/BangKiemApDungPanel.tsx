@@ -13,7 +13,7 @@ import BangKiemApDungFields, { type BangKiemApDungFormState } from "./bang-kiem-
 import BangKiemApDungPreview from "./bang-kiem-ap-dung-preview";
 import { usePermission } from "@/hooks/usePermission";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
-import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 type Props = {
   bangKiem: DanhMucBangKiem;

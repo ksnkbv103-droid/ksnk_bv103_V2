@@ -24,7 +24,7 @@ export const QUAN_TRI_HUB_JOBS: QuanTriHubJob[] = [
     id: "bang-kiem",
     title: "Bảng kiểm",
     blurb: "Mẫu giám sát và khoa áp dụng.",
-    href: "/quan-tri-he-thong/bang-kiem",
+    href: "/giam-sat-chung/bang-kiem",
     group: "giam-sat",
   },
   {

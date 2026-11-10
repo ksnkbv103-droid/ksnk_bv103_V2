@@ -1,4 +1,4 @@
-// src/modules/quan-tri-he-thong/bang-kiem/components/TieuChiForm.tsx
+// src/modules/giam-sat-chung/bang-kiem/components/TieuChiForm.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -6,8 +6,8 @@ import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
-import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
 import {
   luaChonToTextarea,
   parseTieuChiKieuDuLieu,
