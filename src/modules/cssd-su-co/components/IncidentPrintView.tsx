@@ -379,7 +379,7 @@ export default function IncidentPrintView({
 
             {errorQr && incident.incident_group === "INSTRUMENT" ? (
               <div>
-                <strong>Mã dụng cụ lẻ lỗi:</strong>{" "}
+                <strong>{setSnap?.lines?.length || detailsMap["SET_RECONCILE"] === "1" ? "Mã lô mẻ gần nhất của bộ:" : "Mã dụng cụ lẻ lỗi:"}</strong>{" "}
                 <span style={{ fontFamily: "monospace" }}>{errorQr}</span>
               </div>
             ) : null}
