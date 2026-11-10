@@ -87,8 +87,18 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
   /** SC-01 pha 2: bộ chờ thu hồi — nhận lại tại Tiếp nhận (bỏ qua đóng băng). */
   if (station === "TIEP_NHAN" && preRow?.id) {
     const operatorId = await getActorNhanSuId();
+    // View v_cssd_quy_trinh_full không có cột metadata → đọc từ bảng gốc.
+    let quyTrinhRow: Record<string, unknown> = preRow;
+    if (preRow.metadata === undefined) {
+      const { data: metaRow } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("metadata")
+        .eq("id", String(preRow.id))
+        .maybeSingle();
+      quyTrinhRow = { ...preRow, metadata: metaRow?.metadata ?? null };
+    }
     const received = await tryReceiveChoThuVeAtTiepNhan(supabase, {
-      quyTrinh: preRow,
+      quyTrinh: quyTrinhRow,
       operatorLabel,
       operatorNhanSuId: operatorId,
     });

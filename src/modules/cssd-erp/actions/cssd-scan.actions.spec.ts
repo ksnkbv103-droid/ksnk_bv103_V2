@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   execScan: vi.fn(),
   updateResult: { data: [{ id: "x" }], error: null } as unknown,
   rpc: vi.fn(),
+  recv: vi.fn(async (..._a: unknown[]) => ({ handled: false }) as unknown),
 }));
 
 const QT_ID = "11111111-1111-4111-8111-111111111111";
@@ -17,6 +18,13 @@ vi.mock("@/lib/supabase-server", () => ({
     from: (table: string) => {
       if (table === "cssd_fact_lo_tiet_khuan") {
         return { select: () => ({ eq: () => ({ maybeSingle: async () => mocks.loMe }) }) };
+      }
+      if (table === "cssd_fact_quy_trinh") {
+        return {
+          select: () => ({
+            eq: () => ({ maybeSingle: async () => ({ data: { metadata: { thu_hoi: { trang_thai: "CHO_THU_VE" } } } }) }),
+          }),
+        };
       }
       return {
         update: (patch: unknown) => {
@@ -43,7 +51,7 @@ vi.mock("@/lib/cssd-server-gates", () => ({ verifyCssdWorkflowEdit: vi.fn(async 
 vi.mock("../shared/application/cssd-workflow-resolve", () => ({ fetchActiveQuyTrinhByScanCode: async () => mocks.qt }));
 vi.mock("../shared/application/cssd-operator-resolve", () => ({ resolveCssdOperatorNhanSuId: async () => null }));
 vi.mock("@/modules/cssd-su-co/application/recall-receive.application", () => ({
-  tryReceiveChoThuVeAtTiepNhan: async () => ({ handled: false }),
+  tryReceiveChoThuVeAtTiepNhan: (...a: unknown[]) => mocks.recv(...a),
 }));
 vi.mock("@/lib/actor-auth-server", () => ({ getActorNhanSuId: async () => null }));
 
@@ -133,5 +141,14 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     await expect(scanQR("B01.SET.01", "CAP_PHAT", { khoa_nhan_id: "abc" })).rejects.toThrow(/khoa_nhan_id/);
     expect(mocks.update).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("SC-01 pha 2: view không có metadata → đọc từ cssd_fact_quy_trinh trước khi nhận lại", async () => {
+    mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
+    mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1" });
+    const r = await scanQR("B01.SET.01", "TIEP_NHAN");
+    const arg = mocks.recv.mock.calls[0][1] as { quyTrinh: { metadata: unknown } };
+    expect(arg.quyTrinh.metadata).toEqual({ thu_hoi: { trang_thai: "CHO_THU_VE" } });
+    expect(r).toMatchObject({ recallReceive: true, quyTrinhId: "new-1" });
   });
 });

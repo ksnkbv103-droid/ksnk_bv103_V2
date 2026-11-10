@@ -32,13 +32,17 @@ function mayStatusClass(st: string | null) {
 export default function ThietBiFleetPanel() {
   const [rows, setRows] = useState<ThietBiFleetRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canUnlock, setCanUnlock] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
     const r = await listThietBiFleetAction();
     if (!r.success) toast.error(r.error);
-    else setRows(r.data);
+    else {
+      setRows(r.data);
+      setCanUnlock(r.can_unlock);
+    }
     setLoading(false);
   }, []);
 
@@ -182,14 +186,14 @@ export default function ThietBiFleetPanel() {
               tenThietBi={m.ten_thiet_bi}
               variant="compact"
             />
-            {m.trang_thai === "HOLD_QC" ? (
+            {canUnlock && m.trang_thai === "HOLD_QC" ? (
               <ThietBiMoKhoaButton thietBiId={m.id} maThietBi={m.ma_thiet_bi} onDone={() => void reload()} />
             ) : null}
           </span>
         ),
       },
     ],
-    [reload],
+    [reload, canUnlock],
   );
 
   if (loading) {
