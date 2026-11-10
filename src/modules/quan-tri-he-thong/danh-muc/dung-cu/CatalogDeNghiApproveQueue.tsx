@@ -63,7 +63,7 @@ export function CatalogDeNghiApproveQueue() {
       <h3 className="text-[12px] font-semibold text-violet-950">
         Đề nghị danh mục — chờ duyệt (ghi đè master)
       </h3>
-      <p className="text-[11px] text-violet-900/80">
+      <p className="text-xs text-violet-900/80">
         Tách khỏi cửa sự cố rà soát bộ. Duyệt = ghi đè loại / bộ / thành phần.
       </p>
       {loading ? (
@@ -87,12 +87,12 @@ export function CatalogDeNghiApproveQueue() {
                 <button
                   type="button"
                   onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                  className="mt-0.5 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                  className="mt-0.5 text-xs font-semibold text-[var(--primary)] hover:underline"
                 >
                   {openId === r.id ? "Ẩn chi tiết cũ → mới" : "Xem chi tiết cũ → mới"}
                 </button>
-                {r.note ? <div className="mt-0.5 text-[11px] text-slate-500">{r.note}</div> : null}
-                <div className="mt-0.5 text-[11px] text-slate-400">
+                {r.note ? <div className="mt-0.5 text-xs text-slate-500">{r.note}</div> : null}
+                <div className="mt-0.5 text-xs text-slate-400">
                   {r.createdAt ? new Date(r.createdAt).toLocaleString("vi-VN") : ""}
                 </div>
               </div>
@@ -102,7 +102,7 @@ export function CatalogDeNghiApproveQueue() {
                     type="button"
                     disabled={busyId === r.id}
                     onClick={() => void onApprove(r.id)}
-                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                   >
                     Duyệt
                   </button>
@@ -110,7 +110,7 @@ export function CatalogDeNghiApproveQueue() {
                     type="button"
                     disabled={busyId === r.id}
                     onClick={() => void onReject(r.id)}
-                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-600 disabled:opacity-50"
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 disabled:opacity-50"
                   >
                     Từ chối
                   </button>

@@ -32,7 +32,7 @@ function SectionHeader({ step, title, hint }: { step: number; title: string; hin
   return (
     <div className="space-y-1">
       <h4 className={F.sectionTitle}>
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)]/10 text-[var(--primary)] mr-2 text-[11px] font-semibold">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)]/10 text-[var(--primary)] mr-2 text-xs font-semibold">
           {step}
         </span>
         {title}
@@ -75,7 +75,7 @@ export default function BangKiemApDungFields({
       ) : null}
 
       {isSystemBk ? (
-        <p className="text-[11px] font-medium text-sky-800 bg-sky-50 rounded-[var(--radius-shell)] px-4 py-2">
+        <p className="text-xs font-medium text-sky-800 bg-sky-50 rounded-[var(--radius-shell)] px-4 py-2">
           Mẫu hệ thống: chỉnh được quy định áp dụng; mã, tên và tiêu chí giữ nguyên.
         </p>
       ) : null}
@@ -146,7 +146,7 @@ export default function BangKiemApDungFields({
               />
               <span>
                 <span className="block bv103-type-section text-slate-800">{MUC_DO_LABELS[k]}</span>
-                <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
+                <span className="block text-xs font-medium text-slate-500 mt-0.5">
                   {MUC_DO_DESCRIPTIONS[k]}
                 </span>
               </span>
@@ -224,7 +224,7 @@ export default function BangKiemApDungFields({
           </section>
         </>
       ) : (
-        <p className="text-[11px] font-medium text-slate-500 bg-slate-50 rounded-[var(--radius-shell)] px-4 py-3">
+        <p className="text-xs font-medium text-slate-500 bg-slate-50 rounded-[var(--radius-shell)] px-4 py-3">
           Chế độ «Chỉ Khoa KSNK» — bỏ qua phạm vi khối/khoa lâm sàng; chỉ Khoa Kiểm soát nhiễm khuẩn thực hiện.
         </p>
       )}
@@ -259,7 +259,7 @@ export default function BangKiemApDungFields({
               <span className="block bv103-type-section text-slate-800">
                 Mạng lưới KSNK tại khoa (Tự giám sát)
               </span>
-              <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
+              <span className="block text-xs font-medium text-slate-500 mt-0.5">
                 Điều dưỡng/trưởng nhóm KSNK khoa tạo phiên TU_GIAM_SAT theo bảng kiểm này.
               </span>
             </span>
@@ -284,7 +284,7 @@ export default function BangKiemApDungFields({
             />
             <span>
               <span className="block bv103-type-section text-slate-800">Khoa KSNK (Giám sát chéo / đối soát)</span>
-              <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
+              <span className="block text-xs font-medium text-slate-500 mt-0.5">
                 Khoa Kiểm soát nhiễm khuẩn thực hiện hoặc đối soát phiên giám sát của các khoa.
               </span>
             </span>

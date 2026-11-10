@@ -129,30 +129,30 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
 
   const allColumns: Column<LoaiDungCuRow>[] = [
     { header: "Mã loại", accessorKey: "ma_danh_muc", sortable: true, cell: (i) => (
-      <span className="rounded-md border border-slate-100 bg-slate-50 px-2 py-1 font-mono text-[11px] font-medium text-slate-500">
+      <span className="rounded-md border border-slate-100 bg-slate-50 px-2 py-1 font-mono text-xs font-medium text-slate-500">
         {i.ma_danh_muc}
       </span>
     )},
     { header: "Tên loại dụng cụ", accessorKey: "ten_danh_muc", sortable: true, cell: (i) => (
-      <div className="text-[11px] font-medium text-[var(--primary)] leading-tight">
+      <div className="text-xs font-medium text-[var(--primary)] leading-tight">
         {i.ten_danh_muc}
       </div>
     )},
     { header: "Phân loại", accessorKey: "phan_loai", sortable: true, cell: (i) => (
       i.phan_loai === "THU_THUAT" ? (
-        <span className="rounded-lg border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] px-2 py-1 text-[11px] font-semibold text-[var(--surface-warning-text)]">Thủ thuật</span>
+        <span className="rounded-lg border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] px-2 py-1 text-xs font-semibold text-[var(--surface-warning-text)]">Thủ thuật</span>
       ) : (
-        <span className="rounded-lg border border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] px-2 py-1 text-[11px] font-semibold text-[var(--surface-success-text)]">Phẫu thuật</span>
+        <span className="rounded-lg border border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] px-2 py-1 text-xs font-semibold text-[var(--surface-success-text)]">Phẫu thuật</span>
       )
     )},
     { header: "Hình dáng", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
-      <span className="text-[11px] text-slate-600 font-semibold">{clip(i.hinh_dang, 28)}</span>
+      <span className="text-xs text-slate-600 font-semibold">{clip(i.hinh_dang, 28)}</span>
     )},
     { header: "Kích thước", accessorKey: "kich_thuoc", sortable: true, cell: (i) => (
-      <span className="text-[11px] text-slate-600 font-semibold">{clip(i.kich_thuoc, 20)}</span>
+      <span className="text-xs text-slate-600 font-semibold">{clip(i.kich_thuoc, 20)}</span>
     )},
     { header: "Tính năng / Công dụng", accessorKey: "cong_dung", sortable: true, cell: (i) => (
-      <span className="text-[11px] text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
+      <span className="text-xs text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
     )},
     { header: "Số lượng kho lẻ / Tổng", accessorKey: "so_luong_tong", sortable: true, cell: (i) => (
       <div className="bv103-type-label font-semibold text-slate-600">
@@ -204,7 +204,7 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
           <button
             type="button"
             onClick={() => setSelectedLoaiId(null)}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           >
             <ChevronLeft size={14} aria-hidden /> Danh sách loại
           </button>
@@ -229,7 +229,7 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
               <>
                 {canWriteMaster ? (
                   <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
-                    <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+                    <summary className="cursor-pointer text-xs font-semibold text-slate-500">Excel</summary>
                     <div className="pt-2">
                       <ImportExportToolbar
                         fileInputRef={fileInputRef}

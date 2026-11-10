@@ -10,9 +10,9 @@ export function DungCuQuanLyTab() {
   const { loading, isAdmin } = useModulePermission("BO_DC");
   const [loaiOpen, setLoaiOpen] = useState(false);
 
-  if (loading) return <p className="px-2.5 py-3 text-[11px] text-slate-500">Đang tải…</p>;
+  if (loading) return <p className="px-2.5 py-3 text-xs text-slate-500">Đang tải…</p>;
   if (!isAdmin) {
-    return <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chỉ chủ nhiệm khoa (ADMIN) quản lý danh mục.</p>;
+    return <p className="px-1 py-6 text-center text-xs text-slate-500">Chỉ chủ nhiệm khoa (ADMIN) quản lý danh mục.</p>;
   }
   return (
     <>

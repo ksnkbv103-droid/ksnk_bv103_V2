@@ -73,7 +73,7 @@ export default function BangKiemView() {
       />
 
       {!selectedBK ? (
-        <p className="px-2 text-[11px] text-slate-500">
+        <p className="px-2 text-xs text-slate-500">
           Chọn một dòng để xem phạm vi áp dụng và tiêu chí.
         </p>
       ) : null}

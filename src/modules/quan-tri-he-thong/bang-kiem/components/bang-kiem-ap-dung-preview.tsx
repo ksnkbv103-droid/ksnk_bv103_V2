@@ -55,7 +55,7 @@ export default function BangKiemApDungPreview({
   return (
     <section className="space-y-3 rounded-[var(--radius-shell)] border border-[var(--primary)]/15 bg-[var(--primary)]/[0.03] p-4">
       <h4 className={`${F.sectionTitle} text-[var(--primary)]`}>
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)]/10 text-[var(--primary)] mr-2 text-[11px] font-semibold">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)]/10 text-[var(--primary)] mr-2 text-xs font-semibold">
           7
         </span>
         Kết quả — khoa phải làm gì
@@ -120,7 +120,7 @@ export default function BangKiemApDungPreview({
             return (
               <div
                 key={k.id}
-                className="rounded-[var(--radius-shell)] bg-white border border-slate-100 px-3 py-2 text-[11px]"
+                className="rounded-[var(--radius-shell)] bg-white border border-slate-100 px-3 py-2 text-xs"
               >
                 <p className="font-bold text-slate-800">{label}</p>
                 <p className="font-medium text-slate-500 mt-0.5">{n.huongDan[0]}</p>

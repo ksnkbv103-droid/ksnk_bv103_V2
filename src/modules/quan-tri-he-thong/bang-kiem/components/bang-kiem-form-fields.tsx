@@ -115,7 +115,7 @@ export default function BangKiemFormFields({
             </option>
           ))}
         </select>
-        <p className="text-[11px] font-medium text-slate-500 ml-1">
+        <p className="text-xs font-medium text-slate-500 ml-1">
           Phiếu mới hiện ở cổng tương ứng (tuân thủ / nhật ký / đánh giá hệ thống).
         </p>
       </div>
@@ -134,7 +134,7 @@ export default function BangKiemFormFields({
             </option>
           ))}
         </select>
-        <p className="text-[11px] font-medium text-slate-500 ml-1">
+        <p className="text-xs font-medium text-slate-500 ml-1">
           Nhật ký vận hành thường chọn «Nhật ký». Phiếu đã lưu giữ cách tính đã chốt.
         </p>
       </div>
@@ -184,7 +184,7 @@ export default function BangKiemFormFields({
       />
 
       {formData.is_system && (
-        <p className="text-[11px] font-semibold text-amber-700 bg-amber-50 rounded-[var(--radius-shell)] px-4 py-3">
+        <p className="text-xs font-semibold text-amber-700 bg-amber-50 rounded-[var(--radius-shell)] px-4 py-3">
           Bảng kiểm hệ thống: không sửa mã, tên và tiêu chí cốt lõi ở đây để tránh gãy dữ liệu tham chiếu. Có thể tắt bật khác qua chức năng trạng thái trong bảng nếu được phép.
         </p>
       )}
