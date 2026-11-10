@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gradeAnswer, scoreAttempt } from "./grade";
+import { gradeAnswer, isAnswered, scoreAttempt } from "./grade";
 import type { DapAnDung, TraLoi } from "./types";
 
 describe("gradeAnswer", () => {
@@ -66,5 +66,20 @@ describe("scoreAttempt", () => {
 
   it("bài rỗng: 0%", () => {
     expect(scoreAttempt([])).toEqual({ dung: 0, tong: 0, pct: 0, flags: [] });
+  });
+});
+
+describe("isAnswered", () => {
+  it("chùm Đúng/Sai thiếu ý → chưa xong", () => {
+    expect(isAnswered({ kind: "true_false_cluster", byOptionId: { a: true } }, 4)).toBe(false);
+    expect(
+      isAnswered({ kind: "true_false_cluster", byOptionId: { a: true, b: false } }, 2),
+    ).toBe(true);
+  });
+  it("multi rỗng / single null → chưa xong", () => {
+    expect(isAnswered({ kind: "multi", optionIds: [] }, 4)).toBe(false);
+    expect(isAnswered({ kind: "single", optionId: null }, 4)).toBe(false);
+    expect(isAnswered(null, 4)).toBe(false);
+    expect(isAnswered({ kind: "order", orderedOptionIds: ["a", "b"] }, 2)).toBe(true);
   });
 });

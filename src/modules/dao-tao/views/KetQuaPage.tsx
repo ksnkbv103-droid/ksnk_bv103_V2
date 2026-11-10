@@ -223,6 +223,7 @@ export default function KetQuaPage() {
               giaiThich={q.giaiThich}
               distractorRationales={q.distractorRationales}
               evidenceLock={q.evidenceLock}
+              dapAnDung={q.dapAnDung}
             />
           </div>
         ))}

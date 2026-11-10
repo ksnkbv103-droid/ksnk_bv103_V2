@@ -1,6 +1,6 @@
 "use client";
 
-import type { TraLoi } from "@/lib/dao-tao/types";
+import type { DapAnDung, TraLoi } from "@/lib/dao-tao/types";
 import { TARGET_ROLE_LABELS } from "@/lib/dao-tao/types";
 import { cn } from "@/lib/utils";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -28,6 +28,8 @@ type Props = {
   giaiThich?: string | null;
   distractorRationales?: Record<string, string>;
   evidenceLock?: any;
+  /** Chỉ truyền khi đã nộp bài — hiển thị đáp án đúng ở phần kết quả. */
+  dapAnDung?: DapAnDung | null;
 };
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
@@ -57,6 +59,7 @@ export function DaoTaoQuestionCard({
   giaiThich,
   distractorRationales: _distractorRationales,
   evidenceLock,
+  dapAnDung,
 }: Props) {
   const ordered = [...(options ?? [])].sort(
     (a, b) => (a.displayIndex ?? 0) - (b.displayIndex ?? 0),
@@ -223,6 +226,7 @@ export function DaoTaoQuestionCard({
             value?.kind === "order" ? value.orderedOptionIds : ordered.map((o) => o.id)
           }
           disabled={disabled}
+          answered={value?.kind === "order"}
           onChange={(ids) => onChange({ kind: "order", orderedOptionIds: ids })}
         />
       )}
@@ -247,6 +251,13 @@ export function DaoTaoQuestionCard({
             ) : null}
           </div>
 
+          {!dung && dapAnDung ? (
+            <div className="mt-2.5 text-xs leading-relaxed text-slate-800">
+              <span className="font-bold text-slate-900">Đáp án đúng: </span>
+              {formatDapAnDung(dapAnDung, ordered)}
+            </div>
+          ) : null}
+
           {giaiThich ? (
             <div className="mt-2.5 text-xs leading-relaxed text-slate-800">
               <span className="font-bold text-slate-900">Giải thích chuyên môn: </span>
@@ -266,16 +277,37 @@ export function DaoTaoQuestionCard({
   );
 }
 
+function formatDapAnDung(d: DapAnDung, ordered: Option[]): string {
+  const text = (id: string) => {
+    const i = ordered.findIndex((o) => o.id === id);
+    return i < 0 ? "?" : `${LETTERS[i] ?? i + 1}. ${ordered[i].noiDung}`;
+  };
+  switch (d.kind) {
+    case "single":
+      return text(d.optionId);
+    case "multi":
+      return d.optionIds.map(text).join("; ");
+    case "true_false_cluster":
+      return Object.entries(d.byOptionId)
+        .map(([id, v]) => `${text(id)} → ${v ? "Đúng" : "Sai"}`)
+        .join("; ");
+    case "order":
+      return d.orderedOptionIds.map((id, i) => `${i + 1}) ${text(id)}`).join("  ");
+  }
+}
+
 function OrderEditor({
   options,
   value,
   onChange,
   disabled,
+  answered,
 }: {
   options: Option[];
   value: string[];
   onChange: (ids: string[]) => void;
   disabled?: boolean;
+  answered: boolean;
 }) {
   const byId = new Map(options.map((o) => [o.id, o]));
   const move = (idx: number, dir: -1 | 1) => {
@@ -322,6 +354,15 @@ function OrderEditor({
           </div>
         );
       })}
+      {!answered && !disabled ? (
+        <button
+          type="button"
+          className={cn(T.btnSecondary, "h-9 justify-self-start px-3 text-xs")}
+          onClick={() => onChange(value)}
+        >
+          Giữ thứ tự hiện tại làm đáp án
+        </button>
+      ) : null}
     </div>
   );
 }
