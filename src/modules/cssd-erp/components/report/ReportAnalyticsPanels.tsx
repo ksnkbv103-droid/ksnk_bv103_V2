@@ -21,7 +21,7 @@ function MetricCard({ title, value, hint }: { title: string; value: React.ReactN
     <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
       <p className={CSSD_UI_STAT_LABEL}>{title}</p>
       <p className={`mt-2 ${CSSD_UI_STAT_VALUE}`}>{value}</p>
-      {hint ? <p className="mt-1 text-[11px] text-slate-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
     </div>
   );
 }
@@ -64,7 +64,7 @@ function VolumePanel({ data, loading }: { data: CssdAnalyticsBundle | null; load
         ))}
       </div>
       <div className={`${CSSD_UI_DATA_SURFACE} p-4`}>
-        <h3 className="mb-3 text-[11px] font-medium text-slate-500">
+        <h3 className="mb-3 text-xs font-medium text-slate-500">
           Xu hướng hoàn thành {bucket === "day" ? "ngày" : bucket === "month" ? "tháng" : "năm"}
           {data?.volumeTrendPoints[0] ? ` · lọc trạm đang chọn` : ""}
         </h3>
@@ -100,7 +100,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
       </p>
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="space-y-2">
-          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Số bộ theo khoa sở hữu danh mục</h3>
+          <h3 className={"mb-2 text-xs font-medium text-slate-500"}>Số bộ theo khoa sở hữu danh mục</h3>
           <AdvancedDataTable
             columns={[
               { header: "Khoa", accessorKey: "ten_khoa", cell: (v) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
@@ -116,7 +116,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           />
         </div>
         <div className="space-y-2">
-          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Cấp phát theo khoa nhận</h3>
+          <h3 className={"mb-2 text-xs font-medium text-slate-500"}>Cấp phát theo khoa nhận</h3>
           <AdvancedDataTable
             columns={[
               { header: "Khoa nhận", accessorKey: "ten_khoa", cell: (v) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
@@ -134,7 +134,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           />
         </div>
         <div className="space-y-2">
-          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Tái sử dụng và tần suất (top)</h3>
+          <h3 className={"mb-2 text-xs font-medium text-slate-500"}>Tái sử dụng và tần suất (top)</h3>
           <AdvancedDataTable
             columns={[
               {
@@ -142,7 +142,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
                 accessorKey: "ma_bo",
                 cell: (v) => (
                   <div>
-                    <p className="font-mono text-[11px] text-[var(--primary)]">{v.ma_bo}</p>
+                    <p className="font-mono text-xs text-[var(--primary)]">{v.ma_bo}</p>
                     <p className="text-xs text-slate-600">{v.ten_bo}</p>
                   </div>
                 ),
@@ -201,7 +201,7 @@ function EquipmentPanel({ data, loading }: { data: CssdAnalyticsBundle | null; l
         />
       </div>
       <div className="space-y-2">
-        <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Số lần dùng máy (mẻ trong kỳ)</h3>
+        <h3 className={"mb-2 text-xs font-medium text-slate-500"}>Số lần dùng máy (mẻ trong kỳ)</h3>
         <AdvancedDataTable
           columns={[
             {
@@ -257,7 +257,7 @@ function StaffPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadi
         VST–GSC trên Trung tâm điều hành.
       </p>
       <div className="space-y-2">
-        <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Quét theo nhân viên</h3>
+        <h3 className={"mb-2 text-xs font-medium text-slate-500"}>Quét theo nhân viên</h3>
         <AdvancedDataTable
           columns={[
             {
@@ -279,7 +279,7 @@ function StaffPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadi
               header: "Theo trạm",
               accessorKey: "byStation",
               cell: (v) => (
-                <span className="text-[11px] text-slate-600">{v.byStation || "—"}</span>
+                <span className="text-xs text-slate-600">{v.byStation || "—"}</span>
               ),
             },
           ]}

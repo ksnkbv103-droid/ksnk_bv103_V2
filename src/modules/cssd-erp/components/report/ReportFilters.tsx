@@ -115,7 +115,7 @@ export default function ReportFilters({
           <span className="text-xs font-semibold text-slate-800">
             {fmtShort(filters.from)} – {fmtShort(filters.to)}
           </span>
-          <span className="truncate text-[11px] font-medium text-slate-500">
+          <span className="truncate text-xs font-medium text-slate-500">
             {stationLabel(filters.station)}
           </span>
         </button>

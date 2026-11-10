@@ -21,7 +21,7 @@ export default function ReportDashboard({ stats, alerts }: Props) {
   return (
     <div className="space-y-2">
       {/* Compact KPI strip — not 4-col StatCard wall */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px]">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs">
         <span className="font-semibold text-slate-800">
           Quy trình <span className="tabular-nums text-emerald-700">{stats.total}</span>
         </span>
@@ -66,7 +66,7 @@ export default function ReportDashboard({ stats, alerts }: Props) {
           <div className="flex items-center gap-2">
             <AlertCircle size={14} strokeWidth={2.5} className="shrink-0 text-red-600" />
             <h4 className={`${bv103DesignTokens.sectionTitle} text-sm`}>Cảnh báo đỏ</h4>
-            <span className="text-[11px] font-medium text-red-700/80">
+            <span className="text-xs font-medium text-red-700/80">
               Trạm sai sót &gt;5%
             </span>
           </div>
@@ -74,7 +74,7 @@ export default function ReportDashboard({ stats, alerts }: Props) {
             {alerts.map((a, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-white px-2 py-1 text-[11px]"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-white px-2 py-1 text-xs"
               >
                 <span className="font-semibold text-slate-800">{a.name}</span>
                 <span className="font-medium text-red-700">{a.rate}%</span>
