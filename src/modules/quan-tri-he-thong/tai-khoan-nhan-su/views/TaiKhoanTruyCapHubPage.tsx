@@ -49,7 +49,7 @@ export default function TaiKhoanTruyCapHubPage() {
               <p className="mt-2 text-2xl font-semibold tabular-nums text-amber-900">
                 {pending == null ? "…" : pending}
               </p>
-              {pendingErr ? <p className="mt-1 text-[11px] text-rose-600">{pendingErr}</p> : null}
+              {pendingErr ? <p className="mt-1 text-xs text-rose-600">{pendingErr}</p> : null}
             </div>
           </div>
         </Link>
