@@ -154,4 +154,10 @@ describe("rowsToCsv", () => {
     expect(csv).toContain("a,b");
     expect(csv).toContain('"x,y"');
   });
+
+  it("vô hiệu hóa chuỗi mở đầu bằng ký tự công thức, giữ nguyên số âm", () => {
+    const csv = rowsToCsv([{ a: "=HYPERLINK(\"http://x\",\"y\")", b: "@SUM(1)", c: -5, d: "+84", e: "-việc" }]);
+    const line = csv.split("\n")[1]!;
+    expect(line).toBe(`"'=HYPERLINK(""http://x"",""y"")",'@SUM(1),-5,'+84,'-việc`);
+  });
 });
