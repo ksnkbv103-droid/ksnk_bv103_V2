@@ -61,10 +61,10 @@ export default function MeTietKhuanWaitingPanel({
                 className="min-w-0 flex-1 text-left disabled:opacity-60"
                 title="Chi tiết thành phần"
               >
-                <span className="block truncate font-mono text-[11px] font-medium text-[var(--primary)]">
+                <span className="block truncate font-mono text-xs font-medium text-[var(--primary)]">
                   {code || "—"}
                 </span>
-                <span className="block truncate text-[11px] font-semibold text-slate-700">{tenBo}</span>
+                <span className="block truncate text-xs font-semibold text-slate-700">{tenBo}</span>
               </button>
               <button
                 type="button"
@@ -79,12 +79,12 @@ export default function MeTietKhuanWaitingPanel({
           );
         })}
         {rows.length === 0 && (
-          <div className="flex flex-1 items-center justify-center py-12 text-center text-[11px] font-medium text-slate-400">
+          <div className="flex flex-1 items-center justify-center py-12 text-center text-xs font-medium text-slate-400">
             Không có bộ chờ
           </div>
         )}
         {hiddenIncompatible > 0 ? (
-          <p className="px-1 pt-2 text-[11px] font-medium text-slate-500">
+          <p className="px-1 pt-2 text-xs font-medium text-slate-500">
             {hiddenIncompatible} bộ không hợp máy này đã ẩn
           </p>
         ) : null}

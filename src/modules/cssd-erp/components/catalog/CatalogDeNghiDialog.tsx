@@ -63,7 +63,7 @@ type BomEditRow = {
 };
 
 const inputCls = "mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm";
-const labelCls = "text-[11px] font-medium text-slate-600";
+const labelCls = "text-xs font-medium text-slate-600";
 
 export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }: Props) {
   const kind = target?.kind || "LOAI";
@@ -373,7 +373,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
             </label>
             <div className={labelCls}>Kho dự phòng
               <p className={`${inputCls} bg-slate-50 text-slate-700`}>{khoHienTai == null ? "—" : khoHienTai}</p>
-              <span className="mt-0.5 block text-[11px] font-normal text-slate-500">Chỉ đổi qua Kho dự phòng</span>
+              <span className="mt-0.5 block text-xs font-normal text-slate-500">Chỉ đổi qua Kho dự phòng</span>
             </div>
             <label className={`${labelCls} flex items-center gap-2 pt-5`}>
               <input type="checkbox" checked={loaiActive} onChange={(e) => setLoaiActive(e.target.checked)} />
@@ -427,7 +427,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                   className={`space-y-1 rounded-lg border px-2 py-2 ${r.remove ? "border-red-200 bg-red-50/50 opacity-70" : "border-slate-200"}`}
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] text-violet-700">{r.maLoai || "—"}</span>
+                    <span className="font-mono text-xs text-violet-700">{r.maLoai || "—"}</span>
                     <input
                       className="min-w-[8rem] flex-1 rounded border border-slate-200 px-1.5 py-1 text-sm"
                       value={r.tenDungCuLe}
@@ -456,7 +456,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                     />
                     <button
                       type="button"
-                      className="text-[11px] font-semibold text-red-700 hover:underline"
+                      className="text-xs font-semibold text-red-700 hover:underline"
                       onClick={() =>
                         setBomRows((rows) =>
                           rows.map((x) => (x.key === r.key ? { ...x, remove: !x.remove } : x)),
@@ -470,7 +470,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                     <div className="grid grid-cols-3 gap-1">
                       <input
                         placeholder="Max SUDs"
-                        className="rounded border border-slate-200 px-1 py-1 text-[11px]"
+                        className="rounded border border-slate-200 px-1 py-1 text-xs"
                         value={r.maxSudsCount}
                         onChange={(e) =>
                           setBomRows((rows) =>
@@ -480,7 +480,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                       />
                       <input
                         placeholder="Trọng lượng"
-                        className="rounded border border-slate-200 px-1 py-1 text-[11px]"
+                        className="rounded border border-slate-200 px-1 py-1 text-xs"
                         value={r.trongLuong}
                         onChange={(e) =>
                           setBomRows((rows) =>
@@ -490,7 +490,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                       />
                       <input
                         placeholder="Ghi chú"
-                        className="rounded border border-slate-200 px-1 py-1 text-[11px]"
+                        className="rounded border border-slate-200 px-1 py-1 text-xs"
                         value={r.ghiChu}
                         onChange={(e) =>
                           setBomRows((rows) =>
