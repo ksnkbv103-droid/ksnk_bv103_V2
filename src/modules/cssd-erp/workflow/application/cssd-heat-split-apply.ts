@@ -133,12 +133,18 @@ async function ensureQuyTrinhForComponent(
   if (insErr) throw new Error(insErr.message);
 }
 
-/** Bộ -CN còn dòng loại không chịu nhiệt → chuyển sang bộ -KCN của cùng cha (tạo nếu chưa có). */
-async function moveLowHeatLinesToKcnSibling(
+/**
+ * Chuyển dòng sai nhóm nhiệt sang bộ anh em cùng cha (tạo nếu chưa có):
+ * "KHONG_CHIU_NHIET": từ -CN sang -KCN (dòng loại không chịu nhiệt);
+ * "CHIU_NHIET": từ -KCN sang -CN (dòng loại chịu nhiệt).
+ */
+async function moveMisplacedLinesToSibling(
   supabase: SupabaseClient,
   cnBoId: string,
   parentBoId: string,
+  target: "KHONG_CHIU_NHIET" | "CHIU_NHIET",
 ): Promise<{ maKcn: string; count: number } | null> {
+  const wantHeat = target === "CHIU_NHIET";
   const { data: lineRows, error: lineErr } = await supabase
     .from("cssd_dm_bo_dung_cu_chi_tiet")
     .select("id, loai:cssd_dm_loai_dung_cu!loai_dung_cu_id(is_chiu_nhiet)")
@@ -149,7 +155,7 @@ async function moveLowHeatLinesToKcnSibling(
     .filter((r) => {
       const rel = (r as { loai?: { is_chiu_nhiet?: boolean } | { is_chiu_nhiet?: boolean }[] | null }).loai;
       const loai = Array.isArray(rel) ? rel[0] : rel;
-      return loai?.is_chiu_nhiet === false;
+      return loai?.is_chiu_nhiet === wantHeat;
     })
     .map((r) => String((r as { id: string }).id));
   if (lowIds.length === 0) return null;
@@ -168,7 +174,7 @@ async function moveLowHeatLinesToKcnSibling(
     khoa_su_dung_id: (parent.khoa_su_dung_id as string | null) ?? null,
     phan_loai_bo: (parent.phan_loai_bo as string | null) ?? null,
   };
-  const kcn = await ensureComponentBo(supabase, parentMeta, "KHONG_CHIU_NHIET", true);
+  const kcn = await ensureComponentBo(supabase, parentMeta, target, true);
   const { error: mvErr } = await supabase
     .from("cssd_dm_bo_dung_cu_chi_tiet")
     .update({ bo_dung_cu_id: kcn.id, updated_at: new Date().toISOString() })
@@ -227,7 +233,12 @@ export async function applyHeatSplitAfterLoaiDowngrade(
     if (splitInfo?.parent_bo_id) {
       if (splitInfo.vai_tro_tach !== "KHONG_CHIU_NHIET") {
         // Loại bị hạ nhiệt SAU lần tách đầu: chuyển dòng nhiệt thấp từ -CN sang -KCN cùng cha (không để kẹt).
-        const moved = await moveLowHeatLinesToKcnSibling(supabase, boId, String(splitInfo.parent_bo_id));
+        const moved = await moveMisplacedLinesToSibling(
+          supabase,
+          boId,
+          String(splitInfo.parent_bo_id),
+          "KHONG_CHIU_NHIET",
+        );
         if (moved) out.split.push({ maBo, maSub: moved.maKcn, movedLines: moved.count });
       }
       continue;
@@ -333,6 +344,67 @@ export async function applyHeatSplitAfterLoaiDowngrade(
   return out;
 }
 
+/**
+ * Loại nâng từ không chịu nhiệt lên chịu nhiệt (PO 2026-11-10): dòng của loại đó (và mọi dòng chịu nhiệt khác)
+ * đang nằm trong bộ -KCN được chuyển sang -CN cùng cha. Không đổi bộ chưa tách.
+ */
+export async function applyHeatSplitAfterLoaiUpgrade(
+  supabase: SupabaseClient,
+  loaiId: string,
+  prevIsChiuNhiet: boolean | null | undefined,
+  nextIsChiuNhiet: boolean | null | undefined,
+): Promise<HeatSplitApplyResult> {
+  const out: HeatSplitApplyResult = { split: [], skipped: [] };
+  if (prevIsChiuNhiet !== false || nextIsChiuNhiet !== true) return out;
+  const id = String(loaiId || "").trim();
+  if (!id) return out;
+  const { data, error } = await supabase
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .select("bo_dung_cu_id, bo:cssd_dm_bo_dung_cu!bo_dung_cu_id(id, ma_bo, is_active, parent_bo_id, vai_tro_tach)")
+    .eq("loai_dung_cu_id", id)
+    .eq("is_active", true);
+  if (error) throw new Error(error.message);
+  const seen = new Set<string>();
+  for (const row of data || []) {
+    const rel = (row as { bo?: KcnChild | KcnChild[] | null }).bo;
+    const bo = Array.isArray(rel) ? rel[0] : rel;
+    if (!bo?.id || bo.is_active === false || bo.vai_tro_tach !== "KHONG_CHIU_NHIET" || !bo.parent_bo_id) continue;
+    if (seen.has(bo.id)) continue;
+    seen.add(bo.id);
+    const moved = await moveMisplacedLinesToSibling(supabase, bo.id, bo.parent_bo_id, "CHIU_NHIET");
+    if (moved) out.split.push({ maBo: normalizeBoMa(String(bo.ma_bo || "")), maSub: moved.maKcn, movedLines: moved.count });
+  }
+  return out;
+}
+
+type KcnChild = { id?: string; ma_bo?: string; is_active?: boolean; parent_bo_id?: string | null; vai_tro_tach?: string | null };
+
+/** Quét mọi bộ -KCN đang hoạt động, chuyển dòng chịu nhiệt sang -CN cùng cha. */
+export async function applyHeatSplitUpgradeForAllKcn(
+  supabase: SupabaseClient,
+): Promise<{ kcnCount: number; result: HeatSplitApplyResult }> {
+  const { data, error } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("id, ma_bo, parent_bo_id")
+    .eq("vai_tro_tach", "KHONG_CHIU_NHIET")
+    .eq("is_active", true)
+    .not("parent_bo_id", "is", null);
+  if (error) throw new Error(error.message);
+  const result: HeatSplitApplyResult = { split: [], skipped: [] };
+  const rows = data || [];
+  for (const r of rows) {
+    const bo = r as { id: string; ma_bo: string; parent_bo_id: string };
+    try {
+      const moved = await moveMisplacedLinesToSibling(supabase, bo.id, bo.parent_bo_id, "CHIU_NHIET");
+      if (moved) result.split.push({ maBo: normalizeBoMa(bo.ma_bo), maSub: moved.maKcn, movedLines: moved.count });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      result.skipped.push({ maBo: bo.ma_bo, reason: `Chuyển lỗi: ${msg}` });
+    }
+  }
+  return { kcnCount: rows.length, result };
+}
+
 export function formatHeatSplitToast(result: HeatSplitApplyResult): string | null {
   if (result.split.length === 0 && result.skipped.length === 0) return null;
   const parts: string[] = [];
@@ -375,7 +447,8 @@ export async function applyHeatSplitForLoaiChanges(
         c.prevIsChiuNhiet,
         c.nextIsChiuNhiet,
       );
-      const note = formatHeatSplitToast(res);
+      const up = await applyHeatSplitAfterLoaiUpgrade(supabase, c.loaiId, c.prevIsChiuNhiet, c.nextIsChiuNhiet);
+      const note = formatHeatSplitToast({ split: [...res.split, ...up.split], skipped: [...res.skipped, ...up.skipped] });
       if (note) notes.push(note);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
