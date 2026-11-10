@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions";
+import { readRecallMemberJson, THU_HOI_STATUS_CHO_THU_VE } from "../domain/cssd-batch-recall-hold";
 import {
   assertIncidentPhieuCanCloseRelease,
   buildIncidentCloseReleaseAttributePatch,
@@ -47,6 +48,14 @@ export async function executeCloseIncidentRelease(
     soBienBan: opts.soBienBan,
   });
   if (!gate.ok) return gate;
+
+  // PO 2026-11-11: còn bộ đã xuất khoa chưa thu về thì không đóng/giải phóng phiếu thu hồi.
+  const pendingHold = (readRecallMemberJson(attrs.RECALL_HOLD_PENDING) || []).filter(
+    (h) => h.trangThai === THU_HOI_STATUS_CHO_THU_VE,
+  ).length;
+  if (pendingHold > 0) {
+    return { ok: false, error: `Còn ${pendingHold} bộ đã xuất khoa chưa thu về. Thu về hết (quét tại Tiếp nhận) rồi mới đóng phiếu.` };
+  }
 
   const closedAt = new Date().toISOString();
   const nextAttrs = buildIncidentCloseReleaseAttributePatch(attrs, {
