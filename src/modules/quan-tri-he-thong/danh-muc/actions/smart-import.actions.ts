@@ -532,15 +532,26 @@ export async function smartImportData(
 
     let heatSplitNotes: string[] = [];
     if (isLoaiDungCu) {
+      const imported = preparedRows.filter((r) => importedCodes.has(r.code));
+      // Cờ SAU khi lưu lấy từ DB (trigger suy từ phuong_phap_cho_phep); lỗi đọc → suy từ payload.
+      const savedFlags = new Map<string, boolean>();
+      const ids = imported.map((r) => String(r.payload.id || "")).filter(Boolean);
+      if (ids.length > 0) {
+        const { data: saved } = await supabase.from("cssd_dm_loai_dung_cu").select("id, is_chiu_nhiet").in("id", ids);
+        for (const row of (saved ?? []) as { id: string; is_chiu_nhiet: boolean | null }[]) {
+          if (typeof row.is_chiu_nhiet === "boolean") savedFlags.set(String(row.id), row.is_chiu_nhiet);
+        }
+      }
       heatSplitNotes = await applyHeatSplitForLoaiChanges(
         supabase,
-        preparedRows
-          .filter((r) => importedCodes.has(r.code))
-          .map((r) => ({
-            loaiId: String(r.payload.id || ""),
-            prevIsChiuNhiet: existingLoaiChiuNhiet.get(String(r.payload.id || "")),
-            nextIsChiuNhiet: resolveLoaiImportNextChiuNhiet(r.payload),
-          })),
+        imported.map((r) => {
+          const id = String(r.payload.id || "");
+          return {
+            loaiId: id,
+            prevIsChiuNhiet: existingLoaiChiuNhiet.get(id),
+            nextIsChiuNhiet: savedFlags.get(id) ?? resolveLoaiImportNextChiuNhiet(r.payload),
+          };
+        }),
       );
     }
 
