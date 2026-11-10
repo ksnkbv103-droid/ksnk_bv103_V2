@@ -31,7 +31,7 @@ export default function NkbvCh17CriteriaChecklist({
   const def = ch17TypeDef(typeCode);
   if (!def) {
     return typeCode ? (
-      <p className="text-[11px] text-slate-500">
+      <p className="text-xs text-slate-500">
         Site {typeCode}: dùng tiêu chí Organ/Space chung (mủ dẫn lưu / cấy / áp xe) nếu không có
         định nghĩa cây Ch.17.
       </p>
@@ -61,7 +61,7 @@ export default function NkbvCh17CriteriaChecklist({
           Tiêu chuẩn Chương 17 — {def.name_vi}
         </p>
         <p
-          className={`text-[11px] font-medium ${status.met ? "text-emerald-800" : "text-amber-900"}`}
+          className={`text-xs font-medium ${status.met ? "text-emerald-800" : "text-amber-900"}`}
         >
           {status.met
             ? `Đạt ${status.metCriterion}`
@@ -80,7 +80,7 @@ export default function NkbvCh17CriteriaChecklist({
           : false;
         return (
           <div key={c.code} className="rounded-lg border border-violet-100/80 bg-white/80 p-2 space-y-1.5">
-            <p className="text-[11px] font-semibold text-slate-800">
+            <p className="text-xs font-semibold text-slate-800">
               {c.code}
               {thisMet ? " ✓" : ""} — {c.label_vi}
             </p>
@@ -88,7 +88,7 @@ export default function NkbvCh17CriteriaChecklist({
               {c.keys.map((key) => (
                 <label
                   key={`${c.code}-${key}`}
-                  className="flex items-start gap-2 text-[11px] text-slate-700 cursor-pointer"
+                  className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer"
                 >
                   <input
                     type="checkbox"
