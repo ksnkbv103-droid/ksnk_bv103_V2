@@ -32,6 +32,8 @@ export const NAV_GATE_DAO_TAO: NavGate = { id: "dao-tao", moduleKeys: ["DAO_TAO"
 export const NAV_GATE_CSSD_QUY_TRINH: NavGate = { id: "cssd-qt", moduleKeys: ["CSSD_WORKFLOW", "CSSD_ME_TIET_KHUAN", "CSSD_REPORT"] };
 export const NAV_GATE_CSSD_SU_CO: NavGate = { id: "cssd-su-co", moduleKeys: ["BAO_SU_CO"] };
 export const NAV_GATE_CSSD_DUNG_CU: NavGate = { id: "cssd-dung-cu", moduleKeys: ["CSSD_KHO_DUNGCU"] };
+/** Màn Phê duyệt chủ nhiệm khoa: thấy menu khi có VIEW một danh mục dụng cụ; trang tự kiểm quyền approve. */
+export const NAV_GATE_PHE_DUYET: NavGate = { id: "phe-duyet", moduleKeys: ["LOAI_DC", "BO_DC", "DC_LE"] };
 export const NAV_GATE_CSSD_THIET_BI: NavGate = { id: "cssd-thiet-bi", moduleKeys: ["THIET_BI"] };
 export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys: ["KSNK_KHO_HOACHAT"] };
 export const NAV_GATE_HAU_CAN_MT: NavGate = { id: "hau-can-mt", moduleKeys: ["HAU_CAN_MOI_TRUONG"] };

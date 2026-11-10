@@ -7,7 +7,7 @@ import {
   approveCatalogDeNghiAction,
   listPendingCatalogDeNghiAction,
   rejectCatalogDeNghiAction,
-} from "./catalog-de-nghi-approve.actions";
+} from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/catalog-de-nghi-approve.actions";
 import {
   approveSetReconcileBomAction,
   listPendingBomApprovalsAction,
@@ -39,7 +39,7 @@ type BomRow = {
  * Hợp nhất hàng đợi duyệt Đề nghị Danh mục (cssd_catalog_de_nghi) và
  * Rà soát cấu phần Bộ (cssd_fact_su_co) vào một giao diện đồng nhất.
  */
-export function DungCuPhieuAdminPanels() {
+export function PheDuyetDungCuPanel() {
   const { loading: boLoading, allowed: boAllowed } = useModulePermission("BO_DC");
   const { loading: leLoading, allowed: leAllowed } = useModulePermission("DC_LE");
   const { allowed: loaiAllowed } = useModulePermission("LOAI_DC");

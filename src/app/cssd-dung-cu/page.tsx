@@ -69,14 +69,6 @@ const DungCuQuanLyTab = dynamic(
   { loading: () => panelFallback },
 );
 
-const DungCuPhieuAdminPanels = dynamic(
-  () =>
-    import("@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels").then((m) => ({
-      default: m.DungCuPhieuAdminPanels,
-    })),
-  { loading: () => panelFallback },
-);
-
 const CSSDCatalogLuanChuyenTab = dynamic(
   () =>
     import("@/modules/cssd-erp/views/CSSDCatalogLuanChuyenTab").then((m) => ({
@@ -236,7 +228,6 @@ function CssdDungCuPageInner() {
           </div>
         ) : s.tab === "DE_NGHI" ? (
           <div className="space-y-3">
-            <DungCuPhieuAdminPanels />
             <CSSDCatalogDeNghiTab />
           </div>
         ) : s.tab === "QUAN_LY" ? (
