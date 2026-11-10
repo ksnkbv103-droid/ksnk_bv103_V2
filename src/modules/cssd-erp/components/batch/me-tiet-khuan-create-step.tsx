@@ -118,7 +118,7 @@ export default function MeTietKhuanCreateStep({
             <div className="space-y-2">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pl-4 pr-1">
                 <label className={CSSD_UI_FORM_LABEL}>Máy tiệt khuẩn</label>
-                <span className="text-[11px] font-medium text-slate-400">
+                <span className="text-xs font-medium text-slate-400">
                   <Link href={DANH_MUC_THIET_BI_PATH} className="text-[var(--primary)] underline-offset-2 hover:underline">
                     Danh mục thiết bị và máy
                   </Link>
@@ -161,7 +161,7 @@ export default function MeTietKhuanCreateStep({
                     </option>
                   ))}
                 </select>
-                <p className="pl-4 text-[11px] font-medium text-slate-500">
+                <p className="pl-4 text-xs font-medium text-slate-500">
                   Bắt buộc chọn chương trình. Danh mục theo máy trống → dùng mẫu mặc định theo phương pháp.
                 </p>
               </div>
@@ -171,7 +171,7 @@ export default function MeTietKhuanCreateStep({
                 <p className={`${CSSD_UI_FORM_LABEL} !ml-0 text-amber-900`}>
                   Bowie–Dick đầu ngày (máy hơi nước)
                 </p>
-                <p className="text-[11px] font-medium text-amber-800/80">
+                <p className="text-xs font-medium text-amber-800/80">
                   Máy hơi nước cần BD đạt hôm nay trước khi tạo mẻ. BD không đạt thì chặn đến khi ghi BD đạt mới.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">

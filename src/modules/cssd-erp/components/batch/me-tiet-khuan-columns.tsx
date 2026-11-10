@@ -77,7 +77,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
           : i.ket_qua_test === false
             ? "bg-red-50 text-red-600"
             : "bg-slate-100 text-slate-500";
-      return <span className={`rounded-md px-2 py-1 text-[11px] font-semibold ${cls}`}>{label}</span>;
+      return <span className={`rounded-md px-2 py-1 text-xs font-semibold ${cls}`}>{label}</span>;
     },
   },
   {

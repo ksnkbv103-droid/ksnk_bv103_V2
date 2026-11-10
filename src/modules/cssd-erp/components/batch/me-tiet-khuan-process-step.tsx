@@ -216,7 +216,7 @@ export default function MeTietKhuanProcessStep({
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
             <h2 className="bv103-type-title font-mono tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
-            <p className="mt-1 text-[11px] font-medium opacity-90">
+            <p className="mt-1 text-xs font-medium opacity-90">
               {activeMe?.thiet_bi?.ten_thiet_bi || batchGate?.thiet_bi?.ten_thiet_bi || "Máy"} · {items.length} bộ · {statusLabel}
             </p>
           </div>
@@ -287,7 +287,7 @@ export default function MeTietKhuanProcessStep({
                 />
               )}
               {chuongTrinhEmpty && items.length > 0 ? (
-                <span className="block text-[11px] font-medium text-amber-700">
+                <span className="block text-xs font-medium text-amber-700">
                   Bắt buộc chọn chương trình trước khi kết luận QC.
                 </span>
               ) : null}
@@ -320,7 +320,7 @@ export default function MeTietKhuanProcessStep({
                     Đã nạp <strong>{items.length}</strong> bộ — sẵn sàng kết thúc nạp
                   </p>
                   {chuongTrinhEmpty ? (
-                    <p className="text-[11px] font-medium text-amber-800/90">
+                    <p className="text-xs font-medium text-amber-800/90">
                       Nên ghi chương trình trên máy (không bắt buộc để bắt đầu).
                     </p>
                   ) : null}
@@ -360,7 +360,7 @@ export default function MeTietKhuanProcessStep({
               <p className="text-sm font-semibold text-blue-600">
                 Đã chốt <strong>{items.length} bộ</strong> trong phiếu
               </p>
-              <p className="max-w-md text-[11px] font-medium leading-relaxed text-blue-500">
+              <p className="max-w-md text-xs font-medium leading-relaxed text-blue-500">
                 Chờ máy xong, rồi bấm «Kết thúc tiệt khuẩn».
               </p>
             </div>
