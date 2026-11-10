@@ -66,7 +66,7 @@ export function DaoTaoQuestionCard({
     <div className="rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
       {/* Huy hiệu thông số SOP & Thang nhận thức Bloom */}
       {(sopRefs?.length || bloomCode || targetRoles?.length) ? (
-        <div className="mb-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+        <div className="mb-2.5 flex flex-wrap items-center gap-1.5 text-xs">
           {bloomCode && (
             <span className="rounded bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700 border border-indigo-200/60">
               Bloom: {bloomCode}
@@ -88,7 +88,7 @@ export function DaoTaoQuestionCard({
       {/* Bối cảnh tình huống lâm sàng chuẩn NBME */}
       {clinicalVignette ? (
         <div className="mb-3.5 rounded-[var(--radius-control)] border border-blue-200/80 bg-blue-50/50 p-3 text-slate-800">
-          <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-700">
+          <div className="flex items-center gap-1.5 mb-1.5 text-xs font-bold uppercase tracking-wider text-blue-700">
             <span className="inline-block h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
             Tình huống lâm sàng / Bối cảnh thực tế
           </div>
@@ -115,7 +115,7 @@ export function DaoTaoQuestionCard({
                 className={optionBtn(!!checked, disabled)}
                 onClick={() => onChange({ kind: "single", optionId: o.id })}
               >
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
                   {LETTERS[i] ?? i + 1}
                 </span>
                 <span className="text-sm text-slate-700">{o.noiDung}</span>
@@ -147,7 +147,7 @@ export function DaoTaoQuestionCard({
               >
                 <span
                   className={cn(
-                    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-[11px]",
+                    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs",
                     selected
                       ? "border-[var(--primary)] bg-[var(--primary)] text-white"
                       : "border-slate-300 bg-white text-slate-500",
@@ -299,7 +299,7 @@ function OrderEditor({
             key={id}
             className="flex items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 py-2"
           >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
               {idx + 1}
             </span>
             <span className="flex-1 text-sm text-slate-700">{o.noiDung}</span>

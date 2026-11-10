@@ -200,13 +200,13 @@ export default function AdminKetQuaPage() {
             </ul>
           )}
           {coverage.chuaTaiKhoan.length > 0 ? (
-            <p className="mt-2 text-[11px] text-slate-500">
+            <p className="mt-2 text-xs text-slate-500">
               {coverage.chuaTaiKhoan.length} người được gán nhưng chưa gắn tài khoản đăng nhập.
             </p>
           ) : null}
         </DaoTaoPanel>
       ) : (
-        <p className="text-[11px] text-slate-500">Chọn một kỳ thi để xem ai chưa nộp.</p>
+        <p className="text-xs text-slate-500">Chọn một kỳ thi để xem ai chưa nộp.</p>
       )}
 
       <DaoTaoPanel className="!p-0 overflow-hidden">
@@ -239,7 +239,7 @@ export default function AdminKetQuaPage() {
                     ) : (
                       <span
                         className={cn(
-                          "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                          "rounded-full px-2 py-0.5 text-xs font-semibold",
                           r.dat
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-rose-50 text-rose-700",
@@ -249,8 +249,8 @@ export default function AdminKetQuaPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-[11px] text-slate-600">{r.chungChiLabel}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-[11px] text-slate-500">
+                  <td className="px-3 py-2.5 text-xs text-slate-600">{r.chungChiLabel}</td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-slate-500">
                     {formatDateTimeVi(r.nop_luc)}
                   </td>
                   <td className="px-3 py-2.5">
