@@ -50,6 +50,40 @@ jobs:
           NPM_AUDIT_OMIT_DEV: "1"
         run: node scripts/ci-npm-audit.mjs
 
+  # Mọi migration trong repo phải có trên prod trước khi merge (merge = Vercel tự deploy).
+  # Ngoại lệ có lý do: ALLOW_REPO_ONLY trong scripts/sync-check.mjs.
+  # Secret là DB URL của role ci_migration_reader (chỉ SELECT version,name trên schema_migrations).
+  # Bước đọc DB chạy TRƯỚC checkout và job không có npm ci: không code repo/dependency nào thấy secret.
+  sync-check:
+    name: "Sync check — migration repo vs prod"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Đọc tên migration trên prod (SKIP nếu thiếu secret)
+        id: db
+        env:
+          SYNC_CHECK_DB_URL: ${{ secrets.SYNC_CHECK_DB_URL }}
+          PGCONNECT_TIMEOUT: "15"
+        run: |
+          if [ -z "$SYNC_CHECK_DB_URL" ]; then
+            echo "SKIP: chưa có secret SYNC_CHECK_DB_URL (PR từ fork/Dependabot cũng không nhận secret)"
+            exit 0
+          fi
+          psql "$SYNC_CHECK_DB_URL" -X -v ON_ERROR_STOP=1 -Atc \
+            "select coalesce(json_agg(name order by version), '[]') from supabase_migrations.schema_migrations where name is not null" \
+            > "$RUNNER_TEMP/db-names.json"
+          echo "have=1" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.db.outputs.have == '1'
+        with:
+          persist-credentials: false
+
+      - name: So migration repo vs prod
+        if: steps.db.outputs.have == '1'
+        run: node scripts/sync-check.mjs --db-names "$RUNNER_TEMP/db-names.json" --no-deploy --strict
+
   verify:
     # Quality gate is independent of npm-audit-advisory (soft deps).
     runs-on: ubuntu-latest
