@@ -73,7 +73,7 @@ export async function tryReceiveChoThuVeAtTiepNhan(
     },
   };
 
-  const { error: oldErr } = await supabase
+  const { data: oldRows, error: oldErr } = await supabase
     .from("cssd_fact_quy_trinh")
     .update({
       is_active: false,
@@ -82,8 +82,14 @@ export async function tryReceiveChoThuVeAtTiepNhan(
       metadata: nextMeta,
     })
     .eq("id", oldId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .select("id");
   if (oldErr) throw new Error(oldErr.message);
+  if (!oldRows?.length) {
+    // Quét trùng/đồng thời: chu trình cũ đã được nhận bởi lần quét khác → bỏ chu trình vừa tạo, tránh trùng QR.
+    await supabase.from("cssd_fact_quy_trinh").update({ is_active: false, updated_at: now }).eq("id", newId);
+    return { handled: false };
+  }
 
   const incidentId = String(thuHoi?.suCoId || "").trim() || null;
   if (incidentId) {
@@ -107,12 +113,28 @@ async function patchIncidentHoldReturned(
     operatorLabel: string;
   },
 ): Promise<void> {
+  // Đọc-rồi-ghi trên attributes: hai bộ quét cùng lúc dễ ghi đè bộ đếm của nhau → khóa lạc quan theo updated_at, thử lại.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (await tryPatchHoldReturned(supabase, opts)) return;
+  }
+  console.error({ module: "cssd-su-co", action: "patchIncidentHoldReturned", error: "retry exhausted", incidentId: opts.incidentId });
+}
+
+async function tryPatchHoldReturned(
+  supabase: SupabaseClient,
+  opts: {
+    incidentId: string;
+    oldQuyTrinhId: string;
+    newQuyTrinhId: string;
+    operatorLabel: string;
+  },
+): Promise<boolean> {
   const { data, error } = await supabase
     .from("cssd_fact_su_co")
-    .select("id, attributes, mo_ta")
+    .select("id, attributes, mo_ta, updated_at")
     .eq("id", opts.incidentId)
     .maybeSingle();
-  if (error || !data) return;
+  if (error || !data) return true;
 
   const attrs = ((data as { attributes?: Record<string, unknown> }).attributes || {}) as Record<
     string,
@@ -126,7 +148,8 @@ async function patchIncidentHoldReturned(
 
   const note = `Đã thu về ${Math.min(issued, Number(nextAttrs.RECALL_RETURNED_COUNT))} / ${issued} gói đã xuất (còn chờ ${pendingLeft}).`;
   const moTa = String((data as { mo_ta?: string }).mo_ta || "");
-  await supabase
+  const prevUpdatedAt = (data as { updated_at?: string | null }).updated_at;
+  let q = supabase
     .from("cssd_fact_su_co")
     .update({
       attributes: nextAttrs,
@@ -134,4 +157,8 @@ async function patchIncidentHoldReturned(
       updated_at: new Date().toISOString(),
     })
     .eq("id", opts.incidentId);
+  q = prevUpdatedAt ? q.eq("updated_at", prevUpdatedAt) : q.is("updated_at", null);
+  const { data: written, error: wErr } = await q.select("id");
+  if (wErr) return true;
+  return Boolean(written?.length);
 }
