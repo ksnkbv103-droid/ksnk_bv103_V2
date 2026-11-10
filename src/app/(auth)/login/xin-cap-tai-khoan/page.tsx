@@ -187,7 +187,7 @@ export default function XinCapTaiKhoanPage() {
                   autoComplete="tel"
                 />
               </div>
-              <p className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+              <p className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2 text-xs leading-relaxed text-slate-600">
                 Không nhập mật khẩu hay phân quyền trên phiếu này. Quản trị mở hồ sơ (đã điền sẵn khoa/chức danh),
                 gán vai trò hệ thống rồi duyệt cấp tài khoản.
               </p>

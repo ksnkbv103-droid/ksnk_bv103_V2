@@ -119,10 +119,10 @@ export default function LoginPage() {
               className="mx-auto mb-4 block h-28 w-28 bg-transparent object-contain drop-shadow-[0_6px_18px_rgba(15,23,42,0.12)]"
               priority
             />
-            <p className="text-[11px] font-medium leading-tight tracking-wide text-slate-700 md:text-xs">
+            <p className="text-xs font-medium leading-tight tracking-wide text-slate-700 md:text-xs">
               Bệnh viện Quân y 103
             </p>
-            <p className="mt-1 text-[11px] font-medium leading-tight text-[var(--primary)] md:text-xs">
+            <p className="mt-1 text-xs font-medium leading-tight text-[var(--primary)] md:text-xs">
               Khoa Kiểm soát nhiễm khuẩn
             </p>
             <h1 className={`mt-4 ${T.authTitle}`}>KSNK 103</h1>

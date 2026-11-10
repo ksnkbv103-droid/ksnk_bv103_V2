@@ -105,7 +105,7 @@ function CssdThietBiPageInner() {
         <button
           type="button"
           onClick={() => goTab(activeTab === "VAN_HANH" ? "FLEET" : "VAN_HANH")}
-          className="text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+          className="text-xs font-semibold text-slate-500 hover:text-slate-800"
         >
           {activeTab === "VAN_HANH" ? "← Về danh sách máy" : "Xem thêm: lịch sử mẻ theo máy"}
         </button>
