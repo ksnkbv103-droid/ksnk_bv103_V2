@@ -69,7 +69,7 @@ export function BoDungCuChiTietAllocSection({
   return (
     <section className={C.sectionGap} aria-label="Phân bổ khoa phòng">
       <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/80 p-4 sm:p-5">
-        <p className="mb-3 text-[11px] font-medium text-slate-500">
+        <p className="mb-3 text-xs font-medium text-slate-500">
           Phân bổ cơ số theo khoa — một thao tác chính trên một hàng.
         </p>
         <div className="flex flex-wrap items-end gap-3">
@@ -128,7 +128,7 @@ export function BoDungCuChiTietAllocSection({
       ) : (
         <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
           <table className="w-full min-w-[500px] border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-[1] border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
+            <thead className="sticky top-0 z-[1] border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
               <tr>
                 <th className="p-3">Khoa</th>
                 <th className="w-28 p-3 text-center">Cơ số</th>
@@ -166,7 +166,7 @@ export function BoDungCuChiTietAllocSection({
                         type="button"
                         disabled={busy}
                         onClick={() => void runAllocate(a.khoa_phong_id, a.so_luong_co_so + 1)}
-                        className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200"
+                        className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-200"
                       >
                         +1
                       </button>
@@ -182,7 +182,7 @@ export function BoDungCuChiTietAllocSection({
                               : undefined,
                           )
                         }
-                        className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200"
+                        className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-200"
                       >
                         -1
                       </button>
@@ -196,7 +196,7 @@ export function BoDungCuChiTietAllocSection({
                             "Xác nhận thu hồi toàn bộ phân bổ của khoa này?",
                           )
                         }
-                        className="rounded-lg bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100"
+                        className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100"
                       >
                         Thu hồi
                       </button>

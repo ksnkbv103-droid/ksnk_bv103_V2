@@ -39,7 +39,7 @@ export function BoDungCuPageHeader({
           <select
             value={loaiFilter}
             onChange={(e) => onLoaiFilterChange(e.target.value)}
-            className="bv103-control-h rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 text-[11px] font-medium text-slate-700"
+            className="bv103-control-h rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700"
             aria-label="Lọc theo loại"
           >
             <option value="">Mọi loại</option>
@@ -51,7 +51,7 @@ export function BoDungCuPageHeader({
           </select>
         ) : null}
         {canWriteMaster && onOpenLoaiSheet ? (
-          <button type="button" onClick={onOpenLoaiSheet} className="text-[11px] font-semibold text-slate-500 hover:text-[var(--primary)]">
+          <button type="button" onClick={onOpenLoaiSheet} className="text-xs font-semibold text-slate-500 hover:text-[var(--primary)]">
             Loại
           </button>
         ) : null}
@@ -59,7 +59,7 @@ export function BoDungCuPageHeader({
       <div className="flex flex-wrap items-center gap-2">
         {canWriteMaster ? (
           <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
-            <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+            <summary className="cursor-pointer text-xs font-semibold text-slate-500">Excel</summary>
             <div className="pt-2">
               <ImportExportToolbar
                 fileInputRef={fileInputRef}

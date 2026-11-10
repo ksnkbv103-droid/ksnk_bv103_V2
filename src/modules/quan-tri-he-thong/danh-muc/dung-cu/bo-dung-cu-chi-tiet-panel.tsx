@@ -290,7 +290,7 @@ export function BoDungCuChiTietPanel({
           <Layers className="h-5 w-5 shrink-0" aria-hidden />
           <div className="min-w-0">
             <h3 className={C.panelTitle}>Quản lý thành phần bộ{titleBit}</h3>
-            <p className="mt-0.5 text-[11px] font-medium text-emerald-800">
+            <p className="mt-0.5 text-xs font-medium text-emerald-800">
               1 bộ × 1 loại = 1 dòng · chỉnh tại đây, không sang trang khác.
             </p>
           </div>
@@ -301,7 +301,7 @@ export function BoDungCuChiTietPanel({
             <button
               type="button"
               onClick={() => setActiveTab("components")}
-              className={`rounded-lg px-3.5 py-1.5 text-[11px] font-semibold transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
                 activeTab === "components"
                   ? "bg-white text-[var(--primary)] shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
@@ -315,7 +315,7 @@ export function BoDungCuChiTietPanel({
                 setActiveTab("allocations");
                 void fetchAllocations();
               }}
-              className={`rounded-lg px-3.5 py-1.5 text-[11px] font-semibold transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
                 activeTab === "allocations"
                   ? "bg-white text-[var(--primary)] shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
@@ -357,7 +357,7 @@ export function BoDungCuChiTietPanel({
                   type="button"
                   disabled={!selectedChiTiet}
                   onClick={openEditSelected}
-                  className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-semibold text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-50"
                 >
                   <Pencil className="h-3.5 w-3.5" /> Chỉnh dòng
                 </button>
@@ -369,7 +369,7 @@ export function BoDungCuChiTietPanel({
                   type="button"
                   onClick={() => setMoreOpen((v) => !v)}
                   aria-expanded={moreOpen}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition-all hover:bg-slate-50"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-all hover:bg-slate-50"
                 >
                   Thêm{" "}
                   <ChevronDown
@@ -387,7 +387,7 @@ export function BoDungCuChiTietPanel({
                         role="menuitem"
                         disabled={mergingBom || !selectedBoId}
                         onClick={() => void runMergeDuplicates()}
-                        className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-left text-[11px] font-semibold text-violet-900 hover:bg-violet-50 disabled:opacity-50"
+                        className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-left text-xs font-semibold text-violet-900 hover:bg-violet-50 disabled:opacity-50"
                       >
                         {mergingBom ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -411,7 +411,7 @@ export function BoDungCuChiTietPanel({
                         chiTiet: selectedChiTiet?.id,
                       })}
                       onClick={() => setMoreOpen(false)}
-                      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold text-rose-800 hover:bg-rose-50 ${
+                      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-rose-800 hover:bg-rose-50 ${
                         !selectedChiTiet ? "pointer-events-none opacity-50" : ""
                       }`}
                     >
@@ -426,7 +426,7 @@ export function BoDungCuChiTietPanel({
                         chiTiet: selectedChiTiet?.id,
                       })}
                       onClick={() => setMoreOpen(false)}
-                      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold text-sky-800 hover:bg-sky-50 ${
+                      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-sky-800 hover:bg-sky-50 ${
                         !selectedChiTiet ? "pointer-events-none opacity-50" : ""
                       }`}
                     >
@@ -454,7 +454,7 @@ export function BoDungCuChiTietPanel({
                 />
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-                  <thead className="sticky top-0 z-[1] border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
+                  <thead className="sticky top-0 z-[1] border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
                     <tr>
                       <th
                         className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
@@ -602,7 +602,7 @@ export function BoDungCuChiTietPanel({
                             : "—"}
                         </td>
                         <td className="p-3 text-xs text-slate-500">{clip(r.ghi_chu, 64)}</td>
-                        <td className="p-3 text-[11px] font-medium text-slate-500">
+                        <td className="p-3 text-xs font-medium text-slate-500">
                           {r.is_active === false ? "Ngưng" : "Có"}
                         </td>
                       </tr>
@@ -611,7 +611,7 @@ export function BoDungCuChiTietPanel({
                 </table>
               </ResponsiveTableShell>
               {visibleRows.length > 0 ? (
-                <p className="text-[11px] text-slate-500">{visibleRows.length}/{rows.length} dòng</p>
+                <p className="text-xs text-slate-500">{visibleRows.length}/{rows.length} dòng</p>
               ) : null}
               </div>
             )}
@@ -628,32 +628,32 @@ export function BoDungCuChiTietPanel({
                       : ""}
                   </span>
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-xs text-slate-500">
                   Hỏng/Mất lập tại /cssd-su-co. Luân chuyển số lượng lập tại /cssd-dung-cu → tab Luân chuyển.
                   Đề nghị sửa danh mục chờ duyệt ở tab Phiếu (quản trị).
                 </p>
-                <p className="text-[11px] font-medium text-slate-600">
+                <p className="text-xs font-medium text-slate-600">
                   Các bộ khác đang dùng loại này:
                 </p>
                 {relLoading ? (
-                  <p className="text-[11px] text-slate-500">Đang tải liên kết bộ...</p>
+                  <p className="text-xs text-slate-500">Đang tải liên kết bộ...</p>
                 ) : relatedBos.length ? (
                   <div className="flex flex-wrap gap-2">
                     {relatedBos.map((b) => (
                       <span
                         key={b.id}
-                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+                        className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700"
                       >
                         {b.ma_bo || "—"} {b.ten_bo ? `· ${clip(b.ten_bo, 32)}` : ""}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[11px] text-slate-500">Chưa thấy bộ khác dùng loại này.</p>
+                  <p className="text-xs text-slate-500">Chưa thấy bộ khác dùng loại này.</p>
                 )}
               </div>
             ) : (
-              <p className="text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500">
                 Chọn một dòng để xem liên kết loại và các bộ liên quan.
               </p>
             )}

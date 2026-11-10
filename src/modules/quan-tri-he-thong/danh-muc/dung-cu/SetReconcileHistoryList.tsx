@@ -39,9 +39,9 @@ export function SetReconcileHistoryList() {
     };
   }, []);
 
-  if (loading) return <p className="text-[11px] text-slate-500">Đang tải sổ rà soát…</p>;
+  if (loading) return <p className="text-xs text-slate-500">Đang tải sổ rà soát…</p>;
   if (!rows.length) {
-    return <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chưa có phiếu rà soát đã xử lý.</p>;
+    return <p className="px-1 py-6 text-center text-xs text-slate-500">Chưa có phiếu rà soát đã xử lý.</p>;
   }
 
   return (
@@ -53,18 +53,18 @@ export function SetReconcileHistoryList() {
               {r.maBo || "—"}
               {r.tenBo ? ` · ${r.tenBo}` : ""}
             </p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               {setReconcileStatusLabel(r.status)} · {formatDateTimeVi(r.createdAt)}
               {r.moTa ? ` · ${r.moTa}` : ""}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={cssdSuCoIncidentJournalHref(r.id)} className="text-[11px] font-semibold text-[var(--primary)]">
+            <Link href={cssdSuCoIncidentJournalHref(r.id)} className="text-xs font-semibold text-[var(--primary)]">
               Xem
             </Link>
             <IncidentJournalPrintButton
               incidentId={r.id}
-              className="inline-flex h-8 min-w-[44px] items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700"
+              className="inline-flex h-8 min-w-[44px] items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700"
             />
           </div>
         </li>
