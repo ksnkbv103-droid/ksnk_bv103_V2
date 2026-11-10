@@ -4,14 +4,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "../../components/bo-dung-cu-form-field";
-import type { HoaChatNhomRow, HoaChatRow } from "../actions/hoa-chat.types";
-import { saveHoaChatAction } from "../actions/hoa-chat.actions";
-import { listHoaChatNhomAction } from "../actions/hoa-chat-nhom.actions";
+import BoDungCuTextField from "@/modules/quan-tri-he-thong/components/bo-dung-cu-form-field";
+import type { HoaChatNhomRow, HoaChatRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
+import { saveHoaChatAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.actions";
+import { listHoaChatNhomAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat-nhom.actions";
 import { locNhomTheoLoai } from "@/lib/domain/cssd-hoa-chat-nhom";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
 
 function mapForm(row: HoaChatRow | null) {
   return {

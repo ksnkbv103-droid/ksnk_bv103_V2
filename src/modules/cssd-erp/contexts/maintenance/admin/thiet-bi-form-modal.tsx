@@ -4,14 +4,14 @@ import React, { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "../../components/bo-dung-cu-form-field";
+import BoDungCuTextField from "@/modules/quan-tri-he-thong/components/bo-dung-cu-form-field";
 import ThietBiPrintQrButton from "@/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button";
 import { ThietBiLoaiMayField } from "./thiet-bi-loai-may-field";
-import type { ThietBiRow } from "../actions/thiet-bi.types";
-import { saveThietBiAction } from "../actions/thiet-bi.actions";
+import type { ThietBiRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.types";
+import { saveThietBiAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.actions";
 import { mapThietBiToForm, type ThietBiFormValues } from "./thiet-bi-form-shared";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
 
 export default function ThietBiFormModal({
   open,

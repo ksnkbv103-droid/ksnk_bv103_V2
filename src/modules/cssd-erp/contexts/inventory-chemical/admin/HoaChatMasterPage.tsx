@@ -11,20 +11,20 @@ import { toast } from "sonner";
 import HoaChatFormModal from "./hoa-chat-form-modal";
 import HoaChatNhomManager from "./HoaChatNhomManager";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { getHoaChatColumns } from "./hoa-chat-columns";
-import type { HoaChatRow } from "../actions/hoa-chat.types";
+import type { HoaChatRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
 import {
   getHoaChatRowsAction,
   softDeleteHoaChatAction,
   softDeleteManyHoaChatAction,
   toggleHoaChatStatusAction,
-} from "../actions/hoa-chat.actions";
-import { DmMasterPageGuard } from "../views/dm-master-page-guard";
-import { smartImportData } from "../actions/smart-import.actions";
-import { getMasterDataExport } from "../actions/export.actions";
+} from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.actions";
+import { DmMasterPageGuard } from "@/modules/quan-tri-he-thong/danh-muc/views/dm-master-page-guard";
+import { smartImportData } from "@/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions";
+import { getMasterDataExport } from "@/modules/quan-tri-he-thong/danh-muc/actions/export.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 function HoaChatMasterPageContent() {

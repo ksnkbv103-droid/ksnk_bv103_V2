@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import type { HoaChatRow } from "../actions/hoa-chat.types";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import type { HoaChatRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 

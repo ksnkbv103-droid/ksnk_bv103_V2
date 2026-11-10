@@ -31,7 +31,7 @@ export const QUAN_TRI_HUB_JOBS: QuanTriHubJob[] = [
     id: "cssd",
     title: "Sửa danh mục CSSD",
     blurb: "Máy, hóa chất. Bộ và loại dụng cụ sửa tại màn Dụng cụ CSSD.",
-    href: "/quan-tri-he-thong/danh-muc/thiet-bi",
+    href: "/cssd-thiet-bi?tab=quan-ly",
     group: "cssd",
   },
   {

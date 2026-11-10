@@ -14,7 +14,7 @@ import {
 import type { SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_CONTROL_NATIVE, CSSD_UI_FORM_LABEL, CSSD_UI_PANEL, CSSD_UI_PANEL_TITLE, CSSD_UI_STEP_HINT } from "../../shared/ui/cssd-ui-chrome";
 
-const DANH_MUC_THIET_BI_PATH = "/quan-tri-he-thong/danh-muc/thiet-bi";
+const DANH_MUC_THIET_BI_PATH = "/cssd-thiet-bi?tab=quan-ly";
 const DANH_MUC_LOAI_MAY_TK_PATH = getDanhMucAdminPath("LOAI_MAY_TIET_KHUAN");
 
 type Machine = {

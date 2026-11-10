@@ -4,7 +4,7 @@
 import { dashboardChrome as UI } from "@/modules/dashboard/lib/dashboard-chrome";
 import React, { useMemo } from "react";
 import { AlertTriangle, Clock } from "lucide-react";
-import type { HoaChatRow } from "../actions/hoa-chat.types";
+import type { HoaChatRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface Props {

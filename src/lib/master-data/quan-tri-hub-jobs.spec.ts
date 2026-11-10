@@ -42,6 +42,6 @@ describe("QUAN_TRI_HUB_JOBS CSSD", () => {
   it("Sửa danh mục CSSD vào Thiết bị (bộ/loại đã chuyển sang màn CSSD)", () => {
     const cssd = QUAN_TRI_HUB_JOBS.find((j) => j.id === "cssd");
     expect(cssd?.title).toContain("Sửa danh mục");
-    expect(cssd?.href).toBe("/quan-tri-he-thong/danh-muc/thiet-bi");
+    expect(cssd?.href).toBe("/cssd-thiet-bi?tab=quan-ly");
   });
 });

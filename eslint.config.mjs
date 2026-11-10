@@ -75,7 +75,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/modules/quan-tri-he-thong/danh-muc/dung-cu/*-form*", "@/modules/quan-tri-he-thong/danh-muc/thiet-bi/ThietBiMasterPage*"],
+              group: ["@/modules/quan-tri-he-thong/danh-muc/dung-cu/*-form*", "@/modules/cssd-erp/contexts/maintenance/admin/ThietBiMasterPage*"],
               message: "cssd-erp: không import form/CRUD MDM — dùng read-only catalog + link Quản trị.",
             },
           ],
