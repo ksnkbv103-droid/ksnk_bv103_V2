@@ -10,6 +10,7 @@ import { pmDueLabel, trangThaiMayLabel } from "@/lib/domain/cssd-equipment-pm";
 import { CSSD_UI_CELL_CODE, CSSD_UI_DATA_SURFACE } from "../../shared/ui/cssd-ui-chrome";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import ThietBiPrintQrButton from "./thiet-bi-print-qr-button";
+import ThietBiMoKhoaButton from "./thiet-bi-mo-khoa-button";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -181,11 +182,14 @@ export default function ThietBiFleetPanel() {
               tenThietBi={m.ten_thiet_bi}
               variant="compact"
             />
+            {m.trang_thai === "HOLD_QC" ? (
+              <ThietBiMoKhoaButton thietBiId={m.id} maThietBi={m.ma_thiet_bi} onDone={() => void reload()} />
+            ) : null}
           </span>
         ),
       },
     ],
-    [],
+    [reload],
   );
 
   if (loading) {
