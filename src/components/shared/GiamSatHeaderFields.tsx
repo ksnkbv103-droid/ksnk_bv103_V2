@@ -219,7 +219,7 @@ export default function GiamSatHeaderFields({
                 <p className={`mb-0.5 ${T.sectionTitle} ${isAdmin ? "text-indigo-900" : "text-amber-900"}`}>
                   {isAdmin ? "Chế độ Quản trị viên (Hệ thống)" : "Tài khoản chưa liên kết hồ sơ"}
                 </p>
-                <p className={`text-[11px] font-medium leading-snug ${isAdmin ? "text-indigo-800" : "text-amber-800"}`}>
+                <p className={`text-xs font-medium leading-snug ${isAdmin ? "text-indigo-800" : "text-amber-800"}`}>
                   {isAdmin
                     ? "Bạn đang truy cập với quyền Quản trị. Để thực hiện các thao tác ghi nhận dữ liệu (Giám sát), vui lòng chọn một nhân sự đại diện dưới đây."
                     : "Tài khoản của bạn chưa được liên kết với hồ sơ nhân sự. Vui lòng liên kết để thực hiện các nghiệp vụ giám sát chuyên sâu."}
@@ -227,9 +227,9 @@ export default function GiamSatHeaderFields({
               </div>
 
               {isAdmin ? (
-                <div className="space-y-1 pt-0.5">
-                  <label className={`block ${C.labelField} text-indigo-700`}>Chọn người thực hiện giám sát</label>
+                <div className="pt-0.5">
                   <RegistrySelect
+                    label="Người thực hiện giám sát"
                     loaiDanhMuc="NHAN_SU"
                     value={session.nguoi_giam_sat_id}
                     onChange={(val: string) => setSession((prev: GiamSatSession) => ({ ...prev, nguoi_giam_sat_id: val }))}
@@ -241,7 +241,7 @@ export default function GiamSatHeaderFields({
                     }))}
                     placeholder="Tìm nhân sự thực hiện..."
                     searchPlaceholder="Tìm nhân sự..."
-                    className="h-10 bg-white"
+                    className="bg-white"
                     searchable={true}
                   />
                 </div>
@@ -250,7 +250,7 @@ export default function GiamSatHeaderFields({
                   type="button"
                   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                   onClick={() => (window.location.href = "/tai-khoan")}
-                  className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-amber-700"
+                  className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-amber-700"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   Đi đến trang liên kết hồ sơ
@@ -262,7 +262,7 @@ export default function GiamSatHeaderFields({
       )}
 
       {!essentialsOnly && khoaLocked && selectedKhoa ? (
-        <div className="rounded-lg border border-sky-200/80 bg-sky-50/70 px-3 py-2 text-[11px] font-medium leading-snug text-sky-950">
+        <div className="rounded-lg border border-sky-200/80 bg-sky-50/70 px-3 py-2 text-xs font-medium leading-snug text-sky-950">
           Khoa phụ trách (mạng lưới): <span className="font-semibold">{selectedKhoa.ten_danh_muc}</span>
           {" — "}không cần chọn lại mỗi phiên.
         </div>
@@ -270,12 +270,12 @@ export default function GiamSatHeaderFields({
 
       {!essentialsOnly && showClearStickyHint && onClearStickyHint ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-slate-50/80 px-3 py-2">
-          <p className="text-[11px] font-medium text-slate-600">
+          <p className="text-xs font-medium text-slate-600">
             Đã gợi ý khoa / khu vực / vị trí từ lần giám sát trước trên tab này.
           </p>
           <button
             type="button"
-            className="text-[11px] font-semibold text-slate-700 underline-offset-2 hover:underline"
+            className="text-xs font-semibold text-slate-700 underline-offset-2 hover:underline"
             onClick={onClearStickyHint}
           >
             Xóa gợi ý lần trước
@@ -348,7 +348,7 @@ export default function GiamSatHeaderFields({
                     key={idx}
                     type="button"
                     onClick={() => setSession((prev: GiamSatSession) => ({ ...prev, vi_tri: loc }))}
-                    className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-slate-200"
+                    className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-200"
                   >
                     {loc}
                   </button>
@@ -407,11 +407,10 @@ export default function GiamSatHeaderFields({
           <p className={`md:col-span-3 ${T.sectionTitle} text-amber-900`}>
             Giám sát lại qua camera — nhập một lần cho cả phiên (không nhập lại từng cơ hội)
           </p>
-          <div className="space-y-1.5">
-            <label className={C.labelField}>Ngày giám sát</label>
-            <input
+          <div>
+            <FloatingInput
+              label="Ngày giám sát"
               type="date"
-              className={C.controlInput}
               value={session.ngay_giam_sat || ""}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const v = e.target.value;
@@ -430,12 +429,11 @@ export default function GiamSatHeaderFields({
               }}
             />
           </div>
-          <div className="space-y-1.5">
-            <label className={C.labelField}>Từ giờ</label>
-            <input
+          <div>
+            <FloatingInput
+              label="Từ giờ"
               type="time"
               step={60}
-              className={C.controlInput}
               value={timeLocalHmFromIso(session.thoi_gian_bat_dau)}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setSession((prev: GiamSatSession) => {
@@ -446,12 +444,11 @@ export default function GiamSatHeaderFields({
               }}
             />
           </div>
-          <div className="space-y-1.5">
-            <label className={C.labelField}>Đến giờ</label>
-            <input
+          <div>
+            <FloatingInput
+              label="Đến giờ"
               type="time"
               step={60}
-              className={C.controlInput}
               value={timeLocalHmFromIso(session.thoi_gian_ket_thuc)}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setSession((prev: GiamSatSession) => {

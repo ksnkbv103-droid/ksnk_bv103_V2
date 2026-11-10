@@ -98,7 +98,7 @@ export default function GiamSatHeaderPersonalFields({
               />
             )}
             {requireKhoa && (
-              <p className="text-[11px] font-medium text-amber-700">Chọn Khoa trước để lọc danh sách nhân viên.</p>
+              <p className="text-xs font-medium text-amber-700">Chọn Khoa trước để lọc danh sách nhân viên.</p>
             )}
           </div>
 
