@@ -115,7 +115,7 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         importExportSlot={
           locked ? undefined : (
             <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
-              <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+              <summary className="cursor-pointer text-xs font-semibold text-slate-500">Excel</summary>
               <div className="pt-2">
                 <ImportExportToolbar
                   fileInputRef={fileInputRef}

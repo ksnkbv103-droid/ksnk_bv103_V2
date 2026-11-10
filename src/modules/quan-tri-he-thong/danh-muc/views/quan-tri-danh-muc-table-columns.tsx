@@ -69,7 +69,7 @@ export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<U
             <span className={`truncate ${TC.cellTitle}`}>{r.name}</span>
             <DomainText label={r.domainLabel} />
           </div>
-          <div className="text-[11px] text-slate-400">{r.groupLabel}</div>
+          <div className="text-xs text-slate-400">{r.groupLabel}</div>
         </div>
       ),
     },
