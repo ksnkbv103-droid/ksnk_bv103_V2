@@ -26,7 +26,7 @@ export type LoaiReconcileOption = {
 export type KhacReconcileOption = LoaiReconcileOption & { maKhac: string };
 
 const cellIn =
-  "h-8 w-full border-0 bg-transparent px-0 text-[11px] outline-none focus:ring-0";
+  "h-8 w-full border-0 bg-transparent px-0 text-xs outline-none focus:ring-0";
 
 type Props = {
   line: SetReconcileLineInput;
@@ -68,7 +68,7 @@ export default function InstrumentSetReconcileRow({
 
   return (
     <tr className={removed ? `${L.row} opacity-60` : L.row}>
-      <td className={`${L.td} font-mono text-[11px] text-slate-700`}>
+      <td className={`${L.td} font-mono text-xs text-slate-700`}>
         <input
           className={`${cellIn} min-w-[6.5rem] font-mono`}
           value={line.maLoaiDeXuat ?? line.maLoai ?? ""}
@@ -172,14 +172,14 @@ export default function InstrumentSetReconcileRow({
           <p className="mt-0.5 flex flex-wrap gap-2">
             <button
               type="button"
-              className={line.kind === "HONG" ? L.statusDanger : "text-[11px] font-medium text-slate-500"}
+              className={line.kind === "HONG" ? L.statusDanger : "text-xs font-medium text-slate-500"}
               onClick={() => commit({ kind: "HONG" })}
             >
               Hỏng
             </button>
             <button
               type="button"
-              className={line.kind === "MAT" ? L.statusWarn : "text-[11px] font-medium text-slate-500"}
+              className={line.kind === "MAT" ? L.statusWarn : "text-xs font-medium text-slate-500"}
               onClick={() => commit({ kind: "MAT" })}
             >
               Mất
@@ -189,7 +189,7 @@ export default function InstrumentSetReconcileRow({
         {onRemove ? (
           <button
             type="button"
-            className="mt-0.5 text-[11px] font-medium text-slate-500"
+            className="mt-0.5 text-xs font-medium text-slate-500"
             onClick={onRemove}
           >
             {removed ? "Hoàn tác xóa" : line.kind === "THEM_DONG" ? "Bỏ dòng mới" : "Xóa khỏi bộ (chờ duyệt)"}
