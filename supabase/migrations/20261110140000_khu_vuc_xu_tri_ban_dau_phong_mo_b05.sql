@@ -1,5 +1,6 @@
 -- Bổ sung sau 20261110130000 (PO 2026-11-10), trạng thái cuối đã chốt:
--- - Thêm KV_XU_TRI_BAN_DAU (phòng tiếp đón / xử trí ban đầu) cho A27, A05, B11; A27 thay KV_CAP_CUU bằng khu này.
+-- - Thêm KV_XU_TRI_BAN_DAU (phòng tiếp đón / xử trí ban đầu) cho A27, A05, B11; cả 3 khoa thay KV_CAP_CUU bằng khu này
+--   (PO 2026-11-11: A05 có khu tiếp đón + phòng hồi sức cấp cứu = KV_HOI_SUC; B11 giống A27).
 -- - B05 giữ 4 khu: Phòng mổ/can thiệp, Hồi tỉnh, Cách ly, Khu chung. Phòng mổ cấp cứu/phiên và áp lực dương/âm
 --   là đặc điểm của phòng mổ, ghi ở vi_tri, KHÔNG phải khu vực.
 -- Quy đổi dữ liệu chỉ cho A27/A05/B11. vi_tri/vi_tri_cu_the không bị sửa.
@@ -15,7 +16,7 @@ ON CONFLICT (category_type, code) DO UPDATE
 UPDATE public.mdm_dm_khoa_phong SET specs = jsonb_set(specs,'{allowed_khu_vucs}',
   (SELECT to_jsonb(array_agg(DISTINCT v ORDER BY v)) FROM (
      SELECT e AS v FROM jsonb_array_elements_text(specs->'allowed_khu_vucs') e
-      WHERE NOT (k.ma_khoa = 'A27' AND e = 'KV_CAP_CUU')
+      WHERE e <> 'KV_CAP_CUU'
      UNION SELECT 'KV_XU_TRI_BAN_DAU') s))
  FROM (SELECT ma_khoa FROM public.mdm_dm_khoa_phong) k
  WHERE public.mdm_dm_khoa_phong.ma_khoa = k.ma_khoa AND k.ma_khoa IN ('A05','A27','B11');
