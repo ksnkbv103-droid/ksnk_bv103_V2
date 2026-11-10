@@ -63,7 +63,7 @@ const CSSDCatalogDeNghiTab = dynamic(
 
 const DungCuQuanLyTab = dynamic(
   () =>
-    import("@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuQuanLyTab").then((m) => ({
+    import("@/modules/cssd-erp/contexts/instrument-catalog/admin/DungCuQuanLyTab").then((m) => ({
       default: m.DungCuQuanLyTab,
     })),
   { loading: () => panelFallback },

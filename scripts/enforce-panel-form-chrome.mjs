@@ -15,7 +15,7 @@ const SKIP = new Set([
   "src/modules/giam-sat-chung/components/GiamSatChungForm.tsx",
   "src/modules/giam-sat-vst/components/VSTForm.tsx",
   "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
-  "src/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels.tsx",
+  "src/modules/dieu-hanh-khoa/PheDuyetDungCuPanel.tsx",
 ]);
 
 function walk(dir, out = []) {

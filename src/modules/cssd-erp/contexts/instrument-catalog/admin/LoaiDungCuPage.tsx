@@ -5,12 +5,12 @@ import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
-import { smartImportData } from "../actions/smart-import.actions";
-import { getMasterDataExport } from "../actions/export.actions";
+import { smartImportData } from "@/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions";
+import { getMasterDataExport } from "@/modules/quan-tri-he-thong/danh-muc/actions/export.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import LoaiDungCuFormModal from "./loai-dung-cu-form-modal";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -22,7 +22,7 @@ import {
   softDeleteLoaiDungCuAction,
   softDeleteManyLoaiDungCuAction,
   toggleLoaiDungCuStatusAction,
-} from "../actions/loai-dung-cu.actions";
+} from "@/modules/quan-tri-he-thong/danh-muc/actions/loai-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 import { LoaiBulkPhuongPhapDialog } from "./loai-bulk-phuong-phap-dialog";
 

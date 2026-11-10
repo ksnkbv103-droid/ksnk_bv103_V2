@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCatalogDeNghiCart } from "./CatalogDeNghiCart";
-import { LoaiDungCuTypeahead } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/loai-dung-cu-typeahead";
+import { LoaiDungCuTypeahead } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu-typeahead";
 
 type Kind = "LOAI" | "BO" | "BOM";
 

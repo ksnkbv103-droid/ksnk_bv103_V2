@@ -12,7 +12,7 @@ import {
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import { CatalogDeNghiDiff } from "@/components/shared/CatalogDeNghiDiff";
-import { SetReconcileHistoryList } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/SetReconcileHistoryList";
+import { SetReconcileHistoryList } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/SetReconcileHistoryList";
 
 /** Tab Phiếu — bấm một dòng để xem Cũ → Mới và in. Hàng đợi duyệt (ADMIN) hiện phía trên, gắn ở trang. */
 export function CSSDCatalogDeNghiTab() {

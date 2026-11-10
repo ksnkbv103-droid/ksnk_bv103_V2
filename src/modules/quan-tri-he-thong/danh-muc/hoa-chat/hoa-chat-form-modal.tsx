@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
+import BoDungCuTextField from "../../components/bo-dung-cu-form-field";
 import type { HoaChatNhomRow, HoaChatRow } from "../actions/hoa-chat.types";
 import { saveHoaChatAction } from "../actions/hoa-chat.actions";
 import { listHoaChatNhomAction } from "../actions/hoa-chat-nhom.actions";

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
+import BoDungCuTextField from "../../components/bo-dung-cu-form-field";
 import ThietBiPrintQrButton from "@/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button";
 import { ThietBiLoaiMayField } from "./thiet-bi-loai-may-field";
 import type { ThietBiRow } from "../actions/thiet-bi.types";

@@ -7,7 +7,7 @@ import {
   approveCatalogDeNghiAction,
   listPendingCatalogDeNghiAction,
   rejectCatalogDeNghiAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/catalog-de-nghi-approve.actions";
+} from "@/modules/cssd-erp/contexts/instrument-catalog/admin/catalog-de-nghi-approve.actions";
 import {
   approveSetReconcileBomAction,
   listPendingBomApprovalsAction,

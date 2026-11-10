@@ -4,16 +4,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "./bo-dung-cu-form-field";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import BoDungCuTextField from "@/modules/quan-tri-he-thong/components/bo-dung-cu-form-field";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import {
   DungCuChiTietFormValues,
   DungCuChiTietTableRow,
   mapChiTietRowToForm,
 } from "./dung-cu-chi-tiet-form-shared";
-import { saveDungCuChiTietAction } from "../actions/dung-cu-chi-tiet.actions";
+import { saveDungCuChiTietAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/dung-cu-chi-tiet.actions";
 import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
 
 type BoOpt = { id: string; ma_bo: string | null; ten_bo: string | null };
 type LoaiOpt = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };

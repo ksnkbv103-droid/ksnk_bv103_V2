@@ -23,23 +23,23 @@ import {
   BoDungCuChiTietAllocSection,
   type AllocationRow,
 } from "./bo-dung-cu-chi-tiet-alloc-section";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
 import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
-} from "../actions/bo-dung-cu-chi-tiet-read.actions";
+} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu-chi-tiet-read.actions";
 import {
   getBoDungCuAllocationsAction,
   getKhoaPhongOptionsForBoAction,
-} from "../actions/bo-dung-cu.actions";
-import { mergeDuplicateBomLinesAction } from "../actions/dung-cu-chi-tiet.actions";
+} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
+import { mergeDuplicateBomLinesAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/dung-cu-chi-tiet.actions";
 import type {
   BoRefByLoai,
   BoDungCuChiTietPreviewRow,
-} from "../actions/bo-dung-cu-chi-tiet.types";
+} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu-chi-tiet.types";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 type Props = {

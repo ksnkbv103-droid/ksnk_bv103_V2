@@ -3,7 +3,7 @@ import type { Column } from "@/components/shared/AdvancedDataTable";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import BoDungCuPrintQrButton from "./bo-dung-cu-print-qr-button";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
 import { sterileMethodLabel } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 

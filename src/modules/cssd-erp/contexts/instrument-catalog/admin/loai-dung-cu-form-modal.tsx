@@ -4,8 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import { saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { saveLoaiDungCuAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/loai-dung-cu.actions";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 import {
   mapIsChiuNhietToKhaNang,
   isSteamMethod,
@@ -18,7 +18,7 @@ import {
   type CssdSpaulding,
   type CssdSterileMethod,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
 
 type FormData = {
   id?: string;

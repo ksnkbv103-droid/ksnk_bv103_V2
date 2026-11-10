@@ -7,7 +7,7 @@ describe("CSSD-07/08/10 P2", () => {
     const packaging = readFileSync("src/lib/domain/cssd-packaging-rules.ts", "utf8");
     const loaiMap = readFileSync("src/lib/master-data/cssd-loai-dung-cu-map.ts", "utf8");
     const form = readFileSync(
-      "src/modules/quan-tri-he-thong/danh-muc/dung-cu/loai-dung-cu-form-modal.tsx",
+      "src/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu-form-modal.tsx",
       "utf8",
     );
     expect(waiting).toMatch(/Trả về Làm sạch/);

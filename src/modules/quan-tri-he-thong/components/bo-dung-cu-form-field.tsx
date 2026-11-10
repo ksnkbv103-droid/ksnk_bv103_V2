@@ -1,5 +1,5 @@
 import React from "react";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 interface Props {
   label: string;

@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { smartImportData } from "../actions/smart-import.actions";
-import { getMasterDataExport } from "../actions/export.actions";
+import { smartImportData } from "@/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions";
+import { getMasterDataExport } from "@/modules/quan-tri-he-thong/danh-muc/actions/export.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import BoDungCuFormModal from "./bo-dung-cu-form-modal";
@@ -26,7 +26,7 @@ import {
   softDeleteBoDungCuAction,
   softDeleteManyBoDungCuAction,
   toggleBoDungCuStatusAction,
-} from "../actions/bo-dung-cu.actions";
+} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () => void }) {
