@@ -157,19 +157,19 @@ export default function MdmGovernanceView() {
       header: "Bảng nghiệp vụ",
       accessorKey: "table_name",
       sortable: true,
-      cell: (r) => <span className="font-mono font-bold text-slate-700 text-[11px]">{r.table_name}</span>
+      cell: (r) => <span className="font-mono font-bold text-slate-700 text-xs">{r.table_name}</span>
     },
     {
       header: "Cột khóa ngoại",
       accessorKey: "column_name",
       sortable: true,
-      cell: (r) => <span className="font-mono font-bold text-emerald-600 text-[11px]">{r.column_name}</span>
+      cell: (r) => <span className="font-mono font-bold text-emerald-600 text-xs">{r.column_name}</span>
     },
     {
       header: "Vai trò trường",
       accessorKey: "field_role",
       cell: (r) => (
-        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
           {r.field_role}
         </span>
       )
@@ -178,7 +178,7 @@ export default function MdmGovernanceView() {
       header: "Loại danh mục liên kết",
       accessorKey: "source_loai_danh_muc",
       cell: (r) => (
-        <span className="font-mono font-bold text-teal-600 text-[11px]">
+        <span className="font-mono font-bold text-teal-600 text-xs">
           {r.source_loai_danh_muc || <span className="bv103-type-note">N/A</span>}
         </span>
       )
@@ -203,11 +203,11 @@ export default function MdmGovernanceView() {
           title={r.is_active ? "Trigger đang BẬT. Click để TẮT" : "Trigger đang TẮT. Click để BẬT"}
         >
           {r.is_active ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
               <ToggleRight className="w-6 h-6" /> ACTIVE
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400">
               <ToggleLeft className="w-6 h-6" /> INACTIVE
             </span>
           )}
@@ -248,7 +248,7 @@ export default function MdmGovernanceView() {
       <h2 className={bv103DesignTokens.sectionTitle}>Bảo vệ liên kết dữ liệu</h2>
 
       <p className={`${bv103LayoutChrome.noticeAmber} mb-4`} role="note">
-        IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>
+        IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-xs">npm run mdm:refresh</code>
         . Danh mục thường ở Trung tâm danh mục.
       </p>
 
@@ -338,7 +338,7 @@ export default function MdmGovernanceView() {
             <div className="space-y-[var(--bv103-space-3)]">
               <div className="p-3.5 bg-emerald-50/20 border border-emerald-100 rounded-xl flex items-start gap-2.5">
                 <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <p className="text-slate-600 leading-relaxed text-[11px]">
+                <p className="text-slate-600 leading-relaxed text-xs">
                   Danh sách dưới đây liệt kê các trường khóa ngoại trỏ tới <strong>sys_lookup_value</strong> được giám sát toàn vẹn. Mỗi khi bạn bật kích hoạt (ACTIVE), trigger <code>fn_mdm_validate_lookup_integrity</code> ở Postgres sẽ tự động kiểm soát khớp loại danh mục bắt buộc và chặn đứng ghi đè dữ liệu rác.
                 </p>
               </div>
@@ -354,7 +354,7 @@ export default function MdmGovernanceView() {
             <div className="space-y-[var(--bv103-space-3)]">
               <div className="p-3.5 bg-amber-50/20 border border-amber-100 rounded-xl flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-slate-600 leading-relaxed text-[11px]">
+                <p className="text-slate-600 leading-relaxed text-xs">
                   Hệ thống tự động phát hiện các cột khóa ngoại <code>*_id</code> hoặc cột text enum thô mới được thêm vào database nhưng chưa được bảo vệ. Hãy bấm **&quot;Thiết lập Bảo vệ&quot;** để cấu hình và tự động đính kèm trigger cứng mức cơ sở dữ liệu.
                 </p>
               </div>
@@ -377,15 +377,15 @@ export default function MdmGovernanceView() {
                         <div className="flex justify-between items-start gap-2">
                           <div>
                             <span className="block max-w-[200px] truncate font-mono text-xs font-semibold text-slate-700">{s.table_name}</span>
-                            <span className="font-mono font-bold text-amber-600 text-[11px] block mt-0.5">↳ {s.column_name}</span>
+                            <span className="font-mono font-bold text-amber-600 text-xs block mt-0.5">↳ {s.column_name}</span>
                           </div>
-                          <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-semibold ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
+                          <span className={`inline-flex px-2 py-0.5 rounded text-xs font-semibold ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
                             {s.suggestion_type}
                           </span>
                         </div>
 
                         {/* Description reason */}
-                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <p className="text-xs text-slate-500 leading-relaxed font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                           {s.reason}
                         </p>
 
@@ -403,14 +403,14 @@ export default function MdmGovernanceView() {
                         <button
                           type="button"
                           onClick={() => handleRejectSuggestion(s)}
-                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-600"
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-600"
                         >
                           Bỏ qua
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenApprove(s)}
-                          className="flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-[var(--primary-hover)] active:translate-y-[1px]"
+                          className="flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[var(--primary-hover)] active:translate-y-[1px]"
                         >
                           <Plus className="w-3 h-3 shrink-0" />
                           Thiết lập Bảo vệ
