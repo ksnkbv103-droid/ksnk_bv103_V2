@@ -1,5 +1,5 @@
 -- Sửa CHECK dấu số lượng kho dụng cụ: cho phép «Nhập kho mới».
--- CHƯA APPLY PROD — chờ PO.
+-- ĐÃ APPLY PROD 2026-11-10 (version prod 20261110044338).
 --
 -- Lý do: CHECK `cssd_fact_kho_giao_dich_dau_so_luong_check` (20261012163313) bắt NHAP_KHO luôn < 0
 -- (trả từ bộ về kho). Nhưng receiveNewInstrumentsAction (cssd-lifecycle.actions.ts) ghi NHAP_KHO +qty
@@ -29,7 +29,7 @@ ALTER TABLE public.cssd_fact_kho_giao_dich
 
 COMMIT;
 
--- CHƯA APPLY PROD — chờ PO. Kiểm prod (chỉ đọc):
+-- ĐÃ APPLY PROD 2026-11-10 (version prod 20261110044338). Kiểm prod (chỉ đọc):
 --   SELECT convalidated, pg_get_constraintdef(oid) FROM pg_constraint
 --   WHERE conname = 'cssd_fact_kho_giao_dich_dau_so_luong_check';
---   SELECT version FROM supabase_migrations.schema_migrations WHERE version = '20261110130000';
+--   SELECT version FROM supabase_migrations.schema_migrations WHERE version = '20261110044338';
