@@ -22,7 +22,7 @@ interface Props {
 }
 
 const chipBase =
-  "inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[11px] font-semibold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1";
+  "inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-xs font-semibold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1";
 
 const EMPTY: QlcvBoardGateCounts = { myTasks: 0, inProgress: 0, overdue: 0, choToi: 0, watching: 0 };
 
@@ -126,7 +126,7 @@ export function QlcvGateStats({
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
     <div
-      className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-50/80 px-2.5 py-1.5 text-[11px] text-slate-700"
+      className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-50/80 px-2.5 py-1.5 text-xs text-slate-700"
       title="Số việc, % hoàn thành và % quá hạn tính trên bảng đang xem. Chip đếm bên dưới là toàn viện."
     >
       <span>
@@ -148,7 +148,7 @@ export function QlcvGateStats({
         </strong>
       </span>
     </div>
-    <p className="bv103-type-label text-[11px] font-medium text-slate-500">Chip đếm: toàn viện</p>
+    <p className="bv103-type-label text-xs font-medium text-slate-500">Chip đếm: toàn viện</p>
     <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
       {actorStaffId
         ? chip(

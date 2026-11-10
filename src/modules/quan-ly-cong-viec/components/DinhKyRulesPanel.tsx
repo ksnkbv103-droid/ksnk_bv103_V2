@@ -502,7 +502,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
         <p className={`${bv103LayoutChrome.labelBlock}`}>Mẫu đã lưu ({loading ? "…" : rows.length})</p>
         <div className="mt-2 max-h-[min(22rem,50vh)] overflow-auto rounded-xl border border-slate-100">
           <table className="w-full min-w-[20rem] text-left text-sm">
-            <thead className="sticky top-0 z-[1] bg-slate-50 text-[11px] font-medium text-slate-500">
+            <thead className="sticky top-0 z-[1] bg-slate-50 text-xs font-medium text-slate-500">
               <tr>
                 <th className="p-3">Tiêu đề</th>
                 <th className="p-3">Chu kỳ</th>
@@ -543,7 +543,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                       {(() => {
                         const { label, cls } = labelMucDoUuTien(r.muc_do_uu_tien);
                         return (
-                          <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>
                             {label}
                           </span>
                         );
@@ -598,7 +598,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan, onAfterSp
                         </button>
                       </div>
                     </td>
-                    <td className="max-w-[14rem] p-3 text-[11px] leading-snug text-slate-500">
+                    <td className="max-w-[14rem] p-3 text-xs leading-snug text-slate-500">
                       {r.is_active ? previewSpawnLabels(r.ma_chu_ky, r.ngay_bat_dau, r.ngay_ket_thuc) : "—"}
                     </td>
                   </tr>

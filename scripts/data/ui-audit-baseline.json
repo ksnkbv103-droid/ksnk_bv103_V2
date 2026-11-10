@@ -3,11 +3,11 @@
   "metrics": {
     "radiusArbitrary": 314,
     "radiusMd": 56,
-    "radiusLg": 319,
+    "radiusLg": 318,
     "radiusXl": 234,
     "radius2xl": 17,
     "heightArbitrary": 172,
-    "text11px": 672,
+    "text11px": 380,
     "textSubRem": 0,
     "fontHeavy": 188,
     "shadowHeavy": 17,

@@ -94,7 +94,7 @@ export default function CongViecKanban({
 
   return (
     <div className="space-y-1.5">
-    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+    <p className="px-0.5 text-xs leading-snug text-slate-500">
       Kanban: <span className="font-semibold text-slate-600">7 mã trạng thái → 5 cột</span>
       {" "}(quá hạn là nhãn trên thẻ, không cột riêng; đề xuất tách cột khi bật).
     </p>
@@ -114,11 +114,11 @@ export default function CongViecKanban({
             <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
               <div className="flex min-w-0 items-center gap-2">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${col.dot}`} />
-                <h3 className="truncate text-[11px] font-medium text-slate-500">
+                <h3 className="truncate text-xs font-medium text-slate-500">
                   {col.title}
                 </h3>
               </div>
-              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">
                 {colTasks.length}
               </span>
             </div>
@@ -143,7 +143,7 @@ export default function CongViecKanban({
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[11px] font-semibold normal-case ${getPriorityStyle(task.muc_do_uu_tien)}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-semibold normal-case ${getPriorityStyle(task.muc_do_uu_tien)}`}
                       >
                         {formatMucDoUuTienLabel(task.muc_do_uu_tien)}
                       </span>
@@ -153,19 +153,19 @@ export default function CongViecKanban({
                     </div>
 
                     {showSubtitle ? (
-                      <p className="mb-1 text-[11px] font-medium normal-case leading-snug text-slate-500">
+                      <p className="mb-1 text-xs font-medium normal-case leading-snug text-slate-500">
                         {getCongViecTrangThaiLabel(task)}
                       </p>
                     ) : null}
 
                     {isQlcvBoardOverdue(task) ? (
-                      <p className="mb-1 text-[11px] font-semibold text-red-700">Quá hạn</p>
+                      <p className="mb-1 text-xs font-semibold text-red-700">Quá hạn</p>
                     ) : null}
                     <h4 className="mb-1 line-clamp-2 text-sm font-semibold leading-tight text-slate-800">{task.tieu_de}</h4>
                     <div className="mb-2">
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
                       {task.nhom_chuyen_mon_ten ? (
-                        <span className="ml-1.5 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        <span className="ml-1.5 rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">
                           {task.nhom_chuyen_mon_ten}
                         </span>
                       ) : null}
@@ -217,7 +217,7 @@ export default function CongViecKanban({
                               if (td.empty) return null;
                               return (
                                 <div className="mt-0.5 flex flex-wrap items-center gap-0.5" title={`Theo dõi: ${td.title}`}>
-                                  <span className="text-[11px] font-medium text-teal-700">TĐ:</span>
+                                  <span className="text-xs font-medium text-teal-700">TĐ:</span>
                                   {td.chips.map((c) => (
                                     <span
                                       key={c.id}
@@ -238,7 +238,7 @@ export default function CongViecKanban({
 
                       <div className="flex shrink-0 items-center gap-1">
                         <Clock size={12} className="text-[var(--primary)]" aria-hidden />
-                        <span className="text-[11px] font-mono text-[11px] font-medium text-[var(--primary)]">{task.phan_tram_hoan_thanh || 0}%</span>
+                        <span className="text-xs font-mono text-xs font-medium text-[var(--primary)]">{task.phan_tram_hoan_thanh || 0}%</span>
                       </div>
                     </div>
 
@@ -246,7 +246,7 @@ export default function CongViecKanban({
                 );
               })}
               {colTasks.length === 0 && (
-                <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-200 py-6 text-center text-[11px] font-medium text-slate-400">
+                <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-200 py-6 text-center text-xs font-medium text-slate-400">
                   Trống
                 </div>
               )}
