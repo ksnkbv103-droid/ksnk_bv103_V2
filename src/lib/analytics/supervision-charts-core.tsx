@@ -46,12 +46,14 @@ export function SupervisionKpiRow({
   items: { label: string; value: string | number }[];
 }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]">
       {items.map((k) => (
-        <p key={k.label} className="text-sm text-slate-600">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{k.label}</span>{" "}
-          <span className="font-semibold tabular-nums text-slate-800">{loading ? "…" : k.value}</span>
-        </p>
+        <div key={k.label} className="bv103-card flex min-h-32 flex-col justify-between gap-3 p-5">
+          <span className="text-sm font-medium leading-snug text-slate-500">{k.label}</span>
+          <span className="bv103-type-kpi-lg font-semibold leading-none tabular-nums text-slate-900">
+            {loading ? "…" : k.value}
+          </span>
+        </div>
       ))}
     </div>
   );

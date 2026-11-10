@@ -158,7 +158,7 @@ export function GscBkAnalyticsDashboard({
         <details className="rounded-xl border border-slate-200 bg-white">
           <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
             Ma trận phân tích (chức năng phòng, đối tượng, hình thức…)
-            <span className="mt-0.5 block text-[11px] font-normal text-slate-400">Mở để xem chi tiết</span>
+            <span className="mt-0.5 block text-xs font-normal text-slate-400">Mở để xem chi tiết</span>
           </summary>
           <div className="border-t border-slate-100 px-4 pb-4 pt-2">
             <SupervisionCompareAccordion sections={compareSections} loading={loading} />
@@ -190,14 +190,14 @@ function GscCriterionTable({
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-slate-800">Tiêu chí trong bảng kiểm</h3>
-      <p className="text-[11px] text-slate-500">
+      <p className="text-xs text-slate-500">
         Tiêu chí yếu trước. Bấm một dòng để xem số theo khoa bên phải.
       </p>
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <ResponsiveTableShell maxHeight="max-h-[min(360px,50dvh)]">
           <table className="w-full min-w-[480px] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
                 <th className="px-2.5 py-1.5 text-left">Tiêu chí</th>
                 <th className="px-2.5 py-1.5 text-right">Quan sát</th>
                 <th className="px-2.5 py-1.5 text-right">Vi phạm</th>
@@ -240,7 +240,7 @@ function GscCriterionTable({
           <ResponsiveTableShell maxHeight="max-h-[min(360px,50dvh)]">
             <table className="w-full min-w-[320px] border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500">
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
                   <th className="px-2.5 py-1.5 text-left">
                     Khoa{selected ? ` · ${selected.ten_tieu_chi}` : ""}
                   </th>
@@ -264,7 +264,7 @@ function GscCriterionTable({
             </table>
           </ResponsiveTableShell>
         ) : (
-          <p className="self-center text-[11px] text-slate-400">
+          <p className="self-center text-xs text-slate-400">
             {selected ? "Không có số theo khoa cho tiêu chí này." : "Bấm một tiêu chí để xem khoa."}
           </p>
         )}

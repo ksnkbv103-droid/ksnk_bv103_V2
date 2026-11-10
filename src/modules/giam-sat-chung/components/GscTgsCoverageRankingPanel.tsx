@@ -71,7 +71,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
       ) : null}
 
       {data ? (
-        <p className="text-[11px] text-slate-500">
+        <p className="text-xs text-slate-500">
           {data.rows.length} khoa có nghĩa vụ tự giám sát · {data.so_khoa_khong_ap_dung} khoa{" "}
           {TGS_BK_CELL_LABELS.khong_ap_dung.toLowerCase()} (không có BK bắt buộc trong phạm vi)
         </p>

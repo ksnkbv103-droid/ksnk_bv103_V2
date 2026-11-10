@@ -93,7 +93,7 @@ function BkTable({ rows, showStatus }: { rows: Row[]; showStatus: boolean }) {
                   <td className="py-3 pr-3">
                     <TanSuatLabel row={row} />
                     {row.tan_suat_label ? (
-                      <p className="mt-1 text-[11px] font-medium text-slate-500">{row.tan_suat_label}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-500">{row.tan_suat_label}</p>
                     ) : null}
                   </td>
                 </>
