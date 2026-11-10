@@ -23,7 +23,7 @@ export function MdmActiveToggle({
     size === "sm"
       ? "h-[2.75rem] min-w-[11rem] sm:h-[28px] sm:min-w-[148px]"
       : "h-[2.75rem] min-w-[11.5rem] sm:h-[34px] sm:min-w-[168px]";
-  const textSize = size === "sm" ? "text-[11px]" : "text-[11px]";
+  const textSize = size === "sm" ? "text-xs" : "text-xs";
 
   const track = cn(
     "inline-flex shrink-0 select-none items-center gap-0.5 rounded-lg bg-slate-100/95 p-[3px] ring-1 ring-slate-200/90 [-webkit-tap-highlight-color:transparent]",
@@ -35,14 +35,14 @@ export function MdmActiveToggle({
   );
 
   const left = cn(
-    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 text-[11px] font-medium transition-colors duration-150",
+    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 text-xs font-medium transition-colors duration-150",
     textSize,
     !active
       ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/75"
       : "text-slate-500",
   );
   const right = cn(
-    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 text-[11px] font-medium transition-colors duration-150",
+    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 text-xs font-medium transition-colors duration-150",
     textSize,
     active
       ? "bg-[var(--primary)] text-white shadow-sm ring-1 ring-black/10"
@@ -94,14 +94,14 @@ export function MdmFormActiveToggleRow({
 }) {
   return (
     <div className="space-y-1">
-      <div className="text-[11px] font-medium text-slate-500">Trạng thái hoạt động</div>
+      <div className="text-xs font-medium text-slate-500">Trạng thái hoạt động</div>
       <MdmActiveToggle
         active={active}
         onToggle={disabled ? undefined : () => onChange(!active)}
         disabled={disabled}
         size="md"
       />
-      <p className="text-[11px] leading-relaxed text-slate-500">{footnote ?? defaultFormFootnote}</p>
+      <p className="text-xs leading-relaxed text-slate-500">{footnote ?? defaultFormFootnote}</p>
     </div>
   );
 }

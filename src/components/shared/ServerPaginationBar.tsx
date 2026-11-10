@@ -30,7 +30,7 @@ export default function ServerPaginationBar({
   return (
     <div className="flex flex-col items-center justify-between gap-3 px-2 py-3 sm:flex-row">
       {/* Thông tin */}
-      <p className="text-[11px] font-semibold text-slate-500 tabular-nums">
+      <p className="text-xs font-semibold text-slate-500 tabular-nums">
         {totalCount === 0 ? (
           "Không có dữ liệu"
         ) : (
@@ -68,7 +68,7 @@ export default function ServerPaginationBar({
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          <span className="flex h-11 min-w-[4.5rem] items-center justify-center rounded-xl bg-[var(--primary-light)] px-3 text-[11px] font-bold text-[var(--primary)] tabular-nums ring-1 ring-[var(--primary)]/10 sm:h-9">
+          <span className="flex h-11 min-w-[4.5rem] items-center justify-center rounded-xl bg-[var(--primary-light)] px-3 text-xs font-bold text-[var(--primary)] tabular-nums ring-1 ring-[var(--primary)]/10 sm:h-9">
             {page} / {totalPages}
           </span>
 
