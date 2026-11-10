@@ -14,7 +14,7 @@ import type {
   VSTPersonUpdatableField,
 } from "../hooks/useVSTFormHandlers";
 import RegistrySelect from "@/components/shared/RegistrySelect";
-import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import FloatingInput from "@/components/shared/FloatingInput";
 
 interface VSTPersonColumnProps {
   person: VSTFormPerson;
@@ -79,6 +79,7 @@ export default function VSTPersonColumn({
     });
 
   const filteredNhanSus = getFilteredNhanSus(khoaId, person.nghe_nghiep_id);
+  const doneCount = person.opportunities.filter((o) => o.isCollapsed && o.thoi_gian_ghi_nhan).length;
   const requireKhoa = !khoaId;
 
   const oppExpandLayoutKey = useMemo(
@@ -143,17 +144,23 @@ export default function VSTPersonColumn({
 
   return (
     <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden print:max-h-none print:overflow-visible">
-      <div className="shrink-0 space-y-3 border-b border-slate-100 px-3 py-3 print:border-b-0">
-        <p className="bv103-type-label font-semibold uppercase tracking-wide text-slate-500 !text-slate-500">
-          Nhân viên {pIdx + 1}
-        </p>
+      <div className="flex h-14 shrink-0 items-center justify-between gap-3 bv103-card-head px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-semibold text-white">
+            {pIdx + 1}
+          </span>
+          <p className="truncate bv103-type-body font-semibold text-slate-900">Nhân viên {pIdx + 1}</p>
+        </div>
+        <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+          {doneCount} cơ hội
+        </span>
+      </div>
 
+      <div className="shrink-0 border-b border-slate-100 p-4 print:border-b-0">
         <div className="space-y-3">
-          <div className="space-y-1">
-            <label className={C.labelField}>
-              Nghề nghiệp <span className="text-rose-600">*</span>
-            </label>
+          <div>
             <RegistrySelect
+              label="Nghề nghiệp *"
               loaiDanhMuc="NGHE_NGHIEP"
               placeholder="Chọn nghề nghiệp…"
               value={person.nghe_nghiep_id}
@@ -173,19 +180,19 @@ export default function VSTPersonColumn({
             />
           </div>
 
-          <div className="space-y-1">
-            <label className={C.labelField}>Tên nhân viên</label>
-            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-stretch">
+          <div>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch gap-2">
               {person.is_manual ? (
-                <input
-                  className={`${C.controlInput} w-full`}
-                  placeholder={requireKhoa ? "Chọn khoa trước…" : "Nhập họ tên…"}
+                <FloatingInput
+                  label={requireKhoa ? "Tên nhân viên (chọn khoa trước)" : "Tên nhân viên"}
+                  hint="Nhập họ tên…"
                   value={person.ten_manual}
                   onChange={(e) => updatePerson(pIdx, "ten_manual", e.target.value)}
                   disabled={requireKhoa}
                 />
               ) : (
                 <RegistrySelect
+                  label={requireKhoa ? "Tên nhân viên (chọn khoa trước)" : "Tên nhân viên"}
                   loaiDanhMuc="NHAN_SU"
                   placeholder={requireKhoa ? "Chọn khoa trước…" : "Chọn nhân viên…"}
                   searchPlaceholder="Gõ để tìm tên nhân viên..."
@@ -202,7 +209,7 @@ export default function VSTPersonColumn({
                 />
               )}
 
-              <label className="box-border flex h-[var(--bv103-control-h)] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:bg-slate-100 sm:w-36">
+              <label className="box-border flex h-[var(--bv103-control-h)] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:bg-slate-50">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs checkbox-primary rounded border-slate-300"
@@ -214,7 +221,7 @@ export default function VSTPersonColumn({
                     else updatePerson(pIdx, "ten_manual", "");
                   }}
                 />
-                <span className="uppercase tracking-wide">Ngoài DM</span>
+                <span>Ngoài DM</span>
               </label>
             </div>
           </div>
@@ -223,7 +230,7 @@ export default function VSTPersonColumn({
 
       <div
         ref={scrollContainerRef}
-        className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden overscroll-contain p-3 print:max-h-none print:overflow-visible"
+        className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden overscroll-contain p-4 print:max-h-none print:overflow-visible"
         aria-label={`Danh sách cơ hội — nhân viên ${pIdx + 1}`}
       >
         {person.opportunities.map((opp: ExtendedOpportunity, oIdx: number) => (

@@ -9,12 +9,12 @@ import {
   MomentType,
   ACTION_DISPLAY_LABEL,
   ACTION_UI_LABEL,
-  MOMENT_SHORT_CODE,
   MOMENT_DISPLAY_LABEL,
   MOMENT_UI_LABEL,
   isVstMissedAction,
   maxMomentsForAction,
   momentDisplayLabel,
+  momentWhoNumber,
 } from "../lib/vst-constants";
 import VSTAssessmentSection from "./VSTAssessmentSection";
 import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVSTFormHandlers";
@@ -55,27 +55,38 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Mọi ô chọn (thời điểm, hành động) cùng chiều cao và padding; thời điểm một hàng 5 cột. */
+/** Thang đều: ô hành động = --bv103-control-h (48px); ô thời điểm 56px (chữ WHO đầy đủ, tối đa 2 dòng). */
 const CELL_BASE =
-  "box-border flex h-11 w-full min-w-0 items-center justify-center overflow-hidden rounded border px-1 text-center transition-colors touch-manipulation";
-const MOMENT_CELL = `${CELL_BASE} flex-col !px-0.5`;
-const CELL = CELL_BASE;
-const CELL_IDLE = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
+  "box-border flex w-full min-w-0 items-center overflow-hidden rounded-[var(--radius-control)] border transition-colors touch-manipulation";
+const MOMENT_CELL = `${CELL_BASE} h-14 gap-3 px-3 text-left`;
+const CELL = `${CELL_BASE} h-[var(--bv103-control-h)] justify-center px-2 text-center`;
+const CELL_IDLE = "border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50";
 const CELL_ON = "border-[var(--primary)] bg-[var(--primary)] text-white";
 const CELL_MISS = "border-rose-800 bg-rose-800 text-white";
-const SECTION_HEAD = "flex h-7 items-center justify-between gap-2";
-const GRID_GAP = "gap-1.5";
+const SECTION_HEAD = "flex h-6 items-center justify-between gap-2";
+const GRID_GAP = "gap-2";
 
-function MomentCellLabel({ moment }: { moment: MomentType }) {
-  const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
+function MomentCellContent({ moment, active }: { moment: MomentType; active: boolean }) {
   return (
     <>
-      <span className="bv103-type-label w-full whitespace-nowrap text-center leading-none font-medium uppercase !text-inherit">
-        {timing}
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums ${
+          active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+        }`}
+      >
+        {momentWhoNumber(moment)}
       </span>
-      <span className="bv103-type-label w-full whitespace-nowrap text-center text-[0.625rem] leading-none font-semibold uppercase tracking-tight !text-inherit">
-        {MOMENT_SHORT_CODE[moment]}
-      </span>
+      <span className="line-clamp-2 min-w-0 flex-1 text-sm leading-snug font-medium">{momentDisplayLabel(moment)}</span>
+      <svg
+        aria-hidden
+        viewBox="0 0 20 20"
+        className={`h-5 w-5 shrink-0 ${active ? "opacity-100" : "opacity-0"}`}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2.2}
+      >
+        <path d="M4.5 10.5l3.5 3.5 7.5-8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </>
   );
 }
@@ -139,18 +150,15 @@ export default function VSTOpportunityForm({
   }
 
   return (
-    <div className="flex flex-col gap-4 py-2">
-      <section className="space-y-1.5">
+    <div className="flex flex-col gap-4">
+      <section className="space-y-2">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Thời điểm</h3>
-          <p className="bv103-type-label shrink-0 text-slate-500 !text-slate-500">
-            {isVstMissedAction(opp.hanh_dong) ? "Tối đa 1" : `Tối đa ${momentCap}`}
+          <p className="bv103-type-label shrink-0 tabular-nums text-slate-500 !text-slate-500">
+            Đã chọn {opp.thoi_diems.length}/{isVstMissedAction(opp.hanh_dong) ? 1 : momentCap}
           </p>
         </div>
-        <div
-          className={`grid ${GRID_GAP}`}
-          style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
-        >
+        <div className={`flex flex-col ${GRID_GAP}`}>
           {MOMENTS.map((m) => {
             const active = opp.thoi_diems.includes(m);
             return (
@@ -163,14 +171,14 @@ export default function VSTOpportunityForm({
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
                 className={`${MOMENT_CELL} ${active ? CELL_ON : CELL_IDLE}`}
               >
-                <MomentCellLabel moment={m} />
+                <MomentCellContent moment={m} active={active} />
               </button>
             );
           })}
         </div>
       </section>
 
-      <section className="space-y-1.5">
+      <section className="space-y-2">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Hành động</h3>
           <span className="bv103-type-label invisible select-none" aria-hidden>
@@ -198,7 +206,7 @@ export default function VSTOpportunityForm({
         </div>
       </section>
 
-      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-1.5">
+      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-2">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Đánh giá</h3>
           <span className="bv103-type-label invisible select-none" aria-hidden>

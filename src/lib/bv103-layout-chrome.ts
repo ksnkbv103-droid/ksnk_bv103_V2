@@ -18,7 +18,7 @@ const controlBase =
   "bv103-control-h w-full rounded-[var(--radius-control)] border border-slate-200 bg-white bv103-type-body text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 const choiceBtnBase =
-  "min-h-[2.75rem] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold transition-colors touch-manipulation";
+  "min-h-[var(--bv103-control-h)] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold transition-colors touch-manipulation";
 
 /** Nút lựa chọn trên một hàng ngang (checklist GSC) — không `w-full`. */
 const choiceBtnInline =
@@ -27,7 +27,10 @@ const choiceBtnInline =
 export const bv103LayoutChrome = {
   controlInput: `${controlBase} px-3`,
   controlSelectTrigger: `flex items-center text-left px-3.5 ${controlBase} hover:border-slate-300 hover:bg-slate-50/90 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`,
-  controlSelectNative: `${controlBase} px-3.5 text-xs font-semibold hover:bg-slate-50/50`,
+  controlSelectNative: `${controlBase} px-3.5 hover:bg-slate-50/50`,
+  /** Ô chọn có nhãn nổi trong ô (mẫu chuyên nghiệp 2026-11-11) — cao = --bv103-control-h (48px). */
+  controlFloatingTrigger: `flex items-center gap-2 text-left px-3.5 ${controlBase} hover:border-slate-300 hover:bg-slate-50/90 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`,
+  controlFloatingNative: `${controlBase} appearance-none pl-3.5 pr-9 hover:bg-slate-50/50`,
 
   labelField: "bv103-type-label",
   sectionTitle: "bv103-type-section",
@@ -51,7 +54,7 @@ export const bv103LayoutChrome = {
 
   segmentGroup: "inline-flex overflow-hidden rounded-[var(--radius-control)] border border-slate-200 shadow-sm",
   segmentBtn:
-    "min-w-[4.5rem] min-h-[2.75rem] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold transition-colors last:border-r-0",
+    "min-w-[4.5rem] min-h-[var(--bv103-control-h)] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold transition-colors last:border-r-0",
   segmentBtnIdle: "bg-white text-slate-600 hover:bg-slate-50",
   segmentBtnYes: "bg-[var(--primary)] text-white border-[var(--primary)]",
   segmentBtnNo: "bg-rose-600 text-white border-rose-600",

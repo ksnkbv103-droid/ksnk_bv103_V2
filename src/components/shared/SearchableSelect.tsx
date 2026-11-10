@@ -7,6 +7,7 @@ import { DismissableLayerBranch } from "@radix-ui/react-dismissable-layer";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import FloatingLabelContent from "./FloatingLabelContent";
 import {
   BV103_PICKER_PORTAL_ATTR,
   resolveBv103PickerPortalRoot,
@@ -36,6 +37,8 @@ type Props = {
   /** Ô gõ ngay trên trigger — tìm / dán mã / súng QR, không cần ô riêng. */
   inputTrigger?: boolean;
   endSlot?: React.ReactNode;
+  /** Nhãn nổi trong ô: rỗng = nhãn giữa ô; có giá trị = nhãn nhỏ phía trên, giá trị bên dưới. */
+  label?: string;
 };
 
 const normalizeSearchText = (value: string) =>
@@ -68,6 +71,7 @@ export default function SearchableSelect({
   allowCustom = false,
   inputTrigger = false,
   endSlot,
+  label,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -302,6 +306,16 @@ export default function SearchableSelect({
           }}
           className={`${bv103LayoutChrome.controlInput} min-w-0 flex-1 font-mono uppercase tracking-wide ${className}`}
         />
+      ) : label ? (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((v) => !v)}
+          aria-label={label}
+          className={`${bv103LayoutChrome.controlFloatingTrigger} min-w-0 flex-1 ${className}`}
+        >
+          <FloatingLabelContent label={label} value={selectedOption || (allowCustom && value) ? displayText : ""} />
+        </button>
       ) : (
         <button
           type="button"

@@ -20,6 +20,7 @@ import {
 } from "@/lib/supervision-session-time";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import RegistrySelect from "./RegistrySelect";
+import FloatingInput from "./FloatingInput";
 import { buildKhuVucFlatSelectOptions, filterKhuVucsForKhoa } from "@/lib/khu-vuc-giam-sat-ui";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -291,8 +292,8 @@ export default function GiamSatHeaderFields({
           }
         >
           <div id={essentialsOnly ? "vst-khoa-select-compact" : "vst-khoa-select"} className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className={C.labelField}>{essentialsOnly ? "Khoa" : "1. Khoa"}</label>
             <RegistrySelect
+              label="Khoa"
               loaiDanhMuc="KHOA_PHONG"
               value={session.khoa_id}
               onChange={(nextKhoaId: string) =>
@@ -316,8 +317,8 @@ export default function GiamSatHeaderFields({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className={C.labelField}>{essentialsOnly ? "Khu vực" : "2. Khu vực"}</label>
             <RegistrySelect
+              label="Khu vực"
               loaiDanhMuc="KHU_VUC_GIAM_SAT"
               value={session.khu_vuc_id}
               onChange={(nextKhuVucId: string) => setSession((prev: GiamSatSession) => ({ ...prev, khu_vuc_id: nextKhuVucId }))}
@@ -330,10 +331,9 @@ export default function GiamSatHeaderFields({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className={C.labelField}>{essentialsOnly ? "Vị trí" : "3. Số phòng / vị trí"}</label>
-            <input
-              className={C.controlInput}
-              placeholder={deferLocationHistoryUntilTyped ? "Gõ số phòng; gợi ý khi có chữ" : "Số phòng, giường, khu…"}
+            <FloatingInput
+              label={essentialsOnly ? "Vị trí" : "Số phòng / vị trí"}
+              hint={deferLocationHistoryUntilTyped ? "Gõ số phòng; gợi ý khi có chữ" : "Số phòng, giường, khu…"}
               autoComplete="off"
               value={session.vi_tri}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -360,16 +360,12 @@ export default function GiamSatHeaderFields({
           {!essentialsOnly ? (
             <>
               <div className="flex min-h-0 min-w-0 flex-col gap-1">
-                <label
-                  className={C.labelField}
-                  title="Tự suy từ khoa người giám sát và khoa được giám sát — không chọn tay."
-                >
-                  Hình thức giám sát (ai quan sát)
-                </label>
                 <div
-                  className={`${C.controlInput} flex items-center bg-slate-50 text-slate-700`}
-                  title="Chuyên trách = nhân sự Khoa KSNK · Tự giám sát = cùng khoa · Chéo = khác khoa"
+                  className={`${C.controlInput} flex flex-col justify-center gap-0.5 bg-slate-50 px-3.5 leading-tight`}
+                  title="Tự suy từ khoa người giám sát và khoa được giám sát — không chọn tay. Chuyên trách = nhân sự Khoa KSNK · Tự giám sát = cùng khoa · Chéo = khác khoa"
                 >
+                  <span className="text-xs font-medium text-slate-500">Hình thức giám sát</span>
+                  <span className="truncate font-semibold text-slate-700">
                   {derivedHinhThuc.label === HINH_THUC_CHUYEN_TRACH
                     ? "Chuyên trách"
                     : derivedHinhThuc.label === HINH_THUC_TU_GIAM_SAT
@@ -377,11 +373,12 @@ export default function GiamSatHeaderFields({
                       : derivedHinhThuc.label === HINH_THUC_GIAM_SAT_CHEO
                         ? "Chéo"
                         : derivedHinhThuc.label || "—"}
+                  </span>
                 </div>
               </div>
               <div className="flex min-h-0 min-w-0 flex-col gap-1">
-                <label className={C.labelField}>4. Cách thức thu thập</label>
                 <RegistrySelect
+                  label="Cách thức thu thập"
                   loaiDanhMuc="CACH_THUC_GIAM_SAT"
                   value={session.cach_thuc_id || ""}
                   onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, cach_thuc_id: nextId }))}
