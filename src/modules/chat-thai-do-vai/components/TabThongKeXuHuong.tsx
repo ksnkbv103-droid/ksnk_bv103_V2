@@ -223,7 +223,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xl font-bold text-slate-900 mt-1">
                   {stats.chat_thai.tong_chat_thai_kg.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Tất cả các nhóm chất thải</div>
+                <div className="text-xs text-slate-400 mt-1">Tất cả các nhóm chất thải</div>
               </div>
 
               {/* KPI 2 */}
@@ -238,7 +238,7 @@ export function TabThongKeXuHuong() {
                     {stats.chat_thai.ty_le_ctln_pct}%
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">
+                <div className="text-xs text-slate-400 mt-1">
                   {stats.chat_thai.tong_ctln_kg} kg &bull; Chuẩn &le; 20%
                 </div>
               </div>
@@ -249,7 +249,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xl font-bold text-amber-800 mt-1">
                   {stats.chat_thai.kg_sac_nhon.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Hộp kháng thủng màu vàng</div>
+                <div className="text-xs text-slate-400 mt-1">Hộp kháng thủng màu vàng</div>
               </div>
 
               {/* KPI 4 */}
@@ -259,7 +259,7 @@ export function TabThongKeXuHuong() {
                   {stats.chat_thai.chat_thai_per_1000_ngay_giuong.toLocaleString()}{" "}
                   <span className="text-xs font-normal text-slate-500">kg</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">trên 1.000 ngày-giường</div>
+                <div className="text-xs text-slate-400 mt-1">trên 1.000 ngày-giường</div>
               </div>
 
               {/* KPI 5 */}
@@ -268,7 +268,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xl font-bold text-slate-900 mt-1">
                   {stats.chat_thai.so_su_co} <span className="text-xs font-normal text-slate-500">vụ</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Rách túi, sai loại, mở nắp</div>
+                <div className="text-xs text-slate-400 mt-1">Rách túi, sai loại, mở nắp</div>
               </div>
             </div>
           </div>
@@ -289,7 +289,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xl font-bold text-slate-900 mt-1">
                   {stats.do_vai.tong_ban_kg.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Giao sang ĐVGL</div>
+                <div className="text-xs text-slate-400 mt-1">Giao sang ĐVGL</div>
               </div>
 
               {/* KPI 7 */}
@@ -298,7 +298,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xl font-bold text-rose-700 mt-1">
                   {stats.do_vai.ty_le_ban_ln_pct}%
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">
+                <div className="text-xs text-slate-400 mt-1">
                   {stats.do_vai.kg_ban_lay_nhiem} kg (túi vàng/tự tan)
                 </div>
               </div>
@@ -318,7 +318,7 @@ export function TabThongKeXuHuong() {
                   </span>
                   <span className="text-xs text-slate-500">kg ({stats.do_vai.ty_le_chenh_lech_pct}%)</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Sạch về: {stats.do_vai.kg_sach_ve} kg</div>
+                <div className="text-xs text-slate-400 mt-1">Sạch về: {stats.do_vai.kg_sach_ve} kg</div>
               </div>
 
               {/* KPI 9 */}
@@ -328,7 +328,7 @@ export function TabThongKeXuHuong() {
                   {stats.do_vai.do_vai_per_1000_ngay_giuong.toLocaleString()}{" "}
                   <span className="text-xs font-normal text-slate-500">kg</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">trên 1.000 ngày-giường</div>
+                <div className="text-xs text-slate-400 mt-1">trên 1.000 ngày-giường</div>
               </div>
 
               {/* KPI 10: Sự cố sắc nhọn đồ vải */}
@@ -347,7 +347,7 @@ export function TabThongKeXuHuong() {
                 >
                   {stats.do_vai.so_su_co_sac_nhon} <span className="text-xs font-normal">vụ</span>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1">Mục tiêu: 0 vụ (an toàn nghề nghiệp)</div>
+                <div className="text-xs text-slate-400 mt-1">Mục tiêu: 0 vụ (an toàn nghề nghiệp)</div>
               </div>
             </div>
           </div>
