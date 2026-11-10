@@ -13,6 +13,11 @@ import { resolveRecallPrintRows } from "../domain/cssd-batch-recall";
 import { buildBm01RecallTotals, readRecallMemberJson } from "../domain/cssd-batch-recall-hold";
 import { CSSD_RED_ALERT_DISPLAY_MIN } from "../domain/cssd-incident-attributes";
 import {
+  INCIDENT_STATUS_CONFIRMED,
+  INCIDENT_STATUS_LABEL,
+  readIncidentPhieuStatus,
+} from "../domain/cssd-incident-status";
+import {
   SET_RECONCILE_KIND_LABEL,
   formatLoaiDungCuLabel,
   setReconcileStatusLabel,
@@ -118,6 +123,7 @@ export default function IncidentPrintView({
   const machineHoldQc = detailsMap["MACHINE_HOLD_QC"] === "1";
   const setSnap = parseSetReconcileSnapshot(detailsMap["SET_RECONCILE_SNAPSHOT"]);
   const setStatus = detailsMap["SET_RECONCILE_STATUS"] || "";
+  const phieuStatus = readIncidentPhieuStatus(detailsMap);
 
   const directImageLink = useMemo(() => {
     return imageEvidence ? getGoogleDriveDirectLink(imageEvidence) : "";
@@ -220,9 +226,9 @@ export default function IncidentPrintView({
           </div>
           <div>
             <strong>Trạng thái phiếu:</strong>{" "}
-            {detailsMap["INCIDENT_STATUS"] === "DA_XAC_NHAN"
+            {phieuStatus === INCIDENT_STATUS_CONFIRMED
               ? `Đã xác nhận${detailsMap["INCIDENT_CONFIRMED_BY_NAME"] ? ` — ${detailsMap["INCIDENT_CONFIRMED_BY_NAME"]}` : ""}${detailsMap["INCIDENT_CONFIRMED_AT"] ? ` (${formatDateTimeVi(detailsMap["INCIDENT_CONFIRMED_AT"])})` : ""}`
-              : "Chưa xác nhận"}
+              : INCIDENT_STATUS_LABEL[phieuStatus]}
           </div>
           {nguoiPhatHien ? (
             <div>
