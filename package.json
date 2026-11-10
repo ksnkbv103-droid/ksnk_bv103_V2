@@ -16,6 +16,8 @@
     "verify:full": "npm run lint && npm run layout:drift-check && npm run layout:typography-check && npm run verify:cssd && npm run verify:engineering && npm run build",
     "docs:links:check": "node scripts/docs-links-check.mjs",
     "repo:hygiene": "node scripts/repo-hygiene-audit.mjs",
+    "sync:check": "SUPABASE_ACCESS_TOKEN=$(grep -m1 '^SUPABASE_ACCESS_TOKEN=' .env.local | cut -d= -f2-) node scripts/sync-check.mjs --linked",
+    "sync:check:local": "node scripts/sync-check.mjs --local --no-deploy",
     "local:golden:verify": "node scripts/local-golden-verify.mjs",
     "local:golden:reset": "npx supabase db reset --local && npm run mdm:migrate:local && npx tsx scripts/admin-rbac-sync.ts --local --with-presets",
     "dead-code:scan": "node scripts/dead-code-scan.mjs",
