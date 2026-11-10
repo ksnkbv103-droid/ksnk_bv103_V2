@@ -174,7 +174,7 @@ export default function SuCoBaoCaoPage() {
         )}
         {recent.length > 0 ? (
           <div className="border-t border-slate-200 pt-3">
-            <p className="mb-1 text-[11px] font-semibold text-slate-500">Phiếu gần đây của tôi</p>
+            <p className="mb-1 text-xs font-semibold text-slate-500">Phiếu gần đây của tôi</p>
             <ul>
               {recent.map((row) => (
                 <li
@@ -185,7 +185,7 @@ export default function SuCoBaoCaoPage() {
                     <p className="truncate text-xs font-semibold text-slate-800">
                       {row.incident_type_label || "Sự cố"} {row.ma_qr ? `· ${row.ma_qr}` : ""}
                     </p>
-                    <p className="truncate text-[11px] text-slate-500">
+                    <p className="truncate text-xs text-slate-500">
                       {row.incident_status_label} · {formatDateTimeVi(row.created_at)}{" "}
                       {row.mo_ta ? `— ${row.mo_ta}` : ""}
                     </p>
