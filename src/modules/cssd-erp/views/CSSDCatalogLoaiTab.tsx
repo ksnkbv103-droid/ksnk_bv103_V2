@@ -11,6 +11,7 @@ import {
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
 import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 
 export function CSSDCatalogLoaiTab(props: {
@@ -96,7 +97,7 @@ export function CSSDCatalogLoaiTab(props: {
                 <th className={L.th}>Công dụng</th>
                 <th className={`${L.th} text-center`}>Chịu nhiệt</th>
                 <th className={L.th}>Tiệt khuẩn</th>
-                <th className={`${L.th} ${L.colActions || ""}`}> </th>
+                <th className={`${L.th} ${L.colActionsWide}`}> </th>
               </tr>
             </thead>
             <tbody className={L.tbody}>
@@ -125,10 +126,10 @@ export function CSSDCatalogLoaiTab(props: {
                     </td>
                     <td className={`${L.td} text-center`}>{x.kha_nang_chiu_nhiet || "—"}</td>
                     <td className={L.td}>{x.phuong_phap_tiet_khuan || "—"}</td>
-                    <td className={`${L.td} ${L.colActions || ""}`} onClick={(e) => e.stopPropagation()}>
+                    <td className={`${L.td} ${L.colActionsWide}`} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="text-xs font-semibold text-[var(--primary)] hover:underline"
+                        className={C.tableActionBtn}
                         onClick={() =>
                           setDeNghi({
                             kind: "LOAI",
