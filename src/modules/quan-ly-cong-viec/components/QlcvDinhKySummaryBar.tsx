@@ -87,7 +87,7 @@ export function QlcvDinhKySummaryBar({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold text-slate-700"
+        className="flex min-h-10 w-full items-center justify-between gap-2 text-left text-sm font-semibold text-slate-700 touch-manipulation"
       >
         <span className="inline-flex items-center gap-2">
           <CalendarRange className="h-4 w-4 text-slate-500" aria-hidden />

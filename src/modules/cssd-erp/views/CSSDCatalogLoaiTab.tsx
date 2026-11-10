@@ -76,7 +76,7 @@ export function CSSDCatalogLoaiTab(props: {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="text-xs font-semibold text-[var(--primary)] hover:underline"
+              className={C.tableActionBtn}
             >
               + Đề nghị bổ sung loại
             </button>

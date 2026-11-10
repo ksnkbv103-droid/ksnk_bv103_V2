@@ -69,7 +69,7 @@ export function CSSDCatalogBoTab({
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="text-xs font-semibold text-[var(--primary)] hover:underline"
+            className={C.tableActionBtn}
           >
             + Đề nghị bổ sung bộ
           </button>
@@ -115,7 +115,7 @@ export function CSSDCatalogBoTab({
                           type="button"
                           disabled={printingId === x.id}
                           onClick={(e) => void handlePrintQr(e, x.id)}
-                          className="text-xs font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
+                          className={C.tableActionBtnPrimary}
                         >
                           {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
                           In

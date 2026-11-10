@@ -115,5 +115,5 @@ export const bv103LayoutChrome = {
     "flex shrink-0 flex-wrap items-center gap-x-2.5 gap-y-1 border-l border-slate-200/80 pl-3 max-sm:w-full max-sm:border-l-0 max-sm:pl-0",
   /** Secondary nav / docs / reconcile — lighter than primary-colored CTA links. */
   linkQuiet:
-    "inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-500 transition-colors hover:bg-slate-100/80 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex min-h-8 items-center rounded-md px-2 text-xs font-medium text-slate-500 transition-colors touch-manipulation max-sm:min-h-11 hover:bg-slate-100/80 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50",
 } as const;
