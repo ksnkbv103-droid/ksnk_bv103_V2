@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { Bv103Button } from "@/components/ui/bv103";
 
 interface GiamSatChungFormActionsProps {
   loading: boolean;
@@ -21,43 +21,24 @@ export default function GiamSatChungFormActions({
   onSave,
 }: GiamSatChungFormActionsProps) {
   return (
-    <div className="fixed bottom-8 right-8 z-20 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500 no-print">
-      {onPrintBlank ? (
-        <button
-          type="button"
-          onClick={onPrintBlank}
-          title="In mẫu bảng kiểm trống"
-          className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200 bg-white text-slate-700 shadow-[var(--shadow-app-soft)] transition-colors hover:bg-slate-50"
-        >
-          <span className="bv103-type-label font-semibold leading-tight">Mẫu</span>
-        </button>
-      ) : null}
-      <button
-        type="button"
-        onClick={onPrint}
-        title="In phiếu A4"
-        className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-800 text-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/10 transition-colors hover:bg-slate-900"
-      >
-        <span className="text-lg" aria-hidden>
-          🖨️
-        </span>
-      </button>
-
-      <button
-        type="button"
-        disabled={loading || headerLoading}
-        onClick={onSave}
-        className={`app-shell-focus ${C.btnPrimary} min-h-12 px-6 py-3 ring-1 ring-[var(--primary)]/20`}
-      >
+    <div className="fixed bottom-8 right-8 z-20 flex flex-col items-end gap-2 no-print">
+      <div className="flex gap-2">
+        {onPrintBlank ? (
+          <Bv103Button variant="secondary" onClick={onPrintBlank} title="In mẫu bảng kiểm trống">
+            In mẫu trống
+          </Bv103Button>
+        ) : null}
+        <Bv103Button variant="secondary" onClick={onPrint} title="In phiếu A4">
+          In / PDF
+        </Bv103Button>
+      </div>
+      <Bv103Button variant="primary" size="lg" disabled={loading || headerLoading} onClick={onSave}>
         {loading ? (
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
         ) : (
-          <>
-            <span className="bv103-type-title" aria-hidden>💾</span>
-            <span>Lưu kết quả</span>
-          </>
+          <span>Lưu kết quả</span>
         )}
-      </button>
+      </Bv103Button>
     </div>
   );
 }

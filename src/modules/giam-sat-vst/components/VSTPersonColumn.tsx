@@ -142,8 +142,8 @@ export default function VSTPersonColumn({
   }, [person.nghe_nghiep_id, person.nhan_vien_id, person.ten_manual]);
 
   return (
-    <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded border border-slate-200 bg-white print:max-h-none print:overflow-visible">
-      <div className="shrink-0 space-y-3 border-b border-slate-200 px-3 py-3 print:border-b-0">
+    <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden print:max-h-none print:overflow-visible">
+      <div className="shrink-0 space-y-3 border-b border-slate-100 px-3 py-3 print:border-b-0">
         <p className="bv103-type-label font-semibold uppercase tracking-wide text-slate-500 !text-slate-500">
           Nhân viên {pIdx + 1}
         </p>
@@ -202,7 +202,7 @@ export default function VSTPersonColumn({
                 />
               )}
 
-              <label className="box-border flex h-[var(--bv103-control-h)] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:border-slate-400 sm:w-36">
+              <label className="box-border flex h-[var(--bv103-control-h)] cursor-pointer items-center gap-2 rounded-[var(--radius-control)] px-3 bv103-type-label font-medium text-slate-600 !text-slate-600 transition-colors hover:bg-slate-100 sm:w-36">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs checkbox-primary rounded border-slate-300"
@@ -217,11 +217,6 @@ export default function VSTPersonColumn({
                 <span className="uppercase tracking-wide">Ngoài DM</span>
               </label>
             </div>
-            {requireKhoa ? (
-              <p className="bv103-type-label font-medium text-amber-700 !text-amber-700">
-                Chọn khoa trước để lọc danh sách nhân viên.
-              </p>
-            ) : null}
           </div>
         </div>
       </div>

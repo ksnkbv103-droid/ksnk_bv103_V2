@@ -75,7 +75,7 @@ function YesNoRow({
 export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment }: VSTAssessmentSectionProps) {
   if (opp.hanh_dong && opp.hanh_dong !== "Bỏ sót") {
     return (
-      <div className="rounded border border-slate-200 bg-white">
+      <div>
         <YesNoRow
           label="Kỹ thuật quan sát nhanh (phiếu WHO)"
           ariaLabel="Kỹ thuật quan sát nhanh phiếu WHO"
@@ -96,7 +96,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
 
   if (opp.hanh_dong === "Bỏ sót") {
     return (
-      <div className="rounded border border-slate-200 bg-white">
+      <div>
         <YesNoRow
           label="Đang mang găng (khi bỏ sót)?"
           ariaLabel="Đang mang găng khi bỏ sót"
@@ -110,7 +110,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   }
 
   return (
-    <div className="box-border flex h-14 items-center justify-center rounded border border-dashed border-slate-200">
+    <div className="box-border flex h-14 items-center justify-center">
       <span className="bv103-type-label text-slate-400 !text-slate-400">Chọn hành động để đánh giá</span>
     </div>
   );

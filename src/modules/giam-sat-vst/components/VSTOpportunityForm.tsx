@@ -21,6 +21,7 @@ import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVST
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { formatTimeVi } from "@/lib/format-datetime-vi";
+import { Bv103Button } from "@/components/ui/bv103";
 
 interface VSTOpportunityFormProps {
   opp: ExtendedOpportunity;
@@ -111,7 +112,7 @@ export default function VSTOpportunityForm({
     return (
       <button
         type="button"
-        className="box-border flex h-14 w-full cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 text-left transition-colors hover:border-slate-400"
+        className="box-border flex h-14 w-full cursor-pointer items-center gap-3 border-b border-slate-100 px-1 text-left transition-colors hover:bg-slate-50"
         onClick={() => openOpportunity(pIdx, oIdx)}
       >
         <div className="min-w-0 flex-1">
@@ -138,7 +139,7 @@ export default function VSTOpportunityForm({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded border border-slate-200 bg-white p-3">
+    <div className="flex flex-col gap-4 py-2">
       <section className="space-y-1.5">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Thời điểm</h3>
@@ -207,9 +208,9 @@ export default function VSTOpportunityForm({
         <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
       </section>
 
-      <button type="button" onClick={() => submitOpportunity(pIdx, oIdx)} className={`${C.btnPrimaryBlock} h-11`}>
+      <Bv103Button variant="secondary" className="w-full" onClick={() => submitOpportunity(pIdx, oIdx)}>
         Ghi nhận cơ hội
-      </button>
+      </Bv103Button>
     </div>
   );
 }
