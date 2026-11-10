@@ -19,8 +19,9 @@
 3. Không lặp H1 lớn nếu App Header đã có tên trang — `showTitle` mặc định `false` + chỉ tabs/filters/actions. Không crumb zone «KSNK · …» / nhóm nav trên L0 hay L1.
 4. Không sticky kép tiêu đề: App Header **hoặc** L1 filter band — `/thong-ke` gộp tab module + filter trong **một** sticky chrome.
 5. Nút: `btnPrimary` / `btnSecondary` / ghost — `bv103-control-h`.
-6. Nhịp dọc: `pageOuter` duy nhất (`pageOuterAnalytics` = alias cùng giá trị).
-7. **Copy vận hành (bắt buộc):** tab/panel thao tác hàng ngày = **tên ngắn + nút**. Không đoạn giải thích nhiều câu, không “bảng chú giải” (= A · = B · = C), không bước 1–2–3 trên màn chính. Giải thích dài chỉ trong dialog xác nhận phá hủy / lỗi / empty state / tài liệu.
+6. Tài khoản (Lát 3, 2026-11-10): L0 chỉ có **một** avatar → menu (email · Đổi mật khẩu · Đăng xuất); không để nút rời. Sidebar: nhãn nhóm 12px `--text-muted`, mục active nền xanh không bóng, bo 8px.
+7. Nhịp dọc: `pageOuter` duy nhất (`pageOuterAnalytics` = alias cùng giá trị).
+8. **Copy vận hành (bắt buộc):** tab/panel thao tác hàng ngày = **tên ngắn + nút**. Không đoạn giải thích nhiều câu, không “bảng chú giải” (= A · = B · = C), không bước 1–2–3 trên màn chính. Giải thích dài chỉ trong dialog xác nhận phá hủy / lỗi / empty state / tài liệu.
    - **Cấm (màn chính):** hero `description` glossary; `subtitle` dạy cả module; `noticeSlateRelaxed` intro panel.
    - **Được:** empty state 1 câu + tên nút; banner khóa/phạm vi/an toàn ≤ 1 vế; dialog phá hủy 1–2 vế hậu quả.
 8. **Ops density (bắt buộc trên màn vận hành):**

@@ -402,7 +402,7 @@
 
   /** Nhóm sidebar / zone app — IN HOA chỉ ở lớp điều hướng */
   .section-label {
-    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-400;
+    @apply text-xs font-medium uppercase tracking-wide text-[var(--text-muted)];
   }
 
   /* Vùng bảng / nội dung trong shell ứng dụng — phân lớp nền rõ nhưng không lòe */
