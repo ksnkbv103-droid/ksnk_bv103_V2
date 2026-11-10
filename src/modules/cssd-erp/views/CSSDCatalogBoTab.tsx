@@ -68,7 +68,7 @@ export function CSSDCatalogBoTab({
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            className="text-xs font-semibold text-[var(--primary)] hover:underline"
           >
             + Đề nghị bổ sung bộ
           </button>
@@ -114,7 +114,7 @@ export function CSSDCatalogBoTab({
                           type="button"
                           disabled={printingId === x.id}
                           onClick={(e) => void handlePrintQr(e, x.id)}
-                          className="text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
+                          className="text-xs font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
                         >
                           {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
                           In
@@ -171,7 +171,7 @@ export function CSSDCatalogBoTab({
                       <div className="flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                        className="text-xs font-semibold text-[var(--primary)] hover:underline"
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeNghi({
@@ -190,7 +190,7 @@ export function CSSDCatalogBoTab({
                         type="button"
                         disabled={printingId === x.id}
                         onClick={(e) => void handlePrintQr(e, x.id)}
-                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
+                        className="text-xs font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
                         title="Tạo mã QR và in nhãn dán"
                       >
                         {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
