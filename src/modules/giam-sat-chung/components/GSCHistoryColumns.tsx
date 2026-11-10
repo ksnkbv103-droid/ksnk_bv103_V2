@@ -39,7 +39,7 @@ export function getGSCHistoryColumns(
         return (
           <div className="min-w-0">
             <p className={`text-xs ${G.cellBody}`}>{dateLine}</p>
-            {timeLine && <p className="text-[11px] text-slate-400 mt-0.5">{timeLine}</p>}
+            {timeLine && <p className="text-xs text-slate-400 mt-0.5">{timeLine}</p>}
           </div>
         );
       },
@@ -56,7 +56,7 @@ export function getGSCHistoryColumns(
         return (
           <span className="inline-flex max-w-full items-center gap-1.5">
             {qrCode ? <InlineEntityQrThumb code={qrCode} size={28} /> : null}
-            <span className={`${G.cellCode} truncate text-slate-600`}>{label}</span>
+            <span className={`${G.cellCode} min-w-0 leading-tight text-slate-600`} title={label}>{label}</span>
           </span>
         );
       },
@@ -74,7 +74,7 @@ export function getGSCHistoryColumns(
         return (
           <div className="min-w-0">
             <p className={`text-xs ${G.cellTitle} line-clamp-2`} title={ten}>{ten}</p>
-            {showMa && <p className="text-[11px] font-mono text-slate-400 mt-0.5 truncate" title={ma}>{ma}</p>}
+            {showMa && <p className="text-xs font-mono text-slate-400 mt-0.5 truncate" title={ma}>{ma}</p>}
           </div>
         );
       },
@@ -103,7 +103,7 @@ export function getGSCHistoryColumns(
         return (
           <div className="min-w-0">
             <p className="text-xs font-medium text-slate-700 leading-snug line-clamp-2">{name}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{job}</p>
+            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{job}</p>
           </div>
         );
       },

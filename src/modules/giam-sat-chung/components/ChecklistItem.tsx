@@ -48,7 +48,7 @@ function EvidencePreviewDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="rounded-lg bg-slate-800 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-700 transition-colors"
+            className="rounded-lg bg-slate-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
           >
             Đóng
           </button>
@@ -75,27 +75,27 @@ function isTypingTarget(el: EventTarget | null) {
 const renderWeightBadge = (weightType?: string, isRedFlag?: boolean) => {
   if (isRedFlag) {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-700 animate-pulse border border-red-200 shadow-sm">
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 animate-pulse border border-red-200 shadow-sm">
         🚨 Chí mạng (Red Flag)
       </span>
     );
   }
   if (weightType === "CRITICAL") {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 border border-red-100">
+      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600 border border-red-100">
         Chí mạng
       </span>
     );
   }
   if (weightType === "MINOR") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 border border-blue-100">
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600 border border-blue-100">
         Hành chính
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600 border border-amber-100">
+    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-600 border border-amber-100">
       Nghiêm trọng
     </span>
   );
@@ -232,7 +232,7 @@ export default function ChecklistItem({
         <div className="flex flex-col items-end gap-1 shrink-0">
           <div className="flex items-center gap-1.5">
             <span
-              className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 result.value === "DAT"
                   ? "bg-[var(--primary)]/15 text-[var(--primary)]"
                   : result.value === "KHONG_DAT"
@@ -243,7 +243,7 @@ export default function ChecklistItem({
               {valueLabel(result.value)}
             </span>
           </div>
-          {result.note ? <p className="max-w-xs text-right text-[11px] text-slate-700">Ghi chú: {result.note}</p> : null}
+          {result.note ? <p className="max-w-xs text-right text-xs text-slate-700">Ghi chú: {result.note}</p> : null}
         </div>
 
         {result.image_url ? (
@@ -373,14 +373,14 @@ export default function ChecklistItem({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="text-[11px] font-semibold text-blue-600 hover:underline"
+                className="text-xs font-semibold text-blue-600 hover:underline"
               >
                 Xem to
               </button>
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="text-[11px] font-semibold text-rose-600 hover:underline"
+                className="text-xs font-semibold text-rose-600 hover:underline"
               >
                 Xóa bỏ
               </button>
