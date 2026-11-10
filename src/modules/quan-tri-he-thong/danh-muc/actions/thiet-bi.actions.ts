@@ -11,6 +11,8 @@ import {
   upsertMasterRow,
 } from "./master-crud-core";
 import type { ThietBiRow } from "./thiet-bi.types";
+import { detectThietBiSensitiveChange } from "@/lib/domain/cssd-sensitive-change";
+import { requireCssdSensitiveApprove } from "@/lib/master-data/require-cssd-sensitive-approve";
 
 export async function getThietBiRowsAction() {
   await verifyPermission("THIET_BI", "view");
@@ -154,16 +156,45 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     updated_at: new Date().toISOString(),
   };
 
+  // AR-5d: thêm mới / ngừng hoạt động cần quyền approve; đổi tên, vị trí, ghi chú làm trực tiếp.
+  let prevActive: { is_active?: boolean | null } | null = null;
+  if (id) {
+    const { data: cu } = await createAdminSupabaseClient()
+      .from("cssd_dm_thiet_bi")
+      .select("is_active")
+      .eq("id", id)
+      .maybeSingle();
+    prevActive = (cu as { is_active?: boolean | null } | null) ?? null;
+  }
+  try {
+    await requireCssdSensitiveApprove(
+      "THIET_BI",
+      detectThietBiSensitiveChange(id ? prevActive ?? { is_active: true } : null, { is_active: payload.is_active }),
+    );
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
+
   return upsertMasterRow("cssd_dm_thiet_bi", id, payload);
 }
 
 export async function toggleThietBiStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("THIET_BI", "edit");
+  try {
+    await requireCssdSensitiveApprove("THIET_BI", [currentStatus ? "ngừng hoạt động thiết bị" : "dùng lại thiết bị"]);
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
   return toggleMasterStatus("cssd_dm_thiet_bi", id, currentStatus);
 }
 
 export async function softDeleteThietBiAction(id: string) {
   await verifyPermission("THIET_BI", "delete");
+  try {
+    await requireCssdSensitiveApprove("THIET_BI", ["xóa thiết bị"]);
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
   const supabase = createAdminSupabaseClient();
   const { count, error } = await supabase
     .from("cssd_fact_lo_tiet_khuan")
@@ -181,6 +212,11 @@ export async function softDeleteThietBiAction(id: string) {
 
 export async function softDeleteManyThietBiAction(ids: string[]) {
   await verifyPermission("THIET_BI", "delete");
+  try {
+    await requireCssdSensitiveApprove("THIET_BI", ["xóa thiết bị"]);
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
   if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
   const supabase = createAdminSupabaseClient();
   const { data: activeBatches } = await supabase

@@ -37,6 +37,7 @@ import {
   SMART_IMPORT_TABLE_UNIQUE_KEY,
   type SmartImportOptions,
 } from "./smart-import.contract";
+import { requireCssdSensitiveApprove } from "@/lib/master-data/require-cssd-sensitive-approve";
 import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 import {
   applyNhanSuImportAllowlist,
@@ -130,6 +131,13 @@ export async function smartImportData(
     }
     if (isCssdCatalogMasterTable(config.tableName)) {
       await requireCssdCatalogMasterWrite();
+    }
+    // AR-5d: import hóa chất/thiết bị có thể thêm/ngừng/đổi nồng độ → cần quyền approve.
+    if (config.tableName === "cssd_dm_hoa_chat" || config.tableName === "cssd_dm_thiet_bi") {
+      await requireCssdSensitiveApprove(
+        config.tableName === "cssd_dm_hoa_chat" ? "HOA_CHAT" : "THIET_BI",
+        ["nhập Excel"],
+      );
     }
     const supabase = createAdminSupabaseClient();
     const sessionCache = createDmImportSessionCache(supabase);

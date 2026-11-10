@@ -11,6 +11,8 @@ import {
 import { z } from "zod";
 import { isVatTuLoai } from "@/lib/domain/cssd-hoa-chat-loai";
 import type { HoaChatRow } from "./hoa-chat.types";
+import { detectHoaChatSensitiveChange } from "@/lib/domain/cssd-sensitive-change";
+import { requireCssdSensitiveApprove } from "@/lib/master-data/require-cssd-sensitive-approve";
 
 export async function getHoaChatRowsAction() {
   await verifyPermission("HOA_CHAT", "view");
@@ -127,16 +129,49 @@ export async function saveHoaChatAction(input: Record<string, unknown>) {
     updated_at: new Date().toISOString(),
   };
 
+  // AR-5d: thêm mới / ngừng / nồng độ / định mức cần quyền approve; đổi tên, ghi chú làm trực tiếp.
+  let prev: Record<string, unknown> | null = null;
+  if (id) {
+    const { data: cu } = await createAdminSupabaseClient()
+      .from("cssd_dm_hoa_chat")
+      .select("is_active, specs, nguong_ton_toi_thieu, ty_le_canh_bao_pct, so_ngay_cho_hang")
+      .eq("id", id)
+      .maybeSingle();
+    prev = (cu as Record<string, unknown> | null) ?? null;
+  }
+  const prevSpecs = (prev?.specs && typeof prev.specs === "object" ? prev.specs : {}) as { nong_do?: string | null };
+  try {
+    await requireCssdSensitiveApprove(
+      "HOA_CHAT",
+      detectHoaChatSensitiveChange(
+        id && !prev ? null : id ? { ...(prev as object), nong_do: prevSpecs.nong_do } : null,
+        { is_active: payload.is_active, nong_do: specs.nong_do, ...canhBao },
+      ),
+    );
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
+
   return upsertMasterRow("cssd_dm_hoa_chat", id, payload);
 }
 
 export async function toggleHoaChatStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("HOA_CHAT", "edit");
+  try {
+    await requireCssdSensitiveApprove("HOA_CHAT", [currentStatus ? "ngừng sử dụng hóa chất" : "dùng lại hóa chất"]);
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
   return toggleMasterStatus("cssd_dm_hoa_chat", id, currentStatus);
 }
 
 export async function softDeleteHoaChatAction(id: string) {
   await verifyPermission("HOA_CHAT", "delete");
+  try {
+    await requireCssdSensitiveApprove("HOA_CHAT", ["xóa hóa chất"]);
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
   const supabase = createAdminSupabaseClient();
   const { count, error } = await supabase
     .from("cssd_fact_kho_hoa_chat_giao_dich")
@@ -153,6 +188,11 @@ export async function softDeleteHoaChatAction(id: string) {
 
 export async function softDeleteManyHoaChatAction(ids: string[]) {
   await verifyPermission("HOA_CHAT", "delete");
+  try {
+    await requireCssdSensitiveApprove("HOA_CHAT", ["xóa hóa chất"]);
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không đủ quyền." };
+  }
   if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
   const supabase = createAdminSupabaseClient();
   const { data: activeTx } = await supabase
