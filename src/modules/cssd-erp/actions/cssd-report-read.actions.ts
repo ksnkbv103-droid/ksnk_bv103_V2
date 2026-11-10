@@ -165,7 +165,7 @@ async function buildQuyTrinhAnalyticsSelect(supabase: SupabaseClient): Promise<s
 
 /** Sự cố báo cáo — đủ cột parse incident; không select(*). */
 const SU_CO_REPORT_SELECT =
-  "id, quy_trinh_id, is_red_alert, ma_loai_su_co, ten_loai_su_co, incident_group, incident_type_label, ma_qr_quy_trinh, ma_tram_phat_hien, ma_tram_gay_loi, mo_ta, attributes, created_at, is_active";
+  "id, quy_trinh_id, is_red_alert, ma_loai_su_co, ten_loai_su_co, incident_group, incident_type_label, ma_qr_quy_trinh, ma_tram_phat_hien, ma_tram_gay_loi, mo_ta, attributes, created_at";
 
 export async function fetchCssdReportBundle(filters: CssdReportFilters) {
   try {
