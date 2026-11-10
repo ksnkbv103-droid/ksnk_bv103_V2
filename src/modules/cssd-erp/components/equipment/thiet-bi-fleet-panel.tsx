@@ -11,6 +11,7 @@ import { CSSD_UI_CELL_CODE, CSSD_UI_DATA_SURFACE } from "../../shared/ui/cssd-ui
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import ThietBiPrintQrButton from "./thiet-bi-print-qr-button";
 import ThietBiMoKhoaButton from "./thiet-bi-mo-khoa-button";
+import ThietBiThamDinhButton from "./thiet-bi-tham-dinh-button";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -33,6 +34,7 @@ export default function ThietBiFleetPanel() {
   const [rows, setRows] = useState<ThietBiFleetRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [canUnlock, setCanUnlock] = useState(false);
+  const [canThamDinh, setCanThamDinh] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
@@ -42,6 +44,7 @@ export default function ThietBiFleetPanel() {
     else {
       setRows(r.data);
       setCanUnlock(r.can_unlock);
+      setCanThamDinh(r.can_tham_dinh);
     }
     setLoading(false);
   }, []);
@@ -189,11 +192,14 @@ export default function ThietBiFleetPanel() {
             {canUnlock && m.trang_thai === "HOLD_QC" ? (
               <ThietBiMoKhoaButton thietBiId={m.id} maThietBi={m.ma_thiet_bi} onDone={() => void reload()} />
             ) : null}
+            {canThamDinh && m.trang_thai === "CHO_THAM_DINH" ? (
+              <ThietBiThamDinhButton thietBiId={m.id} maThietBi={m.ma_thiet_bi} onDone={() => void reload()} />
+            ) : null}
           </span>
         ),
       },
     ],
-    [reload, canUnlock],
+    [reload, canUnlock, canThamDinh],
   );
 
   if (loading) {

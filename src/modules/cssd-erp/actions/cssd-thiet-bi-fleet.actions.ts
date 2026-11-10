@@ -32,7 +32,7 @@ export type ThietBiFleetRow = {
 
 /** Danh sách máy CSSD cho tab vận hành — read-only, kèm cảnh báo PM. */
 export async function listThietBiFleetAction(): Promise<
-  { success: true; data: ThietBiFleetRow[]; can_unlock: boolean } | { success: false; error: string }
+  { success: true; data: ThietBiFleetRow[]; can_unlock: boolean; can_tham_dinh: boolean } | { success: false; error: string }
 > {
   try {
     await verifyCssdMaintenanceView();
@@ -76,7 +76,15 @@ export async function listThietBiFleetAction(): Promise<
     });
     const { getActorRoleNames } = await import("@/lib/server-permission");
     const can_unlock = canUnlockHoldQcMachine(await getActorRoleNames());
-    return { success: true, data, can_unlock };
+    let can_tham_dinh = false;
+    try {
+      const { verifyCssdBatchQc } = await import("@/lib/cssd-server-gates");
+      await verifyCssdBatchQc();
+      can_tham_dinh = true;
+    } catch {
+      can_tham_dinh = false;
+    }
+    return { success: true, data, can_unlock, can_tham_dinh };
   } catch (e: unknown) {
     return { success: false, error: getErrorMessage(e) };
   }
