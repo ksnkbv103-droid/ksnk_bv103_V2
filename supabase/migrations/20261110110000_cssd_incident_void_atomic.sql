@@ -11,7 +11,9 @@ CREATE OR REPLACE FUNCTION public.rpc_cssd_apply_incident_void(
   p_kho_delta jsonb,
   p_quy_trinh_id uuid,
   p_quy_trinh_patch jsonb,
-  p_event jsonb
+  p_event jsonb,
+  p_expected_status text DEFAULT NULL,
+  p_expected_tram_id uuid DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -19,6 +21,8 @@ SET search_path TO public
 AS $$
 DECLARE
   v_active boolean;
+  v_attrs jsonb;
+  v_tram uuid;
   v_n int;
   v_want int;
   d record;
@@ -32,12 +36,16 @@ BEGIN
     RAISE EXCEPTION 'Thiếu dữ liệu vô hiệu phiếu.';
   END IF;
 
-  SELECT is_active INTO v_active FROM public.cssd_fact_su_co WHERE id = p_su_co_id FOR UPDATE;
+  SELECT is_active, attributes INTO v_active, v_attrs FROM public.cssd_fact_su_co WHERE id = p_su_co_id FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Không tìm thấy phiếu sự cố.';
   END IF;
   IF v_active = false THEN
     RETURN jsonb_build_object('already', true);
+  END IF;
+  -- Kế hoạch tính từ trạng thái app đã đọc: phiếu đã đổi trạng thái thì không ghi đè.
+  IF COALESCE(v_attrs ->> 'INCIDENT_STATUS', '') <> COALESCE(p_expected_status, '') THEN
+    RAISE EXCEPTION 'Phiếu đã đổi trạng thái, tải lại phiếu rồi thử lại.';
   END IF;
 
   -- 1) Tắt dòng sổ: phải đúng số dòng còn hiệu lực đã lập kế hoạch.
@@ -53,14 +61,27 @@ BEGIN
       RAISE EXCEPTION 'Sổ dụng cụ đã thay đổi, tải lại phiếu rồi thử lại.';
     END IF;
   END IF;
+  -- Không còn dòng sổ hiệu lực nào của phiếu ngoài danh sách đã lập kế hoạch (dòng mới chen vào).
+  IF EXISTS (
+    SELECT 1 FROM public.cssd_fact_kho_giao_dich
+     WHERE su_co_id = p_su_co_id AND is_active = true
+  ) THEN
+    RAISE EXCEPTION 'Sổ dụng cụ đã thay đổi, tải lại phiếu rồi thử lại.';
+  END IF;
 
   -- 2) Kho dự phòng: khóa dòng, cộng/trừ tại chỗ, không để âm. Thứ tự id cố định để tránh deadlock.
-  IF p_kho_delta IS NOT NULL AND jsonb_typeof(p_kho_delta) = 'array' THEN
+  IF p_kho_delta IS NOT NULL AND jsonb_typeof(p_kho_delta) <> 'array' THEN
+    RAISE EXCEPTION 'Dữ liệu hoàn kho không hợp lệ.';
+  END IF;
+  IF p_kho_delta IS NOT NULL THEN
     FOR d IN
       SELECT (e ->> 'loaiDungCuId')::uuid AS loai_id, (e ->> 'delta')::int AS delta
         FROM jsonb_array_elements(p_kho_delta) e
        ORDER BY 1
     LOOP
+      IF d.loai_id IS NULL OR d.delta IS NULL THEN
+        RAISE EXCEPTION 'Dòng hoàn kho thiếu loại dụng cụ hoặc số lượng.';
+      END IF;
       SELECT so_luong_kho_du_phong INTO v_cur
         FROM public.cssd_dm_loai_dung_cu WHERE id = d.loai_id FOR UPDATE;
       IF NOT FOUND THEN
@@ -78,16 +99,19 @@ BEGIN
 
   -- 3) Chu trình: chỉ cột đang có của bảng, trừ nhóm khóa/định danh.
   IF p_quy_trinh_id IS NOT NULL THEN
-    PERFORM 1 FROM public.cssd_fact_quy_trinh WHERE id = p_quy_trinh_id FOR UPDATE;
+    SELECT tram_hien_tai_id INTO v_tram FROM public.cssd_fact_quy_trinh WHERE id = p_quy_trinh_id FOR UPDATE;
     IF NOT FOUND THEN
       RAISE EXCEPTION 'Không tìm thấy chu trình của phiếu.';
+    END IF;
+    IF v_tram IS DISTINCT FROM p_expected_tram_id THEN
+      RAISE EXCEPTION 'Chu trình đã chuyển trạm, tải lại phiếu rồi thử lại.';
     END IF;
 
     IF p_quy_trinh_patch IS NOT NULL AND jsonb_typeof(p_quy_trinh_patch) = 'object'
        AND p_quy_trinh_patch <> '{}'::jsonb THEN
       SELECT string_agg(k, ', ') INTO v_bad
         FROM jsonb_object_keys(p_quy_trinh_patch) k
-       WHERE k IN ('id', 'created_at', 'metadata', 'is_active')
+       WHERE k IN ('id', 'created_at', 'metadata', 'is_active', 'updated_at')
           OR NOT EXISTS (
             SELECT 1 FROM information_schema.columns c
              WHERE c.table_schema = 'public' AND c.table_name = 'cssd_fact_quy_trinh' AND c.column_name = k
@@ -133,5 +157,5 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.rpc_cssd_apply_incident_void(uuid, jsonb, uuid[], jsonb, uuid, jsonb, jsonb) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.rpc_cssd_apply_incident_void(uuid, jsonb, uuid[], jsonb, uuid, jsonb, jsonb) TO service_role;
+REVOKE ALL ON FUNCTION public.rpc_cssd_apply_incident_void(uuid, jsonb, uuid[], jsonb, uuid, jsonb, jsonb, text, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.rpc_cssd_apply_incident_void(uuid, jsonb, uuid[], jsonb, uuid, jsonb, jsonb, text, uuid) TO service_role;

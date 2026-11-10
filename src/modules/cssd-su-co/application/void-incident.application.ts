@@ -73,6 +73,7 @@ export async function executeVoidIncidentReport(
   let events: VoidRollbackEvent[] = [];
   let currentLoId: string | null = null;
   let currentStation: string | null = null;
+  let currentTramId: string | null = null;
   if (quyId) {
     const { data: peerRows, error: peerErr } = await supabase
       .from("cssd_fact_su_co")
@@ -84,7 +85,7 @@ export async function executeVoidIncidentReport(
     peers = (peerRows || []) as VoidPeer[];
     const { data: qt, error: qtErr } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select("lo_tiet_khuan_id, ma_trang_thai_hien_tai")
+      .select("lo_tiet_khuan_id, ma_trang_thai_hien_tai, tram_hien_tai_id")
       .eq("id", quyId)
       .maybeSingle();
     if (qtErr) return { ok: false, error: qtErr.message };
@@ -99,6 +100,7 @@ export async function executeVoidIncidentReport(
     const list = Array.isArray(meta?.ngoai_le) ? meta.ngoai_le : [];
     events = list.filter((e): e is VoidRollbackEvent => Boolean(e) && typeof e === "object");
     currentLoId = String((qt as { lo_tiet_khuan_id?: string | null } | null)?.lo_tiet_khuan_id || "").trim() || null;
+    currentTramId = String((qt as { tram_hien_tai_id?: string | null } | null)?.tram_hien_tai_id || "").trim() || null;
     currentStation =
       String((qt as { ma_trang_thai_hien_tai?: string | null } | null)?.ma_trang_thai_hien_tai || "").trim() ||
       null;
@@ -163,6 +165,9 @@ export async function executeVoidIncidentReport(
     p_quy_trinh_id: plan.cycle && quyId ? quyId : null,
     p_quy_trinh_patch: quyTrinhPatch,
     p_event: event,
+    // Giá trị app đã dựa vào để lập kế hoạch; RPC kiểm lại dưới khóa.
+    p_expected_status: typeof row.attributes?.INCIDENT_STATUS === "string" ? row.attributes.INCIDENT_STATUS : null,
+    p_expected_tram_id: plan.cycle && quyId ? currentTramId : null,
   });
   if (rpcErr) return { ok: false, error: rpcErr.message };
   if ((rpcData as { already?: boolean } | null)?.already) return { ok: true, already: true };
