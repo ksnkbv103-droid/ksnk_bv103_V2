@@ -175,7 +175,9 @@ Logic lâm sàng, engine VST, DB/RPC/RLS, quyền, route, nội dung chữ nghi�
   - [x] PO duyệt mẫu («Duyệt, áp code»). Thang thống nhất: mọi control 48px qua `--bv103-control-h` (không `!h-[…]` riêng), hàng thời điểm 56px; khoảng 4/8/12/16/24; bo 10 control / 16 thẻ; chữ 12/14/16/20/28.
   - [x] VST — commit `a0f60d2d`: `FloatingInput`, `FloatingLabelContent`, `label` cho `SearchableSelect`/`RegistrySelect`, `.bv103-card`, 5 thời điểm dọc đủ chữ, bỏ chú giải WHO, thanh đáy có tóm tắt. Test tay :3001: control 48px (23), thời điểm 56px (15), trần 2 bỏ mốc cũ nhất, ô chọn `#026f17` chữ trắng. tsc, ui-audit, layout-drift, typography OK.
   - [x] Canvas Thống kê cân đối lại (v5): KPI 4 ô cao bằng nhau, hai biểu đồ cùng hàng 64px + thanh 10px + ngưỡng 80%, bảng hàng 48px, chữ chỉ 12/14/16/28.
-  - [ ] GSC (dùng chung `GiamSatHeaderFields` — đã có nhãn nổi) → code Thống kê theo canvas v5 → module còn lại. Còn nhãn rời: ngày/giờ camera, ô người giám sát trong `GiamSatHeaderFields`.
+  - [x] GSC `fa2dfd06` (2026-11-11): thẻ tiêu chí `bv103-card`, cụm nút đều cột (146×48 khi 4 nút, 115×48 khi 5), khung «Nhận xét / Kiến nghị» có đầu thẻ, tóm tắt «Đã đánh giá x/y» trên thanh đáy. Test tay :3001 bảng VSMT 19 tiêu chí; tsc, eslint, ui-audit OK.
+  - [ ] Rà toàn project (PO 2026-11-11 «tự rà và sửa hết»): mỗi module một lát ≤ 8 file — `text-[11px]`→`text-xs` bằng script (bỏ in ấn, lưới ngày/timeline NKBV), thẻ/đầu thẻ, control 48px; đếm phần tử tràn trước/sau; `ui-audit --write` mỗi lát. Thứ tự: Lịch sử VST/GSC + Thống kê → CSSD → NKBV → QLCV → Đào tạo → quản trị.
+  - [ ] Code Thống kê theo canvas v5 → module còn lại. Còn nhãn rời: ngày/giờ camera, ô người giám sát trong `GiamSatHeaderFields`.
 - [ ] Lát 5 → 7 (đánh dấu khi xong)
 
 ## 10. Để tiếp tục sau `/clear`
