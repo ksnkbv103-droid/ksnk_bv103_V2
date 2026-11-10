@@ -1,0 +1,28 @@
+{
+  "updated": "2026-11-10",
+  "env": "localhost:3001 (dev-local), viewport 1440x900, đo bằng scripts/ui-audit-runtime.snippet.js",
+  "note": "depth = lớp hộp lồng tối đa; h = chiều cao control px; r = bo góc control px; fs/fw = cỡ/độ đậm chữ. Các trang n<10 là chưa tải xong hoặc nội dung nằm ngoài <main> → chưa đo được, KHÔNG dùng làm mốc. Trang nặng cần ~20-30s mới tải xong (lich-su/*, thong-ke/*): chờ đến khi n>=25.",
+  "measured": [
+    {"p": "/giam-sat-vst", "depth": 3, "n": 234, "ctl": 42, "h": [13, 30, 40, 44], "r": [0, 4, 8], "fs": [10, 12, 14], "fw": [400, 500, 600]},
+    {"p": "/giam-sat-chung/tuan-thu", "depth": 3, "n": 727, "ctl": 63, "h": [40, 48], "r": [8], "fs": [12, 14, 16], "fw": [400, 500, 600]},
+    {"p": "/giam-sat-nkbv", "depth": 3, "n": 492, "ctl": 53, "h": [13, 29, 36, 40, 44], "r": [0, 8, 12, 16777200], "fs": [12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/bao-cao-tong-hop", "depth": 4, "n": 169, "ctl": 28, "h": [28, 36, 40, 44], "r": [0, 6, 8], "fs": [12, 14, 32], "fw": [400, 500, 600, 700]},
+    {"p": "/chat-thai-do-vai", "depth": 4, "n": 152, "ctl": 21, "h": [30, 34, 56, 60], "r": [8], "fs": [12, 14, 18, 20], "fw": [400, 500, 600, 700]},
+    {"p": "/quan-ly-cong-viec", "depth": 4, "n": 110, "ctl": 19, "h": [16, 20, 36, 40, 44], "r": [0, 8], "fs": [12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/quan-tri-he-thong/nhan-su", "depth": 3, "n": 630, "ctl": 122, "h": [16, 32, 34, 36, 40], "r": [0, 8, 12], "fs": [12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/dao-tao", "depth": 2, "n": 23, "ctl": 0, "h": [], "r": [], "fs": [12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/cssd-dung-cu", "depth": 3, "n": 408, "ctl": 53, "h": [16, 20, 36, 40, 44, 48], "r": [0, 6, 8, 12], "fs": [12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/thong-ke/vst", "depth": 6, "n": 197, "ctl": 19, "h": [28, 36, 40], "r": [6, 8], "fs": [12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/cssd-su-co", "depth": 1, "n": 103, "ctl": 19, "h": [32, 40, 44, 48, 86], "r": [0, 6, 8], "fs": [11, 12, 14], "fw": [400, 500, 600]},
+    {"p": "/cssd-quy-trinh", "depth": 2, "n": 57, "ctl": 11, "h": [36, 40, 44, 48], "r": [6, 8, 12], "fs": [11, 12, 14], "fw": [400, 500, 600]},
+    {"p": "/cssd-quy-trinh?tab=batch", "depth": 2, "n": 831, "ctl": 31, "h": [36, 40, 44, 45, 48], "r": [6, 8, 12], "fs": [11, 12, 14], "fw": [400, 500, 600]},
+    {"p": "/thong-ke/gsc", "depth": 5, "n": 246, "ctl": 23, "h": [36, 44, 60, 64, 76, 128, 287], "r": [0, 4, 6, 8], "fs": [11, 12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/cssd-hoa-chat", "depth": 1, "n": 24, "ctl": 12, "h": [27, 33, 34, 39, 43, 44, 54, 70], "r": [8], "fs": [11, 12, 14], "fw": [400, 500, 600]},
+    {"p": "/cssd-thiet-bi", "depth": 2, "n": 399, "ctl": 15, "h": [16, 36, 44, 48, 112], "r": [0, 6, 8, 12], "fs": [11, 12, 14], "fw": [400, 500, 600]},
+    {"p": "/lich-su/vst", "depth": 2, "n": 991, "ctl": 87, "h": [20, 36, 44, 48], "r": [0, 8, 12], "fs": [11, 12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/lich-su/gsc", "depth": 2, "n": 1004, "ctl": 87, "h": [20, 36, 44, 48], "r": [0, 8, 12], "fs": [11, 12, 14], "fw": [400, 500, 600, 700]},
+    {"p": "/tai-khoan", "depth": 2, "n": 36, "ctl": 2, "h": [44, 48], "r": [8], "fs": [11, 12, 14, 18], "fw": [400, 500, 600]}
+  ],
+  "redirects": {"/thong-ke": "/thong-ke/vst", "/cssd-erp/batch": "/cssd-quy-trinh?tab=batch"},
+  "not_measured": ["/cssd-erp/report", "/quan-tri-he-thong (các trang con còn lại)", "/dao-tao/* (trừ trang chủ)", "/giam-sat", "/qr"]
+}

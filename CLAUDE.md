@@ -37,6 +37,10 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 - KPI `fn_vst_is_valid_opportunity` cùng trần với form
 - Xóa phiên VST: mềm `is_active=false` cho đến khi PO nói khác
 
+## Đang làm
+
+Redesign UI tối giản: kế hoạch + tiến độ ở [`docs/ux/ui-redesign-plan.md`](docs/ux/ui-redesign-plan.md) §9–10. Phiên mới gõ `/tiep`. Xong kế hoạch thì xóa mục này.
+
 ## Quy trình
 
 - Việc không tầm thường: plan (plan mode hoặc `/intake-nv`, `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt một lần, sau đó tự chạy nối các lát, verify mỗi lát, ghi tiến độ vào plan. Giải thích bằng tiếng Việt nghiệp vụ

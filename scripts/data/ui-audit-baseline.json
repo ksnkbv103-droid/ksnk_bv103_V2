@@ -1,0 +1,19 @@
+{
+  "updated": "2026-11-10",
+  "metrics": {
+    "radiusArbitrary": 317,
+    "radiusMd": 57,
+    "radiusLg": 325,
+    "radiusXl": 234,
+    "radius2xl": 17,
+    "heightArbitrary": 172,
+    "text11px": 959,
+    "textSubRem": 1,
+    "fontHeavy": 189,
+    "shadowHeavy": 17,
+    "rawButtonFiles": 228,
+    "uiButtonFiles": 2,
+    "pageFiles": 52,
+    "pagesWithShell": 3
+  }
+}
