@@ -133,6 +133,52 @@ async function ensureQuyTrinhForComponent(
   if (insErr) throw new Error(insErr.message);
 }
 
+/** Bộ -CN còn dòng loại không chịu nhiệt → chuyển sang bộ -KCN của cùng cha (tạo nếu chưa có). */
+async function moveLowHeatLinesToKcnSibling(
+  supabase: SupabaseClient,
+  cnBoId: string,
+  parentBoId: string,
+): Promise<{ maKcn: string; count: number } | null> {
+  const { data: lineRows, error: lineErr } = await supabase
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .select("id, loai:cssd_dm_loai_dung_cu!loai_dung_cu_id(is_chiu_nhiet)")
+    .eq("bo_dung_cu_id", cnBoId)
+    .eq("is_active", true);
+  if (lineErr) throw new Error(lineErr.message);
+  const lowIds = (lineRows || [])
+    .filter((r) => {
+      const rel = (r as { loai?: { is_chiu_nhiet?: boolean } | { is_chiu_nhiet?: boolean }[] | null }).loai;
+      const loai = Array.isArray(rel) ? rel[0] : rel;
+      return loai?.is_chiu_nhiet === false;
+    })
+    .map((r) => String((r as { id: string }).id));
+  if (lowIds.length === 0) return null;
+
+  const { data: parent, error: pErr } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo")
+    .eq("id", parentBoId)
+    .maybeSingle();
+  if (pErr) throw new Error(pErr.message);
+  if (!parent?.id) return null;
+  const parentMeta = {
+    id: String(parent.id),
+    ma_bo: String(parent.ma_bo || ""),
+    ten_bo: (parent.ten_bo as string | null) ?? null,
+    khoa_su_dung_id: (parent.khoa_su_dung_id as string | null) ?? null,
+    phan_loai_bo: (parent.phan_loai_bo as string | null) ?? null,
+  };
+  const kcn = await ensureComponentBo(supabase, parentMeta, "KHONG_CHIU_NHIET", true);
+  const { error: mvErr } = await supabase
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .update({ bo_dung_cu_id: kcn.id, updated_at: new Date().toISOString() })
+    .in("id", lowIds)
+    .eq("bo_dung_cu_id", cnBoId);
+  if (mvErr) throw new Error(mvErr.message);
+  await ensureQuyTrinhForComponent(supabase, null, kcn.id, kcn.ma_bo, true);
+  return { maKcn: kcn.ma_bo, count: lowIds.length };
+}
+
 export async function applyHeatSplitAfterLoaiDowngrade(
   supabase: SupabaseClient,
   loaiId: string,
@@ -180,7 +226,9 @@ export async function applyHeatSplitAfterLoaiDowngrade(
     // Bộ đã là con của lần tách trước: không tách lồng (-CN-KCN…). Bộ -KCN chứa loại nhiệt thấp là đúng.
     if (splitInfo?.parent_bo_id) {
       if (splitInfo.vai_tro_tach !== "KHONG_CHIU_NHIET") {
-        out.skipped.push({ maBo, reason: "Bộ con -CN chứa loại nhiệt thấp — chuyển dòng sang bộ -KCN thủ công." });
+        // Loại bị hạ nhiệt SAU lần tách đầu: chuyển dòng nhiệt thấp từ -CN sang -KCN cùng cha (không để kẹt).
+        const moved = await moveLowHeatLinesToKcnSibling(supabase, boId, String(splitInfo.parent_bo_id));
+        if (moved) out.split.push({ maBo, maSub: moved.maKcn, movedLines: moved.count });
       }
       continue;
     }
@@ -352,9 +400,16 @@ export async function applyHeatSplitForAllLowHeatLoai(
   const result: HeatSplitApplyResult = { split: [], skipped: [] };
   const loais = data || [];
   for (const l of loais) {
-    const res = await applyHeatSplitAfterLoaiDowngrade(supabase, String((l as { id: string }).id), true, false);
-    result.split.push(...res.split);
-    result.skipped.push(...res.skipped);
+    const loaiId = String((l as { id: string }).id);
+    try {
+      const res = await applyHeatSplitAfterLoaiDowngrade(supabase, loaiId, true, false);
+      result.split.push(...res.split);
+      result.skipped.push(...res.skipped);
+    } catch (e: unknown) {
+      // Một loại lỗi không được chặn các loại còn lại trong lô; báo ở danh sách bỏ qua.
+      const msg = e instanceof Error ? e.message : String(e);
+      result.skipped.push({ maBo: `loại ${loaiId}`, reason: `Tách lỗi: ${msg}` });
+    }
   }
   return { loaiCount: loais.length, result };
 }
