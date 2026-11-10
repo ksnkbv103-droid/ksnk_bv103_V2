@@ -169,11 +169,11 @@ export default function PneuClinicalSubForm({
             className={C.controlInput}
           />
           {ageFromDob != null ? (
-            <p className="mt-1 text-[11px] text-slate-500">
+            <p className="mt-1 text-xs text-slate-500">
               Theo ngày sinh ({ageFromDob} tuổi) — không sửa tay.
             </p>
           ) : (
-            <p className="mt-1 text-[11px] text-amber-700">
+            <p className="mt-1 text-xs text-amber-700">
               Thiếu ngày sinh — nhập tuổi người lớn (&gt;12) hoặc bổ sung DOB HIS; thiếu tuổi không xác định ca.
             </p>
           )}
@@ -385,7 +385,7 @@ export default function PneuClinicalSubForm({
                 ? "PNU1 (không lab đạt ngưỡng)"
                 : labTier.tier}
             </p>
-            <p className="mt-0.5 text-[11px] leading-snug">{labTier.reasons.join(" ")}</p>
+            <p className="mt-0.5 text-xs leading-snug">{labTier.reasons.join(" ")}</p>
           </div>
         </NkbvFormSection>
       )}
@@ -515,7 +515,7 @@ export default function PneuClinicalSubForm({
                 />
               </>
             ) : null}
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Đếm nhóm hô hấp CDC: <strong>{form.respiratory_symptoms_count}</strong> / cần ≥
               
               

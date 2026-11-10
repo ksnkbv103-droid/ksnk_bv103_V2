@@ -54,13 +54,13 @@ function SymptomRow({
       <p className="text-xs font-semibold text-slate-800">
         {row.name_vi}
         {row.threshold_note ? (
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-500">
+          <span className="mt-0.5 block text-xs font-normal text-slate-500">
             {row.threshold_note}
           </span>
         ) : null}
       </p>
       <label className="block space-y-0.5">
-        <span className="text-[11px] font-medium text-slate-500">Ngày mốc (lưới bệnh án)</span>
+        <span className="text-xs font-medium text-slate-500">Ngày mốc (lưới bệnh án)</span>
         <input
           type="date"
           value={date}
@@ -73,7 +73,7 @@ function SymptomRow({
       </label>
       <div className="grid gap-2 sm:grid-cols-2">
         <label className="block space-y-0.5">
-          <span className="text-[11px] font-medium text-slate-500">Xác nhận (KSNK)</span>
+          <span className="text-xs font-medium text-slate-500">Xác nhận (KSNK)</span>
           <select
             className={`${C.controlInput} w-full text-xs`}
             disabled={!canEdit}
@@ -94,7 +94,7 @@ function SymptomRow({
           </select>
         </label>
         <label className="block space-y-0.5">
-          <span className="text-[11px] font-medium text-slate-500">Ghi chú KSNK</span>
+          <span className="text-xs font-medium text-slate-500">Ghi chú KSNK</span>
           <input
             type="text"
             className={`${C.controlInput} w-full text-xs`}
