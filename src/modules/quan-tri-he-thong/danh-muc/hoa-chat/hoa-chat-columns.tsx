@@ -52,20 +52,20 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
       header: "Nồng độ",
       accessorKey: "nong_do",
       sortable: true,
-      cell: (i) => <span className="text-[11px] text-[11px] font-medium text-slate-500">{i.nong_do || "—"}</span>,
+      cell: (i) => <span className="text-xs text-xs font-medium text-slate-500">{i.nong_do || "—"}</span>,
     },
     {
       header: "Quy cách",
       accessorKey: "quy_cach",
       sortable: true,
-      cell: (i) => <span className="text-[11px] text-slate-600">{clip(i.quy_cach, 36)}</span>,
+      cell: (i) => <span className="text-xs text-slate-600">{clip(i.quy_cach, 36)}</span>,
     },
     {
       header: "Hạn sd",
       accessorKey: "han_su_dung",
       sortable: true,
       cell: (i) => (
-        <span className="text-[11px] font-semibold text-slate-600">
+        <span className="text-xs font-semibold text-slate-600">
           {formatDateVi(i.han_su_dung)}
         </span>
       ),
@@ -73,7 +73,7 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
     {
       header: "Ghi chú",
       accessorKey: "ghi_chu",
-      cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
+      cell: (i) => <span className="text-xs text-slate-500">{clip(i.ghi_chu, 40)}</span>,
     },
     {
       header: TH.status,

@@ -126,7 +126,7 @@ export function LoaiDungCuChiTietPanel({
       <div className="flex flex-col justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3 md:flex-row md:items-center sm:px-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-1 rounded-lg">
+            <span className="text-xs font-medium bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-1 rounded-lg">
               {selectedMaLoai || "LDC"}
             </span>
             <h3 className={UI.panelTitle}>
@@ -141,7 +141,7 @@ export function LoaiDungCuChiTietPanel({
         <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("sets")}
-            className={`px-4 py-2 text-[11px] font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === "sets"
                 ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -151,7 +151,7 @@ export function LoaiDungCuChiTietPanel({
           </button>
           <button
             onClick={() => setActiveTab("logs")}
-            className={`px-4 py-2 text-[11px] font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === "logs"
                 ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -166,13 +166,13 @@ export function LoaiDungCuChiTietPanel({
         {activeTab === "sets" ? (
           <div>
             {loadingSets ? (
-              <div className="p-12 text-center text-slate-400 text-[11px] font-medium">
+              <div className="p-12 text-center text-slate-400 text-xs font-medium">
                 Đang tải bộ chứa…
               </div>
             ) : sets.length === 0 ? (
               <div className="space-y-2 py-8 text-center">
-                <p className="text-[11px] font-medium text-slate-500">Chưa có bộ nào chứa loại này.</p>
-                <Link href={quanTriDungCuHref("bo")} className="text-[11px] font-semibold text-[var(--primary)] hover:underline">
+                <p className="text-xs font-medium text-slate-500">Chưa có bộ nào chứa loại này.</p>
+                <Link href={quanTriDungCuHref("bo")} className="text-xs font-semibold text-[var(--primary)] hover:underline">
                   Mở danh mục bộ
                 </Link>
               </div>
@@ -209,18 +209,18 @@ export function LoaiDungCuChiTietPanel({
                   </thead>
                   <tbody>
                     {visibleSets.length === 0 ? (
-                      <tr><td colSpan={3} className="py-8 text-center text-[11px] text-slate-500">Không khớp tìm kiếm.</td></tr>
+                      <tr><td colSpan={3} className="py-8 text-center text-xs text-slate-500">Không khớp tìm kiếm.</td></tr>
                     ) : null}
                     {visibleSets.map((b) => (
                       <tr key={b.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <td className="py-3 font-mono text-[11px] font-medium text-slate-500">{b.ma_bo || "—"}</td>
-                        <td className="py-3 text-[11px] font-medium text-[var(--primary)]">{b.ten_bo || "—"}</td>
+                        <td className="py-3 font-mono text-xs font-medium text-slate-500">{b.ma_bo || "—"}</td>
+                        <td className="py-3 text-xs font-medium text-[var(--primary)]">{b.ten_bo || "—"}</td>
                         <td className="py-3 text-right">
                           <button
                             onClick={() => {
                               toast.info(`Bộ ${b.ten_bo} đang ở trong trang Danh mục Bộ`);
                             }}
-                            className="font-mono text-[11px] font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 px-2.5 py-1 rounded-lg transition-colors"
+                            className="font-mono text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 px-2.5 py-1 rounded-lg transition-colors"
                           >
                             Xem chi tiết bộ
                           </button>
@@ -236,11 +236,11 @@ export function LoaiDungCuChiTietPanel({
         ) : (
           <div>
             {loadingLogs ? (
-              <div className="flex items-center justify-center gap-2 p-12 text-[11px] font-medium text-slate-500">
+              <div className="flex items-center justify-center gap-2 p-12 text-xs font-medium text-slate-500">
                 <Loader2 size={16} className="animate-spin" /> Đang tải lịch sử...
               </div>
             ) : logs.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 p-12 text-center text-[11px] font-medium text-slate-400">
+              <div className="flex flex-col items-center gap-3 p-12 text-center text-xs font-medium text-slate-400">
                 <span>Chưa có giao dịch biến động.</span>
                 <button
                   onClick={fetchLogs}
@@ -299,15 +299,15 @@ export function LoaiDungCuChiTietPanel({
                   </thead>
                   <tbody>
                     {visibleLogs.length === 0 ? (
-                      <tr><td colSpan={6} className="py-8 text-center text-[11px] text-slate-500">Không khớp tìm kiếm.</td></tr>
+                      <tr><td colSpan={6} className="py-8 text-center text-xs text-slate-500">Không khớp tìm kiếm.</td></tr>
                     ) : null}
                     {visibleLogs.map((log) => (
                       <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <td className="py-3 text-[11px] text-[11px] font-medium text-slate-500">
+                        <td className="py-3 text-xs text-xs font-medium text-slate-500">
                           {formatDateTimeVi(log.created_at)}
                         </td>
                         <td className="py-3">{renderBadge(log.loai_giao_dich)}</td>
-                        <td className={`py-3 text-[11px] font-semibold ${
+                        <td className={`py-3 text-xs font-semibold ${
                           log.so_luong_thay_doi > 0 ? "text-emerald-600" : "text-rose-600"
                         }`}>
                           {log.so_luong_thay_doi > 0 ? `+${log.so_luong_thay_doi}` : log.so_luong_thay_doi}
@@ -315,7 +315,7 @@ export function LoaiDungCuChiTietPanel({
                         <td className="py-3 bv103-type-label font-semibold text-slate-600">
                           {log.bo_dung_cu ? log.bo_dung_cu.ten_bo : "—"}
                         </td>
-                        <td className="py-3 font-mono text-[11px] text-slate-400">
+                        <td className="py-3 font-mono text-xs text-slate-400">
                           {log.quy_trinh ? log.quy_trinh.ma_qr_quy_trinh : "—"}
                         </td>
                         <td className="py-3 bv103-type-note">

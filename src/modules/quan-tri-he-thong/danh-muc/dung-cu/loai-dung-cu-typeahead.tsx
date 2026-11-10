@@ -34,7 +34,7 @@ export function LoaiDungCuTypeahead(props: {
 
   return (
     <div className="space-y-1 relative">
-      {props.label ? <label className="text-[11px] font-medium text-slate-400 ml-1">{props.label}</label> : null}
+      {props.label ? <label className="text-xs font-medium text-slate-400 ml-1">{props.label}</label> : null}
       <input
         className={C.controlInput}
         disabled={props.disabled}
@@ -75,7 +75,7 @@ export function LoaiDungCuTypeahead(props: {
                   setOpen(false);
                 }}
               >
-                <span className="font-mono text-[11px] text-slate-500">{o.ma_danh_muc}</span>{" "}
+                <span className="font-mono text-xs text-slate-500">{o.ma_danh_muc}</span>{" "}
                 {o.ten_danh_muc}
               </button>
             </li>
