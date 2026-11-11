@@ -466,7 +466,7 @@ function evaluateVaeVapCore(
   const amsEligible =
     Boolean(data.altered_mental_status_ge_70yo) &&
     (data.patient_age == null || data.patient_age >= 70);
-  const hasSystemic = derivePneuSystemic(data) || amsEligible;
+  const hasSystemic = derivePneuSystemic(data, data.patient_age) || amsEligible;
   const wideListMet =
     localCount >= 1 || !!data.has_hemoptysis || !!data.has_pleuritic_chest_pain;
 

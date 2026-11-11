@@ -13,7 +13,13 @@ export type PneuSystemicAtoms = {
 };
 
 /** Đạt ≥1 dấu hiệu toàn thân PNEU (atom hoặc legacy bundle). */
-export function derivePneuSystemic(data: PneuSystemicAtoms): boolean {
+export function derivePneuSystemic(data: PneuSystemicAtoms, patientAge?: number | null): boolean {
+  // NHSN 2026 P6.29: người lớn (>1 tuổi) chỉ sốt / WBC; hạ thân nhiệt chỉ cho ≤1 tuổi.
+  if (patientAge != null && patientAge > 1) {
+    const hasAtoms = data.has_pneu_fever != null || data.has_pneu_wbc_abnormal != null;
+    return !!data.has_pneu_fever || !!data.has_pneu_wbc_abnormal ||
+      (!hasAtoms && !data.has_pneu_hypothermia && !!data.fever_or_wbc_abnormal);
+  }
   return (
     !!data.has_pneu_fever ||
     !!data.has_pneu_hypothermia ||
