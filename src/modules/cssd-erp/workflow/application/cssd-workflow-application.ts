@@ -249,6 +249,8 @@ export async function executeRejectToPreviousStation(
     hasDongBangColumn: boolean;
     lyDo: string;
     operatorLabel?: string;
+    /** auth user id phiên — bắt buộc khi `supabase` là admin client (service_role). */
+    actorUserId?: string;
   },
 ): Promise<{ from: Station; to: Station }> {
   const qr = String(opts.maQR || "").trim().toUpperCase();
@@ -311,6 +313,7 @@ export async function executeRejectToPreviousStation(
     p_su_kien: "TRA_VE",
     p_tram: currentStatus,
     p_chi_tiet: { tu: currentStatus, den: prev, ly_do: lyDo, truoc: beforeStamps },
+    p_actor_user_id: opts.actorUserId || null,
   });
   if (nkErr) throw new Error(`Lỗi hệ thống: ${nkErr.message}`);
   const nk = nkRes as { success: boolean; message?: string } | null;

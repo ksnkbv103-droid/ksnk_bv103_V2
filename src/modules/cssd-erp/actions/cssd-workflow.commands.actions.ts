@@ -25,6 +25,15 @@ async function cssdOperatorLabel(): Promise<string> {
   }
 }
 
+/** Id người dùng phiên — RPC chạy service_role cần biết ai thao tác (`p_actor_user_id`). */
+async function cssdSessionUserId(): Promise<string> {
+  const uc = await createServerSupabaseUserClient();
+  const { data, error } = await uc.auth.getUser();
+  const userId = data.user?.id ? String(data.user.id) : "";
+  if (error || !userId) throw new Error("Không xác định được người thực hiện.");
+  return userId;
+}
+
 /** Bước tiếp theo theo ô trạm đang quét — cùng hành vi `scanQR` (kể cả offline replay). */
 export async function cssdCommandAdvanceStation(
   maQR: string,
@@ -42,13 +51,14 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR quy trình.");
   const hasDong = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-  const op = await cssdOperatorLabel();
+  const [op, actorUserId] = await Promise.all([cssdOperatorLabel(), cssdSessionUserId()]);
   await executeRejectToPreviousStation(supabase, {
     maQR: code,
     quyTrinh: row as WorkflowQuyTrinhInput,
     hasDongBangColumn: hasDong,
     lyDo,
     operatorLabel: op,
+    actorUserId,
   });
   revalidateCssdWorkflowSurfaces();
   return { success: true as const };
