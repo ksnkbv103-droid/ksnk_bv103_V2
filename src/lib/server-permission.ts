@@ -127,6 +127,15 @@ export async function verifyAdminRole(message = "Chỉ ADMIN được thực hi�
   if (!roles.includes("ADMIN")) throw new Error(message);
 }
 
+/** Vai trò RBAC thật của actor (KHÔNG quy email break-glass thành ADMIN) — cho cổng phải khớp RPC (QLCV-003). */
+export async function getActorRbacRoleNamesStrict(): Promise<string[]> {
+  const user = await getRequestAuthUser();
+  if (!user?.id) return [];
+  if (metaMustChangePassword(user.user_metadata, user.app_metadata)) return [];
+  const { roles } = await getPermissionsRequestScope(user.id);
+  return roles.map((r) => String(r || "").trim()).filter(Boolean);
+}
+
 /** Tên vai trò RBAC của actor hiện tại (trusted email → ADMIN). */
 export async function getActorRoleNames(): Promise<string[]> {
   const user = await getRequestAuthUser();

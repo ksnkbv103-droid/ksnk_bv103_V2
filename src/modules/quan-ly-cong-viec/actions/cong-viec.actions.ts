@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
-import { verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
+import {
+  verifyPermission,
+  hasRBACAdminSupervisionBypass,
+  getActorRbacRoleNamesStrict,
+} from "@/lib/server-permission";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability, verifyQlcvDeleteCapability, verifyQlcvNghiemThuCapability } from "../lib/qlcv-rbac";
 import { congViecCreateSchema, parseCongViecUpdate, phanTramHoanThanhSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
@@ -15,7 +19,7 @@ import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
-import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { isEligibleForNghiemThu, qlcvNghiemThuActorError } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { hasQlcvChecklistFullResult, normalizeQlcvKetQuaText, validateQlcvCloseRequiresResult } from "@/lib/domain/qlcv/close-requires-result";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
@@ -453,15 +457,14 @@ export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   if (!isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Chỉ nghiệm thu khi việc đã báo 100% (cổng chờ nghiệm thu).");
   }
-  // N-QLCV-5 / QLCV-06: cấm tự nghiệm thu (trừ quản trị / Chủ nhiệm).
-  if (
-    actorNhanSuId &&
-    cur.nguoi_phu_trach_id &&
-    actorNhanSuId === cur.nguoi_phu_trach_id &&
-    !(await hasRBACAdminSupervisionBypass())
-  ) {
-    throw new Error("Không được tự nghiệm thu việc mình phụ trách.");
-  }
+  // N-QLCV-5 / QLCV-003: cấm tự nghiệm thu — khớp RPC (ADMIN / CHU_NHIEM_KHOA thật, không break-glass).
+  const actorErr = qlcvNghiemThuActorError({
+    actorNhanSuId,
+    nguoiTaoId: cur.nguoi_tao_id,
+    nguoiPhuTrachId: cur.nguoi_phu_trach_id,
+    roles: await getActorRbacRoleNamesStrict(),
+  });
+  if (actorErr) throw new Error(actorErr);
 
   // 19c TAC-3A: đóng việc bắt buộc 1 dòng kết quả (hoặc checklist 100%).
   const closeErr = validateQlcvCloseRequiresResult({

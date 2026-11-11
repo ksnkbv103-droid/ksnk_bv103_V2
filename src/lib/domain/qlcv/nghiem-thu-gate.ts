@@ -49,3 +49,30 @@ export function isEligibleForNghiemThu(input: QlcvNghiemThuGateInput): boolean {
   if (pct < 100) return false;
   return isPhieuMoDangLam(st, input);
 }
+
+export type QlcvNghiemThuActorInput = {
+  actorNhanSuId: string | null | undefined;
+  nguoiTaoId: string | null | undefined;
+  nguoiPhuTrachId: string | null | undefined;
+  /** Vai trò RBAC thật (không tính email break-glass). */
+  roles: readonly string[];
+};
+
+/**
+ * QLCV-003 (PO 2026-11-11) — khớp `fn_qlcv_transition` NGHIEM_THU:
+ * thiếu hồ sơ nhân sự → chặn; người phụ trách tự nghiệm thu → chặn (miễn ADMIN);
+ * người tạo tự nghiệm thu → chặn (miễn ADMIN, CHU_NHIEM_KHOA). Trả `null` khi được phép.
+ */
+export function qlcvNghiemThuActorError(input: QlcvNghiemThuActorInput): string | null {
+  const actor = input.actorNhanSuId || null;
+  if (!actor) return "Nghiệm thu cần hồ sơ nhân sự của người thao tác.";
+  const roles = new Set(input.roles);
+  const isAdmin = roles.has("ADMIN");
+  if (actor === input.nguoiPhuTrachId && !isAdmin) {
+    return "Không được tự nghiệm thu việc mình phụ trách.";
+  }
+  if (actor === input.nguoiTaoId && !isAdmin && !roles.has("CHU_NHIEM_KHOA")) {
+    return "Không được tự nghiệm thu việc mình tạo (chỉ Chủ nhiệm khoa hoặc ADMIN được).";
+  }
+  return null;
+}
