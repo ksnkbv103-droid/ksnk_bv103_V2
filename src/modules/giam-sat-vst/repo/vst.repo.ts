@@ -292,13 +292,6 @@ export async function callRpcVstCompareMatrices(args: Record<string, unknown>) {
 }
 
 /**
- * Gọi RPC xóa phiên VST (nếu môi trường có cài đặt RPC).
- */
-export async function callRpcVstDeleteSession(args: { sessionId: string; lyDo: string }) {
-  return await callRpc("rpc_vst_delete_session", args, "admin");
-}
-
-/**
  * Gọi RPC lấy options danh mục (Khu vực, Nghề nghiệp).
  */
 export async function getRegistryOptionsRpc(categories: string[]) {
@@ -333,6 +326,5 @@ export const vstRepo = {
   saveVstSessionViaRpc,
   callRpcDashboardVstStrategicAnalytics,
   callRpcVstCompareMatrices,
-  callRpcVstDeleteSession,
   getRegistryOptionsRpc,
 };

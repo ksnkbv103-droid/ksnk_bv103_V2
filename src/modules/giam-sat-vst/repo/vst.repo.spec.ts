@@ -156,15 +156,5 @@ describe("vst.repo", () => {
         "admin",
       );
     });
-
-    it("callRpcVstDeleteSession gọi rpc_vst_delete_session", async () => {
-      mocks.callRpc.mockResolvedValueOnce({ data: true, error: null });
-      await vstRepo.callRpcVstDeleteSession({ sessionId: "s-1", lyDo: "test" });
-      expect(mocks.callRpc).toHaveBeenCalledWith(
-        "rpc_vst_delete_session",
-        { sessionId: "s-1", lyDo: "test" },
-        "admin",
-      );
-    });
   });
 });
