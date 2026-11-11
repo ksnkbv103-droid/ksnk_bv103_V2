@@ -475,9 +475,9 @@
     "tieu_de": "Trả lui không nguyên tử: nhật ký TRA_VE được ghi (chỉ thêm, không xóa được) trước khi update trạm; update lỗi hoặc bộ đã đổi trạm thì nhật ký vẫn còn sự kiện trả lui không xảy ra; sự kiện lifecycle ghi ở bước thứ ba riêng",
     "bang_chung": "src/modules/cssd-erp/workflow/application/cssd-workflow-application.ts:311 (rpc_cssd_nhat_ky_ghi), khoảng :325-334 (update .eq tram_hien_tai_id, ném 'Bộ đã đổi trạm'), khoảng :336 (insertCssdLifecycleEvent); trigger trg_cssd_guard_nhat_ky_chi_them",
     "lenh_kiem": "Hai phiên cùng trả lui một QR ở DONG_GOI: phiên thua nhận lỗi 'Bộ đã đổi trạm' nhưng metadata->'nhat_ky' có 2 dòng TRA_VE",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
-    "commit": "",
+    "commit": "46ac12bf",
     "ghi_chu": "Gộp ghi nhật ký, update trạm và lifecycle vào một RPC (khóa FOR UPDATE)"
   },
   {
