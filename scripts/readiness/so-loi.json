@@ -527,10 +527,10 @@
     "tieu_de": "Đợt rà quyền CSSD chưa phủ: cssd-su-co/application (void/close/recall/confirm), set-reconcile, cssd-bao-tri-mutations, persist-me-tiet-khuan, fn_cssd_apply_bom_plan_tx, RLS bảng cssd_*; fn_cssd_operator_nhan_su_id (DEFINER, tra nhân sự theo email) còn EXECUTE cho authenticated chưa đánh giá",
     "bang_chung": "Báo cáo agent r1-cssd-quyen 2026-11-11, mục «Chưa rà»",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-cssd-quyen",
     "commit": "",
-    "ghi_chu": "Giao đợt rà 2, vùng hẹp hơn"
+    "ghi_chu": "B3: đã rà đợt 2 (r2-cssd-quyen) → CSSD-011..013. Còn chưa rà: thân fn_cssd_apply_bom_lines_tx, rpc_cssd_bao_tri_*, recall-*, set-reconcile-ledger/incident, policy cssd_fact_bao_tri, fn_cssd_bo_tong_id, su-co-form-catalog."
   },
   {
     "id": "VST-005",
@@ -618,10 +618,10 @@
     "tieu_de": "Đợt rà quyền NKBV chưa phủ: dashboard (fn_nkbv_dich_te_hoc_rates theo khoa), mau-so, import, nkbv-cssd-rca, labid, device-registry, phần sau dòng 260 của submitClinicalVerification",
     "bang_chung": "Báo cáo agent r1-nkbv-quyen 2026-11-11, mục «Chưa rà»",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-chua-ra",
     "commit": "",
-    "ghi_chu": "Giao đợt rà 2, vùng hẹp hơn"
+    "ghi_chu": "B3: đã rà đợt 2 → NKBV-013..016, không có Cao. Còn chưa rà: previewMauSoFromDeviceRegistry (max_rows), RLS runtime fn_nkbv_dich_te_hoc_rates dưới Mạng lưới, callThamDinhRpc/resolveCssdQuyTrinhLinkFromMaQr."
   },
   {
     "id": "QT-002",
@@ -631,10 +631,10 @@
     "tieu_de": "Đợt rà quyền Quản trị chưa phủ: guest-stats-pilot, mdm-governance, danh-muc permission map, to-chuc/khoa-phong, nhan-su-active, route ngoài matcher của proxy, staff-auth-email, admin-reauth, thân rpc_save_rbac_matrix và rpc_assign_staff_ksnk_role",
     "bang_chung": "Báo cáo agent r1-quan-tri-quyen 2026-11-11, mục «Chưa rà»",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-chua-ra",
     "commit": "",
-    "ghi_chu": "Giao đợt rà 2, vùng hẹp hơn"
+    "ghi_chu": "B3: đã rà đợt 2 → QT-010, QT-011, không có Cao. Còn chưa rà: Server Action chỉ dựa proxy cho guest, bảng/hàm GSTT, quyền prod."
   },
   {
     "id": "NKBV-002",
@@ -895,5 +895,122 @@
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "",
     "ghi_chu": "Chưa xác minh; cần kịch bản tay với vai trò MANG_LUOI."
+  },
+  {
+    "id": "CSSD-011",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "CAO",
+    "tieu_de": "voidIncidentReport cho mọi người có BAO_SU_CO.create (gồm MANG_LUOI_KSNK, NHAN_VIEN_KSNK) vô hiệu phiếu CHO_XAC_NHAN của người khác, kể cả khoa khác; gỡ cờ đỏ + đóng băng bộ",
+    "bang_chung": "src/modules/cssd-su-co/actions/su-co-report.actions.ts:349; void-incident.application.ts:7-131; domain/cssd-incident-void.ts:209-228 (không so REPORTER_AUTH_USER_ID/khoa), :272-279",
+    "lenh_kiem": "MANG_LUOI A báo sự cố cờ đỏ; MANG_LUOI B gọi voidIncidentReport(id) → kỳ vọng bị chặn, thực tế ok",
+    "trang_thai": "MOI",
+    "nguon": "r2-cssd-quyen",
+    "commit": "",
+    "ghi_chu": "Chưa chạy runtime. Sửa: chỉ người báo hoặc verifyCssdIncidentApprove được vô hiệu. Hỏi PO: người báo có được tự vô hiệu phiếu cờ đỏ chưa xác nhận không?"
+  },
+  {
+    "id": "CSSD-012",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "releaseSetReconcileDraftAction xóa cứng nháp rà soát bộ theo id không kiểm chủ phiếu",
+    "bang_chung": "src/modules/cssd-su-co/actions/set-reconcile-draft.actions.ts:72-85 (claim :41-46 có so authId, release không)",
+    "lenh_kiem": "User A claim nháp; User B release draftId của A → bị xóa",
+    "trang_thai": "MOI",
+    "nguon": "r2-cssd-quyen",
+    "commit": "",
+    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete."
+  },
+  {
+    "id": "CSSD-013",
+    "module": "CSSD",
+    "lop": "DB",
+    "muc": "THAP",
+    "tieu_de": "fn_cssd_operator_nhan_su_id (SECURITY DEFINER) còn EXECUTE cho authenticated, tra mdm_nhan_su theo email qua auth.users",
+    "bang_chung": "psql: secdef=t, anon f, authenticated t",
+    "lenh_kiem": "select fn_cssd_operator_nhan_su_id('email') dưới authenticated (chưa chạy)",
+    "trang_thai": "MOI",
+    "nguon": "r2-cssd-quyen",
+    "commit": "",
+    "ghi_chu": "REVOKE EXECUTE FROM authenticated nếu chỉ admin client gọi. Gom vào lô migration."
+  },
+  {
+    "id": "NKBV-013",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "submitClinicalVerification ghi attributed_khoa_id/calculated_doe từ client vào loa_khoa_id/doe, không đối chiếu lưới ngày-khoa của BA; lệch tử số tỷ lệ theo khoa",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:547-557,559-565,595,653-666",
+    "lenh_kiem": "submitClinicalVerification(id,'BSI',{attributed_khoa_id:<khoa không thuộc BA>}) → loa_khoa_id được lưu",
+    "trang_thai": "MOI",
+    "nguon": "r2-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update."
+  },
+  {
+    "id": "NKBV-014",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "fetchCssdRcaBundle chỉ đòi GIAM_SAT_NKBV view rồi đọc bằng admin client; Mạng lưới xem được mẻ/sự cố CSSD mọi mã QR",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.ts:46-47,64-105",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "r2-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view)."
+  },
+  {
+    "id": "NKBV-015",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "fetchNkbvCasesLinkedToCssd limit(20) trước rồi lọc khoa ở app → người giới hạn khoa thấy thiếu ca",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.ts:183-202",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "r2-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit."
+  },
+  {
+    "id": "NKBV-016",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Import gate bằng quyền create thay vì import; importViSinhExcel gắn XN vào BA có sẵn không kiểm khoa",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-import.actions.ts:89,94-99,147-170,286",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "r2-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện)."
+  },
+  {
+    "id": "QT-010",
+    "module": "QUAN_TRI",
+    "lop": "DB",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "NHAN_SU:edit gọi thẳng PostgREST cập nhật được mdm_nhan_su của ADMIN (is_active, auth_user_id) → vượt chốt chỉ nằm ở action, ADMIN mất quyền",
+    "bang_chung": "pg_policies mdm_nhan_su_update chỉ fn_sys_has_permission(NHAN_SU,edit); thử BEGIN…ROLLBACK: UPDATE 1 trên hồ sơ ADMIN; chốt app: nhan-su-write.actions.ts:97-108, nhan-su-active.actions.ts:41-47",
+    "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -At < /private/tmp/claude-501/-Users-drnghia-Desktop-ksnk-bv103/b927d1b4-da5a-4eed-9c67-a67895858a64/scratchpad/p.sql",
+    "trang_thai": "MOI",
+    "nguon": "r2-quan-tri-quyen",
+    "commit": "",
+    "ghi_chu": "Local chỉ ADMIN có NHAN_SU:edit. Hỏi PO: prod có cấp cho vai trò khác không? Nếu có → nâng CAO. Sửa: policy NOT is_admin_user(auth_user_id) OR fn_sys_is_admin() (lô migration)."
+  },
+  {
+    "id": "QT-011",
+    "module": "QUAN_TRI",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "setupGuestStatsPilotAccountAction đổi email + đặt lại mật khẩu Auth user mà không chặn email break-glass, không kiểm Auth user là ADMIN",
+    "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/guest-stats-pilot.actions.ts:81,180,184; luồng nhân sự có chặn: nhan-su-login-email.guard.ts:71-83",
+    "lenh_kiem": "ADMIN gọi setup với email ∈ KSNK_BREAK_GLASS_EMAILS",
+    "trang_thai": "MOI",
+    "nguon": "r2-quan-tri-quyen",
+    "commit": "",
+    "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180."
   }
 ]
