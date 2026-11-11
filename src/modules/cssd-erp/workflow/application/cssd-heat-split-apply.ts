@@ -1,424 +1,168 @@
 /**
- * Áp tách nhiệt khi lưu loại Cao→Thấp (CSSD-04 Lock A).
- * Ưu tiên parent_bo_id / vai_tro_tach; fallback MAIN/SUB nếu cột chưa có (migration chưa apply).
+ * Đồng bộ tách nhiệt (C′ S3): BOM chỉ nằm trên bộ tổng; bộ con -CN/-KCN do RPC `fn_cssd_dong_bo_tach_nhiet`
+ * tạo / kích hoạt lại / vô hiệu và tự tạo quy trình TIEP_NHAN. Không di chuyển dòng BOM.
+ * RPC chỉ cấp cho service_role → `supabase` truyền vào PHẢI là admin client (gọi sau khi action đã verifyPermission).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildCssdSubBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
-import {
-  isHeatSplitBlockedStation,
-  planHeatSplitForBo,
-  shouldAutoSplitOnLoaiHeatDowngrade,
-  type HeatSplitBomLine,
-} from "@/lib/domain/cssd-heat-split";
+import { normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
+import { getActorNhanSuId } from "@/lib/actor-auth-server";
+import { shouldAutoSplitOnLoaiHeatDowngrade } from "@/lib/domain/cssd-heat-split";
 
 export type HeatSplitApplyResult = {
   split: { maBo: string; maSub: string; movedLines: number }[];
   skipped: { maBo: string; reason: string }[];
 };
 
-async function hasParentBoColumn(supabase: SupabaseClient): Promise<boolean> {
-  const { error } = await supabase.from("cssd_dm_bo_dung_cu").select("id, parent_bo_id").limit(1);
-  return !error;
+/** Kết quả đồng bộ kèm lỗi RPC (đã nằm trong `skipped`) để hook ghi log / cảnh báo. */
+export type HeatSplitSyncResult = HeatSplitApplyResult & { errors: { maBo: string; message: string }[] };
+
+type RpcChild = { ma_bo?: string };
+type RpcResult = { created?: RpcChild[]; reactivated?: RpcChild[]; pending?: RpcChild[] };
+type BoRel = { id?: string; is_active?: boolean | null; parent_bo_id?: string | null };
+
+const CHUNK = 100;
+
+function one<T>(rel: T | T[] | null | undefined): T | undefined {
+  return Array.isArray(rel) ? rel[0] : (rel ?? undefined);
 }
 
-async function ensureComponentBo(
-  supabase: SupabaseClient,
-  parent: {
-    id: string;
-    ma_bo: string;
-    ten_bo: string | null;
-    khoa_su_dung_id: string | null;
-    phan_loai_bo: string | null;
-  },
-  role: "CHIU_NHIET" | "KHONG_CHIU_NHIET",
-  useParentCols: boolean,
-): Promise<{ id: string; ma_bo: string }> {
-  const suffix = role === "KHONG_CHIU_NHIET" ? "-KCN" : "-CN";
-  const childMa =
-    role === "KHONG_CHIU_NHIET" && !useParentCols
-      ? buildCssdSubBoMa(parent.ma_bo)
-      : `${normalizeBoMa(parent.ma_bo)}${suffix}`;
-  const { data: existing, error: exErr } = await supabase
-    .from("cssd_dm_bo_dung_cu")
-    .select("id, ma_bo")
-    .eq("ma_bo", childMa)
-    .eq("is_active", true)
-    .maybeSingle();
-  if (exErr) throw new Error(exErr.message);
-  if (existing?.id) {
-    return { id: String(existing.id), ma_bo: String(existing.ma_bo || childMa) };
+/** Bộ tổng chứa dòng BOM của các loại (dòng nằm trên bộ con → lấy cha), đã khử trùng. */
+async function collectBoTongIdsForLoai(supabase: SupabaseClient, loaiIds: string[]): Promise<string[]> {
+  const out = new Set<string>();
+  for (let i = 0; i < loaiIds.length; i += CHUNK) {
+    const { data, error } = await supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .select("bo_dung_cu_id, bo:cssd_dm_bo_dung_cu!bo_dung_cu_id(id, is_active, parent_bo_id)")
+      .in("loai_dung_cu_id", loaiIds.slice(i, i + CHUNK))
+      .eq("is_active", true);
+    if (error) throw new Error(error.message);
+    for (const row of data || []) {
+      const bo = one((row as { bo?: BoRel | BoRel[] | null }).bo);
+      if (bo?.parent_bo_id) out.add(String(bo.parent_bo_id));
+      else if (bo?.id && bo.is_active !== false) out.add(String(bo.id));
+    }
   }
-
-  const now = new Date().toISOString();
-  const label = role === "KHONG_CHIU_NHIET" ? "không chịu nhiệt" : "chịu nhiệt";
-  const row: Record<string, unknown> = {
-    ma_bo: childMa,
-    ten_bo: `${String(parent.ten_bo || parent.ma_bo).trim()} (${label})`,
-    khoa_su_dung_id: parent.khoa_su_dung_id,
-    phan_loai_bo: parent.phan_loai_bo || "PHAU_THUAT",
-    trang_thai: "ACTIVE",
-    co_ma_dinh_danh_rieng: true,
-    is_active: true,
-    ghi_chu: `Tách nhiệt danh mục · mẹ ${parent.ma_bo} · ${role}`,
-    updated_at: now,
-  };
-  if (useParentCols) {
-    row.parent_bo_id = parent.id;
-    row.vai_tro_tach = role;
-  }
-
-  const { data: inserted, error: insErr } = await supabase
-    .from("cssd_dm_bo_dung_cu")
-    .insert(row)
-    .select("id, ma_bo")
-    .single();
-  if (insErr) throw new Error(insErr.message);
-  if (!inserted?.id) throw new Error(`Không tạo được bộ thành phần ${childMa}.`);
-  return { id: String(inserted.id), ma_bo: String(inserted.ma_bo || childMa) };
+  return [...out];
 }
 
-async function ensureQuyTrinhForComponent(
-  supabase: SupabaseClient,
-  parentQuyTrinhId: string | null,
-  childBoId: string,
-  childMa: string,
-  useParentCols: boolean,
-): Promise<void> {
-  const { data: hit, error } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .select("id")
-    .eq("ma_qr_quy_trinh", childMa)
-    .eq("is_active", true)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (hit?.id) return;
+/** Gọi RPC đồng bộ tách nhiệt cho từng bộ tổng (khử trùng). Không ném lỗi: lỗi RPC → `skipped` + `errors`. */
+export async function syncHeatSplitForBoTong(supabase: SupabaseClient, boIds: string[]): Promise<HeatSplitSyncResult> {
+  const out: HeatSplitSyncResult = { split: [], skipped: [], errors: [] };
+  const given = [...new Set(boIds.map((x) => String(x || "").trim()).filter(Boolean))];
+  if (given.length === 0) return out;
+  // Bộ con -> bộ tổng (RPC cũng tự quy về tổng; ở đây khử trùng trước để không gọi lặp).
+  const { data: rel } = await supabase.from("cssd_dm_bo_dung_cu").select("id, parent_bo_id").in("id", given);
+  const parentOf = new Map((rel || []).map((r) => [String((r as { id: string }).id), (r as { parent_bo_id?: string | null }).parent_bo_id]));
+  const ids = [...new Set(given.map((g) => String(parentOf.get(g) || g)))];
+  const maById = new Map<string, string>();
+  const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo").in("id", ids);
+  for (const b of bos || []) maById.set(String((b as { id: string }).id), normalizeBoMa(String((b as { ma_bo?: string }).ma_bo || "")));
 
-  const now = new Date().toISOString();
-  // Bảng cssd_fact_quy_trinh chỉ có tram_hien_tai_id; mã trạm đọc qua view v_cssd_quy_trinh_full.
-  let sta = "TIEP_NHAN";
-  if (parentQuyTrinhId) {
-    const { data: mainQt, error: mainErr } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select("ma_trang_thai_hien_tai")
-      .eq("id", parentQuyTrinhId)
-      .maybeSingle();
-    if (mainErr) throw new Error(mainErr.message);
-    const parentSta = String((mainQt as { ma_trang_thai_hien_tai?: string } | null)?.ma_trang_thai_hien_tai || "TIEP_NHAN");
-    if (!isHeatSplitBlockedStation(parentSta)) sta = parentSta;
+  for (const id of ids) {
+    const maBo = maById.get(id) || id;
+    const { data, error } = await supabase.rpc("fn_cssd_dong_bo_tach_nhiet", { p_bo_tong_id: id });
+    if (error) {
+      out.skipped.push({ maBo, reason: `Đồng bộ tách nhiệt lỗi: ${error.message}` });
+      out.errors.push({ maBo, message: error.message });
+      continue;
+    }
+    const r = (data || {}) as RpcResult;
+    const made = [...(r.created || []), ...(r.reactivated || [])].map((c) => String(c.ma_bo || "")).filter(Boolean);
+    if (made.length) out.split.push({ maBo, maSub: made.join("+"), movedLines: 0 });
+    const pend = (r.pending || []).map((c) => String(c.ma_bo || "")).filter(Boolean);
+    if (pend.length) {
+      out.skipped.push({ maBo, reason: `Bộ con ${pend.join(", ")} đang chạy quy trình — giữ lại, đồng bộ khi kết thúc.` });
+    }
   }
-  const { data: tram, error: tramErr } = await supabase
-    .from("cssd_dm_tram")
-    .select("id")
-    .eq("ma_tram", sta)
-    .maybeSingle();
-  if (tramErr) throw new Error(tramErr.message);
-  if (!tram?.id) throw new Error(`Không tìm thấy trạm ${sta} trong danh mục.`);
-  const staPatch: Record<string, unknown> = { tram_hien_tai_id: String(tram.id), updated_at: now };
-
-  const insertRow: Record<string, unknown> = {
-    ma_qr_quy_trinh: childMa,
-    ma_qr_bo_vinh_vien: childMa,
-    bo_dung_cu_id: childBoId,
-    ...staPatch,
-    is_active: true,
-    updated_at: now,
-  };
-  // Legacy fallback only when parent cols missing — không ghi MAIN/SUB khi Lock A.
-  if (!useParentCols && parentQuyTrinhId) {
-    insertRow.quy_trinh_cha_id = parentQuyTrinhId;
-    insertRow.ma_vai_tro_bo = "SUB";
-  }
-
-  const { error: insErr } = await supabase.from("cssd_fact_quy_trinh").insert(insertRow);
-  if (insErr) throw new Error(insErr.message);
+  return out;
 }
 
 /**
- * Chuyển dòng sai nhóm nhiệt sang bộ anh em cùng cha (tạo nếu chưa có):
- * "KHONG_CHIU_NHIET": từ -CN sang -KCN (dòng loại không chịu nhiệt);
- * "CHIU_NHIET": từ -KCN sang -CN (dòng loại chịu nhiệt).
+ * Hook sau khi ghi dòng BOM (thêm/sửa/xóa/import): đồng bộ bộ con của các bộ liên quan.
+ * Lỗi đồng bộ không làm hỏng thao tác chính: log console.error và trả cảnh báo (undefined nếu ổn).
+ * `boIds` có thể là bộ con; `lineIds` = dòng chi tiết cần tra bộ chứa.
  */
-async function moveMisplacedLinesToSibling(
+export async function syncHeatSplitAfterBomWrite(
   supabase: SupabaseClient,
-  cnBoId: string,
-  parentBoId: string,
-  target: "KHONG_CHIU_NHIET" | "CHIU_NHIET",
-): Promise<{ maKcn: string; count: number } | null> {
-  const wantHeat = target === "CHIU_NHIET";
-  const { data: lineRows, error: lineErr } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("id, loai:cssd_dm_loai_dung_cu!loai_dung_cu_id(is_chiu_nhiet)")
-    .eq("bo_dung_cu_id", cnBoId)
-    .eq("is_active", true);
-  if (lineErr) throw new Error(lineErr.message);
-  const lowIds = (lineRows || [])
-    .filter((r) => {
-      const rel = (r as { loai?: { is_chiu_nhiet?: boolean } | { is_chiu_nhiet?: boolean }[] | null }).loai;
-      const loai = Array.isArray(rel) ? rel[0] : rel;
-      return loai?.is_chiu_nhiet === wantHeat;
-    })
-    .map((r) => String((r as { id: string }).id));
-  if (lowIds.length === 0) return null;
-
-  const { data: parent, error: pErr } = await supabase
-    .from("cssd_dm_bo_dung_cu")
-    .select("id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo")
-    .eq("id", parentBoId)
-    .maybeSingle();
-  if (pErr) throw new Error(pErr.message);
-  if (!parent?.id) return null;
-  const parentMeta = {
-    id: String(parent.id),
-    ma_bo: String(parent.ma_bo || ""),
-    ten_bo: (parent.ten_bo as string | null) ?? null,
-    khoa_su_dung_id: (parent.khoa_su_dung_id as string | null) ?? null,
-    phan_loai_bo: (parent.phan_loai_bo as string | null) ?? null,
-  };
-  const kcn = await ensureComponentBo(supabase, parentMeta, target, true);
-  const { error: mvErr } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .update({ bo_dung_cu_id: kcn.id, updated_at: new Date().toISOString() })
-    .in("id", lowIds)
-    .eq("bo_dung_cu_id", cnBoId);
-  if (mvErr) throw new Error(mvErr.message);
-  await ensureQuyTrinhForComponent(supabase, null, kcn.id, kcn.ma_bo, true);
-  return { maKcn: kcn.ma_bo, count: lowIds.length };
+  src: { boIds?: (string | null | undefined)[]; lineIds?: string[] },
+  action: string,
+): Promise<string | undefined> {
+  try {
+    const boIds = (src.boIds || []).map((x) => String(x || "").trim()).filter(Boolean);
+    const lineIds = (src.lineIds || []).filter(Boolean);
+    for (let i = 0; i < lineIds.length; i += CHUNK) {
+      const { data, error } = await supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .select("bo_dung_cu_id")
+        .in("id", lineIds.slice(i, i + CHUNK));
+      if (error) throw new Error(error.message);
+      for (const r of data || []) boIds.push(String((r as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || ""));
+    }
+    const res = await syncHeatSplitForBoTong(supabase, boIds);
+    if (res.errors.length === 0) return undefined;
+    await logHeatSplitSyncError(action, res.errors.map((e) => `${e.maBo}: ${e.message}`).join("; "));
+    return `Đã lưu nhưng đồng bộ tách nhiệt lỗi (${res.errors.map((e) => e.maBo).join(", ")}).`;
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await logHeatSplitSyncError(action, msg);
+    return `Đã lưu nhưng đồng bộ tách nhiệt lỗi: ${msg}`;
+  }
 }
 
+async function logHeatSplitSyncError(action: string, error: string): Promise<void> {
+  const userId = await getActorNhanSuId().catch(() => null);
+  console.error({ module: "CSSD_HEAT_SPLIT", action, userId, error });
+}
+
+/** Loại chịu nhiệt → không chịu nhiệt: đồng bộ các bộ tổng chứa loại đó. */
 export async function applyHeatSplitAfterLoaiDowngrade(
   supabase: SupabaseClient,
   loaiId: string,
   prevIsChiuNhiet: boolean | null | undefined,
   nextIsChiuNhiet: boolean | null | undefined,
 ): Promise<HeatSplitApplyResult> {
-  const out: HeatSplitApplyResult = { split: [], skipped: [] };
-  if (!shouldAutoSplitOnLoaiHeatDowngrade(prevIsChiuNhiet, nextIsChiuNhiet)) {
-    return out;
-  }
+  if (!shouldAutoSplitOnLoaiHeatDowngrade(prevIsChiuNhiet, nextIsChiuNhiet)) return { split: [], skipped: [] };
   const id = String(loaiId || "").trim();
-  if (!id) return out;
-
-  const useParentCols = await hasParentBoColumn(supabase);
-
-  const { data: bomRows, error: bomErr } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select(
-      "id, so_luong, ten_dung_cu_le, bo_dung_cu_id, loai_dung_cu_id, bo:cssd_dm_bo_dung_cu!bo_dung_cu_id(id, ma_bo, ten_bo, is_active, khoa_su_dung_id, phan_loai_bo)",
-    )
-    .eq("loai_dung_cu_id", id)
-    .eq("is_active", true);
-  if (bomErr) throw new Error(bomErr.message);
-
-  const boIds = new Set<string>();
-  for (const row of bomRows || []) {
-    const rel = (row as { bo?: { id?: string; is_active?: boolean } | { id?: string; is_active?: boolean }[] | null }).bo;
-    const bo = Array.isArray(rel) ? rel[0] : rel;
-    if (bo?.id && bo.is_active !== false) boIds.add(String(bo.id));
-  }
-  if (boIds.size === 0) return out;
-
-  for (const boId of boIds) {
-    const { data: bo, error: boErr } = await supabase
-      .from("cssd_dm_bo_dung_cu")
-      .select("id, ma_bo, ten_bo, khoa_su_dung_id, phan_loai_bo")
-      .eq("id", boId)
-      .maybeSingle();
-    if (boErr) throw new Error(boErr.message);
-    if (!bo?.id) continue;
-    const maBo = normalizeBoMa(String((bo as { ma_bo?: string }).ma_bo || ""));
-    const { data: splitInfo } = useParentCols
-      ? await supabase.from("cssd_dm_bo_dung_cu").select("parent_bo_id, vai_tro_tach").eq("id", boId).maybeSingle()
-      : { data: null };
-    // Bộ đã là con của lần tách trước: không tách lồng (-CN-KCN…). Bộ -KCN chứa loại nhiệt thấp là đúng.
-    if (splitInfo?.parent_bo_id) {
-      if (splitInfo.vai_tro_tach !== "KHONG_CHIU_NHIET") {
-        // Loại bị hạ nhiệt SAU lần tách đầu: chuyển dòng nhiệt thấp từ -CN sang -KCN cùng cha (không để kẹt).
-        const moved = await moveMisplacedLinesToSibling(
-          supabase,
-          boId,
-          String(splitInfo.parent_bo_id),
-          "KHONG_CHIU_NHIET",
-        );
-        if (moved) out.split.push({ maBo, maSub: moved.maKcn, movedLines: moved.count });
-      }
-      continue;
-    }
-
-    const { data: lineRows, error: lineErr } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .select(
-        "id, so_luong, ten_dung_cu_le, loai_dung_cu_id, loai:cssd_dm_loai_dung_cu!loai_dung_cu_id(is_chiu_nhiet)",
-      )
-      .eq("bo_dung_cu_id", boId)
-      .eq("is_active", true);
-    if (lineErr) throw new Error(lineErr.message);
-
-    const lines: HeatSplitBomLine[] = (lineRows || []).map((r) => {
-      const loaiRel = (r as { loai?: { is_chiu_nhiet?: boolean } | { is_chiu_nhiet?: boolean }[] | null }).loai;
-      const loai = Array.isArray(loaiRel) ? loaiRel[0] : loaiRel;
-      return {
-        chiTietId: String((r as { id: string }).id),
-        loaiId: String((r as { loai_dung_cu_id?: string }).loai_dung_cu_id || ""),
-        isChiuNhiet: loai?.is_chiu_nhiet !== false,
-        ten: String((r as { ten_dung_cu_le?: string }).ten_dung_cu_le || ""),
-        soLuong: Number((r as { so_luong?: number }).so_luong || 0),
-      };
-    });
-
-    const plan = planHeatSplitForBo(lines);
-    if (!plan.needsSplit) continue;
-
-    const { data: qtRows, error: qtErr } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select("id, ma_trang_thai_hien_tai, ma_vai_tro_bo")
-      .eq("bo_dung_cu_id", boId)
-      .eq("is_active", true);
-    if (qtErr) throw new Error(qtErr.message);
-
-    const blocked = (qtRows || []).filter((q) =>
-      isHeatSplitBlockedStation(String((q as { ma_trang_thai_hien_tai?: string }).ma_trang_thai_hien_tai || "")),
-    );
-    if (blocked.length > 0) {
-      out.skipped.push({
-        maBo,
-        reason: "Đang ở tiệt khuẩn / cấp phát — bỏ qua tách tự động.",
-      });
-      continue;
-    }
-
-    const parentQt =
-      (qtRows || []).find((q) => String((q as { ma_vai_tro_bo?: string }).ma_vai_tro_bo || "").toUpperCase() !== "SUB") ||
-      (qtRows || [])[0];
-    const parentQtId = parentQt?.id ? String((parentQt as { id: string }).id) : null;
-
-    const parentMeta = {
-      id: boId,
-      ma_bo: maBo,
-      ten_bo: String((bo as { ten_bo?: string }).ten_bo || ""),
-      khoa_su_dung_id: ((bo as { khoa_su_dung_id?: string | null }).khoa_su_dung_id as string | null) ?? null,
-      phan_loai_bo: ((bo as { phan_loai_bo?: string | null }).phan_loai_bo as string | null) ?? null,
-    };
-
-    const coldChild = await ensureComponentBo(supabase, parentMeta, "KHONG_CHIU_NHIET", useParentCols);
-    const now = new Date().toISOString();
-    const { error: moveColdErr } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .update({ bo_dung_cu_id: coldChild.id, updated_at: now })
-      .in("id", plan.subChiTietIds)
-      .eq("bo_dung_cu_id", boId);
-    if (moveColdErr) throw new Error(moveColdErr.message);
-
-    if (useParentCols) {
-      const heatChild = await ensureComponentBo(supabase, parentMeta, "CHIU_NHIET", true);
-      if (plan.mainChiTietIds.length) {
-        const { error: moveHeatErr } = await supabase
-          .from("cssd_dm_bo_dung_cu_chi_tiet")
-          .update({ bo_dung_cu_id: heatChild.id, updated_at: now })
-          .in("id", plan.mainChiTietIds)
-          .eq("bo_dung_cu_id", boId);
-        if (moveHeatErr) throw new Error(moveHeatErr.message);
-      }
-      await ensureQuyTrinhForComponent(supabase, parentQtId, heatChild.id, heatChild.ma_bo, true);
-      await ensureQuyTrinhForComponent(supabase, parentQtId, coldChild.id, coldChild.ma_bo, true);
-      out.split.push({
-        maBo,
-        maSub: `${heatChild.ma_bo}+${coldChild.ma_bo}`,
-        movedLines: plan.subChiTietIds.length + plan.mainChiTietIds.length,
-      });
-    } else {
-      if (parentQtId) {
-        await supabase
-          .from("cssd_fact_quy_trinh")
-          .update({ ma_vai_tro_bo: "MAIN", updated_at: now })
-          .eq("id", parentQtId);
-      }
-      await ensureQuyTrinhForComponent(supabase, parentQtId, coldChild.id, coldChild.ma_bo, false);
-      out.split.push({
-        maBo,
-        maSub: coldChild.ma_bo,
-        movedLines: plan.subChiTietIds.length,
-      });
-    }
-  }
-
-  return out;
+  if (!id) return { split: [], skipped: [] };
+  return syncHeatSplitForBoTong(supabase, await collectBoTongIdsForLoai(supabase, [id]));
 }
 
-/**
- * Loại nâng từ không chịu nhiệt lên chịu nhiệt (PO 2026-11-10): dòng của loại đó (và mọi dòng chịu nhiệt khác)
- * đang nằm trong bộ -KCN được chuyển sang -CN cùng cha. Không đổi bộ chưa tách.
- */
+/** Loại không chịu nhiệt → chịu nhiệt (PO 2026-11-10): đồng bộ lại (bộ con có thể không còn cần). */
 export async function applyHeatSplitAfterLoaiUpgrade(
   supabase: SupabaseClient,
   loaiId: string,
   prevIsChiuNhiet: boolean | null | undefined,
   nextIsChiuNhiet: boolean | null | undefined,
 ): Promise<HeatSplitApplyResult> {
-  const out: HeatSplitApplyResult = { split: [], skipped: [] };
-  if (prevIsChiuNhiet !== false || nextIsChiuNhiet !== true) return out;
   const id = String(loaiId || "").trim();
-  if (!id) return out;
-  const { data, error } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("bo_dung_cu_id, bo:cssd_dm_bo_dung_cu!bo_dung_cu_id(id, ma_bo, is_active, parent_bo_id, vai_tro_tach)")
-    .eq("loai_dung_cu_id", id)
-    .eq("is_active", true);
-  if (error) throw new Error(error.message);
-  const seen = new Set<string>();
-  for (const row of data || []) {
-    const rel = (row as { bo?: KcnChild | KcnChild[] | null }).bo;
-    const bo = Array.isArray(rel) ? rel[0] : rel;
-    if (!bo?.id || bo.is_active === false || bo.vai_tro_tach !== "KHONG_CHIU_NHIET" || !bo.parent_bo_id) continue;
-    if (seen.has(bo.id)) continue;
-    seen.add(bo.id);
-    const moved = await moveMisplacedLinesToSibling(supabase, bo.id, bo.parent_bo_id, "CHIU_NHIET");
-    if (moved) out.split.push({ maBo: normalizeBoMa(String(bo.ma_bo || "")), maSub: moved.maKcn, movedLines: moved.count });
-  }
-  return out;
+  if (prevIsChiuNhiet !== false || nextIsChiuNhiet !== true || !id) return { split: [], skipped: [] };
+  return syncHeatSplitForBoTong(supabase, await collectBoTongIdsForLoai(supabase, [id]));
 }
 
-type KcnChild = { id?: string; ma_bo?: string; is_active?: boolean; parent_bo_id?: string | null; vai_tro_tach?: string | null };
-
-/** Quét mọi bộ -KCN đang hoạt động, chuyển dòng chịu nhiệt sang -CN cùng cha. */
+/** Quét mọi bộ -KCN đang hoạt động, đồng bộ lại bộ tổng của chúng. */
 export async function applyHeatSplitUpgradeForAllKcn(
   supabase: SupabaseClient,
 ): Promise<{ kcnCount: number; result: HeatSplitApplyResult }> {
   const { data, error } = await supabase
     .from("cssd_dm_bo_dung_cu")
-    .select("id, ma_bo, parent_bo_id")
+    .select("id, parent_bo_id")
     .eq("vai_tro_tach", "KHONG_CHIU_NHIET")
     .eq("is_active", true)
     .not("parent_bo_id", "is", null);
   if (error) throw new Error(error.message);
-  const result: HeatSplitApplyResult = { split: [], skipped: [] };
   const rows = data || [];
-  for (const r of rows) {
-    const bo = r as { id: string; ma_bo: string; parent_bo_id: string };
-    try {
-      const moved = await moveMisplacedLinesToSibling(supabase, bo.id, bo.parent_bo_id, "CHIU_NHIET");
-      if (moved) result.split.push({ maBo: normalizeBoMa(bo.ma_bo), maSub: moved.maKcn, movedLines: moved.count });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      result.skipped.push({ maBo: bo.ma_bo, reason: `Chuyển lỗi: ${msg}` });
-    }
-  }
-  return { kcnCount: rows.length, result };
+  const parents = rows.map((r) => String((r as { parent_bo_id: string }).parent_bo_id));
+  return { kcnCount: rows.length, result: await syncHeatSplitForBoTong(supabase, parents) };
 }
 
 export function formatHeatSplitToast(result: HeatSplitApplyResult): string | null {
   if (result.split.length === 0 && result.skipped.length === 0) return null;
   const parts: string[] = [];
   if (result.split.length) {
-    parts.push(
-      `Đã tách ${result.split.length} bộ: ${result.split
-        .map((s) => `${s.maBo} → ${s.maSub} (${s.movedLines} dòng không chịu nhiệt/thành phần)`)
-        .join("; ")}.`,
-    );
+    parts.push(`Đã đồng bộ tách nhiệt ${result.split.length} bộ: ${result.split.map((s) => `${s.maBo} → ${s.maSub}`).join("; ")}.`);
   }
   if (result.skipped.length) {
-    parts.push(
-      `Bỏ qua ${result.skipped.length} bộ: ${result.skipped.map((s) => `${s.maBo} (${s.reason})`).join("; ")}.`,
-    );
+    parts.push(`Bỏ qua ${result.skipped.length} bộ: ${result.skipped.map((s) => `${s.maBo} (${s.reason})`).join("; ")}.`);
   }
   return parts.join(" ");
 }
@@ -430,23 +174,14 @@ export type LoaiHeatChange = {
 };
 
 /**
- * KD-2: dùng chung cho form, đề nghị và import — loại chịu nhiệt → không chịu nhiệt thì tách bộ
- * (bộ đang ở trạm luân chuyển bị bỏ qua bên trong applyHeatSplitAfterLoaiDowngrade).
+ * KD-2: dùng chung cho form, đề nghị và import — loại đổi nhóm nhiệt thì đồng bộ bộ con của bộ tổng.
  * Trả về các ghi chú (không ném lỗi: loại đã lưu).
  */
-export async function applyHeatSplitForLoaiChanges(
-  supabase: SupabaseClient,
-  changes: LoaiHeatChange[],
-): Promise<string[]> {
+export async function applyHeatSplitForLoaiChanges(supabase: SupabaseClient, changes: LoaiHeatChange[]): Promise<string[]> {
   const notes: string[] = [];
   for (const c of changes) {
     try {
-      const res = await applyHeatSplitAfterLoaiDowngrade(
-        supabase,
-        c.loaiId,
-        c.prevIsChiuNhiet,
-        c.nextIsChiuNhiet,
-      );
+      const res = await applyHeatSplitAfterLoaiDowngrade(supabase, c.loaiId, c.prevIsChiuNhiet, c.nextIsChiuNhiet);
       const up = await applyHeatSplitAfterLoaiUpgrade(supabase, c.loaiId, c.prevIsChiuNhiet, c.nextIsChiuNhiet);
       const note = formatHeatSplitToast({ split: [...res.split, ...up.split], skipped: [...res.skipped, ...up.skipped] });
       if (note) notes.push(note);
@@ -458,31 +193,14 @@ export async function applyHeatSplitForLoaiChanges(
   return notes;
 }
 
-/**
- * Tách hàng loạt theo phương pháp: mọi loại chỉ có phương pháp nhiệt thấp (không STEAM_*) →
- * bộ chứa loại đó tách thành -CN / -KCN. Bộ đã tách hoặc đang ở tiệt khuẩn/cấp phát được bỏ qua.
- */
+/** Đồng bộ hàng loạt: mọi bộ tổng chứa loại không chịu nhiệt. */
 export async function applyHeatSplitForAllLowHeatLoai(
   supabase: SupabaseClient,
 ): Promise<{ loaiCount: number; result: HeatSplitApplyResult }> {
-  const { data, error } = await supabase
-    .from("cssd_dm_loai_dung_cu")
-    .select("id, phuong_phap_cho_phep")
-    .eq("is_chiu_nhiet", false);
+  const { data, error } = await supabase.from("cssd_dm_loai_dung_cu").select("id").eq("is_chiu_nhiet", false);
   if (error) throw new Error(error.message);
-  const result: HeatSplitApplyResult = { split: [], skipped: [] };
-  const loais = data || [];
-  for (const l of loais) {
-    const loaiId = String((l as { id: string }).id);
-    try {
-      const res = await applyHeatSplitAfterLoaiDowngrade(supabase, loaiId, true, false);
-      result.split.push(...res.split);
-      result.skipped.push(...res.skipped);
-    } catch (e: unknown) {
-      // Một loại lỗi không được chặn các loại còn lại trong lô; báo ở danh sách bỏ qua.
-      const msg = e instanceof Error ? e.message : String(e);
-      result.skipped.push({ maBo: `loại ${loaiId}`, reason: `Tách lỗi: ${msg}` });
-    }
-  }
-  return { loaiCount: loais.length, result };
+  const loaiIds = (data || []).map((l) => String((l as { id: string }).id));
+  if (loaiIds.length === 0) return { loaiCount: 0, result: { split: [], skipped: [] } };
+  const result = await syncHeatSplitForBoTong(supabase, await collectBoTongIdsForLoai(supabase, loaiIds));
+  return { loaiCount: loaiIds.length, result };
 }

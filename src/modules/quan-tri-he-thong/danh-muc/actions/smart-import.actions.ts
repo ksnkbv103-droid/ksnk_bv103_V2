@@ -1,7 +1,7 @@
 // src/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions.ts
 "use server";
 
-import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
+import { applyHeatSplitForLoaiChanges, syncHeatSplitAfterBomWrite } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { revalidatePath } from "next/cache";
@@ -504,6 +504,7 @@ export async function smartImportData(
     }
 
     let skippedAccountsCount = 0;
+    const softDeletedIds: string[] = [];
     if (softDeleteMissing) {
       const codesToDelete = Array.from(existingCodes).filter((c) => !importedCodes.has(c));
       if (codesToDelete.length > 0) {
@@ -526,11 +527,24 @@ export async function smartImportData(
           if (error) {
             return { success: false, error: `Không thể soft-delete dữ liệu thiếu trong file: ${error.message}` };
           }
+          softDeletedIds.push(...idsToDelete);
         }
       }
     }
 
     let heatSplitNotes: string[] = [];
+    if (isChiTietBom) {
+      // BOM đổi thành phần → đồng bộ bộ con -CN/-KCN của bộ tổng liên quan (lỗi chỉ thành cảnh báo).
+      const bomWarn = await syncHeatSplitAfterBomWrite(
+        supabase,
+        {
+          boIds: preparedRows.filter((r) => importedCodes.has(r.code)).map((r) => String(r.payload.bo_dung_cu_id || "")),
+          lineIds: softDeletedIds,
+        },
+        "smartImportBomLines",
+      );
+      if (bomWarn) heatSplitNotes.push(bomWarn);
+    }
     if (isLoaiDungCu) {
       const imported = preparedRows.filter((r) => importedCodes.has(r.code));
       // Cờ SAU khi lưu lấy từ DB (trigger suy từ phuong_phap_cho_phep); lỗi đọc → suy từ payload.
