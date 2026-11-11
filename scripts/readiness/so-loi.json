@@ -332,9 +332,9 @@
     "tieu_de": "listKetQuaKyThi giới hạn cứng 500 dòng, không phân trang và không báo cắt cụt. Kỳ thi lớn hơn 500 lượt sẽ thiếu kết quả, làm danh sách đạt/không đạt sai",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-admin.actions.ts:236 (.limit(500))",
     "lenh_kiem": "SELECT count(*) FROM dao_tao_lan_thi WHERE che_do='thi_that' AND trang_thai IN ('da_nop','het_gio')",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "6e5b5985",
     "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount }"
   },
   {
