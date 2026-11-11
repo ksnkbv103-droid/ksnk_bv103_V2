@@ -12,6 +12,10 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { logAdminAction, maskEmailForAudit } from "@/lib/admin-audit";
 import { canSelfLinkByEmail, PENDING_ADMIN_APPROVAL_MESSAGE } from "@/lib/auth/account-link-policy";
+import { metaMustChangePassword } from "@/lib/auth/password-change-gate";
+
+/** QT-009 (PO 2026-11-12): còn bị ép đổi mật khẩu thì chưa được gắn hồ sơ. */
+const MUST_CHANGE_BEFORE_LINK_MESSAGE = "Đổi mật khẩu trước, sau đó mới liên kết được hồ sơ nhân viên.";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 
 type AccountLinkReadSnapshot =
@@ -95,6 +99,10 @@ export async function syncAccountLinkAction() {
         return { success: true, linked: false, message: PENDING_ADMIN_APPROVAL_MESSAGE };
       }
 
+      if (metaMustChangePassword(user.user_metadata, user.app_metadata)) {
+        return { success: true, linked: false, message: MUST_CHANGE_BEFORE_LINK_MESSAGE };
+      }
+
       // Service-role write OUTSIDE cache. Same email-match predicate as the read.
       const adminClient = createAdminSupabaseClient();
       // Chỉ ghi khi hồ sơ còn trống liên kết: snapshot cache tới 1 giờ, có thể đã bị quản trị gán cho tài khoản khác.
@@ -175,6 +183,10 @@ export async function manualLinkAccountAction(maNv: string) {
       success: false,
       error: `Tài khoản của bạn đã được liên kết với nhân sự ${currentStaff.ma_nv} (${currentStaff.ho_ten}). Không thể liên kết thêm hồ sơ khác.`,
     };
+  }
+
+  if (metaMustChangePassword(user.user_metadata, user.app_metadata)) {
+    return { success: false, error: MUST_CHANGE_BEFORE_LINK_MESSAGE };
   }
 
   const { data: target, error: tErr } = await adminClient
