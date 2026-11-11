@@ -61,7 +61,7 @@ describe("cssd-bo-active-cycle", () => {
 describe("smart import bộ không tắt khi còn chu kỳ", () => {
   it("chặn trước upsert, cùng câu đếm lưu hành với form", () => {
     const src = readFileSync(
-      resolve(process.cwd(), "src/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions.ts"),
+      resolve(process.cwd(), "src/lib/master-data/engine/smart-import.actions.ts"),
       "utf8",
     );
     const start = src.indexOf("export async function smartImportData");
