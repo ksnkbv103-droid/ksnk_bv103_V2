@@ -249,7 +249,7 @@ export async function findVstKhuVucFallback() {
   const db = await getDb("admin");
   return await db
     .from("gstt_dm_khu_vuc_giam_sat")
-    .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu")
+    .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu, metadata")
     .eq("is_active", true)
     .order("thu_tu");
 }

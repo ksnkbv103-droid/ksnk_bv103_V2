@@ -221,6 +221,7 @@ export async function getVstHeaderDmDropdowns() {
       ten: String(x.ten_khu_vuc || ""),
       ma: String(x.ma_khu_vuc || ""),
       thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
+      metadata: (x as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
     }));
     const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
     const khuVucs = effectiveKhuVucs.map((r) => ({
@@ -230,6 +231,8 @@ export async function getVstHeaderDmDropdowns() {
       loai_danh_muc: "KHU_VUC_GIAM_SAT",
       source: "registry_lookup" as const,
       thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
+      // Giữ metadata.is_common để bộ lọc khu vực theo khoa (khu-vuc-giam-sat-ui) nhận ra khu vực dùng chung.
+      metadata: (r as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
     }));
     const ngheNghieps = mapDanhMucOptions(
       (registry.NGHE_NGHIEP || []).map((r) => ({
