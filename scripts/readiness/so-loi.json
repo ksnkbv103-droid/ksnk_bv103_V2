@@ -98,9 +98,9 @@
     "tieu_de": "Map khu vực bỏ mất metadata is_common",
     "bang_chung": "src/modules/giam-sat-vst/actions/vst-read.actions.ts",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
-    "commit": "",
+    "commit": "90dd4205",
     "ghi_chu": ""
   },
   {
@@ -280,7 +280,7 @@
     "tieu_de": "dao_tao_cau_hinh cho authenticated đọc mọi kỳ thi_that đã published, kèm cột gan (danh sách khoa và nhân sự được phân công). Policy select không kiểm gan. authenticated còn có INSERT/UPDATE/DELETE/TRUNCATE ở mức GRANT, chỉ chặn bằng policy write",
     "bang_chung": "policy dao_tao_cau_hinh_select, dao_tao_cau_hinh_write (SELECT pg_policies); information_schema.role_table_grants",
     "lenh_kiem": "SELECT policyname,qual FROM pg_policies WHERE tablename='dao_tao_cau_hinh'",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Thu GRANT ghi trên authenticated vì app dùng admin client. Cân nhắc policy select thi_that theo gan. Hỏi PO"
@@ -293,7 +293,7 @@
     "tieu_de": "anon có GRANT SELECT trên dao_tao_cau_hinh và dao_tao_lan_thi. Hiện RLS bật và policy chỉ cho authenticated nên không lộ, nhưng chỉ còn một lớp bảo vệ. dao_tao_cau_hoi và dao_tao_lan_thi không có policy nào nên authenticated không đọc trực tiếp được (đúng thiết kế, app dùng service role)",
     "bang_chung": "information_schema.role_table_grants và pg_policies; relrowsecurity=t cả 3 bảng",
     "lenh_kiem": "SELECT grantee,table_name FROM information_schema.role_table_grants WHERE table_name LIKE 'dao_tao%' AND grantee='anon'",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "REVOKE SELECT từ anon cho hai bảng"
@@ -306,7 +306,7 @@
     "tieu_de": "canAccessKyThiThat dùng try/catch để nhận biết quyền edit, nuốt mọi lỗi (cả lỗi DB hay mạng) rồi rơi về kiểm gan; lỗi tạm thời làm admin bị từ chối. Mỗi kỳ trong listKyThiThatCuaToi lại import động và truy vấn quyền một lần (N+1)",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:179-191, 281-284",
     "lenh_kiem": "đọc code",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Tính quyền edit một lần ngoài vòng lặp; chỉ bắt lỗi từ chối quyền"
@@ -332,7 +332,7 @@
     "tieu_de": "listKetQuaKyThi giới hạn cứng 500 dòng, không phân trang và không báo cắt cụt. Kỳ thi lớn hơn 500 lượt sẽ thiếu kết quả, làm danh sách đạt/không đạt sai",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-admin.actions.ts:236 (.limit(500))",
     "lenh_kiem": "SELECT count(*) FROM dao_tao_lan_thi WHERE che_do='thi_that' AND trang_thai IN ('da_nop','het_gio')",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount }"
@@ -436,7 +436,7 @@
     "tieu_de": "Mức ưu tiên KHAN_CAP hợp lệ ở mẫu định kỳ (CHECK 4 giá trị) nhưng type app CongViec chỉ có THAP/TRUNG_BINH/CAO và bảng fact không có CHECK mức ưu tiên; mẫu KHAN_CAP spawn ra phiếu mang giá trị mà type app không biết.",
     "bang_chung": "constraint qlcv_fact_cong_viec_dinh_ky_muc_do_uu_tien_check (THAP,TRUNG_BINH,CAO,KHAN_CAP); src/modules/quan-ly-cong-viec/types.ts:30; spawn copy coalesce(r.muc_do_uu_tien,'TRUNG_BINH')",
     "lenh_kiem": "select distinct muc_do_uu_tien from qlcv_fact_cong_viec_dinh_ky",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-qlcv",
     "commit": "",
     "ghi_chu": "Thống nhất tập giá trị hai bảng (thêm CHECK fact, hoặc bỏ KHAN_CAP ở mẫu). Hỏi PO."
@@ -449,7 +449,7 @@
     "tieu_de": "Type trạng thái trong app còn alias legacy (CHO_NHAN_VIEC, DANG_THUC_HIEN, CHO_XAC_NHAN_HOAN_THANH, CHUA_BAT_DAU) không có trong CHECK 7 mã; RPC NGHIEM_THU/TU_CHOI_NGHIEM_THU vẫn so sánh các mã cũ (mã chết). Ghi mới đã được normalize nên chỉ là nợ kỹ thuật.",
     "bang_chung": "constraint qlcv_fact_cong_viec_trang_thai_check (MOI,DANG_LAM,CHO_DUYET,HOAN_THANH,TU_CHOI,QUA_HAN,DA_HUY); src/modules/quan-ly-cong-viec/types.ts:14-26",
     "lenh_kiem": "select pg_get_constraintdef(oid) from pg_constraint where conname='qlcv_fact_cong_viec_trang_thai_check'",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-qlcv",
     "commit": "",
     "ghi_chu": "Dọn alias khi đã xác nhận không còn dữ liệu cũ; không khẩn."
@@ -501,7 +501,7 @@
     "tieu_de": "Luân chuyển và loại biên dụng cụ truyền p_nguoi_thuc_hien_id null khi tài khoản chưa gắn nhân sự; fn_cssd_resolve_ledger_actor (nhánh service_role) trả đúng giá trị fallback null, nên sổ kho thiếu người thực hiện",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-lifecycle.actions.ts:79, :220, :239; DB fn_cssd_resolve_ledger_actor",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-cssd-quyen",
     "commit": "",
     "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng"
@@ -514,7 +514,7 @@
     "tieu_de": "Đóng băng thủ công: update is_dong_bang rồi mới ghi ngoại lệ ở chế độ soft; ghi ngoại lệ lỗi thì bộ bị khóa mà không có lý do, không có người thao tác",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-workflow.commands.actions.ts:80-96",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-cssd-quyen",
     "commit": "",
     "ghi_chu": "Gộp vào một RPC hoặc bỏ soft"
@@ -592,7 +592,7 @@
     "tieu_de": "GSC không có cửa sổ 30 phút cho chủ phiên khi sửa/xóa, còn VST có. Chủ phiên GSC sửa hoặc xóa được bất cứ lúc nào trước khi khóa sổ.",
     "bang_chung": "src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts:57,219-223; VST: vst-write-save-session.actions.ts:197-204",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-vst-quyen",
     "commit": "",
     "ghi_chu": "hỏi PO: GSC có áp cửa sổ 30 phút như VST-05 không"
@@ -605,7 +605,7 @@
     "tieu_de": "Repo còn hàm gọi RPC rpc_vst_delete_session, nhưng hàm này không tồn tại trong DB local. Code chết, nếu dùng lại sẽ lỗi lúc chạy.",
     "bang_chung": "src/modules/giam-sat-vst/repo/vst.repo.ts:297-298 (callRpcVstDeleteSession)",
     "lenh_kiem": "SELECT proname FROM pg_proc WHERE proname='rpc_vst_delete_session'; -- 0 dòng",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-vst-quyen",
     "commit": "",
     "ghi_chu": "Xóa hàm repo, hoặc tạo RPC nếu thật sự cần"
@@ -748,7 +748,7 @@
     "tieu_de": "submitClinicalVerification, approveOrExcludeNkbvCase, updateNkbvBenhAnStay, createNkbvBenhAnStay, syncNkbvAdmissionDate dùng admin client nhưng không kiểm khoa. Hiện vô hại vì mọi vai trò có quyền ghi đều là toàn viện; sẽ thành lỗ hổng nếu sau này cấp edit cho Mạng lưới.",
     "bang_chung": "giam-sat-nkbv-write.actions.ts:178, 648, 693, 809, 883 (grep Restriction chỉ trúng dòng 91, 155)",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Thêm isNkbvBenhAnInScope cho đồng bộ"
@@ -761,7 +761,7 @@
     "tieu_de": "rpc_nkbv_tham_dinh_ca bỏ qua luật cấm tự thẩm định khi người duyệt không có hồ sơ mdm_nhan_su (v_ns NULL), và khi đó ghi nguoi_tham_dinh_id = NULL, mất vết ai duyệt.",
     "bang_chung": "pg_get_functiondef('public.rpc_nkbv_tham_dinh_ca'): IF v_ns IS NOT NULL AND ... = nguoi_ghi_id",
     "lenh_kiem": "SELECT pg_get_functiondef('public.rpc_nkbv_tham_dinh_ca'::regproc)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "RAISE khi v_ns IS NULL"
@@ -774,7 +774,7 @@
     "tieu_de": "listAllMaNkbvCas dùng admin client, không lọc khoa: lộ mã phiếu (ma_ca) toàn viện cho Mạng lưới (chỉ mã, không có thông tin người bệnh).",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:191-207",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Lọc theo restriction"
@@ -839,7 +839,7 @@
     "tieu_de": "changePasswordWithReauth và completePasswordRecovery nuốt lỗi khi xóa cờ must_change_password trong app_metadata nhưng vẫn trả ok:true, nên người dùng bị kẹt ở trang đổi MK. Input cũng không qua zod (chỉ kiểm độ dài).",
     "bang_chung": "src/modules/auth/actions/staff-password.actions.ts:95-102, :167-173",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Trả lỗi khi updateUserById fail; thêm schema zod"
@@ -852,7 +852,7 @@
     "tieu_de": "is_admin_user(p_user_id) là SECURITY DEFINER và authenticated EXECUTE được, nên ai cũng dò được một uuid bất kỳ có phải ADMIN không. anon có GRANT bảng trên sys_* nhưng RLS không có policy nào cho anon, nên không lộ dữ liệu.",
     "bang_chung": "SELECT has_function_privilege('authenticated','public.is_admin_user(uuid)','EXECUTE') trả về true",
     "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tAc \"SELECT has_function_privilege('authenticated','public.is_admin_user(uuid)','EXECUTE')\"",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Bỏ tham số p_user_id hoặc REVOKE; REVOKE ALL ON sys_* FROM anon"
@@ -865,7 +865,7 @@
     "tieu_de": "syncAccountLinkAction và manualLinkAccountAction vẫn ghi auth_user_id khi tài khoản còn cờ must_change_password. Login trả thông báo «Email not confirmed» riêng, làm lộ tài khoản có tồn tại.",
     "bang_chung": "account-link-governance.actions.ts:37-42, :140-144; src/modules/auth/actions/staff-login.actions.ts:71-75",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Thêm metaMustChangePassword; gộp thông báo lỗi login"
