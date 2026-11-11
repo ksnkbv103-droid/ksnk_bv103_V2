@@ -1,4 +1,4 @@
--- Khu vực giám sát theo mô hình khoa (PO 2026-11-10), thay cách gán khoa->khu vực của 20261110110000.
+-- Khu vực giám sát theo mô hình khoa (PO 2026-11-10), thay cách gán khoa->khu vực của 20261110115000 (đổi số từ 20261110110000 khi gộp, trùng với cssd_incident_void_atomic).
 -- Không sửa migration cũ; migration này: thêm KV_HOI_TINH, KV_HAU_PHAU; gán lại allowed_khu_vucs;
 -- quy đổi khu_vuc_id của 3 bảng fact theo vi_tri (bằng chứng) rồi theo khoa. vi_tri/vi_tri_cu_the KHÔNG bị sửa.
 -- Hoàn tác: nạp lại bản sao dữ liệu 3 bảng fact + mdm_dm_khoa_phong trước khi chạy (pg_dump --data-only).
