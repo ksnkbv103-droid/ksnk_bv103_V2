@@ -34,6 +34,8 @@ type BoDungCuRow = {
   id: string;
   loai_dung_cu_id?: string | null;
   khoa_su_dung_id?: string | null;
+  loai_bao_goi_id?: string | null;
+  loai_bao_goi?: { ten: string; so_ngay_han_dung: number | null } | null;
   [key: string]: unknown;
 };
 
@@ -55,6 +57,24 @@ export async function getLoaiDungCuOptionsAction() {
   }
 }
 
+export async function getLoaiBaoGoiOptionsAction() {
+  await verifyPermission("BO_DC", "view");
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from("cssd_dm_loai_bao_goi")
+    .select("id, ma, ten, so_ngay_han_dung")
+    .eq("is_active", true)
+    .order("ten", { ascending: true });
+  if (error) return { success: false as const, error: error.message };
+  return {
+    success: true as const,
+    data: (data || []).map((r) => ({
+      id: r.id as string,
+      ten: `${r.ten}${r.so_ngay_han_dung ? ` — ${r.so_ngay_han_dung} ngày` : ""}`,
+    })),
+  };
+}
+
 export async function getBoDungCuRowsAction() {
   await verifyPermission("BO_DC", "view");
   const supabase = createAdminSupabaseClient();
@@ -65,6 +85,22 @@ export async function getBoDungCuRowsAction() {
     .order("ma_bo", { ascending: true });
   if (error) return { success: false, error: error.message };
   const rows = (data || []) as BoDungCuRow[];
+  // View summary chưa có cột loai_bao_goi_id → đọc riêng từ bảng gốc (không cần migration).
+  const { data: bgRows, error: bgErr } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("id, loai_bao_goi_id, cssd_dm_loai_bao_goi(ten, so_ngay_han_dung)");
+  if (bgErr) return { success: false, error: bgErr.message };
+  const bgMap = new Map(
+    (bgRows || []).map((x) => [x.id as string, x as unknown as {
+      loai_bao_goi_id: string | null;
+      cssd_dm_loai_bao_goi: { ten: string; so_ngay_han_dung: number | null } | null;
+    }]),
+  );
+  for (const r of rows) {
+    const b = bgMap.get(r.id);
+    r.loai_bao_goi_id = b?.loai_bao_goi_id ?? null;
+    r.loai_bao_goi = b?.cssd_dm_loai_bao_goi ?? null;
+  }
 
   const loaiIds = Array.from(
     new Set(
@@ -269,6 +305,10 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };
+  if ("loai_bao_goi_id" in input) {
+    (payload as Record<string, unknown>).loai_bao_goi_id =
+      String(input.loai_bao_goi_id || "").trim() || null;
+  }
   if (!payload.ma_bo || !payload.ten_bo) {
     return { success: false, error: "Thiếu mã bộ hoặc tên bộ." };
   }

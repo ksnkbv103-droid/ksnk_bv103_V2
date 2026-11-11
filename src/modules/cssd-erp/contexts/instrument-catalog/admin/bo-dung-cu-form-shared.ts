@@ -5,6 +5,7 @@ export interface BoDungCuFormValues {
   ma_bo: string;
   ten_bo: string;
   loai_dung_cu_id: string;
+  loai_bao_goi_id: string;
   khoa_su_dung_id: string;
   quy_cach: string;
   ghi_chu: string;
@@ -22,6 +23,8 @@ export interface BoDungCuTableRow {
   ma_bo?: string;
   ten_bo?: string;
   loai_dung_cu_id?: string | null;
+  loai_bao_goi_id?: string | null;
+  loai_bao_goi?: { ten: string; so_ngay_han_dung: number | null } | null;
   loai_dung_cu?: { ten_danh_muc?: string; ma_danh_muc?: string | null } | null;
   khoa_su_dung_id?: string | null;
   khoa_su_dung?: { ten_khoa?: string; ma_khoa?: string | null } | null;
@@ -48,6 +51,7 @@ export function mapBoDungCuRowToForm(row: BoDungCuTableRow | null): BoDungCuForm
       ma_bo: "",
       ten_bo: "",
       loai_dung_cu_id: "",
+      loai_bao_goi_id: "",
       khoa_su_dung_id: "",
       quy_cach: "",
       ghi_chu: "",
@@ -69,6 +73,7 @@ export function mapBoDungCuRowToForm(row: BoDungCuTableRow | null): BoDungCuForm
     ma_bo: row.ma_bo || "",
     ten_bo: row.ten_bo || "",
     loai_dung_cu_id: row.loai_dung_cu_id || "",
+    loai_bao_goi_id: row.loai_bao_goi_id || "",
     khoa_su_dung_id: row.khoa_su_dung_id || "",
     quy_cach: row.quy_cach || "",
     ghi_chu: row.ghi_chu || "",

@@ -46,3 +46,10 @@ Readonly agent — khám phá **một** module BV103, không sửa code.
 Không implement. Không migration. ≤ 8 file đọc.
 
 **Giới hạn trả về:** ≤ 25 dòng; mỗi mục 1 dòng `file:dòng — mô tả`. Không chép code.
+
+## Chế độ «Rà vòng đời» (khi được giao bởi `/ra-soat`)
+
+Thay mục 4–5 của Output bằng bảng, mỗi bước được hỏi một dòng:
+`bước | Đã đọc / Chưa chắc | file:dòng | nhu cầu PO ↔ app: hợp / lệch / thiếu`.
+Nhu cầu PO lấy từ `docs/modules/<m>/van-de-nguoi-dung.md` (nhãn `[SSOT]`). Chỉ báo bằng chứng đã đọc; chỗ chỉ grep thì ghi «Chưa chắc». Vẫn ≤ 25 dòng, ≤ 8 file, read-only.
+

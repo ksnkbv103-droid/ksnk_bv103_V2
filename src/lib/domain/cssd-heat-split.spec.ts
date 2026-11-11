@@ -41,3 +41,32 @@ describe("cssd-heat-split", () => {
     expect(rejectParentBoScan({})).toBeNull();
   });
 });
+
+describe("cssd-heat-split nhóm EO", () => {
+  it("tách thêm nhóm EO khỏi nhóm Plasma và chịu nhiệt", () => {
+    const plan = planHeatSplitForBo([
+      { chiTietId: "a", loaiId: "1", isChiuNhiet: true, ten: "Kéo", soLuong: 1, phuongPhap: "STEAM_134" },
+      { chiTietId: "b", loaiId: "2", isChiuNhiet: false, ten: "Ống soi", soLuong: 1, phuongPhap: "PLASMA" },
+      { chiTietId: "c", loaiId: "3", isChiuNhiet: false, ten: "Dây", soLuong: 1, phuongPhap: "EO" },
+    ]);
+    expect(plan.needsSplit).toBe(true);
+    expect(plan.mainChiTietIds).toEqual(["a"]);
+    expect(plan.subChiTietIds).toEqual(["b"]);
+    expect(plan.eoChiTietIds).toEqual(["c"]);
+  });
+
+  it("Plasma + EO không chịu nhiệt vẫn phải tách", () => {
+    const plan = planHeatSplitForBo([
+      { chiTietId: "b", loaiId: "2", isChiuNhiet: false, ten: "A", soLuong: 1, phuongPhap: "PLASMA" },
+      { chiTietId: "c", loaiId: "3", isChiuNhiet: false, ten: "B", soLuong: 1, phuongPhap: "EO" },
+    ]);
+    expect(plan.needsSplit).toBe(true);
+  });
+
+  it("toàn EO không cần tách", () => {
+    const plan = planHeatSplitForBo([
+      { chiTietId: "c", loaiId: "3", isChiuNhiet: false, ten: "B", soLuong: 1, phuongPhap: "EO" },
+    ]);
+    expect(plan.needsSplit).toBe(false);
+  });
+});

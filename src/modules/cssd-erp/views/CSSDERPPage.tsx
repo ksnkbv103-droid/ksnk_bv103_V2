@@ -8,6 +8,7 @@ import { useCSSDWorkflow } from "../hooks/useCSSDWorkflow";
 import WaitingList from "../components/waiting-list/WaitingList";
 import QRScanSuccessCard from "../components/scan/QRScanSuccessCard";
 import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
+import CapPhatBatchPanel from "../components/scan/CapPhatBatchPanel";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
@@ -36,6 +37,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     selectStation,
     handleQRScan,
     rejectToLamSach,
+    refresh,
   } = useCSSDWorkflow();
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
@@ -122,10 +124,18 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         </div>
 
         <div className="bv103-stack-in lg:col-span-6 lg:sticky lg:top-8">
-          <WorkflowStationQrEntry
-            disabled={workflowLoading}
-            onConfirm={submitWorkflowQr}
-          />
+          {currentStation === "CAP_PHAT" ? (
+            <CapPhatBatchPanel
+              disabled={workflowLoading}
+              onDone={refresh}
+              onPrint={(quyTrinhId) => void onPrintCapPhat({ quyTrinhId, nguoiCapPhat: "CSSD" })}
+            />
+          ) : (
+            <WorkflowStationQrEntry
+              disabled={workflowLoading}
+              onConfirm={submitWorkflowQr}
+            />
+          )}
           {scanSuccess ? (
             <QRScanSuccessCard
               {...lastScan}

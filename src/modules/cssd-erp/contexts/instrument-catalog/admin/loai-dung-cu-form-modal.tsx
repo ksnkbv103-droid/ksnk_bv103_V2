@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import { saveLoaiDungCuAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu.actions";
+import { getLoaiBaoGoiOptionsAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import {
   mapIsChiuNhietToKhaNang,
@@ -32,6 +33,7 @@ type FormData = {
   phan_loai_spaulding: CssdSpaulding;
   phan_loai: string;
   so_luong_kho_du_phong: number;
+  loai_bao_goi_mac_dinh_id: string;
   is_active: boolean;
 };
 
@@ -63,6 +65,7 @@ function mapForm(input: Record<string, unknown> | null): FormData {
       phan_loai_spaulding: "CRITICAL",
       phan_loai: "PHAU_THUAT",
       so_luong_kho_du_phong: 0,
+      loai_bao_goi_mac_dinh_id: "",
       is_active: true,
     };
   }
@@ -82,6 +85,7 @@ function mapForm(input: Record<string, unknown> | null): FormData {
     phan_loai_spaulding: normalizeSpauldingForMaster(input.phan_loai_spaulding),
     phan_loai: String(input.phan_loai || "PHAU_THUAT"),
     so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
+    loai_bao_goi_mac_dinh_id: String(input.loai_bao_goi_mac_dinh_id || ""),
     is_active: input.is_active !== false,
   };
 }
@@ -116,6 +120,14 @@ export default function LoaiDungCuFormModal({
     setForm(seed);
   }, [seed]);
 
+  const [baoGoiOptions, setBaoGoiOptions] = useState<{ id: string; ten: string }[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    void getLoaiBaoGoiOptionsAction().then((r) => {
+      if (r.success) setBaoGoiOptions(r.data);
+    });
+  }, [open]);
+
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.phuong_phap_cho_phep.length) return toast.error("Chọn ít nhất một phương pháp tiệt khuẩn.");
@@ -132,6 +144,7 @@ export default function LoaiDungCuFormModal({
       phuong_phap_cho_phep: form.phuong_phap_cho_phep,
       phan_loai_spaulding: form.phan_loai_spaulding,
       phan_loai: form.phan_loai,
+      loai_bao_goi_mac_dinh_id: form.loai_bao_goi_mac_dinh_id,
       ...(isEdit ? {} : { so_luong_kho_du_phong: form.so_luong_kho_du_phong }),
       is_active: form.is_active,
     });
@@ -230,6 +243,20 @@ export default function LoaiDungCuFormModal({
           </p>
         ) : null}
       </fieldset>
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-slate-400 ml-1">Bao gói mặc định (quyết định hạn dùng của bộ)</label>
+        <select
+          value={form.loai_bao_goi_mac_dinh_id}
+          onChange={(e) => setForm({ ...form, loai_bao_goi_mac_dinh_id: e.target.value })}
+          className={C.controlInput}
+        >
+          <option value="">— Chưa gán —</option>
+          {baoGoiOptions.map((o) => (
+            <option key={o.id} value={o.id}>{o.ten}</option>
+          ))}
+        </select>
+        <p className="text-[11px] text-slate-500 ml-1">Hơi nước → giấy / vải không dệt; Plasma, EO → túi ép (không cellulose).</p>
+      </div>
       <div className="space-y-1">
         <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
         {isEdit ? (

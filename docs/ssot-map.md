@@ -19,6 +19,7 @@
 | QLCV | [`modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](modules/qlcv/19-QLCV-DOMAIN-SSOT.md) | — |
 | Dashboard / KPI | [`modules/dashboard/metric-dictionary.md`](modules/dashboard/metric-dictionary.md) · [`bao-cao-tong-hop.md`](modules/dashboard/bao-cao-tong-hop.md) | — |
 | Đào tạo | [`modules/dao-tao/domain-overview.md`](modules/dao-tao/domain-overview.md) | — |
+| Vấn đề & giá trị theo module (bước 1–2) | [`giam-sat`](modules/giam-sat/van-de-nguoi-dung.md) · [`cssd`](modules/cssd/van-de-nguoi-dung.md) · [`nkbv`](modules/nkbv/van-de-nguoi-dung.md) · [`qlcv`](modules/qlcv/van-de-nguoi-dung.md) · [`dao-tao`](modules/dao-tao/van-de-nguoi-dung.md) | — |
 | Layout / chrome | [`wiki/concepts.md`](wiki/concepts.md#layout-primitives) · [`reference/architecture/layout-primitives.md`](reference/architecture/layout-primitives.md) · [`page-chrome-contract`](reference/architecture/page-chrome-contract-20260731.md) | — |
 | IA / tương tác | [`ux/principles.md`](ux/principles.md) | — |
 | Lookup / enum | [`reference/architecture/lookup-vs-enum-guidance.md`](reference/architecture/lookup-vs-enum-guidance.md) | — |

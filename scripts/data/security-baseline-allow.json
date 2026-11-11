@@ -1,0 +1,26 @@
+{
+  "note": "Nợ bảo mật cũ — chỉ được giảm. Sinh bởi guard-security-baseline --write-baseline.",
+  "allow": [
+    "action:src/lib/entity-qr/resolve-entity-qr.action.ts#resolveEntityQrAction",
+    "action:src/lib/master-data/master-data.actions.ts#getActiveMasterDataAction",
+    "action:src/modules/auth/actions/staff-login.actions.ts#loginWithStaffIdentifier",
+    "action:src/modules/auth/actions/staff-password.actions.ts#requestPasswordResetEmail",
+    "action:src/modules/cssd-erp/actions/cssd-workflow-ops.actions.ts#createIncidentReport",
+    "action:src/modules/cssd-erp/actions/cssd-workflow.commands.actions.ts#cssdCommandAdvanceStation",
+    "action:src/modules/dashboard/actions/dashboard-muc-tieu-kpi.actions.ts#fetchMucTieuKpiVien",
+    "action:src/modules/quan-ly-cong-viec/actions/cong-viec-read.actions.ts#getTrangThaiMauSacMap",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmGetSupervisionMasterDataBundle",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmGetTrungTamDanhMucStats",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmListGenericDm",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmSoftDeleteGenericDm",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmSoftDeleteManyGenericDm",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmSuggestNextGenericDmMa",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmToggleGenericDm",
+    "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmUpsertGenericDm",
+    "action:src/modules/quan-tri-he-thong/danh-muc/actions/smart-import.gateway.ts#smartImportMasterTable",
+    "action:src/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions.ts#listPublicChucDanhOptionsForAccountRequestAction",
+    "action:src/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions.ts#listPublicKhoaOptionsForAccountRequestAction",
+    "action:src/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions.ts#lookupAccountAccessRequestStatusAction",
+    "action:src/modules/quan-tri-he-thong/nhan-su/actions/account-access-request-public.actions.ts#submitAccountAccessRequestAction"
+  ]
+}
