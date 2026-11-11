@@ -33,7 +33,7 @@ Ngôn ngữ giao diện thống nhất — MIS bệnh viện: trang trọng, đ�
 
 | Domain | File |
 |--------|------|
-| Quản trị MDM | `quan-tri-form-chrome.ts`, `quan-tri-table-chrome.ts` |
+| Form/bảng danh mục (dùng chung) | `src/lib/master-data-form-chrome.ts`, `src/lib/master-data-table-chrome.ts`, `src/components/shared/QuanTriFormDialogShell.tsx` |
 | CSSD | `cssd-ui-chrome.ts` (`CSSD_UI_PANEL_CHROME`, `CSSD_UI_CELL_*`) |
 | GSC (+ VST history) | `gsc-form-chrome.ts`, `gsc-table-chrome.ts` |
 | NKBV | `nkbv-form-chrome.ts` |

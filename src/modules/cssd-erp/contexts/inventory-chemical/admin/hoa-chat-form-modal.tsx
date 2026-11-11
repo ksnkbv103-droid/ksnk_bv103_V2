@@ -9,9 +9,9 @@ import type { HoaChatNhomRow, HoaChatRow } from "@/modules/quan-tri-he-thong/dan
 import { saveHoaChatAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.actions";
 import { listHoaChatNhomAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat-nhom.actions";
 import { locNhomTheoLoai } from "@/lib/domain/cssd-hoa-chat-nhom";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
-import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 
 function mapForm(row: HoaChatRow | null) {
   return {

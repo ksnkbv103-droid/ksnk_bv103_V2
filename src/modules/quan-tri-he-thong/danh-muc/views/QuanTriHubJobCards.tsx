@@ -4,7 +4,7 @@ import React from "react";
 import { ArrowRight, Beaker, ClipboardList, Building2, ShieldCheck } from "lucide-react";
 import type { DanhMucHubRow } from "@/lib/master-data/danh-muc-hub-catalog";
 import { QUAN_TRI_HUB_JOBS, rowsForHubJob, type QuanTriHubJobId } from "@/lib/master-data/quan-tri-hub-jobs";
-import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as UI } from "@/lib/master-data-form-chrome";
 
 const JOB_ICON: Record<QuanTriHubJobId, React.ReactNode> = {
   "to-chuc": <Building2 className="h-5 w-5 text-rose-600" aria-hidden />,

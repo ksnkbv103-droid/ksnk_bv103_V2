@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import type { ThietBiRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.types";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/lib/master-data-table-chrome";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import ThietBiPrintQrButton from "@/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button";
 import { formatDateVi } from "@/lib/format-datetime-vi";

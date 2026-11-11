@@ -9,7 +9,7 @@ import {
   DANH_MUC_HUB_GROUP_LABELS,
   type DanhMucHubRow,
 } from "@/lib/master-data/danh-muc-hub-catalog";
-import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
+import { quanTriTableChrome as TC } from "@/lib/master-data-table-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 

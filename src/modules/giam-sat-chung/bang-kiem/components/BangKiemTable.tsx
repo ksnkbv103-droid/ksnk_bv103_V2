@@ -17,8 +17,8 @@ import {
   labelBangKiemCachTinhDiem,
   labelBangKiemLoaiGiamSat,
 } from "../lib/bang-kiem-gsc-fields";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/lib/master-data-table-chrome";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 export type BangKiemTablePermission = Partial<{

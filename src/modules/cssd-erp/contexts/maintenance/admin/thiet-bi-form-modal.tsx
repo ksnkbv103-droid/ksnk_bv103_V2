@@ -10,8 +10,8 @@ import { ThietBiLoaiMayField } from "./thiet-bi-loai-may-field";
 import type { ThietBiRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.types";
 import { saveThietBiAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.actions";
 import { mapThietBiToForm, type ThietBiFormValues } from "./thiet-bi-form-shared";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 
 export default function ThietBiFormModal({
   open,

@@ -7,8 +7,8 @@ import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../../components/bo-dung-cu-form-field";
 import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import { saveKhoaPhongAction } from "../actions/khoa-phong.actions";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 
 function mapForm(row: KhoaPhongRow | null) {
   return {

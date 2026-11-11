@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "@/modules/quan-tri-he-thong/components/bo-dung-cu-form-field";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import {
   DungCuChiTietFormValues,
   DungCuChiTietTableRow,
@@ -13,7 +13,7 @@ import {
 } from "./dung-cu-chi-tiet-form-shared";
 import { saveDungCuChiTietAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/dung-cu-chi-tiet.actions";
 import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
-import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 
 type BoOpt = { id: string; ma_bo: string | null; ten_bo: string | null };
 type LoaiOpt = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };

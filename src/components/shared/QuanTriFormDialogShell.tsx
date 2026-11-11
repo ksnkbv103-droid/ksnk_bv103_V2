@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Dialog, DialogContent, DialogTitle, dialogContentKeepCentered } from "@/components/ui/dialog";
-import { quanTriFormChrome as F } from "../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
 import { cn } from "@/lib/utils";
 import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 

@@ -6,7 +6,7 @@ import {
   fetchSystemHealthBrief,
   type SystemHealthMetric,
 } from "@/modules/quan-tri-he-thong/actions/system-health-brief.actions";
-import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as UI } from "@/lib/master-data-form-chrome";
 
 type Props = { onOpen: (path: string) => void };
 

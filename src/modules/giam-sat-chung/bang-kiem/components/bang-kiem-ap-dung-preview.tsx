@@ -11,8 +11,8 @@ import {
 } from "@/lib/domain/bang-kiem-ap-dung";
 import type { BangKiemApDungKhoaOption } from "./bang-kiem-ap-dung-fields";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
-import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
-import { quanTriTableChrome as TC } from "@/modules/quan-tri-he-thong/lib/quan-tri-table-chrome";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
+import { quanTriTableChrome as TC } from "@/lib/master-data-table-chrome";
 
 type Props = {
   apDung: BangKiemApDungJsonb;

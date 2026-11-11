@@ -5,7 +5,7 @@
  */
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
-import { quanTriFormChrome as C } from "./quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "./master-data-form-chrome";
 
 export const quanTriTableChrome = {
   /** Toolbar trên bảng (export / import / thêm) */

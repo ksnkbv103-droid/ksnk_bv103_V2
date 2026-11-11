@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { searchLoaiDungCuOptionsAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/loai-dung-cu.actions";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 
 type Opt = { id: string; ma_danh_muc: string; ten_danh_muc: string };
 

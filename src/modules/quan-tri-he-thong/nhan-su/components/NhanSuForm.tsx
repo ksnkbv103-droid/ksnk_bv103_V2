@@ -11,8 +11,8 @@ import NhanSuLoginFields from "./form/NhanSuLoginFields";
 import { afterSaveNhanSuLogin } from "../lib/nhan-su-after-save-login";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
 import { usePermission } from "@/hooks/usePermission";
-import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 
 interface Props {
   initialData?: Partial<NhanSu> | null;

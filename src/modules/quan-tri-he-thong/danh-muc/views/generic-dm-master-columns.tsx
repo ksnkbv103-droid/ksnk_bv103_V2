@@ -3,7 +3,7 @@
 import React from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/lib/master-data-table-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 

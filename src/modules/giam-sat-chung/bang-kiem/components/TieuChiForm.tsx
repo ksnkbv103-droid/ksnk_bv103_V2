@@ -6,8 +6,8 @@ import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
-import { quanTriFormChrome as F } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
-import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 import {
   luaChonToTextarea,
   parseTieuChiKieuDuLieu,

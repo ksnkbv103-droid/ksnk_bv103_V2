@@ -2,7 +2,7 @@
 
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import { quanTriFormChrome as F } from "../../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
 
 type Opt = { id: string; ten_danh_muc: string };
 

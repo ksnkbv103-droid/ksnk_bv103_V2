@@ -8,7 +8,7 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { toast } from "sonner";
 import ThietBiFormModal from "./thiet-bi-form-modal";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { getThietBiColumns } from "./thiet-bi-columns";

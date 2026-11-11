@@ -4,7 +4,7 @@ import React from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { allocateProceduralSetAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";

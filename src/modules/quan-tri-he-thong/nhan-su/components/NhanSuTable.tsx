@@ -27,7 +27,7 @@ import StaffAuthPasswordDialog, {
 } from "./StaffAuthPasswordDialog";
 import StaffKsnkRoleDialog from "./StaffKsnkRoleDialog";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
-import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/lib/master-data-table-chrome";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { useImportExport } from "@/hooks/useImportExport";
 import { smartImportData } from "../../danh-muc/actions/smart-import.actions";

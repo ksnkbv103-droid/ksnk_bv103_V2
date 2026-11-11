@@ -3,8 +3,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import QuanTriFormDialogShell from "@/modules/quan-tri-he-thong/components/QuanTriFormDialogShell";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 import type { HoaChatNhomRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
 import {

@@ -23,7 +23,7 @@ import {
   BoDungCuChiTietAllocSection,
   type AllocationRow,
 } from "./bo-dung-cu-chi-tiet-alloc-section";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
 import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";

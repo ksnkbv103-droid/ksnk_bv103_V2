@@ -7,7 +7,7 @@ import type { NhanSu } from "@/modules/quan-tri-he-thong/nhan-su/types";
 import NhanSuFormFieldsOrg from "./NhanSuFormFieldsOrg";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
-import { quanTriFormChrome as F } from "../../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
 
 interface NhanSuFormFieldsProps {
   formData: Partial<NhanSu> & Record<string, unknown>;

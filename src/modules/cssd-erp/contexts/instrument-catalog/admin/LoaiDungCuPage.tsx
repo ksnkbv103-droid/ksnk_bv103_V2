@@ -10,7 +10,7 @@ import { getMasterDataExport } from "@/modules/quan-tri-he-thong/danh-muc/action
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import LoaiDungCuFormModal from "./loai-dung-cu-form-modal";
-import { quanTriFormChrome as C } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";

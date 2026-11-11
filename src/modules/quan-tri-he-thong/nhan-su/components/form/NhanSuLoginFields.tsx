@@ -1,6 +1,6 @@
 "use client";
 
-import { quanTriFormChrome as F } from "../../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as F } from "@/lib/master-data-form-chrome";
 
 type Props = {
   hasAuth: boolean;

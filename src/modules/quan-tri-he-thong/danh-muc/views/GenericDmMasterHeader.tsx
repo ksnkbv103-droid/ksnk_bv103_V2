@@ -3,7 +3,7 @@
 import React from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 
 type Props = {
   title: string;

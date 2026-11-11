@@ -1,13 +1,13 @@
 "use client";
 
-import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as UI } from "@/lib/master-data-form-chrome";
 
 import React, { useState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { approveMdmSuggestionAction } from "../danh-muc/actions/mdm-governance.actions";
 import type { MdmSuggestionRow } from "@/lib/master-data/governance";
-import QuanTriFormDialogShell from "./QuanTriFormDialogShell";
+import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 
 interface Props {
   isOpen: boolean;
