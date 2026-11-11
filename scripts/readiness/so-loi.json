@@ -384,10 +384,10 @@
     "tieu_de": "Số trên bảng đếm (rpc_qlcv_board_counts) là toàn cục, không theo phạm vi người dùng, trong khi danh sách lọc theo scope (applyQlcvListScopeToQuery); người dùng phạm vi hẹp có thể thấy số khác số dòng trong danh sách.",
     "bang_chung": "rpc_qlcv_board_counts đọc v_qlcv_cong_viec_full không có scope; src/modules/quan-ly-cong-viec/actions/cong-viec-read.actions.ts:95 (comment 'global') và :114; cong-viec-list.actions.ts:148-175 (applyQlcvListScopeToQuery)",
     "lenh_kiem": "So sánh gates.overdue từ RPC với count danh sách quá hạn cho một tài khoản không phải ADMIN; chưa chạy được vì cần phiên đăng nhập",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "B2: DUNG. RPC SECURITY INVOKER nhưng policy SELECT chỉ fn_qlcv_can_read_fact(), không theo scope: số đếm toàn cục, chỉ lệch số hiển thị, không lộ nội dung. Chưa mô phỏng phiên để đối chiếu số. Hạ CAO→TRUNG_BINH."
+    "ghi_chu": "B2: DUNG. RPC SECURITY INVOKER nhưng policy SELECT chỉ fn_qlcv_can_read_fact(), không theo scope: số đếm toàn cục, chỉ lệch số hiển thị, không lộ nội dung. Chưa mô phỏng phiên để đối chiếu số. Hạ CAO→TRUNG_BINH. | B3: SAI TIỀN ĐỀ. applyQlcvListScopeToQuery không thu hẹp theo người/khoa (qlcv-list-scope.ts:38-46, KSNK-only), nên danh sách và số đếm cùng phạm vi. Chênh lệch còn lại là khác định nghĩa đếm (gate theo lane/actor, tab Bảng theo is_active), không phải lỗi phạm vi. Mở lát mới nếu sau này thu hẹp phạm vi."
   },
   {
     "id": "QLCV-005",
