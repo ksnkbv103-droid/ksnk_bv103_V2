@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { AlertTriangle, CalendarDays, ListChecks, Clock, UserRound, Inbox, Eye } from "lucide-react";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isMyQlcvTask, isQlcvChoToiDuyet, isWatchingQlcvTask, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
@@ -12,7 +12,7 @@ import type { CongViecView } from "../types";
 import { computeQlcvMvpStats } from "../lib/qlcv-mvp-stats";
 
 interface Props {
-  /** Fallback when RPC fails — prefer `rpc_qlcv_board_counts` (global SSOT). */
+  /** Danh sách của bảng (đã lọc loại/kỳ) — nguồn số chip. RPC chỉ dùng để tự chọn chip lần đầu. */
   tasks?: CongViecView[];
   activeFilter?: QlcvBoardFilter | null;
   onFilterChange?: (filter: QlcvBoardFilter) => void;
@@ -34,7 +34,6 @@ export function QlcvGateStats({
   refreshKey = 0,
 }: Props) {
   const list = tasks ?? [];
-  const [rpcCounts, setRpcCounts] = useState<QlcvBoardGateCounts | null>(null);
   /** Chỉ tự chọn chip một lần, và chỉ khi người dùng chưa đổi bộ lọc mặc định «Của tôi». */
   const autoPickedRef = useRef(false);
   const activeFilterRef = useRef(activeFilter);
@@ -71,7 +70,6 @@ export function QlcvGateStats({
       try {
         const next = await getQlcvBoardCounts(actorStaffId ?? null);
         if (cancelled) return;
-        setRpcCounts(next);
         if (!autoPickedRef.current) {
           autoPickedRef.current = true;
           // Người duyệt không có việc riêng nhưng có việc chờ duyệt → mở thẳng «Chờ tôi», tránh bảng trống.
@@ -80,8 +78,7 @@ export function QlcvGateStats({
           }
         }
       } catch (err) {
-        console.error("rpc_qlcv_board_counts failed; using client slice fallback", err);
-        if (!cancelled) setRpcCounts(null);
+        console.error("rpc_qlcv_board_counts failed; bỏ qua tự chọn chip", err);
       }
     })();
     return () => {
@@ -89,8 +86,8 @@ export function QlcvGateStats({
     };
   }, [actorStaffId, refreshKey]);
 
-  // Prefer global RPC SSOT; client slice only if RPC unavailable.
-  const stats = rpcCounts ?? (list.length > 0 ? clientFallback : EMPTY);
+  // Chip đếm theo bảng đang xem (cùng phạm vi + cùng predicate với matchesQlcvBoardFilter).
+  const stats = list.length > 0 ? clientFallback : EMPTY;
 
   const pick = onFilterChange;
   const isSel = (f: QlcvBoardFilter) =>
@@ -127,7 +124,7 @@ export function QlcvGateStats({
     <div className="flex min-w-0 flex-col gap-1.5">
     <div
       className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-50/80 px-2.5 py-1.5 text-xs text-slate-700"
-      title="Số việc, % hoàn thành và % quá hạn tính trên bảng đang xem. Chip đếm bên dưới là toàn viện."
+      title="Số việc, % hoàn thành và % quá hạn tính trên bảng đang xem. Chip đếm bên dưới cũng theo bảng đang xem."
     >
       <span>
         <span className="font-medium text-slate-500">Số việc</span>{" "}
@@ -148,7 +145,7 @@ export function QlcvGateStats({
         </strong>
       </span>
     </div>
-    <p className="bv103-type-label text-xs font-medium text-slate-500">Chip đếm: toàn viện</p>
+    <p className="bv103-type-label text-xs font-medium text-slate-500">Chip đếm: theo bảng đang xem</p>
     <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
       {actorStaffId
         ? chip(
