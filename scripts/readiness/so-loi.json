@@ -943,9 +943,9 @@
     "tieu_de": "submitClinicalVerification ghi attributed_khoa_id/calculated_doe từ client vào loa_khoa_id/doe, không đối chiếu lưới ngày-khoa của BA; lệch tử số tỷ lệ theo khoa",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:547-557,559-565,595,653-666",
     "lenh_kiem": "submitClinicalVerification(id,'BSI',{attributed_khoa_id:<khoa không thuộc BA>}) → loa_khoa_id được lưu",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
-    "commit": "",
+    "commit": "83691feb",
     "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update."
   },
   {
@@ -969,9 +969,9 @@
     "tieu_de": "fetchNkbvCasesLinkedToCssd limit(20) trước rồi lọc khoa ở app → người giới hạn khoa thấy thiếu ca",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.ts:183-202",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
-    "commit": "",
+    "commit": "bc8fdaba",
     "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit."
   },
   {
@@ -982,9 +982,9 @@
     "tieu_de": "Import gate bằng quyền create thay vì import; importViSinhExcel gắn XN vào BA có sẵn không kiểm khoa",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-import.actions.ts:89,94-99,147-170,286",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
-    "commit": "",
+    "commit": "fdf1c885",
     "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện)."
   },
   {
