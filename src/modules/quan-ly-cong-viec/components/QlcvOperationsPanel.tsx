@@ -272,8 +272,8 @@ export function QlcvOperationsPanel({
         refreshKey={gateCountsRefreshKey}
       />
 
-      <div className={`min-w-0 ${UI.shell} space-y-3 p-3 sm:p-4`}>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <div className="min-w-0 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <KsnkSupervisionTabList
             tabs={viewTabs}
             activeId={viewMode}

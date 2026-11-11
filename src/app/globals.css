@@ -51,13 +51,13 @@
   --radius-shell: 0.75rem;
   --radius-table: 0.75rem;
   /** Bo control: input / select / nút thường (≈ rounded-lg) — `bv103LayoutChrome` */
-  --radius-control: 0.625rem;
+  --radius-control: 0.5rem;
 
   /* Chuẩn touch / MIS: nút, ô nhập, thanh tìm (đồng bộ chiều cao) */
   /* Mẫu chuyên nghiệp 2026-11-11: mọi ô nhập/ô chọn/nút form cao 48px, mọi màn hình */
   --bv103-control-h: 3rem;
-  /* Thang control: sm 32 / md 48 / lg 48 (md = --bv103-control-h) */
-  --bv103-control-h-sm: 2rem;
+  /* Thang control: sm 36 / md 48 / lg 48 (md = --bv103-control-h) */
+  --bv103-control-h-sm: 2.25rem;
   --bv103-control-h-md: 3rem;
   --bv103-control-h-lg: 3rem;
   --bv103-page-title: 1.125rem;
