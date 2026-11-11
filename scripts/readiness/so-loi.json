@@ -185,40 +185,40 @@
     "id": "DT-002",
     "module": "DAO_TAO",
     "lop": "BACKEND",
-    "muc": "CAO",
+    "muc": "THAP",
     "tieu_de": "startThiThuAttempt nhận targetRole, chuDeMas, soCau, thoiGianPhut thẳng từ client, không qua zod; thoiGianPhut và soCau không có trần, soCau lẻ hoặc NaN đi thẳng vào insert, chuDeMas lạ làm ngân hàng rỗng",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:193-227 (chỉ form và mucDoId được parse)",
     "lenh_kiem": "gọi startThiThuAttempt({mucDoId, form, soCau:1.5, thoiGianPhut:99999999})",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "Thêm schema: soCau int 1..mức độ, thoiGianPhut int 1..mức độ, chuDeMas mảng chuỗi ngắn, targetRole enum. Thi thử có thể cho thi dài hơn cấu hình, hỏi PO"
+    "ghi_chu": "B2: DUNG một phần. Chỉ thoiGianPhut lớn/lẻ có thật (han_nop nhiều năm, lỗi cột int); soCau lẻ vô hại, chuDeMas lạ ném lỗi rõ. Chỉ ảnh hưởng thi thử của chính user. Hạ CAO→THAP. Hỏi PO: thi thử có được dài hơn cấu hình mức độ không. Đọc code, chưa gọi action."
   },
   {
     "id": "DT-003",
     "module": "DAO_TAO",
     "lop": "BACKEND",
-    "muc": "CAO",
+    "muc": "THAP",
     "tieu_de": "Các action quản trị ghi DB không qua zod: setKyThiGan, setCauHoiActive, updateCauHoiDaoTao, importMcqMatrixAction, listKetQuaKyThi (kyThiId, khoaId). Id sai định dạng trả lỗi Postgres thô, mảng gan và trường nhập không bị chặn kích thước",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-admin.actions.ts:169-203, 224-238; src/modules/dao-tao/actions/dao-tao-bank.actions.ts:224-233, 387-411",
     "lenh_kiem": "grep -n parseDaoTaoInput trên hai file; chỉ createKyThiThat, updateKyThiThat, updateMucDoThiThu có parse",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "Dùng daoTaoIdSchema và schema riêng cho gan (mảng guid, hanChungChiThang int); giới hạn rows của import"
+    "ghi_chu": "B2: DUNG nhưng cả 5 action đứng sau verifyPermission/requireDaoTaoAdmin, chỉ admin gọi; hậu quả là lỗi Postgres thô, không phải lỗ hổng. Hạ CAO→THAP."
   },
   {
     "id": "DT-004",
     "module": "DAO_TAO",
     "lop": "BACKEND",
-    "muc": "CAO",
+    "muc": "TRUNG_BINH",
     "tieu_de": "saveTraLoiCau không kiểm cauId có trong de_snapshot và không kiểm optionId có thuộc câu đó. Id lạ vẫn ghi vào tra_loi, cauId sai thì trả ok:true nhưng không lưu gì, người học tưởng đã lưu",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:519-531 (map im lặng); kiểu câu trả lời không khớp loại câu chỉ bị gradeAnswer cho sai ở 18-44",
     "lenh_kiem": "saveTraLoiCau với cauId là guid không có trong snapshot, kết quả vẫn {ok:true}",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "Không thấy item thì ném lỗi; kiểm traLoi.kind khớp dap_an_dung.kind và optionId nằm trong options"
+    "ghi_chu": "B2: DUNG. cauId lạ trả ok:true nhưng không lưu (mất câu trả lời im lặng); optionId lạ không cộng điểm (grade.ts chặt), không phải gian lận. Hạ CAO→TRUNG_BINH."
   },
   {
     "id": "DT-005",
@@ -354,40 +354,40 @@
     "id": "QLCV-002",
     "module": "QLCV",
     "lop": "BACKEND",
-    "muc": "CAO",
+    "muc": "THAP",
     "tieu_de": "Hàm sinh việc chỉ bù 7 ngày (catch_up_days=7) và âm thầm bỏ qua mẫu thiếu người phụ trách; không ghi log hay cảnh báo nên thiếu việc mà không ai biết.",
     "bang_chung": "fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay (pg_get_functiondef): catch_up_days constant 7; 'IF r.nguoi_phu_trach_id IS NULL THEN CONTINUE'; migration 20261029100000_qlcv_spawn_dinh_ky_catch_up.sql",
     "lenh_kiem": "select count(*) from qlcv_fact_cong_viec_dinh_ky where is_active and nguoi_phu_trach_id is null (local = 0 trên 6 mẫu)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "Kết hợp với phát hiện 1: nên có nút/log báo số phiếu đã sinh và số mẫu bị bỏ qua. Mẫu cũ có phụ trách rồi bị xóa liên kết vẫn bị nuốt im lặng."
+    "ghi_chu": "B2: DUNG một phần. catch_up_days=7 và CONTINUE im lặng có thật nhưng local 0 mẫu thiếu người phụ trách; rủi ro chỉ khi job ngừng >7 ngày. Hạ CAO→THAP."
   },
   {
     "id": "QLCV-003",
     "module": "QLCV",
     "lop": "DB",
-    "muc": "CAO",
+    "muc": "TRUNG_BINH",
     "tieu_de": "Nghiệm thu: RPC cấm tự nghiệm thu chỉ miễn cho vai trò ADMIN, còn code app miễn cho hasRBACAdminSupervisionBypass (ADMIN hoặc email trusted break-glass), nên hai tầng không khớp. Ngoài ra RPC bỏ qua kiểm tra khi p_actor_nhan_su_id NULL (gọi service_role), và người phối hợp hoặc người không phụ trách vẫn nghiệm thu được.",
     "bang_chung": "fn_qlcv_transition WHEN 'NGHIEM_THU' (IF p_actor_nhan_su_id IS NOT NULL AND ... v.roles ? 'ADMIN'); src/modules/quan-ly-cong-viec/actions/cong-viec.actions.ts:455-462; src/lib/server-permission.ts:111-121",
     "lenh_kiem": "select pg_get_functiondef('fn_qlcv_transition'::regproc)",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "Cho RPC từ chối khi actor NULL với loại không phải DINH_KY; thống nhất điều kiện miễn trừ giữa app và RPC. Hỏi PO: người tạo việc có được tự nghiệm thu việc mình giao không?"
+    "ghi_chu": "B2: DUNG. RPC chỉ miễn ADMIN, bỏ kiểm khi actor NULL; app miễn thêm email break-glass nên app rộng hơn RPC, RPC vẫn chặn tới ADMIN. Hạ CAO→TRUNG_BINH. Hỏi PO: người tạo việc có được tự nghiệm thu việc mình giao không?"
   },
   {
     "id": "QLCV-004",
     "module": "QLCV",
     "lop": "DB",
-    "muc": "CAO",
+    "muc": "TRUNG_BINH",
     "tieu_de": "Số trên bảng đếm (rpc_qlcv_board_counts) là toàn cục, không theo phạm vi người dùng, trong khi danh sách lọc theo scope (applyQlcvListScopeToQuery); người dùng phạm vi hẹp có thể thấy số khác số dòng trong danh sách.",
     "bang_chung": "rpc_qlcv_board_counts đọc v_qlcv_cong_viec_full không có scope; src/modules/quan-ly-cong-viec/actions/cong-viec-read.actions.ts:95 (comment 'global') và :114; cong-viec-list.actions.ts:148-175 (applyQlcvListScopeToQuery)",
     "lenh_kiem": "So sánh gates.overdue từ RPC với count danh sách quá hạn cho một tài khoản không phải ADMIN; chưa chạy được vì cần phiên đăng nhập",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "RPC là SECURITY INVOKER nên RLS có thể thu hẹp giúp. Cần xác nhận RLS khớp resolveQlcvListScope; nếu không khớp, truyền scope vào RPC hoặc đếm bằng cùng truy vấn danh sách."
+    "ghi_chu": "B2: DUNG. RPC SECURITY INVOKER nhưng policy SELECT chỉ fn_qlcv_can_read_fact(), không theo scope: số đếm toàn cục, chỉ lệch số hiển thị, không lộ nội dung. Chưa mô phỏng phiên để đối chiếu số. Hạ CAO→TRUNG_BINH."
   },
   {
     "id": "QLCV-005",
@@ -458,14 +458,14 @@
     "id": "CSSD-005",
     "module": "CSSD",
     "lop": "BACKEND",
-    "muc": "CAO",
+    "muc": "TRUNG_BINH",
     "tieu_de": "Cấp phát nhiều bộ: bộ đã cấp phát trước đó vẫn trả ok:true, daCapTruoc:false; nếu có mã ca mổ thì ghi đè ma_ca_mo_id cũ. Hậu quả: truy vết bệnh nhân sai và phiếu giao ghi sai nơi nhận (khoa_nhan_id trong DB không đổi)",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-scan.actions.ts:185-190 (nhánh daCapPhat gọi rpc_cssd_quy_trinh_metadata_merge, patch ma_ca_mo_id); src/modules/cssd-erp/actions/cssd-cap-phat-batch.actions.ts khoảng :82-92 (daCapTruoc: false gán cứng, kết quả issuanceOnly không được đọc)",
     "lenh_kiem": "Local: cấp phát bộ X cho khoa A với ca mổ M1, rồi gọi capPhatNhieuBoAction({khoaNhanId:B, maQrs:[X], maCaMoId:'M2'}). Xem: SELECT metadata->>'ma_ca_mo_id', khoa_nhan_id FROM cssd_fact_quy_trinh WHERE id=<X>",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-cssd-quyen",
     "commit": "",
-    "ghi_chu": "Khi daCapPhat: không merge ma_ca_mo_id (hoặc chỉ cho ghi khi đang rỗng); action lô đọc issuanceOnly để trả daCapTruoc:true hoặc báo lỗi khi khoa khác. Có cho bổ sung mã ca mổ sau cấp phát không: hỏi PO"
+    "ghi_chu": "B2: DUNG. Quét lại bộ đã cấp phát kèm mã ca mổ khác vẫn merge đè ma_ca_mo_id (trigger không chặn metadata); batch gán cứng daCapTruoc:false. khoa_nhan_id không đổi. Chưa dựng fixture chạy SELECT. Hạ CAO→TRUNG_BINH. Hỏi PO: có cho bổ sung mã ca mổ sau cấp phát không."
   },
   {
     "id": "CSSD-006",
@@ -536,27 +536,27 @@
     "id": "VST-005",
     "module": "VST_GSC",
     "lop": "BACKEND",
-    "muc": "CAO",
+    "muc": "TRUNG_BINH",
     "tieu_de": "Tài khoản không phải admin, có quyền create nhưng chưa liên kết mdm_nhan_su, vẫn tạo được phiên VST/GSC đứng tên một nhân sự KSNK bất kỳ do client gửi lên. Người bị đứng tên trở thành chủ phiên giả, số liệu theo người giám sát bị sai.",
     "bang_chung": "src/modules/giam-sat-vst/actions/vst-write-save-session.actions.ts:138-141 và src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts:104-108 (actorNhanSuId || sessionData.nguoi_giam_sat_id); resolveSupervisorPolicy (src/lib/supervision-policy.ts:103-110) vẫn cho qua vì người thực hiện có vai trò hợp lệ",
     "lenh_kiem": "SELECT r.name, count(DISTINCT ur.user_id) FILTER (WHERE ns.id IS NULL) FROM sys_user_roles ur JOIN sys_roles r ON r.id=ur.role_id LEFT JOIN mdm_nhan_su ns ON ns.auth_user_id=ur.user_id AND ns.is_active GROUP BY 1; -- local: NHAN_VIEN_KSNK có 2/20 tài khoản không có nhân sự",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-vst-quyen",
     "commit": "",
-    "ghi_chu": "Không phải admin và thiếu actorNhanSuId thì trả lỗi; chỉ admin mới được nhận nguoi_giam_sat_id từ client. Lưu ý commit 15f41a3e đã sửa thông báo thiếu danh tính, cần đối chiếu khi xác minh"
+    "ghi_chu": "B2: DUNG, code hiện tại (sau 15f41a3e) vẫn lọt: không admin + actorNhanSuId null thì lấy nguoi_giam_sat_id từ client. Local 2/20 tài khoản NHAN_VIEN_KSNK không có hồ sơ active. Hạ CAO→TRUNG_BINH vì phạm vi hẹp."
   },
   {
     "id": "VST-006",
     "module": "VST_GSC",
     "lop": "DB",
-    "muc": "CAO",
+    "muc": "THAP",
     "tieu_de": "Policy ALL \"Admin full access\" chỉ so tên vai trò ADMIN, không kiểm mdm_nhan_su.is_active và sys_roles.is_active. Admin đã bị vô hiệu hồ sơ mà còn JWT vẫn đọc toàn bộ (kể cả phiên đã xóa mềm) và sửa được phiên qua PostgREST.",
     "bang_chung": "pg_policies: gstt_fact_vst_sessions / gstt_fact_chung_sessions / gstt_fact_vst, policy \"Admin full access\" (EXISTS sys_user_roles JOIN sys_roles WHERE r.name='ADMIN'). Chạy thử trong BEGIN…ROLLBACK: admin có nhân sự inactive thì fn_sys_is_admin()=f nhưng vẫn đọc 3454 phiên và UPDATE thành công",
     "lenh_kiem": "BEGIN; UPDATE mdm_nhan_su SET is_active=false WHERE auth_user_id=<admin_uid>; SELECT set_config('request.jwt.claims','{\"sub\":\"<admin_uid>\",\"role\":\"authenticated\"}',true); SET LOCAL ROLE authenticated; SELECT fn_sys_is_admin(), count(*) FROM gstt_fact_vst_sessions; UPDATE gstt_fact_vst_sessions SET updated_at=updated_at WHERE id=(SELECT id FROM gstt_fact_vst_sessions LIMIT 1) RETURNING 1; ROLLBACK;",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-vst-quyen",
     "commit": "",
-    "ghi_chu": "Thay qual bằng (SELECT fn_sys_is_admin()) trên cả 3 bảng. Cần migration, lên prod phải hỏi PO"
+    "ghi_chu": "B2: DUNG theo nội dung policy (3 bảng không kiểm is_active; fn_sys_is_admin có kiểm). Chưa chạy kịch bản BEGIN/ROLLBACK ở B2 (bước Rà đã chạy). Cần admin bị vô hiệu còn JWT; local 1 ADMIN. Hạ CAO→THAP; gộp vào đợt migration RLS."
   },
   {
     "id": "VST-007",
@@ -644,10 +644,10 @@
     "tieu_de": "updateGiamSatNkbvCa nhận verification_data tùy ý từ client và không chặn ca đã chốt. Người chỉ có quyền edit (NHAN_VIEN_KSNK) có thể tự đặt is_positive=true để vượt engine, và sửa loại/ngày phát hiện của ca đã XAC_NHAN/LOAI_TRU, làm lệch thống kê sau thẩm định.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:61-137 (patch.verification_data = raw.verification_data, dòng 133; không gọi isNkbvTerminalCaseStatus); src/lib/validations/giam-sat-nkbv.validations.ts:43 verification_data: z.any(); rpc_nkbv_tham_dinh_ca chỉ kiểm verification_data->>'is_positive'; trigger fn_nkbv_su_kien_guard_trang_thai chỉ chặn đổi trang_thai_id",
     "lenh_kiem": "SELECT pg_get_functiondef('public.fn_nkbv_su_kien_guard_trang_thai'::regproc)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
-    "ghi_chu": "Bỏ verification_data khỏi patch của update (chỉ submitClinicalVerification được ghi). Chặn update khi trạng thái là terminal, ở cả action lẫn trigger DB"
+    "ghi_chu": "B2: DUNG. verification_data z.any() ghi thẳng, không chặn ca terminal; trigger chỉ chặn đổi trang_thai_id. Giữ CAO (chốt trạng thái vẫn phải qua RPC thẩm định, approve chỉ ADMIN)."
   },
   {
     "id": "NKBV-003",
@@ -657,10 +657,10 @@
     "tieu_de": "RLS SELECT trên mọi bảng nkbv_fact_* chỉ kiểm quyền view, không kiểm khoa. MANG_LUOI_KSNK có view nên có thể dùng JWT của mình cùng anon key (công khai) gọi thẳng PostgREST và đọc họ tên, mã người bệnh, vi sinh của toàn viện, vượt NK-SCOPE vốn chỉ áp ở tầng app.",
     "bang_chung": "pg_policies: nkbv_fact_benh_an_select, nkbv_fact_vi_sinh_select, nkbv_fact_su_kien_select, nkbv_fact_ba_ngay_khoa_select… qual = fn_sys_is_admin() OR fn_sys_has_permission('GIAM_SAT_NKBV','view'); sys_role_permissions: MANG_LUOI_KSNK|view",
     "lenh_kiem": "SELECT tablename,qual FROM pg_policies WHERE tablename ILIKE 'nkbv_fact%' AND cmd='SELECT'",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
-    "ghi_chu": "Thêm điều kiện khoa vào policy SELECT (hàm SQL tương đương resolveNkbvKhoaRestriction). Chưa tái hiện bằng user thật vì DB local không có user chỉ mang vai trò Mạng lưới"
+    "ghi_chu": "B2: DUNG (11 bảng nkbv_fact_* SELECT không theo khoa; MANG_LUOI_KSNK, HOI_DONG_KSNK có view). Agent đề nghị TRUNG_BINH vì cần tài khoản có vai này; giữ CAO vì lộ định danh người bệnh toàn viện qua PostgREST. Chưa tái hiện bằng user thật."
   },
   {
     "id": "NKBV-004",
@@ -670,10 +670,10 @@
     "tieu_de": "listMdroInpatientsByKhoa và listNkbvPatientRcaByKhoa nhận khoaId từ client nhưng không áp NK-SCOPE (dùng user client, mà RLS không lọc khoa). Mạng lưới truyền khoaId khoa khác hoặc để trống là xem được danh sách người bệnh MDRO đang nằm viện của khoa khác.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:41-56; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-rca.actions.ts:24-43 (không gọi getNkbvKhoaRestriction); gọi từ src/components/shared/GiamSatHeaderPatientFields.tsx:89 và NkbvMdroCensusPanel.tsx:34-35",
     "lenh_kiem": "grep -c 'Restriction' src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-{mdro,rca}.actions.ts  # 0",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
-    "ghi_chu": "Restriction kind=khoa thì ép khoaId = r.khoaId; kind=none thì trả rỗng"
+    "ghi_chu": "B2: DUNG. grep Restriction=0 ở mdro và rca; khoaId rỗng = toàn viện (limit 500). Giữ CAO."
   },
   {
     "id": "NKBV-005",
@@ -787,10 +787,10 @@
     "tieu_de": "Local đang cho tự đăng ký, và email được xác nhận tự động. Người ngoài lấy anon key công khai, tự đăng ký bằng email của một nhân sự chưa có tài khoản. syncAccountLinkAction (StaffSessionGate gọi) sẽ tự gắn auth_user_id vào hồ sơ đó: người ngoài chiếm danh tính nhân sự, và ADMIN không cấp được tài khoản thật nữa («Đã có tài khoản»). Nếu email trong KSNK_BREAK_GLASS_EMAILS chưa có auth user, đăng ký bằng email đó là thành ADMIN ngay.",
     "bang_chung": "Cấu hình auth local: GOTRUE_DISABLE_SIGNUP=false, GOTRUE_MAILER_AUTOCONFIRM=true. supabase/config.toml:20-23 không đặt enable_signup. src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-link-governance.actions.ts:92-104 chỉ kiểm email_confirmed_at. src/lib/server-permission.ts:84 và src/lib/auth/trusted-admin-email.ts:22 coi đúng email là ADMIN. View v_mdm_nhan_su_picker (security_invoker=false) cho mọi authenticated đọc ma_nv và ho_ten của toàn bộ nhân sự, giúp chọn mục tiêu.",
     "lenh_kiem": "docker exec supabase_auth_ksnk_bv103 printenv GOTRUE_DISABLE_SIGNUP GOTRUE_MAILER_AUTOCONFIRM; SELECT reloptions FROM pg_class WHERE relname='v_mdm_nhan_su_picker'",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
-    "ghi_chu": "Đặt [auth] enable_signup=false (và tắt trên Dashboard prod); break-glass thêm điều kiện đã có auth user do admin tạo. Hỏi PO: prod có đang mở đăng ký không"
+    "ghi_chu": "B2: DUNG chỉ trên local (GOTRUE_DISABLE_SIGNUP=false, AUTOCONFIRM=true; account-link chỉ kiểm email_confirmed_at; picker security_invoker=false lộ ma_nv/ho_ten). Prod chưa kiểm được: cấu hình đăng ký prod chưa biết. NGHIEM_TRONG nếu prod giống local. Hỏi PO: prod có đang mở đăng ký không (Dashboard Auth)."
   },
   {
     "id": "QT-004",
