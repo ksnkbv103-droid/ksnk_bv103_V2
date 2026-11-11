@@ -722,9 +722,9 @@
     "tieu_de": "replaceNkbvBaPhanTichSessions không nguyên tử: tắt nháp cũ, insert nháp mới, nếu lỗi thì bật lại nhưng bỏ qua lỗi của bước bật lại. Có thể mất toàn bộ nháp phân tích của BA.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-ba-phan-tich.actions.ts:68-106",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "6895e197",
     "ghi_chu": "Chuyển sang RPC một transaction"
   },
   {
