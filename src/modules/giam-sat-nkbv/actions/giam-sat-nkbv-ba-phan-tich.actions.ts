@@ -64,46 +64,18 @@ export async function replaceNkbvBaPhanTichSessions(input: {
   const supabase = createAdminSupabaseClient();
   const now = new Date().toISOString();
 
-  // PA-B: giữ id nháp cũ để bật lại nếu insert fail (chưa có RPC transaction).
-  const { data: prevActive, error: prevErr } = await supabase
-    .from("nkbv_fact_ba_phan_tich")
-    .select("id")
-    .eq("ma_benh_an", ma)
-    .eq("analysis_mode", mode)
-    .eq("is_active", true);
-  if (prevErr) return { success: false as const, error: prevErr.message };
-  const prevIds = (prevActive || []).map((r) => String((r as { id?: string }).id || "")).filter(Boolean);
-
-  const { error: offErr } = await supabase
-    .from("nkbv_fact_ba_phan_tich")
-    .update({ is_active: false, updated_at: now })
-    .eq("ma_benh_an", ma)
-    .eq("analysis_mode", mode)
-    .eq("is_active", true);
-  if (offErr) return { success: false as const, error: offErr.message };
-
-  if (input.sessions.length === 0) {
-    revalidatePath("/giam-sat-nkbv");
-    return { success: true as const };
-  }
-
+  // NKBV-008: tắt bộ cũ + chèn bộ mới trong một transaction (RPC có khóa theo BA + chế độ).
   const rows = input.sessions.map((s) => ({
     ...sessionToDbRow(s, ma, mode),
     created_at: s.createdAt || now,
     updated_at: s.updatedAt || now,
-    is_active: true,
   }));
-
-  const { error: insErr } = await supabase.from("nkbv_fact_ba_phan_tich").insert(rows);
-  if (insErr) {
-    if (prevIds.length > 0) {
-      await supabase
-        .from("nkbv_fact_ba_phan_tich")
-        .update({ is_active: true, updated_at: now })
-        .in("id", prevIds);
-    }
-    return { success: false as const, error: insErr.message };
-  }
+  const { error } = await supabase.rpc("rpc_nkbv_replace_ba_phan_tich_sessions", {
+    p_ma_benh_an: ma,
+    p_analysis_mode: mode,
+    p_rows: rows,
+  });
+  if (error) return { success: false as const, error: error.message };
 
   revalidatePath("/giam-sat-nkbv");
   return { success: true as const };
