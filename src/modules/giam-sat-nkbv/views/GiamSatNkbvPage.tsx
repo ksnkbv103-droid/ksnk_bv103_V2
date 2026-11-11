@@ -902,7 +902,7 @@ export default function GiamSatNkbvPage() {
                     });
                     void loadDashboard();
                   }}
-                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation"
+                  className="inline-flex h-11 shrink-0 items-center gap-1 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation"
                 >
                   Cập nhật
                 </button>

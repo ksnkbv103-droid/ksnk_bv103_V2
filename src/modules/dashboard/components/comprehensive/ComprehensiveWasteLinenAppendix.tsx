@@ -51,7 +51,7 @@ export function ComprehensiveWasteLinenAppendix({
 
         <Link
           href="/chat-thai-do-vai"
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-white transition"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-control)] sm:min-h-9 border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-white transition"
         >
           Mở sổ cân & sự cố
           <ExternalLink size={13} aria-hidden />
