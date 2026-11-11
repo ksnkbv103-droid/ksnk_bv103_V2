@@ -696,9 +696,9 @@
     "tieu_de": "deleteNkbvViSinhStoreRecordHard xóa cứng XN vi sinh chỉ với quyền edit, qua admin client nên vượt RLS DELETE (RLS đòi delete). Kiểm 'đang dùng' rồi mới xóa, không khóa nên có race; mất dữ liệu nguồn không khôi phục được.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-vi-sinh-store.actions.ts:354-369",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "47bc179b",
     "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete."
   },
   {
@@ -813,9 +813,9 @@
     "tieu_de": "Phiếu xin cấp tài khoản công khai mang gợi ý staff_id theo ma_nv. Nếu hồ sơ đó trống email, lúc duyệt bỏ qua bước đối chiếu email, nên tài khoản được tạo với email người xin trên hồ sơ của người khác. Chỉ còn ADMIN chặn bằng mắt.",
     "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-access-request.actions.ts:256 (điều kiện `staff.email && …`), :262 gán email phiếu; account-access-request-public.actions.ts:193",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
-    "commit": "",
+    "commit": "5fac7260",
     "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO | PO 2026-11-12: hồ sơ nhân sự trống email thì từ chối duyệt, yêu cầu bổ sung email trước."
   },
   {
