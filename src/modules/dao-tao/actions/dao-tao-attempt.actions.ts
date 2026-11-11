@@ -190,6 +190,11 @@ async function canAccessKyThiThat(
   }
 }
 
+function clampDuoiCauHinh(requested: number | undefined, cauHinh: number): number {
+  const n = typeof requested === "number" && Number.isFinite(requested) ? Math.floor(requested) : 0;
+  return n > 0 ? Math.min(n, cauHinh) : cauHinh;
+}
+
 export async function startThiThuAttempt(input: {
   mucDoId: string;
   form: ExamFormThongTin;
@@ -223,8 +228,9 @@ export async function startThiThuAttempt(input: {
   const bank = await loadActiveBank(selectedChuDeMas, input.targetRole);
   if (bank.length === 0) throw new Error("Ngân hàng câu hỏi trống cho tiêu chí này. Vui lòng chọn lại vai trò hoặc chuyên đề.");
 
-  const soCauChon = input.soCau && input.soCau > 0 ? input.soCau : mucDo.so_cau;
-  const thoiGianPhut = input.thoiGianPhut && input.thoiGianPhut > 0 ? input.thoiGianPhut : mucDo.thoi_gian_phut;
+  // DT-002 (PO 2026-11-11): thi thử không vượt cấu hình mức độ (thời gian, số câu); được chọn ít hơn.
+  const soCauChon = clampDuoiCauHinh(input.soCau, mucDo.so_cau);
+  const thoiGianPhut = clampDuoiCauHinh(input.thoiGianPhut, mucDo.thoi_gian_phut);
 
   const seed = randomUUID();
   const { questions, report } = selectBalancedExam({
