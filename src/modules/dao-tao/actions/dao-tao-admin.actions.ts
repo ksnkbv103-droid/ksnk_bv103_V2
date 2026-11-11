@@ -15,6 +15,7 @@ import {
   daoTaoIdSchema,
   kyThiInputSchema,
   parseDaoTaoInput,
+  setKyThiGanSchema,
   updateKyThiPatchSchema,
   updateMucDoThiThuSchema,
 } from "@/lib/dao-tao/schemas";
@@ -173,6 +174,7 @@ export async function setKyThiGan(input: {
   hanChungChiThang?: number;
 }) {
   await verifyPermission("DAO_TAO", "edit");
+  input = parseDaoTaoInput(setKyThiGanSchema, input);
   const admin = createAdminSupabaseClient();
   const { data: current, error: readErr } = await admin
     .from("dao_tao_cau_hinh")

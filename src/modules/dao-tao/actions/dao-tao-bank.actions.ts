@@ -13,6 +13,12 @@ import {
   type ExportBankRow,
   type ParsedMcqRow,
 } from "@/lib/dao-tao/parse-mcq-excel";
+import {
+  importMcqMatrixSchema,
+  parseDaoTaoInput,
+  setCauHoiActiveSchema,
+  updateCauHoiDaoTaoSchema,
+} from "@/lib/dao-tao/schemas";
 import { requireDaoTaoAdmin, requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
 import { randomUUID } from "crypto";
 
@@ -231,6 +237,7 @@ export async function importMcqMatrixAction(input: {
   replaceActive?: boolean;
 }): Promise<DaoTaoImportResult> {
   await verifyPermission("DAO_TAO", "import");
+  input = parseDaoTaoInput(importMcqMatrixSchema, input) as typeof input;
   const admin = createAdminSupabaseClient();
   const fallbackMa = input.chuDeMa ?? DEFAULT_CHU_DE.ma;
   const fallbackTen = input.chuDeTen ?? DEFAULT_CHU_DE.ten;
@@ -386,6 +393,7 @@ export async function importMcqMatrixAction(input: {
 
 export async function setCauHoiActive(cauHoiId: string, isActive: boolean) {
   await verifyPermission("DAO_TAO", "edit");
+  ({ cauHoiId, isActive } = parseDaoTaoInput(setCauHoiActiveSchema, { cauHoiId, isActive }));
   const admin = createAdminSupabaseClient();
   const { error } = await admin
     .from("dao_tao_cau_hoi")
@@ -408,6 +416,7 @@ export async function updateCauHoiDaoTao(input: {
   loai: DaoTaoQuestionLoai;
 }) {
   await verifyPermission("DAO_TAO", "edit");
+  input = parseDaoTaoInput(updateCauHoiDaoTaoSchema, input) as typeof input;
   const admin = createAdminSupabaseClient();
 
   const { data: existing, error: loadErr } = await admin
