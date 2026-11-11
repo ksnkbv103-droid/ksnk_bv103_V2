@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSetReconcileAttributePatch,
   isSetReconcileDraftAttr,
+  isSetReconcileDraftOwner,
   parseSetReconcileSnapshot,
   readSetReconcileStatus,
 } from "./cssd-set-reconcile-attrs";
@@ -40,5 +41,14 @@ describe("cssd-set-reconcile-attrs", () => {
   it("reads claim and failed BOM approve tokens", () => {
     expect(readSetReconcileStatus({ SET_RECONCILE_STATUS: "BOM_APPLYING" })).toBe("BOM_APPLYING");
     expect(readSetReconcileStatus({ SET_RECONCILE_STATUS: "BOM_APPLY_FAILED" })).toBe("BOM_APPLY_FAILED");
+  });
+});
+
+describe("isSetReconcileDraftOwner (CSSD-012)", () => {
+  it("chỉ khớp khi auth user trùng chủ nháp", () => {
+    expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, "u-1")).toBe(true);
+    expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, "u-2")).toBe(false);
+    expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, null)).toBe(false);
+    expect(isSetReconcileDraftOwner({}, "u-1")).toBe(false);
   });
 });

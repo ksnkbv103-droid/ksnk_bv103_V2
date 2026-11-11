@@ -71,3 +71,13 @@ export function buildSetReconcileAttributePatch(args: {
     SET_RECONCILE_SUMMARY: `hong:${sum.hong};mat:${sum.mat};boSung:${sum.boSung};doiChuan:${sum.doiChuan};doiLoai:${sum.doiLoai};dieuChuyen:${sum.dieuChuyen}`,
   };
 }
+
+/** CSSD-012: chỉ chủ phiếu nháp (REPORTER_AUTH_USER_ID == auth user) mới được hủy nháp. */
+export function isSetReconcileDraftOwner(
+  attrs: Record<string, unknown> | null | undefined,
+  actorAuthUserId: string | null | undefined,
+): boolean {
+  const owner = String(attrs?.REPORTER_AUTH_USER_ID || "").trim();
+  const actor = String(actorAuthUserId || "").trim();
+  return Boolean(owner && actor && owner === actor);
+}

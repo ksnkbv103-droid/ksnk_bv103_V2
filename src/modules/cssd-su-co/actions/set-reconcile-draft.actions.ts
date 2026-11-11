@@ -9,7 +9,7 @@ import {
   loadSetReconcileIncidentsForBo,
 } from "../application/set-reconcile-incident.application";
 import { isSetReconcileDraftExpired } from "@/lib/domain/cssd-set-reconcile";
-import { readSetReconcileStatus } from "../domain/cssd-set-reconcile-attrs";
+import { isSetReconcileDraftOwner, readSetReconcileStatus } from "../domain/cssd-set-reconcile-attrs";
 
 async function reporterAuthId(): Promise<string | null> {
   try {
@@ -79,6 +79,9 @@ export async function releaseSetReconcileDraftAction(draftId: string) {
     if (!data) return { success: true as const };
     if (readSetReconcileStatus((data.attributes as Record<string, unknown>) || {}) !== "DRAFT") {
       return { success: true as const };
+    }
+    if (!isSetReconcileDraftOwner((data.attributes as Record<string, unknown>) || {}, await reporterAuthId())) {
+      return { success: false as const, error: "Chỉ người mở phiếu nháp này mới được hủy." };
     }
     await supabase.from("cssd_fact_su_co").delete().eq("id", id);
     return { success: true as const };
