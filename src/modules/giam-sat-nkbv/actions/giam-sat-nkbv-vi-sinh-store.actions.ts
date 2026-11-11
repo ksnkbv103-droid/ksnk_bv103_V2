@@ -376,7 +376,8 @@ export async function quickToggleNkbvViSinhMdro(input: {
 
 /** Xóa cứng — chặn nếu đã dùng trên phân tích BA. */
 export async function deleteNkbvViSinhStoreRecordHard(id: string) {
-  await verifyPermission("GIAM_SAT_NKBV", "edit");
+  // NKBV-006 (PO 2026-11-12): xóa cứng đòi quyền delete, khớp RLS DELETE.
+  await verifyPermission("GIAM_SAT_NKBV", "delete");
   const outOfScope = await denyIfStoreOutOfScope();
   if (outOfScope) return outOfScope;
   const rowId = String(id || "").trim();
