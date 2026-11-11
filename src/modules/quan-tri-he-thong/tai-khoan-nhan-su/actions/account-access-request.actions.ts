@@ -253,7 +253,14 @@ export async function approveAccountAccessRequest(params: {
       if (staff.auth_user_id) {
         return { success: false as const, error: "Hồ sơ đã có tài khoản đăng nhập — từ chối phiếu này." };
       }
-      if (staff.email && !accountEmailsMatch(staff.email, email)) {
+      // QT-005 (PO 2026-11-12): hồ sơ trống email thì không đối chiếu được, từ chối.
+      if (!String(staff.email || "").trim()) {
+        return {
+          success: false as const,
+          error: "Hồ sơ gắn với phiếu chưa có email, không đối chiếu được người xin. Bổ sung email vào hồ sơ nhân sự rồi duyệt lại, hoặc từ chối.",
+        };
+      }
+      if (!accountEmailsMatch(staff.email, email)) {
         return {
           success: false as const,
           error: "Email trên phiếu khác email hồ sơ — xác minh người xin, sửa email hồ sơ (quản trị) rồi duyệt lại, hoặc từ chối.",
