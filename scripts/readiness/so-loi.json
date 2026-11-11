@@ -202,9 +202,9 @@
     "tieu_de": "Các action quản trị ghi DB không qua zod: setKyThiGan, setCauHoiActive, updateCauHoiDaoTao, importMcqMatrixAction, listKetQuaKyThi (kyThiId, khoaId). Id sai định dạng trả lỗi Postgres thô, mảng gan và trường nhập không bị chặn kích thước",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-admin.actions.ts:169-203, 224-238; src/modules/dao-tao/actions/dao-tao-bank.actions.ts:224-233, 387-411",
     "lenh_kiem": "grep -n parseDaoTaoInput trên hai file; chỉ createKyThiThat, updateKyThiThat, updateMucDoThiThu có parse",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "557be46b",
     "ghi_chu": "B2: DUNG nhưng cả 5 action đứng sau verifyPermission/requireDaoTaoAdmin, chỉ admin gọi; hậu quả là lỗi Postgres thô, không phải lỗ hổng. Hạ CAO→THAP."
   },
   {
@@ -215,9 +215,9 @@
     "tieu_de": "saveTraLoiCau không kiểm cauId có trong de_snapshot và không kiểm optionId có thuộc câu đó. Id lạ vẫn ghi vào tra_loi, cauId sai thì trả ok:true nhưng không lưu gì, người học tưởng đã lưu",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:519-531 (map im lặng); kiểu câu trả lời không khớp loại câu chỉ bị gradeAnswer cho sai ở 18-44",
     "lenh_kiem": "saveTraLoiCau với cauId là guid không có trong snapshot, kết quả vẫn {ok:true}",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "20f3e04e",
     "ghi_chu": "B2: DUNG. cauId lạ trả ok:true nhưng không lưu (mất câu trả lời im lặng); optionId lạ không cộng điểm (grade.ts chặt), không phải gian lận. Hạ CAO→TRUNG_BINH."
   },
   {
