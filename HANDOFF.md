@@ -10,10 +10,10 @@ File này chỉ trỏ đường, không chép tiến độ. Bản 2026-11-06 (đ
 
 ## Vòng một việc
 Cột cuối của `next` nói việc kế của từng dòng:
-- `XÁC MINH`: giao `db-verify` (tối đa 2 agent đọc song song), kết quả ghi `scripts/readiness/inbox/<tên>.json`, điều phối chạy `merge` hoặc `set <ID> DA_XAC_MINH|LOI_GIA`.
-- `SỬA`: giao `slice-fixer` theo ID (một agent ghi tại một thời điểm), điều phối chạy `npm run verify:changed`, commit, `set <ID> DA_SUA <sha>`.
+- `XÁC MINH`: giao `db-verify` (tối đa 4 agent đọc song song, mỗi agent một module), agent báo kết luận theo ID, điều phối chạy `set <ID> DA_XAC_MINH|LOI_GIA`.
+- `SỬA`: giao `slice-fixer` theo ID (mỗi agent ghi một worktree và một module riêng), điều phối chạy `npm run verify:changed`, commit, `set <ID> DA_SUA <sha>`.
 
-Chỉ kết lượt khi: gặp cổng dừng PO (lâm sàng SSOT im · migration/SQL lên prod · phá hủy · push/PR/deploy · đổi quyền người dùng thật) · `next` rỗng · hạn mức tuần > 60%.
+Chỉ kết lượt khi: gặp cổng dừng PO (lâm sàng SSOT im · migration/SQL lên prod · phá hủy · push/PR/deploy · đổi quyền người dùng thật) · `next` rỗng. Không có ngưỡng dừng theo hạn mức tuần (CLAUDE.md mục «Ngân sách»).
 
 ## Còn dở (2026-11-11)
 - Nghẽn ở xác minh: 41 dòng `MOI`. Không mở đợt rà mới cho đến khi `MOI` < 10.
