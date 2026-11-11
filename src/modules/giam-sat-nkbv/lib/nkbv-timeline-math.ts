@@ -233,11 +233,11 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     iwp_start = ep.start;
     iwp_end = ep.end;
   } else if (checklistType === "CH17") {
-    // Ch.17: IWP ±3; ENDO dùng IWP ±10 (21 ngày lịch)
+    // Ch.17: IWP ±3; ENDO và BONE dùng IWP ±10 (21 ngày lịch) — NHSN 2026 G2.14–15
     indexDate = override || ngay_phat_hien_clean;
     const typeCode = String(activeForm?.ch17_type_code || "").toUpperCase();
     const iwp =
-      typeCode === "ENDO" ? endoExtendedIwp(indexDate) : clinicalIwp(indexDate);
+      typeCode === "ENDO" || typeCode === "BONE" ? endoExtendedIwp(indexDate) : clinicalIwp(indexDate);
     iwp_start = iwp.start;
     iwp_end = iwp.end;
   } else if (syndrome === "SSI") {
@@ -386,7 +386,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     sbap_end = w.end;
   } else if (
     checklistType === "CH17" &&
-    String(activeForm?.ch17_type_code || "").toUpperCase() === "ENDO"
+    ["ENDO", "BONE"].includes(String(activeForm?.ch17_type_code || "").toUpperCase())
   ) {
     const endo = endoRitSbapToDischarge({
       indexDate,
