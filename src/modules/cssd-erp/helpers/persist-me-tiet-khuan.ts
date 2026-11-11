@@ -145,11 +145,12 @@ export async function loadKitHeatLinesByBoIds(
     ...new Set((data || []).map((r) => String((r as { loai_dung_cu_id?: string | null }).loai_dung_cu_id || "").trim()).filter(Boolean)),
   ];
   const loaiById = new Map<string, Record<string, unknown>>();
-  if (loaiIds.length) {
+  // Tra theo lô 100 mã: một lần `.in()` vài trăm UUID làm URL quá dài (414) → cả danh sách chờ bị chặn.
+  for (let i = 0; i < loaiIds.length; i += 100) {
     const { data: loais, error: lErr } = await client
       .from("cssd_dm_loai_dung_cu")
       .select("id, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh")
-      .in("id", loaiIds);
+      .in("id", loaiIds.slice(i, i + 100));
     if (lErr) return { ok: false, message: lErr.message };
     for (const l of loais || []) loaiById.set(String((l as { id: string }).id), l as Record<string, unknown>);
   }
