@@ -33,9 +33,9 @@
     "tieu_de": "authenticated còn EXECUTE trên 4 RPC CSSD dù mọi chỗ gọi dùng admin client",
     "bang_chung": "rpc_cssd_me_ghi_test, rpc_cssd_me_ket_thuc_nap, rpc_cssd_me_ket_thuc_tiet_khuan, rpc_cssd_nhat_ky_ghi",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
-    "commit": "",
+    "commit": "607d774b",
     "ghi_chu": ""
   },
   {
@@ -228,9 +228,9 @@
     "tieu_de": "Chống vượt lượt chỉ bằng đếm lại rồi xóa, không có ràng buộc DB. Cùng lúc hai request đều thấy mình ngoài hạn mức thì cả hai bị xóa, người học mất cả hai lượt. Bản ghi vượt lượt tồn tại tạm thời",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:410-414; dao_tao_lan_thi chỉ có index pkey, idx_dao_tao_lan_thi_user, idx_dao_tao_lan_thi_cau_hinh (SELECT pg_indexes), không unique",
     "lenh_kiem": "SELECT indexname FROM pg_indexes WHERE tablename='dao_tao_lan_thi'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "0f1c4700",
     "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod"
   },
   {
@@ -423,9 +423,9 @@
     "tieu_de": "Phê duyệt đề xuất không nguyên tử: ghi các cột mở rộng (địa điểm, nhóm, phối hợp, theo dõi, nhiệm vụ) bằng UPDATE riêng trước, rồi mới gọi RPC PHE_DUYET_DEXUAT; RPC lỗi thì đề xuất vẫn bị sửa mà chưa được duyệt. RPC cũng không kiểm quyền duyệt hay duyệt chính đề xuất của mình.",
     "bang_chung": "src/modules/quan-ly-cong-viec/actions/cong-viec.actions.ts:316-340 (UPDATE trước) rồi :342 invokeQlcvTransition PHE_DUYET_DEXUAT; fn_qlcv_transition WHEN 'PHE_DUYET_DEXUAT' chỉ đọc 8 khóa trong p_patch",
     "lenh_kiem": "select pg_get_functiondef('fn_qlcv_transition'::regproc)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-qlcv",
-    "commit": "",
+    "commit": "68310e45",
     "ghi_chu": "Đưa các cột mở rộng vào p_patch trong RPC hoặc đảo thứ tự và rollback. Hỏi PO: người đề xuất có được tự duyệt đề xuất của mình?"
   },
   {
@@ -930,9 +930,9 @@
     "tieu_de": "fn_cssd_operator_nhan_su_id (SECURITY DEFINER) còn EXECUTE cho authenticated, tra mdm_nhan_su theo email qua auth.users",
     "bang_chung": "psql: secdef=t, anon f, authenticated t",
     "lenh_kiem": "select fn_cssd_operator_nhan_su_id('email') dưới authenticated (chưa chạy)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
-    "commit": "",
+    "commit": "607d774b",
     "ghi_chu": "REVOKE EXECUTE FROM authenticated nếu chỉ admin client gọi. Gom vào lô migration."
   },
   {
