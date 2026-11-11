@@ -21,6 +21,7 @@ import {
   writeStickyAdminContext,
 } from "@/lib/supervision-admin-context";
 import { createNewOpp } from "../lib/vst-form-model";
+import { clearDraft, readDraft, writeDraft } from "@/lib/form-draft";
 import { qlcvTodayVn } from "@/modules/quan-ly-cong-viec/lib/qlcv-today-vn";
 
 type NhanSuOption = { id?: string; khoa_id?: string; nghe_nghiep_id?: string; [key: string]: unknown };
@@ -187,6 +188,42 @@ export function useVSTForm(
     khoas,
     currentHoSoId,
   ]);
+
+  // Nháp cục bộ: khôi phục sau tải lại; cảnh báo khi rời trang còn cơ hội chưa lưu lên hệ thống.
+  const draftRestoredRef = useRef(false);
+  const draftKey = `vst:${currentHoSoId ?? "anon"}`;
+  const hasUnsavedOpps = persons.some((p) => p.opportunities.some((o) => o.isCollapsed));
+
+  useEffect(() => {
+    if (draftRestoredRef.current || initialLoading || permLoading || editingSessionId) return;
+    draftRestoredRef.current = true;
+    const draft = readDraft<{ session: GiamSatSession; persons: VSTFormPerson[] }>(draftKey);
+    if (draft?.session && Array.isArray(draft.persons) && draft.persons.length > 0) {
+      setSession(draft.session);
+      setPersons(draft.persons);
+      toast.info("Đã khôi phục bản nháp phiên giám sát chưa lưu.", { duration: 6000 });
+    }
+  }, [initialLoading, permLoading, editingSessionId, draftKey]);
+
+  useEffect(() => {
+    if (!draftRestoredRef.current || editingSessionId) return;
+    if (!hasUnsavedOpps) {
+      clearDraft(draftKey);
+      return;
+    }
+    const t = setTimeout(() => writeDraft(draftKey, { session, persons }), 500);
+    return () => clearTimeout(t);
+  }, [session, persons, hasUnsavedOpps, draftKey, editingSessionId]);
+
+  useEffect(() => {
+    if (!hasUnsavedOpps) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsavedOpps]);
 
   const {
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave

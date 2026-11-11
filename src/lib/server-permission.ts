@@ -60,6 +60,13 @@ async function logBreakGlass(
   });
 }
 
+/** Mật khẩu tạm: chặn mọi action nghiệp vụ tới khi đổi mật khẩu (cổng client StaffSessionGate không đủ). */
+function assertPasswordChanged(user: { user_metadata?: Record<string, unknown> | null }) {
+  if (user.user_metadata?.must_change_password === true) {
+    throw new Error("Bạn cần đổi mật khẩu tạm trước khi tiếp tục.");
+  }
+}
+
 /** Một round-trip DB: đọc view quyền một lần, kiểm tra nhiều cặp (module + action). */
 export async function verifyPermissions(required: readonly PermissionCheck[]) {
   if (!required.length) return;
@@ -73,6 +80,7 @@ export async function verifyPermissions(required: readonly PermissionCheck[]) {
     return;
   }
 
+  assertPasswordChanged(user);
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
   
   if (roles.includes("ADMIN")) return;
@@ -127,6 +135,7 @@ export async function verifyAnyPermission(alternatives: readonly PermissionCheck
     return;
   }
 
+  assertPasswordChanged(user);
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
 
   if (roles.includes("ADMIN")) return;
@@ -158,6 +167,7 @@ export async function verifyAllAnyPermissionGroups(
     return;
   }
 
+  assertPasswordChanged(user);
   const { roles, permissions } = await getPermissionsRequestScope(user.id);
   if (roles.includes("ADMIN")) return;
 
