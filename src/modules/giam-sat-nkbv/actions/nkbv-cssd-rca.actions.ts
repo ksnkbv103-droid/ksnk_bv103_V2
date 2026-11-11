@@ -180,11 +180,16 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
       return { success: false, error: "Mã mẻ hoặc quy trình không hợp lệ." };
     }
 
+    // NKBV-015: lọc khoa trong query TRƯỚC limit để không cắt mất ca của khoa mình
+    const restriction = await getNkbvKhoaRestriction();
+    if (restriction.kind === "none") return { success: true, cases: [] };
+
     let q = supabase
       .from("nkbv_fact_su_kien")
       .select("id, ma_ca, ho_ten_benh_nhan, ngay_phat_hien, khoa_ghi_nhan_id")
-      .eq("is_active", true)
-      .limit(20);
+      .eq("is_active", true);
+    if (restriction.kind === "khoa") q = q.eq("khoa_ghi_nhan_id", restriction.khoaId);
+    q = q.limit(20);
 
     if (loId && qtId) {
       q = q.or(`lo_tiet_khuan_id.eq.${loId},quy_trinh_id.eq.${qtId}`);
@@ -196,7 +201,6 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
 
     const { data, error } = await q;
     if (error) throw new Error(error.message);
-    const restriction = await getNkbvKhoaRestriction();
     const visibleRows = (data || []).filter((r) =>
       nkbvKhoaVisible(restriction, [r.khoa_ghi_nhan_id as string | null]),
     );
