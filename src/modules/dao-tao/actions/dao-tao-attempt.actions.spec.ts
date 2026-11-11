@@ -490,3 +490,29 @@ describe("startThiThuAttempt: validate đầu vào", () => {
     expect((mocks.calls as CallState[]).some((c) => c.op === "insert")).toBe(false);
   });
 });
+
+describe("DT-006: lượt `huy` không mở/nộp/lưu được", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.calls.length = 0;
+    mocks.requireAdmin.mockImplementation(async () => ({ user: { id: "user-a" } }));
+    mocks.handler.mockResolvedValue({ data: lanRow({ trang_thai: "huy" }), error: null });
+  });
+  const updates = () => (mocks.calls as CallState[]).filter((c) => c.op === "update");
+
+  it("mở lượt huy: lỗi «Lượt thi này đã bị hủy.»", async () => {
+    await expect(getLanThiForTake(LAN_ID)).rejects.toThrow("Lượt thi này đã bị hủy.");
+  });
+
+  it("nộp lượt huy: từ chối, không update", async () => {
+    await expect(submitLanThi(LAN_ID)).rejects.toThrow("Lượt thi này đã bị hủy.");
+    expect(updates()).toHaveLength(0);
+  });
+
+  it("lưu câu trả lời vào lượt huy: từ chối, không update", async () => {
+    await expect(
+      saveTraLoiCau({ lanThiId: LAN_ID, cauId: CAU_ID, traLoi: { kind: "single", optionId: "a" } }),
+    ).rejects.toThrow("Lượt thi này đã bị hủy.");
+    expect(updates()).toHaveLength(0);
+  });
+});

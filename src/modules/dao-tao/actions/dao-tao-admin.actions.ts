@@ -8,6 +8,8 @@ import {
   type ChungChiKind,
 } from "@/lib/dao-tao/chung-chi";
 import { parseGan } from "@/lib/dao-tao/labels";
+import { z } from "zod";
+import { logAdminAction } from "@/lib/admin-audit";
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { requireDaoTaoAdmin, requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
@@ -398,4 +400,102 @@ export async function listNhanSuOptions(filters?: { khoaIds?: string[]; q?: stri
       (r.ho_ten ?? "").toLowerCase().includes(needle) ||
       (r.ma_nv ?? "").toLowerCase().includes(needle),
   );
+}
+
+// DT-006 (PO 2026-11-12): lượt `dang_lam` quá hạn không tự chấm; ADMIN hủy bằng tay để người học thi lại.
+const huyLanThiSchema = z.object({
+  lanThiId: daoTaoIdSchema,
+  lyDo: z
+    .string({ error: "Cần nhập lý do hủy." })
+    .trim()
+    .min(1, { error: "Cần nhập lý do hủy." })
+    .max(500, { error: "Lý do tối đa 500 ký tự." }),
+});
+
+export type LuotQuaHanRow = {
+  id: string;
+  kyTen: string;
+  hoTen: string;
+  batDauLuc: string;
+  hanNopLuc: string;
+};
+
+/** Lượt thi thật còn `dang_lam` nhưng đã quá hạn nộp (ứng viên để ADMIN hủy). */
+export async function listLuotQuaHan(kyThiId?: string): Promise<LuotQuaHanRow[]> {
+  await requireDaoTaoAdmin();
+  const admin = createAdminSupabaseClient();
+  let q = admin
+    .from("dao_tao_lan_thi")
+    .select("id, cau_hinh_id, form_thong_tin, bat_dau_luc, han_nop_luc")
+    .eq("che_do", "thi_that")
+    .eq("trang_thai", "dang_lam")
+    .lt("han_nop_luc", new Date().toISOString())
+    .order("han_nop_luc", { ascending: true })
+    .limit(200);
+  if (kyThiId) q = q.eq("cau_hinh_id", parseDaoTaoInput(daoTaoIdSchema, kyThiId));
+  const { data, error } = await q;
+  if (error) throw error;
+  const rows = data ?? [];
+  const kyIds = [...new Set(rows.map((r) => r.cau_hinh_id).filter(Boolean))] as string[];
+  const { data: kys } = kyIds.length
+    ? await admin.from("dao_tao_cau_hinh").select("id, ten").in("id", kyIds)
+    : { data: [] as Array<{ id: string; ten: string }> };
+  const kyMap = Object.fromEntries((kys ?? []).map((k) => [k.id, k.ten]));
+  return rows.map((r) => ({
+    id: r.id as string,
+    kyTen: (r.cau_hinh_id ? kyMap[r.cau_hinh_id as string] : null) ?? "—",
+    hoTen: (r.form_thong_tin as { hoTen?: string } | null)?.hoTen || "—",
+    batDauLuc: r.bat_dau_luc as string,
+    hanNopLuc: r.han_nop_luc as string,
+  }));
+}
+
+/** ADMIN hủy lượt `dang_lam` đã quá hạn. Lượt hủy không tính lượt; có dấu vết ai/lúc/lý do. */
+export async function huyLanThiQuaHan(rawInput: { lanThiId: string; lyDo: string }) {
+  await verifyPermission("DAO_TAO", "edit");
+  const input = parseDaoTaoInput(huyLanThiSchema, rawInput);
+  const { user } = await requireDaoTaoUser();
+  const admin = createAdminSupabaseClient();
+  const { data: lan, error: rErr } = await admin
+    .from("dao_tao_lan_thi")
+    .select("id, auth_user_id, cau_hinh_id, trang_thai, han_nop_luc")
+    .eq("id", input.lanThiId)
+    .maybeSingle();
+  if (rErr) throw rErr;
+  if (!lan) throw new Error("Không tìm thấy lần thi.");
+  if (lan.trang_thai !== "dang_lam") throw new Error("Lượt thi không còn ở trạng thái đang làm.");
+  const now = new Date();
+  if (new Date(lan.han_nop_luc as string).getTime() >= now.getTime()) {
+    throw new Error("Lượt thi chưa quá hạn nộp.");
+  }
+  const nowIso = now.toISOString();
+  // Điều kiện trạng thái + hạn trong câu update: người học nộp xen giữa thì 0 dòng đổi.
+  const { data: changed, error } = await admin
+    .from("dao_tao_lan_thi")
+    .update({
+      trang_thai: "huy",
+      huy_boi: user.id,
+      huy_luc: nowIso,
+      ly_do_huy: input.lyDo,
+      updated_at: nowIso,
+    })
+    .eq("id", input.lanThiId)
+    .eq("trang_thai", "dang_lam")
+    .lt("han_nop_luc", nowIso)
+    .select("id");
+  if (error) throw error;
+  if (!changed || changed.length === 0) {
+    throw new Error("Lượt thi vừa đổi trạng thái (có thể người học đã nộp). Tải lại danh sách.");
+  }
+  await logAdminAction({
+    action: "DAO_TAO_HUY_LAN_THI",
+    targetTable: "dao_tao_lan_thi",
+    targetId: input.lanThiId,
+    before: { trang_thai: "dang_lam", auth_user_id: lan.auth_user_id, cau_hinh_id: lan.cau_hinh_id },
+    after: { trang_thai: "huy" },
+    reason: input.lyDo,
+    actorUserId: user.id,
+    actorEmail: user.email,
+  });
+  return { ok: true as const };
 }

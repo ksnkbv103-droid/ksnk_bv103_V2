@@ -314,6 +314,7 @@ export async function listLanThiCuaToi() {
       "id, che_do, cau_hinh_id, diem_pct, dat, trang_thai, nop_luc, bat_dau_luc, so_cau",
     )
     .eq("auth_user_id", user.id)
+    .in("trang_thai", ["dang_lam", "da_nop", "het_gio"]) // lượt `huy` không hiện ở "Bài của tôi"
     .order("bat_dau_luc", { ascending: false })
     .limit(20);
   if (error) throw error;
@@ -422,6 +423,9 @@ export async function startThiThatAttempt(input: {
   return { lanThiId: lanThi.id as string, hanNopLuc: lanThi.han_nop_luc as string };
 }
 
+/** DT-006: lượt ADMIN đã hủy — người học không mở/nộp/lưu được. */
+const LUOT_HUY_MESSAGE = "Lượt thi này đã bị hủy.";
+
 export async function getLanThiForTake(lanThiId: string) {
   const { user } = await requireDaoTaoUser();
   lanThiId = parseDaoTaoInput(daoTaoIdSchema, lanThiId);
@@ -445,6 +449,7 @@ export async function getLanThiForTake(lanThiId: string) {
     }
   }
 
+  if (lanThi.trang_thai === "huy") throw new Error(LUOT_HUY_MESSAGE);
   const submitted = lanThi.trang_thai !== "dang_lam";
   if (isAdminViewer && !submitted) {
     throw new Error("Chỉ xem được bài đã nộp.");
@@ -530,6 +535,7 @@ export async function saveTraLoiCau(rawInput: {
       .eq("id", input.lanThiId)
       .maybeSingle();
     if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
+    if (lanThi.trang_thai === "huy") throw new Error(LUOT_HUY_MESSAGE);
     if (lanThi.trang_thai !== "dang_lam") throw new Error("Bài đã nộp.");
     // DT-007 (PO 2026-11-12): ân hạn 30 giây chỉ để nộp bài, không để ghi thêm câu trả lời.
     if (Date.now() > new Date(lanThi.han_nop_luc).getTime()) {
@@ -580,6 +586,7 @@ export async function submitLanThi(lanThiId: string) {
     .maybeSingle();
   if (error) throw error;
   if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
+  if (lanThi.trang_thai === "huy") throw new Error(LUOT_HUY_MESSAGE);
   if (lanThi.trang_thai !== "dang_lam") {
     return { lanThiId, alreadySubmitted: true };
   }
