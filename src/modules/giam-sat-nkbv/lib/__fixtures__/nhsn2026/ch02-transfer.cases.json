@@ -1,0 +1,70 @@
+{
+ "nguon": "nhsn2026_ch02_ca_thu.json C2.06, C2.07, C2.08",
+ "gan_tay": "Gắn tay từ su_kien: ngày 3/22–3/25 → 2026-03-22..25; mỗi lần chuyển = một DepartmentStay; kỳ vọng = đáp án gói (khoa/cơ sở chịu trách nhiệm).",
+ "ca": [
+  {
+   "ma": "C2.06",
+   "doe": "2026-03-24",
+   "stays": [
+    {
+     "khoa_id": "A",
+     "ngay_vao": "2026-03-22",
+     "ngay_ra": "2026-03-23"
+    },
+    {
+     "khoa_id": "B",
+     "ngay_vao": "2026-03-23",
+     "ngay_ra": null
+    }
+   ],
+   "loa": "A",
+   "luu_y": "Chuyển 3/23, DOE 3/24 (ngày kế sau chuyển) → khoa chuyển đi"
+  },
+  {
+   "ma": "C2.07",
+   "doe": "2026-03-24",
+   "stays": [
+    {
+     "khoa_id": "CS1",
+     "ngay_vao": "2026-03-22",
+     "ngay_ra": "2026-03-23"
+    },
+    {
+     "khoa_id": "CS2",
+     "ngay_vao": "2026-03-23",
+     "ngay_ra": null
+    }
+   ],
+   "loa": "CS1",
+   "luu_y": "Chuyển cơ sở: mô hình cùng như chuyển khoa"
+  },
+  {
+   "ma": "C2.08",
+   "doe": "2026-03-24",
+   "stays": [
+    {
+     "khoa_id": "A",
+     "ngay_vao": "2026-03-22",
+     "ngay_ra": "2026-03-23"
+    },
+    {
+     "khoa_id": "B",
+     "ngay_vao": "2026-03-23",
+     "ngay_ra": "2026-03-23"
+    },
+    {
+     "khoa_id": "C",
+     "ngay_vao": "2026-03-23",
+     "ngay_ra": "2026-03-24"
+    },
+    {
+     "khoa_id": "D",
+     "ngay_vao": "2026-03-24",
+     "ngay_ra": null
+    }
+   ],
+   "loa": "A",
+   "luu_y": "Nhiều lần chuyển trong cửa sổ → khoa đầu của ngày lịch trước DOE"
+  }
+ ]
+}
