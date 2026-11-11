@@ -450,6 +450,16 @@ export async function getLanThiForTake(lanThiId: string) {
     throw new Error("Chỉ xem được bài đã nộp.");
   }
 
+  // DT-008 (PO 2026-11-12): thi thật chưa đóng kỳ → người học chỉ thấy điểm và đúng/sai từng câu.
+  // Admin xem bài người khác không bị ẩn. Thiếu cấu hình kỳ → ẩn (an toàn).
+  let giauDapAn = false;
+  if (submitted && !isAdminViewer && lanThi.che_do === "thi_that") {
+    const { data: ky } = lanThi.cau_hinh_id
+      ? await admin.from("dao_tao_cau_hinh").select("trang_thai").eq("id", lanThi.cau_hinh_id).maybeSingle()
+      : { data: null };
+    giauDapAn = ky?.trang_thai !== "closed";
+  }
+
   const snap = (lanThi.de_snapshot ?? []) as DeSnapshotItem[];
   const questions = snap
     .slice()
@@ -465,18 +475,21 @@ export async function getLanThiForTake(lanThiId: string) {
       chuDeTen: c.chu_de_ten ?? null,
       targetRoles: c.target_roles ?? [],
       sopRefs: c.sop_refs ?? [],
-      options: submitted
+      options: submitted && !giauDapAn
         ? c.options
         : c.options.map((o) => ({ id: o.id, noiDung: o.noiDung, displayIndex: o.displayIndex })),
       traLoi: c.tra_loi,
       ...(submitted
         ? {
             dung: c.dung,
+            ...(giauDapAn
+              ? {}
+              : {
             giaiThich: c.giai_thich,
             dapAnDung: c.dap_an_dung,
             distractorRationales: c.distractor_rationales ?? {},
             evidenceLock: c.evidence_lock ?? {},
-          }
+            })}
         : {}),
     }));
 
@@ -518,7 +531,8 @@ export async function saveTraLoiCau(rawInput: {
       .maybeSingle();
     if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
     if (lanThi.trang_thai !== "dang_lam") throw new Error("Bài đã nộp.");
-    if (Date.now() > new Date(lanThi.han_nop_luc).getTime() + LATE_GRACE_MS) {
+    // DT-007 (PO 2026-11-12): ân hạn 30 giây chỉ để nộp bài, không để ghi thêm câu trả lời.
+    if (Date.now() > new Date(lanThi.han_nop_luc).getTime()) {
       throw new Error("Đã hết giờ làm bài — không thể lưu thêm câu trả lời.");
     }
 

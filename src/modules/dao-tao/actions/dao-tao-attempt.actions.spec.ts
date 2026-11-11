@@ -247,16 +247,23 @@ describe("saveTraLoiCau: hạn nộp và quyền sở hữu", () => {
     expect(updates()[0].filters).toContainEqual(["eq", ["updated_at", "2029-01-01T00:00:00Z"]]);
   });
 
-  it("quá hạn nhưng trong ân hạn 30 giây (đúng mốc +30s): vẫn lưu", async () => {
-    vi.setSystemTime(HAN_MS + 30_000);
+  it("đúng hạn (đúng mốc hanNopLuc): vẫn lưu", async () => {
+    vi.setSystemTime(HAN_MS);
     mocks.handler.mockImplementation(async (s: CallState) =>
       s.op === "select" ? { data: lanRow(), error: null } : { data: [{ id: LAN_ID }], error: null },
     );
     expect(await saveTraLoiCau(input)).toEqual({ ok: true });
   });
 
-  it("hết ân hạn (+30s +1ms): từ chối, không update", async () => {
-    vi.setSystemTime(HAN_MS + 30_001);
+  it("hạn +1ms (DT-007): từ chối lưu, không update, dù còn trong ân hạn nộp", async () => {
+    vi.setSystemTime(HAN_MS + 1);
+    mocks.handler.mockResolvedValue({ data: lanRow(), error: null });
+    await expect(saveTraLoiCau(input)).rejects.toThrow("Đã hết giờ làm bài");
+    expect(updates()).toHaveLength(0);
+  });
+
+  it("hạn +31s: từ chối lưu", async () => {
+    vi.setSystemTime(HAN_MS + 31_000);
     mocks.handler.mockResolvedValue({ data: lanRow(), error: null });
     await expect(saveTraLoiCau(input)).rejects.toThrow("Đã hết giờ làm bài");
     expect(updates()).toHaveLength(0);
@@ -342,6 +349,18 @@ describe("submitLanThi: hetGio / late / dat", () => {
     expect(await submitLanThi(LAN_ID)).toMatchObject({ diemPct: 100, trangThai: "het_gio", dat: false });
   });
 
+  it("nộp ở hạn +29s (DT-007): được nộp, het_gio, vẫn xét đạt", async () => {
+    vi.setSystemTime(HAN_MS + 29_000);
+    setup(thiThat(10, 10), 70);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ trangThai: "het_gio", dat: true });
+  });
+
+  it("nộp ở hạn +31s (DT-007): vẫn nhận bài nhưng het_gio và không đạt", async () => {
+    vi.setSystemTime(HAN_MS + 31_000);
+    setup(thiThat(10, 10), 70);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ trangThai: "het_gio", dat: false });
+  });
+
   it("thi thử: dat = null, không đọc cấu hình ngưỡng", async () => {
     vi.setSystemTime(HAN_MS - 1000);
     setup({ ...lanRow(), de_snapshot: snap(10, 10) }, 70);
@@ -387,6 +406,45 @@ describe("getLanThiForTake: ẩn đáp án và quyền admin", () => {
     expect(q.dapAnDung).toEqual({ kind: "single", optionId: "a" });
     expect(q.giaiThich).toBe("GT");
     expect(q.dung).toBe(true);
+  });
+
+  describe("DT-008: thi thật sau khi nộp", () => {
+    const thiThat = (over: Record<string, unknown> = {}) =>
+      row({ che_do: "thi_that", cau_hinh_id: KY_ID, trang_thai: "da_nop", ...over });
+    const setup = (kyTrangThai: string | null, lan: Record<string, unknown>) =>
+      mocks.handler.mockImplementation(async (s: CallState) =>
+        s.table === "dao_tao_cau_hinh"
+          ? { data: kyTrangThai ? { trang_thai: kyTrangThai } : null, error: null }
+          : { data: lan, error: null },
+      );
+
+    it("kỳ chưa đóng: chỉ trả đúng/sai, không lộ đáp án, giải thích, laDung", async () => {
+      setup("published", thiThat());
+      const q = (await getLanThiForTake(LAN_ID)).questions[0] as Record<string, unknown>;
+      expect(q.dung).toBe(true);
+      for (const k of ["dapAnDung", "giaiThich", "distractorRationales", "evidenceLock"]) {
+        expect(q).not.toHaveProperty(k);
+      }
+      expect(q.options).toEqual([{ id: "a", noiDung: "A", displayIndex: 0 }]);
+    });
+
+    it("kỳ đã đóng: trả đáp án và giải thích", async () => {
+      setup("closed", thiThat());
+      const q = (await getLanThiForTake(LAN_ID)).questions[0] as Record<string, unknown>;
+      expect(q.dapAnDung).toEqual({ kind: "single", optionId: "a" });
+      expect(q.giaiThich).toBe("GT");
+      expect(q.options).toEqual([{ id: "a", noiDung: "A", displayIndex: 0, laDung: true }]);
+    });
+
+    it("không đọc được cấu hình kỳ: ẩn (an toàn)", async () => {
+      setup(null, thiThat());
+      expect((await getLanThiForTake(LAN_ID)).questions[0]).not.toHaveProperty("dapAnDung");
+    });
+
+    it("admin xem bài người khác: vẫn thấy đáp án dù kỳ chưa đóng", async () => {
+      setup("published", thiThat({ auth_user_id: "user-b" }));
+      expect((await getLanThiForTake(LAN_ID)).questions[0]).toHaveProperty("dapAnDung");
+    });
   });
 
   it("người khác không phải admin: không tìm thấy", async () => {
