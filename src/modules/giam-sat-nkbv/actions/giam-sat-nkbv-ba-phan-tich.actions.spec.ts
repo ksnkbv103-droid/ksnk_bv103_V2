@@ -15,6 +15,7 @@ vi.mock("../lib/nkbv-khoa-scope.server", () => ({
 }));
 
 import { replaceNkbvBaPhanTichSessions } from "./giam-sat-nkbv-ba-phan-tich.actions";
+import { isNkbvBenhAnInScope } from "../lib/nkbv-khoa-scope.server";
 import type { BaAnalysisSession } from "../lib/nkbv-ba-analysis-session";
 
 const session = {
@@ -57,6 +58,13 @@ describe("replaceNkbvBaPhanTichSessions", () => {
     const res = await replaceNkbvBaPhanTichSessions({ ma_benh_an: "BA1", mode: "CDC", sessions: [] });
     expect(res.success).toBe(true);
     expect(mocks.rpc.mock.calls[0][1].p_rows).toEqual([]);
+  });
+
+  it("bệnh án ngoài phạm vi khoa → từ chối, không gọi RPC", async () => {
+    vi.mocked(isNkbvBenhAnInScope).mockResolvedValueOnce(false);
+    const res = await replaceNkbvBaPhanTichSessions({ ma_benh_an: "BA-KHOA-KHAC", mode: "CDC", sessions: [session] });
+    expect(res).toEqual({ success: false, error: "ngoài phạm vi" });
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
   it("RPC lỗi → báo thất bại nguyên văn", async () => {

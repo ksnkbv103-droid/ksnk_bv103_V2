@@ -60,6 +60,9 @@ export async function replaceNkbvBaPhanTichSessions(input: {
   if (!parsed.success) return { success: false as const, error: parsed.error.issues[0]?.message || "Dữ liệu không hợp lệ" };
   const ma = parsed.data.ma_benh_an;
   const mode = parseBaAnalysisMode(input.mode);
+  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
 
   const supabase = createAdminSupabaseClient();
   const now = new Date().toISOString();
