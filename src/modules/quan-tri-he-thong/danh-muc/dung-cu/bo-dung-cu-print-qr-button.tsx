@@ -50,7 +50,7 @@ export default function BoDungCuPrintQrButton({
       type="button"
       disabled={printing || !boId}
       onClick={(e) => void handlePrint(e)}
-      className={`text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50 ${className}`}
+      className={`text-xs font-semibold text-[var(--primary)] hover:underline disabled:opacity-50 ${className}`}
       title="In tem QR bộ (tem vĩnh viễn — khác tem chu trình túi hấp)"
     >
       {printing ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}

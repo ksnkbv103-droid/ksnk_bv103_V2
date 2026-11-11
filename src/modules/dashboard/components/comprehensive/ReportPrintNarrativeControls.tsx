@@ -120,7 +120,7 @@ export function ReportPrintNarrativeControls({
         <MessageSquare size={14} aria-hidden />
         Nhận xét đánh giá
         {hasNhanXet ? (
-          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-white">
             Đã nhập
           </span>
         ) : null}
@@ -134,7 +134,7 @@ export function ReportPrintNarrativeControls({
         <Lightbulb size={14} aria-hidden />
         Kiến nghị đề xuất
         {hasKienNghi ? (
-          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-white">
             Đã nhập
           </span>
         ) : null}

@@ -77,7 +77,7 @@ export default function LocationQrPrintButton({ kind, ma, ten, className }: Prop
         disabled={busy || !ma}
         className={
           className ||
-          "text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
+          "text-xs font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
         }
         aria-label="In tem QR vị trí"
         title="In tem QR vị trí"
