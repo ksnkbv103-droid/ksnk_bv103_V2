@@ -3,6 +3,7 @@ name: explore-module
 description: Dùng khi cần hiểu một module (route, action, RPC, ranh giới) trước intake/sửa mà chưa biết file nằm đâu — thay vì tự đọc nhiều file ở phiên chính. Read-only.
 tools: Read, Grep, Glob
 model: sonnet
+maxTurns: 40
 ---
 
 # explore-module
@@ -53,3 +54,7 @@ Thay mục 4–5 của Output bằng bảng, mỗi bước được hỏi một 
 `bước | Đã đọc / Chưa chắc | file:dòng | nhu cầu PO ↔ app: hợp / lệch / thiếu`.
 Nhu cầu PO lấy từ `docs/modules/<m>/van-de-nguoi-dung.md` (nhãn `[SSOT]`). Chỉ báo bằng chứng đã đọc; chỗ chỉ grep thì ghi «Chưa chắc». Vẫn ≤ 25 dòng, ≤ 8 file, read-only.
 
+
+## Chế độ «Rà cho sổ lỗi» (khi prompt ghi rõ)
+
+Rà **một module × một góc nhìn** (nghiệp vụ, backend, hoặc giao diện/UX). Trả một dòng kết luận rồi **một mảng JSON**, mỗi phát hiện một phần tử: `module` (VST_GSC|CSSD|NKBV|QLCV|DAO_TAO|QUAN_TRI|NEN), `lop` (DOMAIN|DB|BACKEND|FRONTEND|UX|TEST|VAN_HANH), `muc` (NGHIEM_TRONG|CAO|TRUNG_BINH|THAP), `tieu_de`, `bang_chung` (`file:dòng` đã đọc), `lenh_kiem`, `ghi_chu` (hướng sửa một dòng; cần PO thì «hỏi PO: …»). Chỉ báo điều đã đọc; không suy từ tên. Chế độ này được đọc ≤ 20 file, ≤ 12 phần tử. Từ lần gọi tool thứ 30: dừng, nộp báo cáo ngay; cuối báo cáo một dòng «Chưa rà: …».

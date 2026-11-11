@@ -8,7 +8,7 @@ paths:
 
 # Quy trình review theo tầng rủi ro
 
-Mục tiêu: giảm thời gian người duyệt mà không tăng revert/sự cố. Ngân sách agent theo [`CLAUDE.md`](../../CLAUDE.md) vẫn là trần (một reviewer, tối đa 2 agent đọc song song, không verifier bỏ phiếu).
+Mục tiêu: giảm thời gian người duyệt mà không tăng revert/sự cố. Ngân sách agent theo [`CLAUDE.md`](../../CLAUDE.md) vẫn là trần (một reviewer mỗi diff, tối đa 4 agent đọc song song; phát hiện Nghiêm trọng/Cao trong sổ lỗi do `db-verify` chế độ «Xác minh phát hiện» kiểm lại trước khi sửa).
 
 ## Tầng rủi ro (chọn trước khi review)
 | Tầng | Phạm vi | Review |
