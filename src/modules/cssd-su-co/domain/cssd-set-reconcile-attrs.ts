@@ -81,3 +81,12 @@ export function isSetReconcileDraftOwner(
   const actor = String(actorAuthUserId || "").trim();
   return Boolean(owner && actor && owner === actor);
 }
+
+/** CSSD-012: chủ nháp hoặc ADMIN (PO 2026-11-12) được hủy nháp rà soát bộ. */
+export function canReleaseSetReconcileDraft(
+  attrs: Record<string, unknown> | null | undefined,
+  actorAuthUserId: string | null | undefined,
+  actorIsAdmin: boolean,
+): boolean {
+  return actorIsAdmin || isSetReconcileDraftOwner(attrs, actorAuthUserId);
+}

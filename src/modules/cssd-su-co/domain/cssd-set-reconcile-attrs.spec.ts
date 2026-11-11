@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSetReconcileAttributePatch,
+  canReleaseSetReconcileDraft,
   isSetReconcileDraftAttr,
   isSetReconcileDraftOwner,
   parseSetReconcileSnapshot,
@@ -51,4 +52,11 @@ describe("isSetReconcileDraftOwner (CSSD-012)", () => {
     expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, null)).toBe(false);
     expect(isSetReconcileDraftOwner({}, "u-1")).toBe(false);
   });
+});
+
+describe("canReleaseSetReconcileDraft (CSSD-012 ADMIN)", () => {
+  const attrs = { REPORTER_AUTH_USER_ID: "u-1" };
+  it("chủ nháp được hủy", () => expect(canReleaseSetReconcileDraft(attrs, "u-1", false)).toBe(true));
+  it("người khác không phải ADMIN bị từ chối", () => expect(canReleaseSetReconcileDraft(attrs, "u-2", false)).toBe(false));
+  it("ADMIN hủy được nháp của người khác", () => expect(canReleaseSetReconcileDraft(attrs, "u-2", true)).toBe(true));
 });
