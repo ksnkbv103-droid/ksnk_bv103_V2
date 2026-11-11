@@ -42,13 +42,13 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
             Không nhân bản biểu đồ module. Chi tiết thống kê tại tab Thống kê từng mảng.
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 p-0.5">
+        <div className="grid grid-flow-col auto-cols-fr gap-1 overflow-x-auto rounded-lg border border-slate-200 p-0.5">
           {TOPIC_TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => onChuyenDeChange(t.id)}
-              className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 bv103-type-label font-semibold ${
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 bv103-type-label font-semibold ${
                 chuyenDe === t.id ? "bg-[var(--primary)] text-white" : "text-slate-600 hover:bg-slate-50"
               }`}
             >

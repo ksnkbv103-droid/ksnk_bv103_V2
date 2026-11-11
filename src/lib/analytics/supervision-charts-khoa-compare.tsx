@@ -382,13 +382,13 @@ export function SupervisionKhoaAnalyticsBlock({
 
   return (
     <div className={`w-full min-w-0 space-y-3 ${className ?? ""}`}>
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5" role="tablist" aria-label="Chế độ biểu đồ khoa">
+      <div className="inline-grid grid-flow-col auto-cols-fr rounded-lg border border-slate-200 bg-slate-50 p-0.5" role="tablist" aria-label="Chế độ biểu đồ khoa">
         <button
           type="button"
           role="tab"
           aria-selected={tab === "ty_le"}
           onClick={() => setTab("ty_le")}
-          className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
+          className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
             tab === "ty_le" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >
@@ -399,7 +399,7 @@ export function SupervisionKhoaAnalyticsBlock({
           role="tab"
           aria-selected={tab === "volume"}
           onClick={() => setTab("volume")}
-          className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
+          className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
             tab === "volume" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >

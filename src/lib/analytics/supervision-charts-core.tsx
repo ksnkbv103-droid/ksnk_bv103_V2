@@ -110,7 +110,7 @@ export function SupervisionTrendChart({
     <div className="min-w-0">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-        <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
+        <div className="grid grid-flow-col auto-cols-fr overflow-x-auto rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
           {SUPERVISION_TREND_GRANULARITY_OPTIONS.map(({ id, label }) => (
             <button
               key={id}
@@ -119,7 +119,7 @@ export function SupervisionTrendChart({
                 userChangedGranularityRef.current = true;
                 setGranularity(id);
               }}
-              className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
             </button>
