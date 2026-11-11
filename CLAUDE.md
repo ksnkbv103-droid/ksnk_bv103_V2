@@ -39,7 +39,7 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 
 ## Đang làm
 
-Redesign UI tối giản: kế hoạch + tiến độ ở [`docs/ux/ui-redesign-plan.md`](docs/ux/ui-redesign-plan.md) §9–10. Phiên mới gõ `/tiep`. Xong kế hoạch thì xóa mục này.
+Rà toàn project để vận hành thử (PO duyệt 2026-11-11). Thân mã duy nhất: nhánh `integrate/2026-11`. Việc lấy từ sổ lỗi: `node scripts/readiness/so-loi.mjs status | next | check`; agent rà ghi phát hiện vào `scripts/readiness/inbox/<tên>.json`, chat điều phối chạy `merge`. Chỉ sửa việc có trong sổ và đã `DA_XAC_MINH`. Redesign UI: [`docs/ux/ui-redesign-plan.md`](docs/ux/ui-redesign-plan.md) §9–10.
 
 ## Quy trình
 
@@ -50,15 +50,16 @@ Redesign UI tối giản: kế hoạch + tiến độ ở [`docs/ux/ui-redesign-
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền người dùng thật
 - Plan đã duyệt → tự commit theo lát khi verify pass. Push/PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
-- Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file
+- Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file (sổ lỗi `scripts/readiness/` là dữ liệu + script, không phải tài liệu)
 - Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
 ## Ngân sách model và agent (hook toàn cục `~/.claude/hooks/guard-agent.mjs` chặn cứng)
 
 - Mặc định Sonnet (đọc, sửa, UAT). Haiku chỉ cho việc cơ học kiểm chứng được (`chay-kiem`). Opus chỉ cho `migration-author` và reviewer vùng rủi ro cao (`review-bv103`, `security-auditor`); không Opus cho code thường, docs
 - Giao việc bằng agent ghim sẵn ở `.claude/agents` (`slice-fixer` sửa, `security-auditor` rà, `explore-module`…) hoặc `~/.claude/agents` (`chay-kiem` chạy verify, `doc-tai-lieu`, `tim-kiem`); không dùng agent chung (hook chặn mọi agent không có file ghim). Tìm kiếm mã dùng `explore-module` (Sonnet), không dùng `Explore`/`general-purpose`; việc dưới ~3 lần đọc file thì tự làm
-- Một agent **ghi** repo tại một thời điểm (chung git index, chạm giới hạn phiên là mất việc dở). Agent chỉ đọc tối đa 2 song song
-- Rà soát = một vùng hẹp, chỉ báo Nghiêm trọng/Cao; không «quét toàn bộ». Trước khi giao nhiều agent: kiểm `get_usage`; tuần > 60% chỉ làm lát nghiêm trọng đang chặn pilot, còn lại ghi roadmap
+- Nhiều agent **ghi** cùng lúc được, mỗi agent một worktree riêng và một vùng `src/modules/<module>` không trùng nhau; chat điều phối gộp, verify, commit từng lát. Migration xếp hàng từng cái (DB local dùng chung). Agent chỉ đọc tối đa 4 song song (PO 2026-11-11)
+- Rà soát = một vùng hẹp (một module × một góc nhìn), ghi vào sổ lỗi; phát hiện Nghiêm trọng/Cao phải được agent khác xác minh trước khi sửa. Không còn ngưỡng dừng 60% tuần (PO 2026-11-11); chạm giới hạn thì ghi trạng thái vào sổ và roadmap rồi chạy tiếp khi đặt lại
+- Câu hỏi cho PO gom vào sổ lỗi (trạng thái `CHO_PO`), hỏi một lần mỗi ngày; không dừng việc khác để chờ
 - Reviewer độc lập (`review-bv103`, `security-auditor`) chỉ cho vùng rủi ro cao (RLS, migration, auth), một vòng, đưa yêu cầu + diff + kết quả verify, không đưa lập luận của người viết. Việc nhỏ thì không gọi
 - Prompt giao agent: lát + file phạm vi + lỗi đã xác minh + lệnh verify. Không bắt đọc lại rules/roadmap
 
