@@ -618,9 +618,9 @@
     "tieu_de": "Đợt rà quyền NKBV chưa phủ: dashboard (fn_nkbv_dich_te_hoc_rates theo khoa), mau-so, import, nkbv-cssd-rca, labid, device-registry, phần sau dòng 260 của submitClinicalVerification",
     "bang_chung": "Báo cáo agent r1-nkbv-quyen 2026-11-11, mục «Chưa rà»",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-chua-ra",
-    "commit": "",
+    "commit": "1e95937d",
     "ghi_chu": "B3: đã rà đợt 2 → NKBV-013..016, không có Cao. Còn chưa rà: previewMauSoFromDeviceRegistry (max_rows), RLS runtime fn_nkbv_dich_te_hoc_rates dưới Mạng lưới, callThamDinhRpc/resolveCssdQuyTrinhLinkFromMaQr."
   },
   {
@@ -631,9 +631,9 @@
     "tieu_de": "Đợt rà quyền Quản trị chưa phủ: guest-stats-pilot, mdm-governance, danh-muc permission map, to-chuc/khoa-phong, nhan-su-active, route ngoài matcher của proxy, staff-auth-email, admin-reauth, thân rpc_save_rbac_matrix và rpc_assign_staff_ksnk_role",
     "bang_chung": "Báo cáo agent r1-quan-tri-quyen 2026-11-11, mục «Chưa rà»",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-chua-ra",
-    "commit": "",
+    "commit": "9745e1ef",
     "ghi_chu": "B3: đã rà đợt 2 → QT-010, QT-011, không có Cao. Còn chưa rà: Server Action chỉ dựa proxy cho guest, bảng/hàm GSTT, quyền prod."
   },
   {
@@ -1012,5 +1012,31 @@
     "nguon": "r2-quan-tri-quyen",
     "commit": "fb7dff80",
     "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180."
+  },
+  {
+    "id": "NKBV-017",
+    "module": "NKBV",
+    "lop": "DB",
+    "muc": "CAO",
+    "tieu_de": "Người có quyền create/edit NKBV nhưng không có approve gọi thẳng PostgREST tạo ca ở trạng thái Xác nhận hoặc sửa phân loại ca đã chốt, bỏ qua thẩm định",
+    "bang_chung": "trg_nkbv_su_kien_guard_trang_thai chỉ BEFORE UPDATE và chỉ chặn khi trang_thai_id đổi; policy nkbv_fact_su_kien_insert/_update chỉ đòi create/edit (rà đợt 3, BEGIN…ROLLBACK 2026-11-12)",
+    "lenh_kiem": "npm run verify:mdm:local",
+    "trang_thai": "DA_SUA",
+    "nguon": "r3-nkbv-quyen",
+    "commit": "6406330a",
+    "ghi_chu": ""
+  },
+  {
+    "id": "NKBV-018",
+    "module": "NKBV",
+    "lop": "DOMAIN",
+    "muc": "THAP",
+    "tieu_de": "Người chỉ có quyền xem CSSD thấy mã ca và họ tên bệnh nhân của ca SSI gắn với mẻ (tra RCA ngược) dù không có vai NKBV; cần PO xác nhận có phải thiết kế",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.ts:178",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "r3-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": ""
   }
 ]
