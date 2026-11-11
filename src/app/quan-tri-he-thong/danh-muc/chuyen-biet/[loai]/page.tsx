@@ -1,6 +1,5 @@
 import GenericDmMasterPage from "@/components/master-data/generic-dm/GenericDmMasterPage";
-import { getDedicatedDanhMucAdminPath, isToChucLookupType } from "@/lib/master-data/danh-muc-admin-routes";
-import { toChucDanhMucHref } from "@/lib/master-data/quan-tri-paths";
+import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import { canAccessDanhMucModuleRoute } from "@/lib/auth/quan-tri-access";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
@@ -20,10 +19,9 @@ export async function generateMetadata(props: {
 export default async function Page(props: { params: Promise<{ loai: string }> }) {
   const { loai } = await props.params;
   const decoded = decodeURIComponent(loai);
-  const dedicated = getDedicatedDanhMucAdminPath(decoded);
-  if (dedicated) redirect(dedicated);
-  /* AR-8e: danh mục tổ chức sửa trong module Tổ chức. */
-  if (isToChucLookupType(decoded)) redirect(toChucDanhMucHref(decoded));
+  /* AR-8e/8f: trang chuyên dụng hoặc danh mục đã về module sở hữu → chuyển hướng. */
+  const canonical = getDanhMucAdminPath(decoded);
+  if (!canonical.startsWith("/quan-tri-he-thong/danh-muc/chuyen-biet/")) redirect(canonical);
 
   const allowed = await canAccessDanhMucModuleRoute(resolveDanhMucViewModuleByType(decoded));
   if (!allowed) {

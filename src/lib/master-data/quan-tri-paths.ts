@@ -12,6 +12,9 @@ export const TO_CHUC_KHOA_PHONG_PATH = "/to-chuc/khoa-phong";
 export function toChucDanhMucHref(loaiDanhMuc: string): string {
   return `${TO_CHUC_PATH}/danh-muc/${encodeURIComponent(loaiDanhMuc)}`;
 }
+/** AR-8f (PO 2026-11-11): danh mục tra cứu sửa ngay trong module sở hữu. */
+export const GSC_DANH_MUC_PATH = "/giam-sat-chung/danh-muc";
+export const CSSD_DANH_MUC_PATH = "/cssd-quy-trinh/danh-muc";
 export const QUAN_TRI_BANG_KIEM_PATH = "/giam-sat-chung/bang-kiem";
 
 export function quanTriTaiKhoanHref(): string {
