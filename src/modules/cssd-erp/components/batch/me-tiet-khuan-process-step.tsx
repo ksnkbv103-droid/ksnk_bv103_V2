@@ -369,7 +369,7 @@ export default function MeTietKhuanProcessStep({
 
         {qcOpen || choBi || biTuanSauNha ? (
           <MeTietKhuanProcessQcPanel
-            showForm={qcOpen && !biTuanSauNha && !loHong}
+            showForm={qcOpen && !biTuanSauNha && !loHong && trangThai !== "HOAN_THANH"}
             method={method}
             coImplant={coImplant}
             steamBiReminder={steamBiReminder}

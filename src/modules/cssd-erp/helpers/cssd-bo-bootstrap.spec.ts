@@ -69,3 +69,45 @@ describe("planCssdBoBootstrap (S-E W4)", () => {
     expect(planCssdBoBootstrap(null)).toEqual({ kind: "NEW_CYCLE", previousId: null, sudsCount: null });
   });
 });
+
+describe("bootstrapCssdQuyTrinhFromBoId (UAT 2026-11-10)", () => {
+  /** Mock theo tên bảng: bảng gốc không có cột tổng; view mới có; đếm bộ con trả về `children`. */
+  function mockSupabase(children: number) {
+    const tables: string[] = [];
+    const insert = vi.fn();
+    const chain = (table: string) => {
+      const q: Record<string, unknown> = {};
+      q.select = vi.fn((_cols: string, opts?: { head?: boolean }) => {
+        if (table === "cssd_dm_bo_dung_cu" && String(_cols).includes("tong_so_luong_dung_cu")) {
+          throw new Error("cột tong_so_luong_dung_cu không có trên bảng gốc");
+        }
+        if (opts?.head) return { eq: () => ({ eq: async () => ({ count: children, error: null }) }) };
+        return q;
+      });
+      q.eq = vi.fn(() => q);
+      q.maybeSingle = vi.fn(async () => ({
+        data: table === "v_cssd_bo_dung_cu_summary" ? { id: "b1", ma_bo: "B01.SET.03", ten_bo: "Bộ" } : null,
+        error: null,
+      }));
+      q.order = vi.fn(() => q);
+      q.limit = vi.fn(() => q);
+      q.insert = insert;
+      return q;
+    };
+    return { supabase: { from: vi.fn((t: string) => (tables.push(t), chain(t))) }, tables, insert };
+  }
+
+  it("đọc bộ từ view, không từ bảng gốc", async () => {
+    const { supabase, tables } = mockSupabase(0);
+    const { bootstrapCssdQuyTrinhFromBoId } = await import("../shared/application/cssd-bo-bootstrap");
+    await bootstrapCssdQuyTrinhFromBoId(supabase as never, "b1").catch(() => undefined);
+    expect(tables[0]).toBe("v_cssd_bo_dung_cu_summary");
+  });
+
+  it("bộ mẹ có thành phần: từ chối và không tạo chu trình", async () => {
+    const { supabase, insert } = mockSupabase(2);
+    const { bootstrapCssdQuyTrinhFromBoId } = await import("../shared/application/cssd-bo-bootstrap");
+    await expect(bootstrapCssdQuyTrinhFromBoId(supabase as never, "b1")).rejects.toThrow(/Bộ mẹ đã tách thành phần/);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});

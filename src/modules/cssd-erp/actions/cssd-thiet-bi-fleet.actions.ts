@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { pmDueStatus, type PmDueStatus } from "@/lib/domain/cssd-equipment-pm";
+import { canUnlockHoldQcMachine, pmDueStatus, type PmDueStatus } from "@/lib/domain/cssd-equipment-pm";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import { verifyCssdMaintenanceView } from "@/lib/cssd-server-gates";
 
@@ -32,7 +32,7 @@ export type ThietBiFleetRow = {
 
 /** Danh sách máy CSSD cho tab vận hành — read-only, kèm cảnh báo PM. */
 export async function listThietBiFleetAction(): Promise<
-  { success: true; data: ThietBiFleetRow[] } | { success: false; error: string }
+  { success: true; data: ThietBiFleetRow[]; can_unlock: boolean; can_tham_dinh: boolean } | { success: false; error: string }
 > {
   try {
     await verifyCssdMaintenanceView();
@@ -74,7 +74,17 @@ export async function listThietBiFleetAction(): Promise<
         so_me_tk: counts.get(id) || 0,
       };
     });
-    return { success: true, data };
+    const { getActorRoleNames } = await import("@/lib/server-permission");
+    const can_unlock = canUnlockHoldQcMachine(await getActorRoleNames());
+    let can_tham_dinh = false;
+    try {
+      const { verifyCssdBatchQc } = await import("@/lib/cssd-server-gates");
+      await verifyCssdBatchQc();
+      can_tham_dinh = true;
+    } catch {
+      can_tham_dinh = false;
+    }
+    return { success: true, data, can_unlock, can_tham_dinh };
   } catch (e: unknown) {
     return { success: false, error: getErrorMessage(e) };
   }
