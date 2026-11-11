@@ -1178,7 +1178,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("EXPIRED");
     });
 
-    it("excludes PATOS from new SSI count", () => {
+    it("PATOS chỉ là nhãn — vẫn tính SSI (S9.66, S9.108)", () => {
       const data: SsiVerificationData = {
         days_since_surgery: 5,
         is_patos: true,
@@ -1200,8 +1200,9 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         loai_phau_thuat_nhsn: "COLO",
       };
       const res = evaluateSsi(data);
-      expect(res.is_positive).toBe(false);
-      expect(res.classification).toBe("PATOS");
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("SIP");
+      expect(res.reason).toContain("PATOS");
     });
 
     it("accepts implant SSI deep infection within 90 days window", () => {

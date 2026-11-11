@@ -123,7 +123,7 @@ describe("nkbv-ssi-timeline-verdict", () => {
     expect(v.gate.doe).toBeNull();
   });
 
-  it("PATOS → classification PATOS", () => {
+  it("PATOS chỉ là nhãn → vẫn đạt SSI (S9.66)", () => {
     const v = buildSsiTimelineVerdict({
       surgeryDate: "2026-07-01",
       tieuChuanByDate: {
@@ -132,9 +132,13 @@ describe("nkbv-ssi-timeline-verdict", () => {
       cdha: [],
       bloodXn: [],
       isPatos: true,
+      procedureCode: "COLO",
+      ssiDepth: "SUPERFICIAL",
+      ssiEventType: "SIP",
     });
-    expect(v.result.classification).toBe("PATOS");
-    expect(v.criteriaMet).toBe(false);
+    expect(v.result.is_positive).toBe(true);
+    expect(v.result.classification).not.toBe("PATOS");
+    expect(v.criteriaMet).toBe(true);
   });
 
   it("Máu khớp ∈ SSI SBAP → is_secondary_bsi", () => {

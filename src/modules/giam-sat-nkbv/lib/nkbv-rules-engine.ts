@@ -859,13 +859,8 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
       ? `mã PT ${proc.code} · Deep/Organ ${proc.deep_organ_surveillance_days} ngày (nông/SIS/DIS luôn 30)`
       : "SP nông 30 ngày";
 
-  if (data.is_patos) {
-    return {
-      is_positive: false,
-      classification: "PATOS",
-      reason: "PATOS (Present at time of surgery) — không báo cáo SSI mới trên ca này theo NHSN.",
-    };
-  }
+  // NHSN 2026 (S9.66–69): PATOS chỉ là nhãn — vẫn đạt tiêu chí SSI thì vẫn tính SSI (S9.108 gồm PATOS).
+  const patosNote = data.is_patos ? " PATOS = Có (nhãn, vẫn tính vào SSI)." : "";
 
   // Site allowlist / catalog — fail-closed sớm khi BA chọn site (kể cả khi Ch.17 chưa met)
   const siteEarly = (data.organ_space_site || "").trim();
@@ -993,7 +988,7 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     nhsClassificationFromEvent(engineEventCode, data.organ_space_site) ||
     event?.code ||
     engineEventCode;
-  reason = `${event?.name_vi || engineEventCode}. ${reason}`;
+  reason = `${event?.name_vi || engineEventCode}. ${reason}${patosNote}`;
 
   const secondaryWarn = secondaryIncisionMismatchWarning(
     engineEventCode,
