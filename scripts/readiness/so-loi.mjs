@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Sổ lỗi sẵn sàng vận hành thử: nguồn điều hướng duy nhất cho đợt rà toàn project.
-// Dùng: node scripts/readiness/so-loi.mjs status | next [n] | merge | set <ID> <TRANG_THAI> [commit] | check
+// Dùng: node scripts/readiness/so-loi.mjs status | next [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | check
 // Agent rà KHÔNG sửa so-loi.json; ghi mảng phát hiện vào scripts/readiness/inbox/<ten>.json, chat điều phối chạy `merge`.
 import { readFileSync, writeFileSync, readdirSync, unlinkSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -72,8 +73,23 @@ if (cmd === "merge") {
   const n = Number(args[0]) || 10;
   const open = rows.filter((r) => ["DA_XAC_MINH", "MOI"].includes(r.trang_thai))
     .sort((a, b) => MUC.indexOf(a.muc) - MUC.indexOf(b.muc) || (a.trang_thai === "DA_XAC_MINH" ? -1 : 1) || a.id.localeCompare(b.id));
-  for (const r of open.slice(0, n)) console.log(`${r.id}\t${r.muc}\t${r.trang_thai}\t${r.lop}\t${r.tieu_de}\t${r.bang_chung}`);
+  // Cột cuối = việc kế của dòng: MOI phải xác minh trước, DA_XAC_MINH mới được sửa.
+  for (const r of open.slice(0, n)) console.log(`${r.id}\t${r.muc}\t${r.trang_thai}\t${r.lop}\t${r.tieu_de}\t${r.bang_chung}\t→ ${r.trang_thai === "MOI" ? "XÁC MINH (db-verify)" : "SỬA (slice-fixer)"}`);
   if (!open.length) console.log("Không còn việc MOI/DA_XAC_MINH.");
+} else if (cmd === "stats") {
+  // Số đo luồng: đếm theo trạng thái, tỉ lệ lỗi giả, số việc đã sửa theo ngày commit.
+  const cnt = (f) => rows.filter(f).length;
+  console.log(TT.map((t) => `${t} ${cnt((r) => r.trang_thai === t)}`).join(" · "));
+  const closed = cnt((r) => ["DA_SUA", "LOI_GIA"].includes(r.trang_thai));
+  console.log(`Tỉ lệ lỗi giả: ${cnt((r) => r.trang_thai === "LOI_GIA")}/${closed} việc đã đóng`);
+  console.log(`Việc kế: xác minh ${cnt((r) => r.trang_thai === "MOI")} · sửa ${cnt((r) => r.trang_thai === "DA_XAC_MINH")} · chờ PO ${cnt((r) => r.trang_thai === "CHO_PO")}`);
+  const byDay = {};
+  for (const r of rows.filter((x) => x.trang_thai === "DA_SUA" && x.commit)) {
+    let d = "không rõ ngày";
+    try { d = execFileSync("git", ["-C", DIR, "show", "-s", "--format=%cs", r.commit], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || d; } catch { /* sha không còn */ }
+    (byDay[d] ||= []).push(r.id);
+  }
+  for (const d of Object.keys(byDay).sort()) console.log(`Đã sửa ${d}: ${byDay[d].length} (${byDay[d].join(", ")})`);
 } else if (cmd === "check") {
   // Cổng: module chưa đạt nếu còn NGHIEM_TRONG/CAO đang mở.
   let fail = 0;
@@ -95,4 +111,4 @@ if (cmd === "merge") {
   }
   const po = rows.filter((r) => r.trang_thai === "CHO_PO");
   if (po.length) { console.log("\nChờ PO:"); for (const r of po) console.log(`  ${r.id} ${r.tieu_de}`); }
-} else die("Lệnh: status | next [n] | merge | set <ID> <TRANG_THAI> [commit] | check");
+} else die("Lệnh: status | next [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | check");
