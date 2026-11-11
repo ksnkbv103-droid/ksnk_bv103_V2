@@ -85,9 +85,9 @@
     "tieu_de": "Prefetch GET bỏ qua kiểm cờ must_change_password",
     "bang_chung": "src/proxy.ts:140",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
-    "commit": "",
+    "commit": "9375652e",
     "ghi_chu": ""
   },
   {
@@ -501,9 +501,9 @@
     "tieu_de": "Luân chuyển và loại biên dụng cụ truyền p_nguoi_thuc_hien_id null khi tài khoản chưa gắn nhân sự; fn_cssd_resolve_ledger_actor (nhánh service_role) trả đúng giá trị fallback null, nên sổ kho thiếu người thực hiện",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-lifecycle.actions.ts:79, :220, :239; DB fn_cssd_resolve_ledger_actor",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
-    "commit": "",
+    "commit": "3379bcde",
     "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng"
   },
   {
@@ -514,9 +514,9 @@
     "tieu_de": "Đóng băng thủ công: update is_dong_bang rồi mới ghi ngoại lệ ở chế độ soft; ghi ngoại lệ lỗi thì bộ bị khóa mà không có lý do, không có người thao tác",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-workflow.commands.actions.ts:80-96",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
-    "commit": "",
+    "commit": "3379bcde",
     "ghi_chu": "Gộp vào một RPC hoặc bỏ soft"
   },
   {
@@ -605,9 +605,9 @@
     "tieu_de": "Repo còn hàm gọi RPC rpc_vst_delete_session, nhưng hàm này không tồn tại trong DB local. Code chết, nếu dùng lại sẽ lỗi lúc chạy.",
     "bang_chung": "src/modules/giam-sat-vst/repo/vst.repo.ts:297-298 (callRpcVstDeleteSession)",
     "lenh_kiem": "SELECT proname FROM pg_proc WHERE proname='rpc_vst_delete_session'; -- 0 dòng",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-vst-quyen",
-    "commit": "",
+    "commit": "03699db5",
     "ghi_chu": "Xóa hàm repo, hoặc tạo RPC nếu thật sự cần"
   },
   {
@@ -748,9 +748,9 @@
     "tieu_de": "submitClinicalVerification, approveOrExcludeNkbvCase, updateNkbvBenhAnStay, createNkbvBenhAnStay, syncNkbvAdmissionDate dùng admin client nhưng không kiểm khoa. Hiện vô hại vì mọi vai trò có quyền ghi đều là toàn viện; sẽ thành lỗ hổng nếu sau này cấp edit cho Mạng lưới.",
     "bang_chung": "giam-sat-nkbv-write.actions.ts:178, 648, 693, 809, 883 (grep Restriction chỉ trúng dòng 91, 155)",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "a3b7fd61",
     "ghi_chu": "Thêm isNkbvBenhAnInScope cho đồng bộ"
   },
   {
@@ -800,9 +800,9 @@
     "tieu_de": "completePasswordRecovery không kiểm phiên đang dùng có phải phiên khôi phục không. Phiên đăng nhập bất kỳ (ví dụ cookie bị lấy cắp) đặt được mật khẩu mới mà không cần mật khẩu cũ, vượt qua bước xác thực lại của changePasswordWithReauth.",
     "bang_chung": "src/modules/auth/actions/staff-password.actions.ts:142-165. Cấu hình auth local: GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION=false",
     "lenh_kiem": "docker exec supabase_auth_ksnk_bv103 printenv GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
-    "commit": "",
+    "commit": "9375652e",
     "ghi_chu": "Chỉ cho đổi khi phiên có amr recovery/otp, hoặc bật secure password change"
   },
   {
@@ -839,9 +839,9 @@
     "tieu_de": "changePasswordWithReauth và completePasswordRecovery nuốt lỗi khi xóa cờ must_change_password trong app_metadata nhưng vẫn trả ok:true, nên người dùng bị kẹt ở trang đổi MK. Input cũng không qua zod (chỉ kiểm độ dài).",
     "bang_chung": "src/modules/auth/actions/staff-password.actions.ts:95-102, :167-173",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
-    "commit": "",
+    "commit": "9375652e",
     "ghi_chu": "Trả lỗi khi updateUserById fail; thêm schema zod"
   },
   {
