@@ -23,7 +23,7 @@
     "trang_thai": "DA_XAC_MINH",
     "nguon": "no-da-biet",
     "commit": "",
-    "ghi_chu": "Fixture còn trên local: B99.SET.98, mẻ ETO1-111126-1"
+    "ghi_chu": "Fixture còn trên local: B99.SET.98, mẻ ETO1-111126-1 | 2026-11-11 kiểm tầng DB local (BEGIN..ROLLBACK, role service_role + claim): rpc_cssd_nhat_ky_ghi có p_actor_user_id -> success:true; không actor -> success:false \"Tài khoản chưa gắn hồ sơ nhân sự\". CÒN: bấm tay nút trả lui và nạp/nhả mẻ ETO trên giao diện (Bước 4)."
   },
   {
     "id": "CSSD-003",
