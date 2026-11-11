@@ -124,10 +124,10 @@
     "tieu_de": "Migration TRUNCATE CASCADE ngân hàng câu hỏi nằm trong thư mục migrations (untracked), prod có 787 câu hỏi thật",
     "bang_chung": "supabase/migrations/20261105150000_dao_tao_canonical_qbank_upgrade.sql",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "no-da-biet",
     "commit": "",
-    "ghi_chu": "Không apply. PO quyết số phận file"
+    "ghi_chu": "Không apply. PO quyết số phận file | PO 2026-11-11: xóa file. Đã xóa file untracked 20261105150000 ở checkout chính; không còn việc."
   },
   {
     "id": "VST-003",
@@ -189,10 +189,10 @@
     "tieu_de": "startThiThuAttempt nhận targetRole, chuDeMas, soCau, thoiGianPhut thẳng từ client, không qua zod; thoiGianPhut và soCau không có trần, soCau lẻ hoặc NaN đi thẳng vào insert, chuDeMas lạ làm ngân hàng rỗng",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:193-227 (chỉ form và mucDoId được parse)",
     "lenh_kiem": "gọi startThiThuAttempt({mucDoId, form, soCau:1.5, thoiGianPhut:99999999})",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "B2: DUNG một phần. Chỉ thoiGianPhut lớn/lẻ có thật (han_nop nhiều năm, lỗi cột int); soCau lẻ vô hại, chuDeMas lạ ném lỗi rõ. Chỉ ảnh hưởng thi thử của chính user. Hạ CAO→THAP. Hỏi PO: thi thử có được dài hơn cấu hình mức độ không. Đọc code, chưa gọi action."
+    "ghi_chu": "B2: DUNG một phần. Chỉ thoiGianPhut lớn/lẻ có thật (han_nop nhiều năm, lỗi cột int); soCau lẻ vô hại, chuDeMas lạ ném lỗi rõ. Chỉ ảnh hưởng thi thử của chính user. Hạ CAO→THAP. Hỏi PO: thi thử có được dài hơn cấu hình mức độ không. Đọc code, chưa gọi action. | PO 2026-11-11: thi thử KHÔNG chạy lâu hơn cấu hình mức độ, nhưng được thi lại. Sửa: chặn thoiGianPhut/soCau theo cấu hình mức độ, zod; không giới hạn số lần thi."
   },
   {
     "id": "DT-003",
@@ -371,10 +371,10 @@
     "tieu_de": "Nghiệm thu: RPC cấm tự nghiệm thu chỉ miễn cho vai trò ADMIN, còn code app miễn cho hasRBACAdminSupervisionBypass (ADMIN hoặc email trusted break-glass), nên hai tầng không khớp. Ngoài ra RPC bỏ qua kiểm tra khi p_actor_nhan_su_id NULL (gọi service_role), và người phối hợp hoặc người không phụ trách vẫn nghiệm thu được.",
     "bang_chung": "fn_qlcv_transition WHEN 'NGHIEM_THU' (IF p_actor_nhan_su_id IS NOT NULL AND ... v.roles ? 'ADMIN'); src/modules/quan-ly-cong-viec/actions/cong-viec.actions.ts:455-462; src/lib/server-permission.ts:111-121",
     "lenh_kiem": "select pg_get_functiondef('fn_qlcv_transition'::regproc)",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "B2: DUNG. RPC chỉ miễn ADMIN, bỏ kiểm khi actor NULL; app miễn thêm email break-glass nên app rộng hơn RPC, RPC vẫn chặn tới ADMIN. Hạ CAO→TRUNG_BINH. Hỏi PO: người tạo việc có được tự nghiệm thu việc mình giao không?"
+    "ghi_chu": "B2: DUNG. RPC chỉ miễn ADMIN, bỏ kiểm khi actor NULL; app miễn thêm email break-glass nên app rộng hơn RPC, RPC vẫn chặn tới ADMIN. Hạ CAO→TRUNG_BINH. Hỏi PO: người tạo việc có được tự nghiệm thu việc mình giao không? | PO 2026-11-11: người tạo việc KHÔNG được tự nghiệm thu, trừ chủ nhiệm khoa và ADMIN. Sửa RPC fn_qlcv_transition + app cho khớp; bỏ miễn email break-glass nếu không phải ADMIN thật; không bỏ kiểm khi actor NULL."
   },
   {
     "id": "QLCV-004",
@@ -462,10 +462,10 @@
     "tieu_de": "Cấp phát nhiều bộ: bộ đã cấp phát trước đó vẫn trả ok:true, daCapTruoc:false; nếu có mã ca mổ thì ghi đè ma_ca_mo_id cũ. Hậu quả: truy vết bệnh nhân sai và phiếu giao ghi sai nơi nhận (khoa_nhan_id trong DB không đổi)",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-scan.actions.ts:185-190 (nhánh daCapPhat gọi rpc_cssd_quy_trinh_metadata_merge, patch ma_ca_mo_id); src/modules/cssd-erp/actions/cssd-cap-phat-batch.actions.ts khoảng :82-92 (daCapTruoc: false gán cứng, kết quả issuanceOnly không được đọc)",
     "lenh_kiem": "Local: cấp phát bộ X cho khoa A với ca mổ M1, rồi gọi capPhatNhieuBoAction({khoaNhanId:B, maQrs:[X], maCaMoId:'M2'}). Xem: SELECT metadata->>'ma_ca_mo_id', khoa_nhan_id FROM cssd_fact_quy_trinh WHERE id=<X>",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "r1-cssd-quyen",
     "commit": "",
-    "ghi_chu": "B2: DUNG. Quét lại bộ đã cấp phát kèm mã ca mổ khác vẫn merge đè ma_ca_mo_id (trigger không chặn metadata); batch gán cứng daCapTruoc:false. khoa_nhan_id không đổi. Chưa dựng fixture chạy SELECT. Hạ CAO→TRUNG_BINH. Hỏi PO: có cho bổ sung mã ca mổ sau cấp phát không."
+    "ghi_chu": "B2: DUNG. Quét lại bộ đã cấp phát kèm mã ca mổ khác vẫn merge đè ma_ca_mo_id (trigger không chặn metadata); batch gán cứng daCapTruoc:false. khoa_nhan_id không đổi. Chưa dựng fixture chạy SELECT. Hạ CAO→TRUNG_BINH. Hỏi PO: có cho bổ sung mã ca mổ sau cấp phát không. | PO 2026-11-11: ĐƯỢC thêm mã ca mổ (mã bệnh án) sau cấp phát, hành vi hiện tại đúng. Còn nhỏ: daCapTruoc gán cứng false (báo sai), hỏi lại nếu ghi đè mã khác."
   },
   {
     "id": "CSSD-006",
@@ -787,10 +787,10 @@
     "tieu_de": "Local đang cho tự đăng ký, và email được xác nhận tự động. Người ngoài lấy anon key công khai, tự đăng ký bằng email của một nhân sự chưa có tài khoản. syncAccountLinkAction (StaffSessionGate gọi) sẽ tự gắn auth_user_id vào hồ sơ đó: người ngoài chiếm danh tính nhân sự, và ADMIN không cấp được tài khoản thật nữa («Đã có tài khoản»). Nếu email trong KSNK_BREAK_GLASS_EMAILS chưa có auth user, đăng ký bằng email đó là thành ADMIN ngay.",
     "bang_chung": "Cấu hình auth local: GOTRUE_DISABLE_SIGNUP=false, GOTRUE_MAILER_AUTOCONFIRM=true. supabase/config.toml:20-23 không đặt enable_signup. src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-link-governance.actions.ts:92-104 chỉ kiểm email_confirmed_at. src/lib/server-permission.ts:84 và src/lib/auth/trusted-admin-email.ts:22 coi đúng email là ADMIN. View v_mdm_nhan_su_picker (security_invoker=false) cho mọi authenticated đọc ma_nv và ho_ten của toàn bộ nhân sự, giúp chọn mục tiêu.",
     "lenh_kiem": "docker exec supabase_auth_ksnk_bv103 printenv GOTRUE_DISABLE_SIGNUP GOTRUE_MAILER_AUTOCONFIRM; SELECT reloptions FROM pg_class WHERE relname='v_mdm_nhan_su_picker'",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
-    "ghi_chu": "B2: DUNG chỉ trên local (GOTRUE_DISABLE_SIGNUP=false, AUTOCONFIRM=true; account-link chỉ kiểm email_confirmed_at; picker security_invoker=false lộ ma_nv/ho_ten). Prod chưa kiểm được: cấu hình đăng ký prod chưa biết. NGHIEM_TRONG nếu prod giống local. Hỏi PO: prod có đang mở đăng ký không (Dashboard Auth)."
+    "ghi_chu": "B2: DUNG chỉ trên local (GOTRUE_DISABLE_SIGNUP=false, AUTOCONFIRM=true; account-link chỉ kiểm email_confirmed_at; picker security_invoker=false lộ ma_nv/ho_ten). Prod chưa kiểm được: cấu hình đăng ký prod chưa biết. NGHIEM_TRONG nếu prod giống local. Hỏi PO: prod có đang mở đăng ký không (Dashboard Auth). | PO 2026-11-11: prod CHO khách tự đăng ký, ADMIN duyệt. Hướng sửa: đăng ký xong chưa được tự gắn hồ sơ nhân sự/quyền; syncAccountLink chỉ gắn khi ADMIN duyệt; chặn đăng ký bằng email break-glass chưa có auth user."
   },
   {
     "id": "QT-004",
