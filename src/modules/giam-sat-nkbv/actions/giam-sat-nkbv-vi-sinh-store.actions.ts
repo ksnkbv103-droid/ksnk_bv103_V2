@@ -9,8 +9,9 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
-import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
-import type { NkbvMdroPhenotype } from "../lib/nkbv-mdro";
+import { z } from "zod";
+import { NKBV_VI_SINH_KET_QUA, type NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
+import { NKBV_MDRO_PHENOTYPES, type NkbvMdroPhenotype } from "../lib/nkbv-mdro";
 import {
   isNkbvSpecimenCode,
   type NkbvSpecimenCode,
@@ -248,9 +249,25 @@ export async function createNkbvViSinhStoreRecord(input: {
   return { success: true as const, data };
 }
 
+const viSinhStorePatchSchema = z.object({
+  loai_benh_pham: z.string().optional(),
+  loai_benh_pham_chuan: z.string().nullable().optional(),
+  khoa_yeu_cau_id: z.string().optional(),
+  tac_nhan: z.string().optional(),
+  so_luong: z.string().nullable().optional(),
+  ket_qua: z.enum(NKBV_VI_SINH_KET_QUA).optional(),
+  is_mdro: z.boolean().optional(),
+  mdro_phenotype: z.enum(NKBV_MDRO_PHENOTYPES).nullable().optional(),
+  ma_benh_an: z.string().optional(),
+  ngay_lay_mau: z
+    .string()
+    .refine((v) => !Number.isNaN(new Date(v).getTime()))
+    .optional(),
+});
+
 export async function updateNkbvViSinhStoreRecord(
   id: string,
-  patch: {
+  rawPatch: {
     loai_benh_pham?: string;
     loai_benh_pham_chuan?: string | null;
     khoa_yeu_cau_id?: string;
@@ -268,6 +285,13 @@ export async function updateNkbvViSinhStoreRecord(
   if (outOfScope) return outOfScope;
   const rowId = String(id || "").trim();
   if (!rowId) return { success: false as const, error: "Thiếu id xét nghiệm" };
+
+  const parsed = viSinhStorePatchSchema.safeParse(rawPatch);
+  if (!parsed.success) {
+    const keys = [...new Set(parsed.error.issues.map((i) => i.path.join(".")))].join(", ");
+    return { success: false as const, error: `Dữ liệu không hợp lệ: ${keys}` };
+  }
+  const patch = parsed.data;
 
   if (patch.is_mdro && !patch.mdro_phenotype) {
     return { success: false as const, error: "Đa kháng cần chọn phenotype" };
