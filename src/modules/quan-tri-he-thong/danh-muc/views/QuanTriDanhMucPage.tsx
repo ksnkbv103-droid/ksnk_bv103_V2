@@ -1,106 +1,61 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
+import TaiKhoanTruyCapHubPage from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/views/TaiKhoanTruyCapHubPage";
 import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
-import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
-import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
-import {
-  canViewHubCatalogRow,
-  filterDanhMucHubRows,
-  getAllDanhMucHubRows,
-} from "@/lib/master-data/danh-muc-hub-catalog";
-import { rowsForHubJob, visibleHubRows } from "@/lib/master-data/quan-tri-hub-jobs";
-import type { QuanTriHubJobId } from "@/lib/master-data/quan-tri-hub-jobs";
-import { quanTriHubHref, type QuanTriHubTab } from "@/lib/master-data/quan-tri-paths";
+import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
 import QuanTriDanhMucTabStrip, { type QuanTriHubUiTab } from "./QuanTriDanhMucTabStrip";
-import SearchBar from "@/components/shared/SearchBar";
-import { buildUnifiedHubColumns, toUnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
-import QuanTriHubJobCards from "./QuanTriHubJobCards";
 import QuanTriHubWorkQueue from "./QuanTriHubWorkQueue";
 import { SystemHealthPanel } from "../../components/SystemHealthPanel";
 
-function uiTabFromQuery(tab: string | null): QuanTriHubUiTab {
+/**
+ * AR-8g (PO 2026-11-11): Quản trị chỉ còn 3 việc — Tài khoản · Phân quyền · Hệ thống.
+ * Danh mục nghiệp vụ sửa trong module sở hữu (Tổ chức, GSC, CSSD, NKBV).
+ */
+function uiTabFromQuery(tab: string | null): QuanTriHubUiTab | null {
+  if (tab === "tai_khoan") return "TAI_KHOAN";
   if (tab === "phan_quyen") return "PHAN_QUYEN";
   if (tab === "mdm_governance" || tab === "suc_khoe") return "IT";
-  return "DANH_MUC";
+  return null;
 }
+
+const UI_TAB_HREF: Record<QuanTriHubUiTab, string> = {
+  TAI_KHOAN: quanTriHubHref("TAI_KHOAN"),
+  PHAN_QUYEN: quanTriHubHref("PHAN_QUYEN"),
+  IT: quanTriHubHref("MDM_GOVERNANCE"),
+};
 
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
-  const [loading, setLoading] = useState(true);
-  const [hubSearch, setHubSearch] = useState("");
-  const { loading: permLoading, isAdmin, canView } = usePermission();
-  const canViewDanhMuc = canView("DANH_MUC");
-  // ADM-03: ma trận phân quyền chỉ dành riêng cho ADMIN
-  const canViewRbac = isAdmin;
-  const canAccessIt = canViewDanhMuc || isAdmin;
-  const catalogRows = useMemo(
-    () =>
-      getAllDanhMucHubRows({ stats, includeTaiKhoan: canViewRbac }).filter((row) =>
-        canViewHubCatalogRow(row, isAdmin, canView),
-      ),
-    [stats, canViewRbac, isAdmin, canView],
-  );
-  const canAccessJobs = catalogRows.length > 0;
+  const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
 
-  // URL là nguồn duy nhất của tab (không giữ bản sao state) — tránh nháy tab khi điều hướng.
+  // Cùng cổng với route server: tài khoản = ADMIN hoặc PHAN_QUYEN xem+sửa; ma trận = ADMIN.
+  const canTaiKhoan = isAdmin || (canView("PHAN_QUYEN") && canEdit("PHAN_QUYEN"));
+  const canViewRbac = isAdmin;
+  const canAccessIt = isAdmin;
+
+  const visibleTabs = useMemo(() => {
+    const tabs: QuanTriHubUiTab[] = [];
+    if (canTaiKhoan) tabs.push("TAI_KHOAN");
+    if (canViewRbac) tabs.push("PHAN_QUYEN");
+    if (canAccessIt) tabs.push("IT");
+    return tabs;
+  }, [canTaiKhoan, canViewRbac, canAccessIt]);
+
+  // URL là nguồn của tab; tab không đủ quyền / thiếu → tab đầu tiên được phép.
   const rawTab = searchParams.get("tab");
-  const uiTab = useMemo(() => uiTabFromQuery(rawTab), [rawTab]);
+  const requested = uiTabFromQuery(rawTab);
+  const uiTab = requested && visibleTabs.includes(requested) ? requested : visibleTabs[0];
 
   const setHubTab = useCallback(
-    (tab: QuanTriHubTab) => {
-      router.replace(quanTriHubHref(tab), { scroll: false });
-    },
+    (tab: QuanTriHubUiTab) => router.replace(UI_TAB_HREF[tab], { scroll: false }),
     [router],
   );
-
-  useEffect(() => {
-    if (!canAccessJobs && canViewRbac && uiTab !== "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
-    if (!canViewRbac && uiTab === "PHAN_QUYEN") setHubTab("DANH_MUC");
-  }, [canAccessJobs, canViewRbac, uiTab, setHubTab]);
-
-  useEffect(() => {
-    if (rawTab === "dm_registry") {
-      requestAnimationFrame(() => {
-        document.getElementById("dm-unified-catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
-  }, [rawTab]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void mdmGetTrungTamDanhMucStats({ includeRegistry: true }).then((result) => {
-      if (cancelled) return;
-      if (result.success) setStats((result.data || {}) as Partial<TrungTamDanhMucStatsPayload>);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const filteredCatalog = useMemo(() => {
-    const matched = filterDanhMucHubRows(catalogRows, hubSearch);
-    return visibleHubRows(matched, hubSearch);
-  }, [catalogRows, hubSearch]);
-  const unifiedFlat = useMemo(() => filteredCatalog.map((r) => toUnifiedHubRow(r)), [filteredCatalog]);
   const go = useCallback((path: string) => router.push(path), [router]);
-  const columns = useMemo(() => buildUnifiedHubColumns(go), [go]);
-
-  const allowedJobs = useMemo((): QuanTriHubJobId[] => {
-    const jobs: QuanTriHubJobId[] = [];
-    if (rowsForHubJob(catalogRows, "to-chuc").length > 0) jobs.push("to-chuc");
-    if (rowsForHubJob(catalogRows, "bang-kiem").length > 0) jobs.push("bang-kiem");
-    if (rowsForHubJob(catalogRows, "cssd").length > 0) jobs.push("cssd");
-    if (canViewRbac) jobs.push("nguoi-dung");
-    return jobs;
-  }, [catalogRows, canViewRbac]);
 
   if (permLoading) {
     return (
@@ -110,12 +65,12 @@ export default function QuanTriDanhMucPage() {
     );
   }
 
-  if (!(canAccessJobs || canViewRbac)) {
+  if (!uiTab) {
     return (
       <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-5 py-8 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-600">Không đủ quyền khu Quản trị.</p>
         <p className="mt-2 text-xs text-slate-500">
-          Cần quyền xem đúng mục (khoa phòng, bảng kiểm, danh mục, nhân sự hoặc phân quyền).
+          Cần vai trò quản trị, quyền sửa PHAN_QUYEN (tài khoản) hoặc quyền xem DANH_MUC (hệ thống).
         </p>
       </div>
     );
@@ -123,63 +78,28 @@ export default function QuanTriDanhMucPage() {
 
   return (
     <div className="bv103-stack-page pb-8">
-      <QuanTriDanhMucTabStrip
-        active={uiTab}
-        onChange={(t) => {
-          if (t === "DANH_MUC") setHubTab("DANH_MUC");
-          else if (t === "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
-          else setHubTab("MDM_GOVERNANCE");
-        }}
-        canAccessJobs={canAccessJobs}
-        canViewRbac={canViewRbac}
-        canAccessIt={canAccessIt}
-      />
+      <QuanTriDanhMucTabStrip active={uiTab} onChange={setHubTab} visibleTabs={visibleTabs} />
 
-      {uiTab === "DANH_MUC" && canAccessJobs ? (
-        <div
-          className="space-y-[var(--bv103-space-3)]"
-          id="dm-unified-catalog"
-          role="tabpanel"
-          aria-labelledby="tab-danhmuc-hub"
-        >
-          {(canViewDanhMuc || isAdmin) && <QuanTriHubWorkQueue onOpen={go} />}
-          <QuanTriHubJobCards rows={catalogRows} allowedJobs={allowedJobs} onOpen={go} />
-          <div className="min-w-0 space-y-2">
-            <SearchBar
-              value={hubSearch}
-              onChange={setHubSearch}
-              placeholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
-            />
-            <AdvancedDataTable
-              columns={columns}
-              data={unifiedFlat}
-              loading={loading}
-              onRowClick={(r) => go(r.path)}
-              hideSearch
-              tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-            />
-            {!hubSearch.trim() ? (
-              <p className="px-2 py-1 text-xs text-slate-500">
-                Hiển thị danh mục nghiệp vụ mặc định. Gõ từ khóa để tra cứu thêm các danh mục hệ thống.
-              </p>
-            ) : null}
-          </div>
-        </div>
-      ) : uiTab === "PHAN_QUYEN" && canViewRbac ? (
+      {uiTab === "TAI_KHOAN" ? (
+        <section id="panel-tai-khoan" role="tabpanel" aria-labelledby="tab-tai-khoan">
+          <TaiKhoanTruyCapHubPage />
+        </section>
+      ) : uiTab === "PHAN_QUYEN" ? (
         <section id="panel-phan-quyen" role="tabpanel" aria-labelledby="tab-phan-quyen">
           <RBACMatrixView />
         </section>
-      ) : uiTab === "IT" && canAccessIt ? (
+      ) : (
         <section
           id="panel-danh-cho-it"
           role="tabpanel"
           className="space-y-[var(--bv103-space-3)]"
           aria-labelledby="tab-danh-cho-it"
         >
-          {canViewDanhMuc ? <MdmGovernanceView /> : null}
+          <QuanTriHubWorkQueue onOpen={go} />
+          {isAdmin ? <MdmGovernanceView /> : null}
           <SystemHealthPanel />
         </section>
-      ) : null}
+      )}
     </div>
   );
 }

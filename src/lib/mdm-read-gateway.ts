@@ -1,9 +1,9 @@
 /**
  * Neutral read API for supervision modules → MDM / bảng kiểm.
- * GSC/VST/NKBV import from here instead of `quan-tri-he-thong/bang-kiem/actions` directly.
+ * GSC/VST/NKBV import from here instead of `giam-sat-chung/bang-kiem/actions` directly.
  */
 export {
   getBangKiemByMaOrIdForGscLookup,
   getBangKiemsForGiamSat,
   getTieuChisForGiamSatChung,
-} from "@/modules/quan-tri-he-thong/bang-kiem/actions/bang-kiem-read.actions";
+} from "@/modules/giam-sat-chung/bang-kiem/actions/bang-kiem-read.actions";

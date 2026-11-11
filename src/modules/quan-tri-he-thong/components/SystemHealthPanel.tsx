@@ -7,7 +7,7 @@ import {
   fetchSystemHealthBrief,
   type SystemHealthBrief,
 } from "../actions/system-health-brief.actions";
-import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as UI } from "@/lib/master-data-form-chrome";
 
 export function SystemHealthPanel() {
   const [data, setData] = useState<SystemHealthBrief | null>(null);

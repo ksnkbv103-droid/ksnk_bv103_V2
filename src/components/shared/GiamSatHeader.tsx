@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo, type Dispatch, type SetStateAction } from "react";
 import { MasterOption } from "@/lib/master-data/gateway";
 import { matchesNhanSuProfessionFilter } from "@/lib/master-data/nhan-su-enrich";
-import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import { getSupervisionMasterDataBundle } from "@/lib/master-data/master-data-gateway.actions";
 import GiamSatHeaderPersonalFields from "./GiamSatHeaderPersonalFields";
 import GiamSatHeaderPatientFields from "./GiamSatHeaderPatientFields";
 import GiamSatHeaderFields from "./GiamSatHeaderFields";
@@ -12,7 +12,7 @@ import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
-import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
+import type { VstSessionLocationHistoryRow } from "@/lib/master-data/master-data-gateway.actions";
 
 export type { GiamSatSession, NhanSuOption };
 
@@ -111,7 +111,7 @@ export default function GiamSatHeader({
       }
       setLoadingSelf(true);
       try {
-        const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "admin" });
+        const result = await getSupervisionMasterDataBundle({ permissionContext: "admin" });
         if (cancelled) return;
         if (result.success) {
           setKhoasLocal(result.data.khoas || []);

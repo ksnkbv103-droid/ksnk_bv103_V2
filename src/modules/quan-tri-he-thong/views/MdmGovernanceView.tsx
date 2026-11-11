@@ -139,9 +139,10 @@ export default function MdmGovernanceView() {
   const stats = useMemo(() => {
     const totalReg = registry.length;
     const pendingSug = suggestions.length;
-    const totalCandidates = totalReg + pendingSug;
-    const score = totalCandidates > 0 ? Math.round((totalReg / totalCandidates) * 100) : 100;
     const activeTriggers = registry.filter((r) => r.is_active && r.field_role === "FK_TO_DM").length;
+    // Phủ = cột đang được bảo vệ / (đang bảo vệ + gợi ý chờ duyệt); dòng đã ngừng không tính là phủ.
+    const totalCandidates = activeTriggers + pendingSug;
+    const score = totalCandidates > 0 ? Math.round((activeTriggers / totalCandidates) * 100) : 100;
 
     return {
       coverageScore: score,
@@ -249,7 +250,7 @@ export default function MdmGovernanceView() {
 
       <p className={`${bv103LayoutChrome.noticeAmber} mb-4`} role="note">
         IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>
-        . Danh mục thường ở Trung tâm danh mục.
+        . Danh mục nghiệp vụ sửa trong module sở hữu (Tổ chức, GSC, CSSD, NKBV).
       </p>
 
       {/* Stats Cards */}

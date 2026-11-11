@@ -11,6 +11,7 @@
 import {
   AlertTriangle,
   Box,
+  CheckCircle2,
   Clock,
   Droplets,
   FileBarChart,
@@ -32,6 +33,7 @@ import {
   NAV_GATE_DASHBOARD,
   NAV_GATE_GIAM_SAT_HUB,
   NAV_GATE_HAU_CAN_MT,
+  NAV_GATE_PHE_DUYET,
   type NavGate,
 } from "@/lib/nav/ksnk-nav-gates";
 
@@ -56,6 +58,7 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     label: "Điều hành KSNK",
     items: [
       { name: "Báo cáo chính thức", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
+      { name: "Phê duyệt", href: "/phe-duyet", icon: CheckCircle2, gate: NAV_GATE_PHE_DUYET },
     ],
   },
   {

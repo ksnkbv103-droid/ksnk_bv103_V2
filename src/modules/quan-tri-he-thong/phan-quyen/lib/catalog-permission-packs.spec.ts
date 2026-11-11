@@ -15,12 +15,14 @@ const perms = [
 ];
 
 describe("catalog-permission-packs", () => {
-  it("gom đủ 13 ô danh mục (kể cả hub DANH_MUC)", () => {
-    expect(ALL_CATALOG_MODULES).toContain("DANH_MUC");
+  it("gom đủ 10 ô danh mục (AR-8h: không còn DANH_MUC/_GSTT/_CSSD_LOOKUP)", () => {
+    expect(ALL_CATALOG_MODULES).not.toContain("DANH_MUC");
+    expect(ALL_CATALOG_MODULES).not.toContain("DANH_MUC_GSTT");
+    expect(ALL_CATALOG_MODULES).not.toContain("DANH_MUC_CSSD_LOOKUP");
     expect(ALL_CATALOG_MODULES).toContain("KHOA_PHONG");
     expect(ALL_CATALOG_MODULES).toContain("LOAI_DC");
     expect(ALL_CATALOG_MODULES).toContain("BANG_KIEM");
-    expect(ALL_CATALOG_MODULES.length).toBe(13);
+    expect(ALL_CATALOG_MODULES.length).toBe(10);
   });
 
   it("gói tổ chức đầy đủ không đụng giám sát", () => {

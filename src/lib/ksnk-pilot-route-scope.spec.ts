@@ -43,3 +43,18 @@ describe("ksnk-pilot-route-scope — core modules", () => {
     expect(isPathBlockedUnderActivePilot(home)).toBe(false);
   });
 });
+
+describe("ksnk-pilot-route-scope — AR-8e/8f route danh mục theo module", () => {
+  it("Tổ chức và danh mục GSC mở dưới mọi cờ pilot; danh mục CSSD/NKBV theo module", () => {
+    for (const flag of ENV_KEYS) {
+      process.env[flag] = "1";
+      expect(isPathBlockedUnderActivePilot("/to-chuc")).toBe(false);
+      expect(isPathBlockedUnderActivePilot("/to-chuc/nhan-su")).toBe(false);
+      expect(isPathBlockedUnderActivePilot("/giam-sat-chung/danh-muc/KHU_VUC_GIAM_SAT")).toBe(false);
+      expect(isPathBlockedUnderActivePilot("/giam-sat-nkbv/danh-muc/LOAI_NKBV")).toBe(true);
+      delete process.env[flag];
+    }
+    process.env.KSNK_PILOT_CORE_MODULES = "1";
+    expect(isPathBlockedUnderActivePilot("/cssd-quy-trinh/danh-muc/TRAM_CSSD")).toBe(true);
+  });
+});

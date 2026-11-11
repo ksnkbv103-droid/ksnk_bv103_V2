@@ -10,6 +10,7 @@ import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHor
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { CSSD_DANH_MUC_PATH } from "@/lib/master-data/quan-tri-paths";
 import { isRouteInPilotScope } from "@/lib/ksnk-pilot-route-scope";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
@@ -79,6 +80,8 @@ function CssdQuyTrinhPageInner() {
   const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
   const reportInScope = isRouteInPilotScope(CSSD_ROUTES.report);
   const showReportLink = reportInScope && !reportPerm.loading && reportPerm.allowed.view;
+  /* AR-8f/8h: danh mục CSSD (trạm, loại sự cố, loại máy) — xem theo CSSD_WORKFLOW, ghi chỉ ADMIN. */
+  const showLookupLink = !workflowPerm.loading && workflowPerm.allowed.view;
 
   useEffect(() => {
     if (tabParam === "kho") {
@@ -138,14 +141,23 @@ function CssdQuyTrinhPageInner() {
     <CSSDPageShell
       title="Chu trình xử lý dụng cụ"
       actions={
-        !showReportLink ? null : (
-          <Link
-            href={CSSD_ROUTES.report}
-            className={`${bv103LayoutChrome.linkQuiet} gap-1`}
-          >
-            Báo cáo CSSD
-            <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden />
-          </Link>
+        !showReportLink && !showLookupLink ? null : (
+          <>
+            {showLookupLink && (
+              <Link href={CSSD_DANH_MUC_PATH} className={bv103LayoutChrome.linkQuiet}>
+                Danh mục CSSD
+              </Link>
+            )}
+            {showReportLink && (
+              <Link
+                href={CSSD_ROUTES.report}
+                className={`${bv103LayoutChrome.linkQuiet} gap-1`}
+              >
+                Báo cáo CSSD
+                <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden />
+              </Link>
+            )}
+          </>
         )
       }
     >

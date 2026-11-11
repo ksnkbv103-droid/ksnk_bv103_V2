@@ -1,0 +1,33 @@
+import React from "react";
+import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
+
+interface Props {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: "text" | "number";
+  required?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+/** Ô nhập một dòng — dùng chung trong modal danh mục (khoa phòng, bộ/dụng cụ, hóa chất, thiết bị). */
+export default function BoDungCuTextField({ label, value, onChange, type = "text", required, disabled, placeholder }: Props) {
+  return (
+    <div className="space-y-1">
+      <label className={`${C.labelField} ml-1`}>
+        {label}
+        {required ? " *" : ""}
+      </label>
+      <input
+        type={type}
+        value={value}
+        disabled={disabled}
+        required={required}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={C.controlInput}
+      />
+    </div>
+  );
+}

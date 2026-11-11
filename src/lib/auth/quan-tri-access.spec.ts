@@ -44,14 +44,19 @@ describe("quan-tri-access", () => {
     vi.clearAllMocks();
   });
 
-  it("allows hub when user has DANH_MUC view", async () => {
+  it("AR-8h: khóa DANH_MUC cũ (nếu còn sót) không mở hub", async () => {
     mockPermissions([], [{ module: "DANH_MUC", action: "view" }]);
-    await expect(canAccessQuanTriHub()).resolves.toBe(true);
+    await expect(canAccessQuanTriHub()).resolves.toBe(false);
   });
 
   it("denies phan-quyen route without PHAN_QUYEN view", async () => {
-    mockPermissions([], [{ module: "DANH_MUC", action: "view" }]);
+    mockPermissions([], [{ module: "GIAM_SAT_CHUNG", action: "view" }]);
     await expect(canAccessPhanQuyenRoute()).resolves.toBe(false);
+  });
+
+  it("PHAN_QUYEN.view mở hub Quản trị", async () => {
+    mockPermissions([], [{ module: "PHAN_QUYEN", action: "view" }]);
+    await expect(canAccessQuanTriHub()).resolves.toBe(true);
   });
 
   it("allows tai-khoan route for PHAN_QUYEN edit", async () => {
@@ -70,15 +75,21 @@ describe("quan-tri-access", () => {
     await expect(canAccessDanhMucModuleRoute("KHOA_PHONG")).resolves.toBe(false);
   });
 
-  it("KHOA_PHONG.view mở hub và trang khoa", async () => {
+  it("KHOA_PHONG.view mở trang khoa nhưng không mở hub Quản trị (AR-8g)", async () => {
     mockPermissions([], [{ module: "KHOA_PHONG", action: "view" }]);
-    await expect(canAccessQuanTriHub()).resolves.toBe(true);
+    await expect(canAccessQuanTriHub()).resolves.toBe(false);
     await expect(canAccessDanhMucModuleRoute("KHOA_PHONG")).resolves.toBe(true);
   });
 
-  it("DANH_MUC.view vẫn mở lookup DANH_MUC_ORG", async () => {
+  it("AR-8h: DANH_MUC.view không còn mở lookup DANH_MUC_ORG", async () => {
     mockPermissions([], [{ module: "DANH_MUC", action: "view" }]);
-    await expect(canAccessDanhMucModuleRoute("DANH_MUC_ORG")).resolves.toBe(true);
+    await expect(canAccessDanhMucModuleRoute("DANH_MUC_ORG")).resolves.toBe(false);
+  });
+
+  it("AR-8h: GIAM_SAT_CHUNG.view mở danh mục GSC; CSSD_WORKFLOW.view mở danh mục CSSD", async () => {
+    mockPermissions([], [{ module: "GIAM_SAT_CHUNG", action: "view" }]);
+    await expect(canAccessDanhMucModuleRoute("GIAM_SAT_CHUNG")).resolves.toBe(true);
+    await expect(canAccessDanhMucModuleRoute("CSSD_WORKFLOW")).resolves.toBe(false);
   });
 
   it("trusted admin bypasses checks", async () => {

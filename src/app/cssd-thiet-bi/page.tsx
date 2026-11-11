@@ -2,15 +2,13 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ExternalLink, List, Wrench } from "lucide-react";
+import { List, Settings, Wrench } from "lucide-react";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
-type ThietBiTab = "FLEET" | "MAINTENANCE" | "VAN_HANH";
+type ThietBiTab = "FLEET" | "MAINTENANCE" | "VAN_HANH" | "QUAN_LY";
 
 /** Lazy per active tab — keep shell light (Perf P1 / W5). */
 function TabPanelSkeleton() {
@@ -41,8 +39,14 @@ const ThietBiVanHanhPanel = dynamic(
   { ssr: false, loading: () => panelFallback },
 );
 
+const ThietBiMasterPage = dynamic(
+  () => import("@/modules/cssd-erp/contexts/maintenance/admin/ThietBiMasterPage"),
+  { ssr: false, loading: () => panelFallback },
+);
+
 function resolveTab(tabParam: string | null): ThietBiTab {
   if (tabParam === "maintenance" || tabParam === "bao-tri") return "MAINTENANCE";
+  if (tabParam === "quan-ly") return "QUAN_LY";
   if (tabParam === "van-hanh" || tabParam === "history") return "VAN_HANH";
   return "FLEET";
 }
@@ -50,6 +54,7 @@ function resolveTab(tabParam: string | null): ThietBiTab {
 function tabParamOf(tab: ThietBiTab): string {
   if (tab === "MAINTENANCE") return "maintenance";
   if (tab === "VAN_HANH") return "van-hanh";
+  if (tab === "QUAN_LY") return "quan-ly";
   return "";
 }
 
@@ -75,15 +80,6 @@ function CssdThietBiPageInner() {
   return (
     <CSSDPageShell
       title="Thiết bị KSNK"
-      actions={
-        <Link
-          href="/quan-tri-he-thong/danh-muc/thiet-bi"
-          className={`${bv103LayoutChrome.linkQuiet} gap-1`}
-        >
-          Sửa tại Quản trị
-          <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden />
-        </Link>
-      }
     >
       <div className="space-y-[var(--bv103-space-3)]">
         <div className={CSSD_UI_TAB_GROUP}>
@@ -101,6 +97,13 @@ function CssdThietBiPageInner() {
             label="Bảo dưỡng & sửa chữa"
             mobileLabel="Bảo dưỡng"
           />
+          <CssdHorizTabButton
+            active={activeTab === "QUAN_LY"}
+            onClick={() => goTab("QUAN_LY")}
+            icon={Settings}
+            label="Quản lý danh mục"
+            mobileLabel="Quản lý"
+          />
         </div>
         <button
           type="button"
@@ -115,6 +118,8 @@ function CssdThietBiPageInner() {
             <ThietBiFleetPanel />
           ) : activeTab === "MAINTENANCE" ? (
             <CSSDMaintenancePage suppressShell={true} />
+          ) : activeTab === "QUAN_LY" ? (
+            <ThietBiMasterPage suppressHeader />
           ) : (
             <ThietBiVanHanhPanel />
           )}

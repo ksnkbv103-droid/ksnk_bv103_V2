@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { listStaffAuthOverview } from "../actions/tai-khoan-nhan-su.actions";
 import type { StaffAuthRow } from "@/types/nhan-su";
 import { staffKsnkRoleDisplayLabel } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
-import StaffKsnkRoleDialog from "@/modules/quan-tri-he-thong/nhan-su/components/StaffKsnkRoleDialog";
+import StaffKsnkRoleDialog from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/components/StaffKsnkRoleDialog";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export default function StaffAuthTableSection() {

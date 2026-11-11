@@ -6,7 +6,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { usePermission } from "@/hooks/usePermission";
 import { AlertCircle, UserPlus, ShieldCheck } from "lucide-react";
 import type { MasterOption } from "@/lib/master-data/gateway";
-import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
+import type { VstSessionLocationHistoryRow } from "@/lib/master-data/master-data-gateway.actions";
 import {
   HINH_THUC_CHUYEN_TRACH,
   HINH_THUC_GIAM_SAT_CHEO,

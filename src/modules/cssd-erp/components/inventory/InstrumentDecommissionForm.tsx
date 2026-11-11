@@ -8,7 +8,7 @@ import {
   decommissionInstrumentsAction,
   type DecommissionInstrumentsInput,
 } from "@/modules/cssd-erp/actions/cssd-lifecycle.actions";
-import { getLoaiDungCuOptionsAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
+import { getLoaiDungCuOptionsAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
 import { listActiveBoForInstrumentTransferAction } from "@/modules/cssd-su-co/actions/su-co-bo-picker.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";

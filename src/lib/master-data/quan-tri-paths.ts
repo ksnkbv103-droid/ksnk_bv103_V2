@@ -3,34 +3,47 @@ export const QUAN_TRI_HUB_PATH = "/quan-tri-he-thong";
 /** PO 2026-10-27: quản lý dụng cụ nằm ở màn CSSD (tab Quản lý/Phiếu); route quản trị cũ chỉ còn redirect. */
 const DUNG_CU_PATH = "/cssd-dung-cu";
 export const QUAN_TRI_TAI_KHOAN_PATH = "/quan-tri-he-thong/tai-khoan";
-export const QUAN_TRI_NHAN_SU_PATH = "/quan-tri-he-thong/nhan-su";
-export const QUAN_TRI_BANG_KIEM_PATH = "/quan-tri-he-thong/bang-kiem";
+/** AR-8e (PO 2026-11-11): Tổ chức là module riêng — khoa phòng, nhân sự, danh mục tra cứu tổ chức. */
+export const TO_CHUC_PATH = "/to-chuc";
+export const TO_CHUC_NHAN_SU_PATH = "/to-chuc/nhan-su";
+export const TO_CHUC_KHOA_PHONG_PATH = "/to-chuc/khoa-phong";
+
+/** Danh mục tra cứu tổ chức (khối, tổ CT, chức vụ…) — form mã–tên chung. */
+export function toChucDanhMucHref(loaiDanhMuc: string): string {
+  return `${TO_CHUC_PATH}/danh-muc/${encodeURIComponent(loaiDanhMuc)}`;
+}
+/** AR-8f (PO 2026-11-11): danh mục tra cứu sửa ngay trong module sở hữu. */
+export const GSC_DANH_MUC_PATH = "/giam-sat-chung/danh-muc";
+export const CSSD_DANH_MUC_PATH = "/cssd-quy-trinh/danh-muc";
+export const NKBV_DANH_MUC_PATH = "/giam-sat-nkbv/danh-muc";
+export const QUAN_TRI_BANG_KIEM_PATH = "/giam-sat-chung/bang-kiem";
 
 export function quanTriTaiKhoanHref(): string {
   return QUAN_TRI_TAI_KHOAN_PATH;
 }
 
 /** Phiếu chờ trên Nhân sự — cùng tập `PENDING_ACCOUNT_REQUEST_CONTAINS`. */
-export function quanTriNhanSuPendingHref(): string {
-  return "/quan-tri-he-thong/nhan-su?pending=1";
+export function toChucNhanSuPendingHref(): string {
+  return "/to-chuc/nhan-su?pending=1";
 }
 
 /** Hồ sơ đang dùng, chưa gắn Auth — cùng lọc sức khỏe «chưa có tài khoản». */
-export function quanTriNhanSuChuaTkHref(): string {
-  return "/quan-tri-he-thong/nhan-su?chuaTk=1";
+export function toChucNhanSuChuaTkHref(): string {
+  return "/to-chuc/nhan-su?chuaTk=1";
 }
 
-export type QuanTriHubTab = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
+/** AR-8g: hub Quản trị = Tài khoản · Phân quyền · Hệ thống (MDM governance / sức khỏe). */
+export type QuanTriHubTab = "TAI_KHOAN" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
 
 const TAB_QUERY: Record<QuanTriHubTab, string> = {
-  DANH_MUC: "",
+  TAI_KHOAN: "tai_khoan",
   PHAN_QUYEN: "phan_quyen",
   MDM_GOVERNANCE: "mdm_governance",
   SUC_KHOE: "suc_khoe",
 };
 
 export function quanTriHubHref(tab?: QuanTriHubTab): string {
-  if (!tab || tab === "DANH_MUC") return QUAN_TRI_HUB_PATH;
+  if (!tab) return QUAN_TRI_HUB_PATH;
   const q = TAB_QUERY[tab];
   return q ? `${QUAN_TRI_HUB_PATH}?tab=${q}` : QUAN_TRI_HUB_PATH;
 }

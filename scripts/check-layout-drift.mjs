@@ -35,7 +35,7 @@ const PANEL_SKIP = new Set([
   // Thin alias → IncidentReportModal (đã wire panel chrome).
   "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
   // Wrapper mỏng ghép 3 hàng đợi duyệt (đã wire chrome ở từng component con).
-  "src/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels.tsx",
+  "src/modules/dieu-hanh-khoa/PheDuyetDungCuPanel.tsx",
   // Sau tách N1 (lát C, D): chỉ ghép hook + panel con, không còn token chrome (chrome nằm ở NkbvSyndromeIwpGrid).
   "src/modules/giam-sat-nkbv/components/NkbvSyndromeIwpPanel.tsx",
   "src/modules/giam-sat-nkbv/components/NkbvBaWorkspaceSessionPanels.tsx",

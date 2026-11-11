@@ -29,6 +29,8 @@
 | Phiên QR trạm 3–6? | **CSSD vận hành** — `cssd_fact_quy_trinh*` |
 | Scan, QC mẻ, sự cố, giao dịch kho? | CSSD only — `cssd_fact_*` (không CRUD master dưới `/cssd-*`) |
 
+PO 2026-11-10: master CSSD sẽ chuyển về module CSSD (tổ CSSD quản lý, chủ nhiệm khoa duyệt); hai dòng «CRUD tại Quản trị» ở trên còn đúng cho đến khi lát AR-5 xong ([`handover-roadmap.md`](../core/handover-roadmap.md) §5).
+
 Tránh gọi “MDM” cho cả master CSSD — dễ lẫn với khoa/nhân sự. Cổng: [`../modules/mdm/README.md`](../modules/mdm/README.md).
 
 Rules: `.claude/rules/mdm.md`, `.claude/rules/cssd.md`.

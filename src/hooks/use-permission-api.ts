@@ -28,7 +28,7 @@ export function createPermissionApi(permissions: PermissionRow[], userRoles: str
     canImportNS: () => checkPermission("NHAN_SU", "import"),
     canManageBK: () => checkPermission("BANG_KIEM", "view"),
     canImportBK: () => checkPermission("BANG_KIEM", "import"),
-    canManageDM: () => checkPermission("DANH_MUC", "view"),
+    canManageDM: () => finalIsAdmin,
     isNhanVienKSNK: userRoles.includes("NHAN_VIEN_KSNK"),
     isMangLuoi: userRoles.includes("MANG_LUOI_KSNK"),
     isHoiDongKSNK: userRoles.includes("HOI_DONG_KSNK"),

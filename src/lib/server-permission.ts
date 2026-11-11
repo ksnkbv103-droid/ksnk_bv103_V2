@@ -121,6 +121,12 @@ export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   return roles.includes("ADMIN");
 }
 
+/** AR-8h: việc chỉ ADMIN (tab Hệ thống, ghi lookup module nghiệp vụ) — không dựa khóa quyền. */
+export async function verifyAdminRole(message = "Chỉ ADMIN được thực hiện thao tác này.") {
+  const roles = await getActorRoleNames();
+  if (!roles.includes("ADMIN")) throw new Error(message);
+}
+
 /** Tên vai trò RBAC của actor hiện tại (trusted email → ADMIN). */
 export async function getActorRoleNames(): Promise<string[]> {
   const user = await getRequestAuthUser();
