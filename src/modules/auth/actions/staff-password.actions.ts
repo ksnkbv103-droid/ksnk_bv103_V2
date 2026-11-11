@@ -90,12 +90,17 @@ export async function changePasswordWithReauth(oldPassword: string, newPassword:
 
     try {
       const admin = createAdminSupabaseClient();
-      await admin.auth.admin.updateUserById(userId, {
+      const { error: clearErr } = await admin.auth.admin.updateUserById(userId, {
         app_metadata: { ...prevAppMeta, must_change_password: false },
         user_metadata: { ...prevMeta, must_change_password: false },
       });
+      if (clearErr) {
+        console.error("[changePasswordWithReauth] clear flag failed:", clearErr.message);
+        return { ok: false as const, error: "Mật khẩu đã đổi nhưng chưa mở khóa tài khoản, vui lòng thử lại hoặc báo quản trị." };
+      }
     } catch (clearErr) {
       console.error("[changePasswordWithReauth] clear flag failed:", clearErr);
+      return { ok: false as const, error: "Mật khẩu đã đổi nhưng chưa mở khóa tài khoản, vui lòng thử lại hoặc báo quản trị." };
     }
 
     // Best-effort audit on linked staff row
@@ -134,6 +139,8 @@ export async function changePasswordWithReauth(oldPassword: string, newPassword:
   }
 }
 
+const RECOVERY_AMR_MAX_AGE_SEC = 15 * 60;
+
 /**
  * Đặt mật khẩu mới từ phiên khôi phục (link email). Phiên lấy từ cookie, không nhận userId từ client.
  * Xóa cờ must_change_password ở cả app_metadata (proxy đọc) và user_metadata — client không tự sửa được app_metadata.
@@ -148,6 +155,27 @@ export async function completePasswordRecovery(newPassword: string) {
     const userId = before?.user?.id;
     if (!userId) {
       return { ok: false as const, error: "Liên kết đặt lại đã hết hạn. Yêu cầu gửi lại email." };
+    }
+    // QT-004: chỉ phiên khôi phục (amr recovery/otp từ JWT đã verify) hoặc đang bị ép đổi mật khẩu mới được đặt
+    // mật khẩu không cần mật khẩu cũ; phiên đăng nhập thường phải dùng đổi mật khẩu có nhập mật khẩu cũ.
+    const { data: claimsData } = await supabase.auth.getClaims();
+    const amr = (claimsData?.claims as { amr?: unknown } | undefined)?.amr;
+    const isRecoverySession =
+      Array.isArray(amr) &&
+      amr.some((m) => {
+        if (!m || typeof m !== "object") return false;
+        const { method, timestamp } = m as { method?: unknown; timestamp?: unknown };
+        if (method !== "recovery" && method !== "otp") return false;
+        // Chỉ nhận trong 15 phút từ lúc bấm link: phiên khôi phục dùng tiếp hằng ngày không còn đặt được mật khẩu thiếu mật khẩu cũ.
+        return typeof timestamp === "number" && Date.now() / 1000 - timestamp <= RECOVERY_AMR_MAX_AGE_SEC;
+      });
+    const mustChange =
+      (before.user?.app_metadata as { must_change_password?: unknown } | undefined)?.must_change_password === true;
+    if (!isRecoverySession && !mustChange) {
+      return {
+        ok: false as const,
+        error: "Phiên hiện tại không phải phiên khôi phục mật khẩu. Vào Tài khoản > Đổi mật khẩu và nhập mật khẩu cũ.",
+      };
     }
     const prevMeta =
       before.user?.user_metadata && typeof before.user.user_metadata === "object"
@@ -167,11 +195,16 @@ export async function completePasswordRecovery(newPassword: string) {
     }
     try {
       const admin = createAdminSupabaseClient();
-      await admin.auth.admin.updateUserById(userId, {
+      const { error: clearErr } = await admin.auth.admin.updateUserById(userId, {
         app_metadata: { ...prevAppMeta, must_change_password: false },
       });
+      if (clearErr) {
+        console.error("[completePasswordRecovery] clear flag failed:", clearErr.message);
+        return { ok: false as const, error: "Mật khẩu đã đổi nhưng chưa mở khóa tài khoản, vui lòng thử lại hoặc báo quản trị." };
+      }
     } catch (clearErr) {
       console.error("[completePasswordRecovery] clear flag failed:", clearErr);
+      return { ok: false as const, error: "Mật khẩu đã đổi nhưng chưa mở khóa tài khoản, vui lòng thử lại hoặc báo quản trị." };
     }
     return { ok: true as const };
   } catch {

@@ -135,15 +135,6 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Prefetch link (hover menu): bỏ qua getUser() — navigation thật vẫn xác minh JWT.
-  // Chỉ GET: header prefetch do client đặt, không được dùng để đưa POST (server action) qua cổng.
-  const isPrefetch =
-    request.headers.get("Next-Router-Prefetch") === "1" ||
-    request.headers.get("Purpose") === "prefetch";
-  if (isPrefetch && mayHaveSession && request.method === "GET") {
-    return supabaseResponse;
-  }
-
   // A) getUser() → /auth/v1/user mỗi navigation. B) getClaims() verify JWT/JWKS local — chọn B.
   // Fallback getUser nếu claims lỗi (symmetric JWT / WebCrypto thiếu).
   let user: { id: string } | null = null;
