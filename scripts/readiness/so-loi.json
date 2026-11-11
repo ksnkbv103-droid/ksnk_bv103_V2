@@ -540,9 +540,9 @@
     "tieu_de": "Tài khoản không phải admin, có quyền create nhưng chưa liên kết mdm_nhan_su, vẫn tạo được phiên VST/GSC đứng tên một nhân sự KSNK bất kỳ do client gửi lên. Người bị đứng tên trở thành chủ phiên giả, số liệu theo người giám sát bị sai.",
     "bang_chung": "src/modules/giam-sat-vst/actions/vst-write-save-session.actions.ts:138-141 và src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts:104-108 (actorNhanSuId || sessionData.nguoi_giam_sat_id); resolveSupervisorPolicy (src/lib/supervision-policy.ts:103-110) vẫn cho qua vì người thực hiện có vai trò hợp lệ",
     "lenh_kiem": "SELECT r.name, count(DISTINCT ur.user_id) FILTER (WHERE ns.id IS NULL) FROM sys_user_roles ur JOIN sys_roles r ON r.id=ur.role_id LEFT JOIN mdm_nhan_su ns ON ns.auth_user_id=ur.user_id AND ns.is_active GROUP BY 1; -- local: NHAN_VIEN_KSNK có 2/20 tài khoản không có nhân sự",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-vst-quyen",
-    "commit": "",
+    "commit": "faf6e55b",
     "ghi_chu": "B2: DUNG, code hiện tại (sau 15f41a3e) vẫn lọt: không admin + actorNhanSuId null thì lấy nguoi_giam_sat_id từ client. Local 2/20 tài khoản NHAN_VIEN_KSNK không có hồ sơ active. Hạ CAO→TRUNG_BINH vì phạm vi hẹp."
   },
   {
