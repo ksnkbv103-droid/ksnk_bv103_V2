@@ -371,10 +371,10 @@
     "tieu_de": "Nghiệm thu: RPC cấm tự nghiệm thu chỉ miễn cho vai trò ADMIN, còn code app miễn cho hasRBACAdminSupervisionBypass (ADMIN hoặc email trusted break-glass), nên hai tầng không khớp. Ngoài ra RPC bỏ qua kiểm tra khi p_actor_nhan_su_id NULL (gọi service_role), và người phối hợp hoặc người không phụ trách vẫn nghiệm thu được.",
     "bang_chung": "fn_qlcv_transition WHEN 'NGHIEM_THU' (IF p_actor_nhan_su_id IS NOT NULL AND ... v.roles ? 'ADMIN'); src/modules/quan-ly-cong-viec/actions/cong-viec.actions.ts:455-462; src/lib/server-permission.ts:111-121",
     "lenh_kiem": "select pg_get_functiondef('fn_qlcv_transition'::regproc)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-qlcv",
-    "commit": "",
-    "ghi_chu": "B2: DUNG. RPC chỉ miễn ADMIN, bỏ kiểm khi actor NULL; app miễn thêm email break-glass nên app rộng hơn RPC, RPC vẫn chặn tới ADMIN. Hạ CAO→TRUNG_BINH. Hỏi PO: người tạo việc có được tự nghiệm thu việc mình giao không? | PO 2026-11-11: người tạo việc KHÔNG được tự nghiệm thu, trừ chủ nhiệm khoa và ADMIN. Sửa RPC fn_qlcv_transition + app cho khớp; bỏ miễn email break-glass nếu không phải ADMIN thật; không bỏ kiểm khi actor NULL."
+    "commit": "7c02a31f",
+    "ghi_chu": "B2: DUNG. RPC chỉ miễn ADMIN, bỏ kiểm khi actor NULL; app miễn thêm email break-glass nên app rộng hơn RPC, RPC vẫn chặn tới ADMIN. Hạ CAO→TRUNG_BINH. Hỏi PO: người tạo việc có được tự nghiệm thu việc mình giao không? | PO 2026-11-11: người tạo việc KHÔNG được tự nghiệm thu, trừ chủ nhiệm khoa và ADMIN. Sửa RPC fn_qlcv_transition + app cho khớp; bỏ miễn email break-glass nếu không phải ADMIN thật; không bỏ kiểm khi actor NULL. | Sửa local: migration 20261111200000 (NGHIEM_THU chặn actor NULL, chặn người tạo trừ RBAC ADMIN/CHU_NHIEM_KHOA, giữ chặn người phụ trách miễn ADMIN) + app qlcvNghiemThuActorError dùng vai trò thật (không break-glass). CHƯA APPLY PROD — chờ PO."
   },
   {
     "id": "QLCV-004",
