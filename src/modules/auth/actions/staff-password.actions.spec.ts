@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
   updateUser: vi.fn(),
   staffMaybeSingle: vi.fn(),
+  updateUserById: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase-server", () => {
@@ -19,7 +20,7 @@ vi.mock("@/lib/supabase-server", () => {
     return q;
   };
   return {
-    createAdminSupabaseClient: () => ({ from: () => chain() }),
+    createAdminSupabaseClient: () => ({ from: () => chain(), auth: { admin: { updateUserById: mocks.updateUserById } } }),
     createServerSupabaseClient: () => ({ auth: { resetPasswordForEmail: mocks.resetPasswordForEmail } }),
     createServerSupabaseUserClient: async () => ({
       auth: {
@@ -31,7 +32,7 @@ vi.mock("@/lib/supabase-server", () => {
   };
 });
 
-import { changePasswordWithReauth, requestPasswordResetEmail } from "./staff-password.actions";
+import { changePasswordWithReauth, completePasswordRecovery, requestPasswordResetEmail } from "./staff-password.actions";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -79,5 +80,34 @@ describe("changePasswordWithReauth", () => {
     expect(res.ok).toBe(false);
     expect(mocks.signInWithPassword).not.toHaveBeenCalled();
     expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+});
+
+describe("completePasswordRecovery", () => {
+  it("xóa cờ ở app_metadata theo id của phiên", async () => {
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: "u9", user_metadata: { ma_nv: "NV1", must_change_password: true }, app_metadata: { provider: "email", must_change_password: true } } },
+    });
+    mocks.updateUserById.mockResolvedValue({ error: null });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(true);
+    expect(mocks.updateUser).toHaveBeenCalledWith({ password: "new-pass-123", data: { ma_nv: "NV1", must_change_password: false } });
+    expect(mocks.updateUserById).toHaveBeenCalledWith("u9", { app_metadata: { provider: "email", must_change_password: false } });
+  });
+
+  it("không có phiên khôi phục → từ chối, không đổi gì", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(false);
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+    expect(mocks.updateUserById).not.toHaveBeenCalled();
+  });
+
+  it("đặt mật khẩu lỗi → không xóa cờ", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u9", user_metadata: {}, app_metadata: { must_change_password: true } } } });
+    mocks.updateUser.mockResolvedValue({ error: { message: "weak" } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(false);
+    expect(mocks.updateUserById).not.toHaveBeenCalled();
   });
 });

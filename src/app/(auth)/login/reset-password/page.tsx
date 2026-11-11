@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { completePasswordRecovery } from "@/modules/auth/actions/staff-password.actions";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -38,17 +39,9 @@ export default function ResetPasswordPage() {
     }
     setLoading(true);
     try {
-      const { data: before } = await supabase.auth.getUser();
-      const prevMeta =
-        before.user?.user_metadata && typeof before.user.user_metadata === "object"
-          ? { ...(before.user.user_metadata as Record<string, unknown>) }
-          : {};
-      const { error } = await supabase.auth.updateUser({
-        password,
-        data: { ...prevMeta, must_change_password: false },
-      });
-      if (error) {
-        toast.error(error.message);
+      const res = await completePasswordRecovery(password);
+      if (!res.ok) {
+        toast.error(res.error);
         return;
       }
       toast.success("Đã đặt mật khẩu mới.");

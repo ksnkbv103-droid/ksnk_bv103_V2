@@ -133,3 +133,48 @@ export async function changePasswordWithReauth(oldPassword: string, newPassword:
     return { ok: false as const, error: "Không đổi được mật khẩu." };
   }
 }
+
+/**
+ * Đặt mật khẩu mới từ phiên khôi phục (link email). Phiên lấy từ cookie, không nhận userId từ client.
+ * Xóa cờ must_change_password ở cả app_metadata (proxy đọc) và user_metadata — client không tự sửa được app_metadata.
+ */
+export async function completePasswordRecovery(newPassword: string) {
+  if (!newPassword || newPassword.length < 8) {
+    return { ok: false as const, error: "Mật khẩu tối thiểu 8 ký tự." };
+  }
+  try {
+    const supabase = await createServerSupabaseUserClient();
+    const { data: before } = await supabase.auth.getUser();
+    const userId = before?.user?.id;
+    if (!userId) {
+      return { ok: false as const, error: "Liên kết đặt lại đã hết hạn. Yêu cầu gửi lại email." };
+    }
+    const prevMeta =
+      before.user?.user_metadata && typeof before.user.user_metadata === "object"
+        ? { ...(before.user.user_metadata as Record<string, unknown>) }
+        : {};
+    const prevAppMeta =
+      before.user?.app_metadata && typeof before.user.app_metadata === "object"
+        ? { ...(before.user.app_metadata as Record<string, unknown>) }
+        : {};
+    const { error: updErr } = await supabase.auth.updateUser({
+      password: newPassword,
+      data: { ...prevMeta, must_change_password: false },
+    });
+    if (updErr) {
+      console.error("[completePasswordRecovery]", updErr.message);
+      return { ok: false as const, error: "Không đặt được mật khẩu. Kiểm tra mật khẩu mới rồi thử lại." };
+    }
+    try {
+      const admin = createAdminSupabaseClient();
+      await admin.auth.admin.updateUserById(userId, {
+        app_metadata: { ...prevAppMeta, must_change_password: false },
+      });
+    } catch (clearErr) {
+      console.error("[completePasswordRecovery] clear flag failed:", clearErr);
+    }
+    return { ok: true as const };
+  } catch {
+    return { ok: false as const, error: "Không đặt được mật khẩu." };
+  }
+}
