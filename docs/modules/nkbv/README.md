@@ -4,7 +4,7 @@
 
 | Đọc khi | File |
 |---------|------|
-| Domain SSOT NHSN/CDC 2025 v3.3 | [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) |
+| Domain SSOT NHSN/CDC 2026 (v3.4; thân 2025, lớp 2026 ở §0.5) | [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) |
 | ADR alignment SSOT ↔ app | [`adr-nkbv-domain-ssot-alignment-20260804.md`](../../reference/architecture/adr-nkbv-domain-ssot-alignment-20260804.md) |
 | Quy trình xác định ca + luồng dữ liệu | [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) |
 | Từ điển yếu tố tiêu chí | [`hai-criteria-element-dictionary-20260827.md`](hai-criteria-element-dictionary-20260827.md) |

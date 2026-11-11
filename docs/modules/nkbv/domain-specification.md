@@ -13,7 +13,7 @@
 
 ## 1. Tổng quan Nghiệp vụ Giám sát NKBV (HAI)
 
-Giám sát HAI tại BV103: phát hiện và phân loại sự kiện nhiễm khuẩn liên quan chăm sóc y tế **người lớn** theo CDC NHSN 2025, trên **một** module `/giam-sat-nkbv`. Tên module = **NKBV**; tử số = sự kiện **HAI** (Phụ lục E).
+Giám sát HAI tại BV103: phát hiện và phân loại sự kiện nhiễm khuẩn liên quan chăm sóc y tế **người lớn** theo CDC NHSN 2026 (gói phân rã; thân SSOT còn 2025, xem SSOT §0.5), trên **một** module `/giam-sat-nkbv`. Tên module = **NKBV**; tử số = sự kiện **HAI** (Phụ lục E).
 
 **Không kết nối API HIS/LIS.** Bệnh án: (1) lấy từ LIS khi copy vi sinh — **đã có mã thì không bổ sung**; (2) copy HIS / gõ tay. **Vi sinh:** copy bảng/Excel từ LIS. Chi tiết: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md).
 
