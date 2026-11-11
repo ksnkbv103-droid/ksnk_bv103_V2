@@ -47,7 +47,7 @@ function ThongKeModeAndModuleTabs() {
   const isVst = Boolean(pathname?.includes("/thong-ke/vst"));
   return (
     <div className="flex flex-col gap-2">
-      <p className="no-print px-0.5 text-[11px] leading-snug text-slate-500">
+      <p className="no-print px-0.5 text-xs leading-snug text-slate-500">
         Thống kê khoa — không phải bản ký gửi Ban Giám đốc. Bản ký nằm ở{" "}
         <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
           Báo cáo chính thức

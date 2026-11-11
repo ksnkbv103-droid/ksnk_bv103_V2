@@ -26,7 +26,7 @@ export function ThietBiLoaiMayField({
 
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-slate-400 ml-1">Loại máy (danh mục khai báo)</label>
+      <label className="text-xs font-medium text-slate-400 ml-1">Loại máy (danh mục khai báo)</label>
       <select
         value={v}
         onChange={(e) => onChange(e.target.value)}

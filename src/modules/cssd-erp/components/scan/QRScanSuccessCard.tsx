@@ -81,7 +81,7 @@ export default function QRScanSuccessCard({
           </div>
 
           <h2 className={T.sectionTitle}>Quét thành công</h2>
-          <p className="mt-0.5 text-[11px] font-medium text-slate-500">Hệ thống đã ghi nhận bản ghi</p>
+          <p className="mt-0.5 text-xs font-medium text-slate-500">Hệ thống đã ghi nhận bản ghi</p>
 
           <div className="mt-4 w-full space-y-[var(--bv103-space-3)] bv103-layer-inset bv103-pad-inset">
             <div className="flex flex-col items-center gap-2">
@@ -90,14 +90,14 @@ export default function QRScanSuccessCard({
                    
                   <img src={qrDataUrl} alt="QR" className="h-28 w-28 object-contain" />
                 ) : (
-                  <div className="flex h-28 w-28 items-center justify-center font-mono text-[11px] text-slate-400">
+                  <div className="flex h-28 w-28 items-center justify-center font-mono text-xs text-slate-400">
                     QR
                   </div>
                 )}
               </div>
               <p className={`${T.metaMono} text-sm text-[var(--primary)]`}>{qrCode}</p>
               {maCycleQr && maCycleQr !== qrCode ? (
-                <p className="text-[11px] font-medium text-slate-500">
+                <p className="text-xs font-medium text-slate-500">
                   Tem chu trình: <span className="font-mono">{maCycleQr}</span>
                 </p>
               ) : null}
@@ -116,13 +116,13 @@ export default function QRScanSuccessCard({
                   <p className={`flex items-center gap-1 ${T.labelBlock}`}>
                     <User className="h-3 w-3" aria-hidden /> Người thực hiện
                   </p>
-                  <p className="truncate text-[11px] font-semibold text-slate-800">{nguoiThucHien}</p>
+                  <p className="truncate text-xs font-semibold text-slate-800">{nguoiThucHien}</p>
                 </div>
                 <div className="space-y-0.5 border-l border-slate-100 pl-3">
                   <p className={`flex items-center gap-1 ${T.labelBlock}`}>
                     <Clock className="h-3 w-3" aria-hidden /> Thời gian
                   </p>
-                  <p className="text-[11px] font-semibold text-slate-800">{thoiGianQuet}</p>
+                  <p className="text-xs font-semibold text-slate-800">{thoiGianQuet}</p>
                 </div>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function QRScanSuccessCard({
               Mở phiếu mẻ
             </Link>
           ) : buocTiepTheo && buocTiepTheo !== "—" ? (
-            <p className="mt-3 text-[11px] font-medium text-slate-500">Tiếp: {buocTiepTheo}</p>
+            <p className="mt-3 text-xs font-medium text-slate-500">Tiếp: {buocTiepTheo}</p>
           ) : null}
 
           {isCapPhat && onPrintCapPhat ? (

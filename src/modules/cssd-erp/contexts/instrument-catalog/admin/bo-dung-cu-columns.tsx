@@ -71,7 +71,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       cell: (i) => (
         <span className={TC.cellMeta}>
           {dinhMucTon(i)}
-          <span className="block text-[11px] text-slate-400">
+          <span className="block text-xs text-slate-400">
             {i.so_khoan || 0} khoản · {i.tong_so_luong_dung_cu || 0} DC
           </span>
         </span>
@@ -82,7 +82,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       accessorKey: "phuong_phap_chung",
       cell: (i) =>
         !i.co_dong_loai ? (
-          <span className="text-[11px] text-slate-400">—</span>
+          <span className="text-xs text-slate-400">—</span>
         ) : i.phuong_phap_chung?.length ? (
           <span className="text-xs font-semibold text-blue-600">
             {i.phuong_phap_chung.map(sterileMethodLabel).join(" + ")}
@@ -95,7 +95,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       header: "Tem",
       accessorKey: "id",
       cell: (i) =>
-        i.ma_bo ? <BoDungCuPrintQrButton boId={i.id} /> : <span className="text-[11px] text-slate-400">—</span>,
+        i.ma_bo ? <BoDungCuPrintQrButton boId={i.id} /> : <span className="text-xs text-slate-400">—</span>,
     },
     {
       header: TH.status,

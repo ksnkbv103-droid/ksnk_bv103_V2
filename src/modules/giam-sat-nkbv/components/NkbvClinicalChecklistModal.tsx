@@ -433,7 +433,7 @@ export default function NkbvClinicalChecklistModal({
               <strong className="text-slate-800">{String(row.ma_ca || "")}</strong>
               <span className="text-slate-500"> / {String(row.ma_benh_an || "—")}</span>
               {benhAnLoaded ? (
-                <p className={`mt-0.5 text-[11px] font-medium ${benhAnMissing ? "text-amber-700" : "text-emerald-700"}`}>
+                <p className={`mt-0.5 text-xs font-medium ${benhAnMissing ? "text-amber-700" : "text-emerald-700"}`}>
                   {benhAnMissing
                     ? "Chưa liên kết hồ sơ bệnh án"
                     : "Đã liên kết hồ sơ bệnh án"}
@@ -465,9 +465,9 @@ export default function NkbvClinicalChecklistModal({
                   className="rounded-lg border border-slate-200 bg-white px-2 py-1 font-mono text-xs font-semibold text-slate-800 disabled:bg-slate-100"
                 />
                 {!ngayVaoVienEffective ? (
-                  <span className="text-[11px] text-amber-700">Thiếu ngày — POA/HAI chưa chính xác</span>
+                  <span className="text-xs text-amber-700">Thiếu ngày — POA/HAI chưa chính xác</span>
                 ) : (
-                  <span className="text-[11px] text-slate-500">Đổi ngày sẽ đồng bộ BA và tính lại HAI/POA</span>
+                  <span className="text-xs text-slate-500">Đổi ngày sẽ đồng bộ BA và tính lại HAI/POA</span>
                 )}
               </div>
             </div>

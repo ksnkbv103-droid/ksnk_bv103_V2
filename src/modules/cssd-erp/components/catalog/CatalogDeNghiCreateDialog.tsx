@@ -33,7 +33,7 @@ type Props = {
 };
 
 const inputCls = "mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm";
-const labelCls = "text-[11px] font-medium text-slate-600";
+const labelCls = "text-xs font-medium text-slate-600";
 
 export function CatalogDeNghiCreateDialog({
   open,

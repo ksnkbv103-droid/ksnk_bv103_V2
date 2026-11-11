@@ -45,9 +45,9 @@ export function SetReconcileApproveQueue() {
     void reload();
   }, []);
 
-  if (loading) return <p className="text-[11px] text-slate-500">Đang tải phiếu chờ duyệt đổi mã · tên · số lượng…</p>;
+  if (loading) return <p className="text-xs text-slate-500">Đang tải phiếu chờ duyệt đổi mã · tên · số lượng…</p>;
   if (!rows.length) {
-    return <p className="px-1 py-6 text-center text-[11px] text-slate-500">Không có phiếu chờ duyệt.</p>;
+    return <p className="px-1 py-6 text-center text-xs text-slate-500">Không có phiếu chờ duyệt.</p>;
   }
 
   return (
@@ -60,7 +60,7 @@ export function SetReconcileApproveQueue() {
               <p className="font-semibold text-slate-800">{r.maBo} {r.tenBo ? `— ${r.tenBo}` : ""}</p>
               <p className="text-slate-500">{r.catalogLineCount} dòng đề nghị · {r.moTa}</p>
               {r.catalogDiffs?.length ? (
-                <ul className="mt-1 space-y-0.5 text-[11px] text-slate-600">
+                <ul className="mt-1 space-y-0.5 text-xs text-slate-600">
                   {r.catalogDiffs.slice(0, 6).map((d, i) => (
                     <li key={`${r.id}-${i}`}>
                       <span className="font-semibold text-amber-900">{d.kindLabel}:</span>{" "}
@@ -74,14 +74,14 @@ export function SetReconcileApproveQueue() {
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href={cssdSuCoIncidentJournalHref(r.id)} className="text-[11px] font-semibold text-[var(--primary)]">
+              <Link href={cssdSuCoIncidentJournalHref(r.id)} className="text-xs font-semibold text-[var(--primary)]">
                 Xem
               </Link>
               {canApprove ? (
                 <>
                   <button
                     type="button"
-                    className="rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white"
+                    className="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white"
                     onClick={async () => {
                       const res = await approveSetReconcileBomAction(r.id);
                       if (!res.success) return toast.error(res.error);
@@ -93,7 +93,7 @@ export function SetReconcileApproveQueue() {
                   </button>
                   <button
                     type="button"
-                    className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-600"
+                    className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600"
                     onClick={async () => {
                       const res = await rejectSetReconcileBomAction(r.id);
                       if (!res.success) return toast.error(res.error);

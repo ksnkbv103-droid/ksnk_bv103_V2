@@ -79,7 +79,7 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation, gat
       <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
         <p className="bv103-type-label text-slate-500">Trạm</p>
         {activeStation ? (
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
             {STATION_LABEL[activeStation]}
           </span>
         ) : null}

@@ -91,7 +91,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       header: "Hãng / Năm sx",
       accessorKey: "hang_san_xuat",
       cell: (i) => (
-        <span className="text-[11px] text-slate-600">
+        <span className="text-xs text-slate-600">
           {clip(i.hang_san_xuat, 24)} {i.nam_san_xuat != null ? `· ${i.nam_san_xuat}` : ""}
         </span>
       ),
@@ -102,8 +102,8 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       sortable: true,
       cell: (i) => {
         const raw = i.ngay_dua_vao_su_dung;
-        if (!raw) return <span className="text-[11px] text-slate-400">—</span>;
-        return <span className="text-[11px] font-semibold text-slate-600">{formatDateVi(raw)}</span>;
+        if (!raw) return <span className="text-xs text-slate-400">—</span>;
+        return <span className="text-xs font-semibold text-slate-600">{formatDateVi(raw)}</span>;
       },
     },
     {
@@ -116,7 +116,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       header: "Bk gần / Tiếp",
       accessorKey: "ngay_bao_tri_gan_nhat",
       cell: (i) => (
-        <span className="text-[11px] font-semibold text-slate-600">
+        <span className="text-xs font-semibold text-slate-600">
           {formatDateVi(i.ngay_bao_tri_gan_nhat)} → {formatDateVi(i.ngay_bao_tri_tiep_theo)}
         </span>
       ),
@@ -124,7 +124,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
     {
       header: "Ghi chú",
       accessorKey: "ghi_chu",
-      cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
+      cell: (i) => <span className="text-xs text-slate-500">{clip(i.ghi_chu, 40)}</span>,
     },
     {
       header: "Tem qr",
@@ -142,7 +142,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
             />
           </span>
         ) : (
-          <span className="text-[11px] text-slate-400">Chưa có mã</span>
+          <span className="text-xs text-slate-400">Chưa có mã</span>
         ),
     },
     {

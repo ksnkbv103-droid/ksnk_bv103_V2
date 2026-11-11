@@ -70,7 +70,7 @@ export function RBACMatrixDataGrid({
       <div className="overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 px-4 py-3">
           <p className="text-sm font-semibold text-slate-800">Ma trận phân quyền</p>
-          <p className="mt-0.5 text-[11px] text-slate-500">Chạm module để mở quyền theo vai trò.</p>
+          <p className="mt-0.5 text-xs text-slate-500">Chạm module để mở quyền theo vai trò.</p>
         </div>
         <div className="custom-scrollbar bv103-scroll-y max-h-[min(calc(100dvh-13rem),720px)] overflow-y-auto overscroll-contain">
           <RBACMatrixMobileView
@@ -102,11 +102,11 @@ export function RBACMatrixDataGrid({
                 const headerLabel = RBAC_MATRIX_ROLE_HEADER_LABEL[key] ?? role.name;
                 return (
                 <th key={role.id} className="p-3 text-center min-w-[200px] border-r border-slate-200 last:border-r-0 align-top">
-                  <p className="text-[11px] font-semibold leading-snug text-slate-700">{headerLabel}</p>
+                  <p className="text-xs font-semibold leading-snug text-slate-700">{headerLabel}</p>
                   <p className={`mt-0.5 ${bv103DesignTokens.metaMono}`}>{role.name}</p>
                   <div className="mt-2 flex justify-center gap-2.5">
                     {actions.map((a) => (
-                      <span key={a.key} className="text-[11px] font-medium text-slate-400" title={a.full}>
+                      <span key={a.key} className="text-xs font-medium text-slate-400" title={a.full}>
                         {a.label}
                       </span>
                     ))}
@@ -119,7 +119,7 @@ export function RBACMatrixDataGrid({
                           type="button"
                           title={`Bật hết quyền “${a.full}” trên mọi module cho ${role.name}`}
                           onClick={() => onBulkSetActionForRole(role.id, a.key, true)}
-                          className="min-w-[1.75rem] rounded border border-emerald-200 bg-emerald-50/80 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+                          className="min-w-[1.75rem] rounded border border-emerald-200 bg-emerald-50/80 px-1.5 py-0.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
                         >
                           +{a.label}
                         </button>
@@ -128,7 +128,7 @@ export function RBACMatrixDataGrid({
                         type="button"
                         title={`Bật tất cả quyền trên mọi module cho ${role.name}`}
                         onClick={() => onBulkSetAllForRole(role.id, true)}
-                        className="rounded border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-2 py-0.5 text-[11px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)]/20"
+                        className="rounded border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--primary)]/20"
                       >
                         Tất cả
                       </button>
@@ -140,7 +140,7 @@ export function RBACMatrixDataGrid({
                           type="button"
                           title={`Tắt hết quyền “${a.full}” trên mọi module cho ${role.name}`}
                           onClick={() => onBulkSetActionForRole(role.id, a.key, false)}
-                          className="min-w-[1.75rem] rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 hover:bg-slate-100"
+                          className="min-w-[1.75rem] rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium text-slate-500 hover:bg-slate-100"
                         >
                           −{a.label}
                         </button>
@@ -149,7 +149,7 @@ export function RBACMatrixDataGrid({
                         type="button"
                         title={`Tắt toàn bộ quyền của ${role.name}`}
                         onClick={() => onBulkSetAllForRole(role.id, false)}
-                        className="rounded border border-red-100 bg-red-50/80 px-2 py-0.5 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+                        className="rounded border border-red-100 bg-red-50/80 px-2 py-0.5 text-xs font-semibold text-red-700 hover:bg-red-100"
                       >
                         Xóa hết
                       </button>
@@ -188,7 +188,7 @@ export function RBACMatrixDataGrid({
                             {getModuleDisplayName(moduleName)}
                           </span>
                           {getPermissionModuleBusinessDescription(moduleName) ? (
-                            <span className="mt-0.5 text-[11px] font-normal leading-snug text-slate-500">
+                            <span className="mt-0.5 text-xs font-normal leading-snug text-slate-500">
                               {getPermissionModuleBusinessDescription(moduleName)}
                             </span>
                           ) : null}

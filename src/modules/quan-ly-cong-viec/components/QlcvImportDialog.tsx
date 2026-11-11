@@ -169,7 +169,7 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
           <p className="mt-1 text-sm text-slate-600">
             Một dòng = một phiếu mới (chỉ thêm). Bắt buộc tiêu đề và mã NV thuộc Khoa KSNK.
           </p>
-          <ol className="mt-2 list-decimal list-inside space-y-0.5 text-[11px] leading-relaxed text-slate-500">
+          <ol className="mt-2 list-decimal list-inside space-y-0.5 text-xs leading-relaxed text-slate-500">
             <li>
               Bấm <strong className="font-semibold text-slate-700">{IMPORT_EXPORT_LABELS.downloadTemplate}</strong>.
             </li>

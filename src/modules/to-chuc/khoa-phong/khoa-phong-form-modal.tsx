@@ -113,7 +113,7 @@ export default function KhoaPhongFormModal({
         />
       </div>
       <div className="space-y-1">
-        <label className="ml-1 text-[11px] font-medium text-slate-400">Khối khoa</label>
+        <label className="ml-1 text-xs font-medium text-slate-400">Khối khoa</label>
         <select
           value={form.khoi_id}
           onChange={(e) => setForm({ ...form, khoi_id: e.target.value })}
@@ -132,7 +132,7 @@ export default function KhoaPhongFormModal({
         value={form.cdc_location_code}
         onChange={(v) => setForm({ ...form, cdc_location_code: v.toUpperCase() })}
       />
-      <p className="-mt-2 text-[11px] text-slate-500">
+      <p className="-mt-2 text-xs text-slate-500">
         Gắn khoa viện với mã CDC (ví dụ IN:ICU). Trống = chưa map. SIR trên NKBV vẫn là số thô cho đến khi map đủ.
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -164,7 +164,7 @@ export default function KhoaPhongFormModal({
 
       <div className="space-y-2 rounded-xl border-2 border-slate-100 bg-slate-50/50 p-4">
         <div className="flex items-center justify-between">
-          <label className="ml-1 text-[11px] font-medium text-slate-500">Khu vực đặc thù (Chức năng phòng)</label>
+          <label className="ml-1 text-xs font-medium text-slate-500">Khu vực đặc thù (Chức năng phòng)</label>
           <div className="flex gap-2">
             <button
               type="button"
@@ -173,7 +173,7 @@ export default function KhoaPhongFormModal({
             >
               Chọn tất cả
             </button>
-            <span className="text-[11px] text-slate-300">|</span>
+            <span className="text-xs text-slate-300">|</span>
             <button
               type="button"
               onClick={() => setForm({ ...form, allowed_khu_vucs: [] })}
@@ -220,7 +220,7 @@ export default function KhoaPhongFormModal({
                   />
                   <div className="flex min-w-0 flex-col">
                     <span className="truncate">{o.ten}</span>
-                    <span className="font-mono text-[11px] font-normal text-slate-400">{o.ma}</span>
+                    <span className="font-mono text-xs font-normal text-slate-400">{o.ma}</span>
                   </div>
                 </label>
               );
@@ -230,7 +230,7 @@ export default function KhoaPhongFormModal({
       </div>
 
       <div className="space-y-1">
-        <label className="ml-1 text-[11px] font-medium text-slate-400">Mô tả chức năng khoa</label>
+        <label className="ml-1 text-xs font-medium text-slate-400">Mô tả chức năng khoa</label>
         <textarea
           value={form.mo_ta_chuc_nang}
           onChange={(e) => setForm({ ...form, mo_ta_chuc_nang: e.target.value })}

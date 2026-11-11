@@ -83,7 +83,7 @@ export default function HoaChatStatsPanel({ data }: Props) {
   return (
     <div className={`${UI.sectionGap} animate-in fade-in duration-300`}>
       {/* Compact KPI strip — one row, not 4-col wall */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px]">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs">
         <span className="font-semibold text-slate-800">
           Tổng <span className="tabular-nums text-[var(--primary)]">{stats.total}</span>
         </span>

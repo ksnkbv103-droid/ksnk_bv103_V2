@@ -194,7 +194,7 @@ export default function GiamSatHeader({
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`${C.btnSecondary} h-auto min-h-0 gap-2 px-3 py-1.5 text-[11px]`}
+            className={`${C.btnSecondary} h-auto min-h-0 gap-2 px-3 py-1.5 text-xs`}
             aria-expanded={!isCollapsed}
           >
             {isCollapsed ? "Chi tiết phiên" : "Thu gọn"}

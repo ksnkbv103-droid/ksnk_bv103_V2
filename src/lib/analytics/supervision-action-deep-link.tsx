@@ -21,7 +21,7 @@ export function SupervisionActionDeepLink({
   return (
     <a
       href={href}
-      className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline"
+      className="inline-flex min-h-11 sm:min-h-0 items-center gap-1 text-xs font-semibold text-[var(--primary)] hover:underline"
     >
       <ArrowUpRight size={14} aria-hidden />
       {label} — khối / khu vực / đối tượng

@@ -11,6 +11,7 @@ import {
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
 import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 
 export function CSSDCatalogLoaiTab(props: {
@@ -44,7 +45,7 @@ export function CSSDCatalogLoaiTab(props: {
   return (
     <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
             <input
               type="checkbox"
               checked={onlyStock}
@@ -56,7 +57,7 @@ export function CSSDCatalogLoaiTab(props: {
             Chỉ loại còn tồn kho chưa dùng ({props.loaiRows.filter((x) => (x.so_luong_kho_du_phong ?? 0) > 0).length})
           </label>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-[11px] text-slate-500">
+            <div className="flex items-center gap-1 text-xs text-slate-500">
               <span>Hiển thị:</span>
               <select
                 value={pageSize}
@@ -64,7 +65,7 @@ export function CSSDCatalogLoaiTab(props: {
                   setPageSize(Number(e.target.value));
                   setPage(1);
                 }}
-                className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
+                className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-xs font-medium text-slate-700"
               >
                 <option value={20}>20</option>
                 <option value={25}>25</option>
@@ -75,7 +76,7 @@ export function CSSDCatalogLoaiTab(props: {
             <button
               type="button"
               onClick={() => setCreateOpen(true)}
-              className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+              className={C.tableActionBtn}
             >
               + Đề nghị bổ sung loại
             </button>
@@ -96,7 +97,7 @@ export function CSSDCatalogLoaiTab(props: {
                 <th className={L.th}>Công dụng</th>
                 <th className={`${L.th} text-center`}>Chịu nhiệt</th>
                 <th className={L.th}>Tiệt khuẩn</th>
-                <th className={`${L.th} ${L.colActions || ""}`}> </th>
+                <th className={`${L.th} ${L.colActionsWide}`}> </th>
               </tr>
             </thead>
             <tbody className={L.tbody}>
@@ -125,10 +126,10 @@ export function CSSDCatalogLoaiTab(props: {
                     </td>
                     <td className={`${L.td} text-center`}>{x.kha_nang_chiu_nhiet || "—"}</td>
                     <td className={L.td}>{x.phuong_phap_tiet_khuan || "—"}</td>
-                    <td className={`${L.td} ${L.colActions || ""}`} onClick={(e) => e.stopPropagation()}>
+                    <td className={`${L.td} ${L.colActionsWide}`} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                        className={C.tableActionBtn}
                         onClick={() =>
                           setDeNghi({
                             kind: "LOAI",
@@ -185,12 +186,12 @@ export function CSSDCatalogLoaiTab(props: {
         ) : null}
 
         {!selectedLoai ? (
-          <p className="px-2.5 text-[11px] text-slate-500">Chọn một loại để xem các bộ đang chứa.</p>
+          <p className="px-2.5 text-xs text-slate-500">Chọn một loại để xem các bộ đang chứa.</p>
         ) : (
           <ResponsiveTableShell
             maxHeight="max-h-[350px]"
             toolbar={
-              <p className="text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500">
                 Bộ chứa {selectedLoai.ten_loai_dung_cu} ({selectedLoai.ma_loai_dung_cu}) — {boBySelectedLoai.length} bộ
               </p>
             }

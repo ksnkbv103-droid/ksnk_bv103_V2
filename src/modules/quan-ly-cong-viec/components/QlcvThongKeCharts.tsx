@@ -93,61 +93,61 @@ export function QlcvThongKeCharts({ theoNguoi, theoTrangThai, summary }: QlcvTho
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <div className="rounded-[var(--radius-control)] border border-slate-200/90 bg-white p-3 shadow-sm">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[11px] font-medium">Tổng việc kỳ</span>
+            <span className="text-xs font-medium">Tổng việc kỳ</span>
             <ListChecks size={15} className="text-slate-600" aria-hidden />
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-xl font-bold tabular-nums text-slate-900">{summary.tong}</span>
-            <span className="text-[11px] text-slate-400">phiếu</span>
+            <span className="text-xs text-slate-400">phiếu</span>
           </div>
         </div>
 
         <div className="rounded-[var(--radius-control)] border border-sky-200/90 bg-sky-50/50 p-3 shadow-sm">
           <div className="flex items-center justify-between text-sky-700">
-            <span className="text-[11px] font-medium">Đang thực hiện</span>
+            <span className="text-xs font-medium">Đang thực hiện</span>
             <Clock size={15} className="text-sky-600" aria-hidden />
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-xl font-bold tabular-nums text-sky-800">{summary.mo}</span>
-            <span className="text-[11px] text-sky-600">việc mở</span>
+            <span className="text-xs text-sky-600">việc mở</span>
           </div>
         </div>
 
         <div className="rounded-[var(--radius-control)] border border-emerald-200/90 bg-emerald-50/50 p-3 shadow-sm">
           <div className="flex items-center justify-between text-emerald-700">
-            <span className="text-[11px] font-medium">Đã hoàn thành</span>
+            <span className="text-xs font-medium">Đã hoàn thành</span>
             <CheckCircle2 size={15} className="text-emerald-600" aria-hidden />
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-xl font-bold tabular-nums text-emerald-800">{summary.hoanThanh}</span>
             {summary.pctHoanThanh != null ? (
-              <span className="text-[11px] font-semibold text-emerald-700">({summary.pctHoanThanh}%)</span>
+              <span className="text-xs font-semibold text-emerald-700">({summary.pctHoanThanh}%)</span>
             ) : null}
           </div>
         </div>
 
         <div className="rounded-[var(--radius-control)] border border-red-200/90 bg-red-50/50 p-3 shadow-sm">
           <div className="flex items-center justify-between text-red-700">
-            <span className="text-[11px] font-medium">Quá hạn</span>
+            <span className="text-xs font-medium">Quá hạn</span>
             <AlertTriangle size={15} className="text-red-600" aria-hidden />
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-xl font-bold tabular-nums text-red-800">{summary.quaHan}</span>
             {summary.pctQuaHan != null ? (
-              <span className="text-[11px] font-semibold text-red-700">({summary.pctQuaHan}%)</span>
+              <span className="text-xs font-semibold text-red-700">({summary.pctQuaHan}%)</span>
             ) : null}
           </div>
         </div>
 
         <div className="rounded-[var(--radius-control)] border border-indigo-200/90 bg-indigo-50/50 p-3 shadow-sm col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between text-indigo-700">
-            <span className="text-[11px] font-medium">Đúng hạn</span>
+            <span className="text-xs font-medium">Đúng hạn</span>
             <Award size={15} className="text-indigo-600" aria-hidden />
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-xl font-bold tabular-nums text-indigo-800">{summary.dungHan}</span>
             {summary.pctDungHan != null ? (
-              <span className="text-[11px] font-semibold text-indigo-700">({summary.pctDungHan}%)</span>
+              <span className="text-xs font-semibold text-indigo-700">({summary.pctDungHan}%)</span>
             ) : null}
           </div>
         </div>
@@ -161,7 +161,7 @@ export function QlcvThongKeCharts({ theoNguoi, theoTrangThai, summary }: QlcvTho
             <h3 className="text-xs font-semibold text-slate-800">
               Tải công việc theo nhân sự {chartNhanSuData.length < theoNguoi.length ? "(Top 10)" : ""}
             </h3>
-            <span className="text-[11px] text-slate-500">Người phụ trách</span>
+            <span className="text-xs text-slate-500">Người phụ trách</span>
           </div>
 
           {chartNhanSuData.length === 0 ? (
@@ -209,7 +209,7 @@ export function QlcvThongKeCharts({ theoNguoi, theoTrangThai, summary }: QlcvTho
         <div className="rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-xs font-semibold text-slate-800">Cơ cấu trạng thái công việc</h3>
-            <span className="text-[11px] text-slate-500">Tỷ lệ theo mã trạng thái</span>
+            <span className="text-xs text-slate-500">Tỷ lệ theo mã trạng thái</span>
           </div>
 
           {pieTrangThaiData.length === 0 ? (

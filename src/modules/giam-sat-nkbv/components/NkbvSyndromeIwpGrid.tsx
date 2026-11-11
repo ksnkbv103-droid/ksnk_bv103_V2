@@ -99,7 +99,7 @@ export default function NkbvSyndromeIwpGrid({
                   ? "Bảng Primary BSI/CLABSI — Ngày X · IPW · DOE · RIT · SBAP · CVC"
                   : `Bảng ${panel} — Ngày X · IPW · DOE · RIT · SBAP`}
           </h3>
-          <p className="mt-0.5 text-[11px] text-rose-800">
+          <p className="mt-0.5 text-xs text-rose-800">
             Ngày X {session.indexDate || "—"}
             {session.nsk ? ` · DOE/NSK ${session.nsk}` : ""}
             {panel === "UTI" && utiVerdict
@@ -126,7 +126,7 @@ export default function NkbvSyndromeIwpGrid({
         </div>
         <div className="flex items-center gap-2">
           {panel === "PNEU" ? (
-            <div className="flex max-w-[28rem] flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-700">
+            <div className="flex max-w-[28rem] flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-700">
               <label className="flex items-center gap-1">
                 <input
                   type="checkbox"
@@ -159,7 +159,7 @@ export default function NkbvSyndromeIwpGrid({
             </div>
           ) : null}
           {panel === "BSI" ? (
-            <div className="flex max-w-[28rem] flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-700">
+            <div className="flex max-w-[28rem] flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-700">
               <span className="font-semibold text-rose-900">MBI:</span>
               <label className="flex items-center gap-1">
                 <input
@@ -218,7 +218,7 @@ export default function NkbvSyndromeIwpGrid({
               type="button"
               disabled={!allowedEdit}
               onClick={() => onCloseInsufficient?.()}
-              className="rounded-full border border-amber-400 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-950 hover:bg-amber-100 disabled:opacity-50"
+              className="rounded-full border border-amber-400 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-950 hover:bg-amber-100 disabled:opacity-50"
               title="Chốt Index không đủ tạo sự kiện — không tô RIT/SBAP; cho phân tích XN tiếp"
             >
               Đã phân tích xong
@@ -232,7 +232,7 @@ export default function NkbvSyndromeIwpGrid({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-2 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100"
+            className="rounded-full px-2 py-1 text-xs font-semibold text-rose-800 hover:bg-rose-100"
           >
             Đóng bảng
           </button>
@@ -240,7 +240,7 @@ export default function NkbvSyndromeIwpGrid({
       </div>
 
       {draft.eventDisposition?.kind === "BELONGS_PRIOR_EVENT" ? (
-        <div className="mt-2 rounded-lg border border-emerald-400 bg-emerald-50 px-2 py-1.5 text-[11px] text-emerald-950">
+        <div className="mt-2 rounded-lg border border-emerald-400 bg-emerald-50 px-2 py-1.5 text-xs text-emerald-950">
           <strong>Thuộc sự kiện trước:</strong>{" "}
           {draft.eventDisposition.label || draft.ketLuan}
           <span className="ml-1 text-emerald-800">
@@ -250,7 +250,7 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {draft.eventDisposition?.kind === "SECONDARY_BSI" ? (
-        <div className="mt-2 rounded-lg border border-sky-400 bg-sky-50 px-2 py-1.5 text-[11px] text-sky-950">
+        <div className="mt-2 rounded-lg border border-sky-400 bg-sky-50 px-2 py-1.5 text-xs text-sky-950">
           <strong>Nhiễm khuẩn huyết thứ phát:</strong>{" "}
           {draft.eventDisposition.label || draft.ketLuan}
           {draft.eventDisposition.secondarySites?.length ? (
@@ -262,13 +262,13 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {priorRitAlert && draft.eventDisposition?.kind !== "BELONGS_PRIOR_EVENT" ? (
-        <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-950">
+        <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
           <strong>Cảnh báo RIT:</strong> {priorRitAlert.message}
         </div>
       ) : null}
 
       {panel === "UTI" && utiVerdict?.lab.warnings.length ? (
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-950">
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
           <strong>Gate Index nước tiểu:</strong>{" "}
           {utiVerdict.lab.warnings.join(" · ")}
           {!utiVerdict.criteriaMet ? (
@@ -280,7 +280,7 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {panel === "PNEU" && pneuVerdict?.gate.warnings.length ? (
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-950">
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
           <strong>Gate PNEU (IWP):</strong> {pneuVerdict.gate.warnings.join(" · ")}
           {!pneuVerdict.criteriaMet ? (
             <span className="ml-1 font-semibold text-rose-800">
@@ -291,7 +291,7 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {panel === "BSI" && bsiVerdict?.gate.warnings.length ? (
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-950">
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
           <strong>Gate Primary BSI:</strong> {bsiVerdict.gate.warnings.join(" · ")}
           {!bsiVerdict.criteriaMet ? (
             <span className="ml-1 font-semibold text-rose-800">
@@ -302,13 +302,13 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {panel === "BSI" && bsiVerdict?.result.classification === "SECONDARY_BSI" ? (
-        <p className="mt-2 text-[11px] font-semibold text-emerald-800">
+        <p className="mt-2 text-xs font-semibold text-emerald-800">
           Secondary BSI từ ổ khu trú — không ghi CLABSI trên bảng này.
         </p>
       ) : null}
 
       {panel === "PNEU" && bloodInIwp.length > 0 ? (
-        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-950">
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-950">
           <strong>Cấy máu ∈ IWP — có thể gắn PNU2:</strong>
           <ul className="mt-1 space-y-1">
             {bloodInIwp.map((b) => {
@@ -329,7 +329,7 @@ export default function NkbvSyndromeIwpGrid({
                     </span>
                   </label>
                   {v ? (
-                    <span className="rounded-full bg-white px-1.5 py-0.5 text-[11px] font-semibold">
+                    <span className="rounded-full bg-white px-1.5 py-0.5 text-xs font-semibold">
                       {v.outcome === "SECONDARY"
                         ? `Secondary ${v.scenario}`
                         : v.outcome === "EXCLUDED_PRIMARY"
@@ -342,7 +342,7 @@ export default function NkbvSyndromeIwpGrid({
                   onOpenPrimaryBsi ? (
                     <button
                       type="button"
-                      className="text-[11px] font-semibold text-sky-800 underline"
+                      className="text-xs font-semibold text-sky-800 underline"
                       onClick={() => onOpenPrimaryBsi(b.id)}
                     >
                       Mở bảng BSI
@@ -356,7 +356,7 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {panel === "UTI" && (bloodInIwp.length > 0 || bloodInSbap.length > 0) ? (
-        <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50 px-2 py-1.5 text-[11px] text-sky-950">
+        <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50 px-2 py-1.5 text-xs text-sky-950">
           {bloodInIwp.length > 0 ? (
             <strong>Cấy máu ∈ IWP — ABUTI (không nấm):</strong>
           ) : (
@@ -383,7 +383,7 @@ export default function NkbvSyndromeIwpGrid({
                     </span>
                   </label>
                   {v ? (
-                    <span className="rounded-full bg-white px-1.5 py-0.5 text-[11px] font-semibold">
+                    <span className="rounded-full bg-white px-1.5 py-0.5 text-xs font-semibold">
                       {v.outcome === "SECONDARY"
                         ? `Secondary ${v.scenario}`
                         : v.outcome === "EXCLUDED_PRIMARY"
@@ -396,7 +396,7 @@ export default function NkbvSyndromeIwpGrid({
                   onOpenPrimaryBsi ? (
                     <button
                       type="button"
-                      className="text-[11px] font-semibold text-sky-800 underline"
+                      className="text-xs font-semibold text-sky-800 underline"
                       onClick={() => onOpenPrimaryBsi(b.id)}
                     >
                       Mở bảng BSI
@@ -408,7 +408,7 @@ export default function NkbvSyndromeIwpGrid({
           </ul>
           {bloodInIwp.length > 0 &&
           bloodInSbap.some((b) => !session.iwpDates.has(b.ngay.slice(0, 10))) ? (
-            <p className="mt-1 text-[11px] text-sky-900">
+            <p className="mt-1 text-xs text-sky-900">
               Máu ∈ SBAP ngoài IWP chỉ xét Secondary sau SUTI — không tick ABUTI.
             </p>
           ) : null}
@@ -416,7 +416,7 @@ export default function NkbvSyndromeIwpGrid({
       ) : null}
 
       {panel !== "BSI" && sbsiVerdicts.some((v) => v.outcome === "SECONDARY") ? (
-        <p className="mt-2 text-[11px] font-semibold text-emerald-800">
+        <p className="mt-2 text-xs font-semibold text-emerald-800">
           Secondary BSI:{" "}
           {sbsiVerdicts
             .filter((v) => v.outcome === "SECONDARY")
@@ -425,7 +425,7 @@ export default function NkbvSyndromeIwpGrid({
         </p>
       ) : null}
 
-      <p className="mt-2 text-[11px] text-rose-800/90">
+      <p className="mt-2 text-xs text-rose-800/90">
         Cột phân tích cùng hàng bảng chung. XN cùng mẫu ∈ RIT (ứng viên) → Kết luận «Thuộc SK»
         khi đủ TC + nút xác nhận. Cấy máu ∈ SBAP: badge «≈» khi trùng VK. Highlight IPW / RIT / SBAP.
       </p>
@@ -533,7 +533,7 @@ export default function NkbvSyndromeIwpGrid({
                       <ul className="absolute z-30 mt-0.5 max-h-40 w-56 overflow-auto rounded border bg-white p-1 shadow-lg">
                         {cat.map((entry) => (
                           <li key={entry.criteriaKey}>
-                            <label className="flex cursor-pointer gap-1 px-1 py-0.5 text-[11px] hover:bg-slate-50">
+                            <label className="flex cursor-pointer gap-1 px-1 py-0.5 text-xs hover:bg-slate-50">
                               <input
                                 type="checkbox"
                                 checked={items.some((x) => x.key === entry.criteriaKey)}
@@ -741,7 +741,7 @@ export default function NkbvSyndromeIwpGrid({
           return children({ analysisColumns });
         }
         return (
-          <p className="mt-2 text-[11px] text-amber-800">
+          <p className="mt-2 text-xs text-amber-800">
             Thiếu slot bảng chung — truyền children để gắn cột phân tích.
           </p>
         );

@@ -105,13 +105,13 @@ export function QlcvReasonDialog({
           />
           <div className="flex items-center justify-between">
             {showError ? (
-              <p className="text-[11px] text-red-600">
+              <p className="text-xs text-red-600">
                 Vui lòng nhập lý do (tối thiểu {minLength} ký tự).
               </p>
             ) : (
               <span />
             )}
-            <span className="text-[11px] text-slate-400">{reason.length}/500</span>
+            <span className="text-xs text-slate-400">{reason.length}/500</span>
           </div>
         </div>
 

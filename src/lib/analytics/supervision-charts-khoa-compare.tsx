@@ -140,9 +140,9 @@ function SupervisionKhoaComplianceChart({
   };
 
   return (
-    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="w-full min-w-0">
       <h3 className="mb-1 text-sm font-bold text-slate-800">{title}</h3>
-      <p className="mb-2 text-[11px] font-medium text-slate-500">
+      <p className="mb-2 text-xs font-medium text-slate-500">
         Sắp xếp: cao → thấp (tuân thủ %)
         {sourceLens ? ` · nguồn ${sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}` : ""}
       </p>
@@ -216,7 +216,7 @@ function SupervisionKhoaComplianceChart({
           </p>
         )}
       </KhoaChartViewport>
-      <p className="mt-2 text-[11px] text-slate-400">
+      <p className="mt-2 text-xs text-slate-400">
         Số trên cột: % tuân thủ · đạt/tổng cơ hội. Màu vàng khi tuân thủ &lt;{thresholds.warnPct}%; đỏ khi &lt;{thresholds.redPct}%.
         {minSample != null
           ? ` Khoa <${minSample} cơ hội = mẫu mỏng (xám, không tô cảnh báo). Di chuột lên cột xem khoảng tin cậy 95% — khoảng rộng nghĩa là tỷ lệ chưa chắc.`
@@ -282,10 +282,10 @@ function SupervisionKhoaVolumeChart({
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="min-w-0">
       <div className="mb-1 flex flex-wrap items-end justify-between gap-2">
         <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-        <p className="text-[11px] font-medium text-slate-600">
+        <p className="text-xs font-medium text-slate-600">
           {loading ? "…" : (
             <>
               <span className="font-bold text-sky-700">{ksnkCovered}</span>/{total} KSNK ·{" "}
@@ -294,7 +294,7 @@ function SupervisionKhoaVolumeChart({
           )}
         </p>
       </div>
-      <p className="mb-2 text-[11px] font-medium text-slate-500">Sắp xếp: cao → thấp (khối lượng)</p>
+      <p className="mb-2 text-xs font-medium text-slate-500">Sắp xếp: cao → thấp (khối lượng)</p>
       <KhoaChartViewport rowCount={chartData.length}>
         {!loading && chartData.length > 0 ? (
           <Bv103ResponsiveChart className="h-full w-full min-w-0">
@@ -335,7 +335,7 @@ function SupervisionKhoaVolumeChart({
           </p>
         )}
       </KhoaChartViewport>
-      <p className="mt-2 text-[11px] text-slate-400">
+      <p className="mt-2 text-xs text-slate-400">
         Số trên cột: đạt/tổng cơ hội giám sát (KSNK liền · TGS nét đứt). Cột xám = chưa có dữ liệu trong kỳ.
       </p>
     </div>
@@ -382,13 +382,13 @@ export function SupervisionKhoaAnalyticsBlock({
 
   return (
     <div className={`w-full min-w-0 space-y-3 ${className ?? ""}`}>
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5" role="tablist" aria-label="Chế độ biểu đồ khoa">
+      <div className="inline-grid grid-flow-col auto-cols-fr rounded-lg border border-slate-200 bg-slate-50 p-0.5" role="tablist" aria-label="Chế độ biểu đồ khoa">
         <button
           type="button"
           role="tab"
           aria-selected={tab === "ty_le"}
           onClick={() => setTab("ty_le")}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+          className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
             tab === "ty_le" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >
@@ -399,7 +399,7 @@ export function SupervisionKhoaAnalyticsBlock({
           role="tab"
           aria-selected={tab === "volume"}
           onClick={() => setTab("volume")}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+          className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
             tab === "volume" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >

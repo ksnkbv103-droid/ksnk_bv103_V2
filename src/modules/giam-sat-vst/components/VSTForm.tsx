@@ -1,6 +1,7 @@
 // src/modules/giam-sat-vst/components/VSTForm.tsx
 "use client";
 
+import { Bv103Button } from "@/components/ui/bv103";
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 import React, { useEffect, useRef } from "react";
 import GiamSatHeader from "@/components/shared/GiamSatHeader";
@@ -16,8 +17,6 @@ import {
   clampMomentsKeepNewest,
   isVstMissedAction,
   maxMomentsForAction,
-  momentDisplayLabel,
-  momentWhoNumber,
   type MomentType,
   type ActionType,
 } from "../lib/vst-constants";
@@ -351,57 +350,31 @@ export default function VSTForm({
           )}
         </div>
 
-        {legacyMomentTrim != null && (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            <p className="font-semibold">
-              {legacyMomentTrim} cơ hội trong phiên này đã lưu quá số thời điểm WHO cho phép.
-            </p>
-            <p className="mt-1 text-xs text-amber-900">
-              Form chỉ giữ các thời điểm mới chọn nhất (rửa/chà tối đa 2, bỏ sót 1). Kiểm tra lại rồi lưu; các
-              cơ hội cũ vượt trần không được tính vào chỉ số tuân thủ.
-            </p>
+        {legacyMomentTrim != null || legacyPersonWarn != null || (requiresEditReason && editingSessionId) ? (
+          <div className="space-y-1 border-l-2 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            {legacyMomentTrim != null ? (
+              <p>
+                {legacyMomentTrim} cơ hội đã lưu vượt số thời điểm WHO (rửa/chà tối đa 2, bỏ sót 1). Form chỉ giữ các
+                thời điểm chọn mới nhất; kiểm tra lại rồi lưu. Cơ hội vượt trần không tính vào chỉ số tuân thủ.
+              </p>
+            ) : null}
+            {legacyPersonWarn != null ? (
+              <p>
+                Phiên có {legacyPersonWarn} đối tượng (vượt tối đa 3 NVYT). Đã nạp đủ, lưu lại không mất ai; nhập mới
+                vẫn tối đa 3.
+              </p>
+            ) : null}
+            {requiresEditReason && editingSessionId ? (
+              <p>Phiên quá 30 phút: Admin sửa cần ghi lý do (tối thiểu 3 ký tự) khi lưu.</p>
+            ) : null}
           </div>
-        )}
-
-        {legacyPersonWarn != null && (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            <p className="font-semibold">
-              Phiên này có {legacyPersonWarn} đối tượng (vượt giới hạn WHO tối đa 3 NVYT cùng lúc).
-            </p>
-            <p className="mt-1 text-xs text-amber-900">
-              Đã nạp đủ mọi người đã lưu — lưu lại sẽ không mất ai. Không thêm đối tượng mới vượt số đã có
-              (nhập mới vẫn tối đa 3).
-            </p>
-          </div>
-        )}
-
-        {requiresEditReason && editingSessionId && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            <p className="font-semibold">Phiên quá 30 phút — Admin sửa cần ghi lý do.</p>
-            <p className="mt-1 text-xs text-amber-900">
-              Khi bấm «Lưu phiên giám sát», hệ thống sẽ hỏi lý do sửa (tối thiểu 3 ký tự) để ghi nhật ký.
-            </p>
-          </div>
-        )}
-
-        {hasUnsavedSession && (
-          <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
-            <p className="font-semibold">
-              {editingSessionId
-                ? "Phiên đang sửa có thay đổi chưa lưu."
-                : `Đã ghi ${recordedOpportunityCount} cơ hội trên màn hình — chưa lưu vào hệ thống.`}
-            </p>
-            <p className="mt-1 text-xs text-sky-800">
-              Bấm nút <strong>Lưu phiên giám sát</strong> (góc dưới phải) sau khi hoàn tất phiên; nếu không, dữ liệu sẽ mất khi thoát trang.
-            </p>
-          </div>
-        )}
+        ) : null}
 
         {/* Mobile Tab Switcher */}
         <div
           role="tablist"
           aria-label="Chọn đối tượng nhân viên quan sát"
-          className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden overflow-x-auto"
+          className="mb-4 flex rounded-[var(--radius-control)] bg-slate-100 p-1 md:hidden overflow-x-auto"
         >
           {persons.map((_, idx) => {
             const isActive = activePersonTab === idx;
@@ -433,25 +406,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <details className="no-print rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
-          <summary className="cursor-pointer select-none font-semibold text-slate-800">
-            Chú giải 5 thời điểm WHO (bấm để xem)
-          </summary>
-          <ol className="mt-2 grid gap-1 sm:grid-cols-2">
-            {MOMENTS.map((m) => (
-              <li key={m}>
-                <span className="mr-1 font-semibold">{momentWhoNumber(m)}.</span>
-                {momentDisplayLabel(m)}
-              </li>
-            ))}
-          </ol>
-          <p className="mt-2 text-slate-500">
-            TXNB = tiếp xúc người bệnh · TTVK = thủ thuật vô khuẩn · TXDCT = tiếp xúc dịch cơ thể · TXXQNB = tiếp xúc xung
-            quanh người bệnh. Rửa/chà tối đa 2 thời điểm, bỏ sót đúng 1.
-          </p>
-        </details>
-
-        <div className="grid min-h-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
+        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
           {persons.map((p, idx) => {
             const isTabActive = activePersonTab === idx;
             return (
@@ -460,7 +415,7 @@ export default function VSTForm({
                 role="tabpanel"
                 id={`vst-person-panel-${idx}`}
                 aria-labelledby={`vst-person-tab-${idx}`}
-                className={isTabActive ? "block" : "hidden md:block"}
+                className={`${isTabActive ? "block" : "hidden md:block"} bv103-card print:shadow-none`}
               >
                 <VSTPersonColumn 
                   pIdx={idx}
@@ -482,8 +437,16 @@ export default function VSTForm({
         </div>
 
         <div className="sticky bottom-0 z-20 flex flex-row flex-wrap items-center justify-end gap-2 sm:gap-3 border-t border-slate-200 bg-white/95 px-3 py-2 sm:py-3 backdrop-blur max-sm:bottom-[4.5rem]">
-          <button
-            type="button"
+          <p className="mr-auto hidden text-sm text-slate-600 sm:block">
+            Đã ghi nhận{" "}
+            <span className="font-semibold tabular-nums text-slate-900">
+              {persons.reduce((n, p) => n + p.opportunities.filter((o) => o.isCollapsed && o.thoi_gian_ghi_nhan).length, 0)}
+            </span>{" "}
+            cơ hội · {persons.filter((p) => p.nhan_vien_id || p.ten_manual).length}/{persons.length} nhân viên
+          </p>
+          <Bv103Button
+            variant="secondary"
+            size="lg"
             onClick={async () => {
               if (hasUnsavedSession) {
                 const ok = await confirmAction(
@@ -495,25 +458,24 @@ export default function VSTForm({
             }}
             title="In phiếu A4"
             aria-label="In phiếu A4 hoặc lưu PDF"
-            className="inline-flex h-11 min-h-[40px] items-center justify-center rounded-[var(--radius-control)] border border-slate-300 bg-white px-3 sm:px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 touch-manipulation"
           >
             In / PDF
-          </button>
+          </Bv103Button>
 
           {!showContinuePrompt ? (
-            <button
-              type="button"
+            <Bv103Button
+              variant="primary"
+              size="lg"
               disabled={loading || isLockedForSelectedDate}
               onClick={handleFinalSave}
               aria-label="Lưu phiên giám sát vệ sinh tay"
-              className="inline-flex h-11 min-h-[40px] items-center justify-center rounded-[var(--radius-control)] bg-[var(--primary)] px-4 sm:px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 touch-manipulation"
             >
               {loading ? (
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : (
                 <span>Lưu phiên giám sát</span>
               )}
-            </button>
+            </Bv103Button>
           ) : null}
         </div>
 

@@ -211,7 +211,7 @@ export default function LoaiDungCuFormModal({
         />
       </div>
       <fieldset className="space-y-1">
-        <legend className="text-[11px] font-medium text-slate-400 ml-1">
+        <legend className="text-xs font-medium text-slate-400 ml-1">
           Phương pháp tiệt khuẩn được phép (chọn nhiều; ô đầu tiên chọn là ưu tiên)
         </legend>
         <div className="flex flex-wrap gap-3">
@@ -232,19 +232,19 @@ export default function LoaiDungCuFormModal({
                   }
                 />
                 {o.l}
-                <span className="text-[11px] text-slate-500">{isSteamMethod(o.v) ? "(nhiệt cao)" : "(nhiệt thấp)"}</span>
+                <span className="text-xs text-slate-500">{isSteamMethod(o.v) ? "(nhiệt cao)" : "(nhiệt thấp)"}</span>
               </label>
             );
           })}
         </div>
         {!coNhietCao ? (
-          <p className="text-[11px] text-amber-700 ml-1">
+          <p className="text-xs text-amber-700 ml-1">
             Loại chỉ nhiệt thấp: bộ chứa loại này sẽ được tách thành bộ thành phần riêng, không nạp máy hơi nước.
           </p>
         ) : null}
       </fieldset>
       <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-400 ml-1">Bao gói mặc định (quyết định hạn dùng của bộ)</label>
+        <label className="text-xs font-medium text-slate-400 ml-1">Bao gói mặc định (quyết định hạn dùng của bộ)</label>
         <select
           value={form.loai_bao_goi_mac_dinh_id}
           onChange={(e) => setForm({ ...form, loai_bao_goi_mac_dinh_id: e.target.value })}
@@ -255,10 +255,10 @@ export default function LoaiDungCuFormModal({
             <option key={o.id} value={o.id}>{o.ten}</option>
           ))}
         </select>
-        <p className="text-[11px] text-slate-500 ml-1">Hơi nước → giấy / vải không dệt; Plasma, EO → túi ép (không cellulose).</p>
+        <p className="text-xs text-slate-500 ml-1">Hơi nước → giấy / vải không dệt; Plasma, EO → túi ép (không cellulose).</p>
       </div>
       <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
+        <label className="text-xs font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
         {isEdit ? (
           <>
             <input
@@ -268,7 +268,7 @@ export default function LoaiDungCuFormModal({
               disabled
               className={C.controlInput}
             />
-            <p className="text-[11px] text-slate-500 ml-1">Điều chỉnh tại Kho dự phòng</p>
+            <p className="text-xs text-slate-500 ml-1">Điều chỉnh tại Kho dự phòng</p>
           </>
         ) : (
           <input
@@ -283,7 +283,7 @@ export default function LoaiDungCuFormModal({
       <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
         <strong>Gợi ý PP tiệt khuẩn chỉ định:</strong>{" "}
         {methodHint.phuongPhapChiDinh ? sterileMethodLabel(methodHint.phuongPhapChiDinh) : "—"}
-        <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{methodHint.lyDo}</span>
+        <span className="mt-0.5 block text-xs font-normal text-emerald-800/90">{methodHint.lyDo}</span>
       </p>
       <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
     </QuanTriFormDialogShell>
@@ -293,7 +293,7 @@ export default function LoaiDungCuFormModal({
 function F({ l, v, o, required }: { l: string; v: string; o: (v: string) => void; required?: boolean }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-slate-400 ml-1">{l}{required ? " *" : ""}</label>
+      <label className="text-xs font-medium text-slate-400 ml-1">{l}{required ? " *" : ""}</label>
       <input value={v} required={required} onChange={(e) => o(e.target.value)} className={C.controlInput} />
     </div>
   );
@@ -302,7 +302,7 @@ function F({ l, v, o, required }: { l: string; v: string; o: (v: string) => void
 function S({ l, v, o, options }: { l: string; v: string; o: (v: string) => void; options: { v: string; l: string }[] }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-slate-400 ml-1">{l}</label>
+      <label className="text-xs font-medium text-slate-400 ml-1">{l}</label>
       <select value={v} onChange={(e) => o(e.target.value)} className={C.controlInput}>
         {options.map((x) => (
           <option key={x.v} value={x.v}>

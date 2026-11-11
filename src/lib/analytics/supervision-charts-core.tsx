@@ -46,12 +46,14 @@ export function SupervisionKpiRow({
   items: { label: string; value: string | number }[];
 }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]">
       {items.map((k) => (
-        <p key={k.label} className="text-sm text-slate-600">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{k.label}</span>{" "}
-          <span className="font-semibold tabular-nums text-slate-800">{loading ? "…" : k.value}</span>
-        </p>
+        <div key={k.label} className="bv103-card flex min-h-32 flex-col justify-between gap-3 p-5">
+          <span className="text-sm font-medium leading-snug text-slate-500">{k.label}</span>
+          <span className="bv103-type-kpi-lg font-semibold leading-none tabular-nums text-slate-900">
+            {loading ? "…" : k.value}
+          </span>
+        </div>
       ))}
     </div>
   );
@@ -105,10 +107,10 @@ export function SupervisionTrendChart({
   const runUnit = { week: "tuần", month: "tháng", quarter: "quý", year: "năm" }[granularity];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="min-w-0">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-        <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
+        <div className="grid grid-flow-col auto-cols-fr overflow-x-auto rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
           {SUPERVISION_TREND_GRANULARITY_OPTIONS.map(({ id, label }) => (
             <button
               key={id}
@@ -117,7 +119,7 @@ export function SupervisionTrendChart({
                 userChangedGranularityRef.current = true;
                 setGranularity(id);
               }}
-              className={`rounded-md px-3 py-1.5 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
             </button>
@@ -159,7 +161,7 @@ export function SupervisionTrendChart({
         )}
       </div>
       {source === "vst" && !loading && chartData.length > 0 ? (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-xs text-slate-500">
           {runChart == null
             ? `Chưa đủ ${RUN_CHART_MIN_POINTS} ${runUnit} có mẫu để đọc tín hiệu so với trung vị.`
             : runChart.signals.length === 0
@@ -208,7 +210,7 @@ function SupervisionCompareBarChart({
     [rows, minSample],
   );
   return (
-    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="w-full min-w-0">
       <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
       <KhoaChartViewport rowCount={data.length}>
         {!loading && data.length > 0 ? (
@@ -338,7 +340,7 @@ export function SupervisionMomentsPanel({
             <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(280px,40dvh)]">
               <table className="w-full min-w-[280px] text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
                     <th className="px-3 py-2 text-left">Thời điểm</th>
                     <th className="px-3 py-2 text-right">Cơ hội</th>
                     <th className="px-3 py-2 text-right">Tuân thủ</th>
@@ -369,7 +371,7 @@ export function SupervisionMomentsPanel({
           ) : (
             <p className="text-sm text-slate-400">{loading ? "Đang tải…" : "Chưa có dữ liệu"}</p>
           )}
-          <p className="mt-2 text-[11px] text-slate-400">
+          <p className="mt-2 text-xs text-slate-400">
             Số liệu hiển thị cố định — phù hợp trình bày và in màn hình; radar thể hiện chênh lệch giữa các moment.
           </p>
         </div>
@@ -426,15 +428,15 @@ export function SupervisionCompareAccordion({
   return (
     <details
       open={defaultOpen || undefined}
-      className="group rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white"
+      className="group border-t border-slate-200"
     >
-      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none px-0 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="inline-flex items-center gap-2">
           {summaryLabel}
-          <span className="text-[11px] font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
+          <span className="text-xs font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
         </span>
       </summary>
-      <div className="border-t border-slate-200 p-4">
+      <div className="pb-4 pt-1">
         <SupervisionCompareGrid sections={visible} loading={loading} minSample={minSample} />
       </div>
     </details>

@@ -75,7 +75,7 @@ export function ComprehensiveTrend({
           <TrendingUp size={18} className="text-[var(--primary)]" aria-hidden />
           Xu hướng tuân thủ
         </h2>
-        <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 bv103-type-label font-semibold">
+        <div className="grid grid-flow-col auto-cols-fr overflow-x-auto rounded-lg border border-slate-200 p-0.5 bv103-type-label font-semibold">
           {GRANULARITY_OPTIONS.map(({ id, label }) => (
             <button
               key={id}
@@ -84,7 +84,7 @@ export function ComprehensiveTrend({
                 userChangedGranularityRef.current = true;
                 setGranularity(id);
               }}
-              className={`rounded-md px-3 py-1.5 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
             </button>

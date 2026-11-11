@@ -130,10 +130,10 @@ export default function HoaChatNhomManager({
               )}
               {editId === n.id ? (
                 <>
-                  <button type="button" className="text-[11px] font-semibold text-emerald-700" onClick={() => void run(() => updateHoaChatNhomAction(n.id, { ten: editTen }), "Đã đổi tên.")}>
+                  <button type="button" className="text-xs font-semibold text-emerald-700" onClick={() => void run(() => updateHoaChatNhomAction(n.id, { ten: editTen }), "Đã đổi tên.")}>
                     Lưu
                   </button>
-                  <button type="button" className="text-[11px] text-slate-500" onClick={() => setEditId(null)}>
+                  <button type="button" className="text-xs text-slate-500" onClick={() => setEditId(null)}>
                     Hủy
                   </button>
                 </>
@@ -145,12 +145,12 @@ export default function HoaChatNhomManager({
                   <button type="button" aria-label="Xuống" disabled={idx === rows.length - 1} className="px-1 disabled:opacity-30" onClick={() => move(idx, 1)}>
                     ↓
                   </button>
-                  <button type="button" className="text-[11px] font-semibold text-slate-600" onClick={() => { setEditId(n.id); setEditTen(n.ten); }}>
+                  <button type="button" className="text-xs font-semibold text-slate-600" onClick={() => { setEditId(n.id); setEditTen(n.ten); }}>
                     Đổi tên
                   </button>
                   <button
                     type="button"
-                    className="text-[11px] font-semibold text-slate-600"
+                    className="text-xs font-semibold text-slate-600"
                     onClick={() => void run(() => setHoaChatNhomActiveAction(n.id, !n.is_active), n.is_active ? "Đã ngừng sử dụng." : "Đã khôi phục.")}
                   >
                     {n.is_active ? "Ngừng sử dụng" : "Khôi phục"}

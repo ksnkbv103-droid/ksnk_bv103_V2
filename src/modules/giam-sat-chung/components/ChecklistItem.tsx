@@ -48,7 +48,7 @@ function EvidencePreviewDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="rounded-lg bg-slate-800 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-700 transition-colors"
+            className="rounded-lg bg-slate-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
           >
             Đóng
           </button>
@@ -75,27 +75,27 @@ function isTypingTarget(el: EventTarget | null) {
 const renderWeightBadge = (weightType?: string, isRedFlag?: boolean) => {
   if (isRedFlag) {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-700 animate-pulse border border-red-200 shadow-sm">
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 animate-pulse border border-red-200 shadow-sm">
         🚨 Chí mạng (Red Flag)
       </span>
     );
   }
   if (weightType === "CRITICAL") {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 border border-red-100">
+      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600 border border-red-100">
         Chí mạng
       </span>
     );
   }
   if (weightType === "MINOR") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 border border-blue-100">
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600 border border-blue-100">
         Hành chính
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600 border border-amber-100">
+    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-600 border border-amber-100">
       Nghiêm trọng
     </span>
   );
@@ -232,7 +232,7 @@ export default function ChecklistItem({
         <div className="flex flex-col items-end gap-1 shrink-0">
           <div className="flex items-center gap-1.5">
             <span
-              className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 result.value === "DAT"
                   ? "bg-[var(--primary)]/15 text-[var(--primary)]"
                   : result.value === "KHONG_DAT"
@@ -243,7 +243,7 @@ export default function ChecklistItem({
               {valueLabel(result.value)}
             </span>
           </div>
-          {result.note ? <p className="max-w-xs text-right text-[11px] text-slate-700">Ghi chú: {result.note}</p> : null}
+          {result.note ? <p className="max-w-xs text-right text-xs text-slate-700">Ghi chú: {result.note}</p> : null}
         </div>
 
         {result.image_url ? (
@@ -266,20 +266,20 @@ export default function ChecklistItem({
     <div
       tabIndex={0}
       onKeyDown={handleRowKeyDown}
-      className={`${gscFormChrome.panelShell} border-l-4 border-transparent transition-all hover:border-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`}
+      className="bv103-card p-4 transition-colors hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20"
     >
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div className="flex-1 space-y-1.5">
-          <div className="flex items-start gap-2">
-            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 bv103-type-label font-semibold text-slate-700">
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 px-1.5 text-xs font-semibold text-slate-700">
               {order || "#"}
             </span>
             <div className="min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <h4 className="text-sm font-semibold leading-tight text-slate-800 sm:text-base">{criterion.label}</h4>
+              <div className="flex flex-wrap items-center gap-2">
+                <h4 className="text-sm font-semibold leading-snug text-slate-900">{criterion.label}</h4>
                 {renderWeightBadge(criterion.weightType, criterion.isRedFlag)}
               </div>
-              <p className="hidden text-[11px] font-medium text-slate-400 sm:block sm:text-[11px]">
+              <p className="hidden text-xs text-slate-400 sm:block">
                 Phím <kbd className="rounded border border-slate-200 bg-slate-50 px-1">1</kbd> Đạt ·{" "}
                 <kbd className="rounded border border-slate-200 bg-slate-50 px-1">2</kbd> Không đạt ·{" "}
                 <kbd className="rounded border border-slate-200 bg-slate-50 px-1">3</kbd> Không áp dụng
@@ -291,14 +291,14 @@ export default function ChecklistItem({
         <div
           role="group"
           aria-label={`Đánh giá tiêu chí: ${criterion.label}`}
-          className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center md:flex-nowrap"
+          className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:w-full lg:w-[38rem] [&>button]:sm:flex-1 [&>button]:sm:basis-0 [&>button]:sm:px-2"
         >
           <button
             type="button"
             aria-pressed={result.value === "DAT"}
             aria-label="Đánh giá Đạt"
             onClick={() => pickValue("DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[5.5rem] flex-1 md:flex-none touch-manipulation ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] w-full touch-manipulation ${
               result.value === "DAT" ? gscFormChrome.choiceBtnActive : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -310,7 +310,7 @@ export default function ChecklistItem({
             aria-pressed={result.value === "KHONG_DAT"}
             aria-label="Đánh giá Không đạt"
             onClick={() => pickValue("KHONG_DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[6.5rem] flex-1 md:flex-none touch-manipulation ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] w-full touch-manipulation ${
               result.value === "KHONG_DAT" ? gscFormChrome.choiceBtnActiveDanger : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -322,7 +322,7 @@ export default function ChecklistItem({
             aria-pressed={result.value === "NA"}
             aria-label="Đánh giá Không áp dụng"
             onClick={() => pickValue("NA")}
-            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[8.5rem] flex-1 md:flex-none touch-manipulation ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] w-full touch-manipulation ${
               result.value === "NA" ? "border-slate-500 bg-slate-600 text-white shadow-sm" : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -334,7 +334,7 @@ export default function ChecklistItem({
             aria-expanded={noteOpen}
             aria-label={noteOpen ? "Ẩn ghi chú" : "Bổ sung ghi chú"}
             onClick={() => setNoteOpen((v) => !v)}
-            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[8.5rem] flex-1 md:flex-none touch-manipulation ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] w-full touch-manipulation ${
               noteOpen || String(result.note || "").trim()
                 ? gscFormChrome.choiceBtnNote
                 : gscFormChrome.choiceBtnIdle
@@ -350,7 +350,7 @@ export default function ChecklistItem({
                 onClick={handleCameraClick}
                 disabled={uploading}
                 aria-label={result.image_url ? "Xem hoặc chụp lại ảnh bằng chứng" : "Chụp ảnh bằng chứng"}
-                className={`${gscFormChrome.choiceBtnRow} col-span-2 sm:col-span-1 min-h-[40px] min-w-0 sm:min-w-[8.5rem] flex-1 md:flex-none touch-manipulation ${
+                className={`${gscFormChrome.choiceBtnRow} col-span-2 sm:col-span-1 min-h-[40px] w-full touch-manipulation ${
                   result.image_url ? gscFormChrome.choiceBtnEvidence : gscFormChrome.choiceBtnIdle
                 }`}
               >
@@ -386,7 +386,7 @@ export default function ChecklistItem({
                 type="button"
                 onClick={() => setPreviewOpen(true)}
                 aria-label="Xem ảnh bằng chứng phóng to"
-                className="min-h-[32px] sm:min-h-0 text-[11px] font-semibold text-blue-600 hover:underline touch-manipulation"
+                className="min-h-[32px] sm:min-h-0 text-xs font-semibold text-blue-600 hover:underline touch-manipulation"
               >
                 Xem to
               </button>
@@ -394,7 +394,7 @@ export default function ChecklistItem({
                 type="button"
                 onClick={handleRemoveImage}
                 aria-label="Xóa ảnh bằng chứng này"
-                className="min-h-[32px] sm:min-h-0 text-[11px] font-semibold text-rose-600 hover:underline touch-manipulation"
+                className="min-h-[32px] sm:min-h-0 text-xs font-semibold text-rose-600 hover:underline touch-manipulation"
               >
                 Xóa bỏ
               </button>

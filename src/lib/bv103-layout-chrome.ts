@@ -18,7 +18,7 @@ const controlBase =
   "bv103-control-h w-full rounded-[var(--radius-control)] border border-slate-200 bg-white bv103-type-body text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 const choiceBtnBase =
-  "min-h-[2.75rem] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold transition-colors touch-manipulation";
+  "min-h-[var(--bv103-control-h)] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold transition-colors touch-manipulation";
 
 /** Nút lựa chọn trên một hàng ngang (checklist GSC) — không `w-full`. */
 const choiceBtnInline =
@@ -27,7 +27,10 @@ const choiceBtnInline =
 export const bv103LayoutChrome = {
   controlInput: `${controlBase} px-3`,
   controlSelectTrigger: `flex items-center text-left px-3.5 ${controlBase} hover:border-slate-300 hover:bg-slate-50/90 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`,
-  controlSelectNative: `${controlBase} px-3.5 text-xs font-semibold hover:bg-slate-50/50`,
+  controlSelectNative: `${controlBase} px-3.5 hover:bg-slate-50/50`,
+  /** Ô chọn có nhãn nổi trong ô (mẫu chuyên nghiệp 2026-11-11) — cao = --bv103-control-h (48px). */
+  controlFloatingTrigger: `flex items-center gap-2 text-left px-3.5 ${controlBase} hover:border-slate-300 hover:bg-slate-50/90 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`,
+  controlFloatingNative: `${controlBase} appearance-none pl-3.5 pr-9 hover:bg-slate-50/50`,
 
   labelField: "bv103-type-label",
   sectionTitle: "bv103-type-section",
@@ -51,7 +54,7 @@ export const bv103LayoutChrome = {
 
   segmentGroup: "inline-flex overflow-hidden rounded-[var(--radius-control)] border border-slate-200 shadow-sm",
   segmentBtn:
-    "min-w-[4.5rem] min-h-[2.75rem] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold transition-colors last:border-r-0",
+    "min-w-[4.5rem] min-h-[var(--bv103-control-h)] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold transition-colors last:border-r-0",
   segmentBtnIdle: "bg-white text-slate-600 hover:bg-slate-50",
   segmentBtnYes: "bg-[var(--primary)] text-white border-[var(--primary)]",
   segmentBtnNo: "bg-rose-600 text-white border-rose-600",
@@ -61,17 +64,17 @@ export const bv103LayoutChrome = {
 
   /** Thanh tab điều hướng — mobile: cuộn ngang, nút ≥44px; desktop: wrap bình thường. */
   navTabStrip:
-    "flex gap-1 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner max-sm:w-full max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:snap-x max-sm:snap-mandatory sm:flex-wrap",
+    "grid grid-flow-col auto-cols-fr gap-1 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-100/90 p-1 max-sm:w-full max-sm:auto-cols-[minmax(6.5rem,1fr)] max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:snap-x max-sm:snap-mandatory",
   navTabBtn:
-    "inline-flex min-h-9 shrink-0 snap-start items-center justify-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation max-sm:max-w-[9.5rem] sm:min-h-9 sm:gap-1.5 sm:px-3 sm:text-xs sm:shrink sm:min-w-0 sm:max-w-none sm:flex-initial",
+    "inline-flex min-h-11 min-w-0 snap-start items-center justify-center gap-1 rounded-[var(--radius-control)] px-2.5 py-1.5 text-center text-xs font-semibold leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation sm:min-h-9 sm:gap-1.5 sm:px-3",
 
   /** Nút hành động trong bảng / lịch sử — cao hơn trên mobile */
   tableActionBtn:
-    "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition-colors touch-manipulation hover:border-slate-400 sm:min-h-8",
+    "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition-colors touch-manipulation hover:border-slate-400 sm:min-h-9",
   tableActionBtnPrimary:
-    "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-slate-800 px-3 text-xs font-semibold text-white transition-colors touch-manipulation hover:bg-slate-700 disabled:opacity-50 sm:min-h-8",
+    "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-slate-800 px-3 text-xs font-semibold text-white transition-colors touch-manipulation hover:bg-slate-700 disabled:opacity-50 sm:min-h-9",
   tableIconBtn:
-    "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-all touch-manipulation sm:h-8 sm:w-8",
+    "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] transition-all touch-manipulation sm:h-9 sm:w-9",
 
   panelSurface,
   panelInset: "bv103-layer-inset",
@@ -112,5 +115,5 @@ export const bv103LayoutChrome = {
     "flex shrink-0 flex-wrap items-center gap-x-2.5 gap-y-1 border-l border-slate-200/80 pl-3 max-sm:w-full max-sm:border-l-0 max-sm:pl-0",
   /** Secondary nav / docs / reconcile — lighter than primary-colored CTA links. */
   linkQuiet:
-    "inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-500 transition-colors hover:bg-slate-100/80 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-2 text-xs font-medium text-slate-500 transition-colors touch-manipulation max-sm:min-h-11 hover:bg-slate-100/80 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50",
 } as const;

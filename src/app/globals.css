@@ -33,7 +33,7 @@
   --surface-info-text: #334155;
 
   /* Nền */
-  --bg-body: #f8fafc;
+  --bg-body: #f1f5f9;
   --bg-panel: #ffffff;
   --bg-glass: rgba(255, 255, 255, 0.85);
 
@@ -42,7 +42,7 @@
   --text-body: #334155;
   --text-muted: #64748b;
   --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --text-secondary: #475569;
 
   /* Elevated surfaces (chuẩn ứng dụng MIS chuyên nghiệp) */
   --shadow-app-soft: 0 1px 2px rgb(15 23 42 / 0.05), 0 10px 24px rgb(15 23 42 / 0.04);
@@ -54,7 +54,12 @@
   --radius-control: 0.5rem;
 
   /* Chuẩn touch / MIS: nút, ô nhập, thanh tìm (đồng bộ chiều cao) */
-  --bv103-control-h: 2.5rem;
+  /* Mẫu chuyên nghiệp 2026-11-11: mọi ô nhập/ô chọn/nút form cao 48px, mọi màn hình */
+  --bv103-control-h: 3rem;
+  /* Thang control: sm 36 / md 48 / lg 48 (md = --bv103-control-h) */
+  --bv103-control-h-sm: 2.25rem;
+  --bv103-control-h-md: 3rem;
+  --bv103-control-h-lg: 3rem;
   --bv103-page-title: 1.125rem;
   --bv103-page-title-md: 1.125rem;
 
@@ -62,7 +67,7 @@
   --bv103-type-title-size: 1.125rem;
   --bv103-type-section-size: 0.875rem;
   --bv103-type-body-size: 0.875rem;
-  --bv103-type-label-size: 0.6875rem;
+  --bv103-type-label-size: 0.75rem;
   --bv103-type-kpi-size: 1.5rem;
   --bv103-type-kpi-size-lg: 1.875rem;
   --bv103-type-weight-title: 500;
@@ -83,8 +88,8 @@
 
 @media (max-width: 639px) {
   :root {
-  /* Điện thoại: vùng chạm tối thiểu ~44px (Apple HIG) */
-    --bv103-control-h: 2.75rem;
+  /* Điện thoại: giữ 48px như desktop (≥ 44px Apple HIG) */
+    --bv103-control-h: 3rem;
   }
 }
 
@@ -308,7 +313,7 @@
     font-weight: 400;
     font-style: italic;
     line-height: var(--bv103-type-leading-body);
-    color: #94a3b8;
+    color: var(--text-muted);
   }
 
   /** Tối đa 3 lớp: trang → giấy → nhóm trong. Hộp trắng lồng tự mất bóng. */
@@ -318,15 +323,32 @@
 
   .bv103-layer-panel {
     border-radius: var(--radius-shell);
-    border: 1px solid rgb(226 232 240 / 0.9);
+    border: 0;
     background: var(--bg-panel);
     box-shadow: var(--shadow-app-soft);
   }
 
-  .bv103-layer-inset {
+  /** Thẻ nội dung (mẫu chuyên nghiệp 2026-11-11): bo 12 (shell), viền mảnh, bóng hai lớp nhẹ. */
+  .bv103-card {
     border-radius: var(--radius-shell);
-    border: 1px solid rgb(226 232 240 / 0.9);
-    background: rgb(248 250 252 / 0.4);
+    border: 1px solid rgb(226 232 240);
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(16, 40, 26, 0.05), 0 8px 24px rgba(16, 40, 26, 0.05);
+    overflow: hidden;
+  }
+
+  /** Dải tiêu đề thẻ: cao 56px, nền xanh xám rất nhạt. */
+  .bv103-card-head {
+    background: #f5f8f5;
+    border-bottom: 1px solid rgb(226 232 240);
+  }
+
+  /* Lớp trong: không nền, không khung — chỉ vạch mảnh ngăn nhóm. */
+  .bv103-layer-inset {
+    border-radius: 0;
+    border: 0;
+    border-top: 1px solid rgb(226 232 240);
+    background: transparent;
     box-shadow: none;
   }
 
@@ -396,7 +418,7 @@
 
   /** Nhóm sidebar / zone app — IN HOA chỉ ở lớp điều hướng */
   .section-label {
-    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-400;
+    @apply text-xs font-medium uppercase tracking-wide text-[var(--text-muted)];
   }
 
   /* Vùng bảng / nội dung trong shell ứng dụng — phân lớp nền rõ nhưng không lòe */

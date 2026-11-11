@@ -88,12 +88,12 @@ export default function NkbvClinicalRationaleCard({ deduction, className = "" }:
                   <span className="font-bold text-xs text-slate-800">
                     Bước {s.step}: {s.title}
                   </span>
-                  <span className="text-[11px] text-slate-500 truncate hidden sm:inline">
+                  <span className="text-xs text-slate-500 truncate hidden sm:inline">
                     — {s.summary}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
-                  <span className="text-[11px] text-slate-400 font-mono hidden md:inline">
+                  <span className="text-xs text-slate-400 font-mono hidden md:inline">
                     {s.citation}
                   </span>
                   {isOpen ? (
@@ -126,7 +126,7 @@ export default function NkbvClinicalRationaleCard({ deduction, className = "" }:
             <ShieldAlert className="h-4 w-4 text-indigo-700" />
             <span>Khuyến nghị can thiệp Kiểm soát Nhiễm khuẩn (KSNK.QT.33):</span>
           </div>
-          <ul className="list-disc pl-5 space-y-0.5 text-[11px] text-indigo-900/90">
+          <ul className="list-disc pl-5 space-y-0.5 text-xs text-indigo-900/90">
             {deduction.ipcRecommendations.map((r, i) => (
               <li key={i}>{r}</li>
             ))}

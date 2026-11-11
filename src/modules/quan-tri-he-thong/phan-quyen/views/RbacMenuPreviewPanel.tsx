@@ -78,13 +78,13 @@ export default function RbacMenuPreviewPanel({
       </div>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="text-[11px] font-semibold text-slate-500">Vận hành</p>
+          <p className="text-xs font-semibold text-slate-500">Vận hành</p>
           <ul className="mt-1 space-y-0.5 text-sm text-slate-700">
             {visibleOps.length ? visibleOps.map((n) => <li key={n}>• {n}</li>) : <li className="text-slate-400">Không có mục</li>}
           </ul>
         </div>
         <div>
-          <p className="text-[11px] font-semibold text-slate-500">Quản trị</p>
+          <p className="text-xs font-semibold text-slate-500">Quản trị</p>
           <ul className="mt-1 space-y-0.5 text-sm text-slate-700">
             {visibleAdmin.length ? visibleAdmin.map((n) => <li key={n}>• {n}</li>) : <li className="text-slate-400">Không có mục</li>}
           </ul>

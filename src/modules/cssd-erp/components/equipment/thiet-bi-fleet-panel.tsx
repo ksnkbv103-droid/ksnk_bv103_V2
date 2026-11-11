@@ -109,7 +109,7 @@ export default function ThietBiFleetPanel() {
               <p className="truncate text-sm font-medium text-slate-800" title={ten}>
                 {ten}
               </p>
-              <p className="truncate text-[11px] text-slate-500" title={loai}>
+              <p className="truncate text-xs text-slate-500" title={loai}>
                 {loai}
               </p>
             </div>
@@ -145,7 +145,7 @@ export default function ThietBiFleetPanel() {
                 {label}
               </span>
               {m.ngay_bao_tri_tiep_theo ? (
-                <p className="truncate text-[11px] text-slate-500" title={`Kế: ${formatDateVi(m.ngay_bao_tri_tiep_theo)}`}>
+                <p className="truncate text-xs text-slate-500" title={`Kế: ${formatDateVi(m.ngay_bao_tri_tiep_theo)}`}>
                   Kế: {formatDateVi(m.ngay_bao_tri_tiep_theo)}
                 </p>
               ) : null}
@@ -162,7 +162,7 @@ export default function ThietBiFleetPanel() {
         cell: (m) => {
           const v = String(m.vi_tri || "").trim() || "—";
           return (
-            <span className="block truncate text-[11px] text-slate-600" title={v}>
+            <span className="block truncate text-xs text-slate-600" title={v}>
               {v}
             </span>
           );
@@ -174,7 +174,7 @@ export default function ThietBiFleetPanel() {
         sortable: true,
         headerClassName: bv103TableLayout.colNarrow,
         cellClassName: bv103TableLayout.colNarrow,
-        cell: (m) => <span className="tabular-nums text-[11px] text-slate-700">{m.so_me_tk}</span>,
+        cell: (m) => <span className="tabular-nums text-xs text-slate-700">{m.so_me_tk}</span>,
       },
       {
         header: "Thao tác",
@@ -212,7 +212,7 @@ export default function ThietBiFleetPanel() {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm">
         <StatInline label="Sẵn sàng" value={ready} icon={<CheckCircle2 size={14} />} tone="emerald" />
         <StatInline label="Đang BD" value={repairing} icon={<Wrench size={14} />} tone="blue" />
         <StatInline label="Tạm giữ QC" value={holdQc} icon={<AlertTriangle size={14} />} tone="amber" />

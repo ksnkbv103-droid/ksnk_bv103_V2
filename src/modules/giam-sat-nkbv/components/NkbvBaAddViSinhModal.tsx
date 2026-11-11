@@ -140,13 +140,13 @@ export default function NkbvBaAddViSinhModal({
           <h3 id="ba-add-xn-title" className={`${C.panelTitle} text-sm`}>
             Thêm xét nghiệm vi sinh
           </h3>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-xs text-slate-500">
             Từ ngày lưới · BA <span className="font-semibold">{maBenhAn}</span> · lấy mẫu{" "}
             <span className="font-semibold">{ngayLayMau}</span>
           </p>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 py-3 text-[11px]">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 py-3 text-xs">
           <label className="block">
             <span className="font-semibold text-slate-600">Mã XN</span>
             <input
@@ -235,7 +235,7 @@ export default function NkbvBaAddViSinhModal({
         <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-4 py-3">
           <button
             type="button"
-            className="rounded-full border border-slate-300 px-3 py-1.5 text-[11px] font-semibold"
+            className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold"
             onClick={onClose}
             disabled={busy}
           >
@@ -243,7 +243,7 @@ export default function NkbvBaAddViSinhModal({
           </button>
           <button
             type="button"
-            className="rounded-full bg-[var(--primary)] px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+            className="rounded-full bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
             onClick={() => void onSubmit()}
             disabled={busy}
           >

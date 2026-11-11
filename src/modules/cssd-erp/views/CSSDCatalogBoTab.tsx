@@ -15,6 +15,7 @@ import {
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
 import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export function CSSDCatalogBoTab({
   boRows: allBoRows,
@@ -68,7 +69,7 @@ export function CSSDCatalogBoTab({
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            className={C.tableActionBtn}
           >
             + Đề nghị bổ sung bộ
           </button>
@@ -114,7 +115,7 @@ export function CSSDCatalogBoTab({
                           type="button"
                           disabled={printingId === x.id}
                           onClick={(e) => void handlePrintQr(e, x.id)}
-                          className="text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
+                          className={C.tableActionBtnPrimary}
                         >
                           {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
                           In
@@ -132,12 +133,12 @@ export function CSSDCatalogBoTab({
               <tr>
                 <th className={L.th}>Mã bộ</th>
                 <th className={L.th}>Tên bộ</th>
-                <th className={`${L.th} text-center`}>Phân loại</th>
+                <th className={`${L.th} whitespace-nowrap text-center`}>Phân loại</th>
                 <th className={`${L.th} text-center`}>Số khoản</th>
                 <th className={`${L.th} text-center`}>Tổng số</th>
                 <th className={L.th}>Khoa</th>
                 <th className={`${L.th} text-center`}>Trạng thái</th>
-                <th className={`${L.th} ${L.colActions}`}> </th>
+                <th className={`${L.th} ${L.colActionsWide}`}> </th>
               </tr>
             </thead>
             <tbody className={L.tbody}>
@@ -156,7 +157,7 @@ export function CSSDCatalogBoTab({
                       </span>
                     </td>
                     <td className={L.td}>{x.ten_bo || "—"}</td>
-                    <td className={`${L.td} text-center`}>
+                    <td className={`${L.td} whitespace-nowrap text-center`}>
                       <span className={x.phan_loai_bo === "THU_THUAT" ? L.statusWarn : L.statusInfo}>
                         {x.phan_loai_bo === "THU_THUAT" ? "Thủ thuật" : "Phẫu thuật"}
                       </span>
@@ -167,11 +168,11 @@ export function CSSDCatalogBoTab({
                     <td className={`${L.td} text-center`}>
                       <span className={x.is_active ? L.statusOk : L.statusMuted}>{x.is_active ? "Hoạt động" : "Khóa"}</span>
                     </td>
-                    <td className={`${L.td} ${L.colActions}`} onClick={(e) => e.stopPropagation()}>
-                      <div className="flex flex-wrap items-center gap-2">
+                    <td className={`${L.td} ${L.colActionsWide}`} onClick={(e) => e.stopPropagation()}>
+                      <div className={L.actionsCell}>
                       <button
                         type="button"
-                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                        className={C.tableActionBtn}
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeNghi({
@@ -190,7 +191,7 @@ export function CSSDCatalogBoTab({
                         type="button"
                         disabled={printingId === x.id}
                         onClick={(e) => void handlePrintQr(e, x.id)}
-                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
+                        className={C.tableActionBtnPrimary}
                         title="Tạo mã QR và in nhãn dán"
                       >
                         {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}

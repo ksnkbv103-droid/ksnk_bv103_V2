@@ -164,7 +164,7 @@ export default function VaeClinicalSubForm({
               </div>
             </div>
             {isVaeInvalid ? (
-              <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-[11px] text-red-800">
+              <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-xs text-red-800">
                 VAE chỉ ≥18 tuổi thở máy ≥4 ngày. Trẻ / không đủ ngày → chọn VAP hoặc HAP (PNEU).
               </p>
             ) : null}
@@ -203,11 +203,11 @@ export default function VaeClinicalSubForm({
                 ECMO — loại khỏi dải VAC (trọn ngày)
               </label>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Ch.10: ECMO/HFV trọn ngày lịch out of stretch; APRV vẫn giám sát — chỉ FiO₂. Tick theo ngày trong bảng bên dưới nếu khác nhau từng ngày.
             </p>
             {form.device_placed_date && !isVaeInvalid ? (
-              <p className="text-[11px] text-emerald-800">
+              <p className="text-xs text-emerald-800">
                 Ngày thở máy: <strong>{liveDeviceDays !== undefined ? liveDeviceDays : form.vent_days}</strong> (yêu
                 cầu ≥4)
               </p>
@@ -231,7 +231,7 @@ export default function VaeClinicalSubForm({
               ) : null}
             </div>
             {daily.length === 0 ? (
-              <p className="text-[11px] text-slate-500">Chọn ngày bắt đầu thở máy để sinh bảng.</p>
+              <p className="text-xs text-slate-500">Chọn ngày bắt đầu thở máy để sinh bảng.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] border-collapse text-xs">
@@ -316,7 +316,7 @@ export default function VaeClinicalSubForm({
                 </table>
               </div>
             )}
-            <p className="text-[11px] text-slate-700">{vacHint.reason}</p>
+            <p className="text-xs text-slate-700">{vacHint.reason}</p>
             {vacHint.suggested_doe && allowedEdit ? (
               <button
                 type="button"

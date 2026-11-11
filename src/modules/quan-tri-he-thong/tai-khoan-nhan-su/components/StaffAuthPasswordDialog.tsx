@@ -159,7 +159,7 @@ export default function StaffAuthPasswordDialog({
                 required
                 disabled={submitting}
               />
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-xs text-slate-500">
                 Xác thực lại phiên quản trị trước khi đổi mật khẩu người khác.
               </p>
             </div>
@@ -177,7 +177,7 @@ export default function StaffAuthPasswordDialog({
                 disabled={submitting}
                 autoComplete="off"
               />
-              <p className="mt-1 text-[11px] text-amber-700">
+              <p className="mt-1 text-xs text-amber-700">
                 Bạn đang đặt lại mật khẩu trên hồ sơ của chính mình. Nên dùng «Đổi mật khẩu của tôi» thay vì
                 tự reset tại đây. Nếu vẫn tiếp tục, nhập email quản trị khác để ghi nhận (chưa có duyệt
                 2 admin trực tiếp).

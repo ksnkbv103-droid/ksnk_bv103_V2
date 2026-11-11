@@ -49,7 +49,7 @@ export default function NkbvChecklistKsnkTab({
               <div className="flex items-center gap-2">
                 <Ban className="h-6 w-6 text-red-700 flex-shrink-0 animate-pulse" />
                 <div>
-                  <span className="block text-[11px] font-medium text-slate-400">Kết quả đề xuất</span>
+                  <span className="block text-xs font-medium text-slate-400">Kết quả đề xuất</span>
                   <h4 className={`${C.sectionTitle} text-base text-red-800`}>
                     Đã phán quyết loại trừ
                   </h4>
@@ -69,7 +69,7 @@ export default function NkbvChecklistKsnkTab({
                   <Ban className="h-6 w-6 text-slate-500 flex-shrink-0" />
                 )}
                 <div>
-                  <span className="block text-[11px] font-medium text-slate-400">Kết quả đề xuất</span>
+                  <span className="block text-xs font-medium text-slate-400">Kết quả đề xuất</span>
                   <h4 className={`${C.sectionTitle} text-base`}>
                     {liveEvaluation.is_positive ? "Dương tính" : "Âm tính / loại trừ"}
                   </h4>
@@ -78,7 +78,7 @@ export default function NkbvChecklistKsnkTab({
 
               <div className="mt-3 border-t border-slate-200/40 pt-3">
                 <span className="bv103-type-label font-semibold text-slate-400 block">Mã phân loại</span>
-                <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+                <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-xs font-semibold ${
  liveEvaluation.is_positive 
  ? "bg-emerald-100 text-emerald-800"
  : "bg-slate-200 text-slate-700"
@@ -86,7 +86,7 @@ export default function NkbvChecklistKsnkTab({
                   {liveEvaluation.classification}
                 </span>
                 {liveEvaluation.is_secondary_bsi && (
-                  <span className="ml-1.5 inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-100 text-blue-800">
+                  <span className="ml-1.5 inline-block mt-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-800">
                     SECONDARY BSI
                   </span>
                 )}

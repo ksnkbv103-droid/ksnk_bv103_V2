@@ -56,7 +56,7 @@ export default function IncidentCloseReleaseButton({ incidentId, onClosed, class
         disabled={loading}
         className={
           className ??
-          "inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 text-[11px] font-semibold text-sky-900 hover:bg-sky-100 disabled:opacity-50"
+          "inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-900 hover:bg-sky-100 disabled:opacity-50"
         }
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 size={14} />}
@@ -69,7 +69,7 @@ export default function IncidentCloseReleaseButton({ incidentId, onClosed, class
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Đóng (giải phóng) phiếu sự cố</h3>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-xs text-slate-500">
                   Gỡ khóa an toàn sau khi họp thẩm định / xử lý hoàn tất
                 </p>
               </div>

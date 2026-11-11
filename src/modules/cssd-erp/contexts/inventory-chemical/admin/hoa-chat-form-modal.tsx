@@ -115,7 +115,7 @@ export default function HoaChatFormModal({
           onChange={(v) => setForm({ ...form, ten_hoa_chat: v })}
         />
         <div className="space-y-1">
-          <label className="ml-1 text-[11px] font-medium text-slate-400">Phân loại kho</label>
+          <label className="ml-1 text-xs font-medium text-slate-400">Phân loại kho</label>
           <select
             value={form.loai_hoa_chat}
             onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value, nhom_id: "" })}
@@ -126,7 +126,7 @@ export default function HoaChatFormModal({
           </select>
         </div>
         <div className="space-y-1">
-          <label className="ml-1 text-[11px] font-medium text-slate-400">Nhóm</label>
+          <label className="ml-1 text-xs font-medium text-slate-400">Nhóm</label>
           <select
             value={form.nhom_id}
             onChange={(e) => setForm({ ...form, nhom_id: e.target.value })}
@@ -147,23 +147,23 @@ export default function HoaChatFormModal({
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-1">
-          <label className="ml-1 text-[11px] font-medium text-slate-400">Định mức tối thiểu</label>
+          <label className="ml-1 text-xs font-medium text-slate-400">Định mức tối thiểu</label>
           <input type="number" min={0} step="0.01" value={form.nguong_ton_toi_thieu} placeholder="Không đặt"
             onChange={(e) => setForm({ ...form, nguong_ton_toi_thieu: e.target.value })} className={C.controlInput} />
         </div>
         <div className="space-y-1">
-          <label className="ml-1 text-[11px] font-medium text-slate-400">Báo khi tồn ≤ % nhập 30 ngày</label>
+          <label className="ml-1 text-xs font-medium text-slate-400">Báo khi tồn ≤ % nhập 30 ngày</label>
           <input type="number" min={0} max={100} step="1" value={form.ty_le_canh_bao_pct}
             onChange={(e) => setForm({ ...form, ty_le_canh_bao_pct: e.target.value })} className={C.controlInput} />
         </div>
         <div className="space-y-1">
-          <label className="ml-1 text-[11px] font-medium text-slate-400">Ngày chờ hàng</label>
+          <label className="ml-1 text-xs font-medium text-slate-400">Ngày chờ hàng</label>
           <input type="number" min={0} max={365} step="1" value={form.so_ngay_cho_hang}
             onChange={(e) => setForm({ ...form, so_ngay_cho_hang: e.target.value })} className={C.controlInput} />
         </div>
       </div>
       <div className="space-y-1">
-        <label className="ml-1 text-[11px] font-medium text-slate-400">Hạn sử dụng</label>
+        <label className="ml-1 text-xs font-medium text-slate-400">Hạn sử dụng</label>
         <input
           type="date"
           value={form.han_su_dung}
@@ -172,7 +172,7 @@ export default function HoaChatFormModal({
         />
       </div>
       <div className="space-y-1">
-        <label className="ml-1 text-[11px] font-medium text-slate-400">Ghi chú</label>
+        <label className="ml-1 text-xs font-medium text-slate-400">Ghi chú</label>
         <textarea
           value={form.ghi_chu}
           rows={3}

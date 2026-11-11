@@ -130,18 +130,18 @@ export default function StaffAuthTableSection() {
                       </td>
                       <td className="px-4 py-3">
                         {r.auth_user_id ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
                             Đã liên kết
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
                             Chưa tạo
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         {mainRole ? (
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-teal-50 border border-teal-100 px-2 py-0.5 text-[11px] font-bold text-teal-800">
+                          <span className="inline-flex items-center gap-1 rounded-lg bg-teal-50 border border-teal-100 px-2 py-0.5 text-xs font-bold text-teal-800">
                             <Shield className="w-3 h-3 text-teal-600" />
                             {staffKsnkRoleDisplayLabel(mainRole)}
                           </span>
@@ -161,13 +161,13 @@ export default function StaffAuthTableSection() {
                                 vai_tro_he_thong_ksnk: mainRole,
                               })
                             }
-                            className="inline-flex items-center gap-1 rounded-xl border border-teal-200 bg-teal-50/80 px-2.5 py-1 text-[11px] font-semibold text-teal-800 hover:bg-teal-100 shadow-sm transition-colors"
+                            className="inline-flex items-center gap-1 rounded-xl border border-teal-200 bg-teal-50/80 px-2.5 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-100 shadow-sm transition-colors"
                           >
                             <Shield className="w-3.5 h-3.5 text-teal-600" />
                             Gán / Đổi vai trò
                           </button>
                         ) : (
-                          <span className="text-[11px] text-slate-400">Tạo TK tại Nhân sự</span>
+                          <span className="text-xs text-slate-400">Tạo TK tại Nhân sự</span>
                         )}
                       </td>
                     </tr>

@@ -20,7 +20,7 @@ export function PhuongPhapChoPhepPicker({
 }) {
   return (
     <fieldset className="sm:col-span-2 space-y-1">
-      <legend className="text-[11px] font-medium text-slate-400">
+      <legend className="text-xs font-medium text-slate-400">
         Phương pháp tiệt khuẩn được phép (chọn nhiều; ô chọn đầu tiên là ưu tiên)
       </legend>
       <div className="flex flex-wrap gap-3">
@@ -34,7 +34,7 @@ export function PhuongPhapChoPhepPicker({
                 onChange={() => onChange(on ? value.filter((x) => x !== o.v) : [...value, o.v])}
               />
               {o.l}
-              <span className="text-[11px] text-slate-500">{isSteamMethod(o.v) ? "(nhiệt cao)" : "(nhiệt thấp)"}</span>
+              <span className="text-xs text-slate-500">{isSteamMethod(o.v) ? "(nhiệt cao)" : "(nhiệt thấp)"}</span>
             </label>
           );
         })}

@@ -39,12 +39,12 @@ function YesNoRow({
   const noActive = value === false;
   return (
     <div className="box-border flex h-14 items-center justify-between gap-3 border-b border-slate-100 px-1 last:border-b-0">
-      <span className="bv103-type-label min-w-0 flex-1 text-slate-700 !text-slate-700">{label}</span>
-      <div className={`${C.segmentGroup} h-11 shrink-0`} role="group" aria-label={ariaLabel}>
+      <span className="min-w-0 flex-1 text-sm text-slate-700">{label}</span>
+      <div className={`${C.segmentGroup} h-[var(--bv103-control-h)] shrink-0`} role="group" aria-label={ariaLabel}>
         <button
           type="button"
           onClick={onYes}
-          className={`inline-flex h-11 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
+          className={`inline-flex h-full min-w-[4rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
             yesActive
               ? invertYesStyle
                 ? "bg-rose-600 text-white"
@@ -57,7 +57,7 @@ function YesNoRow({
         <button
           type="button"
           onClick={onNo}
-          className={`inline-flex h-11 min-w-[3.5rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
+          className={`inline-flex h-full min-w-[4rem] items-center justify-center border-r border-slate-200 px-3 bv103-type-label font-semibold last:border-r-0 ${
             noActive
               ? invertYesStyle
                 ? "bg-[var(--primary)] text-white"
@@ -75,7 +75,7 @@ function YesNoRow({
 export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment }: VSTAssessmentSectionProps) {
   if (opp.hanh_dong && opp.hanh_dong !== "Bỏ sót") {
     return (
-      <div className="rounded border border-slate-200 bg-white">
+      <div>
         <YesNoRow
           label="Kỹ thuật quan sát nhanh (phiếu WHO)"
           ariaLabel="Kỹ thuật quan sát nhanh phiếu WHO"
@@ -96,7 +96,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
 
   if (opp.hanh_dong === "Bỏ sót") {
     return (
-      <div className="rounded border border-slate-200 bg-white">
+      <div>
         <YesNoRow
           label="Đang mang găng (khi bỏ sót)?"
           ariaLabel="Đang mang găng khi bỏ sót"
@@ -110,7 +110,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   }
 
   return (
-    <div className="box-border flex h-14 items-center justify-center rounded border border-dashed border-slate-200">
+    <div className="box-border flex h-14 items-center justify-center">
       <span className="bv103-type-label text-slate-400 !text-slate-400">Chọn hành động để đánh giá</span>
     </div>
   );

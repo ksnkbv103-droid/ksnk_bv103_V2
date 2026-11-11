@@ -94,7 +94,7 @@ export default function ThietBiFormModal({
             value={form.ma_thiet_bi}
             onChange={(v) => setForm({ ...form, ma_thiet_bi: v.toUpperCase() })}
           />
-          <p className="ml-1 text-[11px] leading-snug text-slate-500">
+          <p className="ml-1 text-xs leading-snug text-slate-500">
             {isEdit
               ? "Mã QR trên tem — gắn suốt vòng đời máy, không đổi sau khi tạo."
               : "Sẽ thành mã QR trên tem. Không sửa được sau khi lưu."}
@@ -108,7 +108,7 @@ export default function ThietBiFormModal({
         />
         <ThietBiLoaiMayField value={form.loai_thiet_bi} onChange={(v) => setForm({ ...form, loai_thiet_bi: v })} />
         <div className="space-y-1">
-          <label className="ml-1 text-[11px] font-medium text-slate-400">Trạng thái</label>
+          <label className="ml-1 text-xs font-medium text-slate-400">Trạng thái</label>
           <select
             value={form.trang_thai}
             disabled={
@@ -131,7 +131,7 @@ export default function ThietBiFormModal({
             ) : null}
             {form.trang_thai === "BROKEN" ? <option value="BROKEN">Hỏng (phiếu bảo trì)</option> : null}
           </select>
-          <p className="ml-1 text-[11px] text-slate-500">
+          <p className="ml-1 text-xs text-slate-500">
             Đang sửa / hỏng / tạm giữ / chờ thẩm định: chỉ qua phiếu bảo trì hoặc thẩm định — không đổi tay.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function ThietBiFormModal({
       </div>
 
       <div className="space-y-1">
-        <label className="ml-1 text-[11px] font-medium text-slate-400">Ghi chú</label>
+        <label className="ml-1 text-xs font-medium text-slate-400">Ghi chú</label>
         <textarea
           value={form.ghi_chu}
           rows={3}
@@ -163,8 +163,8 @@ export default function ThietBiFormModal({
 
       {isEdit && form.ma_thiet_bi.trim() && initialRow?.id ? (
         <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-          <p className="text-[11px] font-semibold text-emerald-800">Tem QR vật lý</p>
-          <p className="text-[11px] text-slate-600">In tem dán máy để quét khi bảo trì, vận hành hoặc báo sự cố.</p>
+          <p className="text-xs font-semibold text-emerald-800">Tem QR vật lý</p>
+          <p className="text-xs text-slate-600">In tem dán máy để quét khi bảo trì, vận hành hoặc báo sự cố.</p>
           <ThietBiPrintQrButton
             thietBiId={initialRow.id}
             maThietBi={form.ma_thiet_bi}
@@ -189,7 +189,7 @@ function DateField({
 }) {
   return (
     <div className="space-y-1">
-      <label className="ml-1 text-[11px] font-medium text-slate-400">{label}</label>
+      <label className="ml-1 text-xs font-medium text-slate-400">{label}</label>
       <input
         type="date"
         value={value}

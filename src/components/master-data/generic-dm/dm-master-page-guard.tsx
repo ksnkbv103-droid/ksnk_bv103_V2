@@ -27,7 +27,7 @@ export function DmMasterPageGuard({
     return (
       <div className={`mx-auto max-w-xl ${C.panelSurface} p-10 text-center`}>
         <p className="text-sm font-semibold text-slate-500">Không có quyền truy cập</p>
-        <p className="mt-2 text-[11px] font-medium text-slate-500">{label}</p>
+        <p className="mt-2 text-xs font-medium text-slate-500">{label}</p>
       </div>
     );
   }

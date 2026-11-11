@@ -32,6 +32,8 @@ const PANEL_CHROME_NEEDLE =
 const PANEL_SKIP = new Set([
   "src/modules/giam-sat-chung/components/GiamSatChungForm.tsx",
   "src/modules/giam-sat-vst/components/VSTForm.tsx",
+  // Nút dùng Bv103Button (Lát 4 redesign), không cần chrome cũ.
+  "src/modules/giam-sat-chung/components/GiamSatChungFormActions.tsx",
   // Thin alias → IncidentReportModal (đã wire panel chrome).
   "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
   // Wrapper mỏng ghép 3 hàng đợi duyệt (đã wire chrome ở từng component con).

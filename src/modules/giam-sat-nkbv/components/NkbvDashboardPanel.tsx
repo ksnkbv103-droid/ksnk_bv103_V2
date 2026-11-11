@@ -120,21 +120,21 @@ export default function NkbvDashboardPanel({
         >
           Cập nhật số liệu
         </button>
-        <p className="w-full pb-1 text-[11px] text-slate-500">
+        <p className="w-full pb-1 text-xs text-slate-500">
           Đang lọc: <span className="font-semibold text-slate-700">{khoaLabel}</span>
           {" · "}
           Mặc định 12 tháng lịch gần nhất. Số theo ngày báo cáo (DOE; SSI theo ngày mổ), không theo ngày phát hiện.
         </p>
       </div>
       ) : (
-        <p className="text-[11px] text-slate-500">
+        <p className="text-xs text-slate-500">
           Đang lọc: <span className="font-semibold text-slate-700">{khoaLabel}</span>
           {" · "}
           {tuNgay} → {denNgay}. Số theo ngày báo cáo (DOE; SSI theo ngày mổ), không theo ngày phát hiện.
         </p>
       )}
 
-      <p className="text-[11px] leading-snug text-slate-500">
+      <p className="text-xs leading-snug text-slate-500">
         Tra cứu ca theo kỳ — không phải bản in ký. Bản ký NKBV nằm ở{" "}
         <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
           Báo cáo chính thức
@@ -179,9 +179,9 @@ export default function NkbvDashboardPanel({
           },
         ].map((c) => (
           <p key={c.label} className="text-sm text-slate-600">
-            <span className="text-[11px] font-medium text-slate-400">{c.label}</span>{" "}
+            <span className="text-xs font-medium text-slate-400">{c.label}</span>{" "}
             <span className="font-semibold tabular-nums text-slate-800">{c.value}</span>
-            {c.sub ? <span className="ml-1 text-[11px] text-slate-400">{c.sub}</span> : null}
+            {c.sub ? <span className="ml-1 text-xs text-slate-400">{c.sub}</span> : null}
           </p>
         ))}
       </div>
@@ -264,7 +264,7 @@ export default function NkbvDashboardPanel({
                   Bảng chỉ số bên dưới không hiển thị được — đây là <strong>lỗi hệ thống</strong>,
                   không phải &laquo;kỳ này không có ca&raquo;. Vui lòng báo quản trị hệ thống.
                 </p>
-                <p className="font-mono text-[11px] text-red-600">{payload.epidemiologyError}</p>
+                <p className="font-mono text-xs text-red-600">{payload.epidemiologyError}</p>
               </div>
             </div>
           )}
@@ -286,7 +286,7 @@ export default function NkbvDashboardPanel({
                     Đây là kết quả nhiễm khuẩn — không gộp vào tỷ lệ vệ sinh tay / giám sát chung.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-500 bg-slate-50 p-1.5 rounded-full border border-slate-100">
+                <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500 bg-slate-50 p-1.5 rounded-full border border-slate-100">
                   <span
                     className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm"
                     title="Device Utilization Ratio — số ngày dùng thiết bị ÷ số ngày nằm viện"
@@ -327,13 +327,13 @@ export default function NkbvDashboardPanel({
                     {/* CLABSI Card */}
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
+                        <span className="text-xs font-semibold text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="bv103-type-label font-semibold text-red-600">{clabsiRate} <span className="text-[11px] font-normal text-slate-400">/1000 CVC-days</span></span>
+                        <span className="bv103-type-label font-semibold text-red-600">{clabsiRate} <span className="text-xs font-normal text-slate-400">/1000 CVC-days</span></span>
                       </div>
-                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
+                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
                         <div>CVC Days: <strong className="text-slate-700">{totCvcDays}</strong></div>
                         <div>CVC DUR: <strong className="text-slate-700">{cvcDur}</strong></div>
                       </div>
@@ -342,13 +342,13 @@ export default function NkbvDashboardPanel({
                     {/* CAUTI Card */}
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
+                        <span className="text-xs font-semibold text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="bv103-type-label font-semibold text-amber-600">{cautiRate} <span className="text-[11px] font-normal text-slate-400">/1000 F-days</span></span>
+                        <span className="bv103-type-label font-semibold text-amber-600">{cautiRate} <span className="text-xs font-normal text-slate-400">/1000 F-days</span></span>
                       </div>
-                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
+                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
                         <div>Foley Days: <strong className="text-slate-700">{totFoleyDays}</strong></div>
                         <div>Foley DUR: <strong className="text-slate-700">{foleyDur}</strong></div>
                       </div>
@@ -357,13 +357,13 @@ export default function NkbvDashboardPanel({
                     {/* VAP Card */}
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
+                        <span className="text-xs font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="bv103-type-label font-semibold text-teal-600">{vapRate} <span className="text-[11px] font-normal text-slate-400">/1000 V-days</span></span>
+                        <span className="bv103-type-label font-semibold text-teal-600">{vapRate} <span className="text-xs font-normal text-slate-400">/1000 V-days</span></span>
                       </div>
-                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
+                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
                         <div>Vent Days: <strong className="text-slate-700">{totVentDays}</strong></div>
                         <div>Vent DUR: <strong className="text-slate-700">{ventDur}</strong></div>
                       </div>
@@ -372,13 +372,13 @@ export default function NkbvDashboardPanel({
                     {/* SSI Card */}
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
+                        <span className="text-xs font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate === "—" ? "—" : `${ssiRate}%`} <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
+                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate === "—" ? "—" : `${ssiRate}%`} <span className="text-xs font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
-                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
+                      <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
                         <div>Số ca mổ: <strong className="text-slate-700">{totSurgeries}</strong></div>
                         <div>Ngày nằm: <strong className="text-slate-700">{totPatientDays}</strong></div>
                       </div>
@@ -398,7 +398,7 @@ export default function NkbvDashboardPanel({
                           <p className="font-bold text-slate-800">
                             {formatKhoaCompactLabel({ ten_khoa: r.ten_khoa, ma_khoa: r.ma_khoa })}
                           </p>
-                          <div className="grid grid-cols-2 gap-2 text-[11px]">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="rounded-lg bg-red-50/50 p-2">
                               <p className="font-medium text-red-700">CLABSI</p>
                               <p className="tabular-nums text-slate-800">

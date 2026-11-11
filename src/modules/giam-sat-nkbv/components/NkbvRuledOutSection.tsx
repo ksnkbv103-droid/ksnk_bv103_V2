@@ -41,7 +41,7 @@ export default function NkbvRuledOutSection({
   const checks = (
     <div className={compact ? "flex flex-wrap gap-x-3 gap-y-1" : "space-y-1.5"}>
       {rows.map((row) => (
-        <label key={row.id} className="flex items-start gap-1.5 text-[11px] text-slate-700">
+        <label key={row.id} className="flex items-start gap-1.5 text-xs text-slate-700">
           <input
             type="checkbox"
             className="mt-0.5"
@@ -58,7 +58,7 @@ export default function NkbvRuledOutSection({
   if (compact) {
     return (
       <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50/80 px-2.5 py-2">
-        <p className="mb-1 text-[11px] font-semibold text-amber-950">
+        <p className="mb-1 text-xs font-semibold text-amber-950">
           Loại trừ (Ruled-out) — tick thì không tính NKBV
         </p>
         {checks}
@@ -78,7 +78,7 @@ export default function NkbvRuledOutSection({
         rows={2}
         placeholder="Ghi chú giải trình (không bắt buộc)"
         onChange={(e) => emit(selected, e.target.value)}
-        className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] text-slate-700 disabled:opacity-60"
+        className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 disabled:opacity-60"
       />
     </NkbvFormSection>
   );

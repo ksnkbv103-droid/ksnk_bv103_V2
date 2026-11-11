@@ -87,7 +87,7 @@ export default function VSTAnalyticsView() {
         sourceLens={d.sourceLens}
         onSourceLensChange={d.setSourceLens}
       />
-      <p className="px-1 text-[11px] leading-snug text-slate-500">
+      <p className="px-1 text-xs leading-snug text-slate-500">
         Chỉ thống kê khoa — không phải bản ký gửi Ban Giám đốc. Bản ký nằm ở{" "}
         <Link href="/bao-cao-tong-hop" className="font-medium text-[var(--primary)] underline">
           Báo cáo chính thức

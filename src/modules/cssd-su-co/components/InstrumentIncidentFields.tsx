@@ -134,7 +134,7 @@ export default function InstrumentIncidentFields({
 
   if (!maQR.trim()) {
     return (
-      <p className="text-[11px] font-medium text-slate-500">
+      <p className="text-xs font-medium text-slate-500">
         Chọn hoặc quét mã bộ dụng cụ trước để chọn loại dụng cụ trong bộ.
       </p>
     );
@@ -143,7 +143,7 @@ export default function InstrumentIncidentFields({
   return (
     <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-slate-600">Chi tiết dụng cụ trong bộ</p>
+        <p className="text-xs font-semibold text-slate-600">Chi tiết dụng cụ trong bộ</p>
         {loading ? <Loader2 className="animate-spin text-slate-400" size={16} /> : null}
       </div>
 

@@ -104,7 +104,7 @@ function CssdDungCuPageInner() {
           onCameraScan={(code) => void s.handleScan(code)}
           className="min-w-[12rem] flex-1"
           inputClassName={bv103LayoutChrome.controlInput}
-          cameraClassName={`${CSSD_UI_ACTION_SECONDARY} px-2.5 text-[11px]`}
+          cameraClassName={`${CSSD_UI_ACTION_SECONDARY} px-2.5 text-xs`}
         />
       </div>
       <div className={CSSD_UI_TOOLBAR_QUIET} aria-label="Liên kết phụ">
@@ -121,7 +121,7 @@ function CssdDungCuPageInner() {
     <CatalogDeNghiCartProvider>
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
-        <p className="px-1 text-[11px] leading-relaxed text-slate-500">
+        <p className="px-1 text-xs leading-relaxed text-slate-500">
           Chọn một <span className="font-semibold text-slate-700">bộ</span> để xem thành phần, in danh mục hoặc
           luân chuyển. <span className="font-semibold text-slate-700">Loại và kho</span> cho biết tồn chưa dùng.{" "}
           <span className="font-semibold text-slate-700">Phiếu</span> xem Cũ → Mới và in.{" "}
@@ -173,7 +173,7 @@ function CssdDungCuPageInner() {
         {s.tab === "LUAN_CHUYEN" ? (
           <button
             type="button"
-            className="px-1 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            className="px-1 text-xs font-semibold text-[var(--primary)] hover:underline"
             onClick={() => s.setTab("BO")}
           >
             ← Về danh sách bộ
@@ -181,7 +181,7 @@ function CssdDungCuPageInner() {
         ) : null}
 
         {s.loading && isCatalogTab ? (
-          <p className="px-2.5 py-3 text-[11px] text-slate-500">Đang tải danh mục…</p>
+          <p className="px-2.5 py-3 text-xs text-slate-500">Đang tải danh mục…</p>
         ) : s.tab === "BO" ? (
           <div className="space-y-2">
             <CSSDCatalogBoTab
@@ -191,14 +191,14 @@ function CssdDungCuPageInner() {
               toolbar={catalogToolbar}
             />
             {!s.selectedBoId ? (
-              <p className="px-2.5 text-[11px] text-slate-500">Chọn một bộ để xem thành phần.</p>
+              <p className="px-2.5 text-xs text-slate-500">Chọn một bộ để xem thành phần.</p>
             ) : null}
             {s.selectedBoId ? (
               <div className="space-y-1">
                 <div className="flex justify-end px-1">
                   <button
                     type="button"
-                    className="text-[11px] font-semibold text-slate-500 hover:underline"
+                    className="text-xs font-semibold text-slate-500 hover:underline"
                     onClick={() => s.setSelectedBoId(null)}
                   >
                     Đóng thành phần

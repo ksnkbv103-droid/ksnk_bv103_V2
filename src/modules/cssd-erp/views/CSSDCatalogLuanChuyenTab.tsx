@@ -30,7 +30,7 @@ export function CSSDCatalogLuanChuyenTab({ onSubmitted }: { onSubmitted?: () => 
             }`}
           >
             <ArrowLeftRight size={15} />
-            Điều chuyển kho &amp; bộ
+            Điều chuyển kho và bộ
           </button>
 
           <button
@@ -73,7 +73,7 @@ export function CSSDCatalogLuanChuyenTab({ onSubmitted }: { onSubmitted?: () => 
           </button>
         </div>
 
-        <span className="text-[11px] text-slate-500 font-medium px-2 hidden sm:inline">
+        <span className="text-xs text-slate-500 font-medium px-2 hidden sm:inline">
           {subTab === "TRANSFER" && "Điều chuyển số lượng giữa kho lẻ và bộ hoặc giữa 2 bộ"}
           {subTab === "RECEIVE" && "Tiếp nhận tăng cơ số kho lẻ từ Phòng Trang bị y tế"}
           {subTab === "DECOMMISSION" && "Thanh lý dụng cụ hao mòn kỹ thuật (không ghi nhận sự cố)"}

@@ -105,7 +105,7 @@ export default function KetQuaPage() {
                 Kết quả: {datLabel}
               </p>
             ) : null}
-            <p className="mt-1 text-[11px] text-slate-500">
+            <p className="mt-1 text-xs text-slate-500">
               {lanThi.trangThai === "het_gio" ? "Nộp khi hết giờ" : "Đã nộp bài"}
               {lanThi.nopLuc ? ` · ${formatDateTimeVi(lanThi.nopLuc)}` : ""}
             </p>
@@ -202,7 +202,7 @@ export default function KetQuaPage() {
                 Câu {q.thuTu} · {labelLoaiCau(q.loai)}
               </span>
               {q.chuDeTen && (
-                <span className="truncate max-w-[280px] text-[11px] text-slate-500">
+                <span className="truncate max-w-[280px] text-xs text-slate-500">
                   {q.chuDeTen}
                 </span>
               )}

@@ -84,7 +84,7 @@ export function CatalogDeNghiCartBar() {
           <p className="text-[12px] font-semibold text-violet-950">
             Phiếu lô đề nghị — {cart.items.length} mục
           </p>
-          <ul className="mt-1 max-h-24 space-y-0.5 overflow-y-auto text-[11px] text-violet-900">
+          <ul className="mt-1 max-h-24 space-y-0.5 overflow-y-auto text-xs text-violet-900">
             {cart.items.map((it, i) => (
               <li key={`${it.kind}-${it.targetId}-${i}`} className="flex items-center gap-2">
                 <span className="font-medium">{CSSD_CATALOG_DE_NGHI_KIND_LABEL[it.kind]}</span>
@@ -119,7 +119,7 @@ export function CatalogDeNghiCartBar() {
           <button
             type="button"
             onClick={() => cart.clear()}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600"
           >
             Xóa giỏ
           </button>

@@ -363,7 +363,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: true, 
       cell: (i) => (
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium text-slate-600">
+          <span className="text-xs font-medium text-slate-600">
             {i.khoa
               ? formatKhoaCompactLabel({ ma_khoa: i.khoa.ma_khoa, ten_khoa: i.khoa.ten_khoa })
               : "---"}
@@ -382,7 +382,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: true, 
       cell: (i) => (
         <div className="flex flex-col gap-0.5">
-          <span className="w-fit rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+          <span className="w-fit rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
             {i.chuc_danh || "Chưa gán"}
           </span>
           {i.chuc_vu && (
@@ -399,14 +399,14 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: false,
       cell: (i) => (
         <div className="flex flex-col gap-1">
-          <span className={`w-fit rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+          <span className={`w-fit rounded-md px-2 py-0.5 text-xs font-semibold ${
             i.auth_user_id
               ? "bg-emerald-50 text-emerald-800 border border-emerald-100"
               : "bg-slate-100 text-slate-500"
           }`}>
             {i.auth_user_id ? "Đã có tài khoản" : "Chưa có tài khoản"}
           </span>
-          <span className="text-[11px] font-medium text-slate-600">
+          <span className="text-xs font-medium text-slate-600">
             {staffKsnkRoleDisplayLabel(i.vai_tro_he_thong_ksnk) || "— vai trò —"}
           </span>
           {isPendingAccountRequest(i.extra_data) ? (
@@ -418,7 +418,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                 <button
                   type="button"
                   onClick={() => openEditPrefill(i)}
-                  className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                  className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                 >
                   Sửa hồ sơ
                 </button>
@@ -429,7 +429,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                     <button
                       type="button"
                       onClick={() => setAuthDialog({ mode: "approve_request", staff: i })}
-                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100"
+                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-100"
                     >
                       <KeyRound size={12} aria-hidden />
                       Duyệt cấp tài khoản
@@ -438,7 +438,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                     <button
                       type="button"
                       onClick={() => setAuthDialog({ mode: "approve_reset", staff: i })}
-                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-[11px] font-semibold text-amber-950 hover:bg-amber-100"
+                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 text-xs font-semibold text-amber-950 hover:bg-amber-100"
                     >
                       <KeyRound size={12} aria-hidden />
                       Duyệt đặt lại mật khẩu
@@ -447,7 +447,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                   <button
                     type="button"
                     onClick={() => void handleRejectPending(i)}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-rose-200 bg-white px-2 text-[11px] font-semibold text-rose-700 hover:bg-rose-50"
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-rose-200 bg-white px-2 text-xs font-semibold text-rose-700 hover:bg-rose-50"
                   >
                     Từ chối
                   </button>
@@ -459,7 +459,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               type="button"
               disabled={i.is_active === false || provisioningId === i.id}
               onClick={() => openCreateTk(i)}
-              className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+              className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
             >
               <KeyRound size={12} aria-hidden />
               {provisioningId === i.id ? "Đang tạo…" : "Tạo tài khoản"}
@@ -470,7 +470,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                 type="button"
                 disabled={i.is_active === false}
                 onClick={() => setRoleDialogStaff(i)}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-teal-200 bg-teal-50 px-2 text-[11px] font-semibold text-teal-800 hover:bg-teal-100 disabled:opacity-40"
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-teal-200 bg-teal-50 px-2 text-xs font-semibold text-teal-800 hover:bg-teal-100 disabled:opacity-40"
                 title="Gán hoặc đổi vai trò KSNK"
               >
                 <Shield size={12} aria-hidden />
@@ -480,7 +480,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                 type="button"
                 disabled={i.is_active === false}
                 onClick={() => setAuthDialog({ mode: "reset", staff: i })}
-                className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
               >
                 <KeyRound size={12} aria-hidden />
                 Đặt lại MK

@@ -12,7 +12,7 @@ export function CssdQrLabelKindsNotice({ className = "" }: { className?: string 
       <summary className={`cursor-pointer list-none ${CSSD_UI_LINK_QUIET}`}>
         Phân biệt tem QR
       </summary>
-      <p className="mt-1.5 max-w-xl text-[11px] leading-snug text-slate-500">
+      <p className="mt-1.5 max-w-xl text-xs leading-snug text-slate-500">
         <span className="font-semibold text-slate-700">Tem bộ</span> (vd. B01.SET.01) ·{" "}
         <span className="font-semibold text-slate-700">Tem chu trình</span> (túi hấp BV103-CYC-…) ·{" "}
         <span className="font-semibold text-slate-700">Mẻ</span> (LOT-…) — không trộn. Dual-code:{" "}

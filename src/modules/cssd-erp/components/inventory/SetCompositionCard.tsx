@@ -62,7 +62,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
         maxHeight={compact ? "max-h-[280px]" : "max-h-[350px]"}
         toolbar={
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="min-w-0 flex-1 truncate text-[11px] text-slate-600">
+            <p className="min-w-0 flex-1 truncate text-xs text-slate-600">
               <span className="font-semibold text-slate-800">{data?.tenBo || "Thành phần bộ"}</span>
               {data?.maBo ? <span className="font-mono text-slate-500"> · {data.maBo}</span> : null}
               {sum ? (
@@ -75,7 +75,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
             {data?.maBo ? (
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-slate-700 hover:underline"
+                className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-slate-700 hover:underline"
                 onClick={() => window.print()}
               >
                 <Printer className="h-3.5 w-3.5" />
@@ -85,7 +85,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
             {data?.maBo && onTransfer ? (
               <button
                 type="button"
-                className="shrink-0 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
                 onClick={() => onTransfer(data.maBo)}
               >
                 Luân chuyển / bổ sung thành phần
@@ -106,7 +106,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
           <tbody className={L.tbody}>
             {(data?.items || []).map((row) => (
               <tr key={row.chiTietId} className={row.isMissing ? "bg-red-50/50" : L.row}>
-                <td className={`${L.td} font-mono text-[11px] font-semibold text-violet-700`}>{row.maLoai || "—"}</td>
+                <td className={`${L.td} font-mono text-xs font-semibold text-violet-700`}>{row.maLoai || "—"}</td>
                 <td className={L.td}>{row.tenDungCuLe}</td>
                 <td className={`${L.td} text-center tabular-nums`}>{row.soLuongKeHoach}</td>
                 <td className={`${L.td} text-center tabular-nums ${row.isMissing ? "font-semibold text-red-700" : ""}`}>

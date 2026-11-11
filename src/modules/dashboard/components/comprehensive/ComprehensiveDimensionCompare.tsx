@@ -83,13 +83,13 @@ export function ComprehensiveDimensionCompare({ payload }: { payload: BaoCaoTong
             Chỉ hiện chiều có dữ liệu nguồn. Không nội suy khi thiếu matrix.
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 p-0.5">
+        <div className="grid grid-flow-col auto-cols-fr gap-1 overflow-x-auto rounded-lg border border-slate-200 p-0.5">
           {available.map((d) => (
             <button
               key={d.id}
               type="button"
               onClick={() => setDim(d.id)}
-              className={`rounded-md px-3 py-1.5 bv103-type-label font-semibold ${
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 bv103-type-label font-semibold ${
  active === d.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
  }`}
             >
@@ -129,7 +129,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
         {title} · thấp → cao
       </div>
       <table className="w-full text-sm">
-        <thead className="text-[11px] text-slate-400">
+        <thead className="text-xs text-slate-400">
           <tr>
             <th className="px-3 py-2 text-left font-semibold">Nhóm</th>
             <th className="px-3 py-2 text-right font-semibold">%</th>

@@ -182,7 +182,7 @@ function CssdQuyTrinhPageInner() {
             title="Truy vết QR"
             aria-label="Truy vết"
             aria-pressed={activeTab === "TRACE"}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border transition-colors ${
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-control)] border transition-colors ${
               activeTab === "TRACE"
                 ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
                 : "border-slate-200 bg-white text-slate-500 hover:bg-white/70 hover:text-slate-800"

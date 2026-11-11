@@ -191,13 +191,13 @@ export function GapSortToolbar({
 
   return (
     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-      <p className="text-[11px] text-slate-500">
+      <p className="text-xs text-slate-500">
         Hiển thị đủ mã khoa trong phạm vi lọc · cảnh báo màu khi tuân thủ &lt;{KHOA_COMPLIANCE_WARN_PCT}%
       </p>
       <div className="flex flex-wrap items-center gap-2">
         {onSortMetricChange ? (
           <select
-            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600"
             value={sortMetric ?? "label"}
             onChange={(e) => onSortMetricChange(e.target.value as GapKhoaSortMetric)}
             aria-label="Sắp xếp theo"
@@ -212,7 +212,7 @@ export function GapSortToolbar({
         {onSortOrderChange ? (
           <button
             type="button"
-            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50"
+            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
             onClick={() => onSortOrderChange(sortOrder === "desc" ? "asc" : "desc")}
           >
             {sortOrder === "desc" ? "Cao → thấp" : "Thấp → cao"}

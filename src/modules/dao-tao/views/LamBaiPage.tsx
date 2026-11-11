@@ -106,7 +106,7 @@ export default function LamBaiPage() {
             <p className="text-sm font-semibold text-slate-800">
               Câu {idx + 1}/{questions.length}
             </p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Đã trả lời {answered}/{questions.length}
             </p>
           </div>

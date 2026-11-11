@@ -280,7 +280,7 @@ export default function NkbvViSinhStorePanel({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className={`${C.panelTitle} text-base`}>Kho vi sinh toàn viện</h3>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-500">
             Chuẩn hóa bệnh phẩm theo danh mục CDC (cột LIS gốc | cột chuẩn). Phân tích nhiễm khuẩn trên
             Hub bệnh án.
           </p>
@@ -289,7 +289,7 @@ export default function NkbvViSinhStorePanel({
           <button
             type="button"
             onClick={startCreate}
-            className="inline-flex items-center gap-1 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-[11px] font-semibold text-[var(--primary)]"
+            className="inline-flex items-center gap-1 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-xs font-semibold text-[var(--primary)]"
           >
             <Plus className="h-3.5 w-3.5" /> Thêm XN
           </button>
@@ -319,7 +319,7 @@ export default function NkbvViSinhStorePanel({
           <p className="text-xs font-semibold text-slate-800">Thêm xét nghiệm tay</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <label className="space-y-1">
-              <span className="text-[11px] text-slate-500">Mã XN *</span>
+              <span className="text-xs text-slate-500">Mã XN *</span>
               <input
                 value={createDraft.ma_xet_nghiem}
                 onChange={(e) => setCreateDraft({ ...createDraft, ma_xet_nghiem: e.target.value })}
@@ -327,7 +327,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] text-slate-500">Mã BA *</span>
+              <span className="text-xs text-slate-500">Mã BA *</span>
               <input
                 value={createDraft.ma_benh_an}
                 onChange={(e) => setCreateDraft({ ...createDraft, ma_benh_an: e.target.value })}
@@ -335,7 +335,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] text-slate-500">Ngày lấy mẫu *</span>
+              <span className="text-xs text-slate-500">Ngày lấy mẫu *</span>
               <input
                 type="date"
                 value={createDraft.ngay_lay_mau}
@@ -344,7 +344,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1 sm:col-span-2 lg:col-span-3">
-              <span className="text-[11px] text-slate-500">Khoa chỉ định *</span>
+              <span className="text-xs text-slate-500">Khoa chỉ định *</span>
               <SearchableSelect
                 value={createDraft.khoa_yeu_cau_id}
                 onChange={(v) => setCreateDraft({ ...createDraft, khoa_yeu_cau_id: v })}
@@ -354,7 +354,7 @@ export default function NkbvViSinhStorePanel({
                 className="text-xs"
               />
             </label>            <label className="space-y-1 sm:col-span-2">
-              <span className="text-[11px] text-slate-500">Bệnh phẩm LIS / nhập tay *</span>
+              <span className="text-xs text-slate-500">Bệnh phẩm LIS / nhập tay *</span>
               <input
                 value={createDraft.loai_benh_pham}
                 onChange={(e) => setCreateDraft({ ...createDraft, loai_benh_pham: e.target.value })}
@@ -362,14 +362,14 @@ export default function NkbvViSinhStorePanel({
                 placeholder="Chuỗi gốc từ LIS hoặc mô tả tay"
               />
             </label>            <label className="space-y-1">
-              <span className="text-[11px] text-slate-500">Bệnh phẩm chuẩn</span>
+              <span className="text-xs text-slate-500">Bệnh phẩm chuẩn</span>
               <SpecimenSelect
                 value={createDraft.loai_benh_pham_chuan}
                 onChange={(v) => setCreateDraft({ ...createDraft, loai_benh_pham_chuan: v })}
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] text-slate-500">Tác nhân</span>
+              <span className="text-xs text-slate-500">Tác nhân</span>
               <input
                 value={createDraft.tac_nhan}
                 onChange={(e) => setCreateDraft({ ...createDraft, tac_nhan: e.target.value })}
@@ -377,7 +377,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] text-slate-500">Kết quả</span>
+              <span className="text-xs text-slate-500">Kết quả</span>
               <select
                 value={createDraft.ket_qua}
                 onChange={(e) =>
@@ -411,7 +411,7 @@ export default function NkbvViSinhStorePanel({
             </label>
             {createDraft.is_mdro ? (
               <label className="space-y-1">
-                <span className="text-[11px] text-slate-500">Phenotype</span>
+                <span className="text-xs text-slate-500">Phenotype</span>
                 <select
                   value={createDraft.mdro_phenotype}
                   onChange={(e) =>
@@ -505,7 +505,7 @@ export default function NkbvViSinhStorePanel({
                       ) : (
                         <div className="font-semibold text-slate-800">—</div>
                       )}
-                      <div className="text-[11px] text-slate-500">{r.ho_ten_benh_nhan || "—"}</div>
+                      <div className="text-xs text-slate-500">{r.ho_ten_benh_nhan || "—"}</div>
                     </td>
                     <td className="px-3 py-2 max-w-[10rem]">
                       {khoaTen ? (
@@ -537,7 +537,7 @@ export default function NkbvViSinhStorePanel({
                     <td className="px-3 py-2 whitespace-nowrap">{ketQuaLabel(r.ket_qua_phan_loai)}</td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusBadgeClass(ptStatus)}`}
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusBadgeClass(ptStatus)}`}
                         title="Trạng thái phân tích NKBV trên Hub BA"
                       >
                         {statusBadgeLabel(ptStatus)}
@@ -569,7 +569,7 @@ export default function NkbvViSinhStorePanel({
                         {r.ma_benh_an ? (
                           <Link
                             href={`/giam-sat-nkbv?tab=records&ba=${encodeURIComponent(r.ma_benh_an)}&xn=${encodeURIComponent(r.id)}`}
-                            className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800"
+                            className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800"
                             title="Mở timeline bệnh án với xét nghiệm này làm Index"
                           >
                             <Activity className="h-3 w-3" /> Phân tích
@@ -578,7 +578,7 @@ export default function NkbvViSinhStorePanel({
                         <button
                           type="button"
                           onClick={() => startEdit(r)}
-                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
                         >
                           <Pencil className="h-3 w-3" /> Sửa
                         </button>
@@ -586,7 +586,7 @@ export default function NkbvViSinhStorePanel({
                           type="button"
                           disabled={busyId === r.id}
                           onClick={() => void onDelete(r)}
-                          className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700"
+                          className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700"
                         >
                           <Trash2 className="h-3 w-3" /> Xóa
                         </button>
@@ -598,7 +598,7 @@ export default function NkbvViSinhStorePanel({
                       <td colSpan={11} className="px-3 py-3">
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                           <label className="space-y-1 sm:col-span-2 lg:col-span-3">
-                            <span className="text-[11px] text-slate-500">Khoa chỉ định *</span>
+                            <span className="text-xs text-slate-500">Khoa chỉ định *</span>
                             <SearchableSelect
                               value={draft.khoa_yeu_cau_id}
                               onChange={(v) => setDraft({ ...draft, khoa_yeu_cau_id: v })}
@@ -608,7 +608,7 @@ export default function NkbvViSinhStorePanel({
                               className="text-xs"
                             />
                           </label>                          <label className="space-y-1 sm:col-span-2">
-                            <span className="text-[11px] text-slate-500">Bệnh phẩm LIS (giữ nguyên)</span>
+                            <span className="text-xs text-slate-500">Bệnh phẩm LIS (giữ nguyên)</span>
                             <input
                               value={draft.loai_benh_pham}
                               onChange={(e) =>
@@ -617,14 +617,14 @@ export default function NkbvViSinhStorePanel({
                               className={`${C.controlInput} w-full text-xs`}
                             />
                           </label>                          <label className="space-y-1">
-                            <span className="text-[11px] text-slate-500">Bệnh phẩm chuẩn *</span>
+                            <span className="text-xs text-slate-500">Bệnh phẩm chuẩn *</span>
                             <SpecimenSelect
                               value={draft.loai_benh_pham_chuan}
                               onChange={(v) => setDraft({ ...draft, loai_benh_pham_chuan: v })}
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-[11px] text-slate-500">Tác nhân</span>
+                            <span className="text-xs text-slate-500">Tác nhân</span>
                             <input
                               value={draft.tac_nhan}
                               onChange={(e) => setDraft({ ...draft, tac_nhan: e.target.value })}
@@ -632,7 +632,7 @@ export default function NkbvViSinhStorePanel({
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-[11px] text-slate-500">Số lượng / CFU</span>
+                            <span className="text-xs text-slate-500">Số lượng / CFU</span>
                             <input
                               value={draft.so_luong}
                               onChange={(e) => setDraft({ ...draft, so_luong: e.target.value })}
@@ -640,7 +640,7 @@ export default function NkbvViSinhStorePanel({
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-[11px] text-slate-500">Kết quả</span>
+                            <span className="text-xs text-slate-500">Kết quả</span>
                             <select
                               value={draft.ket_qua}
                               onChange={(e) =>
@@ -674,7 +674,7 @@ export default function NkbvViSinhStorePanel({
                           </label>
                           {draft.is_mdro ? (
                             <label className="space-y-1">
-                              <span className="text-[11px] text-slate-500">Phenotype MDRO</span>
+                              <span className="text-xs text-slate-500">Phenotype MDRO</span>
                               <select
                                 value={draft.mdro_phenotype}
                                 onChange={(e) =>

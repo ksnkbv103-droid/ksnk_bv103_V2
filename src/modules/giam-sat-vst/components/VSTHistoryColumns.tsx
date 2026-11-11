@@ -55,7 +55,7 @@ export function getVSTHistoryColumns(
         return (
           <span className="inline-flex max-w-full items-center gap-1.5">
             {qrCode ? <InlineEntityQrThumb code={qrCode} size={28} /> : null}
-            <span className="truncate font-mono text-[11px] font-semibold text-slate-600">{label}</span>
+            <span className="truncate font-mono text-xs font-semibold text-slate-600">{label}</span>
           </span>
         );
       },
@@ -81,7 +81,7 @@ export function getVSTHistoryColumns(
       cell: (s: VstHistoryRow) => (
         <div className="min-w-0">
           <p className="text-xs font-semibold text-slate-700">{s.hinh_thuc_giam_sat || "—"}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">{s.cach_thuc_giam_sat || "—"}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{s.cach_thuc_giam_sat || "—"}</p>
         </div>
       )
     },

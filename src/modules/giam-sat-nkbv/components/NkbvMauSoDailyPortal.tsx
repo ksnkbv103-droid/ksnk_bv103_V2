@@ -380,7 +380,7 @@ export default function NkbvMauSoDailyPortal({
                 <h4 className="text-sm font-semibold text-slate-800">
                   Phủ ngày tháng {String(yearMonth.month).padStart(2, "0")}/{yearMonth.year}
                 </h4>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-xs text-slate-500">
                   {coverageLoading
                     ? "Đang tải…"
                     : coverage
@@ -412,7 +412,7 @@ export default function NkbvMauSoDailyPortal({
                             : formatDateVi(day)
                       }
                       onClick={() => setNgayGhiNhan(day)}
-                      className={`rounded-md border px-1 py-1.5 text-center text-[11px] tabular-nums ${tone} ${
+                      className={`rounded-md border px-1 py-1.5 text-center text-xs tabular-nums ${tone} ${
                         isSelected ? "ring-2 ring-[var(--primary)] ring-offset-1" : ""
                       }`}
                     >
@@ -421,7 +421,7 @@ export default function NkbvMauSoDailyPortal({
                   );
                 })}
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Xanh = đã nộp · Đỏ = thiếu (cần nhập) · Xám nhạt = ngày tương lai · Bấm ngày để chọn vào
                 form.
               </p>
@@ -439,7 +439,7 @@ export default function NkbvMauSoDailyPortal({
             {registryPreview ? (
               <span className="text-xs font-mono text-slate-600">{registryPreview}</span>
             ) : (
-              <span className="text-[11px] text-slate-400">
+              <span className="text-xs text-slate-400">
                 Song song nhập tay — không ghi đè ô bên dưới
               </span>
             )}
@@ -471,7 +471,7 @@ export default function NkbvMauSoDailyPortal({
                 className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
                 required
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Số bệnh nhân hiện diện tại khoa đúng ngày báo cáo (không phải tổng tuần).
               </p>
             </div>
@@ -489,7 +489,7 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="CVC-days đúng ngày"
                 className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Số BN đang đặt catheter TMTT đúng ngày báo cáo.
               </p>
             </div>
@@ -507,7 +507,7 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Foley-days đúng ngày"
                 className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Số BN đang đặt ống thông tiểu Foley đúng ngày báo cáo.
               </p>
             </div>
@@ -525,7 +525,7 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Vent-days đúng ngày"
                 className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Số BN đang thở máy xâm lấn đúng ngày báo cáo.
               </p>
             </div>
@@ -543,7 +543,7 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Đợt bắt đầu đúng ngày"
                 className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Số đợt bắt đầu thở máy mới đúng ngày báo cáo.
               </p>
             </div>
@@ -724,7 +724,7 @@ export default function NkbvMauSoDailyPortal({
               />
               <span className="flex items-center gap-1">
                 Có đặt Thiết bị nhân tạo (Implant)
-                <span className="text-[11px] text-slate-400 lowercase">
+                <span className="text-xs text-slate-400 lowercase">
                   (thuộc tính ca — độc lập cửa sổ SP 30/90)
                 </span>
               </span>
@@ -739,7 +739,7 @@ export default function NkbvMauSoDailyPortal({
               />
               <span className="flex items-center gap-1">
                 Phẫu thuật nội soi (Laparoscopic)
-                <span className="text-[11px] text-[var(--primary)] lowercase">
+                <span className="text-xs text-[var(--primary)] lowercase">
                   (giảm nhẹ hệ số rủi ro SSI)
                 </span>
               </span>

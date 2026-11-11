@@ -200,7 +200,7 @@ export function QlcvSaveDinhKyDialog({
               </div>
             </div>
 
-            <div className="rounded-md bg-slate-50 p-2.5 text-[11px] leading-relaxed text-slate-600 border border-slate-200/80">
+            <div className="rounded-md bg-slate-50 p-2.5 text-xs leading-relaxed text-slate-600 border border-slate-200/80">
               💡 Mẫu định kỳ sẽ tự động kế thừa người phụ trách, phối hợp, người theo dõi, địa điểm và danh mục checklist từ công việc hiện tại.
             </div>
           </div>

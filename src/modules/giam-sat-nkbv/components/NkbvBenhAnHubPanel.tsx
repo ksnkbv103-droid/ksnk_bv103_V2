@@ -592,7 +592,7 @@ export default function NkbvBenhAnHubPanel({
         <DialogTitle className="sr-only">Bệnh án lưới CDC · {maBenhAn}</DialogTitle>
         <header className="flex shrink-0 items-start justify-between gap-2 border-b border-slate-100 bg-white px-3 py-2 pr-12 sm:px-4">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium text-slate-500">
+            <p className="text-xs font-medium text-slate-500">
               Bệnh án · 3 khối
               {chuaPhanTichCount > 0 ? (
                 <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-amber-900">
@@ -698,7 +698,7 @@ export default function NkbvBenhAnHubPanel({
         </header>
 
         {alerts.length > 0 ? (
-          <div className="border-b border-amber-100 bg-amber-50/80 px-3 py-1.5 text-[11px] text-amber-950 sm:px-4">
+          <div className="border-b border-amber-100 bg-amber-50/80 px-3 py-1.5 text-xs text-amber-950 sm:px-4">
             {alerts.slice(0, 3).map((a, i) => (
               <span key={`${a.code}-${i}`} className="mr-3">
                 <strong>{a.code}</strong> {a.message}

@@ -131,7 +131,7 @@ export function PheDuyetDungCuPanel() {
         <button
           type="button"
           onClick={() => void reload()}
-          className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline"
+          className="flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"
         >
           <RotateCw size={12} />
           Làm mới
@@ -151,11 +151,11 @@ export function PheDuyetDungCuPanel() {
             <h3 className="text-[13px] font-bold text-slate-800">
               Hàng chờ phê duyệt tập trung
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Chủ nhiệm khoa duyệt đề nghị thay đổi danh mục và cấu phần bộ phẫu thuật
             </p>
           </div>
-          <span className="ml-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+          <span className="ml-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
             {totalPending} chờ duyệt
           </span>
         </div>
@@ -164,7 +164,7 @@ export function PheDuyetDungCuPanel() {
           <button
             type="button"
             onClick={() => setFilter("ALL")}
-            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+            className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
               filter === "ALL"
                 ? "bg-slate-800 text-white shadow-xs"
                 : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
@@ -175,7 +175,7 @@ export function PheDuyetDungCuPanel() {
           <button
             type="button"
             onClick={() => setFilter("CATALOG")}
-            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+            className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
               filter === "CATALOG"
                 ? "bg-indigo-600 text-white shadow-xs"
                 : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
@@ -186,7 +186,7 @@ export function PheDuyetDungCuPanel() {
           <button
             type="button"
             onClick={() => setFilter("BOM")}
-            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+            className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
               filter === "BOM"
                 ? "bg-amber-600 text-white shadow-xs"
                 : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
@@ -198,7 +198,7 @@ export function PheDuyetDungCuPanel() {
             type="button"
             disabled={loadingQueue}
             onClick={() => void reload()}
-            className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             title="Làm mới hàng đợi"
           >
             <RotateCw size={12} className={loadingQueue ? "animate-spin" : ""} />
@@ -217,7 +217,7 @@ export function PheDuyetDungCuPanel() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                    <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-700">
                       ĐỀ NGHỊ {CSSD_CATALOG_DE_NGHI_KIND_LABEL[r.targetKind]}
                     </span>
                     <span className="font-mono text-[12px] font-bold text-violet-700">
@@ -229,9 +229,9 @@ export function PheDuyetDungCuPanel() {
                   </div>
                   <p className="text-[12px] text-slate-600">{r.afterSummary}</p>
                   {r.note ? (
-                    <p className="text-[11px] text-slate-500">Ghi chú: {r.note}</p>
+                    <p className="text-xs text-slate-500">Ghi chú: {r.note}</p>
                   ) : null}
-                  <div className="flex items-center gap-3 pt-0.5 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-3 pt-0.5 text-xs text-slate-400">
                     <span>
                       {r.createdAt ? new Date(r.createdAt).toLocaleString("vi-VN") : ""}
                     </span>
@@ -256,7 +256,7 @@ export function PheDuyetDungCuPanel() {
                     type="button"
                     disabled={busyId === r.id}
                     onClick={() => void onApproveCatalog(r.id)}
-                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50"
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50"
                   >
                     Duyệt ghi đè
                   </button>
@@ -264,7 +264,7 @@ export function PheDuyetDungCuPanel() {
                     type="button"
                     disabled={busyId === r.id}
                     onClick={() => void onRejectCatalog(r.id)}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                   >
                     Từ chối
                   </button>
@@ -289,7 +289,7 @@ export function PheDuyetDungCuPanel() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-md border border-amber-300 bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-900">
+                    <span className="rounded-md border border-amber-300 bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
                       RÀ SOÁT CẤU PHẦN BỘ (BOM)
                     </span>
                     <span className="font-mono text-[12px] font-bold text-slate-800">
@@ -306,7 +306,7 @@ export function PheDuyetDungCuPanel() {
                     {r.moTa}
                   </p>
                   {r.catalogDiffs?.length ? (
-                    <ul className="mt-1 space-y-0.5 rounded-lg border border-amber-200/60 bg-white/80 p-2 text-[11px] text-slate-600">
+                    <ul className="mt-1 space-y-0.5 rounded-lg border border-amber-200/60 bg-white/80 p-2 text-xs text-slate-600">
                       {r.catalogDiffs.slice(0, 5).map((d, i) => (
                         <li key={`${r.id}-${i}`}>
                           <span className="font-semibold text-amber-900">{d.kindLabel}:</span>{" "}
@@ -320,7 +320,7 @@ export function PheDuyetDungCuPanel() {
                       ) : null}
                     </ul>
                   ) : null}
-                  <div className="flex items-center gap-3 pt-0.5 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-3 pt-0.5 text-xs text-slate-400">
                     <span>
                       {r.createdAt ? new Date(r.createdAt).toLocaleString("vi-VN") : ""}
                     </span>
@@ -338,7 +338,7 @@ export function PheDuyetDungCuPanel() {
                     type="button"
                     disabled={busyId === r.id}
                     onClick={() => void onApproveBom(r.id)}
-                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50"
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50"
                   >
                     Duyệt chuẩn BOM
                   </button>
@@ -346,7 +346,7 @@ export function PheDuyetDungCuPanel() {
                     type="button"
                     disabled={busyId === r.id}
                     onClick={() => void onRejectBom(r.id)}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                   >
                     Từ chối
                   </button>

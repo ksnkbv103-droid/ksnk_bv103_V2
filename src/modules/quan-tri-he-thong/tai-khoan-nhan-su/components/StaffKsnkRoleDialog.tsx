@@ -109,7 +109,7 @@ export default function StaffKsnkRoleDialog({
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Gán đúng một vai trò chính trong phân hệ Kiểm soát nhiễm khuẩn (RBAC).
               </p>
             </div>
@@ -127,7 +127,7 @@ export default function StaffKsnkRoleDialog({
                 placeholder="Nhập lại mật khẩu admin để xác nhận"
                 required
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Cơ chế Sudo Re-auth: bắt buộc xác thực lại mật khẩu quản trị viên để bảo mật.
               </p>
             </div>

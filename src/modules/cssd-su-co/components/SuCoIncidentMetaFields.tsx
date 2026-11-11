@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { Camera, Image as ImageIcon, Link as LinkIcon, Trash2, UploadCloud } from "lucide-react";
+import { Camera, Link as LinkIcon, Trash2 } from "lucide-react";
 import SearchableSelect, { type SearchableSelectOption } from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { getGoogleDriveDirectLink } from "./IncidentPrintView";
@@ -140,7 +140,7 @@ export default function SuCoIncidentMetaFields({
             searchPlaceholder="Tìm tên / mã NV…"
           />
           {relatedHint ? (
-            <p className="text-[11px] font-medium text-slate-500">{relatedHint}</p>
+            <p className="text-xs font-medium text-slate-500">{relatedHint}</p>
           ) : null}
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function SuCoIncidentMetaFields({
               <button
                 type="button"
                 onClick={() => setShowLinkInput(!showLinkInput)}
-                className="text-[11px] font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+                className="text-xs font-medium text-[var(--primary)] hover:underline inline-flex items-center gap-1"
               >
                 <LinkIcon size={12} />
                 {showLinkInput ? "Chụp/Tải ảnh" : "Dán link ảnh"}

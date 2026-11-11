@@ -36,7 +36,7 @@ export default function NhanSuFormFieldsOrg({
       <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
         {roleLabel}
       </p>
-      <p className="text-[11px] text-slate-500">
+      <p className="text-xs text-slate-500">
         Chỉ xem. Gán/gỡ vai trò tại màn Tài khoản nhân sự (nguồn thật: phân quyền đăng nhập).
       </p>
     </div>

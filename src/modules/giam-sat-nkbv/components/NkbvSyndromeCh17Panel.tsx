@@ -403,18 +403,18 @@ export default function NkbvSyndromeCh17Panel({
               Chương 17 — Nhiễm khuẩn Khu trú (CDC/NHSN Ch.17)
             </h3>
             {evalResult.met ? (
-              <span className="rounded-full bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 text-[11px] border border-emerald-300">
+              <span className="rounded-full bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 text-xs border border-emerald-300">
                 🎯 {classificationLabel}
               </span>
             ) : (
-              <span className="rounded-full bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 text-[11px] border border-amber-300">
+              <span className="rounded-full bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 text-xs border border-amber-300">
                 Chưa đủ tiêu chuẩn xác định sự kiện
               </span>
             )}
           </div>
 
           {/* Chọn site Chương 17 */}
-          <div className="flex items-center gap-3 flex-wrap text-[11px] bg-white/80 p-2 rounded border border-emerald-150">
+          <div className="flex items-center gap-3 flex-wrap text-xs bg-white/80 p-2 rounded border border-emerald-150">
             <span className="font-semibold text-emerald-950">Vị trí nhiễm khuẩn (Site Ch.17):</span>
             <select
               disabled={!allowedEdit}
@@ -423,7 +423,7 @@ export default function NkbvSyndromeCh17Panel({
                 const newCode = e.target.value;
                 onDraftChange({ ch17TypeCode: newCode });
               }}
-              className="rounded border border-emerald-300 bg-white px-2 py-1 font-semibold text-emerald-900 outline-none text-[11px]"
+              className="rounded border border-emerald-300 bg-white px-2 py-1 font-semibold text-emerald-900 outline-none text-xs"
             >
               {CH17_TYPE_DEFS.map((d) => (
                 <option key={d.code} value={d.code}>
@@ -432,18 +432,18 @@ export default function NkbvSyndromeCh17Panel({
               ))}
             </select>
 
-            <span className="text-slate-600 text-[11px]">
+            <span className="text-slate-600 text-xs">
               Index: <b>{indexDate}</b> · Cửa sổ IWP: <b>{iwp.start} → {iwp.end}</b> ({activeTypeCode === "ENDO" ? "21d" : "7d"}) · Ngày nằm viện: <b>HD {hospitalDayOfDoe}</b> ({isHai ? "HAI" : "POA"})
             </span>
           </div>
 
           {/* Reasoning & Criteria Checklist */}
-          <div className="bg-white/80 rounded border border-emerald-150 p-2 text-[11px] space-y-2">
+          <div className="bg-white/80 rounded border border-emerald-150 p-2 text-xs space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-emerald-950">
                 Tiêu chuẩn chẩn đoán {currentDef.name_vi} ({currentDef.code}):
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-xs text-slate-500 font-medium">
                 {evalResult.reason}
               </span>
             </div>
@@ -463,7 +463,7 @@ export default function NkbvSyndromeCh17Panel({
                     onChange={(e) => toggleFlag(k, e.target.checked)}
                     className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500"
                   />
-                  <span className="leading-tight text-[11px]">
+                  <span className="leading-tight text-xs">
                     {ch17EvidenceLabel(k)}
                   </span>
                 </label>
@@ -473,7 +473,7 @@ export default function NkbvSyndromeCh17Panel({
 
           {/* Secondary BSI Banner */}
           {secondaryVerdict && secondaryVerdict.isSecondary ? (
-            <div className="rounded p-2 text-[11px] bg-rose-50 border border-rose-200 text-rose-900 flex items-center justify-between">
+            <div className="rounded p-2 text-xs bg-rose-50 border border-rose-200 text-rose-900 flex items-center justify-between">
               <div>
                 <b>Cảnh báo Secondary BSI:</b> Tìm thấy cấy máu dương tính trong cửa sổ SBAP trùng tác nhân ({secondaryVerdict.bloodOrganisms.join(", ")}). Máu này là nhiễm khuẩn huyết thứ phát từ ổ {currentDef.code}.
               </div>
@@ -487,7 +487,7 @@ export default function NkbvSyndromeCh17Panel({
                       label: `Secondary BSI (${currentDef.code})`,
                     })
                   }
-                  className="rounded-full bg-rose-600 px-2 py-0.5 text-white font-semibold text-[11px] hover:bg-rose-700 shrink-0 ml-2"
+                  className="rounded-full bg-rose-600 px-2 py-0.5 text-white font-semibold text-xs hover:bg-rose-700 shrink-0 ml-2"
                 >
                   Xác nhận Secondary
                 </button>
@@ -500,7 +500,7 @@ export default function NkbvSyndromeCh17Panel({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
+            className="rounded-full px-2.5 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
           >
             Đóng bảng
           </button>
@@ -508,7 +508,7 @@ export default function NkbvSyndromeCh17Panel({
             <button
               type="button"
               onClick={onCloseInsufficient}
-              className="rounded-full px-2 py-0.5 text-[11px] text-slate-600 hover:bg-slate-200"
+              className="rounded-full px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200"
             >
               Đóng (chưa đủ TC)
             </button>
@@ -519,7 +519,7 @@ export default function NkbvSyndromeCh17Panel({
       {typeof children === "function" ? (
         children({ analysisColumns })
       ) : (
-        <p className="mt-2 text-[11px] text-amber-800">Thiếu slot bảng chung.</p>
+        <p className="mt-2 text-xs text-amber-800">Thiếu slot bảng chung.</p>
       )}
     </section>
   );

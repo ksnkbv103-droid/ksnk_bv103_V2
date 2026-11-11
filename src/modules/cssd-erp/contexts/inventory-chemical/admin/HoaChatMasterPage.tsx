@@ -124,7 +124,7 @@ function HoaChatMasterPageContent() {
               {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
             <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
-              <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+              <summary className="cursor-pointer text-xs font-semibold text-slate-500">Excel</summary>
               <div className="pt-2">
                 <ImportExportToolbar
                   fileInputRef={fileInputRef}
@@ -153,7 +153,7 @@ function HoaChatMasterPageContent() {
       {showStats && !loading && <HoaChatStatsPanel data={data} />}
 
       <div className="flex items-center gap-2">
-        <label className="text-[11px] font-medium text-slate-500" htmlFor="hc-nhom-filter">Nhóm</label>
+        <label className="text-xs font-medium text-slate-500" htmlFor="hc-nhom-filter">Nhóm</label>
         <select id="hc-nhom-filter" value={nhomFilter} onChange={(e) => setNhomFilter(e.target.value)} className={`${C.controlInput} max-w-xs`}>
           <option value="">Tất cả nhóm</option>
           {nhomTenList.map((t) => (

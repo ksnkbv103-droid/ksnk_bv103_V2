@@ -96,7 +96,7 @@ export function buildGenericDmColumns(
             )}
           </div>
         ) : (
-          <span className="text-[11px] font-medium text-slate-400">—</span>
+          <span className="text-xs font-medium text-slate-400">—</span>
         ),
     },
   ];

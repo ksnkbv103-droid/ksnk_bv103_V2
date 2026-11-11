@@ -134,13 +134,13 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
   const columns: Column<FactBaoTriRow>[] = [
     { header: "Mã phiếu", accessorKey: "ma_phieu", sortable: true, cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_phieu}</span> },
-    { header: "Thiết bị", accessorKey: "ten_thiet_bi", sortable: true, cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
+    { header: "Thiết bị", accessorKey: "ten_thiet_bi", sortable: true, cell: (i) => <span className="text-xs font-semibold">{i.ten_thiet_bi || "—"}</span> },
     {
       header: "Loại",
       accessorKey: "loai_phieu",
       sortable: true,
       cell: (i) => (
-        <span className={`text-[11px] font-semibold ${i.loai_phieu === "SUA_CHUA" ? "text-red-600" : "text-[var(--primary)]"}`}>
+        <span className={`text-xs font-semibold ${i.loai_phieu === "SUA_CHUA" ? "text-red-600" : "text-[var(--primary)]"}`}>
           {i.loai_phieu === "SUA_CHUA" ? "Sửa chữa" : "Định kỳ"}
         </span>
       ),
@@ -153,7 +153,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         const val = i.trang_thai;
         if (val === "DANG_THUC_HIEN") {
           return (
-            <span className="inline-flex animate-in fade-in items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 shadow-sm duration-300">
+            <span className="inline-flex animate-in fade-in items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 shadow-sm duration-300">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
               Đang thực hiện
             </span>
@@ -161,7 +161,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         }
         if (val === "HOAN_THANH") {
           return (
-            <span className="inline-flex animate-in fade-in items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 shadow-sm duration-300">
+            <span className="inline-flex animate-in fade-in items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 shadow-sm duration-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Hoàn thành
             </span>
@@ -169,19 +169,19 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         }
         if (val === "HUY") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-500">
               Đã hủy
             </span>
           );
         }
         return (
-          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
             {trangThaiLabel(val)}
           </span>
         );
       },
     },
-    { header: "Lý do / Kết quả", accessorKey: "ly_do", sortable: true, cell: (i) => <span className="max-w-[200px] truncate text-[11px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
+    { header: "Lý do / Kết quả", accessorKey: "ly_do", sortable: true, cell: (i) => <span className="max-w-[200px] truncate text-xs text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
   ];
 
   if (permLoading) {
@@ -213,7 +213,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
       )}
       <Link
         href={incidentHref}
-        className="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold text-red-600 shadow-sm transition-all hover:bg-red-100 active:scale-[0.98]"
+        className="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-xs font-semibold text-red-600 shadow-sm transition-all hover:bg-red-100 active:scale-[0.98]"
       >
         ⚠️ Báo sự cố
       </Link>
@@ -233,7 +233,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm">
         <span className="inline-flex items-center gap-1.5 font-semibold text-slate-600">
           <Wrench size={14} /> Tổng <span className="tabular-nums text-slate-800">{totalBaoTri}</span>
         </span>
@@ -252,7 +252,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
       {canEdit && suCoRows.length > 0 ? (
         <div className="rounded-[var(--radius-shell)] border border-red-100 bg-red-50/30 p-4 space-y-3">
-          <p className="text-[11px] font-semibold text-red-700">Sự cố máy gần đây — mở phiếu sửa chữa</p>
+          <p className="text-xs font-semibold text-red-700">Sự cố máy gần đây — mở phiếu sửa chữa</p>
           <div className="space-y-2">
             {suCoRows.slice(0, 5).map((sc) => (
               <div key={sc.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white bg-white px-3 py-2 text-xs">
@@ -263,7 +263,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
                 </div>
                 <button
                   type="button"
-                  className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700"
+                  className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700"
                   onClick={() => void onMoPhieuTuSuCo(sc)}
                 >
                   Mở phiếu sửa

@@ -56,7 +56,7 @@ export default function NkbvBaWorkspaceSessionChips({
   }
 
   return (
-    <div className="mt-2 space-y-1.5 border-t border-slate-100 pt-2 text-[11px]">
+    <div className="mt-2 space-y-1.5 border-t border-slate-100 pt-2 text-xs">
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="shrink-0 font-semibold text-slate-600">Gợi ý phiên (theo Index):</span>
         {!sessionSuggestions.length ? (
@@ -118,7 +118,7 @@ export default function NkbvBaWorkspaceSessionChips({
                 {isBlockedByChrono ? (
                   <span className="text-amber-600 font-normal">⏳ {orderNum}.</span>
                 ) : isPriority && !opened && !active ? (
-                  <span className="rounded bg-sky-200/80 px-1 py-0.2 text-[11px] font-bold text-sky-900">
+                  <span className="rounded bg-sky-200/80 px-1 py-0.2 text-xs font-bold text-sky-900">
                     {orderNum}. Ưu tiên
                   </span>
                 ) : (
@@ -129,7 +129,7 @@ export default function NkbvBaWorkspaceSessionChips({
                 </span>
                 {bloodInSiteSbap ? <span className="text-amber-800">· rà SBAP</span> : null}
                 {isBlockedByChrono && chronoCheck.earliestUnresolved ? (
-                  <span className="text-[11px] text-amber-700 font-medium">
+                  <span className="text-xs text-amber-700 font-medium">
                     · chờ {chronoCheck.earliestUnresolved.date.slice(5)}
                   </span>
                 ) : null}
@@ -173,7 +173,7 @@ export default function NkbvBaWorkspaceSessionChips({
             );
           })
         )}
-        <span className="ml-auto text-[11px] text-slate-400">
+        <span className="ml-auto text-xs text-slate-400">
           Chỉ từ XN / CĐHA / TC DOE SSI — phiếu khi bấm «Tạo phiếu»
         </span>
       </div>

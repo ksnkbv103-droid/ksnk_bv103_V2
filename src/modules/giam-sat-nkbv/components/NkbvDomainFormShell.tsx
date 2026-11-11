@@ -48,17 +48,17 @@ export default function NkbvDomainFormShell({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className={C.panelTitle}>{title}</h3>
             {subtype ? (
-              <span className="text-[11px] font-semibold text-slate-500">
+              <span className="text-xs font-semibold text-slate-500">
                 {subtype}
               </span>
             ) : null}
           </div>
-          <p className="text-[11px] text-slate-600">
+          <p className="text-xs text-slate-600">
             <span className="font-semibold text-slate-700">Yếu tố xác định khung: </span>
             {factorHint}
           </p>
           {(windowLabel || windowStart) && (
-            <p className="text-[11px] font-medium text-sky-900">
+            <p className="text-xs font-medium text-sky-900">
               <span className="font-semibold">{windowLabel || "Cửa sổ"}:</span>{" "}
               {windowStart && windowEnd
                 ? `${windowStart} → ${windowEnd}`

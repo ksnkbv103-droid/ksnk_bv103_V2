@@ -82,7 +82,7 @@ export default function NkbvStayHistoryTable({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <span className={C.blockSection}>Lịch sử khoa phòng</span>
-        <span className="text-[11px] font-medium text-slate-500">{treatmentHistory.length} khoa</span>
+        <span className="text-xs font-medium text-slate-500">{treatmentHistory.length} khoa</span>
       </div>
 
       <ResponsiveTableShell
@@ -152,7 +152,7 @@ export default function NkbvStayHistoryTable({
             {treatmentHistory.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-2.5 py-4 text-center">
-                  <p className="text-amber-800 text-[11px] font-medium">
+                  <p className="text-amber-800 text-xs font-medium">
                     Thiếu lưới ngày–khoa (ba_ngay_khoa) — không quy kết LOA. Nhập đủ lịch sử khoa trước khi chốt ca.
                   </p>
                 </td>

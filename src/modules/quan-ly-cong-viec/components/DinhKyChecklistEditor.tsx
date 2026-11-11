@@ -31,7 +31,7 @@ export function DinhKyChecklistEditor({ items, onChange }: Props) {
             key={item.id}
             className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2"
           >
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-slate-300 bg-white text-[11px] text-slate-400" aria-hidden>
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-400" aria-hidden>
               ✓
             </span>
             <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{item.label}</span>
@@ -47,7 +47,7 @@ export function DinhKyChecklistEditor({ items, onChange }: Props) {
         ))}
       </ul>
       {items.length === 0 ? (
-        <p className="text-[11px] text-slate-500">Chưa có mục — thêm từng việc sẽ tick khi sinh phiếu.</p>
+        <p className="text-xs text-slate-500">Chưa có mục — thêm từng việc sẽ tick khi sinh phiếu.</p>
       ) : null}
       <div className="flex flex-col gap-2 sm:flex-row">
         <input

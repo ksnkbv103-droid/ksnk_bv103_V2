@@ -59,10 +59,10 @@ export default function GiamSatChungSessionViewer({
             <h2 id="gsc-viewer-title" className="text-sm font-semibold text-[var(--primary)]">
               {template.title}
             </h2>
-            <p className="mt-1 text-[11px] font-semibold text-slate-600">
+            <p className="mt-1 text-xs font-semibold text-slate-600">
               {ngayStr} · Khoa: {resolveGscKhoaTen(session, khoas)} · Khu: {resolveGscKhuTen(session, khuVucs)}
             </p>
-            <p className="mt-0.5 text-[11px] text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500">
               Người GS: {resolveGscNguoiGiamSatTen(session)} · Đối tượng: {resolveGscDoiTuongTen(session, nhanSus)} · Nghề:{" "}
               {resolveGscNgheTen(session, ngheNghieps)}
             </p>
