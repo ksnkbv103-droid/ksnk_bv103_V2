@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/shared/cssd-tram-persist";
-import { removeChiTietIssueNoteLines } from "@/modules/cssd-erp/workflow/application/instrument-issue-core";
+import { removeChiTietIssueNoteLines } from "@/modules/cssd-erp/workflow/domain/instrument-issue-note";
 import { tableHasColumn } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import { planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
 
