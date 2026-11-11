@@ -185,3 +185,10 @@ Logic lâm sàng, engine VST, DB/RPC/RLS, quyền, route, nội dung chữ nghi�
 ## 10. Để tiếp tục sau `/clear`
 
 Mở phiên mới (Sonnet), nói: «Đọc `docs/ux/ui-redesign-plan.md` rồi làm lát đầu chưa tick (Lát 4 – VST/GSC form)». Đọc thêm khi cần: `page-chrome-contract-20260731.md`, `src/lib/bv103-layout-chrome.ts`, `src/lib/bv103-design-tokens.ts`, `src/app/globals.css`. Lệnh verify UI thuần: `npm run verify:quick` (xem `npm run verify:changed -- --dry`). Giả định chưa kiểm: các layout module có bọc `KsnkPageShell` hộ trang con hay không (Lát 0 kiểm).
+
+### 10.1 Phản hồi PO 2026-11-11 (chờ duyệt hướng, chưa code)
+
+- Đo mobile 375px xong: Lịch sử GSC, Giám sát, CSSD Dụng cụ, Quản trị không tràn ngang; 2 hàng điều hướng Quản trị cao 38px (lệch chuẩn).
+- PO: nút/tab đang co theo nội dung → mép phải lởm chởm, mất cân xứng (desktop + mobile); nút quá to, thô.
+- Hướng đề xuất: nhóm chip/tab thành lưới ô đều (grid cột bằng nhau); giảm độ nặng (nền nhạt, viền mảnh, chữ 12–13px, bớt đệm) — giữ vùng chạm 44px bằng đệm vô hình, không phóng to hình.
+- Đã làm (Quản trị): chip lối tắt `QuanTriHubJobCards` → lưới 2 cột đều, ô trắng viền mảnh, chữ giữa ô, ô lẻ cuối kéo đủ hàng; mobile 44px, desktop 36px. Đo 375/800/1440 bằng mắt: mép thẳng hàng. Còn lại: áp cùng cách cho tab/chip các trang khác (`navTabBtn`, chip Thống kê, bộ lọc) — chờ PO xem Quản trị.

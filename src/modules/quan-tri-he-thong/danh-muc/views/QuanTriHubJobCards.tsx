@@ -46,13 +46,13 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
               <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-400" aria-hidden />
             </button>
             {links.length > 0 ? (
-              <ul className="mt-2 flex flex-wrap gap-2">
+              <ul className="mt-2 grid grid-cols-2 gap-1.5">
                 {links.map((r) => (
-                  <li key={r.id}>
+                  <li key={r.id} className="[&:last-child:nth-child(odd)]:col-span-2">
                     <button
                       type="button"
                       onClick={() => onOpen(r.path)}
-                      className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 bg-slate-50 px-2.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-[var(--primary)]"
+                      className="flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-white px-2 text-center text-xs font-medium leading-tight text-slate-600 ring-1 ring-slate-200/70 hover:bg-slate-100 hover:text-[var(--primary)] sm:min-h-9"
                     >
                       {r.name}
                     </button>
