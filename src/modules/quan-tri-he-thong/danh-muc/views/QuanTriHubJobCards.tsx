@@ -32,7 +32,7 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
               onClick={() =>
                 onOpen(job.id === "nguoi-dung" ? job.href : (links[0]?.path ?? job.href))
               }
-              className="flex w-full items-start justify-between gap-3 text-left"
+              className="flex min-h-11 w-full items-start justify-between gap-3 text-left"
             >
               <div className="flex items-start gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-slate-50 ring-1 ring-slate-200/80">

@@ -165,7 +165,7 @@ export default function SearchableMultiSelect({
 
   const compact = size === "compact";
   const triggerClass = compact
-    ? `h-9 ${minWidthClassName} rounded-lg border border-slate-200 bg-white px-2.5 text-left text-xs font-medium`
+    ? `h-11 sm:h-9 ${minWidthClassName} rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-left text-xs font-medium`
     : `h-11 ${minWidthClassName} rounded-xl border border-slate-200 bg-white px-3 text-left text-sm font-semibold`;
 
   return (
