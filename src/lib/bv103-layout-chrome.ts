@@ -64,9 +64,9 @@ export const bv103LayoutChrome = {
 
   /** Thanh tab điều hướng — mobile: cuộn ngang, nút ≥44px; desktop: wrap bình thường. */
   navTabStrip:
-    "flex gap-1 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner max-sm:w-full max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:snap-x max-sm:snap-mandatory sm:flex-wrap",
+    "grid grid-flow-col auto-cols-fr gap-1 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-100/90 p-1 max-sm:w-full max-sm:auto-cols-[minmax(6.5rem,1fr)] max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:snap-x max-sm:snap-mandatory",
   navTabBtn:
-    "inline-flex min-h-11 shrink-0 snap-start items-center justify-center gap-1 rounded-[var(--radius-control)] px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation max-sm:max-w-[9.5rem] sm:min-h-9 sm:gap-1.5 sm:px-3 sm:text-xs sm:shrink sm:min-w-0 sm:max-w-none sm:flex-initial",
+    "inline-flex min-h-11 min-w-0 snap-start items-center justify-center gap-1 rounded-[var(--radius-control)] px-2.5 py-1.5 text-center text-xs font-semibold leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation sm:min-h-9 sm:gap-1.5 sm:px-3",
 
   /** Nút hành động trong bảng / lịch sử — cao hơn trên mobile */
   tableActionBtn:
