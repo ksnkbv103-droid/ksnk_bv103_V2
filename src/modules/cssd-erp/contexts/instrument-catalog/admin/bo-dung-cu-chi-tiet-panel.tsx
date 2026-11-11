@@ -30,16 +30,16 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu-chi-tiet-read.actions";
+} from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu-chi-tiet-read.actions";
 import {
   getBoDungCuAllocationsAction,
   getKhoaPhongOptionsForBoAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
-import { mergeDuplicateBomLinesAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/dung-cu-chi-tiet.actions";
+} from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
+import { mergeDuplicateBomLinesAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/dung-cu-chi-tiet.actions";
 import type {
   BoRefByLoai,
   BoDungCuChiTietPreviewRow,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu-chi-tiet.types";
+} from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu-chi-tiet.types";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 type Props = {

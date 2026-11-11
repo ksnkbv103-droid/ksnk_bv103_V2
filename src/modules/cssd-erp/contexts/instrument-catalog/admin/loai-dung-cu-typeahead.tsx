@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { searchLoaiDungCuOptionsAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/loai-dung-cu.actions";
+import { searchLoaiDungCuOptionsAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu.actions";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 
 type Opt = { id: string; ma_danh_muc: string; ten_danh_muc: string };

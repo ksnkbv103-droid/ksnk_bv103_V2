@@ -26,7 +26,7 @@ import {
   softDeleteBoDungCuAction,
   softDeleteManyBoDungCuAction,
   toggleBoDungCuStatusAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
+} from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () => void }) {

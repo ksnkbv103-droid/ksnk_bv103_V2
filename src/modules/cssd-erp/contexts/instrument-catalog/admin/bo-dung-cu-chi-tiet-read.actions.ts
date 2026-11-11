@@ -2,7 +2,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import type { BoDungCuChiTietPreviewRow, BoRefByLoai } from "./bo-dung-cu-chi-tiet.types";
+import type { BoDungCuChiTietPreviewRow, BoRefByLoai } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu-chi-tiet.types";
 
 /** Danh sách dụng cụ chi tiết thuộc một bộ (`cssd_dm_bo_dung_cu_chi_tiet`). Quyền `BO_DC.view`. */
 export async function getBoDungCuChiTietPreviewAction(boDungCuId: string) {

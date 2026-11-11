@@ -4,10 +4,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "@/modules/quan-tri-he-thong/components/bo-dung-cu-form-field";
+import BoDungCuTextField from "@/components/master-data/master-data-text-field";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { BoDungCuFormValues, BoDungCuTableRow, mapBoDungCuRowToForm } from "./bo-dung-cu-form-shared";
-import { saveBoDungCuAction, suggestNextBoMaAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
+import { saveBoDungCuAction, suggestNextBoMaAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
 import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
 import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 

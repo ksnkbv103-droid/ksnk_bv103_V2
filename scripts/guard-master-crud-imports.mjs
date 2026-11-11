@@ -11,6 +11,7 @@ const needle = "master-crud-core";
 
 const allowed = [
   /src\/lib\/master-data\/engine\//,
+  /src\/modules\/cssd-erp\/contexts\/[^/]+\/admin\/[^/]+\.actions\.ts$/,
   /src\/modules\/quan-tri-he-thong\/danh-muc\/actions\//,
   /src\/modules\/giam-sat-chung\/bang-kiem\/actions\//,
   /src\/modules\/quan-tri-he-thong\/nhan-su\/actions\//,

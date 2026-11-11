@@ -15,13 +15,13 @@ import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { getHoaChatColumns } from "./hoa-chat-columns";
-import type { HoaChatRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
+import type { HoaChatRow } from "@/modules/cssd-erp/contexts/inventory-chemical/admin/hoa-chat.types";
 import {
   getHoaChatRowsAction,
   softDeleteHoaChatAction,
   softDeleteManyHoaChatAction,
   toggleHoaChatStatusAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.actions";
+} from "@/modules/cssd-erp/contexts/inventory-chemical/admin/hoa-chat.actions";
 import { DmMasterPageGuard } from "@/components/master-data/generic-dm/dm-master-page-guard";
 import { smartImportData } from "@/lib/master-data/engine/smart-import.actions";
 import { getMasterDataExport } from "@/lib/master-data/engine/export.actions";

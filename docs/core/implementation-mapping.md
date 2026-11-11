@@ -52,7 +52,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | Lookup thống nhất (SSOT, danh sách theo `domain-registry.ts`) | `quan-tri-he-thong/danh-muc/` | **TABLE `sys_lookup_value`** (`category_type`, `code`, `name`, `metadata` JSONB) | Toàn bộ lookup phẳng SSOT về đây (trừ `LOAI_DUNG_CU` = TABLE). Migration `20260520000006` consolidate; `20260525000011` rename → `sys_lookup_value`. |
 | RBAC | `quan-tri-he-thong/phan-quyen/` | **TABLE `sys_roles`**, **`sys_permissions`**, **`sys_role_permissions`**, **`sys_user_roles`**; view tổng hợp **`v_sys_user_permissions`** | View compat (DROP Phase 1): `v_auth_user_permissions`. Matrix: `v_sys_role_permissions_matrix`. |
 | Module locks | `gstt_*` (VST/GSC) | **`sys_module_locks`** (`module_name` IN ('VST','GSC')) | Khóa cứng ngày báo cáo; trigger `fn_assert_vst_gsc_not_locked` (`20260525000003`). |
-| Ledger dụng cụ (CSSD vận hành) | `cssd-erp` + `danh-muc/actions/kho-dung-cu-giao-dich` | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: **Master CSSD** (`cssd_dm_*`); giao dịch tồn/kho: fact; RLS `000014`. |
+| Ledger dụng cụ (CSSD vận hành) | `cssd-erp` (`contexts/instrument-catalog/admin/kho-dung-cu-giao-dich.actions`) | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: **Master CSSD** (`cssd_dm_*`); giao dịch tồn/kho: fact; RLS `000014`. |
 
 ---
 

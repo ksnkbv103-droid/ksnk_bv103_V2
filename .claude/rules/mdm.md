@@ -17,7 +17,7 @@ Trước khi thêm/sửa CRUD, import, registry:
 ## Master Data Placement
 
 - Danh mục lõi: khai qua **domain-registry** → bảng/view `{module}_dm_*` hoặc ghi lookup qua **`sys_lookup_value`** (category_type). **Không** thêm bảng `dict_*` mới; **không** dùng prefix legacy `dm_*` / `fact_*` (đã DROP, `legacy:guard`).
-- **Master CSSD** (loại/bộ/BOM/thiết bị/hóa chất): TABLE `cssd_dm_*` — mã CRUD nằm dưới `quan-tri-he-thong/danh-muc/`. Loại/bộ/BOM: UI ở `cssd-erp/contexts/instrument-catalog/admin` (AR-5a 2026-11-10), hiện ở `/cssd-dung-cu`; action ghi CRUD + `master-crud-core` còn ở quản trị (guard `imports:master-crud`); máy/hóa chất vẫn ở quản trị.
+- **Master CSSD** (loại/bộ/BOM/thiết bị/hóa chất): TABLE `cssd_dm_*` — UI + action CRUD ở `cssd-erp/contexts/{instrument-catalog,inventory-chemical,maintenance}/admin` (AR-8d 2026-11-11); engine chung `src/lib/master-data/engine` (guard `imports:master-crud`).
 - **Duyệt theo rủi ro (AR-5d):** hóa chất/thiết bị — thêm mới, ngừng/xóa, nồng độ, định mức cần quyền `approve` (`requireCssdSensitiveApprove`, pure: `src/lib/domain/cssd-sensitive-change.ts`); dụng cụ loại/bộ/BOM chỉ ADMIN ghi, còn lại qua đề nghị.
 - **MDM tổ chức** (khoa, nhân sự): TABLE `mdm_*` — cùng hub Quản trị; không nhầm với master CSSD.
 - All master data modules must live under `src/modules/quan-tri-he-thong/danh-muc/` (và nhánh `nhan-su` / `bang-kiem` / `phan-quyen` tương ứng).

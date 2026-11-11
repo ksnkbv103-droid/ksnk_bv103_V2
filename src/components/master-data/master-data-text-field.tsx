@@ -11,7 +11,7 @@ interface Props {
   placeholder?: string;
 }
 
-/** Ô nhập một dòng — dùng trong modal Bộ dụng cụ. */
+/** Ô nhập một dòng — dùng chung trong modal danh mục (khoa phòng, bộ/dụng cụ, hóa chất, thiết bị). */
 export default function BoDungCuTextField({ label, value, onChange, type = "text", required, disabled, placeholder }: Props) {
   return (
     <div className="space-y-1">

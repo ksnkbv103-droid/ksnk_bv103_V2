@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import { saveLoaiDungCuAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/loai-dung-cu.actions";
+import { saveLoaiDungCuAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu.actions";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import {
   mapIsChiuNhietToKhaNang,

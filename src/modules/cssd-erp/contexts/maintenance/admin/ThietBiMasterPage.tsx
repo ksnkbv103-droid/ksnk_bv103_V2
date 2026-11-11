@@ -12,13 +12,13 @@ import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { getThietBiColumns } from "./thiet-bi-columns";
-import type { ThietBiRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.types";
+import type { ThietBiRow } from "@/modules/cssd-erp/contexts/maintenance/admin/thiet-bi.types";
 import {
   getThietBiRowsAction,
   softDeleteManyThietBiAction,
   softDeleteThietBiAction,
   toggleThietBiStatusAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.actions";
+} from "@/modules/cssd-erp/contexts/maintenance/admin/thiet-bi.actions";
 import { DmMasterPageGuard } from "@/components/master-data/generic-dm/dm-master-page-guard";
 import { smartImportData } from "@/lib/master-data/engine/smart-import.actions";
 import { getMasterDataExport } from "@/lib/master-data/engine/export.actions";

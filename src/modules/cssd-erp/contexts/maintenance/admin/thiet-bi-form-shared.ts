@@ -1,4 +1,4 @@
-import type { ThietBiRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.types";
+import type { ThietBiRow } from "@/modules/cssd-erp/contexts/maintenance/admin/thiet-bi.types";
 
 export type ThietBiFormValues = {
   id?: string;

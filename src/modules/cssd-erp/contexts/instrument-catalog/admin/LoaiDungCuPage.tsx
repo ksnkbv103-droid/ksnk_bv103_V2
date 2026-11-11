@@ -22,7 +22,7 @@ import {
   softDeleteLoaiDungCuAction,
   softDeleteManyLoaiDungCuAction,
   toggleLoaiDungCuStatusAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/loai-dung-cu.actions";
+} from "@/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 import { LoaiBulkPhuongPhapDialog } from "./loai-bulk-phuong-phap-dialog";
 

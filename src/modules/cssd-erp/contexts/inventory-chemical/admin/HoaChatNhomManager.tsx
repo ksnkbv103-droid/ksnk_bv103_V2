@@ -6,13 +6,13 @@ import { toast } from "sonner";
 import QuanTriFormDialogShell from "@/components/shared/QuanTriFormDialogShell";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
-import type { HoaChatNhomRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat.types";
+import type { HoaChatNhomRow } from "@/modules/cssd-erp/contexts/inventory-chemical/admin/hoa-chat.types";
 import {
   createHoaChatNhomAction,
   listHoaChatNhomAction,
   setHoaChatNhomActiveAction,
   updateHoaChatNhomAction,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/hoa-chat-nhom.actions";
+} from "@/modules/cssd-erp/contexts/inventory-chemical/admin/hoa-chat-nhom.actions";
 
 type Loai = "HOA_CHAT" | "VAT_TU";
 

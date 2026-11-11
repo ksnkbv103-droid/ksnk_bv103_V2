@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import BoDungCuTextField from "../../components/bo-dung-cu-form-field";
+import BoDungCuTextField from "@/components/master-data/master-data-text-field";
 import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import { saveKhoaPhongAction } from "../actions/khoa-phong.actions";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";

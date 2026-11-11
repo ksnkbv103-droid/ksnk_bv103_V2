@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
-import { getBoDungCuMaBoHealthAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
+import { getBoDungCuMaBoHealthAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
 

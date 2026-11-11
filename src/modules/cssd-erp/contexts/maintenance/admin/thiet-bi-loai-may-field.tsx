@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getLoaiMayTietKhuanOptionsAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.actions";
-import type { LoaiMayTietKhuanOption } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.types";
+import { getLoaiMayTietKhuanOptionsAction } from "@/modules/cssd-erp/contexts/maintenance/admin/thiet-bi.actions";
+import type { LoaiMayTietKhuanOption } from "@/modules/cssd-erp/contexts/maintenance/admin/thiet-bi.types";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 
 /** Chọn loại máy từ `cssd_dm_loai_may` (đồng bộ với khai báo danh mục). */

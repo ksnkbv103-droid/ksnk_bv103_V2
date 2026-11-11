@@ -5,7 +5,7 @@ import { verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-pe
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { logAdminAction } from "@/lib/admin-audit";
 import { maNhomKhongTrung, sinhMaNhom } from "@/lib/domain/cssd-hoa-chat-nhom";
-import type { HoaChatNhomRow } from "./hoa-chat.types";
+import type { HoaChatNhomRow } from "@/modules/cssd-erp/contexts/inventory-chemical/admin/hoa-chat.types";
 
 const COLS = "id, ma, ten, loai_hoa_chat, thu_tu, is_active";
 const NOT_ADMIN = "Chỉ quản trị viên được quản lý nhóm.";

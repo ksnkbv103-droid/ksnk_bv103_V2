@@ -52,7 +52,7 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
-import { mergeDuplicateBomLinesAction } from "./dung-cu-chi-tiet.actions";
+import { mergeDuplicateBomLinesAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/dung-cu-chi-tiet.actions";
 
 function buildRows(total: number) {
   const rows: Array<{ id: string; bo_dung_cu_id: string; loai_dung_cu_id: string }> = [];

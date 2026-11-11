@@ -10,7 +10,7 @@ import {
 } from "@/lib/master-data/engine/master-crud-core";
 import { z } from "zod";
 import { isVatTuLoai } from "@/lib/domain/cssd-hoa-chat-loai";
-import type { HoaChatRow } from "./hoa-chat.types";
+import type { HoaChatRow } from "@/modules/cssd-erp/contexts/inventory-chemical/admin/hoa-chat.types";
 import { detectHoaChatSensitiveChange } from "@/lib/domain/cssd-sensitive-change";
 import { requireCssdSensitiveApprove } from "@/lib/master-data/require-cssd-sensitive-approve";
 

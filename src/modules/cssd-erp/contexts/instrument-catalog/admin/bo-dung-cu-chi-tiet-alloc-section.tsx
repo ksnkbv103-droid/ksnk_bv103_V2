@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { quanTriFormChrome as C } from "@/lib/master-data-form-chrome";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
-import { allocateProceduralSetAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu.actions";
+import { allocateProceduralSetAction } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 export type AllocationRow = {
