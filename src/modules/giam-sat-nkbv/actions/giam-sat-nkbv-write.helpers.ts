@@ -143,3 +143,26 @@ export async function releaseViSinhStampsAfterHide(
   }
   return null;
 }
+
+/** NKBV-013: khoa quy kết (LOA) phải thuộc lưới ngày–khoa của BA hoặc là khoa điều trị của BA. */
+export async function isLoaKhoaInBaGrid(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  maBenhAn: string,
+  khoaId: string,
+): Promise<boolean> {
+  const [{ data: grid }, { data: ba }] = await Promise.all([
+    supabase
+      .from("nkbv_fact_ba_ngay_khoa")
+      .select("khoa_id")
+      .eq("ma_benh_an", maBenhAn)
+      .eq("khoa_id", khoaId)
+      .limit(1),
+    supabase
+      .from("nkbv_fact_benh_an")
+      .select("khoa_dieu_tri_id")
+      .eq("ma_benh_an", maBenhAn)
+      .maybeSingle(),
+  ]);
+  if ((grid || []).length > 0) return true;
+  return String((ba as { khoa_dieu_tri_id?: string } | null)?.khoa_dieu_tri_id || "") === khoaId;
+}

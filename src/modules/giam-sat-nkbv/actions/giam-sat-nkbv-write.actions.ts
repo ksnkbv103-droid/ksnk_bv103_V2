@@ -28,6 +28,7 @@ import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import {
   clean,
   callThamDinhRpc,
+  isLoaKhoaInBaGrid,
   releaseViSinhStampsAfterHide,
   validateLoaiTrangAndLyDo,
   type Payload,
@@ -554,6 +555,17 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         error:
           "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
       };
+    }
+
+    // NKBV-013: không tin khoa quy kết từ client — phải thuộc lưới ngày–khoa của BA
+    if (caRow?.ma_benh_an) {
+      const okLoa = await isLoaKhoaInBaGrid(supabase, String(caRow.ma_benh_an), loaKhoaId);
+      if (!okLoa) {
+        return {
+          success: false as const,
+          error: "Khoa quy kết (LOA) không thuộc lưới ngày–khoa của bệnh án này.",
+        };
+      }
     }
 
     const calculatedDoeRaw = String(
