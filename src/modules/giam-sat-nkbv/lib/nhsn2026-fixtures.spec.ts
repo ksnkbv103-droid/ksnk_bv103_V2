@@ -91,7 +91,7 @@ function addPrev(d: string): string {
 }
 
 /** Ca VAC mà lõi hiện tại chưa đúng — sửa ở GĐ2 lát 2 (V10.10/21/22). */
-const VAC_CHUA_DUNG_LOI = new Set<string>(["C10.13", "C10.14", "C10.29"]);
+const VAC_CHUA_DUNG_LOI = new Set<string>([]);
 
 describe("NHSN 2026 Ch.10 — VAC từ bảng ngày (gắn tay)", () => {
   for (const c of ch10.ca) {
