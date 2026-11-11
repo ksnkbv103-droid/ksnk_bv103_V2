@@ -11,6 +11,7 @@ import {
   type NkbvMdroPhenotype,
 } from "../lib/nkbv-mdro";
 import { vnYmd } from "@/lib/format-datetime-vi";
+import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
 
 export type MdroInpatientRow = {
   ma_benh_an: string;
@@ -44,7 +45,11 @@ export async function listMdroInpatientsByKhoa(params: {
 }) {
   await assertCensusRead();
   const supabase = await createServerSupabaseUserClient();
-  const khoaId = params.khoaId ? String(params.khoaId).trim() : "";
+  // NK-SCOPE: khoa bị giới hạn thì ép khoaId theo quyền, bỏ qua giá trị client.
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: true as const, data: [] as MdroInpatientRow[] };
+  const khoaId =
+    restriction.kind === "khoa" ? restriction.khoaId : params.khoaId ? String(params.khoaId).trim() : "";
   const limit = Math.min(Math.max(params.limit || 200, 1), 500);
 
   let stayQ = supabase

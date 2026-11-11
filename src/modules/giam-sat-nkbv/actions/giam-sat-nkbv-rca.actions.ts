@@ -2,6 +2,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
 import { GSC_BK_ISOLATION, GSC_BK_MDRO } from "../lib/nkbv-mdro";
 
 export type NkbvPatientRcaRow = {
@@ -27,7 +28,10 @@ export async function listNkbvPatientRcaByKhoa(params: { khoaId: string; limit?:
     { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
   ]);
 
-  const khoaId = String(params.khoaId || "").trim();
+  // NK-SCOPE: khoa bị giới hạn thì ép khoaId theo quyền, bỏ qua giá trị client.
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "none") return { success: true as const, data: [] as NkbvPatientRcaRow[] };
+  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : String(params.khoaId || "").trim();
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvPatientRcaRow[] };
 
   const supabase = await createServerSupabaseUserClient();
