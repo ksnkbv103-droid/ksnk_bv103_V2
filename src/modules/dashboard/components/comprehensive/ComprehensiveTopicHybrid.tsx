@@ -112,7 +112,7 @@ function TopicSummary({
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="bv103-type-section text-slate-700">{title}</h3>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
+          <Link href={deepHref} className="inline-flex min-h-11 sm:min-h-0 items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
             {extraDeepLinks?.length ? "WHO" : "Chi tiết thống kê"}
             <ExternalLink size={10} aria-hidden className="ml-0.5 inline" />
           </Link>

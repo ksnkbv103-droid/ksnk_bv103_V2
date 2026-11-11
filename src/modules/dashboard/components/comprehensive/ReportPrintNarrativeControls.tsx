@@ -77,7 +77,7 @@ type Props = {
 };
 
 function narrativeBtnClass(filled: boolean) {
-  return `flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold ${
+  return `flex h-11 sm:h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold ${
     filled
       ? "border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
       : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -104,7 +104,7 @@ export function ReportPrintNarrativeControls({
           type="button"
           onClick={onGenerateDraft}
           disabled={draftBusy}
-          className="flex h-9 items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
+          className="flex h-11 sm:h-9 items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
           title="Điền gợi ý nhận xét/kiến nghị từ số liệu kỳ lọc — bạn chỉnh trước khi in/ký"
         >
           <Sparkles size={14} aria-hidden />

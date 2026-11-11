@@ -176,7 +176,7 @@ export function BaoCaoTongHopPage() {
       <button
         type="button"
         onClick={() => void d.loadReport()}
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        className="inline-flex h-11 sm:h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
       >
         <RefreshCw size={14} aria-hidden /> Cập nhật
       </button>
@@ -189,7 +189,7 @@ export function BaoCaoTongHopPage() {
             ? "In báo cáo A4"
             : "Cần quyền xuất/in báo cáo tổng hợp (DASHBOARD_CC_EXPORT)"
         }
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="inline-flex h-11 sm:h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
       >
         <Printer size={14} aria-hidden /> {printing ? "Đang in…" : "In A4"}
       </button>

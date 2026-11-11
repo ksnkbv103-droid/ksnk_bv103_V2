@@ -57,7 +57,7 @@ export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayloa
               )}
               <Link
                 href={card.statsHref}
-                className="mt-[var(--bv103-space-1)] inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline"
+                className="mt-[var(--bv103-space-1)] inline-flex min-h-11 sm:min-h-0 items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline"
               >
                 Chi tiết thống kê <ExternalLink size={10} aria-hidden />
               </Link>

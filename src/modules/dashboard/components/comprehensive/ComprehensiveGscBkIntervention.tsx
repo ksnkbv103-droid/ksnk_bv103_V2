@@ -38,7 +38,7 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
         </p>
         <Link
           href={deepBase ? buildGscAnalyticsDeepLink(deepBase) : "/thong-ke/gsc"}
-          className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline"
+          className="inline-flex min-h-11 sm:min-h-0 items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline"
         >
           Chi tiết thống kê <ExternalLink size={10} aria-hidden />
         </Link>
@@ -71,7 +71,7 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
                 <td className="px-2 py-2">
                   <Link
                     href={deepBase ? buildGscAnalyticsDeepLink(deepBase, r.ma_bk) : `/thong-ke/gsc?bk=${r.ma_bk}`}
-                    className="bv103-type-label font-semibold text-sky-700 hover:underline"
+                    className="inline-flex min-h-11 sm:min-h-0 items-center bv103-type-label font-semibold text-sky-700 hover:underline"
                   >
                     Chi tiết thống kê
                   </Link>
