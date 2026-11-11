@@ -13,7 +13,13 @@ import { DM_HUB_LABELS, getAllRegistryEntries } from "@/lib/master-data/domain-r
 
 /** Chuẩn hóa `[loai]` từ URL (decode + trim + HOA). */
 export function normalizeLoaiParam(raw: string): string {
-  return decodeURIComponent(raw).trim().toUpperCase();
+  let decoded = raw;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    // `%` sai định dạng → giữ nguyên chuỗi; không có trong registry nên trang trả 404.
+  }
+  return decoded.trim().toUpperCase();
 }
 
 export function ownedLookupTitle(raw: string): string {
