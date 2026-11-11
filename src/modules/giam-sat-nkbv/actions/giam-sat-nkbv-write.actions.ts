@@ -51,6 +51,21 @@ import { vnYmd } from "@/lib/format-datetime-vi";
 const NKBV_UPDATE_LOCKED_VI =
   "Ca đã chốt (xác nhận / loại trừ / đã đóng) — không sửa phiếu. Dùng panel thẩm định hoặc ẩn phiếu nếu cần.";
 
+/** Phiếu có nằm trong phạm vi khoa của actor không (cùng mẫu updateGiamSatNkbvCa). Phiếu không tồn tại → true để luồng cũ tự báo lỗi. */
+async function isNkbvCaInScope(supabase: ReturnType<typeof createAdminSupabaseClient>, id: string): Promise<boolean> {
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "all") return true;
+  const { data: row, error } = await supabase
+    .from("nkbv_fact_su_kien")
+    .select("ma_benh_an, khoa_ghi_nhan_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!row) return true;
+  if (row.ma_benh_an) return isNkbvBenhAnInScope(restriction, String(row.ma_benh_an));
+  return nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null]);
+}
+
 export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
   return {
@@ -210,6 +225,9 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
   const supabase = createAdminSupabaseClient();
 
   try {
+    if (!(await isNkbvCaInScope(supabase, id))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: statusProbe, error: statusProbeErr } = await supabase
       .from("v_nkbv_su_kien_full")
       .select("trang_thai_ma")
@@ -682,6 +700,9 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
   const supabase = createAdminSupabaseClient();
 
   try {
+    if (!(await isNkbvCaInScope(supabase, id))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: ca, error: fetchErr } = await supabase
       .from("nkbv_fact_su_kien")
       .select("clinical_notes, verification_data")
@@ -739,6 +760,9 @@ export async function updateNkbvBenhAnStay(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
+    if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: prev, error: prevErr } = await supabase
       .from("nkbv_fact_benh_an")
       .select("id, ngay_vao_vien")
@@ -859,6 +883,9 @@ export async function createNkbvBenhAnStay(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
+    if (!nkbvKhoaVisible(await getNkbvKhoaRestriction(), [input.khoa_dieu_tri_id])) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: existing } = await supabase
       .from("nkbv_fact_benh_an")
       .select("id")
@@ -925,6 +952,9 @@ export async function syncNkbvAdmissionDate(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
+    if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const iso = new Date(`${ngay}T12:00:00`).toISOString();
     const { error: stayErr } = await supabase
       .from("nkbv_fact_benh_an")
@@ -937,7 +967,9 @@ export async function syncNkbvAdmissionDate(input: {
       const { error: evErr } = await supabase
         .from("nkbv_fact_su_kien")
         .update({ ngay_vao_vien: ngay, updated_at: new Date().toISOString() })
-        .eq("id", input.su_kien_id);
+        .eq("id", input.su_kien_id)
+        // NKBV-010: phạm vi đã kiểm theo mã BA, nên chỉ ghi phiếu thuộc đúng BA đó (không tin su_kien_id từ client).
+        .eq("ma_benh_an", ma);
       if (evErr) throw evErr;
     }
 
