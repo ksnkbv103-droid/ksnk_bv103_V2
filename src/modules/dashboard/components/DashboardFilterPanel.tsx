@@ -102,7 +102,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
               className={ctl}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-1 pl-8">
+          <div className="grid grid-cols-3 gap-1 sm:grid-cols-6 sm:pl-8">
             {presets.map((preset) => {
               const active = p.tuNgay === preset.tuNgay && p.denNgay === preset.denNgay;
               return (
@@ -113,10 +113,10 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
                     p.setTuNgay(preset.tuNgay);
                     p.setDenNgay(preset.denNgay);
                   }}
-                  className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-2.5 text-xs font-medium transition-colors ${
+                  className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-2 text-xs font-medium transition-colors ${
                     active
                       ? "bg-slate-900 text-white shadow-xs"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      : "bg-white text-slate-600 ring-1 ring-slate-200/70 hover:bg-slate-100"
                   }`}
                   title={`${preset.label}: ${preset.tuNgay} → ${preset.denNgay}`}
                 >
