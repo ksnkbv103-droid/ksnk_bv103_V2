@@ -86,7 +86,7 @@ export async function previewViSinhImportAlerts(
 
 /** Nạp kết quả vi sinh LIS theo mẫu cố định (âm / dương / nhiễu). */
 export async function importViSinhExcel(records: ViSinhRecordInput[]) {
-  await verifyPermission("GIAM_SAT_NKBV", "create");
+  await verifyPermission("GIAM_SAT_NKBV", "import");
   const restriction = await getNkbvKhoaRestriction();
   if (restriction.kind === "none") {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
@@ -151,6 +151,13 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
         .eq("ma_benh_an", stay.ma_benh_an)
         .eq("is_active", true)
         .maybeSingle();
+
+      // NKBV-016: BA đã có phải nằm trong khoa của actor — không ghi chồng BA khoa khác
+      if (existingStay && restriction.kind !== "all") {
+        if (!(await isNkbvBenhAnInScope(restriction, String(stay.ma_benh_an)))) {
+          return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+        }
+      }
 
       if (!existingStay) {
         const { error: stayErr } = await supabase.from("nkbv_fact_benh_an").insert(stay);
@@ -283,7 +290,7 @@ export type BenhAnRecordInput = {
  * Không tạo phiếu HAI — chỉ stay pool.
  */
 export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
-  await verifyPermission("GIAM_SAT_NKBV", "create");
+  await verifyPermission("GIAM_SAT_NKBV", "import");
   const restriction = await getNkbvKhoaRestriction();
   for (const r of records) {
     if (!nkbvKhoaVisible(restriction, [r.khoa_dieu_tri_id])) {

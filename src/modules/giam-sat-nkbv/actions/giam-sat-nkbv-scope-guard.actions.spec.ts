@@ -45,6 +45,7 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
+import { verifyPermission } from "@/lib/server-permission";
 import { importBenhAnExcel, importViSinhExcel, previewViSinhImportAlerts } from "./giam-sat-nkbv-import.actions";
 import { markNkbvViSinhKhongDuTc, skipNkbvViSinhAnalysis } from "./giam-sat-nkbv-ba-analysis.actions";
 import { upsertNkbvBaNgayKhoa } from "./giam-sat-nkbv-ba-ngay.actions";
@@ -74,6 +75,22 @@ describe("NKBV import — phạm vi khoa", () => {
   it("importViSinhExcel: thiếu khoa_yeu_cau_id với restriction khoa bị từ chối", async () => {
     const r = await importViSinhExcel([{ ma_benh_an: "BA1" } as never]);
     expect(r).toEqual({ success: false, error: OUT });
+  });
+  it("NKBV-016: import dùng quyền 'import'; importViSinhExcel từ chối BA đã có ngoài khoa", async () => {
+    mocks.inScope.mockResolvedValue(false);
+    const r = await importViSinhExcel([
+      {
+        ma_benh_an: "BA1",
+        ma_xet_nghiem: "X1",
+        ket_qua: "DUONG_TINH",
+        ngay_vao_vien: "2026-11-01",
+        ngay_lay_mau: "2026-11-02",
+        khoa_yeu_cau_id: K1,
+      } as never,
+    ]);
+    expect(r).toEqual({ success: false, error: OUT });
+    expect(verifyPermission).toHaveBeenCalledWith("GIAM_SAT_NKBV", "import");
+    expect(verifyPermission).not.toHaveBeenCalledWith("GIAM_SAT_NKBV", "create");
   });
   it("previewViSinhImportAlerts: restriction none bị từ chối; BA ngoài khoa bị lọc", async () => {
     mocks.restriction.mockResolvedValue({ kind: "none" });
