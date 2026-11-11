@@ -280,9 +280,9 @@
     "tieu_de": "dao_tao_cau_hinh cho authenticated đọc mọi kỳ thi_that đã published, kèm cột gan (danh sách khoa và nhân sự được phân công). Policy select không kiểm gan. authenticated còn có INSERT/UPDATE/DELETE/TRUNCATE ở mức GRANT, chỉ chặn bằng policy write",
     "bang_chung": "policy dao_tao_cau_hinh_select, dao_tao_cau_hinh_write (SELECT pg_policies); information_schema.role_table_grants",
     "lenh_kiem": "SELECT policyname,qual FROM pg_policies WHERE tablename='dao_tao_cau_hinh'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "c1ce38c4",
     "ghi_chu": "Thu GRANT ghi trên authenticated vì app dùng admin client. Cân nhắc policy select thi_that theo gan. Hỏi PO"
   },
   {
@@ -293,9 +293,9 @@
     "tieu_de": "anon có GRANT SELECT trên dao_tao_cau_hinh và dao_tao_lan_thi. Hiện RLS bật và policy chỉ cho authenticated nên không lộ, nhưng chỉ còn một lớp bảo vệ. dao_tao_cau_hoi và dao_tao_lan_thi không có policy nào nên authenticated không đọc trực tiếp được (đúng thiết kế, app dùng service role)",
     "bang_chung": "information_schema.role_table_grants và pg_policies; relrowsecurity=t cả 3 bảng",
     "lenh_kiem": "SELECT grantee,table_name FROM information_schema.role_table_grants WHERE table_name LIKE 'dao_tao%' AND grantee='anon'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "c1ce38c4",
     "ghi_chu": "REVOKE SELECT từ anon cho hai bảng"
   },
   {
@@ -345,7 +345,7 @@
     "tieu_de": "Lịch cron sinh việc định kỳ gọi hàm không tồn tại (fn_fact_cong_viec_spawn_dinh_ky_hom_nay); không migration nào đặt lịch cho hàm thật fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay, vercel.json không có crons, nên việc định kỳ chỉ sinh khi ai đó bấm nút tay, hết cửa sổ catch-up 7 ngày là mất phiếu.",
     "bang_chung": "supabase/migrations/20260530082000_qlcv_cron_schedule.sql:19-23 (tên cũ, và cả khối chỉ chạy nếu có pg_cron); 20261005173000 và 20261029100000 không có cron.schedule; vercel.json không có crons; DB local pg_proc chỉ có fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay",
     "lenh_kiem": "Local: select proname from pg_proc where proname ~ 'spawn'. Prod (qua MCP): select jobname,command,active from cron.job where jobname like 'qlcv%'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-qlcv",
     "commit": "",
     "ghi_chu": "Đối chiếu prod 2026-11-11 (chỉ đọc): cron.job qlcv-spawn-dinh-ky-daily gọi đúng fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay, active; prod có 0 mẫu định kỳ. Hạ mức: thực chất là lệch repo, không migration nào ghi lịch cron đúng tên hàm. Sửa: migration idempotent ghi lại lịch (lên prod hỏi PO). | Prod: kiểm cron.job. Nếu lệnh còn tên cũ hoặc chưa có lịch, thêm migration cron.schedule('qlcv-spawn-dinh-ky-daily','1 17 * * *','SELECT public.fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay();'). Migration prod: hỏi PO."
@@ -527,9 +527,9 @@
     "tieu_de": "Đợt rà quyền CSSD chưa phủ: cssd-su-co/application (void/close/recall/confirm), set-reconcile, cssd-bao-tri-mutations, persist-me-tiet-khuan, fn_cssd_apply_bom_plan_tx, RLS bảng cssd_*; fn_cssd_operator_nhan_su_id (DEFINER, tra nhân sự theo email) còn EXECUTE cho authenticated chưa đánh giá",
     "bang_chung": "Báo cáo agent r1-cssd-quyen 2026-11-11, mục «Chưa rà»",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
-    "commit": "",
+    "commit": "607d774b",
     "ghi_chu": "B3: đã rà đợt 2 (r2-cssd-quyen) → CSSD-011..013. Còn chưa rà: thân fn_cssd_apply_bom_lines_tx, rpc_cssd_bao_tri_*, recall-*, set-reconcile-ledger/incident, policy cssd_fact_bao_tri, fn_cssd_bo_tong_id, su-co-form-catalog."
   },
   {
@@ -995,9 +995,9 @@
     "tieu_de": "NHAN_SU:edit gọi thẳng PostgREST cập nhật được mdm_nhan_su của ADMIN (is_active, auth_user_id) → vượt chốt chỉ nằm ở action, ADMIN mất quyền",
     "bang_chung": "pg_policies mdm_nhan_su_update chỉ fn_sys_has_permission(NHAN_SU,edit); thử BEGIN…ROLLBACK: UPDATE 1 trên hồ sơ ADMIN; chốt app: nhan-su-write.actions.ts:97-108, nhan-su-active.actions.ts:41-47",
     "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -At < /private/tmp/claude-501/-Users-drnghia-Desktop-ksnk-bv103/b927d1b4-da5a-4eed-9c67-a67895858a64/scratchpad/p.sql",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-quan-tri-quyen",
-    "commit": "",
+    "commit": "9745e1ef",
     "ghi_chu": "Local chỉ ADMIN có NHAN_SU:edit. Hỏi PO: prod có cấp cho vai trò khác không? Nếu có → nâng CAO. Sửa: policy NOT is_admin_user(auth_user_id) OR fn_sys_is_admin() (lô migration)."
   },
   {
