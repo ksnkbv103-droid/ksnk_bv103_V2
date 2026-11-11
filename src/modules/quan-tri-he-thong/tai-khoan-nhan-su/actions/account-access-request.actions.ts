@@ -317,6 +317,7 @@ export async function approveAccountAccessRequest(params: {
     const { logAdminAction } = await import("@/lib/admin-audit");
     await logAdminAction({
       action: "APPROVE_ACCOUNT_REQUEST",
+      failClosed: true,
       targetTable: "mdm_nhan_su",
       targetId: staffId,
       after: { status: "DUYET", kind: "REQUEST", ticket_id: ticket.id },
@@ -391,6 +392,17 @@ export async function approveForgotResetRequest(params: {
       return { success: false as const, error: "Phiếu này đã được xử lý bởi một quản trị viên khác." };
     }
 
+    const { logAdminAction } = await import("@/lib/admin-audit");
+    await logAdminAction({
+      action: "APPROVE_ACCOUNT_REQUEST",
+      failClosed: true,
+      targetTable: "mdm_nhan_su",
+      targetId: String(staff.id),
+      after: { status: "DUYET", kind: "RESET", ticket_id: ticket.id },
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+    });
+
     revalidateNhanSuTaiKhoan();
     return { success: true as const };
   } catch (e: unknown) {
@@ -415,6 +427,7 @@ export async function rejectAccountAccessRequest(params: { staffId: string; reas
       const { logAdminAction } = await import("@/lib/admin-audit");
       await logAdminAction({
         action: "REJECT_ACCOUNT_REQUEST",
+        failClosed: true,
         targetTable: "sys_account_access_request",
         targetId: ticket.id,
         after: { status: "TU_CHOI", kind: ticket.kind },
@@ -485,6 +498,7 @@ export async function rejectAccountAccessRequest(params: { staffId: string; reas
     const { logAdminAction } = await import("@/lib/admin-audit");
     await logAdminAction({
       action: "REJECT_ACCOUNT_REQUEST",
+      failClosed: true,
       targetTable: "mdm_nhan_su",
       targetId: staff.id,
       after: { status: "TU_CHOI", kind: req.kind || "REQUEST" },
