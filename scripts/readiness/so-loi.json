@@ -358,9 +358,9 @@
     "tieu_de": "Hàm sinh việc chỉ bù 7 ngày (catch_up_days=7) và âm thầm bỏ qua mẫu thiếu người phụ trách; không ghi log hay cảnh báo nên thiếu việc mà không ai biết.",
     "bang_chung": "fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay (pg_get_functiondef): catch_up_days constant 7; 'IF r.nguoi_phu_trach_id IS NULL THEN CONTINUE'; migration 20261029100000_qlcv_spawn_dinh_ky_catch_up.sql",
     "lenh_kiem": "select count(*) from qlcv_fact_cong_viec_dinh_ky where is_active and nguoi_phu_trach_id is null (local = 0 trên 6 mẫu)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-qlcv",
-    "commit": "",
+    "commit": "1f9caadb",
     "ghi_chu": "B2: DUNG một phần. catch_up_days=7 và CONTINUE im lặng có thật nhưng local 0 mẫu thiếu người phụ trách; rủi ro chỉ khi job ngừng >7 ngày. Hạ CAO→THAP."
   },
   {
