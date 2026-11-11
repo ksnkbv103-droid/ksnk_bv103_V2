@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveBoTongIdForBomWrite } from "@/lib/master-data/cssd-bom-write-target";
 import {
   doiLoaiIsRelink,
   normalizeMaLoaiDeXuat,
@@ -110,8 +111,9 @@ export async function applyApprovedBomLines(
   boDungCuId: string,
   lines: SetReconcileLineInput[],
 ): Promise<void> {
-  const boId = String(boDungCuId || "").trim();
-  if (!boId) throw new Error("Thiếu bộ dụng cụ.");
+  const rawBoId = String(boDungCuId || "").trim();
+  if (!rawBoId) throw new Error("Thiếu bộ dụng cụ.");
+  const boId = await resolveBoTongIdForBomWrite(supabase, rawBoId);
   const invalid = prevalidateSetBomLines(lines);
   if (invalid) throw new Error(invalid);
 

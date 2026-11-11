@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveBoTongIdForBomWrite } from "@/lib/master-data/cssd-bom-write-target";
 import {
   normalizeDeNghiItems,
   type CssdCatalogDeNghiBomLine,
@@ -451,8 +452,9 @@ async function applyBom(
   payloadAfter: Record<string, unknown>,
   now: string,
 ): Promise<void> {
-  const boId = String(targetId || "").trim();
-  if (!boId) throw new Error("Thiếu bộ đích cho thành phần.");
+  const rawBoId = String(targetId || "").trim();
+  if (!rawBoId) throw new Error("Thiếu bộ đích cho thành phần.");
+  const boId = await resolveBoTongIdForBomWrite(supabase, rawBoId);
   const rawLines = Array.isArray(payloadAfter.lines)
     ? (payloadAfter.lines as CssdCatalogDeNghiBomLine[])
     : [];
