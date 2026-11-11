@@ -223,6 +223,8 @@ export type KetQuaKyThiRow = {
   hetHanLuc: string | null;
 };
 
+const KET_QUA_KY_THI_MAX = 500;
+
 export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: string }) {
   await requireDaoTaoAdmin();
   const admin = createAdminSupabaseClient();
@@ -236,11 +238,13 @@ export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: str
     .eq("che_do", "thi_that")
     .in("trang_thai", ["da_nop", "het_gio"])
     .order("nop_luc", { ascending: false })
-    .limit(500);
+    .limit(KET_QUA_KY_THI_MAX + 1);
   if (kyThiId) q = q.eq("cau_hinh_id", kyThiId);
   const { data, error } = await q;
   if (error) throw error;
-  const rows = data ?? [];
+  // DT-013: lấy dư 1 dòng để biết danh sách bị cắt, báo cho giao diện thay vì cắt im lặng.
+  const truncated = (data ?? []).length > KET_QUA_KY_THI_MAX;
+  const rows = (data ?? []).slice(0, KET_QUA_KY_THI_MAX);
   const kyIds = [...new Set(rows.map((r) => r.cau_hinh_id).filter(Boolean))] as string[];
   const authIds = [...new Set(rows.map((r) => r.auth_user_id).filter(Boolean))] as string[];
   const [{ data: kys }, { data: nss }] = await Promise.all([
@@ -301,7 +305,7 @@ export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: str
       hetHanLuc: chungChi.hetHanLuc,
     };
   });
-  return khoaId ? out.filter((r) => r.khoaId === khoaId) : out;
+  return { rows: khoaId ? out.filter((r) => r.khoaId === khoaId) : out, truncated, max: KET_QUA_KY_THI_MAX };
 }
 
 export async function listChuaNopKyThi(kyThiId: string) {

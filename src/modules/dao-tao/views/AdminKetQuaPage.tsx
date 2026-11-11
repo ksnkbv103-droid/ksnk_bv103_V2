@@ -78,6 +78,7 @@ export default function AdminKetQuaPage() {
   const [kyThiId, setKyThiId] = useState("");
   const [khoaId, setKhoaId] = useState("");
   const [coverage, setCoverage] = useState<ChuaNop | null>(null);
+  const [truncatedMax, setTruncatedMax] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
 
   const reload = async (ky: string, khoa: string) => {
@@ -85,7 +86,8 @@ export default function AdminKetQuaPage() {
       kyThiId: ky || undefined,
       khoaId: khoa || undefined,
     });
-    setRows(data);
+    setRows(data.rows);
+    setTruncatedMax(data.truncated ? data.max : null);
     if (ky) {
       setCoverage(await listChuaNopKyThi(ky));
     } else {
@@ -128,6 +130,12 @@ export default function AdminKetQuaPage() {
           </button>
         }
       />
+
+      {truncatedMax ? (
+        <p role="alert" className="rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Chỉ hiển thị và xuất {truncatedMax} bài nộp gần nhất, danh sách chưa đầy đủ. Chọn một kỳ thi để thu hẹp.
+        </p>
+      ) : null}
 
       <DaoTaoPanel className="flex flex-wrap gap-3">
         <label className="grid min-w-[12rem] flex-1 gap-1">
