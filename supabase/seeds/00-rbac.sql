@@ -26,11 +26,6 @@ VALUES
   ('DASHBOARD_CC_SUPERVISION', 'view', 'Xem Command Center — Tab Chuyên trách / Chéo / Tự giám sát'),
   ('DASHBOARD_CC_GAP', 'view', 'Xem Command Center — Tab Đối soát & Lệch'),
   ('DASHBOARD_CC_EXPORT', 'export', 'Xuất dữ liệu Command Center — Xuất / in báo cáo PDF'),
-  ('DANH_MUC', 'view', 'Xem Quản trị Danh mục'),
-  ('DANH_MUC', 'create', 'Thêm Quản trị Danh mục'),
-  ('DANH_MUC', 'edit', 'Sửa Quản trị Danh mục'),
-  ('DANH_MUC', 'delete', 'Xóa Quản trị Danh mục'),
-  ('DANH_MUC', 'import', 'Import Quản trị Danh mục'),
   ('NHAN_SU', 'view', 'Xem Quản lý Nhân sự'),
   ('NHAN_SU', 'create', 'Thêm Quản lý Nhân sự'),
   ('NHAN_SU', 'edit', 'Sửa Quản lý Nhân sự'),
@@ -157,7 +152,7 @@ WHERE r.name = 'NHAN_VIEN_KSNK'
     -- ME-04: NV KSNK không nhận qc / nha_implant trên mẻ (tổ trưởng grant tay)
     OR (p.module_name = 'CSSD_ME_TIET_KHUAN'
         AND p.action IN ('view','create','edit','delete','import','lock'))
-    OR (p.module_name IN ('NHAN_SU','BANG_KIEM','DANH_MUC') AND p.action IN ('view','create','edit','delete','import'))
+    OR (p.module_name IN ('NHAN_SU','BANG_KIEM') AND p.action IN ('view','create','edit','delete','import'))
     OR (p.module_name = 'PHAN_QUYEN' AND p.action = 'view')
     OR (p.module_name IN ('LOAI_DC','BO_DC','DC_LE','THIET_BI','HOA_CHAT','KHOA_PHONG','BANG_KIEM_DETAIL') AND p.action = 'view')
   )
@@ -189,8 +184,7 @@ FROM public.sys_roles r
 JOIN public.sys_permissions p ON true
 WHERE r.name = 'MANG_LUOI_KSNK'
   AND (
-    (p.module_name = 'DANH_MUC' AND p.action = 'view')
-    OR (p.module_name = 'GIAM_SAT_NKBV' AND p.action = 'view')
+    (p.module_name = 'GIAM_SAT_NKBV' AND p.action = 'view')
     OR (p.module_name = 'BAO_SU_CO' AND p.action IN ('view', 'create'))
     OR (p.module_name IN ('GIAM_SAT_VST', 'GIAM_SAT_CHUNG', 'CONG_VIEC')
         AND p.action IN ('view', 'create', 'edit', 'delete'))
