@@ -657,9 +657,9 @@
     "tieu_de": "RLS SELECT trên mọi bảng nkbv_fact_* chỉ kiểm quyền view, không kiểm khoa. MANG_LUOI_KSNK có view nên có thể dùng JWT của mình cùng anon key (công khai) gọi thẳng PostgREST và đọc họ tên, mã người bệnh, vi sinh của toàn viện, vượt NK-SCOPE vốn chỉ áp ở tầng app.",
     "bang_chung": "pg_policies: nkbv_fact_benh_an_select, nkbv_fact_vi_sinh_select, nkbv_fact_su_kien_select, nkbv_fact_ba_ngay_khoa_select… qual = fn_sys_is_admin() OR fn_sys_has_permission('GIAM_SAT_NKBV','view'); sys_role_permissions: MANG_LUOI_KSNK|view",
     "lenh_kiem": "SELECT tablename,qual FROM pg_policies WHERE tablename ILIKE 'nkbv_fact%' AND cmd='SELECT'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "47609212",
     "ghi_chu": "B2: DUNG (11 bảng nkbv_fact_* SELECT không theo khoa; MANG_LUOI_KSNK, HOI_DONG_KSNK có view). Agent đề nghị TRUNG_BINH vì cần tài khoản có vai này; giữ CAO vì lộ định danh người bệnh toàn viện qua PostgREST. Chưa tái hiện bằng user thật."
   },
   {
