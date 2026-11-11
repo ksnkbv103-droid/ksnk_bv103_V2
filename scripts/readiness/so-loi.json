@@ -761,9 +761,9 @@
     "tieu_de": "rpc_nkbv_tham_dinh_ca bỏ qua luật cấm tự thẩm định khi người duyệt không có hồ sơ mdm_nhan_su (v_ns NULL), và khi đó ghi nguoi_tham_dinh_id = NULL, mất vết ai duyệt.",
     "bang_chung": "pg_get_functiondef('public.rpc_nkbv_tham_dinh_ca'): IF v_ns IS NOT NULL AND ... = nguoi_ghi_id",
     "lenh_kiem": "SELECT pg_get_functiondef('public.rpc_nkbv_tham_dinh_ca'::regproc)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "3b6a9daf",
     "ghi_chu": "RAISE khi v_ns IS NULL"
   },
   {
