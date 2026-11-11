@@ -283,4 +283,21 @@ describe("nkbv-bsi-timeline-verdict", () => {
     expect(v.result.classification).toBe("CLABSI");
     expect(v.result.is_positive).toBe(true);
   });
+
+  it("Cờ loại trừ CLABSI (ECMO >2d) từ lưới BA → LCBI non-CLABSI (B4.40–48)", () => {
+    const bloodDate = "2026-07-04";
+    const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
+      indexXn: blood({ id: "b-sa", ngay: bloodDate, vi_khuan: "Staphylococcus aureus" }),
+      bloodXn: [blood({ id: "b-sa", ngay: bloodDate, vi_khuan: "Staphylococcus aureus" })],
+      lamSang: {},
+      canThiepDates: ["2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04"],
+      iwpDates: iwpAround(bloodDate),
+      nsk: bloodDate,
+      devicePlacedDate: "2026-07-01",
+      clabsiExclusions: { excl_ecmo_gt2d: true },
+    });
+    expect(v.result.is_positive).toBe(true);
+    expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
+  });
 });

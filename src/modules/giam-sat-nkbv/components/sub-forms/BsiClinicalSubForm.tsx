@@ -4,22 +4,13 @@ import React from "react";
 
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
+import { CLABSI_EXCLUSION_FIELDS } from "../../lib/nkbv-bsi-clabsi-exclusions";
 import type { BsiVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 import NkbvRuledOutSection from "../NkbvRuledOutSection";
 import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
-
-const CLABSI_EXCLUSION_FIELDS = [
-  ["excl_ecmo_gt2d", "ECMO/ECLS đặt >2 ngày lịch"],
-  ["excl_vad_gt2d", "VAD đặt >2 ngày lịch"],
-  ["excl_tah_gt2d", "Tim nhân tạo toàn phần (TAH) >2 ngày lịch"],
-  ["excl_patient_injection", "Bệnh nhân tự tiêm vào đường truyền (có ghi nhận)"],
-  ["excl_epidermolysis_bullosa", "Epidermolysis bullosa"],
-  ["excl_munchausen_proxy", "Munchausen by proxy"],
-  ["excl_pus_vascular_site", "Mủ tại vị trí tiếp cận mạch, cùng tác nhân với cấy máu"],
-] as const satisfies ReadonlyArray<readonly [keyof BsiVerificationData, string]>;
 
 interface BsiClinicalSubFormProps {
   form: BsiVerificationData;

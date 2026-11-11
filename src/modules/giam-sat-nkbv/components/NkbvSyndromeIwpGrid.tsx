@@ -15,6 +15,7 @@ import {
   type BaDayGridColumnDef,
 } from "./NkbvBaDayGrid";
 import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
+import { CLABSI_EXCLUSION_FIELDS } from "../lib/nkbv-bsi-clabsi-exclusions";
 import type { PriorEvent, Props } from "./nkbv-syndrome-iwp.types";
 import type { useNkbvIwpVerdicts } from "../hooks/useNkbvIwpVerdicts";
 import type { useNkbvIwpKetLuan } from "../hooks/useNkbvIwpKetLuan";
@@ -209,6 +210,21 @@ export default function NkbvSyndromeIwpGrid({
                 />
                 Tiêu chảy (≥ cần HSCT)
               </label>
+              {CLABSI_EXCLUSION_FIELDS.map(([field, label]) => (
+                <label key={field} className="flex items-center gap-1" title="Loại trừ CLABSI (vẫn là LCBI)">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.bsiClabsiExcl?.[field])}
+                    disabled={!allowedEdit}
+                    onChange={(e) =>
+                      onDraftChange({
+                        bsiClabsiExcl: { ...(draft.bsiClabsiExcl || {}), [field]: e.target.checked },
+                      })
+                    }
+                  />
+                  Loại CLABSI: {label}
+                </label>
+              ))}
             </div>
           ) : null}
           {!criteriaMetForKetLuan &&
