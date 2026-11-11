@@ -20,12 +20,23 @@ export async function tryReceiveChoThuVeAtTiepNhan(
   },
 ): Promise<{ handled: false } | { handled: true; newQuyTrinhId: string; incidentId: string | null }> {
   const q = opts.quyTrinh;
-  const metadata = q.metadata;
+  const oldId = String(q.id || "").trim();
+  if (!oldId) return { handled: false };
+
+  // View v_cssd_quy_trinh_full không có cột metadata → đọc từ bảng gốc (nếu hàng truyền vào chưa có).
+  let metadata = q.metadata;
+  if (metadata === undefined) {
+    const { data: metaRow, error: metaErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("metadata")
+      .eq("id", oldId)
+      .maybeSingle();
+    if (metaErr) throw new Error(metaErr.message);
+    metadata = (metaRow as { metadata?: unknown } | null)?.metadata;
+  }
   if (!isChoThuVeCycle(metadata)) return { handled: false };
 
   const thuHoi = readThuHoiMeta(metadata);
-  const oldId = String(q.id || "").trim();
-  if (!oldId) return { handled: false };
 
   const { data: tram, error: tramErr } = await supabase
     .from("cssd_dm_tram")
