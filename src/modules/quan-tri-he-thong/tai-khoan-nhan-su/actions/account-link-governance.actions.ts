@@ -11,6 +11,7 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { logAdminAction, maskEmailForAudit } from "@/lib/admin-audit";
+import { canSelfLinkByEmail, PENDING_ADMIN_APPROVAL_MESSAGE } from "@/lib/auth/account-link-policy";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 
 type AccountLinkReadSnapshot =
@@ -89,8 +90,9 @@ export async function syncAccountLinkAction() {
       }
 
       // ACC-1: chỉ tự liên kết khi email Auth đã xác nhận (email hồ sơ do quản trị quản lý, form công khai không ghi được).
-      if (!user.email_confirmed_at) {
-        return { success: true, linked: false, message: "Email đăng nhập chưa xác nhận — liên hệ quản trị để liên kết hồ sơ." };
+      // QT-003: khách tự đăng ký chưa được ADMIN duyệt thì không tự gắn hồ sơ nhân sự.
+      if (!canSelfLinkByEmail(user)) {
+        return { success: true, linked: false, message: PENDING_ADMIN_APPROVAL_MESSAGE };
       }
 
       // Service-role write OUTSIDE cache. Same email-match predicate as the read.
@@ -188,7 +190,7 @@ export async function manualLinkAccountAction(maNv: string) {
   if (!mayLinkAsAdmin) {
     const loginNorm = user.email ? normalizeEmail(user.email) : "";
     const staffNorm = target.email ? normalizeEmail(String(target.email)) : "";
-    if (!user.email_confirmed_at || !loginNorm || !staffNorm || loginNorm !== staffNorm) {
+    if (!canSelfLinkByEmail(user) || !loginNorm || !staffNorm || loginNorm !== staffNorm) {
       return {
         success: false,
         error:
