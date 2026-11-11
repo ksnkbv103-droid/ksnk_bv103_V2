@@ -149,9 +149,13 @@ export default function LamBaiPage() {
           setQuestions((prev) =>
             prev.map((q, i) => (i === idx ? { ...q, traLoi: v } : q)),
           );
-          void saveTraLoiCau({ lanThiId, cauId: current.id, traLoi: v }).catch(() => {
-            toast.error("Không lưu được đáp án");
-          });
+          void saveTraLoiCau({ lanThiId, cauId: current.id, traLoi: v })
+            .then((r) => {
+              if (!r.ok) toast.error(r.error);
+            })
+            .catch(() => {
+              toast.error("Không lưu được đáp án");
+            });
         }}
       />
 
