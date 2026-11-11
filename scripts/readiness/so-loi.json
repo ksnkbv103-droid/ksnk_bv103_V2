@@ -241,9 +241,9 @@
     "tieu_de": "Lượt dang_lam quá hạn không tự đóng. Người học bỏ dở vẫn bị tính tiêu một lượt, kỳ thi so_lan_cho_phep=1 thì không thi lại được. Admin chỉ thấy bài sau khi chính người đó mở lại và nộp",
     "bang_chung": "src/modules/dao-tao/lib/dao-tao-luot.ts:6 (dang_lam tiêu lượt); src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:556-585 (chỉ chuyển het_gio khi người học gọi submit); không có job quét",
     "lenh_kiem": "SELECT count(*) FROM dao_tao_lan_thi WHERE trang_thai='dang_lam' AND han_nop_luc<now()",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "a99869aa",
     "ghi_chu": "Hỏi PO: tự chấm các bài dang_lam quá hạn (cron hoặc chấm khi đọc) và đặt trạng thái het_gio, hay cho admin mở lượt lại | PO 2026-11-12: không tự chấm; cho admin mở lại lượt bằng tay."
   },
   {
