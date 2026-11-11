@@ -7,7 +7,7 @@ import {
   softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
-} from "./master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 import { z } from "zod";
 import { isVatTuLoai } from "@/lib/domain/cssd-hoa-chat-loai";
 import type { HoaChatRow } from "./hoa-chat.types";

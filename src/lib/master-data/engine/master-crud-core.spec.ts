@@ -61,24 +61,24 @@ describe("master-crud-core allowlist", () => {
   });
 
   it("rejects unknown table", async () => {
-    const { listMasterRows } = await import("./master-crud-core");
+    const { listMasterRows } = await import("@/lib/master-data/engine/master-crud-core");
     await expect(listMasterRows("dict_legacy", "id")).rejects.toThrow(/allowlist/);
   });
 
   it("accepts contract view mdm_dm_khoa_phong", async () => {
-    const { listMasterRows } = await import("./master-crud-core");
+    const { listMasterRows } = await import("@/lib/master-data/engine/master-crud-core");
     const res = await listMasterRows("mdm_dm_khoa_phong", "ma_khoa");
     expect(res.success).toBe(true);
   });
 
   it("accepts physical table mdm_dm_khoa_phong", async () => {
-    const { listMasterRows } = await import("./master-crud-core");
+    const { listMasterRows } = await import("@/lib/master-data/engine/master-crud-core");
     const res = await listMasterRows("mdm_dm_khoa_phong", "ma_khoa");
     expect(res.success).toBe(true);
   });
 
   it("writes khu vực giám sát to sys_lookup_value with category_type", async () => {
-    const { upsertMasterRow } = await import("./master-crud-core");
+    const { upsertMasterRow } = await import("@/lib/master-data/engine/master-crud-core");
     const res = await upsertMasterRow("gstt_dm_khu_vuc_giam_sat", "", {
       ma_khu_vuc: "KV_HANH_LANG_A",
       ten_khu_vuc: "Hành lang A",
@@ -104,7 +104,7 @@ describe("master-crud-core allowlist", () => {
       update,
       delete: del,
     }));
-    const { softDeleteMasterRow } = await import("./master-crud-core");
+    const { softDeleteMasterRow } = await import("@/lib/master-data/engine/master-crud-core");
     const res = await softDeleteMasterRow("mdm_dm_khoa_phong", KHOA_ID);
     expect(res).toEqual({ success: true });
     expect(mocks.logAdminAction).toHaveBeenCalledWith(
@@ -116,7 +116,7 @@ describe("master-crud-core allowlist", () => {
   });
 
   it("D5: hard-write cssd catalog master goes through requireCssdCatalogMasterWrite", async () => {
-    const { upsertMasterRow } = await import("./master-crud-core");
+    const { upsertMasterRow } = await import("@/lib/master-data/engine/master-crud-core");
     const res = await upsertMasterRow("cssd_dm_loai_dung_cu", "", {
       ma_loai: "DC-TEST",
       ten_loai: "Test",
@@ -128,13 +128,13 @@ describe("master-crud-core allowlist", () => {
   });
 
   it("D5: non-catalog tables skip requireCssdCatalogMasterWrite", async () => {
-    const { softDeleteMasterRow } = await import("./master-crud-core");
+    const { softDeleteMasterRow } = await import("@/lib/master-data/engine/master-crud-core");
     await softDeleteMasterRow("mdm_dm_khoa_phong", KHOA_ID);
     expect(mocks.requireCssdCatalogMasterWrite).not.toHaveBeenCalled();
   });
 
   it("zod: id không phải UUID bị từ chối, không chạm DB và không ghi nhật ký", async () => {
-    const { softDeleteMasterRow, upsertMasterRow, toggleMasterStatus, softDeleteManyMasterRows } = await import("./master-crud-core");
+    const { softDeleteMasterRow, upsertMasterRow, toggleMasterStatus, softDeleteManyMasterRows } = await import("@/lib/master-data/engine/master-crud-core");
     mocks.from.mockClear();
     expect(await softDeleteMasterRow("mdm_dm_khoa_phong", "khoa-1")).toMatchObject({ success: false, error: "Mã bản ghi không hợp lệ." });
     expect(await toggleMasterStatus("mdm_dm_khoa_phong", "khoa-1", true)).toMatchObject({ success: false });
@@ -145,7 +145,7 @@ describe("master-crud-core allowlist", () => {
   });
 
   it("nhật ký: tạo mới ghi MASTER_CREATE, bỏ trường nhạy cảm và cắt chuỗi dài", async () => {
-    const { upsertMasterRow } = await import("./master-crud-core");
+    const { upsertMasterRow } = await import("@/lib/master-data/engine/master-crud-core");
     await upsertMasterRow("cssd_dm_hoa_chat", "", { ten_hoa_chat: "Cidex", password: "x", ghi_chu: "y".repeat(300) });
     const call = mocks.logAdminAction.mock.calls.at(-1)?.[0] as { action: string; after: Record<string, unknown> };
     expect(call.action).toBe("MASTER_CREATE");
@@ -167,15 +167,15 @@ describe("master-crud-core allowlist", () => {
     }
 
     it.each([
-      ["sửa", async (m: typeof import("./master-crud-core")) =>
+      ["sửa", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) =>
         m.upsertMasterRow("mdm_dm_chuc_danh", LOOKUP_ID, { ma_chuc_danh: "CD01", ten_chuc_danh: "Bác sĩ" })],
-      ["bật/tắt", async (m: typeof import("./master-crud-core")) => m.toggleMasterStatus("mdm_dm_chuc_danh", LOOKUP_ID, true)],
-      ["xóa mềm", async (m: typeof import("./master-crud-core")) => m.softDeleteMasterRow("mdm_dm_chuc_danh", LOOKUP_ID)],
-      ["xóa mềm nhiều", async (m: typeof import("./master-crud-core")) =>
+      ["bật/tắt", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) => m.toggleMasterStatus("mdm_dm_chuc_danh", LOOKUP_ID, true)],
+      ["xóa mềm", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) => m.softDeleteMasterRow("mdm_dm_chuc_danh", LOOKUP_ID)],
+      ["xóa mềm nhiều", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) =>
         m.softDeleteManyMasterRows("mdm_dm_chuc_danh", [LOOKUP_ID])],
     ])("%s: lọc thêm category_type", async (_label, run) => {
       const builder = mockLookupUpdate([{ id: LOOKUP_ID }]);
-      const m = await import("./master-crud-core");
+      const m = await import("@/lib/master-data/engine/master-crud-core");
       const res = await run(m);
       expect(res).toEqual({ success: true });
       expect(mocks.from).toHaveBeenCalledWith("sys_lookup_value");
@@ -183,15 +183,15 @@ describe("master-crud-core allowlist", () => {
     });
 
     it.each([
-      ["sửa", async (m: typeof import("./master-crud-core")) =>
+      ["sửa", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) =>
         m.upsertMasterRow("mdm_dm_chuc_danh", LOOKUP_ID, { ma_chuc_danh: "CD01", ten_chuc_danh: "Bác sĩ" })],
-      ["bật/tắt", async (m: typeof import("./master-crud-core")) => m.toggleMasterStatus("mdm_dm_chuc_danh", LOOKUP_ID, true)],
-      ["xóa mềm", async (m: typeof import("./master-crud-core")) => m.softDeleteMasterRow("mdm_dm_chuc_danh", LOOKUP_ID)],
-      ["xóa mềm nhiều", async (m: typeof import("./master-crud-core")) =>
+      ["bật/tắt", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) => m.toggleMasterStatus("mdm_dm_chuc_danh", LOOKUP_ID, true)],
+      ["xóa mềm", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) => m.softDeleteMasterRow("mdm_dm_chuc_danh", LOOKUP_ID)],
+      ["xóa mềm nhiều", async (m: typeof import("@/lib/master-data/engine/master-crud-core")) =>
         m.softDeleteManyMasterRows("mdm_dm_chuc_danh", [LOOKUP_ID])],
     ])("%s: id thuộc nhóm khác (0 dòng) → lỗi tiếng Việt, không ghi nhật ký", async (_label, run) => {
       mockLookupUpdate([]);
-      const m = await import("./master-crud-core");
+      const m = await import("@/lib/master-data/engine/master-crud-core");
       const res = await run(m);
       expect(res).toMatchObject({ success: false, error: expect.stringContaining("Không tìm thấy mục danh mục") });
       expect(mocks.logAdminAction).not.toHaveBeenCalled();
@@ -231,7 +231,7 @@ describe("master-crud-core allowlist", () => {
         return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null }) }) }) };
       });
 
-      const { upsertMasterRow } = await import("./master-crud-core");
+      const { upsertMasterRow } = await import("@/lib/master-data/engine/master-crud-core");
       const res = await upsertMasterRow("gstt_dm_khu_vuc_giam_sat", LOOKUP_ID, {
         ma_khu_vuc: "KV01",
         ten_khu_vuc: "Phòng mổ 1 - Đã đổi tên",

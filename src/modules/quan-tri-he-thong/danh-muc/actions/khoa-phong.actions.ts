@@ -10,7 +10,7 @@ import {
   softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
-} from "./master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 import type { KhoaPhongRow } from "./khoa-phong.types";
 
 function normalizeNonNegativeNumber(value: unknown): number {

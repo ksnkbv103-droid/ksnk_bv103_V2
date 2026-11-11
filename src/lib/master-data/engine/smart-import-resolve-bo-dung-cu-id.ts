@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { UUID_RE } from "./smart-import-resolvers-shared";
-import { dryRunParentPlaceholderId } from "../lib/smart-import/smart-import-rules";
+import { UUID_RE } from "@/lib/master-data/engine/smart-import-resolvers-shared";
+import { dryRunParentPlaceholderId } from "@/lib/master-data/engine/smart-import/smart-import-rules";
 
 export async function resolveBoDungCuIdForImport(
   supabase: SupabaseClient,

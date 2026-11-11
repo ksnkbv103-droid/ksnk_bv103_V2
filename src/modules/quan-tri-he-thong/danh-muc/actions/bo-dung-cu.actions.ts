@@ -13,7 +13,7 @@ import {
   softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
-} from "./master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 import {
   buildCssdBoMa,
   cssdBoMaPrefixForKhoa,

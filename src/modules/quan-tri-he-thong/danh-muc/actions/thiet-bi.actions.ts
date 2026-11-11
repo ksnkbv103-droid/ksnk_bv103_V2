@@ -9,7 +9,7 @@ import {
   softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
-} from "./master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 import type { ThietBiRow } from "./thiet-bi.types";
 import { detectThietBiSensitiveChange } from "@/lib/domain/cssd-sensitive-change";
 import { requireCssdSensitiveApprove } from "@/lib/master-data/require-cssd-sensitive-approve";

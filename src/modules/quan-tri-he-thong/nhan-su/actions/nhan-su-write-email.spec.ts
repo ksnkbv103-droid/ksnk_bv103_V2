@@ -49,7 +49,7 @@ vi.mock("./nhan-su-write.helpers", () => ({
   buildSaveNhanSuMergedFields: mocks.buildSaveNhanSuMergedFields,
 }));
 
-vi.mock("../../danh-muc/actions/master-crud-core", () => ({
+vi.mock("@/lib/master-data/engine/master-crud-core", () => ({
   upsertMasterRow: mocks.upsertMasterRow,
 }));
 

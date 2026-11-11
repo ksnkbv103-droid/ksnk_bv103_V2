@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { NhanSu } from "../types";
 import {
   upsertMasterRow,
-} from "../../danh-muc/actions/master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 import { formatHoSoNhanSuWriteError } from "./nhan-su-fk-normalize";
 import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";
 import { invalidateUserPermissionsCache, verifyPermission } from "@/lib/server-permission";

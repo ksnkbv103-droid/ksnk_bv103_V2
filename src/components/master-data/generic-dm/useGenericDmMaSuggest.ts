@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { mdmSuggestNextGenericDmMa } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import { suggestNextGenericDmMaAction as mdmSuggestNextGenericDmMa } from "@/lib/master-data/engine/generic-dm.actions";
 
 /** Gợi ý mã theo prefix chuẩn (NN_, HT_, …) — slug từ tên nếu có. */
 export function useGenericDmMaSuggest(loaiKey: string) {

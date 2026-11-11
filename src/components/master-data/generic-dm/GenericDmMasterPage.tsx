@@ -7,16 +7,16 @@ import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permi
 import { useImportExport } from "@/hooks/useImportExport";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
-import GenericDmEditModal from "./GenericDmEditModal";
-import GenericDmHubRedirectBanner from "./GenericDmHubRedirectBanner";
-import GenericDmMasterDataTable from "./GenericDmMasterDataTable";
-import GenericDmMasterHeader from "./GenericDmMasterHeader";
-import { useGenericDmMasterPageModel } from "../hooks/useGenericDmMasterPageModel";
+import GenericDmEditModal from "@/components/master-data/generic-dm/GenericDmEditModal";
+import GenericDmHubRedirectBanner from "@/components/master-data/generic-dm/GenericDmHubRedirectBanner";
+import GenericDmMasterDataTable from "@/components/master-data/generic-dm/GenericDmMasterDataTable";
+import GenericDmMasterHeader from "@/components/master-data/generic-dm/GenericDmMasterHeader";
+import { useGenericDmMasterPageModel } from "@/components/master-data/generic-dm/useGenericDmMasterPageModel";
 import { usePermission } from "@/hooks/usePermission";
 import {
   exportGenericDmExcelAction,
   importGenericDmExcelAction,
-} from "../actions/generic-dm-import.actions";
+} from "@/lib/master-data/engine/generic-dm-import.actions";
 import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
 export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: string }) {

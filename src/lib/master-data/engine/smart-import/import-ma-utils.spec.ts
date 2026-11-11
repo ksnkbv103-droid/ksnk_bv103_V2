@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildLockedTemplateMapping } from "@/lib/import-export-template";
-import { DM_TABLE_BY_LOAI } from "./import-ma-utils";
+import { DM_TABLE_BY_LOAI } from "@/lib/master-data/engine/smart-import/import-ma-utils";
 
 describe("DM-4 — cột Excel loại dụng cụ", () => {
   it("tra danh mục loại dụng cụ theo cột vật lý ma_loai/ten_loai", () => {

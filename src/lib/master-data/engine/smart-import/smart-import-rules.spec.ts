@@ -4,8 +4,8 @@ import {
   dryRunParentPlaceholderId,
   mergeImportSpecs,
   smartImportRowsSchema,
-} from "./smart-import-rules";
-import { normalizeImportedRowTypedValues } from "./row-typed-values";
+} from "@/lib/master-data/engine/smart-import/smart-import-rules";
+import { normalizeImportedRowTypedValues } from "@/lib/master-data/engine/smart-import/row-typed-values";
 
 describe("smart-import-rules", () => {
   it("BOM: số lượng theo file, idempotent (không cộng dồn)", () => {

@@ -11,7 +11,7 @@ import {
 } from "@/lib/master-data/cssd-bom-line-merge.application";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
-import { upsertMasterRow } from "./master-crud-core";
+import { upsertMasterRow } from "@/lib/master-data/engine/master-crud-core";
 
 /** Lưu một dòng thành phần bộ — gọi từ panel trong tab Bộ. */
 export async function saveDungCuChiTietAction(input: Record<string, unknown>) {

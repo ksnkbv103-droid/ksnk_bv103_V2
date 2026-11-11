@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SmartImportDmSessionCache } from "../lib/smart-import/dm-import-session-cache";
-import { createDmImportSessionCache } from "../lib/smart-import/dm-import-session-cache";
-import { finalizeNhanSuImportRow } from "./smart-import-nhan-su-import-row-finalize";
-import { isImportMaEmpty, normalizeImportMa } from "./smart-import-resolvers-shared";
+import type { SmartImportDmSessionCache } from "@/lib/master-data/engine/smart-import/dm-import-session-cache";
+import { createDmImportSessionCache } from "@/lib/master-data/engine/smart-import/dm-import-session-cache";
+import { finalizeNhanSuImportRow } from "@/lib/master-data/engine/smart-import-nhan-su-import-row-finalize";
+import { isImportMaEmpty, normalizeImportMa } from "@/lib/master-data/engine/smart-import-resolvers-shared";
 
 export async function resolveNhanSuParentIdsForImport(
   supabase: SupabaseClient,

@@ -7,11 +7,11 @@ import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup
 import { revalidatePath } from "next/cache";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import { formatHoSoKhoaFkViolation, formatHoSoNhanSuWriteError } from "@/modules/quan-tri-he-thong/nhan-su/actions/nhan-su-fk-normalize";
-import { createDmImportSessionCache } from "../lib/smart-import/dm-import-session-cache";
-import { buildImportErrorMessage } from "../lib/smart-import/dm-row-normalizers";
-import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart-import-per-table";
-import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
-import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { createDmImportSessionCache } from "@/lib/master-data/engine/smart-import/dm-import-session-cache";
+import { buildImportErrorMessage } from "@/lib/master-data/engine/smart-import/dm-row-normalizers";
+import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "@/lib/master-data/engine/smart-import-per-table";
+import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "@/lib/master-data/engine/smart-import/row-typed-values";
+import { getRegistryModuleForMasterTable } from "@/lib/master-data/master-table-permission-map";
 import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
 import {
   blockDeactivateForActiveCycles,
@@ -24,7 +24,7 @@ import {
   bomReplaceQty,
   mergeImportSpecs,
   smartImportRowsSchema,
-} from "../lib/smart-import/smart-import-rules";
+} from "@/lib/master-data/engine/smart-import/smart-import-rules";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { randomUUID } from "crypto";
 import {
@@ -36,13 +36,13 @@ import {
   isSmartImportTable,
   SMART_IMPORT_TABLE_UNIQUE_KEY,
   type SmartImportOptions,
-} from "./smart-import.contract";
+} from "@/lib/master-data/engine/smart-import.contract";
 import { requireCssdSensitiveApprove } from "@/lib/master-data/require-cssd-sensitive-approve";
 import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 import {
   applyNhanSuImportAllowlist,
   type NhanSuExistingForImport,
-} from "../lib/smart-import/nhan-su-import-allowlist";
+} from "@/lib/master-data/engine/smart-import/nhan-su-import-allowlist";
 
 interface SmartImportConfig {
   tableName: string;

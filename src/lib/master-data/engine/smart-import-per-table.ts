@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
-import type { SmartImportDmSessionCache } from "../lib/smart-import/dm-import-session-cache";
+import type { SmartImportDmSessionCache } from "@/lib/master-data/engine/smart-import/dm-import-session-cache";
 import { addResolvedLoaiValues } from "@/lib/master-data/repository";
 import {
   LOAI_CHUC_DANH,
@@ -12,7 +12,7 @@ import {
   normalizeDmHoaChat,
   normalizeDmKhoaPhong,
   normalizeDmThietBi,
-} from "../lib/smart-import/dm-row-normalizers";
+} from "@/lib/master-data/engine/smart-import/dm-row-normalizers";
 import {
   resolveBoDungCuIdForImport,
   resolveKhoiForKhoaPhongImport,
@@ -20,7 +20,7 @@ import {
   resolveLoaiDungCuForBoImport,
   resolveLoaiDungCuForChiTietImport,
   resolveNhanSuParentIdsForImport,
-} from "./smart-import-parent-resolvers";
+} from "@/lib/master-data/engine/smart-import-parent-resolvers";
 
 export type ScopeResolveResult =
   | { ok: true; row: Record<string, unknown> }

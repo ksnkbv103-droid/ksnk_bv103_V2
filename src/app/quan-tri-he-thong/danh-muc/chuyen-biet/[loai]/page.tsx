@@ -1,4 +1,4 @@
-import GenericDmMasterPage from "@/modules/quan-tri-he-thong/danh-muc/views/GenericDmMasterPage";
+import GenericDmMasterPage from "@/components/master-data/generic-dm/GenericDmMasterPage";
 import { getDedicatedDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import { canAccessDanhMucModuleRoute } from "@/lib/auth/quan-tri-access";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";

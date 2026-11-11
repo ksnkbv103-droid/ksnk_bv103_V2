@@ -10,7 +10,7 @@ import {
 } from "@/lib/master-data/locked-system-lookups";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import { buildMigratedUpsertPayload } from "@/lib/master-data/danh-muc-routing";
-import { listMasterRows, softDeleteManyMasterRows, upsertMasterRow } from "./master-crud-core";
+import { listMasterRows, softDeleteManyMasterRows, upsertMasterRow } from "@/lib/master-data/engine/master-crud-core";
 import { QUAN_TRI_HUB_PATH } from "@/lib/master-data/quan-tri-paths";
 
 function permModule(loaiDanhMuc: string): string {

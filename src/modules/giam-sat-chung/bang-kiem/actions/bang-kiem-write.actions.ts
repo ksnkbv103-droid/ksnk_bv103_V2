@@ -6,7 +6,7 @@ import {
   softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
-} from "@/modules/quan-tri-he-thong/danh-muc/actions/master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 import { verifyPermission } from "@/lib/server-permission";
 import {
   normalizeApDungForSave,

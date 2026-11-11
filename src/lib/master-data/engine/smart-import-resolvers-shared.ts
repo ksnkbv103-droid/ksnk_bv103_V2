@@ -8,7 +8,7 @@ export {
   normalizeImportMa,
   isImportMaEmpty,
   looksLikeShortBusinessCode,
-} from "../lib/smart-import/import-ma-utils";
+} from "@/lib/master-data/engine/smart-import/import-ma-utils";
 
 export async function lookupKhoaByTenFlexible(supabase: SupabaseClient, name: string) {
   const sb = supabase;

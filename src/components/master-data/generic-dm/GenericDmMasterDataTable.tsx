@@ -3,8 +3,8 @@
 import React from "react";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
 import { toast } from "sonner";
-import { mdmSoftDeleteManyGenericDm } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
-import type { GenericDmRow } from "./generic-dm-master-columns";
+import { softDeleteManyGenericDmAction as mdmSoftDeleteManyGenericDm } from "@/lib/master-data/engine/generic-dm.actions";
+import type { GenericDmRow } from "@/components/master-data/generic-dm/generic-dm-master-columns";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 type Props = {

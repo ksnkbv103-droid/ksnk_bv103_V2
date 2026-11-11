@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyNhanSuImportAllowlist } from "./nhan-su-import-allowlist";
+import { applyNhanSuImportAllowlist } from "@/lib/master-data/engine/smart-import/nhan-su-import-allowlist";
 
 const base = {
   id: "id-1",

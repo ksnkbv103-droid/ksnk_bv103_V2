@@ -16,7 +16,7 @@ import {
   softDeleteManyMasterRows,
   toggleMasterStatus,
   upsertMasterRow,
-} from "./master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 
 function getPermissionModuleForLoai(loaiDanhMuc: string): string {
   const key = loaiDanhMuc.trim();

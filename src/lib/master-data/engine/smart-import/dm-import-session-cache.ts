@@ -3,7 +3,7 @@
  * Giảm round-trip và tránh đọc full bảng lặp lại theo từng dòng Excel.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DM_TABLE_BY_LOAI, normalizeImportMa } from "./import-ma-utils";
+import { DM_TABLE_BY_LOAI, normalizeImportMa } from "@/lib/master-data/engine/smart-import/import-ma-utils";
 
 export type DmImportIdResolve = string | null | { error: string };
 

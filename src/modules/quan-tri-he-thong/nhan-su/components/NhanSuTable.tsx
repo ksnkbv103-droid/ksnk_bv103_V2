@@ -30,7 +30,7 @@ import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "@/lib/master-data-table-chrome";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { useImportExport } from "@/hooks/useImportExport";
-import { smartImportData } from "../../danh-muc/actions/smart-import.actions";
+import { smartImportData } from "@/lib/master-data/engine/smart-import.actions";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { promptText } from "@/components/shared/confirm-action";
 

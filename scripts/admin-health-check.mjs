@@ -43,7 +43,7 @@ const migrationRbacRepair = "supabase/migrations/20260603120000_v_auth_permissio
 addCheck(existsSync(join(root, migrationBaseline)), `has migration ${migrationBaseline}`);
 addCheck(existsSync(join(root, migrationRbacRepair)), `has migration ${migrationRbacRepair}`);
 
-const masterCrud = read("src/modules/quan-tri-he-thong/danh-muc/actions/master-crud-core.ts");
+const masterCrud = read("src/lib/master-data/engine/master-crud-core.ts");
 if (!masterCrud.ok) failures.push(masterCrud.error);
 else {
   mustNotInclude(
@@ -94,20 +94,20 @@ else {
   );
 }
 
-const dmTable = read("src/modules/quan-tri-he-thong/danh-muc/views/GenericDmMasterDataTable.tsx");
+const dmTable = read("src/components/master-data/generic-dm/GenericDmMasterDataTable.tsx");
 if (!dmTable.ok) failures.push(dmTable.error);
 else {
   mustInclude(dmTable.value, "onRowClick", "generic table missing row-click support", failures);
 }
 
-const dmPage = read("src/modules/quan-tri-he-thong/danh-muc/views/GenericDmMasterPage.tsx");
+const dmPage = read("src/components/master-data/generic-dm/GenericDmMasterPage.tsx");
 if (!dmPage.ok) failures.push(dmPage.error);
 else {
   mustInclude(dmPage.value, "onRowClick", "generic page missing row-click wiring", failures);
   mustInclude(dmPage.value, "m.openEdit(row)", "generic page not opening edit on row click", failures);
 }
 
-const dmModal = read("src/modules/quan-tri-he-thong/danh-muc/views/GenericDmEditModal.tsx");
+const dmModal = read("src/components/master-data/generic-dm/GenericDmEditModal.tsx");
 if (!dmModal.ok) failures.push(dmModal.error);
 else {
   mustNotInclude(

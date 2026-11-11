@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeDmKhoaPhong, normalizeDmThietBi, normalizeDmHoaChat } from "./dm-row-normalizers";
+import { normalizeDmKhoaPhong, normalizeDmThietBi, normalizeDmHoaChat } from "@/lib/master-data/engine/smart-import/dm-row-normalizers";
 
 describe("normalizeDmKhoaPhong", () => {
   it("packs flat Excel columns into specs JSONB", () => {

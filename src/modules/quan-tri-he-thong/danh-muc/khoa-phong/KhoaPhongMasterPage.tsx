@@ -21,9 +21,9 @@ import {
   softDeleteManyKhoaPhongAction,
   toggleKhoaPhongStatusAction,
 } from "../actions/khoa-phong.actions";
-import { DmMasterPageGuard } from "../views/dm-master-page-guard";
-import { smartImportMasterTable } from "../actions/smart-import.gateway";
-import { getMasterDataExport } from "../actions/export.actions";
+import { DmMasterPageGuard } from "@/components/master-data/generic-dm/dm-master-page-guard";
+import { smartImportMasterTable } from "@/lib/master-data/engine/smart-import.gateway";
+import { getMasterDataExport } from "@/lib/master-data/engine/export.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 function KhoaPhongMasterPageContent() {

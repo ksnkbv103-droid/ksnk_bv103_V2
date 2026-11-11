@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { mapLoaiDungCuExcelExportRow, resolveLoaiAlias } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
-import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { getRegistryModuleForMasterTable } from "@/lib/master-data/master-table-permission-map";
 /** Xuất đầy đủ để có ma_khoi/ma_* — anon client có thể bị RLS chặn, dùng service (cùng cơ chế action master khác). */
 
 type ExportFilters = Record<string, string | number | boolean>;

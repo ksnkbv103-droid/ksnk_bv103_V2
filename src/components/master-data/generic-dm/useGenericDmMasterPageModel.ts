@@ -4,13 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import {
-  mdmListGenericDm,
-  mdmSoftDeleteGenericDm,
-  mdmToggleGenericDm,
-  mdmUpsertGenericDm,
-} from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
-import { useGenericDmMaSuggest } from "./useGenericDmMaSuggest";
-import { buildGenericDmColumns, type GenericDmRow } from "../views/generic-dm-master-columns";
+  listGenericDmAction as mdmListGenericDm,
+  softDeleteGenericDmAction as mdmSoftDeleteGenericDm,
+  toggleGenericDmAction as mdmToggleGenericDm,
+  upsertGenericDmAction as mdmUpsertGenericDm,
+} from "@/lib/master-data/engine/generic-dm.actions";
+import { useGenericDmMaSuggest } from "@/components/master-data/generic-dm/useGenericDmMaSuggest";
+import { buildGenericDmColumns, type GenericDmRow } from "@/components/master-data/generic-dm/generic-dm-master-columns";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 export function useGenericDmMasterPageModel(loaiDanhMuc: string, canMutate: boolean, canDelete: boolean) {

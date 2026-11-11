@@ -19,9 +19,9 @@ import {
   softDeleteThietBiAction,
   toggleThietBiStatusAction,
 } from "@/modules/quan-tri-he-thong/danh-muc/actions/thiet-bi.actions";
-import { DmMasterPageGuard } from "@/modules/quan-tri-he-thong/danh-muc/views/dm-master-page-guard";
-import { smartImportData } from "@/modules/quan-tri-he-thong/danh-muc/actions/smart-import.actions";
-import { getMasterDataExport } from "@/modules/quan-tri-he-thong/danh-muc/actions/export.actions";
+import { DmMasterPageGuard } from "@/components/master-data/generic-dm/dm-master-page-guard";
+import { smartImportData } from "@/lib/master-data/engine/smart-import.actions";
+import { getMasterDataExport } from "@/lib/master-data/engine/export.actions";
 import { confirmAction } from "@/components/shared/confirm-action";
 
 function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?: boolean }) {

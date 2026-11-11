@@ -8,12 +8,12 @@
  * Type options/table: import từ `smart-import.contract` (không re-export type từ file use server).
  */
 
-import { smartImportData } from "./smart-import.actions";
+import { smartImportData } from "@/lib/master-data/engine/smart-import.actions";
 import {
   SMART_IMPORT_TABLE_UNIQUE_KEY,
   type SmartImportOptions,
   type SmartImportTable,
-} from "./smart-import.contract";
+} from "@/lib/master-data/engine/smart-import.contract";
 
 /** Nạp master theo tên bảng allowlist — uniqueKey lấy từ contract. */
 export async function smartImportMasterTable(

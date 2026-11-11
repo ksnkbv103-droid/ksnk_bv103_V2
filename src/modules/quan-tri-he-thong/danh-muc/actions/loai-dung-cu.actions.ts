@@ -21,7 +21,7 @@ import {
   softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
-} from "./master-crud-core";
+} from "@/lib/master-data/engine/master-crud-core";
 
 type LoaiDungCuPayload = Record<string, unknown>;
 
