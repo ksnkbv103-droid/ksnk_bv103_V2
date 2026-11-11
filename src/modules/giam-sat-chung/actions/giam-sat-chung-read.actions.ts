@@ -204,7 +204,8 @@ export async function getGscHeaderDmDropdowns() {
       id: x.id,
       ma_danh_muc: x.ma_khoa,
       ten_danh_muc: x.ten_khoa,
-      loai_danh_muc: "KHOA_PHONG"
+      loai_danh_muc: "KHOA_PHONG",
+      specs: x.specs
     }));
 
     const nhanSus = (nhanSuRes.data || []).map((x) => ({

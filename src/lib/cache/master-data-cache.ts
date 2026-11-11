@@ -14,7 +14,7 @@ export const getCachedDmKhoaPhong = unstable_cache(
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("mdm_dm_khoa_phong")
-      .select("id, ma_khoa, ten_khoa, khoi_id")
+      .select("id, ma_khoa, ten_khoa, khoi_id, specs")
       .eq("is_active", true)
       .order("ten_khoa");
 
