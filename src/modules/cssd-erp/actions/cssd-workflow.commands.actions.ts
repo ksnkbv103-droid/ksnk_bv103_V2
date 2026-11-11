@@ -84,16 +84,23 @@ export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   if (freezeErr) throw new Error(freezeErr.message);
   if (!frozenRows?.length) throw new Error("Không khóa được bộ — bản ghi không còn hoặc đã đổi.");
   const op = await cssdOperatorLabel();
-  await appendQuyTrinhException(
-    supabase,
-    quyId,
-    {
+  // Khóa trước, ghi lý do sau (không soft); ghi lý do lỗi thì hoàn tác khóa để không có bộ bị khóa vô danh.
+  try {
+    await appendQuyTrinhException(supabase, quyId, {
       su_kien: "DONG_BANG_THU_CONG",
       ly_do: `Khóa an toàn thủ công. ${String(lyDo || "").trim().slice(0, 280)}`,
       nguoi_thao_tac: op,
-    },
-    { soft: true },
-  );
+    });
+  } catch {
+    const { error: rollbackErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .update({ is_dong_bang: false, updated_at: new Date().toISOString() })
+      .eq("id", quyId);
+    if (rollbackErr) {
+      console.error({ module: "cssd-erp", action: "cssdCommandFreezeSet", rollbackError: rollbackErr.message });
+    }
+    throw new Error("Không ghi được lý do đóng băng, thao tác đã hủy.");
+  }
 
   revalidateCssdWorkflowSurfaces();
   return { success: true as const };

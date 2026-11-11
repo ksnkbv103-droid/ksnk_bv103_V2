@@ -58,6 +58,23 @@ describe("cssd-lifecycle.actions", () => {
     });
   });
 
+  describe("thiếu hồ sơ nhân sự (CSSD-008)", () => {
+    const MSG = "Tài khoản chưa gắn hồ sơ nhân sự, không thể ghi sổ CSSD.";
+    beforeEach(() => mocks.getActorNhanSuId.mockResolvedValue(null));
+
+    it("từ chối cả 3 action ghi sổ và không gọi RPC", async () => {
+      const r1 = await applyInstrumentTransferAction({
+        boDungCuId: "bo-01", maBo: "B01", tenBo: "Bộ", lines: [{ loaiDungCuId: "l1", soLuong: 1 }] as never,
+      });
+      const r2 = await receiveNewInstrumentsAction({ loaiDungCuId: "l1", soLuong: 1 });
+      const r3 = await decommissionInstrumentsAction({
+        loaiDungCuId: "l1", soLuong: 1, sourceKind: "KHO_LE", lyDoLoaiBien: "HAO_MON",
+      } as never);
+      for (const r of [r1, r2, r3]) expect(r).toEqual({ success: false, error: MSG });
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+  });
+
   describe("applyInstrumentTransferAction (BIZ-03)", () => {
     it("rejects empty lines", async () => {
       const res = await applyInstrumentTransferAction({

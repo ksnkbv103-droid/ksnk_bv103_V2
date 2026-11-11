@@ -9,6 +9,8 @@ import { releaseSetReconcileDraftAction } from "@/modules/cssd-su-co/actions/set
 import type { SetReconcileLineInput } from "@/lib/domain/cssd-set-reconcile";
 import { CSSD_LOAI_PHYSICAL_SELECT, resolveLoaiAlias } from "@/lib/master-data/cssd-loai-dung-cu-map";
 
+const NO_NHAN_SU_ERROR = "Tài khoản chưa gắn hồ sơ nhân sự, không thể ghi sổ CSSD.";
+
 async function verifyCanManageLifecycle(): Promise<void> {
   // Chỉ quyền ghi; không fallback CSSD_KHO_DUNGCU:view.
   await verifyAnyPermission([
@@ -50,6 +52,7 @@ export async function applyInstrumentTransferAction(payload: ApplyTransferInput)
     await verifyCanManageLifecycle();
     const supabase = createAdminSupabaseClient();
     const actorNhanSuId = await getActorNhanSuId();
+    if (!actorNhanSuId) return { success: false, error: NO_NHAN_SU_ERROR };
 
     if (!payload.lines || payload.lines.length === 0) {
       return { success: false, error: "Chưa có danh sách dụng cụ luân chuyển." };
@@ -113,6 +116,7 @@ export async function receiveNewInstrumentsAction(payload: ReceiveNewInstruments
     await verifyCanManageLifecycle();
     const supabase = createAdminSupabaseClient();
     const actorNhanSuId = await getActorNhanSuId();
+    if (!actorNhanSuId) return { success: false, error: NO_NHAN_SU_ERROR };
 
     const loaiId = String(payload.loaiDungCuId || "").trim();
     if (!loaiId) return { success: false, error: "Vui lòng chọn loại dụng cụ." };
@@ -189,6 +193,7 @@ export async function decommissionInstrumentsAction(payload: DecommissionInstrum
     await verifyCanManageLifecycle();
     const supabase = createAdminSupabaseClient();
     const actorNhanSuId = await getActorNhanSuId();
+    if (!actorNhanSuId) return { success: false, error: NO_NHAN_SU_ERROR };
 
     const loaiId = String(payload.loaiDungCuId || "").trim();
     if (!loaiId) return { success: false, error: "Vui lòng chọn loại dụng cụ." };
