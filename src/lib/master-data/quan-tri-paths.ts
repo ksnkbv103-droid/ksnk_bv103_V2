@@ -15,6 +15,7 @@ export function toChucDanhMucHref(loaiDanhMuc: string): string {
 /** AR-8f (PO 2026-11-11): danh mục tra cứu sửa ngay trong module sở hữu. */
 export const GSC_DANH_MUC_PATH = "/giam-sat-chung/danh-muc";
 export const CSSD_DANH_MUC_PATH = "/cssd-quy-trinh/danh-muc";
+export const NKBV_DANH_MUC_PATH = "/giam-sat-nkbv/danh-muc";
 export const QUAN_TRI_BANG_KIEM_PATH = "/giam-sat-chung/bang-kiem";
 
 export function quanTriTaiKhoanHref(): string {

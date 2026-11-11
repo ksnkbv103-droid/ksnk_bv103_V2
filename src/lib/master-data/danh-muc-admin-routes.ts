@@ -3,7 +3,9 @@ import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 import {
   CSSD_DANH_MUC_PATH,
   GSC_DANH_MUC_PATH,
+  NKBV_DANH_MUC_PATH,
   quanTriDungCuHref,
+  quanTriHubHref,
   TO_CHUC_KHOA_PHONG_PATH,
   TO_CHUC_PATH,
 } from "./quan-tri-paths";
@@ -12,6 +14,8 @@ import {
 const DEDICATED_LOAI_TO_PATH: Record<string, string> = {
   KHOA_PHONG: TO_CHUC_KHOA_PHONG_PATH,
   LOAI_DUNG_CU: quanTriDungCuHref("loai"),
+  /** AR-8g: vai trò (khóa, mã máy) = hàng của ma trận phân quyền. */
+  VAI_TRO_HE_THONG_KSNK: quanTriHubHref("PHAN_QUYEN"),
 };
 
 /** Trang chuyên dụng nếu loại không được sửa qua form generic mã–tên. */
@@ -31,12 +35,14 @@ export function genericDmMustUseDedicatedPageError(loaiDanhMuc: string): string 
 
 /**
  * AR-8e/8f (PO 2026-11-11): danh mục tra cứu sửa trong module sở hữu — khóa quyền xem → base route.
- * Loại không có trong bảng → còn ở `/quan-tri-he-thong/danh-muc/chuyen-biet` (dọn ở 8g).
+ * AR-8g: mọi loại trong registry đều có nơi ở; `chuyen-biet` chỉ còn redirect bookmark cũ.
  */
 export const DANH_MUC_OWNER_BASE = {
   DANH_MUC_ORG: `${TO_CHUC_PATH}/danh-muc`,
   DANH_MUC_GSTT: GSC_DANH_MUC_PATH,
   DANH_MUC_CSSD_LOOKUP: CSSD_DANH_MUC_PATH,
+  /** LOAI_NKBV, TRANG_THAI_NKBV_CA — khóa, chỉ xem. */
+  GIAM_SAT_NKBV: NKBV_DANH_MUC_PATH,
 } as const;
 export type DanhMucOwnerKey = keyof typeof DANH_MUC_OWNER_BASE;
 
