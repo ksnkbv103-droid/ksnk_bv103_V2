@@ -6,6 +6,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { logAdminAction } from "@/lib/admin-audit";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { ensureStaffAuthEmailMatchesProfile } from "@/lib/auth/staff-auth-email";
 import { GUEST_STATS_PILOT_EMAIL, GUEST_STATS_PILOT_HO_TEN, GUEST_STATS_PILOT_MA_NV, GUEST_STATS_ROLE_NAME } from "@/lib/auth/guest-stats-pilot";
 import { parseOrFirstError, setupGuestStatsPilotAccountSchema } from "@/lib/validations/tai-khoan-nhan-su.validations";
@@ -15,6 +16,10 @@ import { verifyCurrentActorPassword } from "../lib/admin-reauth";
 function err(e: unknown) {
   return e instanceof Error ? e.message : String(e);
 }
+
+const GUEST_EMAIL_RESERVED_ERROR = "Email này dành cho tài khoản quản trị khẩn cấp. Dùng email khác cho tài khoản khách.";
+const GUEST_LINKED_ADMIN_ERROR =
+  "Hồ sơ khách đang gắn với một tài khoản quản trị nên không đổi email hay mật khẩu ở đây được. Gỡ liên kết trước.";
 
 export type GuestStatsPilotStatus = {
   ma_nv: string;
@@ -79,6 +84,8 @@ export async function setupGuestStatsPilotAccountAction(params: {
 
     const pw = parsed.data.password;
     const email = normalizeEmail(parsed.data.email || GUEST_STATS_PILOT_EMAIL);
+    // QT-011: không cho đặt email khẩn cấp làm email tài khoản khách.
+    if (isTrustedAdminEmail(email)) return { success: false as const, error: GUEST_EMAIL_RESERVED_ERROR };
 
     const { data: guestRole } = await supabase
       .from("sys_roles")
@@ -98,6 +105,18 @@ export async function setupGuestStatsPilotAccountAction(params: {
       .eq("ma_nv", GUEST_STATS_PILOT_MA_NV)
       .maybeSingle();
     if (staffLookupErr) throw staffLookupErr;
+
+    // QT-011: hồ sơ khách đang gắn tài khoản quản trị/khẩn cấp thì không đổi email, không đặt lại mật khẩu.
+    if (existingStaff?.id && existingStaff.auth_user_id) {
+      const [{ data: overview }, { data: linked }] = await Promise.all([
+        supabase.from("v_sys_staff_auth_overview").select("role_names").eq("id", existingStaff.id).maybeSingle(),
+        supabase.auth.admin.getUserById(existingStaff.auth_user_id as string),
+      ]);
+      const roles = ((overview?.role_names as string[] | null) ?? []).map((r) => String(r || "").trim().toUpperCase());
+      if (roles.includes("ADMIN") || isTrustedAdminEmail(linked?.user?.email)) {
+        return { success: false as const, error: GUEST_LINKED_ADMIN_ERROR };
+      }
+    }
 
     let staffId: string;
 
