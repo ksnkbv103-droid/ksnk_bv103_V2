@@ -173,6 +173,7 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
     // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
     // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
     if (!daCapPhat) {
+      if (!operatorId) throw new Error("Tài khoản chưa gắn hồ sơ nhân sự, không thể cấp phát.");
       const { data: capRes, error: capErr } = await supabase.rpc("rpc_cssd_cap_phat_commit", {
         p_quy_trinh_id: String(preRow.id),
         p_nguoi_cap_phat_id: operatorId || null,

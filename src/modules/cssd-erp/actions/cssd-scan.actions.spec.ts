@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   updateResult: { data: [{ id: "x" }], error: null } as unknown,
   rpc: vi.fn(),
   recv: vi.fn(async (..._a: unknown[]) => ({ handled: false }) as unknown),
+  operatorId: "ns-op-01" as string | null,
 }));
 
 const QT_ID = "11111111-1111-4111-8111-111111111111";
@@ -49,7 +50,7 @@ vi.mock("../shared/application/cssd-qr-hub", () => ({
 vi.mock("../shared/application/cssd-bo-bootstrap", () => ({ bootstrapCssdQuyTrinhFromMaBo: vi.fn() }));
 vi.mock("@/lib/cssd-server-gates", () => ({ verifyCssdWorkflowEdit: vi.fn(async () => undefined) }));
 vi.mock("../shared/application/cssd-workflow-resolve", () => ({ fetchActiveQuyTrinhByScanCode: async () => mocks.qt }));
-vi.mock("../shared/application/cssd-operator-resolve", () => ({ resolveCssdOperatorNhanSuId: async () => null }));
+vi.mock("../shared/application/cssd-operator-resolve", () => ({ resolveCssdOperatorNhanSuId: async () => mocks.operatorId }));
 vi.mock("@/modules/cssd-su-co/application/recall-receive.application", () => ({
   tryReceiveChoThuVeAtTiepNhan: (...a: unknown[]) => mocks.recv(...a),
 }));
@@ -123,11 +124,21 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
     expect(mocks.rpc).toHaveBeenCalledWith("rpc_cssd_cap_phat_commit", {
       p_quy_trinh_id: QT_ID,
-      p_nguoi_cap_phat_id: null,
+      p_nguoi_cap_phat_id: "ns-op-01",
       p_khoa_nhan_id: "22222222-2222-4222-8222-222222222222",
       p_ma_ca_mo_id: "CM1",
     });
     expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
+  });
+
+  it("tài khoản chưa gắn hồ sơ nhân sự: chặn cấp phát, không gọi RPC (CSSD-007)", async () => {
+    mocks.operatorId = null;
+    try {
+      await expect(scanQR("B01.SET.01", "CAP_PHAT")).rejects.toThrow(/chưa gắn hồ sơ nhân sự/);
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    } finally {
+      mocks.operatorId = "ns-op-01";
+    }
   });
 
   it("đã cấp phát: quét lại chỉ in phiếu, không gọi cap_phat_commit", async () => {
