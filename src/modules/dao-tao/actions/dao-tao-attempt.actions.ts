@@ -516,6 +516,22 @@ export async function saveTraLoiCau(rawInput: {
       throw new Error("Đã hết giờ làm bài — không thể lưu thêm câu trả lời.");
     }
 
+    const cur = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).find((item) => item.id === input.cauId);
+    if (!cur) return { ok: false as const, error: "Câu hỏi không thuộc đề thi này." };
+    const optionIds = new Set((cur.options ?? []).map((o) => o.id));
+    const t = input.traLoi;
+    const gui =
+      t.kind === "single"
+        ? t.optionId === null ? [] : [t.optionId]
+        : t.kind === "multi"
+          ? t.optionIds
+          : t.kind === "order"
+            ? t.orderedOptionIds
+            : Object.keys(t.byOptionId);
+    if (gui.some((id) => !optionIds.has(id))) {
+      return { ok: false as const, error: "Phương án không thuộc câu hỏi này." };
+    }
+
     const snap = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).map((item) =>
       item.id === input.cauId ? { ...item, tra_loi: input.traLoi } : item,
     );
@@ -528,7 +544,7 @@ export async function saveTraLoiCau(rawInput: {
     query = lanThi.updated_at ? query.eq("updated_at", lanThi.updated_at) : query.is("updated_at", null);
     const { data: written, error } = await query.select("id");
     if (error) throw error;
-    if (written?.length) return { ok: true };
+    if (written?.length) return { ok: true as const };
   }
   throw new Error("Không lưu được câu trả lời do nhiều thao tác cùng lúc — vui lòng thử lại.");
 }

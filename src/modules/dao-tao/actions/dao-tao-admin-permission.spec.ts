@@ -149,4 +149,42 @@ describe("DT-1: saveTraLoiCau kiểm input", () => {
     ).rejects.toThrow();
     expect(mocks.from).not.toHaveBeenCalled();
   });
+
+  describe("DT-004: đối chiếu de_snapshot", () => {
+    const CAU = "5f1c2b4a-9d8e-4f7a-8b6c-1a2b3c4d5e6f";
+    function lan() {
+      mocks.from.mockReturnValue(
+        chain({
+          data: {
+            id: LAN_THI_ID,
+            auth_user_id: "user-a",
+            trang_thai: "dang_lam",
+            han_nop_luc: new Date(Date.now() + 600_000).toISOString(),
+            updated_at: "2026-01-01T00:00:00Z",
+            de_snapshot: [{ id: CAU, options: [{ id: "a" }, { id: "b" }] }],
+          },
+        }),
+      );
+    }
+
+    it("cauId không thuộc đề: ok:false, không ghi", async () => {
+      lan();
+      const r = await saveTraLoiCau({
+        lanThiId: LAN_THI_ID,
+        cauId: LAN_THI_ID,
+        traLoi: { kind: "single", optionId: "a" },
+      });
+      expect(r).toEqual({ ok: false, error: "Câu hỏi không thuộc đề thi này." });
+    });
+
+    it("optionId không thuộc câu: ok:false", async () => {
+      lan();
+      const r = await saveTraLoiCau({
+        lanThiId: LAN_THI_ID,
+        cauId: CAU,
+        traLoi: { kind: "multi", optionIds: ["a", "zzz"] },
+      });
+      expect(r).toEqual({ ok: false, error: "Phương án không thuộc câu hỏi này." });
+    });
+  });
 });
