@@ -254,9 +254,9 @@
     "tieu_de": "Nộp trễ vẫn được chấm đủ điểm và hiện đáp án, chỉ dat=false (theo PO DT-2). Nộp trong ân hạn 30 giây vẫn có thể đạt dù trạng thái het_gio, và saveTraLoiCau cho ghi thêm tới hạn+30s",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:30, 515, 551-573",
     "lenh_kiem": "đọc code; không có spec cho nhánh hetGio và late",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "a73785d7",
     "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s | PO 2026-11-12: ân hạn 30s chỉ để nộp bài; saveTraLoiCau không nhận sau hạn."
   },
   {
@@ -267,9 +267,9 @@
     "tieu_de": "Mọi user có DAO_TAO view xem được kết quả và đáp án của chính mình ngay sau nộp. Với kỳ nhiều lượt, lượt sau sinh đề từ cùng ngân hàng nên đáp án lượt trước rò sang các lượt sau",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:462-474 (submitted lộ options.tfDung, dapAnDung, giai_thich, distractor_rationales)",
     "lenh_kiem": "đọc code",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "a73785d7",
     "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai."
   },
   {
@@ -683,9 +683,9 @@
     "tieu_de": "Hai action MDRO/RCA cho phép quyền GIAM_SAT_CHUNG view, nhưng truy vấn bằng user client mà RLS nkbv đòi GIAM_SAT_NKBV view. Người dùng chỉ có quyền GSC nhận danh sách rỗng mà vẫn success, nên header GSC báo nhầm «không MDRO».",
     "bang_chung": "giam-sat-nkbv-mdro.actions.ts:30-35,46; giam-sat-nkbv-rca.actions.ts:25-33; policy nkbv_fact_benh_an_select",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "15949d8d",
     "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ."
   },
   {
@@ -774,9 +774,9 @@
     "tieu_de": "listAllMaNkbvCas dùng admin client, không lọc khoa: lộ mã phiếu (ma_ca) toàn viện cho Mạng lưới (chỉ mã, không có thông tin người bệnh).",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:191-207",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "15949d8d",
     "ghi_chu": "Lọc theo restriction | PO 2026-11-12: lọc mã phiếu theo khoa của người dùng."
   },
   {
@@ -865,9 +865,9 @@
     "tieu_de": "syncAccountLinkAction và manualLinkAccountAction vẫn ghi auth_user_id khi tài khoản còn cờ must_change_password. Login trả thông báo «Email not confirmed» riêng, làm lộ tài khoản có tồn tại.",
     "bang_chung": "account-link-governance.actions.ts:37-42, :140-144; src/modules/auth/actions/staff-login.actions.ts:71-75",
     "lenh_kiem": "",
-    "trang_thai": "LOI_GIA",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
-    "commit": "",
+    "commit": "517f1f2c",
     "ghi_chu": "Thêm metaMustChangePassword; gộp thông báo lỗi login"
   },
   {
