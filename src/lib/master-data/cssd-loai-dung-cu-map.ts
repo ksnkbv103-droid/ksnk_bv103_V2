@@ -425,6 +425,18 @@ export function normalizeLoaiDungCuExcelImportRow(row: Record<string, unknown>):
   return out;
 }
 
+/**
+ * Cờ chịu nhiệt SAU khi lưu: trigger DB suy từ `phuong_phap_cho_phep` (có STEAM_*), không từ `is_chiu_nhiet`.
+ * Import dùng hàm này để so với giá trị cũ khi tách/gộp bộ; mảng trống/thiếu → dùng cờ trong payload.
+ */
+export function resolveLoaiImportNextChiuNhiet(payload: Record<string, unknown>): boolean | undefined {
+  const arr = payload.phuong_phap_cho_phep;
+  if (Array.isArray(arr) && arr.length > 0) {
+    return arr.some((m) => m === "STEAM_134" || m === "STEAM_121");
+  }
+  return typeof payload.is_chiu_nhiet === "boolean" ? payload.is_chiu_nhiet : undefined;
+}
+
 /** Smart import hybrid: đồng bộ cột vật lý sau khi gom mã vào specs. */
 export function syncLoaiPhysicalColumnsOnImportPayload(
   payload: Record<string, unknown>,

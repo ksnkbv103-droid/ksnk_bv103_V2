@@ -111,11 +111,10 @@ export async function insertInstrumentIssueLedgerCore(
   // Mirror rpc_cssd_apply_instrument_ledger tồn check (BAO_HONG / BAO_MAT + bộ).
   if (boId) {
     const { data: ct, error: ctErr } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .from("v_cssd_bo_thanh_phan_hieu_luc")
       .select("so_luong")
       .eq("bo_dung_cu_id", boId)
       .eq("loai_dung_cu_id", loaiId)
-      .eq("is_active", true)
       .limit(1)
       .maybeSingle();
     if (ctErr) return { success: false, error: ctErr.message };

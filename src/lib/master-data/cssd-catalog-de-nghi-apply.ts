@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveBoTongIdForBomWrite } from "@/lib/master-data/cssd-bom-write-target";
 import {
   normalizeDeNghiItems,
   type CssdCatalogDeNghiBomLine,
@@ -161,7 +162,7 @@ async function applyLoai(
   // Đọc hiện trạng: kiểm tổ hợp chịu nhiệt + PP sau patch và biết có hạ chịu nhiệt không.
   let rq = supabase
     .from("cssd_dm_loai_dung_cu")
-    .select("id, specs, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh");
+    .select("id, specs, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh, phuong_phap_cho_phep");
   if (id) rq = rq.eq("id", id);
   else rq = rq.eq("ma_loai", ma).eq("is_active", true);
   const { data: curRows, error: curErr } = await rq.limit(2);
@@ -173,6 +174,7 @@ async function applyLoai(
     specs: unknown;
     is_chiu_nhiet: boolean | null;
     phuong_phap_tiet_khuan_chi_dinh: string | null;
+    phuong_phap_cho_phep?: string[] | null;
   };
 
   const prevIsChiuNhiet = typeof cur.is_chiu_nhiet === "boolean" ? cur.is_chiu_nhiet : null;
@@ -191,7 +193,11 @@ async function applyLoai(
     if (!resolved.ok) throw new Error(resolved.error);
     patch.phuong_phap_tiet_khuan_chi_dinh = resolved.method;
     // Trigger DB ép phương pháp ưu tiên về mảng cho phép — ghi mảng cùng lúc kẻo bị hoàn lại.
-    patch.phuong_phap_cho_phep = [resolved.method];
+    // Giữ mảng hiện có nếu đã chứa PP này và vẫn khớp cờ chịu nhiệt mới (không làm mất lưỡng dụng).
+    const curArr = Array.isArray(cur.phuong_phap_cho_phep) ? cur.phuong_phap_cho_phep : [];
+    const keep =
+      curArr.includes(resolved.method) && curArr.some((m) => m === "STEAM_134" || m === "STEAM_121") === nextIsChiuNhiet;
+    patch.phuong_phap_cho_phep = keep ? curArr : [resolved.method];
   }
 
   if (Object.keys(specsPatch).length) {
@@ -201,9 +207,20 @@ async function applyLoai(
         : {};
     patch.specs = { ...prev, ...specsPatch };
   }
-  const { error } = await supabase.from("cssd_dm_loai_dung_cu").update(patch).eq("id", cur.id);
+  const { data: saved, error } = await supabase
+    .from("cssd_dm_loai_dung_cu")
+    .update(patch)
+    .eq("id", cur.id)
+    .select("is_chiu_nhiet")
+    .maybeSingle();
   if (error) throw new Error(error.message);
-  return { loaiId: cur.id, prevIsChiuNhiet, nextIsChiuNhiet };
+  // Trigger DB suy cờ từ mảng cho phép → lấy cờ thực tế sau khi lưu để tách/nâng bộ đúng.
+  const savedFlag = (saved as { is_chiu_nhiet?: boolean | null } | null)?.is_chiu_nhiet;
+  return {
+    loaiId: cur.id,
+    prevIsChiuNhiet,
+    nextIsChiuNhiet: typeof savedFlag === "boolean" ? savedFlag : nextIsChiuNhiet,
+  };
 }
 
 async function applyBo(
@@ -435,8 +452,9 @@ async function applyBom(
   payloadAfter: Record<string, unknown>,
   now: string,
 ): Promise<void> {
-  const boId = String(targetId || "").trim();
-  if (!boId) throw new Error("Thiếu bộ đích cho thành phần.");
+  const rawBoId = String(targetId || "").trim();
+  if (!rawBoId) throw new Error("Thiếu bộ đích cho thành phần.");
+  const boId = await resolveBoTongIdForBomWrite(supabase, rawBoId);
   const rawLines = Array.isArray(payloadAfter.lines)
     ? (payloadAfter.lines as CssdCatalogDeNghiBomLine[])
     : [];

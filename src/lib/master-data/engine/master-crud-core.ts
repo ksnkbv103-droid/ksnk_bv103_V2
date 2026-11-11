@@ -27,6 +27,7 @@ import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-d
 import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { logAdminAction } from "@/lib/admin-audit";
+import { syncHeatSplitAfterBomWrite } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import {
   masterSoftDeleteManySchema,
   masterSoftDeleteSchema,
@@ -46,6 +47,8 @@ const PHYSICAL_TABLE_NAMES = [
   "cssd_dm_bo_dung_cu_chi_tiet",
   "gstt_dm_bang_kiem",
 ] as const;
+
+const BOM_LINE_TABLE = "cssd_dm_bo_dung_cu_chi_tiet";
 
 const MASTER_TABLE_ALLOWLIST = new Set([
   ...PHYSICAL_TABLE_NAMES,
@@ -289,6 +292,7 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
   await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
   const config = CONSOLIDATED_MAPS[tableName];
+  let prevBomBoId: string | null = null;
 
   if (config) {
     let existingRecord: { code: string; metadata?: Record<string, any> | null } | null = null;
@@ -327,6 +331,10 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
       const codeCheck = await assertCodeChangeAllowed(supabase, tableName, id, nextCode);
       if (codeCheck.error) return { success: false as const, error: codeCheck.error };
     }
+    if (id && tableName === BOM_LINE_TABLE) {
+      const { data: prev } = await supabase.from(tableName).select("bo_dung_cu_id").eq("id", id).maybeSingle();
+      prevBomBoId = (prev as { bo_dung_cu_id?: string | null } | null)?.bo_dung_cu_id ?? null;
+    }
     const { error } = id
       ? await supabase.from(tableName).update(payload).eq("id", id)
       : await supabase.from(tableName).insert([payload]);
@@ -341,6 +349,14 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
     targetId: id || null,
     after: auditPayloadPreview(payload),
   });
+  if (tableName === BOM_LINE_TABLE) {
+    const warning = await syncHeatSplitAfterBomWrite(
+      supabase,
+      { boIds: [String(payload.bo_dung_cu_id || ""), prevBomBoId] },
+      "upsertMasterRow",
+    );
+    if (warning) return { success: true as const, warning };
+  }
   return { success: true as const };
 }
 
@@ -370,6 +386,10 @@ export async function toggleMasterStatus(tableName: string, id: string, currentS
     before: { is_active: currentStatus },
     after: { is_active: !currentStatus },
   });
+  if (tableName === BOM_LINE_TABLE) {
+    const warning = await syncHeatSplitAfterBomWrite(supabase, { lineIds: [id] }, "toggleMasterStatus");
+    if (warning) return { success: true as const, warning };
+  }
   return { success: true as const };
 }
 
@@ -398,6 +418,10 @@ export async function softDeleteMasterRow(tableName: string, id: string) {
     targetId: id,
     after: { is_active: false },
   });
+  if (tableName === BOM_LINE_TABLE) {
+    const warning = await syncHeatSplitAfterBomWrite(supabase, { lineIds: [id] }, "softDeleteMasterRow");
+    if (warning) return { success: true as const, warning };
+  }
   return { success: true as const };
 }
 
@@ -425,6 +449,10 @@ export async function softDeleteManyMasterRows(tableName: string, ids: string[])
     targetTable: tableName,
     after: { is_active: false, ids, count: ids.length },
   });
+  if (tableName === BOM_LINE_TABLE) {
+    const warning = await syncHeatSplitAfterBomWrite(supabase, { lineIds: ids }, "softDeleteManyMasterRows");
+    if (warning) return { success: true as const, warning };
+  }
   return { success: true as const };
 }
 

@@ -51,17 +51,16 @@ async function syncBomLinesFromTemplate(
   if (!boId) return { ok: false, message: "Chưa gán bộ dụng cụ — không có khuôn mẫu cấu phần." };
 
   const { data: lines, error: lErr } = await supabase
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("id, ten_dung_cu_le, so_luong")
-    .eq("bo_dung_cu_id", boId)
-    .eq("is_active", true);
+    .from("v_cssd_bo_thanh_phan_hieu_luc")
+    .select("chi_tiet_id, ten_dung_cu_le, so_luong")
+    .eq("bo_dung_cu_id", boId);
   if (lErr) return { ok: false, message: lErr.message };
 
   const bomLines: QuyTrinhBomLine[] = (lines || []).map(
-    (ln: { id?: string; ten_dung_cu_le?: string | null; so_luong?: number | null }, index: number) => {
+    (ln: { chi_tiet_id?: string | null; ten_dung_cu_le?: string | null; so_luong?: number | null }, index: number) => {
       const qty = Number(ln.so_luong ?? 1) || 1;
       const ten = String(ln.ten_dung_cu_le || "").trim() || "—";
-      const chiTietId = ln.id ? String(ln.id) : null;
+      const chiTietId = ln.chi_tiet_id ? String(ln.chi_tiet_id) : null;
       return {
         line_key: bomLineKeyFromTemplate(chiTietId, ten, index),
         chi_tiet_id: chiTietId,

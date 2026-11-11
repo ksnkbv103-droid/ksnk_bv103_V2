@@ -89,12 +89,6 @@ async function loadLinkedBatchMembers(
   return { ok: true, rows };
 }
 
-function unwrapRelation(value: unknown): Record<string, unknown> | null {
-  const row = Array.isArray(value) ? value[0] : value;
-  if (!row || typeof row !== "object") return null;
-  return row as Record<string, unknown>;
-}
-
 function asHeatFlag(value: unknown): boolean | null {
   if (value === true || value === false) return value;
   return null;
@@ -141,21 +135,30 @@ export async function loadKitHeatLinesByBoIds(
   if (!ids.length) return { ok: true, byBo };
 
   const { data, error } = await client
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh)")
+    .from("v_cssd_bo_thanh_phan_hieu_luc")
+    .select("bo_dung_cu_id, loai_dung_cu_id")
     .in("bo_dung_cu_id", ids);
   if (error) return { ok: false, message: error.message };
 
+  // View không hỗ trợ join lồng: tra loại dụng cụ bằng truy vấn riêng.
+  const loaiIds = [
+    ...new Set((data || []).map((r) => String((r as { loai_dung_cu_id?: string | null }).loai_dung_cu_id || "").trim()).filter(Boolean)),
+  ];
+  const loaiById = new Map<string, Record<string, unknown>>();
+  if (loaiIds.length) {
+    const { data: loais, error: lErr } = await client
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh")
+      .in("id", loaiIds);
+    if (lErr) return { ok: false, message: lErr.message };
+    for (const l of loais || []) loaiById.set(String((l as { id: string }).id), l as Record<string, unknown>);
+  }
+
   for (const raw of data || []) {
-    const row = raw as {
-      bo_dung_cu_id?: string | null;
-      is_active?: boolean | null;
-      cssd_dm_loai_dung_cu?: unknown;
-    };
-    if (row.is_active === false) continue;
+    const row = raw as { bo_dung_cu_id?: string | null; loai_dung_cu_id?: string | null };
     const boId = String(row.bo_dung_cu_id || "").trim();
     if (!boId || !byBo.has(boId)) continue;
-    const loai = unwrapRelation(row.cssd_dm_loai_dung_cu);
+    const loai = loaiById.get(String(row.loai_dung_cu_id || "").trim());
     byBo.get(boId)?.push({
       is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null,
       phuong_phap_tiet_khuan_chi_dinh: loai

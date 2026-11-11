@@ -59,15 +59,13 @@ describe("insertInstrumentIssueLedgerCore harden (RPC-parity tồn)", () => {
     const inserts: unknown[] = [];
     const client = {
       from(table: string) {
-        if (table === "cssd_dm_bo_dung_cu_chi_tiet") {
+        if (table === "v_cssd_bo_thanh_phan_hieu_luc") {
           return {
             select: () => ({
               eq: () => ({
                 eq: () => ({
-                  eq: () => ({
-                    limit: () => ({
-                      maybeSingle: async () => ({ data: { so_luong: 2 }, error: null }),
-                    }),
+                  limit: () => ({
+                    maybeSingle: async () => ({ data: { so_luong: 2 }, error: null }),
                   }),
                 }),
               }),
