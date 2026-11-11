@@ -49,6 +49,8 @@ Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nh�
 
 Mỗi module có 3 màn: **Nhập · Danh sách/lịch sử · Thống kê** (KPI, biểu đồ, bảng, xuất). Nghiệp vụ đặc thù thêm sau khi 3 màn chạy. Chỉ làm lát L2/L3 khi module đã đạt L1 và người dùng báo vướng.
 
+**CSSD (2026-11-11):** Plasma = ETO, PO 2026-11-10 — cổng app không chặn chéo, DB đã theo `phuong_phap_cho_phep`. Nợ: bộ `-KCN` rỗng chưa nạp mẻ được (số lượng cần đo lại, DB local dùng chung đang đổi); chưa chạy mẻ ETO `B07.SET.03-KCN` trên :3002.
+
 **Luật dừng rà soát**
 
 - Chỉ mở lát gia cố khi: (a) hỏng/lộ dữ liệu ở đường người dùng **đang dùng**, hoặc (b) người dùng thật báo lỗi.
