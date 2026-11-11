@@ -48,6 +48,7 @@
     "src/lib/entity-qr/entity-qr-core.ts -> @/modules/cssd-erp/shared/domain/cssd-qr-core",
     "src/lib/master-data/append-chi-tiet-issue-note.action.ts -> @/modules/cssd-erp/workflow/application/instrument-issue-core",
     "src/lib/master-data/cssd-instrument-ops.actions.ts -> @/modules/cssd-erp/workflow/application/instrument-issue-core",
+    "src/lib/master-data/engine/master-crud-core.ts -> @/modules/cssd-erp/workflow/application/cssd-heat-split-apply",
     "src/lib/master-data/engine/smart-import.actions.ts -> @/modules/cssd-erp/workflow/application/cssd-heat-split-apply",
     "src/lib/mdm-read-gateway.ts -> @/modules/giam-sat-chung/bang-kiem/actions/bang-kiem-read.actions",
     "src/lib/offline-pending-supervision-save.ts -> @/modules/giam-sat-chung/actions/giam-sat-chung-write-helpers",
