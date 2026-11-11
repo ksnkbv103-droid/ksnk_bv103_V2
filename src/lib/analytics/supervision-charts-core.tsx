@@ -119,7 +119,7 @@ export function SupervisionTrendChart({
                 userChangedGranularityRef.current = true;
                 setGranularity(id);
               }}
-              className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+              className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
             </button>

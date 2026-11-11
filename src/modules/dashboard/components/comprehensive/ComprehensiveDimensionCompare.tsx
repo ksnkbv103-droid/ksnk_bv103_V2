@@ -89,7 +89,7 @@ export function ComprehensiveDimensionCompare({ payload }: { payload: BaoCaoTong
               key={d.id}
               type="button"
               onClick={() => setDim(d.id)}
-              className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 bv103-type-label font-semibold ${
+              className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 bv103-type-label font-semibold ${
  active === d.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
  }`}
             >

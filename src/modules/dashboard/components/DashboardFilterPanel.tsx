@@ -113,7 +113,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
                     p.setTuNgay(preset.tuNgay);
                     p.setDenNgay(preset.denNgay);
                   }}
-                  className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-2.5 text-xs font-medium transition-colors ${
+                  className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-2.5 text-xs font-medium transition-colors ${
                     active
                       ? "bg-slate-900 text-white shadow-xs"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"

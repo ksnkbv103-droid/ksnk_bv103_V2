@@ -48,7 +48,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
               key={t.id}
               type="button"
               onClick={() => onChuyenDeChange(t.id)}
-              className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 bv103-type-label font-semibold ${
+              className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 bv103-type-label font-semibold ${
                 chuyenDe === t.id ? "bg-[var(--primary)] text-white" : "text-slate-600 hover:bg-slate-50"
               }`}
             >

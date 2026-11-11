@@ -388,7 +388,7 @@ export function SupervisionKhoaAnalyticsBlock({
           role="tab"
           aria-selected={tab === "ty_le"}
           onClick={() => setTab("ty_le")}
-          className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 text-xs font-semibold transition ${
+          className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
             tab === "ty_le" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >
@@ -399,7 +399,7 @@ export function SupervisionKhoaAnalyticsBlock({
           role="tab"
           aria-selected={tab === "volume"}
           onClick={() => setTab("volume")}
-          className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 text-xs font-semibold transition ${
+          className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
             tab === "volume" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >

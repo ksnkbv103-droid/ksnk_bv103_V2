@@ -29,7 +29,7 @@ export function SupervisionSourceLensToggle({ value, onChange, disabled, classNa
             type="button"
             disabled={disabled}
             onClick={() => onChange(lens)}
-            className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 text-xs font-semibold transition ${
+            className={`inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 px-3 text-xs font-semibold transition ${
               active ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
             } ${disabled ? "opacity-50" : ""}`}
             aria-pressed={active}

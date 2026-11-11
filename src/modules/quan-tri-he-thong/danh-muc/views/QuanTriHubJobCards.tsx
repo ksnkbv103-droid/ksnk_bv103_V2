@@ -52,7 +52,7 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
                     <button
                       type="button"
                       onClick={() => onOpen(r.path)}
-                      className="inline-flex min-h-9 items-center rounded-[var(--radius-control)] bg-slate-50 px-2.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-[var(--primary)]"
+                      className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] sm:min-h-9 bg-slate-50 px-2.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-[var(--primary)]"
                     >
                       {r.name}
                     </button>
