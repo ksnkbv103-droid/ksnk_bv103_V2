@@ -111,7 +111,7 @@ export function QlcvDinhKySummaryBar({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <select
-              className="h-9 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
+              className="h-11 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
               value={loaiFilter}
               onChange={(e) => onLoaiFilterChange(e.target.value as QlcvLoaiFilter)}
               aria-label="Lọc đột xuất / định kỳ"
@@ -121,7 +121,7 @@ export function QlcvDinhKySummaryBar({
               <option value="DINH_KY">Định kỳ</option>
             </select>
             <select
-              className="h-9 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
+              className="h-11 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
               value={periodKind}
               onChange={(e) => onPeriodKindChange(e.target.value as QlcvPeriodKind)}
               aria-label="Kỳ tổng hợp"
@@ -132,7 +132,7 @@ export function QlcvDinhKySummaryBar({
                 </option>
               ))}
             </select>
-            <label className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700">
+            <label className="inline-flex h-11 sm:h-9 items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700">
               <input
                 type="checkbox"
                 checked={filterBoardByPeriod}
@@ -145,7 +145,7 @@ export function QlcvDinhKySummaryBar({
               <button
                 type="button"
                 onClick={onPrintExec}
-                className="inline-flex h-9 items-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                className="inline-flex h-11 sm:h-9 items-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
               >
                 In bảng thực thi
               </button>
