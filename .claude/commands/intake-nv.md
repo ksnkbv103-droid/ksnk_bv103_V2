@@ -70,6 +70,7 @@ Sau khi nhận mô tả nghiệp vụ, bổ sung:
 3. **Top 3 rủi ro**
 4. **Giả định** cần user xác nhận (nếu có)
 5. **Câu hỏi** — tối đa 2, chỉ khi thiếu thông tin chặn triển khai
+6. **Tự kiểm** — trước khi trình, đọc nơi gọi + `.claude/rules` liên quan + HANDOFF/roadmap của lát, rồi soát 6 phép (CLAUDE.md toàn cục): yêu cầu ↔ bước + tiêu chí đo được · bước thừa · mâu thuẫn rules/schema · từ mơ hồ → số · cùng tên một khái niệm · thứ tự/nhánh khác đang sửa cùng file. Mỗi lệch: phép — lệch — `file:dòng`; sửa mục 2 theo lệch. Không lệch → «0 lệch» + đã đọc gì.
 
 Chờ user trả lời **「OK triển khai」** hoặc chỉnh sửa trước `/implement`.
 
