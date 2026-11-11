@@ -488,9 +488,9 @@
     "tieu_de": "rpc_cssd_cap_phat_commit chấp nhận p_nguoi_cap_phat_id NULL (coalesce giữ NULL) nên tài khoản chưa gắn nhân sự vẫn cấp phát được mà không có người cấp; luồng quét trạm thì chặn trường hợp này",
     "bang_chung": "DB rpc_cssd_cap_phat_commit (nguoi_cap_phat_id = coalesce(p_nguoi_cap_phat_id, q.nguoi_cap_phat_id)); src/modules/cssd-erp/actions/cssd-scan.actions.ts:178 (p_nguoi_cap_phat_id: operatorId || null); so với rpc_scan_workflow_station_impl (RETURN lỗi khi v_operator_id IS NULL)",
     "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tAc \"SELECT pg_get_functiondef('public.rpc_cssd_cap_phat_commit'::regproc)\"",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
-    "commit": "",
+    "commit": "641a47ed",
     "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng"
   },
   {
@@ -579,9 +579,9 @@
     "tieu_de": "Xóa mềm GSC update theo từng id kèm .eq('is_active',true) nhưng không kiểm số dòng bị ảnh hưởng. Bị tranh chấp hoặc phiên đã xóa trước đó thì vẫn ghi nhật ký và trả success giả.",
     "bang_chung": "src/modules/giam-sat-chung/actions/giam-sat-chung-session-meta.actions.ts, hàm deleteGiamSatChungSessions; đối chiếu src/modules/giam-sat-vst/actions/vst-write-delete.actions.ts:100-102",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-vst-quyen",
-    "commit": "",
+    "commit": "3b2f223a",
     "ghi_chu": "Thêm .select('id') và báo lỗi khi rỗng, như bên VST"
   },
   {
@@ -709,9 +709,9 @@
     "tieu_de": "updateNkbvViSinhStoreRecord không qua zod: ket_qua và mdro_phenotype không được kiểm lúc chạy; ngay_lay_mau sai định dạng làm new Date().toISOString() ném RangeError chưa bắt.",
     "bang_chung": "giam-sat-nkbv-vi-sinh-store.actions.ts:251-308",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "2d974c35",
     "ghi_chu": "Thêm schema zod cho patch"
   },
   {
@@ -878,9 +878,9 @@
     "tieu_de": "LamBaiPage.tsx bỏ qua ok:false của saveTraLoiCau (sau DT-004): lưu đáp án bị từ chối mà giao diện vẫn coi như đã lưu",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts (saveTraLoiCau trả ok:false); LamBaiPage.tsx",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "dieu-phoi-2026-11-11",
-    "commit": "",
+    "commit": "53211e57",
     "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước."
   },
   {
