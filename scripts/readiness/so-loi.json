@@ -644,10 +644,10 @@
     "tieu_de": "updateGiamSatNkbvCa nhận verification_data tùy ý từ client và không chặn ca đã chốt. Người chỉ có quyền edit (NHAN_VIEN_KSNK) có thể tự đặt is_positive=true để vượt engine, và sửa loại/ngày phát hiện của ca đã XAC_NHAN/LOAI_TRU, làm lệch thống kê sau thẩm định.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:61-137 (patch.verification_data = raw.verification_data, dòng 133; không gọi isNkbvTerminalCaseStatus); src/lib/validations/giam-sat-nkbv.validations.ts:43 verification_data: z.any(); rpc_nkbv_tham_dinh_ca chỉ kiểm verification_data->>'is_positive'; trigger fn_nkbv_su_kien_guard_trang_thai chỉ chặn đổi trang_thai_id",
     "lenh_kiem": "SELECT pg_get_functiondef('public.fn_nkbv_su_kien_guard_trang_thai'::regproc)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
-    "ghi_chu": "B2: DUNG. verification_data z.any() ghi thẳng, không chặn ca terminal; trigger chỉ chặn đổi trang_thai_id. Giữ CAO (chốt trạng thái vẫn phải qua RPC thẩm định, approve chỉ ADMIN)."
+    "commit": "1d72b2dd",
+    "ghi_chu": "B2: DUNG. verification_data z.any() ghi thẳng, không chặn ca terminal; trigger chỉ chặn đổi trang_thai_id. Giữ CAO (chốt trạng thái vẫn phải qua RPC thẩm định, approve chỉ ADMIN). | B3: sửa 1d72b2dd (action). Còn thiếu chặn ở trigger DB, gộp vào đợt migration RLS; UI GiamSatNkbvPage không gửi verification_data; chưa test tay."
   },
   {
     "id": "NKBV-003",
@@ -670,10 +670,10 @@
     "tieu_de": "listMdroInpatientsByKhoa và listNkbvPatientRcaByKhoa nhận khoaId từ client nhưng không áp NK-SCOPE (dùng user client, mà RLS không lọc khoa). Mạng lưới truyền khoaId khoa khác hoặc để trống là xem được danh sách người bệnh MDRO đang nằm viện của khoa khác.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:41-56; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-rca.actions.ts:24-43 (không gọi getNkbvKhoaRestriction); gọi từ src/components/shared/GiamSatHeaderPatientFields.tsx:89 và NkbvMdroCensusPanel.tsx:34-35",
     "lenh_kiem": "grep -c 'Restriction' src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-{mdro,rca}.actions.ts  # 0",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
-    "ghi_chu": "B2: DUNG. grep Restriction=0 ở mdro và rca; khoaId rỗng = toàn viện (limit 500). Giữ CAO."
+    "commit": "627011b4",
+    "ghi_chu": "B2: DUNG. grep Restriction=0 ở mdro và rca; khoaId rỗng = toàn viện (limit 500). Giữ CAO. | B3: sửa 627011b4, spec 3 test, verify:engineering pass; chưa test tay."
   },
   {
     "id": "NKBV-005",
