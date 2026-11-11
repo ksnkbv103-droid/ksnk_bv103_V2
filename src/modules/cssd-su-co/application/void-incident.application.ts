@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/shared/cssd-tram-persist";
 import { removeChiTietIssueNoteLines } from "@/modules/cssd-erp/workflow/domain/instrument-issue-note";
 import { tableHasColumn } from "@/modules/cssd-erp/shared/cssd-db-utils";
-import { planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
+import { canActorVoidIncident, INCIDENT_VOID_NOT_OWNER, planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
 
 export async function executeVoidIncidentReport(
   supabase: SupabaseClient,
@@ -13,6 +13,9 @@ export async function executeVoidIncidentReport(
     voidReasonCode?: string | null;
     voidReasonNote?: string | null;
     allowVoidConfirmed?: boolean;
+    /** CSSD-011: auth user người gọi + cờ có quyền xác nhận (qua gate hoặc vai trò). */
+    actorAuthUserId?: string | null;
+    actorIsApprover?: boolean;
   },
 ): Promise<{ ok: true; already?: boolean } | { ok: false; error: string }> {
   const id = String(opts.incidentId || "").trim();
@@ -35,6 +38,15 @@ export async function executeVoidIncidentReport(
     quy_trinh_id?: string | null;
   };
   if (row.is_active === false) return { ok: true, already: true };
+  if (
+    !canActorVoidIncident({
+      attributes: row.attributes,
+      actorAuthUserId: opts.actorAuthUserId,
+      actorIsApprover: Boolean(opts.actorIsApprover),
+    })
+  ) {
+    return { ok: false, error: INCIDENT_VOID_NOT_OWNER };
+  }
   const quyId = String(row.quy_trinh_id || "").trim();
 
   const { count: stockCount, error: stockErr } = await supabase

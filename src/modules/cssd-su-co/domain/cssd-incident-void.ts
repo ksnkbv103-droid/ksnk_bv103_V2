@@ -34,6 +34,8 @@ export const INCIDENT_VOID_TRANSFER =
 export const INCIDENT_VOID_ALREADY = "Phiếu sự cố đã bị vô hiệu.";
 export const INCIDENT_VOID_CONFIRMED =
   "Phiếu đã xác nhận — chỉ Trưởng CSSD / Admin được vô hiệu kèm lý do.";
+export const INCIDENT_VOID_NOT_OWNER =
+  "Chỉ người báo phiếu hoặc người có quyền xác nhận sự cố mới được vô hiệu phiếu này.";
 export const INCIDENT_VOID_CLOSED = "Phiếu đã đóng (giải phóng) — không vô hiệu.";
 
 const BOM_BLOCK = new Set(["BOM_PENDING", "BOM_APPLYING", "BOM_APPLY_FAILED", "BOM_APPROVED"]);
@@ -300,4 +302,17 @@ export function planCssdIncidentVoid(input: {
     khoDelta: ledger.khoDelta,
     cycle,
   };
+}
+
+/** CSSD-011: chỉ người báo (REPORTER_AUTH_USER_ID == auth user) hoặc người có quyền xác nhận được vô hiệu. */
+export function canActorVoidIncident(input: {
+  attributes: Record<string, unknown> | null | undefined;
+  actorAuthUserId: string | null | undefined;
+  actorIsApprover: boolean;
+}): boolean {
+  if (input.actorIsApprover) return true;
+  const attrs = input.attributes || {};
+  const owner = String(attrs.REPORTER_AUTH_USER_ID || attrs.reporter_auth_user_id || "").trim();
+  const actor = String(input.actorAuthUserId || "").trim();
+  return Boolean(owner && actor && owner === actor);
 }
