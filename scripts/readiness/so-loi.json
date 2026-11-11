@@ -7,10 +7,10 @@
     "tieu_de": "RPC fn_cssd_dong_bo_tach_nhiet không tạo bộ con -EO và không gán bao gói mặc định theo nhóm (mất từ 379b835e)",
     "bang_chung": "supabase/migrations (fn_cssd_dong_bo_tach_nhiet); src/lib/master-data/cssd-heat-split-apply.ts",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "no-da-biet",
     "commit": "",
-    "ghi_chu": "Hỏi PO: sau khóa Plasma=ETO còn cần bộ con EO riêng không"
+    "ghi_chu": "Hỏi PO: sau khóa Plasma=ETO còn cần bộ con EO riêng không | PO 2026-11-12: không cần bộ con EO riêng sau khóa Plasma=ETO, giữ như hiện tại."
   },
   {
     "id": "CSSD-002",
@@ -241,10 +241,10 @@
     "tieu_de": "Lượt dang_lam quá hạn không tự đóng. Người học bỏ dở vẫn bị tính tiêu một lượt, kỳ thi so_lan_cho_phep=1 thì không thi lại được. Admin chỉ thấy bài sau khi chính người đó mở lại và nộp",
     "bang_chung": "src/modules/dao-tao/lib/dao-tao-luot.ts:6 (dang_lam tiêu lượt); src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:556-585 (chỉ chuyển het_gio khi người học gọi submit); không có job quét",
     "lenh_kiem": "SELECT count(*) FROM dao_tao_lan_thi WHERE trang_thai='dang_lam' AND han_nop_luc<now()",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "Hỏi PO: tự chấm các bài dang_lam quá hạn (cron hoặc chấm khi đọc) và đặt trạng thái het_gio, hay cho admin mở lượt lại"
+    "ghi_chu": "Hỏi PO: tự chấm các bài dang_lam quá hạn (cron hoặc chấm khi đọc) và đặt trạng thái het_gio, hay cho admin mở lượt lại | PO 2026-11-12: không tự chấm; cho admin mở lại lượt bằng tay."
   },
   {
     "id": "DT-007",
@@ -254,10 +254,10 @@
     "tieu_de": "Nộp trễ vẫn được chấm đủ điểm và hiện đáp án, chỉ dat=false (theo PO DT-2). Nộp trong ân hạn 30 giây vẫn có thể đạt dù trạng thái het_gio, và saveTraLoiCau cho ghi thêm tới hạn+30s",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:30, 515, 551-573",
     "lenh_kiem": "đọc code; không có spec cho nhánh hetGio và late",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s"
+    "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s | PO 2026-11-12: ân hạn 30s chỉ để nộp bài; saveTraLoiCau không nhận sau hạn."
   },
   {
     "id": "DT-008",
@@ -267,10 +267,10 @@
     "tieu_de": "Mọi user có DAO_TAO view xem được kết quả và đáp án của chính mình ngay sau nộp. Với kỳ nhiều lượt, lượt sau sinh đề từ cùng ngân hàng nên đáp án lượt trước rò sang các lượt sau",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:462-474 (submitted lộ options.tfDung, dapAnDung, giai_thich, distractor_rationales)",
     "lenh_kiem": "đọc code",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
-    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai"
+    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai."
   },
   {
     "id": "DT-009",
@@ -397,10 +397,10 @@
     "tieu_de": "RPC rpc_qlcv_nhiem_vu_rollup có trong DB nhưng không nơi nào trong src gọi: chức năng làm dở hoặc code chết, tiến độ nhiệm vụ đang tính nơi khác.",
     "bang_chung": "grep 'rollup' trong src/ không có kết quả gọi; DB pg_proc có rpc_qlcv_nhiem_vu_rollup(p_nhiem_vu_ids uuid[])",
     "lenh_kiem": "grep -rn nhiem_vu_rollup /Users/drnghia/Desktop/ksnk_bv103/.claude/worktrees/integrate-2026-11/src",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "Hoặc nối vào NhiemVuPanel/nhiem-vu.actions, hoặc bỏ qua bằng migration drop. Hỏi PO."
+    "ghi_chu": "Hoặc nối vào NhiemVuPanel/nhiem-vu.actions, hoặc bỏ qua bằng migration drop. Hỏi PO. | PO 2026-11-12: xóa rpc_qlcv_nhiem_vu_rollup khỏi DB (migration drop, local trước; prod theo lô)."
   },
   {
     "id": "QLCV-006",
@@ -410,10 +410,10 @@
     "tieu_de": "fn_sync_overdue_tasks chỉ đổi MOI/DANG_LAM thành QUA_HAN và không có đường ngược lại; việc TU_CHOI quá hạn không bao giờ thành QUA_HAN (chỉ cộng vào đếm quá hạn bằng so sánh ngày). Nếu cron chưa chạy (phát hiện 1) thì cột trang_thai lệch với số đếm.",
     "bang_chung": "fn_sync_overdue_tasks: trang_thai = ANY(ARRAY['MOI','DANG_LAM']); rpc_qlcv_board_counts mục 'overdue' dùng a.trang_thai='QUA_HAN' OR is_qua_han OR han<today",
     "lenh_kiem": "select loai_cong_viec,trang_thai,count(*) from qlcv_fact_cong_viec where is_active and han_hoan_thanh < public.fn_qlcv_today_vn() group by 1,2",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "r1-qlcv",
     "commit": "",
-    "ghi_chu": "Gia hạn từ QUA_HAN về DANG_LAM đã có trigger/ code hay chưa cần xác nhận riêng. Hỏi PO nếu muốn TU_CHOI cũng chuyển QUA_HAN."
+    "ghi_chu": "Gia hạn từ QUA_HAN về DANG_LAM đã có trigger/ code hay chưa cần xác nhận riêng. Hỏi PO nếu muốn TU_CHOI cũng chuyển QUA_HAN. | PO 2026-11-12: TU_CHOI giữ nguyên trạng thái, chỉ tính vào số đếm quá hạn. Không sửa."
   },
   {
     "id": "QLCV-007",
@@ -592,10 +592,10 @@
     "tieu_de": "GSC không có cửa sổ 30 phút cho chủ phiên khi sửa/xóa, còn VST có. Chủ phiên GSC sửa hoặc xóa được bất cứ lúc nào trước khi khóa sổ.",
     "bang_chung": "src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts:57,219-223; VST: vst-write-save-session.actions.ts:197-204",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "r1-vst-quyen",
     "commit": "",
-    "ghi_chu": "hỏi PO: GSC có áp cửa sổ 30 phút như VST-05 không"
+    "ghi_chu": "hỏi PO: GSC có áp cửa sổ 30 phút như VST-05 không | PO 2026-11-12: GSC không áp cửa sổ 30 phút. Nguyên tắc PO: ai làm bảng kiểm thì biết phiên của người đó và được sửa/xóa phiên của mình."
   },
   {
     "id": "VST-010",
@@ -683,10 +683,10 @@
     "tieu_de": "Hai action MDRO/RCA cho phép quyền GIAM_SAT_CHUNG view, nhưng truy vấn bằng user client mà RLS nkbv đòi GIAM_SAT_NKBV view. Người dùng chỉ có quyền GSC nhận danh sách rỗng mà vẫn success, nên header GSC báo nhầm «không MDRO».",
     "bang_chung": "giam-sat-nkbv-mdro.actions.ts:30-35,46; giam-sat-nkbv-rca.actions.ts:25-33; policy nkbv_fact_benh_an_select",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
-    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa"
+    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ."
   },
   {
     "id": "NKBV-006",
@@ -699,7 +699,7 @@
     "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
-    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO"
+    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete."
   },
   {
     "id": "NKBV-007",
@@ -774,10 +774,10 @@
     "tieu_de": "listAllMaNkbvCas dùng admin client, không lọc khoa: lộ mã phiếu (ma_ca) toàn viện cho Mạng lưới (chỉ mã, không có thông tin người bệnh).",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:191-207",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
-    "ghi_chu": "Lọc theo restriction"
+    "ghi_chu": "Lọc theo restriction | PO 2026-11-12: lọc mã phiếu theo khoa của người dùng."
   },
   {
     "id": "QT-003",
@@ -813,10 +813,10 @@
     "tieu_de": "Phiếu xin cấp tài khoản công khai mang gợi ý staff_id theo ma_nv. Nếu hồ sơ đó trống email, lúc duyệt bỏ qua bước đối chiếu email, nên tài khoản được tạo với email người xin trên hồ sơ của người khác. Chỉ còn ADMIN chặn bằng mắt.",
     "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-access-request.actions.ts:256 (điều kiện `staff.email && …`), :262 gán email phiếu; account-access-request-public.actions.ts:193",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
-    "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO"
+    "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO | PO 2026-11-12: hồ sơ nhân sự trống email thì từ chối duyệt, yêu cầu bổ sung email trước."
   },
   {
     "id": "QT-006",
