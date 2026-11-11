@@ -1,19 +1,14 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { getDb } from "@/lib/data-access";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildDisplayMaps, toDistinctIds, mapDanhMucOptions } from "@/lib/master-data/gateway";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
-import {
-  VST_OBSERVATION_FULL_VIEW_SELECT,
-  VST_SESSIONS_FULL_VIEW_SELECT,
-  VST_SESSIONS_FULL_VIEW_SELECT_WITH_NB,
-} from "../lib/vst-read-view-select";
-import { isVstSessionsMetadataColumnMissing } from "../lib/vst-bo-sung-nguoi-benh";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { applyVstHistoryReadScope, assertVstHistoryAccess } from "../lib/vst-read-scope";
+import { assertVstHistoryAccess } from "../lib/vst-read-scope";
+import { vstRepo } from "../repo/vst.repo";
 
 /**
  * Phiên bản phân trang Server-side cho Lịch sử VST.
@@ -33,8 +28,6 @@ export async function getVSTSessionsPaginated(params: {
     if (!historyAccess.ok) {
       return { success: false, error: historyAccess.error };
     }
-
-    const supabase = createAdminSupabaseClient();
 
     const page = params.page ?? 1;
     const size = Math.min(Math.max(params.pageSize ?? 20, 10), 50);
@@ -69,26 +62,21 @@ export async function getVSTSessionsPaginated(params: {
     ]);
 
     // 1. COUNT
-    // UI phân trang lịch sử — planned đủ; giữ exact ở báo cáo/đếm nghiệp vụ.
-    let countQ = supabase
-      .from("v_gstt_giam_sat_vst_sessions_full")
-      .select("id", { count: "exact", head: true })
-      .eq("is_active", true);
-    countQ = applyVstHistoryReadScope(countQ, scope);
-    if (searchFilter) countQ = countQ.or(searchFilter);
-    const { count, error: cErr } = await countQ;
+    const { count, error: cErr } = await vstRepo.countVstSessions({
+      scope,
+      searchFilter: searchFilter ?? undefined,
+    });
     if (cErr) throw cErr;
 
     // 2. DATA — 1 trang
-    let dataQ = supabase
-      .from("v_gstt_giam_sat_vst_sessions_full")
-      .select(VST_SESSIONS_FULL_VIEW_SELECT)
-      .eq("is_active", true)
-      .order(sortCol, { ascending })
-      .range(from, to);
-    dataQ = applyVstHistoryReadScope(dataQ, scope);
-    if (searchFilter) dataQ = dataQ.or(searchFilter);
-    const { data, error } = await dataQ;
+    const { data, error } = await vstRepo.getVstSessionsPaginatedData({
+      scope,
+      searchFilter: searchFilter ?? undefined,
+      sortCol,
+      ascending,
+      from,
+      to,
+    });
     if (error) throw error;
 
     const enriched = (data || []).map((x: Record<string, unknown>) => ({
@@ -116,31 +104,10 @@ export async function getVSTSessionDetail(sessionId: string) {
       return { success: false, error: historyAccess.error };
     }
 
-    const supabase = createAdminSupabaseClient();
-
     // 1. Fetch Session Metadata from View (Smart DB pattern).
-    // Soft-safe: thử WITH_NB (sau migrate); nếu view chưa có cột → fallback BASE.
-    let sessionView: Record<string, unknown> | null = null;
-    {
-      const withNb = await supabase
-        .from("v_gstt_giam_sat_vst_sessions_full")
-        .select(VST_SESSIONS_FULL_VIEW_SELECT_WITH_NB)
-        .eq("id", sessionId)
-        .single();
-      if (withNb.error && isVstSessionsMetadataColumnMissing(withNb.error)) {
-        const base = await supabase
-          .from("v_gstt_giam_sat_vst_sessions_full")
-          .select(VST_SESSIONS_FULL_VIEW_SELECT)
-          .eq("id", sessionId)
-          .single();
-        if (base.error) throw base.error;
-        sessionView = (base.data as Record<string, unknown> | null) ?? null;
-      } else if (withNb.error) {
-        throw withNb.error;
-      } else {
-        sessionView = (withNb.data as Record<string, unknown> | null) ?? null;
-      }
-    }
+    const sessionRes = await vstRepo.getVstSessionDetailView(sessionId);
+    if (sessionRes.error) throw sessionRes.error;
+    const sessionView = (sessionRes.data as Record<string, unknown> | null) ?? null;
     if (!sessionView) throw new Error("Không tìm thấy phiên giám sát.");
 
     // VST soft-delete: list ẩn is_active=false — detail cũng không mở lại.
@@ -161,11 +128,7 @@ export async function getVSTSessionDetail(sessionId: string) {
     }
 
     // Query metadata directly from gstt_fact_vst_sessions to preserve patient risk factors (bn_*)
-    const { data: rawMetaRow } = await supabase
-      .from("gstt_fact_vst_sessions")
-      .select("metadata")
-      .eq("id", sessionId)
-      .maybeSingle();
+    const { data: rawMetaRow } = await vstRepo.getVstSessionMetadataById(sessionId);
 
     // Map view fields back to the format expected by the UI
     const session = {
@@ -177,10 +140,7 @@ export async function getVSTSessionDetail(sessionId: string) {
     };
 
     // 2. Fetch Observations
-    const { data: observations, error: oErr } = await supabase
-      .from("v_gstt_giam_sat_vst_full")
-      .select(VST_OBSERVATION_FULL_VIEW_SELECT)
-      .eq("session_id", sessionId);
+    const { data: observations, error: oErr } = await vstRepo.getVstObservationsView(sessionId);
     
     if (oErr) throw oErr;
 
@@ -189,7 +149,8 @@ export async function getVSTSessionDetail(sessionId: string) {
     const nvIds = toDistinctIds(((observations || []) as { nhan_vien_id?: string }[]).map((o) => o.nhan_vien_id));
     const nhanSuIds = toDistinctIds([observerId, ...nvIds]);
     
-    const { nhanSuMap } = await buildDisplayMaps(supabase as unknown as Parameters<typeof buildDisplayMaps>[0], {
+    const db = await getDb("admin");
+    const { nhanSuMap } = await buildDisplayMaps(db as unknown as Parameters<typeof buildDisplayMaps>[0], {
       nhanSuIds,
     });
 
@@ -205,7 +166,6 @@ export async function getVSTSessionDetail(sessionId: string) {
 
 /** Danh mục header VST — khóa khoa/nhân sự theo phạm vi mạng lưới (parity GSC). */
 export async function getVstHeaderDmDropdowns() {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
     const scope = await getActorKsnkScope();
@@ -223,21 +183,10 @@ export async function getVstHeaderDmDropdowns() {
     }
 
     const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes] = await Promise.all([
-      supabase.rpc("rpc_get_registry_options", {
-        p_categories: ["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"],
-      }),
+      vstRepo.getRegistryOptionsRpc(["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"]),
       getCachedDmKhoaPhong(),
-      (() => {
-        // A) Full active list. B) limit 400 (+ filter khoa mạng lưới) — chọn B.
-        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id, nghe_nghiep_id").eq("is_active", true);
-        if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
-        return q.order("ho_ten").limit(400);
-      })(),
-      supabase
-        .from("gstt_dm_khu_vuc_giam_sat")
-        .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu")
-        .eq("is_active", true)
-        .order("thu_tu"),
+      vstRepo.findVstHeaderNhanSu(scope.isMangLuoiKsnk ? actorKhoaId : null),
+      vstRepo.findVstKhuVucFallback(),
     ]);
 
     if (registriesRes.error) throw registriesRes.error;

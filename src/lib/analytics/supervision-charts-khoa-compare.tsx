@@ -276,9 +276,9 @@ function SupervisionKhoaVolumeChart({
     const dat = isTgs ? payload?.dat_tgs : payload?.dat_ksnk;
     const vol = Number(value ?? 0);
     if (dat != null && vol > 0) {
-      return [`${Number(dat).toLocaleString()}/${vol.toLocaleString()}`, String(name ?? "Khối lượng")];
+      return [`${Number(dat).toLocaleString("vi-VN")}/${vol.toLocaleString("vi-VN")}`, String(name ?? "Khối lượng")];
     }
-    return [vol.toLocaleString(), String(name ?? "Khối lượng")];
+    return [vol.toLocaleString("vi-VN"), String(name ?? "Khối lượng")];
   };
 
   return (

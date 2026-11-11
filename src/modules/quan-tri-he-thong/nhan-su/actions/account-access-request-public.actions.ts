@@ -1,23 +1,45 @@
 "use server";
 
 /** Public (chưa đăng nhập): xin cấp tài khoản, quên mật khẩu, tra cứu. Admin ở `account-access-request.actions.ts`. */
+import { createHash } from "node:crypto";
+import { headers } from "next/headers";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import {
   ACCESS_REQUEST_COOLDOWN_MS,
+  ACCESS_REQUEST_IP_WINDOW_MS,
   ACCESS_REQUEST_MA_NV_WINDOW_MS,
   accountEmailsMatch,
   canCreateResetTicket,
   isAccessRequestThrottled,
+  isIpThrottled,
 } from "../lib/account-access-request";
-import { countAccessRequests, insertAccessRequestRow } from "../lib/account-access-request-store";
+import { countAccessRequests, escapeLike, insertAccessRequestRow } from "../lib/account-access-request-store";
 import { parseOrFirstError } from "@/lib/validations/tai-khoan-nhan-su.validations";
 import { lookupAccountAccessRequestStatusSchema, submitAccountAccessRequestSchema, submitForgotResetAdminRequestSchema } from "@/lib/validations/account-access-request.validations";
 import { revalidateNhanSuTaiKhoan } from "@/modules/quan-tri-he-thong/actions/revalidate-quan-tri";
 
 function errMsg(e: unknown) {
   return e instanceof Error ? e.message : String(e);
+}
+
+/** Lỗi trả về client: log chi tiết ở server, không lộ `error.message` (SQL/RLS/tên bảng). */
+function clientErr(tag: string, e: unknown) {
+  console.error(`[${tag}]`, errMsg(e));
+  return "Không xử lý được yêu cầu. Thử lại sau.";
+}
+
+/** IP client đã băm (không lưu IP thô). Vercel ghi đè x-forwarded-for → phần tử đầu là IP thật. */
+async function getClientIpHash(): Promise<string> {
+  try {
+    const h = await headers();
+    const ip = (h.get("x-real-ip") || h.get("x-forwarded-for") || "").split(",")[0]?.trim();
+    if (!ip) return "";
+    return createHash("sha256").update(`acc-req:${ip}`).digest("hex").slice(0, 32);
+  } catch {
+    return "";
+  }
 }
 
 /** Cùng một câu cho đã có tài khoản, đang chờ, vừa gửi, hoặc tra cứu. */
@@ -47,7 +69,7 @@ export async function listPublicChucDanhOptionsForAccountRequestAction() {
       })),
     };
   } catch (e: unknown) {
-    return { success: false as const, error: errMsg(e) };
+    return { success: false as const, error: clientErr("account-access-public", e) };
   }
 }
 
@@ -64,7 +86,7 @@ export async function listPublicKhoaOptionsForAccountRequestAction() {
       })),
     };
   } catch (e: unknown) {
-    return { success: false as const, error: errMsg(e) };
+    return { success: false as const, error: clientErr("account-access-public", e) };
   }
 }
 
@@ -81,14 +103,18 @@ export type SubmitAccountAccessRequestInput = {
 };
 
 /** ACC-1: chặn gửi dồn theo email, mã NV và số phiếu chờ còn mở — không captcha (PO quyết). */
-async function isPublicRequestThrottled(supabase: unknown, email: string, maNv: string): Promise<boolean> {
-  const [recentByEmail, recentByMaNv, pendingByEmail, pendingByMaNv] = await Promise.all([
+async function isPublicRequestThrottled(supabase: unknown, email: string, maNv: string, ipHash: string): Promise<boolean> {
+  const [recentByEmail, recentByMaNv, pendingByEmail, pendingByMaNv, recentByIp] = await Promise.all([
     countAccessRequests(supabase, { email, sinceMs: ACCESS_REQUEST_COOLDOWN_MS }),
     maNv ? countAccessRequests(supabase, { maNv, sinceMs: ACCESS_REQUEST_MA_NV_WINDOW_MS }) : 0,
     countAccessRequests(supabase, { email, pendingOnly: true }),
     maNv ? countAccessRequests(supabase, { maNv, pendingOnly: true }) : 0,
+    ipHash ? countAccessRequests(supabase, { ipHash, sinceMs: ACCESS_REQUEST_IP_WINDOW_MS }) : 0,
   ]);
-  return isAccessRequestThrottled({ recentByEmail, recentByMaNv, pendingByEmail, pendingByMaNv });
+  return (
+    isAccessRequestThrottled({ recentByEmail, recentByMaNv, pendingByEmail, pendingByMaNv }) ||
+    isIpThrottled(recentByIp)
+  );
 }
 
 type PublicStaffRow = {
@@ -110,7 +136,7 @@ async function findStaffForPublicRequest(
     const { data } = await supabase.from("v_mdm_nhan_su_full").select(cols).eq("ma_nv", maNv).maybeSingle();
     return (data as PublicStaffRow | null) ?? null;
   }
-  const { data } = await supabase.from("v_mdm_nhan_su_full").select(cols).ilike("email", email).limit(5);
+  const { data } = await supabase.from("v_mdm_nhan_su_full").select(cols).ilike("email", escapeLike(email)).limit(5);
   const rows = (data || []) as PublicStaffRow[];
   return rows.find((r) => accountEmailsMatch(r.email, email)) ?? null;
 }
@@ -136,7 +162,8 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
     }
 
     const supabase = createAdminSupabaseClient();
-    if (await isPublicRequestThrottled(supabase, email, maNv)) {
+    const ipHash = await getClientIpHash();
+    if (await isPublicRequestThrottled(supabase, email, maNv, ipHash)) {
       return publicAccountAck();
     }
 
@@ -173,6 +200,7 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
         chuc_danh: chucDanhTen || null,
         ly_do: lyDo,
         source: "PUBLIC_REQUEST",
+        ip_hash: ipHash || null,
       },
     });
     revalidateNhanSuTaiKhoan();
@@ -204,7 +232,8 @@ export async function submitForgotResetAdminRequestAction(input: {
     }
 
     const supabase = createAdminSupabaseClient();
-    if (await isPublicRequestThrottled(supabase, email, maNv)) {
+    const ipHash = await getClientIpHash();
+    if (await isPublicRequestThrottled(supabase, email, maNv, ipHash)) {
       return publicAccountAck();
     }
 
@@ -219,7 +248,7 @@ export async function submitForgotResetAdminRequestAction(input: {
       kind: "RESET",
       email,
       staff_id: staff.id,
-      payload: { ma_nv: staff.ma_nv || maNv || null, ly_do: lyDo, source: "FORGOT_RESET" },
+      payload: { ma_nv: staff.ma_nv || maNv || null, ly_do: lyDo, source: "FORGOT_RESET", ip_hash: ipHash || null },
     });
     revalidateNhanSuTaiKhoan();
     return publicAccountAck();

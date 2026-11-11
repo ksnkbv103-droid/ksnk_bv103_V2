@@ -4,6 +4,7 @@
  */
 
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
+import { metaMustChangePassword } from "@/lib/auth/password-change-gate";
 import { getRequestAuthUser } from "@/lib/auth/rbac-request";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidateTag, unstable_cache } from "next/cache";
@@ -18,7 +19,7 @@ export async function invalidateUserPermissionsCache() {
   revalidateTag(USER_PERMISSIONS_CACHE_TAG, "default");
 }
 
-/** Fetch and cache permissions for 5 minutes per user. */
+/** Fetch and cache permissions for 60 seconds per user (thu hồi quyền có hiệu lực ≤ 1 phút). */
 const fetchUserPermissions = unstable_cache(
   async (userId: string) => {
     const admin = createAdminSupabaseClient();
@@ -34,7 +35,7 @@ const fetchUserPermissions = unstable_cache(
     };
   },
   [USER_PERMISSIONS_CACHE_TAG],
-  { revalidate: 300, tags: [USER_PERMISSIONS_CACHE_TAG] },
+  { revalidate: 60, tags: [USER_PERMISSIONS_CACHE_TAG] },
 );
 
 /** Request-scope deduplication for permissions. */
@@ -60,13 +61,25 @@ async function logBreakGlass(
   });
 }
 
+/**
+ * User cho mọi cổng kiểm quyền: đã đăng nhập và không còn cờ must_change_password.
+ * Cờ kiểm ở đây (không chỉ ở proxy) vì server action gọi được từ đường dẫn bất kỳ.
+ */
+async function requireGateUser() {
+  // getUser() xác minh JWT server-side (ngăn JWT spoofing) — dedup qua React cache().
+  const user = await getRequestAuthUser();
+  if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
+  if (metaMustChangePassword(user.user_metadata, user.app_metadata)) {
+    throw new Error("Bạn cần đổi mật khẩu trước khi tiếp tục.");
+  }
+  return user;
+}
+
 /** Một round-trip DB: đọc view quyền một lần, kiểm tra nhiều cặp (module + action). */
 export async function verifyPermissions(required: readonly PermissionCheck[]) {
   if (!required.length) return;
 
-  // getUser() xác minh JWT server-side (ngăn JWT spoofing) — dedup qua React cache().
-  const user = await getRequestAuthUser();
-  if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
+  const user = await requireGateUser();
 
   if (isTrustedAdminEmail(user.email)) {
     await logBreakGlass(user, "verifyPermissions", required);
@@ -98,6 +111,8 @@ export async function verifyPermission(moduleKey: string, action: string) {
 export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   const user = await getRequestAuthUser();
   if (!user?.id) return false;
+  // Một số action chỉ dựa vào hàm này làm cổng: còn cờ bắt đổi mật khẩu thì không có đặc quyền.
+  if (metaMustChangePassword(user.user_metadata, user.app_metadata)) return false;
   if (isTrustedAdminEmail(user.email)) {
     await logBreakGlass(user, "supervision_bypass");
     return true;
@@ -110,6 +125,7 @@ export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
 export async function getActorRoleNames(): Promise<string[]> {
   const user = await getRequestAuthUser();
   if (!user?.id) return [];
+  if (metaMustChangePassword(user.user_metadata, user.app_metadata)) return [];
   if (isTrustedAdminEmail(user.email)) return ["ADMIN"];
   const { roles } = await getPermissionsRequestScope(user.id);
   return roles.map((r) => String(r || "").trim()).filter(Boolean);
@@ -119,8 +135,7 @@ export async function getActorRoleNames(): Promise<string[]> {
 export async function verifyAnyPermission(alternatives: readonly PermissionCheck[]) {
   if (!alternatives.length) return;
 
-  const user = await getRequestAuthUser();
-  if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
+  const user = await requireGateUser();
 
   if (isTrustedAdminEmail(user.email)) {
     await logBreakGlass(user, "verifyAnyPermission", alternatives);
@@ -150,8 +165,7 @@ export async function verifyAllAnyPermissionGroups(
 ) {
   if (!groups.length) return;
 
-  const user = await getRequestAuthUser();
-  if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
+  const user = await requireGateUser();
 
   if (isTrustedAdminEmail(user.email)) {
     await logBreakGlass(user, "verifyAllAnyPermissionGroups", groups.flat());

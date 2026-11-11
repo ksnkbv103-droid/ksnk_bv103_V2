@@ -398,7 +398,11 @@ export default function VSTForm({
         )}
 
         {/* Mobile Tab Switcher */}
-        <div className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden overflow-x-auto">
+        <div
+          role="tablist"
+          aria-label="Chọn đối tượng nhân viên quan sát"
+          className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden overflow-x-auto"
+        >
           {persons.map((_, idx) => {
             const isActive = activePersonTab === idx;
             const p = persons[idx];
@@ -412,8 +416,12 @@ export default function VSTForm({
               <button
                 key={idx}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`vst-person-panel-${idx}`}
+                id={`vst-person-tab-${idx}`}
                 onClick={() => setActivePersonTab(idx)}
-                className={`flex-1 rounded-[var(--radius-control)] py-2.5 text-center text-xs font-semibold transition-colors ${
+                className={`flex-1 min-h-[40px] rounded-[var(--radius-control)] px-2 py-2.5 text-center text-xs font-semibold transition-colors touch-manipulation ${
                   isActive
                     ? "bg-[var(--primary)] text-white shadow-sm"
                     : "text-slate-600 hover:bg-white/50"
@@ -449,6 +457,9 @@ export default function VSTForm({
             return (
               <div
                 key={p.id_col}
+                role="tabpanel"
+                id={`vst-person-panel-${idx}`}
+                aria-labelledby={`vst-person-tab-${idx}`}
                 className={isTabActive ? "block" : "hidden md:block"}
               >
                 <VSTPersonColumn 
@@ -470,8 +481,9 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="sticky bottom-0 z-20 flex flex-row items-center justify-end gap-3 border-t border-slate-200 bg-white/95 py-3 backdrop-blur max-sm:bottom-[4.5rem]">
+        <div className="sticky bottom-0 z-20 flex flex-row flex-wrap items-center justify-end gap-2 sm:gap-3 border-t border-slate-200 bg-white/95 px-3 py-2 sm:py-3 backdrop-blur max-sm:bottom-[4.5rem]">
           <button
+            type="button"
             onClick={async () => {
               if (hasUnsavedSession) {
                 const ok = await confirmAction(
@@ -482,16 +494,19 @@ export default function VSTForm({
               window.print();
             }}
             title="In phiếu A4"
-            className="inline-flex h-11 items-center justify-center rounded-[var(--radius-control)] border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+            aria-label="In phiếu A4 hoặc lưu PDF"
+            className="inline-flex h-11 min-h-[40px] items-center justify-center rounded-[var(--radius-control)] border border-slate-300 bg-white px-3 sm:px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 touch-manipulation"
           >
             In / PDF
           </button>
 
           {!showContinuePrompt ? (
             <button
+              type="button"
               disabled={loading || isLockedForSelectedDate}
               onClick={handleFinalSave}
-              className="inline-flex h-11 items-center justify-center rounded-[var(--radius-control)] bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label="Lưu phiên giám sát vệ sinh tay"
+              className="inline-flex h-11 min-h-[40px] items-center justify-center rounded-[var(--radius-control)] bg-[var(--primary)] px-4 sm:px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 touch-manipulation"
             >
               {loading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

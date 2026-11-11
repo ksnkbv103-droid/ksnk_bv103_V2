@@ -1,6 +1,7 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { getDb } from "@/lib/data-access";
+import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { formatVstKhoaFkViolation, vstWriteErrorMessage } from "./vst-write.helpers";
@@ -22,7 +23,6 @@ export type DeleteVSTSessionsOpts = {
 
 /** Xóa mềm phiên VST (`is_active=false` + lý do + nhật ký). Không xóa cứng cơ hội. */
 export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSessionsOpts) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "delete");
     const norm = normalizeSessionIds(sessionIds);
@@ -42,10 +42,7 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
       return { success: false, error: "Không xác định được người giám sát của bạn." };
     }
 
-    const { data: rows, error: qErr } = await supabase
-      .from("gstt_fact_vst_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at,ngay_giam_sat")
-      .in("id", ids);
+    const { data: rows, error: qErr } = await vstRepo.findVstSessionsForDelete(ids);
     if (qErr) throw qErr;
 
     const rowById = new Map(
@@ -87,23 +84,18 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
     }
 
     const ngayRows = (rows || []) as Array<{ id?: string; ngay_giam_sat?: string | null }>;
+    const db = await getDb("admin");
     for (const row of ngayRows) {
-      await assertSupervisionNotLockedForDate(supabase, "VST", row.ngay_giam_sat ?? null);
+      await assertSupervisionNotLockedForDate(db, "VST", row.ngay_giam_sat ?? null);
     }
 
     const nowIso = new Date().toISOString();
-    const { data: updated, error: sessionErr } = await supabase
-      .from("gstt_fact_vst_sessions")
-      .update({
-        is_active: false,
-        deleted_at: nowIso,
-        deleted_by: actorNhanSuId || actorAuthUserId || null,
-        ly_do_xoa: lyDo,
-        updated_at: nowIso,
-      })
-      .in("id", ids)
-      .eq("is_active", true)
-      .select("id");
+    const { data: updated, error: sessionErr } = await vstRepo.softDeleteVstSessions({
+      ids,
+      nowIso,
+      deletedBy: actorNhanSuId || actorAuthUserId || null,
+      lyDo,
+    });
     if (sessionErr) throw sessionErr;
     if ((updated?.length ?? 0) !== ids.length) {
       return { success: false, error: "Phiên đã bị vô hiệu hoặc thay đổi trước đó, vui lòng tải lại." };
@@ -139,7 +131,6 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
  * Chủ phiên trong 30 phút; sau 30 phút chỉ Admin (bắt lý do khi lưu).
  */
 export async function assertCanEditVSTSession(sessionId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "edit");
 
@@ -150,11 +141,7 @@ export async function assertCanEditVSTSession(sessionId: string) {
     const actorNhanSuId = await getActorNhanSuId();
     if (!adminBypass && !actorNhanSuId) return { success: false as const, error: "Không xác định được người giám sát của bạn." };
 
-    const { data: row, error: qErr } = await supabase
-      .from("gstt_fact_vst_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at,ngay_giam_sat")
-      .eq("id", id)
-      .maybeSingle();
+    const { data: row, error: qErr } = await vstRepo.findVstSessionForEdit(id);
 
     if (qErr) throw qErr;
     if (!row) return { success: false as const, error: "Không tìm thấy phiên giám sát." };
@@ -164,8 +151,9 @@ export async function assertCanEditVSTSession(sessionId: string) {
     }
 
     if (row.ngay_giam_sat) {
+      const db = await getDb("admin");
       await assertSupervisionNotLockedForDate(
-        supabase,
+        db,
         "VST",
         String(row.ngay_giam_sat).slice(0, 10),
       );

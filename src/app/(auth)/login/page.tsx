@@ -6,6 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { clearStaleSupabaseAuthCookies } from "@/lib/auth/clear-stale-supabase-cookies";
+import { metaMustChangePassword } from "@/lib/auth/password-change-gate";
 import { loginWithStaffIdentifier } from "@/modules/auth/actions/staff-login.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import PasswordField from "@/components/auth/PasswordField";
@@ -33,8 +34,8 @@ function isAuthNetworkError(err: unknown): boolean {
   );
 }
 
-function postLoginPath(userMetadata: Record<string, unknown> | undefined): string {
-  if (userMetadata?.must_change_password === true) return "/tai-khoan/doi-mat-khau";
+function postLoginPath(userMetadata: unknown, appMetadata?: unknown): string {
+  if (metaMustChangePassword(userMetadata, appMetadata)) return "/tai-khoan/doi-mat-khau";
   return "/";
 }
 
@@ -77,8 +78,10 @@ export default function LoginPage() {
         }
         return;
       }
-      const meta = (browserData.user?.user_metadata ?? {}) as Record<string, unknown>;
-      const dest = postLoginPath(meta);
+      const dest = postLoginPath(
+        browserData.user?.user_metadata,
+        browserData.user?.app_metadata,
+      );
       toast.success(
         dest === "/tai-khoan/doi-mat-khau"
           ? "Đăng nhập thành công — vui lòng đổi mật khẩu tạm."

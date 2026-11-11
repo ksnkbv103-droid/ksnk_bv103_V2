@@ -6,6 +6,7 @@ import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/
 import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { escapeLike } from "../lib/account-access-request-store";
 import {
   accountEmailsMatch,
   mergeAccountRequest,
@@ -266,7 +267,7 @@ export async function approveAccountAccessRequest(params: {
       if (upErr) throw upErr;
       deactivateOnFail = staff.is_active === false;
     } else {
-      const { data: sameEmail } = await supabase.from("v_mdm_nhan_su_full").select("id, email").ilike("email", email).limit(5);
+      const { data: sameEmail } = await supabase.from("v_mdm_nhan_su_full").select("id, email").ilike("email", escapeLike(email)).limit(5);
       if ((sameEmail || []).some((r) => accountEmailsMatch(r.email as string | null, email))) {
         return { success: false as const, error: "Email đã thuộc một hồ sơ khác — kiểm tra hồ sơ đó hoặc từ chối phiếu." };
       }

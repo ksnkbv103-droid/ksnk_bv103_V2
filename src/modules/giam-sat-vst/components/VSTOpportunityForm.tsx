@@ -56,7 +56,7 @@ const C = bv103LayoutChrome;
 
 /** Mọi ô chọn (thời điểm, hành động) cùng chiều cao và padding; thời điểm một hàng 5 cột. */
 const CELL_BASE =
-  "box-border flex h-11 w-full min-w-0 items-center justify-center overflow-hidden rounded border px-1 text-center transition-colors touch-manipulation";
+  "box-border flex h-11 min-h-[40px] w-full min-w-0 items-center justify-center overflow-hidden rounded border px-1 text-center transition-colors touch-manipulation";
 const MOMENT_CELL = `${CELL_BASE} flex-col !px-0.5`;
 const CELL = CELL_BASE;
 const CELL_IDLE = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
@@ -72,7 +72,7 @@ function MomentCellLabel({ moment }: { moment: MomentType }) {
       <span className="bv103-type-label w-full whitespace-nowrap text-center leading-none font-medium uppercase !text-inherit">
         {timing}
       </span>
-      <span className="bv103-type-label w-full whitespace-nowrap text-center text-[0.625rem] leading-none font-semibold uppercase tracking-tight !text-inherit">
+      <span className="bv103-type-label w-full whitespace-nowrap text-center text-[11px] leading-none font-semibold uppercase tracking-tight !text-inherit">
         {MOMENT_SHORT_CODE[moment]}
       </span>
     </>
@@ -111,7 +111,8 @@ export default function VSTOpportunityForm({
     return (
       <button
         type="button"
-        className="box-border flex h-14 w-full cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 text-left transition-colors hover:border-slate-400"
+        aria-label={`Mở cơ hội ${oIdx + 1}: ${momentsLine || "chưa chọn thời điểm"}`}
+        className="box-border flex h-14 min-h-[40px] w-full cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 text-left transition-colors hover:border-slate-400 touch-manipulation"
         onClick={() => openOpportunity(pIdx, oIdx)}
       >
         <div className="min-w-0 flex-1">
@@ -147,6 +148,8 @@ export default function VSTOpportunityForm({
           </p>
         </div>
         <div
+          role="group"
+          aria-label="5 thời điểm vệ sinh tay theo WHO"
           className={`grid ${GRID_GAP}`}
           style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
         >
@@ -157,7 +160,7 @@ export default function VSTOpportunityForm({
                 key={m}
                 type="button"
                 title={`${momentDisplayLabel(m)} — ${MOMENT_TOOLTIPS[m]}`}
-                aria-label={MOMENT_DISPLAY_LABEL[m]}
+                aria-label={`${MOMENT_DISPLAY_LABEL[m]} (${m.startsWith("Trước") ? "TRƯỚC" : "SAU"} ${MOMENT_SHORT_CODE[m]})`}
                 aria-pressed={active}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
                 className={`${MOMENT_CELL} ${active ? CELL_ON : CELL_IDLE}`}
@@ -176,7 +179,11 @@ export default function VSTOpportunityForm({
             —
           </span>
         </div>
-        <div className={`grid grid-cols-3 ${GRID_GAP}`}>
+        <div
+          role="group"
+          aria-label="Hành động vệ sinh tay"
+          className={`grid grid-cols-3 ${GRID_GAP}`}
+        >
           {ACTIONS.map((a) => {
             const active = opp.hanh_dong === a;
             return (
@@ -184,6 +191,7 @@ export default function VSTOpportunityForm({
                 key={a}
                 type="button"
                 title={ACTION_DISPLAY_LABEL[a]}
+                aria-label={ACTION_DISPLAY_LABEL[a]}
                 aria-pressed={active}
                 onClick={() => updateAction(pIdx, oIdx, a)}
                 className={`${CELL} ${active ? (a === "Bỏ sót" ? CELL_MISS : CELL_ON) : CELL_IDLE}`}
@@ -207,7 +215,12 @@ export default function VSTOpportunityForm({
         <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
       </section>
 
-      <button type="button" onClick={() => submitOpportunity(pIdx, oIdx)} className={`${C.btnPrimaryBlock} h-11`}>
+      <button
+        type="button"
+        onClick={() => submitOpportunity(pIdx, oIdx)}
+        aria-label={`Ghi nhận cơ hội ${oIdx + 1}`}
+        className={`${C.btnPrimaryBlock} h-11 min-h-[40px] touch-manipulation`}
+      >
         Ghi nhận cơ hội
       </button>
     </div>
