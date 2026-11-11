@@ -28,3 +28,5 @@ export function nkbvKhoaVisible(
   if (r.kind === "none") return false;
   return khoaIds.some((k) => String(k ?? "").trim() === r.khoaId);
 }
+
+export const NKBV_KHOA_REQUIRED_ERROR = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";

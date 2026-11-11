@@ -191,12 +191,13 @@ export async function getGiamSatNkbvCaById(caseId: string) {
 export async function listAllMaNkbvCas() {
   try {
     await verifyPermission("GIAM_SAT_NKBV", "view");
+    // NKBV-012: admin client bỏ qua RLS → tự giới hạn theo khoa ghi nhận như các action đọc khác.
+    const restriction = await getNkbvKhoaRestriction();
+    if (restriction.kind === "none") return { success: true as const, data: [] };
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase
-      .from("nkbv_fact_su_kien")
-      .select("ma_ca")
-      .eq("is_active", true)
-      .limit(500);
+    let q = supabase.from("nkbv_fact_su_kien").select("ma_ca").eq("is_active", true);
+    if (restriction.kind === "khoa") q = q.eq("khoa_ghi_nhan_id", restriction.khoaId);
+    const { data, error } = await q.limit(500);
     if (error) throw error;
     return { success: true as const, data: data || [] };
   } catch (e: unknown) {

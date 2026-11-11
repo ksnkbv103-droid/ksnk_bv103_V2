@@ -105,4 +105,25 @@ describe("phạm vi khoa cho action ghi bệnh án (NKBV-010)", () => {
     expect(ok.success).toBe(true);
     expect(mocks.insert).toHaveBeenCalled();
   });
+
+  it("createNkbvBenhAnStay: bị giới hạn khoa mà không chọn khoa thì chặn, không giới hạn thì giữ hành vi cũ", async () => {
+    const input = { ma_benh_an: "BA9", ma_benh_nhan: "BN", ho_ten_benh_nhan: "A", ngay_vao_vien: "2026-11-01" };
+    const REQ = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    expect(await createNkbvBenhAnStay({ ...input, khoa_dieu_tri_id: null })).toEqual({ success: false, error: REQ });
+    expect(await createNkbvBenhAnStay(input)).toEqual({ success: false, error: REQ });
+    expect(mocks.insert).not.toHaveBeenCalled();
+
+    mocks.restriction.mockResolvedValue({ kind: "all" });
+    expect((await createNkbvBenhAnStay({ ...input, khoa_dieu_tri_id: null })).success).toBe(true);
+  });
+
+  it("updateNkbvBenhAnStay: bị giới hạn khoa mà xóa khoa điều trị thì chặn", async () => {
+    const REQ = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    mocks.inScope.mockResolvedValue(true);
+    expect(await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: null })).toEqual({ success: false, error: REQ });
+    expect(await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: "" })).toEqual({ success: false, error: REQ });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
 });

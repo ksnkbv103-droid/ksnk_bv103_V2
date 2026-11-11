@@ -5,7 +5,7 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
 import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
-import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
+import { NKBV_KHOA_REQUIRED_ERROR, nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
@@ -760,8 +760,12 @@ export async function updateNkbvBenhAnStay(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
-    if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+    const restriction = await getNkbvKhoaRestriction();
+    if (!(await isNkbvBenhAnInScope(restriction, ma))) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+    if (restriction.kind !== "all" && input.khoa_dieu_tri_id !== undefined && !String(input.khoa_dieu_tri_id ?? "").trim()) {
+      return { success: false as const, error: NKBV_KHOA_REQUIRED_ERROR };
     }
     const { data: prev, error: prevErr } = await supabase
       .from("nkbv_fact_benh_an")
@@ -883,7 +887,11 @@ export async function createNkbvBenhAnStay(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
-    if (!nkbvKhoaVisible(await getNkbvKhoaRestriction(), [input.khoa_dieu_tri_id])) {
+    const restriction = await getNkbvKhoaRestriction();
+    if (restriction.kind !== "all" && !String(input.khoa_dieu_tri_id ?? "").trim()) {
+      return { success: false as const, error: NKBV_KHOA_REQUIRED_ERROR };
+    }
+    if (!nkbvKhoaVisible(restriction, [input.khoa_dieu_tri_id])) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
     }
     const { data: existing } = await supabase
