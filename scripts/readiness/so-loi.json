@@ -319,9 +319,9 @@
     "tieu_de": "Spec của attempt.actions chỉ phủ chống race lượt và khóa lạc quan khi nộp. Thiếu spec cho saveTraLoiCau (hết giờ, hết ân hạn, bài người khác), getLanThiForTake (ẩn đáp án khi đang làm, admin chỉ xem bài đã nộp), submitLanThi nhánh hetGio/late/dat, startThiThuAttempt validate. grade.spec.ts và dao-tao-luot.spec.ts có, nhưng không có test biên điểm đạt (pct bằng diem_dat_pct)",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.spec.ts:110-206 (3 describe, 7 it)",
     "lenh_kiem": "npm run test:cssd -- src/modules/dao-tao",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "aa42a99c",
     "ghi_chu": "Thêm spec cho 4 nhóm trên, ưu tiên getLanThiForTake vì liên quan lộ đáp án"
   },
   {
@@ -735,9 +735,9 @@
     "tieu_de": "softDeleteGiamSatNkbvCa không chặn ca đã XAC_NHAN/LOAI_TRU và không nguyên tử: trả stamp vi sinh trước rồi mới ẩn phiếu; ẩn lỗi thì XN đã bị trả về hàng chờ.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:145-175",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
-    "commit": "",
+    "commit": "13967ba0",
     "ghi_chu": "Hỏi PO: có cho ẩn ca đã chốt không. Gộp hai bước vào một RPC"
   },
   {
@@ -826,9 +826,9 @@
     "tieu_de": "Các action gán vai trò, cấp tài khoản, đặt lại MK, duyệt/từ chối phiếu ghi audit theo kiểu best-effort (không failClosed). Mất nhật ký vẫn trả success. setStaffKsnkRbacRole còn bỏ qua lỗi update vai_tro_he_thong_id; approveForgotResetRequest không ghi audit cho bước chuyển phiếu sang DUYET.",
     "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions.ts:202-217, :290, :421; account-access-request.actions.ts:296, :318, :387-395; src/lib/admin-audit.ts:83-90",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
-    "commit": "",
+    "commit": "5da69896",
     "ghi_chu": "Truyền failClosed:true như rbac.actions.ts:84; kiểm error của các update"
   },
   {
