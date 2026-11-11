@@ -3,7 +3,15 @@ export const QUAN_TRI_HUB_PATH = "/quan-tri-he-thong";
 /** PO 2026-10-27: quản lý dụng cụ nằm ở màn CSSD (tab Quản lý/Phiếu); route quản trị cũ chỉ còn redirect. */
 const DUNG_CU_PATH = "/cssd-dung-cu";
 export const QUAN_TRI_TAI_KHOAN_PATH = "/quan-tri-he-thong/tai-khoan";
-export const QUAN_TRI_NHAN_SU_PATH = "/quan-tri-he-thong/nhan-su";
+/** AR-8e (PO 2026-11-11): Tổ chức là module riêng — khoa phòng, nhân sự, danh mục tra cứu tổ chức. */
+export const TO_CHUC_PATH = "/to-chuc";
+export const TO_CHUC_NHAN_SU_PATH = "/to-chuc/nhan-su";
+export const TO_CHUC_KHOA_PHONG_PATH = "/to-chuc/khoa-phong";
+
+/** Danh mục tra cứu tổ chức (khối, tổ CT, chức vụ…) — form mã–tên chung. */
+export function toChucDanhMucHref(loaiDanhMuc: string): string {
+  return `${TO_CHUC_PATH}/danh-muc/${encodeURIComponent(loaiDanhMuc)}`;
+}
 export const QUAN_TRI_BANG_KIEM_PATH = "/giam-sat-chung/bang-kiem";
 
 export function quanTriTaiKhoanHref(): string {
@@ -11,13 +19,13 @@ export function quanTriTaiKhoanHref(): string {
 }
 
 /** Phiếu chờ trên Nhân sự — cùng tập `PENDING_ACCOUNT_REQUEST_CONTAINS`. */
-export function quanTriNhanSuPendingHref(): string {
-  return "/quan-tri-he-thong/nhan-su?pending=1";
+export function toChucNhanSuPendingHref(): string {
+  return "/to-chuc/nhan-su?pending=1";
 }
 
 /** Hồ sơ đang dùng, chưa gắn Auth — cùng lọc sức khỏe «chưa có tài khoản». */
-export function quanTriNhanSuChuaTkHref(): string {
-  return "/quan-tri-he-thong/nhan-su?chuaTk=1";
+export function toChucNhanSuChuaTkHref(): string {
+  return "/to-chuc/nhan-su?chuaTk=1";
 }
 
 export type QuanTriHubTab = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";

@@ -185,6 +185,7 @@ const eslintConfig = defineConfig([
                 "@/modules/dashboard/*",
                 "@/modules/entity-qr/*",
                 "@/modules/chat-thai-do-vai/*",
+                "@/modules/to-chuc/*",
               ],
               message: "Quản trị hệ thống không import module nghiệp vụ.",
             },

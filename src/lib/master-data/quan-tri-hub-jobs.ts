@@ -15,9 +15,9 @@ export type QuanTriHubJob = {
 export const QUAN_TRI_HUB_JOBS: QuanTriHubJob[] = [
   {
     id: "to-chuc",
-    title: "Tổ chức và người",
+    title: "Tổ chức",
     blurb: "Khoa, hồ sơ nhân sự, chức danh.",
-    href: "/quan-tri-he-thong/nhan-su",
+    href: "/to-chuc",
     group: "to-chuc",
   },
   {

@@ -1,7 +1,7 @@
 "use server";
 
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
-import { QUAN_TRI_ENTRY_MODULE_KEYS } from "@/lib/nav/ksnk-nav-gates";
+import { QUAN_TRI_ENTRY_MODULE_KEYS, TO_CHUC_MODULE_KEYS } from "@/lib/nav/ksnk-nav-gates";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 
 const DEDICATED_NO_DANH_MUC_FALLBACK = new Set([
@@ -75,6 +75,21 @@ export async function canAccessQuanTriHub(): Promise<boolean> {
   if (!snap) return false;
   if (snap.isAdmin) return true;
   return QUAN_TRI_ENTRY_MODULE_KEYS.some((key) => snap.canView(key));
+}
+
+/** Module Tổ chức (AR-8e) — ADMIN hoặc xem một trong KHOA_PHONG / NHAN_SU / DANH_MUC_ORG. */
+export async function canAccessToChucModule(): Promise<boolean> {
+  const snap = await getServerAccessSnapshot();
+  if (!snap) return false;
+  if (snap.isAdmin) return true;
+  return TO_CHUC_MODULE_KEYS.some((key) => snap.canView(key));
+}
+
+/** Quyền xem từng thẻ trong hub Tổ chức (server). */
+export async function getToChucViewFlags(): Promise<Record<(typeof TO_CHUC_MODULE_KEYS)[number], boolean>> {
+  const snap = await getServerAccessSnapshot();
+  const v = (k: string) => Boolean(snap && (snap.isAdmin || snap.canView(k)));
+  return { KHOA_PHONG: v("KHOA_PHONG"), NHAN_SU: v("NHAN_SU"), DANH_MUC_ORG: v("DANH_MUC_ORG") };
 }
 
 /** Deep link / tab Phân quyền — ADM-03: ma trận RBAC chỉ dành riêng cho ADMIN. */

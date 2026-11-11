@@ -19,7 +19,14 @@ import {
 } from "@/lib/master-data/engine/generic-dm-import.actions";
 import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
-export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: string }) {
+export default function GenericDmMasterPage({
+  loaiDanhMuc,
+  backHref = "/quan-tri-he-thong",
+}: {
+  loaiDanhMuc: string;
+  /** Trang quay về — module sở hữu danh mục (AR-8e: Tổ chức → `/to-chuc`). */
+  backHref?: string;
+}) {
   const router = useRouter();
   const permissionModule = resolveDanhMucViewModuleByType(loaiDanhMuc);
   const { loading: permLoading, isAdmin, canView, canCreate, canEdit, canDelete: canDeletePerm, canImport: canImportPerm } =
@@ -72,7 +79,7 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         <p className="text-sm font-medium text-slate-700">Không mở được danh mục này.</p>
         <button
           type="button"
-          onClick={() => router.push("/quan-tri-he-thong")}
+          onClick={() => router.push(backHref)}
           className="mt-3 text-xs font-semibold text-[var(--primary)] hover:underline"
         >
           Về trung tâm quản trị
@@ -109,7 +116,7 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
       ) : null}
       <GenericDmMasterHeader
         title={title}
-        onBack={() => router.push("/quan-tri-he-thong")}
+        onBack={() => router.push(backHref)}
         onCreate={() => void m.openCreate()}
         canCreate={canMutate}
         importExportSlot={

@@ -23,7 +23,7 @@ describe("visibleHubRows", () => {
   const khoa = row({
     id: "khoa",
     name: "Khoa phòng",
-    path: "/quan-tri-he-thong/danh-muc/khoa-phong",
+    path: "/to-chuc/khoa-phong",
     tier: "dedicated",
   });
 

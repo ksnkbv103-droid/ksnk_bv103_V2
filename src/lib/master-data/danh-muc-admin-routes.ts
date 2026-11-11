@@ -1,8 +1,10 @@
-import { quanTriDungCuHref } from "./quan-tri-paths";
+import { getRegistryEntryOrNull } from "./domain-registry";
+import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { quanTriDungCuHref, TO_CHUC_KHOA_PHONG_PATH, toChucDanhMucHref } from "./quan-tri-paths";
 
 /** Route chuyên dụng (form đầy đủ) — khớp việc hàng ngày trên hub. */
 const DEDICATED_LOAI_TO_PATH: Record<string, string> = {
-  KHOA_PHONG: "/quan-tri-he-thong/danh-muc/khoa-phong",
+  KHOA_PHONG: TO_CHUC_KHOA_PHONG_PATH,
   LOAI_DUNG_CU: quanTriDungCuHref("loai"),
 };
 
@@ -21,8 +23,17 @@ export function genericDmMustUseDedicatedPageError(loaiDanhMuc: string): string 
   return `Dùng trang chuyên dụng — form mã–tên không đủ trường nghiệp vụ. Mở: ${path}`;
 }
 
-/** Đường dẫn quản trị chuẩn theo registry: dedicated nếu có, không thì `/danh-muc/chuyen-biet/[LOAI]`. */
+/** AR-8e: loại thuộc quyền `DANH_MUC_ORG` (khối, tổ CT, chức vụ…) sửa trong module Tổ chức. */
+export function isToChucLookupType(loaiDanhMuc: string): boolean {
+  const entry = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  return entry != null && getRegistryModuleForMasterTable(entry.sourceTable) === "DANH_MUC_ORG";
+}
+
+/** Đường dẫn quản trị chuẩn theo registry: dedicated → Tổ chức (ORG) → `/danh-muc/chuyen-biet/[LOAI]`. */
 export function getDanhMucAdminPath(loaiDanhMuc: string): string {
   const k = loaiDanhMuc.trim();
-  return getDedicatedDanhMucAdminPath(k) ?? `/quan-tri-he-thong/danh-muc/chuyen-biet/${encodeURIComponent(k)}`;
+  const dedicated = getDedicatedDanhMucAdminPath(k);
+  if (dedicated) return dedicated;
+  if (isToChucLookupType(k)) return toChucDanhMucHref(k);
+  return `/quan-tri-he-thong/danh-muc/chuyen-biet/${encodeURIComponent(k)}`;
 }

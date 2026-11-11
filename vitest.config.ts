@@ -21,6 +21,7 @@ export default defineConfig({
       "src/modules/cssd-erp/helpers/**/*.spec.ts",
       "src/modules/cssd-erp/actions/**/*.spec.ts",
       "src/modules/cssd-erp/contexts/**/*.spec.ts",
+      "src/modules/to-chuc/**/*.spec.ts",
       "src/app/**/*.spec.ts",
       "src/modules/cssd-erp/lib/**/*.spec.ts",
       "src/lib/**/*.spec.ts",

@@ -101,7 +101,7 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
     id: "khoa",
     name: "Khoa phòng",
-    path: "/quan-tri-he-thong/danh-muc/khoa-phong",
+    path: "/to-chuc/khoa-phong",
     domain: "MDM",
     group: "to-chuc",
     tier: "dedicated",
@@ -112,7 +112,7 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
     id: "ns",
     name: "Hồ sơ nhân sự",
-    path: "/quan-tri-he-thong/nhan-su",
+    path: "/to-chuc/nhan-su",
     domain: "MDM",
     group: "to-chuc",
     tier: "dedicated",

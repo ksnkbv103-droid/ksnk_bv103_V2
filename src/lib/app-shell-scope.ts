@@ -86,13 +86,17 @@ export function getKsnkAppHeaderBreadcrumb(
   if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
     return { zone: "CSSD", page: "Quy trình" };
   }
+  if (p === "/to-chuc" || p.startsWith("/to-chuc/")) {
+    if (p.startsWith("/to-chuc/nhan-su")) return { zone: "Tổ chức", page: "Nhân sự" };
+    if (p.startsWith("/to-chuc/khoa-phong")) return { zone: "Tổ chức", page: "Khoa phòng" };
+    if (p.startsWith("/to-chuc/danh-muc")) return { zone: "Tổ chức", page: "Danh mục tổ chức" };
+    return { zone: "Tổ chức", page: "Tổ chức" };
+  }
   if (p.startsWith("/quan-tri-he-thong")) {
     if (p.startsWith("/quan-tri-he-thong/phan-quyen")) return { zone: "Quản trị", page: "Ma trận phân quyền" };
     if (p === "/quan-tri-he-thong/tai-khoan" || p.startsWith("/quan-tri-he-thong/tai-khoan/")) {
       return { zone: "Quản trị", page: "Tài khoản & truy cập" };
     }
-    if (p.startsWith("/quan-tri-he-thong/nhan-su")) return { zone: "Quản trị", page: "Nhân sự" };
-    if (p.startsWith("/quan-tri-he-thong/danh-muc/khoa-phong")) return { zone: "Quản trị", page: "Khoa phòng" };
     if (p.startsWith("/quan-tri-he-thong/danh-muc/thiet-bi")) return { zone: "Quản trị", page: "Thiết bị" };
     if (p.startsWith("/quan-tri-he-thong/danh-muc/hoa-chat")) return { zone: "Quản trị", page: "Hóa chất" };
     if (p.startsWith("/quan-tri-he-thong/danh-muc/dung-cu")) return { zone: "Quản trị", page: "Dụng cụ" };

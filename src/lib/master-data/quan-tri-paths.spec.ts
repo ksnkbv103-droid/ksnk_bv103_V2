@@ -3,8 +3,8 @@ import {
   parseDungCuLayer,
   parseDungCuLoaiSheet,
   quanTriDungCuHref,
-  quanTriNhanSuChuaTkHref,
-  quanTriNhanSuPendingHref,
+  toChucNhanSuChuaTkHref,
+  toChucNhanSuPendingHref,
   quanTriTaiKhoanHref,
 } from "./quan-tri-paths";
 
@@ -16,8 +16,8 @@ describe("quanTriTaiKhoanHref", () => {
 
 describe("cửa nhân sự tài khoản", () => {
   it("phiếu chờ và chưa có TK là hai lọc trên Nhân sự", () => {
-    expect(quanTriNhanSuPendingHref()).toBe("/quan-tri-he-thong/nhan-su?pending=1");
-    expect(quanTriNhanSuChuaTkHref()).toBe("/quan-tri-he-thong/nhan-su?chuaTk=1");
+    expect(toChucNhanSuPendingHref()).toBe("/to-chuc/nhan-su?pending=1");
+    expect(toChucNhanSuChuaTkHref()).toBe("/to-chuc/nhan-su?chuaTk=1");
   });
 });
 

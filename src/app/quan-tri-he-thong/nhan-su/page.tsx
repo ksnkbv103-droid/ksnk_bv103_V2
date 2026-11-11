@@ -1,20 +1,9 @@
-// src/app/quan-tri-he-thong/nhan-su/page.tsx
-import { canAccessDanhMucModuleRoute } from "@/lib/auth/quan-tri-access";
-import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
-import QuanLyNhanSuPage from "@/modules/quan-tri-he-thong/nhan-su/views/QuanLyNhanSuPage";
-import { Metadata } from "next";
+import { redirectWithQuery } from "@/lib/nav/redirect-with-query";
+import { TO_CHUC_NHAN_SU_PATH } from "@/lib/master-data/quan-tri-paths";
 
-export const metadata: Metadata = {
-  title: "Nhân sự",
-  description: "Quản lý hồ sơ nhân sự và phân khoa phòng",
-};
-
-export default async function Page() {
-  const allowed = await canAccessDanhMucModuleRoute("NHAN_SU");
-  if (!allowed) {
-    return (
-      <QuanTriAccessDenied detail="Cần quyền xem module Nhân sự (NHAN_SU) hoặc vai trò quản trị để mở trang này." />
-    );
-  }
-  return <QuanLyNhanSuPage />;
+/** AR-8e: Nhân sự chuyển sang module Tổ chức — giữ query (`?pending=1`, `?chuaTk=1`). */
+export default async function Page(props: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  redirectWithQuery(TO_CHUC_NHAN_SU_PATH, await props.searchParams);
 }

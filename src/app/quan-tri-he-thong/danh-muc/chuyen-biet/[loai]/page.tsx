@@ -1,5 +1,6 @@
 import GenericDmMasterPage from "@/components/master-data/generic-dm/GenericDmMasterPage";
-import { getDedicatedDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
+import { getDedicatedDanhMucAdminPath, isToChucLookupType } from "@/lib/master-data/danh-muc-admin-routes";
+import { toChucDanhMucHref } from "@/lib/master-data/quan-tri-paths";
 import { canAccessDanhMucModuleRoute } from "@/lib/auth/quan-tri-access";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
@@ -21,6 +22,8 @@ export default async function Page(props: { params: Promise<{ loai: string }> })
   const decoded = decodeURIComponent(loai);
   const dedicated = getDedicatedDanhMucAdminPath(decoded);
   if (dedicated) redirect(dedicated);
+  /* AR-8e: danh mục tổ chức sửa trong module Tổ chức. */
+  if (isToChucLookupType(decoded)) redirect(toChucDanhMucHref(decoded));
 
   const allowed = await canAccessDanhMucModuleRoute(resolveDanhMucViewModuleByType(decoded));
   if (!allowed) {

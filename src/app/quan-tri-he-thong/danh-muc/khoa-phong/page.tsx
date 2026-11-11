@@ -1,20 +1,9 @@
-// src/app/quan-tri-he-thong/danh-muc/khoa-phong/page.tsx
-import { canAccessDanhMucModuleRoute } from "@/lib/auth/quan-tri-access";
-import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
-import KhoaPhongMasterPage from "@/modules/quan-tri-he-thong/danh-muc/khoa-phong/KhoaPhongMasterPage";
-import { Metadata } from "next";
+import { redirectWithQuery } from "@/lib/nav/redirect-with-query";
+import { TO_CHUC_KHOA_PHONG_PATH } from "@/lib/master-data/quan-tri-paths";
 
-export const metadata: Metadata = {
-  title: "Khoa phòng",
-  description: "Quản lý danh mục Khoa Phòng trong hệ thống",
-};
-
-export default async function Page() {
-  const allowed = await canAccessDanhMucModuleRoute("KHOA_PHONG");
-  if (!allowed) {
-    return (
-      <QuanTriAccessDenied detail="Cần quyền xem module Khoa phòng (KHOA_PHONG) hoặc vai trò quản trị để mở trang này." />
-    );
-  }
-  return <KhoaPhongMasterPage />;
+/** AR-8e: Khoa phòng chuyển sang module Tổ chức. */
+export default async function Page(props: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  redirectWithQuery(TO_CHUC_KHOA_PHONG_PATH, await props.searchParams);
 }

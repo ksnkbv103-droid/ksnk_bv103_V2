@@ -6,7 +6,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { revalidatePath } from "next/cache";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
-import { formatHoSoKhoaFkViolation, formatHoSoNhanSuWriteError } from "@/modules/quan-tri-he-thong/nhan-su/actions/nhan-su-fk-normalize";
+import { formatHoSoKhoaFkViolation, formatHoSoNhanSuWriteError } from "@/lib/master-data/engine/nhan-su-fk-normalize";
 import { createDmImportSessionCache } from "@/lib/master-data/engine/smart-import/dm-import-session-cache";
 import { buildImportErrorMessage } from "@/lib/master-data/engine/smart-import/dm-row-normalizers";
 import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "@/lib/master-data/engine/smart-import-per-table";

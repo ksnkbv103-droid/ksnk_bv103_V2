@@ -62,6 +62,10 @@ export const QUAN_TRI_ENTRY_MODULE_KEYS = [
 
 export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: QUAN_TRI_ENTRY_MODULE_KEYS };
 
+/** AR-8e (PO 2026-11-11): module Tổ chức — khoa phòng, nhân sự, danh mục tổ chức. */
+export const TO_CHUC_MODULE_KEYS = ["KHOA_PHONG", "NHAN_SU", "DANH_MUC_ORG"] as const;
+export const NAV_GATE_TO_CHUC: NavGate = { id: "to-chuc", moduleKeys: TO_CHUC_MODULE_KEYS };
+
 /** Hub `/giam-sat` + lịch sử: hiện nếu có VIEW ít nhất một phân hệ giám sát. */
 export const NAV_GATE_GIAM_SAT_HUB: NavGate = {
   id: "giam-sat-hub",
