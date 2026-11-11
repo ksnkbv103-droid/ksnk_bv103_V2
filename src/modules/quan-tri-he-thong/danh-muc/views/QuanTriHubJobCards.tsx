@@ -35,7 +35,7 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
               className="flex w-full items-start justify-between gap-3 text-left"
             >
               <div className="flex items-start gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200/80">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-slate-50 ring-1 ring-slate-200/80">
                   {JOB_ICON[job.id]}
                 </span>
                 <div>
@@ -46,13 +46,13 @@ export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props)
               <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-400" aria-hidden />
             </button>
             {links.length > 0 ? (
-              <ul className="mt-2 flex flex-wrap gap-1.5">
+              <ul className="mt-2 flex flex-wrap gap-2">
                 {links.map((r) => (
                   <li key={r.id}>
                     <button
                       type="button"
                       onClick={() => onOpen(r.path)}
-                      className="rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-[var(--primary)]"
+                      className="inline-flex min-h-9 items-center rounded-[var(--radius-control)] bg-slate-50 px-2.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-[var(--primary)]"
                     >
                       {r.name}
                     </button>
