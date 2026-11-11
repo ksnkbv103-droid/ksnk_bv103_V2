@@ -49,7 +49,7 @@ Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nh�
 
 Mỗi module có 3 màn: **Nhập · Danh sách/lịch sử · Thống kê** (KPI, biểu đồ, bảng, xuất). Nghiệp vụ đặc thù thêm sau khi 3 màn chạy. Chỉ làm lát L2/L3 khi module đã đạt L1 và người dùng báo vướng.
 
-**CSSD (2026-11-11):** Plasma = ETO, PO 2026-11-10 — cổng app không chặn chéo, DB đã theo `phuong_phap_cho_phep`. Nợ: bộ `-KCN` rỗng chưa nạp mẻ được (số lượng cần đo lại, DB local dùng chung đang đổi); chưa chạy mẻ ETO `B07.SET.03-KCN` trên :3002.
+**CSSD (2026-11-11):** Plasma = ETO, PO 2026-11-10 — cổng app không chặn chéo, DB đã theo `phuong_phap_cho_phep`. Đã kiểm (2026-11-11, local): bộ test `B99.SET.98` → `fn_cssd_me_ly_do_lech_phuong_phap` = NULL cho EO và PLASMA_H2O2, chặn HOI_NUOC; cổng app `test:cssd` 236/236. Bộ con `-CN`/`-KCN` rỗng là ĐÚNG thiết kế: migration S2 `20261111130000` chuyển dòng về bộ tổng, thành phần đọc qua `v_cssd_bo_thanh_phan_hieu_luc` / `fn_cssd_bo_chi_tiet_hieu_luc`; mã nhánh này còn đọc thẳng bảng chi tiết bộ con nên ẩn bộ — chạy lại UAT ETO trên `integrate/2026-11`. Fixture local cần dọn: bộ `B99.SET.98`, mẻ `ETO1-111126-1` (đã tắt).
 
 **Luật dừng rà soát**
 
