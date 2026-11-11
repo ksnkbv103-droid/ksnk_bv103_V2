@@ -173,14 +173,32 @@ export async function softDeleteGiamSatNkbvCa(id: string) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
 
-  const releaseErr = await releaseViSinhStampsAfterHide(supabase, id, row.verification_data);
-  if (releaseErr) return { success: false as const, error: releaseErr };
-
-  const { error } = await supabase
+  // Ẩn phiếu trước; chỉ khi ẩn thành công mới trả XN về hàng chờ (tránh XN về hàng chờ mà ca còn hiện).
+  const { data: hidden, error } = await supabase
     .from("nkbv_fact_su_kien")
     .update({ is_active: false, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("is_active", true)
+    .select("id");
   if (error) return { success: false as const, error: error.message };
+  if (!hidden || hidden.length === 0) {
+    return { success: false as const, error: "Không ẩn được phiếu (không tìm thấy hoặc đã ẩn)" };
+  }
+
+  const releaseErr = await releaseViSinhStampsAfterHide(supabase, id, row.verification_data);
+  if (releaseErr) {
+    console.error("[giam-sat-nkbv] release vi sinh sau khi ẩn lỗi", {
+      module: "giam-sat-nkbv",
+      action: "softDeleteGiamSatNkbvCa",
+      userId: await getActorNhanSuId().catch(() => null),
+      error: releaseErr,
+    });
+    revalidatePath("/giam-sat-nkbv");
+    return {
+      success: false as const,
+      error: `Đã ẩn phiếu nhưng chưa trả xét nghiệm vi sinh về hàng chờ: ${releaseErr}. Báo quản trị để xử lý.`,
+    };
+  }
 
   revalidatePath("/giam-sat-nkbv");
   return { success: true as const };
