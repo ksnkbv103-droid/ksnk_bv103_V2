@@ -787,10 +787,10 @@
     "tieu_de": "Local đang cho tự đăng ký, và email được xác nhận tự động. Người ngoài lấy anon key công khai, tự đăng ký bằng email của một nhân sự chưa có tài khoản. syncAccountLinkAction (StaffSessionGate gọi) sẽ tự gắn auth_user_id vào hồ sơ đó: người ngoài chiếm danh tính nhân sự, và ADMIN không cấp được tài khoản thật nữa («Đã có tài khoản»). Nếu email trong KSNK_BREAK_GLASS_EMAILS chưa có auth user, đăng ký bằng email đó là thành ADMIN ngay.",
     "bang_chung": "Cấu hình auth local: GOTRUE_DISABLE_SIGNUP=false, GOTRUE_MAILER_AUTOCONFIRM=true. supabase/config.toml:20-23 không đặt enable_signup. src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-link-governance.actions.ts:92-104 chỉ kiểm email_confirmed_at. src/lib/server-permission.ts:84 và src/lib/auth/trusted-admin-email.ts:22 coi đúng email là ADMIN. View v_mdm_nhan_su_picker (security_invoker=false) cho mọi authenticated đọc ma_nv và ho_ten của toàn bộ nhân sự, giúp chọn mục tiêu.",
     "lenh_kiem": "docker exec supabase_auth_ksnk_bv103 printenv GOTRUE_DISABLE_SIGNUP GOTRUE_MAILER_AUTOCONFIRM; SELECT reloptions FROM pg_class WHERE relname='v_mdm_nhan_su_picker'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
-    "commit": "",
-    "ghi_chu": "B2: DUNG chỉ trên local (GOTRUE_DISABLE_SIGNUP=false, AUTOCONFIRM=true; account-link chỉ kiểm email_confirmed_at; picker security_invoker=false lộ ma_nv/ho_ten). Prod chưa kiểm được: cấu hình đăng ký prod chưa biết. NGHIEM_TRONG nếu prod giống local. Hỏi PO: prod có đang mở đăng ký không (Dashboard Auth). | PO 2026-11-11: prod CHO khách tự đăng ký, ADMIN duyệt. Hướng sửa: đăng ký xong chưa được tự gắn hồ sơ nhân sự/quyền; syncAccountLink chỉ gắn khi ADMIN duyệt; chặn đăng ký bằng email break-glass chưa có auth user."
+    "commit": "af552c30",
+    "ghi_chu": "B2: DUNG chỉ trên local (GOTRUE_DISABLE_SIGNUP=false, AUTOCONFIRM=true; account-link chỉ kiểm email_confirmed_at; picker security_invoker=false lộ ma_nv/ho_ten). Prod chưa kiểm được: cấu hình đăng ký prod chưa biết. NGHIEM_TRONG nếu prod giống local. Hỏi PO: prod có đang mở đăng ký không (Dashboard Auth). | PO 2026-11-11: prod CHO khách tự đăng ký, ADMIN duyệt. Hướng sửa: đăng ký xong chưa được tự gắn hồ sơ nhân sự/quyền; syncAccountLink chỉ gắn khi ADMIN duyệt; chặn đăng ký bằng email break-glass chưa có auth user. | Đã sửa phần tự gắn (chỉ gắn khi app_metadata.admin_provisioned; duyệt qua phiếu approveAccountAccessRequest gắn lúc tạo). Còn: email break-glass chưa có auth user vẫn đăng ký được -> tạo sẵn auth user cho các email đó trên prod (việc PO/Dashboard), hoặc tắt signup; v_mdm_nhan_su_picker vẫn lộ ma_nv/ho_ten (Thấp)."
   },
   {
     "id": "QT-004",
