@@ -8,7 +8,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return { title: ownedLookupTitle((await props.params).loai) };
 }
 
-/** AR-8f: chỉ nhận loại thuộc `DANH_MUC_GSTT`; loại khác → 404. */
+/** AR-8f: chỉ nhận loại thuộc `GIAM_SAT_CHUNG`; loại khác → 404. */
 export default async function Page(props: Props) {
-  return <OwnedLookupDetail loaiParam={(await props.params).loai} owner="DANH_MUC_GSTT" backHref={GSC_DANH_MUC_PATH} />;
+  return <OwnedLookupDetail loaiParam={(await props.params).loai} owner="GIAM_SAT_CHUNG" backHref={GSC_DANH_MUC_PATH} />;
 }

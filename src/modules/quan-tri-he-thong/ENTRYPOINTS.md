@@ -3,7 +3,6 @@
 | Việc | Import từ |
 |------|------------|
 | Hub UI (3 tab: Tài khoản · Phân quyền · Hệ thống — AR-8g) | `danh-muc/views/QuanTriDanhMucPage` |
-| Stats / gateway admin | `actions/mdm-gateway.actions` |
 | Đọc danh mục theo loại (module vận hành) | `@/lib/master-data/categories-by-type` |
 | Bảng kiểm cho GSC/VST | `@/lib/mdm-read-gateway` |
 | Registry / routing | `@/lib/master-data/domain-registry`, `danh-muc-admin-routes` |

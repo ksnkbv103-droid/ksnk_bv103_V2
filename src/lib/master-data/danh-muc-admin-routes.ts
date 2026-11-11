@@ -39,8 +39,9 @@ export function genericDmMustUseDedicatedPageError(loaiDanhMuc: string): string 
  */
 export const DANH_MUC_OWNER_BASE = {
   DANH_MUC_ORG: `${TO_CHUC_PATH}/danh-muc`,
-  DANH_MUC_GSTT: GSC_DANH_MUC_PATH,
-  DANH_MUC_CSSD_LOOKUP: CSSD_DANH_MUC_PATH,
+  /** AR-8h: lookup GSC/CSSD xem theo quyền xem module, ghi chỉ ADMIN. */
+  GIAM_SAT_CHUNG: GSC_DANH_MUC_PATH,
+  CSSD_WORKFLOW: CSSD_DANH_MUC_PATH,
   /** LOAI_NKBV, TRANG_THAI_NKBV_CA — khóa, chỉ xem. */
   GIAM_SAT_NKBV: NKBV_DANH_MUC_PATH,
 } as const;

@@ -18,6 +18,7 @@ import {
   importGenericDmExcelAction,
 } from "@/lib/master-data/engine/generic-dm-import.actions";
 import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
+import { LOOKUP_ADMIN_ONLY_WRITE_OWNERS } from "@/lib/master-data/master-table-permission-map";
 
 export default function GenericDmMasterPage({
   loaiDanhMuc,
@@ -32,13 +33,12 @@ export default function GenericDmMasterPage({
   const { loading: permLoading, isAdmin, canView, canCreate, canEdit, canDelete: canDeletePerm, canImport: canImportPerm } =
     usePermission();
   const locked = isLockedSystemLookup(loaiDanhMuc);
-  const canViewPage =
-    isAdmin ||
-    canView(permissionModule) ||
-    (permissionModule.startsWith("DANH_MUC_") && canView("DANH_MUC"));
-  const canMutate = !locked && (canCreate(permissionModule) || canEdit(permissionModule));
-  const canDelete = !locked && canDeletePerm(permissionModule);
-  const canImport = !locked && (canImportPerm(permissionModule) || canEdit(permissionModule));
+  const canViewPage = isAdmin || canView(permissionModule);
+  /* AR-8h: lookup trong module nghiệp vụ (GSC/CSSD/NKBV) — ghi chỉ ADMIN dù có quyền ghi module. */
+  const adminOnlyWrite = LOOKUP_ADMIN_ONLY_WRITE_OWNERS.has(permissionModule);
+  const canMutate = !locked && (adminOnlyWrite ? isAdmin : canCreate(permissionModule) || canEdit(permissionModule));
+  const canDelete = !locked && (adminOnlyWrite ? isAdmin : canDeletePerm(permissionModule));
+  const canImport = !locked && (adminOnlyWrite ? isAdmin : canImportPerm(permissionModule) || canEdit(permissionModule));
   const m = useGenericDmMasterPageModel(loaiDanhMuc, canMutate, canDelete);
   const title = DM_HUB_LABELS[m.key] || loaiDanhMuc;
   const maCol = m.reg?.maColumn ?? "ma";

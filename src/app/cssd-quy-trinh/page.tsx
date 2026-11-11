@@ -75,14 +75,13 @@ function CssdQuyTrinhPageInner() {
   const reportPerm = useModulePermission("CSSD_REPORT");
   const workflowPerm = useModulePermission("CSSD_WORKFLOW");
   const mePerm = useModulePermission("CSSD_ME_TIET_KHUAN");
-  const lookupPerm = useModulePermission("DANH_MUC_CSSD_LOOKUP");
   const tabParam = searchParams.get("tab");
   const qrParam = searchParams.get("qr");
   const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
   const reportInScope = isRouteInPilotScope(CSSD_ROUTES.report);
   const showReportLink = reportInScope && !reportPerm.loading && reportPerm.allowed.view;
-  /* AR-8f: danh mục CSSD (trạm, loại sự cố, loại máy) sửa trong module. */
-  const showLookupLink = !lookupPerm.loading && lookupPerm.allowed.view;
+  /* AR-8f/8h: danh mục CSSD (trạm, loại sự cố, loại máy) — xem theo CSSD_WORKFLOW, ghi chỉ ADMIN. */
+  const showLookupLink = !workflowPerm.loading && workflowPerm.allowed.view;
 
   useEffect(() => {
     if (tabParam === "kho") {

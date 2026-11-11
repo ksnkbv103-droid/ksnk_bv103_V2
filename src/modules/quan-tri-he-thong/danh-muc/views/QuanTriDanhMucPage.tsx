@@ -36,8 +36,7 @@ export default function QuanTriDanhMucPage() {
   // Cùng cổng với route server: tài khoản = ADMIN hoặc PHAN_QUYEN xem+sửa; ma trận = ADMIN.
   const canTaiKhoan = isAdmin || (canView("PHAN_QUYEN") && canEdit("PHAN_QUYEN"));
   const canViewRbac = isAdmin;
-  const canViewDanhMuc = canView("DANH_MUC");
-  const canAccessIt = canViewDanhMuc || isAdmin;
+  const canAccessIt = isAdmin;
 
   const visibleTabs = useMemo(() => {
     const tabs: QuanTriHubUiTab[] = [];
@@ -97,7 +96,7 @@ export default function QuanTriDanhMucPage() {
           aria-labelledby="tab-danh-cho-it"
         >
           <QuanTriHubWorkQueue onOpen={go} />
-          {canViewDanhMuc || isAdmin ? <MdmGovernanceView /> : null}
+          {isAdmin ? <MdmGovernanceView /> : null}
           <SystemHealthPanel />
         </section>
       )}

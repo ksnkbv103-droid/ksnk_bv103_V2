@@ -13,13 +13,13 @@
  * - Chuyển sang `createServerSupabaseUserClient()` để RLS đính trong migration
  *   `20260526000005_rls_admin_core_tables.sql` (+ `_000006`) kick in trên
  *   `sys_mdm_registry` / `sys_mdm_suggestion`. Policy yêu cầu PHAN_QUYEN(DANH_MUC) hoặc ADMIN.
- *   `verifyPermission("DANH_MUC", "view|edit")` là layer first-defense; RLS là defense-in-depth.
+ *   `verifyAdminRole()` (AR-8h, tab Hệ thống chỉ ADMIN) là layer first-defense; RLS là defense-in-depth.
  * - RPC `mdm_refresh_governance_suggestions` (VOLATILE, không SECURITY DEFINER) chạy bằng
  *   role user → vẫn tôn trọng RLS bên trong RPC.
  */
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyAdminRole } from "@/lib/server-permission";
 import { logAdminAction } from "@/lib/admin-audit";
 import { MdmCoverageRow, MdmFieldRegistryRow, MdmSuggestionRow } from "@/lib/master-data/governance";
 
@@ -29,7 +29,7 @@ function getErrorMessage(error: unknown): string {
 
 export async function getMdmGovernanceSnapshot() {
   try {
-    await verifyPermission("DANH_MUC", "view");
+    await verifyAdminRole();
     const supabase = await createServerSupabaseUserClient();
     const [registryRes, suggestionRes] = await Promise.all([
       supabase
@@ -80,7 +80,7 @@ export async function getMdmGovernanceSnapshot() {
 
 export async function refreshMdmGovernanceSuggestions() {
   try {
-    await verifyPermission("DANH_MUC", "edit");
+    await verifyAdminRole();
     const supabase = await createServerSupabaseUserClient();
     const { data, error } = await supabase.rpc("mdm_refresh_governance_suggestions");
     if (error) throw error;
@@ -104,7 +104,7 @@ export async function approveMdmSuggestionAction(
   }
 ) {
   try {
-    await verifyPermission("DANH_MUC", "edit");
+    await verifyAdminRole();
     const supabase = await createServerSupabaseUserClient();
     
     // 1. Upsert theo (table_name, column_name): dòng đã «xóa» (mềm) được bật lại, không vướng UNIQUE.
@@ -151,7 +151,7 @@ export async function approveMdmSuggestionAction(
 
 export async function rejectMdmSuggestionAction(suggestionId: string) {
   try {
-    await verifyPermission("DANH_MUC", "edit");
+    await verifyAdminRole();
     const supabase = await createServerSupabaseUserClient();
     
     const { error } = await supabase
@@ -173,7 +173,7 @@ export async function rejectMdmSuggestionAction(suggestionId: string) {
 
 export async function toggleRegistryFieldAction(registryId: string, isActive: boolean) {
   try {
-    await verifyPermission("DANH_MUC", "edit");
+    await verifyAdminRole();
     const supabase = await createServerSupabaseUserClient();
     
     const { error } = await supabase
@@ -197,7 +197,7 @@ export async function toggleRegistryFieldAction(registryId: string, isActive: bo
 /** Xóa mềm (PO chốt 2026-10-10): `is_active=false` — trigger Postgres gỡ ràng buộc khỏi bảng đích. */
 export async function deleteRegistryRowAction(registryId: string) {
   try {
-    await verifyPermission("DANH_MUC", "edit");
+    await verifyAdminRole();
     const supabase = await createServerSupabaseUserClient();
 
     const { error: toggleError } = await supabase

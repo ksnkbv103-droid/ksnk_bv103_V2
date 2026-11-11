@@ -33,7 +33,7 @@ export default function SupervisionModeNav({ module, formHref, ariaLabel }: Prop
   const pathname = usePathname();
   const searchParams = useSearchParams();
   /* AR-8f: danh mục giám sát sửa trong module GSC — tab chỉ hiện khi có quyền xem. */
-  const lookupPerm = useModulePermission("DANH_MUC_GSTT");
+  const lookupPerm = useModulePermission("GIAM_SAT_CHUNG");
   const showLookupTab = module === "gsc" && !lookupPerm.loading && lookupPerm.allowed.view;
 
   const tabs = useMemo((): SupervisionTabLinkDef[] => {

@@ -3,7 +3,7 @@
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { mapNhanSuViewRow } from "@/lib/nhan-su-view-row";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 
 type LoadOptions = {
   includeNhanSu?: boolean;
@@ -54,7 +54,12 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
 
   try {
     if (ctx === "admin") {
-      await verifyPermission("DANH_MUC", "view");
+      // AR-8h: bỏ DANH_MUC — header dùng chung cho mọi phân hệ giám sát.
+      await verifyAnyPermission([
+        { moduleKey: "GIAM_SAT_VST", action: "view" },
+        { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
+        { moduleKey: "GIAM_SAT_NKBV", action: "view" },
+      ]);
     } else {
       const supervisionMod =
         ctx === "vst" ? "GIAM_SAT_VST" : ctx === "nkbv" ? "GIAM_SAT_NKBV" : "GIAM_SAT_CHUNG";

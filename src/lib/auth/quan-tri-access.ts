@@ -4,19 +4,6 @@ import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { QUAN_TRI_ENTRY_MODULE_KEYS, TO_CHUC_MODULE_KEYS } from "@/lib/nav/ksnk-nav-gates";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 
-const DEDICATED_NO_DANH_MUC_FALLBACK = new Set([
-  "PHAN_QUYEN",
-  "NHAN_SU",
-  "KHOA_PHONG",
-  "BANG_KIEM",
-  "BANG_KIEM_DETAIL",
-  "LOAI_DC",
-  "BO_DC",
-  "DC_LE",
-  "THIET_BI",
-  "HOA_CHAT",
-]);
-
 type AccessSnapshot = {
   isAdmin: boolean;
   canView: (moduleKey: string) => boolean;
@@ -106,15 +93,9 @@ export async function canAccessTaiKhoanNhanSuRoute(): Promise<boolean> {
   return snap.isAdmin || (snap.canView("PHAN_QUYEN") && snap.canEdit("PHAN_QUYEN"));
 }
 
-/**
- * Trang danh mục. Mã đã tách (khoa, bảng kiểm, CSSD, nhân sự) không nhận fallback DANH_MUC.
- * Lookup `DANH_MUC_*` vẫn xem được khi có DANH_MUC.view.
- */
+/** Trang danh mục: ADMIN hoặc quyền xem module sở hữu (AR-8h: bỏ fallback DANH_MUC). */
 export async function canAccessDanhMucModuleRoute(moduleKey: string): Promise<boolean> {
   const snap = await getServerAccessSnapshot();
   if (!snap) return false;
-  if (snap.isAdmin || snap.canView(moduleKey)) return true;
-  if (DEDICATED_NO_DANH_MUC_FALLBACK.has(moduleKey)) return false;
-  if (moduleKey.startsWith("DANH_MUC_")) return snap.canView("DANH_MUC");
-  return false;
+  return snap.isAdmin || snap.canView(moduleKey);
 }

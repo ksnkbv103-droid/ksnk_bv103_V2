@@ -27,16 +27,12 @@ export async function fetchSystemHealthBrief(): Promise<
   { success: true; data: SystemHealthBrief } | { success: false; error: string }
 > {
   try {
-    await verifyPermission("DANH_MUC", "view");
-  } catch {
-    try {
-      await verifyPermission("PHAN_QUYEN", "view");
-    } catch (e) {
-      return {
-        success: false,
-        error: e instanceof Error ? e.message : "Không đủ quyền xem sức khỏe hệ thống",
-      };
-    }
+    await verifyPermission("PHAN_QUYEN", "view");
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Không đủ quyền xem sức khỏe hệ thống",
+    };
   }
 
   const supabase = createAdminSupabaseClient();

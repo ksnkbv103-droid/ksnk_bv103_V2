@@ -34,9 +34,10 @@ describe("danh-muc-admin-routes — DM-3", () => {
     expect(getDanhMucAdminPath("KHU_VUC_GIAM_SAT")).toBe("/giam-sat-chung/danh-muc/KHU_VUC_GIAM_SAT");
     expect(getDanhMucAdminPath("LOAI_NKBV")).toBe("/giam-sat-nkbv/danh-muc/LOAI_NKBV");
     expect(getDanhMucAdminPath("VAI_TRO_HE_THONG_KSNK")).toBe("/quan-tri-he-thong?tab=phan_quyen");
-    expect(getOwnedDanhMucHref("TRAM_CSSD", "DANH_MUC_GSTT")).toBeNull();
-    expect(getOwnedDanhMucHref("CHUC_VU", "DANH_MUC_CSSD_LOOKUP")).toBeNull();
-    expect(getDanhMucOwnerKey("HINH_THUC_GIAM_SAT")).toBe("DANH_MUC_GSTT");
+    expect(getOwnedDanhMucHref("TRAM_CSSD", "GIAM_SAT_CHUNG")).toBeNull();
+    expect(getOwnedDanhMucHref("CHUC_VU", "CSSD_WORKFLOW")).toBeNull();
+    expect(getDanhMucOwnerKey("HINH_THUC_GIAM_SAT")).toBe("GIAM_SAT_CHUNG");
+    expect(getDanhMucOwnerKey("TRAM_CSSD")).toBe("CSSD_WORKFLOW");
   });
 
   it("action generic từ chối rõ ràng khi loại có trang riêng", () => {

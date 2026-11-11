@@ -40,11 +40,10 @@ export const NAV_GATE_HAU_CAN_MT: NavGate = { id: "hau-can-mt", moduleKeys: ["HA
 
 
 /**
- * Cửa vào khu Quản trị (AR-8g): chỉ tài khoản/phân quyền (PHAN_QUYEN) và hệ thống (DANH_MUC).
+ * Cửa vào khu Quản trị (AR-8g): tài khoản/phân quyền (PHAN_QUYEN); tab Hệ thống chỉ ADMIN (AR-8h).
  * Danh mục nghiệp vụ mở từ module sở hữu (Tổ chức, GSC, CSSD, NKBV), không qua hub này.
  */
 export const QUAN_TRI_ENTRY_MODULE_KEYS = [
-  "DANH_MUC",
   "PHAN_QUYEN",
 ] as const;
 
