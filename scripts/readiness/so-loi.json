@@ -956,9 +956,9 @@
     "tieu_de": "fetchCssdRcaBundle chỉ đòi GIAM_SAT_NKBV view rồi đọc bằng admin client; Mạng lưới xem được mẻ/sự cố CSSD mọi mã QR",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.ts:46-47,64-105",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
-    "commit": "",
+    "commit": "0ab86047",
     "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view)."
   },
   {
@@ -1008,9 +1008,9 @@
     "tieu_de": "setupGuestStatsPilotAccountAction đổi email + đặt lại mật khẩu Auth user mà không chặn email break-glass, không kiểm Auth user là ADMIN",
     "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/guest-stats-pilot.actions.ts:81,180,184; luồng nhân sự có chặn: nhan-su-login-email.guard.ts:71-83",
     "lenh_kiem": "ADMIN gọi setup với email ∈ KSNK_BREAK_GLASS_EMAILS",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-quan-tri-quyen",
-    "commit": "",
+    "commit": "fb7dff80",
     "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180."
   }
 ]
