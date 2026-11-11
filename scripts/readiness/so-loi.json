@@ -397,9 +397,9 @@
     "tieu_de": "RPC rpc_qlcv_nhiem_vu_rollup có trong DB nhưng không nơi nào trong src gọi: chức năng làm dở hoặc code chết, tiến độ nhiệm vụ đang tính nơi khác.",
     "bang_chung": "grep 'rollup' trong src/ không có kết quả gọi; DB pg_proc có rpc_qlcv_nhiem_vu_rollup(p_nhiem_vu_ids uuid[])",
     "lenh_kiem": "grep -rn nhiem_vu_rollup /Users/drnghia/Desktop/ksnk_bv103/.claude/worktrees/integrate-2026-11/src",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-qlcv",
-    "commit": "",
+    "commit": "c3f2f808",
     "ghi_chu": "Hoặc nối vào NhiemVuPanel/nhiem-vu.actions, hoặc bỏ qua bằng migration drop. Hỏi PO. | PO 2026-11-12: xóa rpc_qlcv_nhiem_vu_rollup khỏi DB (migration drop, local trước; prod theo lô)."
   },
   {
