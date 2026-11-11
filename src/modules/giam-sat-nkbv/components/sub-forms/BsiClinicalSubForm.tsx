@@ -11,6 +11,16 @@ import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 import NkbvRuledOutSection from "../NkbvRuledOutSection";
 import { todayYmdInVn, vnYmd } from "@/lib/format-datetime-vi";
 
+const CLABSI_EXCLUSION_FIELDS = [
+  ["excl_ecmo_gt2d", "ECMO/ECLS đặt >2 ngày lịch"],
+  ["excl_vad_gt2d", "VAD đặt >2 ngày lịch"],
+  ["excl_tah_gt2d", "Tim nhân tạo toàn phần (TAH) >2 ngày lịch"],
+  ["excl_patient_injection", "Bệnh nhân tự tiêm vào đường truyền (có ghi nhận)"],
+  ["excl_epidermolysis_bullosa", "Epidermolysis bullosa"],
+  ["excl_munchausen_proxy", "Munchausen by proxy"],
+  ["excl_pus_vascular_site", "Mủ tại vị trí tiếp cận mạch, cùng tác nhân với cấy máu"],
+] as const satisfies ReadonlyArray<readonly [keyof BsiVerificationData, string]>;
+
 interface BsiClinicalSubFormProps {
   form: BsiVerificationData;
   onChange: (updated: BsiVerificationData) => void;
@@ -274,6 +284,23 @@ export default function BsiClinicalSubForm({
               iwpStart={iwpStart}
               iwpEnd={iwpEnd}
             />
+          </NkbvFormSection>
+
+          <NkbvFormSection
+            title="Loại trừ CLABSI (vẫn là LCBI)"
+            hint="NHSN 2026 Ch.4 (B4.40–48): có ≥1 mục dưới đây thì ca vẫn báo là BSI nhưng không tính CLABSI."
+          >
+            {CLABSI_EXCLUSION_FIELDS.map(([field, label]) => (
+              <label key={field} className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!form[field]}
+                  disabled={!allowedEdit}
+                  onChange={(e) => onChange({ ...form, [field]: e.target.checked })}
+                />
+                {label}
+              </label>
+            ))}
           </NkbvFormSection>
 
           {showSecondary ? (

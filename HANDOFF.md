@@ -13,7 +13,7 @@ Nhánh `claude/nkbv-nhsn2026-core-df1243`. Commit: 060d579d (GĐ0 SSOT), 54c1ce4
 ## Còn dở / chặn (cần PO)
 - Lát 1: DOE theo tầng sâu nhất (`resolveSsiDoe` lấy sớm nhất mọi tầng).
 - Lát 2: cửa sổ ±2 (V10.27) chưa tìm thấy nơi cài.
-- Lát 3: các cờ `excl_*` CHƯA có ô nhập trên form/validation (cần >8 file hoặc migration → dừng, hỏi PO); chưa làm danh sách tác nhân loại trừ (B4.64–66), quy tắc ≤1 ngày giữa 2 mẫu commensal (B4.56).
+- Lát 3: cờ `excl_*` ĐÃ có ô nhập ở `BsiClinicalSubForm` (form đơn → server action spread `verificationInput` → engine; chưa kiểm tay trên UI). CHƯA nối đường lưới BA/timeline: `NkbvSyndromeIwpGrid` (draft.bsiMbi), `ba-analysis-session`, `analysis-session-to-verification`, `useNkbvIwpVerdicts` (2 chỗ), `BuildBsiTimelineVerdictInput` (~6–7 file, theo mẫu `has_hsct_or_gvhd`; hỏi PO có làm không); chưa làm danh sách tác nhân loại trừ (B4.64–66), quy tắc ≤1 ngày giữa 2 mẫu commensal (B4.56).
 - Lát 4: PNU3 không cần xét nghiệm (đang đòi lab + toàn thân); mẫu máu `table2Culture` (P6.20/60); chất lượng đờm (P6.53–55).
 - Lát 5: G2.02 vi sinh vật cộng đồng mới chỉ là cờ `is_fungi_respiratory`; thiếu Pneumocystis, Paracoccidioides, véc-tơ.
 - Sai khác lâm sàng chưa sửa: UTI sốt đơn độc app đòi ≤65 tuổi, gói U7.19/24/36 nói mọi tuổi.
