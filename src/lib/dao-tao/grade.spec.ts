@@ -64,6 +64,17 @@ describe("scoreAttempt", () => {
     expect(r).toEqual({ dung: 1, tong: 3, pct: 33.3, flags: [true, false, false] });
   });
 
+  it("biên điểm đạt: 7/10 đúng bằng 70.0; 2/3 làm tròn 66.7 (không phải 66.6)", () => {
+    const mk = (dungN: number, tong: number) =>
+      Array.from({ length: tong }, (_, i) => ({
+        dapAnDung: { kind: "single", optionId: "a" } as DapAnDung,
+        traLoi: { kind: "single", optionId: i < dungN ? "a" : "b" } as TraLoi,
+      }));
+    expect(scoreAttempt(mk(7, 10)).pct).toBe(70);
+    expect(scoreAttempt(mk(2, 3)).pct).toBe(66.7);
+    expect(scoreAttempt(mk(6, 10)).pct).toBeLessThan(70);
+  });
+
   it("bài rỗng: 0%", () => {
     expect(scoreAttempt([])).toEqual({ dung: 0, tong: 0, pct: 0, flags: [] });
   });

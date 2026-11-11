@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type Op = "select" | "insert" | "update" | "delete";
 type CallState = {
@@ -11,6 +11,7 @@ type CallState = {
 const mocks = vi.hoisted(() => ({
   handler: vi.fn(),
   calls: [] as unknown[],
+  requireAdmin: vi.fn(async () => ({ user: { id: "user-a" } })),
 }));
 
 vi.mock("@/lib/server-permission", () => ({
@@ -20,7 +21,7 @@ vi.mock("@/lib/server-permission", () => ({
 
 vi.mock("@/modules/dao-tao/lib/dao-tao-auth", () => ({
   requireDaoTaoUser: async () => ({ user: { id: "user-a" } }),
-  requireDaoTaoAdmin: async () => ({ user: { id: "user-a" } }),
+  requireDaoTaoAdmin: () => mocks.requireAdmin(),
 }));
 
 vi.mock("@/lib/dao-tao/exam-engine", () => ({
@@ -63,7 +64,7 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
-import { startThiThatAttempt, submitLanThi } from "./dao-tao-attempt.actions";
+import { getLanThiForTake, saveTraLoiCau, startThiThuAttempt, startThiThatAttempt, submitLanThi } from "./dao-tao-attempt.actions";
 
 const KY_ID = "3f1c2b4a-9d8e-4f7a-8b6c-1a2b3c4d5e6f";
 const LAN_ID = "9a1c2b4a-9d8e-4f7a-8b6c-1a2b3c4d5e6f";
@@ -202,5 +203,232 @@ describe("submitLanThi: khóa lạc quan khi nộp", () => {
   it("bài của người khác: không tìm thấy", async () => {
     mocks.handler.mockResolvedValue({ data: { ...ROW, auth_user_id: "user-b" }, error: null });
     await expect(submitLanThi(LAN_ID)).rejects.toThrow("Không tìm thấy lần thi.");
+  });
+});
+
+const HAN = "2030-01-01T00:00:00Z";
+const HAN_MS = new Date(HAN).getTime();
+const CAU_ID = "7b1c2b4a-9d8e-4f7a-8b6c-1a2b3c4d5e6f";
+
+function lanRow(over: Record<string, unknown> = {}) {
+  return {
+    id: LAN_ID,
+    auth_user_id: "user-a",
+    che_do: "thi_thu",
+    cau_hinh_id: null,
+    trang_thai: "dang_lam",
+    han_nop_luc: HAN,
+    updated_at: "2029-01-01T00:00:00Z",
+    de_snapshot: [
+      { id: CAU_ID, thu_tu: 1, options: [{ id: "a", noiDung: "A", displayIndex: 0 }], dap_an_dung: { kind: "single", optionId: "a" }, tra_loi: null },
+    ],
+    ...over,
+  };
+}
+
+describe("saveTraLoiCau: hạn nộp và quyền sở hữu", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.calls.length = 0;
+    vi.useFakeTimers();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const input = { lanThiId: LAN_ID, cauId: CAU_ID, traLoi: { kind: "single" as const, optionId: "a" } };
+  const updates = () => (mocks.calls as CallState[]).filter((c) => c.op === "update");
+
+  it("trong hạn: lưu được, update khóa theo trang_thai và updated_at", async () => {
+    vi.setSystemTime(HAN_MS - 60_000);
+    mocks.handler.mockImplementation(async (s: CallState) =>
+      s.op === "select" ? { data: lanRow(), error: null } : { data: [{ id: LAN_ID }], error: null },
+    );
+    expect(await saveTraLoiCau(input)).toEqual({ ok: true });
+    expect(updates()[0].filters).toContainEqual(["eq", ["trang_thai", "dang_lam"]]);
+    expect(updates()[0].filters).toContainEqual(["eq", ["updated_at", "2029-01-01T00:00:00Z"]]);
+  });
+
+  it("quá hạn nhưng trong ân hạn 30 giây (đúng mốc +30s): vẫn lưu", async () => {
+    vi.setSystemTime(HAN_MS + 30_000);
+    mocks.handler.mockImplementation(async (s: CallState) =>
+      s.op === "select" ? { data: lanRow(), error: null } : { data: [{ id: LAN_ID }], error: null },
+    );
+    expect(await saveTraLoiCau(input)).toEqual({ ok: true });
+  });
+
+  it("hết ân hạn (+30s +1ms): từ chối, không update", async () => {
+    vi.setSystemTime(HAN_MS + 30_001);
+    mocks.handler.mockResolvedValue({ data: lanRow(), error: null });
+    await expect(saveTraLoiCau(input)).rejects.toThrow("Đã hết giờ làm bài");
+    expect(updates()).toHaveLength(0);
+  });
+
+  it("bài của người khác: không tìm thấy, không update", async () => {
+    vi.setSystemTime(HAN_MS - 60_000);
+    mocks.handler.mockResolvedValue({ data: lanRow({ auth_user_id: "user-b" }), error: null });
+    await expect(saveTraLoiCau(input)).rejects.toThrow("Không tìm thấy lần thi.");
+    expect(updates()).toHaveLength(0);
+  });
+
+  it("bài đã nộp: từ chối", async () => {
+    vi.setSystemTime(HAN_MS - 60_000);
+    mocks.handler.mockResolvedValue({ data: lanRow({ trang_thai: "da_nop" }), error: null });
+    await expect(saveTraLoiCau(input)).rejects.toThrow("Bài đã nộp.");
+  });
+
+  it("phương án không thuộc câu hỏi: ok=false, không update", async () => {
+    vi.setSystemTime(HAN_MS - 60_000);
+    mocks.handler.mockResolvedValue({ data: lanRow(), error: null });
+    const r = await saveTraLoiCau({ ...input, traLoi: { kind: "single", optionId: "zzz" } });
+    expect(r).toEqual({ ok: false, error: "Phương án không thuộc câu hỏi này." });
+    expect(updates()).toHaveLength(0);
+  });
+});
+
+describe("submitLanThi: hetGio / late / dat", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.calls.length = 0;
+    vi.useFakeTimers();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  // n câu, `dung` câu đầu trả lời đúng.
+  const snap = (dung: number, n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `i${i}`,
+      dap_an_dung: { kind: "single", optionId: "a" },
+      tra_loi: { kind: "single", optionId: i < dung ? "a" : "b" },
+    }));
+
+  function setup(row: Record<string, unknown>, diemDat: number | null) {
+    mocks.handler.mockImplementation(async (s: CallState) => {
+      if (s.table === "dao_tao_cau_hinh") return { data: diemDat === null ? null : { diem_dat_pct: diemDat }, error: null };
+      if (s.op === "select") return { data: row, error: null };
+      return { data: [{ id: LAN_ID }], error: null };
+    });
+  }
+  const thiThat = (dung: number, n: number) => ({
+    ...lanRow({ che_do: "thi_that", cau_hinh_id: KY_ID }),
+    de_snapshot: snap(dung, n),
+  });
+
+  it("đúng hạn: da_nop, đạt khi pct == diem_dat_pct (biên 70)", async () => {
+    vi.setSystemTime(HAN_MS - 1000);
+    setup(thiThat(7, 10), 70);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ diemPct: 70, dat: true, trangThai: "da_nop" });
+  });
+
+  it("pct thấp hơn ngưỡng 0.1: không đạt (66.7 < 66.8)", async () => {
+    vi.setSystemTime(HAN_MS - 1000);
+    setup(thiThat(2, 3), 66.8);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ diemPct: 66.7, dat: false });
+  });
+
+  it("làm tròn: 2/3 = 66.7 đạt ngưỡng 66.7", async () => {
+    vi.setSystemTime(HAN_MS - 1000);
+    setup(thiThat(2, 3), 66.7);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ dat: true });
+  });
+
+  it("hết giờ trong ân hạn (hetGio, chưa late): trạng thái het_gio nhưng vẫn xét đạt", async () => {
+    vi.setSystemTime(HAN_MS + 30_000);
+    setup(thiThat(10, 10), 70);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ trangThai: "het_gio", dat: true });
+  });
+
+  it("trễ quá ân hạn (+30s +1ms): het_gio và không đạt dù đủ điểm (DT-2)", async () => {
+    vi.setSystemTime(HAN_MS + 30_001);
+    setup(thiThat(10, 10), 70);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ diemPct: 100, trangThai: "het_gio", dat: false });
+  });
+
+  it("thi thử: dat = null, không đọc cấu hình ngưỡng", async () => {
+    vi.setSystemTime(HAN_MS - 1000);
+    setup({ ...lanRow(), de_snapshot: snap(10, 10) }, 70);
+    const r = await submitLanThi(LAN_ID);
+    expect(r).toMatchObject({ dat: null, trangThai: "da_nop" });
+    expect((mocks.calls as CallState[]).some((c) => c.table === "dao_tao_cau_hinh")).toBe(false);
+  });
+
+  it("thi thật nhưng kỳ không có diem_dat_pct: dat = null", async () => {
+    vi.setSystemTime(HAN_MS - 1000);
+    setup(thiThat(10, 10), null);
+    expect(await submitLanThi(LAN_ID)).toMatchObject({ dat: null });
+  });
+});
+
+describe("getLanThiForTake: ẩn đáp án và quyền admin", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.calls.length = 0;
+    mocks.requireAdmin.mockImplementation(async () => ({ user: { id: "user-a" } }));
+  });
+
+  const item = {
+    id: "i1", thu_tu: 1, loai: "single", stem: "S", chu_de_ma: "CD",
+    options: [{ id: "a", noiDung: "A", displayIndex: 0, laDung: true }],
+    dap_an_dung: { kind: "single", optionId: "a" }, giai_thich: "GT", dung: true, tra_loi: null,
+  };
+  const row = (over: Record<string, unknown> = {}) => ({ ...lanRow(), de_snapshot: [item], ...over });
+
+  it("đang làm: không lộ dapAnDung, giaiThich, dung; option chỉ còn id/noiDung/displayIndex", async () => {
+    mocks.handler.mockResolvedValue({ data: row(), error: null });
+    const r = await getLanThiForTake(LAN_ID);
+    const q = r.questions[0] as Record<string, unknown>;
+    expect(q).not.toHaveProperty("dapAnDung");
+    expect(q).not.toHaveProperty("giaiThich");
+    expect(q).not.toHaveProperty("dung");
+    expect(q.options).toEqual([{ id: "a", noiDung: "A", displayIndex: 0 }]);
+  });
+
+  it("đã nộp: trả đáp án và giải thích", async () => {
+    mocks.handler.mockResolvedValue({ data: row({ trang_thai: "da_nop" }), error: null });
+    const q = (await getLanThiForTake(LAN_ID)).questions[0] as Record<string, unknown>;
+    expect(q.dapAnDung).toEqual({ kind: "single", optionId: "a" });
+    expect(q.giaiThich).toBe("GT");
+    expect(q.dung).toBe(true);
+  });
+
+  it("người khác không phải admin: không tìm thấy", async () => {
+    mocks.requireAdmin.mockRejectedValue(new Error("403"));
+    mocks.handler.mockResolvedValue({ data: row({ auth_user_id: "user-b", trang_thai: "da_nop" }), error: null });
+    await expect(getLanThiForTake(LAN_ID)).rejects.toThrow("Không tìm thấy lần thi.");
+  });
+
+  it("admin xem bài đang làm của người khác: bị chặn", async () => {
+    mocks.handler.mockResolvedValue({ data: row({ auth_user_id: "user-b" }), error: null });
+    await expect(getLanThiForTake(LAN_ID)).rejects.toThrow("Chỉ xem được bài đã nộp.");
+  });
+
+  it("admin xem bài đã nộp của người khác: được", async () => {
+    mocks.handler.mockResolvedValue({ data: row({ auth_user_id: "user-b", trang_thai: "het_gio" }), error: null });
+    const r = await getLanThiForTake(LAN_ID);
+    expect(r.lanThi.trangThai).toBe("het_gio");
+    expect(r.questions[0]).toHaveProperty("dapAnDung");
+  });
+});
+
+describe("startThiThuAttempt: validate đầu vào", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.calls.length = 0;
+  });
+
+  it("mucDoId không phải GUID: từ chối trước khi chạm DB", async () => {
+    await expect(startThiThuAttempt({ mucDoId: "abc", form: FORM })).rejects.toThrow("Mã định danh không hợp lệ.");
+    expect(mocks.calls).toHaveLength(0);
+  });
+
+  it("họ tên rỗng: từ chối trước khi chạm DB", async () => {
+    await expect(
+      startThiThuAttempt({ mucDoId: KY_ID, form: { hoTen: "", khoaDonVi: "K" } }),
+    ).rejects.toThrow("Vui lòng nhập họ tên.");
+    expect(mocks.calls).toHaveLength(0);
+  });
+
+  it("mức độ không tồn tại: báo lỗi, không insert", async () => {
+    mocks.handler.mockResolvedValue({ data: null, error: null });
+    await expect(startThiThuAttempt({ mucDoId: KY_ID, form: FORM })).rejects.toThrow("Mức độ thi thử không tồn tại.");
+    expect((mocks.calls as CallState[]).some((c) => c.op === "insert")).toBe(false);
   });
 });
