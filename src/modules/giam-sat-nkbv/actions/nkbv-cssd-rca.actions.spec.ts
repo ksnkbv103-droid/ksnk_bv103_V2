@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ restriction: vi.fn(), eq: vi.fn(), limit: vi.fn(), order: [] as string[] }));
 
-vi.mock("@/lib/server-permission", () => ({ verifyPermission: vi.fn(async () => {}) }));
+const perm = vi.hoisted(() => ({ verifyPermissions: vi.fn(async (_r: unknown) => {}) }));
+vi.mock("@/lib/server-permission", () => ({
+  verifyPermission: vi.fn(async () => {}),
+  verifyPermissions: perm.verifyPermissions,
+}));
 vi.mock("@/lib/cssd-nkbv-trace", () => ({ resolveCssdQuyTrinhLinkFromMaQr: vi.fn() }));
 vi.mock("@/modules/cssd-su-co/domain/cssd-incident-attributes", () => ({
   readLoTietKhuanId: vi.fn(),
@@ -31,7 +35,7 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
-import { fetchNkbvCasesLinkedToCssd } from "./nkbv-cssd-rca.actions";
+import { fetchCssdRcaBundle, fetchNkbvCasesLinkedToCssd } from "./nkbv-cssd-rca.actions";
 
 const LO = "11111111-1111-1111-1111-111111111111";
 
@@ -52,5 +56,17 @@ describe("NKBV-015 fetchNkbvCasesLinkedToCssd", () => {
     const r = await fetchNkbvCasesLinkedToCssd({ loTietKhuanId: LO });
     expect(r).toEqual({ success: true, cases: [] });
     expect(mocks.limit).not.toHaveBeenCalled();
+  });
+});
+
+describe("NKBV-014 fetchCssdRcaBundle", () => {
+  it("đòi cả GIAM_SAT_NKBV view và CSSD_WORKFLOW view; thiếu quyền CSSD thì chặn", async () => {
+    perm.verifyPermissions.mockRejectedValueOnce(new Error("Bạn không có quyền [view] trên module [CSSD_WORKFLOW]."));
+    const r = await fetchCssdRcaBundle({ quyTrinhId: LO });
+    expect(r).toEqual({ success: false, error: "Bạn không có quyền [view] trên module [CSSD_WORKFLOW]." });
+    expect(perm.verifyPermissions).toHaveBeenCalledWith([
+      { moduleKey: "GIAM_SAT_NKBV", action: "view" },
+      { moduleKey: "CSSD_WORKFLOW", action: "view" },
+    ]);
   });
 });

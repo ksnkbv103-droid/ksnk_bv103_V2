@@ -1,7 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyPermission, verifyPermissions } from "@/lib/server-permission";
 import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
 import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
@@ -43,7 +43,11 @@ export async function fetchCssdRcaBundle(args: {
   quyTrinhId?: string | null;
 }): Promise<{ success: true; data: CssdRcaBundle | null } | { success: false; error: string }> {
   try {
-    await verifyPermission("GIAM_SAT_NKBV", "view");
+    // NKBV-014: RCA đọc dữ liệu CSSD bằng admin client → phải có cả quyền xem CSSD (Mạng lưới không có).
+    await verifyPermissions([
+      { moduleKey: "GIAM_SAT_NKBV", action: "view" },
+      { moduleKey: "CSSD_WORKFLOW", action: "view" },
+    ]);
     const supabase = createAdminSupabaseClient();
 
     let quyTrinhId = String(args.quyTrinhId || "").trim();
