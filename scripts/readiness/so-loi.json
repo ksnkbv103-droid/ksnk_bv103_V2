@@ -553,9 +553,9 @@
     "tieu_de": "Policy ALL \"Admin full access\" chỉ so tên vai trò ADMIN, không kiểm mdm_nhan_su.is_active và sys_roles.is_active. Admin đã bị vô hiệu hồ sơ mà còn JWT vẫn đọc toàn bộ (kể cả phiên đã xóa mềm) và sửa được phiên qua PostgREST.",
     "bang_chung": "pg_policies: gstt_fact_vst_sessions / gstt_fact_chung_sessions / gstt_fact_vst, policy \"Admin full access\" (EXISTS sys_user_roles JOIN sys_roles WHERE r.name='ADMIN'). Chạy thử trong BEGIN…ROLLBACK: admin có nhân sự inactive thì fn_sys_is_admin()=f nhưng vẫn đọc 3454 phiên và UPDATE thành công",
     "lenh_kiem": "BEGIN; UPDATE mdm_nhan_su SET is_active=false WHERE auth_user_id=<admin_uid>; SELECT set_config('request.jwt.claims','{\"sub\":\"<admin_uid>\",\"role\":\"authenticated\"}',true); SET LOCAL ROLE authenticated; SELECT fn_sys_is_admin(), count(*) FROM gstt_fact_vst_sessions; UPDATE gstt_fact_vst_sessions SET updated_at=updated_at WHERE id=(SELECT id FROM gstt_fact_vst_sessions LIMIT 1) RETURNING 1; ROLLBACK;",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-vst-quyen",
-    "commit": "",
+    "commit": "cff3cc66",
     "ghi_chu": "B2: DUNG theo nội dung policy (3 bảng không kiểm is_active; fn_sys_is_admin có kiểm). Chưa chạy kịch bản BEGIN/ROLLBACK ở B2 (bước Rà đã chạy). Cần admin bị vô hiệu còn JWT; local 1 ADMIN. Hạ CAO→THAP; gộp vào đợt migration RLS."
   },
   {
