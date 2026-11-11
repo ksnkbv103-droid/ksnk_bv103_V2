@@ -930,7 +930,7 @@
     "tieu_de": "fn_cssd_operator_nhan_su_id (SECURITY DEFINER) còn EXECUTE cho authenticated, tra mdm_nhan_su theo email qua auth.users",
     "bang_chung": "psql: secdef=t, anon f, authenticated t",
     "lenh_kiem": "select fn_cssd_operator_nhan_su_id('email') dưới authenticated (chưa chạy)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r2-cssd-quyen",
     "commit": "",
     "ghi_chu": "REVOKE EXECUTE FROM authenticated nếu chỉ admin client gọi. Gom vào lô migration."
@@ -995,7 +995,7 @@
     "tieu_de": "NHAN_SU:edit gọi thẳng PostgREST cập nhật được mdm_nhan_su của ADMIN (is_active, auth_user_id) → vượt chốt chỉ nằm ở action, ADMIN mất quyền",
     "bang_chung": "pg_policies mdm_nhan_su_update chỉ fn_sys_has_permission(NHAN_SU,edit); thử BEGIN…ROLLBACK: UPDATE 1 trên hồ sơ ADMIN; chốt app: nhan-su-write.actions.ts:97-108, nhan-su-active.actions.ts:41-47",
     "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -At < /private/tmp/claude-501/-Users-drnghia-Desktop-ksnk-bv103/b927d1b4-da5a-4eed-9c67-a67895858a64/scratchpad/p.sql",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r2-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Local chỉ ADMIN có NHAN_SU:edit. Hỏi PO: prod có cấp cho vai trò khác không? Nếu có → nâng CAO. Sửa: policy NOT is_admin_user(auth_user_id) OR fn_sys_is_admin() (lô migration)."
