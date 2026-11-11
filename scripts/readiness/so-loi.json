@@ -189,9 +189,9 @@
     "tieu_de": "startThiThuAttempt nhận targetRole, chuDeMas, soCau, thoiGianPhut thẳng từ client, không qua zod; thoiGianPhut và soCau không có trần, soCau lẻ hoặc NaN đi thẳng vào insert, chuDeMas lạ làm ngân hàng rỗng",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:193-227 (chỉ form và mucDoId được parse)",
     "lenh_kiem": "gọi startThiThuAttempt({mucDoId, form, soCau:1.5, thoiGianPhut:99999999})",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
-    "commit": "",
+    "commit": "19c6297a",
     "ghi_chu": "B2: DUNG một phần. Chỉ thoiGianPhut lớn/lẻ có thật (han_nop nhiều năm, lỗi cột int); soCau lẻ vô hại, chuDeMas lạ ném lỗi rõ. Chỉ ảnh hưởng thi thử của chính user. Hạ CAO→THAP. Hỏi PO: thi thử có được dài hơn cấu hình mức độ không. Đọc code, chưa gọi action. | PO 2026-11-11: thi thử KHÔNG chạy lâu hơn cấu hình mức độ, nhưng được thi lại. Sửa: chặn thoiGianPhut/soCau theo cấu hình mức độ, zod; không giới hạn số lần thi."
   },
   {
