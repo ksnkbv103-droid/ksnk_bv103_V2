@@ -48,6 +48,9 @@ import {
 } from "../lib/nkbv-case-status";
 import { vnYmd } from "@/lib/format-datetime-vi";
 
+const NKBV_UPDATE_LOCKED_VI =
+  "Ca đã chốt (xác nhận / loại trừ / đã đóng) — không sửa phiếu. Dùng panel thẩm định hoặc ẩn phiếu nếu cần.";
+
 export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
   return {
@@ -96,6 +99,15 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     } else if (!nkbvKhoaVisible(restriction, [cur.khoa_ghi_nhan_id as string | null])) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
     }
+    const { data: statusProbe, error: statusProbeErr } = await supabase
+      .from("v_nkbv_su_kien_full")
+      .select("trang_thai_ma")
+      .eq("id", id)
+      .maybeSingle();
+    if (statusProbeErr) throw statusProbeErr;
+    if (isNkbvTerminalCaseStatus(statusProbe?.trang_thai_ma as string | null | undefined)) {
+      return { success: false as const, error: NKBV_UPDATE_LOCKED_VI };
+    }
     await validateLoaiTrangAndLyDo(supabase, String(raw.loai_nkbv_id), String(cur.trang_thai_id), raw.ly_do_loai_tru);
     
     const actorNhanSuId = await getActorNhanSuId();
@@ -130,7 +142,7 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     };
 
     if (raw.vi_sinh_record_id !== undefined) patch.vi_sinh_record_id = raw.vi_sinh_record_id;
-    if (raw.verification_data !== undefined) patch.verification_data = raw.verification_data;
+    // verification_data chỉ được ghi qua submitClinicalVerification (NKBV-002), không nhận từ form sửa.
 
     const { data, error } = await supabase.from("nkbv_fact_su_kien").update(patch).eq("id", id).select().single();
     if (error) return { success: false as const, error: error.message };
