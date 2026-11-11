@@ -250,7 +250,7 @@ export default function MdmGovernanceView() {
 
       <p className={`${bv103LayoutChrome.noticeAmber} mb-4`} role="note">
         IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>
-        . Danh mục thường ở Trung tâm danh mục.
+        . Danh mục nghiệp vụ sửa trong module sở hữu (Tổ chức, GSC, CSSD, NKBV).
       </p>
 
       {/* Stats Cards */}

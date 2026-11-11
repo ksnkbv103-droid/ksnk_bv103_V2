@@ -32,17 +32,18 @@ export function toChucNhanSuChuaTkHref(): string {
   return "/to-chuc/nhan-su?chuaTk=1";
 }
 
-export type QuanTriHubTab = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
+/** AR-8g: hub Quản trị = Tài khoản · Phân quyền · Hệ thống (MDM governance / sức khỏe). */
+export type QuanTriHubTab = "TAI_KHOAN" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
 
 const TAB_QUERY: Record<QuanTriHubTab, string> = {
-  DANH_MUC: "",
+  TAI_KHOAN: "tai_khoan",
   PHAN_QUYEN: "phan_quyen",
   MDM_GOVERNANCE: "mdm_governance",
   SUC_KHOE: "suc_khoe",
 };
 
 export function quanTriHubHref(tab?: QuanTriHubTab): string {
-  if (!tab || tab === "DANH_MUC") return QUAN_TRI_HUB_PATH;
+  if (!tab) return QUAN_TRI_HUB_PATH;
   const q = TAB_QUERY[tab];
   return q ? `${QUAN_TRI_HUB_PATH}?tab=${q}` : QUAN_TRI_HUB_PATH;
 }

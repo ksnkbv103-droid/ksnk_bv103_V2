@@ -2,7 +2,7 @@
 
 | Việc | Import từ |
 |------|------------|
-| Hub UI | `danh-muc/views/QuanTriDanhMucPage` |
+| Hub UI (3 tab: Tài khoản · Phân quyền · Hệ thống — AR-8g) | `danh-muc/views/QuanTriDanhMucPage` |
 | Stats / gateway admin | `actions/mdm-gateway.actions` |
 | Đọc danh mục theo loại (module vận hành) | `@/lib/master-data/categories-by-type` |
 | Bảng kiểm cho GSC/VST | `@/lib/mdm-read-gateway` |
@@ -15,4 +15,6 @@
 
 **Không dùng:** `actions/read.actions.ts`, `actions/write.actions.ts` (đã gỡ).
 
-**Deep link:** `/quan-tri-he-thong/phan-quyen` → hub `?tab=phan_quyen`; `/danh-muc/dung-cu` → redirect sang `/cssd-dung-cu` (tab Loại/Quản lý/Phiếu; PO 2026-10-27).
+**Danh mục nghiệp vụ (AR-8e→8g):** sửa trong module sở hữu — `/to-chuc/danh-muc`, `/giam-sat-chung/danh-muc`, `/cssd-quy-trinh/danh-muc`, `/giam-sat-nkbv/danh-muc`; `danh-muc/chuyen-biet/[loai]` chỉ redirect. Cổng chỉ ở trang hub (không layout) để redirect cũ vẫn chạy.
+
+**Deep link:** `/quan-tri-he-thong/phan-quyen` → hub `?tab=phan_quyen`; `?tab=tai_khoan`; `/danh-muc/dung-cu` → redirect sang `/cssd-dung-cu` (tab Loại/Quản lý/Phiếu; PO 2026-10-27).

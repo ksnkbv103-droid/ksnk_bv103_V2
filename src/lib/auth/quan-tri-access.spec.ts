@@ -54,6 +54,11 @@ describe("quan-tri-access", () => {
     await expect(canAccessPhanQuyenRoute()).resolves.toBe(false);
   });
 
+  it("PHAN_QUYEN.view mở hub Quản trị", async () => {
+    mockPermissions([], [{ module: "PHAN_QUYEN", action: "view" }]);
+    await expect(canAccessQuanTriHub()).resolves.toBe(true);
+  });
+
   it("allows tai-khoan route for PHAN_QUYEN edit", async () => {
     mockPermissions(
       [],
@@ -70,9 +75,9 @@ describe("quan-tri-access", () => {
     await expect(canAccessDanhMucModuleRoute("KHOA_PHONG")).resolves.toBe(false);
   });
 
-  it("KHOA_PHONG.view mở hub và trang khoa", async () => {
+  it("KHOA_PHONG.view mở trang khoa nhưng không mở hub Quản trị (AR-8g)", async () => {
     mockPermissions([], [{ module: "KHOA_PHONG", action: "view" }]);
-    await expect(canAccessQuanTriHub()).resolves.toBe(true);
+    await expect(canAccessQuanTriHub()).resolves.toBe(false);
     await expect(canAccessDanhMucModuleRoute("KHOA_PHONG")).resolves.toBe(true);
   });
 

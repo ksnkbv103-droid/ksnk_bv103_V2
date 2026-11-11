@@ -40,24 +40,12 @@ export const NAV_GATE_HAU_CAN_MT: NavGate = { id: "hau-can-mt", moduleKeys: ["HA
 
 
 /**
- * Cửa vào khu Quản trị. Khớp trang dedicated: mã chi tiết (KHOA_PHONG, BANG_KIEM, …)
- * cũng mở menu, không chỉ DANH_MUC / PHAN_QUYEN / NHAN_SU.
+ * Cửa vào khu Quản trị (AR-8g): chỉ tài khoản/phân quyền (PHAN_QUYEN) và hệ thống (DANH_MUC).
+ * Danh mục nghiệp vụ mở từ module sở hữu (Tổ chức, GSC, CSSD, NKBV), không qua hub này.
  */
 export const QUAN_TRI_ENTRY_MODULE_KEYS = [
   "DANH_MUC",
-  "DANH_MUC_ORG",
-  "DANH_MUC_GSTT",
-  "DANH_MUC_CSSD_LOOKUP",
   "PHAN_QUYEN",
-  "NHAN_SU",
-  "KHOA_PHONG",
-  "BANG_KIEM",
-  "LOAI_DC",
-  "BO_DC",
-  "DC_LE",
-  "THIET_BI",
-  "HOA_CHAT",
-  "GIAM_SAT_NKBV",
 ] as const;
 
 export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: QUAN_TRI_ENTRY_MODULE_KEYS };
