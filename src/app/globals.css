@@ -328,9 +328,9 @@
     box-shadow: var(--shadow-app-soft);
   }
 
-  /** Thẻ nội dung (mẫu chuyên nghiệp 2026-11-11): bo 16, viền mảnh, bóng hai lớp nhẹ. */
+  /** Thẻ nội dung (mẫu chuyên nghiệp 2026-11-11): bo 12 (shell), viền mảnh, bóng hai lớp nhẹ. */
   .bv103-card {
-    border-radius: 1rem;
+    border-radius: var(--radius-shell);
     border: 1px solid rgb(226 232 240);
     background: #ffffff;
     box-shadow: 0 1px 2px rgba(16, 40, 26, 0.05), 0 8px 24px rgba(16, 40, 26, 0.05);

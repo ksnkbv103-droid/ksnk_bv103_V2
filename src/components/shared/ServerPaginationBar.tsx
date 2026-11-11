@@ -14,7 +14,7 @@ type Props = {
 };
 
 const btnBase =
-  "flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all touch-manipulation hover:border-[var(--primary)]/30 hover:bg-[var(--primary-light)] hover:text-[var(--primary)] disabled:pointer-events-none disabled:opacity-30 sm:h-9 sm:w-9";
+  "flex h-11 w-11 items-center justify-center rounded-[var(--radius-control)] border sm:h-9 sm:w-9 border-slate-200 bg-white text-slate-600 shadow-sm transition-all touch-manipulation hover:border-[var(--primary)]/30 hover:bg-[var(--primary-light)] hover:text-[var(--primary)] disabled:pointer-events-none disabled:opacity-30 sm:h-9 sm:w-9";
 
 export default function ServerPaginationBar({
   page,
@@ -68,7 +68,7 @@ export default function ServerPaginationBar({
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          <span className="flex h-11 min-w-[4.5rem] items-center justify-center rounded-xl bg-[var(--primary-light)] px-3 text-xs font-bold text-[var(--primary)] tabular-nums ring-1 ring-[var(--primary)]/10 sm:h-9">
+          <span className="flex h-11 min-w-[4.5rem] items-center justify-center rounded-[var(--radius-control)] sm:h-9 bg-[var(--primary-light)] px-3 text-xs font-bold text-[var(--primary)] tabular-nums ring-1 ring-[var(--primary)]/10 sm:h-9">
             {page} / {totalPages}
           </span>
 

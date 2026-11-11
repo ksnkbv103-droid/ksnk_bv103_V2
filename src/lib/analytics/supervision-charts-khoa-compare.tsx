@@ -140,7 +140,7 @@ function SupervisionKhoaComplianceChart({
   };
 
   return (
-    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="w-full min-w-0">
       <h3 className="mb-1 text-sm font-bold text-slate-800">{title}</h3>
       <p className="mb-2 text-xs font-medium text-slate-500">
         Sắp xếp: cao → thấp (tuân thủ %)
@@ -282,7 +282,7 @@ function SupervisionKhoaVolumeChart({
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="min-w-0">
       <div className="mb-1 flex flex-wrap items-end justify-between gap-2">
         <h3 className="text-sm font-bold text-slate-800">{title}</h3>
         <p className="text-xs font-medium text-slate-600">
@@ -388,7 +388,7 @@ export function SupervisionKhoaAnalyticsBlock({
           role="tab"
           aria-selected={tab === "ty_le"}
           onClick={() => setTab("ty_le")}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+          className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 text-xs font-semibold transition ${
             tab === "ty_le" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >
@@ -399,7 +399,7 @@ export function SupervisionKhoaAnalyticsBlock({
           role="tab"
           aria-selected={tab === "volume"}
           onClick={() => setTab("volume")}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+          className={`inline-flex min-h-9 items-center rounded-[var(--radius-control)] px-3 text-xs font-semibold transition ${
             tab === "volume" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
           }`}
         >
