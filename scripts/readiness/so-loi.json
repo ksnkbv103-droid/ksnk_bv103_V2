@@ -228,7 +228,7 @@
     "tieu_de": "Chống vượt lượt chỉ bằng đếm lại rồi xóa, không có ràng buộc DB. Cùng lúc hai request đều thấy mình ngoài hạn mức thì cả hai bị xóa, người học mất cả hai lượt. Bản ghi vượt lượt tồn tại tạm thời",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:410-414; dao_tao_lan_thi chỉ có index pkey, idx_dao_tao_lan_thi_user, idx_dao_tao_lan_thi_cau_hinh (SELECT pg_indexes), không unique",
     "lenh_kiem": "SELECT indexname FROM pg_indexes WHERE tablename='dao_tao_lan_thi'",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod"
@@ -241,7 +241,7 @@
     "tieu_de": "Lượt dang_lam quá hạn không tự đóng. Người học bỏ dở vẫn bị tính tiêu một lượt, kỳ thi so_lan_cho_phep=1 thì không thi lại được. Admin chỉ thấy bài sau khi chính người đó mở lại và nộp",
     "bang_chung": "src/modules/dao-tao/lib/dao-tao-luot.ts:6 (dang_lam tiêu lượt); src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:556-585 (chỉ chuyển het_gio khi người học gọi submit); không có job quét",
     "lenh_kiem": "SELECT count(*) FROM dao_tao_lan_thi WHERE trang_thai='dang_lam' AND han_nop_luc<now()",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Hỏi PO: tự chấm các bài dang_lam quá hạn (cron hoặc chấm khi đọc) và đặt trạng thái het_gio, hay cho admin mở lượt lại"
@@ -254,7 +254,7 @@
     "tieu_de": "Nộp trễ vẫn được chấm đủ điểm và hiện đáp án, chỉ dat=false (theo PO DT-2). Nộp trong ân hạn 30 giây vẫn có thể đạt dù trạng thái het_gio, và saveTraLoiCau cho ghi thêm tới hạn+30s",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:30, 515, 551-573",
     "lenh_kiem": "đọc code; không có spec cho nhánh hetGio và late",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s"
@@ -267,7 +267,7 @@
     "tieu_de": "Mọi user có DAO_TAO view xem được kết quả và đáp án của chính mình ngay sau nộp. Với kỳ nhiều lượt, lượt sau sinh đề từ cùng ngân hàng nên đáp án lượt trước rò sang các lượt sau",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:462-474 (submitted lộ options.tfDung, dapAnDung, giai_thich, distractor_rationales)",
     "lenh_kiem": "đọc code",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai"
@@ -319,7 +319,7 @@
     "tieu_de": "Spec của attempt.actions chỉ phủ chống race lượt và khóa lạc quan khi nộp. Thiếu spec cho saveTraLoiCau (hết giờ, hết ân hạn, bài người khác), getLanThiForTake (ẩn đáp án khi đang làm, admin chỉ xem bài đã nộp), submitLanThi nhánh hetGio/late/dat, startThiThuAttempt validate. grade.spec.ts và dao-tao-luot.spec.ts có, nhưng không có test biên điểm đạt (pct bằng diem_dat_pct)",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.spec.ts:110-206 (3 describe, 7 it)",
     "lenh_kiem": "npm run test:cssd -- src/modules/dao-tao",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-dao-tao",
     "commit": "",
     "ghi_chu": "Thêm spec cho 4 nhóm trên, ưu tiên getLanThiForTake vì liên quan lộ đáp án"
@@ -397,7 +397,7 @@
     "tieu_de": "RPC rpc_qlcv_nhiem_vu_rollup có trong DB nhưng không nơi nào trong src gọi: chức năng làm dở hoặc code chết, tiến độ nhiệm vụ đang tính nơi khác.",
     "bang_chung": "grep 'rollup' trong src/ không có kết quả gọi; DB pg_proc có rpc_qlcv_nhiem_vu_rollup(p_nhiem_vu_ids uuid[])",
     "lenh_kiem": "grep -rn nhiem_vu_rollup /Users/drnghia/Desktop/ksnk_bv103/.claude/worktrees/integrate-2026-11/src",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-qlcv",
     "commit": "",
     "ghi_chu": "Hoặc nối vào NhiemVuPanel/nhiem-vu.actions, hoặc bỏ qua bằng migration drop. Hỏi PO."
@@ -410,7 +410,7 @@
     "tieu_de": "fn_sync_overdue_tasks chỉ đổi MOI/DANG_LAM thành QUA_HAN và không có đường ngược lại; việc TU_CHOI quá hạn không bao giờ thành QUA_HAN (chỉ cộng vào đếm quá hạn bằng so sánh ngày). Nếu cron chưa chạy (phát hiện 1) thì cột trang_thai lệch với số đếm.",
     "bang_chung": "fn_sync_overdue_tasks: trang_thai = ANY(ARRAY['MOI','DANG_LAM']); rpc_qlcv_board_counts mục 'overdue' dùng a.trang_thai='QUA_HAN' OR is_qua_han OR han<today",
     "lenh_kiem": "select loai_cong_viec,trang_thai,count(*) from qlcv_fact_cong_viec where is_active and han_hoan_thanh < public.fn_qlcv_today_vn() group by 1,2",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-qlcv",
     "commit": "",
     "ghi_chu": "Gia hạn từ QUA_HAN về DANG_LAM đã có trigger/ code hay chưa cần xác nhận riêng. Hỏi PO nếu muốn TU_CHOI cũng chuyển QUA_HAN."
@@ -423,7 +423,7 @@
     "tieu_de": "Phê duyệt đề xuất không nguyên tử: ghi các cột mở rộng (địa điểm, nhóm, phối hợp, theo dõi, nhiệm vụ) bằng UPDATE riêng trước, rồi mới gọi RPC PHE_DUYET_DEXUAT; RPC lỗi thì đề xuất vẫn bị sửa mà chưa được duyệt. RPC cũng không kiểm quyền duyệt hay duyệt chính đề xuất của mình.",
     "bang_chung": "src/modules/quan-ly-cong-viec/actions/cong-viec.actions.ts:316-340 (UPDATE trước) rồi :342 invokeQlcvTransition PHE_DUYET_DEXUAT; fn_qlcv_transition WHEN 'PHE_DUYET_DEXUAT' chỉ đọc 8 khóa trong p_patch",
     "lenh_kiem": "select pg_get_functiondef('fn_qlcv_transition'::regproc)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-qlcv",
     "commit": "",
     "ghi_chu": "Đưa các cột mở rộng vào p_patch trong RPC hoặc đảo thứ tự và rollback. Hỏi PO: người đề xuất có được tự duyệt đề xuất của mình?"
@@ -475,7 +475,7 @@
     "tieu_de": "Trả lui không nguyên tử: nhật ký TRA_VE được ghi (chỉ thêm, không xóa được) trước khi update trạm; update lỗi hoặc bộ đã đổi trạm thì nhật ký vẫn còn sự kiện trả lui không xảy ra; sự kiện lifecycle ghi ở bước thứ ba riêng",
     "bang_chung": "src/modules/cssd-erp/workflow/application/cssd-workflow-application.ts:311 (rpc_cssd_nhat_ky_ghi), khoảng :325-334 (update .eq tram_hien_tai_id, ném 'Bộ đã đổi trạm'), khoảng :336 (insertCssdLifecycleEvent); trigger trg_cssd_guard_nhat_ky_chi_them",
     "lenh_kiem": "Hai phiên cùng trả lui một QR ở DONG_GOI: phiên thua nhận lỗi 'Bộ đã đổi trạm' nhưng metadata->'nhat_ky' có 2 dòng TRA_VE",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-cssd-quyen",
     "commit": "",
     "ghi_chu": "Gộp ghi nhật ký, update trạm và lifecycle vào một RPC (khóa FOR UPDATE)"
@@ -488,7 +488,7 @@
     "tieu_de": "rpc_cssd_cap_phat_commit chấp nhận p_nguoi_cap_phat_id NULL (coalesce giữ NULL) nên tài khoản chưa gắn nhân sự vẫn cấp phát được mà không có người cấp; luồng quét trạm thì chặn trường hợp này",
     "bang_chung": "DB rpc_cssd_cap_phat_commit (nguoi_cap_phat_id = coalesce(p_nguoi_cap_phat_id, q.nguoi_cap_phat_id)); src/modules/cssd-erp/actions/cssd-scan.actions.ts:178 (p_nguoi_cap_phat_id: operatorId || null); so với rpc_scan_workflow_station_impl (RETURN lỗi khi v_operator_id IS NULL)",
     "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tAc \"SELECT pg_get_functiondef('public.rpc_cssd_cap_phat_commit'::regproc)\"",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-cssd-quyen",
     "commit": "",
     "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng"
@@ -566,7 +566,7 @@
     "tieu_de": "Chi tiết phiên GSC đọc bằng admin client nhưng không kiểm is_active, nên ai biết id vẫn mở được phiên đã xóa mềm. Lệch với policy mới và với chi tiết VST (có chặn).",
     "bang_chung": "src/modules/giam-sat-chung/actions/giam-sat-chung-session-detail.actions.ts:37-48; đối chiếu src/modules/giam-sat-vst/actions/vst-read.actions.ts:114-116",
     "lenh_kiem": "Gọi getGiamSatChungSessionForViewBundle(<id phiên GSC có is_active=false>) bằng tài khoản NHAN_VIEN_KSNK",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "r1-vst-quyen",
     "commit": "",
     "ghi_chu": "Thêm .eq('is_active', true), hoặc trả 'Phiên đã vô hiệu'"
@@ -579,7 +579,7 @@
     "tieu_de": "Xóa mềm GSC update theo từng id kèm .eq('is_active',true) nhưng không kiểm số dòng bị ảnh hưởng. Bị tranh chấp hoặc phiên đã xóa trước đó thì vẫn ghi nhật ký và trả success giả.",
     "bang_chung": "src/modules/giam-sat-chung/actions/giam-sat-chung-session-meta.actions.ts, hàm deleteGiamSatChungSessions; đối chiếu src/modules/giam-sat-vst/actions/vst-write-delete.actions.ts:100-102",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-vst-quyen",
     "commit": "",
     "ghi_chu": "Thêm .select('id') và báo lỗi khi rỗng, như bên VST"
@@ -683,7 +683,7 @@
     "tieu_de": "Hai action MDRO/RCA cho phép quyền GIAM_SAT_CHUNG view, nhưng truy vấn bằng user client mà RLS nkbv đòi GIAM_SAT_NKBV view. Người dùng chỉ có quyền GSC nhận danh sách rỗng mà vẫn success, nên header GSC báo nhầm «không MDRO».",
     "bang_chung": "giam-sat-nkbv-mdro.actions.ts:30-35,46; giam-sat-nkbv-rca.actions.ts:25-33; policy nkbv_fact_benh_an_select",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa"
@@ -696,7 +696,7 @@
     "tieu_de": "deleteNkbvViSinhStoreRecordHard xóa cứng XN vi sinh chỉ với quyền edit, qua admin client nên vượt RLS DELETE (RLS đòi delete). Kiểm 'đang dùng' rồi mới xóa, không khóa nên có race; mất dữ liệu nguồn không khôi phục được.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-vi-sinh-store.actions.ts:354-369",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO"
@@ -709,7 +709,7 @@
     "tieu_de": "updateNkbvViSinhStoreRecord không qua zod: ket_qua và mdro_phenotype không được kiểm lúc chạy; ngay_lay_mau sai định dạng làm new Date().toISOString() ném RangeError chưa bắt.",
     "bang_chung": "giam-sat-nkbv-vi-sinh-store.actions.ts:251-308",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Thêm schema zod cho patch"
@@ -722,7 +722,7 @@
     "tieu_de": "replaceNkbvBaPhanTichSessions không nguyên tử: tắt nháp cũ, insert nháp mới, nếu lỗi thì bật lại nhưng bỏ qua lỗi của bước bật lại. Có thể mất toàn bộ nháp phân tích của BA.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-ba-phan-tich.actions.ts:68-106",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Chuyển sang RPC một transaction"
@@ -735,7 +735,7 @@
     "tieu_de": "softDeleteGiamSatNkbvCa không chặn ca đã XAC_NHAN/LOAI_TRU và không nguyên tử: trả stamp vi sinh trước rồi mới ẩn phiếu; ẩn lỗi thì XN đã bị trả về hàng chờ.",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:145-175",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-nkbv-quyen",
     "commit": "",
     "ghi_chu": "Hỏi PO: có cho ẩn ca đã chốt không. Gộp hai bước vào một RPC"
@@ -800,7 +800,7 @@
     "tieu_de": "completePasswordRecovery không kiểm phiên đang dùng có phải phiên khôi phục không. Phiên đăng nhập bất kỳ (ví dụ cookie bị lấy cắp) đặt được mật khẩu mới mà không cần mật khẩu cũ, vượt qua bước xác thực lại của changePasswordWithReauth.",
     "bang_chung": "src/modules/auth/actions/staff-password.actions.ts:142-165. Cấu hình auth local: GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION=false",
     "lenh_kiem": "docker exec supabase_auth_ksnk_bv103 printenv GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Chỉ cho đổi khi phiên có amr recovery/otp, hoặc bật secure password change"
@@ -813,7 +813,7 @@
     "tieu_de": "Phiếu xin cấp tài khoản công khai mang gợi ý staff_id theo ma_nv. Nếu hồ sơ đó trống email, lúc duyệt bỏ qua bước đối chiếu email, nên tài khoản được tạo với email người xin trên hồ sơ của người khác. Chỉ còn ADMIN chặn bằng mắt.",
     "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-access-request.actions.ts:256 (điều kiện `staff.email && …`), :262 gán email phiếu; account-access-request-public.actions.ts:193",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO"
@@ -826,7 +826,7 @@
     "tieu_de": "Các action gán vai trò, cấp tài khoản, đặt lại MK, duyệt/từ chối phiếu ghi audit theo kiểu best-effort (không failClosed). Mất nhật ký vẫn trả success. setStaffKsnkRbacRole còn bỏ qua lỗi update vai_tro_he_thong_id; approveForgotResetRequest không ghi audit cho bước chuyển phiếu sang DUYET.",
     "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions.ts:202-217, :290, :421; account-access-request.actions.ts:296, :318, :387-395; src/lib/admin-audit.ts:83-90",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "r1-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Truyền failClosed:true như rbac.actions.ts:84; kiểm error của các update"
@@ -878,7 +878,7 @@
     "tieu_de": "LamBaiPage.tsx bỏ qua ok:false của saveTraLoiCau (sau DT-004): lưu đáp án bị từ chối mà giao diện vẫn coi như đã lưu",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts (saveTraLoiCau trả ok:false); LamBaiPage.tsx",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "",
     "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước."
@@ -891,7 +891,7 @@
     "tieu_de": "GSC giam-sat-chung-bo-sung-nb trả gợi ý rỗng cho MANG_LUOI khi khoa khác khoa của mình; chưa có kịch bản tay",
     "bang_chung": "giam-sat-chung-bo-sung-nb",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "",
     "ghi_chu": "Chưa xác minh; cần kịch bản tay với vai trò MANG_LUOI."
