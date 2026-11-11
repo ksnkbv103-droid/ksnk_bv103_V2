@@ -75,7 +75,7 @@ function QuietLink({ href, label }: { href: string; label: string }) {
     <Link
       href={href}
       prefetch={false}
-      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-white hover:text-[var(--primary)]"
+      className="inline-flex min-h-11 items-center gap-1 rounded-[var(--radius-control)] px-2.5 text-xs font-medium text-slate-600 sm:min-h-9 hover:bg-white hover:text-[var(--primary)]"
     >
       {label}
       <ChevronRight className="h-3.5 w-3.5 opacity-60" aria-hidden />
