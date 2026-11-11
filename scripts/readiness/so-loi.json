@@ -176,10 +176,10 @@
     "tieu_de": "Form VST và Checklist GSC sau gộp nhánh UI chưa ai xem trên màn hình (khóa PO: năm mốc một hàng, ô chọn #026f17 chữ trắng)",
     "bang_chung": "src/modules/giam-sat-vst/components/VSTOpportunityForm.tsx; src/modules/giam-sat-chung/components/ChecklistItem.tsx",
     "lenh_kiem": "",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "buoc0",
-    "commit": "",
-    "ghi_chu": ""
+    "commit": "0f16a688",
+    "ghi_chu": " | 2026-11-11 xem tay trên dev-local: form VST 5 mốc cùng một hàng (cùng y), mốc chọn nền rgb(2,111,23)=#026f17 chữ trắng; Checklist GSC nút Đạt chọn cùng màu. Không đổi mã. (Pane hẹp 772px nên nút mốc rộng 30px; chưa xem màn hình lớn/di động.)"
   },
   {
     "id": "DT-002",
