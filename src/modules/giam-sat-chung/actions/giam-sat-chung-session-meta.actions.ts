@@ -98,7 +98,7 @@ export async function deleteGiamSatChungSessions(sessionIds: string[], opts?: De
       const before = rowById.get(String(id));
       const prevMeta =
         before?.metadata && typeof before.metadata === "object" ? before.metadata : {};
-      const { error: sessionErr } = await supabase
+      const { data: updatedRows, error: sessionErr } = await supabase
         .from("gstt_fact_chung_sessions")
         .update({
           is_active: false,
@@ -109,8 +109,13 @@ export async function deleteGiamSatChungSessions(sessionIds: string[], opts?: De
           updated_at: nowIso,
         })
         .eq("id", id)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .select("id");
       if (sessionErr) throw sessionErr;
+      // 0 dòng: phiên đã bị vô hiệu từ trước (hoặc ngoài phạm vi), không ghi audit giả.
+      if (!updatedRows?.length) {
+        return { success: false as const, error: "Phiên đã bị xóa trước đó hoặc không còn hiệu lực." };
+      }
 
       await logAdminAction({
         action: "GSC_SOFT_DELETE_SESSION",

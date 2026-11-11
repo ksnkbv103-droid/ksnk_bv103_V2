@@ -62,7 +62,7 @@ describe("deleteGiamSatChungSessions (xóa mềm)", () => {
       ],
       error: null,
     });
-    mocks.updateEqActive.mockResolvedValue({ error: null });
+    mocks.updateEqActive.mockReturnValue({ select: async () => ({ data: [{ id: "s1" }], error: null }) });
     mocks.updateEqId.mockReturnValue({ eq: mocks.updateEqActive });
     mocks.update.mockReturnValue({ eq: mocks.updateEqId });
     mocks.from.mockImplementation(() => ({
@@ -117,5 +117,12 @@ describe("deleteGiamSatChungSessions (xóa mềm)", () => {
     const ok = await deleteGiamSatChungSessions(["s1"], { lyDo: "Nhập nhầm" });
     expect(ok).toEqual({ success: true });
     expect(mocks.revalidateGscPaths).toHaveBeenCalled();
+  });
+
+  it("UPDATE khớp 0 dòng (phiên đã vô hiệu): trả lỗi, không ghi nhật ký (VST-008)", async () => {
+    mocks.updateEqActive.mockReturnValue({ select: async () => ({ data: [], error: null }) });
+    const result = await deleteGiamSatChungSessions(["s1"], { lyDo: "Nhập nhầm" });
+    expect(result).toMatchObject({ success: false });
+    expect(mocks.logAdminAction).not.toHaveBeenCalled();
   });
 });
