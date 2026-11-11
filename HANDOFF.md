@@ -13,7 +13,7 @@ Nhánh `claude/nkbv-nhsn2026-core-df1243`. Commit: 060d579d (GĐ0 SSOT), 54c1ce4
 ## Còn dở / chặn (cần PO)
 - Lát 1: DOE theo tầng sâu nhất (`resolveSsiDoe` lấy sớm nhất mọi tầng).
 - Lát 2: cửa sổ ±2 (V10.27) chưa tìm thấy nơi cài.
-- Lát 3: cờ `excl_*` ĐÃ nối cả form đơn (`BsiClinicalSubForm`) và lưới BA/timeline (`bsiClabsiExcl` → hook → bridge → `analysis-session-to-verification`); chưa kiểm tay trên UI (cần .env.local). Đã làm B4.64–66 (virus/ký sinh trùng/Salmonella… không đạt LCBI nguyên phát; Pneumocystis + véc-tơ vào nhóm cộng đồng, cả G2.02). B4.56: 2 mẫu cách ≤1 ngày lịch đã đúng; CÂU HỎI PO: 2 mẫu commensal CÙNG ngày — gói cho phép nếu là 2 lần lấy riêng, nhưng lưới BA không phân biệt 2 lần lấy với 2 chai cùng lần, hiện giữ `drawnSeparate=false` (test cũ ghi nhận) — cần ô «lấy riêng» hoặc PO cho phép mặc định;
+- Lát 3: cờ `excl_*` ĐÃ nối cả form đơn (`BsiClinicalSubForm`) và lưới BA/timeline (`bsiClabsiExcl` → hook → bridge → `analysis-session-to-verification`); chưa kiểm tay trên UI (cần .env.local). Đã làm B4.64–66 (virus/ký sinh trùng/Salmonella… không đạt LCBI nguyên phát; Pneumocystis + véc-tơ vào nhóm cộng đồng, cả G2.02). B4.56: 2 mẫu cách ≤1 ngày lịch đã đúng; PO chốt 2026-11-12: thêm ô nhập «Commensal: 2 lần lấy máu riêng» ở lưới BA (draft.bsiCommensalSeparate → verdict, chỉ có tác dụng khi ≥2 mẫu cùng vi khuẩn trong IWP; không cờ = giữ quy tắc cũ);
 - Lát 4: PNU3 không cần xét nghiệm (đang đòi lab + toàn thân); mẫu máu `table2Culture` (P6.20/60); chất lượng đờm (P6.53–55).
 - Lát 5: G2.02 vi sinh vật cộng đồng mới chỉ là cờ `is_fungi_respiratory`; thiếu Pneumocystis, Paracoccidioides, véc-tơ.
 - Sai khác lâm sàng chưa sửa: UTI sốt đơn độc app đòi ≤65 tuổi, gói U7.19/24/36 nói mọi tuổi.

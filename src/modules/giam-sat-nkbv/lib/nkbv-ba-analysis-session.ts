@@ -57,6 +57,8 @@ export type BaAnalysisSessionDraft = {
   };
   /** BSI — loại trừ CLABSI (B4.40–48), vẫn là LCBI. */
   bsiClabsiExcl?: ClabsiExclusions;
+  /** BSI commensal: ≥2 mẫu là 2 lần lấy máu riêng (kể cả cùng ngày) — B4.56. */
+  bsiCommensalSeparate?: boolean;
   /** BSI — ngữ cảnh site khu trú khi mở Primary (Secondary-before-CLABSI). */
   bsiLocalizedSite?: {
     majorType: "UTI" | "PNEU" | "SSI" | "VAE" | "OTHER";

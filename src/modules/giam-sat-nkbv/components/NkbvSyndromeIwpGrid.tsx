@@ -210,6 +210,15 @@ export default function NkbvSyndromeIwpGrid({
                 />
                 Tiêu chảy (≥ cần HSCT)
               </label>
+              <label className="flex items-center gap-1" title="B4.56: ≥2 mẫu commensal là 2 lần lấy máu riêng (vị trí/thời điểm khác), kể cả cùng ngày">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.bsiCommensalSeparate)}
+                  disabled={!allowedEdit}
+                  onChange={(e) => onDraftChange({ bsiCommensalSeparate: e.target.checked })}
+                />
+                Commensal: 2 lần lấy máu riêng
+              </label>
               {CLABSI_EXCLUSION_FIELDS.map(([field, label]) => (
                 <label key={field} className="flex items-center gap-1" title="Loại trừ CLABSI (vẫn là LCBI)">
                   <input

@@ -125,6 +125,8 @@ export type BuildBsiTimelineVerdictInput = {
   hasSevereDiarrheaMbi?: boolean;
   /** Loại trừ CLABSI (B4.40–48). */
   clabsiExclusions?: ClabsiExclusions;
+  /** Người dùng xác nhận ≥2 mẫu commensal là 2 lần lấy riêng (B4.56). */
+  commensalDrawnSeparate?: boolean;
   /** Ca trước cùng BA — Ch.2 RIT hard-stop (DoD 20a). */
   ritPriorEvents?: RitPriorEvent[];
   ritExcludeEventIds?: string[];
@@ -252,7 +254,10 @@ export function buildBsiTimelineVerdict(
     commensal_culture_count:
       pathogenType === "COMMON_COMMENSAL" ? commensal.count : 0,
     commensal_drawn_separate:
-      pathogenType === "COMMON_COMMENSAL" ? commensal.drawnSeparate : false,
+      pathogenType === "COMMON_COMMENSAL"
+        ? commensal.drawnSeparate ||
+          Boolean(input.commensalDrawnSeparate && commensal.count >= 2)
+        : false,
     symptoms_window_7days: hasFever || hasChills || hasHypotension,
     has_fever: hasFever,
     has_chills: hasChills,

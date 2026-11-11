@@ -286,6 +286,7 @@ export function useNkbvIwpVerdicts({
       hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
       hasSevereDiarrheaMbi: Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi),
       clabsiExclusions: draft.bsiClabsiExcl,
+      commensalDrawnSeparate: draft.bsiCommensalSeparate,
     });
   }, [
     panel,
@@ -445,6 +446,7 @@ export function useNkbvIwpVerdicts({
       hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
       hasSevereDiarrheaMbi: Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi),
       clabsiExclusions: draft.bsiClabsiExcl,
+      commensalDrawnSeparate: draft.bsiCommensalSeparate,
     });
   }, [
     panel,
