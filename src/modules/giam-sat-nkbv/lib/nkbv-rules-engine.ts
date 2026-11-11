@@ -14,6 +14,7 @@ import { resolveCh17Hierarchy } from "./nkbv-ch17-hierarchy";
 import { normalizeCh17EvidenceFlags } from "./nkbv-ch17-legacy-flags";
 import { derivePneuLabTier } from "./nkbv-pneu-lab-tier";
 import { derivePneuSystemic } from "./nkbv-pneu-systemic";
+import { isLcbiExcludedOrganism } from "./nkbv-pathogen-rules";
 import { ADULT_VAE_IN_PLAN_REASON, isAdultVaeInPlan } from "./nkbv-pneu-vae-route";
 import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
 import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
@@ -127,7 +128,17 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
     return {
       is_positive: false,
       classification: "COMMUNITY_INFECTION",
-      reason: "Nhiễm nấm hô hấp cộng đồng (Blastomyces, Histoplasma...), không phải BSI bệnh viện.",
+      reason:
+        "Tác nhân chủ yếu gây nhiễm khuẩn cộng đồng (Blastomyces, Histoplasma, Cryptococcus, Pneumocystis, Anaplasma, Ehrlichia, Borrelia, Rickettsia…) bị loại khỏi mọi định nghĩa NHSN (B4.66, G2.02).",
+    };
+  }
+
+  // B4.64–65: virus, ký sinh trùng, tác nhân đường ruột đặc hiệu không đạt LCBI nguyên phát.
+  if (isLcbiExcludedOrganism(data.pathogen_name)) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason: `Tác nhân "${data.pathogen_name}" bị loại khỏi LCBI nguyên phát (B4.64–65); chỉ dùng được khi xác định BSI thứ phát.`,
     };
   }
 

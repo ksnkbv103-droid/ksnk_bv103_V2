@@ -70,6 +70,27 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("PRIMARY_BSI_NON_CLABSI");
     });
 
+    it.each(["Salmonella enterica", "Shigella sonnei", "Clostridioides difficile", "Cytomegalovirus", "Giardia lamblia", "Listeria monocytogenes"])(
+      "B4.64–65: %s không đạt LCBI nguyên phát",
+      (name) => {
+        const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40, pathogen_name: name } as any);
+        expect(res.is_positive).toBe(false);
+      },
+    );
+
+    it.each(["Pneumocystis jirovecii", "Borrelia burgdorferi", "Rickettsia typhi"])(
+      "B4.66: %s bị loại khỏi mọi định nghĩa",
+      (name) => {
+        const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40, pathogen_name: name, is_fungi_respiratory: true } as any);
+        expect(res.classification).toBe("COMMUNITY_INFECTION");
+      },
+    );
+
+    it("E. coli thường vẫn là LCBI (không bị loại nhầm)", () => {
+      const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40, pathogen_name: "Escherichia coli" } as any);
+      expect(res.classification).toBe("CLABSI");
+    });
+
     it("thiếu tuổi → cảnh báo", () => {
       const res = evaluateBsiClabsiRaw(clabsiBase as any);
       expect(res.warnings?.[0]).toContain("tuổi");
