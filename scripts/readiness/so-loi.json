@@ -904,9 +904,9 @@
     "tieu_de": "voidIncidentReport cho mọi người có BAO_SU_CO.create (gồm MANG_LUOI_KSNK, NHAN_VIEN_KSNK) vô hiệu phiếu CHO_XAC_NHAN của người khác, kể cả khoa khác; gỡ cờ đỏ + đóng băng bộ",
     "bang_chung": "src/modules/cssd-su-co/actions/su-co-report.actions.ts:349; void-incident.application.ts:7-131; domain/cssd-incident-void.ts:209-228 (không so REPORTER_AUTH_USER_ID/khoa), :272-279",
     "lenh_kiem": "MANG_LUOI A báo sự cố cờ đỏ; MANG_LUOI B gọi voidIncidentReport(id) → kỳ vọng bị chặn, thực tế ok",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
-    "commit": "",
+    "commit": "fd6384fb",
     "ghi_chu": "Chưa chạy runtime. Sửa: chỉ người báo hoặc verifyCssdIncidentApprove được vô hiệu. Hỏi PO: người báo có được tự vô hiệu phiếu cờ đỏ chưa xác nhận không?"
   },
   {
@@ -917,9 +917,9 @@
     "tieu_de": "releaseSetReconcileDraftAction xóa cứng nháp rà soát bộ theo id không kiểm chủ phiếu",
     "bang_chung": "src/modules/cssd-su-co/actions/set-reconcile-draft.actions.ts:72-85 (claim :41-46 có so authId, release không)",
     "lenh_kiem": "User A claim nháp; User B release draftId của A → bị xóa",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
-    "commit": "",
+    "commit": "0c198932",
     "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete."
   },
   {
