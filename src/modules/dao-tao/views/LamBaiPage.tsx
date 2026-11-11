@@ -9,6 +9,7 @@ import {
   saveTraLoiCau,
   submitLanThi,
 } from "@/modules/dao-tao/actions/dao-tao-attempt.actions";
+import { isAnswered } from "@/lib/dao-tao/grade";
 import { DaoTaoQuestionCard } from "@/modules/dao-tao/components/DaoTaoQuestionCard";
 import { DaoTaoTimer } from "@/modules/dao-tao/components/DaoTaoTimer";
 import {
@@ -78,7 +79,8 @@ export default function LamBaiPage() {
   }, [lanThiId, router]);
 
   const current = questions[idx];
-  const answered = questions.filter((q) => q.traLoi != null).length;
+  const isDone = (q: (typeof questions)[number]) => isAnswered(q.traLoi, q.options.length);
+  const answered = questions.filter(isDone).length;
 
   if (loading) {
     return (
@@ -122,7 +124,7 @@ export default function LamBaiPage() {
                 "inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] px-1.5 text-xs font-semibold touch-manipulation",
                 i === idx
                   ? "bg-[var(--primary)] text-white"
-                  : q.traLoi != null
+                  : isDone(q)
                     ? "bg-emerald-50 text-emerald-800"
                     : "bg-slate-100 text-slate-600",
               )}
