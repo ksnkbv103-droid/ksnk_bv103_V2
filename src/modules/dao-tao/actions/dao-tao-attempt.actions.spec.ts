@@ -10,6 +10,7 @@ type CallState = {
 
 const mocks = vi.hoisted(() => ({
   handler: vi.fn(),
+  rpc: vi.fn(),
   calls: [] as unknown[],
   requireAdmin: vi.fn(async () => ({ user: { id: "user-a" } })),
 }));
@@ -44,6 +45,7 @@ vi.mock("@/lib/dao-tao/exam-engine", () => ({
 
 vi.mock("@/lib/supabase-server", () => ({
   createAdminSupabaseClient: () => ({
+    rpc: (fn: string, args: unknown) => mocks.rpc(fn, args),
     from: (table: string) => {
       const state: CallState = { table, op: "select", filters: [] };
       mocks.calls.push(state);
@@ -80,8 +82,8 @@ const KY = {
   loai_quota: {},
 };
 
-function setupStart(luotAfterInsert: Array<{ id: string; bat_dau_luc: string; trang_thai: string }>) {
-  let lanThiSelects = 0;
+function setupStart(rpcResult: Record<string, unknown>) {
+  mocks.rpc.mockResolvedValue({ data: rpcResult, error: null });
   mocks.handler.mockImplementation(async (s: CallState) => {
     if (s.table === "dao_tao_cau_hinh") return { data: KY, error: null };
     if (s.table === "dao_tao_cau_hoi") {
@@ -96,10 +98,8 @@ function setupStart(luotAfterInsert: Array<{ id: string; bat_dau_luc: string; tr
       };
     }
     if (s.table === "dao_tao_lan_thi") {
-      if (s.op === "insert") return { data: { id: LAN_ID, han_nop_luc: "2030-01-01T00:00:00Z" }, error: null };
-      if (s.op === "delete") return { data: null, error: null };
-      lanThiSelects += 1;
-      return { data: lanThiSelects === 1 ? [] : luotAfterInsert, error: null };
+      if (s.op !== "select") throw new Error(`DT-005: không ghi trực tiếp dao_tao_lan_thi (${s.op})`);
+      return { data: [], error: null };
     }
     throw new Error(`bảng bất ngờ: ${s.table}`);
   });
@@ -114,25 +114,23 @@ describe("startThiThatAttempt: chống race vượt lượt", () => {
     mocks.calls.length = 0;
   });
 
-  it("lần vượt lượt bị thu hồi (delete) và báo hết lượt", async () => {
-    // Đọc lại: một lần khác bắt đầu sớm hơn chiếm hết 1 lượt → lần của mình (muộn hơn) vượt trần.
-    setupStart([
-      { id: "other", bat_dau_luc: "2020-01-01T00:00:00Z", trang_thai: "dang_lam" },
-      { id: LAN_ID, bat_dau_luc: "2099-01-01T00:00:00Z", trang_thai: "dang_lam" },
-    ]);
+  it("DT-005: RPC báo HET_LUOT (thua đua) → báo hết lượt, không insert/delete trực tiếp", async () => {
+    setupStart({ success: false, code: "HET_LUOT" });
     await expect(startThiThatAttempt({ kyThiId: KY_ID, form: FORM })).rejects.toThrow(
       "Bạn đã hết lượt thi cho kỳ này.",
     );
-    const del = deletes();
-    expect(del).toHaveLength(1);
-    expect(del[0].filters).toContainEqual(["eq", ["id", LAN_ID]]);
-    expect(del[0].filters).toContainEqual(["eq", ["trang_thai", "dang_lam"]]);
+    expect(deletes()).toHaveLength(0);
+    expect((mocks.calls as CallState[]).some((c) => c.op === "insert")).toBe(false);
   });
 
-  it("lần trong hạn mức: không thu hồi, trả lanThiId", async () => {
-    setupStart([{ id: LAN_ID, bat_dau_luc: "2099-01-01T00:00:00Z", trang_thai: "dang_lam" }]);
+  it("DT-005: trong hạn mức → tạo lượt qua RPC nguyên tử, trả lanThiId", async () => {
+    setupStart({ success: true, id: LAN_ID, han_nop_luc: "2030-01-01T00:00:00Z" });
     const r = await startThiThatAttempt({ kyThiId: KY_ID, form: FORM });
-    expect(r.lanThiId).toBe(LAN_ID);
+    expect(r).toEqual({ lanThiId: LAN_ID, hanNopLuc: "2030-01-01T00:00:00Z" });
+    expect(mocks.rpc).toHaveBeenCalledTimes(1);
+    const [fn, args] = mocks.rpc.mock.calls[0] as [string, Record<string, unknown>];
+    expect(fn).toBe("rpc_dao_tao_tao_luot_thi_that");
+    expect(args).toMatchObject({ p_cau_hinh_id: KY_ID, p_auth_user_id: "user-a", p_form_thong_tin: FORM, p_so_cau: 1 });
     expect(deletes()).toHaveLength(0);
   });
 

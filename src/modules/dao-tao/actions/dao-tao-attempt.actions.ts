@@ -22,7 +22,6 @@ import {
 } from "@/lib/dao-tao/schemas";
 import { randomUUID } from "crypto";
 import {
-  isWithinLuot,
   summarizeLuot,
   TRANG_THAI_TIEU_LUOT,
 } from "@/modules/dao-tao/lib/dao-tao-luot";
@@ -394,33 +393,25 @@ export async function startThiThatAttempt(input: {
   const hanNop = new Date(batDau.getTime() + ky.thoi_gian_phut * 60_000);
   const deSnapshot = snapshotsToDeJson(questions);
 
-  const { data: lanThi, error: ltErr } = await admin
-    .from("dao_tao_lan_thi")
-    .insert({
-      che_do: "thi_that",
-      cau_hinh_id: ky.id,
-      auth_user_id: user.id,
-      form_thong_tin: form,
-      seed,
-      so_cau: questions.length,
-      thoi_gian_phut: ky.thoi_gian_phut,
-      bat_dau_luc: batDau.toISOString(),
-      han_nop_luc: hanNop.toISOString(),
-      trang_thai: "dang_lam",
-      quota_report: report,
-      de_snapshot: deSnapshot,
-    })
-    .select("id, han_nop_luc")
-    .single();
-  if (ltErr || !lanThi) throw ltErr ?? new Error("Không tạo được lần thi.");
+  // DT-005: đếm lượt + chèn nguyên tử trong RPC (khóa theo người học + kỳ thi), không chèn-rồi-xóa.
+  const { data: lanThi, error: ltErr } = await admin.rpc("rpc_dao_tao_tao_luot_thi_that", {
+    p_cau_hinh_id: ky.id,
+    p_auth_user_id: user.id,
+    p_form_thong_tin: form,
+    p_seed: seed,
+    p_so_cau: questions.length,
+    p_thoi_gian_phut: ky.thoi_gian_phut,
+    p_bat_dau_luc: batDau.toISOString(),
+    p_han_nop_luc: hanNop.toISOString(),
+    p_quota_report: report,
+    p_de_snapshot: deSnapshot,
+  });
+  if (ltErr) throw ltErr;
+  const res = lanThi as { success?: boolean; code?: string; id?: string; han_nop_luc?: string } | null;
+  if (res?.success === false && res.code === "HET_LUOT") throw new Error("Bạn đã hết lượt thi cho kỳ này.");
+  if (!res?.success || !res.id) throw new Error("Không tạo được lần thi.");
 
-  // Chống race (chưa có unique/RPC): đếm lại sau insert, lần ngoài hạn mức bị thu hồi.
-  if (!isWithinLuot(await fetchLuot(), lanThi.id as string, ky.so_lan_cho_phep)) {
-    await admin.from("dao_tao_lan_thi").delete().eq("id", lanThi.id).eq("trang_thai", "dang_lam");
-    throw new Error("Bạn đã hết lượt thi cho kỳ này.");
-  }
-
-  return { lanThiId: lanThi.id as string, hanNopLuc: lanThi.han_nop_luc as string };
+  return { lanThiId: res.id, hanNopLuc: res.han_nop_luc as string };
 }
 
 /** DT-006: lượt ADMIN đã hủy — người học không mở/nộp/lưu được. */
