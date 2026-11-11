@@ -920,7 +920,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
     "commit": "0c198932",
-    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete."
+    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5."
   },
   {
     "id": "CSSD-013",
