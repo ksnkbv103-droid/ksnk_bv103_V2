@@ -95,7 +95,8 @@ function CSSDReportPageInner() {
   const { allowed } = useModulePermission("CSSD_REPORT");
   const { allowed: incidentAllowed, userRoles } = useModulePermission("BAO_SU_CO");
   const { can } = usePermission();
-  const canConfirmIncident = canApproveCssdIncident(userRoles);
+  // Khớp gate server `verifyCssdIncidentApprove`: Trưởng CSSD/Admin (role) hoặc Tổ trưởng mẻ (QC).
+  const canConfirmIncident = canApproveCssdIncident(userRoles) || can("CSSD_ME_TIET_KHUAN", "qc");
   const canCloseIncidentRelease =
     canCloseSterilizationIncidentRelease(userRoles) || can("BAO_SU_CO", "close");
   const { exportTemplate } = useImportExport({
