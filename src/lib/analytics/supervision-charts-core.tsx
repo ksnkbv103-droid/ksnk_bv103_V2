@@ -107,7 +107,7 @@ export function SupervisionTrendChart({
   const runUnit = { week: "tuần", month: "tháng", quarter: "quý", year: "năm" }[granularity];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="min-w-0">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-slate-800">{title}</h3>
         <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
@@ -206,7 +206,7 @@ function SupervisionCompareBarChart({
     [rows, minSample],
   );
   return (
-    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="w-full min-w-0">
       <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
       <KhoaChartViewport rowCount={data.length}>
         {!loading && data.length > 0 ? (
@@ -416,15 +416,15 @@ export function SupervisionCompareAccordion({
   return (
     <details
       open={defaultOpen || undefined}
-      className="group rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white"
+      className="group border-t border-slate-200"
     >
-      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none px-0 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="inline-flex items-center gap-2">
           {summaryLabel}
           <span className="text-xs font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
         </span>
       </summary>
-      <div className="border-t border-slate-200 p-4">
+      <div className="pb-4 pt-1">
         <SupervisionCompareGrid sections={visible} loading={loading} minSample={minSample} />
       </div>
     </details>
