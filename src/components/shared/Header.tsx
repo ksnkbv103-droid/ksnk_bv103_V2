@@ -79,7 +79,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               e.stopPropagation();
               onMenuClick?.();
             }}
-            className="app-shell-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white transition-colors hover:bg-[var(--primary-hover)] md:hidden touch-manipulation"
+            className="app-shell-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white transition-colors hover:bg-[var(--primary-hover)] md:hidden touch-manipulation"
             aria-label="Mở menu điều hướng"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -113,7 +113,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               aria-expanded={menuOpen}
               aria-label="Menu tài khoản"
               title={userEmail}
-              className="app-shell-focus flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-semibold uppercase text-white transition-colors hover:bg-[var(--primary-hover)] touch-manipulation"
+              className="app-shell-focus flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-semibold uppercase text-white transition-colors hover:bg-[var(--primary-hover)] touch-manipulation"
             >
               {userEmail.charAt(0)}
             </button>
