@@ -103,6 +103,18 @@ export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
   return Boolean(data.symptoms_window_7days);
 }
 
+/** Nhãn loại trừ CLABSI (B4.42–48); null nếu không có. */
+function bsiClabsiExclusionLabel(data: BsiVerificationData): string | null {
+  if (data.excl_ecmo_gt2d) return "ECMO/ECLS > 2 ngày";
+  if (data.excl_vad_gt2d) return "VAD > 2 ngày";
+  if (data.excl_tah_gt2d) return "TAH > 2 ngày";
+  if (data.excl_patient_injection) return "bệnh nhân tự tiêm vào đường truyền";
+  if (data.excl_epidermolysis_bullosa) return "Epidermolysis bullosa";
+  if (data.excl_munchausen_proxy) return "Munchausen by proxy";
+  if (data.excl_pus_vascular_site) return "mủ tại vị trí tiếp cận mạch cùng tác nhân";
+  return null;
+}
+
 export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResult {
   return applyCh2RitGate(data, "BSI", applyCh2PoaGate(data, evaluateBsiClabsiCore(data)));
 }
@@ -261,11 +273,23 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
     };
   }
 
+  // NHSN 2026 B4.40–48: BSI vẫn là LCBI nhưng KHÔNG coi là CLABSI khi có loại trừ.
+  const clabsiExclusion = bsiClabsiExclusionLabel(data);
+  if (clabsiExclusion) {
+    return {
+      is_positive: true,
+      classification: "PRIMARY_BSI_NON_CLABSI",
+      lcbi_type: lcbiType,
+      reason: `LCBI có CL nhưng thuộc loại trừ CLABSI (${clabsiExclusion}) — vẫn báo NHSN, không tính CLABSI SIR (B4.40–41).`,
+    };
+  }
+
   return {
     is_positive: true,
     classification: "CLABSI",
     lcbi_type: lcbiType,
     reason: "Nhiễm khuẩn huyết liên quan đường truyền trung tâm (CLABSI). Ghi nhận lỗi cho khoa.",
+    warnings: data.patient_age == null ? ["Thiếu tuổi bệnh nhân — chưa phân biệt được LCBI 2/3 (≤1 tuổi)."] : undefined,
   };
 }
 

@@ -42,6 +42,14 @@ export interface BsiVerificationData extends NkbvAnalysisIndexFields {
   symptoms_window_7days: boolean;
   /** SSOT §6 — tách triệu chứng LCBI 2 / LCBI 3 (nhũ nhi ≤1 tuổi) */
   patient_age?: number | null;
+  /** NHSN 2026 B4.42–48 — loại trừ CLABSI (vẫn LCBI). Chưa có ô nhập trên form. */
+  excl_ecmo_gt2d?: boolean;
+  excl_vad_gt2d?: boolean;
+  excl_tah_gt2d?: boolean;
+  excl_patient_injection?: boolean;
+  excl_epidermolysis_bullosa?: boolean;
+  excl_munchausen_proxy?: boolean;
+  excl_pus_vascular_site?: boolean;
   has_fever?: boolean;
   has_chills?: boolean;
   has_hypotension?: boolean;
