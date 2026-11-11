@@ -302,13 +302,8 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
     if (updates.loai_cong_viec !== undefined) patch.loai_cong_viec = dmFk.loai_cong_viec;
     if (updates.muc_do_uu_tien !== undefined) patch.muc_do_uu_tien = updates.muc_do_uu_tien;
     if (updates.han_hoan_thanh !== undefined) patch.han_hoan_thanh = updates.han_hoan_thanh;
-    if (updates.dia_diem_khoa_id !== undefined) patch.dia_diem_khoa_id = updates.dia_diem_khoa_id;
-    if (updates.dia_diem_khoa_ids !== undefined) {
-      patch.dia_diem_khoa_ids = dbUpdates.dia_diem_khoa_ids;
-      patch.dia_diem_khoa_id = dbUpdates.dia_diem_khoa_id;
-    }
-    if (updates.nhiem_vu_id !== undefined) patch.nhiem_vu_id = updates.nhiem_vu_id;
 
+    // QLCV-007: 7 cột mở rộng đi cùng patch của RPC (ghi trong cùng UPDATE phê duyệt) — giá trị đã chuẩn hóa ở dbUpdates.
     const extraProposalCols = [
       "dia_diem_khoa_id",
       "dia_diem_khoa_ids",
@@ -318,18 +313,10 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
       "nguoi_phoi_hop_ids",
       "nguoi_theo_doi_ids",
     ] as const;
-    const extraProposalUpdates: Record<string, unknown> = {};
     for (const col of extraProposalCols) {
       if (dbUpdates[col] !== undefined) {
-        extraProposalUpdates[col] = dbUpdates[col];
+        patch[col] = dbUpdates[col];
       }
-    }
-    if (Object.keys(extraProposalUpdates).length > 0) {
-      const { error: extraErr } = await supabase
-        .from(QLCV_FACT_WRITE_TABLE)
-        .update(extraProposalUpdates)
-        .eq("id", id);
-      if (extraErr) throwQlcvDbError(extraErr, "Không lưu trường mở rộng khi kích hoạt đề xuất.");
     }
 
     await invokeQlcvTransition(supabase, {
