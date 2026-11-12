@@ -1164,9 +1164,9 @@
     "tieu_de": "cssd_fact_bao_tri: user có CSSD_WORKFLOW.edit sửa/xóa thẳng phiếu bảo trì qua PostgREST, bỏ qua rpc_cssd_bao_tri_* (giả mạo HOAN_THANH, người ký, xóa dấu vết)",
     "bang_chung": "pg_policies cssd_fact_bao_tri_update/delete chỉ kiểm quyền, không giới hạn cột; authenticated có INSERT/UPDATE/DELETE/TRUNCATE; không trigger; migration 20260709130000_rls_summary_cssd_nkbv_hardening.sql:33,45; thử BEGIN…ROLLBACK user b6945af2 (is_admin=f, wf_edit=t): UPDATE 1, DELETE 1",
     "lenh_kiem": "psql local: SET LOCAL role authenticated + jwt sub b6945af2…; UPDATE cssd_fact_bao_tri SET trang_thai='HOAN_THANH' …; DELETE (trong ROLLBACK)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r3-cssd-quyen",
-    "commit": "",
+    "commit": "425767a3",
     "ghi_chu": "Cần migration (phiên điều phối giữ): thu quyền ghi của authenticated, chỉ ghi qua RPC service_role, hoặc trigger khóa cột trang_thai/*_boi/ket_qua_ghi_nhan/checklist_jsonb. Gồm cả mức Thấp: su-co-form-catalog.actions.ts:57 nối term vào .or(); fn_cssd_bo_tong_id lộ quan hệ cha–con. CSSD-010 đã đủ 7 mục chưa phủ."
   },
   {
