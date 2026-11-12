@@ -29,6 +29,8 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
   if (loading || !risk) return null;
 
   if (risk.level === "OK") {
+    // Mẻ chưa có bộ: thông điệp khác lý do BOM → chưa đủ căn cứ để khuyến nghị phương pháp.
+    const chuaDanhGia = risk.messages[0] !== risk.heat.reason;
     return (
       <KsnkContextBanner
         tone="emerald"
@@ -37,8 +39,10 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
         summary={<span className="font-semibold">Gợi ý Spaulding / phương pháp TK</span>}
         detail={
           <>
-            <span className="block">{risk.heat.reason}</span>
-            <span className="mt-0.5 block font-semibold">Khuyến nghị: {risk.heat.methodLabelVi}</span>
+            <span className="block">{risk.messages[0] || risk.heat.reason}</span>
+            {chuaDanhGia ? null : (
+              <span className="mt-0.5 block font-semibold">Khuyến nghị: {risk.heat.methodLabelVi}</span>
+            )}
           </>
         }
       />

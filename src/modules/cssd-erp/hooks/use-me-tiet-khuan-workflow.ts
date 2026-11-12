@@ -545,7 +545,7 @@ export function useMeTietKhuanWorkflow() {
             body:
               activeMe.trang_thai_me === "HOAN_THANH"
                 ? "Ghi BI âm vào sổ BM.02 (không đổi trạng thái mẻ đã nhả)?"
-                : "BI âm + đối chứng dương — nhả mẻ vào kho vô khuẩn?",
+                : "Ghi BI âm và nhả mẻ vào kho vô khuẩn? Hệ thống chỉ nhả khi ống đối chứng dương tính.",
             confirmLabel: activeMe.trang_thai_me === "HOAN_THANH" ? "Ghi sổ" : "Nhả mẻ",
           }
         : { title: "BI dương", body: "BI dương — lập sự cố và thu hồi?", confirmLabel: "BI dương", danger: true },
