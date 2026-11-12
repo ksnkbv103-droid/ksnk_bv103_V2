@@ -5,7 +5,7 @@
     "fn_auth_goi_duoc": 16,
     "fn_anon_goi_duoc": 0,
     "tbl_khong_rls": 0,
-    "tbl_anon_ghi": 43
+    "tbl_anon_ghi": 42
   },
   "rows": [
     "fn fn_admin_module_stats() | anon=false auth=false | search_path=public",
@@ -124,7 +124,7 @@
     "tbl cssd_dm_loai_bao_goi | rls=true | anon=IUD auth=IUD",
     "tbl cssd_dm_loai_dung_cu | rls=true | anon=IU auth=IU",
     "tbl cssd_dm_thiet_bi | rls=true | anon=IUD auth=IUD",
-    "tbl cssd_fact_bao_tri | rls=true | anon=IUD auth=IUD",
+    "tbl cssd_fact_bao_tri | rls=true | anon= auth=",
     "tbl cssd_fact_bowie_dick | rls=true | anon=IUD auth=IUD",
     "tbl cssd_fact_kho_giao_dich | rls=true | anon= auth=IUD",
     "tbl cssd_fact_kho_hoa_chat_giao_dich | rls=true | anon= auth=",
