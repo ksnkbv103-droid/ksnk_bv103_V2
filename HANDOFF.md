@@ -37,3 +37,5 @@ Chỉ kết lượt khi: gặp cổng dừng PO (lâm sàng SSOT im · migration
 
 ## Giả định chưa kiểm
 - Hook SessionStart mới chỉ thử bằng chạy tay, chưa thấy nó chèn cảnh báo trong một phiên thật mở ở checkout chính.
+- Stop hook `stop-gate.mjs` mới thử bằng stdin JSON (7 ca đạt), chưa thấy chặn trong phiên thật. Nếu `$CLAUDE_PROJECT_DIR` trỏ checkout chính (chưa có file hook đến khi gộp nhánh) thì node lỗi exit 1, hook tắt im lặng.
+- DB local dùng chung giữa các nhánh/chat: `acl-snapshot.mjs` có thể FAIL vì migration của nhánh khác. Trước khi `--write`, đối mỗi dòng `+`/`-` với migration trong diff của nhánh này; dòng không thuộc nhánh này là trôi, không phải duyệt. Nhánh container tắt chưa thử (đọc mã: exit 1).
