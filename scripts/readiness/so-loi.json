@@ -1060,9 +1060,9 @@
     "tieu_de": "loadKitHeatLinesByBoIds đọc v_cssd_bo_thanh_phan_hieu_luc không phân trang, lô 200 bộ có thể bị cắt 1000 dòng hoặc 414",
     "bang_chung": "src/modules/cssd-erp/helpers/persist-me-tiet-khuan.ts (truy vấn view theo .in('bo_dung_cu_id', ids)); src/modules/cssd-erp/actions/cssd-batch.actions.ts:97-193 gọi theo lô 200 bộ; 10 bộ đã có 535 dòng thành phần",
     "lenh_kiem": "Đếm dòng view cho 20 bộ chờ; nếu >1000 so kết quả hàm với SQL trực tiếp (chưa chạy)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-cssd-002",
-    "commit": "",
+    "commit": "5621f474",
     "ghi_chu": ""
   },
   {
