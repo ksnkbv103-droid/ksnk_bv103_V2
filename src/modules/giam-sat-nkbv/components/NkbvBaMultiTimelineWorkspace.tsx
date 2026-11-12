@@ -239,6 +239,7 @@ export default function NkbvBaMultiTimelineWorkspace({
     changeKhoa,
     toggleCdha,
     editCdhaDate,
+    editCdhaNote,
     addSurgery,
     removeMilestone,
     toggleSsiTc,
@@ -298,6 +299,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   const stableOpenFromCdha = useStableCallback(openFromCdha);
   const stableToggleCdha = useStableCallback(toggleCdha);
   const stableEditCdhaDate = useStableCallback(editCdhaDate);
+  const stableEditCdhaNote = useStableCallback(editCdhaNote);
   const stableRemoveMilestone = useStableCallback(removeMilestone);
   const stableAddSurgery = useStableCallback(addSurgery);
   const stableToggleSsiTc = useStableCallback(toggleSsiTc);
@@ -336,6 +338,7 @@ export default function NkbvBaMultiTimelineWorkspace({
     onOpenCdha: stableOpenFromCdha,
     onRemoveMilestone: stableRemoveMilestone,
     onEditCdhaDate: stableEditCdhaDate,
+    onEditCdhaNote: stableEditCdhaNote,
     onToggleCdha: stableToggleCdha,
     onOpenSurgeryOrSsi: stableOpenFromSurgeryOrSsi,
     onAddSurgery: stableAddSurgery,

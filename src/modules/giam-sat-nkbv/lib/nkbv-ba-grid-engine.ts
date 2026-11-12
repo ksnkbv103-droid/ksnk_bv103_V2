@@ -70,6 +70,8 @@ export type BaGridCdhaCell = {
   tieu_chuan_key?: NkbvCriteriaKey | null;
   /** BO_QUA / DA_PHAN_TICH… — có giá trị = đã xử lý, không chặn cấy máu. */
   analysis_disposition?: string | null;
+  /** Ghi chú tự do của người nhập (in được). */
+  ghi_chu?: string | null;
 };
 
 export type BaGridTieuChuanCell = {
@@ -536,6 +538,7 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
         loai: kind.includes("CT") ? "CT" : kind.includes("SA") || kind.includes("ULTRA") ? "SA" : "XQ",
         mo_ta_benh_ly: m.title || m.detail || "CĐHA",
         tieu_chuan_key: tieuChuan,
+        ghi_chu: m.detail || null,
       };
       if (dupIdx >= 0) cdha[dupIdx] = cell;
       else cdha.push(cell);
@@ -665,6 +668,7 @@ function buildSymptomDatesForMetrics(
     for (const c of cdha) {
       const day = c.ngay.slice(0, 10);
       if (!inIwp(day)) continue;
+      if (c.tieu_chuan_key === "imaging_chest_normal") continue;
       if (
         c.tieu_chuan_key === "imaging_chest" ||
         /viêm phổi|thâm nhiễm|đông đặc/i.test(c.mo_ta_benh_ly)

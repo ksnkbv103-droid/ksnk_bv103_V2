@@ -122,6 +122,7 @@ export function buildSbapRitChips(input: {
   for (const c of input.cdha || []) {
     const d = c.ngay.slice(0, 10);
     if (input.indexId && c.id === input.indexId) continue;
+    if (c.tieu_chuan_key === "imaging_chest_normal") continue;
     if (!input.ritDates.has(d)) continue;
     (ritCdhaByDate[d] ||= []).push(c);
   }

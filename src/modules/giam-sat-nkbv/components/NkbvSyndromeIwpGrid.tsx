@@ -446,7 +446,7 @@ export default function NkbvSyndromeIwpGrid({
         const analysisColumns: BaDayGridColumnDef[] = [
           {
             id: "ax_index",
-            header: "Index x",
+            header: "Index X",
             minWidth: aw,
             cellClassName: (day) =>
               baCellToneClass(
@@ -493,7 +493,7 @@ export default function NkbvSyndromeIwpGrid({
           },
           {
             id: "ax_ls",
-            header: "Iwp · ls",
+            header: "IWP · LS",
             minWidth: aw,
             cellClassName: (day) => {
               const isDoe = Boolean(session.nsk && session.nsk === day.date);

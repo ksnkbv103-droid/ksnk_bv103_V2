@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateBloodLast, validateChronoPrecedence } from "./nkbv-chrono-precedence";
+import { cdhaForBloodLast, validateBloodLast, validateChronoPrecedence } from "./nkbv-chrono-precedence";
 
 describe("validateChronoPrecedence", () => {
   const xnList = [
@@ -209,5 +209,25 @@ describe("validateBloodLast", () => {
       expect(callCdha([{ id: "c1", ngay: "2026-03-01" }], { c1: "BO_QUA" }).allowed).toBe(true);
       expect(callCdha([{ id: "c1", ngay: "2026-02-01" }]).allowed).toBe(true);
     });
+  });
+});
+
+describe("cdhaForBloodLast — phim phổi bình thường", () => {
+  it("coi imaging_chest_normal là đã xử lý, không chặn cấy máu", () => {
+    const { cdhaList, statusById } = cdhaForBloodLast([
+      { id: "c1", ngay: "2026-03-01", tieu_chuan_key: "imaging_chest_normal" },
+      { id: "c2", ngay: "2026-03-02", tieu_chuan_key: "imaging_chest" },
+    ]);
+    expect(statusById).toEqual({ c1: "DA_XU_LY" });
+    const r = validateBloodLast({
+      targetId: "b1", targetDate: "2026-03-03", targetBenhPham: "Máu", xnList: [], cdhaList,
+      statusById,
+    });
+    expect(r.allowed).toBe(false); // c2 (thâm nhiễm) vẫn chặn
+    const r2 = validateBloodLast({
+      targetId: "b1", targetDate: "2026-03-03", targetBenhPham: "Máu", xnList: [],
+      cdhaList: cdhaList.filter((c) => c.id === "c1"), statusById,
+    });
+    expect(r2.allowed).toBe(true);
   });
 });

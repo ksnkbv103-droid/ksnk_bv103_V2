@@ -627,7 +627,7 @@ export default function NkbvSyndromeSsiPanel({
           },
           {
             id: "ssi_sbap",
-            header: "Sbap · ứng viên",
+            header: "SBAP · ứng viên",
             minWidth: aw,
             cellClassName: (day) =>
               baCellToneClass(verdict.gate.sbapDates.has(day.date) ? "sbap" : "none"),

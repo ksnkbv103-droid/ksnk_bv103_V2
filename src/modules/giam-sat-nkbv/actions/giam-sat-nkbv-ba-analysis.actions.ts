@@ -111,10 +111,10 @@ async function checkBloodLastServer(
     .select("id, milestone_date, milestone_kind, criteria_key, metadata")
     .eq("ma_benh_an", input.maBa)
     .eq("is_active", true)
-    .or("milestone_kind.ilike.IMAGING%,criteria_key.in.(imaging_chest,abscess_imaging)");
+    .or("milestone_kind.ilike.IMAGING%,criteria_key.in.(imaging_chest,imaging_chest_normal,abscess_imaging)");
   const cdhaList = (imgRows ?? []).map((r) => {
     const m = (r.metadata && typeof r.metadata === "object" ? r.metadata : {}) as Record<string, unknown>;
-    statusById[String(r.id)] = m.analysis_disposition ? "DA_XU_LY" : "CHUA_PHAN_TICH";
+    statusById[String(r.id)] = m.analysis_disposition || r.criteria_key === "imaging_chest_normal" ? "DA_XU_LY" : "CHUA_PHAN_TICH";
     return { id: String(r.id), ngay: String(r.milestone_date ?? "").slice(0, 10), label: String(r.milestone_kind ?? "CĐHA") };
   });
   const res = validateBloodLast({

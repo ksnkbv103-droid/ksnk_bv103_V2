@@ -77,7 +77,7 @@ function imagingInIwp(cdha: BaGridCdhaCell[], iwpDates: Set<string>): BaGridCdha
   return cdha.filter((c) => {
     const d = c.ngay.slice(0, 10);
     if (!iwpDates.has(d)) return false;
-    if (c.tieu_chuan_key === "abscess_imaging") return false;
+    if (c.tieu_chuan_key === "abscess_imaging" || c.tieu_chuan_key === "imaging_chest_normal") return false;
     // Index/CĐHA phổi hoặc chưa gán key — coi là phim ngực
     return (
       !c.tieu_chuan_key ||

@@ -90,10 +90,16 @@ function dayDiff(a: string, b: string): number {
 
 /** Gom ô CĐHA của lưới thành đầu vào cho validateBloodLast: mốc đã bỏ qua/đã phân tích → status riêng. */
 export function cdhaForBloodLast(
-  cdha: Array<{ id: string; ngay: string; mo_ta_benh_ly?: string; analysis_disposition?: string | null }>,
+  cdha: Array<{
+    id: string;
+    ngay: string;
+    mo_ta_benh_ly?: string;
+    analysis_disposition?: string | null;
+    tieu_chuan_key?: string | null;
+  }>,
 ): { cdhaList: Array<{ id: string; ngay: string; label?: string }>; statusById: Record<string, string> } {
   const statusById: Record<string, string> = {};
-  for (const c of cdha) if (c.analysis_disposition) statusById[c.id] = "DA_XU_LY";
+  for (const c of cdha) if (c.analysis_disposition || c.tieu_chuan_key === "imaging_chest_normal") statusById[c.id] = "DA_XU_LY";
   return { cdhaList: cdha.map((c) => ({ id: c.id, ngay: c.ngay, label: c.mo_ta_benh_ly })), statusById };
 }
 
