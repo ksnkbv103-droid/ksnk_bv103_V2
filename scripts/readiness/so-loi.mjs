@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
-const FILE = join(DIR, "so-loi.json");
+const FILE = process.env.SO_LOI_FILE || join(DIR, "so-loi.json"); // biến môi trường chỉ để thử trên bản sao
 const INBOX = join(DIR, "inbox");
 const MODULES = ["VST_GSC", "CSSD", "NKBV", "QLCV", "DAO_TAO", "QUAN_TRI", "NEN"];
 const LOP = ["DOMAIN", "DB", "BACKEND", "FRONTEND", "UX", "TEST", "VAN_HANH"];
@@ -17,6 +17,13 @@ const TT = ["MOI", "DA_XAC_MINH", "LOI_GIA", "DANG_SUA", "DA_SUA", "HOAN", "CHO_
 const MO = new Set(["MOI", "DA_XAC_MINH", "DANG_SUA", "CHO_PO"]);
 const PREFIX = { VST_GSC: "VST", CSSD: "CSSD", NKBV: "NKBV", QLCV: "QLCV", DAO_TAO: "DT", QUAN_TRI: "QT", NEN: "NEN" };
 
+// Commit có chạm spec/migration (bằng chứng tái hiện tự động) hay không.
+const touchesTest = (sha) => {
+  try {
+    const out = execFileSync("git", ["-C", DIR, "show", "--name-only", "--format=", String(sha).split(/[ ,]/)[0]], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return /\.spec\.tsx?$|^supabase\/migrations\//m.test(out);
+  } catch { return false; }
+};
 const load = () => (existsSync(FILE) ? JSON.parse(readFileSync(FILE, "utf8")) : []);
 const save = (rows) => writeFileSync(FILE, JSON.stringify(rows, null, 2) + "\n");
 const die = (m) => { console.error(m); process.exit(1); };
@@ -67,6 +74,9 @@ if (cmd === "merge") {
   const r = rows.find((x) => x.id === id) || die(`Không có ${id}`);
   if (!TT.includes(tt)) die(`trang_thai phải là ${TT.join("|")}`);
   if (tt === "DA_SUA" && !commit) die("DA_SUA cần kèm commit SHA");
+  // Tái hiện trước: không có lệnh kiểm thì chưa được coi là xác minh/sửa xong.
+  if (["DA_XAC_MINH", "DA_SUA"].includes(tt) && !String(r.lenh_kiem || "").trim()) die(`${id}: lenh_kiem rỗng — ghi lệnh tái hiện/kiểm trước khi chuyển ${tt}`);
+  if (tt === "DA_SUA" && !touchesTest(commit)) console.log(`CẢNH BÁO ${id}: commit ${commit} không chạm *.spec.ts hay supabase/migrations/ — chỉ kiểm tay?`);
   r.trang_thai = tt; if (commit) r.commit = commit;
   save(rows); console.log(`${id} → ${tt}${commit ? " @" + commit : ""}`);
 } else if (cmd === "next") {
@@ -89,6 +99,8 @@ if (cmd === "merge") {
     try { d = execFileSync("git", ["-C", DIR, "show", "-s", "--format=%cs", r.commit], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || d; } catch { /* sha không còn */ }
     (byDay[d] ||= []).push(r.id);
   }
+  const fixed = rows.filter((x) => x.trang_thai === "DA_SUA" && x.commit);
+  console.log(`DA_SUA có test/migration trong commit: ${fixed.filter((x) => touchesTest(x.commit)).length}/${fixed.length}`);
   for (const d of Object.keys(byDay).sort()) console.log(`Đã sửa ${d}: ${byDay[d].length} (${byDay[d].join(", ")})`);
 } else if (cmd === "check") {
   // Cổng: module chưa đạt nếu còn NGHIEM_TRONG/CAO đang mở.
