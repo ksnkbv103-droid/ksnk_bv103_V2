@@ -163,9 +163,9 @@
     "tieu_de": "ui-audit --check vượt baseline sau gộp nhánh UI (radiusLg +17, radiusXl +2, heightArbitrary +10, text11px +4, fontHeavy +1, rawButtonFiles +2)",
     "bang_chung": "scripts/data/ui-audit-baseline.json",
     "lenh_kiem": "node scripts/ui-audit.mjs --check",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "buoc0",
-    "commit": "",
+    "commit": "0f81480c",
     "ghi_chu": ""
   },
   {
