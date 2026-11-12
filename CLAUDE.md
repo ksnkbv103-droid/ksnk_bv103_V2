@@ -11,10 +11,10 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 | Vừa làm | Lệnh |
 |---|---|
 | Action / `fact_*` | `verify:engineering` |
-| Schema (linked) | `verify:mdm` |
+| Migration | `verify:mdm:local` + `acl-snapshot.mjs` (version phải đã apply local; quyền thật khác `scripts/data/acl-snapshot.json` → FAIL, cố ý thì `--write`) |
 | Docs | `docs:links:check` |
 | UI thuần | `verify:quick` |
-| Mọi thay đổi | `gate-integrity` chạy đầu (`.skip/.only/@ts-ignore/eslint-disable`, xóa `expect` → cần `// gate-ok: <lý do>`); source `src/` → `vitest related` |
+| Mọi thay đổi | `gate-integrity` chạy đầu (`.skip/.only/@ts-ignore/eslint-disable`, xóa `expect` → cần `// gate-ok: <lý do>`); source `src/` → `vitest related`. PASS ghi dấu verify; Stop hook `stop-gate.mjs` chặn kết lượt thiếu «Lộ trình:» hoặc báo pass/xong khi code đổi sau dấu |
 | Trước push | `verify` |
 
 ## Kiến trúc
