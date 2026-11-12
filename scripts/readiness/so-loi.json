@@ -110,11 +110,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Cache danh mục khoa 15 phút giữ specs cũ khi sửa bằng SQL trực tiếp, UI hiện khu vực không được phép",
     "bang_chung": "src/lib/cache/master-data-cache.ts:25",
-    "lenh_kiem": "",
+    "lenh_kiem": "npm run docs:links:check",
     "trang_thai": "DA_XAC_MINH",
     "nguon": "no-da-biet",
     "commit": "",
-    "ghi_chu": ""
+    "ghi_chu": "Xử lý bằng quy trình vận hành: operations-sop.md §2.2 bước 6 (không sửa mã)."
   },
   {
     "id": "DT-001",
