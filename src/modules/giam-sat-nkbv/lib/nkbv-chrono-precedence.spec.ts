@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateChronoPrecedence } from "./nkbv-chrono-precedence";
+import { validateBloodLast, validateChronoPrecedence } from "./nkbv-chrono-precedence";
 
 describe("validateChronoPrecedence", () => {
   const xnList = [
@@ -156,5 +156,36 @@ describe("validateChronoPrecedence", () => {
       ],
     });
     expect(res.allowed).toBe(true);
+  });
+});
+
+describe("validateBloodLast", () => {
+  const xn = [
+    { id: "u1", ngay: "2026-03-05", benh_pham: "Nước tiểu", vi_khuan: "Escherichia coli" },
+    { id: "b1", ngay: "2026-03-10", benh_pham: "Máu", vi_khuan: "Escherichia coli" },
+    { id: "u2", ngay: "2026-04-20", benh_pham: "Nước tiểu", vi_khuan: "Klebsiella" },
+  ];
+  const call = (statusById: Record<string, string>, id = "b1", extra = xn) =>
+    validateBloodLast({ targetId: id, targetDate: "2026-03-10", targetBenhPham: "Máu", xnList: extra, statusById });
+
+  it("chặn máu khi còn mẫu cấy (+) khác trong 14 ngày chưa phân tích", () => {
+    const r = call({});
+    expect(r.allowed).toBe(false);
+    if (!r.allowed) expect(r.earliestUnresolved.id).toBe("u1");
+  });
+  it("cho phép khi mẫu khác đã phân tích", () => {
+    expect(call({ u1: "DA_PHAN_TICH" }).allowed).toBe(true);
+  });
+  it("bỏ qua mẫu ngoài 14 ngày và mẫu âm tính", () => {
+    const list = [
+      xn[1],
+      xn[2],
+      { id: "u3", ngay: "2026-03-08", benh_pham: "Nước tiểu", vi_khuan: "Âm tính" },
+    ];
+    expect(call({}, "b1", list).allowed).toBe(true);
+  });
+  it("không áp dụng cho mẫu không phải máu", () => {
+    const r = validateBloodLast({ targetId: "u1", targetDate: "2026-03-05", targetBenhPham: "Nước tiểu", xnList: xn });
+    expect(r.allowed).toBe(true);
   });
 });

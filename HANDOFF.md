@@ -46,3 +46,5 @@ Chỉ kết lượt khi: gặp cổng dừng PO (lâm sàng SSOT im · migration
 - Hook SessionStart mới chỉ thử bằng chạy tay, chưa thấy nó chèn cảnh báo trong một phiên thật mở ở checkout chính.
 - Stop hook `stop-gate.mjs` mới thử bằng stdin JSON (7 ca đạt), chưa thấy chặn trong phiên thật. Nếu `$CLAUDE_PROJECT_DIR` trỏ checkout chính (chưa có file hook đến khi gộp nhánh) thì node lỗi exit 1, hook tắt im lặng.
 - DB local dùng chung giữa các nhánh/chat: `acl-snapshot.mjs` có thể FAIL vì migration của nhánh khác. Trước khi `--write`, đối mỗi dòng `+`/`-` với migration trong diff của nhánh này; dòng không thuộc nhánh này là trôi, không phải duyệt. Nhánh container tắt chưa thử (đọc mã: exit 1).
+
+- 2026-11-12 NKBV «máu phân tích sau cùng»: `validateBloodLast` (lib/nkbv-chrono-precedence.ts) chặn cứng mở BSI/CLABSI khi còn mẫu cấy (+) không phải máu ±14 ngày chưa phân tích; nối vào openFromXn/openFromSuggestion/onOpenPrimaryBsi/CreateBar, kể cả chế độ thủ công. CHƯA commit; chưa kiểm chặn phía server khi lưu. NEN-004 đã đóng; next: NEN-003, CSSD-004 (cần /mcp Supabase).

@@ -5,7 +5,7 @@ import { attributeWithinRit, computeBaGridSession, type BaGridCdhaCell, type BaG
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { detectSecondaryBsiFromSbap } from "../lib/nkbv-ket-luan-smart";
 import type { NkbvBaAnalysisSeedInput } from "../actions/giam-sat-nkbv-ba-analysis.actions";
-import { validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
+import { validateBloodLast, validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
 import { type BaAnalysisSession, type BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import { vaeBaReadyToCreatePhieu } from "../lib/nkbv-syndrome-shell-helpers";
 import { canThiepDatesForPanel } from "../lib/nkbv-ba-device-timeline";
@@ -101,6 +101,23 @@ export default function NkbvBaWorkspaceCreateBar({
                 if (blockCreate) {
                   toast.message("Đã thuộc sự kiện trước — không tạo phiếu mới.");
                   return;
+                }
+                const idxXn =
+                  openSession.index.kind === "XN"
+                    ? split.xn.find((it) => it.id === openSession.index.id)
+                    : undefined;
+                if (idxXn) {
+                  const bloodLast = validateBloodLast({
+                    targetId: idxXn.id,
+                    targetDate: idxXn.ngay,
+                    targetBenhPham: idxXn.benh_pham,
+                    xnList: split.xn,
+                    statusById: xnStatusById,
+                  });
+                  if (!bloodLast.allowed) {
+                    toast.error(bloodLast.message, { duration: 8000 });
+                    return;
+                  }
                 }
                 if (!isManual) {
                   const chronoCheck = validateChronoPrecedence({

@@ -10,6 +10,8 @@
  */
 
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { isPositiveCultureOrganism } from "./nkbv-ket-luan-smart";
+import { isBloodSpecimen } from "./nkbv-sbap-rit-chips";
 
 export type ChronoUnresolvedItem = {
   id: string;
@@ -76,5 +78,54 @@ export function validateChronoPrecedence(input: {
     allowed: false,
     earliestUnresolved: earliest,
     message,
+  };
+}
+
+/** Khoảng cách tối đa (ngày) giữa mẫu máu và mẫu cấy khác để coi là có thể liên quan (RIT 14 ngày). */
+export const BLOOD_LAST_WINDOW_DAYS = 14;
+
+function dayDiff(a: string, b: string): number {
+  return Math.abs((Date.parse(a) - Date.parse(b)) / 86_400_000);
+}
+
+/**
+ * CDC/NHSN: cấy máu luôn phân tích SAU CÙNG — nó là tiêu chuẩn của sự kiện ở ổ khác
+ * (Secondary BSI) nên chỉ được xét Primary BSI/CLABSI khi mọi mẫu cấy (+) không phải máu
+ * trong cùng bệnh án, ±14 ngày, đã được xử lý. Áp dụng cả chế độ thủ công.
+ */
+export function validateBloodLast(input: {
+  targetId: string;
+  targetDate: string;
+  targetBenhPham?: string | null;
+  xnList: Array<{ id: string; ngay?: string | null; benh_pham?: string; vi_khuan?: string }>;
+  statusById?: Record<string, string>;
+}): ChronoPrecedenceResult {
+  const targetDate = String(input.targetDate ?? "").slice(0, 10);
+  if (!targetDate || !isBloodSpecimen(input.targetBenhPham)) return { allowed: true };
+
+  const pending: ChronoUnresolvedItem[] = [];
+  for (const x of input.xnList) {
+    if (!x.id || x.id === input.targetId || x.id.startsWith("local-")) continue;
+    if (isBloodSpecimen(x.benh_pham) || !isPositiveCultureOrganism(x.vi_khuan)) continue;
+    const d = String(x.ngay ?? "").slice(0, 10);
+    if (!d || dayDiff(d, targetDate) > BLOOD_LAST_WINDOW_DAYS) continue;
+    if ((input.statusById?.[x.id] || "CHUA_PHAN_TICH") !== "CHUA_PHAN_TICH") continue;
+    pending.push({
+      id: x.id,
+      date: d,
+      kind: "XN",
+      label: [x.benh_pham, x.vi_khuan].filter(Boolean).join(" · ") || "Xét nghiệm vi sinh",
+    });
+  }
+  if (pending.length === 0) return { allowed: true };
+
+  pending.sort((a, b) => a.date.localeCompare(b.date));
+  const list = pending.map((p) => `${formatDateVi(p.date)} (${p.label})`).join("; ");
+  return {
+    allowed: false,
+    earliestUnresolved: pending[0],
+    message:
+      `Theo CDC/NHSN: cấy máu phân tích sau cùng. Còn mẫu cấy (+) khác trong ±${BLOOD_LAST_WINDOW_DAYS} ngày chưa phân tích: ${list}. ` +
+      `Hãy xử lý các mẫu này trước — mẫu máu có thể là tiêu chuẩn của sự kiện ở ổ khác (Secondary BSI) và chỉ xét BSI/CLABSI tiên phát khi không thuộc SBAP của ổ đó.`,
   };
 }

@@ -6,7 +6,7 @@ import { type BaGridActiveIndex, type BaGridCdhaCell } from "../lib/nkbv-ba-grid
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { resolveBelongsOpenSessionByDate, resolveIndexEventDisposition, type OpenSiteSessionForSbap, type SecondarySiteHit } from "../lib/nkbv-index-event-disposition";
 import { cdhaToSyndromePanel, isSsiIndexCriteriaKey, specimenToSyndromePanel, type SessionIndexSuggestion, type SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
-import { validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
+import { validateBloodLast, validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
 import { removeBaAnalysisSession, type BaAnalysisSession, type BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import { bareViSinhIdFromMilestoneId, type ViSinhAnalysisDispositionRow, type ViSinhAnalysisStatus } from "../lib/nkbv-vi-sinh-analysis-status";
 import { khongDuTcKetLuanLabel } from "../lib/nkbv-vi-sinh-analysis-status";
@@ -88,6 +88,21 @@ export function useNkbvBaWorkspaceSessionActions({
       toast.message(
         "Chưa map được hội chứng từ bệnh phẩm chuẩn — chuẩn hóa loại bệnh phẩm ở kho vi sinh trước.",
       );
+      return;
+    }
+
+    // Cấy máu phân tích sau cùng (CDC/NHSN) — áp dụng cả chế độ thủ công
+    const bloodLast = validateBloodLast({
+      targetId: x.id,
+      targetDate: x.ngay,
+      targetBenhPham: x.benh_pham,
+      xnList: split.xn,
+      statusById: xnStatusById,
+    });
+    if (!bloodLast.allowed) {
+      toast.warning(bloodLast.message, { duration: 8000 });
+      const pendingXn = split.xn.find((it) => it.id === bloodLast.earliestUnresolved.id);
+      if (pendingXn) void openFromXn(pendingXn);
       return;
     }
 
@@ -292,6 +307,22 @@ export function useNkbvBaWorkspaceSessionActions({
   };
 
   const openFromSuggestion = (s: SessionIndexSuggestion) => {
+    const sugXn = s.index.kind === "XN" ? split.xn.find((it) => it.id === s.index.id) : undefined;
+    if (sugXn) {
+      const bloodLast = validateBloodLast({
+        targetId: sugXn.id,
+        targetDate: sugXn.ngay,
+        targetBenhPham: sugXn.benh_pham,
+        xnList: split.xn,
+        statusById: xnStatusById,
+      });
+      if (!bloodLast.allowed) {
+        toast.warning(bloodLast.message, { duration: 8000 });
+        const pendingXn = split.xn.find((it) => it.id === bloodLast.earliestUnresolved.id);
+        if (pendingXn) void openFromXn(pendingXn);
+        return;
+      }
+    }
     if (isManual) {
       openOrCreateSession(s.panel, s.index, s.label, {
         eventDisposition: { kind: "NEW_ANALYSIS", label: "" },

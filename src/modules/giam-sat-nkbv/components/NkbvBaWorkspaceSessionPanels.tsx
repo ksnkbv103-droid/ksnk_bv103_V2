@@ -10,10 +10,15 @@ import dynamic from "next/dynamic";
 import { isShellPanel } from "../lib/nkbv-syndrome-shell-helpers";
 import { type BaDayGridColumnDef } from "./NkbvBaDayGrid";
 import { canThiepDatesForPanel } from "../lib/nkbv-ba-device-timeline";
-import { type ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
+import {
+  bareViSinhIdFromMilestoneId,
+  resolveViSinhAnalysisStatus,
+  type ViSinhAnalysisDispositionRow,
+} from "../lib/nkbv-vi-sinh-analysis-status";
 import { type BaSampleConclusion } from "../lib/nkbv-ba-sample-conclusions";
 import { type BaAnalysisMode } from "../lib/nkbv-ba-analysis-mode";
 import { toast } from "sonner";
+import { validateBloodLast } from "../lib/nkbv-chrono-precedence";
 import type { BaWorkspaceSplit } from "../hooks/useNkbvBaWorkspaceGridData";
 import type { useNkbvBaWorkspaceSessionOps } from "../hooks/useNkbvBaWorkspaceSessionOps";
 import type { useNkbvBaWorkspaceMutations } from "../hooks/useNkbvBaWorkspaceMutations";
@@ -161,6 +166,22 @@ export default function NkbvBaWorkspaceSessionPanels({
             onOpenPrimaryBsi={(bloodId) => {
               const b = split.xn.find((x) => x.id === bloodId);
               if (!b) return;
+              const bloodLast = validateBloodLast({
+                targetId: b.id,
+                targetDate: b.ngay,
+                targetBenhPham: b.benh_pham,
+                xnList: split.xn,
+                statusById: Object.fromEntries(
+                  split.xn.map((x) => [
+                    x.id,
+                    resolveViSinhAnalysisStatus(bareViSinhIdFromMilestoneId(x.id) || x.id, mergedDispositions),
+                  ]),
+                ),
+              });
+              if (!bloodLast.allowed) {
+                toast.warning(bloodLast.message, { duration: 8000 });
+                return;
+              }
               if (isManual) {
                 openOrCreateSession(
                   "BSI",
