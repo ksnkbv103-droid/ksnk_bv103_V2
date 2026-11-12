@@ -14,7 +14,8 @@ import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-labels";
 import { isNkbvCaTrangThaiChot, resolveKhoaQuyKet } from "../lib/nkbv-ba-ngay";
-import { bareViSinhIdFromMilestoneId } from "../lib/nkbv-vi-sinh-analysis-status";
+import { bareViSinhIdFromMilestoneId, resolveViSinhAnalysisStatus, type ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
+import { validateBloodLast } from "../lib/nkbv-chrono-precedence";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import {
@@ -61,6 +62,62 @@ export type NkbvBaAnalysisSeedInput = {
   /** HAP vs VAP (PNEU) — cổng phiếu; mặc định suy từ panel. */
   checklistGate?: NkbvChecklistTypeCode | null;
 };
+
+/** Chặn server: mở BSI/CLABSI từ mẫu máu khi còn mẫu cấy (+) khác ±14 ngày chưa phân tích. */
+async function checkBloodLastServer(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  input: { maBa: string; gate: string; milestoneId: string; indexDate: string; loaiBenhPham?: string | null },
+): Promise<string | null> {
+  if (input.gate !== "BSI" && input.gate !== "CLABSI") return null;
+  const vsId = bareViSinhIdFromMilestoneId(input.milestoneId);
+  if (!vsId) return null;
+  const { data: rows } = await supabase
+    .from("nkbv_fact_vi_sinh")
+    .select("id, ngay_lay_mau, loai_benh_pham, tac_nhan, metadata")
+    .eq("ma_benh_an", input.maBa)
+    .eq("is_active", true)
+    .eq("ket_qua_duong_tinh", true);
+  const list = rows ?? [];
+  const { data: cases } = await supabase
+    .from("v_nkbv_su_kien_full")
+    .select("verification_data")
+    .eq("ma_benh_an", input.maBa)
+    .eq("is_active", true);
+  const dispositions: ViSinhAnalysisDispositionRow[] = [
+    ...(cases ?? []).map((c) => {
+      const vd = (c.verification_data && typeof c.verification_data === "object" ? c.verification_data : {}) as Record<string, unknown>;
+      return {
+        index_vi_sinh_id: vd.index_vi_sinh_id ? String(vd.index_vi_sinh_id) : null,
+        analysis_disposition: null,
+        is_active: true,
+      };
+    }),
+    ...list.map((r) => {
+      const m = (r.metadata && typeof r.metadata === "object" ? r.metadata : {}) as Record<string, unknown>;
+      const d = m.analysis_disposition;
+      return {
+        index_vi_sinh_id: String(r.id),
+        analysis_disposition: d === "BO_QUA" || d === "KHONG_DU_TC" || d === "DA_PHAN_TICH" ? d : undefined,
+        is_active: true,
+      } as ViSinhAnalysisDispositionRow;
+    }).filter((r) => r.analysis_disposition),
+  ];
+  const statusById: Record<string, string> = {};
+  for (const r of list) statusById[String(r.id)] = resolveViSinhAnalysisStatus(String(r.id), dispositions);
+  const res = validateBloodLast({
+    targetId: vsId,
+    targetDate: input.indexDate,
+    targetBenhPham: input.loaiBenhPham ?? list.find((r) => String(r.id) === vsId)?.loai_benh_pham,
+    xnList: list.map((r) => ({
+      id: String(r.id),
+      ngay: String(r.ngay_lay_mau).slice(0, 10),
+      benh_pham: r.loai_benh_pham,
+      vi_khuan: r.tac_nhan,
+    })),
+    statusById,
+  });
+  return res.allowed ? null : res.message;
+}
 
 async function markViSinhAnalyzedForCase(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
@@ -202,6 +259,12 @@ export async function ensureNkbvBaAnalysisCase(input: {
   }
   if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), maBa))) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+  if (!input.existing_case_id) {
+    const blocked = await checkBloodLastServer(supabase, {
+      maBa, gate, milestoneId, indexDate, loaiBenhPham: input.loai_benh_pham,
+    });
+    if (blocked) return { success: false as const, error: blocked };
   }
 
   const reloadCase = async (id: string) => {
