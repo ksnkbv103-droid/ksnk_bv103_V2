@@ -16,6 +16,7 @@ import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-l
 import { isNkbvCaTrangThaiChot, resolveKhoaQuyKet } from "../lib/nkbv-ba-ngay";
 import { bareViSinhIdFromMilestoneId, resolveViSinhAnalysisStatus, type ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
 import { validateBloodLast } from "../lib/nkbv-chrono-precedence";
+import { bloodPrimaryBlockedByPriorEvents } from "../lib/nkbv-blood-primary-guard";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import {
@@ -80,7 +81,7 @@ async function checkBloodLastServer(
   const list = rows ?? [];
   const { data: cases } = await supabase
     .from("v_nkbv_su_kien_full")
-    .select("verification_data")
+    .select("id, ngay_phat_hien, loai_ma, loai_ten, vi_tri_nhiem_khuan, tac_nhan_vi_khuan, trang_thai_ma, verification_data")
     .eq("ma_benh_an", input.maBa)
     .eq("is_active", true);
   const dispositions: ViSinhAnalysisDispositionRow[] = [
@@ -129,7 +130,32 @@ async function checkBloodLastServer(
     })),
     statusById,
   });
-  return res.allowed ? null : res.message;
+  if (!res.allowed) return res.message;
+  // Khung thứ phát: máu ∈ SBAP/RIT của sự kiện đủ TC → không tạo BSI nguyên phát.
+  const priorEvents = (cases ?? []).map((c) => {
+    const vd = (c.verification_data && typeof c.verification_data === "object" ? c.verification_data : {}) as Record<string, unknown>;
+    const calc = typeof vd.calculated_doe === "string" ? vd.calculated_doe.slice(0, 10) : null;
+    return {
+      id: String(c.id),
+      ngay_phat_hien: calc || (c.ngay_phat_hien ? String(c.ngay_phat_hien).slice(0, 10) : null),
+      loai_ma: c.loai_ma ? String(c.loai_ma) : null,
+      loai_ten: c.loai_ten ? String(c.loai_ten) : null,
+      vi_tri_nhiem_khuan: c.vi_tri_nhiem_khuan ? String(c.vi_tri_nhiem_khuan) : null,
+      index_vi_sinh_id: vd.index_vi_sinh_id ? String(vd.index_vi_sinh_id) : null,
+      tac_nhan_vi_khuan: c.tac_nhan_vi_khuan ? String(c.tac_nhan_vi_khuan) : null,
+      attributed_vi_sinh_ids: Array.isArray(vd.attributed_vi_sinh_ids)
+        ? (vd.attributed_vi_sinh_ids as unknown[]).map((x) => String(x)).filter(Boolean)
+        : [],
+    };
+  });
+  const target = list.find((r) => String(r.id) === vsId);
+  return bloodPrimaryBlockedByPriorEvents({
+    bloodId: vsId,
+    bloodDate: input.indexDate,
+    specimen: String(target?.loai_benh_pham || input.loaiBenhPham || "Máu"),
+    organism: target?.tac_nhan ? String(target.tac_nhan) : null,
+    priorEvents,
+  });
 }
 
 async function markViSinhAnalyzedForCase(
