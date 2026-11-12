@@ -14,6 +14,7 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 | Schema (linked) | `verify:mdm` |
 | Docs | `docs:links:check` |
 | UI thuần | `verify:quick` |
+| Mọi thay đổi | `gate-integrity` chạy đầu (`.skip/.only/@ts-ignore/eslint-disable`, xóa `expect` → cần `// gate-ok: <lý do>`); source `src/` → `vitest related` |
 | Trước push | `verify` |
 
 ## Kiến trúc
