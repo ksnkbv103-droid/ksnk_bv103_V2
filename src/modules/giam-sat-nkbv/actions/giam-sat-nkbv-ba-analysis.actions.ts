@@ -107,7 +107,7 @@ async function checkBloodLastServer(
   const res = validateBloodLast({
     targetId: vsId,
     targetDate: input.indexDate,
-    targetBenhPham: input.loaiBenhPham ?? list.find((r) => String(r.id) === vsId)?.loai_benh_pham,
+    targetBenhPham: list.find((r) => String(r.id) === vsId)?.loai_benh_pham || input.loaiBenhPham,
     xnList: list.map((r) => ({
       id: String(r.id),
       ngay: String(r.ngay_lay_mau).slice(0, 10),
