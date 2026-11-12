@@ -1,19 +1,19 @@
 {
-  "updated": "2026-11-11",
+  "updated": "2026-11-12",
   "metrics": {
-    "radiusArbitrary": 335,
+    "radiusArbitrary": 331,
     "radiusMd": 51,
-    "radiusLg": 310,
-    "radiusXl": 227,
+    "radiusLg": 327,
+    "radiusXl": 229,
     "radius2xl": 17,
-    "heightArbitrary": 172,
-    "text11px": 28,
+    "heightArbitrary": 182,
+    "text11px": 32,
     "textSubRem": 0,
-    "fontHeavy": 188,
+    "fontHeavy": 189,
     "shadowHeavy": 17,
-    "rawButtonFiles": 227,
+    "rawButtonFiles": 229,
     "uiButtonFiles": 2,
-    "pageFiles": 52,
+    "pageFiles": 64,
     "pagesWithShell": 3
   }
 }

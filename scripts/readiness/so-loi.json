@@ -175,7 +175,7 @@
     "muc": "CAO",
     "tieu_de": "Form VST và Checklist GSC sau gộp nhánh UI chưa ai xem trên màn hình (khóa PO: năm mốc một hàng, ô chọn #026f17 chữ trắng)",
     "bang_chung": "src/modules/giam-sat-vst/components/VSTOpportunityForm.tsx; src/modules/giam-sat-chung/components/ChecklistItem.tsx",
-    "lenh_kiem": "",
+    "lenh_kiem": "node scripts/ui-audit.mjs --check",
     "trang_thai": "DA_SUA",
     "nguon": "buoc0",
     "commit": "0f16a688",
@@ -1024,7 +1024,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r3-nkbv-quyen",
     "commit": "6406330a",
-    "ghi_chu": ""
+    "ghi_chu": "PO chọn nâng baseline (2026-11-12): --write; nợ UI vẫn còn, giảm dần ở lát UI sau."
   },
   {
     "id": "NKBV-018",
