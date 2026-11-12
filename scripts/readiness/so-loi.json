@@ -137,9 +137,9 @@
     "tieu_de": "Migration RLS đọc phiên VST/GSC theo phạm vi (675a8bc6) chưa có trên prod; khách và mạng lưới còn đọc theo policy cũ",
     "bang_chung": "supabase/migrations/20261108100000_gstt_session_read_scope_rls.sql",
     "lenh_kiem": "select policyname from pg_policies where policyname='vst_sessions_select_permission'",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "buoc0",
-    "commit": "",
+    "commit": "675a8bc6",
     "ghi_chu": "Local: apply ở Bước 0. Prod: gom lô, PO duyệt"
   },
   {
