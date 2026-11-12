@@ -1168,5 +1168,18 @@
     "nguon": "r3-cssd-quyen",
     "commit": "",
     "ghi_chu": "Cần migration (phiên điều phối giữ): thu quyền ghi của authenticated, chỉ ghi qua RPC service_role, hoặc trigger khóa cột trang_thai/*_boi/ket_qua_ghi_nhan/checklist_jsonb. Gồm cả mức Thấp: su-co-form-catalog.actions.ts:57 nối term vào .or(); fn_cssd_bo_tong_id lộ quan hệ cha–con. CSSD-010 đã đủ 7 mục chưa phủ."
+  },
+  {
+    "id": "QT-012",
+    "module": "QUAN_TRI",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Vai trò khách KHACH_THONG_KE_GSTT có DAO_TAO view (DB local, không do migration nào cấp) nên gọi được Server Action thi qua admin client: tạo lần thi, rút câu hỏi",
+    "bang_chung": "psql: KHACH_THONG_KE_GSTT|DAO_TAO|view; migration 20260718110000_ensure_khach_thong_ke_role.sql:22 chỉ cấp GIAM_SAT_VST, GIAM_SAT_CHUNG; src/modules/dao-tao/lib/dao-tao-auth.ts:6-14 requireDaoTaoUser không loại khách; dao-tao-attempt.actions.ts:205-265 startThiThuAttempt dùng admin client insert dao_tao_lan_thi; proxy chỉ lọc đường dẫn, Server Action POST vào /thong-ke/vst thì lọt",
+    "lenh_kiem": "psql: select r.name,p.module_name,p.action from sys_roles r join sys_role_permissions rp on rp.role_id=r.id join sys_permissions p on p.id=rp.permission_id where r.name='KHACH_THONG_KE_GSTT'",
+    "trang_thai": "CHO_PO",
+    "nguon": "r3-quan-tri-quyen",
+    "commit": "",
+    "ghi_chu": "Hỏi PO: khách thống kê có được thi không? Nếu không: xóa grant DAO_TAO của vai trò khách (migration) và/hoặc requireDaoTaoUser từ chối khi getActorKsnkScope().isGuestStatsOnly. Cần đối chiếu prod (chỉ đọc) xem có grant này không. Chưa chạy thử action thật. Mức thấp kèm theo: v_mdm_nhan_su_picker security_invoker=false lộ 38 nhân sự (ma_nv, ho_ten, khoa_id) cho khách; getGscSessionPrintLabels dùng admin client tra họ tên theo id. Chưa rà: bang-kiem-read.actions.ts (admin client), tgs-coverage-ranking.actions.ts, EXECUTE anon/authenticated trên RPC thống kê, dao-tao-bank/admin.actions.ts. Còn lại của QT-002 coi như đã phủ."
   }
 ]
