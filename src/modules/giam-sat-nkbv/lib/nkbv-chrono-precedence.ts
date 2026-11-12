@@ -98,12 +98,22 @@ export function validateBloodLast(input: {
   targetDate: string;
   targetBenhPham?: string | null;
   xnList: Array<{ id: string; ngay?: string | null; benh_pham?: string; vi_khuan?: string }>;
+  /** Mốc CĐHA (XQ/CT…) — chưa xử lý trong ±14 ngày cũng chặn mẫu máu. */
+  cdhaList?: Array<{ id: string; ngay?: string | null; label?: string }>;
+  /** Trạng thái theo id (XN và CĐHA dùng chung map); thiếu = CHUA_PHAN_TICH. */
   statusById?: Record<string, string>;
 }): ChronoPrecedenceResult {
   const targetDate = String(input.targetDate ?? "").slice(0, 10);
   if (!targetDate || !isBloodSpecimen(input.targetBenhPham)) return { allowed: true };
 
   const pending: ChronoUnresolvedItem[] = [];
+  for (const c of input.cdhaList ?? []) {
+    if (!c.id || c.id.startsWith("local-")) continue;
+    const d = String(c.ngay ?? "").slice(0, 10);
+    if (!d || dayDiff(d, targetDate) > BLOOD_LAST_WINDOW_DAYS) continue;
+    if ((input.statusById?.[c.id] || "CHUA_PHAN_TICH") !== "CHUA_PHAN_TICH") continue;
+    pending.push({ id: c.id, date: d, kind: "CDHA", label: c.label || "Chẩn đoán hình ảnh" });
+  }
   for (const x of input.xnList) {
     if (!x.id || x.id === input.targetId || x.id.startsWith("local-")) continue;
     if (isBloodSpecimen(x.benh_pham) || !isPositiveCultureOrganism(x.vi_khuan)) continue;
@@ -125,7 +135,7 @@ export function validateBloodLast(input: {
     allowed: false,
     earliestUnresolved: pending[0],
     message:
-      `Theo CDC/NHSN: cấy máu phân tích sau cùng. Còn mẫu cấy (+) khác trong ±${BLOOD_LAST_WINDOW_DAYS} ngày chưa phân tích: ${list}. ` +
+      `Theo CDC/NHSN: cấy máu phân tích sau cùng. Còn mẫu cấy (+) / CĐHA khác trong ±${BLOOD_LAST_WINDOW_DAYS} ngày chưa phân tích: ${list}. ` +
       `Hãy xử lý các mẫu này trước — mẫu máu có thể là tiêu chuẩn của sự kiện ở ổ khác (Secondary BSI) và chỉ xét BSI/CLABSI tiên phát khi không thuộc SBAP của ổ đó.`,
   };
 }

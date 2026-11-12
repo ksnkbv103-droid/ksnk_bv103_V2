@@ -188,4 +188,26 @@ describe("validateBloodLast", () => {
     const r = validateBloodLast({ targetId: "u1", targetDate: "2026-03-05", targetBenhPham: "Nước tiểu", xnList: xn });
     expect(r.allowed).toBe(true);
   });
+  describe("CĐHA", () => {
+    const onlyBlood = [xn[1]];
+    const callCdha = (cdhaList: Array<{ id: string; ngay: string; label?: string }>, statusById = {}) =>
+      validateBloodLast({
+        targetId: "b1",
+        targetDate: "2026-03-10",
+        targetBenhPham: "Máu",
+        xnList: onlyBlood,
+        cdhaList,
+        statusById,
+      });
+    it("chặn máu khi còn CĐHA chưa xử lý trong ±14 ngày (trước hoặc sau)", () => {
+      const before = callCdha([{ id: "c1", ngay: "2026-03-01", label: "XQ ngực" }]);
+      expect(before.allowed).toBe(false);
+      if (!before.allowed) expect(before.earliestUnresolved.kind).toBe("CDHA");
+      expect(callCdha([{ id: "c2", ngay: "2026-03-20" }]).allowed).toBe(false);
+    });
+    it("cho phép khi CĐHA đã xử lý hoặc ngoài 14 ngày", () => {
+      expect(callCdha([{ id: "c1", ngay: "2026-03-01" }], { c1: "BO_QUA" }).allowed).toBe(true);
+      expect(callCdha([{ id: "c1", ngay: "2026-02-01" }]).allowed).toBe(true);
+    });
+  });
 });

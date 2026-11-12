@@ -104,7 +104,20 @@ async function checkBloodLastServer(
   ];
   const statusById: Record<string, string> = {};
   for (const r of list) statusById[String(r.id)] = resolveViSinhAnalysisStatus(String(r.id), dispositions);
+  // CĐHA: mốc IMAGING_* còn hoạt động; đã xử lý khi metadata.analysis_disposition có giá trị.
+  const { data: imgRows } = await supabase
+    .from("nkbv_fact_ba_timeline")
+    .select("id, milestone_date, milestone_kind, criteria_key, metadata")
+    .eq("ma_benh_an", input.maBa)
+    .eq("is_active", true)
+    .or("milestone_kind.ilike.IMAGING%,criteria_key.in.(imaging_chest,abscess_imaging)");
+  const cdhaList = (imgRows ?? []).map((r) => {
+    const m = (r.metadata && typeof r.metadata === "object" ? r.metadata : {}) as Record<string, unknown>;
+    statusById[String(r.id)] = m.analysis_disposition ? "DA_XU_LY" : "CHUA_PHAN_TICH";
+    return { id: String(r.id), ngay: String(r.milestone_date ?? "").slice(0, 10), label: String(r.milestone_kind ?? "CĐHA") };
+  });
   const res = validateBloodLast({
+    cdhaList,
     targetId: vsId,
     targetDate: input.indexDate,
     targetBenhPham: list.find((r) => String(r.id) === vsId)?.loai_benh_pham || input.loaiBenhPham,
@@ -504,6 +517,23 @@ export async function ensureNkbvBaAnalysisCase(input: {
     );
   } else if (vsId) {
     await markViSinhAnalyzedForCase(supabase, created.id, [vsId]);
+  }
+
+  // Ca tạo từ mốc CĐHA: đánh dấu mốc đã phân tích (không còn chặn cấy máu). Không khớp dòng nào = mốc XN → no-op.
+  if (seed?.indexKind === "CDHA" && /^[0-9a-f-]{36}$/i.test(milestoneId)) {
+    const { data: tl } = await supabase
+      .from("nkbv_fact_ba_timeline")
+      .select("metadata")
+      .eq("id", milestoneId)
+      .eq("ma_benh_an", maBa)
+      .maybeSingle();
+    if (tl) {
+      const prev = tl.metadata && typeof tl.metadata === "object" ? (tl.metadata as Record<string, unknown>) : {};
+      await supabase
+        .from("nkbv_fact_ba_timeline")
+        .update({ metadata: { ...prev, analysis_disposition: "DA_PHAN_TICH" }, updated_at: new Date().toISOString() })
+        .eq("id", milestoneId);
+    }
   }
 
   await syncNkbvPhieuFromBaNgay(maBa);
