@@ -1073,9 +1073,9 @@
     "tieu_de": "Hộp xác nhận nhập BI ghi «BI âm + đối chứng dương» cả khi đã chọn đối chứng Âm",
     "bang_chung": "UAT 2026-11-12 mẻ ETO1-121126-1: chọn ống đối chứng Âm, hộp vẫn hỏi «BI âm + đối chứng dương — nhả mẻ vào kho vô khuẩn?»; server chặn đúng «Kết quả BI không hợp lệ — ống đối chứng phải dương tính»",
     "lenh_kiem": "Nhập BI với đối chứng Âm, đọc nội dung hộp xác nhận",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-cssd-002",
-    "commit": "",
+    "commit": "9d038198",
     "ghi_chu": ""
   },
   {
@@ -1099,9 +1099,9 @@
     "tieu_de": "Khung «Gợi ý Spaulding» của mẻ ETO chưa có bộ ghi «Khuyến nghị: Hấp hơi nước 134°C»",
     "bang_chung": "UAT 2026-11-12: mẻ ETO2-121126-1 (0 bộ) hiện «Không có dụng cụ trong bộ. Khuyến nghị: Hấp hơi nước 134°C»; sau khi nạp bộ thì đổi đúng sang «Ethylene oxide (EO)»",
     "lenh_kiem": "Mở mẻ ETO mới, đọc khung gợi ý trước khi nạp",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-cssd-002",
-    "commit": "",
+    "commit": "9d038198",
     "ghi_chu": ""
   },
   {
@@ -1112,7 +1112,7 @@
     "tieu_de": "Form «Mở mẻ mới» trên DB local chỉ liệt kê 2 máy ETO, không có máy hơi nước/plasma",
     "bang_chung": "UAT 2026-11-12 /cssd-quy-trinh?tab=batch: combobox máy chỉ có TIỆT KHUẨN ETO SỐ 1, SỐ 2",
     "lenh_kiem": "Đối chiếu danh mục thiết bị local và điều kiện lọc của form (chưa điều tra; có thể chỉ là dữ liệu seed)",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "uat-cssd-002",
     "commit": "",
     "ghi_chu": ""
