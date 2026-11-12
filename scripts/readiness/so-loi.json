@@ -1150,10 +1150,10 @@
     "muc": "THAP",
     "tieu_de": "anon còn EXECUTE trên fn_nkbv_dich_te_hoc_rates (gọi bị chặn bởi RLS nhưng nên REVOKE)",
     "bang_chung": "psql proacl; gọi anon → permission denied for table nkbv_fact_su_kien",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tAc \"select has_function_privilege('anon','public.fn_nkbv_dich_te_hoc_rates(date,date,uuid)','execute')\" -> f",
+    "trang_thai": "DA_SUA",
     "nguon": "r3-nkbv-quyen",
-    "commit": "",
+    "commit": "425767a3",
     "ghi_chu": "Thuộc lô migration (phiên điều phối giữ). Lưu ý dashboard gọi hàm bằng admin client (giam-sat-nkbv-dashboard.actions.ts:38,61) nên phạm vi khoa dựa vào action."
   },
   {
