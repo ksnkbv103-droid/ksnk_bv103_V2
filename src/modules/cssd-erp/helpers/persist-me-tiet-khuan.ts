@@ -134,11 +134,26 @@ export async function loadKitHeatLinesByBoIds(
   for (const id of ids) byBo.set(id, []);
   if (!ids.length) return { ok: true, byBo };
 
-  const { data, error } = await client
-    .from("v_cssd_bo_thanh_phan_hieu_luc")
-    .select("bo_dung_cu_id, loai_dung_cu_id")
-    .in("bo_dung_cu_id", ids);
-  if (error) return { ok: false, message: error.message };
+  // Một bộ có thể tới ~150 dòng thành phần; PostgREST cắt im lặng ở 1000 dòng/lần.
+  // Thiếu dòng = có thể bỏ sót món không chịu nhiệt → chia lô 20 bộ và đọc hết từng trang.
+  const BO_CHUNK = 20;
+  const PAGE = 1000;
+  const data: { bo_dung_cu_id?: string | null; loai_dung_cu_id?: string | null }[] = [];
+  for (let i = 0; i < ids.length; i += BO_CHUNK) {
+    const chunk = ids.slice(i, i + BO_CHUNK);
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error } = await client
+        .from("v_cssd_bo_thanh_phan_hieu_luc")
+        .select("bo_dung_cu_id, loai_dung_cu_id")
+        .in("bo_dung_cu_id", chunk)
+        .order("bo_dung_cu_id", { ascending: true })
+        .order("loai_dung_cu_id", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) return { ok: false, message: error.message };
+      data.push(...((page || []) as typeof data));
+      if ((page || []).length < PAGE) break;
+    }
+  }
 
   // View không hỗ trợ join lồng: tra loại dụng cụ bằng truy vấn riêng.
   const loaiIds = [
