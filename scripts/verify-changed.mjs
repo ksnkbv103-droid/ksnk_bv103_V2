@@ -14,10 +14,16 @@ const cmds = new Map();
 const add = (cmd, why) => cmds.set(cmd, [...(cmds.get(cmd) || []), why]);
 const specs = [];
 const srcs = [];
+const migs = [];
 
 for (const f of files) {
   if (/^src\/.*\.tsx?$/.test(f) && !/\.spec\.tsx?$/.test(f)) srcs.push(f);
-  if (/^supabase\/migrations\//.test(f)) add("npm run verify:mdm", f);
+  if (/^supabase\/migrations\//.test(f)) {
+    // Bản linked luôn fail ở worktree chưa `supabase link` → dùng bản local.
+    add("npm run verify:mdm:local", f);
+    const v = f.match(/^supabase\/migrations\/(\d{14})_/);
+    if (v) migs.push(v[1]);
+  }
   else if (/\.spec\.tsx?$/.test(f)) specs.push(f);
   else if (/^(docs\/|\.claude\/|CLAUDE\.md$|README\.md$|CHANGELOG\.md$)/.test(f) || /\.md$/.test(f)) add("npm run docs:links:check", f);
   else if (/\/(actions|application|domain)\//.test(f) || /^src\/lib\//.test(f) || /^scripts\//.test(f)) add("npm run verify:engineering", f);
@@ -25,6 +31,8 @@ for (const f of files) {
 }
 // Spec liên quan tới source đã đổi (đồ thị import); không có spec liên quan thì vitest thoát 0.
 if (srcs.length) add(`npx vitest related --run --passWithNoTests ${srcs.join(" ")}`, `${srcs.length} source`);
+// Migration phải đã apply local, rồi so quyền thật trên DB với ảnh chụp ACL.
+if (migs.length) add(`node scripts/acl-snapshot.mjs --require-applied ${[...new Set(migs)].join(",")}`, `${migs.length} migration`);
 if (specs.length) add(`npm run test:cssd -- ${specs.join(" ")}`, `${specs.length} spec`);
 // Đụng action/domain thì vẫn cần typecheck/build (verify:engineering không build).
 if (cmds.has("npm run verify:engineering") && !cmds.has("npm run verify:quick")) add("npm run verify:quick", "kèm engineering");
