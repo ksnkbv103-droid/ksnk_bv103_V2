@@ -1129,5 +1129,44 @@
     "nguon": "acl-zz",
     "commit": "",
     "ghi_chu": "Cần PO: bảng có trên prod không. Không xóa (phá hủy) khi chưa xác minh và PO chưa ra lệnh."
+  },
+  {
+    "id": "NKBV-019",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "previewMauSoFromDeviceRegistryAction đọc view không lọc/phân trang → PostgREST cắt âm thầm ở 1000 dòng; dòng khoa_id null vẫn tính vào mẫu số của khoa đang chọn; baRows không kiểm error",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-device-registry.actions.ts:126-128,134; lib/nkbv-shared-device-days.ts:71-72; PGRST_DB_MAX_ROWS=1000 (container local); local 44 dòng, prod chưa đo",
+    "lenh_kiem": "select count(*) from public.nkbv_v_ba_dung_cu_dat_rut (prod chỉ đọc)",
+    "trang_thai": "MOI",
+    "nguon": "r3-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": "Sửa: lọc ngày/khoa ở SQL, dùng fetchAllRangeRows, kiểm error baRows, bỏ điều kiện !r.khoa_id khi lọc khoa. Prod max_rows cần xác nhận."
+  },
+  {
+    "id": "NKBV-020",
+    "module": "NKBV",
+    "lop": "DB",
+    "muc": "THAP",
+    "tieu_de": "anon còn EXECUTE trên fn_nkbv_dich_te_hoc_rates (gọi bị chặn bởi RLS nhưng nên REVOKE)",
+    "bang_chung": "psql proacl; gọi anon → permission denied for table nkbv_fact_su_kien",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "r3-nkbv-quyen",
+    "commit": "",
+    "ghi_chu": "Thuộc lô migration (phiên điều phối giữ). Lưu ý dashboard gọi hàm bằng admin client (giam-sat-nkbv-dashboard.actions.ts:38,61) nên phạm vi khoa dựa vào action."
+  },
+  {
+    "id": "CSSD-020",
+    "module": "CSSD",
+    "lop": "DB",
+    "muc": "CAO",
+    "tieu_de": "cssd_fact_bao_tri: user có CSSD_WORKFLOW.edit sửa/xóa thẳng phiếu bảo trì qua PostgREST, bỏ qua rpc_cssd_bao_tri_* (giả mạo HOAN_THANH, người ký, xóa dấu vết)",
+    "bang_chung": "pg_policies cssd_fact_bao_tri_update/delete chỉ kiểm quyền, không giới hạn cột; authenticated có INSERT/UPDATE/DELETE/TRUNCATE; không trigger; migration 20260709130000_rls_summary_cssd_nkbv_hardening.sql:33,45; thử BEGIN…ROLLBACK user b6945af2 (is_admin=f, wf_edit=t): UPDATE 1, DELETE 1",
+    "lenh_kiem": "psql local: SET LOCAL role authenticated + jwt sub b6945af2…; UPDATE cssd_fact_bao_tri SET trang_thai='HOAN_THANH' …; DELETE (trong ROLLBACK)",
+    "trang_thai": "MOI",
+    "nguon": "r3-cssd-quyen",
+    "commit": "",
+    "ghi_chu": "Cần migration (phiên điều phối giữ): thu quyền ghi của authenticated, chỉ ghi qua RPC service_role, hoặc trigger khóa cột trang_thai/*_boi/ket_qua_ghi_nhan/checklist_jsonb. Gồm cả mức Thấp: su-co-form-catalog.actions.ts:57 nối term vào .or(); fn_cssd_bo_tong_id lộ quan hệ cha–con. CSSD-010 đã đủ 7 mục chưa phủ."
   }
 ]
