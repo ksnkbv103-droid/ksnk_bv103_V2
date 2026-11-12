@@ -26,6 +26,9 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 - **Mục tiêu: triển khai TẤT CẢ module** (PO 2026-10-12, thay lệnh đóng băng cùng ngày). Thứ tự: VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo; mỗi module cần người dùng + kịch bản tay trước khi coi là xong
 - Không tạo bảng summary khi chưa có số đo và PO đồng ý. Không viết lại engine lâm sàng; lệch KPI thì sửa hàm KPI
 - Diff tối thiểu, truy vết được tới yêu cầu. Đọc migration/DB trước khi đặt tên; không đoán schema
+- Không trừu tượng hóa/làm linh hoạt thừa cho code dùng một lần; không xử lý lỗi cho tình huống bất khả
+- Chỉ dọn phần mồ côi do chính mình tạo; gặp code chết có sẵn thì báo, không xóa
+- Sửa lỗi: viết test tái hiện (fail) trước; refactor: test pass trước và sau. Trước khi sửa bảng/view/RPC/file dùng chung: `npm run impact -- <tên|file>`
 - ≤ 8 file/task; > 3 file ngoài scope → hỏi PO. Output delta-only, lọc log (`tail -30`)
 - Pilot DoD một lát: người dùng/môi trường rõ · ≥ 3 kịch bản tay · migration + RPC apply đúng · `verify:engineering` pass
 
