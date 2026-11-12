@@ -1138,9 +1138,9 @@
     "tieu_de": "previewMauSoFromDeviceRegistryAction đọc view không lọc/phân trang → PostgREST cắt âm thầm ở 1000 dòng; dòng khoa_id null vẫn tính vào mẫu số của khoa đang chọn; baRows không kiểm error",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-device-registry.actions.ts:126-128,134; lib/nkbv-shared-device-days.ts:71-72; PGRST_DB_MAX_ROWS=1000 (container local); local 44 dòng, prod chưa đo",
     "lenh_kiem": "select count(*) from public.nkbv_v_ba_dung_cu_dat_rut (prod chỉ đọc)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "r3-nkbv-quyen",
-    "commit": "",
+    "commit": "a93d28c7",
     "ghi_chu": "Sửa: lọc ngày/khoa ở SQL, dùng fetchAllRangeRows, kiểm error baRows, bỏ điều kiện !r.khoa_id khi lọc khoa. Prod max_rows cần xác nhận."
   },
   {
