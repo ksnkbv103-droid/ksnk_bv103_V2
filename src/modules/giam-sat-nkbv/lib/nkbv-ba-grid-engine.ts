@@ -68,6 +68,8 @@ export type BaGridCdhaCell = {
   loai: string;
   mo_ta_benh_ly: string;
   tieu_chuan_key?: NkbvCriteriaKey | null;
+  /** BO_QUA / DA_PHAN_TICH… — có giá trị = đã xử lý, không chặn cấy máu. */
+  analysis_disposition?: string | null;
 };
 
 export type BaGridTieuChuanCell = {
@@ -602,6 +604,7 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
       loai: "XQ",
       mo_ta_benh_ly: m.title || "XQ phổi bất thường",
       tieu_chuan_key: tieuChuan,
+      analysis_disposition: m.analysisDisposition ?? null,
     });
   }
 

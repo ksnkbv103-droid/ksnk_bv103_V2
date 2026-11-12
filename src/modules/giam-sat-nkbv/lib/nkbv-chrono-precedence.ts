@@ -88,6 +88,15 @@ function dayDiff(a: string, b: string): number {
   return Math.abs((Date.parse(a) - Date.parse(b)) / 86_400_000);
 }
 
+/** Gom ô CĐHA của lưới thành đầu vào cho validateBloodLast: mốc đã bỏ qua/đã phân tích → status riêng. */
+export function cdhaForBloodLast(
+  cdha: Array<{ id: string; ngay: string; mo_ta_benh_ly?: string; analysis_disposition?: string | null }>,
+): { cdhaList: Array<{ id: string; ngay: string; label?: string }>; statusById: Record<string, string> } {
+  const statusById: Record<string, string> = {};
+  for (const c of cdha) if (c.analysis_disposition) statusById[c.id] = "DA_XU_LY";
+  return { cdhaList: cdha.map((c) => ({ id: c.id, ngay: c.ngay, label: c.mo_ta_benh_ly })), statusById };
+}
+
 /**
  * CDC/NHSN: cấy máu luôn phân tích SAU CÙNG — nó là tiêu chuẩn của sự kiện ở ổ khác
  * (Secondary BSI) nên chỉ được xét Primary BSI/CLABSI khi mọi mẫu cấy (+) không phải máu

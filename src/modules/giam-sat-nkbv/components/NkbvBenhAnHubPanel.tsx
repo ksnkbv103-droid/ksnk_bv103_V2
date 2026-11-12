@@ -18,6 +18,7 @@ import {
   type NkbvBenhAnHubCase,
 } from "../actions/giam-sat-nkbv.actions";
 import { getGiamSatNkbvCaById } from "../actions/giam-sat-nkbv-read.actions";
+import { skipNkbvCdhaAnalysis } from "../actions/giam-sat-nkbv-cdha-disposition.actions";
 import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { ImportWindowAlert } from "../lib/nkbv-import-window-scan";
@@ -508,16 +509,19 @@ export default function NkbvBenhAnHubPanel({
     onCaseMutated?.();
   };
 
-  const skipViSinh = async (input: { viSinhId: string; reason: string }) => {
-    const res = await skipNkbvViSinhAnalysis({
-      vi_sinh_id: input.viSinhId,
-      reason: input.reason,
-    });
+  const skipViSinh = async (input: { viSinhId: string; reason: string; kind?: "XN" | "CDHA" }) => {
+    const res =
+      input.kind === "CDHA"
+        ? await skipNkbvCdhaAnalysis({ timeline_id: input.viSinhId, reason: input.reason })
+        : await skipNkbvViSinhAnalysis({
+            vi_sinh_id: input.viSinhId,
+            reason: input.reason,
+          });
     if (!res.success) {
       toast.error(res.error || "Không bỏ qua được");
       return;
     }
-    toast.success("Đã bỏ qua XN — ra khỏi hàng đợi Chưa PT");
+    toast.success(input.kind === "CDHA" ? "Đã bỏ qua CĐHA" : "Đã bỏ qua XN — ra khỏi hàng đợi Chưa PT");
     void reload();
   };
 

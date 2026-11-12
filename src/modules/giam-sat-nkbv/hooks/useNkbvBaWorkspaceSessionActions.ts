@@ -6,7 +6,7 @@ import { type BaGridActiveIndex, type BaGridCdhaCell } from "../lib/nkbv-ba-grid
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { resolveBelongsOpenSessionByDate, resolveIndexEventDisposition, type OpenSiteSessionForSbap, type SecondarySiteHit } from "../lib/nkbv-index-event-disposition";
 import { cdhaToSyndromePanel, isSsiIndexCriteriaKey, specimenToSyndromePanel, type SessionIndexSuggestion, type SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
-import { validateBloodLast, validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
+import { cdhaForBloodLast, validateBloodLast, validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
 import { removeBaAnalysisSession, type BaAnalysisSession, type BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import { bareViSinhIdFromMilestoneId, type ViSinhAnalysisDispositionRow, type ViSinhAnalysisStatus } from "../lib/nkbv-vi-sinh-analysis-status";
 import { khongDuTcKetLuanLabel } from "../lib/nkbv-vi-sinh-analysis-status";
@@ -97,7 +97,8 @@ export function useNkbvBaWorkspaceSessionActions({
       targetDate: x.ngay,
       targetBenhPham: x.benh_pham,
       xnList: split.xn,
-      statusById: xnStatusById,
+      cdhaList: cdhaForBloodLast(split.cdha).cdhaList,
+      statusById: { ...xnStatusById, ...cdhaForBloodLast(split.cdha).statusById },
     });
     if (!bloodLast.allowed) {
       toast.warning(bloodLast.message, { duration: 8000 });
@@ -314,7 +315,8 @@ export function useNkbvBaWorkspaceSessionActions({
         targetDate: sugXn.ngay,
         targetBenhPham: sugXn.benh_pham,
         xnList: split.xn,
-        statusById: xnStatusById,
+        cdhaList: cdhaForBloodLast(split.cdha).cdhaList,
+        statusById: { ...xnStatusById, ...cdhaForBloodLast(split.cdha).statusById },
       });
       if (!bloodLast.allowed) {
         toast.warning(bloodLast.message, { duration: 8000 });

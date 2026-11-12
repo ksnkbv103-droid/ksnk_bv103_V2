@@ -5,7 +5,7 @@ import { attributeWithinRit, computeBaGridSession, type BaGridCdhaCell, type BaG
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { detectSecondaryBsiFromSbap } from "../lib/nkbv-ket-luan-smart";
 import type { NkbvBaAnalysisSeedInput } from "../actions/giam-sat-nkbv-ba-analysis.actions";
-import { validateBloodLast, validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
+import { cdhaForBloodLast, validateBloodLast, validateChronoPrecedence } from "../lib/nkbv-chrono-precedence";
 import { type BaAnalysisSession, type BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import { vaeBaReadyToCreatePhieu } from "../lib/nkbv-syndrome-shell-helpers";
 import { canThiepDatesForPanel } from "../lib/nkbv-ba-device-timeline";
@@ -112,7 +112,8 @@ export default function NkbvBaWorkspaceCreateBar({
                     targetDate: idxXn.ngay,
                     targetBenhPham: idxXn.benh_pham,
                     xnList: split.xn,
-                    statusById: xnStatusById,
+                    cdhaList: cdhaForBloodLast(split.cdha).cdhaList,
+                    statusById: { ...xnStatusById, ...cdhaForBloodLast(split.cdha).statusById },
                   });
                   if (!bloodLast.allowed) {
                     toast.error(bloodLast.message, { duration: 8000 });
@@ -362,6 +363,30 @@ export default function NkbvBaWorkspaceCreateBar({
                 }}
               >
                 Bỏ qua XN (có lý do)
+              </button>
+            ) : null}
+            {openSession.index.kind === "CDHA" && !blockCreate ? (
+              <button
+                type="button"
+                className="rounded-full border border-slate-300 px-3 py-1.5 text-[11px] font-semibold text-slate-700"
+                onClick={async () => {
+                  const reason = await promptText({
+                    title: "Bỏ qua chẩn đoán hình ảnh",
+                    message: "CĐHA này sẽ không còn chặn phân tích cấy máu (không tạo ca NKBV).",
+                    label: "Lý do bỏ qua (bắt buộc)",
+                    minLength: 3,
+                    multiline: true,
+                    confirmText: "Bỏ qua CĐHA",
+                  });
+                  if (!reason) return;
+                  onSkipViSinh?.({
+                    viSinhId: openSession.index.id.replace(/^manual:/, ""),
+                    reason: reason.trim(),
+                    kind: "CDHA",
+                  });
+                }}
+              >
+                Bỏ qua CĐHA (có lý do)
               </button>
             ) : null}
             <span className="text-[11px] text-slate-500">

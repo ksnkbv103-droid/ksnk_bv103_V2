@@ -18,7 +18,7 @@ import {
 import { type BaSampleConclusion } from "../lib/nkbv-ba-sample-conclusions";
 import { type BaAnalysisMode } from "../lib/nkbv-ba-analysis-mode";
 import { toast } from "sonner";
-import { validateBloodLast } from "../lib/nkbv-chrono-precedence";
+import { cdhaForBloodLast, validateBloodLast } from "../lib/nkbv-chrono-precedence";
 import type { BaWorkspaceSplit } from "../hooks/useNkbvBaWorkspaceGridData";
 import type { useNkbvBaWorkspaceSessionOps } from "../hooks/useNkbvBaWorkspaceSessionOps";
 import type { useNkbvBaWorkspaceMutations } from "../hooks/useNkbvBaWorkspaceMutations";
@@ -171,12 +171,16 @@ export default function NkbvBaWorkspaceSessionPanels({
                 targetDate: b.ngay,
                 targetBenhPham: b.benh_pham,
                 xnList: split.xn,
-                statusById: Object.fromEntries(
-                  split.xn.map((x) => [
-                    x.id,
-                    resolveViSinhAnalysisStatus(bareViSinhIdFromMilestoneId(x.id) || x.id, mergedDispositions),
-                  ]),
-                ),
+                cdhaList: cdhaForBloodLast(split.cdha).cdhaList,
+                statusById: {
+                  ...Object.fromEntries(
+                    split.xn.map((x) => [
+                      x.id,
+                      resolveViSinhAnalysisStatus(bareViSinhIdFromMilestoneId(x.id) || x.id, mergedDispositions),
+                    ]),
+                  ),
+                  ...cdhaForBloodLast(split.cdha).statusById,
+                },
               });
               if (!bloodLast.allowed) {
                 toast.warning(bloodLast.message, { duration: 8000 });

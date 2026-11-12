@@ -675,7 +675,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
         fetchAllRangeRows<HubRow>((from, to) =>
           supabase
             .from("nkbv_fact_ba_timeline")
-            .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key")
+            .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key, metadata")
             .eq("ma_benh_an", ma)
             .eq("is_active", true)
             .order("milestone_date", { ascending: true })
@@ -811,6 +811,11 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       criteria_key: (m as { criteria_key?: string | null }).criteria_key
         ? String((m as { criteria_key?: string | null }).criteria_key)
         : null,
+      analysis_disposition: (() => {
+        const md = (m as { metadata?: unknown }).metadata;
+        const d = md && typeof md === "object" ? (md as Record<string, unknown>).analysis_disposition : null;
+        return d ? String(d) : null;
+      })(),
     })),
     devices: [],
     hasActiveVent,
