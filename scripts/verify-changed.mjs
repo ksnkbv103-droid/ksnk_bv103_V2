@@ -2,6 +2,7 @@
 // Dùng: node scripts/verify-changed.mjs [--dry] [--base <ref>]  (mặc định so với HEAD, gồm file chưa track)
 // Chỉ in dòng PASS/FAIL; lệnh lỗi in 30 dòng cuối. Exit 1 nếu có lệnh lỗi.
 import { spawnSync } from "node:child_process";
+import { codeStamp, writeStamp } from "./verify-stamp.mjs";
 
 const args = process.argv.slice(2);
 const dry = args.includes("--dry");
@@ -67,4 +68,6 @@ for (const [cmd, why] of cmds) {
     console.log(`FAIL ${cmd} (${secs}s, exit ${r.status})\n${tail}`);
   }
 }
+// PASS hết → ghi dấu verify cho Stop hook (.claude/hooks/stop-gate.mjs).
+if (!dry && !failed) writeStamp(codeStamp());
 process.exit(failed ? 1 : 0);
