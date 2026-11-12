@@ -15,7 +15,11 @@ vi.mock("../shared/application/cssd-operator-resolve", () => ({
 }));
 vi.mock("@/lib/cssd-server-common", () => ({ revalidateCssdIncidentSurfaces: () => undefined }));
 
-import { persistMeBiResultWithClient, persistMeTietKhuanFinishWithClient } from "./persist-me-tiet-khuan";
+import {
+  loadKitHeatLinesByBoIds,
+  persistMeBiResultWithClient,
+  persistMeTietKhuanFinishWithClient,
+} from "./persist-me-tiet-khuan";
 
 type Rows = Record<string, unknown>;
 type World = {
@@ -284,5 +288,107 @@ describe("thu hồi và nhả sau BI — persistMeBiResultWithClient", () => {
     const w = fakeClient(world({ batch: waiting }));
     const r = await persistMeBiResultWithClient(w.client, { ...biArgs, ketQua: "DUONG", ongThu: "DUONG" });
     expect(r).toEqual({ ok: false, message: "Không thu hồi được" });
+  });
+});
+
+/** PostgREST giả: lọc `.in()`, sắp xếp, `.range()`, và cắt im lặng ở `maxRows` như máy chủ thật. */
+function fakeRestClient(tables: Record<string, Rows[]>, maxRows = 1000) {
+  const calls: { table: string; inCount: number; range: [number, number] | null }[] = [];
+  const from = (table: string) => {
+    let rows = [...(tables[table] || [])];
+    const orders: string[] = [];
+    let range: [number, number] | null = null;
+    let inCount = 0;
+    const chain: Record<string, unknown> = {};
+    chain.select = () => chain;
+    chain.in = (col: string, vals: string[]) => {
+      inCount = vals.length;
+      rows = rows.filter((r) => vals.includes(String(r[col])));
+      return chain;
+    };
+    chain.order = (col: string) => {
+      orders.push(col);
+      return chain;
+    };
+    chain.range = (a: number, b: number) => {
+      range = [a, b];
+      return chain;
+    };
+    chain.then = (res: (v: unknown) => unknown) => {
+      calls.push({ table, inCount, range });
+      const sorted = [...rows].sort((x, y) => {
+        for (const c of orders) {
+          const d = String(x[c]).localeCompare(String(y[c]));
+          if (d) return d;
+        }
+        return 0;
+      });
+      const sliced = range ? sorted.slice(range[0], range[1] + 1) : sorted;
+      return Promise.resolve({ data: sliced.slice(0, maxRows), error: null }).then(res);
+    };
+    return chain;
+  };
+  return { client: { from } as unknown as SupabaseClient, calls };
+}
+
+describe("đọc thành phần bộ để kiểm chịu nhiệt — loadKitHeatLinesByBoIds (CSSD-014, CSSD-015)", () => {
+  const VIEW = "v_cssd_bo_thanh_phan_hieu_luc";
+  const LOAI = "cssd_dm_loai_dung_cu";
+
+  it("một bộ 2500 dòng → đọc đủ qua nhiều trang, món không chịu nhiệt nằm ở trang cuối vẫn thấy", async () => {
+    const loai = Array.from({ length: 2500 }, (_, i) => ({
+      id: `loai-${String(i).padStart(4, "0")}`,
+      is_chiu_nhiet: i !== 2499,
+      phuong_phap_tiet_khuan_chi_dinh: null,
+    }));
+    const view = loai.map((l) => ({ bo_dung_cu_id: "bo-1", loai_dung_cu_id: l.id }));
+    const { client, calls } = fakeRestClient({ [VIEW]: view, [LOAI]: loai });
+
+    const out = await loadKitHeatLinesByBoIds(client, ["bo-1"]);
+
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    const lines = out.byBo.get("bo-1") || [];
+    expect(lines).toHaveLength(2500);
+    expect(lines.filter((l) => l.is_chiu_nhiet === false)).toHaveLength(1);
+    expect(calls.filter((c) => c.table === VIEW).map((c) => c.range)).toEqual([
+      [0, 999],
+      [1000, 1999],
+      [2000, 2999],
+    ]);
+  });
+
+  it("45 bộ × 60 dòng → không bộ nào thiếu dòng; mỗi truy vấn ≤ 20 bộ và ≤ 100 loại", async () => {
+    const boIds = Array.from({ length: 45 }, (_, i) => `bo-${String(i).padStart(2, "0")}`);
+    const loai = Array.from({ length: 300 }, (_, i) => ({
+      id: `loai-${String(i).padStart(3, "0")}`,
+      is_chiu_nhiet: true,
+      phuong_phap_tiet_khuan_chi_dinh: null,
+    }));
+    const view = boIds.flatMap((bo, b) =>
+      Array.from({ length: 60 }, (_, k) => ({ bo_dung_cu_id: bo, loai_dung_cu_id: loai[(b * 7 + k) % 300].id })),
+    );
+    const { client, calls } = fakeRestClient({ [VIEW]: view, [LOAI]: loai });
+
+    const out = await loadKitHeatLinesByBoIds(client, boIds);
+
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    for (const bo of boIds) expect(out.byBo.get(bo)).toHaveLength(60);
+    expect([...out.byBo.values()].flat().every((l) => l.is_chiu_nhiet === true)).toBe(true);
+    expect(Math.max(...calls.filter((c) => c.table === VIEW).map((c) => c.inCount))).toBeLessThanOrEqual(20);
+    expect(Math.max(...calls.filter((c) => c.table === LOAI).map((c) => c.inCount))).toBeLessThanOrEqual(100);
+  });
+
+  it("dòng thành phần trỏ loại không còn trong danh mục → cờ null, không ép thành chịu nhiệt", async () => {
+    const { client } = fakeRestClient({
+      [VIEW]: [{ bo_dung_cu_id: "bo-1", loai_dung_cu_id: "loai-mat" }],
+      [LOAI]: [],
+    });
+    const out = await loadKitHeatLinesByBoIds(client, ["bo-1", "bo-rong"]);
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(out.byBo.get("bo-1")).toEqual([{ is_chiu_nhiet: null, phuong_phap_tiet_khuan_chi_dinh: null }]);
+    expect(out.byBo.get("bo-rong")).toEqual([]);
   });
 });
