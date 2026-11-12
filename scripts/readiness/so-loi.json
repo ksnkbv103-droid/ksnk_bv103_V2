@@ -1124,11 +1124,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Bảng zz_loai_backup_20261030 nằm ở public, không bật RLS, không có trong migration nào",
     "bang_chung": "DB local 2026-11-12: pg_class.relrowsecurity=false, 2311 dòng; grep supabase/migrations không thấy tên bảng; scripts/acl-snapshot.mjs bỏ qua bảng zz_* nên cổng ACL không thấy nó; authenticated có SELECT+INSERT (has_table_privilege=t), anon không SELECT → người đăng nhập bất kỳ đọc/ghi được qua API trên local",
-    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -At -c \"select relrowsecurity from pg_class where relname='zz_loai_backup_20261030'\"",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -At -c \"select to_regclass('public.zz_loai_backup_20261030') is null\"",
     "trang_thai": "MOI",
     "nguon": "acl-zz",
     "commit": "",
-    "ghi_chu": "Cần PO: bảng có trên prod không. Không xóa (phá hủy) khi chưa xác minh và PO chưa ra lệnh."
+    "ghi_chu": "Prod không có bảng (handoff 2026-11-12). PO duyệt DROP 2026-11-12; đã DROP trên DB local (2311 dòng, không phụ thuộc), kiểm to_regclass = null."
   },
   {
     "id": "NKBV-019",
