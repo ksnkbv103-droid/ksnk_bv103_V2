@@ -698,8 +698,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "15949d8d",
-    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ. | Tay 2026-11-13 CHUA: 2026-11-13: can tai khoan chi co quyen GSC/Mang luoi khong co NKBV view; fixture chua co - chi spec, de lai cho dot UAT voi dau moi",
-    "test_tay": "CHUA"
+    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ. | Tay 2026-11-13 CHUA: 2026-11-13: can tai khoan chi co quyen GSC/Mang luoi khong co NKBV view; fixture chua co - chi spec, de lai cho dot UAT voi dau moi | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai tam UAT_GSC_ONLY (chi GSC view/create/edit, khong NKBV view), NV_TEST01 khoa A12: form BM.31.03 header liet ke dung 3 BN MDRO A12 (BA-TRIAL-01/34/39, khop DB). Doi khoa phien sang A27: van chi 3 BN A12, BN MDRO A27 khong lo. Ca khong co khoa: khong dung duoc (tai khoan khong khoa ket vong checkStaffSessionAllowed) - spec phu. Ghi nhan: BM.31.03 is_active=false o local (da bat tam roi tra); nhan 'Danh sach theo khoa da chon' lech khi chon khoa khac khoa minh. Fixture da tra goc.",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-006",
