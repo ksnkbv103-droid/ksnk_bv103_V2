@@ -1458,5 +1458,44 @@
     "commit": "9e6df804, 6af1d55a (BA active chưa có khoa); spec fail trước/pass sau; verify:changed pass",
     "ghi_chu": "Khoa ghi nhận của phiếu chỉ dùng khi mã BA chưa có hồ sơ lẫn ngày nào trên lưới; Hub/đọc BA không truyền nên vẫn chặn. Chưa qua reviewer độc lập. | Tay 2026-11-13 KHONG_DAT: :3001 nv.test1 tạm Mạng lưới thuần khoa A27 + quyền tạm GIAM_SAT_NKBV edit/delete (preset thật chỉ có view → Mạng lưới thuần bị verifyPermission chặn trước khi tới kiểm khoa). Tiền đề «mã BA chưa import» không xảy ra được: FK fact_nkbv_su_kien_ma_benh_an_fkey bắt BA phải tồn tại. Ca (i) BA is_active=false, không lưới ngày, phiếu khoa mình: Ẩn phiếu → «Đã ẩn phiếu» ĐẠT. Ca (ii) BA active khoa_dieu_tri_id null (createNkbvBenhAnStay cho phép), không lưới ngày, phiếu khoa mình: Ẩn phiếu → «Hồ sơ nằm ngoài khoa của bạn.» KHÔNG ĐẠT — nhánh if (ba || …) return false. Đối chứng khoa khác: RLS ẩn khỏi danh sách. Xác định ca bị chặn client (thiếu ba_ngay_khoa → không quy kết LOA) nên chưa tới server. Đã dọn dữ liệu + vai tạm. | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai Mạng lưới A27 (cấp tạm edit/delete): BA active khoa_dieu_tri null, không lưới ngày, phiếu khoa mình → Đã ẩn phiếu; phiếu khoa khác bị RLS ẩn; đã dọn",
     "test_tay": "DAT"
+  },
+  {
+    "id": "NKBV-026",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "submitClinicalVerification vẫn nhận calculated_doe từ client (chỉ kiểm định dạng) và chấp nhận khoa quy kết có mặt bất kỳ ngày nào trên lưới BA, không phải khoa của ngày DOE (Transfer Rule)",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:571-578, 688-689 (sau 83691feb)",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-loa-khoa.spec.ts",
+    "trang_thai": "CHO_PO",
+    "nguon": "review-bv103 2026-11-13",
+    "commit": "",
+    "ghi_chu": "Phần sót NKBV-013. Cần PO chốt: DOE phải trong khoảng nằm viện? Khoa quy kết = khoa ngày DOE hay ngày trước đó khi chuyển khoa (SSOT domain-specification)."
+  },
+  {
+    "id": "CSSD-028",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "NGHIEM_TRONG",
+    "tieu_de": "createIncidentReport nhận setReconcilePayload.draftIncidentId bất kỳ → ghi đè attributes/mô tả/cờ đỏ phiếu sự cố người khác (RPC commit + update theo id không kiểm chủ/DRAFT)",
+    "bang_chung": "src/modules/cssd-su-co/application/su-co-report.application.ts:312-380; supabase/migrations/20260925010536_cssd_ledger_atomic.sql:658-685",
+    "lenh_kiem": "npm run test:cssd -- src/modules/cssd-su-co/application/su-co-report.application.spec.ts",
+    "trang_thai": "DA_SUA",
+    "nguon": "review-bv103 2026-11-13",
+    "commit": "8d571e6a",
+    "ghi_chu": "Sửa ở application (8d571e6a). Nợ: RPC rpc_cssd_commit_instrument_report vẫn không tự kiểm p_draft_id (chỉ gọi qua admin client từ server)."
+  },
+  {
+    "id": "QT-014",
+    "module": "QUAN_TRI",
+    "lop": "BACKEND",
+    "muc": "CAO",
+    "tieu_de": "setupGuestStatsPilotAccountAction bỏ qua lỗi đọc vai/Auth user khi kiểm hồ sơ khách gắn tài khoản quản trị (fail-open)",
+    "bang_chung": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/guest-stats-pilot.actions.ts:110-123",
+    "lenh_kiem": "npm run test:cssd -- src/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/guest-stats-pilot.actions.spec.ts",
+    "trang_thai": "DA_SUA",
+    "nguon": "review-bv103 2026-11-13",
+    "commit": "1261395c",
+    "ghi_chu": "Follow-up QT-011, sửa 1261395c."
   }
 ]

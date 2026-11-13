@@ -33,7 +33,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - NKBV-025 ĐẠT 2026-11-13: FK bắt BA tồn tại nên «chưa import» không xảy ra; đã sửa nhánh BA active chưa có khoa điều trị + không lưới ngày (`if (ba?.khoa_dieu_tri_id || …)` trong `nkbv-khoa-scope.server.ts`, 4 spec mới). Thử tay lại :3001 vai Mạng lưới: «Đã ẩn phiếu»; phiếu khoa khác vẫn bị RLS ẩn. Mạng lưới preset chỉ có NKBV view nên chỉ gặp khi được cấp thêm edit/delete.
 - Thử tay 2026-11-13 ĐẠT (36/43): thêm DT-005, NKBV-008 (DB đồng thời/rollback), NKBV-006/015/016, DT-008/013 (:3001, vai tạm đã xóa). 7 mục không lối UI giữ CHUA, có spec pass (NKBV-007 spec mới). Mẹo fixture: vai tạm có quyền cần thử, xóa sau phiên; BM.31.03 local is_active=false. Ghi nhận nhỏ chưa sửa: nút «Phê duyệt và giao» vẫn hiện cho người đề xuất; banner NKBV hiện link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
 - Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
-- Chưa qua reviewer độc lập: CSSD-011/012, NKBV-013..016, QT-011.
+- Review 2026-11-13 (CSSD-011/012, NKBV-013..016, QT-011): Go; sửa CSSD-028 (8d571e6a), QT-014 (1261395c); NKBV-026 CHO_PO (DOE/Transfer Rule). Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import (chỉ seed, không migration).
 - Mã chết (báo, không xóa): `NkbvBaGridCasePrintView.tsx`, `cssdCommandFreezeSet`, `isWithinLuot`.
 - Roadmap 65,9 KB so với mục tiêu 25 KB.
 
