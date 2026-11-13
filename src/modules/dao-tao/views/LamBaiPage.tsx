@@ -146,14 +146,20 @@ export default function LamBaiPage() {
         options={current.options}
         value={current.traLoi}
         onChange={(v) => {
-          setQuestions((prev) =>
-            prev.map((q, i) => (i === idx ? { ...q, traLoi: v } : q)),
-          );
-          void saveTraLoiCau({ lanThiId, cauId: current.id, traLoi: v })
+          const cauId = current.id;
+          const cu = current.traLoi;
+          const hoanLai = () =>
+            setQuestions((prev) => prev.map((q) => (q.id === cauId ? { ...q, traLoi: cu } : q)));
+          setQuestions((prev) => prev.map((q) => (q.id === cauId ? { ...q, traLoi: v } : q)));
+          void saveTraLoiCau({ lanThiId, cauId, traLoi: v })
             .then((r) => {
-              if (!r.ok) toast.error(r.error);
+              if (!r.ok) {
+                hoanLai();
+                toast.error(r.error);
+              }
             })
             .catch(() => {
+              hoanLai();
               toast.error("Không lưu được đáp án");
             });
         }}

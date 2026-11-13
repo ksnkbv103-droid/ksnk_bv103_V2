@@ -525,12 +525,12 @@ export async function saveTraLoiCau(rawInput: {
       .select("id, auth_user_id, trang_thai, de_snapshot, han_nop_luc, updated_at")
       .eq("id", input.lanThiId)
       .maybeSingle();
-    if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
-    if (lanThi.trang_thai === "huy") throw new Error(LUOT_HUY_MESSAGE);
-    if (lanThi.trang_thai !== "dang_lam") throw new Error("Bài đã nộp.");
+    if (!lanThi || lanThi.auth_user_id !== user.id) return { ok: false as const, error: "Không tìm thấy lần thi." };
+    if (lanThi.trang_thai === "huy") return { ok: false as const, error: LUOT_HUY_MESSAGE };
+    if (lanThi.trang_thai !== "dang_lam") return { ok: false as const, error: "Bài đã nộp." };
     // DT-007 (PO 2026-11-12): ân hạn 30 giây chỉ để nộp bài, không để ghi thêm câu trả lời.
     if (Date.now() > new Date(lanThi.han_nop_luc).getTime()) {
-      throw new Error("Đã hết giờ làm bài — không thể lưu thêm câu trả lời.");
+      return { ok: false as const, error: "Đã hết giờ làm bài — không thể lưu thêm câu trả lời." };
     }
 
     const cur = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).find((item) => item.id === input.cauId);

@@ -224,6 +224,7 @@ function lanRow(over: Record<string, unknown> = {}) {
   };
 }
 
+// gate-ok: DT-014 đổi hợp đồng saveTraLoiCau — lỗi nghiệp vụ trả ok:false thay vì throw (Next prod che thông điệp throw)
 describe("saveTraLoiCau: hạn nộp và quyền sở hữu", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -256,28 +257,34 @@ describe("saveTraLoiCau: hạn nộp và quyền sở hữu", () => {
   it("hạn +1ms (DT-007): từ chối lưu, không update, dù còn trong ân hạn nộp", async () => {
     vi.setSystemTime(HAN_MS + 1);
     mocks.handler.mockResolvedValue({ data: lanRow(), error: null });
-    await expect(saveTraLoiCau(input)).rejects.toThrow("Đã hết giờ làm bài");
+    expect(await saveTraLoiCau(input)).toEqual({
+      ok: false,
+      error: "Đã hết giờ làm bài — không thể lưu thêm câu trả lời.",
+    });
     expect(updates()).toHaveLength(0);
   });
 
   it("hạn +31s: từ chối lưu", async () => {
     vi.setSystemTime(HAN_MS + 31_000);
     mocks.handler.mockResolvedValue({ data: lanRow(), error: null });
-    await expect(saveTraLoiCau(input)).rejects.toThrow("Đã hết giờ làm bài");
+    expect(await saveTraLoiCau(input)).toEqual({
+      ok: false,
+      error: "Đã hết giờ làm bài — không thể lưu thêm câu trả lời.",
+    });
     expect(updates()).toHaveLength(0);
   });
 
   it("bài của người khác: không tìm thấy, không update", async () => {
     vi.setSystemTime(HAN_MS - 60_000);
     mocks.handler.mockResolvedValue({ data: lanRow({ auth_user_id: "user-b" }), error: null });
-    await expect(saveTraLoiCau(input)).rejects.toThrow("Không tìm thấy lần thi.");
+    expect(await saveTraLoiCau(input)).toEqual({ ok: false, error: "Không tìm thấy lần thi." });
     expect(updates()).toHaveLength(0);
   });
 
   it("bài đã nộp: từ chối", async () => {
     vi.setSystemTime(HAN_MS - 60_000);
     mocks.handler.mockResolvedValue({ data: lanRow({ trang_thai: "da_nop" }), error: null });
-    await expect(saveTraLoiCau(input)).rejects.toThrow("Bài đã nộp.");
+    expect(await saveTraLoiCau(input)).toEqual({ ok: false, error: "Bài đã nộp." });
   });
 
   it("phương án không thuộc câu hỏi: ok=false, không update", async () => {
@@ -508,9 +515,9 @@ describe("DT-006: lượt `huy` không mở/nộp/lưu được", () => {
   });
 
   it("lưu câu trả lời vào lượt huy: từ chối, không update", async () => {
-    await expect(
-      saveTraLoiCau({ lanThiId: LAN_ID, cauId: CAU_ID, traLoi: { kind: "single", optionId: "a" } }),
-    ).rejects.toThrow("Lượt thi này đã bị hủy.");
+    expect(
+      await saveTraLoiCau({ lanThiId: LAN_ID, cauId: CAU_ID, traLoi: { kind: "single", optionId: "a" } }),
+    ).toEqual({ ok: false, error: "Lượt thi này đã bị hủy." });
     expect(updates()).toHaveLength(0);
   });
 });
