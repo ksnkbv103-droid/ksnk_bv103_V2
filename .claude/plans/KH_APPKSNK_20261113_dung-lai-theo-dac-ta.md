@@ -76,7 +76,7 @@ Thứ tự phụ thuộc: L0 → L1 → L2 → L3; L4 sau L2 (dùng bảng tham 
 ### PO trả lời 2026-11-13
 
 1. CSSD: **xây lại lõi**.
-2. (a) **Lưu danh tính** người được quan sát → phải sửa R2.07 của M02; R2.07 dẫn QT.32 §V.1 «ghi nhận ẩn danh», nên QT.32 cũng cần PO sửa hoặc ghi ngoại lệ (chưa làm, kho KSNK). (b) Sửa/xóa **theo đặc tả**: lý do ≥ 10 ký tự ĐÃ LÀM cho VST; bước trưởng khoa duyệt CHƯA LÀM (cần bảng yêu cầu duyệt, lát L3b-2). GSC giữ ≥ 3 ký tự vì R2.36 không nêu độ dài. (c) **Giữ tick tay** → ghi vào R1.09/R1.10 của M01 (chưa làm, kho KSNK).
+2. (a) **Lưu danh tính** người được quan sát → phải sửa R2.07 của M02; R2.07 dẫn QT.32 §V.1 «ghi nhận ẩn danh», nên QT.32 cũng cần PO sửa hoặc ghi ngoại lệ (đặc tả ĐÃ SỬA 2026-11-14, kho KSNK; QT.32 còn mở ở X2.13). (b) Sửa/xóa **theo đặc tả**: lý do ≥ 10 ký tự ĐÃ LÀM cho VST; bước trưởng khoa duyệt CHƯA LÀM (cần bảng yêu cầu duyệt, lát L3b-2). GSC giữ ≥ 3 ký tự vì R2.36 không nêu độ dài. (c) **Giữ tick tay** → ghi vào R1.09/R1.10 của M01 (ĐÃ SỬA 2026-11-14, kho KSNK).
 3. Mẻ không đạt: **xử lý lại từ đầu** (về Tiếp nhận), thay dòng «PO chốt lại 2026-10-10» trong `18-CSSD…SSOT.md`. Hành vi RPC sửa ở L4.
 
 ### Tiến độ
