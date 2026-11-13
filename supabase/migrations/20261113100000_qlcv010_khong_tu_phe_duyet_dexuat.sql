@@ -102,7 +102,7 @@ BEGIN
     WHEN 'PHE_DUYET_DEXUAT' THEN
       IF v_cv.is_active = true OR v_cv.trang_thai = 'DA_HUY' THEN RAISE EXCEPTION 'Không phải đề xuất chờ duyệt'; END IF;
       -- QLCV-010: người đề xuất (nguoi_tao_id) không tự phê duyệt đề xuất của mình, chỉ miễn ADMIN (như QLCV-003).
-      IF p_actor_nhan_su_id IS NOT DISTINCT FROM v_cv.nguoi_tao_id
+      IF p_actor_nhan_su_id IS NOT NULL AND p_actor_nhan_su_id = v_cv.nguoi_tao_id  -- NULL/NULL không coi là tự duyệt
          AND NOT EXISTS (
            SELECT 1
            FROM public.mdm_nhan_su ns

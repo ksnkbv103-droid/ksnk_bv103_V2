@@ -1373,7 +1373,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
     "commit": "81eb1ae2",
-    "ghi_chu": "Câu PO: có cấm tự duyệt không | Mặc định Claude 2026-11-13 (PO chưa chốt): cấm người đề xuất tự phê duyệt, miễn ADMIN, sửa trong fn_qlcv_transition (migration 20261113100000, chưa prod); đảo = revert 81eb1ae2"
+    "ghi_chu": "Câu PO: có cấm tự duyệt không | Mặc định Claude 2026-11-13 (PO chưa chốt): cấm người đề xuất tự phê duyệt, miễn ADMIN, sửa trong fn_qlcv_transition (migration 20261113100000, chưa prod); đảo = revert 81eb1ae2 |  · Review 2026-11-13 Major: NULL/NULL bị chặn sai → so bằng = khi actor NOT NULL; repro thêm ca NULL_NULL_OK."
   },
   {
     "id": "DT-015",
