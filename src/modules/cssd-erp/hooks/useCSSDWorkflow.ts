@@ -23,6 +23,7 @@ type ScanResultPayload = {
   maLoTietKhuan?: string;
   issuanceOnly?: boolean;
   ledgerWarning?: string;
+  warning?: string;
   tenKhoa?: string | null;
   maBo?: string | null;
 };
@@ -89,6 +90,7 @@ export function useCSSDWorkflow() {
         // CSSD-L02 / 17b: soft-allow silent — do not surface ledgerWarning on card
       });
       toast.success(`Đã xử lý: ${displayQr}`);
+      if (scanRes.warning) toast.warning(scanRes.warning);
       void fetchWaitingList(station);
     },
     [operatorLabel, fetchWaitingList],

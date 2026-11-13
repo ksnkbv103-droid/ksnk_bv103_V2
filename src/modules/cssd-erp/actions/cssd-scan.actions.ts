@@ -111,6 +111,7 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
         quyTrinhId: received.newQuyTrinhId,
         maLoTietKhuan: "",
         recallReceive: true as const,
+        warning: received.incidentPatchFailed ? "Đã nhận bộ, chưa cập nhật được phiếu sự cố" : undefined,
       };
     }
   }

@@ -59,14 +59,6 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
     );
   }
 
-  const { data: unlocked, error: upErr } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .update({ is_dong_bang: false, updated_at: new Date().toISOString() })
-    .eq("id", quyId)
-    .select("id");
-  if (upErr) throw new Error(upErr.message);
-  if (!unlocked?.length) throw new Error("Không mở khóa được bộ — bản ghi không còn hoặc đã đổi.");
-
   let operator = "CSSD";
   try {
     const nsId = await getActorNhanSuId();
@@ -82,6 +74,7 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   } catch {
     /* giữ CSSD */
   }
+  // Ghi nhật ký trước (không soft): lỗi thì ném ra và không mở khóa.
   await appendQuyTrinhException(
     supabase,
     quyId,
@@ -90,8 +83,15 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
       ly_do: "Mở khóa an toàn sau khi phiếu sự cố đã đóng (giải phóng)",
       nguoi_thao_tac: operator,
     },
-    { soft: true },
   );
+
+  const { data: unlocked, error: upErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .update({ is_dong_bang: false, updated_at: new Date().toISOString() })
+    .eq("id", quyId)
+    .select("id");
+  if (upErr) throw new Error(upErr.message);
+  if (!unlocked?.length) throw new Error("Không mở khóa được bộ — bản ghi không còn hoặc đã đổi.");
 
   revalidateCssdIncidentSurfaces();
   return { success: true as const };

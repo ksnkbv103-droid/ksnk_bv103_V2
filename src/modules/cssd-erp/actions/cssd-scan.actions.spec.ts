@@ -162,4 +162,13 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     expect(arg.quyTrinh.metadata).toEqual({ thu_hoi: { trang_thai: "CHO_THU_VE" } });
     expect(r).toMatchObject({ recallReceive: true, quyTrinhId: "new-1" });
   });
+  it("CSSD-022: nhận bộ thành công nhưng chưa cập nhật phiếu sự cố thì trả warning", async () => {
+    mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
+    mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1", incidentPatchFailed: true });
+    const r = await scanQR("B01.SET.01", "TIEP_NHAN");
+    expect(r).toMatchObject({
+      recallReceive: true,
+      warning: "Đã nhận bộ, chưa cập nhật được phiếu sự cố",
+    });
+  });
 });

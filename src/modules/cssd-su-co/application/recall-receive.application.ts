@@ -18,7 +18,7 @@ export async function tryReceiveChoThuVeAtTiepNhan(
     operatorLabel: string;
     operatorNhanSuId?: string | null;
   },
-): Promise<{ handled: false } | { handled: true; newQuyTrinhId: string; incidentId: string | null }> {
+): Promise<{ handled: false } | { handled: true; newQuyTrinhId: string; incidentId: string | null; incidentPatchFailed?: true }> {
   const q = opts.quyTrinh;
   const oldId = String(q.id || "").trim();
   if (!oldId) return { handled: false };
@@ -95,7 +95,11 @@ export async function tryReceiveChoThuVeAtTiepNhan(
     .eq("id", oldId)
     .eq("is_active", true)
     .select("id");
-  if (oldErr) throw new Error(oldErr.message);
+  if (oldErr) {
+    // Chu trình cũ chưa vô hiệu: bỏ chu trình vừa tạo để không có hai chu trình active cùng QR.
+    await supabase.from("cssd_fact_quy_trinh").update({ is_active: false, updated_at: now }).eq("id", newId);
+    throw new Error(oldErr.message);
+  }
   if (!oldRows?.length) {
     // Quét trùng/đồng thời: chu trình cũ đã được nhận bởi lần quét khác → bỏ chu trình vừa tạo, tránh trùng QR.
     await supabase.from("cssd_fact_quy_trinh").update({ is_active: false, updated_at: now }).eq("id", newId);
@@ -103,16 +107,19 @@ export async function tryReceiveChoThuVeAtTiepNhan(
   }
 
   const incidentId = String(thuHoi?.suCoId || "").trim() || null;
+  let incidentPatchFailed = false;
   if (incidentId) {
-    await patchIncidentHoldReturned(supabase, {
+    incidentPatchFailed = !(await patchIncidentHoldReturned(supabase, {
       incidentId,
       oldQuyTrinhId: oldId,
       newQuyTrinhId: newId,
       operatorLabel: opts.operatorLabel,
-    });
+    }));
   }
 
-  return { handled: true, newQuyTrinhId: newId, incidentId };
+  return incidentPatchFailed
+    ? { handled: true, newQuyTrinhId: newId, incidentId, incidentPatchFailed: true }
+    : { handled: true, newQuyTrinhId: newId, incidentId };
 }
 
 async function patchIncidentHoldReturned(
@@ -123,12 +130,15 @@ async function patchIncidentHoldReturned(
     newQuyTrinhId: string;
     operatorLabel: string;
   },
-): Promise<void> {
+): Promise<boolean> {
   // Đọc-rồi-ghi trên attributes: hai bộ quét cùng lúc dễ ghi đè bộ đếm của nhau → khóa lạc quan theo updated_at, thử lại.
   for (let attempt = 0; attempt < 4; attempt++) {
-    if (await tryPatchHoldReturned(supabase, opts)) return;
+    const res = await tryPatchHoldReturned(supabase, opts);
+    if (res === "done") return true;
+    if (res === "fail") return false;
   }
   console.error({ module: "cssd-su-co", action: "patchIncidentHoldReturned", error: "retry exhausted", incidentId: opts.incidentId });
+  return false;
 }
 
 async function tryPatchHoldReturned(
@@ -139,13 +149,16 @@ async function tryPatchHoldReturned(
     newQuyTrinhId: string;
     operatorLabel: string;
   },
-): Promise<boolean> {
+): Promise<"done" | "retry" | "fail"> {
   const { data, error } = await supabase
     .from("cssd_fact_su_co")
     .select("id, attributes, mo_ta, updated_at")
     .eq("id", opts.incidentId)
     .maybeSingle();
-  if (error || !data) return true;
+  if (error || !data) {
+    console.error({ module: "cssd-su-co", action: "tryPatchHoldReturned", error: error?.message || "không thấy phiếu", incidentId: opts.incidentId });
+    return "fail";
+  }
 
   const attrs = ((data as { attributes?: Record<string, unknown> }).attributes || {}) as Record<
     string,
@@ -170,6 +183,9 @@ async function tryPatchHoldReturned(
     .eq("id", opts.incidentId);
   q = prevUpdatedAt ? q.eq("updated_at", prevUpdatedAt) : q.is("updated_at", null);
   const { data: written, error: wErr } = await q.select("id");
-  if (wErr) return true;
-  return Boolean(written?.length);
+  if (wErr) {
+    console.error({ module: "cssd-su-co", action: "tryPatchHoldReturned", error: wErr.message, incidentId: opts.incidentId });
+    return "fail";
+  }
+  return written?.length ? "done" : "retry";
 }
