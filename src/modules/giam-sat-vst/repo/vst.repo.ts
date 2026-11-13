@@ -199,8 +199,7 @@ export async function findActiveVstObservations(sessionId: string) {
   return await db
     .from("gstt_fact_vst")
     .select("nhan_vien_id, metadata")
-    .eq("session_id", sessionId)
-    .eq("is_active", true);
+    .eq("session_id", sessionId);
 }
 
 /**

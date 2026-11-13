@@ -8,10 +8,7 @@ import { getActorRoleNames, hasRBACAdminSupervisionBypass, verifyPermission } fr
 import { quyetDinhDuongDieuChinhVst, VST_VAI_TRO_CAN_BO_KSNK } from "../lib/vst-yeu-cau-dieu-chinh";
 import { formatVstKhoaFkViolation, vstWriteErrorMessage } from "./vst-write.helpers";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
-import {
-  isSupervisionSessionMutationExpired,
-  SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
-} from "@/lib/supervision-mutation-window";
+import { isSupervisionSessionMutationExpired } from "@/lib/supervision-mutation-window";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeSessionIds } from "@/lib/normalize-session-ids";
@@ -165,7 +162,7 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
 
 /**
  * Kiểm tra phiên VST có được phép mở form sửa hay không.
- * Chủ phiên trong 30 phút; sau 30 phút chỉ Admin (bắt lý do khi lưu).
+ * Chủ phiên trong 30 phút: sửa ngay. Sau 30 phút: chủ phiên gửi yêu cầu chờ duyệt, Admin sửa ngay (đều bắt lý do).
  */
 export async function assertCanEditVSTSession(sessionId: string) {
   try {
@@ -197,18 +194,15 @@ export async function assertCanEditVSTSession(sessionId: string) {
     }
 
     const expired = isSupervisionSessionMutationExpired(row.created_at);
-    if (!adminBypass) {
-      if (String(row.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-        return { success: false as const, error: VST_OWNER_ONLY_VI };
-      }
-      if (expired) {
-        return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
-      }
-    }
+    const laChuPhien = !!actorNhanSuId && String(row.nguoi_giam_sat_id || "") === String(actorNhanSuId);
+    // @dac-ta R1.24 — chủ phiên quá 30 phút vẫn mở được form; lưu sẽ thành yêu cầu chờ duyệt.
+    const duong = quyetDinhDuongDieuChinhVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk: false });
+    if (duong === "TU_CHOI") return { success: false as const, error: VST_OWNER_ONLY_VI };
 
     return {
       success: true as const,
-      requiresReason: Boolean(adminBypass && expired),
+      requiresReason: expired,
+      choDuyet: duong === "YEU_CAU",
     };
   } catch (error: unknown) {
     return { success: false as const, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };

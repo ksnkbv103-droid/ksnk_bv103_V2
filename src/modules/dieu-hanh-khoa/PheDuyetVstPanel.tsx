@@ -30,12 +30,13 @@ export function PheDuyetVstPanel() {
   if (loading || !canApprove) return null;
 
   const xuLy = async (id: string, duyet: boolean) => {
+    const laSua = rows.find((r) => r.id === id)?.loai === "SUA";
     setBusyId(id);
     const res = duyet ? await approveVstYeuCauAction(id) : await rejectVstYeuCauAction(id);
     setBusyId(null);
     if (!res.success) toast.error(res.error);
     else {
-      toast.success(duyet ? "Đã duyệt, phiên đã được vô hiệu." : "Đã từ chối yêu cầu.");
+      toast.success(!duyet ? "Đã từ chối yêu cầu." : laSua ? "Đã duyệt, phiên đã được sửa theo đề nghị." : "Đã duyệt, phiên đã được vô hiệu.");
       await reload();
     }
   };
@@ -43,7 +44,7 @@ export function PheDuyetVstPanel() {
   return (
     <section className="rounded-xl border border-slate-200 bg-white">
       <h2 className="border-b border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900">
-        Giám sát vệ sinh tay — yêu cầu xóa phiên sau 30 phút ({rows.length})
+        Giám sát vệ sinh tay — yêu cầu sửa, xóa phiên sau 30 phút ({rows.length})
       </h2>
       {rows.length === 0 ? (
         <p className="px-4 py-3 text-[12px] text-slate-600">Không có yêu cầu nào đang chờ duyệt.</p>

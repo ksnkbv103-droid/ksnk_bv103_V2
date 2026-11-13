@@ -365,7 +365,7 @@ export default function VSTForm({
               </p>
             ) : null}
             {requiresEditReason && editingSessionId ? (
-              <p>Phiên quá 30 phút: Admin sửa cần ghi lý do (tối thiểu 10 ký tự) khi lưu.</p>
+              <p>Phiên quá 30 phút: cần ghi lý do (tối thiểu 10 ký tự) khi lưu; thay đổi của người giám sát sẽ chờ chủ nhiệm khoa duyệt.</p>
             ) : null}
           </div>
         ) : null}

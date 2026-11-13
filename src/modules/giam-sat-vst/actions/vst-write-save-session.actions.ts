@@ -9,10 +9,8 @@ import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-norma
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveSupervisorIdForSave } from "@/lib/supervision-supervisor-id";
-import {
-  isSupervisionSessionMutationExpired,
-  SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
-} from "@/lib/supervision-mutation-window";
+import { isSupervisionSessionMutationExpired } from "@/lib/supervision-mutation-window";
+import { quyetDinhDuongDieuChinhVst } from "../lib/vst-yeu-cau-dieu-chinh";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
@@ -176,6 +174,7 @@ export async function saveVSTSession(
     const personCount = countDistinctPersons(observations);
     let grandfatherPersonCap = VST_MAX_PERSONS_NEW;
     let requiresEditReason = false;
+    let guiYeuCauSua = false;
     let existingMeta: Record<string, unknown> = {};
 
     if (existingSessionId) {
@@ -198,19 +197,20 @@ export async function saveVSTSession(
         existingMeta = existing.metadata as Record<string, unknown>;
       }
       const expired = isSupervisionSessionMutationExpired(existing.created_at);
-      if (!adminBypass) {
-        if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-          throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
-        }
-        if (expired) {
-          throw new Error(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
-        }
-      } else if (expired) {
+      const laChuPhien = !!actorNhanSuId && String(existing.nguoi_giam_sat_id || "") === String(actorNhanSuId);
+      // @dac-ta R1.24 — chủ phiên quá 30 phút: gửi yêu cầu sửa chờ chủ nhiệm khoa duyệt (không ghi thẳng).
+      const duong = quyetDinhDuongDieuChinhVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk: false });
+      if (duong === "TU_CHOI") {
+        throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
+      }
+      if (expired) {
         requiresEditReason = true;
+        guiYeuCauSua = duong === "YEU_CAU";
         const lyDo = String(opts?.lyDoSua ?? "").trim();
         if (!isValidVstEditReason(lyDo)) {
-          throw new Error(`Sau 30 phút chỉ Admin được sửa và phải ghi lý do (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).`);
+          throw new Error(`Sửa phiên sau 30 phút phải ghi lý do (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).`);
         }
+        if (guiYeuCauSua && !actorAuthUserId) throw new Error("Không xác định được tài khoản của bạn.");
       }
 
       const { data: prevObs, error: prevErr } = await vstRepo.findActiveVstObservations(existingSessionId);
@@ -294,6 +294,29 @@ export async function saveVSTSession(
         };
       }),
     );
+
+    if (guiYeuCauSua && existingSessionId) {
+      const { error: reqErr } = await supabase.from("gstt_fact_vst_yeu_cau_dieu_chinh").insert({
+        session_id: existingSessionId,
+        loai: "SUA",
+        ly_do: String(opts?.lyDoSua ?? "").trim(),
+        payload: { session: sessionPayload, observations: observationsPayload },
+        nguoi_yeu_cau_auth_id: actorAuthUserId,
+        nguoi_yeu_cau_nhan_su_id: actorNhanSuId || null,
+      });
+      if (reqErr) {
+        if ((reqErr as { code?: string }).code === "23505") throw new Error("Phiên đã có yêu cầu đang chờ duyệt.");
+        throw reqErr;
+      }
+      revalidatePath("/phe-duyet");
+      return {
+        success: true,
+        sessionId: existingSessionId,
+        choDuyet: true,
+        message: "Đã gửi yêu cầu sửa, chờ chủ nhiệm khoa duyệt. Nội dung phiên chưa thay đổi.",
+        deduplicated: false,
+      };
+    }
 
     const { data: rpcData, error: rpcErr } = await vstRepo.saveVstSessionViaRpc({
       sessionId: existingSessionId || null,

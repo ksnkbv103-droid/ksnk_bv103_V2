@@ -83,7 +83,7 @@ async function chiemYeuCau(id: string, trangThai: "DA_DUYET" | "TU_CHOI", lyDoTu
   const db = await getDb("admin");
   const { data: req, error } = await db
     .from(BANG)
-    .select("id,session_id,loai,ly_do,trang_thai,nguoi_yeu_cau_auth_id,nguoi_yeu_cau_nhan_su_id")
+    .select("id,session_id,loai,ly_do,trang_thai,payload,nguoi_yeu_cau_auth_id,nguoi_yeu_cau_nhan_su_id")
     .eq("id", reqId)
     .maybeSingle();
   if (error) throw error;
@@ -124,6 +124,48 @@ async function traLaiChoDuyet(db: Awaited<ReturnType<typeof getDb>>, id: string)
     .eq("id", id);
 }
 
+/** Áp nội dung đề nghị sửa (đã kiểm ở server lúc gửi) lên phiên; nhật ký giữ bản trước và sau. */
+async function apDungYeuCauSua(
+  db: Awaited<ReturnType<typeof getDb>>,
+  p: {
+    sid: string;
+    lyDo: string;
+    before: Record<string, unknown>;
+    req: Record<string, unknown>;
+    actorAuthUserId: string | null;
+  },
+) {
+  const payload = p.req.payload as { session?: Record<string, unknown>; observations?: unknown[] } | null;
+  if (!payload?.session || !Array.isArray(payload.observations) || !payload.observations.length) {
+    throw new Error("Yêu cầu sửa thiếu nội dung đề nghị.");
+  }
+  const ngayMoi = String(payload.session.ngay_giam_sat ?? "").slice(0, 10);
+  if (ngayMoi) await assertSupervisionNotLockedForDate(db, "VST", ngayMoi);
+  const { data: obsTruoc, error: obsErr } = await vstRepo.findActiveVstObservations(p.sid);
+  if (obsErr) throw obsErr;
+  const { error: rpcErr } = await vstRepo.saveVstSessionViaRpc({
+    sessionId: p.sid,
+    session: payload.session,
+    observations: payload.observations as Record<string, unknown>[],
+  });
+  if (rpcErr) throw rpcErr;
+  await logAdminAction({
+    action: "VST_EDIT_SESSION_AFTER_WINDOW",
+    targetTable: "gstt_fact_vst_sessions",
+    targetId: p.sid,
+    before: { ...p.before, so_co_hoi: (obsTruoc || []).length, co_hoi: obsTruoc || [] },
+    after: {
+      ...payload.session,
+      so_co_hoi: payload.observations.length,
+      co_hoi: payload.observations,
+      yeu_cau_id: p.req.id,
+      nguoi_yeu_cau_auth_id: p.req.nguoi_yeu_cau_auth_id,
+    },
+    reason: p.lyDo,
+    actorUserId: p.actorAuthUserId,
+  });
+}
+
 /**
  * Duyệt yêu cầu: áp thay đổi lên phiên và ghi nhật ký trước/sau.
  * @dac-ta R1.24, R1.25
@@ -132,31 +174,34 @@ export async function approveVstYeuCauAction(id: string): Promise<Kq> {
   try {
     const { db, req, actorAuthUserId } = await chiemYeuCau(id, "DA_DUYET");
     try {
-      if (req.loai !== "XOA") throw new Error("Chưa hỗ trợ duyệt yêu cầu sửa nội dung phiên.");
       const sid = String(req.session_id);
+      const lyDo = String(req.ly_do);
       const { data: rows, error: qErr } = await vstRepo.findVstSessionsForDelete([sid]);
       if (qErr) throw qErr;
       const before = (rows || [])[0] as { is_active?: boolean; ngay_giam_sat?: string | null } | undefined;
       if (!before || before.is_active === false) throw new Error("Phiên không còn hoặc đã bị vô hiệu.");
       await assertSupervisionNotLockedForDate(db, "VST", before.ngay_giam_sat ?? null);
-      const lyDo = String(req.ly_do);
-      const { data: updated, error: delErr } = await vstRepo.softDeleteVstSessions({
-        ids: [sid],
-        nowIso: new Date().toISOString(),
-        deletedBy: (req.nguoi_yeu_cau_nhan_su_id as string | null) ?? null,
-        lyDo,
-      });
-      if (delErr) throw delErr;
-      if (!updated?.length) throw new Error("Phiên đã thay đổi trước đó, vui lòng tải lại.");
-      await logAdminAction({
-        action: "VST_SOFT_DELETE_SESSION",
-        targetTable: "gstt_fact_vst_sessions",
-        targetId: sid,
-        before: { ...before },
-        after: { is_active: false, ly_do_xoa: lyDo, yeu_cau_id: req.id, nguoi_yeu_cau_auth_id: req.nguoi_yeu_cau_auth_id },
-        reason: lyDo,
-        actorUserId: actorAuthUserId,
-      });
+      if (req.loai === "SUA") {
+        await apDungYeuCauSua(db, { sid, lyDo, before, req, actorAuthUserId });
+      } else {
+        const { data: updated, error: delErr } = await vstRepo.softDeleteVstSessions({
+          ids: [sid],
+          nowIso: new Date().toISOString(),
+          deletedBy: (req.nguoi_yeu_cau_nhan_su_id as string | null) ?? null,
+          lyDo,
+        });
+        if (delErr) throw delErr;
+        if (!updated?.length) throw new Error("Phiên đã thay đổi trước đó, vui lòng tải lại.");
+        await logAdminAction({
+          action: "VST_SOFT_DELETE_SESSION",
+          targetTable: "gstt_fact_vst_sessions",
+          targetId: sid,
+          before: { ...before },
+          after: { is_active: false, ly_do_xoa: lyDo, yeu_cau_id: req.id, nguoi_yeu_cau_auth_id: req.nguoi_yeu_cau_auth_id },
+          reason: lyDo,
+          actorUserId: actorAuthUserId,
+        });
+      }
     } catch (applyErr) {
       await traLaiChoDuyet(db, String(req.id));
       throw applyErr;

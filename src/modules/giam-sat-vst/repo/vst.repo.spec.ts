@@ -157,4 +157,13 @@ describe("vst.repo", () => {
       );
     });
   });
+
+  describe("findActiveVstObservations", () => {
+    // Bảng cơ hội gstt_fact_vst không có cột is_active (RPC lưu phiên xóa rồi ghi lại cơ hội);
+    // lọc theo cột đó làm mọi lần sửa phiên vỡ với lỗi 42703.
+    it("chỉ lọc theo session_id, không lọc cột is_active không tồn tại", async () => {
+      await vstRepo.findActiveVstObservations("s-1");
+      expect(mocks.eqMock.mock.calls.map((c) => c[0])).toEqual(["session_id"]);
+    });
+  });
 });

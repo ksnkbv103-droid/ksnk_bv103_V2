@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
   createdAt: null as string | null,
   inserts: [] as unknown[],
   updateCount: 0,
+  ownerId: "ns-1",
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -27,6 +28,12 @@ vi.mock("@/lib/supabase-server", () => ({
   createAdminSupabaseClient: () => ({
     from: () => ({
       select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            data: { id: SID, nguoi_giam_sat_id: m.ownerId, is_active: true, created_at: m.createdAt ?? new Date().toISOString(), ngay_giam_sat: "2026-11-01" },
+            error: null,
+          }),
+        }),
         in: async () => ({
           data: [
             { id: SID, nguoi_giam_sat_id: "ns-1", is_active: true, created_at: m.createdAt ?? new Date().toISOString(), ngay_giam_sat: "2026-11-01" },
@@ -54,7 +61,7 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
-import { deleteVSTSessions } from "./vst-write-delete.actions";
+import { assertCanEditVSTSession, deleteVSTSessions } from "./vst-write-delete.actions";
 
 describe("deleteVSTSessions", () => {
   beforeEach(() => {
@@ -62,6 +69,7 @@ describe("deleteVSTSessions", () => {
     m.inserts.length = 0;
     m.updateCount = 0;
     m.createdAt = null;
+    m.ownerId = "ns-1";
     m.updateResult = { data: [{ id: SID }], error: null };
   });
 
@@ -93,5 +101,27 @@ describe("deleteVSTSessions", () => {
     const r = await deleteVSTSessions([SID], { lyDo: "nhầm 1" });
     expect(r.success).toBe(false);
     expect(m.inserts).toHaveLength(0);
+  });
+});
+
+// @dac-ta T1.33
+describe("assertCanEditVSTSession (R1.24)", () => {
+  beforeEach(() => {
+    m.createdAt = null;
+    m.ownerId = "ns-1";
+  });
+
+  it("chủ phiên trong 30 phút: sửa trực tiếp, không cần lý do", async () => {
+    expect(await assertCanEditVSTSession(SID)).toEqual({ success: true, requiresReason: false, choDuyet: false });
+  });
+
+  it("chủ phiên quá 30 phút: được mở form, phải ghi lý do và chờ duyệt", async () => {
+    m.createdAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    expect(await assertCanEditVSTSession(SID)).toEqual({ success: true, requiresReason: true, choDuyet: true });
+  });
+
+  it("không phải chủ phiên: chặn", async () => {
+    m.ownerId = "ns-khac";
+    expect((await assertCanEditVSTSession(SID)).success).toBe(false);
   });
 });
