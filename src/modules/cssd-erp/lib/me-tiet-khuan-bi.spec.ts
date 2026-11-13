@@ -49,6 +49,15 @@ describe("assertBiBm02HopLe", () => {
     expect(docLuc("2026-10-05T09:01:30.000Z").ok).toBe(true);
     expect(docLuc("2026-10-05T08:59:00.000Z").ok).toBe(true);
   });
+
+  it("CSSD-017: thời gian ủ BI tối thiểu 20 phút (PO 2026-11-13)", () => {
+    const now = Date.parse("2026-10-05T10:00:00.000Z");
+    const uLuc = (iso: string) => assertBiBm02HopLe({ ...base, gioBatDauU: iso }, now);
+    const r = uLuc("2026-10-05T08:59:00.000Z");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toBe("Thời gian ủ BI tối thiểu 20 phút.");
+    expect(uLuc("2026-10-05T08:40:00.000Z").ok).toBe(true);
+  });
 });
 
 describe("assertBiAmReleaseAllowed", () => {

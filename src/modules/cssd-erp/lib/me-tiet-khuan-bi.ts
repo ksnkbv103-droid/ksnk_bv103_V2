@@ -25,6 +25,8 @@ export type BiBm02Record = {
 };
 
 const BI_GIO_DOC_DUNG_SAI_MS = 2 * 60_000;
+/** CSSD-017 (PO 2026-11-13): thời gian ủ BI tối thiểu 20 phút. */
+const BI_U_TOI_THIEU_MS = 20 * 60_000;
 
 const MSG_BI_KHONG_HOP_LE = "Kết quả BI không hợp lệ — ống đối chứng phải dương tính; chạy lại thử nghiệm.";
 
@@ -95,6 +97,9 @@ export function assertBiBm02HopLe(
   }
   if (tDoc < tU) {
     return { ok: false, message: "Giờ đọc BI không được trước giờ bắt đầu ủ." };
+  }
+  if (tDoc - tU < BI_U_TOI_THIEU_MS) {
+    return { ok: false, message: "Thời gian ủ BI tối thiểu 20 phút." };
   }
   // CSSD-017: không nhận giờ đọc ở tương lai; dung sai 2 phút cho lệch đồng hồ máy trạm/máy chủ.
   if (tDoc > nowMs + BI_GIO_DOC_DUNG_SAI_MS) {
