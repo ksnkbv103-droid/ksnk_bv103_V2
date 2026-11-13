@@ -60,3 +60,8 @@ Bằng chứng cơ học: `npm run module:audit -- qlcv`. Trên prod 0 việc (r
 1. **Đầu mối + số người nhóm KSNK** (bước 1). Mặc định: giữ XÁC_NHẬN.
 2. **Công cụ giao việc hiện nay** và việc quên gần nhất (bước 1). Mặc định: giữ `[GIẢ THUYẾT]`.
 3. Cho phép Claude viết ba kịch bản tay và chạy với dữ liệu thử? Mặc định: có (không đổi nghiệp vụ).
+
+### Cập nhật 2026-11-13
+- `module:audit`: 4/10 (Có 3, 4, 6, 7); 15 action, 27 spec. `module:gate`: XÁC_NHẬN, đầu mối CHƯA CÓ.
+- Sổ lỗi: 10 dòng — 4 đã sửa, 4 lỗi giả, 1 hoãn (QLCV-006), 1 chờ PO: QLCV-010 (người đề xuất tự phê duyệt đề xuất của mình nếu có quyền duyệt). Thử tay ĐẠT 1 (QLCV-007, phê duyệt đề xuất nguyên tử), 0 không đạt.
+- Câu 3 (ba kịch bản tay): mới có 1 kịch bản đạt; «ghi chú theo người tạo» vẫn **chưa chắc**.

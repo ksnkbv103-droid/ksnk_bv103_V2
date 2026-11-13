@@ -60,3 +60,9 @@ Bằng chứng cơ học: `npm run module:audit -- dao-tao`. Trên prod 1 lần 
 1. **Đầu mối + số nhân viên thi/năm** (bước 1). Mặc định: giữ KHÁM_PHÁ.
 2. **Ai ra đề, ai chấm, lưu ở đâu hiện nay** (bước 1). Mặc định: giữ `[GIẢ THUYẾT]`.
 3. Cho Claude bổ sung spec cho đường chấm điểm và ẩn đáp án (bước 7, việc nhỏ, không đổi nghiệp vụ)? Mặc định: có.
+
+### Cập nhật 2026-11-13
+- `module:audit`: 4/10 (Có 3, 4, 6, 7); 6 action, 4 spec. `module:gate`: KHÁM_PHÁ, đầu mối CHƯA CÓ.
+- Sổ lỗi: 15 dòng — 12 đã sửa, 2 lỗi giả, 1 hoãn (DT-001, migration TRUNCATE ngân hàng câu hỏi). Thử tay ĐẠT 2 (DT-007 nộp trễ, DT-014 lưu đáp án bị từ chối), CHƯA 3 (DT-005 race lượt, DT-008, DT-013 > 500 dòng), 0 không đạt.
+- Bước 7 «ẩn đáp án đến khi nộp»: DT-008 đã sửa (a73785d7), chưa thử tay; còn câu PO: có ẩn đáp án Đúng/Sai sau nộp không.
+- DT-006 (tự đóng lượt quá hạn) cần cột `huy_*` trên prod: phải áp lô migration trước khi deploy mã.

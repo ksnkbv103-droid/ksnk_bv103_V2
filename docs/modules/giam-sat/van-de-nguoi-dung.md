@@ -62,3 +62,9 @@ Bằng chứng cơ học: `npm run module:audit -- giam-sat`. Module duy nhất 
 2. **Số «trước khi dùng app»** (bước 2/10): trước đây tổng hợp một kỳ mất bao lâu, ai làm? Mặc định: không đo, bỏ tiêu chí mục 5 dòng 3.
 3. **N phiên VST/tuần** (bước 10): chọn N? Mặc định: lấy trung bình 4 tuần gần nhất làm mốc.
 4. **Vận hành** (bước 9): ai nhận báo lỗi? Mặc định: bất kỳ ai báo, như CSSD.
+
+### Cập nhật 2026-11-13
+- `module:audit`: 5/10 (Có 3, 4, 6, 7, 8); 36 action, 42 spec. `module:gate`: CHẠY_THỬ, đầu mối CHƯA CÓ.
+- Sổ lỗi (`so-loi.mjs`): 13 dòng — 8 đã sửa, 3 lỗi giả, 1 hoãn (VST-009), 1 chờ PO (VST-013). Thử tay ĐẠT 4 trên DB local (:3001), 0 không đạt.
+- VST-003 (RLS đọc phiên theo phạm vi) đã sửa ở local, chưa áp prod: nằm trong lô migration prod chờ PO.
+- Bước 9, 10 vẫn **thiếu**; câu hỏi PO 1–4 ở trên chưa trả lời.

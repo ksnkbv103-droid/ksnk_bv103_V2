@@ -18,6 +18,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
 - UAT 2026-11-13 trên :3001: ĐẠT CSSD-006, NKBV-009, QLCV-007, DT-007, DT-014 (sau sửa 47b8e383). Đã sửa c80d15c4: CSSD-026/024, NKBV-022, VST-013b (chưa thử tay). `check` exit 0.
 - QT-013 đã sửa + thử tay đạt. VST-012 = lỗi giả (chỉ kẹt khi tab pane nằm nền; đo ở tab trước bằng tab mới, không đo tab nền). Thử tay ĐẠT CSSD-024, NKBV-022, VST-013b (fixture đã trả về gốc). NKBV-024 (Kho vi sinh hiện nút ghi cho vai chỉ xem) đã sửa d5d60fdb + thử tay đạt.
+- Lát D xong 2026-11-13: mục 8 `van-de-nguoi-dung.md` của 5 module có khối «Cập nhật 2026-11-13» (audit, gate, sổ lỗi, thử tay).
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
 - 15 dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture). Chạy khi có đầu mối/UAT thật.
 
