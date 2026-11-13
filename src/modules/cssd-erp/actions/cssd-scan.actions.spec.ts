@@ -162,6 +162,13 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     expect(arg.quyTrinh.metadata).toEqual({ thu_hoi: { trang_thai: "CHO_THU_VE" } });
     expect(r).toMatchObject({ recallReceive: true, quyTrinhId: "new-1" });
   });
+  it("CSSD-026: nhận lại thu hồi dùng resolver nhân sự (không phụ thuộc getActorNhanSuId)", async () => {
+    mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
+    mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1" });
+    await scanQR("B01.SET.01", "TIEP_NHAN");
+    const arg = mocks.recv.mock.calls[0][1] as { operatorNhanSuId: string | null };
+    expect(arg.operatorNhanSuId).toBe("ns-op-01");
+  });
   it("CSSD-022: nhận bộ thành công nhưng chưa cập nhật phiếu sự cố thì trả warning", async () => {
     mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
     mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1", incidentPatchFailed: true });

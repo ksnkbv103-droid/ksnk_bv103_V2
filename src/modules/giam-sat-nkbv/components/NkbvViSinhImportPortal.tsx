@@ -36,6 +36,8 @@ import NkbvViSinhStorePanel from "./NkbvViSinhStorePanel";
 
 type NkbvViSinhImportPortalProps = {
   khoas: Array<{ id: string; ten_danh_muc: string; ma_danh_muc?: string }>;
+  /** Quyền import GIAM_SAT_NKBV (khớp verifyPermission "import" phía server). */
+  canImport: boolean;
 };
 
 type ParsedRecord = {
@@ -156,7 +158,7 @@ function draftToParsed(r: NkbvLisDraftRow, khoas: NkbvViSinhImportPortalProps["k
   };
 }
 
-export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortalProps) {
+export default function NkbvViSinhImportPortal({ khoas, canImport }: NkbvViSinhImportPortalProps) {
   const khoaOptions = useMemo(() => nkbvKhoaSelectOptions(khoas), [khoas]);
   const [pasteData, setPasteData] = useState("");
   const [showPastePanel, setShowPastePanel] = useState(false);
@@ -462,7 +464,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                disabled={isLoading}
+                disabled={!canImport || isLoading}
                 className="flex items-center gap-1.5 rounded-full bg-blue-50 hover:bg-blue-100 px-4 py-2 bv103-type-label font-semibold text-blue-800 disabled:opacity-50"
               >
                 <UploadCloud className="h-4 w-4" />
@@ -471,7 +473,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => setShowPastePanel((v) => !v)}
-                disabled={isLoading}
+                disabled={!canImport || isLoading}
                 aria-expanded={showPastePanel}
                 className={`flex items-center gap-1.5 rounded-full px-4 py-2 bv103-type-label font-semibold disabled:opacity-50 ${
  showPastePanel
@@ -504,7 +506,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 <button
                   type="button"
                   onClick={() => void handleParsePaste()}
-                  disabled={isLoading}
+                  disabled={!canImport || isLoading}
                   className={`${C.ctaPrimary} hover:bg-[var(--primary-hover)] disabled:opacity-50`}
                 >
                   Phân tích <ArrowRight className="h-4 w-4" />
@@ -546,7 +548,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => void handleImportSubmit()}
-                disabled={isLoading || incompleteCount > 0}
+                disabled={!canImport || isLoading || incompleteCount > 0}
                 className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-xs font-semibold text-white shadow-lg disabled:opacity-50"
               >
                 {isLoading ? "Đang lưu..." : "Lưu vào kho vi sinh"}

@@ -16,7 +16,6 @@ import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { tryReceiveChoThuVeAtTiepNhan } from "@/modules/cssd-su-co/application/recall-receive.application";
-import { getActorNhanSuId } from "@/lib/actor-auth-server";
 // DOM-04: quét trạm không stamp bom_kiem_dem_at (RPC persist checkpoint giữ trong DB, app không gọi).
 
 async function cssdScanOperatorLabel(): Promise<string> {
@@ -86,7 +85,12 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
 
   /** SC-01 pha 2: bộ chờ thu hồi — nhận lại tại Tiếp nhận (bỏ qua đóng băng). */
   if (station === "TIEP_NHAN" && preRow?.id) {
-    const operatorId = await getActorNhanSuId();
+    const ucRecall = await createServerSupabaseUserClient();
+    const { data: recallAuth } = await ucRecall.auth.getUser();
+    const operatorId = await resolveCssdOperatorNhanSuId(supabase, {
+      authUserId: recallAuth.user?.id,
+      email: recallAuth.user?.email || operatorLabel,
+    });
     // View v_cssd_quy_trinh_full không có cột metadata → đọc từ bảng gốc.
     let quyTrinhRow: Record<string, unknown> = preRow;
     if (preRow.metadata === undefined) {

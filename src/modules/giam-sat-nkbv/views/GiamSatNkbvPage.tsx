@@ -946,7 +946,7 @@ export default function GiamSatNkbvPage() {
 
       {mainTab === "vi-sinh" ? (
         <KsnkSupervisionPanel className="pt-2">
-          <NkbvViSinhImportPortal khoas={header.khoas} />
+          <NkbvViSinhImportPortal khoas={header.khoas} canImport={allowed.import} />
         </KsnkSupervisionPanel>
       ) : null}
 

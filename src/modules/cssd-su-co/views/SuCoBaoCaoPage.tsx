@@ -29,6 +29,7 @@ const INSTRUMENT_TYPES = new Set([
 
 export default function SuCoBaoCaoPage() {
   const { loading, allowed } = useModulePermission("BAO_SU_CO");
+  const { allowed: reportAllowed } = useModulePermission("CSSD_REPORT");
   const router = useRouter();
   const searchParams = useSearchParams();
   const luanChuyenBookmark = isLuanChuyenTypeId(searchParams.get("type"));
@@ -140,14 +141,16 @@ export default function SuCoBaoCaoPage() {
       title="Sự cố"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
-          <Link
-            href={reportHref}
-            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <FileBarChart size={14} aria-hidden />
-            Nhật ký sự cố
-            <ExternalLink size={12} className="opacity-50" aria-hidden />
-          </Link>
+          {reportAllowed.view ? (
+            <Link
+              href={reportHref}
+              className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <FileBarChart size={14} aria-hidden />
+              Nhật ký sự cố
+              <ExternalLink size={12} className="opacity-50" aria-hidden />
+            </Link>
+          ) : null}
         </div>
       }
     >

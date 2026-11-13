@@ -49,6 +49,16 @@ export function useDataTable<T extends { id: string | number }>(
     return () => window.clearTimeout(t);
   }, [searchTerm, searchDebounceMs]);
 
+  // Dữ liệu đổi (vd. sau khi xóa) → bỏ id không còn tồn tại khỏi vùng chọn.
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const ids = new Set(initialData.map((item) => item.id));
+      const next = new Set([...prev].filter((id) => ids.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [initialData]);
+
   const filterTerm = searchDebounceMs > 0 ? debouncedSearchTerm : searchTerm;
 
   // --- Handlers ---
