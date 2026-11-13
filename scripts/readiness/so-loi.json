@@ -1274,11 +1274,12 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Sau đăng nhập, vai Mạng lưới/Nhân viên rơi vào /bao-cao-tong-hop và gặp lỗi quyền thay vì trang được phép",
     "bang_chung": "UAT :3001 2026-11-13, NV_TEST01 vai MANG_LUOI_KSNK",
-    "lenh_kiem": "grep -n bao-cao-tong-hop src/lib/ksnk-pilot-route-scope.ts src/app/page.tsx",
-    "trang_thai": "DA_XAC_MINH",
+    "lenh_kiem": "npm run test:cssd -- src/app/page.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Cần xác minh đường chuyển hướng mặc định sau đăng nhập theo vai | explore-module 2026-11-13: THẬT TB — ksnk-pilot-route-scope.ts:51-62 luôn trả /bao-cao-tong-hop, page.tsx:10 redirect không xét quyền; sửa: chọn route đầu tiên vai có quyền. Chưa đối chiếu quyền thật trong DB."
+    "commit": "8b9d6e8d",
+    "ghi_chu": "Cần xác minh đường chuyển hướng mặc định sau đăng nhập theo vai | explore-module 2026-11-13: THẬT TB — ksnk-pilot-route-scope.ts:51-62 luôn trả /bao-cao-tong-hop, page.tsx:10 redirect không xét quyền; sửa: chọn route đầu tiên vai có quyền. Chưa đối chiếu quyền thật trong DB. | Sửa 8b9d6e8d page.tsx kiểm verifyBaoCaoTongHopShell, thiếu quyền → /giam-sat. review-bv103: Go (Minor: catch nuốt cả lỗi DB tạm thời). | Tay 2026-11-13 DAT: :3001 2026-11-13: NHAN_VIEN_KSNK / → /bao-cao-tong-hop; đổi tạm NV_TEST01 sang MANG_LUOI_KSNK / → /giam-sat; đã trả vai gốc.",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-012",
