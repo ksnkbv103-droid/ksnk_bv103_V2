@@ -17,7 +17,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Điểm cơ học (`module:audit`, số bước có/10): giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước còn thiếu (1, 2, 5, 8, 9, 10) đều cần người dùng/PO: đầu mối, kịch bản thật, ngưỡng, UAT, số đo. Sửa mã không nâng được điểm.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
 - UAT 2026-11-13 trên :3001: ĐẠT CSSD-006, NKBV-009, QLCV-007, DT-007, DT-014 (sau sửa 47b8e383). Đã sửa c80d15c4: CSSD-026/024, NKBV-022, VST-013b (chưa thử tay). `check` exit 0.
-- QT-013 đã sửa + thử tay đạt. VST-012 = lỗi giả (chỉ kẹt khi tab pane nằm nền; đo ở tab trước bằng tab mới, không đo tab nền). Việc kế: thử tay CSSD-024, NKBV-022, VST-013b.
+- QT-013 đã sửa + thử tay đạt. VST-012 = lỗi giả (chỉ kẹt khi tab pane nằm nền; đo ở tab trước bằng tab mới, không đo tab nền). Thử tay ĐẠT CSSD-024, NKBV-022, VST-013b (fixture đã trả về gốc). Lệch UI Thấp chưa ghi sổ: Kho vi sinh NKBV hiện Thêm XN/sửa/xóa cho vai chỉ xem (server chặn).
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
 - 15 dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture). Chạy khi có đầu mối/UAT thật.
 

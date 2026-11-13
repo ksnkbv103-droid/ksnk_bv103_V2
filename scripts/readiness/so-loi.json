@@ -1305,8 +1305,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
     "commit": "c80d15c4",
-    "ghi_chu": "Ẩn liên kết theo quyền | explore-module: THẬT Thấp — SuCoBaoCaoPage.tsx:136-150 render link không lọc CSSD_REPORT; cùng helper ở NkbvCssdRcaPanel.tsx:157, PheDuyetDungCuPanel.tsx:328.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Ẩn liên kết theo quyền | explore-module: THẬT Thấp — SuCoBaoCaoPage.tsx:136-150 render link không lọc CSSD_REPORT; cùng helper ở NkbvCssdRcaPanel.tsx:157, PheDuyetDungCuPanel.tsx:328. | Tay 2026-11-13 DAT: UAT :3001 2026-11-13: vai MANG_LUOI_KSNK (tạm) vào /cssd-su-co không có link Nhật ký sự cố; NHAN_VIEN_KSNK thấy link → /cssd-erp/report?tab=incident",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-022",
@@ -1319,8 +1319,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
     "commit": "c80d15c4",
-    "ghi_chu": "Ẩn/khóa nút theo quyền import | explore-module: THẬT TB — GiamSatNkbvPage.tsx:314 tab + :947-951 portal không truyền cờ quyền; NkbvViSinhImportPortal.tsx:465-550 nút chỉ disabled khi loading. Chưa kiểm server action.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Ẩn/khóa nút theo quyền import | explore-module: THẬT TB — GiamSatNkbvPage.tsx:314 tab + :947-951 portal không truyền cờ quyền; NkbvViSinhImportPortal.tsx:465-550 nút chỉ disabled khi loading. Chưa kiểm server action. | Tay 2026-11-13 DAT: UAT :3001 2026-11-13: vai MANG_LUOI_KSNK (chỉ view NKBV) tab Nạp dữ liệu: Upload Excel + Dán bảng disabled (Phân tích/Lưu nằm sau). Ngoài phạm vi: panel Kho vi sinh vẫn hiện Thêm XN/sửa/xóa cho vai chỉ xem — server chặn edit/delete, lệch UI Thấp",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-013",
@@ -1333,8 +1333,8 @@
     "trang_thai": "CHO_PO",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi. | (b) đã sửa c80d15c4 useDataTable.ts dọn selectedIds; (a) thứ tự khoa chờ PO chốt trường lâm sàng.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi. | (b) đã sửa c80d15c4 useDataTable.ts dọn selectedIds; (a) thứ tự khoa chờ PO chốt trường lâm sàng. | Tay 2026-11-13 DAT: (b) UAT :3001 2026-11-13: /lich-su/gsc chọn phiên thử của NV_TEST01 → Xóa (lý do) → is_active=false, Đã chọn 1 mất, 0 ô tick. (a) vẫn chờ PO",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-025",
