@@ -2,7 +2,7 @@
 // Sổ lỗi sẵn sàng vận hành thử: nguồn điều hướng duy nhất cho đợt rà toàn project.
 // Dùng: node scripts/readiness/so-loi.mjs status | next [n] | next --tay [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | tay <ID> <DAT|KHONG_DAT|CHUA> [ghi chú] | check
 // Agent rà KHÔNG sửa so-loi.json; ghi mảng phát hiện vào scripts/readiness/inbox/<ten>.json, chat điều phối chạy `merge`.
-import { readFileSync, writeFileSync, readdirSync, unlinkSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, unlinkSync, existsSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -131,6 +131,9 @@ if (cmd === "merge") {
   const kd = rows.filter((r) => r.test_tay === "KHONG_DAT");
   if (kd.length) { console.log(`Kịch bản tay KHÔNG ĐẠT: ${kd.map((r) => r.id).join(", ")}`); fail += kd.length; }
   console.log(`Kịch bản tay chưa chạy: ${rows.filter((r) => r.test_tay === "CHUA").length} (xem next --tay)`);
+  // HANDOFF chỉ trỏ đường; tiến độ nằm trong sổ. Quá 6000 byte là đang chép tiến độ.
+  const handoff = join(DIR, "..", "..", "HANDOFF.md");
+  if (existsSync(handoff) && statSync(handoff).size > 6000) { console.log(`HANDOFF.md ${statSync(handoff).size} byte > 6000: dời tiến độ vào ghi_chu của sổ`); fail++; }
   process.exit(fail ? 1 : 0);
 } else if (cmd === "status" || !cmd) {
   console.log(`Sổ lỗi: ${rows.length} dòng · mở ${rows.filter((r) => MO.has(r.trang_thai)).length} · đã sửa ${rows.filter((r) => r.trang_thai === "DA_SUA").length} · lỗi giả ${rows.filter((r) => r.trang_thai === "LOI_GIA").length} · hoãn ${rows.filter((r) => r.trang_thai === "HOAN").length}`);
