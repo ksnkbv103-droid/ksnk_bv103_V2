@@ -108,10 +108,14 @@ export async function setupGuestStatsPilotAccountAction(params: {
 
     // QT-011: hồ sơ khách đang gắn tài khoản quản trị/khẩn cấp thì không đổi email, không đặt lại mật khẩu.
     if (existingStaff?.id && existingStaff.auth_user_id) {
-      const [{ data: overview }, { data: linked }] = await Promise.all([
+      const [{ data: overview, error: overviewErr }, { data: linked, error: linkedErr }] = await Promise.all([
         supabase.from("v_sys_staff_auth_overview").select("role_names").eq("id", existingStaff.id).maybeSingle(),
         supabase.auth.admin.getUserById(existingStaff.auth_user_id as string),
       ]);
+      // Không đọc được vai/Auth user thì không chắc đây không phải tài khoản quản trị → dừng.
+      if (overviewErr || linkedErr || !overview || !linked?.user) {
+        return { success: false as const, error: GUEST_LINKED_ADMIN_ERROR };
+      }
       const roles = ((overview?.role_names as string[] | null) ?? []).map((r) => String(r || "").trim().toUpperCase());
       if (roles.includes("ADMIN") || isTrustedAdminEmail(linked?.user?.email)) {
         return { success: false as const, error: GUEST_LINKED_ADMIN_ERROR };

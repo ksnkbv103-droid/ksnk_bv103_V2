@@ -93,4 +93,26 @@ describe("QT-011 setupGuestStatsPilotAccountAction", () => {
     expect(res).toMatchObject({ success: false, error: expect.stringContaining("tài khoản quản trị") });
     expectNoWrite();
   });
+
+  it("đọc vai trò lỗi: không coi là «không có vai», từ chối, không ghi gì", async () => {
+    mocks.maybeSingle
+      .mockResolvedValueOnce({ data: { id: "role-1" } })
+      .mockResolvedValueOnce({ data: { id: "ns1", auth_user_id: "u1", extra_data: {}, is_active: true }, error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: "view lỗi" } });
+    mocks.getUserById.mockResolvedValue({ data: { user: { email: "ai-do@bv103.vn" } }, error: null });
+    const res = await setupGuestStatsPilotAccountAction({ ...input, email: "khach@bv103.vn" });
+    expect(res.success).toBe(false);
+    expectNoWrite();
+  });
+
+  it("đọc Auth user lỗi: từ chối, không ghi gì", async () => {
+    mocks.maybeSingle
+      .mockResolvedValueOnce({ data: { id: "role-1" } })
+      .mockResolvedValueOnce({ data: { id: "ns1", auth_user_id: "u1", extra_data: {}, is_active: true }, error: null })
+      .mockResolvedValueOnce({ data: { role_names: [] }, error: null });
+    mocks.getUserById.mockResolvedValue({ data: { user: null }, error: { message: "auth lỗi" } });
+    const res = await setupGuestStatsPilotAccountAction({ ...input, email: "khach@bv103.vn" });
+    expect(res.success).toBe(false);
+    expectNoWrite();
+  });
 });
