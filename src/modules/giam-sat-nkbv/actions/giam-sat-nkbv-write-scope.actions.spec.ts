@@ -163,6 +163,14 @@ describe("phạm vi khoa cho action ghi bệnh án (NKBV-010)", () => {
     expect((all as { error?: string }).error).not.toBe(OUT);
   });
 
+  it("updateGiamSatNkbvCa: phiếu có mã BA → kiểm phạm vi BA kèm khoa ghi nhận của phiếu (BA chưa import)", async () => {
+    mocks.row.mockReturnValue({ trang_thai_id: "t1", ma_benh_an: "BA-MOI", khoa_ghi_nhan_id: "k1" });
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    mocks.inScope.mockResolvedValue(true);
+    await updateGiamSatNkbvCa("ev1", { ho_ten_benh_nhan: "A", loai_nkbv_id: "l1", khoa_ghi_nhan_id: "k1" });
+    expect(mocks.inScope).toHaveBeenCalledWith({ kind: "khoa", khoaId: "k1" }, "BA-MOI", ["k1"]);
+  });
+
   it("updateGiamSatNkbvCa: bị giới hạn khoa mà xóa trống khoa ghi nhận thì chặn", async () => {
     const REQ = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";
     mocks.row.mockReturnValue({ trang_thai_id: "t1", ma_benh_an: null, khoa_ghi_nhan_id: "k1" });

@@ -63,7 +63,9 @@ async function isNkbvCaInScope(supabase: ReturnType<typeof createAdminSupabaseCl
     .maybeSingle();
   if (error) throw error;
   if (!row) return true;
-  if (row.ma_benh_an) return isNkbvBenhAnInScope(restriction, String(row.ma_benh_an));
+  if (row.ma_benh_an) {
+    return isNkbvBenhAnInScope(restriction, String(row.ma_benh_an), [row.khoa_ghi_nhan_id as string | null]);
+  }
   return nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null]);
 }
 
@@ -109,7 +111,7 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     if (!cur?.trang_thai_id) return { success: false as const, error: "Không tìm thấy phiếu" };
     const restriction = await getNkbvKhoaRestriction();
     if (cur.ma_benh_an) {
-      if (!(await isNkbvBenhAnInScope(restriction, String(cur.ma_benh_an)))) {
+      if (!(await isNkbvBenhAnInScope(restriction, String(cur.ma_benh_an), [cur.khoa_ghi_nhan_id as string | null]))) {
         return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
       }
     } else if (!nkbvKhoaVisible(restriction, [cur.khoa_ghi_nhan_id as string | null])) {
@@ -202,7 +204,7 @@ export async function softDeleteGiamSatNkbvCa(id: string) {
   if (!row) return { success: false as const, error: "Không tìm thấy phiếu" };
   const restriction = await getNkbvKhoaRestriction();
   if (row.ma_benh_an) {
-    if (!(await isNkbvBenhAnInScope(restriction, String(row.ma_benh_an)))) {
+    if (!(await isNkbvBenhAnInScope(restriction, String(row.ma_benh_an), [row.khoa_ghi_nhan_id as string | null]))) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
     }
   } else if (!nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null])) {
