@@ -38,6 +38,7 @@ import {
   type ViSinhAnalysisStatus,
 } from "../lib/nkbv-vi-sinh-analysis-status";
 import { confirmAction } from "@/components/shared/confirm-action";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 type Draft = {
   khoa_yeu_cau_id: string;
@@ -115,6 +116,8 @@ export default function NkbvViSinhStorePanel({
   const [creating, setCreating] = useState(false);
   const [createDraft, setCreateDraft] = useState<CreateDraft | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // NKBV-024: action create/update/MDRO đòi edit, xóa cứng đòi delete — vai chỉ xem không thấy nút ghi.
+  const { allowed } = useModulePermission("GIAM_SAT_NKBV");
 
   const khoaOptions = useMemo(() => nkbvKhoaSelectOptions(khoas), [khoas]);
 
@@ -286,13 +289,15 @@ export default function NkbvViSinhStorePanel({
           </p>
         </div>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={startCreate}
-            className="inline-flex items-center gap-1 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-xs font-semibold text-[var(--primary)]"
-          >
-            <Plus className="h-3.5 w-3.5" /> Thêm XN
-          </button>
+          {allowed.edit ? (
+            <button
+              type="button"
+              onClick={startCreate}
+              className="inline-flex items-center gap-1 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-xs font-semibold text-[var(--primary)]"
+            >
+              <Plus className="h-3.5 w-3.5" /> Thêm XN
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => void reload()}
@@ -546,7 +551,7 @@ export default function NkbvViSinhStorePanel({
                     <td className="px-3 py-2">
                       <button
                         type="button"
-                        disabled={busyId === r.id}
+                        disabled={!allowed.edit || busyId === r.id}
                         onClick={() => void onQuickMdro(r)}
                         className={`rounded-full px-2.5 py-1 bv103-type-label font-semibold ${
                           r.is_mdro
@@ -575,21 +580,25 @@ export default function NkbvViSinhStorePanel({
                             <Activity className="h-3 w-3" /> Phân tích
                           </Link>
                         ) : null}
-                        <button
-                          type="button"
-                          onClick={() => startEdit(r)}
-                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
-                        >
-                          <Pencil className="h-3 w-3" /> Sửa
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busyId === r.id}
-                          onClick={() => void onDelete(r)}
-                          className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700"
-                        >
-                          <Trash2 className="h-3 w-3" /> Xóa
-                        </button>
+                        {allowed.edit ? (
+                          <button
+                            type="button"
+                            onClick={() => startEdit(r)}
+                            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                          >
+                            <Pencil className="h-3 w-3" /> Sửa
+                          </button>
+                        ) : null}
+                        {allowed.delete ? (
+                          <button
+                            type="button"
+                            disabled={busyId === r.id}
+                            onClick={() => void onDelete(r)}
+                            className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700"
+                          >
+                            <Trash2 className="h-3 w-3" /> Xóa
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>

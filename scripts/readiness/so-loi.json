@@ -1400,5 +1400,19 @@
     "nguon": "audit-2026-11-13",
     "commit": "c80d15c4",
     "ghi_chu": ""
+  },
+  {
+    "id": "NKBV-024",
+    "module": "NKBV",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Kho vi sinh NKBV hiện Thêm XN / Sửa / Xóa / MDRO cho vai chỉ xem (action vẫn chặn)",
+    "bang_chung": "UAT :3001 2026-11-13 vai MANG_LUOI_KSNK",
+    "lenh_kiem": "grep -n useModulePermission src/modules/giam-sat-nkbv/components/NkbvViSinhStorePanel.tsx",
+    "trang_thai": "DANG_SUA",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Server chặn edit/delete (giam-sat-nkbv-vi-sinh-store.actions.ts:188,283,351,380); UI không đọc quyền. Cùng mẫu NKBV-022.",
+    "test_tay": "CHUA"
   }
 ]
