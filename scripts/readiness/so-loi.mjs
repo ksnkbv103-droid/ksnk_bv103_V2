@@ -132,8 +132,8 @@ if (cmd === "merge") {
   if (kd.length) { console.log(`Kịch bản tay KHÔNG ĐẠT: ${kd.map((r) => r.id).join(", ")}`); fail += kd.length; }
   console.log(`Kịch bản tay chưa chạy: ${rows.filter((r) => r.test_tay === "CHUA").length} (xem next --tay)`);
   // HANDOFF chỉ trỏ đường; tiến độ nằm trong sổ. Quá 6000 byte là đang chép tiến độ.
-  const handoff = join(DIR, "..", "..", "HANDOFF.md");
-  if (existsSync(handoff) && statSync(handoff).size > 6000) { console.log(`HANDOFF.md ${statSync(handoff).size} byte > 6000: dời tiến độ vào ghi_chu của sổ`); fail++; }
+  const handoff = join(DIR, "..", "..", "HANDOFF_APPKSNK.md");
+  if (existsSync(handoff) && statSync(handoff).size > 6000) { console.log(`HANDOFF_APPKSNK.md ${statSync(handoff).size} byte > 6000: dời tiến độ vào ghi_chu của sổ`); fail++; }
   process.exit(fail ? 1 : 0);
 } else if (cmd === "status" || !cmd) {
   console.log(`Sổ lỗi: ${rows.length} dòng · mở ${rows.filter((r) => MO.has(r.trang_thai)).length} · đã sửa ${rows.filter((r) => r.trang_thai === "DA_SUA").length} · lỗi giả ${rows.filter((r) => r.trang_thai === "LOI_GIA").length} · hoãn ${rows.filter((r) => r.trang_thai === "HOAN").length}`);

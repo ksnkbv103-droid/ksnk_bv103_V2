@@ -1,5 +1,6 @@
 {
   "model": "sonnet",
+  "plansDirectory": ".claude/plans",
   "hooks": {
     "Stop": [
       {

@@ -1,4 +1,4 @@
-# HANDOFF — Rà 5 module để vận hành thử (cập nhật 2026-11-13)
+# HANDOFF_APPKSNK — Rà 5 module để vận hành thử (cập nhật 2026-11-13)
 
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md` (lô migration prod, sao lưu nhóm 2, ghi chú NKBV máu-sau-cùng). `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
