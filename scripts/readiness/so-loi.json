@@ -1456,7 +1456,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "handoff-no-2026-11-13",
     "commit": "9e6df804; spec fail trước/pass sau; verify:changed pass",
-    "ghi_chu": "Khoa ghi nhận của phiếu chỉ dùng khi mã BA chưa có hồ sơ lẫn ngày nào trên lưới; Hub/đọc BA không truyền nên vẫn chặn. Chưa qua reviewer độc lập.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Khoa ghi nhận của phiếu chỉ dùng khi mã BA chưa có hồ sơ lẫn ngày nào trên lưới; Hub/đọc BA không truyền nên vẫn chặn. Chưa qua reviewer độc lập. | Tay 2026-11-13 KHONG_DAT: :3001 nv.test1 tạm Mạng lưới thuần khoa A27 + quyền tạm GIAM_SAT_NKBV edit/delete (preset thật chỉ có view → Mạng lưới thuần bị verifyPermission chặn trước khi tới kiểm khoa). Tiền đề «mã BA chưa import» không xảy ra được: FK fact_nkbv_su_kien_ma_benh_an_fkey bắt BA phải tồn tại. Ca (i) BA is_active=false, không lưới ngày, phiếu khoa mình: Ẩn phiếu → «Đã ẩn phiếu» ĐẠT. Ca (ii) BA active khoa_dieu_tri_id null (createNkbvBenhAnStay cho phép), không lưới ngày, phiếu khoa mình: Ẩn phiếu → «Hồ sơ nằm ngoài khoa của bạn.» KHÔNG ĐẠT — nhánh if (ba || …) return false. Đối chứng khoa khác: RLS ẩn khỏi danh sách. Xác định ca bị chặn client (thiếu ba_ngay_khoa → không quy kết LOA) nên chưa tới server. Đã dọn dữ liệu + vai tạm.",
+    "test_tay": "KHONG_DAT"
   }
 ]
