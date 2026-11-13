@@ -1423,9 +1423,10 @@
     "tieu_de": "Cấp phát nhiều bộ: bộ đã cấp phát trước đó vẫn báo «đã cấp» cho nơi nhận mới (daCapTruoc gán cứng false) trong khi khoa_nhan_id không đổi — người dùng tưởng đã giao sang nơi mới",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-cap-phat-batch.actions.ts:92; CapPhatBatchPanel.tsx:152",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp/actions/cssd-scan.actions.spec.ts",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "du-CSSD-005",
-    "commit": "",
-    "ghi_chu": "Phần dư CSSD-005 (PO 2026-11-11 cho bổ sung mã ca mổ sau cấp phát; chỉ sửa báo sai)"
+    "commit": "836feffc",
+    "ghi_chu": "Phần dư CSSD-005 (PO 2026-11-11 cho bổ sung mã ca mổ sau cấp phát; chỉ sửa báo sai)",
+    "test_tay": "CHUA"
   }
 ]

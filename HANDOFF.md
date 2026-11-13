@@ -24,13 +24,14 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## Chặn thử nghiệm (cần PO — Lát E)
 1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo; đợt thử đầu gồm module nào; trạng thái NKBV (đang KHÁM_PHÁ nhưng nhiều commit `feat`).
-2. Câu treo: NKBV-018, CSSD-017 (ngưỡng ủ BI), QT-012, câu 7 GSC (giám sát viên chỉ thấy phiên mình?), DT-008 (ẩn đáp án Đúng/Sai?). Mới: ẩn ca NKBV đã chốt; QLCV tự duyệt đề xuất của mình; mã chết `cssdCommandFreezeSet`; chuyển khoa NKBV-021.
+2. Câu treo: CSSD-017 (ngưỡng ủ BI), NKBV-023 (ẩn ca NKBV đã chốt), câu 7 GSC, DT-008, mã chết `cssdCommandFreezeSet` (CSSD-025). Mặc định Claude 2026-11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 giờ đọc tương lai (dung sai 2 phút).
 3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
 4. Push `integrate/2026-11` lên GitHub.
-5. Lô migration prod: 31 file chưa áp, thứ tự + điều kiện trước/sau áp ở `git show ae5ca6fd:HANDOFF.md` dòng 25–30. Áp hết rồi mới deploy mã (DT-006 cần cột `huy_*`).
+5. Lô migration prod: 31 file chưa áp + `20261113100000_qlcv010_khong_tu_phe_duyet_dexuat` (sau 20261112140000), thứ tự + điều kiện trước/sau áp ở `git show ae5ca6fd:HANDOFF.md` dòng 25–30. Áp hết rồi mới deploy mã (DT-006 cần cột `huy_*`).
 
 ## Lát chưa mở / nợ
-- Cùng mẫu CSSD-009: `cssd-workflow-ops.actions.ts:72`, `cssd-scan.actions.ts:89`. NKBV: `updateNkbvBenhAnStay` không kiểm khoa mới trong phạm vi; `isNkbvBenhAnInScope` với ca có mã BA chưa có lưới ngày.
+- `isNkbvBenhAnInScope` với ca có mã BA chưa có lưới ngày (mẫu CSSD-009 và updateNkbvBenhAnStay đã xong: fe084eec, NKBV-021).
+- Thử tay chưa làm (:3001): QLCV-010, NKBV-018, VST-013a, CSSD-027.
 - Chưa qua reviewer độc lập: CSSD-011/012, NKBV-013..016, QT-011.
 - Mã chết (báo, không xóa): `NkbvBaGridCasePrintView.tsx`, `cssdCommandFreezeSet`, `isWithinLuot`.
 - Roadmap 65,9 KB so với mục tiêu 25 KB.
