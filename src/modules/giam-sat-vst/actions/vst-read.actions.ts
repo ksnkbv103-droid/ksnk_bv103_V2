@@ -9,6 +9,8 @@ import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { assertVstHistoryAccess } from "../lib/vst-read-scope";
 import { vstRepo } from "../repo/vst.repo";
+import { sortKhoaLamSangTruoc } from "../lib/vst-khoa-order";
+import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 
 /**
  * Phiên bản phân trang Server-side cho Lịch sử VST.
@@ -182,11 +184,15 @@ export async function getVstHeaderDmDropdowns() {
       };
     }
 
-    const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes] = await Promise.all([
+    const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes, khoiRows] = await Promise.all([
       vstRepo.getRegistryOptionsRpc(["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"]),
       getCachedDmKhoaPhong(),
       vstRepo.findVstHeaderNhanSu(scope.isMangLuoiKsnk ? actorKhoaId : null),
       vstRepo.findVstKhuVucFallback(),
+      // VST-013a: thứ tự khối để xếp khoa lâm sàng lên trước; lỗi đọc khối thì giữ thứ tự tên.
+      getDb()
+        .then((db) => fetchActiveRegistryDmRows(db, "KHOI_KHOA"))
+        .catch(() => []),
     ]);
 
     if (registriesRes.error) throw registriesRes.error;
@@ -199,7 +205,7 @@ export async function getVstHeaderDmDropdowns() {
         : []
       : khoaData;
 
-    const khoas = khoaFiltered.map((x) => ({
+    const khoas = sortKhoaLamSangTruoc(khoaFiltered, khoiRows).map((x) => ({
       id: x.id,
       ma_danh_muc: x.ma_khoa,
       ten_danh_muc: x.ten_khoa,

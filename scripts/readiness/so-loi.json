@@ -1209,11 +1209,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Vai trò khách KHACH_THONG_KE_GSTT có DAO_TAO view (DB local, không do migration nào cấp) nên gọi được Server Action thi qua admin client: tạo lần thi, rút câu hỏi",
     "bang_chung": "psql: KHACH_THONG_KE_GSTT|DAO_TAO|view; migration 20260718110000_ensure_khach_thong_ke_role.sql:22 chỉ cấp GIAM_SAT_VST, GIAM_SAT_CHUNG; src/modules/dao-tao/lib/dao-tao-auth.ts:6-14 requireDaoTaoUser không loại khách; dao-tao-attempt.actions.ts:205-265 startThiThuAttempt dùng admin client insert dao_tao_lan_thi; proxy chỉ lọc đường dẫn, Server Action POST vào /thong-ke/vst thì lọt",
-    "lenh_kiem": "psql: select r.name,p.module_name,p.action from sys_roles r join sys_role_permissions rp on rp.role_id=r.id join sys_permissions p on p.id=rp.permission_id where r.name='KHACH_THONG_KE_GSTT'",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/dao-tao/lib/dao-tao-auth.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "r3-quan-tri-quyen",
-    "commit": "",
-    "ghi_chu": "Hỏi PO: khách thống kê có được thi không? Nếu không: xóa grant DAO_TAO của vai trò khách (migration) và/hoặc requireDaoTaoUser từ chối khi getActorKsnkScope().isGuestStatsOnly. Cần đối chiếu prod (chỉ đọc) xem có grant này không. Chưa chạy thử action thật. Mức thấp kèm theo: v_mdm_nhan_su_picker security_invoker=false lộ 38 nhân sự (ma_nv, ho_ten, khoa_id) cho khách; getGscSessionPrintLabels dùng admin client tra họ tên theo id. Chưa rà: bang-kiem-read.actions.ts (admin client), tgs-coverage-ranking.actions.ts, EXECUTE anon/authenticated trên RPC thống kê, dao-tao-bank/admin.actions.ts. Còn lại của QT-002 coi như đã phủ."
+    "commit": "146af592",
+    "ghi_chu": "Hỏi PO: khách thống kê có được thi không? Nếu không: xóa grant DAO_TAO của vai trò khách (migration) và/hoặc requireDaoTaoUser từ chối khi getActorKsnkScope().isGuestStatsOnly. Cần đối chiếu prod (chỉ đọc) xem có grant này không. Chưa chạy thử action thật. Mức thấp kèm theo: v_mdm_nhan_su_picker security_invoker=false lộ 38 nhân sự (ma_nv, ho_ten, khoa_id) cho khách; getGscSessionPrintLabels dùng admin client tra họ tên theo id. Chưa rà: bang-kiem-read.actions.ts (admin client), tgs-coverage-ranking.actions.ts, EXECUTE anon/authenticated trên RPC thống kê, dao-tao-bank/admin.actions.ts. Còn lại của QT-002 coi như đã phủ. | Mặc định Claude 2026-11-13 (PO chưa chốt): khách thống kê không thi; chặn ở app (requireDaoTaoUser), không xóa grant DB (prod chưa đối chiếu). Đảo = revert 146af592. Mức thấp kèm (picker lộ 38 NS, print labels) chưa sửa"
   },
   {
     "id": "CSSD-021",
@@ -1360,7 +1360,7 @@
     "trang_thai": "CHO_PO",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Câu PO: có cho ẩn ca đã chốt không (ảnh hưởng tử số)"
+    "ghi_chu": "Câu PO: có cho ẩn ca đã chốt không (ảnh hưởng tử số) | Rà 2026-11-13: giữ CHO_PO — nkbv-case-status.ts:12 (NKBV_CLINICAL_SUBMIT_LOCKED_VI) hướng người dùng «ẩn phiếu nếu cần» cho ca đã chốt, tức ẩn là lối thoát duy nhất khi xác nhận nhầm; chặn ẩn cần kèm đường mở chốt. PO chọn: (a) giữ, (b) chặn + thêm mở chốt"
   },
   {
     "id": "QLCV-010",
@@ -1369,11 +1369,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Người đề xuất tự phê duyệt đề xuất của mình được (nếu có quyền duyệt)",
     "bang_chung": "UAT :3001 2026-11-13 phiếu 61a9f9a3; cong-viec.actions.ts:305",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -At < scripts/sql/kiem-qlcv010-tu-phe-duyet.sql (kỳ vọng ERROR)",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Câu PO: có cấm tự duyệt không"
+    "commit": "81eb1ae2",
+    "ghi_chu": "Câu PO: có cấm tự duyệt không | Mặc định Claude 2026-11-13 (PO chưa chốt): cấm người đề xuất tự phê duyệt, miễn ADMIN, sửa trong fn_qlcv_transition (migration 20261113100000, chưa prod); đảo = revert 81eb1ae2"
   },
   {
     "id": "DT-015",
