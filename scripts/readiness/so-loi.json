@@ -233,7 +233,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "0f1c4700",
-    "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod",
+    "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
     "test_tay": "CHUA"
   },
   {
@@ -260,8 +260,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "a73785d7",
-    "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s | PO 2026-11-12: ân hạn 30s chỉ để nộp bài; saveTraLoiCau không nhận sau hạn.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s | PO 2026-11-12: ân hạn 30s chỉ để nộp bài; saveTraLoiCau không nhận sau hạn. | Tay 2026-11-13 DAT: 2026-11-13 :3001 thi thu: nop sau han >30s -> DB trang_thai het_gio, nop_luc>han_nop_luc, diem tinh tren cau da luu; trang ket qua ghi 'Nop khi het gio'. Nhanh thi that (dat=false) chi spec.",
+    "test_tay": "DAT"
   },
   {
     "id": "DT-008",
@@ -274,7 +274,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "a73785d7",
-    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai.",
+    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai. | Tay 2026-11-13 CHUA: Cho PO quyet chinh sach hien dap an (cau treo Lat E)",
     "test_tay": "CHUA"
   },
   {
@@ -340,7 +340,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "6e5b5985",
-    "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount }",
+    "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount } | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
     "test_tay": "CHUA"
   },
   {
@@ -698,7 +698,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "15949d8d",
-    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ.",
+    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ. | Tay 2026-11-13 CHUA: 2026-11-13: can tai khoan chi co quyen GSC/Mang luoi khong co NKBV view; fixture chua co - chi spec, de lai cho dot UAT voi dau moi",
     "test_tay": "CHUA"
   },
   {
@@ -712,7 +712,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "47bc179b",
-    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete.",
+    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete. | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
     "test_tay": "CHUA"
   },
   {
@@ -726,7 +726,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "2d974c35",
-    "ghi_chu": "Thêm schema zod cho patch",
+    "ghi_chu": "Thêm schema zod cho patch | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL",
     "test_tay": "CHUA"
   },
   {
@@ -740,7 +740,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "6895e197",
-    "ghi_chu": "Chuyển sang RPC một transaction",
+    "ghi_chu": "Chuyển sang RPC một transaction | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
     "test_tay": "CHUA"
   },
   {
@@ -905,8 +905,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "53211e57",
-    "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước. | Tay 2026-11-13 DAT: 2026-11-13 :3001 thi thu f44ee118: tra loi cau 1 -> dat han_nop_luc qua khu -> chon cau 2 -> toast 'Khong luu duoc dap an', diem cuoi 1/10 (cau 2 khong tinh). CON LECH UX (Thap): bo dem 'Da tra loi' van tang len 2/10 vi state lac quan khong hoan lai.",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-011",
@@ -974,7 +974,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "83691feb",
-    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update.",
+    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update. | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL",
     "test_tay": "CHUA"
   },
   {
@@ -988,7 +988,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "0ab86047",
-    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): chưa tới được khung RCA CSSD từ giao diện với dữ liệu A03 (không có ca gắn mã QR). Cần fixture ca NKBV gắn bộ dụng cụ.",
+    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): chưa tới được khung RCA CSSD từ giao diện với dữ liệu A03 (không có ca gắn mã QR). Cần fixture ca NKBV gắn bộ dụng cụ. | Tay 2026-11-13 CHUA: 2026-11-13: can tai khoan chi co quyen GSC/Mang luoi khong co NKBV view; fixture chua co - chi spec, de lai cho dot UAT voi dau moi",
     "test_tay": "CHUA"
   },
   {
@@ -1002,7 +1002,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "bc8fdaba",
-    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit.",
+    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit. | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
     "test_tay": "CHUA"
   },
   {
@@ -1016,7 +1016,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "fdf1c885",
-    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): tab Nạp dữ liệu vẫn hiện nút Upload Excel/Dán bảng/Thêm XN cho vai chỉ có quyền xem, kho báo «Chưa có bản ghi»; chưa thử nộp file. Cần thử nộp file với vai không có quyền import.",
+    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): tab Nạp dữ liệu vẫn hiện nút Upload Excel/Dán bảng/Thêm XN cho vai chỉ có quyền xem, kho báo «Chưa có bản ghi»; chưa thử nộp file. Cần thử nộp file với vai không có quyền import. | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL",
     "test_tay": "CHUA"
   },
   {
@@ -1266,5 +1266,122 @@
     "nguon": "nkbv-pham-vi-khoa",
     "commit": "d9546af8; review-bv103 1 vòng, sửa thêm xóa trống khoa + đổi ma_benh_an; spec pass",
     "ghi_chu": "Sau dòng 779 thêm: if (input.khoa_dieu_tri_id && !nkbvKhoaVisible(restriction, [input.khoa_dieu_tri_id])) return NKBV_OUT_OF_SCOPE_ERROR (cùng mẫu ba-ngay.actions.ts:52); viết spec tái hiện trước."
+  },
+  {
+    "id": "QT-013",
+    "module": "QUAN_TRI",
+    "lop": "UX",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Sau đăng nhập, vai Mạng lưới/Nhân viên rơi vào /bao-cao-tong-hop và gặp lỗi quyền thay vì trang được phép",
+    "bang_chung": "UAT :3001 2026-11-13, NV_TEST01 vai MANG_LUOI_KSNK",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Cần xác minh đường chuyển hướng mặc định sau đăng nhập theo vai"
+  },
+  {
+    "id": "VST-012",
+    "module": "VST_GSC",
+    "lop": "FRONTEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "/giam-sat có lúc kẹt «Đang tải số liệu…» không thoát",
+    "bang_chung": "UAT :3001 2026-11-13 (cũng gặp ở /dao-tao lần đầu, tự hết sau ~3 giây)",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Chưa tái hiện ổn định; có thể do dev compile lần đầu"
+  },
+  {
+    "id": "CSSD-024",
+    "module": "CSSD",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Liên kết «Nhật ký sự cố» dẫn tới trang bị chặn quyền với vai không có quyền sự cố",
+    "bang_chung": "UAT :3001 2026-11-13",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Ẩn liên kết theo quyền"
+  },
+  {
+    "id": "NKBV-022",
+    "module": "NKBV",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Tab «Nạp dữ liệu» NKBV hiện nút nạp cho vai chỉ xem (action vẫn chặn)",
+    "bang_chung": "UAT :3001 2026-11-13",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Ẩn/khóa nút theo quyền import"
+  },
+  {
+    "id": "VST-013",
+    "module": "VST_GSC",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Form VST xếp khoa không lâm sàng lên trước; sau khi xóa GSC vẫn hiện «Đã chọn 1»",
+    "bang_chung": "UAT :3001 2026-11-13",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Hai lệch nhỏ cùng form"
+  },
+  {
+    "id": "CSSD-025",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "cssdCommandFreezeSet không có nơi gọi trên giao diện (mã chết)",
+    "bang_chung": "src/modules/cssd-erp/actions/cssd-workflow.commands.actions.ts:68",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Báo PO, không tự xóa; CSSD-009 vì vậy không dựng được trên UI"
+  },
+  {
+    "id": "NKBV-023",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "softDeleteGiamSatNkbvCa ẩn được cả ca đã XAC_NHAN/LOAI_TRU",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:193",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Câu PO: có cho ẩn ca đã chốt không (ảnh hưởng tử số)"
+  },
+  {
+    "id": "QLCV-010",
+    "module": "QLCV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Người đề xuất tự phê duyệt đề xuất của mình được (nếu có quyền duyệt)",
+    "bang_chung": "UAT :3001 2026-11-13 phiếu 61a9f9a3; cong-viec.actions.ts:305",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Câu PO: có cấm tự duyệt không"
+  },
+  {
+    "id": "DT-015",
+    "module": "DAO_TAO",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Lưu đáp án bị từ chối: toast báo lỗi nhưng bộ đếm «Đã trả lời» vẫn tăng (state lạc quan không hoàn lại)",
+    "bang_chung": "src/modules/dao-tao/views/LamBaiPage.tsx:148",
+    "lenh_kiem": "",
+    "trang_thai": "MOI",
+    "nguon": "uat-2026-11-13",
+    "commit": "",
+    "ghi_chu": "Phát hiện khi chạy DT-014; điểm phía server đúng"
   }
 ]
