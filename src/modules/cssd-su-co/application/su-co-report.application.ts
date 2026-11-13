@@ -44,7 +44,12 @@ import {
   validateInstrumentDoorLines,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
-import { buildSetReconcileAttributePatch } from "../domain/cssd-set-reconcile-attrs";
+import {
+  buildSetReconcileAttributePatch,
+  isSetReconcileDraftAttr,
+  isSetReconcileDraftOwner,
+  readSetReconcileBoId,
+} from "../domain/cssd-set-reconcile-attrs";
 import { collectSubmittedSetReconcileWrite } from "./set-reconcile-incident.application";
 
 type QuyRow = Record<string, unknown> & {
@@ -321,6 +326,23 @@ export async function executeIncidentReportAndRollback(
     loai_su_co_id: loaiSuCo?.id ?? null,
     nguoi_bao_id: nguoiBaoId,
   };
+  if (draftId) {
+    // Chỉ gửi được phiếu nháp rà soát của chính người báo, đúng bộ, còn hiệu lực — không ghi đè phiếu khác.
+    const { data: draftRow, error: draftErr } = await supabase
+      .from("cssd_fact_su_co")
+      .select("id, is_active, attributes")
+      .eq("id", draftId)
+      .maybeSingle();
+    if (draftErr) throw new Error("Lỗi đọc phiếu nháp: " + draftErr.message);
+    const draftAttrs = (draftRow?.attributes as Record<string, unknown> | null) ?? {};
+    const okDraft =
+      draftRow?.is_active !== false &&
+      Boolean(draftRow?.id) &&
+      isSetReconcileDraftAttr(draftAttrs) &&
+      isSetReconcileDraftOwner(draftAttrs, data.reporterAuthUserId) &&
+      readSetReconcileBoId(draftAttrs) === setReconcile?.boDungCuId;
+    if (!okDraft) throw new Error("Không gửi được: phiếu nháp không còn hoặc không phải của bạn.");
+  }
   let incident: { id: string } | null = null;
   let atomicWrite = false;
 
