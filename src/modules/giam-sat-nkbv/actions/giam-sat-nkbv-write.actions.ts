@@ -115,6 +115,26 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     } else if (!nkbvKhoaVisible(restriction, [cur.khoa_ghi_nhan_id as string | null])) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
     }
+    // NKBV-021: chỉ chặn khi ĐỔI khoa ghi nhận sang khoa ngoài phạm vi (giữ nguyên khoa cũ thì cho qua).
+    if (
+      raw.khoa_ghi_nhan_id &&
+      String(raw.khoa_ghi_nhan_id) !== String(cur.khoa_ghi_nhan_id ?? "") &&
+      !nkbvKhoaVisible(restriction, [String(raw.khoa_ghi_nhan_id)])
+    ) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+    // NKBV-021: người bị giới hạn khoa không được xóa trống khoa ghi nhận đang có.
+    if (restriction.kind !== "all" && !raw.khoa_ghi_nhan_id && cur.khoa_ghi_nhan_id) {
+      return { success: false as const, error: NKBV_KHOA_REQUIRED_ERROR };
+    }
+    // NKBV-021: gắn phiếu sang bệnh án khác thì bệnh án mới cũng phải trong phạm vi.
+    if (
+      raw.ma_benh_an &&
+      String(raw.ma_benh_an) !== String(cur.ma_benh_an ?? "") &&
+      !(await isNkbvBenhAnInScope(restriction, String(raw.ma_benh_an)))
+    ) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: statusProbe, error: statusProbeErr } = await supabase
       .from("v_nkbv_su_kien_full")
       .select("trang_thai_ma")
@@ -781,12 +801,20 @@ export async function updateNkbvBenhAnStay(input: {
     }
     const { data: prev, error: prevErr } = await supabase
       .from("nkbv_fact_benh_an")
-      .select("id, ngay_vao_vien")
+      .select("id, ngay_vao_vien, khoa_dieu_tri_id")
       .eq("ma_benh_an", ma)
       .eq("is_active", true)
       .maybeSingle();
     if (prevErr) throw prevErr;
     if (!prev) return { success: false as const, error: "Không tìm thấy hồ sơ bệnh án" };
+    // NKBV-021: chỉ chặn khi ĐỔI khoa điều trị sang khoa ngoài phạm vi (giữ nguyên khoa cũ thì cho qua).
+    if (
+      input.khoa_dieu_tri_id &&
+      String(input.khoa_dieu_tri_id) !== String(prev.khoa_dieu_tri_id ?? "") &&
+      !nkbvKhoaVisible(restriction, [input.khoa_dieu_tri_id])
+    ) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
 
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
 

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ restriction: vi.fn(), inScope: vi.fn(), update: vi.fn(), insert: vi.fn(), eq: vi.fn() }));
+const mocks = vi.hoisted(() => ({ restriction: vi.fn(), inScope: vi.fn(), update: vi.fn(), insert: vi.fn(), eq: vi.fn(), row: vi.fn() }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/server-permission", () => ({ verifyPermission: vi.fn(async () => {}) }));
 vi.mock("@/lib/actor-auth-server", () => ({ getActorNhanSuId: vi.fn(async () => "u1") }));
 vi.mock("@/lib/master-data/validation", () => ({ normalizeAndValidateDmKhoaPhong: vi.fn(async (a: { idRaw: string }) => a.idRaw) }));
 vi.mock("@/lib/master-data/fk-normalize", () => ({ normalizeHoSoNhanVienOptionalOrThrow: vi.fn() }));
-vi.mock("@/lib/validations", () => ({ giamSatNkbvCaSchema: {} }));
+vi.mock("@/lib/validations", () => ({ giamSatNkbvCaSchema: { partial: () => ({ safeParse: () => ({ success: true }) }) } }));
 vi.mock("../lib/nkbv-khoa-scope.server", () => ({
   getNkbvKhoaRestriction: mocks.restriction,
   isNkbvBenhAnInScope: mocks.inScope,
@@ -28,7 +28,7 @@ vi.mock("@/lib/supabase-server", () => ({
         mocks.eq(...a);
         return chain;
       };
-      chain.maybeSingle = async () => ({ data: null, error: null });
+      chain.maybeSingle = async () => ({ data: mocks.row() ?? null, error: null });
       chain.single = async () => ({ data: { id: "x" }, error: null });
       chain.update = (...a: unknown[]) => {
         mocks.update(...a);
@@ -48,6 +48,7 @@ vi.mock("@/lib/supabase-server", () => ({
 import {
   createNkbvBenhAnStay,
   syncNkbvAdmissionDate,
+  updateGiamSatNkbvCa,
   updateNkbvBenhAnStay,
 } from "./giam-sat-nkbv-write.actions";
 
@@ -125,5 +126,60 @@ describe("phạm vi khoa cho action ghi bệnh án (NKBV-010)", () => {
     expect(await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: null })).toEqual({ success: false, error: REQ });
     expect(await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: "" })).toEqual({ success: false, error: REQ });
     expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("updateNkbvBenhAnStay: đổi sang khoa ngoài phạm vi thì chặn; khoa mình / restriction all không chặn", async () => {
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    mocks.inScope.mockResolvedValue(true);
+    mocks.row.mockReturnValue({ id: "b1", ngay_vao_vien: null, khoa_dieu_tri_id: "k1" });
+    expect(await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: "k2" })).toEqual({ success: false, error: OUT });
+    expect(mocks.update).not.toHaveBeenCalled();
+
+    const same = await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: "k1" });
+    expect((same as { error?: string }).error).not.toBe(OUT);
+
+    // BA trong phạm vi qua lưới ngày, khoa điều trị k3 ngoài phạm vi: gửi lại đúng k3 (không đổi) thì không chặn.
+    mocks.row.mockReturnValue({ id: "b1", ngay_vao_vien: null, khoa_dieu_tri_id: "k3" });
+    const unchanged = await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: "k3" });
+    expect((unchanged as { error?: string }).error).not.toBe(OUT);
+
+    mocks.restriction.mockResolvedValue({ kind: "all" });
+    const all = await updateNkbvBenhAnStay({ ma_benh_an: "BA1", khoa_dieu_tri_id: "k2" });
+    expect((all as { error?: string }).error).not.toBe(OUT);
+  });
+
+  it("updateGiamSatNkbvCa: đổi khoa ghi nhận sang khoa ngoài phạm vi thì chặn; khoa mình / all không chặn", async () => {
+    mocks.row.mockReturnValue({ trang_thai_id: "t1", ma_benh_an: null, khoa_ghi_nhan_id: "k1" });
+    const base = { ho_ten_benh_nhan: "A", loai_nkbv_id: "l1" };
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    expect(await updateGiamSatNkbvCa("ev1", { ...base, khoa_ghi_nhan_id: "k2" })).toEqual({ success: false, error: OUT });
+    expect(mocks.update).not.toHaveBeenCalled();
+
+    const same = await updateGiamSatNkbvCa("ev1", { ...base, khoa_ghi_nhan_id: "k1" });
+    expect((same as { error?: string }).error).not.toBe(OUT);
+
+    mocks.restriction.mockResolvedValue({ kind: "all" });
+    const all = await updateGiamSatNkbvCa("ev1", { ...base, khoa_ghi_nhan_id: "k2" });
+    expect((all as { error?: string }).error).not.toBe(OUT);
+  });
+
+  it("updateGiamSatNkbvCa: bị giới hạn khoa mà xóa trống khoa ghi nhận thì chặn", async () => {
+    const REQ = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";
+    mocks.row.mockReturnValue({ trang_thai_id: "t1", ma_benh_an: null, khoa_ghi_nhan_id: "k1" });
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    const base = { ho_ten_benh_nhan: "A", loai_nkbv_id: "l1" };
+    expect(await updateGiamSatNkbvCa("ev1", { ...base, khoa_ghi_nhan_id: "" })).toEqual({ success: false, error: REQ });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("updateGiamSatNkbvCa: gắn phiếu sang bệnh án ngoài phạm vi thì chặn", async () => {
+    mocks.row.mockReturnValue({ trang_thai_id: "t1", ma_benh_an: "BA1", khoa_ghi_nhan_id: "k1" });
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    mocks.inScope.mockImplementation(async (_r: unknown, ma: string) => ma === "BA1");
+    const base = { ho_ten_benh_nhan: "A", loai_nkbv_id: "l1", khoa_ghi_nhan_id: "k1" };
+    expect(await updateGiamSatNkbvCa("ev1", { ...base, ma_benh_an: "BA2" })).toEqual({ success: false, error: OUT });
+    expect(mocks.update).not.toHaveBeenCalled();
+    const same = await updateGiamSatNkbvCa("ev1", { ...base, ma_benh_an: "BA1" });
+    expect((same as { error?: string }).error).not.toBe(OUT);
   });
 });
