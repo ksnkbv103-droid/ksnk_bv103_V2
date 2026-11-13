@@ -1288,11 +1288,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "/giam-sat có lúc kẹt «Đang tải số liệu…» không thoát",
     "bang_chung": "UAT :3001 2026-11-13 (cũng gặp ở /dao-tao lần đầu, tự hết sau ~3 giây)",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "Browser pane :3001, tab trước: tải /giam-sat 5 lần, đo thời điểm hết «Đang tải»",
+    "trang_thai": "LOI_GIA",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Chưa tái hiện ổn định; có thể do dev compile lần đầu"
+    "ghi_chu": "2026-11-13: tab trước 5/5 lần thoát skeleton sau 0,26–0,56 s (cả có/không query). Chỉ kẹt ~30 s khi tab nằm nền trong pane (trình duyệt hãm bộ đếm; skeleton là HTML SSR chưa hydrate, server vẫn gửi initialSnapshot, không khóa auth, không lỗi console). Lần ở /dao-tao tự hết ~3 s = dev compile lần đầu."
   },
   {
     "id": "CSSD-024",
