@@ -129,6 +129,7 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
       p_ma_ca_mo_id: "CM1",
     });
     expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
+    expect((res as { daCapTruoc?: boolean }).daCapTruoc).toBe(false);
   });
 
   it("tài khoản chưa gắn hồ sơ nhân sự: chặn cấp phát, không gọi RPC (CSSD-007)", async () => {
@@ -146,6 +147,7 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     const res = await scanQR("B01.SET.01", "CAP_PHAT");
     expect(mocks.rpc).not.toHaveBeenCalled();
     expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
+    expect((res as { daCapTruoc?: boolean }).daCapTruoc).toBe(true);
   });
 
   it("khoa_nhan_id không phải uuid bị từ chối trước mọi thao tác", async () => {

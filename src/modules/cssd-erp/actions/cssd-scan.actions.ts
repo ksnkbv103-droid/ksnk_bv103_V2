@@ -213,6 +213,8 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
       quyTrinhId: String(preRow.id),
       maLoTietKhuan,
       issuanceOnly: true as const,
+      /** CSSD-027: bộ đã cấp phát trước lần quét này — nơi nhận không đổi. */
+      daCapTruoc: daCapPhat,
       ledgerWarning: ledger.ok && "warning" in ledger ? ledger.warning : undefined,
     };
   }

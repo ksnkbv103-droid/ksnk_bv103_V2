@@ -64,8 +64,10 @@ export default function CapPhatBatchPanel({ disabled, onPrint, onDone }: Props) 
       setResults(res.items);
       // Giữ lại chỉ các bộ lỗi để quét/xử lý lại.
       setCodes(res.items.filter((i) => !i.ok).map((i) => i.maQr));
-      if (s.failed === 0) toast.success(`Đã cấp ${s.ok} bộ cho ${noiNhan.label}`);
-      else toast.warning(`Cấp ${s.ok}/${s.total} bộ; ${s.failed} bộ lỗi, xem danh sách.`);
+      const truoc = res.items.filter((i) => i.ok && i.daCapTruoc).length;
+      const ghiChuTruoc = truoc > 0 ? ` (${truoc} bộ đã cấp trước đó, nơi nhận không đổi)` : "";
+      if (s.failed === 0) toast.success(`Đã cấp ${s.ok} bộ cho ${noiNhan.label}${ghiChuTruoc}`);
+      else toast.warning(`Cấp ${s.ok}/${s.total} bộ; ${s.failed} bộ lỗi, xem danh sách.${ghiChuTruoc}`);
       onDone?.();
     } finally {
       setBusy(false);
@@ -149,7 +151,11 @@ export default function CapPhatBatchPanel({ disabled, onPrint, onDone }: Props) 
               className={`flex items-center justify-between rounded-lg px-3 py-1.5 ${r.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}
             >
               <span>
-                <span className="font-mono">{r.maQr}</span> — {r.ok ? `đã cấp (${r.tenBo})` : r.error}
+                <span className="font-mono">{r.maQr}</span> — {r.ok
+                  ? r.daCapTruoc
+                    ? `đã cấp trước đó (${r.tenBo}) — nơi nhận giữ như lần cấp đầu`
+                    : `đã cấp (${r.tenBo})`
+                  : r.error}
               </span>
               {r.ok && r.quyTrinhId && onPrint ? (
                 <button type="button" className="text-xs underline" onClick={() => onPrint(r.quyTrinhId)}>

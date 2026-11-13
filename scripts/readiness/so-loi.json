@@ -1066,11 +1066,11 @@
     "muc": "THAP",
     "tieu_de": "Người chỉ có quyền xem CSSD thấy mã ca và họ tên bệnh nhân của ca SSI gắn với mẻ (tra RCA ngược) dù không có vai NKBV; cần PO xác nhận có phải thiết kế",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.ts:178",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "r3-nkbv-quyen",
-    "commit": "",
-    "ghi_chu": ""
+    "commit": "8b1bdfc1",
+    "ghi_chu": "Mặc định Claude 2026-11-13 (PO chưa chốt): chỉ quyền CSSD thấy mã ca, họ tên BN = null; đảo = revert 8b1bdfc1"
   },
   {
     "id": "CSSD-014",
@@ -1122,7 +1122,7 @@
     "trang_thai": "CHO_PO",
     "nguon": "uat-cssd-002",
     "commit": "",
-    "ghi_chu": ""
+    "ghi_chu": "Phần giờ đọc ở tương lai đã sửa e7cdd053 (mặc định Claude 2026-11-13: dung sai 2 phút; đảo = revert e7cdd053). Còn CHO_PO: ngưỡng ủ tối thiểu theo loại BI (SSOT im)."
   },
   {
     "id": "CSSD-018",
@@ -1329,11 +1329,11 @@
     "muc": "THAP",
     "tieu_de": "Form VST xếp khoa không lâm sàng lên trước; sau khi xóa GSC vẫn hiện «Đã chọn 1»",
     "bang_chung": "UAT :3001 2026-11-13",
-    "lenh_kiem": "grep -n selectedIds src/hooks/useDataTable.ts",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst/lib/vst-khoa-order.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi. | (b) đã sửa c80d15c4 useDataTable.ts dọn selectedIds; (a) thứ tự khoa chờ PO chốt trường lâm sàng. | Tay 2026-11-13 DAT: (b) UAT :3001 2026-11-13: /lich-su/gsc chọn phiên thử của NV_TEST01 → Xóa (lý do) → is_active=false, Đã chọn 1 mất, 0 ô tick. (a) vẫn chờ PO",
+    "commit": "79375a0f",
+    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi. | (b) đã sửa c80d15c4 useDataTable.ts dọn selectedIds; (a) thứ tự khoa chờ PO chốt trường lâm sàng. | Tay 2026-11-13 DAT: (b) UAT :3001 2026-11-13: /lich-su/gsc chọn phiên thử của NV_TEST01 → Xóa (lý do) → is_active=false, Đã chọn 1 mất, 0 ô tick. (a) vẫn chờ PO |  | (a) Mặc định Claude 2026-11-13 (PO chưa chốt): khoa xếp theo khối KNOI→KNGOAI→KCLS→KCOQUAN→chưa phân khối, trong khối theo tên; đảo = revert 79375a0f",
     "test_tay": "DAT"
   },
   {
@@ -1414,5 +1414,18 @@
     "commit": "d5d60fdb",
     "ghi_chu": "Server chặn edit/delete (giam-sat-nkbv-vi-sinh-store.actions.ts:188,283,351,380); UI không đọc quyền. Cùng mẫu NKBV-022. | Tay 2026-11-13 DAT: UAT :3001 2026-11-13: MANG_LUOI_KSNK (chỉ view) không còn nút Thêm XN (kho trong phạm vi vai này trống nên chưa thấy hàng để kiểm Sửa/Xóa từng dòng — cùng cờ allowed); NHAN_VIEN_KSNK: Thêm XN 1, Sửa 80, Xóa 80, MDRO bấm được. verify:changed pass",
     "test_tay": "DAT"
+  },
+  {
+    "id": "CSSD-027",
+    "module": "CSSD",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Cấp phát nhiều bộ: bộ đã cấp phát trước đó vẫn báo «đã cấp» cho nơi nhận mới (daCapTruoc gán cứng false) trong khi khoa_nhan_id không đổi — người dùng tưởng đã giao sang nơi mới",
+    "bang_chung": "src/modules/cssd-erp/actions/cssd-cap-phat-batch.actions.ts:92; CapPhatBatchPanel.tsx:152",
+    "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp/actions/cssd-scan.actions.spec.ts",
+    "trang_thai": "DA_XAC_MINH",
+    "nguon": "du-CSSD-005",
+    "commit": "",
+    "ghi_chu": "Phần dư CSSD-005 (PO 2026-11-11 cho bổ sung mã ca mổ sau cấp phát; chỉ sửa báo sai)"
   }
 ]

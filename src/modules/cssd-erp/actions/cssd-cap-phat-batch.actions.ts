@@ -89,7 +89,7 @@ export async function capPhatNhieuBoAction(input: {
           ok: true,
           tenBo: String((res as { tenBoDungCu?: string }).tenBoDungCu || maQr),
           quyTrinhId: String((res as { quyTrinhId?: string }).quyTrinhId || ""),
-          daCapTruoc: false,
+          daCapTruoc: Boolean((res as { daCapTruoc?: boolean }).daCapTruoc),
         });
       } catch (e: unknown) {
         items.push({ maQr, ok: false, error: e instanceof Error ? e.message : "Lỗi cấp phát." });
