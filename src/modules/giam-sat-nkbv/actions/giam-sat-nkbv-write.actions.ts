@@ -3,7 +3,8 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { revalidatePath } from "next/cache";
-import { verifyPermission } from "@/lib/server-permission";
+import { getActorRoleNames, verifyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { NKBV_KHOA_REQUIRED_ERROR, nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
@@ -192,7 +193,7 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
 }
 
 /** Ẩn phiếu sự kiện khỏi danh sách (soft delete). */
-export async function softDeleteGiamSatNkbvCa(id: string) {
+export async function softDeleteGiamSatNkbvCa(id: string, lyDo?: string) {
   await verifyPermission("GIAM_SAT_NKBV", "delete");
   const supabase = createAdminSupabaseClient();
   const { data: row, error: loadErr } = await supabase
@@ -209,6 +210,34 @@ export async function softDeleteGiamSatNkbvCa(id: string) {
     }
   } else if (!nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null])) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+  }
+
+  // NKBV-023 (PO 2026-11-13): ca đã XÁC NHẬN/LOẠI TRỪ chỉ ADMIN được ẩn, bắt buộc lý do, ghi nhật ký trước khi ẩn.
+  const { data: statusProbe, error: statusErr } = await supabase
+    .from("v_nkbv_su_kien_full")
+    .select("trang_thai_ma")
+    .eq("id", id)
+    .maybeSingle();
+  if (statusErr) return { success: false as const, error: statusErr.message };
+  const trangThai = (statusProbe?.trang_thai_ma as string | null | undefined) ?? null;
+  if (isNkbvTerminalCaseStatus(trangThai)) {
+    if (!(await getActorRoleNames()).includes("ADMIN")) {
+      return { success: false as const, error: "Ca đã chốt (xác nhận/loại trừ): chỉ ADMIN được ẩn." };
+    }
+    const reason = String(lyDo ?? "").trim();
+    if (!reason) return { success: false as const, error: "Ẩn ca đã chốt phải nhập lý do." };
+    try {
+      await logAdminAction({
+        action: "NKBV_HIDE_TERMINAL_CASE",
+        targetTable: "nkbv_fact_su_kien",
+        targetId: id,
+        before: { trang_thai_ma: trangThai },
+        reason,
+        failClosed: true,
+      });
+    } catch (e: unknown) {
+      return { success: false as const, error: e instanceof Error ? e.message : "Không ghi được nhật ký" };
+    }
   }
 
   // Ẩn phiếu trước; chỉ khi ẩn thành công mới trả XN về hàng chờ (tránh XN về hàng chờ mà ca còn hiện).

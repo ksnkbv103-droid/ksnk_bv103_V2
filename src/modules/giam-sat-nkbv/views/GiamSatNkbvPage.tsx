@@ -40,7 +40,8 @@ import NkbvCdcLocationBanner from "../components/NkbvCdcLocationBanner";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
 import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
-import { confirmAction } from "@/components/shared/confirm-action";
+import { confirmAction, promptText } from "@/components/shared/confirm-action";
+import { isNkbvTerminalCaseStatus } from "../lib/nkbv-case-status";
 import { NkbvNapDuLieuSwitch } from "../components/NkbvNapDuLieuSwitch";
 import NkbvCaseSummaryBookPrintView from "../components/NkbvCaseSummaryBookPrintView";
 
@@ -695,9 +696,20 @@ export default function GiamSatNkbvPage() {
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!(await confirmAction("Ẩn phiếu này khỏi danh sách?"))) return;
                     const id = String(item.id ?? "");
-                    const res = await softDeleteGiamSatNkbvCa(id);
+                    const maTt = String((item as any).trang_thai_row?.ma_trang_thai || "");
+                    let lyDo: string | undefined;
+                    if (isNkbvTerminalCaseStatus(maTt)) {
+                      // NKBV-023: ca đã chốt — chỉ ADMIN, bắt buộc lý do (máy chủ kiểm lại).
+                      const v = await promptText({
+                        title: "Ẩn ca đã chốt",
+                        message: "Ca đã xác nhận/loại trừ. Chỉ ADMIN được ẩn; lý do được ghi nhật ký.",
+                        label: "Lý do ẩn",
+                      });
+                      if (v == null) return;
+                      lyDo = v;
+                    } else if (!(await confirmAction("Ẩn phiếu này khỏi danh sách?"))) return;
+                    const res = await softDeleteGiamSatNkbvCa(id, lyDo);
                     if (res.success) {
                       toast.success("Đã ẩn phiếu");
                       void refresh();
