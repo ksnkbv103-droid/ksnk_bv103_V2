@@ -1119,11 +1119,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "BI được chấp nhận với thời gian ủ 1 phút và giờ đọc muộn hơn hiện tại; không có ngưỡng ủ tối thiểu",
     "bang_chung": "UAT 2026-11-12 mẻ ETO1-121126-1: giờ ủ → giờ đọc cách 1 phút, giờ đọc sau thời điểm bấm ~30 giây, hệ thống nhận «BI âm. Mẻ đã nhả.»",
-    "lenh_kiem": "Hỏi PO ngưỡng ủ tối thiểu theo loại BI (SSOT im)",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp/lib/me-tiet-khuan-bi.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-cssd-002",
-    "commit": "",
-    "ghi_chu": "Phần giờ đọc ở tương lai đã sửa e7cdd053 (mặc định Claude 2026-11-13: dung sai 2 phút; đảo = revert e7cdd053). Còn CHO_PO: ngưỡng ủ tối thiểu theo loại BI (SSOT im)."
+    "commit": "30bd558f",
+    "ghi_chu": "Phần giờ đọc ở tương lai đã sửa e7cdd053 (mặc định Claude 2026-11-13: dung sai 2 phút; đảo = revert e7cdd053). Còn CHO_PO: ngưỡng ủ tối thiểu theo loại BI (SSOT im). | PO 2026-11-13: ngưỡng ủ BI tối thiểu 20 phút."
   },
   {
     "id": "CSSD-018",
@@ -1345,10 +1345,10 @@
     "tieu_de": "cssdCommandFreezeSet không có nơi gọi trên giao diện (mã chết)",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-workflow.commands.actions.ts:68",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Báo PO, không tự xóa; CSSD-009 vì vậy không dựng được trên UI"
+    "ghi_chu": "Báo PO, không tự xóa; CSSD-009 vì vậy không dựng được trên UI | PO 2026-11-13: để nguyên, ghi nợ; xóa khi dọn dẹp."
   },
   {
     "id": "NKBV-023",
@@ -1357,11 +1357,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "softDeleteGiamSatNkbvCa ẩn được cả ca đã XAC_NHAN/LOAI_TRU",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:193",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-soft-delete.actions.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Câu PO: có cho ẩn ca đã chốt không (ảnh hưởng tử số) | Rà 2026-11-13: giữ CHO_PO — nkbv-case-status.ts:12 (NKBV_CLINICAL_SUBMIT_LOCKED_VI) hướng người dùng «ẩn phiếu nếu cần» cho ca đã chốt, tức ẩn là lối thoát duy nhất khi xác nhận nhầm; chặn ẩn cần kèm đường mở chốt. PO chọn: (a) giữ, (b) chặn + thêm mở chốt"
+    "commit": "65b9f414",
+    "ghi_chu": "Câu PO: có cho ẩn ca đã chốt không (ảnh hưởng tử số) | Rà 2026-11-13: giữ CHO_PO — nkbv-case-status.ts:12 (NKBV_CLINICAL_SUBMIT_LOCKED_VI) hướng người dùng «ẩn phiếu nếu cần» cho ca đã chốt, tức ẩn là lối thoát duy nhất khi xác nhận nhầm; chặn ẩn cần kèm đường mở chốt. PO chọn: (a) giữ, (b) chặn + thêm mở chốt | PO 2026-11-13: ca XAC_NHAN/LOAI_TRU chỉ ADMIN ẩn được, bắt buộc lý do."
   },
   {
     "id": "QLCV-010",
@@ -1466,11 +1466,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "submitClinicalVerification vẫn nhận calculated_doe từ client (chỉ kiểm định dạng) và chấp nhận khoa quy kết có mặt bất kỳ ngày nào trên lưới BA, không phải khoa của ngày DOE (Transfer Rule)",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:571-578, 688-689 (sau 83691feb)",
-    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-loa-khoa.spec.ts",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-loa-server.spec.ts",
+    "trang_thai": "DA_SUA",
     "nguon": "review-bv103 2026-11-13",
-    "commit": "",
-    "ghi_chu": "Phần sót NKBV-013. Cần PO chốt: DOE phải trong khoảng nằm viện? Khoa quy kết = khoa ngày DOE hay ngày trước đó khi chuyển khoa (SSOT domain-specification)."
+    "commit": "acd283ef",
+    "ghi_chu": "Phần sót NKBV-013. Cần PO chốt: DOE phải trong khoảng nằm viện? Khoa quy kết = khoa ngày DOE hay ngày trước đó khi chuyển khoa (SSOT domain-specification). | PO 2026-11-13: máy chủ tự tính khoa theo NHSN Transfer Rule; DOE phải trong khoảng nằm viện; DOE ngày chuyển hoặc ngày kế → khoa chuyển đi. | Giả định: cho DOE = ngày kế sau ra viện (quy khoa cho ra, theo Transfer Rule). Chưa có spec mức action (engine nặng)."
   },
   {
     "id": "CSSD-028",
