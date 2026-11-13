@@ -88,7 +88,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
     "commit": "9375652e",
-    "ghi_chu": ""
+    "ghi_chu": "",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-001",
@@ -101,7 +102,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
     "commit": "90dd4205",
-    "ghi_chu": ""
+    "ghi_chu": "",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-002",
@@ -231,7 +233,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "0f1c4700",
-    "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod"
+    "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod",
+    "test_tay": "CHUA"
   },
   {
     "id": "DT-006",
@@ -257,7 +260,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "a73785d7",
-    "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s | PO 2026-11-12: ân hạn 30s chỉ để nộp bài; saveTraLoiCau không nhận sau hạn."
+    "ghi_chu": "Xác nhận với PO rằng ân hạn 30s áp dụng cho cả lưu câu trả lời. Thêm spec biên hanNop, hanNop+30s | PO 2026-11-12: ân hạn 30s chỉ để nộp bài; saveTraLoiCau không nhận sau hạn.",
+    "test_tay": "CHUA"
   },
   {
     "id": "DT-008",
@@ -270,7 +274,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "a73785d7",
-    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai."
+    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai.",
+    "test_tay": "CHUA"
   },
   {
     "id": "DT-009",
@@ -335,7 +340,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "6e5b5985",
-    "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount }"
+    "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount }",
+    "test_tay": "CHUA"
   },
   {
     "id": "QLCV-001",
@@ -426,7 +432,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-qlcv",
     "commit": "68310e45",
-    "ghi_chu": "Đưa các cột mở rộng vào p_patch trong RPC hoặc đảo thứ tự và rollback. Hỏi PO: người đề xuất có được tự duyệt đề xuất của mình?"
+    "ghi_chu": "Đưa các cột mở rộng vào p_patch trong RPC hoặc đảo thứ tự và rollback. Hỏi PO: người đề xuất có được tự duyệt đề xuất của mình?",
+    "test_tay": "CHUA"
   },
   {
     "id": "QLCV-008",
@@ -478,7 +485,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "46ac12bf",
-    "ghi_chu": "Gộp ghi nhật ký, update trạm và lifecycle vào một RPC (khóa FOR UPDATE)"
+    "ghi_chu": "Gộp ghi nhật ký, update trạm và lifecycle vào một RPC (khóa FOR UPDATE)",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-007",
@@ -491,7 +499,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "641a47ed",
-    "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng"
+    "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-008",
@@ -504,7 +513,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "3379bcde",
-    "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng"
+    "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-009",
@@ -517,7 +527,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "3379bcde",
-    "ghi_chu": "Gộp vào một RPC hoặc bỏ soft"
+    "ghi_chu": "Gộp vào một RPC hoặc bỏ soft",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-010",
@@ -582,7 +593,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-vst-quyen",
     "commit": "3b2f223a",
-    "ghi_chu": "Thêm .select('id') và báo lỗi khi rỗng, như bên VST"
+    "ghi_chu": "Thêm .select('id') và báo lỗi khi rỗng, như bên VST",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-009",
@@ -686,7 +698,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "15949d8d",
-    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ."
+    "ghi_chu": "Hỏi PO: GSC có được đọc census MDRO không. Nếu có thì dùng admin client kèm lọc phạm vi khoa | PO 2026-11-12: người chỉ có quyền GSC được xem MDRO, giới hạn trong khoa của họ.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-006",
@@ -699,7 +712,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "47bc179b",
-    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete."
+    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-007",
@@ -712,7 +726,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "2d974c35",
-    "ghi_chu": "Thêm schema zod cho patch"
+    "ghi_chu": "Thêm schema zod cho patch",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-008",
@@ -725,7 +740,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "6895e197",
-    "ghi_chu": "Chuyển sang RPC một transaction"
+    "ghi_chu": "Chuyển sang RPC một transaction",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-009",
@@ -738,7 +754,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "13967ba0",
-    "ghi_chu": "Hỏi PO: có cho ẩn ca đã chốt không. Gộp hai bước vào một RPC"
+    "ghi_chu": "Hỏi PO: có cho ẩn ca đã chốt không. Gộp hai bước vào một RPC",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-010",
@@ -751,7 +768,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "a3b7fd61",
-    "ghi_chu": "Thêm isNkbvBenhAnInScope cho đồng bộ"
+    "ghi_chu": "Thêm isNkbvBenhAnInScope cho đồng bộ",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-011",
@@ -777,7 +795,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "15949d8d",
-    "ghi_chu": "Lọc theo restriction | PO 2026-11-12: lọc mã phiếu theo khoa của người dùng."
+    "ghi_chu": "Lọc theo restriction | PO 2026-11-12: lọc mã phiếu theo khoa của người dùng.",
+    "test_tay": "CHUA"
   },
   {
     "id": "QT-003",
@@ -803,7 +822,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "9375652e",
-    "ghi_chu": "Chỉ cho đổi khi phiên có amr recovery/otp, hoặc bật secure password change"
+    "ghi_chu": "Chỉ cho đổi khi phiên có amr recovery/otp, hoặc bật secure password change",
+    "test_tay": "CHUA"
   },
   {
     "id": "QT-005",
@@ -816,7 +836,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "5fac7260",
-    "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO | PO 2026-11-12: hồ sơ nhân sự trống email thì từ chối duyệt, yêu cầu bổ sung email trước."
+    "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO | PO 2026-11-12: hồ sơ nhân sự trống email thì từ chối duyệt, yêu cầu bổ sung email trước.",
+    "test_tay": "CHUA"
   },
   {
     "id": "QT-006",
@@ -829,7 +850,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "5da69896",
-    "ghi_chu": "Truyền failClosed:true như rbac.actions.ts:84; kiểm error của các update"
+    "ghi_chu": "Truyền failClosed:true như rbac.actions.ts:84; kiểm error của các update",
+    "test_tay": "CHUA"
   },
   {
     "id": "QT-007",
@@ -842,7 +864,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "9375652e",
-    "ghi_chu": "Trả lỗi khi updateUserById fail; thêm schema zod"
+    "ghi_chu": "Trả lỗi khi updateUserById fail; thêm schema zod",
+    "test_tay": "CHUA"
   },
   {
     "id": "QT-008",
@@ -868,7 +891,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "517f1f2c",
-    "ghi_chu": "Thêm metaMustChangePassword; gộp thông báo lỗi login"
+    "ghi_chu": "Thêm metaMustChangePassword; gộp thông báo lỗi login",
+    "test_tay": "CHUA"
   },
   {
     "id": "DT-014",
@@ -881,7 +905,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "53211e57",
-    "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước."
+    "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước.",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-011",
@@ -891,10 +916,11 @@
     "tieu_de": "GSC giam-sat-chung-bo-sung-nb trả gợi ý rỗng cho MANG_LUOI khi khoa khác khoa của mình; chưa có kịch bản tay",
     "bang_chung": "giam-sat-chung-bo-sung-nb",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "LOI_GIA",
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "",
-    "ghi_chu": "Chưa xác minh; cần kịch bản tay với vai trò MANG_LUOI."
+    "ghi_chu": "Chưa xác minh; cần kịch bản tay với vai trò MANG_LUOI.",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-011",
@@ -907,7 +933,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
     "commit": "fd6384fb",
-    "ghi_chu": "Chưa chạy runtime. Sửa: chỉ người báo hoặc verifyCssdIncidentApprove được vô hiệu. Hỏi PO: người báo có được tự vô hiệu phiếu cờ đỏ chưa xác nhận không?"
+    "ghi_chu": "Chưa chạy runtime. Sửa: chỉ người báo hoặc verifyCssdIncidentApprove được vô hiệu. Hỏi PO: người báo có được tự vô hiệu phiếu cờ đỏ chưa xác nhận không?",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-012",
@@ -920,7 +947,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
     "commit": "0c198932",
-    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5."
+    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5.",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-013",
@@ -946,7 +974,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "83691feb",
-    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update."
+    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-014",
@@ -959,7 +988,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "0ab86047",
-    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view)."
+    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view).",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-015",
@@ -972,7 +1002,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "bc8fdaba",
-    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit."
+    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-016",
@@ -985,7 +1016,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "fdf1c885",
-    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện)."
+    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện).",
+    "test_tay": "CHUA"
   },
   {
     "id": "QT-010",
@@ -1011,7 +1043,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-quan-tri-quyen",
     "commit": "fb7dff80",
-    "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180."
+    "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-017",

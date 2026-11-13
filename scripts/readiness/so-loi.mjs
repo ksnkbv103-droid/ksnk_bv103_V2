@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Sổ lỗi sẵn sàng vận hành thử: nguồn điều hướng duy nhất cho đợt rà toàn project.
-// Dùng: node scripts/readiness/so-loi.mjs status | next [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | check
+// Dùng: node scripts/readiness/so-loi.mjs status | next [n] | next --tay [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | tay <ID> <DAT|KHONG_DAT|CHUA> [ghi chú] | check
 // Agent rà KHÔNG sửa so-loi.json; ghi mảng phát hiện vào scripts/readiness/inbox/<ten>.json, chat điều phối chạy `merge`.
 import { readFileSync, writeFileSync, readdirSync, unlinkSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -14,6 +14,10 @@ const MODULES = ["VST_GSC", "CSSD", "NKBV", "QLCV", "DAO_TAO", "QUAN_TRI", "NEN"
 const LOP = ["DOMAIN", "DB", "BACKEND", "FRONTEND", "UX", "TEST", "VAN_HANH"];
 const MUC = ["NGHIEM_TRONG", "CAO", "TRUNG_BINH", "THAP"];
 const TT = ["MOI", "DA_XAC_MINH", "LOI_GIA", "DANG_SUA", "DA_SUA", "HOAN", "CHO_PO"];
+const TAY = ["CHUA", "DAT", "KHONG_DAT"]; // kịch bản tay trên giao diện; rỗng = dòng không cần thử tay
+const LOP_TAY = new Set(["FRONTEND", "UX"]);
+// Việc kế của một dòng đã xác minh: migration không giao slice-fixer, việc vận hành/prod chờ PO.
+const viecKe = (r) => r.trang_thai === "MOI" ? "XÁC MINH (db-verify)" : r.lop === "DB" ? "SỬA (migration-author)" : r.lop === "VAN_HANH" ? "CHỜ PO (prod/vận hành)" : "SỬA (slice-fixer)";
 const MO = new Set(["MOI", "DA_XAC_MINH", "DANG_SUA", "CHO_PO"]);
 const PREFIX = { VST_GSC: "VST", CSSD: "CSSD", NKBV: "NKBV", QLCV: "QLCV", DAO_TAO: "DT", QUAN_TRI: "QT", NEN: "NEN" };
 
@@ -78,13 +82,26 @@ if (cmd === "merge") {
   if (["DA_XAC_MINH", "DA_SUA"].includes(tt) && !String(r.lenh_kiem || "").trim()) die(`${id}: lenh_kiem rỗng — ghi lệnh tái hiện/kiểm trước khi chuyển ${tt}`);
   if (tt === "DA_SUA" && !touchesTest(commit)) console.log(`CẢNH BÁO ${id}: commit ${commit} không chạm *.spec.ts hay supabase/migrations/ — chỉ kiểm tay?`);
   r.trang_thai = tt; if (commit) r.commit = commit;
+  if (tt === "DA_SUA" && LOP_TAY.has(r.lop) && !r.test_tay) r.test_tay = "CHUA";
   save(rows); console.log(`${id} → ${tt}${commit ? " @" + commit : ""}`);
+} else if (cmd === "tay") {
+  const [id, kq, ...note] = args;
+  const r = rows.find((x) => x.id === id) || die(`Không có ${id}`);
+  if (!TAY.includes(kq)) die(`kết quả phải là ${TAY.join("|")}`);
+  if (kq !== "CHUA" && !note.length) die("DAT/KHONG_DAT cần ghi chú: đã làm gì, thấy gì");
+  r.test_tay = kq;
+  if (note.length) r.ghi_chu = [r.ghi_chu, `Tay ${new Date().toISOString().slice(0, 10)} ${kq}: ${note.join(" ")}`].filter(Boolean).join(" | ");
+  save(rows); console.log(`${id} test_tay → ${kq}`);
+} else if (cmd === "next" && args[0] === "--tay") {
+  const todo = rows.filter((r) => ["CHUA", "KHONG_DAT"].includes(r.test_tay));
+  for (const r of todo.slice(0, Number(args[1]) || 100)) console.log(`${r.id}\t${r.test_tay}\t${r.muc}\t${r.tieu_de}`);
+  console.log(`Kịch bản tay: còn ${todo.length} · đạt ${rows.filter((r) => r.test_tay === "DAT").length}`);
 } else if (cmd === "next") {
   const n = Number(args[0]) || 10;
   const open = rows.filter((r) => ["DA_XAC_MINH", "MOI"].includes(r.trang_thai))
     .sort((a, b) => MUC.indexOf(a.muc) - MUC.indexOf(b.muc) || (a.trang_thai === "DA_XAC_MINH" ? -1 : 1) || a.id.localeCompare(b.id));
   // Cột cuối = việc kế của dòng: MOI phải xác minh trước, DA_XAC_MINH mới được sửa.
-  for (const r of open.slice(0, n)) console.log(`${r.id}\t${r.muc}\t${r.trang_thai}\t${r.lop}\t${r.tieu_de}\t${r.bang_chung}\t→ ${r.trang_thai === "MOI" ? "XÁC MINH (db-verify)" : "SỬA (slice-fixer)"}`);
+  for (const r of open.slice(0, n)) console.log(`${r.id}\t${r.muc}\t${r.trang_thai}\t${r.lop}\t${r.tieu_de}\t${r.bang_chung}\t→ ${viecKe(r)}`);
   if (!open.length) console.log("Không còn việc MOI/DA_XAC_MINH.");
 } else if (cmd === "stats") {
   // Số đo luồng: đếm theo trạng thái, tỉ lệ lỗi giả, số việc đã sửa theo ngày commit.
@@ -93,6 +110,7 @@ if (cmd === "merge") {
   const closed = cnt((r) => ["DA_SUA", "LOI_GIA"].includes(r.trang_thai));
   console.log(`Tỉ lệ lỗi giả: ${cnt((r) => r.trang_thai === "LOI_GIA")}/${closed} việc đã đóng`);
   console.log(`Việc kế: xác minh ${cnt((r) => r.trang_thai === "MOI")} · sửa ${cnt((r) => r.trang_thai === "DA_XAC_MINH")} · chờ PO ${cnt((r) => r.trang_thai === "CHO_PO")}`);
+  console.log(`Kịch bản tay: ${TAY.map((t) => `${t} ${cnt((r) => r.test_tay === t)}`).join(" · ")}`);
   const byDay = {};
   for (const r of rows.filter((x) => x.trang_thai === "DA_SUA" && x.commit)) {
     let d = "không rõ ngày";
@@ -110,6 +128,9 @@ if (cmd === "merge") {
     console.log(`${m.padEnd(9)} ${blk.length ? "CHƯA ĐẠT (" + blk.map((r) => r.id).join(", ") + ")" : "không còn lỗi chặn"}`);
     fail += blk.length;
   }
+  const kd = rows.filter((r) => r.test_tay === "KHONG_DAT");
+  if (kd.length) { console.log(`Kịch bản tay KHÔNG ĐẠT: ${kd.map((r) => r.id).join(", ")}`); fail += kd.length; }
+  console.log(`Kịch bản tay chưa chạy: ${rows.filter((r) => r.test_tay === "CHUA").length} (xem next --tay)`);
   process.exit(fail ? 1 : 0);
 } else if (cmd === "status" || !cmd) {
   console.log(`Sổ lỗi: ${rows.length} dòng · mở ${rows.filter((r) => MO.has(r.trang_thai)).length} · đã sửa ${rows.filter((r) => r.trang_thai === "DA_SUA").length} · lỗi giả ${rows.filter((r) => r.trang_thai === "LOI_GIA").length} · hoãn ${rows.filter((r) => r.trang_thai === "HOAN").length}`);
@@ -123,4 +144,4 @@ if (cmd === "merge") {
   }
   const po = rows.filter((r) => r.trang_thai === "CHO_PO");
   if (po.length) { console.log("\nChờ PO:"); for (const r of po) console.log(`  ${r.id} ${r.tieu_de}`); }
-} else die("Lệnh: status | next [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | check");
+} else die("Lệnh: status | next [n] | next --tay [n] | stats | merge | set <ID> <TRANG_THAI> [commit] | tay <ID> <DAT|KHONG_DAT|CHUA> [ghi chú] | check");
