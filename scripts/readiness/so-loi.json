@@ -1301,10 +1301,11 @@
     "tieu_de": "Liên kết «Nhật ký sự cố» dẫn tới trang bị chặn quyền với vai không có quyền sự cố",
     "bang_chung": "UAT :3001 2026-11-13",
     "lenh_kiem": "grep -n cssdSuCoIncidentJournalHref src/modules/cssd-su-co/views/SuCoBaoCaoPage.tsx",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Ẩn liên kết theo quyền | explore-module: THẬT Thấp — SuCoBaoCaoPage.tsx:136-150 render link không lọc CSSD_REPORT; cùng helper ở NkbvCssdRcaPanel.tsx:157, PheDuyetDungCuPanel.tsx:328."
+    "commit": "c80d15c4",
+    "ghi_chu": "Ẩn liên kết theo quyền | explore-module: THẬT Thấp — SuCoBaoCaoPage.tsx:136-150 render link không lọc CSSD_REPORT; cùng helper ở NkbvCssdRcaPanel.tsx:157, PheDuyetDungCuPanel.tsx:328.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-022",
@@ -1314,10 +1315,11 @@
     "tieu_de": "Tab «Nạp dữ liệu» NKBV hiện nút nạp cho vai chỉ xem (action vẫn chặn)",
     "bang_chung": "UAT :3001 2026-11-13",
     "lenh_kiem": "grep -n NkbvViSinhImportPortal src/modules/giam-sat-nkbv/views/GiamSatNkbvPage.tsx",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Ẩn/khóa nút theo quyền import | explore-module: THẬT TB — GiamSatNkbvPage.tsx:314 tab + :947-951 portal không truyền cờ quyền; NkbvViSinhImportPortal.tsx:465-550 nút chỉ disabled khi loading. Chưa kiểm server action."
+    "commit": "c80d15c4",
+    "ghi_chu": "Ẩn/khóa nút theo quyền import | explore-module: THẬT TB — GiamSatNkbvPage.tsx:314 tab + :947-951 portal không truyền cờ quyền; NkbvViSinhImportPortal.tsx:465-550 nút chỉ disabled khi loading. Chưa kiểm server action.",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-013",
@@ -1327,10 +1329,11 @@
     "tieu_de": "Form VST xếp khoa không lâm sàng lên trước; sau khi xóa GSC vẫn hiện «Đã chọn 1»",
     "bang_chung": "UAT :3001 2026-11-13",
     "lenh_kiem": "grep -n selectedIds src/hooks/useDataTable.ts",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "CHO_PO",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi."
+    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi. | (b) đã sửa c80d15c4 useDataTable.ts dọn selectedIds; (a) thứ tự khoa chờ PO chốt trường lâm sàng.",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-025",
@@ -1392,9 +1395,9 @@
     "tieu_de": "Nhận lại bộ thu hồi lưu nguoi_tiep_nhan_id null khi tài khoản chưa gắn nhân sự",
     "bang_chung": "security-auditor 2026-11-13: cssd-scan.actions.ts:89 dùng getActorNhanSuId() (null) → recall-receive.application.ts:66; nhánh CAP_PHAT dòng 136-141 dùng resolveCssdOperatorNhanSuId có dự phòng email. Sửa: dùng cùng resolver ở dòng 89.",
     "lenh_kiem": "grep -n getActorNhanSuId src/modules/cssd-erp/actions/cssd-scan.actions.ts",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "audit-2026-11-13",
-    "commit": "",
+    "commit": "c80d15c4",
     "ghi_chu": ""
   }
 ]
