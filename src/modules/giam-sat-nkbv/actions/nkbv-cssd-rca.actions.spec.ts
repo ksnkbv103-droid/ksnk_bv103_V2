@@ -2,9 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ restriction: vi.fn(), eq: vi.fn(), limit: vi.fn(), order: [] as string[] }));
 
-const perm = vi.hoisted(() => ({ verifyPermissions: vi.fn(async (_r: unknown) => {}) }));
+const perm = vi.hoisted(() => ({
+  verifyPermissions: vi.fn(async (_r: unknown) => {}),
+  verifyPermission: vi.fn(async (_m: string, _a: string) => {}),
+}));
 vi.mock("@/lib/server-permission", () => ({
-  verifyPermission: vi.fn(async () => {}),
+  verifyPermission: perm.verifyPermission,
   verifyPermissions: perm.verifyPermissions,
 }));
 vi.mock("@/lib/cssd-nkbv-trace", () => ({ resolveCssdQuyTrinhLinkFromMaQr: vi.fn() }));
@@ -29,7 +32,7 @@ vi.mock("@/lib/supabase-server", () => ({
         return chain;
       };
       chain.then = (res: (v: unknown) => unknown) =>
-        res({ data: [{ id: "c1", ma_ca: "M1", khoa_ghi_nhan_id: "k1" }], error: null });
+        res({ data: [{ id: "c1", ma_ca: "M1", ho_ten_benh_nhan: "Nguyễn Văn A", khoa_ghi_nhan_id: "k1" }], error: null });
       return chain;
     },
   }),
@@ -50,6 +53,20 @@ describe("NKBV-015 fetchNkbvCasesLinkedToCssd", () => {
     expect(r.success).toBe(true);
     expect(mocks.order.indexOf("eq:khoa_ghi_nhan_id")).toBeGreaterThan(-1);
     expect(mocks.order.indexOf("eq:khoa_ghi_nhan_id")).toBeLessThan(mocks.order.indexOf("limit"));
+  });
+  it("NKBV-018: chỉ có quyền CSSD (không GIAM_SAT_NKBV view) thì thấy mã ca, không thấy họ tên BN", async () => {
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    perm.verifyPermission.mockImplementation(async (m: string) => {
+      if (m === "GIAM_SAT_NKBV") throw new Error("Bạn không có quyền [view] trên module [GIAM_SAT_NKBV].");
+    });
+    const r = await fetchNkbvCasesLinkedToCssd({ loTietKhuanId: LO });
+    expect(r).toMatchObject({ success: true, cases: [{ maCa: "M1", hoTen: null }] });
+  });
+  it("NKBV-018: có GIAM_SAT_NKBV view thì thấy họ tên BN", async () => {
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
+    perm.verifyPermission.mockImplementation(async () => {});
+    const r = await fetchNkbvCasesLinkedToCssd({ loTietKhuanId: LO });
+    expect(r).toMatchObject({ success: true, cases: [{ maCa: "M1", hoTen: "Nguyễn Văn A" }] });
   });
   it("kind=none: rỗng, không truy vấn", async () => {
     mocks.restriction.mockResolvedValue({ kind: "none" });

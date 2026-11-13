@@ -203,7 +203,14 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
       q = q.eq("quy_trinh_id", qtId);
     }
 
-    const { data, error } = await q;
+    // NKBV-018: người chỉ có quyền CSSD thấy mã ca để truy vết, không thấy họ tên bệnh nhân.
+    const [{ data, error }, canSeePatientName] = await Promise.all([
+      q,
+      verifyPermission("GIAM_SAT_NKBV", "view").then(
+        () => true,
+        () => false,
+      ),
+    ]);
     if (error) throw new Error(error.message);
     const visibleRows = (data || []).filter((r) =>
       nkbvKhoaVisible(restriction, [r.khoa_ghi_nhan_id as string | null]),
@@ -214,7 +221,7 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
       cases: visibleRows.map((r) => ({
         id: String(r.id),
         maCa: r.ma_ca != null ? String(r.ma_ca) : null,
-        hoTen: r.ho_ten_benh_nhan != null ? String(r.ho_ten_benh_nhan) : null,
+        hoTen: canSeePatientName && r.ho_ten_benh_nhan != null ? String(r.ho_ten_benh_nhan) : null,
         ngayPhatHien: r.ngay_phat_hien != null ? String(r.ngay_phat_hien) : null,
       })),
     };
