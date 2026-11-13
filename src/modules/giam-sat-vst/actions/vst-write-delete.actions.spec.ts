@@ -5,12 +5,16 @@ const SID = "11111111-1111-4111-8111-111111111111";
 const m = vi.hoisted(() => ({
   updateResult: { data: [{ id: "x" }] as unknown[] | null, error: null as unknown },
   eqCalls: [] as Array<[string, unknown]>,
+  createdAt: null as string | null,
+  inserts: [] as unknown[],
+  updateCount: 0,
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/server-permission", () => ({
   verifyPermission: vi.fn(),
   hasRBACAdminSupervisionBypass: vi.fn().mockResolvedValue(false),
+  getActorRoleNames: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/lib/actor-auth-server", () => ({
   getActorNhanSuId: vi.fn().mockResolvedValue("ns-1"),
@@ -25,12 +29,17 @@ vi.mock("@/lib/supabase-server", () => ({
       select: () => ({
         in: async () => ({
           data: [
-            { id: SID, nguoi_giam_sat_id: "ns-1", is_active: true, created_at: new Date().toISOString(), ngay_giam_sat: "2026-11-01" },
+            { id: SID, nguoi_giam_sat_id: "ns-1", is_active: true, created_at: m.createdAt ?? new Date().toISOString(), ngay_giam_sat: "2026-11-01" },
           ],
           error: null,
         }),
       }),
+      insert: async (rows: unknown) => {
+        m.inserts.push(rows);
+        return { error: null };
+      },
       update: () => {
+        m.updateCount += 1;
         const chain = {
           in: () => chain,
           eq: (c: string, v: unknown) => {
@@ -50,6 +59,9 @@ import { deleteVSTSessions } from "./vst-write-delete.actions";
 describe("deleteVSTSessions", () => {
   beforeEach(() => {
     m.eqCalls.length = 0;
+    m.inserts.length = 0;
+    m.updateCount = 0;
+    m.createdAt = null;
     m.updateResult = { data: [{ id: SID }], error: null };
   });
 
@@ -63,5 +75,23 @@ describe("deleteVSTSessions", () => {
     m.updateResult = { data: [], error: null };
     const r = await deleteVSTSessions([SID], { lyDo: "nhập nhầm khoa" });
     expect(r.success).toBe(false);
+  });
+
+  // @dac-ta T1.33
+  it("chủ phiên quá 30 phút: tạo yêu cầu chờ duyệt, KHÔNG vô hiệu phiên", async () => {
+    m.createdAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const r = await deleteVSTSessions([SID], { lyDo: "nhập nhầm khoa" });
+    expect(r).toEqual({ success: true, choDuyet: 1 });
+    expect(m.updateCount).toBe(0);
+    expect(m.inserts).toEqual([
+      [{ session_id: SID, loai: "XOA", ly_do: "nhập nhầm khoa", nguoi_yeu_cau_auth_id: "u-1", nguoi_yeu_cau_nhan_su_id: "ns-1" }],
+    ]);
+  });
+
+  it("lý do dưới 10 ký tự: chặn, không tạo yêu cầu", async () => {
+    m.createdAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const r = await deleteVSTSessions([SID], { lyDo: "nhầm 1" });
+    expect(r.success).toBe(false);
+    expect(m.inserts).toHaveLength(0);
   });
 });

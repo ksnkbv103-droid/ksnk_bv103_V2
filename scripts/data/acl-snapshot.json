@@ -142,6 +142,7 @@
     "tbl gstt_fact_ke_hoach_giam_sat | rls=true | anon= auth=IU",
     "tbl gstt_fact_vst | rls=true | anon=IUD auth=IUD",
     "tbl gstt_fact_vst_sessions | rls=true | anon=IUD auth=IUD",
+    "tbl gstt_fact_vst_yeu_cau_dieu_chinh | rls=true | anon= auth=",
     "tbl gstt_map_bang_kiem_short_long | rls=true | anon= auth=IUD",
     "tbl gstt_map_tieu_chi_merge | rls=true | anon= auth=IUD",
     "tbl gstt_map_tieu_chi_orphan | rls=true | anon= auth=IUD",

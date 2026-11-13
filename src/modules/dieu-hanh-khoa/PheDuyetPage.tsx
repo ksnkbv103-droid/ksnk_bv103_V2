@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PheDuyetDungCuPanel } from "./PheDuyetDungCuPanel";
+import { PheDuyetVstPanel } from "./PheDuyetVstPanel";
 
 /** Màn Phê duyệt của chủ nhiệm khoa (AR-4): gom hàng chờ duyệt đã có, không bảng mới. */
 export function PheDuyetPage() {
@@ -10,10 +11,11 @@ export function PheDuyetPage() {
       <div>
         <h1 className="text-lg font-semibold text-slate-900">Phê duyệt</h1>
         <p className="text-sm text-slate-600">
-          Đề nghị đổi danh mục dụng cụ và rà soát thành phần bộ do tổ CSSD gửi lên.
+          Đề nghị đổi danh mục dụng cụ, rà soát thành phần bộ do tổ CSSD gửi lên và yêu cầu xóa muộn phiên giám sát vệ sinh tay.
         </p>
       </div>
       <PheDuyetDungCuPanel />
+      <PheDuyetVstPanel />
       <p className="text-xs text-slate-500">
         Phiếu kho hóa chất chờ duyệt được duyệt ngay trên màn{" "}
         <Link href="/cssd-hoa-chat" className="underline">
