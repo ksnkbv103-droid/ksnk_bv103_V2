@@ -30,7 +30,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 5. Lô migration prod: 31 file chưa áp + `20261113100000_qlcv010_khong_tu_phe_duyet_dexuat` (sau 20261112140000), thứ tự + điều kiện trước/sau áp ở `git show ae5ca6fd:HANDOFF.md` dòng 25–30. Áp hết rồi mới deploy mã (DT-006 cần cột `huy_*`).
 
 ## Lát chưa mở / nợ
-- NKBV-025 thử tay 2026-11-13 KHÔNG ĐẠT (sổ lỗi): FK bắt BA tồn tại nên «chưa import» không xảy ra; BA đã ẩn → sửa/ẩn được (ĐẠT), BA active chưa có khoa + không lưới ngày → vẫn «ngoài khoa» (nhánh `if (ba || …)` trong `nkbv-khoa-scope.server.ts`). Mạng lưới preset chỉ có NKBV view nên chỉ gặp khi được cấp thêm edit/delete. Chờ PO quyết sửa tiếp.
+- NKBV-025 ĐẠT 2026-11-13: FK bắt BA tồn tại nên «chưa import» không xảy ra; đã sửa nhánh BA active chưa có khoa điều trị + không lưới ngày (`if (ba?.khoa_dieu_tri_id || …)` trong `nkbv-khoa-scope.server.ts`, 4 spec mới). Thử tay lại :3001 vai Mạng lưới: «Đã ẩn phiếu»; phiếu khoa khác vẫn bị RLS ẩn. Mạng lưới preset chỉ có NKBV view nên chỉ gặp khi được cấp thêm edit/delete.
 - Thử tay 2026-11-13 (:3001) ĐẠT: QLCV-010, NKBV-018, VST-013a, CSSD-027 (ghi ở sổ lỗi). Ghi nhận nhỏ chưa sửa: nút «Phê duyệt và giao» vẫn hiện cho người đề xuất (chỉ chặn khi gửi); banner NKBV vẫn hiện link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
 - Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
 - Chưa qua reviewer độc lập: CSSD-011/012, NKBV-013..016, QT-011.
