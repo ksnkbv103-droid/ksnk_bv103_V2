@@ -45,6 +45,7 @@ export async function updateMucDoThiThu(input: {
   loai_quota?: Record<string, number>;
 }) {
   await verifyPermission("DAO_TAO", "edit");
+  await requireDaoTaoAdmin();
   input = parseDaoTaoInput(updateMucDoThiThuSchema, input);
   const admin = createAdminSupabaseClient();
   const patch: Record<string, unknown> = {
@@ -131,6 +132,7 @@ export async function updateKyThiThat(
   patch: Partial<KyThiInput> & { trang_thai?: "draft" | "published" | "closed" },
 ) {
   await verifyPermission("DAO_TAO", "edit");
+  await requireDaoTaoAdmin();
   id = parseDaoTaoInput(daoTaoIdSchema, id);
   patch = parseDaoTaoInput(updateKyThiPatchSchema, patch);
   const admin = createAdminSupabaseClient();
@@ -176,6 +178,7 @@ export async function setKyThiGan(input: {
   hanChungChiThang?: number;
 }) {
   await verifyPermission("DAO_TAO", "edit");
+  await requireDaoTaoAdmin();
   input = parseDaoTaoInput(setKyThiGanSchema, input);
   const admin = createAdminSupabaseClient();
   const { data: current, error: readErr } = await admin

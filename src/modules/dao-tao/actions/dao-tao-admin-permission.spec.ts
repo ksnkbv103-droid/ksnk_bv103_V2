@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   verifyAnyPermission: vi.fn(),
   getUser: vi.fn(),
   from: vi.fn(),
+  scope: { isGuestStatsOnly: false, isAdmin: false },
 }));
 
 vi.mock("@/lib/server-permission", () => ({
@@ -13,7 +14,7 @@ vi.mock("@/lib/server-permission", () => ({
 }));
 
 vi.mock("@/lib/actor-ksnk-scope-server", () => ({
-  getActorKsnkScope: async () => ({ isGuestStatsOnly: false, isAdmin: false }),
+  getActorKsnkScope: async () => mocks.scope,
 }));
 
 vi.mock("@/lib/supabase-server", () => ({
@@ -25,13 +26,19 @@ import {
   getBankStats,
   getCauHoiDetail,
   getDaoTaoBankForExport,
+  importMcqMatrixAction,
   listCauHoiDaoTao,
+  setCauHoiActive,
+  updateCauHoiDaoTao,
 } from "./dao-tao-bank.actions";
 import {
   listChuaNopKyThi,
   listKetQuaKyThi,
   listKyThiThatAdmin,
   listNhanSuOptions,
+  setKyThiGan,
+  updateKyThiThat,
+  updateMucDoThiThu,
 } from "./dao-tao-admin.actions";
 import { getLanThiForTake, saveTraLoiCau } from "./dao-tao-attempt.actions";
 
@@ -190,5 +197,49 @@ describe("DT-1: saveTraLoiCau kiểm input", () => {
       });
       expect(r).toEqual({ ok: false, error: "Phương án không thuộc câu hỏi này." });
     });
+  });
+});
+
+describe("Action ghi Thi KSNK qua requireDaoTaoAdmin (chặn khách thống kê còn sót grant)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "guest-1" } } });
+    mocks.verifyPermission.mockResolvedValue(undefined);
+    mocks.verifyAnyPermission.mockResolvedValue(undefined);
+    mocks.from.mockReturnValue(chain({ data: null, error: null }));
+    mocks.scope = { isGuestStatsOnly: true, isAdmin: false };
+  });
+
+  const writes: Array<[string, () => Promise<unknown>]> = [
+    ["updateMucDoThiThu", () => updateMucDoThiThu({ id: LAN_THI_ID, so_cau: 10, thoi_gian_phut: 15 })],
+    ["updateKyThiThat", () => updateKyThiThat(LAN_THI_ID, { ten: "Kỳ thi" })],
+    ["setKyThiGan", () => setKyThiGan({ kyThiId: LAN_THI_ID, khoaPhongIds: [] })],
+    ["importMcqMatrixAction", () => importMcqMatrixAction({ rows: [], dryRun: true })],
+    ["setCauHoiActive", () => setCauHoiActive(LAN_THI_ID, false)],
+    [
+      "updateCauHoiDaoTao",
+      () =>
+        updateCauHoiDaoTao({
+          id: LAN_THI_ID,
+          stem: "?",
+          bloomLevel: 1,
+          optionA: "a",
+          optionB: "b",
+          dapAnRaw: "A",
+          loai: "single",
+        }),
+    ],
+  ];
+
+  it.each(writes)("%s ném lỗi khách và không đụng DB", async (_name, call) => {
+    await expect(call()).rejects.toThrow("Tài khoản khách thống kê không dùng được Thi KSNK.");
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+
+  it("chưa đăng nhập: setCauHoiActive từ chối, không đụng DB", async () => {
+    mocks.scope = { isGuestStatsOnly: false, isAdmin: false };
+    mocks.getUser.mockResolvedValue({ data: { user: null } });
+    await expect(setCauHoiActive(LAN_THI_ID, false)).rejects.toThrow("Bạn chưa đăng nhập.");
+    expect(mocks.from).not.toHaveBeenCalled();
   });
 });

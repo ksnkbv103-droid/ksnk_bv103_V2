@@ -237,6 +237,7 @@ export async function importMcqMatrixAction(input: {
   replaceActive?: boolean;
 }): Promise<DaoTaoImportResult> {
   await verifyPermission("DAO_TAO", "import");
+  await requireDaoTaoAdmin();
   input = parseDaoTaoInput(importMcqMatrixSchema, input) as typeof input;
   const admin = createAdminSupabaseClient();
   const fallbackMa = input.chuDeMa ?? DEFAULT_CHU_DE.ma;
@@ -393,6 +394,7 @@ export async function importMcqMatrixAction(input: {
 
 export async function setCauHoiActive(cauHoiId: string, isActive: boolean) {
   await verifyPermission("DAO_TAO", "edit");
+  await requireDaoTaoAdmin();
   ({ cauHoiId, isActive } = parseDaoTaoInput(setCauHoiActiveSchema, { cauHoiId, isActive }));
   const admin = createAdminSupabaseClient();
   const { error } = await admin
@@ -416,6 +418,7 @@ export async function updateCauHoiDaoTao(input: {
   loai: DaoTaoQuestionLoai;
 }) {
   await verifyPermission("DAO_TAO", "edit");
+  await requireDaoTaoAdmin();
   input = parseDaoTaoInput(updateCauHoiDaoTaoSchema, input) as typeof input;
   const admin = createAdminSupabaseClient();
 
