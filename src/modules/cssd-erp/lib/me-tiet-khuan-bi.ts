@@ -24,6 +24,8 @@ export type BiBm02Record = {
   soLoBi: string;
 };
 
+const BI_GIO_DOC_DUNG_SAI_MS = 2 * 60_000;
+
 const MSG_BI_KHONG_HOP_LE = "Kết quả BI không hợp lệ — ống đối chứng phải dương tính; chạy lại thử nghiệm.";
 
 function norm(value: string | null | undefined): string {
@@ -60,6 +62,7 @@ export function biBm02ToQcPatch(rec: BiBm02Record): Record<string, string> {
  */
 export function assertBiBm02HopLe(
   input: BiBm02Input,
+  nowMs: number = Date.now(),
 ): { ok: true; record: BiBm02Record } | { ok: false; message: string } {
   const ketQua = norm(input.trangThaiBi);
   if (ketQua !== "AM" && ketQua !== "DUONG") {
@@ -92,6 +95,10 @@ export function assertBiBm02HopLe(
   }
   if (tDoc < tU) {
     return { ok: false, message: "Giờ đọc BI không được trước giờ bắt đầu ủ." };
+  }
+  // CSSD-017: không nhận giờ đọc ở tương lai; dung sai 2 phút cho lệch đồng hồ máy trạm/máy chủ.
+  if (tDoc > nowMs + BI_GIO_DOC_DUNG_SAI_MS) {
+    return { ok: false, message: "Giờ đọc BI không được muộn hơn thời điểm hiện tại." };
   }
   return {
     ok: true,
