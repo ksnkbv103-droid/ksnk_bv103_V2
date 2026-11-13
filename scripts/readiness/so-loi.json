@@ -88,8 +88,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
     "commit": "9375652e",
-    "ghi_chu": "",
-    "test_tay": "CHUA"
+    "ghi_chu": "Tay 2026-11-13 DAT: 2026-11-13 :3001 NV_TEST01 (local), bật cờ must_change_password rồi đăng nhập lại: bị chuyển về /tai-khoan/doi-mat-khau; gõ thẳng /giam-sat-nkbv vẫn bị chuyển; request prefetch (header RSC + Next-Router-Prefetch) cũng bị chuyển về trang đổi mật khẩu. Lưu ý: cờ đọc từ claims của phiên nên phiên đang mở chỉ bị chặn sau khi token làm mới/đăng nhập lại.",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-001",
@@ -102,8 +102,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "no-da-biet",
     "commit": "90dd4205",
-    "ghi_chu": "",
-    "test_tay": "CHUA"
+    "ghi_chu": "Tay 2026-11-13 DAT: Form VST :3001 (ADMIN): khoa A03 hiện đúng 5 khu vực = specs.allowed_khu_vucs trong DB local, có Khu chung (is_common). Không có khoa nào allowed rỗng ở local nên nhánh chỉ-is_common không quan sát được trên giao diện",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-002",
@@ -432,8 +432,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-qlcv",
     "commit": "68310e45",
-    "ghi_chu": "Đưa các cột mở rộng vào p_patch trong RPC hoặc đảo thứ tự và rollback. Hỏi PO: người đề xuất có được tự duyệt đề xuất của mình?",
-    "test_tay": "CHUA"
+    "ghi_chu": "Đưa các cột mở rộng vào p_patch trong RPC hoặc đảo thứ tự và rollback. Hỏi PO: người đề xuất có được tự duyệt đề xuất của mình? | Tay 2026-11-13 DAT: 2026-11-13 :3001 NV_TEST01: gui de xuat (khoa C18) -> Phe duyet & giao voi han 31/12, phu trach, 1 nguoi phoi hop -> DB DANG_LAM, is_active, dia_diem_khoa_ids va nguoi_phoi_hop_ids ghi cung luc. Duong loi rollback chi spec. Quan sat: cung mot nguoi (vai ADMIN tam) tu duyet de xuat cua minh duoc - cau PO 'tu duyet' van mo. Phieu thu 61a9f9a3 de lai tren local.",
+    "test_tay": "DAT"
   },
   {
     "id": "QLCV-008",
@@ -485,8 +485,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "46ac12bf",
-    "ghi_chu": "Gộp ghi nhật ký, update trạm và lifecycle vào một RPC (khóa FOR UPDATE)",
-    "test_tay": "CHUA"
+    "ghi_chu": "Gộp ghi nhật ký, update trạm và lifecycle vào một RPC (khóa FOR UPDATE) | Tay 2026-11-13 DAT: 2026-11-13 :3001 NV_TEST01: tram Kiem bo, 'Tra ve Lam sach' bo B19.SET.02-CN co ly do -> DB LAM_SACH->TIEP_NHAN, xoa nguoi/thoi_gian lam sach, nhat_ky TRA_VE co tu/den/ly_do/truoc/nhan_su cung luc. Duong loi (bo da doi tram) chi co spec.",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-007",
@@ -499,7 +499,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "641a47ed",
-    "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng",
+    "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng | Tay 2026-11-13 CHUA: 2026-11-13: khong dung duoc tren giao dien - tai khoan chua gan nhan su khong co quyen nao (v_sys_user_permissions join mdm_nhan_su). Chi spec.",
     "test_tay": "CHUA"
   },
   {
@@ -513,7 +513,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "3379bcde",
-    "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng",
+    "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng | Tay 2026-11-13 CHUA: 2026-11-13: nhu CSSD-007, tai khoan khong gan nhan su khong vao duoc trang. Chi spec.",
     "test_tay": "CHUA"
   },
   {
@@ -527,7 +527,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "3379bcde",
-    "ghi_chu": "Gộp vào một RPC hoặc bỏ soft",
+    "ghi_chu": "Gộp vào một RPC hoặc bỏ soft | Tay 2026-11-13 CHUA: 2026-11-13: cssdCommandFreezeSet khong co noi goi tren giao dien (grep src chi thay chinh file). Chi spec; khoa an toan qua su co/thu hoi la duong khac. Ma facade khong dung: bao, khong xoa.",
     "test_tay": "CHUA"
   },
   {
@@ -593,8 +593,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-vst-quyen",
     "commit": "3b2f223a",
-    "ghi_chu": "Thêm .select('id') và báo lỗi khi rỗng, như bên VST",
-    "test_tay": "CHUA"
+    "ghi_chu": "Thêm .select('id') và báo lỗi khi rỗng, như bên VST | Tay 2026-11-13 DAT: Lịch sử GSC :3001 (ADMIN), 2 tab: tab 1 xóa GSC-20261110-5592E839 → «Đã ngừng sử dụng 1 phiên», DB is_active=f; tab 2 (danh sách cũ) xóa lại → toast «Lỗi xóa: Phiên đã bị vô hiệu, không xóa được theo luồng hiện tại». Quan sát phụ: sau xóa vẫn hiện «Đã chọn 1»",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-009",
@@ -754,8 +754,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "13967ba0",
-    "ghi_chu": "Hỏi PO: có cho ẩn ca đã chốt không. Gộp hai bước vào một RPC",
-    "test_tay": "CHUA"
+    "ghi_chu": "Hỏi PO: có cho ẩn ca đã chốt không. Gộp hai bước vào một RPC | Tay 2026-11-13 DAT: 2026-11-13 :3001 NV_TEST01(ADMIN tam): Danh sach phieu -> An phieu ca BA-TRIAL-04 (DANG_GHI_NHAN) -> toast 'Da an phieu', DB is_active=false; XN 45eb8ca2 khong co stamp nen nhanh tra hang cho khong chay (chi spec). Da bat lai is_active. CON MO: chua chan an ca da XAC_NHAN/LOAI_TRU (softDelete khong kiem trang thai) - cau PO trong ghi chu goc, dua vao goi Lat E.",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-010",
@@ -768,8 +768,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "a3b7fd61",
-    "ghi_chu": "Thêm isNkbvBenhAnInScope cho đồng bộ",
-    "test_tay": "CHUA"
+    "ghi_chu": "Thêm isNkbvBenhAnInScope cho đồng bộ | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): mở Hub BA-TRIAL-17 chỉ đọc, không có nút Tạo phiếu/Lưu/Bỏ qua/Xóa, ô lưới ngày bị khóa. Đường chặn phía server (khoa ngoài phạm vi) chỉ có spec, không thao tác được từ giao diện với vai chỉ xem.",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-011",
@@ -795,8 +795,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "15949d8d",
-    "ghi_chu": "Lọc theo restriction | PO 2026-11-12: lọc mã phiếu theo khoa của người dùng.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Lọc theo restriction | PO 2026-11-12: lọc mã phiếu theo khoa của người dùng. | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): hàng đợi bệnh án chỉ hiện 6 BA của A03 (DB toàn viện nhiều khoa); tab Danh sách phiếu rỗng, khớp DB (1 phiếu đang hoạt động thuộc khoa khác, 0 của A03); ô Lọc khoa khóa ở A03.",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-003",
@@ -822,8 +822,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "9375652e",
-    "ghi_chu": "Chỉ cho đổi khi phiên có amr recovery/otp, hoặc bật secure password change",
-    "test_tay": "CHUA"
+    "ghi_chu": "Chỉ cho đổi khi phiên có amr recovery/otp, hoặc bật secure password change | Tay 2026-11-13 DAT: 2026-11-13 :3001 NV_TEST01 local, phiên đăng nhập mật khẩu thường: mở /login/reset-password bị chuyển về / (không có đường giao diện đặt MK thiếu MK cũ). Chặn amr recovery/otp ≤15 phút ở completePasswordRecovery chỉ có spec, chưa tạo được phiên khôi phục thật trên local.",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-005",
@@ -836,8 +836,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "5fac7260",
-    "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO | PO 2026-11-12: hồ sơ nhân sự trống email thì từ chối duyệt, yêu cầu bổ sung email trước.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Hồ sơ trống email thì từ chối, hoặc bắt ADMIN xác nhận riêng. Hỏi PO | PO 2026-11-12: hồ sơ nhân sự trống email thì từ chối duyệt, yêu cầu bổ sung email trước. | Tay 2026-11-13 DAT: 2026-11-13 :3001 local, NV_TEST01 tạm vai ADMIN: tạo phiếu REQUEST gắn hồ sơ C18/010 (trống email). Duyệt cấp TK → báo «Hồ sơ gắn với phiếu chưa có email…»; DB: phiếu vẫn CHO_DUYET, không tạo auth user, hồ sơ chưa gắn auth. Sau đó từ chối phiếu thử (TU_CHOI).",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-006",
@@ -850,8 +850,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "5da69896",
-    "ghi_chu": "Truyền failClosed:true như rbac.actions.ts:84; kiểm error của các update",
-    "test_tay": "CHUA"
+    "ghi_chu": "Truyền failClosed:true như rbac.actions.ts:84; kiểm error của các update | Tay 2026-11-13 DAT: 2026-11-13 :3001 local: từ chối phiếu thử ghi sys_admin_audit REJECT_ACCOUNT_REQUEST có actor_user_id, target_id đúng. Chỉ kiểm đường thuận; đường lỗi failClosed (mất audit thì trả lỗi) có spec.",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-007",
@@ -864,8 +864,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "9375652e",
-    "ghi_chu": "Trả lỗi khi updateUserById fail; thêm schema zod",
-    "test_tay": "CHUA"
+    "ghi_chu": "Trả lỗi khi updateUserById fail; thêm schema zod | Tay 2026-11-13 DAT: 2026-11-13 :3001 NV_TEST01 (local), bật cờ must_change_password rồi đăng nhập lại: đổi mật khẩu trên form (mật khẩu cũ + mới + xác nhận) thành công, chuyển sang /giam-sat, vào lại /giam-sat-nkbv không còn bị chặn; DB auth.users.raw_app_meta_data đã hết cờ. Chỉ kiểm đường thuận; đường lỗi xóa cờ có spec.",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-008",
@@ -891,8 +891,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-quan-tri-quyen",
     "commit": "517f1f2c",
-    "ghi_chu": "Thêm metaMustChangePassword; gộp thông báo lỗi login",
-    "test_tay": "CHUA"
+    "ghi_chu": "Thêm metaMustChangePassword; gộp thông báo lỗi login | Tay 2026-11-13 DAT: 2026-11-13 :3001 local: bỏ email_confirmed_at của NV_TEST01 rồi đăng nhập. MK sai → «Mã đăng nhập hoặc mật khẩu không đúng.»; MK đúng → thông báo «chưa xác nhận email». GoTrue kiểm MK trước nên thông báo riêng KHÔNG lộ tài khoản tồn tại → nửa «gộp thông báo» là lo ngại giả, không sửa. Nửa chặn gắn hồ sơ khi còn cờ đổi MK: commit 517f1f2c có spec, chưa chạy tay. Đã khôi phục email_confirmed_at.",
+    "test_tay": "DAT"
   },
   {
     "id": "DT-014",
@@ -919,8 +919,8 @@
     "trang_thai": "LOI_GIA",
     "nguon": "dieu-phoi-2026-11-11",
     "commit": "",
-    "ghi_chu": "Chưa xác minh; cần kịch bản tay với vai trò MANG_LUOI.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Chưa xác minh; cần kịch bản tay với vai trò MANG_LUOI. | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, khoa A03): ô Khoa của phiên GSC bị khóa ở khoa phụ trách, danh sách người bệnh chỉ gồm 6 BA của A03; chọn BA-TRIAL-17 tự điền PID + họ tên, 6 ô can thiệp/MDRO để trống (BA không có dụng cụ/MDRO trong DB) và vẫn tick tay được. Không có đường giao diện để Mạng lưới chọn BA khoa khác nên tình huống gợi ý rỗng sai không xảy ra. Chưa thấy gợi ý dương tính vì A03 local không có BA có dụng cụ.",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-011",
@@ -933,8 +933,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
     "commit": "fd6384fb",
-    "ghi_chu": "Chưa chạy runtime. Sửa: chỉ người báo hoặc verifyCssdIncidentApprove được vô hiệu. Hỏi PO: người báo có được tự vô hiệu phiếu cờ đỏ chưa xác nhận không?",
-    "test_tay": "CHUA"
+    "ghi_chu": "Chưa chạy runtime. Sửa: chỉ người báo hoặc verifyCssdIncidentApprove được vô hiệu. Hỏi PO: người báo có được tự vô hiệu phiếu cờ đỏ chưa xác nhận không? | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): có BAO_SU_CO.create, mở được form /cssd-su-co nhưng nút Vô hiệu nằm ở /cssd-erp/report?tab=incident và trang này báo «Bạn không có quyền xem Báo cáo CSSD» nên Mạng lưới không tới được nút vô hiệu phiếu của người khác. Chặn theo chủ phiếu ở server chỉ có spec. Ghi thêm UX: liên kết «Nhật ký sự cố» trên form dẫn tới trang bị chặn.",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-012",
@@ -947,7 +947,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
     "commit": "0c198932",
-    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5.",
+    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5. | Tay 2026-11-13 CHUA: 2026-11-13: giao dien chi huy nhap do chinh minh mo (draftId tu claim), khong dung duoc ca 'huy nhap nguoi khac' tren UI. Chi spec (canReleaseSetReconcileDraft).",
     "test_tay": "CHUA"
   },
   {
@@ -988,7 +988,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "0ab86047",
-    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view).",
+    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): chưa tới được khung RCA CSSD từ giao diện với dữ liệu A03 (không có ca gắn mã QR). Cần fixture ca NKBV gắn bộ dụng cụ.",
     "test_tay": "CHUA"
   },
   {
@@ -1016,7 +1016,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "fdf1c885",
-    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện).",
+    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): tab Nạp dữ liệu vẫn hiện nút Upload Excel/Dán bảng/Thêm XN cho vai chỉ có quyền xem, kho báo «Chưa có bản ghi»; chưa thử nộp file. Cần thử nộp file với vai không có quyền import.",
     "test_tay": "CHUA"
   },
   {
@@ -1043,8 +1043,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-quan-tri-quyen",
     "commit": "fb7dff80",
-    "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180.",
-    "test_tay": "CHUA"
+    "ghi_chu": "Thêm isTrustedAdminEmail(email) và authUserHasAdminRole(authUserId) trước dòng 180. | Tay 2026-11-13 DAT: 2026-11-13 :3001 local: tạm gán ADMIN cho tài khoản đang gắn hồ sơ KHACH01, gửi form đổi MK khách → báo «Hồ sơ khách đang gắn với một tài khoản quản trị…»; encrypted_password và email không đổi. Đã gỡ vai ADMIN tạm. Nhánh email break-glass chỉ có spec.",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-017",
@@ -1214,5 +1214,57 @@
     "nguon": "r3-quan-tri-quyen",
     "commit": "",
     "ghi_chu": "Hỏi PO: khách thống kê có được thi không? Nếu không: xóa grant DAO_TAO của vai trò khách (migration) và/hoặc requireDaoTaoUser từ chối khi getActorKsnkScope().isGuestStatsOnly. Cần đối chiếu prod (chỉ đọc) xem có grant này không. Chưa chạy thử action thật. Mức thấp kèm theo: v_mdm_nhan_su_picker security_invoker=false lộ 38 nhân sự (ma_nv, ho_ten, khoa_id) cho khách; getGscSessionPrintLabels dùng admin client tra họ tên theo id. Chưa rà: bang-kiem-read.actions.ts (admin client), tgs-coverage-ranking.actions.ts, EXECUTE anon/authenticated trên RPC thống kê, dao-tao-bank/admin.actions.ts. Còn lại của QT-002 coi như đã phủ."
+  },
+  {
+    "id": "CSSD-021",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "CAO",
+    "tieu_de": "Nhận lại bộ chờ thu hồi tại Tiếp nhận không nguyên tử: insert chu trình mới rồi mới vô hiệu chu trình cũ; lỗi bước 2 để lại 2 chu trình active cùng QR",
+    "bang_chung": "src/modules/cssd-su-co/application/recall-receive.application.ts:52-98 (gọi từ src/modules/cssd-erp/actions/cssd-scan.actions.ts:100); dọn dẹp :101 bỏ qua lỗi; DB local không có unique index active theo ma_qr_quy_trinh (chỉ pkey + uq_cssd_quy_trinh_ma_cycle_qr)",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -At -c \"select indexname from pg_indexes where tablename='cssd_fact_quy_trinh'\"; tái hiện: cho update :87-97 lỗi (vd. trigger chặn) sau insert :52 -> 2 hàng is_active=true cùng ma_qr_quy_trinh",
+    "trang_thai": "DA_SUA",
+    "nguon": "cssd-workflow-scan",
+    "commit": "fe084eec; spec fail trước/pass sau; verify:changed pass",
+    "ghi_chu": "Gộp insert mới + update cũ + patch phiếu sự cố vào một RPC plpgsql (một transaction), hoặc thêm partial unique index (ma_qr_quy_trinh) WHERE is_active"
+  },
+  {
+    "id": "CSSD-022",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Cập nhật bộ đếm thu về trên phiếu sự cố nuốt lỗi: chu trình đã chuyển nhưng RECALL_RETURNED_COUNT có thể không tăng, action vẫn trả success",
+    "bang_chung": "src/modules/cssd-su-co/application/recall-receive.application.ts:148 (lỗi đọc -> return true), :173 (lỗi ghi -> return true), :131 (hết retry chỉ console.error)",
+    "lenh_kiem": "Quét TIEP_NHAN bộ chờ thu hồi khi cssd_fact_su_co update lỗi -> scanQR trả recallReceive=true nhưng attributes RECALL_RETURNED_COUNT không đổi",
+    "trang_thai": "DA_SUA",
+    "nguon": "cssd-workflow-scan",
+    "commit": "fe084eec; spec fail trước/pass sau; verify:changed pass",
+    "ghi_chu": "Throw khi lỗi/hết retry (hoặc đưa vào cùng RPC ở phát hiện trên) để phiếu thu hồi không lệch số thực tế"
+  },
+  {
+    "id": "CSSD-023",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Mở khóa an toàn (is_dong_bang=false) ghi trước, nhật ký MO_DONG_BANG ghi soft và bỏ qua kết quả: lỗi RPC append -> bộ đã mở khóa không có dấu vết ai mở",
+    "bang_chung": "src/modules/cssd-erp/actions/cssd-workflow-ops.actions.ts:62-68 (update) rồi :85-94 appendQuyTrinhException {soft:true}, giá trị trả {ok:false} không kiểm; soft nuốt lỗi tại src/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions.ts:43-53",
+    "lenh_kiem": "Làm rpc_cssd_quy_trinh_append_ngoai_le lỗi (vd. BEGIN; REVOKE EXECUTE ... ; gọi unlock; ROLLBACK) -> is_dong_bang=false, metadata.ngoai_le không có MO_DONG_BANG, action trả success",
+    "trang_thai": "DA_SUA",
+    "nguon": "cssd-workflow-scan",
+    "commit": "fe084eec; spec fail trước/pass sau; verify:changed pass",
+    "ghi_chu": "Như sửa CSSD-009: ghi nhật ký non-soft trước hoặc gộp update + append ngoại lệ vào một RPC"
+  },
+  {
+    "id": "NKBV-021",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "CAO",
+    "tieu_de": "updateNkbvBenhAnStay không kiểm khoa_dieu_tri_id MỚI thuộc phạm vi khoa: MANG_LUOI đẩy BA sang khoa bất kỳ (ghi admin client)",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:775-779 (chỉ kiểm BA hiện tại + chặn rỗng), :832-841 (gán patch.khoa_dieu_tri_id chỉ qua normalizeAndValidateDmKhoaPhong), :862-867 (update bằng admin client); đối chiếu giam-sat-nkbv-ba-ngay.actions.ts:52-54 có kiểm nkbvKhoaVisible(restriction,[khoaId]) cho khoa mới",
+    "lenh_kiem": "Đăng nhập tài khoản chỉ MANG_LUOI_KSNK khoa A, có quyền GIAM_SAT_NKBV edit; gọi updateNkbvBenhAnStay({ma_benh_an:<BA khoa A>, khoa_dieu_tri_id:<uuid khoa B>}) → success; SELECT khoa_dieu_tri_id FROM nkbv_fact_benh_an WHERE ma_benh_an=... = khoa B. Tương tự BA chỉ có 1 ngày ở khoa A (khoa điều trị = C) vẫn đổi được khoa điều trị sang khoa bất kỳ.",
+    "trang_thai": "DA_SUA",
+    "nguon": "nkbv-pham-vi-khoa",
+    "commit": "d9546af8; review-bv103 1 vòng, sửa thêm xóa trống khoa + đổi ma_benh_an; spec pass",
+    "ghi_chu": "Sau dòng 779 thêm: if (input.khoa_dieu_tri_id && !nkbvKhoaVisible(restriction, [input.khoa_dieu_tri_id])) return NKBV_OUT_OF_SCOPE_ERROR (cùng mẫu ba-ngay.actions.ts:52); viết spec tái hiện trước."
   }
 ]
