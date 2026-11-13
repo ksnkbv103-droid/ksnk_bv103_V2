@@ -8,6 +8,7 @@ import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import NkbvCssdRcaPanel from "@/modules/giam-sat-nkbv/components/NkbvCssdRcaPanel";
 import NkbvDiagnosticCaseForm from "@/modules/giam-sat-nkbv/components/NkbvDiagnosticCaseForm";
 import NkbvCasePrintView from "@/modules/giam-sat-nkbv/components/NkbvCasePrintView";
+import { cdhaPrintLines } from "@/modules/giam-sat-nkbv/lib/nkbv-cdha-print";
 import NkbvAdjudicationPanel from "@/modules/giam-sat-nkbv/components/NkbvAdjudicationPanel";
 import { getDevicePrefillForStay } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-device-registry.actions";
 import { getNkbvBenhAnHub } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions";
@@ -378,6 +379,7 @@ export default function NkbvClinicalChecklistModal({
             activeForm={activeForm}
             ngayVaoVien={ngayVaoVienEffective}
             lockStatus={lockStatus}
+            cdhaLines={cdhaPrintLines(timelineMilestones)}
           />,
           document.body,
         )

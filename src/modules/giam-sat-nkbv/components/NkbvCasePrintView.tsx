@@ -19,6 +19,8 @@ type Props = {
   activeForm: Record<string, unknown> | null;
   ngayVaoVien: string;
   lockStatus: "DRAFT" | "DA_CHOT";
+  /** Các dòng CĐHA từ timeline BA (cdhaPrintLines). */
+  cdhaLines?: string[];
 };
 
 function fmtDate(raw: string | null | undefined): string {
@@ -80,6 +82,7 @@ export default function NkbvCasePrintView({
   activeForm,
   ngayVaoVien,
   lockStatus,
+  cdhaLines,
 }: Props) {
   const maCa = String(row.ma_ca || row.id || "KHONG_MA");
   const typeLabel = formatNkbvChecklistTypeLabel(checklistType);
@@ -116,7 +119,7 @@ export default function NkbvCasePrintView({
   );
 
   const cfuKetQua = String(row.cfu_ml || row.so_luong_khuan_lac || "—");
-  const cdhaResult = String(row.cdha_summary || row.ket_qua_cdha || "—");
+  const cdhaResult = cdhaLines?.length ? cdhaLines.join("; ") : "—";
 
   return (
     <PrintLayout
