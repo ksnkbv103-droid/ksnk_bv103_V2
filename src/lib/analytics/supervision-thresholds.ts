@@ -1,6 +1,6 @@
 /** Ngưỡng tuân thủ giám sát — SSOT pilot (chart · bảng · in · KPI). Số chờ N-GS-3. */
 export const SUPERVISION_COMPLIANCE_THRESHOLDS = {
-  /** Mốc tham chiếu xanh (pilot) */
+  /** Mốc tham chiếu xanh (pilot). @dac-ta R1.12 */
   GREEN_MIN: 85,
   /** Mốc tham chiếu vàng (pilot) */
   YELLOW_MIN: 70,
