@@ -233,8 +233,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "0f1c4700",
-    "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
-    "test_tay": "CHUA"
+    "ghi_chu": "Thay bằng RPC SECURITY DEFINER khóa advisory theo (cau_hinh_id, auth_user_id) hoặc unique partial cho lượt dang_lam. Cần migration, hỏi PO trước khi áp lên prod | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec | Tay 2026-11-13 DAT: 2026-11-13 DB local: 5 psql đồng thời gọi rpc_dao_tao_tao_luot_thi_that (so_lan=3) → đúng 3 lượt, 2 HET_LUOT",
+    "test_tay": "DAT"
   },
   {
     "id": "DT-006",
@@ -274,8 +274,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "a73785d7",
-    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai. | Tay 2026-11-13 CHUA: Cho PO quyet chinh sach hien dap an (cau treo Lat E)",
-    "test_tay": "CHUA"
+    "ghi_chu": "Hỏi PO: với thi_that có ẩn đáp án đúng cho tới khi kỳ thi đóng, chỉ cho xem giải thích câu sai | PO 2026-11-12: thi thật ẩn đáp án đúng đến khi kỳ thi đóng, chỉ hiện điểm và câu sai. | Tay 2026-11-13 CHUA: Cho PO quyet chinh sach hien dap an (cau treo Lat E) | Tay 2026-11-13 DAT: 2026-11-13 :3001 NV chỉ view, bài thi_that da_nop, kỳ published: chỉ điểm và Đúng/Sai, không lộ đáp án/giải thích",
+    "test_tay": "DAT"
   },
   {
     "id": "DT-009",
@@ -340,8 +340,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-dao-tao",
     "commit": "6e5b5985",
-    "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount } | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
-    "test_tay": "CHUA"
+    "ghi_chu": "Theo data-access.md: phân trang server, trả { data, totalCount } | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec | Tay 2026-11-13 DAT: 2026-11-13 :3001 501 bài nộp: trang Kết quả hiện cảnh báo chỉ hiển thị/xuất 500 bài gần nhất",
+    "test_tay": "DAT"
   },
   {
     "id": "QLCV-001",
@@ -499,7 +499,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "641a47ed",
-    "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng | Tay 2026-11-13 CHUA: 2026-11-13: khong dung duoc tren giao dien - tai khoan chua gan nhan su khong co quyen nao (v_sys_user_permissions join mdm_nhan_su). Chi spec.",
+    "ghi_chu": "Trả lỗi khi p_nguoi_cap_phat_id IS NULL (giống scan impl), hoặc action chặn operatorId rỗng | Tay 2026-11-13 CHUA: 2026-11-13: khong dung duoc tren giao dien - tai khoan chua gan nhan su khong co quyen nao (v_sys_user_permissions join mdm_nhan_su). Chi spec. | Tay 2026-11-13 CHUA: không có lối UI; spec cssd-scan.actions.spec.ts pass ngày 2026-11-13; RPC cap_phat_commit chỉ grant service_role",
     "test_tay": "CHUA"
   },
   {
@@ -513,7 +513,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "3379bcde",
-    "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng | Tay 2026-11-13 CHUA: 2026-11-13: nhu CSSD-007, tai khoan khong gan nhan su khong vao duoc trang. Chi spec.",
+    "ghi_chu": "Chặn ở action khi getActorNhanSuId() rỗng | Tay 2026-11-13 CHUA: 2026-11-13: nhu CSSD-007, tai khoan khong gan nhan su khong vao duoc trang. Chi spec. | Tay 2026-11-13 CHUA: không có lối UI; spec cssd-lifecycle+workflow.commands.spec pass ngày 2026-11-13",
     "test_tay": "CHUA"
   },
   {
@@ -527,7 +527,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-cssd-quyen",
     "commit": "3379bcde",
-    "ghi_chu": "Gộp vào một RPC hoặc bỏ soft | Tay 2026-11-13 CHUA: 2026-11-13: cssdCommandFreezeSet khong co noi goi tren giao dien (grep src chi thay chinh file). Chi spec; khoa an toan qua su co/thu hoi la duong khac. Ma facade khong dung: bao, khong xoa.",
+    "ghi_chu": "Gộp vào một RPC hoặc bỏ soft | Tay 2026-11-13 CHUA: 2026-11-13: cssdCommandFreezeSet khong co noi goi tren giao dien (grep src chi thay chinh file). Chi spec; khoa an toan qua su co/thu hoi la duong khac. Ma facade khong dung: bao, khong xoa. | Tay 2026-11-13 CHUA: không có lối UI; spec cssd-workflow.commands.actions.spec.ts pass ngày 2026-11-13",
     "test_tay": "CHUA"
   },
   {
@@ -712,8 +712,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "47bc179b",
-    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete. | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
-    "test_tay": "CHUA"
+    "ghi_chu": "Đòi quyền delete hoặc chuyển sang xóa mềm is_active=false; hỏi PO | PO 2026-11-12: giữ xóa cứng nhưng đòi quyền delete. | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai NKBV view+edit: kho vi sinh có nút Sửa, không có nút Xóa",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-007",
@@ -726,7 +726,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "2d974c35",
-    "ghi_chu": "Thêm schema zod cho patch | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL",
+    "ghi_chu": "Thêm schema zod cho patch | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL | Tay 2026-11-13 CHUA: không có lối UI; spec giam-sat-nkbv-vi-sinh-store.actions.spec.ts(mới) pass ngày 2026-11-13",
     "test_tay": "CHUA"
   },
   {
@@ -740,8 +740,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r1-nkbv-quyen",
     "commit": "6895e197",
-    "ghi_chu": "Chuyển sang RPC một transaction | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
-    "test_tay": "CHUA"
+    "ghi_chu": "Chuyển sang RPC một transaction | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec | Tay 2026-11-13 DAT: 2026-11-13 DB local: replace BA-TRIAL-05 với dòng 2 created_at sai → cả giao dịch lỗi, nháp cũ còn nguyên",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-009",
@@ -947,7 +947,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-cssd-quyen",
     "commit": "0c198932",
-    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5. | Tay 2026-11-13 CHUA: 2026-11-13: giao dien chi huy nhap do chinh minh mo (draftId tu claim), khong dung duoc ca 'huy nhap nguoi khac' tren UI. Chi spec (canReleaseSetReconcileDraft).",
+    "ghi_chu": "So REPORTER_AUTH_USER_ID với auth.uid() trước khi delete. Bổ sung 2026-11-12 (PO): ADMIN được hủy nháp của người khác, sha 5e1982e5. | Tay 2026-11-13 CHUA: 2026-11-13: giao dien chi huy nhap do chinh minh mo (draftId tu claim), khong dung duoc ca 'huy nhap nguoi khac' tren UI. Chi spec (canReleaseSetReconcileDraft). | Tay 2026-11-13 CHUA: không có lối UI; spec cssd-set-reconcile-attrs.spec.ts pass ngày 2026-11-13",
     "test_tay": "CHUA"
   },
   {
@@ -974,7 +974,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "83691feb",
-    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update. | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL",
+    "ghi_chu": "Kiểm khoa thuộc nkbv_fact_ba_ngay_khoa của BA trước khi update. | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL | Tay 2026-11-13 CHUA: không có lối UI; spec giam-sat-nkbv-loa-khoa.spec.ts pass ngày 2026-11-13",
     "test_tay": "CHUA"
   },
   {
@@ -1002,8 +1002,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "bc8fdaba",
-    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit. | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec",
-    "test_tay": "CHUA"
+    "ghi_chu": "Lọc khoa_ghi_nhan_id trong query trước limit. | Tay 2026-11-13 CHUA: 2026-11-13: race/gioi han so dong, khong dung duoc tren UI local voi du lieu seed - chi spec | Tay 2026-11-13 DAT: 2026-11-13 :3001 24 ca gắn mẻ TK1-011126-1 (2 ca A27 ở vị trí 23-24): MLKSNK A27 thấy đủ cả 2 trong banner",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-016",
@@ -1016,8 +1016,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "fdf1c885",
-    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): tab Nạp dữ liệu vẫn hiện nút Upload Excel/Dán bảng/Thêm XN cho vai chỉ có quyền xem, kho báo «Chưa có bản ghi»; chưa thử nộp file. Cần thử nộp file với vai không có quyền import. | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL",
-    "test_tay": "CHUA"
+    "ghi_chu": "Đổi gate sang import + isNkbvBenhAnInScope. Vô hại hiện tại (mọi vai trò có create đều toàn viện). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): tab Nạp dữ liệu vẫn hiện nút Upload Excel/Dán bảng/Thêm XN cho vai chỉ có quyền xem, kho báo «Chưa có bản ghi»; chưa thử nộp file. Cần thử nộp file với vai không có quyền import. | Tay 2026-11-13 CHUA: 2026-11-13: duong loi can payload sai tu client (bo qua form) - chi spec; duong thuan da phu boi NKBV-009/BA-TRIAL | Tay 2026-11-13 DAT: 2026-11-13 :3001 vai MANG_LUOI_KSNK (A27): tab Nạp dữ liệu nút Upload Excel/Dán bảng bị khóa",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-010",
@@ -1442,7 +1442,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "review-2026-11-13",
     "commit": "d1ab156f",
-    "ghi_chu": "Review-bv103 2026-11-13: Go. Siết thêm: tài khoản có edit/import mà thiếu DAO_TAO view giờ bị chặn ghi (khớp DaoTaoAdminAccessGate). | Tay 2026-11-13 CHUA: chỉ spec: cần tài khoản khách thống kê còn sót grant DAO_TAO edit, chưa có fixture",
+    "ghi_chu": "Review-bv103 2026-11-13: Go. Siết thêm: tài khoản có edit/import mà thiếu DAO_TAO view giờ bị chặn ghi (khớp DaoTaoAdminAccessGate). | Tay 2026-11-13 CHUA: chỉ spec: cần tài khoản khách thống kê còn sót grant DAO_TAO edit, chưa có fixture | Tay 2026-11-13 CHUA: không có lối UI; spec dao-tao-admin-permission.spec.ts pass ngày 2026-11-13",
     "test_tay": "CHUA"
   },
   {
