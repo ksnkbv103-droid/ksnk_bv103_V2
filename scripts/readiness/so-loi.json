@@ -1430,5 +1430,19 @@
     "commit": "836feffc",
     "ghi_chu": "Phần dư CSSD-005 (PO 2026-11-11 cho bổ sung mã ca mổ sau cấp phát; chỉ sửa báo sai) | Tay 2026-11-13 DAT: :3001 trạm Cấp phát, nơi nhận KHOA NGOẠI TIẾT NIỆU, quét B99.SET.99 (đã cấp 10/11) + B07.SET.03-KCN → danh sách báo «đã cấp trước đó — nơi nhận giữ như lần cấp đầu», toast «Đã cấp 2 bộ… (1 bộ đã cấp trước đó, nơi nhận không đổi)»; DB: B99 giữ khoa_nhan + thời gian cấp cũ, B07 nhận đúng khoa.",
     "test_tay": "DAT"
+  },
+  {
+    "id": "DT-016",
+    "module": "DAO_TAO",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "6 action ghi Thi KSNK (updateMucDoThiThu, updateKyThiThat, setKyThiGan, importMcqMatrixAction, setCauHoiActive, updateCauHoiDaoTao) chỉ verifyPermission edit/import, không qua requireDaoTaoAdmin: vai khách thống kê còn sót grant gọi thẳng Server Action là ghi được",
+    "bang_chung": "src/modules/dao-tao/actions/dao-tao-admin.actions.ts:47,133,178; src/modules/dao-tao/actions/dao-tao-bank.actions.ts:239,395,418 (trước sửa)",
+    "lenh_kiem": "npm run test:cssd -- src/modules/dao-tao/actions/dao-tao-admin-permission.spec.ts",
+    "trang_thai": "DA_SUA",
+    "nguon": "review-2026-11-13",
+    "commit": "d1ab156f",
+    "ghi_chu": "Review-bv103 2026-11-13: Go. Siết thêm: tài khoản có edit/import mà thiếu DAO_TAO view giờ bị chặn ghi (khớp DaoTaoAdminAccessGate). | Tay 2026-11-13 CHUA: chỉ spec: cần tài khoản khách thống kê còn sót grant DAO_TAO edit, chưa có fixture",
+    "test_tay": "CHUA"
   }
 ]
