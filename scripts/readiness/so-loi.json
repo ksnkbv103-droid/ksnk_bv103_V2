@@ -1409,10 +1409,10 @@
     "tieu_de": "Kho vi sinh NKBV hiện Thêm XN / Sửa / Xóa / MDRO cho vai chỉ xem (action vẫn chặn)",
     "bang_chung": "UAT :3001 2026-11-13 vai MANG_LUOI_KSNK",
     "lenh_kiem": "grep -n useModulePermission src/modules/giam-sat-nkbv/components/NkbvViSinhStorePanel.tsx",
-    "trang_thai": "DANG_SUA",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-2026-11-13",
-    "commit": "",
-    "ghi_chu": "Server chặn edit/delete (giam-sat-nkbv-vi-sinh-store.actions.ts:188,283,351,380); UI không đọc quyền. Cùng mẫu NKBV-022.",
-    "test_tay": "CHUA"
+    "commit": "d5d60fdb",
+    "ghi_chu": "Server chặn edit/delete (giam-sat-nkbv-vi-sinh-store.actions.ts:188,283,351,380); UI không đọc quyền. Cùng mẫu NKBV-022. | Tay 2026-11-13 DAT: UAT :3001 2026-11-13: MANG_LUOI_KSNK (chỉ view) không còn nút Thêm XN (kho trong phạm vi vai này trống nên chưa thấy hàng để kiểm Sửa/Xóa từng dòng — cùng cờ allowed); NHAN_VIEN_KSNK: Thêm XN 1, Sửa 80, Xóa 80, MDRO bấm được. verify:changed pass",
+    "test_tay": "DAT"
   }
 ]
