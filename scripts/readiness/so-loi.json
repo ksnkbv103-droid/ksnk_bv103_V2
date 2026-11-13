@@ -901,11 +901,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "LamBaiPage.tsx bỏ qua ok:false của saveTraLoiCau (sau DT-004): lưu đáp án bị từ chối mà giao diện vẫn coi như đã lưu",
     "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts (saveTraLoiCau trả ok:false); LamBaiPage.tsx",
-    "lenh_kiem": "",
+    "lenh_kiem": "npm run test:cssd -- src/modules/dao-tao/actions/dao-tao-attempt.actions.spec.ts",
     "trang_thai": "DA_SUA",
     "nguon": "dieu-phoi-2026-11-11",
-    "commit": "53211e57",
-    "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước. | Tay 2026-11-13 DAT: 2026-11-13 :3001 thi thu f44ee118: tra loi cau 1 -> dat han_nop_luc qua khu -> chon cau 2 -> toast 'Khong luu duoc dap an', diem cuoi 1/10 (cau 2 khong tinh). CON LECH UX (Thap): bo dem 'Da tra loi' van tang len 2/10 vi state lac quan khong hoan lai.",
+    "commit": "47b8e383",
+    "ghi_chu": "Chưa xác minh; cần đọc LamBaiPage trước. | Tay 2026-11-13 DAT: 2026-11-13 :3001 thi thu f44ee118: tra loi cau 1 -> dat han_nop_luc qua khu -> chon cau 2 -> toast 'Khong luu duoc dap an', diem cuoi 1/10 (cau 2 khong tinh). CON LECH UX (Thap): bo dem 'Da tra loi' van tang len 2/10 vi state lac quan khong hoan lai. | Tay 2026-11-13 KHONG_DAT: 2026-11-13 :3001: saveTraLoiCau NEM loi khi het gio (actions:532) thay vi tra ok:false -> UI vao nhanh .catch, toast chung 'Khong luu duoc dap an'; state lac quan khong hoan lai, bo dem 'Da tra loi' 2/10 trong khi server chi luu 1 cau -> giao dien van coi nhu da luu. Diem server dung (1/10). | Tay 2026-11-13 DAT: :3001 2026-11-13 lượt f22be92b: đẩy han_nop_luc lùi 1 phút trong DB local, chọn đáp án A → toast «Đã hết giờ làm bài…», bộ đếm quay về 0/10, de_snapshot 0 đáp án. Đồng hồ client vẫn 14:48 vì chỉ sửa DB.",
     "test_tay": "DAT"
   },
   {
@@ -1274,11 +1274,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Sau đăng nhập, vai Mạng lưới/Nhân viên rơi vào /bao-cao-tong-hop và gặp lỗi quyền thay vì trang được phép",
     "bang_chung": "UAT :3001 2026-11-13, NV_TEST01 vai MANG_LUOI_KSNK",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -n bao-cao-tong-hop src/lib/ksnk-pilot-route-scope.ts src/app/page.tsx",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Cần xác minh đường chuyển hướng mặc định sau đăng nhập theo vai"
+    "ghi_chu": "Cần xác minh đường chuyển hướng mặc định sau đăng nhập theo vai | explore-module 2026-11-13: THẬT TB — ksnk-pilot-route-scope.ts:51-62 luôn trả /bao-cao-tong-hop, page.tsx:10 redirect không xét quyền; sửa: chọn route đầu tiên vai có quyền. Chưa đối chiếu quyền thật trong DB."
   },
   {
     "id": "VST-012",
@@ -1300,11 +1300,11 @@
     "muc": "THAP",
     "tieu_de": "Liên kết «Nhật ký sự cố» dẫn tới trang bị chặn quyền với vai không có quyền sự cố",
     "bang_chung": "UAT :3001 2026-11-13",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -n cssdSuCoIncidentJournalHref src/modules/cssd-su-co/views/SuCoBaoCaoPage.tsx",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Ẩn liên kết theo quyền"
+    "ghi_chu": "Ẩn liên kết theo quyền | explore-module: THẬT Thấp — SuCoBaoCaoPage.tsx:136-150 render link không lọc CSSD_REPORT; cùng helper ở NkbvCssdRcaPanel.tsx:157, PheDuyetDungCuPanel.tsx:328."
   },
   {
     "id": "NKBV-022",
@@ -1313,11 +1313,11 @@
     "muc": "THAP",
     "tieu_de": "Tab «Nạp dữ liệu» NKBV hiện nút nạp cho vai chỉ xem (action vẫn chặn)",
     "bang_chung": "UAT :3001 2026-11-13",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -n NkbvViSinhImportPortal src/modules/giam-sat-nkbv/views/GiamSatNkbvPage.tsx",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Ẩn/khóa nút theo quyền import"
+    "ghi_chu": "Ẩn/khóa nút theo quyền import | explore-module: THẬT TB — GiamSatNkbvPage.tsx:314 tab + :947-951 portal không truyền cờ quyền; NkbvViSinhImportPortal.tsx:465-550 nút chỉ disabled khi loading. Chưa kiểm server action."
   },
   {
     "id": "VST-013",
@@ -1326,11 +1326,11 @@
     "muc": "THAP",
     "tieu_de": "Form VST xếp khoa không lâm sàng lên trước; sau khi xóa GSC vẫn hiện «Đã chọn 1»",
     "bang_chung": "UAT :3001 2026-11-13",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -n selectedIds src/hooks/useDataTable.ts",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "uat-2026-11-13",
     "commit": "",
-    "ghi_chu": "Hai lệch nhỏ cùng form"
+    "ghi_chu": "Hai lệch nhỏ cùng form | explore-module: THẬT Thấp — (a) thứ tự khoa: useVSTForm.ts:107 không sort lâm sàng trước, cần PO chốt trường phân loại; (b) useDataTable.ts:41 không dọn selectedIds khi dữ liệu đổi."
   },
   {
     "id": "CSSD-025",
@@ -1379,9 +1379,22 @@
     "tieu_de": "Lưu đáp án bị từ chối: toast báo lỗi nhưng bộ đếm «Đã trả lời» vẫn tăng (state lạc quan không hoàn lại)",
     "bang_chung": "src/modules/dao-tao/views/LamBaiPage.tsx:148",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "uat-2026-11-13",
     "commit": "",
     "ghi_chu": "Phát hiện khi chạy DT-014; điểm phía server đúng"
+  },
+  {
+    "id": "CSSD-026",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Nhận lại bộ thu hồi lưu nguoi_tiep_nhan_id null khi tài khoản chưa gắn nhân sự",
+    "bang_chung": "security-auditor 2026-11-13: cssd-scan.actions.ts:89 dùng getActorNhanSuId() (null) → recall-receive.application.ts:66; nhánh CAP_PHAT dòng 136-141 dùng resolveCssdOperatorNhanSuId có dự phòng email. Sửa: dùng cùng resolver ở dòng 89.",
+    "lenh_kiem": "grep -n getActorNhanSuId src/modules/cssd-erp/actions/cssd-scan.actions.ts",
+    "trang_thai": "DA_XAC_MINH",
+    "nguon": "audit-2026-11-13",
+    "commit": "",
+    "ghi_chu": ""
   }
 ]
