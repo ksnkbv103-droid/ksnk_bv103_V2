@@ -48,6 +48,21 @@ export const VST_KHOA_CHART_THRESHOLDS: KhoaChartThresholds = {
   redPct: 85,
 };
 
+/**
+ * Mã tham số ↔ số mặc định trong file này. Bảng `ksnk_dm_tham_so` seed đúng các số này
+ * (spec đối chiếu với migration); DB là nơi đổi giá trị theo ngày hiệu lực.
+ */
+export const THAM_SO_MAC_DINH = {
+  "giam_sat.xanh_min_pct": SUPERVISION_COMPLIANCE_THRESHOLDS.GREEN_MIN,
+  "giam_sat.vang_min_pct": SUPERVISION_COMPLIANCE_THRESHOLDS.YELLOW_MIN,
+  "giam_sat.khoa_canh_bao_pct": SUPERVISION_COMPLIANCE_THRESHOLDS.KHOA_WARN_PCT,
+  "vst.khoa_vang_pct": VST_KHOA_CHART_THRESHOLDS.warnPct,
+  "vst.khoa_do_pct": VST_KHOA_CHART_THRESHOLDS.redPct,
+  "vst.so_sanh_mau_toi_thieu": VST_COMPARE_MIN_SAMPLE,
+  "doi_soat.vst_mau_toi_thieu": DOI_SOAT_MIN_SAMPLE.vst,
+  "doi_soat.gsc_mau_toi_thieu": DOI_SOAT_MIN_SAMPLE.gsc,
+} as const;
+
 export type ComplianceTone = "green" | "yellow" | "red" | "neutral";
 
 export function complianceToneFromPercent(value: number | null | undefined): ComplianceTone {

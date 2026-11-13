@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261113 — Dựng lại app theo đặc tả M01–M15 (một lần duyệt)
 
-Trạng thái: PO ĐÃ DUYỆT 2026-11-13 (trả lời ở §6). Xong: L0, L1, L3b phần độ dài lý do. Kế: L2.
+Trạng thái: PO ĐÃ DUYỆT 2026-11-13 (trả lời ở §6). Xong: L0, L1, L3b phần độ dài lý do, L2a (bảng `ksnk_dm_tham_so` + `fn_ksnk_tham_so` trên DB local, seed khớp mã, chưa lên prod). Kế: L2b — cho ~75 chỗ dùng ngưỡng ở 21 file (đa số component client) nhận ngưỡng từ bảng qua một provider; vượt 8 file nên chia theo nhóm màn hình. Ghi chú: `fetchMucTieuKpiVien` (đọc `ksnk_dm_muc_tieu_kpi`) hiện không nơi nào gọi; R1.14 nêu mẫu tối thiểu 100/tháng, app đang 20 (XM-2 mở, chưa đổi).
 Nguồn: `~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM` (đặc tả, LOI_20_80), `BAO-CAO-NEN-MONG-2026-11-13.md`, số đo dưới đây.
 
 ## 1. Yêu cầu PO (sổ gom, mỗi dòng có tiêu chí đo)
