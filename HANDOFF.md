@@ -30,7 +30,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 5. Lô migration prod: 31 file chưa áp + `20261113100000_qlcv010_khong_tu_phe_duyet_dexuat` (sau 20261112140000), thứ tự + điều kiện trước/sau áp ở `git show ae5ca6fd:HANDOFF.md` dòng 25–30. Áp hết rồi mới deploy mã (DT-006 cần cột `huy_*`).
 
 ## Lát chưa mở / nợ
-- `isNkbvBenhAnInScope` với ca có mã BA chưa có lưới ngày (mẫu CSSD-009 và updateNkbvBenhAnStay đã xong: fe084eec, NKBV-021).
+- NKBV-025 (`isNkbvBenhAnInScope` với mã BA chưa import) đã sửa 9e6df804; chưa thử tay, chưa qua reviewer độc lập.
 - Thử tay 2026-11-13 (:3001) ĐẠT: QLCV-010, NKBV-018, VST-013a, CSSD-027 (ghi ở sổ lỗi). Ghi nhận nhỏ chưa sửa: nút «Phê duyệt và giao» vẫn hiện cho người đề xuất (chỉ chặn khi gửi); banner NKBV vẫn hiện link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
 - Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
 - Chưa qua reviewer độc lập: CSSD-011/012, NKBV-013..016, QT-011.

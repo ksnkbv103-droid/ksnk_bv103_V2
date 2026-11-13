@@ -1444,5 +1444,19 @@
     "commit": "d1ab156f",
     "ghi_chu": "Review-bv103 2026-11-13: Go. Siết thêm: tài khoản có edit/import mà thiếu DAO_TAO view giờ bị chặn ghi (khớp DaoTaoAdminAccessGate). | Tay 2026-11-13 CHUA: chỉ spec: cần tài khoản khách thống kê còn sót grant DAO_TAO edit, chưa có fixture",
     "test_tay": "CHUA"
+  },
+  {
+    "id": "NKBV-025",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "isNkbvBenhAnInScope chặn phiếu có mã BA chưa import (chưa có hồ sơ BA/lưới ngày): Mạng lưới thấy phiếu khoa mình trong danh sách nhưng sửa/xóa/thẩm định báo ngoài khoa",
+    "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.server.ts (ba=null, days=[] → false); nơi gọi giam-sat-nkbv-write.actions.ts isNkbvCaInScope, updateGiamSatNkbvCa, softDeleteGiamSatNkbvCa",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.server.spec.ts",
+    "trang_thai": "DA_SUA",
+    "nguon": "handoff-no-2026-11-13",
+    "commit": "9e6df804; spec fail trước/pass sau; verify:changed pass",
+    "ghi_chu": "Khoa ghi nhận của phiếu chỉ dùng khi mã BA chưa có hồ sơ lẫn ngày nào trên lưới; Hub/đọc BA không truyền nên vẫn chặn. Chưa qua reviewer độc lập.",
+    "test_tay": "CHUA"
   }
 ]
