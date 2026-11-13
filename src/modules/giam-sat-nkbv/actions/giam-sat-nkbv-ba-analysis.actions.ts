@@ -332,6 +332,13 @@ export async function ensureNkbvBaAnalysisCase(input: {
           : {};
       // Chỉ seed lần đầu (tránh ghi đè form đã sửa tay)
       if (!vd.seeded_from_ba_analysis) {
+        // Phiếu có sẵn nhận kết luận lần đầu: áp cùng luật máu-sau-cùng như khi tạo mới.
+        if (input.existing_case_id) {
+          const blocked = await checkBloodLastServer(supabase, {
+            maBa, gate, milestoneId, indexDate, loaiBenhPham: input.loai_benh_pham,
+          });
+          if (blocked) return { success: false as const, error: blocked };
+        }
         await applyAnalysisSeedToCase(supabase, caseId, milestoneId, seed, vd, notes);
         const refreshed = await reloadCase(caseId);
         if (refreshed) {
