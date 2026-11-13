@@ -32,7 +32,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 ## Lát chưa mở / nợ
 - `isNkbvBenhAnInScope` với ca có mã BA chưa có lưới ngày (mẫu CSSD-009 và updateNkbvBenhAnStay đã xong: fe084eec, NKBV-021).
 - Thử tay 2026-11-13 (:3001) ĐẠT: QLCV-010, NKBV-018, VST-013a, CSSD-027 (ghi ở sổ lỗi). Ghi nhận nhỏ chưa sửa: nút «Phê duyệt và giao» vẫn hiện cho người đề xuất (chỉ chặn khi gửi); banner NKBV vẫn hiện link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
-- Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Còn nợ: break-glass admin email không được miễn ở RPC QLCV.
+- Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
 - Chưa qua reviewer độc lập: CSSD-011/012, NKBV-013..016, QT-011.
 - Mã chết (báo, không xóa): `NkbvBaGridCasePrintView.tsx`, `cssdCommandFreezeSet`, `isWithinLuot`.
 - Roadmap 65,9 KB so với mục tiêu 25 KB.
