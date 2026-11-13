@@ -49,6 +49,7 @@ import {
   NKBV_CLINICAL_SUBMIT_LOCKED_VI,
 } from "../lib/nkbv-case-status";
 import { vnYmd } from "@/lib/format-datetime-vi";
+import { resolveServerLoa } from "../lib/nkbv-loa-server";
 
 const NKBV_UPDATE_LOCKED_VI =
   "Ca đã chốt (xác nhận / loại trừ / đã đóng) — không sửa phiếu. Dùng panel thẩm định hoặc ẩn phiếu nếu cần.";
@@ -595,30 +596,6 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
           })
         : null;
 
-    // NKBV-03: CHO_DUYET bắt buộc LOA (Transfer Rule) — không silent fallback
-    const loaKhoaId = String(
-      (verificationInput as { attributed_khoa_id?: string } | null | undefined)
-        ?.attributed_khoa_id || "",
-    ).trim();
-    if (!loaKhoaId) {
-      return {
-        success: false as const,
-        error:
-          "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
-      };
-    }
-
-    // NKBV-013: không tin khoa quy kết từ client — phải thuộc lưới ngày–khoa của BA
-    if (caRow?.ma_benh_an) {
-      const okLoa = await isLoaKhoaInBaGrid(supabase, String(caRow.ma_benh_an), loaKhoaId);
-      if (!okLoa) {
-        return {
-          success: false as const,
-          error: "Khoa quy kết (LOA) không thuộc lưới ngày–khoa của bệnh án này.",
-        };
-      }
-    }
-
     const calculatedDoeRaw = String(
       (verificationInput as { calculated_doe?: string } | null | undefined)
         ?.calculated_doe || "",
@@ -632,6 +609,55 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         success: false as const,
         error: "Thiếu DOE (calculated_doe) — chưa đủ để đưa phiếu chờ duyệt.",
       };
+    }
+
+    // NKBV-03: CHO_DUYET bắt buộc LOA (Transfer Rule) — không silent fallback
+    let loaKhoaId = String(
+      (verificationInput as { attributed_khoa_id?: string } | null | undefined)
+        ?.attributed_khoa_id || "",
+    ).trim();
+    if (calculatedDoe && caRow?.ma_benh_an) {
+      // NKBV-026 (PO 2026-11-13): có DOE → máy chủ tự tính LOA theo Transfer Rule, bỏ khoa client.
+      const maBa = String(caRow.ma_benh_an);
+      const [{ data: luoi, error: luoiErr }, { data: ba, error: baErr }] = await Promise.all([
+        supabase.from("nkbv_fact_ba_ngay_khoa").select("ngay_lich, khoa_id").eq("ma_benh_an", maBa),
+        supabase
+          .from("nkbv_fact_benh_an")
+          .select("ngay_vao_vien, ngay_ra_vien, khoa_dieu_tri_id")
+          .eq("ma_benh_an", maBa)
+          .maybeSingle(),
+      ]);
+      if (luoiErr || baErr) throw luoiErr || baErr;
+      const loa = resolveServerLoa({
+        gridRows: (luoi || []).map((r) => ({
+          ngay_lich: String(r.ngay_lich).slice(0, 10),
+          khoa_id: String(r.khoa_id),
+        })),
+        doe: calculatedDoe,
+        ngayVaoVien: ngayVaoVienServer || (ba?.ngay_vao_vien ? vnYmd(ba.ngay_vao_vien) : null),
+        ngayRaVien: ba?.ngay_ra_vien ? vnYmd(ba.ngay_ra_vien) : null,
+        khoaDieuTriId: (ba?.khoa_dieu_tri_id as string | null | undefined) ?? null,
+      });
+      if (!loa.ok) return { success: false as const, error: loa.error };
+      loaKhoaId = loa.khoaId;
+    }
+    if (!loaKhoaId) {
+      return {
+        success: false as const,
+        error:
+          "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
+      };
+    }
+
+    // NKBV-013: ca không có DOE — khoa client phải thuộc lưới ngày–khoa của BA
+    if (!calculatedDoe && caRow?.ma_benh_an) {
+      const okLoa = await isLoaKhoaInBaGrid(supabase, String(caRow.ma_benh_an), loaKhoaId);
+      if (!okLoa) {
+        return {
+          success: false as const,
+          error: "Khoa quy kết (LOA) không thuộc lưới ngày–khoa của bệnh án này.",
+        };
+      }
     }
 
     const surgeryDate =
