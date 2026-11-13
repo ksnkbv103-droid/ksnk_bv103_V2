@@ -46,3 +46,18 @@ describe("min-N bảng tổng hợp khoa", () => {
     expect(isThinSample(5, null)).toBe(false);
   });
 });
+
+describe("ca kiểm thử đặc tả M01 — biên mục tiêu 85", () => {
+  // @dac-ta T1.02
+  it("85/100 không dưới mục tiêu; 84/100 dưới mục tiêu", () => {
+    expect(khoaChartTone((85 / 100) * 100, VST_KHOA_CHART_THRESHOLDS)).not.toBe("red");
+    expect(khoaChartTone((84 / 100) * 100, VST_KHOA_CHART_THRESHOLDS)).toBe("red");
+  });
+
+  // @dac-ta T1.04
+  it("so trên giá trị gốc: 1699/2000 = 84,95 hiển thị 85,0 nhưng vẫn dưới mục tiêu", () => {
+    const goc = (1699 / 2000) * 100;
+    expect(goc.toFixed(1)).toBe("85.0");
+    expect(khoaChartTone(goc, VST_KHOA_CHART_THRESHOLDS)).toBe("red");
+  });
+});

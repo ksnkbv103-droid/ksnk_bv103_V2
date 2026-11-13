@@ -54,14 +54,14 @@ describe("deleteVSTSessions", () => {
   });
 
   it("UPDATE có điều kiện is_active=true", async () => {
-    const r = await deleteVSTSessions([SID], { lyDo: "nhập nhầm" });
+    const r = await deleteVSTSessions([SID], { lyDo: "nhập nhầm khoa" });
     expect(r.success).toBe(true);
     expect(m.eqCalls).toContainEqual(["is_active", true]);
   });
 
   it("0 dòng bị cập nhật (race) thì báo lỗi, không báo thành công", async () => {
     m.updateResult = { data: [], error: null };
-    const r = await deleteVSTSessions([SID], { lyDo: "nhập nhầm" });
+    const r = await deleteVSTSessions([SID], { lyDo: "nhập nhầm khoa" });
     expect(r.success).toBe(false);
   });
 });

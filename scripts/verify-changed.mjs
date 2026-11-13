@@ -43,6 +43,7 @@ if (files.length) {
   const rest = [...cmds];
   cmds.clear();
   add(`node scripts/gate-integrity.mjs --base ${base}`, "luôn chạy");
+  add("node scripts/trace-dac-ta.mjs", "mã đặc tả dẫn trong code phải có thật");
   for (const [c, w] of rest) cmds.set(c, w);
 }
 

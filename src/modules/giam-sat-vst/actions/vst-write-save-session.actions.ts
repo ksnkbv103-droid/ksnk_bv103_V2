@@ -1,5 +1,6 @@
 "use server";
 
+import { isValidVstEditReason, VST_EDIT_REASON_MIN_CHARS } from "../lib/vst-edit-reason";
 import { getDb } from "@/lib/data-access";
 import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
@@ -207,8 +208,8 @@ export async function saveVSTSession(
       } else if (expired) {
         requiresEditReason = true;
         const lyDo = String(opts?.lyDoSua ?? "").trim();
-        if (lyDo.length < 3) {
-          throw new Error("Sau 30 phút chỉ Admin được sửa và phải ghi lý do (tối thiểu 3 ký tự).");
+        if (!isValidVstEditReason(lyDo)) {
+          throw new Error(`Sau 30 phút chỉ Admin được sửa và phải ghi lý do (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).`);
         }
       }
 

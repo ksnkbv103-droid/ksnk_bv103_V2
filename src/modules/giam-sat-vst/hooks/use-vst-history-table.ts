@@ -1,5 +1,6 @@
 "use client";
 
+import { VST_EDIT_REASON_MIN_CHARS } from "../lib/vst-edit-reason";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -125,7 +126,7 @@ export function useVstHistoryTable() {
       const lyDo = await promptText({
         title: "Lý do xóa phiên",
         label: "Lý do xóa (bắt buộc)",
-        minLength: 3,
+        minLength: VST_EDIT_REASON_MIN_CHARS,
         multiline: true,
         tone: "danger",
         confirmText: "Xóa phiên",

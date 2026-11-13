@@ -1,5 +1,6 @@
 "use server";
 
+import { isValidVstEditReason, VST_EDIT_REASON_MIN_CHARS } from "../lib/vst-edit-reason";
 import { getDb } from "@/lib/data-access";
 import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
@@ -31,8 +32,8 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
     if (!ids.length) return { success: true };
 
     const lyDo = String(opts?.lyDo ?? "").trim();
-    if (lyDo.length < 3) {
-      return { success: false, error: "Vui lòng nhập lý do xóa (tối thiểu 3 ký tự)." };
+    if (!isValidVstEditReason(lyDo)) {
+      return { success: false, error: `Vui lòng nhập lý do xóa (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).` };
     }
 
     const adminBypass = await hasRBACAdminSupervisionBypass();

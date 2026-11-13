@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261113 — Dựng lại app theo đặc tả M01–M15 (một lần duyệt)
 
-Trạng thái: CHỜ PO DUYỆT (3 câu ở §6). Lát L0 đã xong trong phiên 2026-11-13.
+Trạng thái: PO ĐÃ DUYỆT 2026-11-13 (trả lời ở §6). Xong: L0, L1, L3b phần độ dài lý do. Kế: L2.
 Nguồn: `~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM` (đặc tả, LOI_20_80), `BAO-CAO-NEN-MONG-2026-11-13.md`, số đo dưới đây.
 
 ## 1. Yêu cầu PO (sổ gom, mỗi dòng có tiêu chí đo)
@@ -72,6 +72,17 @@ Thứ tự phụ thuộc: L0 → L1 → L2 → L3; L4 sau L2 (dùng bảng tham 
 1. **CSSD:** cho xây lại lõi trạng thái + cổng chặn theo M04/M05 (giữ danh mục, QR, vỏ màn hình), hay chỉ vá trên lõi hiện có? Khuyến nghị: xây lại lõi.
 2. **VST đang dùng thật, chỗ đặc tả trái app:** (a) R2.07 cấm lưu danh tính người được quan sát, app đang lưu `nhan_vien_id`; (b) sửa/xóa cần lý do ≥ 10 ký tự và trưởng khoa duyệt, app chỉ cần ≥ 3 ký tự; (c) đặc tả đo giây chà tay, app tick tay. Theo đặc tả hay sửa đặc tả? Khuyến nghị: (a) sửa đặc tả theo app nếu PO chủ ý lưu; (b) theo đặc tả; (c) giữ tick tay, ghi vào đặc tả.
 3. **Mẻ không đạt:** QT.20 và M05 ghi «xử lý lại từ đầu»; tài liệu app `18-CSSD…SSOT.md:177` ghi PO chốt 2026-10-10 «về Đóng gói»; hằng số trong code `me-tiet-khuan-ab-gates.ts:9` lại ghi «về Tiếp nhận» (không nơi nào dùng). Theo cái nào? Hành vi thật của `rpc_cssd_me_thu_hoi` chưa kiểm.
+
+### PO trả lời 2026-11-13
+
+1. CSSD: **xây lại lõi**.
+2. (a) **Lưu danh tính** người được quan sát → phải sửa R2.07 của M02; R2.07 dẫn QT.32 §V.1 «ghi nhận ẩn danh», nên QT.32 cũng cần PO sửa hoặc ghi ngoại lệ (chưa làm, kho KSNK). (b) Sửa/xóa **theo đặc tả**: lý do ≥ 10 ký tự ĐÃ LÀM cho VST; bước trưởng khoa duyệt CHƯA LÀM (cần bảng yêu cầu duyệt, lát L3b-2). GSC giữ ≥ 3 ký tự vì R2.36 không nêu độ dài. (c) **Giữ tick tay** → ghi vào R1.09/R1.10 của M01 (chưa làm, kho KSNK).
+3. Mẻ không đạt: **xử lý lại từ đầu** (về Tiếp nhận), thay dòng «PO chốt lại 2026-10-10» trong `18-CSSD…SSOT.md`. Hành vi RPC sửa ở L4.
+
+### Tiến độ
+
+- L1 (2026-11-13): `trace` M01 R 3/40, T 2/35; M02 R 2/41. R1.07/R1.08 chỉ nằm trong migration đã apply nên chưa gắn mã (gắn khi viết migration mới). `trace` đã chạy trong `verify:changed`.
+- L3b: `VST_EDIT_REASON_MIN_CHARS` = 10, dùng chung cho sửa, xóa và hộp nhập.
 
 ## 7. Giả định
 
