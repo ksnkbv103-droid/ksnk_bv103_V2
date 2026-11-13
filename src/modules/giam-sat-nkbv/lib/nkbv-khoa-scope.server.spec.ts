@@ -49,6 +49,27 @@ describe("isNkbvBenhAnInScope — ca có mã BA nhưng chưa có hồ sơ BA/lư
     expect(await isNkbvBenhAnInScope(KHOA_A, "BA-LUOI-B", ["A"])).toBe(false);
   });
 
+  it("BA đã có hồ sơ nhưng chưa có khoa điều trị, chưa có lưới ngày: phiếu khoa mình trong phạm vi", async () => {
+    db.ba = { khoa_dieu_tri_id: null };
+    expect(await isNkbvBenhAnInScope(KHOA_A, "BA-CHUA-KHOA", ["A"])).toBe(true);
+  });
+
+  it("BA chưa có khoa điều trị: phiếu khoa khác vẫn bị chặn", async () => {
+    db.ba = { khoa_dieu_tri_id: null };
+    expect(await isNkbvBenhAnInScope(KHOA_A, "BA-CHUA-KHOA", ["B"])).toBe(false);
+  });
+
+  it("BA chưa có khoa điều trị, không truyền khoa dự phòng (Hub/đọc BA): vẫn chặn", async () => {
+    db.ba = { khoa_dieu_tri_id: null };
+    expect(await isNkbvBenhAnInScope(KHOA_A, "BA-CHUA-KHOA")).toBe(false);
+  });
+
+  it("BA chưa có khoa điều trị nhưng lưới ngày đã có ở khoa khác: không mở phạm vi", async () => {
+    db.ba = { khoa_dieu_tri_id: null };
+    db.days = [{ khoa_id: "B" }];
+    expect(await isNkbvBenhAnInScope(KHOA_A, "BA-CHUA-KHOA", ["A"])).toBe(false);
+  });
+
   it("BA đã có hồ sơ, khoa điều trị là khoa mình: trong phạm vi", async () => {
     db.ba = { khoa_dieu_tri_id: "A" };
     expect(await isNkbvBenhAnInScope(KHOA_A, "BA-A")).toBe(true);

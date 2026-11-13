@@ -35,8 +35,9 @@ export const NKBV_OUT_OF_SCOPE_ERROR = "Hồ sơ nằm ngoài khoa của bạn."
 
 /**
  * Hồ sơ BA có hiển thị với actor không (khoa điều trị hoặc có ngày nằm ở khoa mình).
- * `khoaKhiChuaCoBa`: khoa ghi nhận của phiếu — chỉ dùng khi mã BA chưa có hồ sơ lẫn lưới ngày
- * (phiếu ghi trước khi import BA), để Mạng lưới sửa được phiếu của khoa mình. Hub/đọc BA không truyền.
+ * `khoaKhiChuaCoBa`: khoa ghi nhận của phiếu — chỉ dùng khi BA chưa có khoa điều trị (hồ sơ đã ẩn
+ * hoặc tạo chưa chọn khoa) và chưa có ngày nào trên lưới, để Mạng lưới sửa được phiếu của khoa mình.
+ * Hub/đọc BA không truyền.
  */
 export async function isNkbvBenhAnInScope(
   r: NkbvKhoaRestriction,
@@ -55,7 +56,7 @@ export async function isNkbvBenhAnInScope(
   if (nkbvKhoaVisible(r, [ba?.khoa_dieu_tri_id as string | null, ...(days || []).map((d) => d.khoa_id as string)])) {
     return true;
   }
-  if (ba || !khoaKhiChuaCoBa.length) return false;
+  if (ba?.khoa_dieu_tri_id || !khoaKhiChuaCoBa.length) return false;
   const { data: anyDay } = await admin.from("nkbv_fact_ba_ngay_khoa").select("khoa_id").eq("ma_benh_an", ma).limit(1);
   if (anyDay?.length) return false;
   return nkbvKhoaVisible(r, khoaKhiChuaCoBa);
