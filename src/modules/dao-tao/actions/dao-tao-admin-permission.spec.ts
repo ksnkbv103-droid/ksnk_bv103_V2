@@ -12,6 +12,10 @@ vi.mock("@/lib/server-permission", () => ({
   verifyAnyPermission: mocks.verifyAnyPermission,
 }));
 
+vi.mock("@/lib/actor-ksnk-scope-server", () => ({
+  getActorKsnkScope: async () => ({ isGuestStatsOnly: false, isAdmin: false }),
+}));
+
 vi.mock("@/lib/supabase-server", () => ({
   createServerSupabaseUserClient: async () => ({ auth: { getUser: mocks.getUser } }),
   createAdminSupabaseClient: () => ({ from: mocks.from }),
