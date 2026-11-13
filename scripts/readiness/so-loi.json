@@ -988,8 +988,8 @@
     "trang_thai": "DA_SUA",
     "nguon": "r2-nkbv-quyen",
     "commit": "0ab86047",
-    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): chưa tới được khung RCA CSSD từ giao diện với dữ liệu A03 (không có ca gắn mã QR). Cần fixture ca NKBV gắn bộ dụng cụ. | Tay 2026-11-13 CHUA: 2026-11-13: can tai khoan chi co quyen GSC/Mang luoi khong co NKBV view; fixture chua co - chi spec, de lai cho dot UAT voi dau moi",
-    "test_tay": "CHUA"
+    "ghi_chu": "Hỏi PO: Mạng lưới có được xem RCA CSSD không; nếu không thì thêm verifyPermission(CSSD_WORKFLOW,view). | Tay 2026-11-13 CHUA: 2026-11-13 :3001 vai MANG_LUOI (NV_TEST01, A03): chưa tới được khung RCA CSSD từ giao diện với dữ liệu A03 (không có ca gắn mã QR). Cần fixture ca NKBV gắn bộ dụng cụ. | Tay 2026-11-13 CHUA: 2026-11-13: can tai khoan chi co quyen GSC/Mang luoi khong co NKBV view; fixture chua co - chi spec, de lai cho dot UAT voi dau moi | Tay 2026-11-13 DAT: Local :3001, ca gắn tạm mẻ TK1-011126-1. NHAN_VIEN_KSNK (deep link ?case=) thấy bộ+mẻ trong khung RCA. MANG_LUOI_KSNK (Hub BA → phiếu #1) khung RCA báo 'không có quyền [view] trên CSSD_WORKFLOW', không lộ bộ/mẻ. Fixture đã trả gốc.",
+    "test_tay": "DAT"
   },
   {
     "id": "NKBV-015",
