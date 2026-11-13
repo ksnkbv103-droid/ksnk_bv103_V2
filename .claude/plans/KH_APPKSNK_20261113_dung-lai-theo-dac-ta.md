@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261113 — Dựng lại app theo đặc tả M01–M15 (một lần duyệt)
 
-Trạng thái: PO ĐÃ DUYỆT 2026-11-13 (trả lời ở §6). Xong: L0, L1, L3b phần độ dài lý do, L2a (bảng `ksnk_dm_tham_so` + `fn_ksnk_tham_so` trên DB local, seed khớp mã, chưa lên prod). Kế: L2b — cho ~75 chỗ dùng ngưỡng ở 21 file (đa số component client) nhận ngưỡng từ bảng qua một provider; vượt 8 file nên chia theo nhóm màn hình. Ghi chú: `fetchMucTieuKpiVien` (đọc `ksnk_dm_muc_tieu_kpi`) hiện không nơi nào gọi; R1.14 nêu mẫu tối thiểu 100/tháng, app đang 20 (XM-2 mở, chưa đổi).
+Trạng thái: PO ĐÃ DUYỆT 2026-11-13 (trả lời ở §6). Xong: L0, L1, L3b phần độ dài lý do, L2a (bảng `ksnk_dm_tham_so` + `fn_ksnk_tham_so` trên DB local, seed khớp mã, chưa lên prod). L2b (2026-11-14: root layout đọc `ksnk_dm_tham_so` mỗi request → `applyThamSo` đặt ngưỡng cho mọi màn hình VST/GSC/BCTH; kiểm tay trên local: thêm dòng 93/77 → màn hình đổi, xóa → về 90/80). Kế: L3b-2 — duyệt sửa/xóa qua trưởng khoa. Còn lại của L2: ngưỡng trong SQL (`fn_vst_*`, view KPI) chưa đọc `fn_ksnk_tham_so`; server action chạy ngoài layout dùng giá trị áp gần nhất của tiến trình; chưa có màn hình quản trị thêm tham số (thêm bằng SQL). Ghi chú: `fetchMucTieuKpiVien` (đọc `ksnk_dm_muc_tieu_kpi`) hiện không nơi nào gọi; R1.14 nêu mẫu tối thiểu 100/tháng, app đang 20 (XM-2 mở, chưa đổi).
 Nguồn: `~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM` (đặc tả, LOI_20_80), `BAO-CAO-NEN-MONG-2026-11-13.md`, số đo dưới đây.
 
 ## 1. Yêu cầu PO (sổ gom, mỗi dòng có tiêu chí đo)

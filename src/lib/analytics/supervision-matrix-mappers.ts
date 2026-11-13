@@ -101,10 +101,8 @@ export function normalizeGapKhoaRow(r: GapKhoaSourceRow): GapKhoaRow {
   };
 }
 
-import { SUPERVISION_COMPLIANCE_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
-
-/** Ngưỡng tô cảnh báo % khoa — alias SSOT `KHOA_WARN_PCT`. */
-export const KHOA_COMPLIANCE_WARN_PCT = SUPERVISION_COMPLIANCE_THRESHOLDS.KHOA_WARN_PCT;
+/** Ngưỡng tô cảnh báo % khoa — binding sống, đổi theo `applyThamSo`. */
+export { KHOA_COMPLIANCE_WARN_PCT } from "@/lib/analytics/supervision-thresholds";
 
 /** Sắp xếp hàng khoa — mặc định bảng: % cao→thấp trên cột chính (KSNK). */
 export function sortGapRowsByMetric(
