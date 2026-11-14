@@ -166,6 +166,7 @@ export async function saveVSTSession(
     validateVstModeFields(hinh, cach);
     const ngayGiamSat = sessionData.ngay_giam_sat?.trim();
     if (!ngayGiamSat) throw new Error("Ngày giám sát là bắt buộc.");
+    // @dac-ta R1.23 — kỳ đã khóa sổ: chặn tạo phiên và thêm/sửa cơ hội thuộc kỳ đó.
     await assertSupervisionNotLockedForDate(supabase, "VST", ngayGiamSat);
     if ((observations || []).some((obs) => String(obs.khoa_id || "") !== String(khoaSessionNorm || ""))) {
       throw new Error("Dữ liệu lệch: khoa_id trong cơ hội giám sát không khớp khoa của phiên.");
