@@ -1536,5 +1536,18 @@
     "nguon": "vong-lap-20261114",
     "commit": "",
     "ghi_chu": "Bác bỏ kịch bản trùng. Còn dư: bệnh án đã xóa mềm vẫn được dùng tính LOA — mức Thấp, không sửa."
+  },
+  {
+    "id": "DT-017",
+    "module": "DAO_TAO",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Thi thử tạo lượt không giới hạn và không khóa; mỗi dòng dang_lam chứa cả de_snapshot",
+    "bang_chung": "src/modules/dao-tao/actions/dao-tao-attempt.actions.ts:251-269; M10 không có quy tắc về thi thử",
+    "lenh_kiem": "",
+    "trang_thai": "HOAN",
+    "nguon": "vong-lap-20261114",
+    "commit": "",
+    "ghi_chu": "Đặc tả im về thi thử → không sửa. Nếu PO muốn trần dang_lam đồng thời thì thêm sau."
   }
 ]
