@@ -1585,9 +1585,9 @@
     "tieu_de": "Kho hóa chất: hàng chờ duyệt lấy từ 120 phiếu mới nhất — phiếu CHO_DUYET cũ hơn bị đẩy ra, không ai thấy để duyệt",
     "bang_chung": "use-kho-hoa-chat-page.ts:66 listGiaoDichKhoHoaChatAction({ limit: 120 }); cssd-kho-hoa-chat-list.actions.ts:119-121 order created_at desc, không ưu tiên CHO_DUYET; choDuyetByDm (hook dòng 143-149) đếm từ chính danh sách này. Phiếu CHO_DUYET vẫn giữ chỗ tồn khả dụng nên các lần xuất sau báo thiếu tồn mà không thấy phiếu chặn.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DANG_SUA",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
-    "commit": "",
+    "commit": "29298150",
     "ghi_chu": "Sửa dự kiến: thêm tham số trang_thai vào action liệt kê và gộp thêm CHO_DUYET không giới hạn 120. | Tay 2026-11-14 DAT: Tay 2026-11-14 localhost:3001/cssd-hoa-chat, DB local: 1 mặt hàng UAT + 125 phiếu DA_DUYET mới + 1 phiếu CHO_DUYET cũ 30 ngày (ngoài 120 dòng mới nhất). Trước sửa (gỡ tạm cờ): chip «Chờ duyệt (0)», dòng không có huy hiệu. Sau sửa: chip «Chờ duyệt (1)», dòng có huy hiệu «Chờ duyệt 1», bấm chip vẫn hiện dòng; tồn 125 không tính phiếu chờ. Đã xóa fixture (2 bảng về 0).",
     "test_tay": "DAT"
   },
@@ -1599,10 +1599,11 @@
     "tieu_de": "Kho hóa chất: danh sách sự cố chưa ghi kho lấy 40 sự cố mới nhất rồi mới lọc đã liên kết, và bỏ qua lỗi truy vấn liên kết",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-kho-hoa-chat-su-co.actions.ts:37 .limit(40) trước khi lọc (dòng 56 pending); dòng 43 const { data: linkedRows } không kiểm error → truy vấn lỗi thì sự cố đã có phiếu hiện lại như chưa ghi kho. Sự cố CHEMICAL cũ hơn 40 bản ghi gần nhất không bao giờ hiện để ghi xuất.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DANG_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
     "commit": "",
-    "ghi_chu": "Sửa dự kiến: kiểm error của truy vấn liên kết; lọc sự cố đã liên kết ở truy vấn trước khi limit."
+    "ghi_chu": "Đã sửa: quét sự cố CHEMICAL theo trang 50 (trần 20 trang = 1000 sự cố mới nhất), loại sự cố đã có phiếu kho trước khi cắt 40; lỗi truy vấn liên kết trả {success:false} (hook hiện toast) thay vì coi mọi sự cố là chưa ghi. Spec 7 test (đỏ trên code cũ 4/7). Vấn đề lân cận ngoài phạm vi: xem CSSD-035.",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-032",
@@ -1668,5 +1669,18 @@
     "nguon": "vst-rls-approve",
     "commit": "",
     "ghi_chu": "CHO_PO. Mặc định: phần code chặn CNK duyệt yêu cầu ngoài khoa mình (an toàn, làm ngay); đổi ma trận quyền (bỏ approve khỏi CNK, thêm cho vai TK_KSNK) là đổi quyền người dùng thật → chờ PO. Hệ quả nếu PO im: CNK duyệt được yêu cầu của khoa mình."
+  },
+  {
+    "id": "CSSD-035",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Kho hóa chất: trần 40 sự cố chưa ghi kho áp trước bước xác định hóa chất, và hai truy vấn cssd_dm_hoa_chat bỏ qua lỗi",
+    "bang_chung": "src/modules/cssd-erp/actions/cssd-kho-hoa-chat-su-co.actions.ts:74 cắt 40 rồi mới xác định hóa chất; dòng 159 .filter(r => r.dm_hoa_chat_id) bỏ sự cố không xác định được hóa chất sau khi chúng đã chiếm chỗ trong 40 → đủ 40 sự cố không xác định thì sự cố xác định được không hiện. Dòng 101 và 115: const { data: dms } không kiểm error → truy vấn lỗi thì sự cố gán theo mã nhãn biến mất im lặng, sự cố gán theo id hiện tên rỗng.",
+    "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
+    "trang_thai": "MOI",
+    "nguon": "vong-cssd-031-lan-can",
+    "commit": "",
+    "ghi_chu": "Phát hiện khi sửa CSSD-031, ngoài phạm vi nên chưa sửa. Mức THẤP: sự cố không xác định được hóa chất vốn không ghi xuất được (nút Ghi xuất cần dm_hoa_chat_id). Hướng sửa: xác định hóa chất ngay trong vòng quét trang rồi mới đếm đủ 40; kiểm error của hai truy vấn danh mục."
   }
 ]
