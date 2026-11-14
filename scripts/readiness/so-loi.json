@@ -1599,9 +1599,9 @@
     "tieu_de": "Kho hóa chất: danh sách sự cố chưa ghi kho lấy 40 sự cố mới nhất rồi mới lọc đã liên kết, và bỏ qua lỗi truy vấn liên kết",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-kho-hoa-chat-su-co.actions.ts:37 .limit(40) trước khi lọc (dòng 56 pending); dòng 43 const { data: linkedRows } không kiểm error → truy vấn lỗi thì sự cố đã có phiếu hiện lại như chưa ghi kho. Sự cố CHEMICAL cũ hơn 40 bản ghi gần nhất không bao giờ hiện để ghi xuất.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DANG_SUA",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
-    "commit": "",
+    "commit": "e5081c42",
     "ghi_chu": "Đã sửa: quét sự cố CHEMICAL theo trang 50 (trần 20 trang = 1000 sự cố mới nhất), loại sự cố đã có phiếu kho trước khi cắt 40; lỗi truy vấn liên kết trả {success:false} (hook hiện toast) thay vì coi mọi sự cố là chưa ghi. Spec 7 test (đỏ trên code cũ 4/7). Vấn đề lân cận ngoài phạm vi: xem CSSD-035.",
     "test_tay": "DAT"
   },
@@ -1626,10 +1626,10 @@
     "tieu_de": "Báo cáo Nhập–Xuất–Tồn và lưu lượng 30 ngày tính theo created_at của phiếu DA_DUYET, trong khi tồn thật chỉ đổi lúc duyệt",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-kho-hoa-chat-canh-bao.actions.ts:27 và :64 lọc created_at; trang_thai DA_DUYET (dòng 24, 61). Phiếu lập 31/10 duyệt 02/11 làm số tồn cuối tháng 10 đổi sau khi báo cáo đã in. Bảng giao dịch có cột duyet_at (cssd-kho-hoa-chat-list.actions.ts select).",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DANG_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
     "commit": "",
-    "ghi_chu": "Sửa dự kiến: ngày hiệu lực = duyet_at, rơi về created_at với phiếu cũ chưa có duyet_at."
+    "ghi_chu": "Đã sửa ở tầng action: ngày hiệu lực = duyet_at; phiếu cũ trước HC-C (duyet_at NULL) lấy created_at (giả định ghi 2026-11-14: coi phiếu cũ hiệu lực lúc lập). Test cssd-kho-hoa-chat-canh-bao.actions.spec.ts 8 ca, 5 đỏ trên code cũ. Bằng chứng e2e local :3001 (NV_TEST01, 4 phiếu thử đã xóa): NXT 01–14/11 = tồn đầu 7, nhập 150, xuất 20, tồn cuối 137; đến 08/11 = 7/0/0/7 (code cũ 107); đến 12/11 = 7/100/20/87; cảnh báo 30 ngày hiện «Tồn 137 ≤ 100% lượng nhập 30 ngày (150)» (code cũ chỉ 50). Thẻ kho vẫn theo created_at → CSSD-036."
   },
   {
     "id": "CSSD-034",
@@ -1682,5 +1682,18 @@
     "nguon": "vong-cssd-031-lan-can",
     "commit": "",
     "ghi_chu": "Phát hiện khi sửa CSSD-031, ngoài phạm vi nên chưa sửa. Mức THẤP: sự cố không xác định được hóa chất vốn không ghi xuất được (nút Ghi xuất cần dm_hoa_chat_id). Hướng sửa: xác định hóa chất ngay trong vòng quét trang rồi mới đếm đủ 40; kiểm error của hai truy vấn danh mục."
+  },
+  {
+    "id": "CSSD-036",
+    "module": "CSSD",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Thẻ kho hóa chất sắp xếp, ghi ngày và tính tồn lũy kế theo created_at của phiếu, trong khi tồn thật chỉ đổi lúc duyệt (cùng gốc CSSD-033)",
+    "bang_chung": "src/lib/domain/cssd-kho-hoa-chat-the-kho.ts:37 sắp xếp theo created_at, dòng 50 ngay: r.created_at → phiếu lập sớm nhưng duyệt muộn đứng trước phiếu đã duyệt từ trước, tồn lũy kế từng dòng sai thứ tự (có thể ra số âm giả giữa hai dòng). Ngăn kéo KhoHoaChatKsnkPage.tsx:49 lấy 200 dòng mới nhất theo created_at của listGiaoDichKhoHoaChatAction (cssd-kho-hoa-chat-list.actions.ts:113), nên cửa sổ lấy dữ liệu cũng lệch theo created_at. Thẻ kho là mẫu in (kho-hoa-chat-print-view.tsx).",
+    "lenh_kiem": "npm run test:cssd -- src/lib/domain src/modules/cssd-erp",
+    "trang_thai": "DA_XAC_MINH",
+    "nguon": "vong-cssd-033-lan-can",
+    "commit": "",
+    "ghi_chu": "Phát hiện khi sửa CSSD-033 (báo cáo Nhập–Xuất–Tồn và lưu lượng 30 ngày đã chuyển sang ngày hiệu lực = duyet_at, phiếu cũ duyet_at NULL lấy created_at). Hướng sửa: buildTheKho nhận duyet_at, sắp xếp và ghi ngày theo ngày hiệu lực; listGiaoDichKhoHoaChatAction cần order và lọc cùng khóa để cửa sổ 200 dòng khớp; thêm test thứ tự phiếu lập trước duyệt sau. Chạm ≤ 5 file: the-kho.ts, spec, list.actions.ts, KhoHoaChatKsnkPage.tsx (nếu đổi kiểu), print-view (nhãn ngày)."
   }
 ]

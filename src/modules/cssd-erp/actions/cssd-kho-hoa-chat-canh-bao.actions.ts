@@ -9,6 +9,14 @@ import { CANH_BAO_CUA_SO_NGAY } from "@/lib/domain/cssd-kho-hoa-chat-canh-bao-to
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import type { KhoHoaChatLuuLuong } from "./cssd-kho-hoa-chat.types";
 
+/**
+ * CSSD-033: tồn chỉ đổi lúc DUYỆT phiếu (`duyet_at = now()`), nên «ngày hiệu lực» của phiếu là `duyet_at`;
+ * phiếu cũ trước HC-C chưa có `duyet_at` (NULL) lấy `created_at`. Lọc theo `created_at` làm báo cáo kỳ đã qua
+ * đổi số khi phiếu lập trước kỳ được duyệt sau kỳ.
+ */
+const hieuLucTu = (iso: string) => `duyet_at.gte.${iso},and(duyet_at.is.null,created_at.gte.${iso})`;
+const hieuLucTruoc = (iso: string) => `duyet_at.lt.${iso},and(duyet_at.is.null,created_at.lt.${iso})`;
+
 /** Lượng nhập và lượng xuất «Cấp sử dụng» đã duyệt trong 30 ngày gần nhất, theo mặt hàng (đọc sổ, không bảng tổng hợp). */
 export async function listLuuLuongKhoHoaChatAction(): Promise<
   { success: true; data: KhoHoaChatLuuLuong[] } | { success: false; error: string }
@@ -24,7 +32,7 @@ export async function listLuuLuongKhoHoaChatAction(): Promise<
         .eq("is_active", true)
         .eq("trang_thai", "DA_DUYET")
         .in("loai_giao_dich", ["NHAP", "XUAT"])
-        .gte("created_at", tu)
+        .or(hieuLucTu(tu))
         .order("created_at", { ascending: true })
         .range(from, to),
     );
@@ -58,10 +66,10 @@ export async function listSoKhoHoaChatDenNgayAction(den: string): Promise<
     const rows = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
       supabase
         .from("cssd_fact_kho_hoa_chat_giao_dich")
-        .select("dm_hoa_chat_id, so_luong_co_dau, ly_do_xuat, created_at")
+        .select("dm_hoa_chat_id, so_luong_co_dau, ly_do_xuat, created_at, duyet_at")
         .eq("is_active", true)
         .eq("trang_thai", "DA_DUYET")
-        .lt("created_at", hetNgay)
+        .or(hieuLucTruoc(hetNgay))
         .order("created_at", { ascending: true })
         .range(from, to),
     );
@@ -71,7 +79,7 @@ export async function listSoKhoHoaChatDenNgayAction(den: string): Promise<
         dm_hoa_chat_id: String(r.dm_hoa_chat_id || ""),
         so_luong_co_dau: Number(r.so_luong_co_dau),
         ly_do_xuat: r.ly_do_xuat != null ? String(r.ly_do_xuat) : null,
-        ngay: todayYmdInVn(new Date(String(r.created_at))),
+        ngay: todayYmdInVn(new Date(String(r.duyet_at ?? r.created_at))),
       })),
     };
   } catch (e: unknown) {
