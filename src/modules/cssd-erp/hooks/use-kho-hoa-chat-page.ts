@@ -24,6 +24,7 @@ import { normalizeTrangThai, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-ho
 import { buildDmStockSummary, type DmLite } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { duyetPhieuKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat-duyet.actions";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
+import { createExclusiveRunner } from "../lib/cssd-run-exclusive";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
 
@@ -41,6 +42,9 @@ export function useKhoHoaChatPage() {
   const [movs, setMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
   const [dms, setDms] = useState<DmLite[]>([]);
   const [busy, setBusy] = useState(true);
+  /** CSSD-029: chặn bấm đúp «Ghi nhận» (cờ ngoài render + state để khóa nút). */
+  const [submitRunner] = useState(createExclusiveRunner);
+  const [submitting, setSubmitting] = useState(false);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [moveMode, setMoveMode] = useState<MoveMode>("NHAP");
@@ -172,7 +176,7 @@ export function useKhoHoaChatPage() {
     setSheetOpen(true);
   };
 
-  const submitMove = async () => {
+  const doSubmitMove = async () => {
     const q = Number(qty);
     if (!dmId.trim()) return toast.error("Chọn mặt hàng.");
     if (!canEdit) return toast.error("Không có quyền sửa.");
@@ -213,8 +217,21 @@ export function useKhoHoaChatPage() {
     void reload();
   };
 
+  /** Chỉ lần bấm thắng cờ mới bật/tắt `submitting`; lần bấm chồng bị bỏ qua, không mở khóa nút sớm. */
+  const submitMove = async () => {
+    await submitRunner.run(async () => {
+      setSubmitting(true);
+      try {
+        await doSubmitMove();
+      } finally {
+        setSubmitting(false);
+      }
+    });
+  };
+
   const qn = Number(qty);
   const canSubmitSheet =
+    !submitting &&
     canEdit &&
     dmId.trim() &&
     qty.trim() &&

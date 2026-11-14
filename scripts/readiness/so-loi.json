@@ -1558,9 +1558,9 @@
     "tieu_de": "Lịch sử/chi tiết/xuất Excel VST: CHU_NHIEM_KHOA và HOI_DONG_KSNK đọc được toàn viện kèm tên người được quan sát",
     "bang_chung": "src/modules/giam-sat-vst/lib/vst-read-scope.ts: applyVstHistoryReadScope trả nguyên query khi !isMangLuoiKsnk (vai không phải admin/KSNK/mạng lưới không bị lọc); getVSTSessionDetail (vst-read.actions.ts ~dòng 121) chỉ kiểm khoa cho isMangLuoiKsnk. DB local: CHU_NHIEM_KHOA (approve,view) và HOI_DONG_KSNK (view) có quyền xem GIAM_SAT_VST. Đặc tả M01 ma trận dòng 22-24 (danh sách có danh tính: khoa quản lý + CB_KSNK; BGĐ ẩn danh) và R1.34/T1.32 (chặn/lọc cột danh tính). vst-export.actions.ts xuất ten_doi_tuong/ten_nguoi_giam_sat.",
     "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst/lib/vst-read-scope.spec.ts",
-    "trang_thai": "DANG_SUA",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-vst-scope-doc",
-    "commit": "",
+    "commit": "28f638fc",
     "ghi_chu": "Phương án A (chọn): CHU_NHIEM_KHOA chỉ khoa mình (.eq khoa_id), HOI_DONG_KSNK chặn bằng zero-uuid, vai khác giữ nguyên để không hồi quy. Không đổi quyền người dùng thật."
   },
   {
@@ -1571,10 +1571,11 @@
     "tieu_de": "Kho hóa chất: bấm đúp «Ghi nhận» lập hai phiếu giống nhau (không có cờ đang gửi)",
     "bang_chung": "src/modules/cssd-erp/hooks/use-kho-hoa-chat-page.ts:175-214 submitMove await action rồi mới setSheetOpen(false) (dòng 215); nút ở kho-hoa-chat-move-sheet.tsx:180-186 chỉ disabled={!canSubmit}, canSubmit (hook dòng 217-224) không phụ thuộc trạng thái đang gửi. Hai lần bấm trước khi action trả = hai phiếu NK cùng nội dung; duyệt cả hai thì tồn tăng gấp đôi.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DANG_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
     "commit": "",
-    "ghi_chu": "explore-module 2026-11-14, đã kiểm lại bằng mã."
+    "ghi_chu": "explore-module 2026-11-14, đã kiểm lại bằng mã. | Tay 2026-11-14 DAT: Local :3001 /cssd-hoa-chat, double_click «Ghi nhận» phiếu NK: mã cũ tạo 2 phiếu (cách 94ms), mã mới tạo 1 phiếu. Đã dọn dữ liệu thử.",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-030",
