@@ -4,7 +4,8 @@
  * Kho vi sinh toàn viện — CRUD + chuẩn hóa bệnh phẩm (không điều tra HAI).
  */
 
-import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvIdentityScope, getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { revalidatePath } from "next/cache";
@@ -105,8 +106,13 @@ export async function listNkbvViSinhStore(params?: {
   limit?: number;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  // NKBV-040: HĐ KSNK thuần giữ quyền view nhưng không nhận mã BA, mã BN, họ tên (M03 «Xa»; HĐ ≈ BGĐ là giả định) và không tìm theo tên được.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as NkbvViSinhStoreRow[] };
+  }
   // Kho XN thô không gắn khoa: Mạng lưới xem qua hồ sơ BA theo khoa, không xem kho chung.
-  if ((await getNkbvKhoaRestriction()).kind !== "all") {
+  if (restriction.kind !== "all") {
     return { success: true as const, data: [] as NkbvViSinhStoreRow[] };
   }
   const supabase = await createServerSupabaseUserClient();
