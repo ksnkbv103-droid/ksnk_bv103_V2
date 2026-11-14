@@ -99,3 +99,9 @@ export async function canAccessDanhMucModuleRoute(moduleKey: string): Promise<bo
   if (!snap) return false;
   return snap.isAdmin || snap.canView(moduleKey);
 }
+
+/** Tham số nghiệp vụ (`ksnk_dm_tham_so`) — chỉ ADMIN. */
+export async function canAccessThamSoRoute(): Promise<boolean> {
+  const snap = await getServerAccessSnapshot();
+  return !!snap?.isAdmin;
+}
