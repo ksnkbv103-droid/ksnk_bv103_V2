@@ -12,7 +12,7 @@ Thân mã: worktree `integrate-2026-11`. Nguồn điều hướng duy nhất: `n
 ## 0. Cổng đầu vòng (cơ học, ≤ 3 lệnh)
 
 - `git status --short` — file lạ không phải của mình: để yên, không stage.
-- `get_usage`: tuần > 60% → chỉ nhận dòng NGHIEM_TRONG/CAO; tuần > 85% → ghi nhật ký «dừng vì hạn mức» và kết thúc `/loop`.
+- Không kiểm hạn mức (PO 2026-11-14: bỏ mọi ngưỡng hạn mức; không gọi `get_usage` để quyết định dừng hay thu hẹp việc).
 - `node scripts/readiness/so-loi.mjs stats`.
 
 ## 1. Chọn việc (theo thứ tự, lấy cái đầu tiên có)
@@ -64,4 +64,4 @@ Giới hạn «≤ 8 file/task» tính **theo vòng**; việc lớn hơn → tá
 
 ## 6. Kết vòng
 
-Một dòng vào `NHAT_KY_VONG_LAP.md`: `ngày giờ · module · ID · phương án chọn (điểm) · verify · sha | CHO_PO | HOAN | sạch`. Không viết báo cáo dài, không khối hỏi. Dừng `/loop` chỉ khi: hạn mức > 85%; ba vòng liền «sạch» trên cả 7 module; hoặc cùng một lỗi verify lặp 3 vòng liền (ghi HANDOFF).
+Một dòng vào `NHAT_KY_VONG_LAP.md`: `ngày giờ · module · ID · phương án chọn (điểm) · verify · sha | CHO_PO | HOAN | sạch`. Không viết báo cáo dài, không khối hỏi. Dừng `/loop` chỉ khi: ba vòng liền «sạch» trên cả 7 module; hoặc cùng một lỗi verify lặp 3 vòng liền (ghi HANDOFF).
