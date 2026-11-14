@@ -102,8 +102,19 @@ export async function listTonTheoLoKhoHoaChatAction(): Promise<
   }
 }
 
-/** Nhật ký giao dịch gần nhất; `dm_hoa_chat_id` = lịch sử riêng một mặt hàng (drawer). */
-export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number; dm_hoa_chat_id?: string }): Promise<
+/** Trần số phiếu CHO_DUYET kèm thêm khi `include_cho_duyet` (CSSD-030); hàng chờ vượt trần là bất thường về quy trình. */
+const CHO_DUYET_TRAN = 500;
+
+/**
+ * Nhật ký giao dịch gần nhất; `dm_hoa_chat_id` = lịch sử riêng một mặt hàng (drawer).
+ * `include_cho_duyet`: kèm MỌI phiếu CHO_DUYET dù cũ hơn cửa sổ `limit` — phiếu chờ duyệt giữ chỗ tồn khả dụng
+ * nên không được rơi khỏi hàng chờ (CSSD-030).
+ */
+export async function listGiaoDichKhoHoaChatAction(params?: {
+  limit?: number;
+  dm_hoa_chat_id?: string;
+  include_cho_duyet?: boolean;
+}): Promise<
   { success: true; data: KhoHoaChatGiaoDichRow[] } | { success: false; error: string }
 > {
   try {
@@ -111,14 +122,26 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number; dm
     const supabase = createAdminSupabaseClient();
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
     const dmFilter = String(params?.dm_hoa_chat_id || "").trim();
-    let q = supabase
-      .from("cssd_fact_kho_hoa_chat_giao_dich")
-      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le, ly_do_xuat")
-      .eq("is_active", true);
-    if (dmFilter) q = q.eq("dm_hoa_chat_id", dmFilter);
-    const { data: rows, error } = await q.order("created_at", { ascending: false }).limit(lim);
+    const baseQuery = () => {
+      let q = supabase
+        .from("cssd_fact_kho_hoa_chat_giao_dich")
+        .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le, ly_do_xuat")
+        .eq("is_active", true);
+      if (dmFilter) q = q.eq("dm_hoa_chat_id", dmFilter);
+      return q;
+    };
+    const { data: rows, error } = await baseQuery().order("created_at", { ascending: false }).limit(lim);
     if (error) return { success: false, error: mapFkError(error.message) };
-    const rawRows = rows || [];
+    let rawRows = rows || [];
+    if (params?.include_cho_duyet) {
+      const { data: choDuyet, error: choDuyetErr } = await baseQuery()
+        .eq("trang_thai", "CHO_DUYET")
+        .order("created_at", { ascending: false })
+        .limit(CHO_DUYET_TRAN);
+      if (choDuyetErr) return { success: false, error: mapFkError(choDuyetErr.message) };
+      const seen = new Set(rawRows.map((r: { id?: unknown }) => String(r.id)));
+      rawRows = [...rawRows, ...(choDuyet || []).filter((r: { id?: unknown }) => !seen.has(String(r.id)))];
+    }
     const dmIds = [...new Set(rawRows.map((r: { dm_hoa_chat_id?: string }) => String(r.dm_hoa_chat_id || "")).filter(Boolean))];
     const tenMap = new Map<string, string>();
     if (dmIds.length) {

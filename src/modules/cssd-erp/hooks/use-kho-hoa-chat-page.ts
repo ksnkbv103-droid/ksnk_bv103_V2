@@ -67,7 +67,8 @@ export function useKhoHoaChatPage() {
     setBusy(true);
     const [t1, t2, t3, t4, t5] = await Promise.all([
       listTonTheoLoKhoHoaChatAction(),
-      listGiaoDichKhoHoaChatAction({ limit: 120 }),
+      // CSSD-030: kèm mọi phiếu CHO_DUYET — phiếu cũ hơn 120 dòng mới nhất vẫn phải vào hàng chờ duyệt.
+      listGiaoDichKhoHoaChatAction({ limit: 120, include_cho_duyet: true }),
       listDmHoaChatChoKhoAction(),
       listSuCoChemicalChuaGhiKhoAction(),
       listLuuLuongKhoHoaChatAction(),

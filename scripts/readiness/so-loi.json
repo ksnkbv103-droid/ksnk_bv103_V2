@@ -1571,9 +1571,9 @@
     "tieu_de": "Kho hóa chất: bấm đúp «Ghi nhận» lập hai phiếu giống nhau (không có cờ đang gửi)",
     "bang_chung": "src/modules/cssd-erp/hooks/use-kho-hoa-chat-page.ts:175-214 submitMove await action rồi mới setSheetOpen(false) (dòng 215); nút ở kho-hoa-chat-move-sheet.tsx:180-186 chỉ disabled={!canSubmit}, canSubmit (hook dòng 217-224) không phụ thuộc trạng thái đang gửi. Hai lần bấm trước khi action trả = hai phiếu NK cùng nội dung; duyệt cả hai thì tồn tăng gấp đôi.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DANG_SUA",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
-    "commit": "",
+    "commit": "29045b3d",
     "ghi_chu": "explore-module 2026-11-14, đã kiểm lại bằng mã. | Tay 2026-11-14 DAT: Local :3001 /cssd-hoa-chat, double_click «Ghi nhận» phiếu NK: mã cũ tạo 2 phiếu (cách 94ms), mã mới tạo 1 phiếu. Đã dọn dữ liệu thử.",
     "test_tay": "DAT"
   },
@@ -1585,10 +1585,11 @@
     "tieu_de": "Kho hóa chất: hàng chờ duyệt lấy từ 120 phiếu mới nhất — phiếu CHO_DUYET cũ hơn bị đẩy ra, không ai thấy để duyệt",
     "bang_chung": "use-kho-hoa-chat-page.ts:66 listGiaoDichKhoHoaChatAction({ limit: 120 }); cssd-kho-hoa-chat-list.actions.ts:119-121 order created_at desc, không ưu tiên CHO_DUYET; choDuyetByDm (hook dòng 143-149) đếm từ chính danh sách này. Phiếu CHO_DUYET vẫn giữ chỗ tồn khả dụng nên các lần xuất sau báo thiếu tồn mà không thấy phiếu chặn.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DANG_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
     "commit": "",
-    "ghi_chu": "Sửa dự kiến: thêm tham số trang_thai vào action liệt kê và gộp thêm CHO_DUYET không giới hạn 120."
+    "ghi_chu": "Sửa dự kiến: thêm tham số trang_thai vào action liệt kê và gộp thêm CHO_DUYET không giới hạn 120. | Tay 2026-11-14 DAT: Tay 2026-11-14 localhost:3001/cssd-hoa-chat, DB local: 1 mặt hàng UAT + 125 phiếu DA_DUYET mới + 1 phiếu CHO_DUYET cũ 30 ngày (ngoài 120 dòng mới nhất). Trước sửa (gỡ tạm cờ): chip «Chờ duyệt (0)», dòng không có huy hiệu. Sau sửa: chip «Chờ duyệt (1)», dòng có huy hiệu «Chờ duyệt 1», bấm chip vẫn hiện dòng; tồn 125 không tính phiếu chờ. Đã xóa fixture (2 bảng về 0).",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-031",
