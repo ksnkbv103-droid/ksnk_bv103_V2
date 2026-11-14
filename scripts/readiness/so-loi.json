@@ -1497,5 +1497,44 @@
     "nguon": "review-bv103 2026-11-13",
     "commit": "1261395c",
     "ghi_chu": "Follow-up QT-011, sửa 1261395c."
+  },
+  {
+    "id": "NKBV-027",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Lưu xác minh: cột doe/loa_khoa_id chưa apply thì retry bỏ cột báo cáo mà vẫn trả success",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions.ts:757-772; DOE vẫn nằm trong verification_data và fn_nkbv_dich_te_hoc_rates COALESCE(doe, JSON) nên số liệu không mất",
+    "lenh_kiem": "",
+    "trang_thai": "HOAN",
+    "nguon": "vong-lap-20261114",
+    "commit": "",
+    "ghi_chu": "Hạ từ Trung bình: không mất số liệu. Chỉ đáng sửa nếu prod thiếu cột; trạng thái cột trên prod chờ PO."
+  },
+  {
+    "id": "NKBV-028",
+    "module": "NKBV",
+    "lop": "DB",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Agent báo: thẻ dashboard và tỷ suất lệch tử số vì dashboard không select cột doe/loa",
+    "bang_chung": "fn_nkbv_dich_te_hoc_rates dòng 24-29 đã COALESCE(s.doe, JSON calculated_doe); dashboard dùng JSON; hai nơi cùng nguồn khi cột rỗng",
+    "lenh_kiem": "",
+    "trang_thai": "LOI_GIA",
+    "nguon": "vong-lap-20261114",
+    "commit": "",
+    "ghi_chu": "Bác bỏ. Dữ liệu local 1 ca, lệch cột-JSON 1 do cột doe NULL, RPC vẫn đọc JSON."
+  },
+  {
+    "id": "NKBV-029",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Agent báo: truy vấn nkbv_fact_benh_an thiếu is_active, hai hàng trùng mã gây lỗi",
+    "bang_chung": "UNIQUE INDEX fact_nkbv_benh_an_ma_benh_an_key (ma_benh_an) nên không thể có hai hàng trùng mã; write.actions.ts:623-629",
+    "lenh_kiem": "",
+    "trang_thai": "LOI_GIA",
+    "nguon": "vong-lap-20261114",
+    "commit": "",
+    "ghi_chu": "Bác bỏ kịch bản trùng. Còn dư: bệnh án đã xóa mềm vẫn được dùng tính LOA — mức Thấp, không sửa."
   }
 ]
