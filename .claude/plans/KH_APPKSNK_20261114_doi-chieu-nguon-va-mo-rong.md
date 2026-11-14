@@ -73,7 +73,7 @@ Một phát hiện vào sổ khi có: (a) `file:dòng` ở BM/đặc tả/QT; (b
 
 ## 7. Tiến độ (cập nhật mỗi vòng)
 
-P0: 11 việc mở (CSSD-036, CSSD-032, CSSD-035, VST-015, VST-016, VST-020, VST-022, VST-023, VST-024, NKBV-030, NKBV-031) + 7 kịch bản tay; CHO_PO 6, đủ mặc định · P1: bước 1 ánh xạ 12/57 đã rà (5 hai phía, 6 một phía, 1 không áp dụng), 45 chưa rà, ghi ở `scripts/readiness/mau-in-anh-xa.json`; bước 2 đã chạy năm phép cho VST/GSC (số khớp: VST ĐẠT 0/32119, GSC cần kiểm; in lại MỘT PHẦN theo VST-024; xóa mềm ĐẠT; xuất theo vai trò MỘT PHẦN theo VST-023; đầu/cuối trang MỘT PHẦN; số đo của VST-023/024 là DB local: 18/1176 phiên có ảnh chốt mẫu, 562/1156 phiên chưa chốt có tiêu chí không còn trên mẫu, prod chưa đo), chưa chạy cho 4 module còn lại; bước 3 xong 12/12, 3 chỗ vào sổ (NKBV-030 hai vị trí, NKBV-031) · P2: 0/5 · P3: khóa.
+P0: 10 việc mở (CSSD-036, CSSD-032, CSSD-035, VST-016, VST-020, VST-022, VST-023, VST-024, NKBV-030, NKBV-031) + 7 kịch bản tay; CHO_PO 7, đủ mặc định (thêm VST-025: lô prod của RLS đọc phiên VST); VST-015 đã sửa ở DB local, probe 60 OK/0 LECH · P1: bước 1 ánh xạ 12/57 đã rà (5 hai phía, 6 một phía, 1 không áp dụng), 45 chưa rà, ghi ở `scripts/readiness/mau-in-anh-xa.json`; bước 2 đã chạy năm phép cho VST/GSC (số khớp: VST ĐẠT 0/32119, GSC cần kiểm; in lại MỘT PHẦN theo VST-024; xóa mềm ĐẠT; xuất theo vai trò MỘT PHẦN theo VST-023; đầu/cuối trang MỘT PHẦN; số đo của VST-023/024 là DB local: 18/1176 phiên có ảnh chốt mẫu, 562/1156 phiên chưa chốt có tiêu chí không còn trên mẫu, prod chưa đo), chưa chạy cho 4 module còn lại; bước 3 xong 12/12, 3 chỗ vào sổ (NKBV-030 hai vị trí, NKBV-031) · P2: 0/5 · P3: khóa.
 
 ## Tự kiểm
 

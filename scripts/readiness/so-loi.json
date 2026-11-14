@@ -1652,10 +1652,10 @@
     "tieu_de": "RLS đọc phiên VST cho CHU_NHIEM_KHOA và HOI_DONG_KSNK vẫn toàn viện kèm danh tính khi gọi thẳng PostgREST (lệch với VST-014 ở code app)",
     "bang_chung": "supabase/migrations/20261108100000_gstt_session_read_scope_rls.sql:86-87,107-108,131-132 — policy SELECT `OR NOT fn_sys_has_role('MANG_LUOI_KSNK')`; hai view v_gstt_giam_sat_vst_* là security_invoker. Review-bv103 2026-11-14.",
     "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -At -c \"select policyname, qual from pg_policies where tablename like 'gstt_fact_vst%'\"",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "vst-rls-approve",
-    "commit": "",
-    "ghi_chu": "Sửa: migration mới (migration-author, CHỈ DB local) thêm điều kiện khoa-only cho CNK và loại HĐ thuần ở 3 policy. Áp prod = CHO_PO (lô migration prod)."
+    "commit": "d9872d6b",
+    "ghi_chu": "Sửa (phương án A 48đ; B 37đ, C 22đ): migration additive mới 20261114150000_gstt_vst_rls_cnk_hoi_dong.sql (migration-author, CHỈ DB local) thay hai policy SELECT VST (gstt_fact_vst_sessions, gstt_fact_vst) bằng nhánh vai trò tường minh phản chiếu vst-read-scope.ts: NHAN_VIEN_KSNK toàn viện; MANG_LUOI_KSNK tự giám sát hoặc cùng khoa; CHU_NHIEM_KHOA (không mạng lưới) chỉ khoa mình; HOI_DONG_KSNK thuần 0; vai khác toàn viện. Phụ thuộc helper fn_sys_has_role, fn_sys_actor_nhan_su_id, fn_sys_actor_khoa_id của 20261108100000. Policy GSC KHÔNG sửa ở đây, chuyển sang VST-023. Fail-first: scripts/sql/gstt-session-read-scope-probe.sql mở rộng, trước khi sửa thoát mã 3 với 20 dòng LECH (CNK, HĐ, CNK+HĐ, HĐ+TO_TRUONG, CNK khoa NULL × 4 đối tượng; số local là dữ liệu seed, prod chưa đo). Áp prod = CHO_PO (lô migration prod): mặc định áp tuần tự 20261108100000 → 20261114150000 ở lô kế tiếp. PO im: prod giữ policy hiện hành cho tới lô đó, app vẫn chặn ở tầng action (VST-014). Ghi nhận (không ghi sổ): tổ hợp ADMIN + KHACH_THONG_KE_GSTT lệch app/DB — app coi KHÁCH trước ADMIN (0 dòng, guest-stats-access.ts), policy SQL coi ADMIN trước (toàn viện); tổ hợp vai không thực tế, nhánh admin có từ 20261108100000, DB lỏng hơn app một chút ở ca này. Lô prod của migration này ghi ở VST-025 (CHO_PO)."
   },
   {
     "id": "VST-016",
@@ -1811,7 +1811,7 @@
     "trang_thai": "MOI",
     "nguon": "P1:VST_GSC",
     "commit": "",
-    "ghi_chu": "Mặc định cho vòng sửa (không chờ PO, không đổi quyền người dùng thật): phương án A như VST-014 — HOI_DONG_KSNK thuần (không có vai rộng hơn) bị chặn đọc lịch sử, chi tiết và xuất thô GSC bằng zero-uuid ở gsc-read-scope.ts; vai khác giữ nguyên; viết test fail trước (gsc-read-scope.spec.ts mới). Phương án B (ẩn cột định danh thay vì chặn) sát đặc tả «X (ẩn)» hơn nhưng cần PO chốt danh sách cột định danh nên để sau. CHU_NHIEM_KHOA không có quyền GIAM_SAT_CHUNG ở DB local nên khoảng hở ở GSC hiện chỉ gặp HOI_DONG_KSNK; prod chưa đo. Cần kiểm khi sửa: action chi tiết và lịch sử GSC (giam-sat-chung-session-detail.actions.ts) có trả ten_nguoi_benh, ma_benh_an cho HOI_DONG không. Liên hệ VST-021 (ánh xạ vai đặc tả ↔ vai app là CHO_PO): việc chặn này không phụ thuộc đáp án đó. Hệ quả nếu PO im: vòng sửa chạy theo mặc định này; trước đó HOI_DONG_KSNK còn đọc được GSC toàn viện."
+    "ghi_chu": "Mặc định cho vòng sửa (không chờ PO, không đổi quyền người dùng thật): phương án A như VST-014 — HOI_DONG_KSNK thuần (không có vai rộng hơn) bị chặn đọc lịch sử, chi tiết và xuất thô GSC bằng zero-uuid ở gsc-read-scope.ts; vai khác giữ nguyên; viết test fail trước (gsc-read-scope.spec.ts mới). Phương án B (ẩn cột định danh thay vì chặn) sát đặc tả «X (ẩn)» hơn nhưng cần PO chốt danh sách cột định danh nên để sau. CHU_NHIEM_KHOA không có quyền GIAM_SAT_CHUNG ở DB local nên khoảng hở ở GSC hiện chỉ gặp HOI_DONG_KSNK; prod chưa đo. Cần kiểm khi sửa: action chi tiết và lịch sử GSC (giam-sat-chung-session-detail.actions.ts) có trả ten_nguoi_benh, ma_benh_an cho HOI_DONG không. Liên hệ VST-021 (ánh xạ vai đặc tả ↔ vai app là CHO_PO): việc chặn này không phụ thuộc đáp án đó. Hệ quả nếu PO im: vòng sửa chạy theo mặc định này; trước đó HOI_DONG_KSNK còn đọc được GSC toàn viện. BỔ SUNG 2026-11-14 (vòng VST-015): bản sửa chỉ ở app chưa đủ — policy DB gsc_sessions_select_permission (gstt_fact_chung_sessions, migration 20261108100000) có cùng khuyết điểm `OR NOT fn_sys_has_role(MANG_LUOI_KSNK)`, nên HOI_DONG_KSNK thuần vẫn đọc GSC toàn viện kèm ten_nguoi_benh, ma_benh_an khi gọi thẳng PostgREST hoặc qua view security_invoker. Khi sửa: thêm migration mới (migration-author, CHỈ DB local) cho policy GSC theo cùng nhánh vai trò, mở rộng probe với dòng GSC; kiểm rpc_gsc_tgs_session_hits (INVOKER hay DEFINER) và mọi đường đọc GSC bằng JWT user trước khi đổi; không đóng riêng ở app rồi bỏ DB (mô thức VST-014 → VST-015)."
   },
   {
     "id": "VST-024",
@@ -1825,5 +1825,31 @@
     "nguon": "P1:VST_GSC",
     "commit": "",
     "ghi_chu": "Mặc định cho vòng sửa (không chờ PO): phương án B — in và xem phiếu chưa có ảnh chốt kèm dòng cảnh báo «Phiếu chưa chốt mẫu: nội dung tiêu chí theo mẫu đang hiệu lực» (chỉ mã, không đổi dữ liệu; mức tối thiểu của «cờ đổi mẫu» ở R2.20). Phương án A — backfill ảnh chốt cho phiếu cũ — ghi dữ liệu prod nên CHO_PO; ngoài ra backfill chỉ chốt được mẫu hiện tại, không khôi phục được chữ cũ của tiêu chí đã sửa. Hệ quả nếu PO im: phiếu cũ vẫn in theo mẫu sống; tiêu chí đã bỏ khỏi mẫu in thành «Tiêu chí đã chấm (không còn trên mẫu)». Trước khi sửa: đo prod bằng truy vấn ở lenh_kiem để biết có đáng sửa không."
+  },
+  {
+    "id": "VST-025",
+    "module": "VST_GSC",
+    "lop": "VAN_HANH",
+    "muc": "CAO",
+    "tieu_de": "Áp lô migration RLS đọc phiên VST lên prod: 20261108100000 (VST-003) rồi 20261114150000 (VST-015); chưa áp thì CNK/HĐ gọi thẳng PostgREST còn đọc toàn viện kèm danh tính",
+    "bang_chung": "supabase/migrations/20261114150000_gstt_vst_rls_cnk_hoi_dong.sql; VST-003 ghi 20261108100000 chưa có trên prod (chưa đo lại ở vòng này); migration không có BEGIN/COMMIT nên phải áp qua MCP apply_migration (một transaction), không áp bằng psql autocommit",
+    "lenh_kiem": "LOCAL (KHÔNG BAO GIỜ chạy trên prod, probe đổi tạm sys_user_roles và khoa_id của user mẫu): docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/sql/gstt-session-read-scope-probe.sql (mã thoát 0 = 60 OK, 0 LECH). PROD chỉ đọc, trước khi áp: ba truy vấn cuối file migration 20261114150000 (đủ 3 helper fn_sys_has_role/fn_sys_actor_nhan_su_id/fn_sys_actor_khoa_id; số user theo vai CNK/HĐ/MẠNG LƯỚI/NV KSNK/KHÁCH; qual hiện hành) và SELECT tablename, policyname, cmd FROM pg_policies WHERE schemaname='public' AND tablename IN ('gstt_fact_vst_sessions','gstt_fact_vst') — mỗi bảng phải đúng 2 policy (Admin full access + select_permission); policy SELECT permissive khác sẽ cộng dồn OR và vô hiệu bản sửa.",
+    "trang_thai": "CHO_PO",
+    "nguon": "vong-vst015",
+    "commit": "",
+    "ghi_chu": "CHO_PO 2026-11-14 — mặc định: áp ở lô prod kế tiếp qua MCP `apply_migration` (không dùng `mdm:migrate`, bị chặn) tuần tự: (1) chạy các truy vấn chỉ đọc ở lenh_kiem; (2) nếu thiếu ba helper thì áp `20261108100000` trước; (3) áp `20261114150000`; (4) PO hoặc người có tài khoản thật kiểm bằng JWT: CNK có khoa chỉ thấy phiên khoa mình, HĐ thuần thấy 0, NV KSNK toàn viện; hoàn tác bằng SQL ở đầu file migration (đã chạy thử local, hoạt động); lô GSC của VST-023 áp sau cùng; KHÔNG chạy probe trên prod. PO im: prod giữ policy hiện hành (CNK/HĐ gọi thẳng PostgREST còn đọc toàn viện kèm danh tính; app vẫn chặn ở tầng action theo VST-014), không ảnh hưởng người dùng local."
+  },
+  {
+    "id": "NEN-006",
+    "module": "NEN",
+    "lop": "TEST",
+    "muc": "THAP",
+    "tieu_de": "Ảnh chụp quyền scripts/data/acl-snapshot.json chưa ghi lại sau migration 20261114120000 (4112f920): acl-snapshot đỏ cho mọi vòng có migration",
+    "bang_chung": "node scripts/acl-snapshot.mjs --require-applied 20261114150000 → «FAIL: quyền trên DB khác ảnh chụp (2 thêm, 0 bớt)»: + fn fn_cssd_guard_me_chuyen_tiep(), + tbl cssd_dm_me_chuyen_tiep; commit 4112f920 thêm migration nhưng không chạy --write; ảnh chụp cập nhật lần cuối ở b12c0b83",
+    "lenh_kiem": "node scripts/acl-snapshot.mjs --require-applied 20261114150000 (kỳ vọng mã thoát 0)",
+    "trang_thai": "DA_SUA",
+    "nguon": "vong-vst015",
+    "commit": "1eed1726",
+    "ghi_chu": "Phát hiện khi chạy verify:changed cho VST-015; migration của VST-015 chỉ đổi policy nên không làm đổi ảnh chụp. Sửa bằng --write: diff đúng +2 dòng (hàm guard trigger và bảng, cả hai không cấp quyền cho anon/authenticated, bảng có RLS) và bộ đếm nợ fn_thieu_pg_temp 97 → 98 (hàm guard mới có search_path=public không kèm pg_temp). Nợ 98 hàm thiếu pg_temp là việc có sẵn, không sửa ở đây."
   }
 ]
