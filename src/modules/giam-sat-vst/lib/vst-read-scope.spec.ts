@@ -62,6 +62,61 @@ describe("applyVstHistoryReadScope", () => {
   });
 });
 
+// @dac-ta R1.34 — danh sách có danh tính chỉ ĐDT khoa quản lý + CB_KSNK; BGĐ (HOI_DONG_KSNK) chỉ thấy số liệu ẩn danh.
+describe("applyVstHistoryReadScope — vai không phải mạng lưới/KSNK (VST-014)", () => {
+  const base = {
+    isAdmin: false,
+    isNhanVienKsnk: false,
+    isMangLuoiKsnk: false,
+    isGuestStatsOnly: false,
+    actorNhanSuId: "ns-a",
+  };
+
+  it("CHU_NHIEM_KHOA: chỉ thấy phiên của khoa mình", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, { ...base, actorKhoaId: "khoa-a", roles: ["CHU_NHIEM_KHOA"] });
+    expect(q.eq).toHaveBeenCalledWith("khoa_id", "khoa-a");
+  });
+
+  it("CHU_NHIEM_KHOA chưa gắn khoa: không thấy phiên nào", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, { ...base, actorKhoaId: null, roles: ["CHU_NHIEM_KHOA"] });
+    expect(q.eq).toHaveBeenCalledWith("id", "00000000-0000-0000-0000-000000000000");
+  });
+
+  it("HOI_DONG_KSNK: không đọc lịch sử có danh tính", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, { ...base, actorKhoaId: "khoa-a", roles: ["HOI_DONG_KSNK"] });
+    expect(q.eq).toHaveBeenCalledWith("id", "00000000-0000-0000-0000-000000000000");
+  });
+
+  it("HOI_DONG_KSNK kiêm NHAN_VIEN_KSNK: giữ toàn viện", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, {
+      ...base,
+      isNhanVienKsnk: true,
+      actorKhoaId: "khoa-a",
+      roles: ["HOI_DONG_KSNK", "NHAN_VIEN_KSNK"],
+    });
+    expect(q.eq).not.toHaveBeenCalled();
+  });
+});
+
+describe("assertVstHistoryAccess — HOI_DONG_KSNK (VST-014)", () => {
+  it("từ chối vai chỉ có HOI_DONG_KSNK", () => {
+    const out = assertVstHistoryAccess({
+      isAdmin: false,
+      isNhanVienKsnk: false,
+      isMangLuoiKsnk: false,
+      isGuestStatsOnly: false,
+      actorKhoaId: "k",
+      actorNhanSuId: "n",
+      roles: ["HOI_DONG_KSNK"],
+    });
+    expect(out.ok).toBe(false);
+  });
+});
+
 describe("assertVstHistoryAccess", () => {
   it("từ chối khách thống kê", () => {
     const out = assertVstHistoryAccess({
