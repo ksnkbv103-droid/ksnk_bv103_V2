@@ -11,10 +11,12 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { NkbvListSortKey } from "@/lib/validations/nkbv-list-pagination";
 import { NKBV_LIST_SORT_KEYS, nkbvListPaginationSchema } from "@/lib/validations/nkbv-list-pagination";
 import {
+  getNkbvIdentityScope,
   getNkbvKhoaRestriction,
   isNkbvBenhAnInScope,
   NKBV_OUT_OF_SCOPE_ERROR,
 } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { scanStayCrossCaseAlerts } from "../lib/nkbv-import-window-scan";
 import { mergeBaTimelineMilestones } from "../lib/nkbv-ba-timeline-core";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
@@ -467,9 +469,13 @@ export async function listInpatientsByKhoa(params: {
     { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
   ]);
 
+  // NKBV-032: Hội đồng thuần không nhận danh sách có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định) — chặn trước mọi truy vấn.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as NkbvInpatientRow[] };
+  }
   const khoaId = String(params.khoaId || "").trim();
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvInpatientRow[] };
-  const restriction = await getNkbvKhoaRestriction();
   if (restriction.kind !== "all" && (restriction.kind === "none" || restriction.khoaId !== khoaId)) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as NkbvInpatientRow[] };
   }
