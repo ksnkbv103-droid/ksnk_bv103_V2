@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ restriction: vi.fn(), eq: vi.fn(), limit: vi.fn(), order: [] as string[] }));
+const mocks = vi.hoisted(() => ({
+  restriction: vi.fn(),
+  identityDenied: vi.fn(() => false),
+  eq: vi.fn(),
+  limit: vi.fn(),
+  order: [] as string[],
+}));
 
 const perm = vi.hoisted(() => ({
   verifyPermissions: vi.fn(async (_r: unknown) => {}),
@@ -15,7 +21,9 @@ vi.mock("@/modules/cssd-su-co/domain/cssd-incident-attributes", () => ({
   readLoTietKhuanId: vi.fn(),
   readIncidentTypeLabel: vi.fn(),
 }));
-vi.mock("../lib/nkbv-khoa-scope.server", () => ({ getNkbvKhoaRestriction: mocks.restriction }));
+vi.mock("../lib/nkbv-khoa-scope.server", () => ({
+  getNkbvIdentityScope: async () => ({ restriction: await mocks.restriction(), identityDenied: mocks.identityDenied() }),
+}));
 vi.mock("@/lib/supabase-server", () => ({
   createAdminSupabaseClient: () => ({
     from: () => {
@@ -39,6 +47,7 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 
 import { fetchCssdRcaBundle, fetchNkbvCasesLinkedToCssd } from "./nkbv-cssd-rca.actions";
+import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 
 const LO = "11111111-1111-1111-1111-111111111111";
 
@@ -46,6 +55,7 @@ describe("NKBV-015 fetchNkbvCasesLinkedToCssd", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.order.length = 0;
+    mocks.identityDenied.mockReturnValue(false);
   });
   it("kind=khoa: lọc khoa_ghi_nhan_id trong query trước limit", async () => {
     mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: "k1" });
@@ -72,6 +82,19 @@ describe("NKBV-015 fetchNkbvCasesLinkedToCssd", () => {
     mocks.restriction.mockResolvedValue({ kind: "none" });
     const r = await fetchNkbvCasesLinkedToCssd({ loTietKhuanId: LO });
     expect(r).toEqual({ success: true, cases: [] });
+    expect(mocks.limit).not.toHaveBeenCalled();
+  });
+  it("NKBV-039: Hội đồng KSNK thuần bị từ chối trước truy vấn, không lộ mã ca hay họ tên", async () => {
+    // HĐ thuần giữ cả CSSD_WORKFLOW:view lẫn GIAM_SAT_NKBV:view và đọc toàn viện; action chạy bằng admin client
+    // (qua RLS nkbv_fact_su_kien) nên cổng danh tính phải nằm ở tầng ứng dụng, trước câu truy vấn.
+    mocks.restriction.mockResolvedValue({ kind: "all" });
+    mocks.identityDenied.mockReturnValue(true);
+    perm.verifyPermission.mockImplementation(async () => {});
+    const r = await fetchNkbvCasesLinkedToCssd({ loTietKhuanId: LO });
+    expect(r).toEqual({ success: false, error: NKBV_HOI_DONG_IDENTITY_DENIED });
+    expect(r).not.toHaveProperty("cases");
+    expect(JSON.stringify(r)).not.toContain("Nguyễn Văn A");
+    expect(mocks.eq).not.toHaveBeenCalled();
     expect(mocks.limit).not.toHaveBeenCalled();
   });
 });

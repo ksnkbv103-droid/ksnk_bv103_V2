@@ -2,8 +2,8 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission, verifyPermissions } from "@/lib/server-permission";
-import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
-import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
+import { getNkbvIdentityScope } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED, nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { readLoTietKhuanId, readIncidentTypeLabel } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 
@@ -185,7 +185,10 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
     }
 
     // NKBV-015: lọc khoa trong query TRƯỚC limit để không cắt mất ca của khoa mình
-    const restriction = await getNkbvKhoaRestriction();
+    const { restriction, identityDenied } = await getNkbvIdentityScope();
+    // NKBV-039: HĐ KSNK thuần giữ cả hai quyền view nhưng không nhận dữ liệu có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định).
+    // Action đọc bằng admin client (vượt RLS) nên chặn tại đây, trước truy vấn; mã ca nhúng mã bệnh án nên cũng không trả.
+    if (identityDenied) return { success: false, error: NKBV_HOI_DONG_IDENTITY_DENIED };
     if (restriction.kind === "none") return { success: true, cases: [] };
 
     let q = supabase
