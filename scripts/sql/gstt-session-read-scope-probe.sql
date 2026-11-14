@@ -1,8 +1,8 @@
 -- Probe RLS phạm vi đọc phiên VST/GSC theo vai (khớp applyVstHistoryReadScope / applyGscHistoryReadScope).
--- VST (2 bảng + 2 view _full): mọi vai kể cả CHU_NHIEM_KHOA, HOI_DONG_KSNK và tổ hợp (VST-015).
+-- VST (2 bảng + 2 view _full): mọi vai kể cả CHU_NHIEM_KHOA (chủ nhiệm khoa KSNK: toàn viện, VST-026), HOI_DONG_KSNK và tổ hợp (VST-015).
 -- GSC: chỉ khách/admin/NV KSNK/mạng lưới/vai khác; HOI_DONG_KSNK thuần ở GSC thuộc VST-023, CHƯA kiểm ở đây.
--- Probe KHÔNG tự nạp migration; thứ tự áp 20261108100000 → 20261114150000. Trước khi apply vào DB local, ghép vào cùng transaction (chạy LOCAL):
---   { echo 'BEGIN;'; cat supabase/migrations/20261114150000_gstt_vst_rls_cnk_hoi_dong.sql scripts/sql/gstt-session-read-scope-probe.sql; } | docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1
+-- Probe KHÔNG tự nạp migration; thứ tự áp 20261108100000 → 20261114150000 → 20261114160000 (VST-026). Trước khi apply vào DB local, ghép vào cùng transaction (chạy LOCAL):
+--   { echo 'BEGIN;'; cat supabase/migrations/20261114160000_gstt_vst_rls_cnk_toan_vien.sql scripts/sql/gstt-session-read-scope-probe.sql; } | docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1
 -- Sau khi migration đã apply: docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/sql/gstt-session-read-scope-probe.sql
 -- Mã thoát 0 = mọi dòng OK; ≠ 0 = có dòng LECH (RAISE cuối file) hoặc lỗi SQL.
 -- Toàn bộ trong BEGIN…ROLLBACK: giả lập vai (mạng lưới, CNK, HĐ, tổ hợp) bằng cách đổi vai tạm một user NHAN_VIEN_KSNK có sẵn — local chưa có tài khoản CNK/HĐ/mạng lưới thật.
@@ -115,12 +115,13 @@ INSERT INTO _probe SELECT 'MANG_LUOI_KSNK', 'chung_sessions', count(*), :mlk_gsc
 INSERT INTO _probe SELECT 'MANG_LUOI_KSNK', 'fact_vst', count(*), :mlk_obs FROM gstt_fact_vst;
 INSERT INTO _probe SELECT 'MANG_LUOI_KSNK', 'v_vst_sessions_full', count(*), :mlk_vs FROM v_gstt_giam_sat_vst_sessions_full;
 
--- === VST-015: CHU_NHIEM_KHOA, HOI_DONG_KSNK và tổ hợp (khớp vst-read-scope.ts) ===
+-- === VST-015/VST-026: CHU_NHIEM_KHOA (toàn viện), HOI_DONG_KSNK và tổ hợp (khớp vst-read-scope.ts) ===
 -- User mẫu mlk tự giám sát nhiều phiên NGOÀI khoa mlk_khoa và thuộc khoa mlk_khoa → thử riêng từng điều kiện «tự giám sát» và «cùng khoa».
 RESET ROLE;
 SELECT count(*) AS ngoai_khoa FROM gstt_fact_vst_sessions
  WHERE COALESCE(is_active, true) AND nguoi_giam_sat_id = :'mlk_ns' AND khoa_id IS DISTINCT FROM :'mlk_khoa' \gset
--- Kỳ vọng theo khoa mlk_khoa (CNK): không cộng phiên tự giám sát ở khoa khác
+-- Phạm vi KHOA mlk_khoa (không cộng phiên tự giám sát ở khoa khác): không còn là kỳ vọng của vai nào (CNK đã toàn viện, VST-026);
+-- chỉ dùng chứng minh dữ liệu mẫu hẹp hơn toàn viện (các dòng MẪU), để CNK «toàn viện» không pass nhầm khi policy còn lọc khoa.
 SELECT count(*) AS khoa_vs FROM gstt_fact_vst_sessions WHERE COALESCE(is_active, true) AND khoa_id = :'mlk_khoa' \gset
 SELECT count(*) AS khoa_obs FROM gstt_fact_vst v JOIN gstt_fact_vst_sessions s ON s.id = v.session_id
  WHERE COALESCE(s.is_active, true) AND s.khoa_id = :'mlk_khoa' \gset
@@ -143,12 +144,16 @@ INSERT INTO _probe VALUES ('MẪU', 'khoa_mlk_co_du_lieu_4_doi_tuong',
 INSERT INTO _probe VALUES ('MẪU', 'khoa_mlk_hep_hon_toan_vien_4_doi_tuong',
   LEAST(GREATEST(:all_vs - :khoa_vs, 0), 1) + LEAST(GREATEST(:all_obs - :khoa_obs, 0), 1)
   + LEAST(GREATEST(:all_vvs - :khoa_vvs, 0), 1) + LEAST(GREATEST(:all_vobs - :khoa_vobs, 0), 1), 4);
+-- Phạm vi mạng lưới cũng phải hẹp hơn toàn viện, nếu không MANG_LUOI+CNK (kỳ vọng toàn viện) không phân biệt được với mạng lưới thuần.
+INSERT INTO _probe VALUES ('MẪU', 'mlk_hep_hon_toan_vien_4_doi_tuong',
+  LEAST(GREATEST(:all_vs - :mlk_vs, 0), 1) + LEAST(GREATEST(:all_obs - :mlk_obs, 0), 1)
+  + LEAST(GREATEST(:all_vvs - :mlk_vvs, 0), 1) + LEAST(GREATEST(:all_vobs - :mlk_vobs, 0), 1), 4);
 
--- 6) CHU_NHIEM_KHOA: chỉ phiên khoa mình (không cộng phiên tự giám sát ở khoa khác)
+-- 6) CHU_NHIEM_KHOA (chủ nhiệm khoa KSNK = TK_KSNK, M01 dòng 22): toàn viện, không giới hạn khoa (VST-026)
 SELECT pg_temp._probe_as(:'mlk_uid'::uuid, :'mlk_ns'::uuid, ARRAY['CHU_NHIEM_KHOA'], :'mlk_khoa'::uuid);
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'role', 'authenticated')::text, true);
-SELECT pg_temp._probe_cnt('CHU_NHIEM_KHOA', :khoa_vs, :khoa_obs, :khoa_vvs, :khoa_vobs);
+SELECT pg_temp._probe_cnt('CHU_NHIEM_KHOA', :all_vs, :all_obs, :all_vvs, :all_vobs);
 
 -- 7) HOI_DONG_KSNK thuần: 0 (ẩn danh, R1.34) dù tự giám sát nhiều phiên và cùng khoa
 RESET ROLE;
@@ -158,12 +163,12 @@ SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'ro
 SELECT pg_temp._probe_cnt('HOI_DONG_KSNK', 0, 0, 0, 0);
 INSERT INTO _probe SELECT 'HOI_DONG_KSNK', 'co_quyen_view_vst', (SELECT public.fn_sys_has_permission('GIAM_SAT_VST', 'view'))::int, 1;
 
--- 8) CNK + HĐ: có CHU_NHIEM_KHOA → theo khoa (khớp isVstKhoaOnlyScope; isHoiDongOnly = sai)
+-- 8) CNK + HĐ: có CHU_NHIEM_KHOA → toàn viện (khớp hasHospitalWideVstRead; isHoiDongOnly = sai)
 RESET ROLE;
 SELECT pg_temp._probe_as(:'mlk_uid'::uuid, :'mlk_ns'::uuid, ARRAY['CHU_NHIEM_KHOA', 'HOI_DONG_KSNK'], :'mlk_khoa'::uuid);
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'role', 'authenticated')::text, true);
-SELECT pg_temp._probe_cnt('CNK+HOI_DONG', :khoa_vs, :khoa_obs, :khoa_vvs, :khoa_vobs);
+SELECT pg_temp._probe_cnt('CNK+HOI_DONG', :all_vs, :all_obs, :all_vvs, :all_vobs);
 
 -- 9) HĐ + vai khác không rộng (TO_TRUONG_CSSD_TEST), không CNK: vẫn 0 (isHoiDongOnly = đúng)
 RESET ROLE;
@@ -173,12 +178,12 @@ SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'ro
 SELECT pg_temp._probe_cnt('HOI_DONG+TO_TRUONG', 0, 0, 0, 0);
 INSERT INTO _probe SELECT 'HOI_DONG+TO_TRUONG', 'co_quyen_view_vst', (SELECT public.fn_sys_has_permission('GIAM_SAT_VST', 'view'))::int, 1;
 
--- 10) MANG_LUOI + CNK: MANG_LUOI thắng (tự giám sát HOẶC cùng khoa)
+-- 10) MANG_LUOI + CNK: CNK (toàn viện) thắng phạm vi mạng lưới (khớp hasHospitalWideVstRead trước nhánh mạng lưới)
 RESET ROLE;
 SELECT pg_temp._probe_as(:'mlk_uid'::uuid, :'mlk_ns'::uuid, ARRAY['MANG_LUOI_KSNK', 'CHU_NHIEM_KHOA'], :'mlk_khoa'::uuid);
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'role', 'authenticated')::text, true);
-SELECT pg_temp._probe_cnt('MANG_LUOI+CNK', :mlk_vs, :mlk_obs, :mlk_vvs, :mlk_vobs);
+SELECT pg_temp._probe_cnt('MANG_LUOI+CNK', :all_vs, :all_obs, :all_vvs, :all_vobs);
 
 -- 11) MANG_LUOI + HĐ: có vai rộng (mạng lưới) nên HĐ không còn «thuần» → phạm vi mạng lưới
 RESET ROLE;
@@ -194,12 +199,12 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'role', 'authenticated')::text, true);
 SELECT pg_temp._probe_cnt('NV_KSNK+CNK', :all_vs, :all_obs, :all_vvs, :all_vobs);
 
--- 13) CNK chưa gán khoa (khoa_id NULL): 0 — khớp zero-uuid của vst-read-scope.ts
+-- 13) CNK chưa gán khoa (khoa_id NULL): vẫn toàn viện (VST-026) — không còn rơi về 0 như nhánh «khoa mình» cũ
 RESET ROLE;
 SELECT pg_temp._probe_as(:'mlk_uid'::uuid, :'mlk_ns'::uuid, ARRAY['CHU_NHIEM_KHOA'], NULL::uuid);
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims', json_build_object('sub', :'mlk_uid', 'role', 'authenticated')::text, true);
-SELECT pg_temp._probe_cnt('CNK_khoa_NULL', 0, 0, 0, 0);
+SELECT pg_temp._probe_cnt('CNK_khoa_NULL', :all_vs, :all_obs, :all_vvs, :all_vobs);
 INSERT INTO _probe SELECT 'CNK_khoa_NULL', 'co_quyen_view_vst', (SELECT public.fn_sys_has_permission('GIAM_SAT_VST', 'view'))::int, 1;
 
 RESET ROLE;

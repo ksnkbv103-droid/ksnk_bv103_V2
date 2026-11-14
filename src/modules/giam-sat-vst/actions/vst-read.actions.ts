@@ -7,7 +7,7 @@ import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { assertVstHistoryAccess, isVstKhoaOnlyScope } from "../lib/vst-read-scope";
+import { assertVstHistoryAccess, vstSessionVisibleToActor } from "../lib/vst-read-scope";
 import { vstRepo } from "../repo/vst.repo";
 import { sortKhoaLamSangTruoc } from "../lib/vst-khoa-order";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
@@ -117,21 +117,9 @@ export async function getVSTSessionDetail(sessionId: string) {
       return { success: false as const, error: "Phiên giám sát đã vô hiệu (xóa mềm)." };
     }
 
-    if (isVstKhoaOnlyScope(scope)) {
-      const sessionKhoa = sessionView.khoa_id ? String(sessionView.khoa_id) : null;
-      if (!scope.actorKhoaId || !sessionKhoa || String(scope.actorKhoaId) !== sessionKhoa) {
-        return { success: false as const, error: "Không tìm thấy phiên giám sát." };
-      }
-    } else if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {
-      const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
-      const myNs = scope.actorNhanSuId ? String(scope.actorNhanSuId) : null;
-      const sessionKhoa = sessionView.khoa_id ? String(sessionView.khoa_id) : null;
-      const sessionGs = sessionView.nguoi_giam_sat_id ? String(sessionView.nguoi_giam_sat_id) : null;
-      const allowedByKhoa = Boolean(myKhoa && sessionKhoa && myKhoa === sessionKhoa);
-      const allowedByGs = Boolean(myNs && sessionGs && myNs === sessionGs);
-      if (!allowedByKhoa && !allowedByGs) {
-        return { success: false as const, error: "Không tìm thấy phiên giám sát." };
-      }
+    // Cùng luật với danh sách (VST-026); phiên ngoài phạm vi báo như không tồn tại.
+    if (!vstSessionVisibleToActor(scope, sessionView)) {
+      return { success: false as const, error: "Không tìm thấy phiên giám sát." };
     }
 
     // Query metadata directly from gstt_fact_vst_sessions to preserve patient risk factors (bn_*)
