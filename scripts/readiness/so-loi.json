@@ -1561,7 +1561,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "vong-vst-scope-doc",
     "commit": "28f638fc",
-    "ghi_chu": "Phương án A (chọn): CHU_NHIEM_KHOA chỉ khoa mình (.eq khoa_id), HOI_DONG_KSNK chặn bằng zero-uuid, vai khác giữ nguyên để không hồi quy. Không đổi quyền người dùng thật."
+    "ghi_chu": "Phương án A (chọn): CHU_NHIEM_KHOA chỉ khoa mình (.eq khoa_id), HOI_DONG_KSNK chặn bằng zero-uuid, vai khác giữ nguyên để không hồi quy. Không đổi quyền người dùng thật. [Đính chính 2026-11-14: ánh xạ «CHU_NHIEM_KHOA chỉ khoa mình» SAI — CNK là chủ nhiệm khoa KSNK (TK_KSNK), xem toàn viện; sửa ở VST-026.]"
   },
   {
     "id": "CSSD-029",
@@ -1655,7 +1655,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "vst-rls-approve",
     "commit": "d9872d6b",
-    "ghi_chu": "Sửa (phương án A 48đ; B 37đ, C 22đ): migration additive mới 20261114150000_gstt_vst_rls_cnk_hoi_dong.sql (migration-author, CHỈ DB local) thay hai policy SELECT VST (gstt_fact_vst_sessions, gstt_fact_vst) bằng nhánh vai trò tường minh phản chiếu vst-read-scope.ts: NHAN_VIEN_KSNK toàn viện; MANG_LUOI_KSNK tự giám sát hoặc cùng khoa; CHU_NHIEM_KHOA (không mạng lưới) chỉ khoa mình; HOI_DONG_KSNK thuần 0; vai khác toàn viện. Phụ thuộc helper fn_sys_has_role, fn_sys_actor_nhan_su_id, fn_sys_actor_khoa_id của 20261108100000. Policy GSC KHÔNG sửa ở đây, chuyển sang VST-023. Fail-first: scripts/sql/gstt-session-read-scope-probe.sql mở rộng, trước khi sửa thoát mã 3 với 20 dòng LECH (CNK, HĐ, CNK+HĐ, HĐ+TO_TRUONG, CNK khoa NULL × 4 đối tượng; số local là dữ liệu seed, prod chưa đo). Áp prod = CHO_PO (lô migration prod): mặc định áp tuần tự 20261108100000 → 20261114150000 ở lô kế tiếp. PO im: prod giữ policy hiện hành cho tới lô đó, app vẫn chặn ở tầng action (VST-014). Ghi nhận (không ghi sổ): tổ hợp ADMIN + KHACH_THONG_KE_GSTT lệch app/DB — app coi KHÁCH trước ADMIN (0 dòng, guest-stats-access.ts), policy SQL coi ADMIN trước (toàn viện); tổ hợp vai không thực tế, nhánh admin có từ 20261108100000, DB lỏng hơn app một chút ở ca này. Lô prod của migration này ghi ở VST-025 (CHO_PO)."
+    "ghi_chu": "Sửa (phương án A 48đ; B 37đ, C 22đ): migration additive mới 20261114150000_gstt_vst_rls_cnk_hoi_dong.sql (migration-author, CHỈ DB local) thay hai policy SELECT VST (gstt_fact_vst_sessions, gstt_fact_vst) bằng nhánh vai trò tường minh phản chiếu vst-read-scope.ts: NHAN_VIEN_KSNK toàn viện; MANG_LUOI_KSNK tự giám sát hoặc cùng khoa; CHU_NHIEM_KHOA (không mạng lưới) chỉ khoa mình; HOI_DONG_KSNK thuần 0; vai khác toàn viện. Phụ thuộc helper fn_sys_has_role, fn_sys_actor_nhan_su_id, fn_sys_actor_khoa_id của 20261108100000. Policy GSC KHÔNG sửa ở đây, chuyển sang VST-023. Fail-first: scripts/sql/gstt-session-read-scope-probe.sql mở rộng, trước khi sửa thoát mã 3 với 20 dòng LECH (CNK, HĐ, CNK+HĐ, HĐ+TO_TRUONG, CNK khoa NULL × 4 đối tượng; số local là dữ liệu seed, prod chưa đo). Áp prod = CHO_PO (lô migration prod): mặc định áp tuần tự 20261108100000 → 20261114150000 ở lô kế tiếp. PO im: prod giữ policy hiện hành cho tới lô đó, app vẫn chặn ở tầng action (VST-014). Ghi nhận (không ghi sổ): tổ hợp ADMIN + KHACH_THONG_KE_GSTT lệch app/DB — app coi KHÁCH trước ADMIN (0 dòng, guest-stats-access.ts), policy SQL coi ADMIN trước (toàn viện); tổ hợp vai không thực tế, nhánh admin có từ 20261108100000, DB lỏng hơn app một chút ở ca này. Lô prod của migration này ghi ở VST-025 (CHO_PO). [Đính chính 2026-11-14: nhánh CNK = khoa mình trong 20261114150000 (dòng 75-84, 113-122) sai vì cùng ánh xạ; sửa bằng migration mới ở VST-026, lô prod VST-025 phải thêm migration đó ngay sau 20261114150000.]"
   },
   {
     "id": "VST-016",
@@ -1665,10 +1665,10 @@
     "tieu_de": "Quyền GIAM_SAT_VST.approve gán cho CHU_NHIEM_KHOA và hàng chờ duyệt không lọc theo khoa; đặc tả R1.24/B1.46 giao TK_KSNK duyệt sửa muộn",
     "bang_chung": "supabase/migrations/20261114110000_vst_yeu_cau_dieu_chinh.sql:44-52 (approve cho ADMIN + CHU_NHIEM_KHOA); src/modules/giam-sat-vst/actions/vst-yeu-cau-dieu-chinh.actions.ts:31-101 (listVstYeuCauChoDuyetAction và chiemYeuCau không lọc khoa_id); đặc tả M01 dòng 282, 412, 474 (TK_KSNK duyệt).",
     "lenh_kiem": "grep -n \"approve\" supabase/migrations/20261114110000_vst_yeu_cau_dieu_chinh.sql",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "vst-rls-approve",
     "commit": "",
-    "ghi_chu": "CHO_PO. Mặc định: phần code chặn CNK duyệt yêu cầu ngoài khoa mình (an toàn, làm ngay); đổi ma trận quyền (bỏ approve khỏi CNK, thêm cho vai TK_KSNK) là đổi quyền người dùng thật → chờ PO. Hệ quả nếu PO im: CNK duyệt được yêu cầu của khoa mình."
+    "ghi_chu": "LỖI GIẢ (xác minh 2026-11-14). Tiền đề «CNK khác TK_KSNK» sai: CHU_NHIEM_KHOA là «Chủ nhiệm khoa KSNK — duyệt chuyên môn, giám sát thay đổi danh mục» (migration AR-1 20261111150000, PO 2026-11-10; docs/core/handover-roadmap.md:80) = vai TK_KSNK của đặc tả, đúng người mà R1.24 (M01_VE_SINH_TAY.md dòng 444) giao duyệt sửa muộn và ma trận M01 dòng 22 giao «D (xác nhận khóa), X, E» không giới hạn khoa. Cùng cách hiểu ở src/lib/domain/cssd-equipment-pm.ts:37-38 (CSSD_HOLD_QC_UNLOCK_ROLES = ADMIN, CHU_NHIEM_KHOA) và src/modules/giam-sat-vst/lib/vst-yeu-cau-dieu-chinh.ts (VST_VAI_TRO_CAN_BO_KSNK). Vì vậy GIAM_SAT_VST.approve gán CNK và hàng chờ duyệt toàn viện (vst-yeu-cau-dieu-chinh.actions.ts, không lọc khoa) là ĐÚNG; không cần vai «TK_KSNK» riêng, không đổi quyền người dùng thật. Hệ quả phát hiện khi xác minh: VST-014/015 cắt CNK về «khoa mình» (sai) → VST-026; CB_KSNK không phải chủ phiên chưa tạo được yêu cầu SỬA muộn → VST-027; vai ĐDT/CN_KHOA lâm sàng (R1.34) chưa có trong RBAC → VST-028 (CHO_PO)."
   },
   {
     "id": "CSSD-035",
@@ -1851,5 +1851,44 @@
     "nguon": "vong-vst015",
     "commit": "1eed1726",
     "ghi_chu": "Phát hiện khi chạy verify:changed cho VST-015; migration của VST-015 chỉ đổi policy nên không làm đổi ảnh chụp. Sửa bằng --write: diff đúng +2 dòng (hàm guard trigger và bảng, cả hai không cấp quyền cho anon/authenticated, bảng có RLS) và bộ đếm nợ fn_thieu_pg_temp 97 → 98 (hàm guard mới có search_path=public không kèm pg_temp). Nợ 98 hàm thiếu pg_temp là việc có sẵn, không sửa ở đây."
+  },
+  {
+    "id": "VST-026",
+    "module": "VST_GSC",
+    "lop": "DOMAIN",
+    "muc": "CAO",
+    "tieu_de": "VST-014/015 đọc nhầm CHU_NHIEM_KHOA (chủ nhiệm khoa KSNK = TK_KSNK) thành chủ nhiệm khoa lâm sàng: app và RLS giới hạn CNK về «khoa mình» (khoa NULL → 0 dòng), trái đặc tả M01:22 (TK_KSNK xem/xuất không giới hạn khoa)",
+    "bang_chung": "src/modules/giam-sat-vst/lib/vst-read-scope.ts:19-22 (isVstKhoaOnlyScope) và :50-58 (applyVstHistoryReadScope); src/modules/giam-sat-vst/actions/vst-read.actions.ts:120-125; supabase/migrations/20261114150000_gstt_vst_rls_cnk_hoi_dong.sql:75-84 và :113-122 (CASE CHU_NHIEM_KHOA → khoa_id = khoa mình). Vai trò: supabase/migrations/20261111150000_ar1_chu_nhiem_khoa_role_catalog_approve.sql «Chủ nhiệm khoa KSNK — duyệt chuyên môn»; docs/core/handover-roadmap.md:80; src/lib/domain/cssd-equipment-pm.ts:37-38. Đặc tả: M01_VE_SINH_TAY.md dòng 22 (TK_KSNK X/E không giới hạn khoa) và dòng 454 (R1.34: chỉ ĐDT khoa quản lý + CB_KSNK thấy danh tính).",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst/lib/vst-read-scope.spec.ts ; docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/sql/gstt-session-read-scope-probe.sql (mã thoát 0 = đạt)",
+    "trang_thai": "DA_XAC_MINH",
+    "nguon": "vòng VST-016 (xác minh 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Gốc: CHU_NHIEM_KHOA là «Chủ nhiệm khoa KSNK — duyệt chuyên môn» (AR-1) = TK_KSNK của đặc tả; VST-014/015 ánh xạ nó sang ĐDT/CN_KHOA lâm sàng của R1.34 nên cắt về «khoa mình». review-bv103 của VST-015 không bắt được vì được giao cùng cách ánh xạ làm yêu cầu. 28f638fc và d9872d6b CHƯA push (git branch -r --contains rỗng) nên prod vẫn chạy policy 20261108100000 (CNK đọc toàn viện): sửa lại là trả về hành vi prod, không đổi quyền người dùng thật. Hướng sửa: CNK = toàn viện như NHAN_VIEN_KSNK ở ba chỗ (applyVstHistoryReadScope, getVSTSessionDetail, isHoiDongOnly) + migration mới thay hai policy (CNK cùng nhóm NHAN_VIEN_KSNK, bỏ nhánh CNK khỏi CASE) + đảo kỳ vọng probe ca 6/8/10/13; lô prod VST-025 phải thêm migration mới ngay sau 20261114150000."
+  },
+  {
+    "id": "VST-027",
+    "module": "VST_GSC",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Sửa muộn phiên VST: người dùng KSNK không phải chủ phiên không tạo được yêu cầu SỬA (laCanBoKsnk cứng false) trong khi yêu cầu XÓA cho phép; đặc tả giao CB_KSNK sửa muộn có lý do",
+    "bang_chung": "src/modules/giam-sat-vst/actions/vst-write-save-session.actions.ts:203 (laCanBoKsnk: false) dẫn tới :204-206 TU_CHOI «Chỉ người giám sát đã ghi nhận phiên này mới được sửa»; so với src/modules/giam-sat-vst/actions/vst-write-delete.actions.ts:68-76 (laCanBoKsnk tính theo vai trò). Đặc tả: M01_VE_SINH_TAY.md dòng 22 («CB_KSNK S (sửa muộn có lý do)») và R1.24 (dòng 444).",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst",
+    "trang_thai": "MOI",
+    "nguon": "vòng VST-016 (xác minh 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Chưa sửa vì không phải chỉnh một dòng: resolveSupervisorIdForSave (src/lib/supervision-supervisor-id.ts:11-13) trả actorNhanSuId cho người không phải ADMIN; nếu payload yêu cầu SỬA (insert ở save-session :300) mang nguoi_giam_sat_id = người gửi thì khi duyệt phiên đổi chủ (cần kiểm payload). Cần giữ nguoi_giam_sat_id của phiên gốc trước khi mở đường cho CB_KSNK. Làm sau VST-026."
+  },
+  {
+    "id": "VST-028",
+    "module": "VST_GSC",
+    "lop": "DOMAIN",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Đặc tả R1.34 cần vai ĐDT/CN_KHOA lâm sàng xem danh sách có danh tính của khoa mình; RBAC chưa có vai này (CHU_NHIEM_KHOA là chủ nhiệm khoa KSNK)",
+    "bang_chung": "Đặc tả M01_VE_SINH_TAY.md dòng 454 (R1.34) và dòng 22; 00_TONG_QUAN.md:54 liệt kê NV_YT, DD_TRUONG, CN_KHOA. DB local sys_roles chỉ có ADMIN, CHU_NHIEM_KHOA, HOI_DONG_KSNK, KHACH_THONG_KE_GSTT, MANG_LUOI_KSNK, NHAN_VIEN_KSNK, TO_TRUONG_CSSD_TEST. docs/core/handover-roadmap.md:66 và :101 (ma trận «ai xem gì» GS-1 chờ PO).",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "vòng VST-016 (xác minh 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "CHO_PO. Mặc định: không tạo vai ĐDT/CN_KHOA lâm sàng trong pilot; việc xem danh sách có danh tính ở cấp khoa do MANG_LUOI_KSNK (khoa được gán) và cán bộ KSNK đảm nhiệm như hiện nay. Hệ quả nếu PO im: ĐDT/chủ nhiệm khoa lâm sàng chưa có đường xem danh sách có danh tính của khoa mình (đúng hiện trạng prod, không rò dữ liệu). Khi PO muốn mở thì thêm vai riêng, không dùng CHU_NHIEM_KHOA, với chính sách «khoa mình» theo mẫu MANG_LUOI."
   }
 ]
