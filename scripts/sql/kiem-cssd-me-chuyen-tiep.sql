@@ -134,3 +134,172 @@ BEGIN
   RAISE NOTICE 'PASS ca4: CHO_BI→HOAN_THANH; QC_KHONG_DAT→thu hồi → %', v_st;
 END $$;
 ROLLBACK;
+
+-- ===================== L4b: rpc_cssd_me_thu_hoi kiểm trạng thái mẻ (M05 §4.1) =====================
+-- Dữ liệu dựng bằng INSERT (trigger chỉ chạy khi UPDATE) trên máy 9ea58c1f…; mẻ mốc BI âm 10 giờ trước
+-- để cửa sổ R5.29 chỉ gồm mẻ thử. Mọi ca trong BEGIN…ROLLBACK.
+
+-- Ca 5: BI dương mẻ gốc HOAN_THANH; cửa sổ có CHO_BI, CHO_DANH_GIA_QC, QC_KHONG_DAT có lô đã cấp phát,
+-- QC_KHONG_DAT chưa cấp phát → gốc THU_HOI; CHO_BI/CHO_DANH_GIA_QC → QC_KHONG_DAT;
+-- QC_KHONG_DAT có lô cấp phát → THU_HOI; QC_KHONG_DAT không cấp phát → giữ.
+BEGIN;
+SELECT set_config('request.jwt.claims', '{"role":"service_role"}', true);
+SET LOCAL ROLE service_role;
+DO $$
+DECLARE
+  v_may uuid := '9ea58c1f-edc1-455d-8f6f-44631b01e6aa';
+  v_actor uuid := (SELECT ns.auth_user_id FROM public.mdm_nhan_su ns
+                   JOIN public.v_sys_user_permissions v ON v.auth_user_id = ns.auth_user_id
+                   WHERE ns.is_active AND v.roles ? 'ADMIN' LIMIT 1);
+  v_ns uuid;
+  v_goc uuid; v_bi uuid; v_qc uuid; v_kd_cp uuid; v_kd uuid;
+  v_st text; v_bad text := '';
+BEGIN
+  v_ns := (SELECT id FROM public.mdm_nhan_su WHERE auth_user_id = v_actor AND is_active LIMIT 1);
+  UPDATE public.cssd_fact_lo_tiet_khuan SET is_active = false
+   WHERE thiet_bi_id = v_may AND is_active AND ket_qua_test IS NULL
+     AND coalesce(trang_thai_me, '') NOT IN ('CHO_BI','HOAN_THANH','QC_KHONG_DAT','THU_HOI');
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, trang_thai_bi, ket_qua_bi, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-AM-' || gen_random_uuid(), v_may, 'HOAN_THANH', true, 'AM', true, now() - interval '10 hours', true);
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-BI-' || gen_random_uuid(), v_may, 'CHO_BI', NULL, now() - interval '5 hours', true) RETURNING id INTO v_bi;
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-QC-' || gen_random_uuid(), v_may, 'CHO_DANH_GIA_QC', NULL, now() - interval '4 hours', true) RETURNING id INTO v_qc;
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-KDCP-' || gen_random_uuid(), v_may, 'QC_KHONG_DAT', false, now() - interval '3 hours', true) RETURNING id INTO v_kd_cp;
+  INSERT INTO public.cssd_fact_quy_trinh (ma_qr_quy_trinh, tram_hien_tai_id, lo_tiet_khuan_id, is_active, bo_dung_cu_id, thoi_gian_cap_phat)
+  VALUES ('L4B-QR-' || gen_random_uuid(), (SELECT id FROM public.cssd_dm_tram WHERE ma_tram = 'CAP_PHAT' LIMIT 1), v_kd_cp, true, 'fbdd9b43-2efc-44c6-92d7-61f0e871c52a', now() - interval '2 hours');
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-KD-' || gen_random_uuid(), v_may, 'QC_KHONG_DAT', false, now() - interval '150 minutes', true) RETURNING id INTO v_kd;
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-GOC-' || gen_random_uuid(), v_may, 'HOAN_THANH', true, now() - interval '1 hour', true) RETURNING id INTO v_goc;
+
+  PERFORM public.rpc_cssd_me_thu_hoi(v_goc, 'BI_DUONG', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca5');
+
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_goc;
+  IF v_st <> 'THU_HOI' THEN v_bad := v_bad || ' gốc=' || v_st; END IF;
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_bi;
+  IF v_st <> 'QC_KHONG_DAT' THEN v_bad := v_bad || ' CHO_BI→' || v_st; END IF;
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_qc;
+  IF v_st <> 'QC_KHONG_DAT' THEN v_bad := v_bad || ' CHO_DANH_GIA_QC→' || v_st; END IF;
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_kd_cp;
+  IF v_st <> 'THU_HOI' THEN v_bad := v_bad || ' QC_KHONG_DAT(cấp phát)→' || v_st; END IF;
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_kd;
+  IF v_st <> 'QC_KHONG_DAT' THEN v_bad := v_bad || ' QC_KHONG_DAT(chưa cấp)→' || v_st; END IF;
+  IF v_bad <> '' THEN RAISE EXCEPTION 'FAIL ca5:%', v_bad; END IF;
+  RAISE NOTICE 'PASS ca5: gốc THU_HOI; CHO_BI/CHO_DANH_GIA_QC→QC_KHONG_DAT; QC_KHONG_DAT cấp phát→THU_HOI, chưa cấp giữ';
+END $$;
+ROLLBACK;
+
+-- Ca 6: mẻ DANG_TIET_KHUAN trong cửa sổ KHÔNG bị đụng (trạng thái, ket_qua_test, lô);
+-- mẻ gốc DANG_TIET_KHUAN (BI_DUONG) và DANG_CHUAN_NAP (QC_FAIL) → RAISE.
+BEGIN;
+SELECT set_config('request.jwt.claims', '{"role":"service_role"}', true);
+SET LOCAL ROLE service_role;
+DO $$
+DECLARE
+  v_may uuid := '9ea58c1f-edc1-455d-8f6f-44631b01e6aa';
+  v_actor uuid := (SELECT ns.auth_user_id FROM public.mdm_nhan_su ns
+                   JOIN public.v_sys_user_permissions v ON v.auth_user_id = ns.auth_user_id
+                   WHERE ns.is_active AND v.roles ? 'ADMIN' LIMIT 1);
+  v_ns uuid;
+  v_goc uuid; v_tk uuid; v_q uuid; v_cn uuid;
+  v_st text; v_kq boolean; v_qa boolean; v_ok boolean;
+BEGIN
+  v_ns := (SELECT id FROM public.mdm_nhan_su WHERE auth_user_id = v_actor AND is_active LIMIT 1);
+  -- dọn mẻ mở sẵn có trên máy (trong giao dịch) để chỉ mục một-mẻ-mở không chặn
+  UPDATE public.cssd_fact_lo_tiet_khuan SET is_active = false
+   WHERE thiet_bi_id = v_may AND is_active AND ket_qua_test IS NULL
+     AND coalesce(trang_thai_me, '') NOT IN ('CHO_BI','HOAN_THANH','QC_KHONG_DAT','THU_HOI');
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, trang_thai_bi, ket_qua_bi, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-AM-' || gen_random_uuid(), v_may, 'HOAN_THANH', true, 'AM', true, now() - interval '10 hours', true);
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-TK-' || gen_random_uuid(), v_may, 'DANG_TIET_KHUAN', NULL, now() - interval '3 hours', true) RETURNING id INTO v_tk;
+  INSERT INTO public.cssd_fact_quy_trinh (ma_qr_quy_trinh, tram_hien_tai_id, lo_tiet_khuan_id, is_active, bo_dung_cu_id)
+  VALUES ('L4B-QR-' || gen_random_uuid(), (SELECT id FROM public.cssd_dm_tram WHERE ma_tram = 'TIET_KHUAN' LIMIT 1), v_tk, true, 'fbdd9b43-2efc-44c6-92d7-61f0e871c52a')
+  RETURNING id INTO v_q;
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, thoi_gian_bat_dau, is_active)
+  VALUES ('L4B-GOC-' || gen_random_uuid(), v_may, 'HOAN_THANH', true, now() - interval '1 hour', true) RETURNING id INTO v_goc;
+
+  PERFORM public.rpc_cssd_me_thu_hoi(v_goc, 'BI_DUONG', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca6');
+  SELECT trang_thai_me, ket_qua_test INTO v_st, v_kq FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_tk;
+  SELECT is_active INTO v_qa FROM public.cssd_fact_quy_trinh WHERE id = v_q;
+  IF v_st <> 'DANG_TIET_KHUAN' OR v_kq IS NOT NULL OR v_qa IS NOT TRUE THEN
+    RAISE EXCEPTION 'FAIL ca6: mẻ DANG_TIET_KHUAN bị đụng → %, ket_qua_test=%, lô active=%', v_st, v_kq, v_qa;
+  END IF;
+
+  v_ok := false;
+  BEGIN
+    PERFORM public.rpc_cssd_me_thu_hoi(v_tk, 'BI_DUONG', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca6 gốc đang chạy');
+  EXCEPTION WHEN others THEN
+    v_ok := SQLERRM LIKE '%không thu hồi%'; RAISE NOTICE 'ca6 gốc DANG_TIET_KHUAN BI_DUONG → %', SQLERRM;
+  END;
+  IF NOT v_ok THEN RAISE EXCEPTION 'FAIL ca6: thu hồi BI_DUONG mẻ gốc DANG_TIET_KHUAN không bị chặn rõ'; END IF;
+
+  UPDATE public.cssd_fact_lo_tiet_khuan SET is_active = false WHERE id = v_tk;
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, thiet_bi_id, trang_thai_me, ket_qua_test, is_active)
+  VALUES ('L4B-CN-' || gen_random_uuid(), v_may, 'DANG_CHUAN_NAP', NULL, true) RETURNING id INTO v_cn;
+  v_ok := false;
+  BEGIN
+    PERFORM public.rpc_cssd_me_thu_hoi(v_cn, 'QC_FAIL', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca6 gốc chuẩn nạp');
+  EXCEPTION WHEN others THEN
+    v_ok := SQLERRM LIKE '%không thu hồi%'; RAISE NOTICE 'ca6 gốc DANG_CHUAN_NAP QC_FAIL → %', SQLERRM;
+  END;
+  IF NOT v_ok THEN RAISE EXCEPTION 'FAIL ca6: thu hồi mẻ gốc DANG_CHUAN_NAP không bị chặn rõ'; END IF;
+  RAISE NOTICE 'PASS ca6: mẻ đang chạy trong cửa sổ không đụng; gốc chưa chạy xong bị chặn';
+END $$;
+ROLLBACK;
+
+-- Ca 7: THU_HOI → QC_KHONG_DAT bị chặn (UPDATE trực tiếp); thu hồi lại mẻ gốc THU_HOI giữ THU_HOI.
+BEGIN;
+SELECT set_config('request.jwt.claims', '{"role":"service_role"}', true);
+SET LOCAL ROLE service_role;
+DO $$
+DECLARE
+  v_actor uuid := (SELECT ns.auth_user_id FROM public.mdm_nhan_su ns
+                   JOIN public.v_sys_user_permissions v ON v.auth_user_id = ns.auth_user_id
+                   WHERE ns.is_active AND v.roles ? 'ADMIN' LIMIT 1);
+  v_ns uuid; v_id uuid; v_st text; v_ok boolean := false;
+BEGIN
+  v_ns := (SELECT id FROM public.mdm_nhan_su WHERE auth_user_id = v_actor AND is_active LIMIT 1);
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, trang_thai_me, ket_qua_test, is_active)
+  VALUES ('L4B-TH-' || gen_random_uuid(), 'THU_HOI', true, true) RETURNING id INTO v_id;
+  BEGIN
+    UPDATE public.cssd_fact_lo_tiet_khuan SET trang_thai_me = 'QC_KHONG_DAT' WHERE id = v_id;
+  EXCEPTION WHEN others THEN
+    v_ok := SQLERRM LIKE '%từ THU_HOI sang QC_KHONG_DAT%';
+  END;
+  IF NOT v_ok THEN RAISE EXCEPTION 'FAIL ca7: UPDATE THU_HOI → QC_KHONG_DAT KHÔNG bị chặn'; END IF;
+  PERFORM public.rpc_cssd_me_thu_hoi(v_id, 'BI_DUONG', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca7');
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_id;
+  IF v_st <> 'THU_HOI' THEN RAISE EXCEPTION 'FAIL ca7: thu hồi lại mẻ THU_HOI → %', v_st; END IF;
+  RAISE NOTICE 'PASS ca7: THU_HOI→QC_KHONG_DAT bị chặn; thu hồi lại giữ THU_HOI';
+END $$;
+ROLLBACK;
+
+-- Ca 8: QC_FAIL mẻ gốc DANG_TIET_KHUAN → QC_KHONG_DAT (gộp S_ME_NGAT→CACH_LY); QC_FAIL mẻ gốc HOAN_THANH → THU_HOI.
+BEGIN;
+SELECT set_config('request.jwt.claims', '{"role":"service_role"}', true);
+SET LOCAL ROLE service_role;
+DO $$
+DECLARE
+  v_actor uuid := (SELECT ns.auth_user_id FROM public.mdm_nhan_su ns
+                   JOIN public.v_sys_user_permissions v ON v.auth_user_id = ns.auth_user_id
+                   WHERE ns.is_active AND v.roles ? 'ADMIN' LIMIT 1);
+  v_ns uuid; v_tk uuid; v_ht uuid; v_st text; v_st2 text;
+BEGIN
+  v_ns := (SELECT id FROM public.mdm_nhan_su WHERE auth_user_id = v_actor AND is_active LIMIT 1);
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, trang_thai_me, ket_qua_test, is_active)
+  VALUES ('L4B-TKQC-' || gen_random_uuid(), 'DANG_TIET_KHUAN', NULL, true) RETURNING id INTO v_tk;
+  INSERT INTO public.cssd_fact_lo_tiet_khuan (ma_lo_tiet_khuan, trang_thai_me, ket_qua_test, is_active)
+  VALUES ('L4B-HTQC-' || gen_random_uuid(), 'HOAN_THANH', true, true) RETURNING id INTO v_ht;
+  PERFORM public.rpc_cssd_me_thu_hoi(v_tk, 'QC_FAIL', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca8 đang chạy');
+  PERFORM public.rpc_cssd_me_thu_hoi(v_ht, 'QC_FAIL', v_actor, v_ns, 'L4B_TEST', 'L4B test', 'L4B ca8 đã xuất');
+  SELECT trang_thai_me INTO v_st FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_tk;
+  SELECT trang_thai_me INTO v_st2 FROM public.cssd_fact_lo_tiet_khuan WHERE id = v_ht;
+  IF v_st <> 'QC_KHONG_DAT' OR v_st2 <> 'THU_HOI' THEN
+    RAISE EXCEPTION 'FAIL ca8: QC_FAIL DANG_TIET_KHUAN → %, HOAN_THANH → %', v_st, v_st2;
+  END IF;
+  RAISE NOTICE 'PASS ca8: QC_FAIL đang chạy → QC_KHONG_DAT; đã xuất → THU_HOI';
+END $$;
+ROLLBACK;

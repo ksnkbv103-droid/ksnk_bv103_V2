@@ -98,3 +98,5 @@ Thứ tự phụ thuộc: L0 → L1 → L2 → L3; L4 sau L2 (dùng bảng tham 
 - Từ mơ hồ đã thành số: «xong module» = R có dẫn ≥ 80% + 3 kịch bản tay; «gọn công cụ» = ≤ 40 script.
 - Một khái niệm một tên: «dẫn mã» = chú thích `@dac-ta`; «lệch» = code làm khác câu R.
 - Chưa kiểm: số đếm CSSD là ước lượng; hành vi thật của `rpc_cssd_me_thu_hoi` (`supabase/migrations`, chưa đọc thân hàm).
+
+L4b xong (local, chưa prod): migration 20261114130000 thu hồi kiểm trạng thái mẻ nguồn, bỏ 7 cặp trái đặc tả; còn 2 cặp →QC_KHONG_DAT (DA_CHOT_NAP, HOAN_THANH) chờ siết ghi_test. DA_TAI_XU_LY chưa làm: cần PO chốt đích (Tiếp nhận theo 2026-11-13 hay ĐÓNG GÓI) và RPC trả lô nguyên tử. L5 đo trace: M03 0/60 R, 0 T; M05 7/50; M01 3/40; M02 2/41; còn lại 0.
