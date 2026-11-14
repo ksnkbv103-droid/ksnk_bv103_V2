@@ -1,0 +1,241 @@
+{
+  "ngay": "2026-11-14",
+  "pham_vi": "P1 của KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md §3-P1: bước 1 ánh xạ file in/xuất → mã BM; bước 2 năm phép kiểm in; bước 3 phân loại .delete(). Chỉ rà và ghi sổ; sửa là vòng sau. Dữ liệu, không phải tài liệu thứ hai (CLAUDE.md:58).",
+  "kho_bm": "Kho tri thức là bản nháp, chỉ đọc: ~/Desktop/KSNK_BENH_VIEN_103/. Mã BM tra ở QT hiện hành trong 03_QUY_TRINH_BENH_VIEN/02_QUY_TRINH_SOPS/ và DANH_MUC_HD_VA_BM.md; không tra được thì ghi «cần kiểm».",
+  "trang_thai_nhan": {
+    "hai_phia": "đã đọc cả mã BM trong app (file:dòng) và mã BM trong QT hiện hành của kho (file:dòng)",
+    "mot_phia": "chỉ có một phía (app có hoặc kho có), phía còn lại cần kiểm",
+    "khong_ap_dung": "file là khung dùng chung, không mang mã BM riêng",
+    "chua_ra": "chưa rà vòng nào"
+  },
+  "dem": {
+    "tong_file": 57,
+    "hai_phia": 5,
+    "mot_phia": 6,
+    "khong_ap_dung": 1,
+    "chua_ra": 45,
+    "kiem_lai": "node -e 'const m=require(\"./scripts/readiness/mau-in-anh-xa.json\");const f=m.nhom.flatMap(n=>n.files);const fs=require(\"fs\");console.log(f.length,new Set(f).size,f.filter(x=>!fs.existsSync(x)).length)' (kỳ vọng 57 57 0)",
+    "ghi_chu": "57 file là tập file cài đặt in/xuất liệt kê 2026-11-14; 14 file gọi nút in (CatalogDeNghiDiff, VSTForm, GiamSatChungForm, NkbvBaCaseSheet…) không tính. Tập này sót các file xuất tên có chữ export: xem ngoai_tap_57."
+  },
+  "nhom": [
+    {
+      "nhom": "VST",
+      "trang_thai": "hai_phia",
+      "files": [
+        "src/modules/giam-sat-vst/components/VSTPrintPersonBlocks.tsx",
+        "src/modules/giam-sat-vst/components/VSTPrintView.tsx",
+        "src/modules/giam-sat-vst/components/vst-print-helpers.ts",
+        "src/modules/giam-sat-vst/hooks/use-vst-print.ts",
+        "src/modules/giam-sat-vst/lib/vst-print-glove-display.ts"
+      ],
+      "ma_bm_app": "KSNK.QT.07.BM.01 (VSTPrintView.tsx:94); catalog: src/lib/domain/ve-sinh-tay-catalog.ts:71,115,123",
+      "ma_bm_kho": "KSNK.QT.06.BM.01 giám sát tuân thủ VST năm thời điểm (KSNK.QT.06 - Quy trình vệ sinh tay [HIỆN HÀNH].md:188). QT.07 trong kho là phương tiện phòng hộ cá nhân (…QT.07 [HIỆN HÀNH].md:186-187)",
+      "ket_luan": "LỆCH MÃ QT.06 ↔ QT.07, số liệu không sai → sổ lỗi VST-017 (CHO_PO, mặc định giữ mã trong app)"
+    },
+    {
+      "nhom": "GSC",
+      "trang_thai": "mot_phia",
+      "files": [
+        "src/modules/giam-sat-chung/actions/giam-sat-chung-print-labels.actions.ts",
+        "src/modules/giam-sat-chung/components/GiamSatChungPrintCriteriaSection.tsx",
+        "src/modules/giam-sat-chung/components/GiamSatChungPrintView.tsx",
+        "src/modules/giam-sat-chung/components/gsc-print-utils.ts",
+        "src/modules/giam-sat-chung/hooks/use-gsc-db-print-labels.ts",
+        "src/modules/giam-sat-chung/hooks/use-gsc-print.ts"
+      ],
+      "ma_bm_app": "Động theo ma_bk của bảng kiểm trong DB; 0 mã BM/QT nằm cứng trong 6 file. Hai bảng kỹ thuật VST trong GSC: KSNK.QT.07.BM.02 và KSNK.QT.07.BM.03 (VE_SINH_TAY_GSC_MA_BK)",
+      "ma_bm_kho": "Cần kiểm: chưa đối chiếu từng bảng trong 36 bảng kiểm chuẩn với DANH_MUC_HD_VA_BM.md. Riêng QT.06: BM.02 kỹ thuật thường quy, BM.03 ngoại khoa (…QT.06 [HIỆN HÀNH].md:189-190), cùng nguyên nhân lệch mã với VST-017",
+      "ket_luan": "Còn dở: ánh xạ 36 bảng kiểm ↔ BM. Phép kiểm in 1–5 đã chạy (xem phep_kiem_in)"
+    },
+    {
+      "nhom": "Khung in dùng chung",
+      "trang_thai": "khong_ap_dung",
+      "files": [
+        "src/components/shared/PrintLayout.tsx"
+      ],
+      "ma_bm_app": "0 mã BM/QT trong file; nơi gọi truyền tiêu đề. Có chân trang chữ ký người được giám sát và người giám sát (khoảng dòng 120–181)",
+      "ma_bm_kho": "Không có BM riêng",
+      "ket_luan": "Khối IV (khắc phục, hạn) chưa có ở khung → VST-018"
+    },
+    {
+      "nhom": "NKBV",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/modules/giam-sat-nkbv/components/NkbvBaGridCasePrintView.tsx",
+        "src/modules/giam-sat-nkbv/components/NkbvBenhAnImportPortal.tsx",
+        "src/modules/giam-sat-nkbv/components/NkbvCasePrintView.tsx",
+        "src/modules/giam-sat-nkbv/components/NkbvCaseSummaryBookPrintView.tsx",
+        "src/modules/giam-sat-nkbv/components/NkbvViSinhImportPortal.tsx",
+        "src/modules/giam-sat-nkbv/lib/nkbv-cdha-print.ts"
+      ],
+      "ma_bm_app": "Đã thấy: BM.01/QT.33 (NkbvBaGridCasePrintView.tsx:147, NkbvCasePrintView.tsx:161); BM.04/QT.33 (NkbvCaseSummaryBookPrintView.tsx:76); tiêu đề dẫn Quyết định 3916/QĐ-BYT",
+      "ma_bm_kho": "Cần kiểm: chưa đối chiếu KSNK.QT.33 hiện hành trong kho",
+      "ket_luan": "Vòng P1 kế tiếp. NKBV-030 và NKBV-031 (xóa cứng) đã ghi sổ từ phép phân loại .delete()"
+    },
+    {
+      "nhom": "CSSD tiệt khuẩn",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/modules/cssd-erp/actions/cssd-print.actions.ts",
+        "src/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button.tsx",
+        "src/modules/cssd-erp/components/inventory/SetCompositionPrint.tsx",
+        "src/modules/cssd-erp/components/inventory/SetReconcileCampaignPanel.tsx",
+        "src/modules/cssd-erp/components/kho-hoa-chat/kho-hoa-chat-print-view.tsx",
+        "src/modules/cssd-erp/components/print/CssdBatchPrintView.tsx",
+        "src/modules/cssd-erp/components/print/CssdCapPhatPrintView.tsx",
+        "src/modules/cssd-erp/components/print/CssdPrintInstrumentTable.tsx",
+        "src/modules/cssd-erp/components/print/CssdPrintPortal.tsx",
+        "src/modules/cssd-erp/components/print/CssdPrintQcProofTable.tsx",
+        "src/modules/cssd-erp/components/print/CssdPrintQrBlock.tsx",
+        "src/modules/cssd-erp/contexts/instrument-catalog/admin/bo-dung-cu-print-qr-button.tsx",
+        "src/modules/cssd-erp/hooks/use-cssd-print.ts",
+        "src/modules/cssd-erp/lib/cssd-print-format.ts",
+        "src/modules/cssd-erp/types/cssd-print.types.ts"
+      ],
+      "ma_bm_app": "0 mã BM/QT nằm cứng trong 15 file",
+      "ma_bm_kho": "Cần kiểm",
+      "ket_luan": "Chờ CSSD-036 (thẻ kho hóa chất theo duyet_at) xong rồi mới rà in kho hóa chất"
+    },
+    {
+      "nhom": "CSSD sự cố",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/modules/cssd-su-co/components/IncidentJournalPrintButton.tsx",
+        "src/modules/cssd-su-co/components/IncidentPrintView.tsx",
+        "src/modules/cssd-su-co/domain/cssd-incident-print-scope.ts"
+      ],
+      "ma_bm_app": "Đã thấy: nhãn «BM.01 — Danh sách bộ trong phạm vi thu hồi» (IncidentPrintView.tsx:405, 502), nhãn nội bộ của bản in, chưa biết có phải mã BM của kho",
+      "ma_bm_kho": "Cần kiểm",
+      "ket_luan": "Vòng P1 kế tiếp, sau nhóm CSSD tiệt khuẩn"
+    },
+    {
+      "nhom": "Dashboard báo cáo tổng hợp",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/modules/dashboard/components/comprehensive/ReportPrintNarrativeControls.tsx",
+        "src/modules/dashboard/hooks/use-bao-cao-tong-hop-print.ts",
+        "src/modules/dashboard/lib/bao-cao-tong-hop-print-charts.ts",
+        "src/modules/dashboard/lib/bao-cao-tong-hop-print-format.ts",
+        "src/modules/dashboard/lib/bao-cao-tong-hop-print-sections.ts",
+        "src/modules/dashboard/lib/bao-cao-tong-hop-print-styles.ts",
+        "src/modules/dashboard/lib/bao-cao-tong-hop-print.ts"
+      ],
+      "ma_bm_app": "Chỉ có lời chú: «BM.02/BM.03 không thuộc tổng Giám sát chung» (bao-cao-tong-hop-print.ts:335) và «không phải chỉ số BM.02 kỹ thuật thường quy» (:369)",
+      "ma_bm_kho": "Cần kiểm: báo cáo tổng hợp không phải bảng kiểm; chưa tra mã báo cáo ở kho",
+      "ket_luan": "Vòng P1 kế tiếp; kiểm phép số khớp giữa báo cáo in và KPI"
+    },
+    {
+      "nhom": "QLCV",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/modules/quan-ly-cong-viec/components/QlcvImportDialog.tsx",
+        "src/modules/quan-ly-cong-viec/components/print/QlcvPeriodExecPrintView.tsx",
+        "src/modules/quan-ly-cong-viec/components/print/QlcvPeriodPlanPrintView.tsx",
+        "src/modules/quan-ly-cong-viec/components/print/QlcvTaskPrintView.tsx"
+      ],
+      "ma_bm_app": "0 mã BM/QT trong 4 file",
+      "ma_bm_kho": "Cần kiểm",
+      "ket_luan": "Vòng P1 kế tiếp"
+    },
+    {
+      "nhom": "Đào tạo",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/modules/dao-tao/views/AdminKetQuaPage.tsx",
+        "src/modules/dao-tao/views/AdminNganHangPage.tsx"
+      ],
+      "ma_bm_app": "0 mã BM/QT trong 2 file",
+      "ma_bm_kho": "Cần kiểm",
+      "ket_luan": "Vòng P1 kế tiếp"
+    },
+    {
+      "nhom": "Hạ tầng in/xuất dùng chung",
+      "trang_thai": "chua_ra",
+      "files": [
+        "src/components/shared/LocationQrPrintButton.tsx",
+        "src/hooks/importExport.utils.ts",
+        "src/hooks/useExcelExport.ts",
+        "src/hooks/useExcelImport.ts",
+        "src/hooks/usePrint.ts",
+        "src/lib/analytics/download-supervision-excel.ts",
+        "src/lib/print-html.ts",
+        "src/lib/print/print-file-title.ts"
+      ],
+      "ma_bm_app": "Đã thấy: print-file-title.ts:23 nhắc «Sổ tổng hợp BM.01–BM.04» (NKBV QT.33)",
+      "ma_bm_kho": "Không có BM riêng (hạ tầng)",
+      "ket_luan": "Rà cùng nhóm module gọi chúng; riêng download-supervision-excel.ts thuộc phép kiểm xuất theo vai trò VST/GSC (chưa đọc)"
+    }
+  ],
+  "ngoai_tap_57": {
+    "ghi_chu": "File tên chứa export nằm ngoài 57 (tìm bằng find src -iname '*export*', bỏ spec). Tập 57 sót nhóm này; bổ sung vào ánh xạ khi rà module tương ứng.",
+    "da_doc": [
+      "src/modules/giam-sat-vst/actions/vst-export.actions.ts",
+      "src/modules/giam-sat-chung/actions/gsc-export.actions.ts",
+      "src/modules/giam-sat-chung/lib/gsc-export-map.ts"
+    ],
+    "chua_doc": [
+      "src/components/shared/ImportExportToolbar.tsx",
+      "src/components/shared/SupervisionExcelExportButton.tsx",
+      "src/hooks/importExport.types.ts",
+      "src/hooks/useImportExport.ts",
+      "src/lib/import-export-template.ts",
+      "src/lib/master-data/engine/export.actions.ts",
+      "src/modules/to-chuc/nhan-su/actions/nhan-su-read-export-rows.ts",
+      "src/modules/to-chuc/nhan-su/lib/nhan-su-export-view-select.ts"
+    ],
+    "uu_tien": "nhan-su-read-export-rows.ts (xuất danh sách nhân sự: dữ liệu cá nhân) và master-data export.actions.ts: kiểm quyền và nhật ký xuất ở vòng QUAN_TRI"
+  },
+  "phep_kiem_in": {
+    "pham_vi": "VST và GSC (vòng P1:VST_GSC, 2026-11-14)",
+    "1_so_khop": {
+      "ket_qua": "ĐẠT (DB local)",
+      "bang_chung": "VST: 0/32119 dòng lệch giữa classifyVstAction (TS) và fn_vst_is_valid_opportunity (SQL). GSC: bản in tính tỷ lệ theo Đ/(dòng đánh giá − KAD)×100 như NGUYEN_TAC_BANG_KIEM.md:19, cùng công thức KPI (gsc-print-utils.ts)",
+      "rui_ro": "VST có hai bản cài đặt (TS và SQL): rủi ro lệch về sau, hiện chưa lệch; không ghi thành lỗi"
+    },
+    "2_in_lai_dung_mau": {
+      "ket_qua": "ĐẠT CÓ ĐIỀU KIỆN; cần kiểm prod",
+      "bang_chung": "GSC lưu cột bang_kiem_snapshot ở lần lưu đầu (giam-sat-chung-write.actions.ts:363) và giữ khi sửa; DB local 20/1178 phiên có snapshot, 1158 phiên cũ in theo mẫu hiện hành, chỉ chống lệch bằng tiêu chí đã chấm. VST: mẫu cố định trong code, không có phiên bản mẫu",
+      "tham_chieu": "R2.20: M02_GIAM_SAT_TUAN_THU.md:607"
+    },
+    "3_xoa_mem": {
+      "ket_qua": "ĐẠT",
+      "bang_chung": "VST: chi tiết từ chối phiên is_active=false. GSC: view v_gstt_giam_sat_chung_sessions_full trả 0/2 phiên đã xóa mềm; hai action xuất lọc is_active=true",
+      "ghi_chu": "Lỗi nhỏ: mở phiên GSC không tồn tại trả lỗi PostgREST thô (giam-sat-chung-session-detail.actions.ts:41-44) → VST-022"
+    },
+    "4_xuat_theo_vai_tro": {
+      "ket_qua": "MỘT PHẦN",
+      "bang_chung": "Lọc phạm vi có (VST-014 đã sửa; GSC assertGscHistoryAccess + applyGscHistoryReadScope). Thiếu nhật ký xuất (vst-export.actions.ts:49, gsc-export.actions.ts:23: 0 logAdminAction) → VST-020. Xuất thô GSC có tên nhân viên được quan sát và người giám sát (gsc-export-map.ts:14-16,52-54) → VST-021 (CHO_PO)",
+      "tham_chieu": "T1.32: M01_VE_SINH_TAY.md:705; M02_GIAM_SAT_TUAN_THU.md:19,218"
+    },
+    "5_dau_cuoi_trang": {
+      "ket_qua": "MỘT PHẦN",
+      "bang_chung": "Có chữ ký (PrintLayout.tsx). Có mã BM trên phiếu VST nhưng lệch QT hiện hành (VST-017). Chưa có khối IV khắc phục + hạn, dấu ● và kết luận đạt/không đạt (VST-018). Chưa mô hình và chưa in thời hạn lưu (VST-019)",
+      "tham_chieu": "NGUYEN_TAC_BANG_KIEM.md:20,25,26; …QT.06 [HIỆN HÀNH].md:197-200"
+    }
+  },
+  "xoa_cung_12_cho": {
+    "ghi_chu": "Phân loại 12 chỗ .delete() trong src: (i) bảng nháp/ô lịch bật-tắt, (ii) danh mục/RBAC, (iii) hồ sơ còn hạn lưu. Quy ước: lớp (iii) hoặc lớp (i) tác động mẫu số KPI mà không có dấu vết → sổ lỗi.",
+    "lenh_liet_ke": "grep -rn '\\.delete()' src --include='*.ts' --include='*.tsx' (kết quả 12 chỗ ở thân action, loại spec)",
+    "cho": [
+      { "so": 1, "vi_tri": "src/modules/cssd-su-co/actions/set-reconcile-draft.actions.ts:41", "lop": "i", "ket_luan": "OK: bản nháp đối soát bộ" },
+      { "so": 2, "vi_tri": "src/modules/cssd-su-co/actions/set-reconcile-draft.actions.ts:88", "lop": "i", "ket_luan": "OK: bản nháp đối soát bộ" },
+      { "so": 3, "vi_tri": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-vi-sinh-store.actions.ts:394", "lop": "iii", "ket_luan": "Xóa cứng xét nghiệm vi sinh, 0 nhật ký → NKBV-031" },
+      { "so": 4, "vi_tri": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-ba-ngay.actions.ts:66", "lop": "i", "ket_luan": "Ô khoa theo ngày (mẫu số ngày-người bệnh), 0 nhật ký → NKBV-030" },
+      { "so": 5, "vi_tri": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-ba-ngay.actions.ts:139", "lop": "i", "ket_luan": "Ô dụng cụ theo ngày (mẫu số ngày-thiết bị), 0 nhật ký → NKBV-030" },
+      { "so": 6, "vi_tri": "src/modules/quan-ly-cong-viec/actions/dinh-ky.actions.ts:238", "lop": "i", "ket_luan": "OK: xóa cứng chỉ khi không có phiếu liên kết, ngược lại is_active=false" },
+      { "so": 7, "vi_tri": "src/modules/quan-ly-cong-viec/actions/nhiem-vu.actions.ts:297", "lop": "i", "ket_luan": "OK" },
+      { "so": 8, "vi_tri": "src/modules/quan-ly-cong-viec/actions/cong-viec.actions.ts:596", "lop": "iii", "ket_luan": "OK: chặn bởi assertQlcvHardDeleteAllowed" },
+      { "so": 9, "vi_tri": "src/modules/quan-tri-he-thong/tai-khoan-nhan-su/lib/account-access-request-store.ts:110", "lop": "i", "ket_luan": "OK: hoàn tác phiếu vừa tạo" },
+      { "so": 10, "vi_tri": "src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-ksnk-role-mappings.ts:203", "lop": "ii", "ket_luan": "OK: caller ghi nhật ký RESET_KSNK_ROLE_PRESETS (failClosed)" },
+      { "so": 11, "vi_tri": "src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-registry-sync.ts:24", "lop": "ii", "ket_luan": "OK: caller ghi nhật ký SYNC_PERMISSION_REGISTRY (failClosed)" },
+      { "so": 12, "vi_tri": "src/modules/quan-tri-he-thong/phan-quyen/actions/rbac.actions.ts:283", "lop": "ii", "ket_luan": "OK: ghi nhật ký CHANGE_RBAC_MATRIX" }
+    ]
+  },
+  "con_lai": [
+    "Ánh xạ BM: 45/57 file chưa rà; thứ tự module NKBV → QLCV → dashboard → CSSD (sau CSSD-036) → đào tạo → hạ tầng",
+    "36 bảng kiểm GSC chuẩn ↔ DANH_MUC_HD_VA_BM.md",
+    "Năm phép kiểm in cho NKBV, QLCV, dashboard, CSSD",
+    "8 file xuất ngoài tập 57 (ngoai_tap_57.chua_doc)",
+    "Thời hạn lưu: căn cứ pháp lý TT 53/2017/TT-BYT là «cần kiểm»; ~145 dòng thời hạn lưu trong kho chưa có căn cứ (KH_APPKSNK_20261114… §5, dòng «dòng 32, 82»)"
+  ]
+}
