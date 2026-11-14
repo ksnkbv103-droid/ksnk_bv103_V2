@@ -188,14 +188,14 @@
   "phep_kiem_in": {
     "pham_vi": "VST và GSC (vòng P1:VST_GSC, 2026-11-14)",
     "1_so_khop": {
-      "ket_qua": "ĐẠT (DB local)",
-      "bang_chung": "VST: 0/32119 dòng lệch giữa classifyVstAction (TS) và fn_vst_is_valid_opportunity (SQL). GSC: bản in tính tỷ lệ theo Đ/(dòng đánh giá − KAD)×100 như NGUYEN_TAC_BANG_KIEM.md:19, cùng công thức KPI (gsc-print-utils.ts)",
+      "ket_qua": "VST: ĐẠT (DB local); GSC: cần kiểm",
+      "bang_chung": "VST: 0/32119 dòng lệch giữa classifyVstAction (TS) và fn_vst_is_valid_opportunity (SQL). GSC: công thức giống nhau ở mức đọc mã (Đ/(dòng đánh giá − KAD)×100, NGUYEN_TAC_BANG_KIEM.md:19): bản in GiamSatChungPrintCriteriaSection.tsx:19-29 (định dạng supervision-percent.ts:38-41), điểm lưu giam-sat-scoring.ts:70,89-93 (scoreTyLe), KPI gsc-score-display.ts:157-166 (tong_dat/tong_quan_sat). Chưa có phép so số in với số lưu/KPI chạy lại được trên dữ liệu như phép 0/32119 của VST nên «cần kiểm», không ghi ĐẠT. Bản ghi trước dẫn gsc-print-utils.ts là sai chỗ: file đó chỉ có hàm định dạng ngày",
       "rui_ro": "VST có hai bản cài đặt (TS và SQL): rủi ro lệch về sau, hiện chưa lệch; không ghi thành lỗi"
     },
     "2_in_lai_dung_mau": {
-      "ket_qua": "ĐẠT CÓ ĐIỀU KIỆN; cần kiểm prod",
-      "bang_chung": "GSC lưu cột bang_kiem_snapshot ở lần lưu đầu (giam-sat-chung-write.actions.ts:363) và giữ khi sửa; DB local 20/1178 phiên có snapshot, 1158 phiên cũ in theo mẫu hiện hành, chỉ chống lệch bằng tiêu chí đã chấm. VST: mẫu cố định trong code, không có phiên bản mẫu",
-      "tham_chieu": "R2.20: M02_GIAM_SAT_TUAN_THU.md:607"
+      "ket_qua": "MỘT PHẦN (GSC); cần đo prod",
+      "bang_chung": "GSC: phiếu mới được chốt mẫu vào metadata (bang_kiem_snapshot, giam-sat-chung-write.actions.ts:363) và giữ khi sửa; phiếu cũ chưa chốt mở và in theo mẫu đang hiệu lực (gsc-bang-kiem-snapshot.ts:1-5; load-gsc-view-bundle.ts:153-163), chỉ chống lệch bằng tiêu chí đã chấm (gsc-session-criteria-hydrate.ts:34-55). Đo DB local (dữ liệu seed, prod chưa đo): 18/1176 phiên đang hoạt động có ảnh chốt, 1158 chưa; 562/1156 phiên chưa chốt có kết quả có ≥1 tiêu chí không còn trên mẫu và in «Tiêu chí đã chấm (không còn trên mẫu)»; không có cờ «đổi mẫu» → VST-024. VST: mẫu cố định trong code, không có phiên bản mẫu",
+      "tham_chieu": "R2.20: M02_GIAM_SAT_TUAN_THU.md:607; ma_mau/phien_ban_mau đóng băng khi mở phiên: M02:195"
     },
     "3_xoa_mem": {
       "ket_qua": "ĐẠT",
@@ -204,8 +204,8 @@
     },
     "4_xuat_theo_vai_tro": {
       "ket_qua": "MỘT PHẦN",
-      "bang_chung": "Lọc phạm vi có (VST-014 đã sửa; GSC assertGscHistoryAccess + applyGscHistoryReadScope). Thiếu nhật ký xuất (vst-export.actions.ts:49, gsc-export.actions.ts:23: 0 logAdminAction) → VST-020. Xuất thô GSC có tên nhân viên được quan sát và người giám sát (gsc-export-map.ts:14-16,52-54) → VST-021 (CHO_PO)",
-      "tham_chieu": "T1.32: M01_VE_SINH_TAY.md:705; M02_GIAM_SAT_TUAN_THU.md:19,218"
+      "bang_chung": "VST: lọc phạm vi có (VST-014 đã sửa). GSC: assertGscHistoryAccess + applyGscHistoryReadScope chỉ chặn vai khách và lọc MANG_LUOI_KSNK; HOI_DONG_KSNK (có quyền xem GSC ở DB local) không bị lọc (gsc-read-scope.ts:8-11,23) → VST-023. Thiếu nhật ký xuất (vst-export.actions.ts:49, gsc-export.actions.ts:23: 0 logAdminAction) → VST-020. Xuất thô GSC có tên nhân viên được quan sát và người giám sát (gsc-export-map.ts:14-16,52-54) → VST-021 (CHO_PO)",
+      "tham_chieu": "T1.32: M01_VE_SINH_TAY.md:705; R1.34: M01_VE_SINH_TAY.md:454; M02_GIAM_SAT_TUAN_THU.md:19,33,218"
     },
     "5_dau_cuoi_trang": {
       "ket_qua": "MỘT PHẦN",
@@ -236,6 +236,7 @@
     "36 bảng kiểm GSC chuẩn ↔ DANH_MUC_HD_VA_BM.md",
     "Năm phép kiểm in cho NKBV, QLCV, dashboard, CSSD",
     "8 file xuất ngoài tập 57 (ngoai_tap_57.chua_doc)",
-    "Thời hạn lưu: căn cứ pháp lý TT 53/2017/TT-BYT là «cần kiểm»; ~145 dòng thời hạn lưu trong kho chưa có căn cứ (KH_APPKSNK_20261114… §5, dòng «dòng 32, 82»)"
+    "Thời hạn lưu: căn cứ pháp lý TT 53/2017/TT-BYT là «cần kiểm»; ~145 dòng thời hạn lưu trong kho chưa có căn cứ (KH_APPKSNK_20261114… §5, dòng «dòng 32, 82»)",
+    "Đo prod chỉ đọc khi có kết nối: truy vấn ở lenh_kiem của VST-024 (ảnh chốt, tiêu chí mồ côi) và dòng quyền HOI_DONG_KSNK ở lenh_kiem của VST-023; số hiện có là DB local (dữ liệu seed)"
   ]
 }

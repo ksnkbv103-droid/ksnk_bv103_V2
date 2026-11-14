@@ -1799,5 +1799,31 @@
     "nguon": "P1:NKBV",
     "commit": "",
     "ghi_chu": "Cần xác minh trước khi sửa: bảng nkbv_fact_vi_sinh có is_active hoặc cột người tạo/thời điểm không (đọc migration). Phương án dự kiến: ghi nhật ký với before là dòng bị xóa, hoặc chuyển xóa mềm nếu bảng có is_active. Kết quả vi sinh là hồ sơ lâm sàng: thời hạn lưu chưa có căn cứ nên không tự đặt."
+  },
+  {
+    "id": "VST-023",
+    "module": "VST_GSC",
+    "lop": "BACKEND",
+    "muc": "CAO",
+    "tieu_de": "GSC: HOI_DONG_KSNK (chỉ có quyền xem) đọc lịch sử, chi tiết và xuất thô GSC toàn viện kèm tên; đặc tả M02 chỉ cho BGĐ đọc ở dạng ẩn danh; VST đã chặn ở VST-014",
+    "bang_chung": "Mã: src/modules/giam-sat-chung/lib/gsc-read-scope.ts:8-11 (assertGscHistoryAccess chỉ chặn vai khách KHACH_THONG_KE_GSTT, src/lib/auth/guest-stats-access.ts:3,9-11) và :23 (applyGscHistoryReadScope trả nguyên truy vấn khi không phải ADMIN, NHAN_VIEN_KSNK hay MANG_LUOI_KSNK, nên HOI_DONG_KSNK không bị lọc); src/modules/giam-sat-chung/actions/gsc-export.actions.ts:31,41,49,52 (cổng xuất thô = verifyPermission GIAM_SAT_CHUNG view + hai hàm trên; cột ten_nguoi_giam_sat, ten_nhan_vien ở gsc-export-map.ts:14-15,52-53). Đối chiếu VST: src/modules/giam-sat-vst/lib/vst-read-scope.ts:15-17 (isHoiDongOnly), :30, :47-48 (zero-uuid) đã chặn đúng vai này ở VST-014. DB local: HOI_DONG_KSNK có GIAM_SAT_CHUNG view và GIAM_SAT_VST view. View v_gstt_giam_sat_chung_sessions_full có cột ten_nguoi_giam_sat, ten_nhan_vien, ten_nguoi_benh, ma_benh_an; DB local 450/1176 phiên có định danh người bệnh, 0/1176 có nhan_vien_id (số local là dữ liệu seed, prod chưa đo). Đặc tả bản nháp (~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM/02_DAC_TA/M02_GIAM_SAT_TUAN_THU.md): :33 hàng «Phiên giám sát, lượt quan sát, kết quả tiêu chí» BGĐ «X (ẩn)», CN_KHOA «X (own, ẩn)»; :19 và :580 (R2.07, danh tính chỉ ở bản ghi thô); :581 (R2.08, báo cáo và xuất loại trường định danh). Lưu ý: :896 (G2.02) không liệt kê HOI_DONG_KSNK; việc coi HOI_DONG_KSNK là BGĐ suy ra từ vst-read-scope.ts:14 và VST-014.",
+    "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -At -c \"select r.name||'|'||p.module_name||'|'||p.action from sys_role_permissions rp join sys_roles r on r.id=rp.role_id join sys_permissions p on p.id=rp.permission_id where r.name='HOI_DONG_KSNK' and p.module_name in ('GIAM_SAT_CHUNG','GIAM_SAT_VST') order by 1\" ; sed -n '8,24p' src/modules/giam-sat-chung/lib/gsc-read-scope.ts",
+    "trang_thai": "MOI",
+    "nguon": "P1:VST_GSC",
+    "commit": "",
+    "ghi_chu": "Mặc định cho vòng sửa (không chờ PO, không đổi quyền người dùng thật): phương án A như VST-014 — HOI_DONG_KSNK thuần (không có vai rộng hơn) bị chặn đọc lịch sử, chi tiết và xuất thô GSC bằng zero-uuid ở gsc-read-scope.ts; vai khác giữ nguyên; viết test fail trước (gsc-read-scope.spec.ts mới). Phương án B (ẩn cột định danh thay vì chặn) sát đặc tả «X (ẩn)» hơn nhưng cần PO chốt danh sách cột định danh nên để sau. CHU_NHIEM_KHOA không có quyền GIAM_SAT_CHUNG ở DB local nên khoảng hở ở GSC hiện chỉ gặp HOI_DONG_KSNK; prod chưa đo. Cần kiểm khi sửa: action chi tiết và lịch sử GSC (giam-sat-chung-session-detail.actions.ts) có trả ten_nguoi_benh, ma_benh_an cho HOI_DONG không. Liên hệ VST-021 (ánh xạ vai đặc tả ↔ vai app là CHO_PO): việc chặn này không phụ thuộc đáp án đó. Hệ quả nếu PO im: vòng sửa chạy theo mặc định này; trước đó HOI_DONG_KSNK còn đọc được GSC toàn viện."
+  },
+  {
+    "id": "VST-024",
+    "module": "VST_GSC",
+    "lop": "DOMAIN",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "GSC: phiếu cũ chưa có ảnh chốt mẫu (bang_kiem_snapshot) mở và in theo mẫu đang hiệu lực; tiêu chí không còn trên mẫu in «Tiêu chí đã chấm (không còn trên mẫu)»; không có cờ «đổi mẫu» (R2.20)",
+    "bang_chung": "Mã: src/modules/giam-sat-chung/lib/gsc-bang-kiem-snapshot.ts:1-5 (phiếu cũ chưa có ảnh chốt: mở lại theo mẫu đang hiệu lực cho đến khi lưu lại); gsc-session-criteria-hydrate.ts:34-55 (không có ảnh chốt: tiêu chí lấy theo mẫu sống; câu đã chấm mà mẫu không còn thì thành chỗ giữ «Tiêu chí đã chấm (không còn trên mẫu)», stt 9999); load-gsc-view-bundle.ts:153-163 (mẫu in/xem = ảnh chốt nếu có, không thì mẫu sống). Đặc tả bản nháp (~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM/02_DAC_TA/M02_GIAM_SAT_TUAN_THU.md): :195 (ma_mau, phien_ban_mau đóng băng khi mở phiên), :607 (R2.20: phiên đã mở giữ phiên bản cũ, cờ «đổi mẫu»). Đo DB local (dữ liệu seed, prod chưa đo): 18/1176 phiên đang hoạt động có ảnh chốt, 1158 chưa; trong 1156 phiên chưa chốt có kết quả, 562 phiên có ít nhất 1 criterion_id không còn trong tieu_chi_jsonb của mẫu phiên đó. Số «1070 phiên có mẫu sửa sau phiếu» bỏ vì có thể do seed ghi mẫu sau phiếu.",
+    "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -At -F ' | ' -c \"with s as (select id, bang_kiem_id, case when jsonb_typeof(results_jsonb)='array' then results_jsonb else '[]'::jsonb end kq, (metadata ? 'bang_kiem_snapshot') snap from gstt_fact_chung_sessions where is_active), m as (select s.id, bool_or(not exists (select 1 from gstt_dm_bang_kiem b, jsonb_array_elements(coalesce(b.tieu_chi_jsonb,'[]'::jsonb)) t where b.id=s.bang_kiem_id and t->>'id'=r->>'criterion_id')) mo_coi from s, jsonb_array_elements(s.kq) r where not s.snap group by s.id) select (select count(*) from s) tong, (select count(*) from s where snap) co_snap, (select count(*) from s where not snap) chua_snap, (select count(*) from m) chua_snap_co_ket_qua, (select count(*) from m where mo_coi) mo_coi\" (local ra 1176 | 18 | 1158 | 1156 | 562; đo prod: cùng truy vấn chỉ đọc, ngoài phạm vi vòng này)",
+    "trang_thai": "MOI",
+    "nguon": "P1:VST_GSC",
+    "commit": "",
+    "ghi_chu": "Mặc định cho vòng sửa (không chờ PO): phương án B — in và xem phiếu chưa có ảnh chốt kèm dòng cảnh báo «Phiếu chưa chốt mẫu: nội dung tiêu chí theo mẫu đang hiệu lực» (chỉ mã, không đổi dữ liệu; mức tối thiểu của «cờ đổi mẫu» ở R2.20). Phương án A — backfill ảnh chốt cho phiếu cũ — ghi dữ liệu prod nên CHO_PO; ngoài ra backfill chỉ chốt được mẫu hiện tại, không khôi phục được chữ cũ của tiêu chí đã sửa. Hệ quả nếu PO im: phiếu cũ vẫn in theo mẫu sống; tiêu chí đã bỏ khỏi mẫu in thành «Tiêu chí đã chấm (không còn trên mẫu)». Trước khi sửa: đo prod bằng truy vấn ở lenh_kiem để biết có đáng sửa không."
   }
 ]

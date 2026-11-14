@@ -73,7 +73,7 @@ Một phát hiện vào sổ khi có: (a) `file:dòng` ở BM/đặc tả/QT; (b
 
 ## 7. Tiến độ (cập nhật mỗi vòng)
 
-P0: 9 việc mở (CSSD-036, CSSD-032, CSSD-035, VST-015, VST-016, VST-020, VST-022, NKBV-030, NKBV-031) + 7 kịch bản tay; CHO_PO 6, đủ mặc định · P1: bước 1 ánh xạ 12/57 đã rà (5 hai phía, 6 một phía, 1 không áp dụng), 45 chưa rà, ghi ở `scripts/readiness/mau-in-anh-xa.json`; bước 2 đã chạy năm phép cho VST/GSC (số khớp ĐẠT, in lại ĐẠT CÓ ĐIỀU KIỆN, xóa mềm ĐẠT, xuất theo vai trò MỘT PHẦN, đầu/cuối trang MỘT PHẦN), chưa chạy cho 4 module còn lại; bước 3 xong 12/12, 3 chỗ vào sổ (NKBV-030 hai vị trí, NKBV-031) · P2: 0/5 · P3: khóa.
+P0: 11 việc mở (CSSD-036, CSSD-032, CSSD-035, VST-015, VST-016, VST-020, VST-022, VST-023, VST-024, NKBV-030, NKBV-031) + 7 kịch bản tay; CHO_PO 6, đủ mặc định · P1: bước 1 ánh xạ 12/57 đã rà (5 hai phía, 6 một phía, 1 không áp dụng), 45 chưa rà, ghi ở `scripts/readiness/mau-in-anh-xa.json`; bước 2 đã chạy năm phép cho VST/GSC (số khớp: VST ĐẠT 0/32119, GSC cần kiểm; in lại MỘT PHẦN theo VST-024; xóa mềm ĐẠT; xuất theo vai trò MỘT PHẦN theo VST-023; đầu/cuối trang MỘT PHẦN; số đo của VST-023/024 là DB local: 18/1176 phiên có ảnh chốt mẫu, 562/1156 phiên chưa chốt có tiêu chí không còn trên mẫu, prod chưa đo), chưa chạy cho 4 module còn lại; bước 3 xong 12/12, 3 chỗ vào sổ (NKBV-030 hai vị trí, NKBV-031) · P2: 0/5 · P3: khóa.
 
 ## Tự kiểm
 
@@ -82,12 +82,12 @@ P0: 9 việc mở (CSSD-036, CSSD-032, CSSD-035, VST-015, VST-016, VST-020, VST-
 - Thứ tự phụ thuộc: P3 sau P0 + P1 (`CLAUDE.md:29`); in CSSD sau CSSD-036 vì cùng file thẻ kho (`cssd-kho-hoa-chat-the-kho.ts:37,50`).
 - Lệch/mâu thuẫn phát hiện (11):
   1. `chay-lien-tuc.md` dẫn `npm run impact`, nhánh này chưa có (script và quy tắc chỉ ở `330eeb7d`; `CLAUDE.md` nhánh này không có dòng `impact`) → dùng `grep -rn`, không mang commit sang (nhánh cũ lệch 20+ commit); không tạo dòng sổ, `chay-lien-tuc.md:61` đã ghi sự thật.
-  2. `CLAUDE.md:28,56` («lâm sàng SSOT im → hỏi PO») ↔ `chay-lien-tuc.md:8,59-61` («không hỏi») → vòng lặp chỉ ghi CHO_PO + đáp án mặc định, không cài mặc định vào code; sửa `chay-lien-tuc.md` §5 cho khớp.
+  2. `CLAUDE.md:28,56` («lâm sàng SSOT im → hỏi PO») ↔ `chay-lien-tuc.md:8,67-69` («không hỏi») → vòng lặp chỉ ghi CHO_PO + đáp án mặc định, không cài mặc định vào code; sửa `chay-lien-tuc.md` §5 cho khớp.
   3. `KE_HOACH_TONG_THE_PHAT_TRIEN_KSNK.md:8,56` («Không thêm module, không thêm bảng mới», đề xuất 2026-11-07) ↔ chỉ đạo PO 2026-11-14 và `CLAUDE.md:29` («triển khai TẤT CẢ module») → chỉ đạo mới hơn thắng; P3 khóa tới sau P0 + P1.
   4. `DOI_CHIEU_DAC_TA_VA_KSNK_BV103.md:7-12` tự nhận «ước lượng ở cấp thực thể, không phải kiểm thử» → P2 đo lại; chưa module nào được chọn chỉ vì bảng đó.
   5. `CLAUDE.md:29` (mỗi module cần người dùng + kịch bản tay trước khi coi là xong) → P3 chỉ «chưa xong» tới khi có người dùng thật.
   6. `CLAUDE.md:58` («Never tạo tài liệu thứ hai») → kế hoạch nằm ở `.claude/plans/`; bảng ánh xạ là dữ liệu JSON ở `scripts/readiness/`, không phải tài liệu.
-  7. `CLAUDE.md:32` (≤ 8 file/task) → tính theo vòng (`chay-lien-tuc.md:63`).
+  7. `CLAUDE.md:32` (≤ 8 file/task) → tính theo vòng (`chay-lien-tuc.md:71`).
   8. `~/.claude/CLAUDE.md:26` («Một phiên = một mục tiêu») ↔ ba mục tiêu trong một phiên → tiếp tục theo chỉ đạo rõ của PO, ba giai đoạn tuần tự có cổng; trạng thái ghi ở file này và HANDOFF.
   9. `so-loi.mjs:21,127,136`: `check` tính CHO_PO là việc mở và đòi `HANDOFF_APPKSNK.md` ≤ 6000 byte (file của phiên khác) → P0 đo bằng lệnh `stats` ở §3, không bằng mã thoát của `check`.
   10. Số «61 file in/xuất» ở ghi chú vòng trước không tái lập → thay bằng 57 theo lệnh ở §2.
