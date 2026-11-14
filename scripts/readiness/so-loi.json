@@ -1860,9 +1860,9 @@
     "tieu_de": "VST-014/015 đọc nhầm CHU_NHIEM_KHOA (chủ nhiệm khoa KSNK = TK_KSNK) thành chủ nhiệm khoa lâm sàng: app và RLS giới hạn CNK về «khoa mình» (khoa NULL → 0 dòng), trái đặc tả M01:22 (TK_KSNK xem/xuất không giới hạn khoa)",
     "bang_chung": "src/modules/giam-sat-vst/lib/vst-read-scope.ts:19-22 (isVstKhoaOnlyScope) và :50-58 (applyVstHistoryReadScope); src/modules/giam-sat-vst/actions/vst-read.actions.ts:120-125; supabase/migrations/20261114150000_gstt_vst_rls_cnk_hoi_dong.sql:75-84 và :113-122 (CASE CHU_NHIEM_KHOA → khoa_id = khoa mình). Vai trò: supabase/migrations/20261111150000_ar1_chu_nhiem_khoa_role_catalog_approve.sql «Chủ nhiệm khoa KSNK — duyệt chuyên môn»; docs/core/handover-roadmap.md:80; src/lib/domain/cssd-equipment-pm.ts:37-38. Đặc tả: M01_VE_SINH_TAY.md dòng 22 (TK_KSNK X/E không giới hạn khoa) và dòng 454 (R1.34: chỉ ĐDT khoa quản lý + CB_KSNK thấy danh tính).",
     "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst/lib/vst-read-scope.spec.ts ; docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/sql/gstt-session-read-scope-probe.sql (mã thoát 0 = đạt)",
-    "trang_thai": "DANG_SUA",
+    "trang_thai": "DA_SUA",
     "nguon": "vòng VST-016 (xác minh 2026-11-14)",
-    "commit": "",
+    "commit": "d0fb8962",
     "ghi_chu": "Gốc: CHU_NHIEM_KHOA là «Chủ nhiệm khoa KSNK — duyệt chuyên môn» (AR-1) = TK_KSNK của đặc tả; VST-014/015 ánh xạ nó sang ĐDT/CN_KHOA lâm sàng của R1.34 nên cắt về «khoa mình». review-bv103 của VST-015 không bắt được vì được giao cùng cách ánh xạ làm yêu cầu. 28f638fc và d9872d6b CHƯA push (git branch -r --contains rỗng) nên prod vẫn chạy policy 20261108100000 (CNK đọc toàn viện): sửa lại là trả về hành vi prod, không đổi quyền người dùng thật. Hướng sửa: CNK = toàn viện như NHAN_VIEN_KSNK ở ba chỗ (applyVstHistoryReadScope, getVSTSessionDetail, isHoiDongOnly) + migration mới thay hai policy (CNK cùng nhóm NHAN_VIEN_KSNK, bỏ nhánh CNK khỏi CASE) + đảo kỳ vọng probe ca 6/8/10/13; lô prod VST-025 phải thêm migration mới ngay sau 20261114150000."
   },
   {
@@ -1890,5 +1890,18 @@
     "nguon": "vòng VST-016 (xác minh 2026-11-14)",
     "commit": "",
     "ghi_chu": "CHO_PO. Mặc định: không tạo vai ĐDT/CN_KHOA lâm sàng trong pilot; việc xem danh sách có danh tính ở cấp khoa do MANG_LUOI_KSNK (khoa được gán) và cán bộ KSNK đảm nhiệm như hiện nay. Hệ quả nếu PO im: ĐDT/chủ nhiệm khoa lâm sàng chưa có đường xem danh sách có danh tính của khoa mình (đúng hiện trạng prod, không rò dữ liệu). Khi PO muốn mở thì thêm vai riêng, không dùng CHU_NHIEM_KHOA, với chính sách «khoa mình» theo mẫu MANG_LUOI."
+  },
+  {
+    "id": "VST-029",
+    "module": "VST_GSC",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Tài khoản giữ cả CHU_NHIEM_KHOA lẫn MANG_LUOI_KSNK vẫn bị khóa theo khoa ở dropdown header, đánh dấu «đã xem» và lưu phiên VST (cùng họ ở GSC, NKBV, analytics, dashboard): các chỗ này chỉ nhìn cờ isMangLuoiKsnk, không nhìn CNK",
+    "bang_chung": "VST: src/modules/giam-sat-vst/actions/vst-read.actions.ts:173,183,195 (getVstHeaderDmDropdowns chỉ xét scope.isMangLuoiKsnk → dropdown khoa/nhân sự chỉ còn khoa mình, rỗng nếu khoa NULL); src/modules/giam-sat-vst/actions/vst-write-seen.actions.ts:40 → src/modules/giam-sat-vst/lib/vst-session-scope.ts:41-54 (VstScope không có vai; phiên ngoài khoa và ngoài người giám sát → «Có phiên nằm ngoài phạm vi được phép.» dù danh sách và chi tiết đã đọc được sau VST-026); src/modules/giam-sat-vst/actions/vst-write-save-session.actions.ts:74-76 (isMangLuoiOnly = isMangLuoiKsnk && !isAdmin && !isNhanVienKsnk, không trừ CNK → khóa khoa khi lưu). Cùng họ ngoài VST: src/lib/analytics/resolve-analytics-rpc-scope.ts:46,73; src/lib/analytics/bang-kiem-toi-phai-tgs.actions.ts:76; src/modules/giam-sat-chung/lib/gsc-read-scope.ts:23,47; src/modules/giam-sat-chung/actions/giam-sat-chung-read.actions.ts:165; src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts:77,237; src/modules/giam-sat-chung/bang-kiem/actions/bang-kiem-read.actions.ts:147; src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.ts:16-17; src/modules/dashboard/actions/bao-cao-tong-hop.actions.ts:110. Nơi tính cờ: src/lib/actor-ksnk-scope-server.ts:53 (isMangLuoiKsnk = có vai MANG_LUOI_KSNK, không loại CNK).",
+    "lenh_kiem": "grep -rln \"isMangLuoiKsnk\" src --include=\"*.ts\" --include=\"*.tsx\" | grep -v \"\\.spec\\.\" (18 file, mọi chỗ đọc cờ phải cho cùng kết quả với CNK kiêm mạng lưới như với CNK đơn) ; npm run test:cssd -- src/modules/giam-sat-vst/lib/vst-session-scope.spec.ts src/modules/giam-sat-vst/lib/vst-read-scope.spec.ts src/modules/giam-sat-chung/lib/gsc-read-scope.spec.ts src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.spec.ts src/lib/analytics/resolve-analytics-rpc-scope.spec.ts (thêm ca vai CNK + MANG_LUOI_KSNK, viết đỏ trước)",
+    "trang_thai": "DA_XAC_MINH",
+    "nguon": "vòng VST-026 (rà đường đọc VST, 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Xác minh bằng đọc mã và grep, chưa có test đỏ (viết khi sửa). Chỉ thu hẹp quyền, không lộ hàng nào (fail-closed); chỉ xảy ra khi một tài khoản giữ đồng thời hai vai. Local: 0 tài khoản giữ cả hai vai (sys_user_roles: ADMIN 1, KHACH_THONG_KE_GSTT 1, NHAN_VIEN_KSNK 20, TO_TRUONG_CSSD_TEST 1); prod chưa đo, thuộc truy vấn đếm của VST-025. Hướng sửa (cần phản biện trước khi làm): (A) một chỗ gốc, src/lib/actor-ksnk-scope-server.ts:53 trả isMangLuoiKsnk chỉ khi có MANG_LUOI_KSNK mà không có CHU_NHIEM_KHOA — 16 file ngoài định nghĩa đều dùng cờ này với nghĩa «bị khóa theo khoa», còn dùng vai trực tiếp (use-permission-api.ts:33, supervision-policy.ts:25) không đi qua cờ; hoặc (B) thêm cờ riêng và đổi từng chỗ. Vượt 8 file nếu chọn B nên tách lát: VST (3 chỗ) trước, rồi GSC, NKBV, analytics, dashboard. Chưa rà: giam-sat-chung-print-labels.actions.ts:52,62 lọc khoa theo isMangLuoiKsnk mà không loại ADMIN/NV KSNK (biến thể khác, cần đọc trước khi kết luận). Không cần PO: không đổi quyền người dùng thật."
   }
 ]
