@@ -10,7 +10,31 @@ export type TheKhoInput = {
   ly_do_xuat?: string | null;
   trang_thai?: string | null;
   created_at: string | null;
+  duyet_at?: string | null;
 };
+
+export type NgayHieuLucInput = Pick<TheKhoInput, "id" | "created_at" | "duyet_at">;
+
+/** Ngày hiệu lực = lúc tồn thật sự đổi: `duyet_at`; phiếu cũ chưa có `duyet_at` thì `created_at` (CSSD-033, CSSD-036). */
+export function ngayHieuLuc(r: Pick<TheKhoInput, "created_at" | "duyet_at">): string | null {
+  return r.duyet_at ?? r.created_at;
+}
+
+const epoch = (iso: string | null): number => {
+  const t = iso ? Date.parse(iso) : Number.NaN;
+  return Number.isNaN(t) ? Number.NEGATIVE_INFINITY : t;
+};
+
+/**
+ * So tăng dần theo thời điểm thật của ngày hiệu lực, hòa thì theo id. Không so chuỗi: PostgREST trả `+00:00`,
+ * phần lẻ giây dài ngắn khác nhau nên `localeCompare` xếp sai.
+ */
+export function soSanhHieuLuc(a: NgayHieuLucInput, b: NgayHieuLucInput): number {
+  const ta = epoch(ngayHieuLuc(a));
+  const tb = epoch(ngayHieuLuc(b));
+  if (ta !== tb) return ta < tb ? -1 : 1;
+  return a.id.localeCompare(b.id);
+}
 
 export type TheKhoDong = {
   id: string;
@@ -28,13 +52,15 @@ export type TheKhoDong = {
 export type TheKho = { ton_dau: number; dong: TheKhoDong[]; tong_nhap: number; tong_xuat: number; ton_cuoi: number };
 
 /**
- * Chỉ tính phiếu DA_DUYET (khớp view tồn). `tonHienTai` là tồn thật; nếu danh sách bị cắt
- * (limit) thì tồn đầu = tồn hiện tại − tổng các dòng đang có, nên tồn lũy kế luôn khớp tồn thật.
+ * Chỉ tính phiếu DA_DUYET (khớp view tồn). Tồn chỉ đổi lúc DUYỆT nên xếp và ghi ngày theo `ngayHieuLuc`,
+ * không theo ngày lập (CSSD-036). `tonHienTai` là tồn thật; nếu danh sách bị cắt (limit) thì tồn đầu =
+ * tồn hiện tại − tổng các dòng đang có, nên tồn lũy kế luôn khớp tồn thật (từng dòng đúng khi `rows` là
+ * đoạn cuối của thứ tự ngày hiệu lực — action thẻ kho lấy cửa sổ cùng khóa).
  */
 export function buildTheKho(rows: TheKhoInput[], tonHienTai: number): TheKho {
   const ok = rows
     .filter((r) => r.trang_thai === "DA_DUYET" && Number.isFinite(r.so_luong_co_dau))
-    .sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")) || a.id.localeCompare(b.id));
+    .sort(soSanhHieuLuc);
   const tong = ok.reduce((s, r) => s + r.so_luong_co_dau, 0);
   const tonDau = tonHienTai - tong;
   let ton = tonDau;
@@ -47,7 +73,7 @@ export function buildTheKho(rows: TheKhoInput[], tonHienTai: number): TheKho {
     else tongXuat += -q;
     return {
       id: r.id,
-      ngay: r.created_at,
+      ngay: ngayHieuLuc(r),
       ma_phieu: r.ma_phieu,
       loai: r.loai_giao_dich,
       ma_lo: r.ma_lo,

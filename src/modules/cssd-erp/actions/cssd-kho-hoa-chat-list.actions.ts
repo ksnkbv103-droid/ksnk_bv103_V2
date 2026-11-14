@@ -4,6 +4,7 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { normalizeTrangThai } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
+import { soSanhHieuLuc } from "@/lib/domain/cssd-kho-hoa-chat-the-kho";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { KhoHoaChatTonLo, KhoHoaChatGiaoDichRow } from "./cssd-kho-hoa-chat.types";
@@ -109,11 +110,16 @@ const CHO_DUYET_TRAN = 500;
  * Nhật ký giao dịch gần nhất; `dm_hoa_chat_id` = lịch sử riêng một mặt hàng (drawer).
  * `include_cho_duyet`: kèm MỌI phiếu CHO_DUYET dù cũ hơn cửa sổ `limit` — phiếu chờ duyệt giữ chỗ tồn khả dụng
  * nên không được rơi khỏi hàng chờ (CSSD-030).
+ * `theo_ngay_hieu_luc`: cửa sổ `limit` = phiếu mới nhất theo `duyet_at ?? created_at` (tồn chỉ đổi lúc duyệt), không theo
+ * `created_at` — thẻ kho cần để tồn lũy kế từng dòng đúng (CSSD-036). PostgREST không ORDER BY coalesce được nên lấy hai
+ * nhóm (đã / chưa có duyet_at) mỗi nhóm `limit` dòng rồi gộp, xếp, cắt; mọi dòng thuộc top-`limit` chung đều nằm trong
+ * top-`limit` của nhóm mình nên kết quả khớp tuyệt đối.
  */
 export async function listGiaoDichKhoHoaChatAction(params?: {
   limit?: number;
   dm_hoa_chat_id?: string;
   include_cho_duyet?: boolean;
+  theo_ngay_hieu_luc?: boolean;
 }): Promise<
   { success: true; data: KhoHoaChatGiaoDichRow[] } | { success: false; error: string }
 > {
@@ -130,7 +136,18 @@ export async function listGiaoDichKhoHoaChatAction(params?: {
       if (dmFilter) q = q.eq("dm_hoa_chat_id", dmFilter);
       return q;
     };
-    const { data: rows, error } = await baseQuery().order("created_at", { ascending: false }).limit(lim);
+    const cuaSoTheoNgayHieuLuc = async () => {
+      const [coDuyet, chuaDuyet] = await Promise.all([
+        baseQuery().not("duyet_at", "is", null).order("duyet_at", { ascending: false }).limit(lim),
+        baseQuery().is("duyet_at", null).order("created_at", { ascending: false }).limit(lim),
+      ]);
+      const loi = coDuyet.error ?? chuaDuyet.error;
+      const gop = [...(coDuyet.data || []), ...(chuaDuyet.data || [])].sort((a, b) => soSanhHieuLuc(b, a)).slice(0, lim);
+      return { data: loi ? null : gop, error: loi };
+    };
+    const { data: rows, error } = params?.theo_ngay_hieu_luc
+      ? await cuaSoTheoNgayHieuLuc()
+      : await baseQuery().order("created_at", { ascending: false }).limit(lim);
     if (error) return { success: false, error: mapFkError(error.message) };
     let rawRows = rows || [];
     if (params?.include_cho_duyet) {

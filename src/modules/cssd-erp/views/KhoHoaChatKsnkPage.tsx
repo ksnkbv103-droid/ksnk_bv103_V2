@@ -43,10 +43,11 @@ export default function KhoHoaChatKsnkPage() {
   );
   const [dmMovs, setDmMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
   // Lịch sử riêng từng mặt hàng (không cắt theo 120 dòng toàn kho); tải lại sau mỗi reload (duyệt/nhập/xuất).
+  // Cửa sổ 200 dòng theo ngày duyệt (CSSD-036) để thẻ kho tính tồn lũy kế đúng thứ tự tồn đổi.
   useEffect(() => {
     if (!openId || h.busy) return;
     let alive = true;
-    void listGiaoDichKhoHoaChatAction({ limit: 200, dm_hoa_chat_id: openId }).then((r) => {
+    void listGiaoDichKhoHoaChatAction({ limit: 200, dm_hoa_chat_id: openId, theo_ngay_hieu_luc: true }).then((r) => {
       if (!alive) return;
       if (r.success) setDmMovs(r.data);
       else toast.error(r.error);
