@@ -1936,12 +1936,12 @@
     "lop": "DOMAIN",
     "muc": "CAO",
     "tieu_de": "MDRO/RCA: HOI_DONG_KSNK (≈ BGĐ, đặc tả M03 «Xa» = ẩn danh) có GIAM_SAT_NKBV:view nên danh sách người bệnh trả họ tên, mã bệnh án, mã bệnh nhân toàn viện",
-    "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.ts:16 coi HĐ là wide → {kind:'all'}; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:59-61 select ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan từ nkbv_fact_benh_an bằng user client (viaGscOnly=false vì HĐ có NKBV view: nkbv-khoa-scope.server.ts:25); giam-sat-nkbv-rca.actions.ts:44-46 cùng ba cột. DB local: HOI_DONG_KSNK có GIAM_SAT_NKBV:view. Đặc tả M03: BGĐ «Xa» (ẩn danh) trên ca_nkbv/mdro_nguoi_benh/rca_muc; giải mã chỉ CB_KSNK/TK_KSNK và có ghi log. CHƯA kiểm RLS của nkbv_fact_benh_an với HĐ: nếu RLS đã chặn thì lỗi chỉ còn là màn trống; phải kiểm trước khi sửa.",
-    "lenh_kiem": "grep -n \"ho_ten_benh_nhan\" src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-rca.actions.ts ; npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.spec.ts src/modules/giam-sat-nkbv/lib/nkbv-census-access.server.spec.ts (thêm ca: HĐ không nhận census có danh tính)",
-    "trang_thai": "MOI",
+    "bang_chung": "(Số dòng ghi lúc phát hiện, trước khi thêm cổng.) src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.ts:16 coi HĐ là wide → {kind:'all'}; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:59-61 select ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan từ nkbv_fact_benh_an bằng user client (viaGscOnly=false vì HĐ có NKBV view: nkbv-khoa-scope.server.ts:25); giam-sat-nkbv-rca.actions.ts:44-46 cùng ba cột. DB local: HOI_DONG_KSNK có GIAM_SAT_NKBV:view. Đặc tả M03: BGĐ «Xa» (ẩn danh) trên ca_nkbv/mdro_nguoi_benh/rca_muc; giải mã chỉ CB_KSNK/TK_KSNK và có ghi log. Đã kiểm RLS (DB local, 2026-11-14): fn_nkbv_actor_khoa_restricted() = false với HĐ (hàm loại HOI_DONG_KSNK) và policy nkbv_fact_benh_an_select (20261111170000) chỉ cần GIAM_SAT_NKBV:view, nên RLS KHÔNG chặn HĐ đọc họ tên qua PostgREST: lỗi là thật cả ở tầng app lẫn DB (phần DB tách thành NKBV-035). Số liệu local là dữ liệu seed, prod chưa đo.",
+    "lenh_kiem": "grep -n \"ho_ten_benh_nhan\" src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-rca.actions.ts ; npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.spec.ts src/modules/giam-sat-nkbv/lib/nkbv-census-access.server.spec.ts src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-list-scope.actions.spec.ts (đã có ca: HĐ thuần không nhận census có danh tính; ba file spec: 32 ca)",
+    "trang_thai": "DA_SUA",
     "nguon": "vòng VST-023 (hệ quả RLS và rà đường rò GSC, 2026-11-14)",
-    "commit": "",
-    "ghi_chu": "Cùng họ với VST-014/VST-023 nhưng ở NKBV. Mặc định đề xuất: HĐ không có census danh tính (trả rỗng hoặc mã giả) theo M03 «Xa», giữ nguyên cho CB_KSNK/TK_KSNK/ADMIN. Nếu khi phân tích thấy SSOT NKBV im về HĐ thì chuyển CHO_PO với mặc định này. Liên quan: phần MDRO/RCA của hàng VST về view GSC bằng user client."
+    "commit": "a5cc1daf",
+    "ghi_chu": "Cùng họ với VST-014/VST-023 nhưng ở NKBV. Mặc định đề xuất: HĐ không có census danh tính (trả rỗng hoặc mã giả) theo M03 «Xa», giữ nguyên cho CB_KSNK/TK_KSNK/ADMIN. Nếu khi phân tích thấy SSOT NKBV im về HĐ thì chuyển CHO_PO với mặc định này. Liên quan: phần MDRO/RCA của hàng VST về view GSC bằng user client. ĐÃ SỬA Ở TẦNG APP (commit ở trường commit): cờ identityDenied = isNkbvHoiDongOnly (có vai HOI_DONG_KSNK; không phải admin, NV KSNK, Mạng lưới hay CHU_NHIEM_KHOA) chặn trước mọi truy vấn ở listMdroInpatientsByKhoa (getPatientMdroSupervisionStatus thừa hưởng), listNkbvPatientRcaByKhoa và listInpatientsByKhoa; thống kê NKBV toàn viện giữ nguyên (đọc bằng admin client, không đi qua các action này). GIẢ ĐỊNH: HĐ ≈ BGĐ «Xa» của M03 (M03 không có mã vai HOI_DONG); nếu PO/SSOT nói khác thì đổi isNkbvHoiDongOnly ở nkbv-khoa-scope.ts. CNK được loại trừ (CNK ≡ TK_KSNK như gsc-read-scope.ts, M03 «X*» với mdro/rca; Hội đồng cấp quyền xem, CNK quyết định phạm vi): reviewer độc lập phát hiện bản đầu chặn nhầm CNK, đã sửa bằng test đỏ trước. Chưa phủ, đã ghi sổ: NKBV-034 (bốn action đọc danh sách ca, hồ sơ, tra theo mã, trung tâm bệnh án; kèm Mạng lưới kiêm HĐ), NKBV-035 (RLS sáu bảng nền), NKBV-036 (họ tên trong URL liên kết GSC), NKBV-037 (giao diện báo «không có BN» và toast trùng khi bị chặn), NKBV-038 (phạm vi đọc mặc định mở với vai ngoài KSNK có NKBV:view). Tài khoản mang cả MANG_LUOI_KSNK và HOI_DONG_KSNK không bị chặn (có sẵn từ trước, vì phạm vi thống kê coi HĐ là toàn viện). Prod chưa đổi: chưa push, chưa deploy."
   },
   {
     "id": "NKBV-033",
@@ -1955,5 +1955,70 @@
     "nguon": "vòng VST-023 (hệ quả RLS và rà đường rò GSC, 2026-11-14)",
     "commit": "",
     "ghi_chu": "Xác minh trước khi sửa: cần seed một tài khoản khách có khoa để tái hiện. Mặc định đề xuất: khách thống kê → {kind:'none'} kèm thông báo; không đổi hành vi cho Mạng lưới thuần chỉ có quyền GSC (thiết kế NKBV-005)."
+  },
+  {
+    "id": "NKBV-034",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "CAO",
+    "tieu_de": "NKBV: bốn action đọc (danh sách ca, hồ sơ bệnh án, tra bệnh án theo mã, trung tâm bệnh án) vẫn trả họ tên và mã bệnh án/bệnh nhân cho HOI_DONG_KSNK thuần; NKBV-032 mới chặn bốn action census",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts: listGiamSatNkbvCas (:52; tìm theo ho_ten_benh_nhan/ma_benh_nhan :82; select có họ tên và mã bệnh nhân :95), listNkbvMedicalRecords (:212; tìm :237; select có họ tên, ngày sinh, giới tính :245), getNkbvBenhAnByMa (:517; select :529), getNkbvBenhAnHub (:582; select :623) chỉ cần GIAM_SAT_NKBV:view và không dùng cờ identityDenied của NKBV-032 (cổng này mới đặt ở bốn action census: listMdroInpatientsByKhoa, listNkbvPatientRcaByKhoa, listInpatientsByKhoa, getPatientMdroSupervisionStatus). DB local: HOI_DONG_KSNK có GIAM_SAT_NKBV:view. Kho (bản nháp): 09_DOMAIN_PHAN_MEM/02_DAC_TA/M03_GIAM_SAT_NKBV.md:31 (dashboard/line list dùng ma_nb_gia, chỉ CB_KSNK/TK_KSNK giải mã), :455 (R3.19), :494 (R3.62); cột BGĐ «Xa» = ẩn danh cho ca_nkbv, mdro_nguoi_benh, rca_muc. HĐ≈BGĐ là GIẢ ĐỊNH (M03 không có mã vai HOI_DONG). Kèm theo: tài khoản mang cả MANG_LUOI_KSNK và HOI_DONG_KSNK không bị cổng NKBV-032 chặn (isNkbvHoiDongOnly loại trừ Mạng lưới) và bị mở rộng thành toàn viện (src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.ts:16, biến wide gồm HOI_DONG_KSNK) nên thấy danh tính mọi khoa. Số liệu local là dữ liệu seed, prod chưa đo.",
+    "lenh_kiem": "grep -n \"ho_ten_benh_nhan\" src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts ; npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-list-scope.actions.spec.ts (thêm ca: HĐ thuần gọi bốn action đọc không nhận họ tên/mã)",
+    "trang_thai": "MOI",
+    "nguon": "vòng NKBV-032 (hệ quả: đường đọc còn hở, 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Mặc định đề xuất cho vòng sửa (không chờ PO, không đổi quyền người dùng thật): dùng cùng cổng identityDenied như NKBV-032 cho bốn action, chặn trước mọi truy vấn; chặn hẳn có diff nhỏ hơn việc trả cột mã giả. Mạng lưới kiêm HĐ: ghép quyền theo hướng cộng (khoa của mình có danh tính, khoa khác ẩn danh) là quyết định riêng — nếu SSOT NKBV im thì chuyển CHO_PO kèm mặc định này. Hệ quả nếu PO im: HĐ vẫn đọc được danh tính qua bốn action này."
+  },
+  {
+    "id": "NKBV-035",
+    "module": "NKBV",
+    "lop": "DB",
+    "muc": "CAO",
+    "tieu_de": "NKBV: RLS sáu bảng nkbv_fact_* (benh_an, device_registry, labid_event, mau_so_phau_thuat, su_kien, vi_sinh) cho HOI_DONG_KSNK đọc cột danh tính qua PostgREST; chặn ở tầng app của NKBV-032 không phủ đường này",
+    "bang_chung": "supabase/migrations/20261111170000_nkbv_fact_select_rls_khoa_scope.sql: nkbv_fact_benh_an_select = admin hoặc GIAM_SAT_NKBV:view, và (không bị giới hạn khoa hoặc ma_benh_an thuộc tập khoa). fn_nkbv_actor_khoa_restricted() = has_role('MANG_LUOI_KSNK') AND NOT is_admin AND NOT has_role('NHAN_VIEN_KSNK') AND NOT has_role('HOI_DONG_KSNK') nên HĐ không bao giờ bị giới hạn khoa; không có chính sách hay view ẩn cột danh tính. Đo ở DB local (2026-11-14, vòng NKBV-032): RLS không chặn HĐ đọc nkbv_fact_benh_an kèm ho_ten_benh_nhan. Sáu bảng có cột danh tính ở local: nkbv_fact_benh_an, nkbv_fact_device_registry, nkbv_fact_labid_event, nkbv_fact_mau_so_phau_thuat, nkbv_fact_su_kien, nkbv_fact_vi_sinh. Thống kê NKBV đọc bằng createAdminSupabaseClient() qua unstable_cache 90 s (src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions.ts) nên siết RLS không làm trống dashboard. Số liệu local là dữ liệu seed, prod chưa đo.",
+    "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -At -c \"select tablename||'|'||policyname||'|'||cmd from pg_policies where tablename in ('nkbv_fact_benh_an','nkbv_fact_device_registry','nkbv_fact_labid_event','nkbv_fact_mau_so_phau_thuat','nkbv_fact_su_kien','nkbv_fact_vi_sinh') order by 1\" (probe sau sửa: đăng nhập vai HĐ qua PostgREST, chọn ho_ten_benh_nhan phải bị từ chối hoặc ẩn)",
+    "trang_thai": "MOI",
+    "nguon": "vòng NKBV-032 (hệ quả: đường đọc còn hở, 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Việc của vòng lặp: viết migration local (ẩn cột danh tính với HĐ bằng view không danh tính hoặc quyền theo cột), probe đỏ rồi xanh, `npm run mdm:migrate:local` rồi `verify:mdm:local`. Áp lên prod là cổng PO (nhập lô kiểu VST-025; NEN-003: repair version trước db push). Mặc định đề xuất: HĐ chỉ đọc view không danh tính; CB_KSNK/TK_KSNK/ADMIN giữ nguyên; Mạng lưới theo khoa như hiện tại. Hệ quả nếu PO im: tầng app đã chặn (NKBV-032) nhưng người cầm phiên HĐ gọi thẳng PostgREST vẫn đọc được danh tính."
+  },
+  {
+    "id": "NKBV-036",
+    "module": "NKBV",
+    "lop": "FRONTEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "NKBV→GSC: buildGscMdroDeepLink đưa họ tên người bệnh vào query URL (?ten_nguoi_benh=…) nên tên lọt vào lịch sử trình duyệt, nhật ký máy chủ và tiêu đề Referer",
+    "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-mdro.ts:69-84 (q.set(\"ten_nguoi_benh\", input.tenBenhNhan) ở :81); nơi gọi: src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:150,157,210,216 và src/modules/giam-sat-nkbv/components/NkbvBenhAnHubPanel.tsx:379,388; nơi đọc query: src/app/giam-sat-chung/tuan-thu/page.tsx, src/components/shared/GiamSatHeader.tsx, GiamSatHeaderPatientFields.tsx. Kho (bản nháp): 09_DOMAIN_PHAN_MEM/02_DAC_TA/M03_GIAM_SAT_NKBV.md:31 (đường ra ngoài khoa dùng ma_nb_gia) cùng tinh thần, chưa phải căn cứ trực tiếp cho URL nội bộ.",
+    "lenh_kiem": "grep -rn \"ten_nguoi_benh\" src/modules/giam-sat-nkbv src/app/giam-sat-chung ; npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-mdro.spec.ts (đổi ca kiểm href: href không chứa tên người bệnh)",
+    "trang_thai": "MOI",
+    "nguon": "vòng NKBV-032 (hệ quả: đường đọc còn hở, 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Mặc định đề xuất: bỏ tham số tên khỏi URL; trang GSC chỉ nhận mã bệnh án và tra tên phía máy chủ theo quyền hiện hành, hoặc cho nhập tay. Cần kiểm trước khi sửa: form GSC còn đủ dữ liệu khi không có tên không (đường nhập tay)? Đổi kỳ vọng ở nkbv-mdro.spec.ts sẽ cần chú thích gate-ok theo scripts/gate-integrity.mjs. Hệ quả nếu PO im: tên người bệnh vẫn nằm trong URL."
+  },
+  {
+    "id": "NKBV-037",
+    "module": "NKBV",
+    "lop": "UX",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "NKBV/GSC giao diện: khi action danh sách người bệnh trả lỗi (kể cả bị chặn theo NKBV-032) màn hình nói như «khoa không có BN đa kháng»: panel MDRO/RCA hiện hai toast trùng và bảng trống, form header GSC nuốt lỗi im lặng",
+    "bang_chung": "src/modules/giam-sat-nkbv/components/NkbvMdroCensusPanel.tsx:34-35 gọi listMdroInpatientsByKhoa và listNkbvPatientRcaByKhoa song song, :38 và :40 mỗi nhánh toast.error(error) nên câu NKBV_HOI_DONG_IDENTITY_DENIED hiện hai lần; khi lỗi mdroRows không bị đặt lại nên bảng rơi vào dòng «Không có BN đa kháng còn nằm viện tại khoa.» (:96-100); panel gắn ở src/modules/giam-sat-nkbv/components/GiamSatNkbvPage.tsx:1016. src/components/shared/GiamSatHeaderPatientFields.tsx: nhánh !res.success đặt setInpatients([]) không toast ở :91-94 (MDRO) và :110-113 (listInpatientsByKhoa, gọi ở :108); :145-146 else setStatus(null) (getPatientMdroSupervisionStatus gọi ở :139); placeholder «Không có BN đa kháng còn nằm tại khoa» và «Không có BN còn nằm viện tại khoa — nhập tay bên dưới» (:191-192) cùng dòng gợi ý «Chưa có BN đa kháng tại khoa — …» (:242-246) hiện cả khi nguyên nhân là bị chặn quyền hoặc lỗi tải, không phải khoa không có ca. Đã đọc mã, chưa chạy giao diện.",
+    "lenh_kiem": "Test tay trên localhost: đăng nhập tài khoản chỉ có vai HOI_DONG_KSNK → NKBV → tab MDRO/RCA: chỉ còn một thông báo giải thích và không có dòng «Không có BN đa kháng…»; form header GSC: lỗi hiện thành thông báo chứ không phải «Không có BN…»; tài khoản CB_KSNK không đổi",
+    "trang_thai": "MOI",
+    "nguon": "vòng NKBV-032 (hệ quả: đường đọc còn hở, 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Hệ quả trực tiếp của NKBV-032 (nhận diện lúc rà, chưa sửa vì sẽ là file thứ 9 của vòng). Nâng từ THAP lên TRUNG_BINH vì câu «không có BN đa kháng» là sai sự thật khi nguyên nhân là bị chặn hoặc lỗi tải, người đọc có thể hiểu nhầm khoa không có ca MDRO. Hành vi nuốt lỗi ở GiamSatHeaderPatientFields có từ trước NKBV-032. Mặc định đề xuất: tách trạng thái lỗi khỏi trạng thái rỗng (một khung giải thích tĩnh hoặc một toast, không hai); khi lỗi thì không hiện dòng «không có BN». Không cần PO. Hệ quả nếu PO im: người bị chặn hoặc gặp lỗi tải thấy thông báo khoa không có người bệnh."
+  },
+  {
+    "id": "NKBV-038",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "NKBV: phạm vi đọc mặc định MỞ: resolveNkbvKhoaRestriction trả toàn viện cho mọi vai không phải Mạng lưới, nên vai ngoài KSNK có GIAM_SAT_NKBV:view (ở local: TO_TRUONG_CSSD_TEST) vẫn nhận danh sách người bệnh có danh tính toàn viện qua các action census",
+    "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.ts:17 (if (wide || !scope.isMangLuoiKsnk) return { kind: \"all\" }); cổng NKBV-032 chỉ chặn Hội đồng thuần (isNkbvHoiDongOnly), vai khác không bị chặn. DB local (đo 2026-11-14, sys_role_permissions ⨝ sys_roles ⨝ sys_permissions): vai có GIAM_SAT_NKBV:view = ADMIN (1 tài khoản), HOI_DONG_KSNK (0), MANG_LUOI_KSNK (0), NHAN_VIEN_KSNK (21), TO_TRUONG_CSSD_TEST (1). Suy từ mã (chưa chạy thật bằng tài khoản đó): tài khoản chỉ mang TO_TRUONG_CSSD_TEST qua verifyPermission → restriction all và identityDenied false → listMdroInpatientsByKhoa và listNkbvPatientRcaByKhoa (admin client) trả họ tên toàn viện. Kèm theo: listInpatientsByKhoa đọc bằng createServerSupabaseUserClient() (RLS) còn MDRO/RCA dùng admin client (NKBV-005), nên cùng một người dùng thấy kết quả khác nhau giữa các tab. Kho (bản nháp): M03_GIAM_SAT_NKBV.md:31, danh tính chỉ cho CB_KSNK/TK_KSNK, có lý do và nhật ký truy cập. Số liệu local là dữ liệu seed, prod chưa đo.",
+    "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -At -c \"select r.name||' | tài khoản='||(select count(*) from sys_user_roles ur where ur.role_id=r.id) from sys_role_permissions rp join sys_roles r on r.id=rp.role_id join sys_permissions p on p.id=rp.permission_id where p.module_name='GIAM_SAT_NKBV' and p.action='view' order by r.name\" ; npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.spec.ts (thêm ca: vai ngoài KSNK và Mạng lưới không nhận danh sách có danh tính)",
+    "trang_thai": "MOI",
+    "nguon": "vòng NKBV-032 (hệ quả: đường đọc còn hở, 2026-11-14)",
+    "commit": "",
+    "ghi_chu": "Mặc định đề xuất (không chờ PO, không đổi quyền người dùng thật): thêm predicate riêng cho đường danh sách có danh tính (admin, NV KSNK, CHU_NHIEM_KHOA ≡ TK_KSNK: toàn viện; Mạng lưới: khoa của mình; mọi vai khác: không nhận) và dùng cùng cổng identityDenied của NKBV-032. KHÔNG đổi resolveNkbvKhoaRestriction vì hàm này cũng quyết phạm vi thống kê (giam-sat-nkbv-dashboard.actions.ts). Trước khi sửa: đếm vai có GIAM_SAT_NKBV:view ở prod bằng truy vấn chỉ đọc (prod chưa đo) để biết tài khoản thật nào bị đóng. Hệ quả nếu PO im: vai ngoài KSNK có GIAM_SAT_NKBV:view vẫn thấy danh sách người bệnh có danh tính toàn viện; ở local chỉ là vai kiểm thử (1 tài khoản)."
   }
 ]
