@@ -60,7 +60,7 @@ Với dòng được chọn, viết vào nhật ký (≤ 12 dòng, không trình
 
 - `so-loi.mjs set <ID> DANG_SUA`. Test tái hiện fail trước. File dùng chung: tìm nơi dùng bằng `grep -rn "<tên>" src supabase scripts` trước (`npm run impact` chỉ có ở nhánh `chore/code-vs-ai-phase1` (commit `330eeb7d`); CLAUDE.md nhánh này không yêu cầu nên chưa mang sang — dùng `grep` ở trên).
 - Người sửa: tự làm nếu ≤ 3 file; `slice-fixer` cho code theo mẫu; `migration-author` cho migration/RPC (**chỉ DB local**). Một agent ghi tại một thời điểm; trong lúc agent chạy thì làm bước 2 của module kế (chỉ đọc), **không kết lượt chờ**.
-- `npm run verify:changed`. Fail → sửa tối đa 3 vòng; vẫn fail → hoàn tác phần của vòng này, `set <ID> HOAN` kèm lỗi nguyên văn, sang việc kế.
+- `npm run verify:changed`. Fail → sửa tối đa 3 vòng; vẫn fail → hoàn tác phần của vòng này, `set <ID> HOAN` kèm lỗi nguyên văn, sang việc kế. Ngoại lệ: lỗi nằm hoàn toàn ngoài diff của vòng (file chưa commit của phiên khác, có từ trước vòng; kế hoạch ghi ở mục «Cổng PO») không tính vào 3 vòng và không HOAN; chứng minh bằng chạy riêng spec/lệnh trên các file của vòng, ghi tên file lỗi vào nhật ký, và vẫn không được nói «verify:changed pass».
 - Lớp FRONTEND/UX: thử tay ≥ 1 kịch bản trên `localhost:3001`, `so-loi.mjs tay <ID> DAT|KHONG_DAT`.
 - Pass → `git add <đúng file của vòng>` + commit cục bộ; `so-loi.mjs set <ID> DA_SUA <sha>`.
 
@@ -72,4 +72,4 @@ Giới hạn «≤ 8 file/task» tính **theo vòng**; việc lớn hơn → tá
 
 ## 6. Kết vòng
 
-Một dòng vào `NHAT_KY_VONG_LAP.md`: `ngày giờ · module · ID · phương án chọn (điểm) · verify · sha | CHO_PO | HOAN | sạch` (vòng P1/P2: cột ID ghi `P1:<module>` hoặc `P2:<tài liệu>`, và cập nhật §7 của kế hoạch). Không viết báo cáo dài, không khối hỏi. Dừng `/loop` chỉ khi: P0, P1, P2 đã đạt **và** ba vòng liền «sạch» trên cả 7 module; hoặc cùng một lỗi verify lặp 3 vòng liền (ghi HANDOFF). Bước P3 thiếu điều kiện (chưa có đặc tả hoặc người dùng thật) → CHO_PO, không giữ vòng lặp chạy.
+Một dòng vào `NHAT_KY_VONG_LAP.md`: `ngày giờ · module · ID · phương án chọn (điểm) · verify · sha | CHO_PO | HOAN | sạch` (vòng P1/P2: cột ID ghi `P1:<module>` hoặc `P2:<tài liệu>`, và cập nhật §7 của kế hoạch). Không viết báo cáo dài, không khối hỏi. Dừng `/loop` chỉ khi: P0, P1, P2 đã đạt **và** ba vòng liền «sạch» trên cả 7 module; hoặc cùng một lỗi verify lặp 3 vòng liền (ghi HANDOFF; lỗi ngoài diff của vòng theo ngoại lệ ở §4 không tính). Bước P3 thiếu điều kiện (chưa có đặc tả hoặc người dùng thật) → CHO_PO, không giữ vòng lặp chạy.
