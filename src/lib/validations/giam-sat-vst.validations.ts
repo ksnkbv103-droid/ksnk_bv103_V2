@@ -30,6 +30,7 @@ const optionalUuid = (msg: string) =>
 const vstMomentSchema = z.enum(MOMENTS, { error: "Thời điểm WHO không hợp lệ" });
 const vstActionSchema = z.enum(ACTIONS, { error: "Hành động vệ sinh tay không hợp lệ" });
 
+// @dac-ta R1.07 — cơ hội phải có ≥1 chỉ định và thời điểm chỉ thuộc 1–5 (enum MOMENTS); trần ≤2 là khóa PO 2026-10-09.
 const vstOpportunitySchema = z
   .object({
     thoi_diems: z
