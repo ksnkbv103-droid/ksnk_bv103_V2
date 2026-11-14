@@ -2,6 +2,12 @@
 
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md` (lô migration prod, sao lưu nhóm 2, ghi chú NKBV máu-sau-cùng). `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
+## ĐANG LÀM
+- Đưa nhánh lên preview, smoke VST + GSC — xong khi: `e2e/gsc-vst-supervision.spec.ts` pass ở :3001 rồi ở preview; commit chưa push = 0 — còn: chạy spec ở :3001; push + preview chờ mục 4–5 «CẦN NGƯỜI».
+
+## KẾ
+- PR vào `main` → dọn 15 nhánh, 5 worktree → CSSD-036.
+
 ## Mở phiên mới
 1. Làm ở worktree `integrate-2026-11` (nhánh `integrate/2026-11`, chưa push).
 2. `node scripts/readiness/so-loi.mjs status` → `next 10` → `next --tay` → `stats`.
@@ -16,13 +22,11 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 ## Trạng thái (2026-11-13)
 - Điểm cơ học (`module:audit`, số bước có/10): giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước còn thiếu (1, 2, 5, 8, 9, 10) đều cần người dùng/PO: đầu mối, kịch bản thật, ngưỡng, UAT, số đo. Sửa mã không nâng được điểm.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
-- UAT 2026-11-13 trên :3001: ĐẠT CSSD-006, NKBV-009, QLCV-007, DT-007, DT-014 (sau sửa 47b8e383). Đã sửa c80d15c4: CSSD-026/024, NKBV-022, VST-013b (chưa thử tay). `check` exit 0.
 - QT-013 đã sửa + thử tay đạt. VST-012 = lỗi giả (chỉ kẹt khi tab pane nằm nền; đo ở tab trước bằng tab mới, không đo tab nền). Thử tay ĐẠT CSSD-024, NKBV-022, VST-013b (fixture đã trả về gốc). NKBV-024 (Kho vi sinh hiện nút ghi cho vai chỉ xem) đã sửa d5d60fdb + thử tay đạt.
-- Lát D xong 2026-11-13: mục 8 `van-de-nguoi-dung.md` của 5 module có khối «Cập nhật 2026-11-13» (audit, gate, sổ lỗi, thử tay).
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
 - 15 dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture). Chạy khi có đầu mối/UAT thật.
 
-## Chặn thử nghiệm (cần PO — Lát E)
+## CẦN NGƯỜI (Lát E) — im = không push, không áp prod
 1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo; đợt thử đầu gồm module nào; trạng thái NKBV (đang KHÁM_PHÁ nhưng nhiều commit `feat`).
 2. PO chốt 11-13 (đã sửa, sha trong sổ): CSSD-017 ủ BI ≥20', NKBV-023 ẩn ca chốt = ADMIN + lý do, NKBV-026 LOA máy chủ; CSSD-025 HOAN. Còn treo: câu 7 GSC, DT-008. Mặc định Claude 2026-11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 giờ đọc tương lai (dung sai 2 phút).
 3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
