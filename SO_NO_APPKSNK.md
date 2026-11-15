@@ -38,3 +38,7 @@ NKBV-013	CHUA	TRUNG_BINH	submitClinicalVerification ghi attributed_khoa_id/calcu
 DT-016	CHUA	TRUNG_BINH	6 action ghi Thi KSNK (updateMucDoThiThu, updateKyThiThat, setKyThiGan, importMcqMatrixAction, setCauHoiActive, updateCauHoiDaoTao) chỉ verifyPermission edit/import, không qua requireDaoTaoAdmin: vai khách thống kê còn sót grant gọi thẳng Server Action là ghi được
 Kịch bản tay: còn 7 · đạt 36
 ```
+
+## Ghi nhận ngoài lát (2026-11-15, chưa vào sổ lỗi; từ lát CSSD-036)
+- `src/components/shared/Header.tsx:72`, `src/components/shared/ClientLayoutWrapper.tsx:118` — header dính `z-50` nằm trên ngăn kéo (`fixed inset-0 z-50` bị nhốt trong `main.relative z-0`) nên phủ ~44 px đầu ngăn kéo; ở viewport 1280 nút «In thẻ kho» (`kho-hoa-chat-drawer.tsx`) không bấm chuột được (`elementFromPoint` trả `NAV`), Tab + Enter vẫn in được.
+- `src/modules/cssd-erp/components/kho-hoa-chat/kho-hoa-chat-drawer.tsx:130` — lịch sử ngăn kéo in `created_at` nhưng xếp theo ngày duyệt (CSSD-036), giờ nhìn như lệch thứ tự; thẻ kho in đã dùng ngày duyệt.

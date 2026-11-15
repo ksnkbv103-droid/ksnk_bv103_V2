@@ -3,10 +3,11 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md` (lô migration prod, sao lưu nhóm 2, ghi chú NKBV máu-sau-cùng). `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- Đưa nhánh lên preview, smoke VST + GSC — xong khi: `e2e/gsc-vst-supervision.spec.ts` pass ở :3001 rồi ở preview; commit chưa push = 0 — còn: chạy spec ở :3001; push + preview chờ mục 4–5 «CẦN NGƯỜI».
+- Không có (CSSD-036 đóng: DA_SUA 67beb5bb, tay ĐẠT).
 
 ## KẾ
-- PR vào `main` → dọn 15 nhánh, 5 worktree → CSSD-036.
+- Smoke VST + GSC: `e2e/gsc-vst-supervision.spec.ts` pass ở :3001 rồi preview (chờ mục 4–5 «CẦN NGƯỜI»).
+- CSSD-032 (`migration-author`) → PR vào `main` → dọn 15 nhánh, 5 worktree.
 
 ## Mở phiên mới
 1. Làm ở worktree `integrate-2026-11` (nhánh `integrate/2026-11`, chưa push).

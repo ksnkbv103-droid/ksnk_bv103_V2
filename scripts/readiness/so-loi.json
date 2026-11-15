@@ -1691,10 +1691,11 @@
     "tieu_de": "Thẻ kho hóa chất sắp xếp, ghi ngày và tính tồn lũy kế theo created_at của phiếu, trong khi tồn thật chỉ đổi lúc duyệt (cùng gốc CSSD-033)",
     "bang_chung": "src/lib/domain/cssd-kho-hoa-chat-the-kho.ts:37 sắp xếp theo created_at, dòng 50 ngay: r.created_at → phiếu lập sớm nhưng duyệt muộn đứng trước phiếu đã duyệt từ trước, tồn lũy kế từng dòng sai thứ tự (có thể ra số âm giả giữa hai dòng). Ngăn kéo KhoHoaChatKsnkPage.tsx:49 lấy 200 dòng mới nhất theo created_at của listGiaoDichKhoHoaChatAction (cssd-kho-hoa-chat-list.actions.ts:113), nên cửa sổ lấy dữ liệu cũng lệch theo created_at. Thẻ kho là mẫu in (kho-hoa-chat-print-view.tsx).",
     "lenh_kiem": "npm run test:cssd -- src/lib/domain src/modules/cssd-erp",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-cssd-033-lan-can",
-    "commit": "",
-    "ghi_chu": "Phát hiện khi sửa CSSD-033 (báo cáo Nhập–Xuất–Tồn và lưu lượng 30 ngày đã chuyển sang ngày hiệu lực = duyet_at, phiếu cũ duyet_at NULL lấy created_at). Hướng sửa: buildTheKho nhận duyet_at, sắp xếp và ghi ngày theo ngày hiệu lực; listGiaoDichKhoHoaChatAction cần order và lọc cùng khóa để cửa sổ 200 dòng khớp; thêm test thứ tự phiếu lập trước duyệt sau. Chạm ≤ 5 file: the-kho.ts, spec, list.actions.ts, KhoHoaChatKsnkPage.tsx (nếu đổi kiểu), print-view (nhãn ngày)."
+    "commit": "67beb5bb",
+    "ghi_chu": "Phát hiện khi sửa CSSD-033 (báo cáo Nhập–Xuất–Tồn và lưu lượng 30 ngày đã chuyển sang ngày hiệu lực = duyet_at, phiếu cũ duyet_at NULL lấy created_at). Hướng sửa: buildTheKho nhận duyet_at, sắp xếp và ghi ngày theo ngày hiệu lực; listGiaoDichKhoHoaChatAction cần order và lọc cùng khóa để cửa sổ 200 dòng khớp; thêm test thứ tự phiếu lập trước duyệt sau. Chạm ≤ 5 file: the-kho.ts, spec, list.actions.ts, KhoHoaChatKsnkPage.tsx (nếu đổi kiểu), print-view (nhãn ngày). | Tay 2026-11-14 DAT: Local :3012 (mã worktree), NV_TEST01, mặt hàng thử ZZ-CSSD036 gồm 4 phiếu: phiếu lập trước duyệt sau + phiếu cũ không duyet_at. Thẻ kho xếp A,L,B,X; tồn 10/15/35/20; tồn đầu 0, cuối 20; không âm. Lịch sử drawer X,B,L,A đúng ngày duyệt",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-017",
