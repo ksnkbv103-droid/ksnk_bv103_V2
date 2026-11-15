@@ -11,10 +11,14 @@ export function Bv103ResponsiveChart({
   className,
   style,
   children,
+  role,
+  "aria-label": ariaLabel,
 }: {
   className?: string;
   style?: CSSProperties;
   children: ReactElement;
+  role?: string;
+  "aria-label"?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
@@ -47,7 +51,7 @@ export function Bv103ResponsiveChart({
   }, []);
 
   return (
-    <div ref={wrapRef} className={className} style={style}>
+    <div ref={wrapRef} className={className} style={style} role={role} aria-label={ariaLabel}>
       {dims ? (
         <ResponsiveContainer width={dims.w} height={dims.h} minWidth={0}>
           {children}

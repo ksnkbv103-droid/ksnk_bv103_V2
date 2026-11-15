@@ -95,10 +95,10 @@ export function SupervisionKhoaMasterTable({
                       {r.label}
                     </td>
                     <td className="px-2 py-2 text-center tabular-nums">
-                      {r.vol_tgs > 0 ? `${r.dat_tgs.toLocaleString()}/${r.vol_tgs.toLocaleString()}` : "0"}
+                      {r.vol_tgs > 0 ? `${r.dat_tgs.toLocaleString("vi-VN")}/${r.vol_tgs.toLocaleString("vi-VN")}` : "0"}
                     </td>
                     <td className="px-2 py-2 text-center tabular-nums">
-                      {r.vol_ksnk > 0 ? `${r.dat_ksnk.toLocaleString()}/${r.vol_ksnk.toLocaleString()}` : "0"}
+                      {r.vol_ksnk > 0 ? `${r.dat_ksnk.toLocaleString("vi-VN")}/${r.vol_ksnk.toLocaleString("vi-VN")}` : "0"}
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[tgsTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, percentDigits)}

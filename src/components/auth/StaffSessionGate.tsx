@@ -9,6 +9,7 @@ import {
   decideStaffGateAction,
   shouldRunGateTask,
 } from "@/lib/auth/staff-session-gate";
+import { metaMustChangePassword } from "@/lib/auth/password-change-gate";
 import { checkStaffSessionAllowed } from "@/modules/auth/actions/staff-session.actions";
 import { syncAccountLinkAction } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-link-governance.actions";
 import { toast } from "sonner";
@@ -28,10 +29,6 @@ function scheduleNonUrgent(fn: () => void) {
     return;
   }
   setTimeout(fn, 300);
-}
-
-function mustChangePassword(meta: Record<string, unknown> | undefined): boolean {
-  return meta?.must_change_password === true;
 }
 
 /** Đăng xuất nếu hồ sơ vô hiệu; chặn khi kiểm lỗi; tự liên kết tài khoản nếu cần. */
@@ -68,8 +65,11 @@ export default function StaffSessionGate() {
       const { data } = await supabase.auth.getSession();
       if (!data.session || cancelled) return;
 
-      const meta = (data.session.user?.user_metadata ?? {}) as Record<string, unknown>;
-      if (mustChangePassword(meta) && pathname !== CHANGE_PASSWORD_PATH) {
+      const mustChange = metaMustChangePassword(
+        data.session.user?.user_metadata,
+        data.session.user?.app_metadata,
+      );
+      if (mustChange && pathname !== CHANGE_PASSWORD_PATH) {
         router.replace(CHANGE_PASSWORD_PATH);
         return;
       }
@@ -101,8 +101,11 @@ export default function StaffSessionGate() {
     const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
       if (!session || isPublicAuthPath(pathname)) return;
       void (async () => {
-        const meta = (session.user?.user_metadata ?? {}) as Record<string, unknown>;
-        if (mustChangePassword(meta) && pathname !== CHANGE_PASSWORD_PATH) {
+        const mustChange = metaMustChangePassword(
+          session.user?.user_metadata,
+          session.user?.app_metadata,
+        );
+        if (mustChange && pathname !== CHANGE_PASSWORD_PATH) {
           router.replace(CHANGE_PASSWORD_PATH);
           return;
         }

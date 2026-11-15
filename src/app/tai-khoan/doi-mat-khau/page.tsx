@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { metaMustChangePassword } from "@/lib/auth/password-change-gate";
 import { changePasswordWithReauth } from "@/modules/auth/actions/staff-password.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
@@ -21,8 +22,12 @@ export default function DoiMatKhauPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setEmail(data.session?.user?.email ?? "");
-      const meta = (data.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
-      setMustChange(meta.must_change_password === true);
+      setMustChange(
+        metaMustChangePassword(
+          data.session?.user?.user_metadata,
+          data.session?.user?.app_metadata,
+        ),
+      );
       if (!data.session) router.replace("/login");
     });
   }, [router]);

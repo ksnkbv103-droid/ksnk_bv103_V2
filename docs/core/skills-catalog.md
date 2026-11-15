@@ -61,7 +61,7 @@
 | `acceptance-ui` | ≥3 kịch bản test tay | Haiku |
 | `intake-coach` | Dịch mô tả PO thành intake | Sonnet |
 | `review-bv103` | Review diff + soát whitelist/DoD, Go/No-go | Sonnet |
-| `verify-runner` | Chạy verify, chỉ trả lỗi gọn (giữ log ngoài phiên chính) | Haiku |
+| `chay-kiem` (toàn cục, `~/.claude/agents`) | Chạy lệnh verify được giao, chỉ trả lỗi gọn (giữ log ngoài phiên chính) | Haiku |
 | `test-writer` | Viết spec vitest cho logic thuần của lát đã chốt | Sonnet |
 | `slice-fixer` | Sửa MỘT lát code theo mẫu rõ (≤ 8 file), có spec + commit | Sonnet |
 | `security-auditor` | Rà quyền/RLS/DEFINER/IDOR trong MỘT vùng hẹp, chỉ báo Nghiêm trọng/Cao | Sonnet |
@@ -82,13 +82,13 @@ Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 
 1. **Một việc = một phiên.** Xong lát → `/clear`. `/clear` chỉ xóa trí nhớ hội thoại; plan (`~/.claude/plans/`), code, memory vẫn còn.
 2. **Chọn model lúc mở phiên, không đổi giữa chừng.** Cache gắn với model: đổi là ghi lại toàn bộ ngữ cảnh.
 3. **Quá ~100 lượt hoặc chậm** → ghi tiến độ vào plan rồi `/clear` (hoặc `/compact`). `/context` xem phần đang nạp.
-   - **Cuối mỗi trả lời** có khối Bước tiếp theo / Model / `/clear` có-không / Lý do (luật ở `CLAUDE.md`). `/clear` = có khi vừa xong một lát hoặc đổi sang việc khác; không khi còn đang giữa lát.
+   - **Cuối mỗi trả lời** có khối 4 dòng Lộ trình / Clear / Bước kế / Model (luật ở `~/.claude/CLAUDE.md`). `/clear` = có khi vừa xong một lát hoặc đổi sang việc khác; không khi còn đang giữa lát.
 4. **Prompt ba phần:** làm gì (một lát) · xong trông thế nào · không đụng gì. Bỏ nhân vật («chuyên gia…») và khẩu hiệu («chính xác tuyệt đối») — luật đã nằm ở `CLAUDE.md`.
 5. **Hỏi quyết định, không hỏi «rà soát toàn bộ».** Một tuần một lần: «việc nào đáng làm nhất theo số liệu dùng thật?».
 6. **Kiểm giao diện bằng `read_page`**, chỉ chụp ảnh khi cần xem bố cục.
 7. **Đọc nhiều file thì giao subagent** (Haiku) để phiên chính gọn. Plan mode (`Shift+Tab`) trước việc lớn · đọc ≤ 8 file/task.
 8. **Prod chỉ `SELECT`.** Thử thì dùng DB local.
-9. **Điều phối agent (bài học 2026-10-12: 9 agent Opus, 5 chạy song song → tuần 70%, agent chết giữa chừng, commit lẫn lát).** Hook `.claude/hooks/guard-agent-model.mjs` chặn: `model: opus/fable` cho agent ngoài `migration-author`, `review-bv103`, `security-auditor`; mọi agent không có trong danh sách ghim (`general-purpose`/`Explore`/`Plan`...). Quy tắc: một agent ghi tại một thời điểm; rà soát một vùng hẹp, chỉ Nghiêm trọng/Cao; kiểm `get_usage` trước khi giao (tuần > 60% → chỉ lát chặn pilot); lát nào cần cả RPC và code thì `migration-author` trước rồi `slice-fixer`.
+9. **Điều phối agent (bài học 2026-10-12: 9 agent Opus, 5 chạy song song → tuần 70%, agent chết giữa chừng, commit lẫn lát).** Hook toàn cục `~/.claude/hooks/guard-agent.mjs` chặn: `model: opus/fable` cho agent không ghim model đó trong frontmatter; mọi agent không có file ghim ở `.claude/agents` hoặc `~/.claude/agents` (`general-purpose`/`Explore`/`Plan`...). Quy tắc: một agent ghi tại một thời điểm; rà soát một vùng hẹp, chỉ Nghiêm trọng/Cao; kiểm `get_usage` trước khi giao (tuần > 60% → chỉ lát chặn pilot); lát nào cần cả RPC và code thì `migration-author` trước rồi `slice-fixer`.
 
 ## 7. Một lát chuẩn
 

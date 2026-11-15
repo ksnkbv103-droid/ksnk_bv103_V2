@@ -23,7 +23,7 @@ export function SupervisionCoverageCard({
           </span>
           {!loading && pct != null ? <span className="tabular-nums"> ({pct}%)</span> : null}
           {!loading && tongPhien != null ? (
-            <span className="tabular-nums"> · {tongPhien.toLocaleString()} phiên</span>
+            <span className="tabular-nums"> · {tongPhien.toLocaleString("vi-VN")} phiên</span>
           ) : null}
         </p>
       </div>

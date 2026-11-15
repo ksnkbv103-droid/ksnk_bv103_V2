@@ -213,5 +213,41 @@ describe("saveGiamSatChung", () => {
       const r = await run();
       expect(r).toEqual({ success: false, error: "Mã yêu cầu đã thuộc phiên của người giám sát khác." });
     });
+
+    it("thoi_gian_ghi_nhan ưu tiên thoi_gian_ket_thuc qua thoi_gian_bat_dau", async () => {
+      mocks.getActorKsnkScope.mockResolvedValue({ isAdmin: true, actorKhoaId: "khoa-01" });
+      setupCreate({ id: "sess-dup", nguoi_giam_sat_id: "ns-1" });
+      await saveGiamSatChung(
+        {
+          khoa_id: "khoa-01",
+          khu_vuc_id: "kv-01",
+          loai_bang_kiem: "GSC",
+          vi_tri: "P1",
+          nguoi_giam_sat_id: "ns-1",
+          nhan_vien_id: "nv-1",
+          thoi_gian_bat_dau: "2026-11-09T08:00:00.000Z",
+          thoi_gian_ket_thuc: "2026-11-09T08:30:00.000Z",
+        } as never,
+        [{ criterionId: "c1", value: "DAT" }],
+        { clientRequestId: CRID },
+      );
+      expect(inserted?.thoi_gian_ghi_nhan).toBe("2026-11-09T08:30:00.000Z");
+
+      // Fallback thoi_gian_bat_dau khi không có thoi_gian_ket_thuc
+      await saveGiamSatChung(
+        {
+          khoa_id: "khoa-01",
+          khu_vuc_id: "kv-01",
+          loai_bang_kiem: "GSC",
+          vi_tri: "P1",
+          nguoi_giam_sat_id: "ns-1",
+          nhan_vien_id: "nv-1",
+          thoi_gian_bat_dau: "2026-11-09T08:00:00.000Z",
+        } as never,
+        [{ criterionId: "c1", value: "DAT" }],
+        { clientRequestId: CRID },
+      );
+      expect(inserted?.thoi_gian_ghi_nhan).toBe("2026-11-09T08:00:00.000Z");
+    });
   });
 });

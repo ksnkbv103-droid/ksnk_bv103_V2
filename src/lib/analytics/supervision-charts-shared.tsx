@@ -30,13 +30,20 @@ export function SupervisionResponsiveChart({
   className = "h-full w-full min-w-0",
   style,
   children,
+  role = "img",
+  ariaLabel,
+  "aria-label": ariaLabelProp,
 }: {
   className?: string;
   style?: CSSProperties;
   children: ReactElement;
+  role?: string;
+  ariaLabel?: string;
+  "aria-label"?: string;
 }) {
+  const label = ariaLabel ?? ariaLabelProp;
   return (
-    <Bv103ResponsiveChart className={className} style={style}>
+    <Bv103ResponsiveChart className={className} style={style} role={role} aria-label={label}>
       {children}
     </Bv103ResponsiveChart>
   );
@@ -114,7 +121,7 @@ function formatGapPctWithDatTong(
   digits: SupervisionPercentDigits = 2,
 ): string {
   if (pct == null || tong === 0) return "—";
-  return `${formatSupervisionPercent(pct, digits)} (${dat.toLocaleString()}/${tong.toLocaleString()})`;
+  return `${formatSupervisionPercent(pct, digits)} (${dat.toLocaleString("vi-VN")}/${tong.toLocaleString("vi-VN")})`;
 }
 
 function gapCompareStatus(
@@ -223,7 +230,10 @@ function percentTooltipFormatter(digits: SupervisionPercentDigits = 2) {
   const tong = payload?.tong ?? payload?.vol_ksnk ?? payload?.vol_tgs;
   const pct = formatSupervisionPercent(value, digits);
   if (dat != null && tong != null && Number(tong) > 0) {
-    return [`${Number(dat).toLocaleString()}/${Number(tong).toLocaleString()} (${pct})`, String(name ?? "Tuân thủ")];
+    return [
+      `${Number(dat).toLocaleString("vi-VN")}/${Number(tong).toLocaleString("vi-VN")} (${pct})`,
+      String(name ?? "Tuân thủ"),
+    ];
   }
   return [pct, String(name ?? "Tuân thủ")];
   };

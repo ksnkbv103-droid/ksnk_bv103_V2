@@ -50,7 +50,15 @@ function readQueue(): PendingSupervisionItem[] {
 }
 
 function writeQueue(items: PendingSupervisionItem[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(-MAX_ITEMS)));
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(-MAX_ITEMS)));
+  } catch (err) {
+    console.warn(
+      "[offline-pending-supervision-save] writeQueue failed (quota exceeded or storage restricted):",
+      err,
+    );
+  }
 }
 
 /** Chỉ phiên mới mới có key; giữ nguyên key đã sinh (không sinh lại). */
@@ -182,6 +190,10 @@ export async function flushPendingSupervisionSaves(): Promise<{
     }
   }
 
-  writeQueue(remaining);
+  const latestQueue = readQueue();
+  const newlyAddedItems = latestQueue.filter(
+    (item) => !q.some((old) => old.clientId === item.clientId),
+  );
+  writeQueue([...remaining, ...newlyAddedItems]);
   return { synced, failed, lastError };
 }

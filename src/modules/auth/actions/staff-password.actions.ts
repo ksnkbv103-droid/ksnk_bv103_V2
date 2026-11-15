@@ -30,10 +30,14 @@ export async function requestPasswordResetEmail(emailRaw: string) {
     }
     const supabase = createServerSupabaseClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    if (error) return { ok: false as const, error: error.message };
+    if (error) {
+      console.error("[requestPasswordReset]", error.message);
+      return { ok: false as const, error: "Không gửi được email." };
+    }
     return { ok: true as const };
   } catch (e: unknown) {
-    return { ok: false as const, error: e instanceof Error ? e.message : "Không gửi được email." };
+    console.error("[requestPasswordReset]", e instanceof Error ? e.message : e);
+    return { ok: false as const, error: "Không gửi được email." };
   }
 }
 
@@ -70,12 +74,29 @@ export async function changePasswordWithReauth(oldPassword: string, newPassword:
       before?.user?.user_metadata && typeof before.user.user_metadata === "object"
         ? { ...(before.user.user_metadata as Record<string, unknown>) }
         : {};
+    const prevAppMeta =
+      before?.user?.app_metadata && typeof before.user.app_metadata === "object"
+        ? { ...(before.user.app_metadata as Record<string, unknown>) }
+        : {};
 
     const { error: updErr } = await supabase.auth.updateUser({
       password: newPassword,
       data: { ...prevMeta, must_change_password: false },
     });
-    if (updErr) return { ok: false as const, error: updErr.message };
+    if (updErr) {
+      console.error("[changePasswordWithReauth]", updErr.message);
+      return { ok: false as const, error: "Không đổi được mật khẩu. Kiểm tra mật khẩu mới rồi thử lại." };
+    }
+
+    try {
+      const admin = createAdminSupabaseClient();
+      await admin.auth.admin.updateUserById(userId, {
+        app_metadata: { ...prevAppMeta, must_change_password: false },
+        user_metadata: { ...prevMeta, must_change_password: false },
+      });
+    } catch (clearErr) {
+      console.error("[changePasswordWithReauth] clear flag failed:", clearErr);
+    }
 
     // Best-effort audit on linked staff row
     {

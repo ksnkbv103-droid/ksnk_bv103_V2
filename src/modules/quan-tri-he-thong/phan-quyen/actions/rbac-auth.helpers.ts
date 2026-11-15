@@ -3,6 +3,7 @@
  * Chỉ import từ file server (action/route/lib server); client import sẽ vỡ build vì supabase-server dùng next/headers.
  */
 
+import { metaMustChangePassword } from "@/lib/auth/password-change-gate";
 import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 
@@ -15,6 +16,10 @@ export async function ensureRbacAdmin() {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth?.user;
   if (!user?.id) throw new Error("Bạn chưa đăng nhập");
+  // Cùng luật với cổng verify*: còn cờ bắt đổi mật khẩu thì không thao tác, kể cả break-glass.
+  if (metaMustChangePassword(user.user_metadata, user.app_metadata)) {
+    throw new Error("Bạn cần đổi mật khẩu trước khi tiếp tục.");
+  }
 
   if (isTrustedAdminEmail(user.email)) {
     const { logAdminAction } = await import("@/lib/admin-audit");

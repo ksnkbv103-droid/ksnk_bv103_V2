@@ -288,11 +288,17 @@ export default function ChecklistItem({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center md:flex-nowrap">
+        <div
+          role="group"
+          aria-label={`Đánh giá tiêu chí: ${criterion.label}`}
+          className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center md:flex-nowrap"
+        >
           <button
             type="button"
+            aria-pressed={result.value === "DAT"}
+            aria-label="Đánh giá Đạt"
             onClick={() => pickValue("DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[5.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[5.5rem] flex-1 md:flex-none touch-manipulation ${
               result.value === "DAT" ? gscFormChrome.choiceBtnActive : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -301,8 +307,10 @@ export default function ChecklistItem({
 
           <button
             type="button"
+            aria-pressed={result.value === "KHONG_DAT"}
+            aria-label="Đánh giá Không đạt"
             onClick={() => pickValue("KHONG_DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[6.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[6.5rem] flex-1 md:flex-none touch-manipulation ${
               result.value === "KHONG_DAT" ? gscFormChrome.choiceBtnActiveDanger : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -311,8 +319,10 @@ export default function ChecklistItem({
 
           <button
             type="button"
+            aria-pressed={result.value === "NA"}
+            aria-label="Đánh giá Không áp dụng"
             onClick={() => pickValue("NA")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[8.5rem] flex-1 md:flex-none touch-manipulation ${
               result.value === "NA" ? "border-slate-500 bg-slate-600 text-white shadow-sm" : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -321,8 +331,10 @@ export default function ChecklistItem({
 
           <button
             type="button"
+            aria-expanded={noteOpen}
+            aria-label={noteOpen ? "Ẩn ghi chú" : "Bổ sung ghi chú"}
             onClick={() => setNoteOpen((v) => !v)}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-h-[40px] min-w-0 sm:min-w-[8.5rem] flex-1 md:flex-none touch-manipulation ${
               noteOpen || String(result.note || "").trim()
                 ? gscFormChrome.choiceBtnNote
                 : gscFormChrome.choiceBtnIdle
@@ -337,7 +349,8 @@ export default function ChecklistItem({
                 type="button"
                 onClick={handleCameraClick}
                 disabled={uploading}
-                className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+                aria-label={result.image_url ? "Xem hoặc chụp lại ảnh bằng chứng" : "Chụp ảnh bằng chứng"}
+                className={`${gscFormChrome.choiceBtnRow} col-span-2 sm:col-span-1 min-h-[40px] min-w-0 sm:min-w-[8.5rem] flex-1 md:flex-none touch-manipulation ${
                   result.image_url ? gscFormChrome.choiceBtnEvidence : gscFormChrome.choiceBtnIdle
                 }`}
               >
@@ -372,14 +385,16 @@ export default function ChecklistItem({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="text-[11px] font-semibold text-blue-600 hover:underline"
+                aria-label="Xem ảnh bằng chứng phóng to"
+                className="min-h-[32px] sm:min-h-0 text-[11px] font-semibold text-blue-600 hover:underline touch-manipulation"
               >
                 Xem to
               </button>
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="text-[11px] font-semibold text-rose-600 hover:underline"
+                aria-label="Xóa ảnh bằng chứng này"
+                className="min-h-[32px] sm:min-h-0 text-[11px] font-semibold text-rose-600 hover:underline touch-manipulation"
               >
                 Xóa bỏ
               </button>

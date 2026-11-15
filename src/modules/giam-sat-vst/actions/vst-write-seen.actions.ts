@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
@@ -11,7 +11,6 @@ import { normalizeSessionIds } from "@/lib/normalize-session-ids";
 
 /** Đánh dấu phiên VST đã được mở từ lịch sử (in / xem). */
 export async function markVSTSessionsSeen(sessionIds: string[]) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "edit");
     const scope = await getActorKsnkScope();
@@ -25,11 +24,7 @@ export async function markVSTSessionsSeen(sessionIds: string[]) {
     const ids = norm.ids;
     if (!ids.length) return { success: true as const };
 
-    const { data: rows, error: rowsErr } = await supabase
-      .from("gstt_fact_vst_sessions")
-      .select("id,khoa_id,nguoi_giam_sat_id")
-      .in("id", ids)
-      .eq("is_active", true);
+    const { data: rows, error: rowsErr } = await vstRepo.findVstSessionsForSeen(ids);
     if (rowsErr) throw rowsErr;
 
     const resolved = resolveVstScopedSessionIds(
@@ -51,10 +46,7 @@ export async function markVSTSessionsSeen(sessionIds: string[]) {
       return { success: false as const, error: resolved.error };
     }
 
-    const { error } = await supabase
-      .from("gstt_fact_vst_sessions")
-      .update({ is_seen: true, updated_at: new Date().toISOString() })
-      .in("id", resolved.targetIds);
+    const { error } = await vstRepo.updateVstSessionsSeen(resolved.targetIds);
     if (error) throw error;
 
     revalidatePath("/giam-sat-vst");

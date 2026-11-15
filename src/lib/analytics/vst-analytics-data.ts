@@ -2,14 +2,57 @@ import { rateFromTotals } from "@/lib/analytics/supervision-metrics/formulas";
 import { roundPercent1 } from "@/lib/analytics/supervision-percent";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
-function withCountsPercent<T extends { tong_co_hoi?: number; da_tuan_thu?: number; ty_le_tuan_thu?: number | null }>(
-  row: T,
-): T {
+export function withCountsPercent<
+  T extends {
+    tong_co_hoi?: number;
+    da_tuan_thu?: number;
+    ty_le_tuan_thu?: number | null;
+    ty_le?: number | null;
+  },
+>(row: T): T & { ty_le_tuan_thu: number | null } {
+  const hasValidCounts =
+    typeof row.da_tuan_thu === "number" &&
+    !isNaN(row.da_tuan_thu) &&
+    typeof row.tong_co_hoi === "number" &&
+    !isNaN(row.tong_co_hoi);
+
+  if (!hasValidCounts) {
+    if (typeof row.ty_le === "number" && !isNaN(row.ty_le)) {
+      return {
+        ...row,
+        ty_le_tuan_thu: row.ty_le_tuan_thu ?? row.ty_le,
+      };
+    }
+    if (typeof row.ty_le_tuan_thu === "number" && !isNaN(row.ty_le_tuan_thu)) {
+      return {
+        ...row,
+        ty_le_tuan_thu: row.ty_le_tuan_thu,
+      };
+    }
+  }
+
   const tong = Number(row.tong_co_hoi ?? 0);
-  const pct = rateFromTotals(Number(row.da_tuan_thu ?? 0), tong);
+  const daTuanThu = Number(row.da_tuan_thu ?? 0);
+  const pct = rateFromTotals(daTuanThu, tong);
   // VST-06 / GSC-07: mẫu 0 → null («—»), không giữ 0% RPC.
-  if (pct == null) return tong > 0 ? row : { ...row, ty_le_tuan_thu: null };
-  return { ...row, ty_le_tuan_thu: pct };
+  if (pct == null) {
+    if (tong > 0) {
+      if (typeof row.ty_le === "number" && !isNaN(row.ty_le)) {
+        return { ...row, ty_le_tuan_thu: row.ty_le };
+      }
+      return { ...row, ty_le_tuan_thu: row.ty_le_tuan_thu ?? null };
+    }
+    const res = { ...row, ty_le_tuan_thu: null };
+    if ("ty_le" in res) {
+      (res as { ty_le?: number | null }).ty_le = null;
+    }
+    return res;
+  }
+  const res = { ...row, ty_le_tuan_thu: pct };
+  if ("ty_le" in res && res.ty_le !== undefined) {
+    (res as { ty_le?: number | null }).ty_le = pct;
+  }
+  return res;
 }
 
 /** Chênh tự GS − chuyên trách sau khi cả hai % đã làm tròn 1 chữ số từ đếm. */

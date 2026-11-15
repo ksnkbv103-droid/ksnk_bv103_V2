@@ -303,7 +303,9 @@ export function rowsToCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "\uFEFF";
   const keys = Object.keys(rows[0]!);
   const esc = (v: unknown) => {
-    const s = v == null ? "" : String(v);
+    const raw = v == null ? "" : String(v);
+    // Chuỗi mở đầu bằng = + - @ (hoặc tab/CR): thêm ' để Excel không chạy như công thức.
+    const s = typeof v === "string" && /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
     if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
     return s;
   };
