@@ -41,4 +41,4 @@ Kịch bản tay: còn 7 · đạt 36
 
 ## Ghi nhận ngoài lát (2026-11-15, chưa vào sổ lỗi; từ lát CSSD-036)
 - `src/components/shared/Header.tsx:72`, `src/components/shared/ClientLayoutWrapper.tsx:118` — header dính `z-50` nằm trên ngăn kéo (`fixed inset-0 z-50` bị nhốt trong `main.relative z-0`) nên phủ ~44 px đầu ngăn kéo; ở viewport 1280 nút «In thẻ kho» (`kho-hoa-chat-drawer.tsx`) không bấm chuột được (`elementFromPoint` trả `NAV`), Tab + Enter vẫn in được.
-- `src/modules/cssd-erp/components/kho-hoa-chat/kho-hoa-chat-drawer.tsx:130` — lịch sử ngăn kéo in `created_at` nhưng xếp theo ngày duyệt (CSSD-036), giờ nhìn như lệch thứ tự; thẻ kho in đã dùng ngày duyệt.
+- `src/modules/cssd-erp/views/KhoHoaChatKsnkPage.tsx:44-58` — `dmMovs` không bị xóa khi mở mặt hàng khác: ngăn kéo hiện «Chưa có phiếu.» khi mở lần đầu (đã thấy trên :3012) hoặc phiếu của mặt hàng trước (suy từ code, chưa tái hiện) cho tới khi tải xong; bấm «In thẻ kho» lúc đó in sai (suy từ code).
