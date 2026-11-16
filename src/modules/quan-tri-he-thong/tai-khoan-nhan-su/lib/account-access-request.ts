@@ -101,14 +101,6 @@ export function isPendingAccountRequest(
   return readAccountRequest(extra)?.status === "CHO_DUYET";
 }
 
-export function pendingAccountRequestKind(
-  extra: Record<string, unknown> | null | undefined,
-): AccountRequestKind | null {
-  const req = readAccountRequest(extra);
-  if (!req || req.status !== "CHO_DUYET") return null;
-  return req.kind || "REQUEST";
-}
-
 export function mergeAccountRequest(
   extra: Record<string, unknown> | null | undefined,
   patch: AccountRequestMeta,

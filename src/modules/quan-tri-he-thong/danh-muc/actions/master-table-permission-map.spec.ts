@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { getRegistryModuleForMasterTable } from "@/lib/master-data/master-table-permission-map";
 
 describe("getRegistryModuleForMasterTable", () => {
   it("maps sys_roles to PHAN_QUYEN", () => {

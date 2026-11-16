@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 /**
  * Prefer sys_account_access_request when migration applied; fall back to soft extra_data.
  * Probe once per process; dual-write soft so Nhân sự pending filter keeps working.
@@ -57,11 +56,6 @@ export async function isAccountAccessRequestTableAvailable(
   }
 }
 
-/** Test helper — reset probe cache. */
-export function __resetAccountAccessRequestTableCache() {
-  tableAvailableCache = null;
-}
-
 export async function insertAccessRequestRow(
    
   supabase: any,
@@ -94,29 +88,6 @@ export async function insertAccessRequestRow(
     return null;
   }
   return (data?.id as string) || null;
-}
-
-/** Xóa phiếu vừa tạo khi ghi hồ sơ thất bại — tránh cooldown chặn lần gửi lại. */
-/**
- * Hoàn tác phiếu vừa tạo khi ghi hồ sơ lỗi (không phải xóa nghiệp vụ). Không ném lỗi để lỗi gốc
- * được trả về, nhưng ghi log để phát hiện phiếu mồ côi.
- */
-export async function discardAccessRequestRow(
-  supabase: SupabaseClient,
-  ticketId: string | null,
-): Promise<void> {
-  if (!ticketId) return;
-  try {
-    const { error } = await supabase.from("sys_account_access_request").delete().eq("id", ticketId);
-    if (error) throw error;
-  } catch (e) {
-    console.error("[account-access-request] discard ticket failed", {
-      module: "nhan-su",
-      action: "discardAccessRequestRow",
-      ticketId,
-      error: e instanceof Error ? e.message : String(e),
-    });
-  }
 }
 
 export async function decideAccessRequestRow(
@@ -166,88 +137,6 @@ export async function decideAccessRequestRow(
   if (error) throw error;
   return !!(data && data.length > 0);
 }
-
-/** Cooldown bền theo dòng phiếu, không theo bộ nhớ process. */
-export async function hasRecentAccessRequest(
-   
-  supabase: any,
-  email: string,
-  windowMs: number,
-): Promise<boolean> {
-  const available = await isAccountAccessRequestTableAvailable(supabase);
-  if (!available) return false;
-  const since = new Date(Date.now() - windowMs).toISOString();
-  const { data, error } = await supabase
-    .from("sys_account_access_request")
-    .select("id")
-    .eq("email", email)
-    .gte("created_at", since)
-    .limit(1);
-  if (error) {
-    if (isMissingTableError(error)) tableAvailableCache = false;
-    return false;
-  }
-  return Array.isArray(data) && data.length > 0;
-}
-
-export async function lookupAccessRequestFromTable(
-   
-  supabase: any,
-  email: string,
-  maNv?: string,
-): Promise<{
-  status: AccountRequestStatus;
-  kind: AccountRequestKind;
-  reject_reason: string | null;
-  submitted_at: string | null;
-  ticket_id: string | null;
-} | null> {
-  const available = await isAccountAccessRequestTableAvailable(supabase);
-  if (!available) return null;
-
-  const { data, error } = await supabase
-    .from("sys_account_access_request")
-    .select("id, kind, status, reject_reason, created_at, payload, staff_id")
-    .eq("email", email)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  if (error || !data?.length) {
-    if (isMissingTableError(error)) tableAvailableCache = false;
-    return null;
-  }
-
-  type Row = {
-    id?: string;
-    kind: string;
-    status: string;
-    reject_reason: string | null;
-    created_at: string;
-    payload: Record<string, unknown> | null;
-    staff_id: string | null;
-  };
-  let rows = data as Row[];
-  if (maNv) {
-    const filtered = rows.filter((r) => {
-      const pMa = String(r.payload?.ma_nv || "").trim();
-      return !pMa || pMa.toUpperCase() === maNv.toUpperCase();
-    });
-    if (filtered.length) rows = filtered;
-  }
-  const top = rows[0];
-  if (!top) return null;
-  const kind = (String(top.kind || "REQUEST").toUpperCase() === "RESET" ? "RESET" : "REQUEST") as AccountRequestKind;
-  const status = String(top.status || "").toUpperCase() as AccountRequestStatus;
-  if (!["CHO_DUYET", "DUYET", "TU_CHOI"].includes(status)) return null;
-  return {
-    status,
-    kind,
-    reject_reason: top.reject_reason,
-    submitted_at: top.created_at,
-    ticket_id: String(top.id || "").trim() || null,
-  };
-}
-
 
 export function escapeLike(v: string): string {
   return v.replace(/[\\%_]/g, (c) => `\\${c}`);
