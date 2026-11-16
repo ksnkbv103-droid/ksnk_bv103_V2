@@ -60,7 +60,7 @@ Nguồn: `mdm`, `roadmap:85,89,91,92,176,178`, `GS:88,118-124`, `DO:206,227,251`
 | `MANG_LUOI_KSNK` | Đứng tên giám sát; sau AR-8h thấy tab Danh mục GSC ở chế độ chỉ xem | `src/lib/supervision-policy.ts:23-25`; `roadmap:92` |
 | `HOI_DONG_KSNK` | Chỉ xem, không đứng tên giám sát; xem NKBV toàn viện (PO 2026-11-11) | `src/lib/supervision-policy.ts:23-25`; `roadmap:178` |
 | `KHACH_THONG_KE_GSTT` | Sau AR-8h thấy tab Danh mục GSC ở chế độ chỉ xem; nghĩa nghiệp vụ của vai: «cần kiểm» | `roadmap:92` |
-| `CHU_NHIEM_KHOA` | Vai cộng thêm (PO 2026-11-10); hai action duyệt kiểm quyền `approve` thay cho tên `ADMIN` (AR-1, migration `20261111150000`); chưa gán cho ai; không gán qua dropdown nhân sự vì `rpc_assign_staff_ksnk_role` thay thế vai; còn nợ test tay UI bằng tài khoản không phải ADMIN | `roadmap:85,91` |
+| `CHU_NHIEM_KHOA` | Vai cộng thêm (PO 2026-11-10); hai action duyệt kiểm quyền `approve` thay cho tên `ADMIN` (AR-1, migration `20261111150000`); chưa gán cho ai (PO 2026-11-17, N6: người giữ vai là Trịnh Hữu Nghĩa; gán tài khoản thật chưa làm, là cổng PO); không gán qua dropdown nhân sự vì `rpc_assign_staff_ksnk_role` thay thế vai; còn nợ test tay UI bằng tài khoản không phải ADMIN | `roadmap:85,91` |
 
 - Sau AR-8h (migration `20261111150400_ar8h_drop_danh_muc_permission_keys`, chạy local; trạng thái ở 03 §5): bỏ các khóa `DANH_MUC`, `DANH_MUC_GSTT`, `DANH_MUC_CSSD_LOOKUP`, giữ `DANH_MUC_ORG`; đọc `sys_lookup_value` = mọi người đã đăng nhập, ghi = ADMIN (`roadmap:92`).
 - Quyền VST và GSC: `/giam-sat` mở đủ ba lối nhập khi người dùng có quyền VST và GSC (`GS:88`); đây là mục nghiệm thu nhanh, không phải bảng quyền chi tiết. Ma trận quyền chi tiết theo vai và module: «không có trong nguồn».
@@ -83,13 +83,24 @@ Nguồn: `mdm`, `roadmap:85,89,91,92,176,178`, `GS:88,118-124`, `DO:206,227,251`
 
 Danh sách migration chờ PO duyệt lên prod ở `roadmap:176`: `20261111170000` (NKBV-003, RLS theo khoa), `20261111180000` (VST-006), `20261111190000` (QLCV-002); còn mở VST-003, VST-004, CSSD-001, CSSD-002, DT-001, QT-003. Trạng thái hiện tại ở 03 §5.
 
-Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 §3.3): Hội đồng tương đương BGĐ ở mức `Xa`, vì M03 không có mã vai HOI_DONG (M03 theo bản đặc tả ngoài repo, «cần kiểm»). PO 2026-11-11 đã nói Hội đồng xem NKBV toàn viện; hai ý ghi cạnh nhau, không tự gộp.
+Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 §3.3): Hội đồng tương đương BGĐ ở mức `Xa`, vì M03 không có mã vai HOI_DONG (M03 theo bản đặc tả ngoài repo, «cần kiểm»). PO 2026-11-11 đã nói Hội đồng xem NKBV toàn viện; hai ý ghi cạnh nhau, không tự gộp. PO 2026-11-17 (K5): Hội đồng thấy danh tính người bệnh; lệch với mặc định chặn danh tính ở trên và với việc duyệt áp sáu policy chặn Hội đồng (P3): chưa chọn, xem 1.5 và 03 §6 (NKBV-041).
 
 ### 1.4 Không có trong nguồn
 
 - Ma trận quyền chi tiết theo vai và module: «không có trong nguồn».
-- Ma trận `ai xem gì` theo khoa: «không có trong nguồn»; 01 §2 ghi đang chờ PO nhãn `GS-1`.
-- Nghĩa nghiệp vụ của vai `KHACH_THONG_KE_GSTT`: «cần kiểm».
+- Ma trận `ai xem gì` theo khoa: «không có trong nguồn»; 01 §2 ghi đang chờ PO nhãn `GS-1`. PO 2026-11-17 trả lời N1 và N2 cho hai vai KSNK (1.5); chưa thành ma trận đầy đủ.
+- Nghĩa nghiệp vụ của vai `KHACH_THONG_KE_GSTT`: PO 2026-11-17 trả lời một phần (N5, 1.5); phạm vi xem vẫn «cần kiểm».
+
+### 1.5 PO trả lời phiếu hỏi 2026-11-17 (vai, VST, GSC, ngưỡng)
+
+Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng chỉ số) và K1 (đầu mối NKBV). Câu trả lời nằm trong phiếu, chưa nằm trong mã; mã câu ở ngoặc. Kết quả từng mục sổ lỗi: 03 §6.
+
+- Vai: `NHAN_VIEN_KSNK` thấy mọi khoa trong viện (N1); `MANG_LUOI_KSNK` chỉ khoa được gán (N2); cần vai riêng cho điều dưỡng trưởng hoặc chủ nhiệm khoa lâm sàng xem danh sách có tên của khoa mình, chưa có tên vai (N3); `CHU_NHIEM_KHOA` được mở GSC, đọc toàn viện (N4); người giữ vai là Trịnh Hữu Nghĩa (N6).
+- `KHACH_THONG_KE_GSTT` (N5): «cho tất cả thành viên mạng lưới, hoặc 1 mail dùng chung, mật khẩu chung»; phạm vi xem chưa trả lời. Cần kiểm: hai cách khác nhau, và mật khẩu chung làm mất dấu vết ai đã xem; chưa chọn.
+- Hội đồng KSNK (K5): thấy danh tính người bệnh NKBV toàn viện. Lệch với việc duyệt áp sáu policy chặn Hội đồng đọc danh tính (P3); chưa chọn, xem 03 §6 (NKBV-041).
+- VST/GSC: đầu mối Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa (V1); mạng lưới khoa tự nhập sau khi hoàn thiện repo và nhập danh sách thành viên, chưa có tháng (V2); ba người chạy kịch bản tay: «tổ giám sát», chưa có họ tên (V3); biểu mẫu: «dùng biểu mẫu đang có», chưa nêu mã (V4); bản in thêm chữ ký và dấu ● ở ô đã chọn, không thêm khối IV, không in kết luận (V5); lưu 1 năm, chưa nêu căn cứ và có in không (V6); xuất thô kèm cả hai tên (V7); đối soát GSC: «phần mềm tự tính sự chênh lệch», chưa có người, khoa, kỳ (V8); ngưỡng đạt QT.32: «không cần con số, tính theo tỉ lệ tuân thủ» (V9).
+- Ngưỡng dashboard: căn cứ của 85/70/80 là chỉ tiêu nội bộ của viện (B1); ngưỡng đúng từng chỉ số bỏ trống (B2); báo cáo tổng hợp nộp Giám đốc, phó giám đốc, theo tháng, quý, năm (B3).
+- Duyệt áp prod: PO đồng ý P1 (sửa lịch sử migration trước khi đẩy lô), P2 (RLS VST), P3 (RLS NKBV). Chưa áp cái nào; mỗi lần áp cần lệnh trong chính lượt đó (03 §6).
 
 ## 2. Vệ sinh tay (VST)
 
@@ -341,6 +352,7 @@ BM `KSNK.QT.37.BM.01` (điều kiện kho): chưa tìm thấy trong code ở th�
 - Vai: danh sách vai CSSD: «không có trong nguồn»; chỉ ADMIN ghi cứng loại, bộ, BOM và duyệt `BOM_PENDING` (`DO:206,227,251`); `BO_DC.edit` = duyệt phiếu (`DO:206`; lệch với ADMIN duyệt, §8.1). Quyền `approve` của hóa chất và thiết bị (AR-5d): 1.2.
 - Màn hình (`DO:245-251`): `/cssd-quy-trinh`, `/cssd-erp/batch`, `/cssd-dung-cu`, `/cssd-su-co`, `/cssd-thiet-bi`, `/cssd-hoa-chat`.
 - Còn mở: tổ CSSD chạy tay bộ Đóng gói thật (`18:246`); migration lên prod mà code app chưa deploy (`18:248`, ảnh chụp; đối chiếu 03 §5); chưa tìm thấy hướng dẫn BYT (`18:23`).
+- PO 2026-11-17 (phiếu): đầu mối Tổ CSSD là «nhân viên tổ cssd», theo vai, chưa có tên (C1); nhập bằng máy quét QR hoặc nhập tay (C2); cần mã QR riêng cho từng thiết bị (C3); mỗi trạm do nhân viên tổ CSSD đứng, 1 đến 2 người (C4); mẻ thu hồi cần tái xử lý (`DA_TAI_XU_LY`) quay về Trạm Tiếp nhận (C6; ghi chú PO bị cắt ở «nếu dụng cụ h»); phiếu xuất hóa chất cho lập phiếu ngược, bắt buộc ghi lý do (C7, CSSD-034); tổ CSSD chạy tay «tuần sau», chưa có ngày (C8). Quy mô (C5): bộ dụng cụ «như trong database», máy tiệt khuẩn «10», mẻ mỗi ngày «khoảng 200 bộ»: cần kiểm, ô «số mẻ» ghi đơn vị «bộ».
 
 ## 5. NKBV
 
@@ -366,7 +378,7 @@ Nguồn: `SSOT` (v3.3, 2026-08-27; chuẩn NHSN Patient Safety Component Manual 
 - Nhập: LIS copy hoặc Excel; HIS hoặc gõ tay; không có API HIS hay LIS, không tạo phiếu từ ngày cấy (`SSOT:996,1283-1287`).
 - Trạng thái phiếu: `DANG_GHI_NHAN` → `CHO_XAC_MINH` → `CHO_DUYET` → `XAC_NHAN` hoặc `LOAI_TRU` (`SSOT:1000`). Báo cáo dùng tỷ lệ thô, không SIR (`SSOT:1004,1262`).
 - Chỉ số NKBV ở dashboard: `ti_le_xac_nhan_nkbv` và `clabsi_rate_per_1000` (3.3); số NKBV lấy từ aggregate action của module NKBV, không gộp CCS (`MD:13`).
-- Ai làm: «không có trong nguồn». Không có dấu PO đã chốt cho quy tắc lâm sàng nào; nhãn `[PO cần xác nhận]` chỉ được định nghĩa (`SSOT:73`). PO 2026-11-11: Hội đồng KSNK xem NKBV toàn viện (`roadmap:178`); giả định chờ PO về quyền của Hội đồng ở 1.3. Bản NHSN mới hơn January 2025 có hay không: «cần kiểm».
+- Ai làm: «không có trong nguồn»; PO 2026-11-17 (phiếu): đầu mối NKBV bỏ trống (K1); giám sát CLABSI, CAUTI, VAE, PNEU/VAP, SSI (K2); không giám sát ca nhi và sơ sinh (K3, khớp phạm vi ở bảng trên); giai đoạn thử nhập bằng sao chép từ LIS hoặc từ file Excel, PO không chọn gõ tay (K4); Hội đồng thấy danh tính, lệch P3 (K5, 1.5); mã ca không đổi (K6); 10 ca thật đối chiếu do bác sĩ tổ giám sát chọn (K7). Không có dấu PO đã chốt cho quy tắc lâm sàng nào; nhãn `[PO cần xác nhận]` chỉ được định nghĩa (`SSOT:73`). PO 2026-11-11: Hội đồng KSNK xem NKBV toàn viện (`roadmap:178`); giả định chờ PO về quyền của Hội đồng ở 1.3. Bản NHSN mới hơn January 2025 có hay không: «cần kiểm».
 - Phần chưa đọc đủ: `SSOT` dòng 560 đến 658 và 709 đến 945 (tiêu chí từng site Ch.17, trừ ENDO và USI) chỉ nắm qua tiêu đề; Phụ lục E.4 cần đối chiếu trước khi sửa quy tắc lâm sàng. Khóa dự án: không viết lại engine lâm sàng; lệch chỉ số thì sửa hàm chỉ số (`CLAUDE.md`).
 
 ## 6. Quản lý công việc (QLCV)
@@ -382,15 +394,21 @@ Nguồn: `19` (v1.0 draft, Applied A 2026-09-25), `QV`, `roadmap:178`, `MD:106-1
 - PO 2026-11-11 (`roadmap:178`, QLCV-003): người tạo việc không tự nghiệm thu, trừ ADMIN và chủ nhiệm khoa; break-glass chỉ ADMIN hoặc CNK thật.
 - `QV:64-67` (cập nhật 2026-11-13): QLCV-010 chờ PO (người đề xuất tự phê duyệt đề xuất của mình nếu có quyền duyệt); migration `20261113100000` chưa áp prod: «cần kiểm». Số trạng thái module thuộc 03.
 - Ngưỡng thành công đều `[ĐỀ XUẤT]` (tạo việc dưới 30 giây).
-- Không có trong nguồn: sau `TU_CHOI` đi đâu; vai `chỉ huy`; quyền hủy và `APPROVE`; cách tính % từ checklist; tần suất mẫu định kỳ. Không có chỉ số QLCV (`MD:106-107`).
+- Không có trong nguồn: vai `chỉ huy`; quyền `APPROVE`; tần suất mẫu định kỳ (sau `TU_CHOI` đi đâu, quyền hủy và cách tính % đã được PO trả lời 2026-11-17, bảng dưới). Không có chỉ số QLCV (`MD:106-107`).
 
-**Ba câu PO đang mở** (`QV:59-62`):
+**PO trả lời phiếu hỏi 2026-11-17** (ba câu mở của `QV:59-62` và các câu QLCV khác):
 
-| Câu hỏi | Bước theo `QV` | Đáp án mặc định nếu PO im `[ĐỀ XUẤT]` |
-|---|---|---|
-| Đầu mối và số người của nhóm KSNK | Bước 1 | Giữ nhãn `[CẦN XÁC NHẬN]` |
-| Công cụ giao việc hiện nay và việc quên gần nhất | Bước 1 | Giữ nhãn `[GIẢ THUYẾT]` |
-| Cho Claude viết ba kịch bản tay và chạy với dữ liệu thử? | — | Có, không đổi nghiệp vụ |
+| Câu hỏi | PO trả lời |
+|---|---|
+| Đầu mối và số người của nhóm KSNK (Q1) | Đầu mối: «admin, chủ nhiệm khoa»; số người: «toàn bộ khoa ksnk», chưa có con số |
+| Công cụ giao việc hiện nay và việc quên gần nhất (Q2) | Zalo; việc quên gần nhất: «nhiều lắm», không nêu việc cụ thể |
+| Cho Claude viết ba kịch bản tay và nạp dữ liệu thử (Q7) | Cho; không đổi nghiệp vụ |
+| Việc bị `TU_CHOI` đi đâu (Q3) | Quay về người giao để giao lại |
+| Ai được hủy việc (Q4) | Quản trị hệ thống |
+| Cách tính % hoàn thành từ checklist (Q5) | Số mục đã tích chia tổng số mục |
+| Người đề xuất tự duyệt việc của mình (Q6, QLCV-010) | «Chỉ trong một số trường hợp», ghi chú: admin, chủ nhiệm khoa |
+
+Nhãn `[CẦN XÁC NHẬN]` của đầu mối ở `QV` còn nguyên: trả lời theo vai chưa đủ để tính là đầu mối có tên (03 §6).
 
 ## 7. Đào tạo (Thi KSNK)
 
@@ -403,10 +421,11 @@ Nguồn: `DT` (chốt 2026-09-07), `DV`, `roadmap:178`.
 - Mức ôn tập (`DT:88-92`): `co_ban` 10 câu 15 phút; `trung_binh` 20 câu 25 phút; `nang_cao` 40 câu 45 phút.
 - Kỳ chính thức: `draft`, `published`, `closed` (`DT:84`); mở kỳ cần ít nhất 1 khoa hoặc 1 nhân viên (`DT:159`). Lần thi: `dang_lam`, `da_nop`, `het_gio` (`DT:104`).
 - PO 2026-10-24 (`DT:188`, `DV:20`): nộp trễ quá 30 giây là không đạt; thi thử ẩn đáp án đến khi nộp (DT-008 đã sửa, chưa thử tay).
+- PO 2026-11-17 (phiếu): thi thử dùng chung ngân hàng đề với thi thật (D5); người thi «không bao giờ thấy» đáp án đúng sau khi nộp (D6); bài nộp trễ hơn 30 giây: «không tính», ghi chú «hết thời gian thi tự đóng đề, tự tính điểm số câu đã làm» (D7). Cần kiểm, chưa chọn: D6 lệch dòng trên (thi thử ẩn đáp án đến khi nộp, tức thấy sau khi nộp); D7 lệch dòng trên (nộp trễ không đạt), lệch ghi chú của chính PO (vẫn tính điểm câu đã làm) và lệch DT-007 trong mã (nộp trễ vẫn chấm điểm, `dat=false`).
 - PO 2026-11-11 (`roadmap:178`): thi thử không vượt cấu hình mức độ nhưng được thi lại (DT-002); xóa file TRUNCATE qbank (DT-001, xem 1.3).
 - Quy tắc bất biến (`DT:278-288`): ba bảng lean; đáp án là id; đề đã phát là snapshot; đồng hồ máy chủ; ôn tập khác chứng chỉ; mở kỳ nghĩa là đã gán người; upsert theo `ma_cau`; Bloom chỉ để rút đề; chủ đề nhúng trên câu.
 - Dữ liệu prod (ảnh chụp 2026-09-07, `DT`): 787 câu (571 chọn một, 94 chọn nhiều, 76 Đúng/Sai, 46 sắp xếp), chưa có kỳ thi chính thức; `DV:48` (2026-11-09) ghi 1 lần thi trên prod; số trạng thái đo lại ở 03.
-- Đầu mối: `CHƯA CÓ`. Số nhân viên phải thi mỗi năm, ai ra đề, ai chấm: «không có trong nguồn». Quyền xóa có trong RBAC nhưng chưa có luồng xóa (`DT:260,321`). Route: `/dao-tao`, `/dao-tao/admin/ket-qua`.
+- Đầu mối: PO 2026-11-17 (D1) ghi «admin, chủ nhiệm khoa», theo vai, chưa có tên; ra đề, mở kỳ, xem sổ điểm: chủ nhiệm khoa; phải thi: toàn bộ nhân viên bệnh viện, khoảng 2000 người mỗi năm (D2); chứng chỉ 12 tháng (D3, khớp mặc định `han_chung_chi_thang`); duyệt đáp án 787 câu: «admin, trịnh hữu nghĩa» (D4); thử tay DT-008: «nhân viên khoa ksnk», chưa có tên và ngày (D8). Ai chấm: «không có trong nguồn». Quyền xóa có trong RBAC nhưng chưa có luồng xóa (`DT:260,321`). Route: `/dao-tao`, `/dao-tao/admin/ket-qua`.
 
 ## 8. Mâu thuẫn tài liệu
 

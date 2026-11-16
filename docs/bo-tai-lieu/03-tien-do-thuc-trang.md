@@ -337,7 +337,7 @@ Nguồn: HANDOFF `ae5ca6fd:HANDOFF.md` dòng 22–32 và `HANDOFF_APPKSNK.md` d�
 
 ### 11 mục `CHO_PO` trong sổ lỗi
 
-KH 11-14 §7 nói các mục này đủ mặc định, nhưng sổ chỉ ghi mặc định ở 3/11 (NEN-003, NKBV-041, NKBV-042).
+KH 11-14 §7 nói các mục này đủ mặc định, nhưng sổ chỉ ghi mặc định ở 3/11 (NEN-003, NKBV-041, NKBV-042). Bảng dưới là ảnh chụp 2026-11-14; PO đã trả lời phiếu hỏi 2026-11-17, kết quả ở bảng kế tiếp (sổ lỗi còn 6/11 `CHO_PO`).
 
 | Mã | Việc | Mặc định trong sổ |
 |---|---|---|
@@ -353,11 +353,29 @@ KH 11-14 §7 nói các mục này đủ mặc định, nhưng sổ chỉ ghi m�
 | NKBV-041 (CAO) | áp `20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql` lên prod (kết quả NKBV-035, mới áp LOCAL): sáu policy `*_select_hoi_dong_deny` cho `HOI_DONG_KSNK`; tầng app đã chặn nên không khẩn | PO im thì prod giữ policy hiện hành |
 | NKBV-042 | `ma_ca` nhúng 12 ký tự đầu của mã bệnh án (không phải mã giả hóa), nên NKBV-018 vẫn để lộ mã bệnh án cho người chỉ có quyền CSSD | giữ NKBV-018, chưa code che; PO im thì không đổi mã đã sinh |
 
+### PO trả lời phiếu hỏi 2026-11-17
+
+Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng chỉ số) và K1 (đầu mối NKBV). Câu trả lời nằm trong phiếu, không nằm trong mã; sổ lỗi ghi `ghi_chu` cùng ngày.
+
+| Mã | PO trả lời (mã câu) | Sổ sau 11-17 | Việc kế |
+|---|---|---|---|
+| NEN-003 | Đồng ý sửa lịch sử migration rồi mới đẩy lô (P1) | `CHO_PO` | `migration repair` là thao tác prod: chỉ chạy khi PO ra lệnh trong lượt đó |
+| CSSD-034 | Cho lập phiếu ngược, bắt buộc ghi lý do (C7) | `DA_XAC_MINH` | RPC và màn phiếu ngược, `migration-author`, local trước (grep đường đảo hiện 0 file) |
+| VST-017 | «Dùng biểu mẫu đang có», không nêu mã (V4) | `CHO_PO` | chờ mã đầy đủ từng biểu mẫu: giữ `QT.07` app đang in hay mã của biểu mẫu giấy |
+| VST-018 | Thêm chữ ký và dấu ● ở ô đã chọn; không chọn khối IV và dòng kết luận (V5) | `DA_XAC_MINH` | sửa bản in; không in kết luận đạt/không đạt |
+| VST-019 | 1 năm (V6); không nêu căn cứ, không nói có in không | `CHO_PO` | chờ căn cứ và có in hay không |
+| VST-021 | Xuất thô kèm cả hai tên (V7) | `HOAN` | giữ hiện tại |
+| VST-025 | Duyệt áp lên prod (P2) | `CHO_PO` | cần lệnh trong chính lượt áp và MCP Supabase được cấp quyền qua `/mcp`; chạy truy vấn chỉ đọc ở `lenh_kiem` trước |
+| VST-028 | Cần ĐDT/chủ nhiệm khoa lâm sàng xem danh sách có tên của khoa mình (N3) | `CHO_PO` | chờ tên vai riêng và người giữ vai (đổi quyền người dùng thật là cổng PO) |
+| VST-031 | CNK được mở GSC, đọc toàn viện (N4) | `DA_XAC_MINH` | migration seed `GIAM_SAT_CHUNG:view` cho `CHU_NHIEM_KHOA`, local trước |
+| NKBV-041 | K5: Hội đồng thấy danh tính; P3: duyệt áp sáu policy chặn Hội đồng đọc danh tính | `CHO_PO` | **hai câu lệch nhau**: chưa áp `20261114180000`, chưa sửa tầng app cho đến khi PO chọn một |
+| NKBV-042 | Không đổi gì (K6) | `HOAN` | giữ `ma_ca` và NKBV-018 như hiện tại |
+
 ### Cổng PO khác
 
-- KH 11-14 §6: ngưỡng đạt bảng kiểm ≥90% (đồng bộ QT.32; app đọc từ `ksnk_dm_tham_so`, không viết cứng); mã mục kho tri thức chờ PO: X2.13, QT.32, R1.10, XM-2 (nội dung từng mã «cần kiểm»); đích thu hồi tái xử lý `DA_TAI_XU_LY` (Tiếp nhận hay Đóng gói); bốn quyết định đối chiếu nguồn; đưa `330eeb7d` vào nhánh này (§3.1); gán tài khoản thật cho `CHU_NHIEM_KHOA`.
-- NKBV-032, NKBV-034, NKBV-035, NKBV-039, NKBV-040: giả định Hội đồng KSNK tương đương BGĐ ở mức `Xa` vì M03 không có mã vai HOI_DONG; mặc định giữ cổng chặn danh tính, CNK loại trừ.
-- Ba câu QLCV (02 §6); đầu mối có tên (01 §6.5 mục 2); DT-008 (chưa thử tay); `chat-thai-do-vai` giữ hay gác (mặc định gác); danh sách 121 script → 38 chờ PO xem; mâu thuẫn tài liệu (02 §8).
+- KH 11-14 §6: ngưỡng đạt bảng kiểm ≥90% (đồng bộ QT.32; app đọc từ `ksnk_dm_tham_so`, không viết cứng); mã mục kho tri thức chờ PO: X2.13, QT.32, R1.10, XM-2 (nội dung từng mã «cần kiểm»); đích thu hồi tái xử lý `DA_TAI_XU_LY` (Tiếp nhận hay Đóng gói); bốn quyết định đối chiếu nguồn; đưa `330eeb7d` vào nhánh này (§3.1); gán tài khoản thật cho `CHU_NHIEM_KHOA`. Đã trả lời 11-17: ngưỡng ≥90% (V9: «không cần con số, tính theo tỉ lệ tuân thủ», nên không cài ngưỡng đạt vào bản in); đích `DA_TAI_XU_LY` (C6: Trạm Tiếp nhận; ghi chú PO bị cắt ở «nếu dụng cụ h», chưa rõ điều kiện); người giữ `CHU_NHIEM_KHOA` (N6: Trịnh Hữu Nghĩa; gán tài khoản thật vẫn là cổng PO).
+- NKBV-032, NKBV-034, NKBV-035, NKBV-039, NKBV-040: giả định Hội đồng KSNK tương đương BGĐ ở mức `Xa` vì M03 không có mã vai HOI_DONG; mặc định giữ cổng chặn danh tính, CNK loại trừ. PO 11-17 (K5) nói Hội đồng thấy danh tính người bệnh, lệch với mặc định này và với P3: xem NKBV-041.
+- Ba câu QLCV (02 §6); đầu mối có tên (01 §6.5 mục 2); DT-008 (chưa thử tay); `chat-thai-do-vai` giữ hay gác (mặc định gác); danh sách 121 script → 38 chờ PO xem; mâu thuẫn tài liệu (02 §8). Đã trả lời 11-17: ba câu QLCV (02 §6); DT-008 do «nhân viên khoa KSNK» thử (D8; chưa có tên và ngày); đầu mối VST/GSC có tên (V1: Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa). Đầu mối CSSD, QLCV, Đào tạo chỉ ghi theo vai, NKBV bỏ trống: chưa tính là đầu mối có tên. Còn mở: `chat-thai-do-vai`, 121 script → 38, mâu thuẫn tài liệu.
 - Tổng hợp việc chỉ PO làm được và «nếu PO im»: 01 §6.5.
 
 Nguồn: sổ lỗi qua `so-loi.mjs` (C17); KH 11-14 §6; roadmap dòng 101.
@@ -380,7 +398,7 @@ Nguồn: `SO_NO_APPKSNK.md` dòng 42–44 (mục 1–2); KH 11-13 (mục 4); KH 
 - **KẾ** (tối đa 3; cổng vào và ra ở 01 §6.3):
   1. Pha 0 Đóng nền: gọn `HANDOFF_APPKSNK.md` về ≤40 dòng sau khi phiên khác chốt sửa dở; gộp `origin/main` khi cây sạch; PO quyết commit, nhánh, worktree dư.
   2. Pha 1 Prod khớp repo: chuẩn bị lô áp, đối chiếu phụ thuộc chéo giữa các nhóm migration bằng agent `db-verify`, chờ PO authorize MCP.
-  3. Pha 2 VST/GSC L1: chờ đầu mối có tên.
+  3. Pha 2 VST/GSC L1: đầu mối có tên đã có (PO 2026-11-17, §6); cổng vào theo 01 §6.3.
 - **CẦN NGƯỜI:** bảy việc ở 01 §6.5 (việc 6 nay chỉ còn quyết câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`; duyệt bộ 3 file, đánh dấu bản cũ và xếp lớp `docs/` đã xong). Số commit chưa push đo bằng `python3 -I ~/.claude/scripts/wip.py`; `git push` chỉ chạy khi PO gõ «push».
 - **CẦN NGƯỜI (lát làm gọn mã, ngoài bộ này):** `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` §9 — mọi lát đã chạy cục bộ (L0–L12b, L14a–c, Q13, L10, L3b, L4b, L7b, L3c), chưa push; PO «Đồng ý hết» 13 câu §7 và «Xóa cụm» `instrument-issue-core` (2026-11-16). Còn lại: (a) L13 chờ C3 (PO ủy quyền Supabase qua `/mcp`); (b) 7 cột mà L12a/L12b thôi dò (`cssd_fact_quy_trinh`: `is_dong_bang`, `quy_trinh_cha_id`, `ma_vai_tro_bo`, `is_red_alert`; `cssd_fact_su_co`: `quy_trinh_id`, `nguoi_bao_id`, `loai_su_co_id`) chưa kiểm trên prod, không deploy hai lát này trước Pha 1 hoặc trước khi truy vấn chỉ-đọc ở plan §9 trả đủ 7 hàng; (c) migration `supabase/migrations/20261116100000_drop_bang_muc_tieu_cu.sql` (phiên khác) chưa có lệnh áp prod của PO, chỉ áp khi PO ra lệnh, sau khi truy vấn kiểm ở plan §9 (Lệch 6) trả 0 dòng; (d) câu 12b (`NkbvChecklistKsnkTab.tsx`, `NkbvCdcMetricsPanel.tsx`) GIỮ chờ PO. Việc kế không cần PO: chạy tay UI duyệt phiếu đổi danh mục trên DB local.
 - **Không làm:** theo 01 §6.4.
