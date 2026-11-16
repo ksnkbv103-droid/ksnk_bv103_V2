@@ -33,7 +33,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
 4. Push `integrate/2026-11` lên GitHub.
 5. Lô migration prod: 31 file chưa áp + `20261113100000_qlcv010_khong_tu_phe_duyet_dexuat` (sau 20261112140000), thứ tự + điều kiện trước/sau áp ở `git show ae5ca6fd:HANDOFF.md` dòng 25–30. Áp hết rồi mới deploy mã (DT-006 cần cột `huy_*`).
-- Bỏ KPI lớp A (`b13ef7b6`, `b47e4704`, `3e5fafc3`): migration `20261116100000_drop_ksnk_dm_muc_tieu_kpi.sql` chỉ local; prod khi PO ra lệnh riêng, sau SELECT kiểm đầu file = 0 dòng. Chi tiết: `SO_NO_APPKSNK.md` (2026-11-16).
+- Gỡ «mục tiêu viện» + xóa chữ cũ khỏi dự án (`b13ef7b6`…`f44b7705`, chỉ local). Lô prod khi PO ra lệnh riêng: DROP `20261116100000` + `20261116110000` + đổi tên lịch sử 2 migration cũ + deploy mã cùng lúc. Chi tiết: `SO_NO_APPKSNK.md`.
 
 ## Lát chưa mở / nợ
 - NKBV-025 ĐẠT 2026-11-13: FK bắt BA tồn tại nên «chưa import» không xảy ra; đã sửa nhánh BA active chưa có khoa điều trị + không lưới ngày (`if (ba?.khoa_dieu_tri_id || …)` trong `nkbv-khoa-scope.server.ts`, 4 spec mới). Thử tay lại :3001 vai Mạng lưới: «Đã ẩn phiếu»; phiếu khoa khác vẫn bị RLS ẩn. Mạng lưới preset chỉ có NKBV view nên chỉ gặp khi được cấp thêm edit/delete.
