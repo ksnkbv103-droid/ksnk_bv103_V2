@@ -8,7 +8,6 @@
     "action:src/modules/cssd-erp/actions/cssd-workflow-ops.actions.ts#createIncidentReport",
     "action:src/modules/cssd-erp/actions/cssd-workflow.commands.actions.ts#cssdCommandAdvanceStation",
     "action:src/modules/dashboard/actions/dashboard-muc-tieu-kpi.actions.ts#fetchMucTieuKpiVien",
-    "action:src/modules/quan-ly-cong-viec/actions/cong-viec-read.actions.ts#getTrangThaiMauSacMap",
     "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmGetSupervisionMasterDataBundle",
     "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmGetTrungTamDanhMucStats",
     "action:src/modules/quan-tri-he-thong/actions/mdm-gateway.actions.ts#mdmListGenericDm",
