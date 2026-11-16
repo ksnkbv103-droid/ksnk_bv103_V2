@@ -30,7 +30,7 @@ describe("getNkbvCensusAccess", () => {
     expect(await getNkbvCensusAccess()).toEqual({
       restriction: { kind: "khoa", khoaId: K1 },
       viaGscOnly: true,
-      identityDenied: true,
+      identityDenied: false,
     });
   });
 
@@ -40,7 +40,7 @@ describe("getNkbvCensusAccess", () => {
     expect(await getNkbvCensusAccess()).toEqual({
       restriction: { kind: "none" },
       viaGscOnly: true,
-      identityDenied: true,
+      identityDenied: false,
     });
   });
 
@@ -50,13 +50,15 @@ describe("getNkbvCensusAccess", () => {
     expect(await getNkbvCensusAccess()).toEqual({
       restriction: { kind: "all" },
       viaGscOnly: false,
-      identityDenied: true,
+      identityDenied: false,
     });
   });
 });
 
-describe("NKBV-032 cờ identityDenied: chỉ Hội đồng thuần mới bị chặn danh sách có danh tính", () => {
+// gate-ok: NKBV-041 — PO 2026-11-17 (phiếu K5) cho Hội đồng thấy danh tính: ca «Hội đồng thuần» chuyển từ bị chặn sang không chặn; không bỏ ca nào, thêm `wide` vào danh sách «không chặn».
+describe("NKBV-041 cờ identityDenied: không vai nào bị chặn danh sách có danh tính (Hội đồng thuần được xem, PO 2026-11-17)", () => {
   it.each([
+    ["Hội đồng thuần", wide],
     ["NV KSNK", nvKsnk],
     ["Hội đồng kiêm Mạng lưới", hdKiemMangLuoi],
     ["Hội đồng kiêm admin", hdKiemAdmin],
@@ -80,9 +82,9 @@ describe("NKBV-032 cờ identityDenied: chỉ Hội đồng thuần mới bị c
 });
 
 describe("getNkbvIdentityScope (một lần đọc scope cho listInpatientsByKhoa)", () => {
-  it("Hội đồng thuần: thống kê toàn viện nhưng bị chặn danh tính", async () => {
+  it("Hội đồng thuần: toàn viện và được xem danh tính (PO 2026-11-17)", async () => {
     mocks.scope.mockResolvedValue({ ...wide, actorKhoaId: K1 });
-    expect(await getNkbvIdentityScope()).toEqual({ restriction: { kind: "all" }, identityDenied: true });
+    expect(await getNkbvIdentityScope()).toEqual({ restriction: { kind: "all" }, identityDenied: false });
   });
 
   it("Mạng lưới thuần: bó theo khoa, không bị chặn danh tính", async () => {

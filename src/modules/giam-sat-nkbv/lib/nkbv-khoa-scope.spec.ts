@@ -17,11 +17,12 @@ describe("resolveNkbvKhoaRestriction", () => {
   });
 });
 
-describe("isNkbvHoiDongOnly (NKBV-032: HĐ ≈ BGĐ «Xa» là giả định — M03 không có mã HOI_DONG)", () => {
+// gate-ok: NKBV-041 — PO 2026-11-17 (phiếu K5) cho Hội đồng thấy danh tính: đảo đúng một kỳ vọng (Hội đồng thuần: true → false); các ca vai khác giữ nguyên.
+describe("isNkbvHoiDongOnly (NKBV-041: PO 2026-11-17 cho Hội đồng thấy danh tính; thay giả định HĐ ≈ BGĐ «Xa» của NKBV-032)", () => {
   const hd = { ...base, roles: ["HOI_DONG_KSNK"] };
 
-  it("chỉ có vai Hội đồng → bị chặn danh tính, nhưng phạm vi thống kê vẫn toàn viện", () => {
-    expect(isNkbvHoiDongOnly(hd)).toBe(true);
+  it("chỉ có vai Hội đồng → KHÔNG bị chặn danh tính, phạm vi thống kê vẫn toàn viện", () => {
+    expect(isNkbvHoiDongOnly(hd)).toBe(false);
     expect(resolveNkbvKhoaRestriction(hd)).toEqual({ kind: "all" });
   });
 

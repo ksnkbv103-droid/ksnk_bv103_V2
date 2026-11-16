@@ -83,7 +83,7 @@ Nguồn: `mdm`, `roadmap:85,89,91,92,176,178`, `GS:88,118-124`, `DO:206,227,251`
 
 Danh sách migration chờ PO duyệt lên prod ở `roadmap:176`: `20261111170000` (NKBV-003, RLS theo khoa), `20261111180000` (VST-006), `20261111190000` (QLCV-002); còn mở VST-003, VST-004, CSSD-001, CSSD-002, DT-001, QT-003. Trạng thái hiện tại ở 03 §5.
 
-Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 §3.3): Hội đồng tương đương BGĐ ở mức `Xa`, vì M03 không có mã vai HOI_DONG (M03 theo bản đặc tả ngoài repo, «cần kiểm»). PO 2026-11-11 đã nói Hội đồng xem NKBV toàn viện; hai ý ghi cạnh nhau, không tự gộp. PO 2026-11-17 (K5): Hội đồng thấy danh tính người bệnh; lệch với mặc định chặn danh tính ở trên và với việc duyệt áp sáu policy chặn Hội đồng (P3): chưa chọn, xem 1.5 và 03 §6 (NKBV-041).
+Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 §3.3): Hội đồng tương đương BGĐ ở mức `Xa`, vì M03 không có mã vai HOI_DONG (M03 theo bản đặc tả ngoài repo, «cần kiểm»). PO 2026-11-11 đã nói Hội đồng xem NKBV toàn viện; hai ý ghi cạnh nhau, không tự gộp. PO 2026-11-17 (K5, rồi «Có, sửa P3»): Hội đồng KSNK ĐƯỢC xem danh tính người bệnh NKBV toàn viện; giả định «Hội đồng ≈ BGĐ, `Xa`» ở trên bị thay, tầng app không còn chặn Hội đồng (NKBV-041), và KHÔNG áp `20261114180000` lên prod (xem 1.5, 03 §6).
 
 ### 1.4 Không có trong nguồn
 
@@ -97,10 +97,10 @@ Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng ch�
 
 - Vai: `NHAN_VIEN_KSNK` thấy mọi khoa trong viện (N1); `MANG_LUOI_KSNK` chỉ khoa được gán (N2); cần vai riêng cho điều dưỡng trưởng hoặc chủ nhiệm khoa lâm sàng xem danh sách có tên của khoa mình, chưa có tên vai (N3); `CHU_NHIEM_KHOA` được mở GSC, đọc toàn viện (N4); người giữ vai là Trịnh Hữu Nghĩa (N6).
 - `KHACH_THONG_KE_GSTT` (N5): «cho tất cả thành viên mạng lưới, hoặc 1 mail dùng chung, mật khẩu chung»; phạm vi xem chưa trả lời. Cần kiểm: hai cách khác nhau, và mật khẩu chung làm mất dấu vết ai đã xem; chưa chọn.
-- Hội đồng KSNK (K5): thấy danh tính người bệnh NKBV toàn viện. Lệch với việc duyệt áp sáu policy chặn Hội đồng đọc danh tính (P3); chưa chọn, xem 03 §6 (NKBV-041).
+- Hội đồng KSNK (K5): thấy danh tính người bệnh NKBV toàn viện. PO chọn K5 và sửa P3 (2026-11-17): không áp sáu policy chặn Hội đồng đọc danh tính; tầng app đã gỡ chặn (`isNkbvHoiDongOnly` luôn false); còn gỡ migration `20261114180000` khỏi repo và DB local, xem 03 §6 (NKBV-041).
 - VST/GSC: đầu mối Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa (V1); mạng lưới khoa tự nhập sau khi hoàn thiện repo và nhập danh sách thành viên, chưa có tháng (V2); ba người chạy kịch bản tay: «tổ giám sát», chưa có họ tên (V3); biểu mẫu: «dùng biểu mẫu đang có», chưa nêu mã (V4); bản in thêm chữ ký và dấu ● ở ô đã chọn, không thêm khối IV, không in kết luận (V5); lưu 1 năm, chưa nêu căn cứ và có in không (V6); xuất thô kèm cả hai tên (V7); đối soát GSC: «phần mềm tự tính sự chênh lệch», chưa có người, khoa, kỳ (V8); ngưỡng đạt QT.32: «không cần con số, tính theo tỉ lệ tuân thủ» (V9).
 - Ngưỡng dashboard: căn cứ của 85/70/80 là chỉ tiêu nội bộ của viện (B1); ngưỡng đúng từng chỉ số bỏ trống (B2); báo cáo tổng hợp nộp Giám đốc, phó giám đốc, theo tháng, quý, năm (B3).
-- Duyệt áp prod: PO đồng ý P1 (sửa lịch sử migration trước khi đẩy lô), P2 (RLS VST), P3 (RLS NKBV). Chưa áp cái nào; mỗi lần áp cần lệnh trong chính lượt đó (03 §6).
+- Duyệt áp prod: PO đồng ý P1 (sửa lịch sử migration trước khi đẩy lô), P2 (RLS VST); P3 (RLS NKBV) đã SỬA 2026-11-17 thành «không áp» vì K5. Chưa áp cái nào; mỗi lần áp cần lệnh trong chính lượt đó (03 §6).
 
 ## 2. Vệ sinh tay (VST)
 
@@ -378,7 +378,7 @@ Nguồn: `SSOT` (v3.3, 2026-08-27; chuẩn NHSN Patient Safety Component Manual 
 - Nhập: LIS copy hoặc Excel; HIS hoặc gõ tay; không có API HIS hay LIS, không tạo phiếu từ ngày cấy (`SSOT:996,1283-1287`).
 - Trạng thái phiếu: `DANG_GHI_NHAN` → `CHO_XAC_MINH` → `CHO_DUYET` → `XAC_NHAN` hoặc `LOAI_TRU` (`SSOT:1000`). Báo cáo dùng tỷ lệ thô, không SIR (`SSOT:1004,1262`).
 - Chỉ số NKBV ở dashboard: `ti_le_xac_nhan_nkbv` và `clabsi_rate_per_1000` (3.3); số NKBV lấy từ aggregate action của module NKBV, không gộp CCS (`MD:13`).
-- Ai làm: «không có trong nguồn»; PO 2026-11-17 (phiếu): đầu mối NKBV bỏ trống (K1); giám sát CLABSI, CAUTI, VAE, PNEU/VAP, SSI (K2); không giám sát ca nhi và sơ sinh (K3, khớp phạm vi ở bảng trên); giai đoạn thử nhập bằng sao chép từ LIS hoặc từ file Excel, PO không chọn gõ tay (K4); Hội đồng thấy danh tính, lệch P3 (K5, 1.5); mã ca không đổi (K6); 10 ca thật đối chiếu do bác sĩ tổ giám sát chọn (K7). Không có dấu PO đã chốt cho quy tắc lâm sàng nào; nhãn `[PO cần xác nhận]` chỉ được định nghĩa (`SSOT:73`). PO 2026-11-11: Hội đồng KSNK xem NKBV toàn viện (`roadmap:178`); giả định chờ PO về quyền của Hội đồng ở 1.3. Bản NHSN mới hơn January 2025 có hay không: «cần kiểm».
+- Ai làm: «không có trong nguồn»; PO 2026-11-17 (phiếu): đầu mối NKBV bỏ trống (K1); giám sát CLABSI, CAUTI, VAE, PNEU/VAP, SSI (K2); không giám sát ca nhi và sơ sinh (K3, khớp phạm vi ở bảng trên); giai đoạn thử nhập bằng sao chép từ LIS hoặc từ file Excel, PO không chọn gõ tay (K4); Hội đồng thấy danh tính, P3 đã sửa thành không áp RLS chặn (K5, 1.5); mã ca không đổi (K6); 10 ca thật đối chiếu do bác sĩ tổ giám sát chọn (K7). Không có dấu PO đã chốt cho quy tắc lâm sàng nào; nhãn `[PO cần xác nhận]` chỉ được định nghĩa (`SSOT:73`). PO 2026-11-11: Hội đồng KSNK xem NKBV toàn viện (`roadmap:178`); giả định về quyền của Hội đồng ở 1.3 đã được K5 (11-17) thay. Bản NHSN mới hơn January 2025 có hay không: «cần kiểm».
 - Phần chưa đọc đủ: `SSOT` dòng 560 đến 658 và 709 đến 945 (tiêu chí từng site Ch.17, trừ ENDO và USI) chỉ nắm qua tiêu đề; Phụ lục E.4 cần đối chiếu trước khi sửa quy tắc lâm sàng. Khóa dự án: không viết lại engine lâm sàng; lệch chỉ số thì sửa hàm chỉ số (`CLAUDE.md`).
 
 ## 6. Quản lý công việc (QLCV)

@@ -24,7 +24,7 @@
 
 - **Chạy thật chỉ có VST/GSC.** Prod khoảng 3,6 nghìn phiên VST và 1,4 nghìn phiên GSC (rà soát 11-10: 3.613 và 1.400; HANDOFF 11-12: 3.637 và 1.435). QLCV 0 việc, Đào tạo 1 lần thi, NKBV 1 phiếu hoặc sự kiện, CSSD 10 chu trình thử (§5 gắn ngày từng số). Theo `module:gate`, 4/5 module `CHƯA CÓ` đầu mối (giam-sat, nkbv, qlcv, dao-tao); CSSD có `<tên đầu mối>`. Roadmap dòng 66 ghi hàng VST+GSC là `Đã có`: lệch với gate, chờ PO (01 §6.5 mục 2).
 - **Mã dồn vào module chưa có người dùng.** NKBV chiếm 27,4% dòng `src`, CSSD 21,5%, VST+GSC+hub 9,3%. NKBV có 44 commit chạm (12 feat, 28 fix); VST+GSC tối đa 29 (13 feat, 10 fix; cận trên vì đếm chồng; 31 nếu cộng hub). 418 commit trong 8 ngày lịch (11-08 đến 11-15); 42% chỉ chạm quy trình hoặc tài liệu; từ 11-13 00:00 là 55/107 (51%).
-- **Prod lệch repo.** Tối đa 41 file migration chưa áp; hai lỗi CAO về RLS danh tính còn mở (VST-025, NKBV-041); 55 commit chưa push.
+- **Prod lệch repo.** Tối đa 41 file migration chưa áp; một lỗi CAO về RLS danh tính còn mở (VST-025); NKBV-041 đã đổi hướng 11-17: không áp RLS chặn Hội đồng; 55 commit chưa push.
 - Nguyên nhân và lộ trình: 01 §6.1 và §6.3. Việc kế: §8.
 
 ## 2. Thực trạng theo module
@@ -313,7 +313,7 @@ Khớp HANDOFF 11-13: 31 + 1 + 9 = 41. Số chính xác và «prod chạy sha n�
 
 ### Thứ tự áp lô RLS và điều kiện kiểm
 
-- Thứ tự (KH 11-14 §6–§7, sổ VST-025): VST-003 `20261108100000` → `20261114150000` (VST-015) → `20261114160000` (VST-026) → `20261114170000` (VST-023, GSC; cuối lô VST-025) → `20261114180000` (NKBV-035, NKBV-041; áp sau cùng). Ba file RLS này không có BEGIN/COMMIT nên chỉ áp qua MCP `apply_migration`, không dùng psql autocommit. File cuối cần `fn_sys_has_role(text)` và `fn_sys_is_admin()`.
+- Thứ tự (KH 11-14 §6–§7, sổ VST-025): VST-003 `20261108100000` → `20261114150000` (VST-015) → `20261114160000` (VST-026) → `20261114170000` (VST-023, GSC; cuối lô VST-025). `20261114180000` (NKBV-035) KHÔNG áp: PO 11-17 (K5, «sửa P3») cho Hội đồng thấy danh tính; file chờ gỡ khỏi repo (NKBV-041). Các file RLS `150000/160000/170000` không có BEGIN/COMMIT nên chỉ áp qua MCP `apply_migration`, không dùng psql autocommit.
 - Mâu thuẫn VST-003: HANDOFF 11-12 ghi đã áp (`20261112022506`), sổ VST-025 ghi chưa: «cần kiểm» bằng `list_migrations`.
 - NKBV-011 `20261112090000`: kiểm mọi ADMIN đã gắn `mdm_nhan_su` trước khi áp. NKBV-008 `20261112100000`: sau khi áp, kiểm `proacl` chỉ còn `service_role`. DT-006 `20261112120000`: không deploy mã trước khi áp (prod chưa có cột `huy_*`).
 - AR-8h (`20261111150400`, bỏ khóa `DANH_MUC`, `DANH_MUC_GSTT`, `DANH_MUC_CSSD_LOOKUP`, giữ `DANH_MUC_ORG`): áp cùng lúc deploy code, chạy 2 query kiểm trước, hỏi PO.
@@ -350,7 +350,7 @@ KH 11-14 §7 nói các mục này đủ mặc định, nhưng sổ chỉ ghi m�
 | VST-025 (CAO) | áp lô migration RLS đọc phiên VST lên prod (`20261108100000` rồi `20261114150000`); chưa áp thì CNK và HĐ gọi thẳng PostgREST còn đọc toàn viện kèm danh tính; mâu thuẫn HANDOFF 11-12: «cần kiểm» bằng `list_migrations` | không ghi |
 | VST-028 | đặc tả R1.34 cần vai ĐDT/CN_KHOA lâm sàng xem danh sách có danh tính của khoa mình; RBAC chưa có vai này (`CHU_NHIEM_KHOA` là chủ nhiệm khoa KSNK) | không ghi |
 | VST-031 | `CHU_NHIEM_KHOA` không có `GIAM_SAT_CHUNG:view` (chỉ GIAM_SAT_VST approve và view) nên không mở được GSC, dù đặc tả M02 cho TK_KSNK đọc toàn viện, sửa muộn và CNK ≡ TK_KSNK | không ghi |
-| NKBV-041 (CAO) | áp `20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql` lên prod (kết quả NKBV-035, mới áp LOCAL): sáu policy `*_select_hoi_dong_deny` cho `HOI_DONG_KSNK`; tầng app đã chặn nên không khẩn | PO im thì prod giữ policy hiện hành |
+| NKBV-041 (CAO) | ~~áp `20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql` lên prod~~: PO 11-17 (K5, «sửa P3») chọn KHÔNG áp, Hội đồng thấy danh tính; còn gỡ file này và probe khỏi repo, DB local | đã chọn: prod giữ policy hiện hành |
 | NKBV-042 | `ma_ca` nhúng 12 ký tự đầu của mã bệnh án (không phải mã giả hóa), nên NKBV-018 vẫn để lộ mã bệnh án cho người chỉ có quyền CSSD | giữ NKBV-018, chưa code che; PO im thì không đổi mã đã sinh |
 
 ### PO trả lời phiếu hỏi 2026-11-17
@@ -368,13 +368,13 @@ Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng ch�
 | VST-025 | Duyệt áp lên prod (P2) | `CHO_PO` | cần lệnh trong chính lượt áp và MCP Supabase được cấp quyền qua `/mcp`; chạy truy vấn chỉ đọc ở `lenh_kiem` trước |
 | VST-028 | Cần ĐDT/chủ nhiệm khoa lâm sàng xem danh sách có tên của khoa mình (N3) | `CHO_PO` | chờ tên vai riêng và người giữ vai (đổi quyền người dùng thật là cổng PO) |
 | VST-031 | CNK được mở GSC, đọc toàn viện (N4) | `DA_XAC_MINH` | migration seed `GIAM_SAT_CHUNG:view` cho `CHU_NHIEM_KHOA`, local trước |
-| NKBV-041 | K5: Hội đồng thấy danh tính; P3: duyệt áp sáu policy chặn Hội đồng đọc danh tính | `CHO_PO` | **hai câu lệch nhau**: chưa áp `20261114180000`, chưa sửa tầng app cho đến khi PO chọn một |
+| NKBV-041 | K5: Hội đồng thấy danh tính; P3 sửa thành không áp sáu policy chặn Hội đồng | `DA_XAC_MINH` | tầng app đã gỡ chặn (lát 1); còn lát 2: gỡ `20261114180000` + probe khỏi repo và DB local. Đến lúc đó DB local vẫn chặn Hội đồng thuần; KHÔNG áp prod |
 | NKBV-042 | Không đổi gì (K6) | `HOAN` | giữ `ma_ca` và NKBV-018 như hiện tại |
 
 ### Cổng PO khác
 
 - KH 11-14 §6: ngưỡng đạt bảng kiểm ≥90% (đồng bộ QT.32; app đọc từ `ksnk_dm_tham_so`, không viết cứng); mã mục kho tri thức chờ PO: X2.13, QT.32, R1.10, XM-2 (nội dung từng mã «cần kiểm»); đích thu hồi tái xử lý `DA_TAI_XU_LY` (Tiếp nhận hay Đóng gói); bốn quyết định đối chiếu nguồn; đưa `330eeb7d` vào nhánh này (§3.1); gán tài khoản thật cho `CHU_NHIEM_KHOA`. Đã trả lời 11-17: ngưỡng ≥90% (V9: «không cần con số, tính theo tỉ lệ tuân thủ», nên không cài ngưỡng đạt vào bản in); đích `DA_TAI_XU_LY` (C6: Trạm Tiếp nhận; ghi chú PO bị cắt ở «nếu dụng cụ h», chưa rõ điều kiện); người giữ `CHU_NHIEM_KHOA` (N6: Trịnh Hữu Nghĩa; gán tài khoản thật vẫn là cổng PO).
-- NKBV-032, NKBV-034, NKBV-035, NKBV-039, NKBV-040: giả định Hội đồng KSNK tương đương BGĐ ở mức `Xa` vì M03 không có mã vai HOI_DONG; mặc định giữ cổng chặn danh tính, CNK loại trừ. PO 11-17 (K5) nói Hội đồng thấy danh tính người bệnh, lệch với mặc định này và với P3: xem NKBV-041.
+- NKBV-032, NKBV-034, NKBV-035, NKBV-039, NKBV-040: giả định Hội đồng KSNK tương đương BGĐ ở mức `Xa` vì M03 không có mã vai HOI_DONG; mặc định giữ cổng chặn danh tính, CNK loại trừ. PO 11-17 (K5, «sửa P3») thay mặc định này: Hội đồng thấy danh tính, tầng app không còn chặn (NKBV-041); hai spec của cổng (`nkbv-khoa-scope.spec.ts`, `nkbv-census-access.server.spec.ts`) đã đổi theo; các spec action khác mock cờ nên giữ nguyên.
 - Ba câu QLCV (02 §6); đầu mối có tên (01 §6.5 mục 2); DT-008 (chưa thử tay); `chat-thai-do-vai` giữ hay gác (mặc định gác); danh sách 121 script → 38 chờ PO xem; mâu thuẫn tài liệu (02 §8). Đã trả lời 11-17: ba câu QLCV (02 §6); DT-008 do «nhân viên khoa KSNK» thử (D8; chưa có tên và ngày); đầu mối VST/GSC có tên (V1: Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa). Đầu mối CSSD, QLCV, Đào tạo chỉ ghi theo vai, NKBV bỏ trống: chưa tính là đầu mối có tên. Còn mở: `chat-thai-do-vai`, 121 script → 38, mâu thuẫn tài liệu.
 - Tổng hợp việc chỉ PO làm được và «nếu PO im»: 01 §6.5.
 

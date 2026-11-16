@@ -107,7 +107,7 @@ Nguồn: `CLAUDE.md`; `docs/core/handover-roadmap.md` dòng 76; `docs/modules/da
 Pha 0 và Pha 1 chạy song song; cả hai chỉ PO mở được.
 
 **Ghi chú Pha 1: thứ tự áp.**
-- Sổ lỗi (VST-025) ghi thứ tự cụm RLS: VST-003 `20261108100000` → `20261114150000` → `20261114160000` → `20261114170000` (GSC, sau cùng). `20261114180000` (NKBV-041) cần `fn_sys_has_role` và `fn_sys_is_admin()`. Ba file RLS `20261114150000/160000/170000` không có BEGIN/COMMIT: chỉ áp qua MCP `apply_migration`, không dùng psql autocommit.
+- Sổ lỗi (VST-025) ghi thứ tự cụm RLS: VST-003 `20261108100000` → `20261114150000` → `20261114160000` → `20261114170000` (GSC, sau cùng). `20261114180000` (NKBV-041) KHÔNG áp: PO 11-17 cho Hội đồng thấy danh tính, file chờ gỡ khỏi repo. Ba file RLS `20261114150000/160000/170000` không có BEGIN/COMMIT: chỉ áp qua MCP `apply_migration`, không dùng psql autocommit.
 - VST-003: `HANDOFF` 11-12 ghi đã áp prod (version prod `20261112022506`), sổ VST-025 ghi chưa. Mâu thuẫn: «cần kiểm» bằng `list_migrations`.
 - Đã áp prod 11-12 (PO ra lệnh, qua MCP): VST-003, nhóm 1 (`20261109100000`, `20261110120000`, `20261111090000`), nhóm 2 (`20261110115000` → `130000` → `140000`, khu vực giám sát chuẩn 9).
 - Phần còn lại theo thứ tự version; điều kiện kiểm trước/sau từng migration ở `git show ae5ca6fd:HANDOFF.md` dòng 22–32. AR-8h `20261111150400` áp cùng lúc deploy code (chạy 2 query kiểm trước). NEN-003: mặc định của sổ là chạy `migration repair --status applied 20261110110000` trước lô. Phụ thuộc chéo giữa các nhóm: «cần kiểm» (agent `db-verify`) trước khi PO duyệt lô.
