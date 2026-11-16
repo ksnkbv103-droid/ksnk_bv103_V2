@@ -148,7 +148,6 @@
     "tbl gstt_map_bang_kiem_short_long | rls=true | anon= auth=IUD",
     "tbl gstt_map_tieu_chi_merge | rls=true | anon= auth=IUD",
     "tbl gstt_map_tieu_chi_orphan | rls=true | anon= auth=IUD",
-    "tbl ksnk_dm_muc_tieu_kpi | rls=true | anon=IUD auth=IUD",
     "tbl ksnk_dm_tham_so | rls=true | anon= auth=I",
     "tbl mdm_dm_khoa_phong | rls=true | anon=IUD auth=IUD",
     "tbl mdm_nhan_su | rls=true | anon= auth=IUD",
