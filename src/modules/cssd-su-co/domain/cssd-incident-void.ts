@@ -31,7 +31,6 @@ export const INCIDENT_VOID_BOM =
   "Phiếu đang duyệt thành phần bộ. Từ chối trên duyệt, không vô hiệu tại nhật ký.";
 export const INCIDENT_VOID_TRANSFER =
   "Phiếu có điều chuyển bộ. Lập phiếu ngược ở Luân chuyển — vô hiệu ở đây lệch cấu phần.";
-export const INCIDENT_VOID_ALREADY = "Phiếu sự cố đã bị vô hiệu.";
 export const INCIDENT_VOID_CONFIRMED =
   "Phiếu đã xác nhận — chỉ Trưởng CSSD / Admin được vô hiệu kèm lý do.";
 export const INCIDENT_VOID_NOT_OWNER =

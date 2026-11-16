@@ -47,13 +47,3 @@ export function listCyclePerformers(row: Record<string, unknown>): CyclePerforme
 export function isInstrumentIncidentImageRequired(typeId: string): boolean {
   return typeId === "INSTRUMENT_BROKEN" || typeId === "INSTRUMENT_REPLENISH";
 }
-
-export const CHEMICAL_QUALITY_INCIDENT = {
-  typeId: "CHEMICAL_QUALITY",
-  typeTen: "Sự cố chất lượng hóa chất/vật tư",
-} as const;
-
-export const OTHER_GENERIC_INCIDENT = {
-  typeId: "OTHER_CUSTOM",
-  typeTen: "Sự cố khác",
-} as const;

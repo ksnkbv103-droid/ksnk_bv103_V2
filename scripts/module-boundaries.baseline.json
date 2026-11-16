@@ -64,7 +64,6 @@
     "src/modules/cssd-erp/shared/contracts/cssd-context.contracts.ts -> @/modules/cssd-su-co/contracts/su-co-report-input.schema"
   ],
   "cssd-su-co-chi-import-loi": [
-    "src/modules/cssd-su-co/components/InstrumentIncidentFields.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
     "src/modules/cssd-su-co/components/InstrumentReplenishDualTable.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
     "src/modules/cssd-su-co/components/InstrumentSetReconcileTable.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
     "src/modules/cssd-su-co/components/InstrumentTransferDualTable.tsx -> @/modules/cssd-erp/contexts/inventory-instrument/entrypoint",
