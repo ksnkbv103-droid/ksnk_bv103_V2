@@ -382,4 +382,5 @@ Nguồn: `SO_NO_APPKSNK.md` dòng 42–44 (mục 1–2); KH 11-13 (mục 4); KH 
   2. Pha 1 Prod khớp repo: chuẩn bị lô áp, đối chiếu phụ thuộc chéo giữa các nhóm migration bằng agent `db-verify`, chờ PO authorize MCP.
   3. Pha 2 VST/GSC L1: chờ đầu mối có tên.
 - **CẦN NGƯỜI:** bảy việc ở 01 §6.5 (việc 6 nay là chốt phạm vi lưu trữ bản cũ và xếp lớp `docs/`; việc duyệt bộ 3 file đã xong). Số commit chưa push đo bằng `python3 -I ~/.claude/scripts/wip.py`; `git push` chỉ chạy khi PO gõ «push».
+- **CẦN NGƯỜI (lát làm gọn mã, ngoài bộ này):** `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` §9 — L0–L12b đã chạy cục bộ, chưa push; 13 câu §7 chưa ai trả lời nên giữ nguyên, câu 13 (cho `scripts/gate-integrity.mjs` nhận xóa nguyên spec cùng nguồn) mở khóa L10 và phần chờ của L3/L4/L7; cột `cssd_fact_quy_trinh.is_red_alert` (L12b) chưa kiểm trên prod. Việc kế không cần PO: chạy tay UI duyệt phiếu đổi danh mục trên DB local.
 - **Không làm:** theo 01 §6.4.
