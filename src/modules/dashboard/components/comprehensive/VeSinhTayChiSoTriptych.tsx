@@ -8,7 +8,7 @@ import { bcthModuleComplianceTone } from "@/modules/dashboard/lib/bao-cao-tong-h
 import { dashboardChrome as D } from "@/modules/dashboard/lib/dashboard-chrome";
 import type { BaoCaoTongHopPayload } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 
-/** Ba KPI cạnh nhau — WHO + KSNK.QT.07.BM.02 + BM.03; không gộp %. */
+/** Ba chỉ số cạnh nhau — WHO + KSNK.QT.07.BM.02 + BM.03; không gộp %. */
 export function VeSinhTayChiSoTriptych({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const cards = buildVeSinhTayChiSoCards({
     vst: payload?.vst ?? null,

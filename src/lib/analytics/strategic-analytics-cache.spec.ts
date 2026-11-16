@@ -108,7 +108,7 @@ const lensArgs = {
   p_hinh_thuc_ids: ["KSNK"],
 };
 
-describe("strategic-analytics-cache BCTH KPI-only", () => {
+describe("strategic-analytics-cache BCTH chỉ số riêng", () => {
   beforeEach(() => {
     rpcCalls.length = 0;
     mocks.rpc.mockClear();
@@ -147,7 +147,7 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     expect(priorCalls.some((n) => n.includes("compare_matrices"))).toBe(false);
   });
 
-  it("KPI kỳ trước qua đường chi-so-only == normalize + computeTyLe (kể cả ty_le 0–1)", async () => {
+  it("chỉ số kỳ trước qua đường chi-so-only == normalize + computeTyLe (kể cả ty_le 0–1)", async () => {
     const vstOnly = await getCachedVstStrategicChiSoOnly(lensArgs);
     expect(vstOnly.success).toBe(true);
     if (!vstOnly.success) return;

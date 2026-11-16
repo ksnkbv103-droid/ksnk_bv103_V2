@@ -98,7 +98,7 @@ Chạy trên bản local/staging, tài khoản có quyền VST + GSC. Ghi giờ 
 |---|---|---|---|---|
 | 1 | Nhập phiên VST 5 mốc | `/giam-sat-vst` → chọn khoa, người được giám sát → chọn hành động cho mốc 1 (Rửa tay bằng nước) → thêm mốc thứ 2, 3, 4, 5 trên cùng một hàng → «Lưu» | Lưu thành công; mốc đạt tối đa 2 thời điểm WHO, vượt trần thì bỏ mốc cũ nhất, không hiện toast; «Bỏ sót» chỉ 1 mốc; ô chọn nền xanh `#026f17` chữ trắng | |
 | 2 | Nhập phiên GSC | `/giam-sat-chung/tuan-thu` → chọn khoa, mẫu → tick các mục → «Lưu» | Lưu thành công; phiên xuất hiện đầu `/lich-su/gsc` | |
-| 3 | Xem thống kê một kỳ và in | `/thong-ke/vst` → chọn kỳ (tháng vừa nhập) → xem KPI tổng, bảng khoa → in/xuất; lặp lại ở `/thong-ke/gsc` | KPI tổng ở đầu trang; khoa có < 20 cơ hội VST (< 30 GSC) hiện «mẫu mỏng», không tô cảnh báo; phiên vừa nhập có trong số liệu; số khớp lịch sử | |
+| 3 | Xem thống kê một kỳ và in | `/thong-ke/vst` → chọn kỳ (tháng vừa nhập) → xem chỉ số tổng, bảng khoa → in/xuất; lặp lại ở `/thong-ke/gsc` | chỉ số tổng ở đầu trang; khoa có < 20 cơ hội VST (< 30 GSC) hiện «mẫu mỏng», không tô cảnh báo; phiên vừa nhập có trong số liệu; số khớp lịch sử | |
 
 ### Đối soát VST: RPC so với tính tay (L1-2, 2026-10-24, DB local)
 
@@ -111,7 +111,7 @@ Tính tay = đếm trực tiếp từ `gstt_fact_vst` (phiên `is_active`, hành
 | C. Tháng 2026-09, từng khoa (`matrix_khoa`) | 39 khoa ở cả hai phía, **0 lệch** |
 | D. Lọc một khoa | 109 cơ hội · 89,0% cả hai phía |
 
-Kết luận: không lệch, không sửa hàm KPI. GSC chưa đối soát (ngoài phạm vi L1-2).
+Kết luận: không lệch, không sửa hàm chỉ số. GSC chưa đối soát (ngoài phạm vi L1-2).
 
 ---
 

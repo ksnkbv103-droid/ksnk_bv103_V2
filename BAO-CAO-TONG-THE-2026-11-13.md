@@ -16,7 +16,7 @@ Gom từ CLAUDE.md, domain-specification, roadmap §5 và các việc PO đang t
 | Mục đích | Bằng chứng | Hệ quả cho chiến lược |
 |---|---|---|
 | **Một hệ thống KSNK trọn vẹn cho cả viện**, không phải một app VST | CLAUDE.md: «Mục tiêu: triển khai TẤT CẢ module» (PO 2026-10-12), thứ tự VST/GSC → CSSD → NKBV → QLCV → Đào tạo | Không «đóng băng» module nào vĩnh viễn; chỉ **xếp hàng** |
-| **Số liệu chuẩn, bảo vệ được** trước lãnh đạo và kiểm định | Khóa PO VST (≤2 thời điểm WHO, trần KPI = trần form); NKBV bám CDC/NHSN; PO tự lập bản đối chiếu NHSN 2026 | Đúng chuẩn chuyên môn được ưu tiên hơn thêm màn |
+| **Số liệu chuẩn, bảo vệ được** trước lãnh đạo và kiểm định | Khóa PO VST (≤2 thời điểm WHO, trần chỉ số = trần form); NKBV bám CDC/NHSN; PO tự lập bản đối chiếu NHSN 2026 | Đúng chuẩn chuyên môn được ưu tiên hơn thêm màn |
 | **Đào tạo theo đối tượng** | PO đang soạn ngân hàng ~6.000 câu (`seed_dao_tao_6000_qbank.sql`, 6.088 dòng) và phân 9 nhóm đối tượng theo KSNK.QT.03.BM.02 | Đào tạo không phải «ưu tiên thấp không ai dùng»: có nội dung thật, đang thiếu đường đưa vào |
 | **Quản lý khoa KSNK như một đơn vị** (việc, dự trù) | QLCV; file `Du_tru_dau_thau_KSNK_2027_2028_BV103.xlsx` | QLCV là công cụ nội bộ của chính khoa KSNK → có người dùng sẵn trong khoa |
 | **Nhanh có sản phẩm dùng được** | Thang L0–L3 (PO 2026-10-24): L1 = người thật, nhập < 60 s, ≥ 3 kịch bản, thống kê khớp tính tay | Đích của mọi module là **L1 trên prod**, không phải «điểm audit» trên local |
@@ -79,9 +79,9 @@ Cổng chặn: khóa sổ `locked_until_date`; trần VST; mẫu tắt không ch
 - 36 mẫu bảng kiểm.
 - Khái niệm người dùng gặp, khoảng 10: chuyên trách/tự giám sát, đối soát, 3 loại giám sát, 4 cách tính điểm, khóa sổ, mẫu mỏng, mục tiêu viện, hai nghĩa Δ.
 
-**KPI:**
+**Chỉ số:**
 
-| KPI | Công thức | Nguồn | Ngưỡng |
+| Chỉ số | Công thức | Nguồn | Ngưỡng |
 |---|---|---|---|
 | `ty_le_vst` | đạt/tổng cơ hội hợp lệ (`fn_vst_is_valid_opportunity`) | RPC `rpc_dashboard_vst_strategic_analytics`; đã đối soát tay 0 lệch | 85/70/80/90%: **«chưa có căn cứ định lượng»** (metric-dictionary, PO 11-06) |
 | `ty_le_gsc` | Đạt/tiêu chí áp dụng (loại NA), mặc định chỉ loại TUÂN_THỦ | RPC `rpc_dashboard_gsc_strategic_analytics`; **chưa đối soát tay** | như trên |

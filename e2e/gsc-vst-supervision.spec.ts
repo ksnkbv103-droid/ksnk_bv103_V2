@@ -17,7 +17,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await login(page);
   });
 
-  test("GSC — Form, /thong-ke/gsc KPI, /lich-su/gsc", async ({ page }) => {
+  test("GSC — Form, /thong-ke/gsc chỉ số, /lich-su/gsc", async ({ page }) => {
     await page.goto("/giam-sat-chung");
     await expect(page.getByText(/giám sát/i).first()).toBeVisible({ timeout: 30_000 });
 
@@ -32,7 +32,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await expect(page.locator("table, [role='table'], .text-slate-500").first()).toBeVisible({ timeout: 30_000 });
   });
 
-  test("VST — Form, /thong-ke/vst KPI, /lich-su/vst", async ({ page }) => {
+  test("VST — Form, /thong-ke/vst chỉ số, /lich-su/vst", async ({ page }) => {
     await page.goto("/giam-sat-vst");
     await expect(page.getByText(/vệ sinh tay|who/i).first()).toBeVisible({ timeout: 30_000 });
 
@@ -58,7 +58,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await expect(page.getByText(/khoa|khu vực/i).first()).toBeVisible();
   });
 
-  test("VST — analytics KPI stable after double refresh", async ({ page }) => {
+  test("VST — analytics chỉ số stable after double refresh", async ({ page }) => {
     await page.goto("/thong-ke/vst");
     const reload = page.getByRole("button", { name: /tải lại/i });
     await expect(reload).toBeVisible({ timeout: 30_000 });

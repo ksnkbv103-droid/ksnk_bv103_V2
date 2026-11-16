@@ -1,5 +1,5 @@
 /**
- * Ba KPI cạnh nhau khối Vệ sinh tay — không gộp 1 %.
+ * Ba chỉ số cạnh nhau khối Vệ sinh tay — không gộp 1 %.
  * VST = strategic WHO; GSC = lọc theo ma_bk (prod KSNK.QT.07.BM.02/03 hoặc alias BM.07.02/03).
  */
 

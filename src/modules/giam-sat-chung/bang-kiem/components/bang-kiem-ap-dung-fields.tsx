@@ -292,7 +292,7 @@ export default function BangKiemApDungFields({
         </div>
       </section>
 
-      {/* ⑥ Số phiên TGS tối thiểu — KSNK quy định sau; để trống = chưa áp dụng KPI tần suất */}
+      {/* ⑥ Số phiên TGS tối thiểu — KSNK quy định sau; để trống = chưa áp dụng chỉ số tần suất */}
       {showTanSuat ? (
         <section className="space-y-3 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/50 p-4">
           <SectionHeader

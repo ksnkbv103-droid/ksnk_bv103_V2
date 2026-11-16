@@ -104,7 +104,7 @@ describe("getBaoCaoTongHopAnalytics RPC wiring", () => {
     });
   });
 
-  it("ALL + lens KSNK: kỳ trước dùng KPI-only, TUAN_THU 1 lần, NKBV không rates", async () => {
+  it("ALL + lens KSNK: kỳ trước dùng chỉ số riêng, TUAN_THU 1 lần, NKBV không rates", async () => {
     const res = await getBaoCaoTongHopAnalytics({
       tu_ngay: "2026-09-01",
       den_ngay: "2026-09-30",

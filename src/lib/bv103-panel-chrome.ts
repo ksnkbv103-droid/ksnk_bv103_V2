@@ -29,7 +29,7 @@ export const bv103PanelChrome = {
   modalTitle: T.pageTitle,
   modalSubtitle: T.pageSubtitle,
 
-  /** KPI trong panel (không font-black) */
+  /** chỉ số trong panel (không font-black) */
   chiSoLabel: T.labelBlock,
   chiSoValue: T.statValueLg,
   chiSoValueSm: T.statValue,

@@ -19,15 +19,15 @@ Ngôn ngữ giao diện thống nhất — MIS bệnh viện: trang trọng, đ�
 | **L0** `globals.css` | `--radius-*`, `--surface-*`, `--primary` | Sửa từng file khi đổi bo góc |
 | **L1** `bv103-design-tokens` | 6 cấp typography + `tableCell*` | Hardcode `text-sm font-black` |
 | **L2** `bv103-layout-chrome` | Input, panel, nút primary/secondary | Inline `rounded-xl` lẻ tẻ |
-| **L3** `bv103-panel-chrome` | List/panel/form: `panelTitle`, `chiSoValue`, `innerTable*` | Mỗi panel tự định nghĩa KPI |
+| **L3** `bv103-panel-chrome` | List/panel/form: `panelTitle`, `chiSoValue`, `innerTable*` | Mỗi panel tự định nghĩa chỉ số |
 | **L3 domain** | Module chrome (bảng dưới) | Header `"MÃ / TÊN"` trong Column |
 | **L4** Component import chrome | `className={UI.cellBody}` | `uppercase` trên paragraph dài |
 
 **Quy tắc viết hoa:** IN HOA chỉ ở **điều hướng** (`navGroupLabel`) và **nút lựa chọn touch** (`choiceBtn`, `btnTouch`, segment Đạt/Không). Toolbar + header bảng + tiêu đề panel + nội dung = chữ thường.
 
-**Quy tắc đậm:** `font-semibold` tiêu đề dòng; `font-medium` nội dung; `font-black` chỉ số KPI (`statValue` / `chiSoValue`) và nút touch workstation (CSSD/NKBV).
+**Quy tắc đậm:** `font-semibold` tiêu đề dòng; `font-medium` nội dung; `font-black` chỉ số (`statValue` / `chiSoValue`) và nút touch workstation (CSSD/NKBV).
 
-**Ops density:** chọn loại = chip ngang; danh sách máy/danh mục = bảng + QR thumb; KPI list = strip 1 hàng; CTA = `btnPrimary`/`btnSecondary`/`btnPrimaryBlock`. Chi tiết bảng: [`page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) §8.
+**Ops density:** chọn loại = chip ngang; danh sách máy/danh mục = bảng + QR thumb; chỉ số list = strip 1 hàng; CTA = `btnPrimary`/`btnSecondary`/`btnPrimaryBlock`. Chi tiết bảng: [`page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) §8.
 
 ### Module chrome (L3 domain)
 

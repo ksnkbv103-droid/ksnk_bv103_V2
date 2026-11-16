@@ -121,7 +121,7 @@
       ],
       "ma_bm_app": "Chỉ có lời chú: «BM.02/BM.03 không thuộc tổng Giám sát chung» (bao-cao-tong-hop-print.ts:335) và «không phải chỉ số BM.02 kỹ thuật thường quy» (:369)",
       "ma_bm_kho": "Cần kiểm: báo cáo tổng hợp không phải bảng kiểm; chưa tra mã báo cáo ở kho",
-      "ket_luan": "Vòng P1 kế tiếp; kiểm phép số khớp giữa báo cáo in và KPI"
+      "ket_luan": "Vòng P1 kế tiếp; kiểm phép số khớp giữa báo cáo in và chỉ số"
     },
     {
       "nhom": "QLCV",
@@ -188,7 +188,7 @@
     "pham_vi": "VST và GSC (vòng P1:VST_GSC, 2026-11-14)",
     "1_so_khop": {
       "ket_qua": "VST: ĐẠT (DB local); GSC: cần kiểm",
-      "bang_chung": "VST: 0/32119 dòng lệch giữa classifyVstAction (TS) và fn_vst_is_valid_opportunity (SQL). GSC: công thức giống nhau ở mức đọc mã (Đ/(dòng đánh giá − KAD)×100, NGUYEN_TAC_BANG_KIEM.md:19): bản in GiamSatChungPrintCriteriaSection.tsx:19-29 (định dạng supervision-percent.ts:38-41), điểm lưu giam-sat-scoring.ts:70,89-93 (scoreTyLe), KPI gsc-score-display.ts:157-166 (tong_dat/tong_quan_sat). Chưa có phép so số in với số lưu/KPI chạy lại được trên dữ liệu như phép 0/32119 của VST nên «cần kiểm», không ghi ĐẠT. Bản ghi trước dẫn gsc-print-utils.ts là sai chỗ: file đó chỉ có hàm định dạng ngày",
+      "bang_chung": "VST: 0/32119 dòng lệch giữa classifyVstAction (TS) và fn_vst_is_valid_opportunity (SQL). GSC: công thức giống nhau ở mức đọc mã (Đ/(dòng đánh giá − KAD)×100, NGUYEN_TAC_BANG_KIEM.md:19): bản in GiamSatChungPrintCriteriaSection.tsx:19-29 (định dạng supervision-percent.ts:38-41), điểm lưu giam-sat-scoring.ts:70,89-93 (scoreTyLe), chỉ số gsc-score-display.ts:157-166 (tong_dat/tong_quan_sat). Chưa có phép so số in với số lưu/chỉ số chạy lại được trên dữ liệu như phép 0/32119 của VST nên «cần kiểm», không ghi ĐẠT. Bản ghi trước dẫn gsc-print-utils.ts là sai chỗ: file đó chỉ có hàm định dạng ngày",
       "rui_ro": "VST có hai bản cài đặt (TS và SQL): rủi ro lệch về sau, hiện chưa lệch; không ghi thành lỗi"
     },
     "2_in_lai_dung_mau": {
@@ -213,7 +213,7 @@
     }
   },
   "xoa_cung_12_cho": {
-    "ghi_chu": "Phân loại 12 chỗ .delete() trong src: (i) bảng nháp/ô lịch bật-tắt, (ii) danh mục/RBAC, (iii) hồ sơ còn hạn lưu. Quy ước: lớp (iii) hoặc lớp (i) tác động mẫu số KPI mà không có dấu vết → sổ lỗi.",
+    "ghi_chu": "Phân loại 12 chỗ .delete() trong src: (i) bảng nháp/ô lịch bật-tắt, (ii) danh mục/RBAC, (iii) hồ sơ còn hạn lưu. Quy ước: lớp (iii) hoặc lớp (i) tác động mẫu số chỉ số mà không có dấu vết → sổ lỗi.",
     "lenh_liet_ke": "grep -rn '\\.delete()' src --include='*.ts' --include='*.tsx' (kết quả 12 chỗ ở thân action, loại spec)",
     "cho": [
       { "so": 1, "vi_tri": "src/modules/cssd-su-co/actions/set-reconcile-draft.actions.ts:41", "lop": "i", "ket_luan": "OK: bản nháp đối soát bộ" },

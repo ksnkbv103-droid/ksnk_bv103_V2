@@ -22,7 +22,7 @@ Module đã có: chạy `/ra-soat <m>` trước; chỉ hỏi phần còn thiếu
 2. **Tính năng hoặc lỗi** — hiện tại thế nào, muốn thế nào (2–5 câu)
 3. **Ai dùng** — role, khoa, quyền
 4. **Luồng mong muốn** — bước 1 → 2 → kết quả
-5. **Không được đụng** — module khác, dữ liệu cũ, công thức KPI đã chốt, …
+5. **Không được đụng** — module khác, dữ liệu cũ, công thức chỉ số đã chốt, …
 6. **Kiểm tra tay** — ít nhất 3 tình huống: làm gì → thấy gì (user có thể để trống; AI đề xuất thêm)
 
 ## AI tự điền (phần kỹ thuật — user không cần viết)
@@ -48,7 +48,7 @@ Sau khi nhận mô tả nghiệp vụ, bổ sung:
 | vệ sinh tay, WHO, VST | Giám sát VST |
 | giám sát chung, phiên GSC | Giám sát GSC |
 | bảng kiểm template | Bang kiem / MDM |
-| báo cáo, dashboard, thống kê, KPI, CCS | Dashboard |
+| báo cáo, dashboard, thống kê, chỉ số, CCS | Dashboard |
 | danh mục, khoa, nhân viên, MDM | Danh mục |
 | nhiễm khuẩn, NKBV | NKBV |
 

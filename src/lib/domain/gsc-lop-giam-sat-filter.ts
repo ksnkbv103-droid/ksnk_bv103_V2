@@ -1,7 +1,7 @@
 /**
  * Soft Soft Soft-safe 25d residual — picker filter theo `lop_giam_sat` / seed_meta (file 16 §6).
  * Hub VST BM.01–03 không lẫn list GSC generic (R4/R5).
- * Không invent KPI; chỉ filter.
+ * Không invent chỉ số; chỉ filter.
  */
 
 import {

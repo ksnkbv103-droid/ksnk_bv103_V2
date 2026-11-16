@@ -1,5 +1,5 @@
 /**
- * Ngưỡng tuân thủ giám sát — SSOT pilot (chart · bảng · in · KPI). Số chờ N-GS-3.
+ * Ngưỡng tuân thủ giám sát — SSOT pilot (chart · bảng · in · chỉ số). Số chờ N-GS-3.
  * Các số trong file này là MẶC ĐỊNH; giá trị đang áp dụng lấy từ bảng `ksnk_dm_tham_so`
  * qua `applyThamSo` (root layout gọi mỗi request). Đọc giá trị lúc dùng, đừng chép ra hằng khác.
  */

@@ -23,11 +23,11 @@ Thân mã: worktree `integrate-2026-11`. Nguồn điều hướng duy nhất: `n
 
 ## 2. Rà một module (chỉ khi rơi vào 1.3)
 
-Một vùng hẹp mỗi vòng (một luồng: nhập → lưu → KPI, hoặc một nhóm bảng), không «quét toàn bộ». Nguồn đối chiếu, theo thứ tự rẻ → đắt:
+Một vùng hẹp mỗi vòng (một luồng: nhập → lưu → chỉ số, hoặc một nhóm bảng), không «quét toàn bộ». Nguồn đối chiếu, theo thứ tự rẻ → đắt:
 
 - `npm run trace` — quy tắc R/T của đặc tả M01–M15 (`~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM/02_DAC_TA/`) chưa có mã dẫn: R «chặn/bắt buộc» chưa cài = phát hiện.
 - `npm run module:audit -- <m>` và `module:gate -- <m>`.
-- Giao MỘT agent đọc (`explore-module`; vùng quyền/RLS thì `security-auditor`) với câu hỏi: lỗi sai dữ liệu, bước thiếu kiểm quyền, trạng thái đi sai chiều, số KPI lệch công thức, **điều bất hợp lý** (màn cho làm việc mà quy trình cấm; bắt nhập thứ hệ thống đã biết; hai nơi tính cùng một số khác nhau; nút không có đường quay lại). Chỉ nhận mức Nghiêm trọng/Cao/Trung bình có `file:dòng`.
+- Giao MỘT agent đọc (`explore-module`; vùng quyền/RLS thì `security-auditor`) với câu hỏi: lỗi sai dữ liệu, bước thiếu kiểm quyền, trạng thái đi sai chiều, số chỉ số lệch công thức, **điều bất hợp lý** (màn cho làm việc mà quy trình cấm; bắt nhập thứ hệ thống đã biết; hai nơi tính cùng một số khác nhau; nút không có đường quay lại). Chỉ nhận mức Nghiêm trọng/Cao/Trung bình có `file:dòng`.
 - Phát hiện → `scripts/readiness/inbox/<ten>.json` → `so-loi.mjs merge`. Vòng rà không ra phát hiện nào → ghi nhật ký «sạch», sang module kế.
 
 ## 2b. Rà mẫu in và lưu trữ (P1)
@@ -53,7 +53,7 @@ Với dòng được chọn, viết vào nhật ký (≤ 12 dòng, không trình
 | Đảo ngược được | 1 |
 | Diff nhỏ (số file, không đụng file dùng chung) | 1 |
 
-- Phản biện: nêu một ca làm phương án điểm cao nhất sai; nếu ca đó có thật → trừ điểm và xếp lại. Vùng rủi ro cao (RLS, migration, auth, công thức KPI lâm sàng) → một vòng `review-bv103`/`phan-bien` trên diff sau khi sửa, không trước.
+- Phản biện: nêu một ca làm phương án điểm cao nhất sai; nếu ca đó có thật → trừ điểm và xếp lại. Vùng rủi ro cao (RLS, migration, auth, công thức chỉ số lâm sàng) → một vòng `review-bv103`/`phan-bien` trên diff sau khi sửa, không trước.
 - Chọn điểm cao nhất; hòa → diff nhỏ hơn. **Làm ngay.**
 
 ## 4. Sửa → kiểm → commit

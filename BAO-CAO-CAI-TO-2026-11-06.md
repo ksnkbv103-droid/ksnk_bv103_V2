@@ -35,19 +35,19 @@ Giả thuyết đã kiểm:
 
 Lưu ý: CLAUDE.md ghi mục tiêu triển khai TẤT CẢ module, thứ tự VST/GSC + thống kê → CSSD → NKBV → QLCV → Đào tạo (PO 2026-10-12, thay lệnh đóng băng). Báo cáo **không đảo thứ tự đó**: chỉ đề xuất dồn sức 90 ngày đầu vào VST/GSC/thống kê, rồi CSSD. «Đóng băng/ưu tiên thấp» chỉ là mức nguồn lực, không xoá, và **chỉ PO quyết** (mục ⑦, câu 1; không có mặc định tự áp dụng).
 
-## ③ Thống kê: thiết kế lại theo chuyên đề + từ điển KPI
+## ③ Thống kê: thiết kế lại theo chuyên đề + từ điển chỉ số
 
 **Hiện trạng (agent báo; ✔ = tự xác minh, mục không có ✔ do agent báo, chưa tự kiểm):**
 - `ty_le_vst = da_tuan_thu / tong_co_hoi` (dòng qua `fn_vst_is_valid_opportunity`); `ty_le_gsc = tong_dat / tong_quan_sat` (loại NA). Cả hai có bản RPC lẫn bản TS (`supervision-metrics/formulas.ts`) → hai nguồn, làm tròn khác nhau (VST 1 chữ số, GSC 2, coverage nguyên) — chưa tự đọc từng dòng, **không** đánh ✔.
 - ✔ **Bác nhận định «tuần thiếu thành 0%»:** `normalizeVstTrendline`/`normalizeGscTrendline` (`src/lib/analytics/supervision-trend.ts:60-72` và hàm VST ngay trên) lọc `tong > 0` trước khi tính, nên tuần không có mẫu bị bỏ khỏi run chart, không thành 0%. `?? 0` ở `rateForKind` chỉ là phòng thủ.
 - «vs kỳ trước» = chênh 2 tuần cuối trendline: **là quyết định đã khóa trong rule dashboard**, không phải lỗi; điểm yếu là nhiễu và không có khoảng tin cậy.
 - Đã có: Wilson 95% (`supervision-percent.ts:74`), run chart trung vị ≥ 8 điểm, funnel plot, ngưỡng mẫu mỏng n < 20.
-- Thiếu (chưa tự xác minh): mẫu số VST loại dòng vượt trần không hiện số bị loại; GSC không có thước đo độ chắc (dictionary:33 cố ý không KTC); ngưỡng 85/70, 80, 90/85 không nêu căn cứ; KPI CSSD (`cssd-analytics-core.ts:422,501,566`) không có trong metric-dictionary; `/thong-ke/cssd` chỉ redirect; không chuẩn hoá giường-ngày/case-mix; không điều chỉnh chênh TGS vs KSNK (Hawthorne).
-- **Chưa làm:** tính tay đối chiếu ≥ 3 KPI/module có dữ liệu; kiểm `/bao-cao-tong-hop` và NKBV.
+- Thiếu (chưa tự xác minh): mẫu số VST loại dòng vượt trần không hiện số bị loại; GSC không có thước đo độ chắc (dictionary:33 cố ý không KTC); ngưỡng 85/70, 80, 90/85 không nêu căn cứ; chỉ số CSSD (`cssd-analytics-core.ts:422,501,566`) không có trong metric-dictionary; `/thong-ke/cssd` chỉ redirect; không chuẩn hoá giường-ngày/case-mix; không điều chỉnh chênh TGS vs KSNK (Hawthorne).
+- **Chưa làm:** tính tay đối chiếu ≥ 3 chỉ số/module có dữ liệu; kiểm `/bao-cao-tong-hop` và NKBV.
 
 **Bố cục đề xuất** (mỗi mục: 3–5 con số đầu trang → xu hướng → so sánh khoa → bảng/xuất), theo 5 chuyên đề ưu tiên từ kho QT: ① Vệ sinh tay (QT.06) ② PPE + tiêm an toàn (QT.07,08) ③ Vệ sinh môi trường (QT.10) ④ Chất thải + đồ vải (QT.11,12) ⑤ Gói phòng ngừa NK (QT.28–31,33). Làm theo thứ tự đã có dữ liệu: ① trước; ②–⑤ chỉ có bảng kiểm GSC nên chỉ làm khi GSC ổn.
-**Từ điển KPI rút gọn:** mỗi KPI một dòng (tử số, mẫu số, nguồn duy nhất, kỳ, phạm vi, ngưỡng + căn cứ, người ra quyết định). Việc đầu tiên: chọn **một** nguồn công thức (khuyến nghị RPC; TS chỉ hiển thị) rồi xoá bản TS thừa.
-**KPI cắt:** `ty_le_ccs` (deprecated). Reviewer xác minh: `pdca-remeasure.ts:57` luôn trả null và `ty_le_ccs` còn nằm trong CHECK của `20260729121000_ksnk_dm_muc_tieu_kpi.sql:4,22` → bỏ hẳn cần migration; hỏi PO.
+**Từ điển chỉ số rút gọn:** mỗi chỉ số một dòng (tử số, mẫu số, nguồn duy nhất, kỳ, phạm vi, ngưỡng + căn cứ, người ra quyết định). Việc đầu tiên: chọn **một** nguồn công thức (khuyến nghị RPC; TS chỉ hiển thị) rồi xoá bản TS thừa.
+**Chỉ số cắt:** `ty_le_ccs` (deprecated). Reviewer xác minh: `pdca-remeasure.ts:57` luôn trả null và `ty_le_ccs` từng nằm trong CHECK của bảng mục tiêu viện cũ (nay đã DROP, PO 2026-11-16) → bỏ hẳn không còn vướng migration đó; hỏi PO.
 
 ## ④ UI/UX
 
@@ -67,16 +67,16 @@ Lưu ý: CLAUDE.md ghi mục tiêu triển khai TẤT CẢ module, thứ tự VS
 ## ⑥ Roadmap 30/60/90 và tiêu chí «dứt điểm»
 
 Module đầu tiên đề xuất: **VST + GSC + thống kê** (đã có người dùng thật).
-- **30 ngày:** (a) từ điển KPI + spec chống lệch RPC/TS + tính tay ≥ 3 KPI (PO giữ cả hai nguồn, ⑦ câu 3); (b) sửa must_change_password; (c) diff migration theo nội dung, rồi mới lập danh sách áp lên prod qua MCP theo thứ tự trong báo cáo 11-05 §9 (PO duyệt từng cái); (d) xoá file chết theo danh sách cụ thể PO duyệt (⑦ câu 2).
+- **30 ngày:** (a) từ điển chỉ số + spec chống lệch RPC/TS + tính tay ≥ 3 chỉ số (PO giữ cả hai nguồn, ⑦ câu 3); (b) sửa must_change_password; (c) diff migration theo nội dung, rồi mới lập danh sách áp lên prod qua MCP theo thứ tự trong báo cáo 11-05 §9 (PO duyệt từng cái); (d) xoá file chết theo danh sách cụ thể PO duyệt (⑦ câu 2).
 - **60 ngày:** (a) trang thống kê «Vệ sinh tay» theo bố cục ③; (b) VST/GSC kiểm mobile + a11y cơ bản; (c) PoC `data-access` cho VST.
 - **90 ngày:** (a) GSC theo chuyên đề ②–④ nếu có dữ liệu; (b) chuẩn bị mở CSSD (module kế tiếp theo CLAUDE.md): xác định khoa CSSD thật + kịch bản tay; (c) đánh giá lại usage prod để quyết thứ tự các module còn lại.
-- **Tiêu chí «dứt điểm»** (khớp Pilot DoD trong CLAUDE.md): ≥ 1 nhóm người dùng thật xác nhận · ≥ 3 kịch bản tay có ghi kết quả · KPI khớp tính tay · `verify:engineering` pass · không còn finding Cao mở.
+- **Tiêu chí «dứt điểm»** (khớp Pilot DoD trong CLAUDE.md): ≥ 1 nhóm người dùng thật xác nhận · ≥ 3 kịch bản tay có ghi kết quả · chỉ số khớp tính tay · `verify:engineering` pass · không còn finding Cao mở.
 
 ## ⑦ Câu hỏi PO (mặc định nếu PO im = giữ nguyên hiện trạng, không làm gì)
 
 1. Dồn nguồn lực 90 ngày vào VST+GSC+thống kê, sau đó CSSD (giữ đúng thứ tự CLAUDE.md), NKBV/QLCV/Đào tạo ưu tiên thấp? **Không có mặc định — chờ PO.** (Nếu im: giữ nguyên hiện trạng.)
 2. Xoá file chết (danh sách chốt bằng script, đã loại false positive)? **Mặc định: không xoá gì cho đến khi PO xem danh sách.**
-3. Công thức KPI dùng một nguồn RPC, bỏ bản TS? **Mặc định: giữ cả hai, thêm spec lệch (hiện trạng); mục 30 ngày (a) chỉ chạy nếu PO chọn «một nguồn».**
+3. Công thức chỉ số dùng một nguồn RPC, bỏ bản TS? **Mặc định: giữ cả hai, thêm spec lệch (hiện trạng); mục 30 ngày (a) chỉ chạy nếu PO chọn «một nguồn».**
 4. `ty_le_ccs` (deprecated) có cắt (cần migration)? **Mặc định: giữ; ⑥ không cắt.**
 5. Ngưỡng 85/70, 80, 90/85: căn cứ từ đâu? **Mặc định: giữ nguyên, ghi «chưa có căn cứ» trong từ điển.**
 6. Xác nhận trên prod (Supabase Dashboard hoặc MCP): signup tắt? JWT TTL? **Mặc định: coi như chưa an toàn cho đến khi xác nhận.**
@@ -88,7 +88,7 @@ Module đầu tiên đề xuất: **VST + GSC + thống kê** (đã có người
 
 1. Duyệt: 90 ngày đầu dồn VST+GSC+thống kê, sau đó CSSD; NKBV/QLCV/Đào tạo ưu tiên thấp.
 2. Duyệt mặc định: không xoá file chết cho đến khi PO xem danh sách cụ thể.
-3. Duyệt mặc định: giữ cả hai nguồn công thức (RPC + TS), thêm spec chống lệch — **không** bỏ bản TS; mục ⑥ 30 ngày (a) chỉ còn «từ điển KPI + spec lệch + tính tay ≥ 3 KPI».
+3. Duyệt mặc định: giữ cả hai nguồn công thức (RPC + TS), thêm spec chống lệch — **không** bỏ bản TS; mục ⑥ 30 ngày (a) chỉ còn «từ điển chỉ số + spec lệch + tính tay ≥ 3 chỉ số».
 4. Giữ `ty_le_ccs`. 5. Giữ nguyên ngưỡng, ghi «chưa có căn cứ» trong từ điển.
 6. Duyệt mặc định: coi Auth prod chưa an toàn cho đến khi xác nhận (signup, JWT TTL, rate-limit).
 7. Số QT lấy từ thư mục soạn quy trình (bản xuất Word) làm chuẩn; sửa docs app khi chạm.

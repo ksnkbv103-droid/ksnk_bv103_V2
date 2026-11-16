@@ -1,4 +1,4 @@
-/** Typography + KPI tone dashboard / báo cáo BV103. */
+/** Typography + chỉ số tone dashboard / báo cáo BV103. */
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";

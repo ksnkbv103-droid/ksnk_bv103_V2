@@ -50,7 +50,7 @@ type Props = {
 };
 
 /**
- * Thống kê GSC, 4 tầng: tổng quan (KPI · độ phủ) · bảng kiểm · theo khoa · xu hướng và so sánh.
+ * Thống kê GSC, 4 tầng: tổng quan (chỉ số · độ phủ) · bảng kiểm · theo khoa · xu hướng và so sánh.
  * Bộ lọc nằm ở `Bv103AnalyticsPageFrame.filterBar` (sticky, luôn hiện).
  */
 export default function GscStrategicAnalyticsPanel(p: Props) {

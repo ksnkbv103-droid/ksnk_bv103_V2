@@ -20,7 +20,7 @@ interface Props {
 export default function ReportDashboard({ stats, alerts }: Props) {
   return (
     <div className="space-y-2">
-      {/* Compact KPI strip — not 4-col StatCard wall */}
+      {/* Compact chỉ số strip — not 4-col StatCard wall */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs">
         <span className="font-semibold text-slate-800">
           Quy trình <span className="tabular-nums text-emerald-700">{stats.total}</span>

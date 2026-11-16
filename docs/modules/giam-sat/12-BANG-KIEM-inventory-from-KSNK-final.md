@@ -123,7 +123,7 @@ Corpus QT.01–38 + QĐ.01–21 có **135** BM có mã. Sau lọc: **69** EXCLUD
 | Biên bản họp / giao nhận / sự cố / nghiệm thu | **8** | QT.02.BM.01, QT.03.BM.04, QT.05.BM.03… |
 | NKBV / vụ dịch case-finding · line-list · phiếu điều tra (ngoài module GS) | **8** | QT.34.BM.01, QT.34.BM.02, QT.34.BM.03… |
 | Checklist / BM đào tạo · BDNL (không dùng GS tuân thủ) | **6** | QT.04.BM.01, QT.04.BM.02, QT.04.BM.03… |
-| Mẫu báo cáo hành chính / tổng hợp KPI | **3** | QT.06.BM.01, QT.07.BM.04, QT.24.BM.02… |
+| Mẫu báo cáo hành chính / tổng hợp chỉ số | **3** | QT.06.BM.01, QT.07.BM.04, QT.24.BM.02… |
 | QT.33 báo cáo phản hồi / sổ tổng hợp dữ liệu GS (không phải phiếu quan sát) | **2** | QT.33.BM.01, QT.33.BM.02… |
 
 | **Tổng EXCLUDE** | **69** | |

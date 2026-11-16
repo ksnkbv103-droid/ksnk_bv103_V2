@@ -24,7 +24,7 @@ export function computeTyLeGsc(chi_so: GscStrategicPayload["chi_so"] | undefined
 
 /**
  * @deprecated D10 quarantine — CCS bỏ khỏi UI user / surface điều hành.
- * Pure fn nội bộ only (PDCA/compat đọc cũ nếu cần). **Cấm** nhãn/KPI/export/in.
+ * Pure fn nội bộ only (PDCA/compat đọc cũ nếu cần). **Cấm** nhãn/chỉ số/export/in.
  * CCS chỉ từ VST+GSC (process); NKBV là outcome riêng.
  */
 export function computeCcs(

@@ -16,7 +16,7 @@ export type NkbvCasRowMinimal = {
   khoa_ghi_nhan?: { ma_khoa?: string | null; ten_khoa?: string | null } | null;
   /** verification_data.classification — nguồn by_loai khi đã xác nhận NKBV. */
   classification?: string | null;
-  /** verification_data.is_positive — KPI «Đã xác nhận NKBV» = XAC_NHAN ∧ true. */
+  /** verification_data.is_positive — chỉ số «Đã xác nhận NKBV» = XAC_NHAN ∧ true. */
   is_positive?: boolean | null;
   /** LOA (Transfer Rule) — ưu tiên lọc khoa dashboard; fallback khoa ghi nhận. */
   loa_khoa_id?: string | null;
@@ -184,7 +184,7 @@ export type NkbvDashboardPayload = {
 };
 
 /**
- * Phiếu chưa chốt — KPI «Đang ghi / Chờ XN» và hàng đợi Tổng quan.
+ * Phiếu chưa chốt — chỉ số «Đang ghi / Chờ XN» và hàng đợi Tổng quan.
  * CHO_DUYET = khoa đã gửi form, KSNK chưa duyệt (domain §4.1).
  */
 export const NKBV_CHO_TAC_STATUS_MAS = [

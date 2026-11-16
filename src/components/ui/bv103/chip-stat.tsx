@@ -26,7 +26,7 @@ export function Bv103Chip({
   );
 }
 
-/** Ô số liệu KPI: nhãn trên, số lớn dưới, ghi chú phụ tùy chọn. Không viền, không nền riêng. */
+/** Ô số liệu chỉ số: nhãn trên, số lớn dưới, ghi chú phụ tùy chọn. Không viền, không nền riêng. */
 export function Bv103StatTile({
   label,
   value,

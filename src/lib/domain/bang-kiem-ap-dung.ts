@@ -216,7 +216,7 @@ function parseIsoDate(iso: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** Số kỳ tần suất trong khoảng ngày (dùng đánh giá nghĩa vụ phiên, không KPI analytics). */
+/** Số kỳ tần suất trong khoảng ngày (dùng đánh giá nghĩa vụ phiên, không chỉ số analytics). */
 export function countKyTanSuatTrongKhoang(
   don_vi: BkTanSuatDonVi,
   tuNgay: string,

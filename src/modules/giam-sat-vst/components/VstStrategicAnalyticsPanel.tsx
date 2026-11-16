@@ -40,7 +40,7 @@ type Props = {
 };
 
 /**
- * Thống kê VST, 4 tầng: tổng quan (KPI · độ phủ) · thời điểm WHO · theo khoa · xu hướng và so sánh.
+ * Thống kê VST, 4 tầng: tổng quan (chỉ số · độ phủ) · thời điểm WHO · theo khoa · xu hướng và so sánh.
  * Nâng cao: đối soát chuyên trách và tự giám sát.
  */
 export default function VstStrategicAnalyticsPanel(p: Props) {

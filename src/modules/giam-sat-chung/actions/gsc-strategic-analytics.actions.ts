@@ -89,7 +89,7 @@ export async function getGscStrategicAnalytics(
   return getCachedGscStrategicRpc(built.rpcArgs);
 }
 
-/** Kỳ trước BCTH — chỉ KPI (không matrices / gap). */
+/** Kỳ trước BCTH — chỉ chỉ số (không matrices / gap). */
 export async function getGscStrategicChiSoOnly(
   filters: GscStrategicFilters,
   opts?: GscStrategicCallOpts,

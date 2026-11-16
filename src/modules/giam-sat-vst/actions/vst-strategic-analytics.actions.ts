@@ -52,7 +52,7 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
   return getCachedVstStrategicRpc(built.rpcArgs);
 }
 
-/** Kỳ trước BCTH — chỉ KPI (không matrices / gap). */
+/** Kỳ trước BCTH — chỉ chỉ số (không matrices / gap). */
 export async function getVstStrategicChiSoOnly(filters: VstStrategicFilters) {
   const built = await buildVstStrategicRpcArgs(filters);
   if (!built.success) return built;

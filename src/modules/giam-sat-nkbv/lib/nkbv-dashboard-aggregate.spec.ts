@@ -10,7 +10,7 @@ import {
 } from "./nkbv-dashboard-aggregate";
 
 describe("aggregateNkbvDashboard", () => {
-  it("returns zero KPIs when no rows in range", () => {
+  it("returns zero chỉ số when no rows in range", () => {
     const out = aggregateNkbvDashboard([], "2026-01-01", "2026-01-31");
     expect(out.chi_so.tong_phieu).toBe(0);
     expect(out.chi_so.da_xac_nhan).toBe(0);
@@ -43,7 +43,7 @@ describe("aggregateNkbvDashboard", () => {
         khoa_ghi_nhan: { ten_khoa: "Khoa B" },
       },
       {
-        // XAC_NHAN nhưng không dương tính → không đếm KPI NKBV
+        // XAC_NHAN nhưng không dương tính → không đếm chỉ số NKBV
         ngay_phat_hien: "2026-01-18",
         trang_thai_row: { ma_trang_thai: "XAC_NHAN", ten_trang_thai: "Đã xác nhận" },
         loai_nkbv: { ma_loai: "UTI", ten_loai: "UTI" },

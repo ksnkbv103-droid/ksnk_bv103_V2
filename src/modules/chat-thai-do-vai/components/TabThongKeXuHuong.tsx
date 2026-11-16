@@ -204,7 +204,7 @@ export function TabThongKeXuHuong() {
         </div>
       )}
 
-      {/* 9 THẺ KPI CỐT LÕI */}
+      {/* 9 THẺ chỉ số CỐT LÕI */}
       {stats && (
         <div className="space-y-6">
           {/* Nhóm A: Chất thải y tế */}
@@ -217,7 +217,7 @@ export function TabThongKeXuHuong() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {/* KPI 1 */}
+              {/* chỉ số 1 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">1. Tổng khối lượng CTYT</div>
                 <div className="text-xl font-bold text-slate-900 mt-1">
@@ -226,7 +226,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xs text-slate-400 mt-1">Tất cả các nhóm chất thải</div>
               </div>
 
-              {/* KPI 2 */}
+              {/* chỉ số 2 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">2. Tỷ lệ chất thải lây nhiễm</div>
                 <div className="flex items-baseline gap-1 mt-1">
@@ -243,7 +243,7 @@ export function TabThongKeXuHuong() {
                 </div>
               </div>
 
-              {/* KPI 3 */}
+              {/* chỉ số 3 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">3. CTLN sắc nhọn</div>
                 <div className="text-xl font-bold text-amber-800 mt-1">
@@ -252,7 +252,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xs text-slate-400 mt-1">Hộp kháng thủng màu vàng</div>
               </div>
 
-              {/* KPI 4 */}
+              {/* chỉ số 4 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">4. Suất phát sinh CTYT</div>
                 <div className="text-xl font-bold text-indigo-700 mt-1">
@@ -262,7 +262,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xs text-slate-400 mt-1">trên 1.000 ngày-giường</div>
               </div>
 
-              {/* KPI 5 */}
+              {/* chỉ số 5 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">5. Sự cố chất thải</div>
                 <div className="text-xl font-bold text-slate-900 mt-1">
@@ -283,7 +283,7 @@ export function TabThongKeXuHuong() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {/* KPI 6 */}
+              {/* chỉ số 6 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">6. Tổng đồ vải bẩn</div>
                 <div className="text-xl font-bold text-slate-900 mt-1">
@@ -292,7 +292,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xs text-slate-400 mt-1">Giao sang ĐVGL</div>
               </div>
 
-              {/* KPI 7 */}
+              {/* chỉ số 7 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">7. Tỷ lệ đồ bẩn lây nhiễm</div>
                 <div className="text-xl font-bold text-rose-700 mt-1">
@@ -303,7 +303,7 @@ export function TabThongKeXuHuong() {
                 </div>
               </div>
 
-              {/* KPI 8 */}
+              {/* chỉ số 8 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">8. Chênh lệch bẩn - sạch</div>
                 <div className="flex items-baseline gap-1 mt-1">
@@ -321,7 +321,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xs text-slate-400 mt-1">Sạch về: {stats.do_vai.kg_sach_ve} kg</div>
               </div>
 
-              {/* KPI 9 */}
+              {/* chỉ số 9 */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <div className="text-xs text-slate-500 font-medium">9. Suất phát sinh đồ vải</div>
                 <div className="text-xl font-bold text-teal-700 mt-1">
@@ -331,7 +331,7 @@ export function TabThongKeXuHuong() {
                 <div className="text-xs text-slate-400 mt-1">trên 1.000 ngày-giường</div>
               </div>
 
-              {/* KPI 10: Sự cố sắc nhọn đồ vải */}
+              {/* chỉ số 10: Sự cố sắc nhọn đồ vải */}
               <div
                 className={`p-4 rounded-xl border shadow-xs ${
                   stats.do_vai.so_su_co_sac_nhon > 0

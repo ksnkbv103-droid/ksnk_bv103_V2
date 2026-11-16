@@ -70,7 +70,7 @@ Import JSON: [`../reference/guides/json-import-export.md`](../reference/guides/j
 
 ## QLCV
 
-Pilot tinh gọn: **Điều hành** + **Nhiệm vụ** + **Định kỳ/Đột xuất** + checklist + phê duyệt đề xuất (không KPI tháng trên UI). Đã gỡ Kế hoạch năm / Phân công tuần / Mốc.
+Pilot tinh gọn: **Điều hành** + **Nhiệm vụ** + **Định kỳ/Đột xuất** + checklist + phê duyệt đề xuất (không chỉ số tháng trên UI). Đã gỡ Kế hoạch năm / Phân công tuần / Mốc.
 
 | Giai đoạn | Hành vi |
 |-----------|---------|

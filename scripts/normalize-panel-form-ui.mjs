@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Chuẩn hóa panel / form / modal — font-black, IN HOA label, KPI.
+ * Chuẩn hóa panel / form / modal — font-black, IN HOA label, chỉ số.
  * Chạy: npm run panel:normalize
  */
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";

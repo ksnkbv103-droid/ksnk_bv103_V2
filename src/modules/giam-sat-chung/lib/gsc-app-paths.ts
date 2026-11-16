@@ -66,7 +66,7 @@ export function parseGscLoaiParam(raw: string | null | undefined): GscLoaiGiamSa
   return GSC_LOAI_VALUES.has(key as GscLoaiGiamSatRoute) ? (key as GscLoaiGiamSatRoute) : undefined;
 }
 
-/** Form nhật ký / hệ thống — loại không nằm trong KPI mặc định (tuân thủ). */
+/** Form nhật ký / hệ thống — loại không nằm trong chỉ số mặc định (tuân thủ). */
 export function resolveGscLoaiFromPathname(pathname: string): GscLoaiGiamSatRoute | undefined {
   if (pathname.startsWith("/giam-sat-chung/tuan-thu")) return "TUAN_THU";
   if (pathname.startsWith("/giam-sat-chung/nhat-ky")) return "NHAT_KY_VAN_HANH";

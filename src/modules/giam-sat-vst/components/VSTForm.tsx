@@ -92,7 +92,7 @@ export default function VSTForm({
   const [isEditDirty, setIsEditDirty] = React.useState(false);
   /** Phiên cũ >3 người: cảnh báo WHO, vẫn nạp đủ (VST-05). */
   const [legacyPersonWarn, setLegacyPersonWarn] = React.useState<number | null>(null);
-  /** Số cơ hội cũ có quá nhiều thời điểm WHO, đã cắt khi nạp (đã bị loại khỏi KPI từ 2026-10-09). */
+  /** Số cơ hội cũ có quá nhiều thời điểm WHO, đã cắt khi nạp (đã bị loại khỏi chỉ số từ 2026-10-09). */
   const [legacyMomentTrim, setLegacyMomentTrim] = React.useState<number | null>(null);
 
   const recordedOpportunityCount = persons.reduce(

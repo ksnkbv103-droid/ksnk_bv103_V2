@@ -29,7 +29,7 @@
    |------------|---------|-----|
    | Chọn nhóm/loại (≤ 8) | Chip ngang `h-9` / `choiceBtn` (+ icon ≤14px) | Card `min-h` cao + subtitle; nhãn “Bước 1” khi không có bước 2/3 |
    | Danh sách thực thể | `AdvancedDataTable` + `bv103TableLayout` + QR thumb khi có mã | Grid card “poster” cho fleet |
-   | KPI trên list Ops | Dải số 1 hàng (StatInline) | 3+ StatCard chiếm nửa viewport |
+   | Chỉ số trên list Ops | Dải số 1 hàng (StatInline) | 3+ StatCard chiếm nửa viewport |
    | Nút chính/phụ | `btnPrimary` / `btnSecondary` / `btnPrimaryBlock` | `bg-red-600` / `h-16` / `shadow-lg` tùy hứng cho CTA thường |
    | Input/select | `bv103-control-h` + `controlInput` | `h-14` + `font-black` (trừ workstation quét đã ghi exception) |
    | Step thật (mẻ TK…) | Stepper chỉ khi ≥2 bước có trạng thái | “Bước 1” đơn lẻ trên form 1 trang |

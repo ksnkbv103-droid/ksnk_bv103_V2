@@ -76,7 +76,7 @@ Gõ 1 lần trên timeline
 | 4 | In mẫu báo cáo **kèm dải ngày thu nhỏ** (cột cửa sổ + DOE tô màu) | Khoa đọc một trang, khớp với những gì IP thấy trên lưới |
 | 5 | VAE: **không** dùng XQ để chẩn đoán (CDC). XQ trên BA vẫn lưu — dùng cho PNEU nếu đổi protocol, không hiện như tiêu chí VAC | Tránh lẫn VAE / viêm phổi lâm sàng |
 
-Không biến timeline thành dashboard KPI (module Dashboard khác). Không spawn phiếu lúc copy LIS.
+Không biến timeline thành dashboard chỉ số (module Dashboard khác). Không spawn phiếu lúc copy LIS.
 
 ---
 

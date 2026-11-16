@@ -25,7 +25,7 @@ Trạng thái: CHẠY_THỬ
 
 ## 5. Tiêu chí «có ích» (đo được)
 - Nhập một phiếu < 60 giây. `[SSOT]` README, kịch bản L1.
-- KPI RPC khớp tính tay. `[SSOT]` README «Đối soát VST» (2026-10-24, DB local).
+- Chỉ số RPC khớp tính tay. `[SSOT]` README «Đối soát VST» (2026-10-24, DB local).
 - Thời gian tổng hợp một kỳ sau khi dùng app thấp hơn trước khi dùng. `[ĐỀ XUẤT]` cần số «trước» từ mục 2.
 - ≥ N phiên VST/tuần trong 4 tuần liên tiếp. `[ĐỀ XUẤT]` N do PO chọn.
 
@@ -51,7 +51,7 @@ Bằng chứng cơ học: `npm run module:audit -- giam-sat`. Module duy nhất 
 |---|---|---|
 | 1–2 Vấn đề, giải pháp | hợp, thiếu số «trước» | mục 2 chưa có cách ghi/thời gian tổng hợp cũ nên chưa so được «sau app» (mục 5) |
 | 3–4 MVP, DoD | hợp | Khóa PO 2026-10-09, README, 10 nhãn `[SSOT]` |
-| 5 Thiết kế | hợp | nhập/lịch sử/thống kê/in đủ (mục 4); KPI RPC khớp tay 2026-10-24 |
+| 5 Thiết kế | hợp | nhập/lịch sử/thống kê/in đủ (mục 4); chỉ số RPC khớp tay 2026-10-24 |
 | 6–7 Xây, kiểm chứng | hợp | 27 action, 37 spec |
 | 8 Chạy thử | hợp | đã có người dùng thật |
 | 9 Vận hành | **thiếu** | chưa ghi ai hỗ trợ, ai khóa sổ, khi lỗi báo ai |

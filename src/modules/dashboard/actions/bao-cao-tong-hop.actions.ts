@@ -282,7 +282,7 @@ export async function getBaoCaoTongHopAnalytics(
     );
   }
 
-  // Kỳ trước cùng độ dài — chỉ KPI (soft-fail).
+  // Kỳ trước cùng độ dài — chỉ chỉ số (soft-fail).
   let kyTruoc:
     | {
         tu_ngay: string;

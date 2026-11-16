@@ -142,7 +142,7 @@ export function vstErrorsFromMoments(
     }
   }
 
-  // Ưu tiên moment yếu; KPI tổng chỉ bổ sung nếu còn chỗ
+  // Ưu tiên moment yếu; chỉ số tổng chỉ bổ sung nếu còn chỗ
   const momentsOnly = errors.filter((e) => e.tyLe != null).slice(0, limit);
   if (momentsOnly.length >= limit) return momentsOnly;
   const extras = errors.filter((e) => e.tyLe == null).slice(0, limit - momentsOnly.length);

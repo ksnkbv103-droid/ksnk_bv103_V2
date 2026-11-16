@@ -51,7 +51,7 @@ const PANEL_TYPO_PATTERNS = [
   },
 ];
 
-/** Cho phép font-black: KPI, tabular số, choiceBtn/segment touch */
+/** Cho phép font-black: chỉ số, tabular số, choiceBtn/segment touch */
 const FONT_BLACK_ALLOW = new RegExp(
   [
     "statValue",
@@ -197,7 +197,7 @@ for (const base of SCAN_DIRS) {
         const fb = countFontBlackDrift(text);
         if (fb > 0) {
           hits += fb;
-          console.warn(`[columns-drift] ${rel}: font-black ngoài KPI (${fb})`);
+          console.warn(`[columns-drift] ${rel}: font-black ngoài chỉ số (${fb})`);
         }
       }
       if (isPanelFormFile(rel) && !PANEL_SKIP.has(rel)) {
@@ -211,7 +211,7 @@ for (const base of SCAN_DIRS) {
         const fb = countFontBlackDrift(text);
         if (fb > 0) {
           hits += fb;
-          console.warn(`[panel-drift] ${rel}: font-black ngoài KPI (${fb})`);
+          console.warn(`[panel-drift] ${rel}: font-black ngoài chỉ số (${fb})`);
         }
       }
     }

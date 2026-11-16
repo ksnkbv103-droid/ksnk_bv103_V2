@@ -16,7 +16,7 @@
 KSNK BV103 (pilot) số hóa quy trình Kiểm soát nhiễm khuẩn của bệnh viện: **nhập phiếu tại chỗ → lưu một nơi → thống kê tự tính → in biểu mẫu theo quy trình → truy vết**. Mục tiêu PO (2026-10-12): triển khai TẤT CẢ module hiện có; mỗi module cần người dùng thật và kịch bản tay trước khi coi là xong.
 
 - Mỗi module có 3 màn: Nhập · Lịch sử · Thống kê. Giám sát đi bốn tầng một chiều: ghi nhận → lịch sử → thống kê khoa → báo cáo chính thức (in, `/bao-cao-tong-hop`).
-- Thứ tự module (khóa PO): VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo. Nền chung: MDM/RBAC/Quản trị, Dashboard/KPI.
+- Thứ tự module (khóa PO): VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo. Nền chung: MDM/RBAC/Quản trị, Dashboard/chỉ số.
 - Stack: Next.js 16 · React 19 · TypeScript · Tailwind v4 · Supabase (Postgres/Auth/RLS) · Zod; test Vitest + Playwright; Vercel `ksnk-bv103-v2`. Kiến trúc: `src/app/` route mỏng · `src/modules/<module>/` DDD · `src/lib/` RBAC + domain · `supabase/migrations/` là SSOT schema.
 
 Nguồn: `CLAUDE.md`; `docs/modules/giam-sat/README.md:18-20`; `docs/core/handover-roadmap.md` §5.
@@ -37,7 +37,7 @@ Việc ≤ 60 giây: nguồn chỉ nêu cho VST/GSC (nhập một phiếu < 60 g
 
 ## 3. Phạm vi
 
-- **Trong**: 5 module trên + nền (MDM/RBAC/Quản trị, Dashboard/KPI/báo cáo tổng hợp).
+- **Trong**: 5 module trên + nền (MDM/RBAC/Quản trị, Dashboard/chỉ số/báo cáo tổng hợp).
 - **Ngoài (không làm)**: P3 và module bổ sung (KHÓA, KH 2026-11-14) · chất thải, đồ vải · HIS/LIS (L3) · LMS (Đào tạo chỉ là thi trắc nghiệm + sổ kết quả) · NKBV ngoài chuẩn người lớn (CLIP, LabID/MDRO, AUR, SIR, nhi/sơ sinh) · viết lại engine lâm sàng · bảng summary khi chưa có số đo và PO đồng ý · tính năng mới ở NKBV/QLCV/Đào tạo (đóng băng).
 - **Chưa quyết**: `chat-thai-do-vai` (2.574 dòng, chưa có trong lộ trình hay `ssot-map`). Mặc định: gác.
 
@@ -60,7 +60,7 @@ Thang sẵn sàng (PO 2026-10-24): **L0** code chạy (`verify:engineering` pass
 
 | Ngày | Chốt |
 |---|---|
-| 2026-10-09 | VST: rửa/chà ≤ 2 thời điểm WHO phân biệt; bỏ sót = 1; năm mốc một hàng; quá trần bỏ mốc cũ nhất, không toast. KPI `fn_vst_is_valid_opportunity` cùng trần với form. Xóa phiên VST là mềm (`is_active=false`) cho đến khi PO nói khác |
+| 2026-10-09 | VST: rửa/chà ≤ 2 thời điểm WHO phân biệt; bỏ sót = 1; năm mốc một hàng; quá trần bỏ mốc cũ nhất, không toast. Chỉ số `fn_vst_is_valid_opportunity` cùng trần với form. Xóa phiên VST là mềm (`is_active=false`) cho đến khi PO nói khác |
 | 2026-10-12 | Mục tiêu triển khai TẤT CẢ module (thay lệnh đóng băng cùng ngày) |
 | 2026-10-24 | Thang L0–L3 · nộp trễ > 30 giây = không đạt · thi thử ẩn đáp án đến khi nộp · QL-1 (xóa mềm, ghi chú theo người tạo) · NKBV đóng băng ở mức ghi ca + danh sách + tỉ lệ |
 | 2026-11-06 | Ngưỡng dashboard `GREEN_MIN` 85 · `YELLOW_MIN` 70 · `KHOA_WARN_PCT` 80; biểu đồ khoa VST vàng < 90, đỏ < 85. Ghi «chưa có căn cứ định lượng từ nghiên cứu», không dẫn WHO |

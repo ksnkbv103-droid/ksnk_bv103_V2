@@ -2,7 +2,7 @@
 
 | Đọc khi | File |
 |---------|------|
-| Công thức KPI / CCS | [`metric-dictionary.md`](metric-dictionary.md) |
+| Công thức chỉ số / CCS | [`metric-dictionary.md`](metric-dictionary.md) |
 | Báo cáo tổng hợp | [`bao-cao-tong-hop.md`](bao-cao-tong-hop.md) |
 | Mapping RPC | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) |
 | Chrome / IA | [`../../reference/architecture/page-chrome-contract-20260731.md`](../../reference/architecture/page-chrome-contract-20260731.md) · [`../../ux/principles.md`](../../ux/principles.md) |
@@ -25,7 +25,7 @@ Rule: `.claude/rules/dashboard.md`
 
 ## Pilot DoD
 
-1. Lọc khoa/thời gian → KPI + trend + so sánh kỳ.
+1. Lọc khoa/thời gian → chỉ số + trend + so sánh kỳ.
 2. Deep link sang giám sát khi có.
 3. In/export không đổi công thức CCS ngoài Spec change.
 

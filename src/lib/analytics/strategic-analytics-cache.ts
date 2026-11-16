@@ -59,7 +59,7 @@ function fetchCachedVstStrategicRpcRaw(rpcArgs: RpcArgs) {
 }
 
 /**
- * KPI/trend/matrix theo lens (`p_hinh_thuc_ids`); đối soát (`gap_analysis`) luôn đọc cả 2 lens.
+ * Chỉ số/trend/matrix theo lens (`p_hinh_thuc_ids`); đối soát (`gap_analysis`) luôn đọc cả 2 lens.
  * Cache key gồm lens (qua JSON rpcArgs) — PERF-2 TTL 90s.
  */
 export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
@@ -74,7 +74,7 @@ export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
 }
 
 /**
- * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
+ * Chỉ chỉ số kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
  * Tag invalidate giữ VST_STRATEGIC_CACHE_TAG; key khác cặp full.
  */
 export function getCachedVstStrategicChiSoOnly(rpcArgs: RpcArgs) {
@@ -119,7 +119,7 @@ function fetchCachedGscStrategicRpcRaw(rpcArgs: RpcArgs) {
   )();
 }
 
-/** KPI/trend/matrix theo lens; `gap_analysis` giữ cả 2 lens. Cache key gồm lens. */
+/** chỉ số/trend/matrix theo lens; `gap_analysis` giữ cả 2 lens. Cache key gồm lens. */
 export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
   const main = await fetchCachedGscStrategicRpcRaw(rpcArgs);
   if (!main.success || !hasHinhThucLensFilter(rpcArgs)) return main;
@@ -132,7 +132,7 @@ export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
 }
 
 /**
- * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
+ * Chỉ chỉ số kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
  * Tag invalidate giữ GSC_STRATEGIC_CACHE_TAG; key khác cặp full.
  */
 export function getCachedGscStrategicChiSoOnly(rpcArgs: RpcArgs) {

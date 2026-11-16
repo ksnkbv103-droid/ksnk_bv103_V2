@@ -17,7 +17,7 @@
 | Bảng kiểm inventory / VST hub / phạm vi | [`12-…`](modules/giam-sat/12-BANG-KIEM-inventory-from-KSNK-final.md) · hub + khóa sổ trong [`README`](modules/giam-sat/README.md) · [`16-…`](modules/giam-sat/16-BANG-KIEM-PHAM-VI-KHOA-DOI-TUONG.md) | Seed máy: `data/bang-kiem/` |
 | MDM / Quản trị | [`modules/mdm/README.md`](modules/mdm/README.md) | Code: `src/modules/quan-tri-he-thong/` |
 | QLCV | [`modules/qlcv/19-QLCV-DOMAIN-SSOT.md`](modules/qlcv/19-QLCV-DOMAIN-SSOT.md) | — |
-| Dashboard / KPI | [`modules/dashboard/metric-dictionary.md`](modules/dashboard/metric-dictionary.md) · [`bao-cao-tong-hop.md`](modules/dashboard/bao-cao-tong-hop.md) | — |
+| Dashboard / chỉ số | [`modules/dashboard/metric-dictionary.md`](modules/dashboard/metric-dictionary.md) · [`bao-cao-tong-hop.md`](modules/dashboard/bao-cao-tong-hop.md) | — |
 | Đào tạo | [`modules/dao-tao/domain-overview.md`](modules/dao-tao/domain-overview.md) | — |
 | Vấn đề & giá trị theo module (bước 1–2) | [`giam-sat`](modules/giam-sat/van-de-nguoi-dung.md) · [`cssd`](modules/cssd/van-de-nguoi-dung.md) · [`nkbv`](modules/nkbv/van-de-nguoi-dung.md) · [`qlcv`](modules/qlcv/van-de-nguoi-dung.md) · [`dao-tao`](modules/dao-tao/van-de-nguoi-dung.md) | — |
 | Layout / chrome | [`wiki/concepts.md`](wiki/concepts.md#layout-primitives) · [`reference/architecture/layout-primitives.md`](reference/architecture/layout-primitives.md) · [`page-chrome-contract`](reference/architecture/page-chrome-contract-20260731.md) | — |

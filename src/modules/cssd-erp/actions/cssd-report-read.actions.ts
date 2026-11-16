@@ -337,7 +337,7 @@ export type CssdAnalyticsBundle = {
   brief: ReturnType<typeof summarizeCssdAnalyticsBrief>;
   tyLeQuyTrinhKhongSuCo: number | null;
   quyTrinhKyCount: number;
-  /** Số chu trình có ≥1 SC PROCESS (tử KPI) — không đếm phiếu. */
+  /** Số chu trình có ≥1 SC PROCESS (tử chỉ số) — không đếm phiếu. */
   suCoKyCount: number;
   stationIncidentRates: CssdStationIncidentRateRow[];
 };

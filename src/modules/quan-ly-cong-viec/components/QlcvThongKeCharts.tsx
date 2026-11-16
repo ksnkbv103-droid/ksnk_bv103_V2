@@ -89,7 +89,7 @@ export function QlcvThongKeCharts({ theoNguoi, theoTrangThai, summary }: QlcvTho
 
   return (
     <div className="space-y-[var(--bv103-space-3)]">
-      {/* 1. Các thẻ chỉ số thống kê (KPI Cards) */}
+      {/* 1. Các thẻ chỉ số thống kê (chỉ số Cards) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <div className="rounded-[var(--radius-control)] border border-slate-200/90 bg-white p-3 shadow-sm">
           <div className="flex items-center justify-between text-slate-500">

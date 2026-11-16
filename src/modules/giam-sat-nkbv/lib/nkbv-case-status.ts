@@ -1,4 +1,4 @@
-/** Trạng thái ca đã chốt — KPI/dịch tễ chỉ đếm XAC_NHAN; không cho form lâm sàng ghi đè. */
+/** Trạng thái ca đã chốt — chỉ số/dịch tễ chỉ đếm XAC_NHAN; không cho form lâm sàng ghi đè. */
 export const NKBV_TERMINAL_CASE_STATUS_MAS = ["XAC_NHAN", "LOAI_TRU", "DA_DONG"] as const;
 
 export type NkbvTerminalCaseStatus = (typeof NKBV_TERMINAL_CASE_STATUS_MAS)[number];
