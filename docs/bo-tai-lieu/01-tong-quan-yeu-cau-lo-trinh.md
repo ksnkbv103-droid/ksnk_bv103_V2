@@ -8,8 +8,8 @@
 
 - Gom từ tài liệu rải rác theo yêu cầu PO 2026-11-15, chỉ nói về module hiện có, để rà soát và sửa nhanh hơn. Không thêm công cụ, sổ hay cổng mới.
 - Lệch với bộ này thì các nguồn sống thắng: `CLAUDE.md` (luật + khóa PO) · sổ lỗi `node scripts/readiness/so-loi.mjs status` · `npm run module:gate` · `HANDOFF_APPKSNK.md`.
-- `docs/bo-tai-lieu/` nằm ngoài 6 lớp của `docs/README.md` và trái câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`: bộ này làm theo yêu cầu PO và đã được PO duyệt làm bản gốc ngày 2026-11-16. Chưa xóa hay di chuyển tài liệu nào; `CLAUDE.md` thuộc cấu hình đóng băng nên câu đó chưa sửa.
-- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO chốt 2026-11-16: không xóa, không di chuyển). Chưa làm: xếp lớp thư mục này vào `docs/README.md`, chờ PO (§6.5 mục 6). Bản đồ nguồn: §8.
+- `docs/bo-tai-lieu/` đã xếp thành lớp 6 trong bảng «Phân lớp» của `docs/README.md` (PO «Xếp lớp» 2026-11-16) nhưng vẫn trái câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`: bộ này làm theo yêu cầu PO và đã được PO duyệt làm bản gốc ngày 2026-11-16. Chưa xóa hay di chuyển tài liệu nào; `CLAUDE.md` thuộc cấu hình đóng băng nên câu đó chưa sửa.
+- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO chốt 2026-11-16: không xóa, không di chuyển). Đã xếp lớp thư mục này vào `docs/README.md` (lớp 6, PO 2026-11-16). Chưa làm: quyết câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`, chờ PO (§6.5 mục 6). Bản đồ nguồn: §8.
 
 ## 1. Mục đích và ý tưởng
 
@@ -127,7 +127,7 @@ Ngừng làm đến khi PO đổi: `feat` ở NKBV/QLCV/Đào tạo · P3 và mo
 | 3 | Duyệt lô áp prod và deploy (thứ tự ở ghi chú Pha 1) | không áp, không deploy |
 | 4 | 11 mục CHO_PO, ưu tiên VST-025, NKBV-041 | đứng nguyên; NEN-003 theo mặc định của sổ |
 | 5 | Mâu thuẫn tài liệu (02 §8) | giữ code hiện hành, ghi «cần kiểm» |
-| 6 | Bộ 3 file đã được duyệt và bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO 2026-11-16, không xóa). Còn chốt xếp lớp `docs/`: đưa `bo-tai-lieu/` vào bảng lớp của `docs/README.md` (hiện chỉ có một dòng trỏ tới bộ) và quyết câu «Never tạo tài liệu thứ hai» của `CLAUDE.md` | không xếp lớp; bộ vẫn là bản gốc |
+| 6 | Bộ 3 file đã được duyệt và bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO 2026-11-16, không xóa). Đã xếp lớp `docs/` (PO «Xếp lớp» 2026-11-16): `bo-tai-lieu/` là lớp 6 trong bảng lớp của `docs/README.md`. Còn chốt câu «Never tạo tài liệu thứ hai» của `CLAUDE.md` | không sửa `CLAUDE.md`; bộ vẫn là bản gốc |
 | 7 | `chat-thai-do-vai`: giữ hay gác | gác |
 
 ### 6.6 Rủi ro
