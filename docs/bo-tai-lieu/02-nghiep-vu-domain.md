@@ -1,6 +1,6 @@
 # 02 · Nghiệp vụ và domain
 
-> **BẢN NHÁP chờ PO duyệt** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
+> **ĐÃ DUYỆT bởi PO 2026-11-16 (bản gốc)** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
 > Bộ 3 file: [01-tong-quan-yeu-cau-lo-trinh.md](01-tong-quan-yeu-cau-lo-trinh.md) (vì sao · cái gì · làm thế nào · lộ trình) · **02** (file này: nghiệp vụ, domain) · [03-tien-do-thuc-trang.md](03-tien-do-thuc-trang.md) (đã làm, thực trạng, số đo kèm lệnh đo lại).
 > Nhãn: «cần kiểm» = nguồn không nói rõ hoặc chưa đo lại · «không có trong nguồn» = đã tìm trong các nguồn đã đọc mà không thấy · `[ĐỀ XUẤT]` = chưa PO chốt.
 > Gom theo yêu cầu PO 2026-11-15; nằm ngoài `docs/core` và 6 lớp của `docs/README.md`, chưa xếp lớp (01 §6.5 mục 6).

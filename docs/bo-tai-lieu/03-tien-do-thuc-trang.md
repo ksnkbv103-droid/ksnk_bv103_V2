@@ -1,6 +1,6 @@
 # 03 · Tiến độ đã thực hiện và thực trạng
 
-> **BẢN NHÁP chờ PO duyệt** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
+> **ĐÃ DUYỆT bởi PO 2026-11-16 (bản gốc)** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
 > Bộ 3 file: [01-tong-quan-yeu-cau-lo-trinh.md](01-tong-quan-yeu-cau-lo-trinh.md) (vì sao · cái gì · làm thế nào · lộ trình) · [02-nghiep-vu-domain.md](02-nghiep-vu-domain.md) (nghiệp vụ, domain) · **03** (file này: đã làm, thực trạng, số đo kèm lệnh đo lại).
 > Nhãn: «cần kiểm» = nguồn không nói rõ hoặc chưa đo lại · `[ĐỀ XUẤT]` = chưa PO chốt · số lệch nhau thì số đo lại bằng lệnh ở §3 thắng.
 > Gom theo yêu cầu PO 2026-11-15; nằm ngoài `docs/core` và 6 lớp của `docs/README.md`, chưa xếp lớp (01 §6.5 mục 6).
@@ -376,10 +376,10 @@ Nguồn: `SO_NO_APPKSNK.md` dòng 42–44 (mục 1–2); KH 11-13 (mục 4); KH 
 
 ## 8. ĐANG LÀM · KẾ · CẦN NGƯỜI
 
-- **ĐANG LÀM:** không có lát nào. Lát gom bộ 3 file đóng khi commit; chờ PO duyệt thì chuyển sang CẦN NGƯỜI.
+- **ĐANG LÀM:** không có lát nào của bộ này. Lát gom bộ 3 file đã đóng; PO duyệt 2026-11-16 (trả lời «Duyệt bộ 3 file» trong chat), đã ghi vào nhãn trạng thái của bộ.
 - **KẾ** (tối đa 3; cổng vào và ra ở 01 §6.3):
   1. Pha 0 Đóng nền: gọn `HANDOFF_APPKSNK.md` về ≤40 dòng sau khi phiên khác chốt sửa dở; gộp `origin/main` khi cây sạch; PO quyết commit, nhánh, worktree dư.
   2. Pha 1 Prod khớp repo: chuẩn bị lô áp, đối chiếu phụ thuộc chéo giữa các nhóm migration bằng agent `db-verify`, chờ PO authorize MCP.
   3. Pha 2 VST/GSC L1: chờ đầu mối có tên.
-- **CẦN NGƯỜI:** bảy việc ở 01 §6.5. Hiện có 55 commit chưa push (56 sau commit của bộ này); `git push` chỉ chạy khi PO gõ «push».
+- **CẦN NGƯỜI:** bảy việc ở 01 §6.5 (việc 6 nay là chốt phạm vi lưu trữ bản cũ và xếp lớp `docs/`; việc duyệt bộ 3 file đã xong). Số commit chưa push đo bằng `python3 -I ~/.claude/scripts/wip.py`; `git push` chỉ chạy khi PO gõ «push».
 - **Không làm:** theo 01 §6.4.

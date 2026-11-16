@@ -1,6 +1,6 @@
 # 01 · Tổng quan, yêu cầu, lộ trình, cách triển khai
 
-> **BẢN NHÁP chờ PO duyệt** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
+> **ĐÃ DUYỆT bởi PO 2026-11-16 (bản gốc)** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
 > Bộ 3 file: **01** (file này: vì sao · cái gì · làm thế nào · lộ trình) · [02-nghiep-vu-domain.md](02-nghiep-vu-domain.md) (nghiệp vụ, domain) · [03-tien-do-thuc-trang.md](03-tien-do-thuc-trang.md) (đã làm, thực trạng, số đo kèm lệnh đo lại).
 > Nhãn: «cần kiểm» = nguồn không nói rõ hoặc chưa đo lại · `[ĐỀ XUẤT]` = chưa PO chốt.
 
@@ -8,8 +8,8 @@
 
 - Gom từ tài liệu rải rác theo yêu cầu PO 2026-11-15, chỉ nói về module hiện có, để rà soát và sửa nhanh hơn. Không thêm công cụ, sổ hay cổng mới.
 - Lệch với bộ này thì các nguồn sống thắng: `CLAUDE.md` (luật + khóa PO) · sổ lỗi `node scripts/readiness/so-loi.mjs status` · `npm run module:gate` · `HANDOFF_APPKSNK.md`.
-- `docs/bo-tai-lieu/` nằm ngoài 6 lớp của `docs/README.md` và trái câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`: đây là bản nháp theo yêu cầu PO. Chưa xóa hay di chuyển tài liệu nào.
-- Sau khi PO duyệt (chưa làm): bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`; bản cũ được lưu trữ; thư mục này được xếp lớp. Bản đồ nguồn: §8.
+- `docs/bo-tai-lieu/` nằm ngoài 6 lớp của `docs/README.md` và trái câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`: bộ này làm theo yêu cầu PO và đã được PO duyệt làm bản gốc ngày 2026-11-16. Chưa xóa hay di chuyển tài liệu nào; `CLAUDE.md` thuộc cấu hình đóng băng nên câu đó chưa sửa.
+- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Chưa làm: lưu trữ bản cũ và xếp lớp thư mục này, chờ PO chốt phạm vi (§6.5 mục 6). Bản đồ nguồn: §8.
 
 ## 1. Mục đích và ý tưởng
 
@@ -96,7 +96,7 @@ Nguồn: `CLAUDE.md`; `docs/core/handover-roadmap.md` dòng 76; `docs/modules/da
 
 | Pha | Vào khi | Xong khi (đo được) | Ai | Dừng khi |
 |---|---|---|---|---|
-| **0 Đóng nền** | ngay | `python3 -I ~/.claude/scripts/wip.py` không còn `VƯỢT` (hiện 4: commit chưa push 55 > 20, nhánh chưa gộp 15 > 3, worktree 5 > 2, HANDOFF 46 > 40 dòng) · `git rev-list --left-right --count origin/main...HEAD` = `0 N` · `npm run docs:links:check` exit 0 · PO duyệt bộ 3 file | Claude: gọn HANDOFF ≤ 40 dòng sau khi phiên khác chốt sửa dở; gộp `origin/main` khi cây sạch. PO: quyết commit/nhánh/worktree dư | còn `VƯỢT` thì không mở lát mới |
+| **0 Đóng nền** | ngay | `python3 -I ~/.claude/scripts/wip.py` không còn `VƯỢT` (ảnh chụp 11-15, 4 mục: commit chưa push 55 > 20, nhánh chưa gộp 15 > 3, worktree 5 > 2, HANDOFF 46 > 40 dòng) · `git rev-list --left-right --count origin/main...HEAD` = `0 N` · `npm run docs:links:check` exit 0 · PO duyệt bộ 3 file (đã đạt 2026-11-16) | Claude: gọn HANDOFF ≤ 40 dòng sau khi phiên khác chốt sửa dở; gộp `origin/main` khi cây sạch. PO: quyết commit/nhánh/worktree dư | còn `VƯỢT` thì không mở lát mới |
 | **1 Prod khớp repo** (G1) | PO authorize MCP github/supabase/vercel; PR gộp vào `main` do PO duyệt | `list_migrations` prod khớp repo (0 file thiếu) · prod chạy sha mới · smoke 3 kịch bản VST/GSC đạt · theo dõi: số phiên/tuần 4 tuần liên tiếp không giảm | PO: ủy quyền, duyệt lô, deploy. Claude: chuẩn bị lô, kiểm sau áp | 1 migration lỗi: dừng, không áp tiếp. Chưa áp hết migration thì không deploy mã (DT-006 cần cột `huy_*`) |
 | **2 VST/GSC L1** (G2) | Pha 1 xong + đầu mối có tên | nhập < 60 giây (bấm tay) · thống kê khớp tính tay (GSC chưa đối soát) · ≥ 3 kịch bản tay do người dùng thật chạy · phiếu đo 15 phút, số 4 tuần, danh sách góp ý | PO: đầu mối, người dùng. Claude: chỉ sửa lỗi người dùng báo hoặc lộ dữ liệu | 4 tuần chưa đạt: ghi số, hỏi PO; không mở lát tính năng |
 | **3 CSSD L1** (G3) | Chạy thử: Pha 2 đạt ba tiêu chí L1 + đầu mối Tổ CSSD + máy quét. Lát code đã duyệt: làm được ngay (`module:gate`) | số đo 6 trạm · truy vết một bộ < 1 phút · ≥ 3 kịch bản tay do Tổ CSSD chạy · `npm run test:cssd` pass | Claude: lát đã duyệt (mẻ hỏng về Tiếp nhận; CSSD-017). Tổ CSSD: chạy tay | chỉ lát đã duyệt ở roadmap §5; PO im thì không lát mới |
@@ -127,7 +127,7 @@ Ngừng làm đến khi PO đổi: `feat` ở NKBV/QLCV/Đào tạo · P3 và mo
 | 3 | Duyệt lô áp prod và deploy (thứ tự ở ghi chú Pha 1) | không áp, không deploy |
 | 4 | 11 mục CHO_PO, ưu tiên VST-025, NKBV-041 | đứng nguyên; NEN-003 theo mặc định của sổ |
 | 5 | Mâu thuẫn tài liệu (02 §8) | giữ code hiện hành, ghi «cần kiểm» |
-| 6 | Duyệt bộ 3 file, rồi mới lưu trữ bản cũ và xếp lớp `docs/` | giữ bản NHÁP, bản cũ nguyên |
+| 6 | Bộ 3 file đã được duyệt 2026-11-16. Còn chốt phạm vi lưu trữ bản cũ và xếp lớp `docs/`; `[ĐỀ XUẤT]` không xóa, chỉ đánh dấu bản cũ «đã gộp vào bộ 3 file», `docs/README.md` trỏ bộ làm cửa chính | bản cũ nguyên; bộ vẫn là bản gốc |
 | 7 | `chat-thai-do-vai`: giữ hay gác | gác |
 
 ### 6.6 Rủi ro
@@ -147,11 +147,11 @@ Ngừng làm đến khi PO đổi: `feat` ở NKBV/QLCV/Đào tạo · P3 và mo
 - **Sổ và cổng**: `node scripts/readiness/so-loi.mjs <status|next|check|set|tay|stats|merge>` (dữ liệu `scripts/readiness/so-loi.json`) là số chuẩn cho «việc mở»; `npm run module:gate`, `npm run module:audit` cho cổng module.
 - **Commit, push, prod**: commit cục bộ khi verify + review pass, chỉ file đã sửa. Push chỉ khi PO gõ «push»; PR hỏi từng lần; deploy Vercel chỉ khi «deploy»; migration/ghi DB prod chỉ khi PO ra lệnh trong chính lượt đó. Không bao giờ mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`.
 
-## 8. Bản đồ nguồn (không xóa, không di chuyển; chờ PO duyệt)
+## 8. Bản đồ nguồn (không xóa, không di chuyển; bộ đã duyệt 2026-11-16, bản cũ chưa lưu trữ)
 
 | Nhóm | Tài liệu | Trạng thái |
 |---|---|---|
-| Lộ trình/chiến lược, đã gộp vào §6 | `docs/core/handover-roadmap.md` · `BAO-CAO-TONG-THE-2026-11-13.md` §4 · `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` · `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` | lưu trữ sau khi PO duyệt |
+| Lộ trình/chiến lược, đã gộp vào §6 | `docs/core/handover-roadmap.md` · `BAO-CAO-TONG-THE-2026-11-13.md` §4 · `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` · `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` | chưa lưu trữ; chờ PO chốt phạm vi (§6.5 mục 6) |
 | Báo cáo ảnh chụp | `BAO-CAO-NEN-MONG-2026-11-13.md` (sáu tầng T0 Nguồn → T6 Dùng thật) · `BAO-CAO-RA-SOAT-2026-11-05.md` · `BAO-CAO-CAI-TO-2026-11-06.md` | hai báo cáo sau chưa đối chiếu trong lượt gom: «cần kiểm» |
 | Nghiệp vụ chi tiết, đọc khi làm đúng lát đó | `docs/modules/<module>/` (giam-sat, dashboard, cssd, nkbv, qlcv, dao-tao, mdm) và `van-de-nguoi-dung.md` của từng module (nhãn `[SSOT]` · `[GIẢ THUYẾT]` · `[CẦN XÁC NHẬN]` · `[ĐỀ XUẤT]`) | còn là nguồn; tóm tắt ở 02 |
 | Sống, máy đọc hoặc sinh | `scripts/readiness/so-loi.json` · `supabase/migrations/` · `docs/data/` · `docs/wiki/index.md` | không sửa tay |
