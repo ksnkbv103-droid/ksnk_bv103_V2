@@ -28,7 +28,6 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 vi.mock("./cssd-action-common", () => ({
   revalidateCssdIncidentSurfaces: vi.fn(),
-  tableHasColumn: async () => true,
   appendQuyTrinhException: mocks.append,
 }));
 vi.mock("@/lib/cssd-server-gates", () => ({ verifyCssdInventoryEdit: vi.fn(async () => undefined) }));

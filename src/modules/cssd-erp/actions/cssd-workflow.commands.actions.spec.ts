@@ -26,7 +26,6 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 vi.mock("./cssd-action-common", () => ({
   revalidateCssdWorkflowSurfaces: vi.fn(),
-  tableHasColumn: async () => true,
   appendQuyTrinhException: mocks.append,
 }));
 vi.mock("./cssd-scan.actions", () => ({ scanQR: vi.fn() }));

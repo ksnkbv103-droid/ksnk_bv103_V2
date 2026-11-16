@@ -5,7 +5,7 @@
  */
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import type { Station } from "../types/cssd.types";
-import { revalidateCssdWorkflowSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
+import { revalidateCssdWorkflowSurfaces, appendQuyTrinhException } from "./cssd-action-common";
 import { scanQR } from "./cssd-scan.actions";
 import {
   executeRejectToPreviousStation,
@@ -50,12 +50,11 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
   const code = String(maQR || "").trim().toUpperCase();
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR quy trình.");
-  const hasDong = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
   const [op, actorUserId] = await Promise.all([cssdOperatorLabel(), cssdSessionUserId()]);
   await executeRejectToPreviousStation(supabase, {
     maQR: code,
     quyTrinh: row as WorkflowQuyTrinhInput,
-    hasDongBangColumn: hasDong,
+    hasDongBangColumn: true,
     lyDo,
     operatorLabel: op,
     actorUserId,
@@ -68,8 +67,6 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
 export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   await verifyCssdWorkflowEdit();
   const supabase = createAdminSupabaseClient();
-  const has = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-  if (!has) throw new Error("Phiên bản DB chưa có cột khóa an toàn.");
 
   const code = String(maQR || "").trim().toUpperCase();
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);

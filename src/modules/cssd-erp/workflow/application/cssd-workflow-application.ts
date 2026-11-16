@@ -90,22 +90,20 @@ export async function executeWorkflowStationScan(
     }
     let maVaiTroBo = "";
     let hasActiveSub = false;
-    if (quyTrinh.id && (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "ma_vai_tro_bo"))) {
+    if (quyTrinh.id) {
       const roleRow = await supabase
         .from("cssd_fact_quy_trinh")
         .select("ma_vai_tro_bo")
         .eq("id", quyTrinh.id)
         .maybeSingle();
       maVaiTroBo = String((roleRow.data as { ma_vai_tro_bo?: string } | null)?.ma_vai_tro_bo || "");
-      if (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "quy_trinh_cha_id")) {
-        const { count: subCount } = await supabase
-          .from("cssd_fact_quy_trinh")
-          .select("id", { count: "exact", head: true })
-          .eq("quy_trinh_cha_id", quyTrinh.id)
-          .eq("ma_vai_tro_bo", "SUB")
-          .eq("is_active", true);
-        hasActiveSub = (subCount ?? 0) > 0;
-      }
+      const { count: subCount } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("id", { count: "exact", head: true })
+        .eq("quy_trinh_cha_id", quyTrinh.id)
+        .eq("ma_vai_tro_bo", "SUB")
+        .eq("is_active", true);
+      hasActiveSub = (subCount ?? 0) > 0;
     }
     const parentBlock = rejectParentBoScan({ hasChildComponents, maVaiTroBo, hasActiveSub });
     if (parentBlock) throw new Error(parentBlock);

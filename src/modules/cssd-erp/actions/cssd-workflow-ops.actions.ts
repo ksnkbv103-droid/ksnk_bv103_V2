@@ -7,7 +7,7 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { revalidateCssdIncidentSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
+import { revalidateCssdIncidentSurfaces, appendQuyTrinhException } from "./cssd-action-common";
 import { verifyCssdInventoryEdit } from "@/lib/cssd-server-gates";
 import { createIncidentReport as createIncidentReportImpl } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
@@ -23,8 +23,6 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   await verifyCssdInventoryEdit();
   const supabase = createAdminSupabaseClient();
   const code = String(maQR || "").trim().toUpperCase();
-  const hasCol = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-  if (!hasCol) throw new Error("Phiên bản DB chưa hỗ trợ khóa an toàn.");
 
   const row = await fetchActiveQuyTrinhByScanCode(supabase, code);
   if (!row?.id) throw new Error("Không tìm thấy mã QR.");
