@@ -26,6 +26,8 @@ Sửa repo: [`../CLAUDE.md`](../CLAUDE.md). Chủ đề đang dùng: [`ssot-map.
 
 Wiki tổng hợp: [`wiki/entities.md`](wiki/entities.md) · [`wiki/concepts.md`](wiki/concepts.md). Catalog máy: [`wiki/index.md`](wiki/index.md).
 
+Bộ tài liệu gom (bản nháp chờ PO duyệt): [`bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md`](bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md).
+
 ## Lớp Core (13 file)
 
 **Mục lục, không đọc hết:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap`
