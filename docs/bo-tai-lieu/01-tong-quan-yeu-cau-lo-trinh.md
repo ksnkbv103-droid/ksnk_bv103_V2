@@ -112,6 +112,9 @@ Pha 0 và Pha 1 chạy song song; cả hai chỉ PO mở được.
 - Đã áp prod 11-12 (PO ra lệnh, qua MCP): VST-003, nhóm 1 (`20261109100000`, `20261110120000`, `20261111090000`), nhóm 2 (`20261110115000` → `130000` → `140000`, khu vực giám sát chuẩn 9).
 - Phần còn lại theo thứ tự version; điều kiện kiểm trước/sau từng migration ở `git show ae5ca6fd:HANDOFF.md` dòng 22–32. AR-8h `20261111150400` áp cùng lúc deploy code (chạy 2 query kiểm trước). NEN-003: mặc định của sổ là chạy `migration repair --status applied 20261110110000` trước lô. Phụ thuộc chéo giữa các nhóm: «cần kiểm» (agent `db-verify`) trước khi PO duyệt lô.
 
+**Ghi chú Pha 3 (CSSD L1): việc chờ.**
+- Thêm cột `cssd_dm_thiet_bi.ma_qr_thiet_bi` (PO «Đồng ý hết», 2026-11-16, câu 5 của `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md`): cột chưa có trong migration nào của repo (`git grep ma_qr_thiet_bi -- supabase/migrations` rỗng), nên 2 nhánh dò cột (`src/modules/cssd-erp/actions/cssd-bao-tri-list.actions.ts:70`, `src/modules/cssd-erp/shared/application/cssd-qr-hub.ts:132`) luôn rơi vào nhánh «không có cột» trên DB dựng từ migration của repo. Mã giữ nguyên; thêm cột cần migration (cổng PO). Làm khi Pha 3 mở và PO chốt máy CSSD cần mã QR riêng; nếu PO nói không cần → gỡ 2 nhánh.
+
 ### 6.4 Luật dừng và việc ngừng làm
 
 Luật dừng (roadmap dòng 56–60, giữ): chỉ mở lát gia cố khi hỏng/lộ dữ liệu ở đường người dùng đang dùng hoặc người dùng thật báo lỗi · không giao agent «quét» module chưa có người dùng · tối đa 5 lát mở, một agent ghi mỗi lần · câu hỏi PO gom một phiên mỗi tuần, kèm phương án «nếu PO im» · áp prod theo lô hằng tuần, PO duyệt.
