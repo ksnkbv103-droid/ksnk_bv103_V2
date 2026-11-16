@@ -6,7 +6,6 @@ import {
   COVERAGE_STATUS_LABELS,
   gapExclusionReason,
   isGapComparable,
-  KHOA_COMPLIANCE_WARN_PCT,
   sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
 import type { BaoCaoKhoaRankRow } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
@@ -21,7 +20,7 @@ import {
   formatSupervisionPercent,
   type SupervisionPercentDigits,
 } from "@/lib/analytics/supervision-percent";
-import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import { labelGapExclusion } from "@/lib/analytics/supervision-source-labels";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import type { CSSProperties, ReactElement } from "react";
 
@@ -169,60 +168,6 @@ function useSortedGapRows(
   }, [rows, rankRows, sortMetric, sortOrder]);
 }
 
-export function GapSortToolbar({
-  sortMetric,
-  sortOrder,
-  onSortOrderChange,
-  onSortMetricChange,
-}: {
-  sortMetric?: GapKhoaSortMetric;
-  sortOrder: GapKhoaSortOrder;
-  onSortOrderChange?: (order: GapKhoaSortOrder) => void;
-  onSortMetricChange?: (metric: GapKhoaSortMetric) => void;
-  moduleLabel?: string;
-}) {
-  const metricLabels: Partial<Record<GapKhoaSortMetric, string>> = {
-    label: "Mã khoa",
-    ty_le_ksnk: SUPERVISION_SOURCE_UI.ksnkPct,
-    ty_le_tgs: SUPERVISION_SOURCE_UI.tgsPct,
-    vol_ksnk: SUPERVISION_SOURCE_UI.ksnkVolShort,
-    vol_tgs: SUPERVISION_SOURCE_UI.tgsVolShort,
-  };
-
-  return (
-    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-      <p className="text-xs text-slate-500">
-        Hiển thị đủ mã khoa trong phạm vi lọc · cảnh báo màu khi tuân thủ &lt;{KHOA_COMPLIANCE_WARN_PCT}%
-      </p>
-      <div className="flex flex-wrap items-center gap-2">
-        {onSortMetricChange ? (
-          <select
-            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600"
-            value={sortMetric ?? "label"}
-            onChange={(e) => onSortMetricChange(e.target.value as GapKhoaSortMetric)}
-            aria-label="Sắp xếp theo"
-          >
-            {(Object.keys(metricLabels) as GapKhoaSortMetric[]).map((key) => (
-              <option key={key} value={key}>
-                {metricLabels[key]}
-              </option>
-            ))}
-          </select>
-        ) : null}
-        {onSortOrderChange ? (
-          <button
-            type="button"
-            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-            onClick={() => onSortOrderChange(sortOrder === "desc" ? "asc" : "desc")}
-          >
-            {sortOrder === "desc" ? "Cao → thấp" : "Thấp → cao"}
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 function percentTooltipFormatter(digits: SupervisionPercentDigits = 2) {
   return (value: unknown, name: unknown, item?: { payload?: Record<string, unknown> }) => {
   const payload = item?.payload;
@@ -237,26 +182,6 @@ function percentTooltipFormatter(digits: SupervisionPercentDigits = 2) {
   }
   return [pct, String(name ?? "Tuân thủ")];
   };
-}
-
-/** Chỉ số cột % thấp nhất (mặc định 3) — tô đậm can thiệp. Bỏ qua mẫu mỏng (VST-07). */
-export function bottomPercentHighlightIndices(
-  values: (number | null | undefined)[],
-  count = 3,
-  eligible?: boolean[],
-): Set<number> {
-  const ranked = values
-    .map((v, i) => ({ v, i }))
-    .filter(
-      (x): x is { v: number; i: number } =>
-        x.v != null && Number.isFinite(x.v) && (eligible ? eligible[x.i] !== false : true),
-    );
-  ranked.sort((a, b) => a.v - b.v);
-  return new Set(ranked.slice(0, count).map((x) => x.i));
-}
-
-export function highlightBarFill(base: string, highlight: boolean): string {
-  return highlight ? "#ef4444" : base;
 }
 
 /** Tô cột % dưới ngưỡng cảnh báo (mặc định vàng <80%, đỏ <70%). VST-07: mẫu mỏng → xám. */

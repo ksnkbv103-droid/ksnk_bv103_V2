@@ -1,17 +1,13 @@
 "use client";
 
-import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { formatPercent1, roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
-import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
-  momentRowBg,
-  momentToneClass,
   percentTooltipFormatter,
   SupervisionResponsiveChart,
   complianceBarColor,
@@ -280,102 +276,6 @@ function SupervisionCompareBarChart({
           </p>
         )}
       </KhoaChartViewport>
-    </div>
-  );
-}
-
-/** Radar 5 moment WHO + bảng số luôn hiện (không phụ thuộc hover) — dùng khi báo cáo VST. */
-export function SupervisionMomentsPanel({
-  title = "5 thời điểm WHO",
-  moments,
-  loading,
-  stroke = "#10b981",
-}: {
-  title?: string;
-  moments: MomentRow[];
-  loading?: boolean;
-  stroke?: string;
-}) {
-  const rows = moments.map((m) => ({
-    ...m,
-    ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
-  }));
-
-  if (!loading && rows.length === 0) return null;
-
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="h-[240px] min-h-[200px]">
-          {!loading && rows.length > 0 ? (
-            <SupervisionResponsiveChart
-              className="h-full w-full min-w-0"
-              role="img"
-              ariaLabel={`Biểu đồ radar ${title}`}
-            >
-              <RadarChart data={rows}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="ten" tick={{ fontSize: 9 }} />
-                <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                <Tooltip formatter={percentTooltipFormatter()} />
-                <Radar
-                  name="Tuân thủ %"
-                  dataKey="ty_le_tuan_thu"
-                  stroke={stroke}
-                  fill={stroke}
-                  fillOpacity={0.35}
-                />
-              </RadarChart>
-            </SupervisionResponsiveChart>
-          ) : (
-            <p className="flex h-full items-center justify-center text-sm text-slate-400">
-              {loading ? "Đang tải…" : "Chưa có dữ liệu"}
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col justify-center">
-          {!loading && rows.length > 0 ? (
-            <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(280px,40dvh)]">
-              <table className="w-full min-w-[280px] text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
-                    <th className="px-3 py-2 text-left">Thời điểm</th>
-                    <th className="px-3 py-2 text-right">Cơ hội</th>
-                    <th className="px-3 py-2 text-right">Tuân thủ</th>
-                    <th className="px-3 py-2 text-right">Tỷ lệ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((m) => {
-                    const tone = complianceToneFromPercent(m.ty_le_tuan_thu);
-                    return (
-                      <tr key={m.ten} className={`border-b border-slate-100 last:border-0 ${momentRowBg[tone]}`}>
-                        <td className="px-3 py-2 text-left text-xs font-medium text-slate-800">{m.ten}</td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                          {m.tong_co_hoi.toLocaleString("vi-VN")}
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                          {m.da_tuan_thu.toLocaleString("vi-VN")}
-                        </td>
-                        <td className={`px-3 py-2 text-right font-bold tabular-nums ${momentToneClass[tone]}`}>
-                          {formatPercent1(m.ty_le_tuan_thu)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </ResponsiveTableShell>
-          ) : (
-            <p className="text-sm text-slate-400">{loading ? "Đang tải…" : "Chưa có dữ liệu"}</p>
-          )}
-          <p className="mt-2 text-xs text-slate-400">
-            Số liệu hiển thị cố định — phù hợp trình bày và in màn hình; radar thể hiện chênh lệch giữa các moment.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

@@ -14,7 +14,6 @@
     "src/lib/analytics/strategic-analytics-fetch.ts -> @/modules/giam-sat-chung/types/gsc-strategic.types",
     "src/lib/analytics/strategic-analytics-fetch.ts -> @/modules/giam-sat-vst/actions/vst-strategic-analytics.actions",
     "src/lib/analytics/strategic-analytics-fetch.ts -> @/modules/giam-sat-vst/types/vst-strategic.types",
-    "src/lib/analytics/supervision-charts-core.tsx -> @/modules/dashboard/lib/bao-cao-tong-hop-thresholds",
     "src/lib/analytics/supervision-charts-core.tsx -> @/modules/dashboard/types/bao-cao-tong-hop.types",
     "src/lib/analytics/supervision-charts-core.tsx -> @/modules/giam-sat-chung/types/gsc-strategic.types",
     "src/lib/analytics/supervision-charts-core.tsx -> @/modules/giam-sat-vst/types/vst-strategic.types",

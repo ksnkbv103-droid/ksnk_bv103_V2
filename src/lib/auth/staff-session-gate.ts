@@ -1,6 +1,5 @@
 /** TTL / key mốc kiểm phiên — dùng chung Gate + test. */
 export const STAFF_GATE_AUTH_CHECK_AT_KEY = "staff_gate_auth_check_at";
-export const STAFF_GATE_AUTH_CHECK_TTL_MS = 60_000;
 export const STAFF_GATE_LINK_SYNC_TTL_MS = 5 * 60_000;
 
 export type StaffGateDecision =

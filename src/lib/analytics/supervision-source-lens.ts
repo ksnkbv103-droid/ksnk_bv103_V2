@@ -27,10 +27,6 @@ export function hinhThucIdsForLens(lens: SupervisionSourceLens): string[] {
   return [SUPERVISION_LENS_HINH_THUC_IDS[lens]];
 }
 
-export function otherLens(lens: SupervisionSourceLens): SupervisionSourceLens {
-  return lens === "ksnk" ? "tgs" : "ksnk";
-}
-
 /** % theo lens — null nếu khoa chưa có mẫu số nguồn đó. */
 export function tyLeForLens(row: GapKhoaRow, lens: SupervisionSourceLens): number | null {
   if (lens === "ksnk") {

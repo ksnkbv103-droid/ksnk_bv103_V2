@@ -6,7 +6,6 @@ export {
   SupervisionKpiRow,
   SupervisionTrendChart,
   SupervisionCompareAccordion,
-  SupervisionMomentsPanel,
 } from "./supervision-charts-core";
 
 export { SupervisionKhoaAnalyticsBlock } from "./supervision-charts-khoa-compare";
