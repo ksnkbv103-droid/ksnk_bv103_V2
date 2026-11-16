@@ -9,13 +9,13 @@
     "chua_ra": "chưa rà vòng nào"
   },
   "dem": {
-    "tong_file": 57,
+    "tong_file": 56,
     "hai_phia": 5,
     "mot_phia": 6,
     "khong_ap_dung": 1,
-    "chua_ra": 45,
-    "kiem_lai": "node -e 'const m=require(\"./scripts/readiness/mau-in-anh-xa.json\");const f=m.nhom.flatMap(n=>n.files);const fs=require(\"fs\");console.log(f.length,new Set(f).size,f.filter(x=>!fs.existsSync(x)).length)' (kỳ vọng 57 57 0)",
-    "ghi_chu": "57 file là tập file cài đặt in/xuất liệt kê 2026-11-14; 13 file gọi nút in (CatalogDeNghiDiff, VSTForm, GiamSatChungForm…) không tính. Tập này sót các file xuất tên có chữ export: xem ngoai_tap_57."
+    "chua_ra": 44,
+    "kiem_lai": "node -e 'const m=require(\"./scripts/readiness/mau-in-anh-xa.json\");const f=m.nhom.flatMap(n=>n.files);const fs=require(\"fs\");console.log(f.length,new Set(f).size,f.filter(x=>!fs.existsSync(x)).length)' (kỳ vọng 56 56 0)",
+    "ghi_chu": "56 file là tập file cài đặt in/xuất liệt kê 2026-11-14 (lúc liệt kê là 57; ngày 2026-11-16 đã xóa NkbvBaGridCasePrintView.tsx, mã chết, PO duyệt câu 12a của KH_APPKSNK_20261116); 13 file gọi nút in (CatalogDeNghiDiff, VSTForm, GiamSatChungForm…) không tính. Tập này sót các file xuất tên có chữ export: xem ngoai_tap_57 (khóa giữ tên cũ)."
   },
   "nhom": [
     {
@@ -61,14 +61,13 @@
       "nhom": "NKBV",
       "trang_thai": "chua_ra",
       "files": [
-        "src/modules/giam-sat-nkbv/components/NkbvBaGridCasePrintView.tsx",
         "src/modules/giam-sat-nkbv/components/NkbvBenhAnImportPortal.tsx",
         "src/modules/giam-sat-nkbv/components/NkbvCasePrintView.tsx",
         "src/modules/giam-sat-nkbv/components/NkbvCaseSummaryBookPrintView.tsx",
         "src/modules/giam-sat-nkbv/components/NkbvViSinhImportPortal.tsx",
         "src/modules/giam-sat-nkbv/lib/nkbv-cdha-print.ts"
       ],
-      "ma_bm_app": "Đã thấy: BM.01/QT.33 (NkbvBaGridCasePrintView.tsx:147, NkbvCasePrintView.tsx:161); BM.04/QT.33 (NkbvCaseSummaryBookPrintView.tsx:76); tiêu đề dẫn Quyết định 3916/QĐ-BYT",
+      "ma_bm_app": "Đã thấy: BM.01/QT.33 (NkbvCasePrintView.tsx:161); BM.04/QT.33 (NkbvCaseSummaryBookPrintView.tsx:76); tiêu đề dẫn Quyết định 3916/QĐ-BYT",
       "ma_bm_kho": "Cần kiểm: chưa đối chiếu KSNK.QT.33 hiện hành trong kho",
       "ket_luan": "Vòng P1 kế tiếp. NKBV-030 và NKBV-031 (xóa cứng) đã ghi sổ từ phép phân loại .delete()"
     },
@@ -167,7 +166,7 @@
     }
   ],
   "ngoai_tap_57": {
-    "ghi_chu": "File tên chứa export nằm ngoài 57 (tìm bằng find src -iname '*export*', bỏ spec). Tập 57 sót nhóm này; bổ sung vào ánh xạ khi rà module tương ứng.",
+    "ghi_chu": "File tên chứa export nằm ngoài 56 (tìm bằng find src -iname '*export*', bỏ spec). Tập 56 sót nhóm này; bổ sung vào ánh xạ khi rà module tương ứng.",
     "da_doc": [
       "src/modules/giam-sat-vst/actions/vst-export.actions.ts",
       "src/modules/giam-sat-chung/actions/gsc-export.actions.ts",
@@ -232,10 +231,10 @@
     ]
   },
   "con_lai": [
-    "Ánh xạ BM: 45/57 file chưa rà; thứ tự module NKBV → QLCV → dashboard → CSSD (sau CSSD-036) → đào tạo → hạ tầng",
+    "Ánh xạ BM: 44/56 file chưa rà; thứ tự module NKBV → QLCV → dashboard → CSSD (sau CSSD-036) → đào tạo → hạ tầng",
     "36 bảng kiểm GSC chuẩn ↔ DANH_MUC_HD_VA_BM.md",
     "Năm phép kiểm in cho NKBV, QLCV, dashboard, CSSD",
-    "8 file xuất ngoài tập 57 (ngoai_tap_57.chua_doc)",
+    "8 file xuất ngoài tập 56 (ngoai_tap_57.chua_doc; khóa giữ tên cũ)",
     "Thời hạn lưu: căn cứ pháp lý TT 53/2017/TT-BYT là «cần kiểm»; ~145 dòng thời hạn lưu trong kho chưa có căn cứ (KH_APPKSNK_20261114… §5, dòng «dòng 32, 82»)",
     "Đo prod chỉ đọc khi có kết nối: truy vấn ở lenh_kiem của VST-024 (ảnh chốt, tiêu chí mồ côi) và dòng quyền HOI_DONG_KSNK ở lenh_kiem của VST-023; số hiện có là DB local (dữ liệu seed)"
   ]

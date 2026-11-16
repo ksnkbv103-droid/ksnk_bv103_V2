@@ -65,5 +65,5 @@ Bằng chứng cơ học: `npm run module:audit -- nkbv`. Phạm vi đóng băng
 ### Cập nhật 2026-11-13
 - `module:audit`: 4/10 (Có 3, 4, 6, 7); 31 action, 91 spec. `module:gate`: KHÁM_PHÁ, đầu mối CHƯA CÓ (vẫn chặn mọi bước sau).
 - Sổ lỗi: 24 dòng — 22 đã sửa, 2 chờ PO: NKBV-018 (người chỉ có quyền xem CSSD thấy mã ca + họ tên BN qua tra RCA ngược — có phải thiết kế?), NKBV-023 (xóa mềm ẩn được ca đã XAC_NHAN/LOAI_TRU). Thử tay ĐẠT 5, CHƯA 8 (phần lớn cần tài khoản GSC/Mạng lưới chưa có fixture), 0 không đạt.
-- Còn nợ: `updateNkbvBenhAnStay` không kiểm khoa mới trong phạm vi; NKBV-013..016 chưa qua reviewer độc lập; NKBV-021 (chuyển khoa) chờ PO. Mã chết báo, không xóa: `NkbvBaGridCasePrintView.tsx`.
+- Còn nợ: `updateNkbvBenhAnStay` không kiểm khoa mới trong phạm vi; NKBV-013..016 chưa qua reviewer độc lập; NKBV-021 (chuyển khoa) chờ PO. Mã chết `NkbvBaGridCasePrintView.tsx`: đã xóa 2026-11-16 (PO duyệt câu 12a).
 - Câu hỏi PO 1–3 ở trên chưa trả lời; thêm: trạng thái thật của module (KHÁM_PHÁ nhưng nhiều commit `feat`).

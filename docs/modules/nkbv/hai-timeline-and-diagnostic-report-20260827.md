@@ -90,7 +90,7 @@ Không biến timeline thành dashboard KPI (module Dashboard khác). Không spa
 | **B — Phiếu xác định ca (kho sự kiện)** | IP thẩm định, in hồ sơ KSNK | Ảnh chụp lúc Tạo phiếu | Sửa ngầm BA đã chốt |
 | **C — Báo cáo gửi khoa / lãnh đạo** | Khoa điều trị, chủ nhiệm, BGH | Cùng ảnh chụp + lời tiếng Việt | Bắt khoa tick tiêu chí CDC |
 
-App đã có hai bản in (`NkbvCasePrintView` dạng mục; `NkbvBaGridCasePrintView` dạng văn bản). **Mẫu C** = nâng bản văn bản: đủ để người không làm KSNK **theo dõi được sự kiện**, không thay thuật toán.
+App đã có hai bản in (`NkbvCasePrintView` dạng mục; `NkbvBaGridCasePrintView` dạng văn bản). **Mẫu C** = nâng bản văn bản: đủ để người không làm KSNK **theo dõi được sự kiện**, không thay thuật toán. *(2026-11-16: `NkbvBaGridCasePrintView` đã xóa vì mã chết. Hỏi PO: Mẫu C xây trên `NkbvCasePrintView` hay bỏ?)*
 
 ---
 
