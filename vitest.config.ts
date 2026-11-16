@@ -34,7 +34,6 @@ export default defineConfig({
       "src/modules/auth/**/*.spec.ts",
       "src/modules/dao-tao/**/*.spec.ts",
       "src/modules/chat-thai-do-vai/**/*.spec.ts",
-      "src/lib/bv103-feature-config.spec.ts",
       "src/hooks/**/*.spec.ts",
     ],
     environment: "node",

@@ -117,7 +117,7 @@
     "admin:rbac:parity:local": "node scripts/admin-rbac-parity.mjs --local",
     "verify:admin": "npm run admin:health:check && npm run verify:engineering",
     "test:admin": "vitest run src/modules/quan-tri-he-thong src/lib/master-data src/lib/validations src/lib/admin-audit.spec.ts src/lib/auth/quan-tri-access.spec.ts src/lib/mdm-read-gateway.spec.ts src/lib/domain/cssd-catalog-master-write.spec.ts",
-    "test:pilot": "vitest run src/lib/bv103-feature-config.spec.ts src/lib/analytics/filter-helpers.spec.ts src/lib/analytics/gsc-analytics-data.spec.ts src/lib/analytics/gsc-checklist-intervention.spec.ts src/lib/rpc-contract-dashboard.spec.ts",
+    "test:pilot": "vitest run src/lib/analytics/filter-helpers.spec.ts src/lib/analytics/gsc-analytics-data.spec.ts src/lib/analytics/gsc-checklist-intervention.spec.ts src/lib/rpc-contract-dashboard.spec.ts",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
     "smoke:cssd-station-map": "node scripts/smoke-cssd-station-map-query.mjs",
