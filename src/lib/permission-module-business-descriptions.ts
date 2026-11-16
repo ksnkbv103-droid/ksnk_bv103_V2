@@ -2,7 +2,7 @@
  * Mô tả nghiệp vụ tiếng Việt cho ma trận RBAC — giúp PO/IT duyệt quyền.
  */
 const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
-  DASHBOARD: "Xem Báo cáo chính thức (KPI giám sát, xu hướng, in A4).",
+  DASHBOARD: "Xem Báo cáo chính thức (chỉ số giám sát, xu hướng, in A4).",
   DASHBOARD_CC_OVERVIEW: "Quyền widget tổng hợp trên Báo cáo chính thức (tương thích mã CC cũ).",
   DASHBOARD_CC_SUPERVISION: "Quyền widget giám sát chuyên trách / chéo / tự giám sát trên Báo cáo chính thức.",
   DASHBOARD_CC_GAP: "Quyền widget đối soát / lệch dữ liệu trên Báo cáo chính thức.",

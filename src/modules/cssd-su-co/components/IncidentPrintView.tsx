@@ -162,7 +162,7 @@ export default function IncidentPrintView({
     if (incident.incident_group === "CHEMICAL") {
       return "Niêm phong và loại bỏ lô hóa chất/vật tư kém chất lượng. Thay thế lô mới đạt chuẩn.";
     }
-    return "Tự động ghi nhận thông tin sự cố chung phục vụ đánh giá KPI & quy trình.";
+    return "Tự động ghi nhận thông tin sự cố chung phục vụ đánh giá chỉ số & quy trình.";
   }, [incident.incident_group, rollbackTarget, batchRecalled, batchRecallCount, machineHoldQc, detailsMap]);
 
   return (

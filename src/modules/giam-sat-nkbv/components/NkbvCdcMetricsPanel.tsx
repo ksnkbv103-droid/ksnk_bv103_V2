@@ -200,7 +200,7 @@ export default function NkbvCdcMetricsPanel({
             <span className={` text-slate-500`}>Bước 5: Định vị Khoa chịu lỗi (LOA) và Lịch sử nằm khoa</span>
             <div className="bg-indigo-50 border border-indigo-100/70 p-2.5 rounded-[var(--radius-shell)] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-xs font-medium text-slate-500 block">Khoa chịu trách nhiệm KPI:</span>
+                <span className="text-xs text-xs font-medium text-slate-500 block">Khoa chịu trách nhiệm chỉ số:</span>
                 <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-lg text-xs font-semibold font-sans shadow-sm">
                   {metrics.attributedStay
                     ? formatKhoaCompactLabel({

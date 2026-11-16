@@ -111,7 +111,7 @@ export default function BangKiemApDungFields({
         <SectionHeader
           step={1}
           title="Tính chất nghĩa vụ"
-          hint="Quyết định có tính vào KPI thiếu hay chỉ khuyến nghị."
+          hint="Quyết định có tính vào chỉ số thiếu hay chỉ khuyến nghị."
         />
         <div className="space-y-2 pl-7">
           {(Object.keys(MUC_DO_LABELS) as BkMucDo[]).map((k) => (

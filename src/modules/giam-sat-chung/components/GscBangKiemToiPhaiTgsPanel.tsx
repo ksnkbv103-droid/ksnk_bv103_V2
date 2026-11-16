@@ -267,7 +267,7 @@ export default function GscBangKiemToiPhaiTgsPanel({
             {data.khuyen_ngh.length > 0 ? (
               <div className="space-y-2">
                 <h3 className={`${UI.sectionTitle} text-slate-500 px-1`}>
-                  Khuyến nghị ({data.khuyen_ngh.length}) — không tính thiếu KPI
+                  Khuyến nghị ({data.khuyen_ngh.length}) — không tính thiếu chỉ số
                 </h3>
                 <BkTable rows={data.khuyen_ngh} showStatus={false} />
               </div>

@@ -308,7 +308,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     gsc: p.payload?.gsc_ve_sinh_tay ?? null,
   });
   const veSinhTayTriptychTable = `
-    <h3>1. Bộ ba KPI Vệ sinh tay</h3>
+    <h3>1. Bộ ba chỉ số Vệ sinh tay</h3>
     <table>
       <thead>
         <tr>
