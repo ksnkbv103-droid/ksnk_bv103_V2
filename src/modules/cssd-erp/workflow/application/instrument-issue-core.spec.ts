@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { removeChiTietIssueNoteLines } from "./instrument-issue-core";
+import { removeChiTietIssueNoteLines } from "../domain/instrument-issue-note";
 
 const NOTE = [
   "nguon=DCPT_bo_sung; tu_sinh",
