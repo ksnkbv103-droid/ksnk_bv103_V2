@@ -1,7 +1,7 @@
 /**
  * Soft Soft Soft-safe 25d residual — picker filter theo `lop_giam_sat` / seed_meta (file 16 §6).
  * Hub VST BM.01–03 không lẫn list GSC generic (R4/R5).
- * Không invent KPI; chỉ labels/filter.
+ * Không invent KPI; chỉ filter.
  */
 
 import {
@@ -154,9 +154,3 @@ export function filterBangKiemByLopGiamSatMode<T extends BangKiemLopSource>(
     return !lg || lg === "TUAN_THU";
   });
 }
-
-export const LOP_GIAM_SAT_LABELS: Record<LopGiamSatV2, string> = {
-  he_thong: "Đánh giá hệ thống",
-  thuc_hanh_don_vi: "Giám sát thực hành",
-  hybrid: "Hybrid (thực hành + điều phối)",
-};

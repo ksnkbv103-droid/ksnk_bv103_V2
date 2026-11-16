@@ -408,10 +408,6 @@ export function isCanKhoEligibleLine(line: SetReconcileLineInput): boolean {
   return lechVsChuan(line) !== 0;
 }
 
-export function canKhoLineKeys(lines: SetReconcileLineInput[]): string[] {
-  return lines.flatMap((line, i) => (isCanKhoEligibleLine(line) ? [reconcileLineKey(line, i)] : []));
-}
-
 export function khoStockOf(loaiId: string, khoStock: KhoStockLookup[]): number {
   const id = String(loaiId || "").trim();
   if (!id) return 0;

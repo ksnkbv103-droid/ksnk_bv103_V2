@@ -19,16 +19,6 @@ const TYPE_KPI = "bv103-type-kpi";
 const TYPE_KPI_LG = "bv103-type-kpi-lg";
 const TYPE_NOTE = "bv103-type-note";
 
-export const bv103TypeRole = {
-  title: TYPE_TITLE,
-  section: TYPE_SECTION,
-  body: TYPE_BODY,
-  label: TYPE_LABEL,
-  kpi: TYPE_KPI,
-  kpiLg: TYPE_KPI_LG,
-  note: TYPE_NOTE,
-} as const;
-
 export const bv103DesignTokens = {
   pageOuter: PAGE_OUTER,
   /** Alias — cùng nhịp `pageOuter` (không nhảy gap khi đổi Analytics). */
@@ -99,5 +89,3 @@ export const bv103DesignTokens = {
 
   skeletonBlock: "animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-100/80",
 } as const;
-
-export const BV103_MIN_LABEL_CLASS = "bv103-type-label" as const;

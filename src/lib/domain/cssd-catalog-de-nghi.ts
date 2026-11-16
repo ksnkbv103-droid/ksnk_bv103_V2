@@ -135,29 +135,6 @@ export function parseCssdCatalogDeNghiKind(v: unknown): CssdCatalogDeNghiKind | 
   return isCssdCatalogDeNghiKind(k) ? k : null;
 }
 
-export function catalogDeNghiHref(params?: {
-  kind?: Exclude<CssdCatalogDeNghiKind, "MIXED"> | null;
-  ma?: string | null;
-  ten?: string | null;
-  targetId?: string | null;
-  note?: string | null;
-  batch?: boolean;
-}): string {
-  const q = new URLSearchParams();
-  q.set("tab", params?.batch ? "DE_NGHI" : "DE_NGHI");
-  if (params?.batch) q.set("mode", "batch");
-  if (params?.kind) q.set("kind", params.kind);
-  const ma = String(params?.ma || "").trim();
-  if (ma) q.set("ma", ma);
-  const ten = String(params?.ten || "").trim();
-  if (ten) q.set("ten", ten);
-  const targetId = String(params?.targetId || "").trim();
-  if (targetId) q.set("targetId", targetId);
-  const note = String(params?.note || "").trim();
-  if (note) q.set("note", note);
-  return `/cssd-dung-cu?${q.toString()}`;
-}
-
 /** Chuẩn hóa payload phiếu → danh sách dòng (single hoặc lô). */
 export function normalizeDeNghiItems(args: {
   targetKind: CssdCatalogDeNghiKind;

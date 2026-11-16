@@ -11,10 +11,6 @@ export type DateTimeInput = string | number | Date | null | undefined;
 const TZ = "Asia/Ho_Chi_Minh";
 const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
 /** Parse input → Date hợp lệ, hoặc null. Chuỗi YYYY-MM-DD coi là ngày lịch (trưa local, tránh lệch ngày). */
 export function parseDateTimeInput(value: DateTimeInput): Date | null {
   if (value == null || value === "") return null;
@@ -119,16 +115,6 @@ export function formatDateTimeVi(value: DateTimeInput, empty = "—"): string {
   const p = partsInVn(d);
   if (!p) return empty;
   return `${p.hour}:${p.minute}:${p.second}, ${p.day}/${p.month}/${p.year}`;
-}
-
-/** Alias rõ nghĩa cho chỗ gọi cũ. */
-export const formatNgayVi = formatDateVi;
-export const formatGioVi = formatTimeVi;
-export const formatNgayGioVi = formatDateTimeVi;
-
-/** Fallback pad khi cần format từ y/m/d/h/m/s thô (UTC calendar). */
-export function formatDatePartsVi(y: number, m: number, d: number): string {
-  return `${pad2(d)}/${pad2(m)}/${y}`;
 }
 
 /** YYYY-MM-DD theo lịch vận hành BV103 (Asia/Ho_Chi_Minh) — cổng BD/FEFO/HSD. */
