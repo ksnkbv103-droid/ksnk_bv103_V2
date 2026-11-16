@@ -305,11 +305,69 @@ Ghi nhận ngoài phạm vi (không sửa trong plan này): `scripts/data/acl-sn
 
 ## 9. Tiến độ
 
-| Lát | Trạng thái | Commit | Số đo sau lát |
-|---|---|---|---|
-| L0 – L14 | Chưa bắt đầu (chờ C1) | – | – |
+Chạy 2026-11-16 trên `integrate/2026-11`. PO ra lệnh «làm tất cả các lát ở mục 06» = duyệt cổng C1 (chạy nối, commit cục bộ từng lát, không push). Lệnh đó **không** trả lời §7 → theo quy tắc của §7 («không trả lời câu nào thì mục đó GIỮ») mọi mục §7 giữ nguyên. Hệ quả cho câu 13: không sửa `scripts/gate-integrity.mjs` (cấu hình luồng đóng băng), 5 cặp spec + nguồn ở lại, L10 bỏ; L14 không có mục; L13 chưa xếp lịch.
 
-Mồ côi bậc hai phát hiện trong lúc chạy: (chưa có)
+Cột «Số đo» = `node scripts/dead-code-scan.mjs --json` sau lát: file · dòng · mồ côi · chỉ test · chết qua export · export chết · chỉ test export. Chuỗi số đo ở §6 không còn đúng nguyên văn vì L10 và phần câu 13 của L3/L4/L7 không chạy; số đo thật là cột này.
+
+| Lát | Trạng thái | Commit | Số đo sau lát | Đã làm |
+|---|---|---|---|---|
+| L0 | Xong | `50ba9792` | 1299 · 186597 · 29 · 18 · 5 · 105 · 352 (số gốc, khớp §6) | `scripts/dead-code-scan.mjs` quét bằng TypeScript compiler API thay `fallow`; chỉ cảnh báo trừ khi `DEAD_CODE_STRICT=1`; `--json <file>` ghi chi tiết (1 file +339/−42) |
+| L1 | Xong | `7051205f` | 1295 · 186452 · 25 · 18 · 5 · 103 · 352 | 4 file mồ côi VST/hooks/lib + 3 export chết (7 file −141) |
+| L2 | Xong | `f173589a` | 1288 · 186051 · 19 · 18 · 4 · 102 · 353 | 6 file mồ côi CSSD + 1 stub chết qua export (8 file −395) |
+| L3 | Xong một phần | `d563bca1` | 1287 · 186027 · 19 · 17 · 4 · 102 · 353 | Stub báo hỏng/mất chi tiết `append-chi-tiet-issue-note.action.ts`; spec `instrument-issue-core.spec.ts` bỏ ca gọi mã đã xóa bằng dòng `gate-ok:`; `ENTRYPOINTS.md` −1; baseline −1 dòng. **Không chạy** phần câu 13 (`cssd-instrument-ops.actions.ts` + spec, `instrument-issue-core.ts` + spec) (4 file +1/−32) |
+| L4 | Xong một phần | `4306858d` | 1286 · 185662 · 18 · 17 · 4 · 97 · 353 | `cssd-set-bom-apply-core.ts` + 5 export/action chết. **Không chạy** `cssd-quy-trinh-metadata.ts` + spec (câu 13) (6 file +2/−366) |
+| L5 | Xong | `92677159` | 1284 · 185338 · 16 · 17 · 4 · 92 · 353 | 2 file mồ côi cssd-su-co + 5 export chết + baseline −1 (7 file +1/−324) |
+| L6 | Xong | `7869c9a3` | 1279 · 184265 · 11 · 17 · 4 · 92 · 353 | 5 file mồ côi NKBV (màn cũ `@deprecated`, 2 hook) + ghi chú `mau-in-anh-xa.json` + ghi chú NKBV-042 (7 file +2/−1070) |
+| L7 | Xong một phần | `5eef8e54` | 1277 · 184131 · 10 · 17 · 4 · 86 · 353 | Stub LabID `giam-sat-nkbv-labid.actions.ts`, `NkbvDeviceRegistryPanel.tsx`, 3 export sổ dụng cụ/tạo phiếu. **Không chạy** `nkbv-labid-engine.ts` + spec (câu 13) (6 file +2/−134) |
+| L8 | Xong | `ab6bd597` | 1277 · 184062 · 10 · 17 · 4 · 81 · 353 | 5 export chết QLCV + 1 dòng `security-baseline-allow.json` (6 file −70) |
+| L9 | Xong | `00a4ee97` | 1273 · 183908 · 8 · 15 · 4 · 76 · 353 | 2 file types mồ côi, 2 shim, 5 export chết; 2 spec đổi import (8 file +2/−152) |
+| L10 | **Không chạy** | – | – | Cần câu 13 (`bv103-feature-config.ts` + spec nằm trong 5 cặp câu 13) |
+| L11a | Xong | `58044099` | 1273 · 183726 · 8 · 15 · 4 · 69 · 353 | 7 export chết `supervision-*`, `staff-session-gate` + baseline 58 → 57 (7 file +2/−185) |
+| L11b | Xong | `8227530c` | 1273 · 183648 · 8 · 15 · 4 · 59 · 353 | 10 export chết design-tokens, danh-muc-cache, domain, format-datetime + 1 dòng `layout-primitives.md` (7 file +4/−82) |
+| L11c | Xong | `293a690a` | 1273 · 183460 · 8 · 15 · 4 · 47 · 354 | 12 export chết master-data, cssd-erp, dashboard (7 file +2/−190) |
+| L12a | Xong | `278334e8` | 1273 · 183453 · 8 · 15 · 4 · 47 · 354 (không đổi) | 5 lần `tableHasColumn` ở workflow CSSD (cột `is_dong_bang`, `ma_vai_tro_bo`, `quy_trinh_cha_id` có trong baseline); đếm §4.A 18 → 13 (5 file +11/−20) |
+| L12b | Xong | `1e1a1a8d` | 1273 · 183441 · 8 · 15 · 4 · 47 · 361 (+7 là hiện tượng máy quét, xem «Mồ côi bậc hai») | 7 lần `tableHasColumn` ở báo sự cố + hủy sự cố (5 ở `su-co-report.application.ts`, 2 ở `void-incident.application.ts`); viết trước `void-incident.application.spec.ts` (16 test), pass trước và sau khi gỡ; đếm §4.A 13 → 6 (4 file +258/−33) |
+| L13 | Chưa xếp lịch | – | – | Chờ C3 |
+| L14 | Không có mục | – | – | PO chưa chọn XÓA câu nào trong 3, 6, 7, 12a |
+
+**Tổng sau L12b** — số máy quét (chỉ mã nguồn, không tính spec): 1299 → 1273 file (−26, đúng bằng 26 file xóa nguyên), 186597 → 183441 dòng (−3156); mồ côi 29 → 8, chỉ test 18 → 15, chết qua export 5 → 4, export chết (không type) 105 → 47; probe `tableHasColumn` 18 → 6. Theo git, 15 commit của lát (gồm script, spec, docs): +626/−3236 dòng, xóa nguyên 26 file, thêm 1 file (`void-incident.application.spec.ts`, 243 dòng).
+
+Đối chiếu «Kết quả dự kiến» ở §6: mồ côi 29 → 8 và probe 18 → 6 **đạt**. Chỉ test 18 → 15 (dự kiến 11) và chết qua export 5 → 4 (dự kiến 3) **hụt** vì câu 13 chưa được đồng ý: chuỗi §6 tính chỉ test L3 −3, L4 −1, L7 −1, thực tế L3 −1, L4 0, L7 0 (4 cặp spec + nguồn ở lại); L10 bỏ nên chết qua export không xuống 3. 26 file xóa nguyên khớp §7 câu 13 («không đồng ý → XÓA còn 26 file nguyên»). Tiêu chí L11 «export chết ngoài NKBV và ngoài nhãn GIỮ/HỎI PO = 0» **đạt**: 47 còn lại = 33 NKBV + 14 có nhãn (7 thư viện UI GIỮ, `cssdCommandReleaseSet` GIỮ CSSD-025, `buildActionBoardFromGap` câu 6, `getCSSDImportExportData` câu 2, `getCssdStationFlowMap` câu 3, `recordPackCondition` câu 1, `importTieuChis` câu 8, `adminSetTrangThaiCongViec` câu 9).
+
+### Lệch so với kế hoạch (đã xử lý theo cách ghi bên cạnh)
+
+1. **`is_red_alert` không có trong baseline.** §4.A xếp `cssd_fact_quy_trinh.is_red_alert` vào 12 cột baseline, nhưng cột này do `supabase/migrations/20260724100000_cssd_quy_trinh_is_red_alert.sql:5` thêm. L12b vẫn gỡ 2 probe của cột này vì: (a) migration sau đó đọc/ghi cột không điều kiện (`20261004012938_cssd_red_alert_by_quy_trinh.sql:189,586`, `20261114130000_cssd_me_thu_hoi_kiem_trang_thai.sql:484`, `20260925010536_cssd_ledger_atomic.sql:678`); (b) `docs/core/implementation-mapping.md:229` ghi luồng báo sự cố luôn ghi cờ này; (c) ngay dưới probe, `executeVoidIncidentReport` gọi `rpc_cssd_apply_incident_void` (migration `20261110110000`, sau `20260724100000`) không điều kiện; (d) hàng L12b của kế hoạch liệt kê đúng 7 probe này. Chỉ đổi hành vi trên DB thiếu cột, DB đó vốn không chạy được các RPC hiện tại. **Chưa kiểm prod** (MCP Supabase chưa ủy quyền, C3).
+2. **L3 baseline −1 dòng, không phải −2**: `cssd-instrument-ops.actions.ts` ở lại (câu 13) nên 1 dòng baseline còn đúng vi phạm.
+3. **`npm run impact` không có** trên nhánh này → thay bằng `git grep -n -w` toàn repo (kể cả docs, trừ `.claude/plans`). **`db-verify`** thay bằng đối chiếu trực tiếp `supabase/migrations/20260530000000_init_pilot_baseline.sql` + toàn bộ migration bằng `git grep`.
+4. **Baseline chỉ giảm (quy tắc chung 3)**: `scripts/module-boundaries.baseline.json` — `lib-khong-import-modules` 59 → 58 (L3) → 57 (L11a), `cssd-su-co-chi-import-loi` 5 → 4 (L5); `scripts/data/security-baseline-allow.json` 21 → 20 mục (L8). Dòng baseline hết vi phạm làm `verify:engineering` fail (`guard:boundaries`), nên prune đi cùng lát tạo ra nó.
+5. **L8 — chênh `defaultPeriodFilterNow`**: kế hoạch ghi bản ở `lib` (`ke-hoach-nam-format.ts`, đã gỡ ở L8, 0 nơi gọi) «trùng» bản cục bộ `NhiemVuPanel.tsx:37`, nhưng thân khác nhau (lib = tháng hiện tại `{THANG, m}`; cục bộ = `{NAM, 0}`). `NhiemVuPanel.tsx:150` `currentMonthVn = defaultPeriodFilterNow().value` = 0 → chuyển «Cả năm» sang «Tháng» có thể ra tháng 0. Lỗi có từ trước, không do L8 (gỡ hàm 0 nơi gọi không đổi hành vi); **không sửa** (ngoài phạm vi lát); hỏi PO.
+
+### Mồ côi bậc hai và việc còn lại (ghi, không tự xóa)
+
+- Chỉ test export mới sau khi gỡ: `SUPERVISION_COMPLIANCE_THRESHOLDS` (hằng SSOT, dùng nội bộ > 10 lần → GIỮ), `instrumentChangeRequiresIncidentResult` (`src/lib/domain/cssd-instrument-incident.ts`).
+- `hasDongBangColumn` (tham số của `executeWorkflowStationScan` `cssd-workflow-application.ts:41,63` và `executeRejectToPreviousStation` `:243,255`) giờ luôn `true` ở mọi nơi gọi; bỏ tham số đổi chữ ký hàm export nên để ngoài lát.
+- L12b: `clearTableHasColumnCache` vẫn export (spec `cssd-db-utils.spec.ts` dùng; còn 6 probe sống ở `cssd-bao-tri-list.actions.ts:70`, `cssd-batch.actions.ts:344,791`, `cssd-report-read.actions.ts:161`, `cssd-qr-hub.ts:132`, `cssd-workflow-application.ts:83`). `originalState.is_red_alert` / `is_dong_bang` trong `su-co-report.application.ts` giờ luôn là boolean (trước đây `undefined` khi DB thiếu cột); với DB đủ cột giá trị không đổi.
+- L12b, hiện tượng máy quét: chỉ test export tăng 354 → 361 (+7) ở `src/modules/cssd-su-co/domain/cssd-incident-void.ts` (`INCIDENT_VOID_BATCH`, `_DRAFT`, `_BOM`, `_TRANSFER`, `_CONFIRMED`, `_CLOSED`, `pickDominoRollbackToUndo`). Spec mới `void-incident.application.spec.ts` dùng `import type * as IncidentVoidDomain`, máy quét coi mọi export của module đó có spec tham chiếu. Cả 7 đều dùng ngay trong file đó (`cssd-incident-void.ts:161–245`), không có mã mới bị bỏ rơi; không đổi spec chỉ để làm đẹp con số.
+- `getCssdStationFlowMap` (`cssd-read.actions.ts:319`, câu 3 → L14); `adminSetTrangThaiCongViec` (câu 9); `buildActionBoardFromGap` (câu 6); `importTieuChis` (câu 8); `recordPackCondition` (câu 1); `getCSSDImportExportData` (câu 2).
+- NKBV còn: mồ côi `NkbvBaGridCasePrintView.tsx`, `NkbvCdcMetricsPanel.tsx`, `NkbvChecklistKsnkTab.tsx` (câu 12); chỉ test `nkbv-chapter17-clinical.ts`; khoảng 33 export chết trong `giam-sat-nkbv/lib/*`.
+- QLCV / quản trị: 27 chỉ test export (`qlcv-bao-cao-ky.ts`, `qlcv-board-lanes.ts`, `qlcv-list-scope.ts`, `ke-hoach-nam-format.ts`, `rbac-ksnk-role-mappings.ts`…).
+- Dòng cũ nhắc ký hiệu đã xóa, để nguyên: `docs/core/implementation-mapping.md:147,153,333`; `supabase/migrations/20261021010000_cssd_apply_bom_lines_tx.sql:2` (comment lịch sử). Comment cũ `src/lib/bv103-layout-chrome.ts:4` nhắc `useBv103Chrome` đã xóa; `.fallowrc.json` còn sót sau L0.
+- `cssd-set-bom-plan.ts` + spec còn là chỉ-test; `cssd-register-label.actions.ts` còn dòng trống cuối file do L4 (hình thức).
+- NKBV-034 trong `so-loi.json` còn `ghi_chu` nhắc `listNkbvBaTimelineManual`; `so-loi.mjs` không có lệnh chỉ sửa ghi chú, ghi chú NKBV-042 ở L6 sửa tay trong `so-loi.json`.
+- `lookupAccountAccessRequestStatusAction` chỉ kiểm đầu vào rồi trả `publicAccountAck()`; 2 spec đổi import ở L9 vẫn nằm ở `quan-tri-he-thong/danh-muc/actions/` nhưng thử mã ở `src/lib/master-data/` (có thể trùng `master-table-permission-map.spec.ts`; chưa gộp).
+- `supervision-analytics-charts.tsx` còn re-export type `MomentRow` không ai import qua barrel (có từ trước).
+- **Hỏi PO (L11b):** `invalidateClientDanhMucCache` chưa từng nối vào CRUD quản trị. Cache máy chủ `unstable_cache` làm mới được qua `revalidateMasterDataRowCacheTag`; chỉ cache sessionStorage phía trình duyệt (`ksnk:dm-cache:`, TTL 15 phút/tab) không bị xóa → lịch sử/in VST (`use-vst-history-table.ts`, `use-vst-print.ts`) có thể thấy tên khoa/nghề nghiệp/khu vực cũ ≤ 15 phút sau khi quản trị sửa. Mức thấp.
+
+### Chưa kiểm tay (kiểm bằng build + spec + scanner, chưa ai thao tác trên màn hình)
+
+L2 Điều hành khoa → Phê duyệt dụng cụ · L4 in nhãn bộ dụng cụ + tra lịch sử QR · L5 báo sự cố + hủy sự cố · L6 các màn NKBV (Hub bệnh án → phiếu → in BM.01) · L7 điền sẵn dụng cụ khi mở phiếu NKBV + mẫu số hằng ngày · L8 Kế hoạch năm/Nhiệm vụ + form tạo/sửa công việc QLCV · L9 màn gửi yêu cầu cấp/đặt lại tài khoản công khai · L11a báo cáo VST/GSC + Staff Gate khi đăng nhập · L11b lọc/hiển thị ngày giờ, lọc lớp giám sát GSC, màn catalog CSSD, lịch sử + in VST · L11c màn catalog CSSD, màn giám sát có chọn nhân viên/nghề nghiệp, tra cứu danh mục · L12a đóng băng bộ dụng cụ, giải phóng (mở khóa) bộ, trả lui 1 trạm, quét trạm kiểm tra bộ mẹ/bộ con · L12b báo sự cố (thường, có QR, có rollback trạm / cờ đỏ) + hủy phiếu sự cố có và không có chu trình.
+
+### Kiểm chứng ngoài phạm vi lát (có từ trước, không do lát nào gây ra)
+
+- 2 file đang sửa dở của phiên khác, không thuộc lát nào, không stage/commit: `HANDOFF_APPKSNK.md`, `src/modules/giam-sat-nkbv/lib/nkbv-loa-server.spec.ts`. Hậu quả: `node scripts/gate-integrity.mjs` thoát 1 với đúng 6 chỗ, đều trong `nkbv-loa-server.spec.ts`; 7 test của file đó fail (spec đang bị sửa dở: +9/−11 dòng so với HEAD; nguồn `nkbv-loa-server.ts` không do lát nào sửa).
+- `giam-sat-nkbv-write.actions.spec.ts` (2 ca) timeout 5000 ms: spec là `describe.skipIf(!hasIntegrationDb)` và tạo `createClient` thật, nhưng Docker daemon đang tắt (`Cannot connect to the Docker daemon at unix:///Users/drnghia/.docker/run/docker.sock`).
+- Toàn bộ vitest sau L12b (`npm run test:cssd`, thoát 1): `Test Files  2 failed | 438 passed (440)` · `Tests  9 failed | 2787 passed (2796)`. 9 ca fail = 7 ca `nkbv-loa-server.spec.ts` + 2 ca `giam-sat-nkbv-write.actions.spec.ts` ở trên. Không commit nào trong `03376355..HEAD` chạm 2 file này (`git diff --stat` rỗng).
+- `node scripts/readiness/so-loi.mjs check` thoát 1 vì VST-025, NKBV-041 và `HANDOFF_APPKSNK.md` 6083 B > 6000 B (có từ trước).
 
 ## Tự kiểm
 
