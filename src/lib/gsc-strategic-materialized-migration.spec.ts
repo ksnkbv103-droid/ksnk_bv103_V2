@@ -13,7 +13,7 @@ const SIG_CMP =
   /CREATE OR REPLACE FUNCTION public\.rpc_gsc_compare_matrices_impl\(\s*p_tu_ngay date,\s*p_den_ngay date,\s*p_khoi_ids uuid\[] DEFAULT NULL::uuid\[\],\s*p_khoa_ids uuid\[] DEFAULT NULL::uuid\[\],\s*p_nghe_nghiep_ids uuid\[] DEFAULT NULL::uuid\[\],\s*p_khu_vuc_ids uuid\[] DEFAULT NULL::uuid\[\],\s*p_hinh_thuc_ids text\[] DEFAULT NULL::text\[\],\s*p_bang_kiem_mas text\[] DEFAULT NULL::text\[]\s*\)/;
 
 const JSON_KEYS = [
-  "kpis",
+  "chi_so",
   "trendline",
   "matrix_khoa",
   "top_violations",
@@ -77,7 +77,7 @@ describe("gsc strategic materialized base migration", () => {
   });
 
   it("final jsonb_build_object has all 8 keys", () => {
-    const marker = "SELECT jsonb_build_object(\n      'kpis',";
+    const marker = "SELECT jsonb_build_object(\n      'chi_so',";
     const idx = stratFn.lastIndexOf(marker);
     expect(idx).toBeGreaterThan(0);
     const tail = stratFn.slice(idx);

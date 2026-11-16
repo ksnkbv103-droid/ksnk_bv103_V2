@@ -490,8 +490,8 @@ export function composeBaoCaoTongHopPayload(args: {
   /** Hai tuần Δ GSC đem so chấm bộ bảng kiểm khác nhau → true (chú thích «khác cơ cấu»); null = không rõ. */
   gscKhacCoCau?: boolean | null;
 }): BaoCaoTongHopPayload {
-  const tyLeVst = computeTyLeVst(args.vst?.kpis);
-  const tyLeGsc = computeTyLeGsc(args.gsc?.kpis);
+  const tyLeVst = computeTyLeVst(args.vst?.chi_so);
+  const tyLeGsc = computeTyLeGsc(args.gsc?.chi_so);
   const trendWeek = buildMergedTrend(args.vst, args.gsc);
   const trendMonth = bucketTrendByMonth(trendWeek);
   const khoaRank = buildKhoaRank(args.vst, args.gsc);
@@ -528,11 +528,11 @@ export function composeBaoCaoTongHopPayload(args: {
     nkbv: args.nkbv,
     cssd: args.cssd ?? null,
     chat_thai_do_vai: args.chat_thai_do_vai ?? null,
-    kpis: {
+    chi_so: {
       ty_le_vst: tyLeVst,
       ty_le_gsc: tyLeGsc,
-      ti_le_xac_nhan_nkbv: args.nkbv?.kpis.ti_le_xac_nhan_so_voi_pa ?? null,
-      tong_phieu_nkbv: args.nkbv?.kpis.tong_phieu ?? null,
+      ti_le_xac_nhan_nkbv: args.nkbv?.chi_so.ti_le_xac_nhan_so_voi_pa ?? null,
+      tong_phieu_nkbv: args.nkbv?.chi_so.tong_phieu ?? null,
       delta_vst: deltaFromPeriodPoints(trendWeek, "ty_le_vst"),
       delta_gsc: deltaFromPeriodPoints(trendWeek, "ty_le_gsc"),
       delta_gsc_khac_co_cau: args.gscKhacCoCau === true,

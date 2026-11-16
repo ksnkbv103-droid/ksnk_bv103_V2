@@ -1763,7 +1763,7 @@ CREATE OR REPLACE FUNCTION "public"."rpc_dashboard_gsc_strategic_analytics"("p_t
     SET "search_path" TO 'public'
     AS $$
 DECLARE
-  v_kpis jsonb;
+  v_chi_so jsonb;
   v_trendline jsonb;
   v_matrix_khoa jsonb;
   v_matrix_nghe jsonb;
@@ -1779,7 +1779,7 @@ BEGIN
     'tong_dat', COALESCE(SUM(tong_dat), 0),
     'tong_vi_pham', COALESCE(SUM(tong_vi_pham), 0),
     'ty_le_tuan_thu', CASE WHEN SUM(tong_quan_sat) > 0 THEN ROUND((SUM(tong_dat)::numeric * 100) / SUM(tong_quan_sat), 1) ELSE 0 END
-  ) INTO v_kpis
+  ) INTO v_chi_so
   FROM public.fact_gsc_dashboard_summary s
   LEFT JOIN public.dm_khoa_phong k ON s.khoa_id = k.id
   WHERE s.ngay_giam_sat >= p_tu_ngay AND s.ngay_giam_sat <= p_den_ngay
@@ -1975,7 +1975,7 @@ BEGIN
   ) INTO v_workload;
 
   RETURN jsonb_build_object(
-    'kpis', COALESCE(v_kpis, '{}'::jsonb),
+    'chi_so', COALESCE(v_chi_so, '{}'::jsonb),
     'trendline', COALESCE(v_trendline, '[]'::jsonb),
     'matrix_khoa', COALESCE(v_matrix_khoa, '[]'::jsonb),
     'top_violations', COALESCE(v_top_violations, '[]'::jsonb),
@@ -1995,7 +1995,7 @@ CREATE OR REPLACE FUNCTION "public"."rpc_dashboard_vst_strategic_analytics"("p_t
     SET "search_path" TO 'public'
     AS $$
 DECLARE
-  v_kpis jsonb;
+  v_chi_so jsonb;
   v_trendline jsonb;
   v_matrix_khoa jsonb;
   v_matrix_nghe jsonb;
@@ -2019,7 +2019,7 @@ BEGIN
     'ty_le_dung_ky_thuat', CASE WHEN SUM(da_tuan_thu) > 0 THEN ROUND(((SUM(da_tuan_thu) - SUM(loi_ky_thuat))::numeric * 100) / SUM(da_tuan_thu), 1) ELSE 0 END,
     'ty_le_du_thoi_gian', CASE WHEN SUM(da_tuan_thu) > 0 THEN ROUND(((SUM(da_tuan_thu) - SUM(loi_thoi_gian))::numeric * 100) / SUM(da_tuan_thu), 1) ELSE 0 END,
     'ty_le_lam_dung_gang', CASE WHEN SUM(bo_sot) > 0 THEN ROUND((SUM(lam_dung_gang)::numeric * 100) / SUM(bo_sot), 1) ELSE 0 END
-  ) INTO v_kpis
+  ) INTO v_chi_so
   FROM public.fact_vst_opportunities_summary s
   LEFT JOIN public.dm_khoa_phong k ON s.khoa_id = k.id
   WHERE s.ngay_giam_sat >= p_tu_ngay AND s.ngay_giam_sat <= p_den_ngay
@@ -2181,7 +2181,7 @@ BEGIN
   ) INTO v_workload;
 
   RETURN jsonb_build_object(
-    'kpis', COALESCE(v_kpis, '{}'::jsonb),
+    'chi_so', COALESCE(v_chi_so, '{}'::jsonb),
     'trendline', COALESCE(v_trendline, '[]'::jsonb),
     'matrix_khoa', COALESCE(v_matrix_khoa, '[]'::jsonb),
     'matrix_nghe', COALESCE(v_matrix_nghe, '[]'::jsonb),
@@ -3192,7 +3192,7 @@ CREATE OR REPLACE FUNCTION "public"."rpc_get_vst_dashboard"("p_tu_ngay" "date", 
     AS $$
 DECLARE
   v_result JSONB;
-  v_kpis JSONB;
+  v_chi_so JSONB;
   v_monthly JSONB;
   v_by_khoa JSONB;
   v_by_nghe JSONB;
@@ -3221,7 +3221,7 @@ BEGIN
     'da_tuan_thu', da_tuan_thu,
     'bo_sot', bo_sot,
     'ty_le_tuan_thu', CASE WHEN tong_co_hoi > 0 THEN ROUND((da_tuan_thu * 100.0) / tong_co_hoi) ELSE 0 END
-  ) INTO v_kpis FROM stats;
+  ) INTO v_chi_so FROM stats;
 
   -- 2. Thống kê theo tháng
   WITH monthly_stats AS (
@@ -3304,7 +3304,7 @@ BEGIN
   v_result := jsonb_build_object(
     'tu_ngay', p_tu_ngay,
     'den_ngay', p_den_ngay,
-    'kpis', v_kpis,
+    'chi_so', v_chi_so,
     'monthly', COALESCE(v_monthly, '[]'::jsonb),
     'by_khoa', COALESCE(v_by_khoa, '[]'::jsonb),
     'by_doi_tuong', COALESCE(v_by_nghe, '[]'::jsonb),
@@ -3328,7 +3328,7 @@ BEGIN
   SELECT jsonb_build_object(
     'tu_ngay', p_tu_ngay,
     'den_ngay', p_den_ngay,
-    'kpis', (
+    'chi_so', (
       SELECT jsonb_build_object(
         'tong_phien', COUNT(DISTINCT s.session_id),
         'tong_co_hoi', COALESCE(SUM(o.so_co_hoi), 0),

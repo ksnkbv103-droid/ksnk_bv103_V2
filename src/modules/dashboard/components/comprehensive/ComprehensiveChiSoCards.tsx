@@ -121,21 +121,21 @@ function ChiSoCard({
 
 export function ComprehensiveChiSoCards({ payload }: { payload: BaoCaoTongHopPayload | null }) {
 
-  const k = payload?.kpis;
+  const k = payload?.chi_so;
   const trend = payload?.trend_week;
   const ky = payload?.ky_truoc;
   if (!payload) return null;
 
   const vstVol =
-    payload.vst?.kpis != null
-      ? `${payload.vst.kpis.da_tuan_thu.toLocaleString()}/${payload.vst.kpis.tong_co_hoi.toLocaleString()} tuân thủ`
+    payload.vst?.chi_so != null
+      ? `${payload.vst.chi_so.da_tuan_thu.toLocaleString()}/${payload.vst.chi_so.tong_co_hoi.toLocaleString()} tuân thủ`
       : null;
   const gscVol =
-    payload.gsc?.kpis != null
-      ? `${payload.gsc.kpis.tong_dat.toLocaleString()}/${payload.gsc.kpis.tong_quan_sat.toLocaleString()} đạt`
+    payload.gsc?.chi_so != null
+      ? `${payload.gsc.chi_so.tong_dat.toLocaleString()}/${payload.gsc.chi_so.tong_quan_sat.toLocaleString()} đạt`
       : null;
   const nkbvVol =
-    payload.nkbv?.kpis != null ? formatNkbvXacNhanVolume(payload.nkbv.kpis) : null;
+    payload.nkbv?.chi_so != null ? formatNkbvXacNhanVolume(payload.nkbv.chi_so) : null;
   const periodLabel = ky
     ? `vs kỳ trước (${shortDayMonth(ky.tu_ngay)}→${shortDayMonth(ky.den_ngay)})`
     : null;

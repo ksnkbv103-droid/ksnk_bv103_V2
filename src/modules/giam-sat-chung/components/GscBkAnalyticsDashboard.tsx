@@ -104,15 +104,15 @@ export function GscBkAnalyticsDashboard({
         <SupervisionChiSoRow
           loading={loading}
           items={[
-            { label: "Phiên giám sát", value: detail?.kpis?.tong_phien ?? 0 },
-            { label: "Tiêu chí áp dụng", value: detail?.kpis?.tong_quan_sat ?? 0 },
-            { label: "Vi phạm", value: detail?.kpis?.tong_vi_pham ?? 0 },
-            { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(detail?.kpis?.tong_dat ?? 0, detail?.kpis?.tong_quan_sat ?? 0) },
+            { label: "Phiên giám sát", value: detail?.chi_so?.tong_phien ?? 0 },
+            { label: "Tiêu chí áp dụng", value: detail?.chi_so?.tong_quan_sat ?? 0 },
+            { label: "Vi phạm", value: detail?.chi_so?.tong_vi_pham ?? 0 },
+            { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(detail?.chi_so?.tong_dat ?? 0, detail?.chi_so?.tong_quan_sat ?? 0) },
           ]}
         />
 
-        {(detail?.kpis?.tong_quan_sat ?? 0) > 0 &&
-        (detail?.kpis?.tong_dat ?? 0) / (detail?.kpis?.tong_quan_sat ?? 1) < 0.8 ? (
+        {(detail?.chi_so?.tong_quan_sat ?? 0) > 0 &&
+        (detail?.chi_so?.tong_dat ?? 0) / (detail?.chi_so?.tong_quan_sat ?? 1) < 0.8 ? (
           <p className="text-xs text-slate-600">
             Chỉ số dưới mục tiêu —{" "}
             <Link

@@ -57,7 +57,7 @@ export function buildVeSinhTayChiSoCards(input: {
   /** Kỳ đang mở trên bản ký — deep-link thống kê không được rơi về kỳ mặc định. */
   filters?: AnalyticsUrlSeed;
 }): VeSinhTayChiSoCard[] {
-  const vstK = input.vst?.kpis;
+  const vstK = input.vst?.chi_so;
   const seed = input.filters ?? {};
   const vstQuery = buildAnalyticsUrlQuery(seed);
   const vstHref = vstQuery ? `/thong-ke/vst?${vstQuery}` : "/thong-ke/vst";

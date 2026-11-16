@@ -141,7 +141,7 @@ function TopicSummary({
 }
 
 function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.vst?.kpis;
+  const k = payload?.vst?.chi_so;
   if (!k) return [];
   const lines = [
     `Tuân thủ: ${formatPercent1(k.ty_le_tuan_thu)} (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
@@ -153,7 +153,7 @@ function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
 }
 
 function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.gsc?.kpis;
+  const k = payload?.gsc?.chi_so;
   if (!k) return [];
   const lines = [
     `Tuân thủ: ${formatPercent2(k.ty_le_tuan_thu)} (${k.tong_dat}/${k.tong_quan_sat} lượt quan sát, ${k.tong_phien} phiên)`,
@@ -167,7 +167,7 @@ function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {
 }
 
 function buildNkbvLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.nkbv?.kpis;
+  const k = payload?.nkbv?.chi_so;
   if (!k) return [];
   const lines = [
     `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận (đã kết luận): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,

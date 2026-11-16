@@ -39,7 +39,7 @@ describe("supervision-metrics formulas (tính tay đối chiếu)", () => {
     });
 
     it("computeTyLeVst: mẫu số bằng 0 trả về null", () => {
-      const kpis: VstStrategicPayload["kpis"] = {
+      const chi_so: VstStrategicPayload["chi_so"] = {
         tong_phien: 0,
         tong_co_hoi: 0,
         da_tuan_thu: 0,
@@ -54,12 +54,12 @@ describe("supervision-metrics formulas (tính tay đối chiếu)", () => {
         ty_le_du_thoi_gian: 0,
         ty_le_lam_dung_gang: 0,
       };
-      expect(computeTyLeVst(kpis)).toBeNull();
+      expect(computeTyLeVst(chi_so)).toBeNull();
       expect(computeTyLeVst(undefined)).toBeNull();
     });
 
     it("computeTyLeVst: tính đúng tỷ lệ 1 chữ số thập phân khi có dữ liệu", () => {
-      const kpis: VstStrategicPayload["kpis"] = {
+      const chi_so: VstStrategicPayload["chi_so"] = {
         tong_phien: 1,
         tong_co_hoi: 3,
         da_tuan_thu: 2,
@@ -74,7 +74,7 @@ describe("supervision-metrics formulas (tính tay đối chiếu)", () => {
         ty_le_du_thoi_gian: 100,
         ty_le_lam_dung_gang: 0,
       };
-      expect(computeTyLeVst(kpis)).toBe(66.7);
+      expect(computeTyLeVst(chi_so)).toBe(66.7);
     });
   });
 
@@ -108,26 +108,26 @@ describe("supervision-metrics formulas (tính tay đối chiếu)", () => {
     });
 
     it("computeTyLeGsc: mẫu số bằng 0 trả về null", () => {
-      const kpis: GscStrategicPayload["kpis"] = {
+      const chi_so: GscStrategicPayload["chi_so"] = {
         tong_phien: 0,
         tong_quan_sat: 0,
         tong_dat: 0,
         tong_vi_pham: 0,
         ty_le_tuan_thu: 0,
       };
-      expect(computeTyLeGsc(kpis)).toBeNull();
+      expect(computeTyLeGsc(chi_so)).toBeNull();
       expect(computeTyLeGsc(undefined)).toBeNull();
     });
 
     it("computeTyLeGsc: tính đúng tỷ lệ 2 chữ số thập phân khi có dữ liệu", () => {
-      const kpis: GscStrategicPayload["kpis"] = {
+      const chi_so: GscStrategicPayload["chi_so"] = {
         tong_phien: 1,
         tong_quan_sat: 7,
         tong_dat: 5,
         tong_vi_pham: 2,
         ty_le_tuan_thu: 71.4,
       };
-      expect(computeTyLeGsc(kpis)).toBe(71.43);
+      expect(computeTyLeGsc(chi_so)).toBe(71.43);
     });
   });
 

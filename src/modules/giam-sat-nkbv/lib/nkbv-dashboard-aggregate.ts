@@ -163,7 +163,7 @@ export type NkbvEpidemiologyRate = {
 export type NkbvDashboardPayload = {
   tu_ngay: string;
   den_ngay: string;
-  kpis: {
+  chi_so: {
     tong_phieu: number;
     da_xac_nhan: number;
     dang_va_cho_xn: number;
@@ -299,7 +299,7 @@ export function aggregateNkbvDashboard(
   return {
     tu_ngay: tuNgayISO,
     den_ngay: denNgayISO,
-    kpis: {
+    chi_so: {
       tong_phieu,
       da_xac_nhan,
       phieu_xac_nhan_trang_thai,
@@ -316,19 +316,19 @@ export function aggregateNkbvDashboard(
 }
 
 /** Mẫu số tỷ lệ xác nhận = phiếu XAC_NHAN + LOAI_TRU (đã kết luận). */
-export function nkbvPaMauSo(kpis: {
+export function nkbvPaMauSo(chi_so: {
   phieu_xac_nhan_trang_thai: number;
   loai_tru: number;
 }): number {
-  return Math.max(kpis.phieu_xac_nhan_trang_thai + kpis.loai_tru, 0);
+  return Math.max(chi_so.phieu_xac_nhan_trang_thai + chi_so.loai_tru, 0);
 }
 
 /** Nhãn khối lượng BCTH/in — khớp metric-dictionary. */
-export function formatNkbvXacNhanVolume(kpis: {
+export function formatNkbvXacNhanVolume(chi_so: {
   da_xac_nhan: number;
   phieu_xac_nhan_trang_thai: number;
   loai_tru: number;
 }): string {
-  const mau = nkbvPaMauSo(kpis);
-  return `${kpis.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} đã kết luận`;
+  const mau = nkbvPaMauSo(chi_so);
+  return `${chi_so.da_xac_nhan.toLocaleString()}/${mau.toLocaleString()} đã kết luận`;
 }

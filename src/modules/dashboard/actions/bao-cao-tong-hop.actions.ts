@@ -314,9 +314,9 @@ export async function getBaoCaoTongHopAnalytics(
             : Promise.resolve(null),
         ]);
         const priorVstPct =
-          priorVst && priorVst.success ? computeTyLeVst(priorVst.data.kpis) : null;
+          priorVst && priorVst.success ? computeTyLeVst(priorVst.data.chi_so) : null;
         const priorGscPct =
-          priorGsc && priorGsc.success ? computeTyLeGsc(priorGsc.data.kpis) : null;
+          priorGsc && priorGsc.success ? computeTyLeGsc(priorGsc.data.chi_so) : null;
         if (priorVstPct != null || priorGscPct != null) {
           kyTruoc = {
             tu_ngay: priorBounds.tu_ngay,

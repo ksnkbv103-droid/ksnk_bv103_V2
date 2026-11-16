@@ -120,7 +120,7 @@ BEGIN
     FROM public.gstt_fact_vst d
     INNER JOIN session_base sb ON d.session_id = sb.session_id
   ),
-  kpis AS (
+  chi_so AS (
     SELECT jsonb_build_object(
       'tong_phien', COALESCE(COUNT(DISTINCT session_id), 0),
       'tong_co_hoi', COALESCE(SUM(so_co_hoi), 0),
@@ -258,7 +258,7 @@ BEGIN
     ) AS payload
   )
   SELECT jsonb_build_object(
-    'kpis', COALESCE((SELECT payload FROM kpis), '{}'::jsonb),
+    'chi_so', COALESCE((SELECT payload FROM chi_so), '{}'::jsonb),
     'trendline', COALESCE((SELECT payload FROM trendline), '[]'::jsonb),
     'matrix_khoa', COALESCE((SELECT payload FROM matrix_khoa), '[]'::jsonb),
     'matrix_nghe', COALESCE((SELECT payload FROM matrix_nghe), '[]'::jsonb),

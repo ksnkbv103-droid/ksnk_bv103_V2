@@ -73,7 +73,7 @@ Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) tab **Vệ sinh tay** (v�
 
 | Khối | Engine | Nguồn % |
 |------|--------|---------|
-| WHO 5 thời điểm | VST strategic | `vst.kpis.ty_le_tuan_thu` |
+| WHO 5 thời điểm | VST strategic | `vst.chi_so.ty_le_tuan_thu` |
 | Kỹ thuật TQ | GSC · `BM.07.02` | `checklist_overview` / `dynamic_checklists` |
 | Ngoại khoa | GSC · `BM.07.03` | cùng |
 

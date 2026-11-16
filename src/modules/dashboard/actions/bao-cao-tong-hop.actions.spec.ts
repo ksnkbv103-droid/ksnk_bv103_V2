@@ -5,23 +5,23 @@ const mocks = vi.hoisted(() => ({
   resolveTuanThu: vi.fn(async () => ({ success: true as const, mas: ["BK.01", "KSNK.QT.07.BM.02"] })),
   getVst: vi.fn(async () => ({
     success: true as const,
-    data: { kpis: { tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 } },
+    data: { chi_so: { tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 } },
   })),
   getVstChiSo: vi.fn(async () => ({
     success: true as const,
-    data: { kpis: { tong_co_hoi: 10, da_tuan_thu: 7, ty_le_tuan_thu: 70 } },
+    data: { chi_so: { tong_co_hoi: 10, da_tuan_thu: 7, ty_le_tuan_thu: 70 } },
   })),
   getGsc: vi.fn(async () => ({
     success: true as const,
-    data: { kpis: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 } },
+    data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 } },
   })),
   getGscChiSo: vi.fn(async () => ({
     success: true as const,
-    data: { kpis: { tong_quan_sat: 20, tong_dat: 14, ty_le_tuan_thu: 70 } },
+    data: { chi_so: { tong_quan_sat: 20, tong_dat: 14, ty_le_tuan_thu: 70 } },
   })),
   getNkbv: vi.fn(async () => ({
     success: true as const,
-    data: { kpis: {}, by_loai: [], monthly: [], epidemiologyRates: [] },
+    data: { chi_so: {}, by_loai: [], monthly: [], epidemiologyRates: [] },
   })),
   fetchCssd: vi.fn(async () => ({
     success: true as const,
@@ -182,7 +182,7 @@ describe("getBaoCaoTongHopAnalytics RPC wiring", () => {
   });
 
   it("nhánh BM.02/03 lỗi: ghi vào errors.gsc, không nuốt", async () => {
-    mocks.getGsc.mockResolvedValueOnce({ success: true as const, data: { kpis: {} } } as never);
+    mocks.getGsc.mockResolvedValueOnce({ success: true as const, data: { chi_so: {} } } as never);
     mocks.getGsc.mockResolvedValueOnce({ success: false as const, error: "boom" } as never);
     const res = await getBaoCaoTongHopAnalytics(range);
     const p = (res as unknown as { data: { errors: { gsc?: string } } }).data;

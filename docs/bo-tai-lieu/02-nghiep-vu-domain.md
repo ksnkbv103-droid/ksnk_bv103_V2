@@ -117,7 +117,7 @@ Ba lối nhập, không gộp form:
 
 | Lối | Biểu mẫu | Route | Mã trong nguồn |
 |---|---|---|---|
-| WHO 5 thời điểm | QT.07 BM.01 | `/giam-sat-vst` | KPI BCTH `vst.kpis.ty_le_tuan_thu` |
+| WHO 5 thời điểm | QT.07 BM.01 | `/giam-sat-vst` | KPI BCTH `vst.chi_so.ty_le_tuan_thu` |
 | Kỹ thuật VST thường quy | BM.02 | `/giam-sat-chung/tuan-thu?bk=KSNK.QT.07.BM.02` | GSC `BM.07.02` |
 | VST ngoại khoa | BM.03 | `/giam-sat-chung/tuan-thu?bk=KSNK.QT.07.BM.03` | GSC `BM.07.03` |
 

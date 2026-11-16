@@ -83,26 +83,26 @@ function remapVstGapRows(rows: VstStrategicPayload["gap_analysis"] | undefined) 
  * VST-06: mẫu 0 ghi null runtime (cast payload) để FE hiện «—».
  */
 export function normalizeVstStrategicPercents(payload: VstStrategicPayload): VstStrategicPayload {
-  const kpis = payload.kpis;
-  const tong = Number(kpis?.tong_co_hoi ?? 0);
+  const chi_so = payload.chi_so;
+  const tong = Number(chi_so?.tong_co_hoi ?? 0);
   const normalized = {
     ...payload,
-    kpis: kpis
+    chi_so: chi_so
       ? {
-          ...kpis,
-          ty_le_tuan_thu: rateFromTotals(kpis.da_tuan_thu, tong) ?? (tong > 0 ? kpis.ty_le_tuan_thu : null),
+          ...chi_so,
+          ty_le_tuan_thu: rateFromTotals(chi_so.da_tuan_thu, tong) ?? (tong > 0 ? chi_so.ty_le_tuan_thu : null),
           // VST-03: mẫu = ô đã đánh giá (không dùng da_tuan_thu / bo_sot).
           ty_le_dung_ky_thuat:
-            rateFromTotals(kpis.dung_ky_thuat, Number(kpis.danh_gia_ky_thuat ?? 0)) ??
-            (Number(kpis.danh_gia_ky_thuat ?? 0) > 0 ? kpis.ty_le_dung_ky_thuat : null),
+            rateFromTotals(chi_so.dung_ky_thuat, Number(chi_so.danh_gia_ky_thuat ?? 0)) ??
+            (Number(chi_so.danh_gia_ky_thuat ?? 0) > 0 ? chi_so.ty_le_dung_ky_thuat : null),
           ty_le_du_thoi_gian:
-            rateFromTotals(kpis.du_thoi_gian, Number(kpis.danh_gia_thoi_gian ?? 0)) ??
-            (Number(kpis.danh_gia_thoi_gian ?? 0) > 0 ? kpis.ty_le_du_thoi_gian : null),
+            rateFromTotals(chi_so.du_thoi_gian, Number(chi_so.danh_gia_thoi_gian ?? 0)) ??
+            (Number(chi_so.danh_gia_thoi_gian ?? 0) > 0 ? chi_so.ty_le_du_thoi_gian : null),
           ty_le_lam_dung_gang:
-            rateFromTotals(kpis.lam_dung_gang, Number(kpis.danh_gia_gang ?? 0)) ??
-            (Number(kpis.danh_gia_gang ?? 0) > 0 ? kpis.ty_le_lam_dung_gang : null),
+            rateFromTotals(chi_so.lam_dung_gang, Number(chi_so.danh_gia_gang ?? 0)) ??
+            (Number(chi_so.danh_gia_gang ?? 0) > 0 ? chi_so.ty_le_lam_dung_gang : null),
         }
-      : kpis,
+      : chi_so,
     trendline: (payload.trendline ?? []).map(withCountsPercent),
     matrix_khoa: (payload.matrix_khoa ?? []).map(withCountsPercent),
     matrix_khoi: payload.matrix_khoi?.map(withCountsPercent),

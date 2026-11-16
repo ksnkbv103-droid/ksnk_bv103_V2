@@ -60,7 +60,7 @@ export default function NkbvDashboardPanel({
   onKhoaChange,
   khoaOptionsLoading = false,
 }: NkbvDashboardPanelProps) {
-  const k = payload?.kpis;
+  const k = payload?.chi_so;
   const khoaLabel = selectedKhoaId
     ? (() => {
         const row = khoaOptions.find((x) => x.id === selectedKhoaId);

@@ -110,7 +110,7 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
     };
   }
 
-  const k = payload.kpis;
+  const k = payload.chi_so;
   const lines: string[] = [];
   lines.push(
     `Trong kỳ ${payload.filters.tu_ngay} → ${payload.filters.den_ngay}, tỷ lệ tuân thủ VST đạt ${fmtPct(k.ty_le_vst)}, GSC đạt ${fmtPct(k.ty_le_gsc)} (theo dõi riêng từng nguồn — không gộp chỉ số tổng hợp).`,
@@ -137,9 +137,9 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
     lines.push(`Bảng kiểm cần can thiệp (tuân thủ thấp / vi phạm): ${bks.join("; ")}.`);
   }
 
-  if (payload.nkbv?.kpis) {
-    const cho = payload.nkbv.kpis.dang_va_cho_xn ?? 0;
-    const tong = payload.nkbv.kpis.tong_phieu ?? 0;
+  if (payload.nkbv?.chi_so) {
+    const cho = payload.nkbv.chi_so.dang_va_cho_xn ?? 0;
+    const tong = payload.nkbv.chi_so.tong_phieu ?? 0;
     lines.push(
       cho > 0
         ? `NKBV: ${cho} phiếu đang chờ xác nhận trên tổng ${tong} phiếu kỳ (lâm sàng — tách khỏi tuân thủ quy trình).`
@@ -178,7 +178,7 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
   if (bks.length > 0) {
     kn.push("Ưu tiên huấn luyện / kiểm tra lại các bảng kiểm có tuân thủ thấp hoặc vi phạm cao.");
   }
-  if ((payload.nkbv?.kpis?.dang_va_cho_xn ?? 0) > 0) {
+  if ((payload.nkbv?.chi_so?.dang_va_cho_xn ?? 0) > 0) {
     kn.push("Đôn đốc xác nhận phiếu NKBV đang chờ để đóng vòng kết cục lâm sàng.");
   }
   if (payload.cssd && payload.cssd.may_repairing > 0) {

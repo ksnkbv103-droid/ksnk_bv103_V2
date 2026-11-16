@@ -29,7 +29,7 @@ BEGIN
           )
         )
     ),
-    kpis AS (
+    chi_so AS (
       SELECT jsonb_build_object(
         'tong_phien', COALESCE(SUM(s.tong_phien), 0),
         'tong_quan_sat', COALESCE(SUM(s.tong_quan_sat), 0),
@@ -270,7 +270,7 @@ BEGIN
       ) AS val
     )
     SELECT jsonb_build_object(
-      'kpis', COALESCE((SELECT val FROM kpis), '{}'::jsonb),
+      'chi_so', COALESCE((SELECT val FROM chi_so), '{}'::jsonb),
       'trendline', COALESCE((SELECT val FROM trendline), '[]'::jsonb),
       'matrix_khoa', COALESCE((SELECT val FROM matrix_khoa), '[]'::jsonb),
       'top_violations', COALESCE((SELECT val FROM top_violations), '[]'::jsonb),

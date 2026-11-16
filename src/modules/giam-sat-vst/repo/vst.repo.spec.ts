@@ -147,7 +147,7 @@ describe("vst.repo", () => {
     });
 
     it("callRpcDashboardVstStrategicAnalytics gọi rpc_dashboard_vst_strategic_analytics_impl", async () => {
-      mocks.callRpc.mockResolvedValueOnce({ data: { kpis: {} }, error: null });
+      mocks.callRpc.mockResolvedValueOnce({ data: { chi_so: {} }, error: null });
       const args = { p_tu_ngay: "2026-01-01", p_den_ngay: "2026-01-31" };
       await vstRepo.callRpcDashboardVstStrategicAnalytics(args);
       expect(mocks.callRpc).toHaveBeenCalledWith(

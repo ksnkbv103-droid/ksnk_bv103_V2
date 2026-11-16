@@ -1,4 +1,4 @@
--- PO 2026-11-16: bỏ phần «mục tiêu KPI» (lớp A). Giữ nguyên số liệu thống kê, khóa `kpis` trong RPC và fn_vst_is_valid_opportunity.
+-- PO 2026-11-16: bỏ phần «mục tiêu KPI» (lớp A). Giữ nguyên số liệu thống kê và fn_vst_is_valid_opportunity (khóa JSON chỉ số của RPC đổi ở 20261116110000).
 -- Lý do: bảng ksnk_dm_muc_tieu_kpi trên local chỉ có 3 dòng seed 85.0 (khoa_id NULL), không có action ghi,
 --   action đọc fetchMucTieuKpiVien không nơi nào trong src gọi.
 -- Khôi phục: chạy lại 20260729121000_ksnk_dm_muc_tieu_kpi.sql (bảng + seed + RLS + GRANT) và

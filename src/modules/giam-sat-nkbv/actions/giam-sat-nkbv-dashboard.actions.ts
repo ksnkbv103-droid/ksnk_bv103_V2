@@ -176,7 +176,7 @@ export async function countGiamSatNkbvChoXn(filters: {
     const rows = raw.data
       .map((x) => mapNkbvDashboardCasFromViewRow(x))
       .filter((r) => matchNkbvDashboardLoaKhoa(r, khoaScoped || null, [])) as NkbvCasRowMinimal[];
-    return { success: true as const, count: aggregateNkbvDashboard(rows, tuStr, denStr).kpis.dang_va_cho_xn };
+    return { success: true as const, count: aggregateNkbvDashboard(rows, tuStr, denStr).chi_so.dang_va_cho_xn };
   } catch (e: unknown) {
     return { success: false as const, error: e instanceof Error ? e.message : "Không đếm được phiếu chờ xác nhận" };
   }

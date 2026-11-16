@@ -91,21 +91,21 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       <SupervisionChiSoRow
         loading={p.loading}
         items={[
-          { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
-          { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
-          { label: "Số phiên", value: p.payload?.kpis?.tong_phien ?? 0 },
-          { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
+          { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.chi_so?.da_tuan_thu ?? 0, p.payload?.chi_so?.tong_co_hoi ?? 0) },
+          { label: "Cơ hội quan sát", value: p.payload?.chi_so?.tong_co_hoi ?? 0 },
+          { label: "Số phiên", value: p.payload?.chi_so?.tong_phien ?? 0 },
+          { label: "Đã tuân thủ", value: p.payload?.chi_so?.da_tuan_thu ?? 0 },
           {
             label: "Kỹ thuật quan sát nhanh (phiếu WHO)",
             value: formatPercent1FromRatio(
-              p.payload?.kpis?.dung_ky_thuat ?? 0,
-              p.payload?.kpis?.danh_gia_ky_thuat ?? 0,
+              p.payload?.chi_so?.dung_ky_thuat ?? 0,
+              p.payload?.chi_so?.danh_gia_ky_thuat ?? 0,
             ),
           },
         ]}
       />
 
-      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
+      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.chi_so?.tong_phien} loading={p.loading} />
 
       <SupervisionMomentsBars moments={p.payload?.moments ?? []} loading={p.loading} />
 

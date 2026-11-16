@@ -52,7 +52,7 @@ export type BaoCaoTongHopPrintParams = {
 };
 
 export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
-  const chiSo = p.payload?.kpis;
+  const chiSo = p.payload?.chi_so;
   const fullKhoaRank = mergeKhoaRankWithSelected(
     p.payload?.khoa_rank ?? [],
     p.selectedKhoaIds,
@@ -157,8 +157,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
         <tr>
           <td class="text-left">Tỷ lệ xác nhận (mẫu đã kết luận)</td>
           <td>${fmtPct(chiSo?.ti_le_xac_nhan_nkbv)}${
-            p.payload?.nkbv?.kpis
-              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.kpis)}; ${p.payload.nkbv.kpis.tong_phieu} phiếu trong kỳ)`
+            p.payload?.nkbv?.chi_so
+              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.chi_so)}; ${p.payload.nkbv.chi_so.tong_phieu} phiếu trong kỳ)`
               : chiSo?.tong_phieu_nkbv != null
                 ? ` (${chiSo.tong_phieu_nkbv} phiếu)`
                 : ""
@@ -334,7 +334,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     </table>
     <p class="muted" style="font-size:11px">Ba tỷ lệ riêng — không gộp thành một %. BM.02/BM.03 không thuộc tổng Giám sát chung.</p>`;
 
-  const vstChiSo = p.vstPayload?.kpis;
+  const vstChiSo = p.vstPayload?.chi_so;
   const vstNoSample = (vstChiSo?.tong_co_hoi ?? 0) <= 0;
   const vstPctCell = (v: number | null | undefined) =>
     vstNoSample || v == null ? "—" : `${v}%`;
@@ -407,7 +407,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     (v) => !isVstHubBangKiemExcludedFromGscGeneric(v.ma_bk),
   );
   const gscSection =
-    p.gscPayload && p.gscPayload.kpis.tong_phien > 0
+    p.gscPayload && p.gscPayload.chi_so.tong_phien > 0
       ? `
     <div class="page-break"></div>
     <h2>II. KẾT QUẢ GIÁM SÁT CHUNG (CÁC CHUYÊN ĐỀ)</h2>

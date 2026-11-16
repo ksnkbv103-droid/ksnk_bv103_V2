@@ -52,7 +52,8 @@ function fetchCachedVstStrategicRpcRaw(rpcArgs: RpcArgs) {
       } as VstStrategicPayload;
       return { success: true as const, data: normalizeVstStrategicPercents(merged) };
     },
-    [VST_STRATEGIC_CACHE_TAG, key],
+    // "v2": payload đổi khóa `chi_so`; không phục vụ bản cache cũ sau khi triển khai.
+    [VST_STRATEGIC_CACHE_TAG, "v2", key],
     { revalidate: REVALIDATE_SEC, tags: [VST_STRATEGIC_CACHE_TAG] },
   )();
 }
@@ -112,7 +113,8 @@ function fetchCachedGscStrategicRpcRaw(rpcArgs: RpcArgs) {
       } as GscStrategicPayload;
       return { success: true as const, data: normalizeGscStrategicPercents(merged) };
     },
-    [GSC_STRATEGIC_CACHE_TAG, key],
+    // "v2": payload đổi khóa `chi_so`; không phục vụ bản cache cũ sau khi triển khai.
+    [GSC_STRATEGIC_CACHE_TAG, "v2", key],
     { revalidate: REVALIDATE_SEC, tags: [GSC_STRATEGIC_CACHE_TAG] },
   )();
 }

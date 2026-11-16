@@ -104,7 +104,7 @@ export function pickHighest(rows: ActionBoardRankRow[], minSample: number, limit
 
 export function vstErrorsFromMoments(
   moments: MomentLike[] | null | undefined,
-  kpis?: {
+  chi_so?: {
     loi_ky_thuat?: number | null;
     bo_sot?: number | null;
     tong_co_hoi?: number | null;
@@ -122,10 +122,10 @@ export function vstErrorsFromMoments(
 
   const errors: ActionBoardErrorItem[] = fromMoments.slice(0, limit);
 
-  const tong = num(kpis?.tong_co_hoi);
+  const tong = num(chi_so?.tong_co_hoi);
   if (tong > 0) {
-    const loiKt = num(kpis?.loi_ky_thuat);
-    const boSot = num(kpis?.bo_sot);
+    const loiKt = num(chi_so?.loi_ky_thuat);
+    const boSot = num(chi_so?.bo_sot);
     if (loiKt > 0) {
       errors.push({
         ten: "Lỗi kỹ thuật (toàn kỳ)",

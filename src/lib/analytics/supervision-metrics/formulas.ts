@@ -10,15 +10,15 @@ export function rateFromTotals(dat: number, tong: number): number | null {
   return Math.round((dat / tong) * 1000) / 10;
 }
 
-export function computeTyLeVst(kpis: VstStrategicPayload["kpis"] | undefined): number | null {
-  if (!kpis || kpis.tong_co_hoi <= 0) return null;
-  return rateFromTotals(kpis.da_tuan_thu, kpis.tong_co_hoi) ?? kpis.ty_le_tuan_thu;
+export function computeTyLeVst(chi_so: VstStrategicPayload["chi_so"] | undefined): number | null {
+  if (!chi_so || chi_so.tong_co_hoi <= 0) return null;
+  return rateFromTotals(chi_so.da_tuan_thu, chi_so.tong_co_hoi) ?? chi_so.ty_le_tuan_thu;
 }
 
-export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): number | null {
-  if (!kpis || kpis.tong_quan_sat <= 0) return null;
+export function computeTyLeGsc(chi_so: GscStrategicPayload["chi_so"] | undefined): number | null {
+  if (!chi_so || chi_so.tong_quan_sat <= 0) return null;
   return (
-    gscCompliancePercentFromCounts(kpis.tong_quan_sat, kpis.tong_dat) ?? kpis.ty_le_tuan_thu
+    gscCompliancePercentFromCounts(chi_so.tong_quan_sat, chi_so.tong_dat) ?? chi_so.ty_le_tuan_thu
   );
 }
 

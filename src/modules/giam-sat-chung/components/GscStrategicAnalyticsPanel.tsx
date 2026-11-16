@@ -146,14 +146,14 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       <SupervisionChiSoRow
         loading={p.loading}
         items={[
-          { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
-          { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
-          { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
-          { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.kpis?.tong_dat ?? 0, p.payload?.kpis?.tong_quan_sat ?? 0) },
+          { label: "Phiên giám sát", value: p.payload?.chi_so?.tong_phien ?? 0 },
+          { label: "Tiêu chí áp dụng", value: p.payload?.chi_so?.tong_quan_sat ?? 0 },
+          { label: "Vi phạm", value: p.payload?.chi_so?.tong_vi_pham ?? 0 },
+          { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.chi_so?.tong_dat ?? 0, p.payload?.chi_so?.tong_quan_sat ?? 0) },
         ]}
       />
 
-      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
+      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.chi_so?.tong_phien} loading={p.loading} />
 
       <GscChecklistNavigator
         payload={p.payload}

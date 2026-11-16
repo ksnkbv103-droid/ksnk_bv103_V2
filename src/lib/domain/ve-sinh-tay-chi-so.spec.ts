@@ -3,9 +3,9 @@ import { buildVeSinhTayChiSoCards } from "./ve-sinh-tay-chi-so";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
-function minimalVst(over: Partial<VstStrategicPayload["kpis"]> = {}): VstStrategicPayload {
+function minimalVst(over: Partial<VstStrategicPayload["chi_so"]> = {}): VstStrategicPayload {
   return {
-    kpis: {
+    chi_so: {
       tong_phien: 1,
       tong_co_hoi: 10,
       da_tuan_thu: 8,
@@ -31,7 +31,7 @@ function minimalVst(over: Partial<VstStrategicPayload["kpis"]> = {}): VstStrateg
 
 function minimalGsc(): GscStrategicPayload {
   return {
-    kpis: { tong_phien: 3, tong_quan_sat: 20, tong_dat: 15, tong_vi_pham: 5, ty_le_tuan_thu: 75 },
+    chi_so: { tong_phien: 3, tong_quan_sat: 20, tong_dat: 15, tong_vi_pham: 5, ty_le_tuan_thu: 75 },
     trendline: [],
     matrix_khoa: [],
     top_violations: [],

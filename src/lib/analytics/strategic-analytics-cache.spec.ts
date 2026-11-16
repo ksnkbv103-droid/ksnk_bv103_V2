@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
     if (name.includes("vst_strategic")) {
       return {
         data: {
-          kpis: {
+          chi_so: {
             tong_phien: 1,
             tong_co_hoi: 100,
             da_tuan_thu: 85,
@@ -45,7 +45,7 @@ const mocks = vi.hoisted(() => ({
     if (name.includes("gsc_strategic")) {
       return {
         data: {
-          kpis: {
+          chi_so: {
             tong_phien: 1,
             tong_quan_sat: 50,
             tong_dat: 40,
@@ -152,7 +152,7 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     expect(vstOnly.success).toBe(true);
     if (!vstOnly.success) return;
     const rawVst = {
-      kpis: {
+      chi_so: {
         tong_phien: 1,
         tong_co_hoi: 100,
         da_tuan_thu: 85,
@@ -180,15 +180,15 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
         co_cau_giam_sat: [],
       },
     };
-    const oldPath = computeTyLeVst(normalizeVstStrategicPercents(rawVst).kpis);
-    expect(computeTyLeVst(vstOnly.data.kpis)).toBe(oldPath);
+    const oldPath = computeTyLeVst(normalizeVstStrategicPercents(rawVst).chi_so);
+    expect(computeTyLeVst(vstOnly.data.chi_so)).toBe(oldPath);
     expect(oldPath).toBe(85);
 
     const gscOnly = await getCachedGscStrategicChiSoOnly({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
     expect(gscOnly.success).toBe(true);
     if (!gscOnly.success) return;
     const rawGsc = {
-      kpis: {
+      chi_so: {
         tong_phien: 1,
         tong_quan_sat: 50,
         tong_dat: 40,
@@ -208,8 +208,8 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
         co_cau_giam_sat: [],
       },
     };
-    const oldGsc = computeTyLeGsc(normalizeGscStrategicPercents(rawGsc).kpis);
-    expect(computeTyLeGsc(gscOnly.data.kpis)).toBe(oldGsc);
+    const oldGsc = computeTyLeGsc(normalizeGscStrategicPercents(rawGsc).chi_so);
+    expect(computeTyLeGsc(gscOnly.data.chi_so)).toBe(oldGsc);
     expect(oldGsc).toBe(80);
   });
 });
