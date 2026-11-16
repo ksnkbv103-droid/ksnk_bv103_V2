@@ -15,7 +15,7 @@
     "khong_ap_dung": 1,
     "chua_ra": 45,
     "kiem_lai": "node -e 'const m=require(\"./scripts/readiness/mau-in-anh-xa.json\");const f=m.nhom.flatMap(n=>n.files);const fs=require(\"fs\");console.log(f.length,new Set(f).size,f.filter(x=>!fs.existsSync(x)).length)' (kỳ vọng 57 57 0)",
-    "ghi_chu": "57 file là tập file cài đặt in/xuất liệt kê 2026-11-14; 14 file gọi nút in (CatalogDeNghiDiff, VSTForm, GiamSatChungForm, NkbvBaCaseSheet…) không tính. Tập này sót các file xuất tên có chữ export: xem ngoai_tap_57."
+    "ghi_chu": "57 file là tập file cài đặt in/xuất liệt kê 2026-11-14; 13 file gọi nút in (CatalogDeNghiDiff, VSTForm, GiamSatChungForm…) không tính. Tập này sót các file xuất tên có chữ export: xem ngoai_tap_57."
   },
   "nhom": [
     {
