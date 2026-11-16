@@ -290,7 +290,7 @@ Giả định:
 - G1. «Không phục vụ hoạt động phần mềm» = đủ (a) + (b) ở §0. Tính năng chưa có người dùng nhưng có trong quy trình/đặc tả/sổ lỗi → GIỮ.
 - G2. Máy quét coi file quy ước Next.js trong `src/app`, `src/proxy.ts`, `src/instrumentation.ts` là điểm vào; tham chiếu từ `scripts/`, `e2e/`, file cấu hình gốc và `package.json` cũng được tính. Nó không thấy import động theo chuỗi ghép → mỗi ứng viên XÓA đã kiểm lại bằng `git grep` tên file + tên export.
 - G3. Thân mã có thể đổi trước khi lát chạy → mỗi lát chạy lại `npm run impact` cho từng file trước khi xóa.
-- G4. 12 cột nhóm A1 có trong baseline nên có trên mọi DB (local, prod) — `db-verify` xác nhận lại ở L12a.
+- G4. 12 cột nhóm A1 có trong baseline nên có trên mọi DB (local, prod) — `db-verify` xác nhận lại ở L12a. **Cập nhật 2026-11-16:** chỉ đúng cho DB dựng từ migration của repo; prod chưa đo (§9 «Điều kiện trước khi deploy L12a/L12b»); `is_red_alert` không nằm trong baseline.
 - G5. Không ghi ứng viên xóa vào `so-loi.json` (đó là sổ lỗi, không phải sổ dọn dẹp); bản ghi bền là file này.
 - G6. DoD pilot «≥ 3 kịch bản tay» (CLAUDE.md dự án, mục Kỷ luật) viết cho lát tính năng. Lát xóa mã chết không đổi hành vi nên kiểm bằng build (typecheck chứng minh không còn import) + spec + 1 thao tác tay ghi ở cột «Đạt khi». PO muốn đủ 3 kịch bản tay mỗi lát thì nói khi duyệt.
 
@@ -336,7 +336,7 @@ Cột «Số đo» = `node scripts/dead-code-scan.mjs --json` sau lát: file · 
 
 ### Lệch so với kế hoạch (đã xử lý theo cách ghi bên cạnh)
 
-1. **`is_red_alert` không có trong baseline.** §4.A xếp `cssd_fact_quy_trinh.is_red_alert` vào 12 cột baseline, nhưng cột này do `supabase/migrations/20260724100000_cssd_quy_trinh_is_red_alert.sql:5` thêm. L12b vẫn gỡ 2 probe của cột này vì: (a) migration sau đó đọc/ghi cột không điều kiện (`20261004012938_cssd_red_alert_by_quy_trinh.sql:189,586`, `20261114130000_cssd_me_thu_hoi_kiem_trang_thai.sql:484`, `20260925010536_cssd_ledger_atomic.sql:678`); (b) `docs/core/implementation-mapping.md:229` ghi luồng báo sự cố luôn ghi cờ này; (c) ngay dưới probe, `executeVoidIncidentReport` gọi `rpc_cssd_apply_incident_void` (migration `20261110110000`, sau `20260724100000`) không điều kiện; (d) hàng L12b của kế hoạch liệt kê đúng 7 probe này. Chỉ đổi hành vi trên DB thiếu cột, DB đó vốn không chạy được các RPC hiện tại. **Chưa kiểm prod** (MCP Supabase chưa ủy quyền, C3).
+1. **`is_red_alert` không có trong baseline.** §4.A xếp `cssd_fact_quy_trinh.is_red_alert` vào 12 cột baseline, nhưng cột này do `supabase/migrations/20260724100000_cssd_quy_trinh_is_red_alert.sql:5` thêm. L12b vẫn gỡ 2 probe của cột này vì: (a) migration sau đó đọc/ghi cột không điều kiện (`20261004012938_cssd_red_alert_by_quy_trinh.sql:189,586`, `20261114130000_cssd_me_thu_hoi_kiem_trang_thai.sql:484`, `20260925010536_cssd_ledger_atomic.sql:678`); (b) `docs/core/implementation-mapping.md:229` ghi luồng báo sự cố luôn ghi cờ này; (c) ngay dưới probe, `executeVoidIncidentReport` gọi `rpc_cssd_apply_incident_void` (migration `20261110110000`, sau `20260724100000`) không điều kiện; (d) hàng L12b của kế hoạch liệt kê đúng 7 probe này. Chỉ đổi hành vi trên DB thiếu cột, DB đó vốn không chạy được các RPC hiện tại. **Chưa kiểm prod** (MCP Supabase chưa ủy quyền, C3); không riêng cột này mà cả 7 cột của L12a/L12b — xem «Điều kiện trước khi deploy L12a/L12b» bên dưới.
 2. **L3 baseline −1 dòng, không phải −2**: `cssd-instrument-ops.actions.ts` ở lại (câu 13) nên 1 dòng baseline còn đúng vi phạm.
 3. **`npm run impact` không có** trên nhánh này → thay bằng `git grep -n -w` toàn repo (kể cả docs, trừ `.claude/plans`). **`db-verify`** thay bằng đối chiếu trực tiếp `supabase/migrations/20260530000000_init_pilot_baseline.sql` + toàn bộ migration bằng `git grep`.
 4. **Baseline chỉ giảm (quy tắc chung 3)**: `scripts/module-boundaries.baseline.json` — `lib-khong-import-modules` 59 → 58 (L3) → 57 (L11a), `cssd-su-co-chi-import-loi` 5 → 4 (L5); `scripts/data/security-baseline-allow.json` 21 → 20 mục (L8). Dòng baseline hết vi phạm làm `verify:engineering` fail (`guard:boundaries`), nên prune đi cùng lát tạo ra nó.
@@ -358,6 +358,34 @@ Cột «Số đo» = `node scripts/dead-code-scan.mjs --json` sau lát: file · 
 - `supervision-analytics-charts.tsx` còn re-export type `MomentRow` không ai import qua barrel (có từ trước).
 - **Hỏi PO (L11b):** `invalidateClientDanhMucCache` chưa từng nối vào CRUD quản trị. Cache máy chủ `unstable_cache` làm mới được qua `revalidateMasterDataRowCacheTag`; chỉ cache sessionStorage phía trình duyệt (`ksnk:dm-cache:`, TTL 15 phút/tab) không bị xóa → lịch sử/in VST (`use-vst-history-table.ts`, `use-vst-print.ts`) có thể thấy tên khoa/nghề nghiệp/khu vực cũ ≤ 15 phút sau khi quản trị sửa. Mức thấp.
 
+### Điều kiện trước khi deploy L12a/L12b (prod chưa kiểm)
+
+G4 (§8) là giả định, chưa đo. Cột có trong baseline chỉ chứng minh cho DB dựng từ migration của repo, không chứng minh cho prod: R6 «prod khớp repo» (`docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md:55`) chưa đo vì MCP Supabase chưa ủy quyền (C3). Trước hai lát, mỗi lần dò chặn một lần đọc/ghi cột thiếu; sau hai lát, 7 cột dưới đây bị dùng không điều kiện. Nếu prod thiếu một cột, các luồng đóng băng/giải phóng bộ, trả lui trạm, quét trạm bộ mẹ/con, báo sự cố và hủy sự cố lỗi ngay khi chạy.
+
+- `cssd_fact_quy_trinh`: `is_dong_bang`, `quy_trinh_cha_id`, `ma_vai_tro_bo` (baseline dòng 4303–4305), `is_red_alert` (migration `20260724100000`, không có trong baseline).
+- `cssd_fact_su_co`: `quy_trinh_id`, `nguoi_bao_id`, `loai_su_co_id` (baseline dòng 4361, 4367, 4372).
+
+Chỉ deploy L12a/L12b khi Pha 1 xong (`list_migrations` prod khớp repo, 0 file thiếu) hoặc khi truy vấn chỉ-đọc sau trả đủ 7 hàng. Thiếu hàng nào thì `git revert 278334e8` (L12a) và/hoặc `git revert 1e1a1a8d` (L12b) trước khi deploy. Local và mọi DB dựng từ migration của repo không bị ảnh hưởng. Chưa ai chạy truy vấn này.
+
+```sql
+-- Chỉ đọc. Kỳ vọng đúng 7 hàng.
+select table_name, column_name
+from information_schema.columns
+where table_schema = 'public'
+  and (table_name, column_name) in (
+    ('cssd_fact_quy_trinh', 'is_dong_bang'),
+    ('cssd_fact_quy_trinh', 'quy_trinh_cha_id'),
+    ('cssd_fact_quy_trinh', 'ma_vai_tro_bo'),
+    ('cssd_fact_quy_trinh', 'is_red_alert'),
+    ('cssd_fact_su_co', 'quy_trinh_id'),
+    ('cssd_fact_su_co', 'nguoi_bao_id'),
+    ('cssd_fact_su_co', 'loai_su_co_id')
+  )
+order by table_name, column_name;
+```
+
+**Phản biện độc lập (`phan-bien`, một vòng, chỉ đọc, 2026-11-16; nhận yêu cầu + diff + kết quả verify, không nhận lập luận người viết):** 0 Nghiêm trọng / 0 Cao / 0 Pre-existing. Trên DB đủ cột không thấy hành vi khác ở mọi chỗ gỡ probe (`su-co-report.application.ts`, `void-incident.application.ts`, `cssd-workflow-application.ts`); chỉ khác ở đường thiếu cột/lỗi dò, đúng chủ ý: hai câu «Phiên bản DB chưa…» mất, lỗi dò không còn bị nuốt mà thành lỗi cập nhật thật. Nếu prod thiếu `is_red_alert`, báo sự cố ném lỗi ở `su-co-report.application.ts:444-445` sau khi đã ghi phiếu (trước đây bỏ qua cờ). Không thấy `DROP`/`RENAME` nào cho 7 cột trong `supabase/migrations`. Reviewer ghi «chưa kiểm» 6 cột baseline (truy vấn `awk` của nó trả rỗng); người viết kiểm lại bằng `grep` ở đúng các dòng baseline nêu trên, và `ADD COLUMN IF NOT EXISTS is_red_alert` ở `20260724100000_cssd_quy_trinh_is_red_alert.sql:5`. Spec assert trên đối số `rpc` do mã thật dựng; reviewer suy từ đọc (chưa chạy mutation) rằng xóa cờ, gán hằng hay guard truthy đều làm spec fail; spec không phủ nhánh `restoreStation` khác `null` (`void-incident.application.spec.ts:33`). Duyệt của agent không thay duyệt của người: người xem diff `278334e8` + `1e1a1a8d` và chạy truy vấn trên trước khi deploy.
+
 ### Chưa kiểm tay (kiểm bằng build + spec + scanner, chưa ai thao tác trên màn hình)
 
 L2 Điều hành khoa → Phê duyệt dụng cụ · L4 in nhãn bộ dụng cụ + tra lịch sử QR · L5 báo sự cố + hủy sự cố · L6 các màn NKBV (Hub bệnh án → phiếu → in BM.01) · L7 điền sẵn dụng cụ khi mở phiếu NKBV + mẫu số hằng ngày · L8 Kế hoạch năm/Nhiệm vụ + form tạo/sửa công việc QLCV · L9 màn gửi yêu cầu cấp/đặt lại tài khoản công khai · L11a báo cáo VST/GSC + Staff Gate khi đăng nhập · L11b lọc/hiển thị ngày giờ, lọc lớp giám sát GSC, màn catalog CSSD, lịch sử + in VST · L11c màn catalog CSSD, màn giám sát có chọn nhân viên/nghề nghiệp, tra cứu danh mục · L12a đóng băng bộ dụng cụ, giải phóng (mở khóa) bộ, trả lui 1 trạm, quét trạm kiểm tra bộ mẹ/bộ con · L12b báo sự cố (thường, có QR, có rollback trạm / cờ đỏ) + hủy phiếu sự cố có và không có chu trình.
@@ -366,7 +394,7 @@ L2 Điều hành khoa → Phê duyệt dụng cụ · L4 in nhãn bộ dụng c�
 
 - 2 file đang sửa dở của phiên khác, không thuộc lát nào, không stage/commit: `HANDOFF_APPKSNK.md`, `src/modules/giam-sat-nkbv/lib/nkbv-loa-server.spec.ts`. Hậu quả: `node scripts/gate-integrity.mjs` thoát 1 với đúng 6 chỗ, đều trong `nkbv-loa-server.spec.ts`; 7 test của file đó fail (spec đang bị sửa dở: +9/−11 dòng so với HEAD; nguồn `nkbv-loa-server.ts` không do lát nào sửa).
 - `giam-sat-nkbv-write.actions.spec.ts` (2 ca) timeout 5000 ms: spec là `describe.skipIf(!hasIntegrationDb)` và tạo `createClient` thật, nhưng Docker daemon đang tắt (`Cannot connect to the Docker daemon at unix:///Users/drnghia/.docker/run/docker.sock`).
-- Toàn bộ vitest sau L12b (`npm run test:cssd`, thoát 1): `Test Files  2 failed | 438 passed (440)` · `Tests  9 failed | 2787 passed (2796)`. 9 ca fail = 7 ca `nkbv-loa-server.spec.ts` + 2 ca `giam-sat-nkbv-write.actions.spec.ts` ở trên. Không commit nào trong `03376355..HEAD` chạm 2 file này (`git diff --stat` rỗng).
+- Toàn bộ vitest sau L12b (`npm run test:cssd`, thoát 1): `Test Files  2 failed | 438 passed (440)` · `Tests  9 failed | 2787 passed (2796)`. 9 ca fail = 7 ca `nkbv-loa-server.spec.ts` + 2 ca `giam-sat-nkbv-write.actions.spec.ts` ở trên. Không commit nào trong `03376355..HEAD` chạm 2 file này (`git diff --stat` rỗng). Chạy trên mã ở `1e1a1a8d`; các commit sau đó chỉ đổi docs.
 - `node scripts/readiness/so-loi.mjs check` thoát 1 vì VST-025, NKBV-041 và `HANDOFF_APPKSNK.md` 6083 B > 6000 B (có từ trước).
 
 ## Tự kiểm
