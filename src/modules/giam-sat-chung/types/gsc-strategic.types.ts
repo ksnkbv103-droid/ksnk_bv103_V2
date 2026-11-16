@@ -1,4 +1,4 @@
-export type GscStrategicKpis = {
+export type GscStrategicChiSo = {
   tong_phien: number;
   tong_quan_sat: number;
   tong_dat: number;
@@ -7,7 +7,7 @@ export type GscStrategicKpis = {
 };
 
 export type GscStrategicPayload = {
-  kpis: GscStrategicKpis;
+  kpis: GscStrategicChiSo;
   trendline: { label: string; min_date: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_khoa: { id: string; ma_khoa?: string; ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_khoi?: { ten: string; ma_khoi?: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
@@ -92,7 +92,7 @@ export type GscChecklistCriterionKhoaRow = {
 export type GscChecklistDetailPayload = {
   ma_bk: string;
   ten_bang_kiem: string | null;
-  kpis: GscStrategicKpis;
+  kpis: GscStrategicChiSo;
   trendline: GscStrategicPayload["trendline"];
   matrix_khoa: (GscStrategicPayload["matrix_khoa"][number] & { tong_vi_pham?: number })[];
   matrix_criterion: GscCriterionMatrixRow[];

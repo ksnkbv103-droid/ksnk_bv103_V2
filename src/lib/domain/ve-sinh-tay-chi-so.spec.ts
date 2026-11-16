@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildVeSinhTayKpiCards } from "./ve-sinh-tay-kpi";
+import { buildVeSinhTayChiSoCards } from "./ve-sinh-tay-chi-so";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
@@ -67,9 +67,9 @@ function minimalGsc(): GscStrategicPayload {
   } as GscStrategicPayload;
 }
 
-describe("buildVeSinhTayKpiCards", () => {
+describe("buildVeSinhTayChiSoCards", () => {
   it("returns 3 cards without merging percents", () => {
-    const cards = buildVeSinhTayKpiCards({ vst: minimalVst(), gsc: minimalGsc() });
+    const cards = buildVeSinhTayChiSoCards({ vst: minimalVst(), gsc: minimalGsc() });
     expect(cards).toHaveLength(3);
     expect(cards[0]!.tyLe).toBe(80);
     expect(cards[1]!.catalogMaBk).toBe("KSNK.QT.07.BM.02");
@@ -80,7 +80,7 @@ describe("buildVeSinhTayKpiCards", () => {
   });
 
   it("giữ kỳ lọc bản ký trên deep-link thống kê", () => {
-    const cards = buildVeSinhTayKpiCards({
+    const cards = buildVeSinhTayChiSoCards({
       vst: minimalVst(),
       gsc: minimalGsc(),
       filters: { tu_ngay: "2026-09-01", den_ngay: "2026-09-28", khoa_ids: ["k1"] },
@@ -93,7 +93,7 @@ describe("buildVeSinhTayKpiCards", () => {
   });
 
   it("handles missing payloads", () => {
-    const cards = buildVeSinhTayKpiCards({ vst: null, gsc: null });
+    const cards = buildVeSinhTayChiSoCards({ vst: null, gsc: null });
     expect(cards.every((c) => c.tyLe == null)).toBe(true);
   });
 
@@ -110,7 +110,7 @@ describe("buildVeSinhTayKpiCards", () => {
         ty_le_tuan_thu: 80,
       },
     ];
-    const cards = buildVeSinhTayKpiCards({ vst: minimalVst(), gsc });
+    const cards = buildVeSinhTayChiSoCards({ vst: minimalVst(), gsc });
     expect(cards[1]!.tyLe).toBe(80);
   });
 
@@ -137,7 +137,7 @@ describe("buildVeSinhTayKpiCards", () => {
         },
       ],
     } as unknown as GscStrategicPayload;
-    const cards = buildVeSinhTayKpiCards({ vst: null, gsc });
+    const cards = buildVeSinhTayChiSoCards({ vst: null, gsc });
     const bm03 = cards.find((c) => c.qtMa === "BM.03");
     expect(bm03?.volumeNote).toContain("2 phiên");
     expect(bm03?.tyLe).toBe(72.22);

@@ -68,8 +68,8 @@
   --bv103-type-section-size: 0.875rem;
   --bv103-type-body-size: 0.875rem;
   --bv103-type-label-size: 0.75rem;
-  --bv103-type-kpi-size: 1.5rem;
-  --bv103-type-kpi-size-lg: 1.875rem;
+  --bv103-type-chi-so-size: 1.5rem;
+  --bv103-type-chi-so-size-lg: 1.875rem;
   --bv103-type-weight-title: 500;
   --bv103-type-weight-body: 400;
   --bv103-type-weight-label: 500;
@@ -290,8 +290,8 @@
     color: var(--text-muted);
   }
 
-  .bv103-type-kpi {
-    font-size: var(--bv103-type-kpi-size);
+  .bv103-type-chi-so {
+    font-size: var(--bv103-type-chi-so-size);
     font-weight: var(--bv103-type-weight-title);
     font-variant-numeric: tabular-nums;
     line-height: 1.15;
@@ -299,8 +299,8 @@
     color: var(--text-title);
   }
 
-  .bv103-type-kpi-lg {
-    font-size: var(--bv103-type-kpi-size-lg);
+  .bv103-type-chi-so-lg {
+    font-size: var(--bv103-type-chi-so-size-lg);
     font-weight: var(--bv103-type-weight-title);
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
@@ -410,7 +410,7 @@
   }
 
   .stat-value {
-    font-size: var(--bv103-type-kpi-size);
+    font-size: var(--bv103-type-chi-so-size);
     font-weight: var(--bv103-type-weight-title);
     font-variant-numeric: tabular-nums;
     color: var(--text-title);

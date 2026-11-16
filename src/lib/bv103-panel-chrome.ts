@@ -30,10 +30,10 @@ export const bv103PanelChrome = {
   modalSubtitle: T.pageSubtitle,
 
   /** KPI trong panel (không font-black) */
-  kpiLabel: T.labelBlock,
-  kpiValue: T.statValueLg,
-  kpiValueSm: T.statValue,
-  kpiCaption: T.pageEyebrow,
+  chiSoLabel: T.labelBlock,
+  chiSoValue: T.statValueLg,
+  chiSoValueSm: T.statValue,
+  chiSoCaption: T.pageEyebrow,
 
   /** Bảng con trong panel */
   innerTableHead: T.tableHeader,

@@ -330,7 +330,7 @@ export default function NkbvDashboardPanel({
                         <span className="text-xs font-semibold text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-chi-so tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="bv103-type-label font-semibold text-red-600">{clabsiRate} <span className="text-xs font-normal text-slate-400">/1000 CVC-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
@@ -345,7 +345,7 @@ export default function NkbvDashboardPanel({
                         <span className="text-xs font-semibold text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-chi-so tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="bv103-type-label font-semibold text-amber-600">{cautiRate} <span className="text-xs font-normal text-slate-400">/1000 F-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
@@ -360,7 +360,7 @@ export default function NkbvDashboardPanel({
                         <span className="text-xs font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-chi-so tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="bv103-type-label font-semibold text-teal-600">{vapRate} <span className="text-xs font-normal text-slate-400">/1000 V-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">
@@ -375,7 +375,7 @@ export default function NkbvDashboardPanel({
                         <span className="text-xs font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-chi-so tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="bv103-type-label font-semibold text-blue-600">{ssiRate === "—" ? "—" : `${ssiRate}%`} <span className="text-xs font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-xs text-slate-500 font-semibold">

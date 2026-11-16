@@ -34,7 +34,7 @@ export type MomentRow = {
   ty_le_tuan_thu: number;
 };
 
-export function SupervisionKpiRow({
+export function SupervisionChiSoRow({
   items,
   loading,
 }: {
@@ -46,7 +46,7 @@ export function SupervisionKpiRow({
       {items.map((k) => (
         <div key={k.label} className="bv103-card flex min-h-32 flex-col justify-between gap-3 p-5">
           <span className="text-sm font-medium leading-snug text-slate-500">{k.label}</span>
-          <span className="bv103-type-kpi-lg font-semibold leading-none tabular-nums text-slate-900">
+          <span className="bv103-type-chi-so-lg font-semibold leading-none tabular-nums text-slate-900">
             {loading ? "…" : k.value}
           </span>
         </div>

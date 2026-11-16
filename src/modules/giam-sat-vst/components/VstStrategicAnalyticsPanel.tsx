@@ -6,7 +6,7 @@ import React, { useMemo } from "react";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
-  SupervisionKpiRow,
+  SupervisionChiSoRow,
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { SupervisionCoverageCard } from "@/lib/analytics/SupervisionCoverageCard";
@@ -88,7 +88,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         </p>
       </div>
 
-      <SupervisionKpiRow
+      <SupervisionChiSoRow
         loading={p.loading}
         items={[
           { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },

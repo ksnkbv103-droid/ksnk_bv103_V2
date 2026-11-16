@@ -12,10 +12,10 @@ import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SUPERVISION_SOURCE_LENS_LABEL } from "@/lib/analytics/supervision-source-lens";
 import { useBaoCaoTongHopData } from "../hooks/useBaoCaoTongHopData";
-import { ComprehensiveKpiCards } from "../components/comprehensive/ComprehensiveKpiCards";
+import { ComprehensiveChiSoCards } from "../components/comprehensive/ComprehensiveChiSoCards";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
 import { ReportSection, ReportSectionNav } from "../components/comprehensive/ReportSectionNav";
-import { VeSinhTayKpiTriptych } from "../components/comprehensive/VeSinhTayKpiTriptych";
+import { VeSinhTayChiSoTriptych } from "../components/comprehensive/VeSinhTayChiSoTriptych";
 import { AnalyticsKhoaScopeBanner } from "../components/AnalyticsKhoaScopeBanner";
 import { buildPhanIiiDraft } from "../lib/bao-cao-tong-hop-narrative-draft";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
@@ -256,11 +256,11 @@ export function BaoCaoTongHopPage() {
       <div className={`bv103-stack-page transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
         <ReportSectionNav moreOpen={moreSectionsOpen} onMoreOpenChange={setMoreSectionsOpen} />
-        <ReportSection id="bc-kpi" title="Chỉ số tổng hợp">
-          <ComprehensiveKpiCards payload={d.payload} />
+        <ReportSection id="bc-chi-so" title="Chỉ số tổng hợp">
+          <ComprehensiveChiSoCards payload={d.payload} />
         </ReportSection>
         <ReportSection id="bc-vst" title="Giám sát vệ sinh tay">
-          <VeSinhTayKpiTriptych payload={d.payload} />
+          <VeSinhTayChiSoTriptych payload={d.payload} />
           <ComprehensiveCompare
             payload={d.payload}
             selectedKhoaIds={d.selectedKhoaIds}

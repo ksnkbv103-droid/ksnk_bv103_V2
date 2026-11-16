@@ -17,7 +17,7 @@ import {
   type VeSinhTayQtMa,
 } from "./ve-sinh-tay-catalog";
 
-export type VeSinhTayKpiCard = {
+export type VeSinhTayChiSoCard = {
   qtMa: VeSinhTayQtMa;
   label: string;
   catalogMaBk: string | null;
@@ -51,12 +51,12 @@ function pickBkRow(gsc: GscStrategicPayload | null | undefined, maBk: string) {
   };
 }
 
-export function buildVeSinhTayKpiCards(input: {
+export function buildVeSinhTayChiSoCards(input: {
   vst: VstStrategicPayload | null | undefined;
   gsc: GscStrategicPayload | null | undefined;
   /** Kỳ đang mở trên bản ký — deep-link thống kê không được rơi về kỳ mặc định. */
   filters?: AnalyticsUrlSeed;
-}): VeSinhTayKpiCard[] {
+}): VeSinhTayChiSoCard[] {
   const vstK = input.vst?.kpis;
   const seed = input.filters ?? {};
   const vstQuery = buildAnalyticsUrlQuery(seed);

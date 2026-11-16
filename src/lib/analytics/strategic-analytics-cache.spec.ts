@@ -92,9 +92,9 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 
 import {
-  getCachedGscStrategicKpisOnly,
+  getCachedGscStrategicChiSoOnly,
   getCachedGscStrategicRpc,
-  getCachedVstStrategicKpisOnly,
+  getCachedVstStrategicChiSoOnly,
   getCachedVstStrategicRpc,
 } from "./strategic-analytics-cache";
 
@@ -118,12 +118,12 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     await getCachedVstStrategicRpc(lensArgs);
     await getCachedGscStrategicRpc({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
     await getCachedGscStrategicRpc({ ...lensArgs, p_bang_kiem_mas: ["BM.02"] });
-    await getCachedVstStrategicKpisOnly({
+    await getCachedVstStrategicChiSoOnly({
       ...lensArgs,
       p_tu_ngay: "2026-08-02",
       p_den_ngay: "2026-08-31",
     });
-    await getCachedGscStrategicKpisOnly({
+    await getCachedGscStrategicChiSoOnly({
       ...lensArgs,
       p_tu_ngay: "2026-08-02",
       p_den_ngay: "2026-08-31",
@@ -147,8 +147,8 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     expect(priorCalls.some((n) => n.includes("compare_matrices"))).toBe(false);
   });
 
-  it("KPI kỳ trước qua đường kpis-only == normalize + computeTyLe (kể cả ty_le 0–1)", async () => {
-    const vstOnly = await getCachedVstStrategicKpisOnly(lensArgs);
+  it("KPI kỳ trước qua đường chi-so-only == normalize + computeTyLe (kể cả ty_le 0–1)", async () => {
+    const vstOnly = await getCachedVstStrategicChiSoOnly(lensArgs);
     expect(vstOnly.success).toBe(true);
     if (!vstOnly.success) return;
     const rawVst = {
@@ -184,7 +184,7 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     expect(computeTyLeVst(vstOnly.data.kpis)).toBe(oldPath);
     expect(oldPath).toBe(85);
 
-    const gscOnly = await getCachedGscStrategicKpisOnly({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
+    const gscOnly = await getCachedGscStrategicChiSoOnly({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
     expect(gscOnly.success).toBe(true);
     if (!gscOnly.success) return;
     const rawGsc = {

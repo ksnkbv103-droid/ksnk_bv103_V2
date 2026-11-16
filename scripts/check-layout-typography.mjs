@@ -21,7 +21,7 @@ const CLASS_PATTERNS = [
   { re: /text-\[8px\]/g, hint: "bv103-type-label (≥11px)" },
   { re: /text-\[9px\]/g, hint: "bv103-type-label (≥11px)" },
   { re: /text-\[10px\]/g, hint: "bv103-type-label (≥11px)" },
-  { re: /["'`][^"'`\n]*\bfont-black\b/g, hint: "KPI = bv103-type-kpi; còn lại semibold" },
+  { re: /["'`][^"'`\n]*\bfont-black\b/g, hint: "KPI = bv103-type-chi-so; còn lại semibold" },
   { re: /["'`][^"'`\n]*\bfont-extrabold\b/g, hint: "bv103-type-title / font-semibold" },
 ];
 
@@ -30,7 +30,7 @@ function countPosterType(text) {
   let n = 0;
   for (const m of text.matchAll(/["'`]([^"'`\n]*\btext-(2xl|3xl|4xl)\b[^"'`\n]*)["'`]/g)) {
     const cls = m[1];
-    if (/bv103-type-kpi|tabular-nums|statValue|kpiValue/.test(cls)) continue;
+    if (/bv103-type-chi-so|tabular-nums|statValue|chiSoValue/.test(cls)) continue;
     n++;
   }
   return n;
@@ -84,7 +84,7 @@ for (const base of SCAN_DIRS) {
     const poster = countPosterType(text);
     if (poster > 0) {
       hits += poster;
-      console.warn(`[typography-drift] ${rel}: text-2xl/3xl/4xl ngoài KPI — bv103-type-title / type-kpi (${poster})`);
+      console.warn(`[typography-drift] ${rel}: text-2xl/3xl/4xl ngoài KPI — bv103-type-title / type-chi-so (${poster})`);
     }
   }
 }

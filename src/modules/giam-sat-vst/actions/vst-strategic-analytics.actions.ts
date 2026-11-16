@@ -5,7 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
 import {
-  getCachedVstStrategicKpisOnly,
+  getCachedVstStrategicChiSoOnly,
   getCachedVstStrategicRpc,
 } from "@/lib/analytics/strategic-analytics-cache";
 import type { VstStrategicFilters } from "../types/vst-strategic.types";
@@ -53,8 +53,8 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
 }
 
 /** Kỳ trước BCTH — chỉ KPI (không matrices / gap). */
-export async function getVstStrategicKpisOnly(filters: VstStrategicFilters) {
+export async function getVstStrategicChiSoOnly(filters: VstStrategicFilters) {
   const built = await buildVstStrategicRpcArgs(filters);
   if (!built.success) return built;
-  return getCachedVstStrategicKpisOnly(built.rpcArgs);
+  return getCachedVstStrategicChiSoOnly(built.rpcArgs);
 }

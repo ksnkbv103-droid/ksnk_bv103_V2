@@ -53,7 +53,7 @@ function shortDayMonth(iso: string): string {
   return `${d}-${m}`;
 }
 
-function KpiCard({
+function ChiSoCard({
   label,
   value,
   suffix,
@@ -93,8 +93,8 @@ function KpiCard({
       : "neutral";
   return (
     <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
-      <p className={D.kpiLabel}>{label}</p>
-      <p className={`mt-[var(--bv103-space-1)] ${D.kpiValue}`} title="Tỷ lệ tích lũy trong toàn bộ phạm vi lọc">
+      <p className={D.chiSoLabel}>{label}</p>
+      <p className={`mt-[var(--bv103-space-1)] ${D.chiSoValue}`} title="Tỷ lệ tích lũy trong toàn bộ phạm vi lọc">
         {value}
         {suffix ? <span className="ml-1 bv103-type-body font-medium opacity-70">{suffix}</span> : null}
       </p>
@@ -119,7 +119,7 @@ function KpiCard({
   );
 }
 
-export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPayload | null }) {
+export function ComprehensiveChiSoCards({ payload }: { payload: BaoCaoTongHopPayload | null }) {
 
   const k = payload?.kpis;
   const trend = payload?.trend_week;
@@ -143,7 +143,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
   return (
     <div className="space-y-[var(--bv103-space-2)]">
       <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
-        <KpiCard
+        <ChiSoCard
           label="Vệ sinh tay"
           digits={1}
           value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "—"}
@@ -155,7 +155,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           periodLabel={periodLabel}
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
-        <KpiCard
+        <ChiSoCard
           label="Giám sát chung"
           digits={2}
           value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "—"}
@@ -168,7 +168,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           periodLabel={periodLabel}
           volumeNote={gscVol ? `Tiêu chí quan sát: ${gscVol}` : null}
         />
-        <KpiCard
+        <ChiSoCard
           label="NKBV — tỷ lệ xác nhận"
           digits={1}
           value={k?.ti_le_xac_nhan_nkbv != null ? formatPercent1(k.ti_le_xac_nhan_nkbv) : "—"}

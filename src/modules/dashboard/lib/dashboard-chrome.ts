@@ -5,10 +5,10 @@ import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 export const dashboardChrome = {
   ...P,
-  kpiLabel: T.labelBlock,
-  kpiValue: T.statValueLg,
-  kpiValuePrimary: `${T.statValueLg} text-[var(--primary)]`,
-  kpiValueLg: T.statValueLg,
+  chiSoLabel: T.labelBlock,
+  chiSoValue: T.statValueLg,
+  chiSoValuePrimary: `${T.statValueLg} text-[var(--primary)]`,
+  chiSoValueLg: T.statValueLg,
   sectionHeading: T.pageTitle,
   sectionHeadingSm: T.sectionTitle,
   tableHeader: T.tableHeader,
@@ -22,7 +22,7 @@ export const dashboardChrome = {
   ctaPrimary: T.btnPrimary,
   noticePeriod: C.noticeSuccess,
   noticeGap: C.noticeWarning,
-  kpiCardTone: {
+  chiSoCardTone: {
     green: "border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] text-[var(--surface-success-text)]",
     yellow: "border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] text-[var(--surface-warning-text)]",
     red: "border-[var(--surface-danger-border)] bg-[var(--surface-danger-bg)] text-[var(--surface-danger-text)]",

@@ -6,7 +6,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
 import {
-  getCachedGscStrategicKpisOnly,
+  getCachedGscStrategicChiSoOnly,
   getCachedGscStrategicRpc,
 } from "@/lib/analytics/strategic-analytics-cache";
 import { selectGscGenericBangKiemMas } from "@/lib/domain/gsc-lop-giam-sat-filter";
@@ -90,11 +90,11 @@ export async function getGscStrategicAnalytics(
 }
 
 /** Kỳ trước BCTH — chỉ KPI (không matrices / gap). */
-export async function getGscStrategicKpisOnly(
+export async function getGscStrategicChiSoOnly(
   filters: GscStrategicFilters,
   opts?: GscStrategicCallOpts,
 ) {
   const built = await buildGscStrategicRpcArgs(filters, opts);
   if (!built.success) return built;
-  return getCachedGscStrategicKpisOnly(built.rpcArgs);
+  return getCachedGscStrategicChiSoOnly(built.rpcArgs);
 }

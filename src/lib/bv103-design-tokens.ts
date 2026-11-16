@@ -15,8 +15,8 @@ const TYPE_TITLE = "bv103-type-title";
 const TYPE_SECTION = "bv103-type-section";
 const TYPE_BODY = "bv103-type-body";
 const TYPE_LABEL = "bv103-type-label";
-const TYPE_KPI = "bv103-type-kpi";
-const TYPE_KPI_LG = "bv103-type-kpi-lg";
+const TYPE_CHI_SO = "bv103-type-chi-so";
+const TYPE_CHI_SO_LG = "bv103-type-chi-so-lg";
 const TYPE_NOTE = "bv103-type-note";
 
 export const bv103DesignTokens = {
@@ -61,9 +61,9 @@ export const bv103DesignTokens = {
   tableCellIndex: `${TYPE_LABEL} text-slate-400`,
   tableCellMeta: TYPE_LABEL,
   metaMono: `font-mono ${TYPE_LABEL} text-slate-400`,
-  statValue: TYPE_KPI,
-  statValueLg: TYPE_KPI_LG,
-  statValueXl: TYPE_KPI_LG,
+  statValue: TYPE_CHI_SO,
+  statValueLg: TYPE_CHI_SO_LG,
+  statValueXl: TYPE_CHI_SO_LG,
 
   /** Auth / tài khoản — title case slate */
   authBrand: TYPE_TITLE,

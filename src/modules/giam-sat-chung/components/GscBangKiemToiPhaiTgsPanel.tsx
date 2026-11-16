@@ -240,19 +240,19 @@ export default function GscBangKiemToiPhaiTgsPanel({
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className={`${UI.inset} px-4 py-3`}>
-                <p className={UI.kpiLabel}>BK bắt buộc</p>
+                <p className={UI.chiSoLabel}>BK bắt buộc</p>
                 <p className="bv103-type-title text-slate-800">{data.tom_tat.tong_bat_buoc}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-emerald-50 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-emerald-700`}>Đã tự giám sát</p>
+                <p className={`${UI.chiSoLabel} text-emerald-700`}>Đã tự giám sát</p>
                 <p className="bv103-type-title text-emerald-900">{data.tom_tat.da_tgs}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-amber-50 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-amber-700`}>Thiếu</p>
+                <p className={`${UI.chiSoLabel} text-amber-700`}>Thiếu</p>
                 <p className="bv103-type-title text-amber-900">{data.tom_tat.thieu}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-[var(--primary)]/5 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-[var(--primary)]`}>Bao phủ</p>
+                <p className={`${UI.chiSoLabel} text-[var(--primary)]`}>Bao phủ</p>
                 <p className="bv103-type-title text-[var(--primary)]">{formatPercent2(data.tom_tat.ty_le_bao_phu)}</p>
               </div>
             </div>

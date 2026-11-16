@@ -22,7 +22,7 @@ function daysDiff(dateStr: string | null): number | null {
 }
 
 function ExpiryBadge({ days }: { days: number | null }) {
-  if (days === null) return <span className={UI.kpiCaption}>—</span>;
+  if (days === null) return <span className={UI.chiSoCaption}>—</span>;
   if (days < 0)
     return (
       <span className={`${UI.statusBadge} border-red-200 bg-red-100 text-red-700`}>
@@ -41,7 +41,7 @@ function ExpiryBadge({ days }: { days: number | null }) {
         <Clock size={10} className="mr-1 inline" /> {days} ngày
       </span>
     );
-  return <span className={UI.kpiCaption}>{days} ngày</span>;
+  return <span className={UI.chiSoCaption}>{days} ngày</span>;
 }
 
 export default function HoaChatStatsPanel({ data }: Props) {
@@ -136,13 +136,13 @@ export default function HoaChatStatsPanel({ data }: Props) {
                   <p className={UI.innerTableCode}>{item.ma_hoa_chat}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className={UI.kpiCaption}>{formatDateVi(item.han_su_dung)}</span>
+                  <span className={UI.chiSoCaption}>{formatDateVi(item.han_su_dung)}</span>
                   <ExpiryBadge days={daysDiff(item.han_su_dung)} />
                 </div>
               </div>
             ))}
             {stats.alerts.length > 8 && (
-              <div className={`${UI.kpiCaption} bg-amber-50 px-3 py-1.5 text-center text-amber-600`}>
+              <div className={`${UI.chiSoCaption} bg-amber-50 px-3 py-1.5 text-center text-amber-600`}>
                 + {stats.alerts.length - 8} mục khác
               </div>
             )}

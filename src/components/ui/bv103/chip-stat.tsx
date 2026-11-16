@@ -41,7 +41,7 @@ export function Bv103StatTile({
   return (
     <div className={cn("min-w-0", className)}>
       <div className="bv103-type-label">{label}</div>
-      <div className="bv103-type-kpi mt-1">{value}</div>
+      <div className="bv103-type-chi-so mt-1">{value}</div>
       {note ? <div className="bv103-type-label mt-0.5">{note}</div> : null}
     </div>
   );

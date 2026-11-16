@@ -170,7 +170,7 @@ export function buildActionBoardModel(input: {
   matrixKhoa?: MatrixKhoaLike[] | null;
   moments?: MomentLike[] | null;
   topViolations?: TopViolationLike[] | null;
-  vstKpis?: {
+  vstChiSo?: {
     loi_ky_thuat?: number | null;
     bo_sot?: number | null;
     tong_co_hoi?: number | null;
@@ -187,7 +187,7 @@ export function buildActionBoardModel(input: {
     highest: pickHighest(ranked, minSample, limit),
     errors:
       input.source === "vst"
-        ? vstErrorsFromMoments(input.moments, input.vstKpis, limit)
+        ? vstErrorsFromMoments(input.moments, input.vstChiSo, limit)
         : gscErrorsFromTopViolations(input.topViolations, limit),
   };
 }

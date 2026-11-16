@@ -8,7 +8,7 @@ import { buildQlcvSourceDeepLink } from "@/lib/analytics/qlcv-source-deep-link";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
-  SupervisionKpiRow,
+  SupervisionChiSoRow,
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { groupCriterionKhoaRows, sortCriterionMatrix } from "@/lib/analytics/gsc-checklist-analytics";
@@ -101,7 +101,7 @@ export function GscBkAnalyticsDashboard({
       ) : null}
 
       <div className="space-y-3">
-        <SupervisionKpiRow
+        <SupervisionChiSoRow
           loading={loading}
           items={[
             { label: "Phiên giám sát", value: detail?.kpis?.tong_phien ?? 0 },

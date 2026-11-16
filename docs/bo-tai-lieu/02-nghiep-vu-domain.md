@@ -220,7 +220,7 @@ Bốn tầng ở 2.1 (`GS:20-23`). `/bao-cao-tong-hop` là cửa nhìn số và 
 
 Cả bốn ngưỡng đầu là ngưỡng vận hành pilot, chưa có căn cứ định lượng từ nghiên cứu (PO quyết định 2026-11-06, `MD:84-91`); nguồn chuẩn trong mã là `src/lib/analytics/supervision-thresholds.ts` (`MD:91`). Không dẫn WHO hay chuẩn ngoài.
 
-Đơn vị Δ trên thẻ chỉ số BCTH (`ComprehensiveKpiCards`, `MD:93-97`):
+Đơn vị Δ trên thẻ chỉ số BCTH (`ComprehensiveChiSoCards`, `MD:93-97`):
 
 - Đơn vị Δ (`MD:95`, sửa hiển thị 2026-10-12, công thức giữ nguyên): Δ tuần và Δ kỳ trước là chênh lệch điểm phần trăm (tuần gần nhất trừ tuần liền trước), hiển thị `+3.4 điểm %`, không phải % tương đối; `Tỷ lệ tuần trước` in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu, hai tuần ISO liên tiếp). Nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm. **PO chọn cách 1 (2026-10-12)**: hiện chú thích `khác cơ cấu bảng kiểm` cạnh Δ GSC, giữ công thức, vẫn hiện Δ. Chú thích so bộ bảng kiểm (`TUAN_THU` trừ BM.02 và BM.03, hai khối VST ở 2.3) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
 - Đã bỏ (PO 2026-11-16, `MD:96`): bảng `ksnk_dm_muc_tieu_kpi`, action đọc mục tiêu và badge `Mục tiêu viện`; màu thẻ dùng ngưỡng ở bảng trên. Không đổi công thức CCS (`MD:97`).
@@ -437,7 +437,7 @@ Mỗi hàng: hai nguồn nói khác nhau về cùng một việc. Cột Đề xu
 |---|---|---|---|---|
 | CCS trên bản in | `BC:33`: còn nhắc CCS | `MD:39-40`: không hiển thị CCS (deprecated), BCTH không compose CCS | Theo `MD:39-40` (mốc 2026-07-31 và 2026-08-23) | Claude sửa tài liệu rồi PO duyệt |
 | CCS trong rule | `.claude/rules/dashboard.md:19,32`: còn coi CCS là bất biến (`0.5 × ty_le_vst + 0.5 × ty_le_gsc`) | `MD:39-40` | Theo `MD:39-40`; cấu hình luồng đang đóng băng nên chỉ ghi nhận, không sửa rule trong lát này | PO |
-| Badge Δ trên KPI | `BC:19,21` và `MD:77`: có badge `Δ 2 tuần ISO` và nhãn `vs kỳ trước` trên KPI; `BC:19` gọi Δ là `chênh lệch %` | `MD:95` (2026-10-12): Δ là chênh lệch điểm phần trăm (`+3.4 điểm %`), không phải % tương đối; đoạn spec 2026-08-22 «một mũi tên so mục tiêu viện» đã bỏ khỏi `MD` (PO 2026-11-16) | Đơn vị theo `MD:95` (mốc muộn nhất); badge nào hiện trên thẻ: đối chiếu `ComprehensiveKpiCards`, «cần kiểm» | Claude đối chiếu, PO duyệt |
+| Badge Δ trên KPI | `BC:19,21` và `MD:77`: có badge `Δ 2 tuần ISO` và nhãn `vs kỳ trước` trên KPI; `BC:19` gọi Δ là `chênh lệch %` | `MD:95` (2026-10-12): Δ là chênh lệch điểm phần trăm (`+3.4 điểm %`), không phải % tương đối; đoạn spec 2026-08-22 «một mũi tên so mục tiêu viện» đã bỏ khỏi `MD` (PO 2026-11-16) | Đơn vị theo `MD:95` (mốc muộn nhất); badge nào hiện trên thẻ: đối chiếu `ComprehensiveChiSoCards`, «cần kiểm» | Claude đối chiếu, PO duyệt |
 | Màn `/` | `MD:136`: `/` chuyển hướng (redirect) | `MD:207,223,305`: nói nội dung nằm trên `/` | Đối chiếu route thật: «cần kiểm» | Claude đối chiếu, PO duyệt |
 | Nguồn số NKBV | `BC:3`: BCTH compose VST, GSC và NKBV từ RPC strategic (không đọc `*_summary`) | `MD:13`: NKBV lấy qua aggregate action của module NKBV (outcome nhiễm khuẩn, không gộp CCS) | Đối chiếu code của BCTH: «cần kiểm» | Claude đối chiếu, PO duyệt |
 

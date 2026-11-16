@@ -61,7 +61,7 @@ const FONT_BLACK_ALLOW = new RegExp(
     "choiceBtn",
     "segmentBtn",
     "btnPrimaryBlock",
-    "kpiValue",
+    "chiSoValue",
     "no-print",
     "print:",
     "h-16 w-full",
@@ -93,7 +93,7 @@ const LAYOUT_PATTERNS = [
 const TYPO_PATTERNS = [
   {
     re: /["'`][^"'`\n]*\bfont-black\b/g,
-    hint: "font-black — bv103-type-kpi / font-semibold",
+    hint: "font-black — bv103-type-chi-so / font-semibold",
   },
   {
     re: /["'`][^"'`\n]*\bfont-extrabold\b/g,

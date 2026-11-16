@@ -76,7 +76,7 @@ export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
  * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
  * Tag invalidate giữ VST_STRATEGIC_CACHE_TAG; key khác cặp full.
  */
-export function getCachedVstStrategicKpisOnly(rpcArgs: RpcArgs) {
+export function getCachedVstStrategicChiSoOnly(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
@@ -88,7 +88,7 @@ export function getCachedVstStrategicKpisOnly(rpcArgs: RpcArgs) {
         data: normalizeVstStrategicPercents(data as VstStrategicPayload),
       };
     },
-    [VST_STRATEGIC_CACHE_TAG, "kpis-only", key],
+    [VST_STRATEGIC_CACHE_TAG, "chi-so-only", key],
     { revalidate: REVALIDATE_SEC, tags: [VST_STRATEGIC_CACHE_TAG] },
   )();
 }
@@ -133,7 +133,7 @@ export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
  * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
  * Tag invalidate giữ GSC_STRATEGIC_CACHE_TAG; key khác cặp full.
  */
-export function getCachedGscStrategicKpisOnly(rpcArgs: RpcArgs) {
+export function getCachedGscStrategicChiSoOnly(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
@@ -145,7 +145,7 @@ export function getCachedGscStrategicKpisOnly(rpcArgs: RpcArgs) {
         data: normalizeGscStrategicPercents(data as GscStrategicPayload),
       };
     },
-    [GSC_STRATEGIC_CACHE_TAG, "kpis-only", key],
+    [GSC_STRATEGIC_CACHE_TAG, "chi-so-only", key],
     { revalidate: REVALIDATE_SEC, tags: [GSC_STRATEGIC_CACHE_TAG] },
   )();
 }

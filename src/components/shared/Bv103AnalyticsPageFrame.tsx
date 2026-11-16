@@ -64,13 +64,13 @@ export function Bv103AnalyticsPageFrame({
   );
 }
 
-export function Bv103AnalyticsPageSkeleton({ kpiCount = 4 }: { kpiCount?: number }) {
+export function Bv103AnalyticsPageSkeleton({ chiSoCount = 4 }: { chiSoCount?: number }) {
   const thongKe = useThongKeChrome();
   const pulse = (
     <>
       <div className="h-16 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50" />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {Array.from({ length: kpiCount }, (_, i) => (
+        {Array.from({ length: chiSoCount }, (_, i) => (
           <div key={i} className="h-20 rounded-[var(--radius-shell)] bg-slate-50" />
         ))}
       </div>

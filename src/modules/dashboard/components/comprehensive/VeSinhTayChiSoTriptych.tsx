@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
-import { buildVeSinhTayKpiCards } from "@/lib/domain/ve-sinh-tay-kpi";
+import { buildVeSinhTayChiSoCards } from "@/lib/domain/ve-sinh-tay-chi-so";
 import { bcthModuleComplianceTone } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "@/modules/dashboard/lib/dashboard-chrome";
 import type { BaoCaoTongHopPayload } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 
 /** Ba KPI cạnh nhau — WHO + KSNK.QT.07.BM.02 + BM.03; không gộp %. */
-export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayload | null }) {
-  const cards = buildVeSinhTayKpiCards({
+export function VeSinhTayChiSoTriptych({ payload }: { payload: BaoCaoTongHopPayload | null }) {
+  const cards = buildVeSinhTayChiSoCards({
     vst: payload?.vst ?? null,
     // BCTH-01: BM.02/03 từ payload hub riêng — không phụ thuộc lọc BK GSC.
     gsc: payload?.gsc_ve_sinh_tay ?? payload?.gsc ?? null,
@@ -39,13 +39,13 @@ export function VeSinhTayKpiTriptych({ payload }: { payload: BaoCaoTongHopPayloa
               key={card.qtMa}
               className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}
             >
-              <p className={D.kpiLabel}>
+              <p className={D.chiSoLabel}>
                 {card.label}
                 {card.catalogMaBk ? (
                   <span className="ml-1 font-normal text-slate-400">({card.catalogMaBk})</span>
                 ) : null}
               </p>
-              <p className={`mt-[var(--bv103-space-1)] ${D.kpiValue}`}>{value}</p>
+              <p className={`mt-[var(--bv103-space-1)] ${D.chiSoValue}`}>{value}</p>
               {card.volumeNote ? (
                 <p className="mt-[var(--bv103-space-1)] bv103-type-label font-medium tabular-nums opacity-80">
                   {card.volumeNote}

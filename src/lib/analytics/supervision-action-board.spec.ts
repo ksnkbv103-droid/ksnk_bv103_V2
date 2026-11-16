@@ -41,7 +41,7 @@ describe("supervision-action-board", () => {
         { ten: "Trước tiếp xúc", tong_co_hoi: 30, da_tuan_thu: 12, ty_le_tuan_thu: 40 },
         { ten: "Sau tiếp xúc", tong_co_hoi: 30, da_tuan_thu: 28, ty_le_tuan_thu: 93.3 },
       ],
-      vstKpis: { loi_ky_thuat: 4, bo_sot: 2, tong_co_hoi: 100 },
+      vstChiSo: { loi_ky_thuat: 4, bo_sot: 2, tong_co_hoi: 100 },
     });
     expect(model.lowest[0]?.ten).toBe("X");
     expect(model.highest[0]?.ten).toBe("Y");

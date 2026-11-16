@@ -3,12 +3,12 @@
 import { z } from "zod";
 import {
   getGscStrategicAnalytics,
-  getGscStrategicKpisOnly,
+  getGscStrategicChiSoOnly,
 } from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
 import { resolveTuanThuBangKiemMas } from "@/modules/giam-sat-chung/lib/resolve-tuan-thu-bang-kiem-mas";
 import {
   getVstStrategicAnalytics,
-  getVstStrategicKpisOnly,
+  getVstStrategicChiSoOnly,
 } from "@/modules/giam-sat-vst/actions/vst-strategic-analytics.actions";
 import { getGiamSatNkbvDashboardPayload } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
 import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/contexts/reporting/analytics";
@@ -307,10 +307,10 @@ export async function getBaoCaoTongHopAnalytics(
       (async () => {
         const [priorVst, priorGsc] = await Promise.all([
           shouldFetchSource(chuyenDe, "VST")
-            ? getVstStrategicKpisOnly(priorVstInput)
+            ? getVstStrategicChiSoOnly(priorVstInput)
             : Promise.resolve(null),
           shouldFetchSource(chuyenDe, "GSC") && !errors.gsc
-            ? getGscStrategicKpisOnly(priorGscInput, gscOpts)
+            ? getGscStrategicChiSoOnly(priorGscInput, gscOpts)
             : Promise.resolve(null),
         ]);
         const priorVstPct =

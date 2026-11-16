@@ -7,7 +7,7 @@ import { buildCoverageSummary } from "@/lib/analytics/supervision-coverage";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
-  SupervisionKpiRow,
+  SupervisionChiSoRow,
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
@@ -143,7 +143,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         </p>
       </div>
 
-      <SupervisionKpiRow
+      <SupervisionChiSoRow
         loading={p.loading}
         items={[
           { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },

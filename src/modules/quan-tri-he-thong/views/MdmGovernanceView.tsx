@@ -258,7 +258,7 @@ export default function MdmGovernanceView() {
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div className="flex-1 space-y-1.5 pr-4">
             <p className={bv103DesignTokens.labelBlockMuted}>Tỷ lệ phủ bảo vệ</p>
-            <p className="bv103-type-kpi-lg text-slate-800">{stats.coverageScore}%</p>
+            <p className="bv103-type-chi-so-lg text-slate-800">{stats.coverageScore}%</p>
             <div className="w-full bg-slate-100 rounded-full h-1.5">
               <div 
                 className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
@@ -274,7 +274,7 @@ export default function MdmGovernanceView() {
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div>
             <p className={bv103DesignTokens.labelBlockMuted}>Trigger bảo vệ hoạt động</p>
-            <p className="mt-1 bv103-type-kpi-lg text-teal-600">
+            <p className="mt-1 bv103-type-chi-so-lg text-teal-600">
               {stats.activeTriggers} / {stats.totalReg}
             </p>
             <p className="mt-1 text-xs text-slate-500">An toàn dữ liệu động</p>
@@ -287,7 +287,7 @@ export default function MdmGovernanceView() {
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div className="space-y-1.5">
             <p className={bv103DesignTokens.labelBlockMuted}>Gợi ý cần phê duyệt</p>
-            <p className="bv103-type-kpi-lg text-amber-500">{stats.pendingSug}</p>
+            <p className="bv103-type-chi-so-lg text-amber-500">{stats.pendingSug}</p>
             <button
               type="button"
               onClick={handleRefreshSuggestions}
