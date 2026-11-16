@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/shared/cssd-tram-persist";
 import { removeChiTietIssueNoteLines } from "@/modules/cssd-erp/workflow/domain/instrument-issue-note";
-import { tableHasColumn } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import { canActorVoidIncident, INCIDENT_VOID_NOT_OWNER, planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
 
 export async function executeVoidIncidentReport(
@@ -151,12 +150,8 @@ export async function executeVoidIncidentReport(
       Object.assign(patch, await buildQuyTrinhTramPatch(supabase, plan.cycle.restoreStation));
     }
     Object.assign(patch, plan.cycle.stamps);
-    if (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert")) {
-      patch.is_red_alert = plan.cycle.isRedAlert;
-    }
-    if (plan.cycle.isDongBang != null && (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang"))) {
-      patch.is_dong_bang = plan.cycle.isDongBang;
-    }
+    patch.is_red_alert = plan.cycle.isRedAlert;
+    if (plan.cycle.isDongBang != null) patch.is_dong_bang = plan.cycle.isDongBang;
     if (plan.cycle.restoreLoId) patch.lo_tiet_khuan_id = plan.cycle.restoreLoId;
     quyTrinhPatch = patch;
     event = {

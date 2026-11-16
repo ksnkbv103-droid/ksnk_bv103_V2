@@ -1,5 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { clearTableHasColumnCache } from "@/modules/cssd-erp/shared/cssd-db-utils";
+import { describe, expect, it } from "vitest";
 import { executeIncidentReportAndRollback } from "./su-co-report.application";
 
 type RpcResult = { success: boolean; message?: string; su_co_id?: string; idempotent?: boolean };
@@ -120,10 +119,6 @@ const draftArgs = {
 };
 
 describe("executeIncidentReportAndRollback nháp", () => {
-  beforeEach(() => {
-    clearTableHasColumnCache();
-  });
-
   it("không xóa nháp khi RPC sổ trả lỗi", async () => {
     const supabase = client({
       rpcResult: { success: false, message: "Số lượng vượt quá số thực tế (0)." },
@@ -284,7 +279,6 @@ describe("executeIncidentReportAndRollback nháp", () => {
       null,
     ];
     for (const row of cases) {
-      clearTableHasColumnCache();
       const supabase = client({ rpcResult: { success: true, su_co_id: "draft-1" }, draftRows: { "draft-1": row } });
       await expect(executeIncidentReportAndRollback(supabase as never, draftArgs, null)).rejects.toThrow(
         /phiếu nháp/,
