@@ -10,13 +10,11 @@ const touch = "touch-manipulation active:scale-[0.98]";
 
 export const CSSD_UI_PANEL = P.shell;
 export const CSSD_UI_PANEL_CHROME = P;
-export const CSSD_UI_SECTION_TITLE = T.sectionTitle;
 export const CSSD_UI_PANEL_TITLE = T.pageTitle;
 export const CSSD_UI_STEP_HINT = T.pageEyebrow;
 export const CSSD_UI_FORM_LABEL = `block ${bv103LayoutChrome.labelField}`;
 export const CSSD_UI_STAT_LABEL = T.labelBlock;
 export const CSSD_UI_STAT_VALUE = T.statValue;
-export const CSSD_UI_TABLE_HEADER = T.tableHeader;
 export const CSSD_UI_CELL_CODE = T.tableCellCode;
 export const CSSD_UI_CELL_INDEX = T.tableCellIndex;
 export const CSSD_UI_CELL_META = T.tableCellMeta;

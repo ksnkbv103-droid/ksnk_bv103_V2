@@ -2,14 +2,9 @@ import {
   complianceToneFromPercent,
   DEFAULT_KHOA_CHART_THRESHOLDS,
   khoaChartTone,
-  SUPERVISION_COMPLIANCE_THRESHOLDS,
   VST_KHOA_CHART_THRESHOLDS,
   type ComplianceTone,
 } from "@/lib/analytics/supervision-thresholds";
-
-/** @deprecated Dùng `SUPERVISION_COMPLIANCE_THRESHOLDS` — giữ alias tương thích báo cáo in. */
-export const BAO_CAO_TONG_HOP_THRESHOLDS: { readonly GREEN_MIN: number; readonly YELLOW_MIN: number } =
-  SUPERVISION_COMPLIANCE_THRESHOLDS;
 
 export type { ComplianceTone };
 export { complianceToneFromPercent, khoaChartTone, DEFAULT_KHOA_CHART_THRESHOLDS, VST_KHOA_CHART_THRESHOLDS };
