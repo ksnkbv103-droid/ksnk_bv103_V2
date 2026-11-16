@@ -71,15 +71,6 @@ async function isNkbvCaInScope(supabase: ReturnType<typeof createAdminSupabaseCl
   return nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null]);
 }
 
-export async function createGiamSatNkbvCa(_payload: Payload) {
-  await verifyPermission("GIAM_SAT_NKBV", "create");
-  return {
-    success: false as const,
-    error:
-      "Phiếu mới chỉ tạo từ Hub bệnh án sau khi phân tích (nút Tạo phiếu). Không tạo phiếu trống từ danh sách.",
-  };
-}
-
 /** Cập nhật phiếu sự kiện nhiễm khuẩn (ghi nhận / đổi trạng thái…). */
 export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "edit");

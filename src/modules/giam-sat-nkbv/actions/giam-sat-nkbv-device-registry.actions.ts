@@ -13,8 +13,6 @@ import {
 import { dungCuLoaiToRegistryType, type NkbvDungCuLoai } from "../lib/nkbv-ba-ngay";
 import type { ClipAdherence } from "../lib/nkbv-clip";
 
-const WRITE_BLOCKED = "Chỉ tích Foley / máy / CVC trên lưới bệnh án — không nhập sổ đặt–rút.";
-
 export type DeviceRegistryRecord = {
   id: string;
   ma_benh_an: string;
@@ -32,7 +30,7 @@ export type DeviceRegistryRecord = {
 };
 
 /** Sổ đặt–rút chỉ đọc — suy từ ngày đã tích. */
-export async function listNkbvDeviceRegistry(maBenhAn: string) {
+async function listNkbvDeviceRegistry(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const ma = String(maBenhAn || "").trim();
   if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
@@ -64,21 +62,6 @@ export async function listNkbvDeviceRegistry(maBenhAn: string) {
     };
   });
   return { success: true as const, data: rows };
-}
-
-export async function upsertNkbvDeviceRegistry(_payload: {
-  id?: string;
-  ma_benh_an: string;
-  device_type: DeviceRegistryType;
-  insertion_date: string;
-}) {
-  await verifyPermission("GIAM_SAT_NKBV", "create");
-  return { success: false as const, error: WRITE_BLOCKED };
-}
-
-export async function softDeleteNkbvDeviceRegistry(_id: string) {
-  await verifyPermission("GIAM_SAT_NKBV", "edit");
-  return { success: false as const, error: WRITE_BLOCKED };
 }
 
 export async function getDevicePrefillForStay(
