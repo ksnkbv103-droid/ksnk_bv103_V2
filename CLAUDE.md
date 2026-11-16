@@ -27,7 +27,7 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 
 - Nghiệp vụ y tế / ranh giới CSSD vs MDM mơ hồ → hỏi trước. Có tradeoff → nói trước khi code
 - **Mục tiêu: triển khai TẤT CẢ module** (PO 2026-10-12, thay lệnh đóng băng cùng ngày). Thứ tự: VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo; mỗi module cần người dùng + kịch bản tay trước khi coi là xong
-- Không tạo bảng summary khi chưa có số đo và PO đồng ý. Không viết lại engine lâm sàng; lệch KPI thì sửa hàm KPI
+- Không tạo bảng summary khi chưa có số đo và PO đồng ý. Không viết lại engine lâm sàng; lệch chỉ số thì sửa hàm chỉ số
 - Diff tối thiểu, truy vết được tới yêu cầu. Đọc migration/DB trước khi đặt tên; không đoán schema
 - ≤ 8 file/task; > 3 file ngoài scope → hỏi PO. Output delta-only, lọc log (`tail -30`)
 - Pilot DoD một lát: người dùng/môi trường rõ · ≥ 3 kịch bản tay · migration + RPC apply đúng · `verify:engineering` pass
@@ -37,7 +37,7 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 Chi tiết ở `/domain-slice`. Không bịa lại:
 
 - VST: rửa/chà ≤2 thời điểm WHO phân biệt; bỏ sót = 1; năm mốc một hàng; quá trần bỏ mốc cũ nhất, không toast; ô chọn nền `#026f17` chữ trắng
-- KPI `fn_vst_is_valid_opportunity` cùng trần với form
+- Chỉ số `fn_vst_is_valid_opportunity` cùng trần với form
 - Xóa phiên VST: mềm `is_active=false` cho đến khi PO nói khác
 
 ## Đang làm

@@ -19,7 +19,7 @@
 | `mdm` | `modules/mdm/README.md` | 31 |
 | `GS` | `modules/giam-sat/README.md` | 162 |
 | `BK` | `modules/giam-sat/bang-kiem-overview.md` | 55 |
-| `MD` | `modules/dashboard/metric-dictionary.md` | 382 |
+| `MD` | `modules/dashboard/metric-dictionary.md` | 374 |
 | `BC` | `modules/dashboard/bao-cao-tong-hop.md` | 45 |
 | `DO` | `modules/cssd/domain-overview.md` | 298 |
 | `18` | `modules/cssd/18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md` | 249 |
@@ -123,7 +123,7 @@ Ba lối nhập, không gộp form:
 
 - BM.01 (`VST_WHO`) bị cấm trong picker GSC, lọc tại `getBangKiemsForGiamSat` (`GS:66`).
 - Không trung bình ba khối thành một %; ba khối dùng chung bộ lọc kỳ, khoa, lens TGS hoặc KSNK; tab VST cũng tải GSC (`shouldFetchSource("VST","GSC") === true`). Mã ở `src/lib/domain/ve-sinh-tay-catalog.ts`.
-- Hai bảng cùng file đặt mã khác nhau (`KSNK.QT.07.BM.02` và `BM.07.02`): «cần kiểm». `MD:382` ghi `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ (§8.3).
+- Hai bảng cùng file đặt mã khác nhau (`KSNK.QT.07.BM.02` và `BM.07.02`): «cần kiểm». `MD:374` ghi `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ (§8.3).
 
 ### 2.4 KPI, mẫu mỏng, đối soát
 
@@ -189,64 +189,62 @@ Nguồn: `BK`, `MD`, `BC`, `GS:20-23,33,84,101,105`.
 | VST đúng kỹ thuật, đủ thời gian | mẫu số `da_tuan_thu` (cơ hội đã rửa hoặc chà); cơ hội bỏ sót không vào mẫu | — | `MD:27` |
 | VST lạm dụng găng | mẫu số `bo_sot`; tử số: «không có trong nguồn» | — | `MD:28` |
 | `ty_le_gsc` | đạt ÷ tiêu chí có áp dụng (loại NA), mẫu số `tong_quan_sat`, 2 chữ số thập phân; Nhật ký không hiện % | `rpc_dashboard_gsc_strategic_analytics` | `MD:12,29-30` |
-| `ty_le_bao_phu_tgs` | số bảng kiểm bắt TGS đã có ít nhất 1 phiên ÷ số bảng kiểm bắt TGS áp dụng cho khoa | `rpc_gsc_tgs_session_hits` | `MD:17,193` |
-| Năng suất nhân viên | `so_co_hoi_vst`, `so_phien_vst`, `so_phien_gsc` | — | `MD:307-311` |
-| `ty_le_quy_trinh_khong_su_co` (CSSD) | 100 − (sự cố ÷ quy trình) × 100 trong kỳ | — | `MD:202,205` |
-| Sản lượng CSSD | `san_luong_cap_phat`, `san_luong_tram`, `cap_phat_theo_khoa_nhan`: đếm `cssd_fact_quy_trinh` có `thoi_gian_<trạm>` | — | `MD:203,250,261,272` |
-| Mẻ và QC mẻ | `so_me_ky` = COUNT `cssd_fact_lo_tiet_khuan`; `ty_le_qc_dat_me` = mẻ `ket_qua_test=true` ÷ mẻ đã có kết quả × 100 | — | `MD:289-290` |
-| Máy và bảo trì | `may_ready`, `may_repairing`, `phieu_bao_tri_mo`; định nghĩa xem nguồn | — | `MD:289-293,299` |
-| `ti_le_xac_nhan_nkbv` | `da_xac_nhan` ÷ (XAC_NHAN + LOAI_TRU) × 100; phiếu chờ không vào mẫu số | — | `MD:226` |
-| `clabsi_rate_per_1000` | `obs_clabsi_cases` ÷ `obs_cvc_days` × 1000; CAUTI chỉ nêu tên | — | `MD:220,227` |
-| QLCV, Đào tạo | QLCV không có KPI (chỉ `analytics_meta` PDCA); Đào tạo: «không có trong nguồn» | — | `MD:114-115` |
+| `ty_le_bao_phu_tgs` | số bảng kiểm bắt TGS đã có ít nhất 1 phiên ÷ số bảng kiểm bắt TGS áp dụng cho khoa | `rpc_gsc_tgs_session_hits` | `MD:17,185` |
+| Năng suất nhân viên | `so_co_hoi_vst`, `so_phien_vst`, `so_phien_gsc` | — | `MD:299-303` |
+| `ty_le_quy_trinh_khong_su_co` (CSSD) | 100 − (sự cố ÷ quy trình) × 100 trong kỳ | — | `MD:194,197` |
+| Sản lượng CSSD | `san_luong_cap_phat`, `san_luong_tram`, `cap_phat_theo_khoa_nhan`: đếm `cssd_fact_quy_trinh` có `thoi_gian_<trạm>` | — | `MD:195,242,253,264` |
+| Mẻ và QC mẻ | `so_me_ky` = COUNT `cssd_fact_lo_tiet_khuan`; `ty_le_qc_dat_me` = mẻ `ket_qua_test=true` ÷ mẻ đã có kết quả × 100 | — | `MD:281-282` |
+| Máy và bảo trì | `may_ready`, `may_repairing`, `phieu_bao_tri_mo`; định nghĩa xem nguồn | — | `MD:281-285,291` |
+| `ti_le_xac_nhan_nkbv` | `da_xac_nhan` ÷ (XAC_NHAN + LOAI_TRU) × 100; phiếu chờ không vào mẫu số | — | `MD:218` |
+| `clabsi_rate_per_1000` | `obs_clabsi_cases` ÷ `obs_cvc_days` × 1000; CAUTI chỉ nêu tên | — | `MD:212,219` |
+| QLCV, Đào tạo | QLCV không có KPI (chỉ `analytics_meta` PDCA); Đào tạo: «không có trong nguồn» | — | `MD:106-107` |
 
 - Nguồn số liệu (`MD:11-13`): VST và GSC lấy từ hai RPC ở bảng trên; NKBV lấy từ aggregate action của module NKBV (outcome nhiễm khuẩn, không gộp CCS).
 - `ty_le_gsc` (Spec change 2026-08-24, `MD:30`): thống nhất 2 chữ số trên form, lịch sử, in, thống kê GSC, BCTH; `ty_le_vst` giữ 1 chữ số. Mặc định chỉ tính `TUAN_THU` hoặc `loai_giam_sat` trống; Nhật ký vận hành và Đánh giá hệ thống không vào mẫu số trừ khi chọn đúng chuyên đề hoặc `?loai=` (Spec change 2026-08-22, `MD:31`). Null khi mẫu số bằng 0 (`MD:32`).
 - Biểu đồ khoa VST hiện `n` và khoảng tin cậy Wilson 95% (`wilsonInterval95`, `src/lib/analytics/supervision-percent.ts`), không đổi công thức (2026-10-12, `MD:33`). GSC không hiện khoảng tin cậy vì các tiêu chí trong một phiên tương quan, Wilson sẽ báo chắc hơn thực tế.
-- Chỉ số gộp `CCS` (`ty_le_ccs`) = 0,5 × VST + 0,5 × GSC, đã bỏ khỏi hiển thị. Spec change 2026-07-31 (`MD:39`): không dùng trên KPI, xu hướng, xếp hạng khoa, Command Center, bản in, draft nhận xét; điều hành chỉ nhìn `ty_le_vst` và `ty_le_gsc` (và theo chuyên đề hoặc bảng kiểm khi lọc). 2026-08-23 (`MD:40`): BCTH không còn compose `ty_le_ccs` hay `delta_ccs` trong payload; `computeCcs` giữ trong `supervision-metrics` vì PDCA đọc khóa cũ `ty_le_ccs`; cấm hiển thị nhãn CCS cho người dùng. Thêm: `MD:97` chỉ để đọc cũ; `MD:132` nội bộ không hiện; `MD:136` cấm gộp NKBV, CSSD vào CCS; `MD:156-157` cấm CCS trên điều hành; `ty_le_avg` là legacy.
+- Chỉ số gộp `CCS` (`ty_le_ccs`) = 0,5 × VST + 0,5 × GSC, đã bỏ khỏi hiển thị. Spec change 2026-07-31 (`MD:39`): không dùng trên KPI, xu hướng, xếp hạng khoa, Command Center, bản in, draft nhận xét; điều hành chỉ nhìn `ty_le_vst` và `ty_le_gsc` (và theo chuyên đề hoặc bảng kiểm khi lọc). 2026-08-23 (`MD:40`): BCTH không còn compose `ty_le_ccs` hay `delta_ccs` trong payload; `computeCcs` giữ trong `supervision-metrics` vì PDCA đọc khóa cũ `ty_le_ccs`; cấm hiển thị nhãn CCS cho người dùng. Thêm: `MD:97` chỉ để đọc cũ; `MD:124` nội bộ không hiện; `MD:128` cấm gộp NKBV, CSSD vào CCS; `MD:148-149` cấm CCS trên điều hành; `ty_le_avg` là legacy.
 
 ### 3.4 Báo cáo bốn tầng và BCTH
 
 Bốn tầng ở 2.1 (`GS:20-23`). `/bao-cao-tong-hop` là cửa nhìn số và in, không phải tầng nhập. Chi tiết thẻ KPI và bản in nằm ở `BC` (45 dòng), không chép lại ở đây. Điểm lệch giữa `BC` và `MD`: §8.2.
 
-### 3.5 Ngưỡng và mục tiêu viện
+### 3.5 Ngưỡng và đơn vị Δ
 
 | Tên | Giá trị | Dùng cho | Nguồn |
 |---|---|---|---|
-| `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) | `MD:84-89` |
+| `GREEN_MIN` | 85% | Đạt (màu xanh) | `MD:84-89` |
 | `YELLOW_MIN` | 70% | Cần theo dõi | `MD:84-89` |
 | `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột và bảng khoa GSC, BCTH | `MD:84-89` |
-| `VST_KHOA_CHART` | Vàng dưới 90%, đỏ dưới 85% | Chỉ biểu đồ khoa của thống kê VST; không đổi mục tiêu viện hay CCS | `MD:84-89` |
+| `VST_KHOA_CHART` | Vàng dưới 90%, đỏ dưới 85% | Chỉ biểu đồ khoa của thống kê VST; không đổi CCS | `MD:84-89` |
 | Mẫu tối thiểu | VST 20, GSC 30 | Mẫu mỏng (2.4) | `GS:101` |
 
 Cả bốn ngưỡng đầu là ngưỡng vận hành pilot, chưa có căn cứ định lượng từ nghiên cứu (PO quyết định 2026-11-06, `MD:84-91`); nguồn chuẩn trong mã là `src/lib/analytics/supervision-thresholds.ts` (`MD:91`). Không dẫn WHO hay chuẩn ngoài.
 
-Mục tiêu viện, bảng `ksnk_dm_muc_tieu_kpi` (Spec 2026-07-29, `MD:93-105`):
+Đơn vị Δ trên thẻ chỉ số BCTH (`ComprehensiveKpiCards`, `MD:93-97`):
 
-- `metric_key` ưu tiên `ty_le_vst`, `ty_le_gsc` (`ty_le_ccs` chỉ để đọc cũ, không badge hay KPI điều hành); `khoa_id` NULL = toàn viện, UUID = mục tiêu theo khoa (tương lai); `target_pct` từ 0 đến 100 (`MD:95-99`).
-- Hiển thị (`MD:101`): badge `Mục tiêu viện` và Δ trên KPI BCTH (`ComprehensiveKpiCards`), chỉ cho VST và GSC. Spec 2026-08-22: một mũi tên so mục tiêu viện trên thẻ; Δ 2 tuần ISO và `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng và payload).
-- Đơn vị Δ (`MD:102`, sửa hiển thị 2026-10-12, công thức giữ nguyên): Δ tuần và Δ kỳ trước là chênh lệch điểm phần trăm (tuần gần nhất trừ tuần liền trước), hiển thị `+3.4 điểm %`, không phải % tương đối; `Tỷ lệ tuần trước` in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu, hai tuần ISO liên tiếp). Nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm. **PO chọn cách 1 (2026-10-12)**: hiện chú thích `khác cơ cấu bảng kiểm` cạnh Δ GSC, giữ công thức, vẫn hiện Δ. Chú thích so bộ bảng kiểm (`TUAN_THU` trừ BM.02 và BM.03, hai khối VST ở 2.3) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
-- Fallback khi bảng chưa migrate hoặc lỗi đọc: `GREEN_MIN` (`MD:103`). Không đổi công thức CCS; mục tiêu chỉ để lãnh đạo so sánh (`MD:104`). Seed mặc định toàn viện 85% (có thể còn dòng `ty_le_ccs` trong DB, app không hiện) (`MD:105`).
+- Đơn vị Δ (`MD:95`, sửa hiển thị 2026-10-12, công thức giữ nguyên): Δ tuần và Δ kỳ trước là chênh lệch điểm phần trăm (tuần gần nhất trừ tuần liền trước), hiển thị `+3.4 điểm %`, không phải % tương đối; `Tỷ lệ tuần trước` in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu, hai tuần ISO liên tiếp). Nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm. **PO chọn cách 1 (2026-10-12)**: hiện chú thích `khác cơ cấu bảng kiểm` cạnh Δ GSC, giữ công thức, vẫn hiện Δ. Chú thích so bộ bảng kiểm (`TUAN_THU` trừ BM.02 và BM.03, hai khối VST ở 2.3) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
+- Đã bỏ (PO 2026-11-16, `MD:96`): bảng `ksnk_dm_muc_tieu_kpi`, action đọc mục tiêu và badge `Mục tiêu viện`; màu thẻ dùng ngưỡng ở bảng trên. Không đổi công thức CCS (`MD:97`).
 
 ### 3.6 Quy tắc chung
 
-- **Hai lens** (`MD:54-58,177-185`): KSNK = giám sát do khoa KSNK thực hiện (`vol_ksnk`, `ty_le_ksnk`), nhãn UI và in là chuyên trách; TGS = tự giám sát của khoa lâm sàng (`vol_tgs`, `ty_le_tgs`), nhãn UI và in là tự giám sát. Comparable khi `vol_tgs > 0` và `vol_ksnk > 0` trong cùng kỳ và bộ lọc; loại các mã RPC `Chưa TGS`, `Chưa KSNK`, `Chưa triển khai` (UI: Chưa tự giám sát, Chưa chuyên trách). `do_lech` = tự giám sát − chuyên trách, tính sau khi mỗi tỷ lệ đã làm tròn từ số đếm (VST 1 chữ số, GSC 2 chữ số).
-- **Công tắc lens** (`MD:150-157`): Chuyên trách hoặc Tự giám sát (mặc định Chuyên trách); bảng hành động và biểu đồ chỉ gắn một nguồn theo công tắc; Bao phủ TGS và Đối soát (comparable: cả hai `vol > 0`) nằm ở Nâng cao hoặc Xem thêm, không nhập vào % tuân thủ; cấm % trộn TGS và KSNK, cấm CCS trên điều hành (`MD:156-157`).
+- **Hai lens** (`MD:54-58,169-177`): KSNK = giám sát do khoa KSNK thực hiện (`vol_ksnk`, `ty_le_ksnk`), nhãn UI và in là chuyên trách; TGS = tự giám sát của khoa lâm sàng (`vol_tgs`, `ty_le_tgs`), nhãn UI và in là tự giám sát. Comparable khi `vol_tgs > 0` và `vol_ksnk > 0` trong cùng kỳ và bộ lọc; loại các mã RPC `Chưa TGS`, `Chưa KSNK`, `Chưa triển khai` (UI: Chưa tự giám sát, Chưa chuyên trách). `do_lech` = tự giám sát − chuyên trách, tính sau khi mỗi tỷ lệ đã làm tròn từ số đếm (VST 1 chữ số, GSC 2 chữ số).
+- **Công tắc lens** (`MD:142-149`): Chuyên trách hoặc Tự giám sát (mặc định Chuyên trách); bảng hành động và biểu đồ chỉ gắn một nguồn theo công tắc; Bao phủ TGS và Đối soát (comparable: cả hai `vol > 0`) nằm ở Nâng cao hoặc Xem thêm, không nhập vào % tuân thủ; cấm % trộn TGS và KSNK, cấm CCS trên điều hành (`MD:148-149`).
 - **Xu hướng theo thời gian** (`MD:64-67`): khi gộp tuần thành tháng, quý, năm thì cộng mẫu số và mẫu tử của từng tuần, không lấy trung bình % các tuần; khóa tuần ISO bắt đầu Thứ Hai (`isoWeekBucketKey`). Quy tắc cộng này chỉ áp dụng cho gộp xu hướng theo thời gian, không cho việc gộp TGS với KSNK.
 - **Kỳ trước `ky_truoc`** (`MD:74-78`, BCTH 2026-07-29): cùng độ dài kỳ lọc `[tu_ngay, den_ngay]` dịch lùi liền trước (tính cả hai đầu); nhãn `vs kỳ trước (dd-mm→dd-mm)` trên KPI BCTH, tách khỏi badge `Δ 2 tuần ISO`; gọi lại strategic VST và GSC cho kỳ trước (soft-fail); không đổi công thức.
-- **Khác**: tuần ISO bắt đầu Thứ Hai (`MD:67`); khoa ngoài phạm vi hiện `Không áp dụng`; kỳ tính cả hai đầu (`BC:23,37`; `MD:76`). Trường ngày dùng để đưa phiên VST và GSC vào kỳ: «cần kiểm». Nguồn không ghi ai đặt: `target_pct` từ 0 đến 100 (seed 85%), CSSD đỏ khi sự cố mỗi trạm vượt 5%, kho hóa chất 30 ngày, 20%, 14 ngày (`MD:97-105,207,359-360`).
+- **Khác**: tuần ISO bắt đầu Thứ Hai (`MD:67`); khoa ngoài phạm vi hiện `Không áp dụng`; kỳ tính cả hai đầu (`BC:23,37`; `MD:76`). Trường ngày dùng để đưa phiên VST và GSC vào kỳ: «cần kiểm». Nguồn không ghi ai đặt: CSSD đỏ khi sự cố mỗi trạm vượt 5%, kho hóa chất 30 ngày, 20%, 14 ngày (`MD:199,351-352`).
 
-### 3.7 Chỉ số lĩnh vực L5 Môi trường (`MD:326-382`)
+### 3.7 Chỉ số lĩnh vực L5 Môi trường (`MD:318-374`)
 
-- `MD:328`: danh mục chỉ số theo lĩnh vực (S2, 2026-11-02). `MD:330`: khung lĩnh vực L0 đến L6, loại nguồn A đến E và mã BM theo kho tri thức (`12-BANG-KIEM-inventory-from-KSNK-final.md` mục 8); mục nào chưa viết thì chưa có trong bảng; cột Trạng thái: `CÓ` = đã tính trong code, `ĐỀ XUẤT` = chưa có form hoặc bảng nhập, công thức chỉ để PO duyệt, không coi là SSOT.
-- `MD:332`: L5 Môi trường có 22 BM (A 11 · B 8 · C 3).
-- **Nguồn A** (`MD:334-348`, 11 BM, trạng thái `CÓ (chờ S3)`): dùng chung `ty_le_gsc`, mẫu số `tong_quan_sat`, 2 chữ số, RPC `rpc_dashboard_gsc_strategic_analytics`; ánh xạ `doi_tuong_giam_sat = 'MOI_TRUONG'` (migration `20261005175200`); module chứa `giam-sat-chung`; chưa đối chiếu từng mã bảng kiểm với seed (việc S3). Các mã: `KSNK.QT.10.BM.02`, `KSNK.QT.10.BM.03`, `KSNK.QT.10.BM.04`, `QT.11.BM.01`, `QT.12.BM.01`, `QT.12.BM.02`, `QT.36.BM.03`, `QT.37.BM.03`, `QĐ.14.BM.01`, `QĐ.20.BM.01`, `QĐ.21.BM.02`.
-- **Nguồn B, phần kho hóa chất** (`MD:352-361`): `QT.37.BM.02` đã `CÓ` (4.7); `QT.37.BM.01` điều kiện kho là `CẦN KIỂM` (`MD:361`).
-- **Nguồn B còn lại** (S4, `MD:363-372`, 6 BM: `QT.10.BM.01`, `QT.11.BM.02`, `QT.11.BM.03`, `QT.12.BM.03`, `QĐ.20.BM.02`, `QĐ.21.BM.01`) và **Nguồn C** (S5, `MD:374-380`, 3 BM: `QT.36.BM.01`, `QT.36.BM.02`, `QĐ.15.BM.02`) đều `[ĐỀ XUẤT]`: chưa có form nhập, công thức chỉ để PO duyệt. Với nguồn C, ngưỡng đạt hoặc không đạt là quyết định chuyên môn; SSOT im thì hỏi PO hoặc chuyên gia, không tự đặt (`MD:374`).
-- `MD:382`: mọi chỉ số L5 không vào `ty_le_ccs`; `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ; chưa viết L0 đến L4 và L6.
+- `MD:320`: danh mục chỉ số theo lĩnh vực (S2, 2026-11-02). `MD:322`: khung lĩnh vực L0 đến L6, loại nguồn A đến E và mã BM theo kho tri thức (`12-BANG-KIEM-inventory-from-KSNK-final.md` mục 8); mục nào chưa viết thì chưa có trong bảng; cột Trạng thái: `CÓ` = đã tính trong code, `ĐỀ XUẤT` = chưa có form hoặc bảng nhập, công thức chỉ để PO duyệt, không coi là SSOT.
+- `MD:324`: L5 Môi trường có 22 BM (A 11 · B 8 · C 3).
+- **Nguồn A** (`MD:326-340`, 11 BM, trạng thái `CÓ (chờ S3)`): dùng chung `ty_le_gsc`, mẫu số `tong_quan_sat`, 2 chữ số, RPC `rpc_dashboard_gsc_strategic_analytics`; ánh xạ `doi_tuong_giam_sat = 'MOI_TRUONG'` (migration `20261005175200`); module chứa `giam-sat-chung`; chưa đối chiếu từng mã bảng kiểm với seed (việc S3). Các mã: `KSNK.QT.10.BM.02`, `KSNK.QT.10.BM.03`, `KSNK.QT.10.BM.04`, `QT.11.BM.01`, `QT.12.BM.01`, `QT.12.BM.02`, `QT.36.BM.03`, `QT.37.BM.03`, `QĐ.14.BM.01`, `QĐ.20.BM.01`, `QĐ.21.BM.02`.
+- **Nguồn B, phần kho hóa chất** (`MD:344-353`): `QT.37.BM.02` đã `CÓ` (4.7); `QT.37.BM.01` điều kiện kho là `CẦN KIỂM` (`MD:353`).
+- **Nguồn B còn lại** (S4, `MD:355-364`, 6 BM: `QT.10.BM.01`, `QT.11.BM.02`, `QT.11.BM.03`, `QT.12.BM.03`, `QĐ.20.BM.02`, `QĐ.21.BM.01`) và **Nguồn C** (S5, `MD:366-372`, 3 BM: `QT.36.BM.01`, `QT.36.BM.02`, `QĐ.15.BM.02`) đều `[ĐỀ XUẤT]`: chưa có form nhập, công thức chỉ để PO duyệt. Với nguồn C, ngưỡng đạt hoặc không đạt là quyết định chuyên môn; SSOT im thì hỏi PO hoặc chuyên gia, không tự đặt (`MD:366`).
+- `MD:374`: mọi chỉ số L5 không vào `ty_le_ccs`; `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ; chưa viết L0 đến L4 và L6.
 
 ## 4. CSSD
 
-Nguồn: `DO`, `18`, `QL`, `MD:202-205,250-293,299,352-361`, `roadmap:89,178`.
+Nguồn: `DO`, `18`, `QL`, `MD:194-197,242-285,291,344-353`, `roadmap:89,178`.
 
 ### 4.1 Mốc PO và ranh giới
 
@@ -256,7 +254,7 @@ Nguồn: `DO`, `18`, `QL`, `MD:202-205,250-293,299,352-361`, `roadmap:89,178`.
 | 2026-08-22 | PCI.03.00, QT.18 đến QT.25 | `DO:4` |
 | 2026-09-04 | Phase 0 dụng cụ, D1 đến D10 | `DO:7` |
 | 2026-10-10 | Thu hồi mẻ hỏng, bộ quay về `DONG_GOI`; đã thay bằng mốc 2026-11-13 | `DO:121`, `18:179` |
-| 2026-10-29 | Cấm sửa số tồn hóa chất | `MD:352` |
+| 2026-10-29 | Cấm sửa số tồn hóa chất | `MD:344` |
 | 2026-11-01 | K3: ghi các test còn lại | `18:246` |
 | 2026-11-09 | Tách mẻ theo nhóm `-CN`, `-KCN`, `-EO` và hạn dùng bao gói (vải dệt 30 ngày, giấy hoặc vải không dệt 90 ngày) | `DO:193-194` |
 | 2026-11-11 | CSSD-005: thêm mã ca mổ sau cấp phát, đã đóng | `roadmap:178` |
@@ -321,22 +319,22 @@ Ranh giới (`DO:14-24`):
 - Ghi master = ADMIN; vận hành chỉ xem và in tem (`QL:11-12,22`). `/cssd-su-co`: Hỏng hoặc Mất ghi sổ ngay; Chuyển `MOVE` giữa kho và bộ, giữa bộ và bộ (`QL:15`).
 - Quét được `B01.SET.01` (bộ) và `BV103-CYC-…` (chu trình); `DC-0001` không quét (`QL:35-39`). Bộ không chịu nhiệt tách thành bộ riêng `parent_bo_id` (`18:34`).
 - Biến động qua 3 cửa (`DO:224-231`); tồn thực tế (`DO:234-235`). Luật đóng băng 14 điều (`DO:200-215`). Mã họ bộ `B01.SET.*`, `B01.CD*`, `BO-01-*` (`DO:60-64`).
-- Định mức số lượng trong bộ, tồn tối thiểu của dụng cụ, cộng hoặc trừ tồn dụng cụ: «không có trong nguồn» (tồn tối thiểu của hóa chất có ở `MD:358`).
+- Định mức số lượng trong bộ, tồn tối thiểu của dụng cụ, cộng hoặc trừ tồn dụng cụ: «không có trong nguồn» (tồn tối thiểu của hóa chất có ở `MD:350`).
 - UI danh mục dụng cụ đã chuyển sang `cssd-erp` (AR-5a, 2026-11-10); route cũ `/quan-tri-he-thong/danh-muc/dung-cu` chuyển hướng `/cssd-dung-cu` (`roadmap:89`). Nợ 5a: bốn action CRUD và `master-crud-core` còn ở Quản trị (hướng xử lý: chuyển về `src/lib/master-data`).
 
-### 4.7 Kho hóa chất (Nguồn B, `MD:352-361`)
+### 4.7 Kho hóa chất (Nguồn B, `MD:344-353`)
 
-Module `cssd-erp`, route `/cssd-hoa-chat`. **Tồn chỉ đổi bằng phiếu Nhập hoặc Xuất đã duyệt; cấm sửa số tồn (PO 2026-10-29); `Điều chỉnh` chỉ là hạn mức do ADMIN đặt** (`MD:352`).
+Module `cssd-erp`, route `/cssd-hoa-chat`. **Tồn chỉ đổi bằng phiếu Nhập hoặc Xuất đã duyệt; cấm sửa số tồn (PO 2026-10-29); `Điều chỉnh` chỉ là hạn mức do ADMIN đặt** (`MD:344`).
 
 | Chỉ số | Quy tắc | Hàm code | Dòng |
 |---|---|---|---|
-| `ton_cuoi` | `ton_dau + nhap − xuat_cap_su_dung − xuat_khac` theo mặt hàng, kỳ `[tu, den]`; dòng trước `tu` vào `ton_dau`, sau `den` bỏ; chỉ phiếu đã duyệt; phiếu xuất cũ chưa có lý do tính là `xuat_cap_su_dung`; `xuat_khac` = mọi lý do khác `CAP_SU_DUNG`; BM `KSNK.QT.37.BM.02` | `buildBaoCaoNxt` (`src/lib/domain/cssd-kho-hoa-chat-bao-cao-nxt.ts`) | `MD:356` |
-| `tong_ton` | Tổng `ton_so_luong` của các lô còn lớn hơn 0 | `buildDmStockSummary` (`cssd-kho-hoa-chat-summary.ts`) | `MD:357` |
-| `duoi_dinh_muc` | `tong_ton ≤ nguong_ton_toi_thieu`, chỉ khi có định mức | — | `MD:358` |
-| `qua_han`, `sap_het_han` | `qua_han`: hạn gần nhất nhỏ hơn hôm nay; `sap_het_han`: còn tối đa `NEAR_EXPIRY_DAYS` = 30 ngày | `cssd-kho-hoa-chat-fefo.ts` | `MD:359` |
-| `canh_bao.muc` (`OK`, `SAP_HET`, `HET_HANG`) | `HET_HANG` khi tồn ≤ 0 và đã có số liệu; `SAP_HET` khi tồn ≤ ngưỡng = `nhap_30n × ty_le_canh_bao_pct/100` (mặc định 20%), hoặc `nguong_ton_toi_thieu` khi 30 ngày chưa có nhập; hoặc khi `so_ngay_dung_duoc = tong_ton ÷ (xuat_su_dung_30n/30)` nhỏ hơn `so_ngay_cho_hang` (mặc định 14); cửa sổ 30 ngày, chỉ tính xuất có lý do Cấp sử dụng | `tinhCanhBaoTon` (`cssd-kho-hoa-chat-canh-bao-ton.ts`) | `MD:360` |
+| `ton_cuoi` | `ton_dau + nhap − xuat_cap_su_dung − xuat_khac` theo mặt hàng, kỳ `[tu, den]`; dòng trước `tu` vào `ton_dau`, sau `den` bỏ; chỉ phiếu đã duyệt; phiếu xuất cũ chưa có lý do tính là `xuat_cap_su_dung`; `xuat_khac` = mọi lý do khác `CAP_SU_DUNG`; BM `KSNK.QT.37.BM.02` | `buildBaoCaoNxt` (`src/lib/domain/cssd-kho-hoa-chat-bao-cao-nxt.ts`) | `MD:348` |
+| `tong_ton` | Tổng `ton_so_luong` của các lô còn lớn hơn 0 | `buildDmStockSummary` (`cssd-kho-hoa-chat-summary.ts`) | `MD:349` |
+| `duoi_dinh_muc` | `tong_ton ≤ nguong_ton_toi_thieu`, chỉ khi có định mức | — | `MD:350` |
+| `qua_han`, `sap_het_han` | `qua_han`: hạn gần nhất nhỏ hơn hôm nay; `sap_het_han`: còn tối đa `NEAR_EXPIRY_DAYS` = 30 ngày | `cssd-kho-hoa-chat-fefo.ts` | `MD:351` |
+| `canh_bao.muc` (`OK`, `SAP_HET`, `HET_HANG`) | `HET_HANG` khi tồn ≤ 0 và đã có số liệu; `SAP_HET` khi tồn ≤ ngưỡng = `nhap_30n × ty_le_canh_bao_pct/100` (mặc định 20%), hoặc `nguong_ton_toi_thieu` khi 30 ngày chưa có nhập; hoặc khi `so_ngay_dung_duoc = tong_ton ÷ (xuat_su_dung_30n/30)` nhỏ hơn `so_ngay_cho_hang` (mặc định 14); cửa sổ 30 ngày, chỉ tính xuất có lý do Cấp sử dụng | `tinhCanhBaoTon` (`cssd-kho-hoa-chat-canh-bao-ton.ts`) | `MD:352` |
 
-BM `KSNK.QT.37.BM.01` (điều kiện kho): chưa tìm thấy trong code ở thời điểm ghi, «cần kiểm» (`MD:361`).
+BM `KSNK.QT.37.BM.01` (điều kiện kho): chưa tìm thấy trong code ở thời điểm ghi, «cần kiểm» (`MD:353`).
 
 ### 4.8 Vai, màn hình, việc còn mở
 
@@ -346,7 +344,7 @@ BM `KSNK.QT.37.BM.01` (điều kiện kho): chưa tìm thấy trong code ở th�
 
 ## 5. NKBV
 
-Nguồn: `SSOT` (v3.3, 2026-08-27; chuẩn NHSN Patient Safety Component Manual January 2025, `SSOT:4`), `roadmap:178`, `MD:13,220,226-227`.
+Nguồn: `SSOT` (v3.3, 2026-08-27; chuẩn NHSN Patient Safety Component Manual January 2025, `SSOT:4`), `roadmap:178`, `MD:13,212,218-219`.
 
 | Khái niệm | Giá trị nguồn ghi | Dòng |
 |---|---|---|
@@ -373,7 +371,7 @@ Nguồn: `SSOT` (v3.3, 2026-08-27; chuẩn NHSN Patient Safety Component Manual 
 
 ## 6. Quản lý công việc (QLCV)
 
-Nguồn: `19` (v1.0 draft, Applied A 2026-09-25), `QV`, `roadmap:178`, `MD:114-115`.
+Nguồn: `19` (v1.0 draft, Applied A 2026-09-25), `QV`, `roadmap:178`, `MD:106-107`.
 
 - Mục đích: công việc nội bộ khoa KSNK, không điều khiển CSSD hay GSC (`19:7,8,152`). Mỗi phiếu trả lời: ai giao, ai làm, ai duyệt, việc gì, hạn, tiến độ, trạng thái, quá hạn (`19:33`).
 - Thực thể (`19:39-52`): `qlcv_fact_cong_viec` (view `v_qlcv_cong_viec_full`), `qlcv_fact_cong_viec_dinh_ky`, `qlcv_fact_nhiem_vu`, view `v_qlcv_cong_viec_qua_han`, `fn_qlcv_transition`, `fn_qlcv_update_checklist`, spawn `fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay`, cron `fn_sync_overdue_tasks`. Người làm là `nguoi_phu_trach_id`, đúng 1 người. Không có cột người duyệt. `[ĐỀ XUẤT]` của nguồn: việc đề xuất dùng chung bảng, `is_active=false` và trạng thái `MOI`.
@@ -384,7 +382,7 @@ Nguồn: `19` (v1.0 draft, Applied A 2026-09-25), `QV`, `roadmap:178`, `MD:114-1
 - PO 2026-11-11 (`roadmap:178`, QLCV-003): người tạo việc không tự nghiệm thu, trừ ADMIN và chủ nhiệm khoa; break-glass chỉ ADMIN hoặc CNK thật.
 - `QV:64-67` (cập nhật 2026-11-13): QLCV-010 chờ PO (người đề xuất tự phê duyệt đề xuất của mình nếu có quyền duyệt); migration `20261113100000` chưa áp prod: «cần kiểm». Số trạng thái module thuộc 03.
 - Ngưỡng thành công đều `[ĐỀ XUẤT]` (tạo việc dưới 30 giây).
-- Không có trong nguồn: sau `TU_CHOI` đi đâu; vai `chỉ huy`; quyền hủy và `APPROVE`; cách tính % từ checklist; tần suất mẫu định kỳ. Không có KPI QLCV (`MD:114-115`).
+- Không có trong nguồn: sau `TU_CHOI` đi đâu; vai `chỉ huy`; quyền hủy và `APPROVE`; cách tính % từ checklist; tần suất mẫu định kỳ. Không có KPI QLCV (`MD:106-107`).
 
 **Ba câu PO đang mở** (`QV:59-62`):
 
@@ -439,8 +437,8 @@ Mỗi hàng: hai nguồn nói khác nhau về cùng một việc. Cột Đề xu
 |---|---|---|---|---|
 | CCS trên bản in | `BC:33`: còn nhắc CCS | `MD:39-40`: không hiển thị CCS (deprecated), BCTH không compose CCS | Theo `MD:39-40` (mốc 2026-07-31 và 2026-08-23) | Claude sửa tài liệu rồi PO duyệt |
 | CCS trong rule | `.claude/rules/dashboard.md:19,32`: còn coi CCS là bất biến (`0.5 × ty_le_vst + 0.5 × ty_le_gsc`) | `MD:39-40` | Theo `MD:39-40`; cấu hình luồng đang đóng băng nên chỉ ghi nhận, không sửa rule trong lát này | PO |
-| Badge Δ trên KPI | `BC:19,21` và `MD:77`: có badge `Δ 2 tuần ISO` và nhãn `vs kỳ trước` trên KPI; `BC:19` gọi Δ là `chênh lệch %` | `MD:101` (spec 2026-08-22): một mũi tên so mục tiêu viện, Δ 2 tuần ISO và `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng, payload); `MD:102` (2026-10-12): Δ là chênh lệch điểm phần trăm (`+3.4 điểm %`), không phải % tương đối | Đơn vị theo `MD:102` (mốc muộn nhất); badge nào hiện trên thẻ: đối chiếu `ComprehensiveKpiCards`, «cần kiểm» | Claude đối chiếu, PO duyệt |
-| Màn `/` | `MD:144`: `/` chuyển hướng (redirect) | `MD:215,231,313`: nói nội dung nằm trên `/` | Đối chiếu route thật: «cần kiểm» | Claude đối chiếu, PO duyệt |
+| Badge Δ trên KPI | `BC:19,21` và `MD:77`: có badge `Δ 2 tuần ISO` và nhãn `vs kỳ trước` trên KPI; `BC:19` gọi Δ là `chênh lệch %` | `MD:95` (2026-10-12): Δ là chênh lệch điểm phần trăm (`+3.4 điểm %`), không phải % tương đối; đoạn spec 2026-08-22 «một mũi tên so mục tiêu viện» đã bỏ khỏi `MD` (PO 2026-11-16) | Đơn vị theo `MD:95` (mốc muộn nhất); badge nào hiện trên thẻ: đối chiếu `ComprehensiveKpiCards`, «cần kiểm» | Claude đối chiếu, PO duyệt |
+| Màn `/` | `MD:136`: `/` chuyển hướng (redirect) | `MD:207,223,305`: nói nội dung nằm trên `/` | Đối chiếu route thật: «cần kiểm» | Claude đối chiếu, PO duyệt |
 | Nguồn số NKBV | `BC:3`: BCTH compose VST, GSC và NKBV từ RPC strategic (không đọc `*_summary`) | `MD:13`: NKBV lấy qua aggregate action của module NKBV (outcome nhiễm khuẩn, không gộp CCS) | Đối chiếu code của BCTH: «cần kiểm» | Claude đối chiếu, PO duyệt |
 
 ### 8.3 VST và GSC
@@ -452,7 +450,7 @@ Mỗi hàng: hai nguồn nói khác nhau về cùng một việc. Cột Đề xu
 | Nguồn dữ liệu bảng kiểm | `BK:3`: nguồn máy `canonical-36.md` đã gỡ khỏi repo (xem git history trước commit gỡ `docs/data`) | `BK:41-44`: bảng file vẫn liệt kê `canonical-36.md` (git history) và ba file `data/bang-kiem/*.md` làm nguồn; `docs/` không có thư mục `data` (đã `ls docs` ngày 2026-11-16) | Ghi ba dòng đó là đã gỡ; nguồn bảng kiểm hiện hành: «cần kiểm» | Claude sửa tài liệu rồi PO duyệt |
 | Banner khóa sổ VST | `GS:162`: banner VST (nếu có) qua hook tương tự | `GS:143-144`: chỉ nêu banner GSC | «cần kiểm» | Claude đối chiếu, PO duyệt |
 | Hiển thị điểm `TY_LE` | `BK:29`: `% · Tốt/Đạt/Không đạt` | `BK:34`: chỉ hiện % | Đối chiếu `gsc-score-display.ts`: «cần kiểm» | Claude đối chiếu, PO duyệt |
-| Cặp mã BM.02 và BM.03 | `GS:60-80`: hai kiểu mã trong cùng file (`KSNK.QT.07.BM.02` và `BM.07.02`) | `MD:382`: `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ | «cần kiểm» | Claude đối chiếu, PO duyệt |
+| Cặp mã BM.02 và BM.03 | `GS:60-80`: hai kiểu mã trong cùng file (`KSNK.QT.07.BM.02` và `BM.07.02`) | `MD:374`: `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ | «cần kiểm» | Claude đối chiếu, PO duyệt |
 
 ### 8.4 NKBV
 
@@ -511,14 +509,14 @@ Nguồn: `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` mục
 - Thẻ HIỆN HÀNH trên tài liệu chưa ký.
 - Thiếu BM của QT.26 và QT.37; BM trùng.
 
-**Đã loại sau khi đọc lại nguồn (không phải mâu thuẫn)**: mẫu mỏng 20 và 30 (hai ngưỡng cho VST và GSC, khớp nhau, 2.4); BM.02 và BM.03 ở `MD:102` (QT.07, vệ sinh tay) khác `KSNK.QT.10.BM.02` và `KSNK.QT.10.BM.03` ở `MD:338-339` (QT.10, bảng kiểm môi trường).
+**Đã loại sau khi đọc lại nguồn (không phải mâu thuẫn)**: mẫu mỏng 20 và 30 (hai ngưỡng cho VST và GSC, khớp nhau, 2.4); BM.02 và BM.03 ở `MD:95` (QT.07, vệ sinh tay) khác `KSNK.QT.10.BM.02` và `KSNK.QT.10.BM.03` ở `MD:330-331` (QT.10, bảng kiểm môi trường).
 
 ## 9. Bảng, RPC, route chính
 
 | Nhóm | Bảng hoặc view | RPC hoặc hàm | Route |
 |---|---|---|---|
 | Nền, MDM, RBAC | `mdm_*`, `mdm_nhan_su`, `sys_lookup_value`, `sys_mdm_registry`, `sys_role_permissions`, `sys_module_locks` | `rpc_assign_staff_ksnk_role`, `fn_cssd_dm_approve_guard`, `fn_assert_vst_gsc_not_locked` | `/to-chuc`, `/quan-tri-he-thong/...` |
-| VST, GSC, Dashboard | `gstt_fact_vst`, `gstt_dm_bang_kiem`, `ksnk_dm_muc_tieu_kpi` | `fn_vst_is_valid_opportunity`, `rpc_dashboard_vst_strategic_analytics`, `rpc_dashboard_gsc_strategic_analytics`, `rpc_gsc_tgs_session_hits` | `/giam-sat-vst`, `/giam-sat-chung`, `/thong-ke/vst`, `/thong-ke/gsc`, `/lich-su/vst`, `/lich-su/gsc`, `/bao-cao-tong-hop` |
+| VST, GSC, Dashboard | `gstt_fact_vst`, `gstt_dm_bang_kiem` | `fn_vst_is_valid_opportunity`, `rpc_dashboard_vst_strategic_analytics`, `rpc_dashboard_gsc_strategic_analytics`, `rpc_gsc_tgs_session_hits` | `/giam-sat-vst`, `/giam-sat-chung`, `/thong-ke/vst`, `/thong-ke/gsc`, `/lich-su/vst`, `/lich-su/gsc`, `/bao-cao-tong-hop` |
 | CSSD | `cssd_dm_*`, `cssd_fact_quy_trinh`, `cssd_fact_lo_tiet_khuan`, `cssd_fact_su_co`, `cssd_fact_kho_giao_dich`, `cssd_fact_kho_hoa_chat_giao_dich`, `cssd_fact_bao_tri`, view `v_cssd_bo_dung_cu_chi_tiet_realtime` | `buildBaoCaoNxt`, `buildDmStockSummary`, `tinhCanhBaoTon` (hàm TS, 4.7) | `/cssd-quy-trinh`, `/cssd-erp/batch`, `/cssd-dung-cu`, `/cssd-su-co`, `/cssd-thiet-bi`, `/cssd-hoa-chat` |
 | NKBV | `nkbv_fact_*` | — | `/giam-sat-nkbv/...` |
 | QLCV | `qlcv_fact_*`, `v_qlcv_cong_viec_full`, `v_qlcv_cong_viec_qua_han` | `fn_qlcv_transition`, `fn_qlcv_update_checklist`, `fn_sync_overdue_tasks` | `/quan-ly-cong-viec` |

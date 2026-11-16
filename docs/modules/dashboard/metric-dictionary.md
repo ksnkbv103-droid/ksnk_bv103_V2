@@ -83,26 +83,18 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 | Ngưỡng | Giá trị | Ý nghĩa UI & Căn cứ |
 |--------|---------|---------------------|
-| `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `GREEN_MIN` | 85% | Đạt (màu xanh) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 | `YELLOW_MIN` | 70% | Cần theo dõi — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 | `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
-| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi mục tiêu viện / CCS. Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi CCS. Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 
 SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
-### Mục tiêu chuẩn viện (`ksnk_dm_muc_tieu_kpi`) — Spec 2026-07-29
+### Đơn vị Δ trên thẻ chỉ số BCTH (`ComprehensiveKpiCards`)
 
-| Trường | Ý nghĩa |
-|--------|---------|
-| `metric_key` | **Ưu tiên surface:** `ty_le_vst` · `ty_le_gsc`. `ty_le_ccs` **chỉ compat đọc cũ** (không badge / KPI điều hành) |
-| `khoa_id` | NULL = toàn viện; UUID = mục tiêu theo khoa (tương lai) |
-| `target_pct` | Mục tiêu % (0–100) |
-
-- **Hiển thị:** badge «Mục tiêu viện» + Δ trên KPI BCTH (`ComprehensiveKpiCards`) — **chỉ** VST/GSC. Spec 2026-08-22: **một mũi tên** so mục tiêu viện trên thẻ; Δ 2 tuần ISO / `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng / payload).
 - **Đơn vị Δ (sửa hiển thị 2026-10-12, công thức giữ nguyên):** Δ tuần và Δ kỳ trước là chênh lệch **điểm phần trăm** (tuần gần nhất trừ tuần liền trước), hiển thị «+3.4 điểm %», **không** phải % tương đối. «Tỷ lệ tuần trước» in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và hai tuần ISO liên tiếp). Lưu ý: nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm, không phải tuân thủ thật — **PO chọn cách 1 (2026-10-12): hiện chú thích «khác cơ cấu bảng kiểm» cạnh Δ GSC, giữ nguyên công thức và vẫn hiện Δ.** Chú thích so bộ bảng kiểm (TUAN_THU trừ BM.02/03) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
-- **Fallback:** khi bảng chưa migrate / lỗi đọc → `GREEN_MIN`.
-- **Không** đổi công thức CCS; mục tiêu chỉ để so sánh lãnh đạo.
-- Seed mặc định toàn viện = 85% (có thể còn dòng `ty_le_ccs` trong DB — app **không** surface).
+- **Đã bỏ (PO 2026-11-16):** bảng `ksnk_dm_muc_tieu_kpi`, action đọc mục tiêu và badge «Mục tiêu viện». Màu thẻ dùng ngưỡng ở bảng trên. Migration `20261116100000_drop_ksnk_dm_muc_tieu_kpi.sql` (local; CHƯA apply prod).
+- **Không** đổi công thức CCS.
 
 ---
 
