@@ -45,7 +45,6 @@
     "src/lib/domain/ve-sinh-tay-kpi.ts -> @/modules/giam-sat-chung/types/gsc-strategic.types",
     "src/lib/domain/ve-sinh-tay-kpi.ts -> @/modules/giam-sat-vst/types/vst-strategic.types",
     "src/lib/entity-qr/entity-qr-core.ts -> @/modules/cssd-erp/shared/domain/cssd-qr-core",
-    "src/lib/master-data/cssd-instrument-ops.actions.ts -> @/modules/cssd-erp/workflow/application/instrument-issue-core",
     "src/lib/master-data/engine/master-crud-core.ts -> @/modules/cssd-erp/workflow/application/cssd-heat-split-apply",
     "src/lib/master-data/engine/smart-import.actions.ts -> @/modules/cssd-erp/workflow/application/cssd-heat-split-apply",
     "src/lib/mdm-read-gateway.ts -> @/modules/giam-sat-chung/bang-kiem/actions/bang-kiem-read.actions",
