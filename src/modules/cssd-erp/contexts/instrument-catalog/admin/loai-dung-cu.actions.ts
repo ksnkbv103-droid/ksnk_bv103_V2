@@ -6,7 +6,6 @@ import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-ca
 import {
   applyHeatSplitForLoaiChanges,
 } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
-import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
   applySterileMethodSuggestionToLoaiSpecs,
   buildLoaiPhysicalUpsertPayload,
@@ -105,18 +104,6 @@ export async function getLoaiDungCuContainingBosAction(loaiId: string) {
     byId.set(bo.id, { id: bo.id, ma_bo: bo.ma_bo ?? null, ten_bo: bo.ten_bo ?? null });
   }
   return { success: true as const, data: [...byId.values()] };
-}
-
-export async function listActiveTramCssdForLoaiAction() {
-  await verifyPermission("LOAI_DC", "view");
-  const supabase = createAdminSupabaseClient();
-  try {
-    const data = await fetchActiveRegistryDmRows(supabase, "TRAM_CSSD");
-    return { success: true as const, data };
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return { success: false as const, error: msg };
-  }
 }
 
 export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {

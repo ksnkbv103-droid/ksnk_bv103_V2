@@ -82,21 +82,6 @@ async function syncBomLinesFromTemplate(
   return { ok: true, bomLines };
 }
 
-async function saveBomLinesOnQuyTrinh(
-  supabase: SupabaseClient,
-  quyTrinhId: string,
-  bomLines: QuyTrinhBomLine[],
-  metadataBase?: Record<string, unknown> | null,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  const metadata = { ...(metadataBase || {}), bom_lines: bomLines };
-  const { error } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .update({ metadata, updated_at: new Date().toISOString() })
-    .eq("id", quyTrinhId);
-  if (error) return { ok: false, message: error.message };
-  return { ok: true };
-}
-
 export type BomLineWithSpec = QuyTrinhBomLine & {
   loai_id: string;
   is_chiu_nhiet: boolean;
@@ -167,71 +152,4 @@ export async function loadBomLinesWithLoaiSpec(
     ok: true,
     bomLines,
   };
-}
-
-/** Điều chuyển số lượng một dòng BOM giữa hai quy trình (metadata.bom_lines). */
-export async function transferBomLineBetweenQuyTrinh(
-  supabase: SupabaseClient,
-  opts: { tuQuyTrinhId: string; denQuyTrinhId: string; tenDungCuLe: string; soLuong: number },
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  const ten = String(opts.tenDungCuLe || "").trim();
-  const n = Math.floor(Number(opts.soLuong || 0));
-  if (!ten || n < 1) return { ok: false, message: "Thiếu tên cấu phần hoặc số lượng không hợp lệ." };
-
-  const tuCtx = await readQuyTrinhBomContext(supabase, opts.tuQuyTrinhId);
-  if (!tuCtx.ok) return tuCtx;
-  const denCtx = await readQuyTrinhBomContext(supabase, opts.denQuyTrinhId);
-  if (!denCtx.ok) return denCtx;
-
-  await syncBomLinesFromTemplate(supabase, opts.tuQuyTrinhId, tuCtx.row.bo_dung_cu_id ?? null);
-  await syncBomLinesFromTemplate(supabase, opts.denQuyTrinhId, denCtx.row.bo_dung_cu_id ?? null);
-
-  const tuReload = await readQuyTrinhBomContext(supabase, opts.tuQuyTrinhId);
-  if (!tuReload.ok) return tuReload;
-  const denReload = await readQuyTrinhBomContext(supabase, opts.denQuyTrinhId);
-  if (!denReload.ok) return denReload;
-
-  const lineTuIdx = tuReload.bomLines.findIndex((l) => l.ten_dung_cu_le === ten);
-  if (lineTuIdx < 0) return { ok: false, message: "Không tìm thấy cấu phần trên bộ nguồn." };
-
-  const lineTu = tuReload.bomLines[lineTuIdx];
-  if (lineTu.so_luong_thuc_te < n) {
-    return { ok: false, message: `Không đủ số lượng thực tế trên nguồn (còn ${lineTu.so_luong_thuc_te}).` };
-  }
-
-  const tuLines = [...tuReload.bomLines];
-  tuLines[lineTuIdx] = { ...lineTu, so_luong_thuc_te: lineTu.so_luong_thuc_te - n };
-
-  const denLines = [...denReload.bomLines];
-  const lineDenIdx = denLines.findIndex((l) => l.ten_dung_cu_le === ten);
-  if (lineDenIdx >= 0) {
-    const cur = denLines[lineDenIdx];
-    denLines[lineDenIdx] = { ...cur, so_luong_thuc_te: cur.so_luong_thuc_te + n };
-  } else {
-    denLines.push({
-      line_key: lineTu.line_key,
-      chi_tiet_id: lineTu.chi_tiet_id,
-      ten_dung_cu_le: ten,
-      so_luong_ke_hoach: lineTu.so_luong_ke_hoach,
-      so_luong_thuc_te: n,
-    });
-  }
-
-  const saveTu = await saveBomLinesOnQuyTrinh(
-    supabase,
-    opts.tuQuyTrinhId,
-    tuLines,
-    tuReload.row.metadata || {},
-  );
-  if (!saveTu.ok) return saveTu;
-
-  const saveDen = await saveBomLinesOnQuyTrinh(
-    supabase,
-    opts.denQuyTrinhId,
-    denLines,
-    denReload.row.metadata || {},
-  );
-  if (!saveDen.ok) return saveDen;
-
-  return { ok: true };
 }

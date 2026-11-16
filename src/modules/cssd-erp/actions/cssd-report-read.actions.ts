@@ -644,13 +644,3 @@ export async function fetchCssdAnalyticsBundle(filters: {
     return { success: false, error: getErrorMessage(e), data: empty };
   }
 }
-
-/** Tóm tắt mỏng cho Command Center / BCTH — soft-fail ở caller. */
-export async function fetchCssdAnalyticsBriefSummary(filters: {
-  from: string;
-  to: string;
-}): Promise<{ success: true; data: CssdAnalyticsBundle["brief"] } | { success: false; error: string }> {
-  const res = await fetchCssdAnalyticsBundle({ from: filters.from, to: filters.to, station: "ALL" });
-  if (!res.success) return { success: false, error: res.error };
-  return { success: true, data: res.data.brief };
-}
