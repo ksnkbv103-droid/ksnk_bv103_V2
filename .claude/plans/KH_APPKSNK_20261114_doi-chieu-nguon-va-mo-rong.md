@@ -1,4 +1,4 @@
-# KH_APPKSNK_20261114 — Hoàn thiện project, rà mẫu in/lưu trữ, đối chiếu kho tri thức, mở rộng module
+# KH_APPKSNK_20261114 — Hoàn thiện project, rà mẫu in/lưu trữ, đối chiếu kho tri thức, mở rộng module · đã gộp vào bộ 3 file (PO duyệt 2026-11-16; lộ trình hiện hành ở docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md §6.3)
 
 Trạng thái: ĐANG CHẠY trong vòng `/loop /chay-lien-tuc` (PO ủy quyền chạy nối, không chờ duyệt: `.claude/commands/chay-lien-tuc.md:8`) · lập 2026-11-14
 Nguồn: chỉ đạo PO 2026-11-14 (§1) · số đo §2 lấy bằng lệnh ghi kèm, không chép từ trí nhớ · kho tri thức `~/Desktop/KSNK_BENH_VIEN_103/` là **bản nháp** (tự nhận ở `03_QUY_TRINH_BENH_VIEN/RA_SOAT_LO_HONG_2026-11-10.md`), vòng lặp chỉ đọc.

@@ -9,7 +9,7 @@
 - Gom từ tài liệu rải rác theo yêu cầu PO 2026-11-15, chỉ nói về module hiện có, để rà soát và sửa nhanh hơn. Không thêm công cụ, sổ hay cổng mới.
 - Lệch với bộ này thì các nguồn sống thắng: `CLAUDE.md` (luật + khóa PO) · sổ lỗi `node scripts/readiness/so-loi.mjs status` · `npm run module:gate` · `HANDOFF_APPKSNK.md`.
 - `docs/bo-tai-lieu/` nằm ngoài 6 lớp của `docs/README.md` và trái câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`: bộ này làm theo yêu cầu PO và đã được PO duyệt làm bản gốc ngày 2026-11-16. Chưa xóa hay di chuyển tài liệu nào; `CLAUDE.md` thuộc cấu hình đóng băng nên câu đó chưa sửa.
-- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Chưa làm: lưu trữ bản cũ và xếp lớp thư mục này, chờ PO chốt phạm vi (§6.5 mục 6). Bản đồ nguồn: §8.
+- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO chốt 2026-11-16: không xóa, không di chuyển). Chưa làm: xếp lớp thư mục này vào `docs/README.md`, chờ PO (§6.5 mục 6). Bản đồ nguồn: §8.
 
 ## 1. Mục đích và ý tưởng
 
@@ -127,7 +127,7 @@ Ngừng làm đến khi PO đổi: `feat` ở NKBV/QLCV/Đào tạo · P3 và mo
 | 3 | Duyệt lô áp prod và deploy (thứ tự ở ghi chú Pha 1) | không áp, không deploy |
 | 4 | 11 mục CHO_PO, ưu tiên VST-025, NKBV-041 | đứng nguyên; NEN-003 theo mặc định của sổ |
 | 5 | Mâu thuẫn tài liệu (02 §8) | giữ code hiện hành, ghi «cần kiểm» |
-| 6 | Bộ 3 file đã được duyệt 2026-11-16. Còn chốt phạm vi lưu trữ bản cũ và xếp lớp `docs/`; `[ĐỀ XUẤT]` không xóa, chỉ đánh dấu bản cũ «đã gộp vào bộ 3 file», `docs/README.md` trỏ bộ làm cửa chính | bản cũ nguyên; bộ vẫn là bản gốc |
+| 6 | Bộ 3 file đã được duyệt và bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO 2026-11-16, không xóa). Còn chốt xếp lớp `docs/`: đưa `bo-tai-lieu/` vào bảng lớp của `docs/README.md` (hiện chỉ có một dòng trỏ tới bộ) và quyết câu «Never tạo tài liệu thứ hai» của `CLAUDE.md` | không xếp lớp; bộ vẫn là bản gốc |
 | 7 | `chat-thai-do-vai`: giữ hay gác | gác |
 
 ### 6.6 Rủi ro
@@ -147,11 +147,11 @@ Ngừng làm đến khi PO đổi: `feat` ở NKBV/QLCV/Đào tạo · P3 và mo
 - **Sổ và cổng**: `node scripts/readiness/so-loi.mjs <status|next|check|set|tay|stats|merge>` (dữ liệu `scripts/readiness/so-loi.json`) là số chuẩn cho «việc mở»; `npm run module:gate`, `npm run module:audit` cho cổng module.
 - **Commit, push, prod**: commit cục bộ khi verify + review pass, chỉ file đã sửa. Push chỉ khi PO gõ «push»; PR hỏi từng lần; deploy Vercel chỉ khi «deploy»; migration/ghi DB prod chỉ khi PO ra lệnh trong chính lượt đó. Không bao giờ mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`.
 
-## 8. Bản đồ nguồn (không xóa, không di chuyển; bộ đã duyệt 2026-11-16, bản cũ chưa lưu trữ)
+## 8. Bản đồ nguồn (không xóa, không di chuyển; bộ đã duyệt 2026-11-16, bốn bản cũ đã đánh dấu «đã gộp»)
 
 | Nhóm | Tài liệu | Trạng thái |
 |---|---|---|
-| Lộ trình/chiến lược, đã gộp vào §6 | `docs/core/handover-roadmap.md` · `BAO-CAO-TONG-THE-2026-11-13.md` §4 · `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` · `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` | chưa lưu trữ; chờ PO chốt phạm vi (§6.5 mục 6) |
+| Lộ trình/chiến lược, đã gộp vào §6 | `docs/core/handover-roadmap.md` · `BAO-CAO-TONG-THE-2026-11-13.md` §4 · `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` · `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` | đã đánh dấu «đã gộp vào bộ 3 file» (2026-11-16); không xóa, không di chuyển |
 | Báo cáo ảnh chụp | `BAO-CAO-NEN-MONG-2026-11-13.md` (sáu tầng T0 Nguồn → T6 Dùng thật) · `BAO-CAO-RA-SOAT-2026-11-05.md` · `BAO-CAO-CAI-TO-2026-11-06.md` | hai báo cáo sau chưa đối chiếu trong lượt gom: «cần kiểm» |
 | Nghiệp vụ chi tiết, đọc khi làm đúng lát đó | `docs/modules/<module>/` (giam-sat, dashboard, cssd, nkbv, qlcv, dao-tao, mdm) và `van-de-nguoi-dung.md` của từng module (nhãn `[SSOT]` · `[GIẢ THUYẾT]` · `[CẦN XÁC NHẬN]` · `[ĐỀ XUẤT]`) | còn là nguồn; tóm tắt ở 02 |
 | Sống, máy đọc hoặc sinh | `scripts/readiness/so-loi.json` · `supabase/migrations/` · `docs/data/` · `docs/wiki/index.md` | không sửa tay |

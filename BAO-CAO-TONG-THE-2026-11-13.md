@@ -1,6 +1,6 @@
 # Báo cáo tổng thể và chiến lược KSNK BV103 — 2026-11-13 (bản 2)
 
-Thay [`BAO-CAO-RA-SOAT-2026-11-05.md`](BAO-CAO-RA-SOAT-2026-11-05.md) và [`BAO-CAO-CAI-TO-2026-11-06.md`](BAO-CAO-CAI-TO-2026-11-06.md) làm **bản nhìn tổng thể hiện hành**. Hai bản cũ giữ làm chứng cứ. Nhánh `integrate/2026-11`.
+Thay [`BAO-CAO-RA-SOAT-2026-11-05.md`](BAO-CAO-RA-SOAT-2026-11-05.md) và [`BAO-CAO-CAI-TO-2026-11-06.md`](BAO-CAO-CAI-TO-2026-11-06.md) làm **bản nhìn tổng thể hiện hành**. Hai bản cũ giữ làm chứng cứ. Nhánh `integrate/2026-11`. **§4 (chiến lược, cổng G1–G6) đã gộp vào bộ 3 file (PO duyệt 2026-11-16):** lộ trình hiện hành ở [`01 §6.3`](docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md); các mục còn lại giữ nguyên.
 
 **Nguồn và mức tin cậy:**
 - Tài liệu SSOT từng module, danh sách route `src/app/**/page.tsx` (đếm lại 2026-11-13), sổ lỗi, roadmap §5, báo cáo đối chiếu NHSN 2026 (2026-11-11).
