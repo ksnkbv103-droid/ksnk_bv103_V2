@@ -1,3 +1,4 @@
+// gate-ok: L3 lam-gon-ma — bỏ ca «reportChiTietInstrumentIssueAction contract»; stub append-chi-tiet-issue-note.action đã xóa (0 nơi gọi)
 import { describe, expect, it } from "vitest";
 import { buildChiTietIssueNoteText } from "@/modules/cssd-erp/workflow/application/instrument-issue-core";
 
@@ -43,13 +44,6 @@ describe("buildChiTietIssueNoteText", () => {
       now,
     });
     expect(text).toBe("[MAT] 2026-06-02 10:00:00");
-  });
-});
-
-describe("reportChiTietInstrumentIssueAction contract", () => {
-  it("exports orchestrator", async () => {
-    const mod = await import("./append-chi-tiet-issue-note.action");
-    expect(typeof mod.reportChiTietInstrumentIssueAction).toBe("function");
   });
 });
 

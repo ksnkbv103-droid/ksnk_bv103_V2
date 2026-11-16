@@ -9,7 +9,6 @@
 | Mã loại DM nhân sự (FK) | `@/lib/master-data/nhan-su-dm-ma-loai` |
 | CRUD nội bộ DM | `danh-muc/actions/*` (không import `master-crud-core` từ module khác) |
 | Bù kho lẻ / báo hỏng lẻ (facade) | `@/lib/master-data/cssd-instrument-ops.actions` |
-| Báo hỏng/mất chi tiết BOM | `@/lib/master-data/append-chi-tiet-issue-note.action` |
 | Đường dẫn revalidate | `@/lib/master-data/quan-tri-paths` |
 
 **Không dùng:** `actions/read.actions.ts`, `actions/write.actions.ts` (đã gỡ).
