@@ -975,7 +975,7 @@ $$;
 ALTER FUNCTION "public"."fn_qlcv_tong_hop_thang"("p_thang" "date") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."fn_qlcv_tong_hop_thang"("p_thang" "date") IS 'QLCV: KPI tháng theo người phụ trách — dùng hoan_thanh_luc (timestamp nghiệm thu thực tế) thay updated_at để tính đúng hạn. Phạm vi: phiếu gốc tạo/cập nhật/hạn/hoàn thành trong tháng.';
+COMMENT ON FUNCTION "public"."fn_qlcv_tong_hop_thang"("p_thang" "date") IS 'QLCV: chỉ số tháng theo người phụ trách — dùng hoan_thanh_luc (timestamp nghiệm thu thực tế) thay updated_at để tính đúng hạn. Phạm vi: phiếu gốc tạo/cập nhật/hạn/hoàn thành trong tháng.';
 
 
 
@@ -1772,7 +1772,7 @@ DECLARE
   v_workload jsonb;
   v_dynamic_checklists jsonb;
 BEGIN
-  -- 1. KPIs
+  -- 1. Chỉ số
   SELECT jsonb_build_object(
     'tong_phien', COALESCE(SUM(tong_phien), 0),
     'tong_quan_sat', COALESCE(SUM(tong_quan_sat), 0),
@@ -2004,7 +2004,7 @@ DECLARE
   v_gap_analysis jsonb;
   v_workload jsonb;
 BEGIN
-  -- 1. KPIs
+  -- 1. Chỉ số
   SELECT jsonb_build_object(
     'tong_phien', COALESCE(COUNT(DISTINCT session_id), 0),
     'tong_co_hoi', COALESCE(SUM(so_co_hoi), 0),
@@ -3202,7 +3202,7 @@ DECLARE
   v_moment_good JSONB;
   v_error_breakdown JSONB;
 BEGIN
-  -- 1. Tính KPI tổng quát
+  -- 1. Tính chỉ số tổng quát
   WITH stats AS (
     SELECT 
       count(DISTINCT s.id) as tong_phien,
@@ -5264,7 +5264,7 @@ CREATE TABLE IF NOT EXISTS "public"."qlcv_fact_cong_viec" (
 ALTER TABLE "public"."qlcv_fact_cong_viec" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."qlcv_fact_cong_viec"."hoan_thanh_luc" IS 'Timestamp chính xác khi công việc được nghiệm thu (trang_thai → HOAN_THANH). Reset về NULL nếu bị trả làm lại. Dùng cho KPI đúng hạn thay vì updated_at.';
+COMMENT ON COLUMN "public"."qlcv_fact_cong_viec"."hoan_thanh_luc" IS 'Timestamp chính xác khi công việc được nghiệm thu (trang_thai → HOAN_THANH). Reset về NULL nếu bị trả làm lại. Dùng cho chỉ số đúng hạn thay vì updated_at.';
 
 
 
@@ -5473,7 +5473,7 @@ COMMENT ON COLUMN "public"."gstt_fact_chung_sessions"."dat_tron_goi" IS 'Slice 4
 
 
 
-COMMENT ON COLUMN "public"."gstt_fact_chung_sessions"."du_lieu_nghi_van" IS 'Slice 4 (reform v4): Anti-Hawthorne flag — TRUE nếu phiên có dấu hiệu nghi ngờ (tốc độ quan sát >30/phút, hoặc thoi_gian_bat_dau = thoi_gian_ket_thuc). Dashboard Slice 7 cảnh báo nhưng KHÔNG loại trừ khỏi KPI (chính sách Just Culture defer v2).';
+COMMENT ON COLUMN "public"."gstt_fact_chung_sessions"."du_lieu_nghi_van" IS 'Slice 4 (reform v4): Anti-Hawthorne flag — TRUE nếu phiên có dấu hiệu nghi ngờ (tốc độ quan sát >30/phút, hoặc thoi_gian_bat_dau = thoi_gian_ket_thuc). Dashboard Slice 7 cảnh báo nhưng KHÔNG loại trừ khỏi chỉ số (chính sách Just Culture defer v2).';
 
 
 

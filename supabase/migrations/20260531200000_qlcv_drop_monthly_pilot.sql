@@ -1,4 +1,4 @@
--- Pilot QLCV lean: UI đã gỡ tab KPI tháng; không còn consumer app cho RPC/bảng đánh giá.
+-- Pilot QLCV lean: UI đã gỡ tab chỉ số tháng; không còn consumer app cho RPC/bảng đánh giá.
 -- Giữ hoan_thanh_luc trên qlcv_fact_cong_viec cho workflow hiện tại.
 
 DROP VIEW IF EXISTS public.fact_qlcv_danh_gia_thang CASCADE;

@@ -34,7 +34,7 @@ $$;
 COMMENT ON FUNCTION public.fn_vst_is_valid_opportunity(text, text) IS
   'VST-01: cơ hội hợp lệ = hành động ∈ {3} và ≥1 thời điểm thuộc 5 nhãn WHO.';
 
--- View summary: chỉ dòng hợp lệ (compare matrices / KPI phụ).
+-- View summary: chỉ dòng hợp lệ (compare matrices / chỉ số phụ).
 CREATE OR REPLACE VIEW public.gstt_fact_vst_opportunities_summary WITH (security_invoker = true) AS
 SELECT
   d.id AS opportunity_id,

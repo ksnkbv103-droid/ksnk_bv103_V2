@@ -36,8 +36,6 @@ CREATE INDEX IF NOT EXISTS idx_qlcv_dk_to ON public.qlcv_fact_cong_viec_dinh_ky 
 CREATE INDEX IF NOT EXISTS idx_qlcv_nv_chu_tri ON public.qlcv_fact_nhiem_vu (nguoi_chu_tri_id);
 CREATE INDEX IF NOT EXISTS idx_qlcv_nv_nguoi_tao ON public.qlcv_fact_nhiem_vu (nguoi_tao_id);
 
-CREATE INDEX IF NOT EXISTS idx_ksnk_kpi_khoa ON public.ksnk_dm_muc_tieu_kpi (khoa_id);
-
 ALTER FUNCTION public.block_writes_for_migrated_danh_muc() SET search_path TO public;
 ALTER FUNCTION public.bv103_norm_label(text) SET search_path TO public;
 ALTER FUNCTION public.fn_cssd_check_set_heat_resistance(uuid) SET search_path TO public;
