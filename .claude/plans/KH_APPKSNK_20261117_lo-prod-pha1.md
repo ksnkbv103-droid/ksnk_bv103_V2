@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261117 — Lô prod pha 1 (chuẩn bị, CHƯA ÁP)
 
-Trạng thái: CHỜ PO DUYỆT · chưa áp gì lên prod · chưa push · chưa deploy
+Trạng thái: PO ĐÃ DUYỆT KẾ HOẠCH (2026-11-17, lấy mặc định Q1–Q8) · CHỜ LỆNH RIÊNG «áp nhóm A lên prod» · chưa áp gì lên prod · chưa push · chưa deploy
 Nguồn: yêu cầu PO 2026-11-17 «Chuẩn bị lô prod» · `CLAUDE.md` «Đang làm» (3) (áp thử cả chuỗi lên bản sao DB trước khi xin duyệt) · `docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md` §6.3, §6.5, §6.6 (:95-142) · `SO_NO_APPKSNK.md:47` (lô gỡ mục tiêu viện) · PO 2026-11-17 K5 («sửa P3», không áp file `20261114180000`).
 Nơi đo: worktree `integrate-2026-11`, nhánh `integrate/2026-11`, HEAD `4c8d7841` · prod = Supabase `cvzwslpxwgqiugzzhqej`, chỉ SELECT + `list_migrations` · bản sao = DB local `scratch_rehearsal` (Postgres cùng container `supabase_db_ksnk_bv103`, không đụng DB `postgres`).
 
@@ -163,6 +163,7 @@ Hoàn tác: `replace` ngược cùng `WHERE id`. View `gstt_dm_tieu_chi_bang_kie
 | Thời điểm | Việc | Kết quả (nguyên văn) |
 |---|---|---|
 | — | chưa áp gì; `list_migrations` prod = 269 hàng, version cuối `20261112025026` (đo 2026-11-17) | — |
+| 2026-11-17 | PO duyệt kế hoạch, nguyên văn «Duyệt kế hoạch»; áp mặc định Q1–Q8 (Q4: PO vẫn đọc `…ar8h….sql` một lần trước B1; Q6 hoãn) | Chưa có lệnh áp prod, chưa «push», chưa «deploy»: không việc nào chạy |
 
 ## Tự kiểm
 
