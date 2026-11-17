@@ -3,10 +3,10 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- LÁT 1 Lên prod (KH `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md`): PR #131 merge `e908e7e0`, deploy Production success, B1–B5 đã áp prod (17/11; B5 so tên vì `sync:check` linked không chạy được: prod thiếu đúng K5). Còn: TC09 do PO. Chi tiết: KH lô prod pha 1 §9.
+- LÁT 2 (KH `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` §1): mã xong, commit cục bộ. `KSNK_PILOT_FOUR_MODULES=1` ẩn NKBV/QLCV/Đào tạo (404 + menu), CSSD mở; spec 6/6, `verify:changed` PASS. Chờ PO: đặt biến trên Vercel + «push»/PR.
+- Lát 1 Lên prod: PR #131 merge `e908e7e0`, deploy success, B1–B5 đã áp prod (17/11). Còn TC09 do PO (mục 4 dưới). Chi tiết: KH lô prod pha 1 §9.
 
 ## KẾ
-- Lát 2: ẩn NKBV/QLCV/Đào tạo bằng `KSNK_PILOT_FOUR_MODULES=1` + phủ `/dao-tao` (sau lát 1).
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
 - CSSD-032 (`migration-author`) → dọn 15 nhánh, 5 worktree.
 

@@ -34,15 +34,15 @@ export function isRouteInPilotScope(pathname: string): boolean {
 
 /**
  * Ẩn mục sidebar theo gate.id khi pilot bật.
- * Four-modules: ẩn CSSD / Công việc / NKBV (route bị proxy chặn).
+ * Four-modules: ẩn Công việc / NKBV / Đào tạo (route bị proxy chặn); CSSD vẫn hiện.
  */
 export function isNavHiddenUnderActivePilot(navGateId: string): boolean {
   if (isPilotCoreModulesScopeEnabled()) {
     return isNavHiddenUnderPilotCoreModules(navGateId);
   }
   if (isPilotFourModulesScopeEnabled()) {
-    // Four chỉ chặn /cssd-erp · /quan-ly-cong-viec · /giam-sat-nkbv — không ẩn cả shell CSSD.
-    return navGateId === "cv" || navGateId === "nkbv";
+    // Four chặn /quan-ly-cong-viec · /giam-sat-nkbv · /dao-tao; menu ẩn đúng 3 gate đó (id ở ksnk-nav-gates.ts).
+    return navGateId === "cv" || navGateId === "nkbv" || navGateId === "dao-tao";
   }
   return false;
 }

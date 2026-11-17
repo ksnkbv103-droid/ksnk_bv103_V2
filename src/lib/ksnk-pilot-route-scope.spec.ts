@@ -22,7 +22,7 @@ describe("ksnk-pilot-route-scope — default (no env)", () => {
 });
 
 describe("ksnk-pilot-route-scope — four modules", () => {
-  it("hides QLCV/CSSD/NKBV nav and keeps entry in scope", () => {
+  it("ẩn NKBV/QLCV/Đào tạo (route 404 + menu), giữ VST/GSC/thống kê/Quản trị/CSSD", () => {
     process.env.KSNK_PILOT_FOUR_MODULES = "1";
     expect(isNavHiddenUnderActivePilot("cv")).toBe(true);
     expect(isNavHiddenUnderActivePilot("nkbv")).toBe(true);
@@ -30,7 +30,51 @@ describe("ksnk-pilot-route-scope — four modules", () => {
     expect(isRouteInPilotScope("/quan-ly-cong-viec")).toBe(false);
     expect(isRouteInPilotScope("/giam-sat-nkbv")).toBe(false);
     expect(isRouteInPilotScope("/giam-sat")).toBe(true);
+    for (const gate of ["cv", "nkbv", "dao-tao"]) {
+      expect(isNavHiddenUnderActivePilot(gate)).toBe(true);
+    }
+    for (const gate of ["vst", "gsc", "dash", "thong-ke", "qt", "cssd-qt", "cssd-su-co", "cssd-dung-cu"]) {
+      expect(isNavHiddenUnderActivePilot(gate)).toBe(false);
+    }
+    for (const path of ["/quan-ly-cong-viec", "/giam-sat-nkbv", "/giam-sat-nkbv/danh-muc/LOAI_NKBV", "/dao-tao", "/dao-tao/thi"]) {
+      expect(isRouteInPilotScope(path)).toBe(false);
+    }
+    for (const path of [
+      "/giam-sat",
+      "/giam-sat-vst",
+      "/giam-sat-chung",
+      "/thong-ke",
+      "/bao-cao-tong-hop",
+      "/quan-tri-he-thong",
+      "/cssd-erp",
+      "/cssd-erp/report",
+      "/cssd-quy-trinh",
+      "/cssd-dung-cu",
+      "/cssd-thiet-bi",
+      "/cssd-hoa-chat",
+      "/cssd-su-co",
+      "/phe-duyet",
+    ]) {
+      expect(isRouteInPilotScope(path)).toBe(true);
+    }
     expect(isPathBlockedUnderActivePilot(resolvePilotSafeEntryPath())).toBe(false);
+  });
+
+  it("không nhầm tiền tố: /dao-tao-xyz không bị chặn", () => {
+    process.env.KSNK_PILOT_FOUR_MODULES = "1";
+    expect(isRouteInPilotScope("/dao-tao-xyz")).toBe(true);
+  });
+
+  it("bỏ biến → hiện đủ NKBV/QLCV/Đào tạo cả route lẫn menu", () => {
+    process.env.KSNK_PILOT_FOUR_MODULES = "1";
+    expect(isRouteInPilotScope("/dao-tao")).toBe(false);
+    delete process.env.KSNK_PILOT_FOUR_MODULES;
+    for (const path of ["/quan-ly-cong-viec", "/giam-sat-nkbv", "/dao-tao", "/cssd-erp"]) {
+      expect(isRouteInPilotScope(path)).toBe(true);
+    }
+    for (const gate of ["cv", "nkbv", "dao-tao"]) {
+      expect(isNavHiddenUnderActivePilot(gate)).toBe(false);
+    }
   });
 });
 
