@@ -3,8 +3,9 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- LÁT 2 (KH `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` §1): mã xong, commit cục bộ. `KSNK_PILOT_FOUR_MODULES=1` ẩn NKBV/QLCV/Đào tạo (404 + menu), CSSD mở; spec 6/6, `verify:changed` PASS. Chờ PO: đặt biến trên Vercel + «push»/PR.
-- Lát 1 Lên prod: PR #131 merge `e908e7e0`, deploy success, B1–B5 đã áp prod (17/11). Còn TC09 do PO (mục 4 dưới). Chi tiết: KH lô prod pha 1 §9.
+- NỢ KỸ THUẬT (PO 17/11: tập trung nợ, mọi module vẫn dùng được để thử): đã đóng ngày GSC theo UTC (`fac83d80`). Kế: nhãn login + 4 e2e, `docs/README.md:8-11`, rồi `SO_NO_APPKSNK.md`.
+- LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
+- Lát 1 Lên prod: PR #131 merge `e908e7e0`, deploy success, B1–B5 đã áp prod (17/11). Còn TC09 do PO (mục 4 dưới).
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
@@ -25,7 +26,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 ## Trạng thái (2026-11-13)
 - Điểm cơ học (`module:audit`, số bước có/10): giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước còn thiếu (1, 2, 5, 8, 9, 10) đều cần người dùng/PO: đầu mối, kịch bản thật, ngưỡng, UAT, số đo. Sửa mã không nâng được điểm.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
-- QT-013 đã sửa + thử tay đạt. VST-012 = lỗi giả (chỉ kẹt khi tab pane nằm nền). Thử tay ĐẠT CSSD-024, NKBV-022, VST-013b (fixture đã trả về gốc). NKBV-024 (Kho vi sinh hiện nút ghi cho vai chỉ xem) đã sửa d5d60fdb + thử tay đạt.
+- QT-013 đã sửa + thử tay đạt. Thử tay ĐẠT CSSD-024, NKBV-022, VST-013b (fixture đã trả về gốc). NKBV-024 (Kho vi sinh hiện nút ghi cho vai chỉ xem) đã sửa d5d60fdb + thử tay đạt.
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
 - 15 dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture). Chạy khi có đầu mối/UAT thật.
 
