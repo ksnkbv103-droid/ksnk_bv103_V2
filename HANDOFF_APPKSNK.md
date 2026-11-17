@@ -33,8 +33,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 2. PO chốt 11-13 (đã sửa, sha trong sổ): CSSD-017 ủ BI ≥20', NKBV-023 ẩn ca chốt = ADMIN + lý do, NKBV-026 LOA máy chủ; CSSD-025 HOAN. Còn treo: câu 7 GSC, DT-008. Mặc định Claude 2026-11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 giờ đọc tương lai (dung sai 2 phút).
 3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
 4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`): nhóm A đã áp prod 17/11 (37/37 khớp). Cửa sổ rủi ro §3.4 đang mở: prod chạy mã cũ, ghi nhật ký/thu hồi CSSD lỗi (RPC đổi tham số). Còn: «push» → PR vào main → «deploy» → B1–B5 (`sync:check`) → TC09.
-5. NKBV DOE/Transfer Rule: spec «PO 2026-11-13» (DOE trước nhập viện kẹp về ngày nhập viện, bỏ Transfer Rule) trái SSOT `hai-surveillance-domain-ssot-20260827.md:132`; đã cất `.git/wip-patches/20261117_nkbv-loa-doe-po-1113.patch`, mã giữ NHSN. PO chốt: giữ NHSN (bỏ patch) hay đổi luật.
-6. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (làm gọn mã mọi module, 13 câu hỏi; im = không xóa gì).
+5. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (làm gọn mã mọi module, 13 câu hỏi; im = không xóa gì).
 - Gỡ «mục tiêu viện» (`b13ef7b6`…`f44b7705`): phần prod gộp vào B2–B4 của plan lô prod pha 1; chi tiết `SO_NO_APPKSNK.md`.
 
 ## Lát chưa mở / nợ

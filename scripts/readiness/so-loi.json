@@ -1471,7 +1471,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "review-bv103 2026-11-13",
     "commit": "acd283ef",
-    "ghi_chu": "Phần sót NKBV-013. Cần PO chốt: DOE phải trong khoảng nằm viện? Khoa quy kết = khoa ngày DOE hay ngày trước đó khi chuyển khoa (SSOT domain-specification). | PO 2026-11-13: máy chủ tự tính khoa theo NHSN Transfer Rule; DOE phải trong khoảng nằm viện; DOE ngày chuyển hoặc ngày kế → khoa chuyển đi. | Giả định: cho DOE = ngày kế sau ra viện (quy khoa cho ra, theo Transfer Rule). Chưa có spec mức action (engine nặng)."
+    "ghi_chu": "Phần sót NKBV-013. Cần PO chốt: DOE phải trong khoảng nằm viện? Khoa quy kết = khoa ngày DOE hay ngày trước đó khi chuyển khoa (SSOT domain-specification). | PO 2026-11-13: máy chủ tự tính khoa theo NHSN Transfer Rule; DOE phải trong khoảng nằm viện; DOE ngày chuyển hoặc ngày kế → khoa chuyển đi. | Giả định: cho DOE = ngày kế sau ra viện (quy khoa cho ra, theo Transfer Rule). Chưa có spec mức action (engine nặng). | PO 2026-11-17: giữ NHSN Transfer Rule như SSOT; bỏ bản spec kẹp DOE về ngày nhập viện (patch đã xóa)."
   },
   {
     "id": "CSSD-028",
