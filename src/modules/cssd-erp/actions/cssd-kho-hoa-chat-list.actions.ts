@@ -131,7 +131,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: {
     const baseQuery = () => {
       let q = supabase
         .from("cssd_fact_kho_hoa_chat_giao_dich")
-        .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le, ly_do_xuat")
+        .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at, trang_thai, created_by, nguoi_duyet_id, duyet_at, ly_do_tu_choi, tu_duyet_ngoai_le, ly_do_xuat, phieu_goc_id, ly_do_dao")
         .eq("is_active", true);
       if (dmFilter) q = q.eq("dm_hoa_chat_id", dmFilter);
       return q;
@@ -199,6 +199,8 @@ export async function listGiaoDichKhoHoaChatAction(params?: {
       ghi_chu: r.ghi_chu != null ? String(r.ghi_chu) : null,
       su_co_id: r.su_co_id != null ? String(r.su_co_id) : null,
       ly_do_xuat: r.ly_do_xuat != null ? String(r.ly_do_xuat) : null,
+      phieu_goc_id: r.phieu_goc_id != null ? String(r.phieu_goc_id) : null,
+      ly_do_dao: r.ly_do_dao != null ? String(r.ly_do_dao) : null,
       created_at: r.created_at != null ? String(r.created_at) : null,
       ten_hoa_chat: tenMap.get(String(r.dm_hoa_chat_id)) || null,
     }));

@@ -1,5 +1,46 @@
 import { describe, expect, it } from "vitest";
-import { canShowDuyetButtons, normalizeTrangThai, trangThaiLabel, validateLyDoTuChoi } from "./cssd-kho-hoa-chat-duyet";
+import {
+  canShowDuyetButtons,
+  canShowLapPhieuNguoc,
+  coPhieuNguocHieuLuc,
+  normalizeTrangThai,
+  trangThaiLabel,
+  validateLyDoPhieuNguoc,
+  validateLyDoTuChoi,
+} from "./cssd-kho-hoa-chat-duyet";
+
+describe("CSSD-034 phiếu ngược (lát B)", () => {
+  const ok = { loai: "XUAT", trangThai: "DA_DUYET", phieuGocId: null, canEdit: true, coPhieuNguocHieuLuc: false };
+  it("hiện nút chỉ cho phiếu XUẤT đã duyệt, chưa là ngược, chưa có ngược hiệu lực, có quyền sửa", () => {
+    expect(canShowLapPhieuNguoc(ok)).toBe(true);
+    expect(canShowLapPhieuNguoc({ ...ok, loai: "NHAP" })).toBe(false);
+    expect(canShowLapPhieuNguoc({ ...ok, loai: "XUAT_KHO" })).toBe(false);
+    expect(canShowLapPhieuNguoc({ ...ok, trangThai: "CHO_DUYET" })).toBe(false);
+    expect(canShowLapPhieuNguoc({ ...ok, trangThai: "TU_CHOI" })).toBe(false);
+    expect(canShowLapPhieuNguoc({ ...ok, phieuGocId: "g1" })).toBe(false);
+    expect(canShowLapPhieuNguoc({ ...ok, coPhieuNguocHieuLuc: true })).toBe(false);
+    expect(canShowLapPhieuNguoc({ ...ok, canEdit: false })).toBe(false);
+  });
+  it("phiếu ngược hiệu lực = trỏ về phiếu gốc và chưa bị từ chối", () => {
+    const movs = [
+      { id: "n1", phieu_goc_id: "x1", trang_thai: "TU_CHOI" as const },
+      { id: "n2", phieu_goc_id: "x2", trang_thai: "CHO_DUYET" as const },
+      { id: "n3", phieu_goc_id: "x3", trang_thai: "DA_DUYET" as const },
+      { id: "x4", phieu_goc_id: null, trang_thai: "DA_DUYET" as const },
+    ];
+    expect(coPhieuNguocHieuLuc(movs, "x1")).toBe(false);
+    expect(coPhieuNguocHieuLuc(movs, "x2")).toBe(true);
+    expect(coPhieuNguocHieuLuc(movs, "x3")).toBe(true);
+    expect(coPhieuNguocHieuLuc(movs, "x4")).toBe(false);
+  });
+  it("lý do bắt buộc 1..500 ký tự sau khi cắt khoảng trắng", () => {
+    expect(validateLyDoPhieuNguoc("   ")).toBe("Nhập lý do lập phiếu ngược.");
+    expect(validateLyDoPhieuNguoc(null)).toBe("Nhập lý do lập phiếu ngược.");
+    expect(validateLyDoPhieuNguoc("Xuất nhầm lô")).toBeNull();
+    expect(validateLyDoPhieuNguoc("a".repeat(500))).toBeNull();
+    expect(validateLyDoPhieuNguoc("a".repeat(501))).toBe("Lý do tối đa 500 ký tự.");
+  });
+});
 
 describe("cssd-kho-hoa-chat-duyet", () => {
   it("nhãn trạng thái, mặc định Đã duyệt", () => {

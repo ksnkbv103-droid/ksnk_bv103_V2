@@ -6,7 +6,15 @@ import { Printer, X } from "lucide-react";
 import { buildTheKho, ngayHieuLuc } from "@/lib/domain/cssd-kho-hoa-chat-the-kho";
 import KhoHoaChatPrintView, { type KhoPrintState } from "./kho-hoa-chat-print-view";
 import { fefoSortLots } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
-import { canShowDuyetButtons, normalizeTrangThai, trangThaiLabel, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
+import {
+  canShowDuyetButtons,
+  canShowLapPhieuNguoc,
+  coPhieuNguocHieuLuc,
+  normalizeTrangThai,
+  trangThaiLabel,
+  validateLyDoPhieuNguoc,
+  validateLyDoTuChoi,
+} from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import type { DmStockSummary } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
 import type { KhoHoaChatGiaoDichRow, KhoHoaChatTonLo, SuCoChemicalRow } from "../../actions/cssd-kho-hoa-chat.actions";
@@ -15,6 +23,8 @@ export type DrawerApprove = {
   canApprove: boolean;
   decidingId: string | null;
   onDecide: (row: KhoHoaChatGiaoDichRow, q: "DUYET" | "TU_CHOI", lyDo?: string) => Promise<boolean>;
+  /** CSSD-034: lập phiếu ngược cho phiếu XUẤT đã duyệt (chờ duyệt, không sửa tồn). */
+  onLapNguoc: (row: KhoHoaChatGiaoDichRow, lyDo: string) => Promise<boolean>;
 };
 
 type Props = {
@@ -35,6 +45,9 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [lyDo, setLyDo] = useState("");
   const [loi, setLoi] = useState<string | null>(null);
+  const [nguocId, setNguocId] = useState<string | null>(null);
+  const [lyDoNguoc, setLyDoNguoc] = useState("");
+  const [loiNguoc, setLoiNguoc] = useState<string | null>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -62,6 +75,16 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
     if (await approve.onDecide(m, "TU_CHOI", lyDo)) {
       setRejectId(null);
       setLyDo("");
+    }
+  };
+
+  const lapNguoc = async (m: KhoHoaChatGiaoDichRow) => {
+    const e = validateLyDoPhieuNguoc(lyDoNguoc);
+    setLoiNguoc(e);
+    if (e) return;
+    if (await approve.onLapNguoc(m, lyDoNguoc.trim())) {
+      setNguocId(null);
+      setLyDoNguoc("");
     }
   };
 
@@ -121,10 +144,18 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
               const showBtn = canShowDuyetButtons({ trangThai: m.trang_thai, canApprove: approve.canApprove });
               const busy = approve.decidingId === m.id;
               const ngay = ngayHieuLuc(m);
+              const phieuGoc = m.phieu_goc_id ? movs.find((x) => x.id === m.phieu_goc_id) : undefined;
+              const showNguoc = canShowLapPhieuNguoc({
+                loai: m.loai_giao_dich,
+                trangThai: m.trang_thai,
+                phieuGocId: m.phieu_goc_id,
+                canEdit,
+                coPhieuNguocHieuLuc: coPhieuNguocHieuLuc(movs, m.id),
+              });
               return (
                 <li key={m.id} className="rounded-lg border border-slate-100 px-2.5 py-2">
                   <p className="bv103-type-label flex justify-between font-semibold text-slate-800">
-                    <span>{LOAI[m.loai_giao_dich] ?? "Điều chỉnh (cũ)"} {m.so_luong_co_dau} · {m.ma_phieu}{m.ly_do_xuat ? ` · ${lyDoXuatLabel(m.ly_do_xuat)}` : ""}</span>
+                    <span>{m.phieu_goc_id ? "Phiếu ngược" : (LOAI[m.loai_giao_dich] ?? "Điều chỉnh (cũ)")} {m.so_luong_co_dau} · {m.ma_phieu}{m.ly_do_xuat ? ` · ${lyDoXuatLabel(m.ly_do_xuat)}` : ""}</span>
                     <span className={tt === "CHO_DUYET" ? "text-amber-700" : tt === "TU_CHOI" ? "text-rose-700" : "text-emerald-700"}>{trangThaiLabel(m.trang_thai)}</span>
                   </p>
                   <p className="bv103-type-label text-slate-500">
@@ -137,7 +168,29 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
                       <Printer className="h-3 w-3" /> In phiếu
                     </button>
                   ) : null}
+                  {m.phieu_goc_id ? (
+                    <p className="bv103-type-label text-violet-700">
+                      Đảo phiếu {phieuGoc?.ma_phieu ?? m.ghi_chu?.replace("Phiếu ngược của ", "") ?? "gốc"}
+                      {m.ly_do_dao ? ` · Lý do: ${m.ly_do_dao}` : ""}
+                    </p>
+                  ) : null}
                   {tt === "TU_CHOI" && m.ly_do_tu_choi ? <p className="bv103-type-label text-rose-700">Lý do: {m.ly_do_tu_choi}</p> : null}
+                  {showNguoc ? (
+                    nguocId === m.id ? (
+                      <div className="mt-1.5 space-y-1">
+                        <input value={lyDoNguoc} onChange={(e) => setLyDoNguoc(e.target.value)} maxLength={500} placeholder="Lý do lập phiếu ngược (bắt buộc)" className="w-full rounded border border-slate-200 px-2 py-1 text-sm" />
+                        {loiNguoc ? <p className="bv103-type-label text-rose-700">{loiNguoc}</p> : null}
+                        <div className="flex gap-2">
+                          <button type="button" disabled={busy} onClick={() => void lapNguoc(m)} className="rounded bg-violet-600 px-2 py-0.5 bv103-type-label font-semibold text-white disabled:opacity-50">Xác nhận lập phiếu ngược</button>
+                          <button type="button" onClick={() => { setNguocId(null); setLoiNguoc(null); }} className="bv103-type-label text-slate-600">Hủy</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button type="button" disabled={busy} onClick={() => { setNguocId(m.id); setLyDoNguoc(""); setLoiNguoc(null); }} className="mt-1 bv103-type-label font-semibold text-violet-700 underline disabled:opacity-50">
+                        Lập phiếu ngược
+                      </button>
+                    )
+                  ) : null}
                   {showBtn ? (
                     rejectId === m.id ? (
                       <div className="mt-1.5 space-y-1">
