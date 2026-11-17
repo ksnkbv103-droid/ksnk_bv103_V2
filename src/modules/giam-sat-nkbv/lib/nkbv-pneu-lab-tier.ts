@@ -179,7 +179,9 @@ function isCandidaLike(name: string): boolean {
 function isNonCandidaFungus(name: string): boolean {
   const p = name.trim();
   if (!p || isCandidaLike(p)) return false;
-  return /aspergil|cryptoc|mucor|rhizopus|fusarium|histoplasm|blastomyc|coccidioid|fungi|nấm/i.test(
+  // NHSN 2026 P6.22: nấm đặc hữu/Cryptococcus KHÔNG đủ điều kiện PNU3.
+  if (/cryptoc|histoplasm|blastomyc|coccidioid/i.test(p)) return false;
+  return /aspergil|mucor|rhizopus|fusarium|fungi|nấm/i.test(
     p,
   );
 }
@@ -188,6 +190,7 @@ function isBannedLrtOrganism(name: string, normalFlora: boolean): boolean {
   if (normalFlora) return true;
   if (!name.trim()) return false;
   if (isTable3Organism(name)) return false;
+  if (/cryptoc|histoplasm|blastomyc|coccidioid/i.test(name)) return true; // P6.22
   if (isExcludedPvapPathogen(name)) return true;
   const cls = classifyPathogen(name);
   return cls.isCommensal || isCandidaLike(name);

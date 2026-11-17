@@ -68,7 +68,13 @@ function isExcludedFullDay(row: VaeVentDailyRow): boolean {
 /** Effective PEEP for VAC math — null on APRV days (FiO₂-only per Ch.10). */
 function effectivePeep(row: VaeVentDailyRow): number | null {
   if (row.on_aprv) return null;
-  return row.peep_min;
+  return normalizeVaePeep(row.peep_min);
+}
+
+/** NHSN 2026 V10.10: PEEP 0–5 cmH₂O coi tương đương, quy về 5. */
+export function normalizeVaePeep(peep: number | null): number | null {
+  if (peep == null) return null;
+  return peep <= 5 ? 5 : peep;
 }
 
 /** Hai ngày liên tiếp ổn định: PEEP hoặc FiO2 không tăng (APRV → FiO₂ only). */
@@ -154,12 +160,14 @@ export function computeVacFromDailyVent(
 
     const aprvWindow = !!(s0.on_aprv || s1.on_aprv || w0.on_aprv || w1.on_aprv);
     const peep0 = effectivePeep(s0);
-    const baselinePeep = effectivePeep(s1);
+    // V10.21: mốc so sánh = giá trị NGÀY ĐẦU của giai đoạn nền (s0), không phải ngày 2.
+    const baselinePeep = peep0;
+    const peep1 = effectivePeep(s1);
     const peepStable =
-      !aprvWindow && peep0 != null && baselinePeep != null && baselinePeep <= peep0;
-    const baselineFio = s1.fio2_min;
+      !aprvWindow && peep0 != null && peep1 != null && peep1 <= peep0;
+    const baselineFio = s0.fio2_min;
     const fioStable =
-      s0.fio2_min != null && baselineFio != null && baselineFio <= s0.fio2_min;
+      s0.fio2_min != null && s1.fio2_min != null && s1.fio2_min <= s0.fio2_min;
     const w0Peep = effectivePeep(w0);
     const w1Peep = effectivePeep(w1);
 

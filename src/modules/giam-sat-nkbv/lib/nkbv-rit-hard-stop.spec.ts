@@ -131,6 +131,16 @@ describe("nkbv-rit-hard-stop (DoD 20a=A)", () => {
     expect(hit.blocked).toBe(true);
   });
 
+  it("BONE: RIT = hết đợt nằm viện (NHSN 2026 G2.31)", () => {
+    const end = resolveRitEndForPrior({
+      doe: "2026-07-01",
+      majorType: "CH17",
+      specificType: "BONE",
+      dischargeDate: "2026-08-15",
+    });
+    expect(end).toBe("2026-08-15");
+  });
+
   it("SSI / VAE bypass checkRitHardStop", () => {
     expect(
       checkRitHardStop({

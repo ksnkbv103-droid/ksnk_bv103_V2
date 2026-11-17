@@ -14,6 +14,7 @@ import { resolveCh17Hierarchy } from "./nkbv-ch17-hierarchy";
 import { normalizeCh17EvidenceFlags } from "./nkbv-ch17-legacy-flags";
 import { derivePneuLabTier } from "./nkbv-pneu-lab-tier";
 import { derivePneuSystemic } from "./nkbv-pneu-systemic";
+import { isLcbiExcludedOrganism } from "./nkbv-pathogen-rules";
 import { ADULT_VAE_IN_PLAN_REASON, isAdultVaeInPlan } from "./nkbv-pneu-vae-route";
 import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
 import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
@@ -103,6 +104,18 @@ export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
   return Boolean(data.symptoms_window_7days);
 }
 
+/** Nhãn loại trừ CLABSI (B4.42–48); null nếu không có. */
+function bsiClabsiExclusionLabel(data: BsiVerificationData): string | null {
+  if (data.excl_ecmo_gt2d) return "ECMO/ECLS > 2 ngày";
+  if (data.excl_vad_gt2d) return "VAD > 2 ngày";
+  if (data.excl_tah_gt2d) return "TAH > 2 ngày";
+  if (data.excl_patient_injection) return "bệnh nhân tự tiêm vào đường truyền";
+  if (data.excl_epidermolysis_bullosa) return "Epidermolysis bullosa";
+  if (data.excl_munchausen_proxy) return "Munchausen by proxy";
+  if (data.excl_pus_vascular_site) return "mủ tại vị trí tiếp cận mạch cùng tác nhân";
+  return null;
+}
+
 export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResult {
   return applyCh2RitGate(data, "BSI", applyCh2PoaGate(data, evaluateBsiClabsiCore(data)));
 }
@@ -115,7 +128,17 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
     return {
       is_positive: false,
       classification: "COMMUNITY_INFECTION",
-      reason: "Nhiễm nấm hô hấp cộng đồng (Blastomyces, Histoplasma...), không phải BSI bệnh viện.",
+      reason:
+        "Tác nhân chủ yếu gây nhiễm khuẩn cộng đồng (Blastomyces, Histoplasma, Cryptococcus, Pneumocystis, Anaplasma, Ehrlichia, Borrelia, Rickettsia…) bị loại khỏi mọi định nghĩa NHSN (B4.66, G2.02).",
+    };
+  }
+
+  // B4.64–65: virus, ký sinh trùng, tác nhân đường ruột đặc hiệu không đạt LCBI nguyên phát.
+  if (isLcbiExcludedOrganism(data.pathogen_name)) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason: `Tác nhân "${data.pathogen_name}" bị loại khỏi LCBI nguyên phát (B4.64–65); chỉ dùng được khi xác định BSI thứ phát.`,
     };
   }
 
@@ -261,11 +284,23 @@ function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult 
     };
   }
 
+  // NHSN 2026 B4.40–48: BSI vẫn là LCBI nhưng KHÔNG coi là CLABSI khi có loại trừ.
+  const clabsiExclusion = bsiClabsiExclusionLabel(data);
+  if (clabsiExclusion) {
+    return {
+      is_positive: true,
+      classification: "PRIMARY_BSI_NON_CLABSI",
+      lcbi_type: lcbiType,
+      reason: `LCBI có CL nhưng thuộc loại trừ CLABSI (${clabsiExclusion}) — vẫn báo NHSN, không tính CLABSI SIR (B4.40–41).`,
+    };
+  }
+
   return {
     is_positive: true,
     classification: "CLABSI",
     lcbi_type: lcbiType,
     reason: "Nhiễm khuẩn huyết liên quan đường truyền trung tâm (CLABSI). Ghi nhận lỗi cho khoa.",
+    warnings: data.patient_age == null ? ["Thiếu tuổi bệnh nhân — chưa phân biệt được LCBI 2/3 (≤1 tuổi)."] : undefined,
   };
 }
 
@@ -442,7 +477,7 @@ function evaluateVaeVapCore(
   const amsEligible =
     Boolean(data.altered_mental_status_ge_70yo) &&
     (data.patient_age == null || data.patient_age >= 70);
-  const hasSystemic = derivePneuSystemic(data) || amsEligible;
+  const hasSystemic = derivePneuSystemic(data, data.patient_age) || amsEligible;
   const wideListMet =
     localCount >= 1 || !!data.has_hemoptysis || !!data.has_pleuritic_chest_pain;
 
@@ -859,13 +894,8 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
       ? `mã PT ${proc.code} · Deep/Organ ${proc.deep_organ_surveillance_days} ngày (nông/SIS/DIS luôn 30)`
       : "SP nông 30 ngày";
 
-  if (data.is_patos) {
-    return {
-      is_positive: false,
-      classification: "PATOS",
-      reason: "PATOS (Present at time of surgery) — không báo cáo SSI mới trên ca này theo NHSN.",
-    };
-  }
+  // NHSN 2026 (S9.66–69): PATOS chỉ là nhãn — vẫn đạt tiêu chí SSI thì vẫn tính SSI (S9.108 gồm PATOS).
+  const patosNote = data.is_patos ? " PATOS = Có (nhãn, vẫn tính vào SSI)." : "";
 
   // Site allowlist / catalog — fail-closed sớm khi BA chọn site (kể cả khi Ch.17 chưa met)
   const siteEarly = (data.organ_space_site || "").trim();
@@ -993,7 +1023,7 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     nhsClassificationFromEvent(engineEventCode, data.organ_space_site) ||
     event?.code ||
     engineEventCode;
-  reason = `${event?.name_vi || engineEventCode}. ${reason}`;
+  reason = `${event?.name_vi || engineEventCode}. ${reason}${patosNote}`;
 
   const secondaryWarn = secondaryIncisionMismatchWarning(
     engineEventCode,

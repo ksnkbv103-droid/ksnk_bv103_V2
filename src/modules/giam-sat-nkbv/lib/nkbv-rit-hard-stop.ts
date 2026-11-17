@@ -342,7 +342,7 @@ export function resolveRitEndForPrior(
   opts?: RitHardStopOpts,
 ): string {
   const specific = String(prior.specificType || "").toUpperCase();
-  const isEndo = prior.majorType === "CH17" && specific === "ENDO";
+  const isEndo = prior.majorType === "CH17" && (specific === "ENDO" || specific === "BONE"); // G2.31
   if (isEndo) {
     return endoRitSbapToDischarge({
       indexDate: prior.doe,

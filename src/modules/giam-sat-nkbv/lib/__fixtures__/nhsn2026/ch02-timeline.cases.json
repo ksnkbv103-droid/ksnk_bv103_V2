@@ -1,0 +1,420 @@
+{
+ "nguon": "nhsn2026_ch02_ca_thu.json (`tinh`)",
+ "quy_uoc": "hd Manual: ngày nhập khu nội trú=1, hai ngày trước=-1,-2, không có ngày 0. Gắn tay: giữ `tinh` của gói (đã script tính lại) làm kỳ vọng; app tính lại bằng clinicalIwp/clinicalRitEnd/clinicalSbapWindow/poaOrHai. Loại: C2.17 (gói đánh dấu CẦN XÁC MINH RIT/SBAP), C2.05–08 (đáp án không là mốc số; transfer ở file riêng), cột `tinh` rỗng.",
+ "ca": [
+  {
+   "ma": "C2.01",
+   "luat": [
+    "G2.11",
+    "G2.16",
+    "G2.17"
+   ],
+   "gan_tay": "DOE ngày 2 là suy theo G2.16 (ghi_chu gói); POA theo hình",
+   "su_kien": [
+    {
+     "loai": "PNEU",
+     "moc_hd": 3,
+     "doe_hd": 2,
+     "iwp": [
+      -1,
+      6
+     ],
+     "phan_loai": "POA"
+    }
+   ]
+  },
+  {
+   "ma": "C2.02",
+   "luat": [
+    "G2.12",
+    "G2.13"
+   ],
+   "gan_tay": "Manual không ghi POA/HAI; POA suy theo G2.17 (DOE hd 2)",
+   "su_kien": [
+    {
+     "loai": "SKIN",
+     "moc_hd": 2,
+     "doe_hd": 2,
+     "iwp": [
+      -2,
+      5
+     ],
+     "phan_loai": "POA"
+    }
+   ]
+  },
+  {
+   "ma": "C2.03",
+   "luat": [
+    "G2.09",
+    "G2.16",
+    "G2.17"
+   ],
+   "gan_tay": "Manual ghi UTI-POA",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 2,
+     "iwp": [
+      1,
+      7
+     ],
+     "phan_loai": "POA"
+    }
+   ]
+  },
+  {
+   "ma": "C2.04",
+   "luat": [
+    "G2.09",
+    "G2.16",
+    "G2.18"
+   ],
+   "gan_tay": "Manual ghi UTI-HAI",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "iwp": [
+      1,
+      7
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.09",
+   "luat": [
+    "G2.25",
+    "G2.27"
+   ],
+   "gan_tay": "Manual ghi RIT 4–17",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      4,
+      17
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.10",
+   "luat": [
+    "G2.27"
+   ],
+   "gan_tay": "Manual ghi RIT 4–17; chỉ kiểm mốc thời gian, không kiểm \"không phải CAUTI\"",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      4,
+      17
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.11",
+   "luat": [
+    "G2.32",
+    "G2.33",
+    "G2.27"
+   ],
+   "gan_tay": "Manual ghi SBAP 17 ngày",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      4,
+      17
+     ],
+     "sbap": [
+      1,
+      17
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.12",
+   "luat": [
+    "G2.32",
+    "G2.33"
+   ],
+   "gan_tay": "Manual ghi SBAP 17 ngày (PNEU DOE hd4)",
+   "su_kien": [
+    {
+     "loai": "PNEU",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      4,
+      17
+     ],
+     "sbap": [
+      1,
+      17
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.13",
+   "luat": [
+    "G2.33",
+    "G2.39"
+   ],
+   "gan_tay": "Hai sự kiện; mốc tinh theo luật",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      4,
+      17
+     ],
+     "sbap": [
+      1,
+      17
+     ],
+     "phan_loai": "HAI"
+    },
+    {
+     "loai": "IAB",
+     "moc_hd": 9,
+     "doe_hd": 8,
+     "iwp": [
+      6,
+      12
+     ],
+     "rit": [
+      8,
+      21
+     ],
+     "sbap": [
+      6,
+      21
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.14",
+   "luat": [
+    "G2.27",
+    "G2.33",
+    "G2.39"
+   ],
+   "gan_tay": "BSI DOE hd4 (không IWP); UTI DOE hd8",
+   "su_kien": [
+    {
+     "loai": "BSI",
+     "moc_hd": 4,
+     "doe_hd": 4,
+     "rit": [
+      4,
+      17
+     ],
+     "phan_loai": "HAI"
+    },
+    {
+     "loai": "UTI",
+     "moc_hd": 9,
+     "doe_hd": 8,
+     "iwp": [
+      6,
+      12
+     ],
+     "rit": [
+      8,
+      21
+     ],
+     "sbap": [
+      6,
+      21
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.15",
+   "luat": [
+    "G2.40",
+    "G2.33"
+   ],
+   "gan_tay": "MBI-LCBI DOE hd7 (không IWP); SKIN DOE hd10 index hd11",
+   "su_kien": [
+    {
+     "loai": "BSI",
+     "moc_hd": 7,
+     "doe_hd": 7,
+     "rit": [
+      7,
+      20
+     ],
+     "phan_loai": "HAI"
+    },
+    {
+     "loai": "SKIN",
+     "moc_hd": 11,
+     "doe_hd": 10,
+     "iwp": [
+      8,
+      14
+     ],
+     "rit": [
+      10,
+      23
+     ],
+     "sbap": [
+      8,
+      23
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.16",
+   "luat": [
+    "G2.41",
+    "G2.37"
+   ],
+   "gan_tay": "DOE hd3 sớm hơn ngày cấy hd4 (giả định ví dụ: triệu chứng đạt tiêu chí)",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 3,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      3,
+      16
+     ],
+     "sbap": [
+      1,
+      16
+     ],
+     "phan_loai": "HAI"
+    },
+    {
+     "loai": "BSI",
+     "moc_hd": 11,
+     "doe_hd": 11,
+     "rit": [
+      11,
+      24
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.18",
+   "luat": [
+    "G2.35",
+    "G2.33"
+   ],
+   "gan_tay": "Chỉ kiểm mốc UTI",
+   "su_kien": [
+    {
+     "loai": "UTI",
+     "moc_hd": 4,
+     "doe_hd": 3,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      3,
+      16
+     ],
+     "sbap": [
+      1,
+      16
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  },
+  {
+   "ma": "C2.19",
+   "luat": [
+    "G2.42",
+    "G2.35"
+   ],
+   "gan_tay": "BSI LCBI 2 HAI DOE hd9",
+   "su_kien": [
+    {
+     "loai": "SKIN",
+     "moc_hd": 4,
+     "doe_hd": 3,
+     "iwp": [
+      1,
+      7
+     ],
+     "rit": [
+      3,
+      16
+     ],
+     "sbap": [
+      1,
+      16
+     ],
+     "phan_loai": "HAI"
+    },
+    {
+     "loai": "BSI",
+     "moc_hd": 9,
+     "doe_hd": 9,
+     "rit": [
+      9,
+      22
+     ],
+     "phan_loai": "HAI"
+    }
+   ]
+  }
+ ]
+}

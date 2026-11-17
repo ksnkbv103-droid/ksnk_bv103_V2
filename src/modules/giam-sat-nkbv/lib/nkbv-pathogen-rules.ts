@@ -37,7 +37,7 @@ export function classifyPathogen(name: string): PathogenClassification {
   const p = name.trim().toLowerCase();
   
   const isIntestinal = /enteroc|escher|e\.?\s*coli|klebs|bacteroid|candida|clostrid|salmonel|shigel|enterobac|proteus|serratia/i.test(p);
-  const isFungiRespiratory = /blastomyc|histoplasm|coccidioid|paracoccidioid|cryptoc/i.test(p);
+  const isFungiRespiratory = /blastomyc|histoplasm|coccidioid|paracoccidioid|cryptoc|pneumocystis|anaplasma|ehrlichia|borrelia|rickettsia/i.test(p);
   const isCommensal = /coagulase|epidermidis|hominis|haemolyticus|saprophyticus|micrococcus|cutibacterium|propionibacterium|corynebacter|diphtheroid|bacillus|viridans/i.test(p);
   const isCandidaOrParasite = /candida|aspergil|yeast|men|nấm|fungi|parasite|trùng|sán/i.test(p);
   
@@ -48,6 +48,17 @@ export function classifyPathogen(name: string): PathogenClassification {
     isCandidaOrParasite,
     suggestedType: isCommensal ? 'COMMON_COMMENSAL' : 'RECOGNIZED',
   };
+}
+
+/**
+ * NHSN 2026 B4.64–65: tác nhân KHÔNG được dùng làm LCBI nguyên phát (vẫn dùng cho BSI thứ phát):
+ * virus, ký sinh trùng, Salmonella, Shigella, Yersinia, Campylobacter, Listeria, Vibrio,
+ * E. coli gây tiêu chảy (STEC/ETEC/EPEC/EIEC/EAEC/DAEC), C. difficile, Giardia.
+ */
+export function isLcbiExcludedOrganism(name: string): boolean {
+  const p = name.trim();
+  if (!p) return false;
+  return /virus|vi rút|plasmodium|trypanosom|toxoplasm|leishmani|babesia|giardia|salmonel|shigel|yersini|campylobact|listeri|vibrio|\b(stec|etec|epec|eiec|eaec|daec)\b|shiga[\s-]*toxin|difficile|c\.\s*diff/i.test(p);
 }
 
 /**

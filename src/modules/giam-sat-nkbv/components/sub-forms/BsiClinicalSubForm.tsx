@@ -4,6 +4,7 @@ import React from "react";
 
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
+import { CLABSI_EXCLUSION_FIELDS } from "../../lib/nkbv-bsi-clabsi-exclusions";
 import type { BsiVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
@@ -274,6 +275,23 @@ export default function BsiClinicalSubForm({
               iwpStart={iwpStart}
               iwpEnd={iwpEnd}
             />
+          </NkbvFormSection>
+
+          <NkbvFormSection
+            title="Loại trừ CLABSI (vẫn là LCBI)"
+            hint="NHSN 2026 Ch.4 (B4.40–48): có ≥1 mục dưới đây thì ca vẫn báo là BSI nhưng không tính CLABSI."
+          >
+            {CLABSI_EXCLUSION_FIELDS.map(([field, label]) => (
+              <label key={field} className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!form[field]}
+                  disabled={!allowedEdit}
+                  onChange={(e) => onChange({ ...form, [field]: e.target.checked })}
+                />
+                {label}
+              </label>
+            ))}
           </NkbvFormSection>
 
           {showSecondary ? (

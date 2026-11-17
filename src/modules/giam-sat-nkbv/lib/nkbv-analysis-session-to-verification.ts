@@ -13,6 +13,7 @@ import type { SyndromePanelId } from "./nkbv-specimen-syndrome";
 import { bareViSinhIdFromMilestoneId } from "./nkbv-vi-sinh-analysis-status";
 import { isBloodSpecimen } from "./nkbv-sbap-rit-chips";
 import { clinicalRitEnd } from "./nkbv-shared-timeline";
+import { pickClabsiExclusions } from "./nkbv-bsi-clabsi-exclusions";
 
 /** Lab seed từ timeline BA → form phiếu. */
 export type BaSeedLabRow = {
@@ -362,6 +363,7 @@ export function mapAnalysisSessionToVerificationSeed(input: {
     if (input.draft.bsiMbi?.has_severe_diarrhea_mbi) {
       verification_data.has_severe_diarrhea_mbi = true;
     }
+    Object.assign(verification_data, pickClabsiExclusions(input.draft.bsiClabsiExcl));
   }
 
   if (input.panel === "BSI" && input.draft.bsiLocalizedSite?.criteriaMet) {

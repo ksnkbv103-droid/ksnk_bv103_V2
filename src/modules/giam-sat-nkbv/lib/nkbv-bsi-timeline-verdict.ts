@@ -3,6 +3,7 @@
  * Index = ngày cấy máu; IWP±3; Secondary-before-CLABSI qua localized site context.
  */
 
+import { pickClabsiExclusions, type ClabsiExclusions } from "./nkbv-bsi-clabsi-exclusions";
 import type { BsiVerificationData } from "../types/nkbv-verification";
 import { evaluateBsiClabsi, type RuleEvaluationResult } from "./nkbv-rules-engine";
 import type { RitPriorEvent } from "./nkbv-rit-hard-stop";
@@ -122,6 +123,10 @@ export type BuildBsiTimelineVerdictInput = {
   ancWbcLt500Ge2d?: boolean;
   hasHsctOrGvhd?: boolean;
   hasSevereDiarrheaMbi?: boolean;
+  /** Loại trừ CLABSI (B4.40–48). */
+  clabsiExclusions?: ClabsiExclusions;
+  /** Người dùng xác nhận ≥2 mẫu commensal là 2 lần lấy riêng (B4.56). */
+  commensalDrawnSeparate?: boolean;
   /** Ca trước cùng BA — Ch.2 RIT hard-stop (DoD 20a). */
   ritPriorEvents?: RitPriorEvent[];
   ritExcludeEventIds?: string[];
@@ -249,7 +254,10 @@ export function buildBsiTimelineVerdict(
     commensal_culture_count:
       pathogenType === "COMMON_COMMENSAL" ? commensal.count : 0,
     commensal_drawn_separate:
-      pathogenType === "COMMON_COMMENSAL" ? commensal.drawnSeparate : false,
+      pathogenType === "COMMON_COMMENSAL"
+        ? commensal.drawnSeparate ||
+          Boolean(input.commensalDrawnSeparate && commensal.count >= 2)
+        : false,
     symptoms_window_7days: hasFever || hasChills || hasHypotension,
     has_fever: hasFever,
     has_chills: hasChills,
@@ -262,6 +270,7 @@ export function buildBsiTimelineVerdict(
     is_neutropenia: Boolean(input.isNeutropenia),
     anc_wbc_lt_500_ge_2d: Boolean(input.ancWbcLt500Ge2d),
     has_hsct_or_gvhd: Boolean(input.hasHsctOrGvhd),
+    ...pickClabsiExclusions(input.clabsiExclusions),
     has_severe_diarrhea_mbi: Boolean(input.hasSevereDiarrheaMbi),
     is_intestinal_pathogen: cls.isIntestinal,
     has_localized_infection: hasLocalized,

@@ -30,6 +30,72 @@ const evaluateVaeVap = (d: any, route?: any) =>
 describe("CDC/NHSN 2023 Rules Engine tests", () => {
   
   describe("evaluateBsiClabsi", () => {
+    const clabsiBase = {
+      is_fungi_respiratory: false,
+      pathogen_name: "E. coli",
+      pathogen_type: "RECOGNIZED" as const,
+      commensal_culture_count: 0,
+      commensal_drawn_separate: false,
+      symptoms_window_7days: true,
+      has_fever: true,
+      cvc_placed_days: 5,
+      cvc_active_on_event: true,
+      device_placed_date: "2026-05-01",
+      calculated_doe: "2026-05-11",
+      ngay_vao_vien: "2026-05-01",
+      is_neutropenia: false,
+      is_intestinal_pathogen: false,
+      has_localized_infection: false,
+      localized_pathogen_matches: false,
+      is_in_sbap_window: false,
+      blood_mandatory_for_localized: false,
+    };
+
+    it("không loại trừ → CLABSI", () => {
+      const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40 } as any);
+      expect(res.classification).toBe("CLABSI");
+    });
+
+    it.each([
+      "excl_ecmo_gt2d",
+      "excl_vad_gt2d",
+      "excl_tah_gt2d",
+      "excl_patient_injection",
+      "excl_epidermolysis_bullosa",
+      "excl_munchausen_proxy",
+      "excl_pus_vascular_site",
+    ])("loại trừ %s → LCBI vẫn dương nhưng không CLABSI (B4.40–48)", (flag) => {
+      const res = evaluateBsiClabsiRaw({ ...clabsiBase, [flag]: true } as any);
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("PRIMARY_BSI_NON_CLABSI");
+    });
+
+    it.each(["Salmonella enterica", "Shigella sonnei", "Clostridioides difficile", "Cytomegalovirus", "Giardia lamblia", "Listeria monocytogenes"])(
+      "B4.64–65: %s không đạt LCBI nguyên phát",
+      (name) => {
+        const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40, pathogen_name: name } as any);
+        expect(res.is_positive).toBe(false);
+      },
+    );
+
+    it.each(["Pneumocystis jirovecii", "Borrelia burgdorferi", "Rickettsia typhi"])(
+      "B4.66: %s bị loại khỏi mọi định nghĩa",
+      (name) => {
+        const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40, pathogen_name: name, is_fungi_respiratory: true } as any);
+        expect(res.classification).toBe("COMMUNITY_INFECTION");
+      },
+    );
+
+    it("E. coli thường vẫn là LCBI (không bị loại nhầm)", () => {
+      const res = evaluateBsiClabsiRaw({ ...clabsiBase, patient_age: 40, pathogen_name: "Escherichia coli" } as any);
+      expect(res.classification).toBe("CLABSI");
+    });
+
+    it("thiếu tuổi → cảnh báo", () => {
+      const res = evaluateBsiClabsiRaw(clabsiBase as any);
+      expect(res.warnings?.[0]).toContain("tuổi");
+    });
+
     it("DOE HD2 → POA dù client gửi hai_status HAI (server tự tính)", () => {
       const data = {
         is_fungi_respiratory: false,
@@ -1178,7 +1244,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("EXPIRED");
     });
 
-    it("excludes PATOS from new SSI count", () => {
+    it("PATOS chỉ là nhãn — vẫn tính SSI (S9.66, S9.108)", () => {
       const data: SsiVerificationData = {
         days_since_surgery: 5,
         is_patos: true,
@@ -1200,8 +1266,9 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         loai_phau_thuat_nhsn: "COLO",
       };
       const res = evaluateSsi(data);
-      expect(res.is_positive).toBe(false);
-      expect(res.classification).toBe("PATOS");
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("SIP");
+      expect(res.reason).toContain("PATOS");
     });
 
     it("accepts implant SSI deep infection within 90 days window", () => {

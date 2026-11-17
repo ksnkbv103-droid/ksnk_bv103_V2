@@ -122,7 +122,7 @@ describe("SSI deepest wins 20d=A", () => {
     expect(res.ssi_engine_depth).toBe("DEEP");
   });
 
-  it("PATOS không đụng — vẫn PATOS trước deepest", () => {
+  it("PATOS chỉ là nhãn — deepest vẫn thắng (S9.66, S9.75)", () => {
     const res = evaluateSsi(
       base({
         is_patos: true,
@@ -130,7 +130,8 @@ describe("SSI deepest wins 20d=A", () => {
         deep_purulent_drainage: true,
       }),
     );
-    expect(res.classification).toBe("PATOS");
+    expect(res.is_positive).toBe(true);
+    expect(res.classification).toBe("DIP");
   });
 
   it("mapSsiCriteriaFlags maps shared ticks → mọi tầng (engine deepest)", () => {

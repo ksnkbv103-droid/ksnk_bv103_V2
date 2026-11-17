@@ -7,6 +7,28 @@ import {
 } from "./nkbv-pneu-lab-tier";
 
 describe("derivePneuLabTier (lab-first PNU)", () => {
+  it("P6.22: Cryptococcus/Histoplasma từ BAL KHÔNG đủ PNU3", () => {
+    for (const organism of ["Cryptococcus neoformans", "Histoplasma capsulatum"]) {
+      const r = derivePneuLabTier({
+        pneu_lab_specimen: "BAL",
+        pneu_lab_organism: organism,
+        pneu_lab_cfu_per_ml: 1e5,
+        pneu_ic_neutropenia: true,
+      });
+      expect(r.tier).not.toBe("PNU3");
+    }
+  });
+
+  it("Aspergillus từ BAL + suy giảm miễn dịch → PNU3", () => {
+    const r = derivePneuLabTier({
+      pneu_lab_specimen: "BAL",
+      pneu_lab_organism: "Aspergillus fumigatus",
+      pneu_lab_cfu_per_ml: 1e5,
+      pneu_ic_neutropenia: true,
+    });
+    expect(r.tier).toBe("PNU3");
+  });
+
   it("sputum + common bacterium → không nâng PNU2 (giữ NONE → PNU1)", () => {
     const r = derivePneuLabTier({
       pneu_lab_specimen: "SPUTUM",
