@@ -1644,7 +1644,8 @@
     "trang_thai": "DANG_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
     "commit": "",
-    "ghi_chu": "Đường đảo phải do PO chốt (phiếu ngược có lý do vs không cho hủy). | MẶC ĐỊNH Claude 2026-11-14: giữ nguyên (không thêm đường hủy); nếu cần đảo thì lập phiếu nhập/xuất ngược có lý do, duyệt như thường. Hệ quả nếu PO im: sự cố có phiếu xuất đã duyệt không vô hiệu được. | PO 2026-11-17 (phiếu C7): cho lập phiếu ngược, bắt buộc ghi lý do; duyệt như thường. Thay mặc định «giữ nguyên» của 2026-11-14. Việc làm: RPC + màn phiếu ngược (migration-author, local trước, prod theo lệnh PO)."
+    "ghi_chu": "Đường đảo phải do PO chốt (phiếu ngược có lý do vs không cho hủy). | MẶC ĐỊNH Claude 2026-11-14: giữ nguyên (không thêm đường hủy); nếu cần đảo thì lập phiếu nhập/xuất ngược có lý do, duyệt như thường. Hệ quả nếu PO im: sự cố có phiếu xuất đã duyệt không vô hiệu được. | PO 2026-11-17 (phiếu C7): cho lập phiếu ngược, bắt buộc ghi lý do; duyệt như thường. Thay mặc định «giữ nguyên» của 2026-11-14. Việc làm: RPC + màn phiếu ngược (migration-author, local trước, prod theo lệnh PO). | Tay 2026-11-17 CHUA: Lát A đã commit 61148266 (DB local + RPC + action + vô hiệu sự cố + cảnh báo; review-bv103 Go 0C/0M/2m đã sửa). Còn lát B giao diện (list/types/drawer: nút Lập phiếu ngược + lý do bắt buộc + nhãn Phiếu ngược) và 3 kịch bản tay trên dev-local :3001: (1) lập ngược có lý do → CHO_DUYET → duyệt → tồn +n; (2) thiếu lý do bị chặn; (3) vô hiệu sự cố sau khi duyệt ngược. Migration CHƯA áp prod.",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-015",
@@ -2117,5 +2118,18 @@
     "nguon": "uat-ke-hoach-giam-sat",
     "commit": "",
     "ghi_chu": "Xác minh 2026-11-18 (HANDOFF bước kế): KHÔNG tái hiện → LOI_GIA. Playwright headless Chromium, ADMIN01 (cookie phiên tạo từ Auth admin), trang mở mới mỗi lần, đo tới khi hết .animate-pulse và thấy «Kế hoạch giám sát». Production (next build && next start :3002 trỏ DB local): có tham số 0,73–0,85 s, không tham số 0,66–0,74 s (n=5 mỗi ca, 10/10 xong). Dev :3001: có tham số 1,08–1,33 s, không tham số 0,97–1,01 s (n=4 mỗi ca). Log server dev: mọi Server Action 40–70 ms, phía server không chậm. Cũng browser pane đó (ẩn, hasFocus=false, rAF trễ 437 ms thay vì ~16 ms) chậm thất thường ở CẢ hai bản: dev 2,9 s / >68 s, dev không tham số >40 s (trước đó ~1 s); production 1,26 s / 25 s / >53 s. Độ chậm đi theo trạng thái pane nền, không theo tham số URL hay bản build → 12–13 s là nhiễu đo, giả thuyết getServerRbacSnapshot/getSession không được chứng minh. Mở lại nếu PO thấy skeleton dài khi cửa sổ Claude đang hiện hoặc trên trình duyệt thường (đo bằng Playwright headed). Chưa kiểm: pane ở trạng thái hiện (không có cửa sổ Claude mở trong phiên này). Phụ, thấy trong log dev: trang có tham số gọi getVstStrategicAnalytics với den_ngay mặc định 2026-11-18 rồi mới đến den_ngay URL 2026-11-10 (gọi dư một lần, không chặn)."
+  },
+  {
+    "id": "CSSD-037",
+    "module": "CSSD",
+    "lop": "DOMAIN",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Sau khi đảo phiếu xuất (CSSD-034): sự cố vẫn bị coi «đã có phiếu» nên không lập lại phiếu xuất; cảnh báo/NXT còn tính phiếu gốc đã đảo; đảo HET_HAN_HUY cộng tồn lô quá hạn",
+    "bang_chung": "supabase/migrations/20261118090000* (CSSD-032 chặn phiếu XUẤT thứ hai cho cùng su_co_id, không loại phiếu đã có ngược DA_DUYET); src/modules/cssd-erp/actions/cssd-kho-hoa-chat-canh-bao.actions.ts: xuat_su_dung_30n vẫn cộng phiếu gốc đã bị đảo (đếm thừa tiêu thụ); báo cáo NXT/thẻ kho (src/lib/domain/cssd-kho-hoa-chat-the-kho.ts) tính phiếu ngược là nhập theo dấu; rpc_cssd_kho_hoa_chat_duyet_phieu không kiểm hạn dùng với số dương nên đảo phiếu lý do HET_HAN_HUY cộng lại tồn lô đã quá hạn. Đã biết từ lát A CSSD-034 (commit 61148266), chủ ý chưa xử lý trong lát đó.",
+    "lenh_kiem": "đọc vị từ CSSD-032 trong migration 20261118090000 và vòng NHAP của cssd-kho-hoa-chat-canh-bao.actions.ts; sau khi sửa: test spec canh-bao + RPC probe (ghi → đảo → duyệt ngược → ghi lại phiếu xuất cho cùng sự cố phải được)",
+    "trang_thai": "MOI",
+    "nguon": "cssd-034-lat-a",
+    "commit": "",
+    "ghi_chu": "Cần PO chốt cách đọc: sau đảo, sự cố được lập lại phiếu xuất mới (đề xuất: có) và phiếu gốc đã đảo có tính vào tiêu thụ 30 ngày không (đề xuất: không). Cũng ghi: acl-snapshot tbl_anon_ghi 42→41 là lệch có sẵn của DB local bị ghi theo ở commit 61148266, không do lát A."
   }
 ]

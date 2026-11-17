@@ -3,9 +3,10 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- NỢ KỸ THUẬT (PO 17/11: tập trung nợ): đã đóng: GSC UTC, nhãn login + e2e, verify-changed, README, VST-031 (áp prod v20261117123534; chưa gán ai, cổng PO), VST-018 `d9f380a5`. CSSD-032 `3165749c` (migration `20261118090000`, local; áp prod = CHO_PO, đếm sự cố trùng trước: SQL cuối file).
+- CSSD-034 (DANG_SUA): lát A commit `61148266` (migration `20261118120000` local, chưa prod; RPC phiếu ngược + vô hiệu sự cố + cảnh báo; review Go). Còn lát B: drawer kho HC (nút «Lập phiếu ngược» + lý do bắt buộc + nhãn), 3 kịch bản tay :3001 (ghi ở `tay CSSD-034`), rồi `set DA_SUA`. Hệ quả mở: dòng MOI «sau khi đảo» trong sổ.
+- Nợ đã đóng (PO 17/11): GSC UTC, nhãn login, verify-changed, README, VST-031 (prod; cổng PO), VST-018 `d9f380a5`. CSSD-032 `3165749c` (migration `20261118090000`, local; áp prod = CHO_PO, đếm sự cố trùng trước: SQL cuối file).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
-- Lát 1 Lên prod: PR #131 merge `e908e7e0`, deploy success, B1–B5 đã áp prod (17/11). Còn TC09 do PO (mục 4 dưới).
+- Lát 1 Lên prod: PR #131 `e908e7e0`, deploy success, B1–B5 đã áp (17/11). Còn TC09: mục 4.
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
@@ -27,7 +28,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Điểm cơ học (`module:audit`, số bước có/10): giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước còn thiếu (1, 2, 5, 8, 9, 10) đều cần người dùng/PO: đầu mối, kịch bản thật, ngưỡng, UAT, số đo. Sửa mã không nâng được điểm.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
-- 15 dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture). Chạy khi có đầu mối/UAT thật.
+- Dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture).
 
 ## CẦN NGƯỜI (Lát E) — im = không push, không áp prod
 1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo; đợt thử đầu gồm module nào; trạng thái NKBV (đang KHÁM_PHÁ nhưng nhiều commit `feat`).
@@ -35,13 +36,11 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
 4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`): nhóm A đã áp prod 17/11 (37/37 khớp). Cửa sổ rủi ro §3.4 đã đóng; B1–B5 đã áp (17/11). Còn: TC09 do PO; mở dashboard VST/GSC prod xem số sau B2.
 5. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (làm gọn mã mọi module, 13 câu hỏi; im = không xóa gì).
-- Gỡ «mục tiêu viện» (`b13ef7b6`…`f44b7705`): phần prod gộp vào B2–B4 của plan lô prod pha 1; chi tiết `SO_NO_APPKSNK.md`.
 
 ## Lát chưa mở / nợ
-- Thử tay 2026-11-13 ĐẠT 36/43; 7 mục không lối UI giữ CHUA, có spec pass. Mẹo fixture: vai tạm có quyền cần thử, xóa sau phiên; BM.31.03 local is_active=false. Ghi nhận nhỏ chưa sửa: nút «Phê duyệt và giao» vẫn hiện cho người đề xuất; banner NKBV hiện link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
+- Thử tay 2026-11-13 ĐẠT 36/43; 7 mục không lối UI giữ CHUA, có spec pass. Mẹo fixture: vai tạm có quyền cần thử, xóa sau phiên. Chưa sửa: nút «Phê duyệt và giao» hiện cho người đề xuất; banner NKBV có link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
 - Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
 - Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import (chỉ seed, không migration).
-- Roadmap 65,9 KB (mục tiêu 25 KB).
 
 ## Lệnh kiểm chứng
 `node scripts/readiness/so-loi.mjs check` · `npm run verify:changed` · `npm run docs:links:check` · `npm run module:gate`
