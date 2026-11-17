@@ -3,7 +3,7 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- LÁT 1 Lên prod (KH `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md`, Next 16.4.6): `npm run verify` → «push» → PR vào `main` (hỏi PO) → «deploy» → B1–B5 → TC09. Chi tiết: KH lô prod pha 1 §3–§9.
+- LÁT 1 Lên prod (KH `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md`): đã push, PR #131 merge `e908e7e0`, deploy Production success (17/11). Còn: `/mcp` supabase+vercel → B1–B5 (PO đọc AR-8h trước B1) → TC09 do PO. Chi tiết: KH lô prod pha 1 §4–§9.
 
 ## KẾ
 - Lát 2: ẩn NKBV/QLCV/Đào tạo bằng `KSNK_PILOT_FOUR_MODULES=1` + phủ `/dao-tao` (sau lát 1).
@@ -32,7 +32,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo; đợt thử đầu gồm module nào; trạng thái NKBV (đang KHÁM_PHÁ nhưng nhiều commit `feat`).
 2. PO chốt 11-13 (đã sửa, sha trong sổ): CSSD-017 ủ BI ≥20', NKBV-023 ẩn ca chốt = ADMIN + lý do, NKBV-026 LOA máy chủ; CSSD-025 HOAN. Còn treo: câu 7 GSC, DT-008. Mặc định Claude 2026-11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 giờ đọc tương lai (dung sai 2 phút).
 3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
-4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`): nhóm A đã áp prod 17/11 (37/37 khớp). Cửa sổ rủi ro §3.4 đang mở: prod chạy mã cũ, ghi nhật ký/thu hồi CSSD lỗi (RPC đổi tham số). Còn: «push» → PR vào main → «deploy» → B1–B5 (`sync:check`) → TC09.
+4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`): nhóm A đã áp prod 17/11 (37/37 khớp). Cửa sổ rủi ro §3.4 đóng khi deploy xong (17/11). Còn: B1–B5 (`sync:check`) → TC09.
 5. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (làm gọn mã mọi module, 13 câu hỏi; im = không xóa gì).
 - Gỡ «mục tiêu viện» (`b13ef7b6`…`f44b7705`): phần prod gộp vào B2–B4 của plan lô prod pha 1; chi tiết `SO_NO_APPKSNK.md`.
 
