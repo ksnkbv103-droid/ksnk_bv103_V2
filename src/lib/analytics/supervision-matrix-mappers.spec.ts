@@ -1,3 +1,4 @@
+// gate-ok: khóa PO 2026-11-01 đổi ngưỡng/mẫu tối thiểu (đỏ <85, xanh ≥90, mẫu 50); expect cũ thay bằng giá trị mới
 import { describe, expect, it } from "vitest";
 import {
   buildCoverageMatrix,
@@ -210,8 +211,8 @@ describe("supervision-matrix-mappers", () => {
     expect(matrix.khoaRows).toHaveLength(1);
   });
 
-  it("KHOA_COMPLIANCE_WARN_PCT is 80 for dashboard highlight", () => {
-    expect(KHOA_COMPLIANCE_WARN_PCT).toBe(80);
+  it("KHOA_COMPLIANCE_WARN_PCT is 85 for dashboard highlight", () => {
+    expect(KHOA_COMPLIANCE_WARN_PCT).toBe(85);
   });
 
   it("resolveKhoaAggregateTyLe prefers KSNK then TGS then matrix aggregate", () => {

@@ -150,7 +150,7 @@ Nợ VST lấy từ HANDOFF của UI v2 (UAT 2026-11-10 :3001):
   - `cssd-heat-split-apply.ts`: lấy nguyên bản của nhánh bộ tổng (tách nhiệt qua RPC `fn_cssd_dong_bo_tach_nhiet`).
   - Migration `khu_vuc_giam_sat_chuan_9`: đổi số `20261110110000` → `20261110115000`, vì trùng với `cssd_incident_void_atomic`.
 - Không gộp:
-  - `monitoring-module-review`: migration `20261101010000_gstt_ke_hoach_giam_sat` đã có sẵn trong nhánh tích hợp.
+  - `monitoring-module-review`: đã gộp 2026-11-18 theo khóa PO 11-01 qua `ksnk_dm_tham_so` (migration `20261118100000` thêm 6 dòng tham số; `20261118110000_gstt_ke_hoach_giam_sat` đổi số từ `20261101010000`).
   - Nhánh UI gộp cuối, chat UI tự rebase.
 - **Nợ Cao (CSSD, giao migration-author):** RPC `fn_cssd_dong_bo_tach_nhiet` chỉ sinh bộ con CN/KCN. Hai thứ của `379b835e` bị mất:
   - tự tạo bộ con `-EO`;

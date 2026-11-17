@@ -9,7 +9,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
-- Nhánh 18/11 (đã push 21 commit; 17 commit gộp chưa push): vào integrate nkbv 12 + chore 1 + audit 1. Còn `claude/monitoring-module-review-3384e5` (7 commit) = CHO_PO: khóa PO 11-01 (đỏ <85, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) xung đột `ksnk_dm_tham_so` (85/70/80, mẫu 20/30); migration `20261101010000` lệch thứ tự. Remote chưa đụng.
+- Nhánh 18/11 (21 commit đã push; phần gộp chưa push: `git status -sb`): integrate đã gộp nkbv, chore, audit, monitoring. Monitoring theo khóa PO 11-01 (đỏ <85, vàng 85–<90, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) qua `ksnk_dm_tham_so`: migration `20261118100000` (6 dòng từ 2026-11-01) + `20261118110000` (kế hoạch, đổi số từ `20261101010000`). Áp local; áp prod = CHO_PO. Thiếu kịch bản tay UI kế hoạch giám sát.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 
 ## Mở phiên mới

@@ -79,14 +79,17 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho ch
 
 ---
 
-## Ngưỡng cảnh báo (pilot)
+## Ngưỡng cảnh báo (khóa PO 2026-11-01)
 
 | Ngưỡng | Giá trị | Ý nghĩa UI & Căn cứ |
 |--------|---------|---------------------|
-| `GREEN_MIN` | 85% | Đạt (màu xanh) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
-| `YELLOW_MIN` | 70% | Cần theo dõi — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
-| `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
-| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi CCS. Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `GREEN_MIN` (`giam_sat.xanh_min_pct`, `giam_sat.vang_min_pct`) | 85% | Dưới 85% = **đỏ** (dưới mục tiêu viện) — khóa PO 2026-11-01 |
+| `GOAL` (`giam_sat.xanh_tu_pct`) | 90% | 85% đến dưới 90% = **vàng**; từ 90% = **xanh** — khóa PO 2026-11-01 |
+| `KHOA_WARN_PCT` (`giam_sat.khoa_canh_bao_pct`) | 85% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) — cùng mốc đỏ |
+| `VST_KHOA_CHART` (`vst.khoa_vang_pct`, `vst.khoa_do_pct`) | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi CCS |
+| Cỡ mẫu tối thiểu (`vst.so_sanh_mau_toi_thieu`, `doi_soat.vst_mau_toi_thieu`, `doi_soat.gsc_mau_toi_thieu`) | 50 | % theo khoa trong một kỳ: VST = 50 cơ hội hợp lệ, GSC = 50 tiêu chí áp dụng. Dưới 50: hiện số mờ «chưa đủ mẫu (n/50)», không tô màu, không xếp hạng; n = 0: «chưa có phiên» |
+
+Hai mức dùng chung VST/GSC/BCTH/biểu đồ khoa; bỏ các mốc cũ 70% và 80%. Con số 50 là quyết định PO, không phải chuẩn WHO. Giá trị đang áp dụng đọc từ bảng `ksnk_dm_tham_so` (dòng hiệu lực từ 2026-11-01, migration `20261118100000`); số trong mã là mặc định khi chưa có dòng. Quy trình giám sát tuân thủ: **QT.KSNK.33**.
 
 SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
@@ -196,7 +199,7 @@ Gộp song song vào payload VST/GSC (và detail BK khi lọc 1 BK). Công thứ
 | `so_bo_danh_muc` | `COUNT` bộ dụng cụ active (danh mục) | Snapshot tài sản danh mục — **không** = cấp phát kỳ |
 | Trạm tốt nhất / kém nhất | Xếp `rate = incidents/station_volume` ASC/DESC trong kỳ overview | Hero overview CSSD — **error-rate ranking**, ngoài CCS |
 
-Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 5%` — độc lập với `GREEN_MIN` / `YELLOW_MIN` của giám sát.
+Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 5%` — độc lập với `TARGET_MIN` / `GOAL` của giám sát.
 
 **Cấm:** mọi chỉ số CSSD dưới đây **không** vào công thức `ty_le_ccs`.
 

@@ -98,7 +98,7 @@ Chạy trên bản local/staging, tài khoản có quyền VST + GSC. Ghi giờ 
 |---|---|---|---|---|
 | 1 | Nhập phiên VST 5 mốc | `/giam-sat-vst` → chọn khoa, người được giám sát → chọn hành động cho mốc 1 (Rửa tay bằng nước) → thêm mốc thứ 2, 3, 4, 5 trên cùng một hàng → «Lưu» | Lưu thành công; mốc đạt tối đa 2 thời điểm WHO, vượt trần thì bỏ mốc cũ nhất, không hiện toast; «Bỏ sót» chỉ 1 mốc; ô chọn nền xanh `#026f17` chữ trắng | |
 | 2 | Nhập phiên GSC | `/giam-sat-chung/tuan-thu` → chọn khoa, mẫu → tick các mục → «Lưu» | Lưu thành công; phiên xuất hiện đầu `/lich-su/gsc` | |
-| 3 | Xem thống kê một kỳ và in | `/thong-ke/vst` → chọn kỳ (tháng vừa nhập) → xem chỉ số tổng, bảng khoa → in/xuất; lặp lại ở `/thong-ke/gsc` | chỉ số tổng ở đầu trang; khoa có < 20 cơ hội VST (< 30 GSC) hiện «mẫu mỏng», không tô cảnh báo; phiên vừa nhập có trong số liệu; số khớp lịch sử | |
+| 3 | Xem thống kê một kỳ và in | `/thong-ke/vst` → chọn kỳ (tháng vừa nhập) → xem chỉ số tổng, bảng khoa → in/xuất; lặp lại ở `/thong-ke/gsc` | chỉ số tổng ở đầu trang; khoa có < 50 cơ hội VST (< 50 tiêu chí GSC) hiện «chưa đủ mẫu (n/50)», không tô cảnh báo; phiên vừa nhập có trong số liệu; số khớp lịch sử | |
 
 ### Đối soát VST: RPC so với tính tay (L1-2, 2026-10-24, DB local)
 
@@ -111,7 +111,22 @@ Tính tay = đếm trực tiếp từ `gstt_fact_vst` (phiên `is_active`, hành
 | C. Tháng 2026-09, từng khoa (`matrix_khoa`) | 39 khoa ở cả hai phía, **0 lệch** |
 | D. Lọc một khoa | 109 cơ hội · 89,0% cả hai phía |
 
-Kết luận: không lệch, không sửa hàm chỉ số. GSC chưa đối soát (ngoài phạm vi L1-2).
+Kết luận: không lệch, không sửa hàm chỉ số.
+
+### Đối soát GSC: RPC so với tính tay (2026-11-01, DB local)
+
+Tính tay = đếm trực tiếp từ `gstt_fact_chung_sessions.results_jsonb` (phiên `is_active`, chỉ `TUAN_THU`, mẫu = tiêu chí khác `NA`/rỗng, đạt = `DAT`, `ty_le = round(đạt/mẫu×100, 2)`). So với `rpc_dashboard_gsc_strategic_analytics_impl` (wrapper cần đăng nhập nên gọi `_impl`, cùng logic).
+
+| Tình huống | Tay (mẫu · đạt · %) | RPC (mẫu · đạt · %) |
+|---|---|---|
+| A. Tháng 2026-08, toàn viện | 5333 · 4876 · 91,43 | 5333 · 4876 · 91,43 |
+| B. 2026-05 → 2026-10, toàn viện | 13003 · 11645 · 89,56 | 13003 · 11645 · 89,56 |
+| C. Tháng 2026-08, từng khoa (`matrix_khoa`) | 33 khoa | 33 khoa, **0 lệch** |
+| D. Lọc khoa B11 (Hồi sức ngoại), 2026-08 | 1840 · 1767 · 96,03 | 1840 · 1767 · 96,03 |
+
+Ghi chú: ở B, `tong_phien` RPC = 1175, đếm tay phiên có tiêu chí = 1173; 2 phiên không có tiêu chí vẫn tính là phiên, không ảnh hưởng tỉ lệ.
+
+Kết luận: không lệch, không sửa hàm chỉ số.
 
 ---
 
