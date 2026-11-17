@@ -2077,5 +2077,45 @@
     "nguon": "vong-nkbv039",
     "commit": "",
     "ghi_chu": "CHO_PO 2026-11-14 — mặc định: giữ NKBV-018 như hiện tại (người chỉ có quyền CSSD thấy mã ca, họ tên = null), chưa code che gì: «mã bệnh án có được lộ cho người chỉ có quyền CSSD không» là quyết định danh tính của PO (SSOT M03 định nghĩa cột «Xa» cho danh tính; chưa có dòng nào nói riêng về ma_ca). Nếu PO chọn che, ba hướng từ rẻ đến đắt: (1) với người không có GIAM_SAT_NKBV:view trả maCa = null, dải CSSD tự rơi về id.slice(0, 8) (me-tk-nkbv-link-banner.tsx:53), sửa một action và đổi kỳ vọng ca NKBV-018 trong nkbv-cssd-rca.actions.spec.ts; (2) bỏ trả maCa cho người chỉ-CSSD, giữ id và ngày; (3) đổi bộ sinh mã ca (giam-sat-nkbv-ba-analysis.actions.ts:366) sang mã không nhúng mã bệnh án (số thứ tự theo khoa/năm): đụng mã đã sinh, cần backfill và thống nhất giới hạn độ dài (bộ sinh cắt 64 ký tự, giam-sat-nkbv.validations.ts:16 cho tối đa 50). Hai bản in ma_ca (NkbvCaseSummaryBookPrintView.tsx:123, NkbvCasePrintView.tsx:87) thuộc P1 (rà biểu mẫu in/lưu trữ). Đo trước khi quyết (chỉ đọc): số dòng nkbv_fact_su_kien có ma_ca nhúng mã bệnh án và số người giữ CSSD_WORKFLOW:view mà không giữ GIAM_SAT_NKBV:view trên prod (local: 2/2 dòng nhúng; 0 vai thuộc nhóm người chỉ-CSSD). PO im: người chỉ có quyền CSSD vẫn thấy mã bệnh án nhúng trong mã ca (NKBV-018 giữ nguyên); local không có người bị ảnh hưởng, prod chưa đo; không đổi mã đã sinh. Không gộp vào NKBV-039: NKBV-039 chặn HĐ thuần hoàn toàn trước truy vấn nên không còn phụ thuộc câu hỏi này. | L6 2026-11-16: NkbvCaseEditor.tsx (bang_chung nêu :103, :199) đã xóa vì @deprecated và 0 nơi import (GiamSatNkbvPage đã bỏ import từ trước, có spec canh); câu «ô mã ca còn cho nhập tay» trong bang_chung không còn đúng: git grep ma_ca|maCa ở components/, views/, hooks/ chỉ còn chỗ hiển thị, in và khai báo kiểu, không có ô gõ tay. Phần còn lại của bang_chung và câu hỏi PO giữ nguyên; trang_thai không đổi. | PO 2026-11-17 (phiếu K6): không đổi gì; giữ ma_ca và NKBV-018 như hiện tại."
+  },
+  {
+    "id": "VST-032",
+    "module": "VST_GSC",
+    "lop": "FRONTEND",
+    "muc": "THAP",
+    "tieu_de": "Thẻ «Kế hoạch giám sát tháng» (QT.KSNK.33) chưa có kịch bản tay trên giao diện",
+    "bang_chung": "HANDOFF_APPKSNK.md dòng 12: «Thiếu kịch bản tay UI kế hoạch giám sát». Commit c22f6d08 (SupervisionKeHoachCard + ke-hoach-giam-sat.actions.ts) và migration 20261118110000 áp local, chưa chạy qua browser.",
+    "lenh_kiem": "dev-local :3001, ADMIN: /thong-ke/vst?tu_ngay=2026-11-01&den_ngay=2026-11-17 → thẻ «Kế hoạch giám sát tháng 11/2026»; docker exec supabase_db_ksnk_bv103 psql -U postgres -At -c \"select khoa_id,thang,loai,is_active from public.gstt_fact_ke_hoach_giam_sat\"",
+    "trang_thai": "DA_SUA",
+    "nguon": "uat-ke-hoach-giam-sat",
+    "commit": "c22f6d08",
+    "ghi_chu": "Tay 2026-11-17 DAT: dev-local :3001 ADMIN, VST tháng 11/2026, DB local đối chiếu: KB1 thẻ «Chưa có kế hoạch», nút Lập kế hoạch tắt khi chưa chọn khoa; KB2 lập kế hoạch 3 khoa (A03, B05, GV) → 3 dòng is_active=t ở gstt_fact_ke_hoach_giam_sat; KB3 tiến độ 2/3 khoa đạt, B05 1/1 Đạt, GV 0/1 Chưa đạt, số phiên khớp DB; KB4 Bỏ GV → is_active=f, dòng còn nguyên (xóa mềm); KB5 lập lại GV sau Bỏ → 1 dòng f + 1 dòng t, không vi phạm unique index một phần; KB6 GSC «Chưa có kế hoạch», kế hoạch VST không lẫn sang; KB7 đổi Đến ngày sang 31/10 → tiêu đề «tháng 10/2026», «Chưa có kế hoạch», danh sách chọn đủ khoa. CHƯA chạy: tài khoản không phải admin/KSNK chỉ thấy khoa mình, không có Bỏ/Lập (chỉ kiểm đọc mã ke-hoach-giam-sat.actions.ts:38-39,58,75). Phát hiện kèm: VST-033, VST-034",
+    "test_tay": "DAT"
+  },
+  {
+    "id": "VST-033",
+    "module": "VST_GSC",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Thẻ kế hoạch giám sát xếp khoa theo khoa_id (UUID), không theo tên/mã khoa",
+    "bang_chung": "src/lib/analytics/SupervisionKeHoachCard.tsx:83 rows.map giữ nguyên thứ tự RPC; fn_gstt_ke_hoach_tien_do có ORDER BY kh.khoa_id. Quan sát :3001 (ADMIN, tháng 11/2026, 3 khoa lập): thứ tự hiển thị B05 → GV → A03, không theo tên.",
+    "lenh_kiem": "Lập kế hoạch ≥3 khoa trên thẻ (/thong-ke/vst), đọc thứ tự dòng: phải theo tên/mã khoa ổn định giữa các lần tải",
+    "trang_thai": "MOI",
+    "nguon": "uat-ke-hoach-giam-sat",
+    "commit": "",
+    "ghi_chu": ""
+  },
+  {
+    "id": "VST-034",
+    "module": "VST_GSC",
+    "lop": "UX",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Mở thẳng/F5 /thong-ke/vst có tu_ngay+den_ngay: skeleton ~13 s (không tham số: ~1 s) — chưa xác minh có riêng bản dev hay không",
+    "bang_chung": "dev-local :3001, browser pane, ADMIN, đo 2026-11-18: /thong-ke/vst?tu_ngay=2026-09-01&den_ngay=2026-11-10 hiện Bv103AnalyticsPageSkeleton ~13 s (12,3 s không có request mạng, rồi mới gọi v_sys_user_permissions ở 13,4 s); /thong-ke/vst không tham số ~1 s, RBAC snapshot hydrate từ server, không có request 54321. Giả thuyết: getServerRbacSnapshot() (src/lib/auth/rbac-request.ts:61-69, catch → null) trả null khi có tham số → PermissionProvider.tsx:234-239 chờ supabase.auth.getSession(); use-analytics-filters.ts chỉ đặt initDone sau khi có session. Nguyên nhân 12 s chưa rõ. GSC có tham số cũng chậm, log server thấy action gọi lặp 2–3 lần (nghi effect lặp, phụ).",
+    "lenh_kiem": "npm run dev (:3001), đăng nhập ADMIN, vào thẳng /thong-ke/vst?tu_ngay=2026-09-01&den_ngay=2026-11-10, đo thời gian tới khi hết skeleton; so với npm run build && npm start để biết có riêng bản dev",
+    "trang_thai": "MOI",
+    "nguon": "uat-ke-hoach-giam-sat",
+    "commit": "",
+    "ghi_chu": ""
   }
 ]
