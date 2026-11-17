@@ -6,7 +6,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Không có (CSSD-036 đóng: DA_SUA 67beb5bb, tay ĐẠT).
 
 ## KẾ
-- Cổng build của `npm run verify` đôi khi dừng exit 1 vì cảnh báo bảo mật Next 16.4.4 (SO_NO 2026-11-17); PO quyết nâng Next hay chấp nhận thử lại.
+- Next đã nâng 16.4.6 (17/11, PO duyệt): `verify` exit 0 lượt đầu, hết cảnh báo bảo mật. Còn lại: mở PR (hỏi PO) rồi «push».
 - Smoke VST + GSC: ĐÃ XONG 17/11, 6/6 pass trên :3001 chạy từ worktree. `preview_start` luôn mở ở checkout chính (code cũ `kpis`) → chạy `node scripts/dev-local.mjs` bằng Bash từ worktree.
 - CSSD-032 (`migration-author`) → PR vào `main` → dọn 15 nhánh, 5 worktree.
 
