@@ -3,7 +3,7 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- NỢ KỸ THUẬT (PO 17/11: tập trung nợ, mọi module vẫn dùng được để thử): đã đóng ngày GSC theo UTC (`fac83d80`). Kế: nhãn login + 4 e2e, `docs/README.md:8-11`, rồi `SO_NO_APPKSNK.md`.
+- NỢ KỸ THUẬT (PO 17/11: tập trung nợ, mọi module vẫn dùng được để thử): đã đóng ngày GSC theo UTC (`fac83d80`), nhãn login + 4 e2e (`375cdf8f`). Kế: `verify-changed.mjs` bọc nháy đường dẫn, `docs/README.md:8-11`, rồi `SO_NO_APPKSNK.md`.
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 merge `e908e7e0`, deploy success, B1–B5 đã áp prod (17/11). Còn TC09 do PO (mục 4 dưới).
 
@@ -15,7 +15,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 ## Mở phiên mới
 1. Làm ở worktree `integrate-2026-11` (nhánh `integrate/2026-11`; `git status -sb` xem số commit chưa push).
 2. `node scripts/readiness/so-loi.mjs status` → `next 10` → `next --tay` → `stats`.
-3. Bật `dev-local-integrate` (:3001, DB local) bằng `preview_start`. Không dùng `dev-local` (chạy mã checkout chính, cũ).
+3. Bật `dev-local` (:3001, DB local) bằng `preview_start` (17/11: phục vụ mã worktree).
 4. Fixture thử tay: NV_TEST01 gốc chỉ có vai NHAN_VIEN_KSNK, khoa C18. Đã đổi tạm thì phải trả về gốc cuối phiên. Mật khẩu NV_TEST01 đang là giá trị thử; `npm run trial:prep` đặt lại.
 
 ## Vòng một việc
