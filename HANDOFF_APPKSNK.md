@@ -3,12 +3,12 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- Không có (CSSD-036 đóng: DA_SUA 67beb5bb, tay ĐẠT).
+- LÁT 1 Lên prod (KH `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md`, Next 16.4.6): `npm run verify` → «push» → PR vào `main` (hỏi PO) → «deploy» → B1–B5 → TC09. Chi tiết: KH lô prod pha 1 §3–§9.
 
 ## KẾ
-- Next đã nâng 16.4.6 (17/11, PO duyệt): `verify` exit 0 lượt đầu, hết cảnh báo bảo mật. Còn lại: mở PR (hỏi PO) rồi «push».
-- Smoke VST + GSC: ĐÃ XONG 17/11, 6/6 pass trên :3001 chạy từ worktree. `preview_start` luôn mở ở checkout chính (code cũ `kpis`) → chạy `node scripts/dev-local.mjs` bằng Bash từ worktree.
-- CSSD-032 (`migration-author`) → PR vào `main` → dọn 15 nhánh, 5 worktree.
+- Lát 2: ẩn NKBV/QLCV/Đào tạo bằng `KSNK_PILOT_FOUR_MODULES=1` + phủ `/dao-tao` (sau lát 1).
+- Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
+- CSSD-032 (`migration-author`) → dọn 15 nhánh, 5 worktree.
 
 ## Mở phiên mới
 1. Làm ở worktree `integrate-2026-11` (nhánh `integrate/2026-11`; `git status -sb` xem số commit chưa push).
