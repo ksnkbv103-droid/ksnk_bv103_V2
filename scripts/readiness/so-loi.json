@@ -1719,10 +1719,11 @@
     "tieu_de": "Bản in phiếu GSC/VST không có khối IV (khắc phục, hạn, chữ ký), dấu ● và dòng kết luận đạt/không đạt như nguyên tắc bảng kiểm",
     "bang_chung": "App: src/modules/giam-sat-chung/components/GiamSatChungPrintCriteriaSection.tsx, src/modules/giam-sat-vst/components/VSTPrintView.tsx, src/components/shared/PrintLayout.tsx (chữ ký ở chân trang; 0 lần xuất hiện ●, khắc phục, kết luận, đạt yêu cầu trong cả ba file). Kho (bản nháp): 03_QUY_TRINH_BENH_VIEN/04_HUONG_DAN_BANG_KIEM/NGUYEN_TAC_BANG_KIEM.md:20 (đạt khi đạt ngưỡng của khoa và 0 lỗi ●; ngưỡng ≥ 90% do PO quyết, đồng bộ QT.32), :25 (khối III Tổng hợp), :26 (khối IV biện pháp khắc phục, thời hạn, chữ ký)",
     "lenh_kiem": "grep -ci -e '●' -e 'khắc phục' -e 'kết luận' -e 'đạt yêu cầu' src/modules/giam-sat-chung/components/GiamSatChungPrintCriteriaSection.tsx src/modules/giam-sat-vst/components/VSTPrintView.tsx src/components/shared/PrintLayout.tsx (hiện 0, 0, 0)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "kho tri thức (dự thảo)",
-    "commit": "",
-    "ghi_chu": "CHO_PO 2026-11-14. Mặc định: không in dòng kết luận đạt/không đạt và không cài ngưỡng ≥ 90% vào bản in (ngưỡng do PO quyết, đồng bộ QT.32); ánh xạ ● với tiêu chí mức CRITICAL của app là «cần kiểm»; không thêm khối IV cho đến khi PO duyệt mẫu in. Hệ quả nếu PO im: bản in giữ nguyên, số liệu không đổi; thiếu khối khắc phục so với mẫu giấy. | PO 2026-11-17 (phiếu V5): bản in thêm chữ ký và dấu ● ở ô đã chọn; không thêm khối IV (khắc phục, hạn) và không in dòng kết luận đạt/không đạt (V9: không cài ngưỡng, tính theo tỉ lệ tuân thủ). Thay mặc định «không thêm khối IV» chỉ ở hai ý chữ ký và ●."
+    "commit": "d9f380a5",
+    "ghi_chu": "CHO_PO 2026-11-14. Mặc định: không in dòng kết luận đạt/không đạt và không cài ngưỡng ≥ 90% vào bản in (ngưỡng do PO quyết, đồng bộ QT.32); ánh xạ ● với tiêu chí mức CRITICAL của app là «cần kiểm»; không thêm khối IV cho đến khi PO duyệt mẫu in. Hệ quả nếu PO im: bản in giữ nguyên, số liệu không đổi; thiếu khối khắc phục so với mẫu giấy. | PO 2026-11-17 (phiếu V5): bản in thêm chữ ký và dấu ● ở ô đã chọn; không thêm khối IV (khắc phục, hạn) và không in dòng kết luận đạt/không đạt (V9: không cài ngưỡng, tính theo tỉ lệ tuân thủ). Thay mặc định «không thêm khối IV» chỉ ở hai ý chữ ký và ●. | Tay 2026-11-17 DAT: Thử tay :3001 phiếu GSC-20261006-A67524D8 (VAP, 87,50%): bản in 10 hàng, mỗi hàng đúng 1 ● ở cột Đạt/K.Đạt/KAD (7 Đạt, 1 K.Đạt hàng 3, 2 KAD hàng 5-6), không còn ✓/✕, 2 ô chữ ký (Người giám sát / Đại diện đơn vị) có sẵn ở chân trang PrintLayout. Theo PO V5: không thêm khối IV, không in kết luận. ● chỉ áp GSC (bản in VST không có lưới lựa chọn nên giữ nguyên). Diễn giải ● thay ✓/✕ ở ô đã chọn; nếu PO muốn thêm ô ký khác thì báo.",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-019",
