@@ -4,6 +4,7 @@
  */
 
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 
 export type SupervisionModuleKey = "vst" | "gsc";
 
@@ -46,7 +47,7 @@ export function buildContinueAdminSession(
   prev: GiamSatSession,
   opts?: { keepSubjects?: boolean },
 ): GiamSatSession {
-  const today = new Date().toISOString().split("T")[0]!;
+  const today = todayYmdInVn();
   const keep = Boolean(opts?.keepSubjects);
   return {
     ...prev,
@@ -82,7 +83,7 @@ export function buildFreshAdminSession(
   prev: GiamSatSession,
   opts?: { lockedKhoaId?: string | null },
 ): GiamSatSession {
-  const today = new Date().toISOString().split("T")[0]!;
+  const today = todayYmdInVn();
   const locked = String(opts?.lockedKhoaId || "").trim();
   return {
     ...prev,
