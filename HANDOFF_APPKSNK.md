@@ -3,7 +3,7 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- CSSD-034 (DANG_SUA): lát A commit `61148266` (migration `20261118120000` local, chưa prod; RPC phiếu ngược + vô hiệu sự cố + cảnh báo; review Go). Còn lát B: drawer kho HC (nút «Lập phiếu ngược» + lý do bắt buộc + nhãn), 3 kịch bản tay :3001 (ghi ở `tay CSSD-034`), rồi `set DA_SUA`. Hệ quả mở: dòng MOI «sau khi đảo» trong sổ.
+- CSSD-034 (DA_SUA): lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT). Còn mở: dòng MOI «sau khi đảo» (xuất lại/NXT, cần PO).
 - Nợ đã đóng (PO 17/11): GSC UTC, nhãn login, verify-changed, README, VST-031 (prod; cổng PO), VST-018 `d9f380a5`. CSSD-032 `3165749c` (migration `20261118090000`, local; áp prod = CHO_PO, đếm sự cố trùng trước: SQL cuối file).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 `e908e7e0`, deploy success, B1–B5 đã áp (17/11). Còn TC09: mục 4.
