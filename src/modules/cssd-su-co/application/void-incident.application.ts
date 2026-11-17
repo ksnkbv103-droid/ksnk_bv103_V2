@@ -48,15 +48,32 @@ export async function executeVoidIncidentReport(
   }
   const quyId = String(row.quy_trinh_id || "").trim();
 
-  const { count: stockCount, error: stockErr } = await supabase
+  // Phiếu kho hóa chất hiệu lực của sự cố. Đã duyệt thì không sửa được (PO 2026-10-29) → chỉ qua được khi
+  // mỗi phiếu đã có phiếu ngược DA_DUYET (CSSD-034, PO 2026-11-17); phiếu chưa duyệt thì phải từ chối.
+  const { data: stockRows, error: stockErr } = await supabase
     .from("cssd_fact_kho_hoa_chat_giao_dich")
-    .select("id", { count: "exact", head: true })
+    .select("id")
     .eq("su_co_id", id)
     .eq("is_active", true)
     .neq("trang_thai", "TU_CHOI");
   if (stockErr) return { ok: false, error: stockErr.message };
-  if ((stockCount || 0) > 0) {
-    return { ok: false, error: "Đã ghi xuất kho hóa chất theo phiếu này. Hủy phiếu kho trước." };
+  const stockIds = (stockRows || []).map((r) => String((r as { id: string }).id));
+  if (stockIds.length > 0) {
+    const { data: reversedRows, error: revErr } = await supabase
+      .from("cssd_fact_kho_hoa_chat_giao_dich")
+      .select("phieu_goc_id")
+      .in("phieu_goc_id", stockIds)
+      .eq("is_active", true)
+      .eq("trang_thai", "DA_DUYET");
+    if (revErr) return { ok: false, error: revErr.message };
+    const reversed = new Set((reversedRows || []).map((r) => String((r as { phieu_goc_id: string }).phieu_goc_id)));
+    if (stockIds.some((sid) => !reversed.has(sid))) {
+      return {
+        ok: false,
+        error:
+          "Đã ghi xuất kho hóa chất theo phiếu này. Từ chối phiếu chưa duyệt, hoặc lập phiếu ngược cho phiếu đã duyệt và chờ duyệt xong, rồi mới vô hiệu.",
+      };
+    }
   }
 
   const { data: ledgerRows, error: ledErr } = await supabase

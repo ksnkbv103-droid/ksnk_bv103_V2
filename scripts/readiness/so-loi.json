@@ -1641,7 +1641,7 @@
     "tieu_de": "Kho hóa chất: phiếu xuất đã DA_DUYET không có đường hủy/đảo; sự cố có phiếu xuất không vô hiệu được",
     "bang_chung": "src/modules/cssd-su-co/application/void-incident.application.ts:52-61 chặn vô hiệu sự cố khi có phiếu kho chưa TU_CHOI và bảo «Hủy phiếu kho trước»; grep src + migrations không có action/RPC hủy phiếu DA_DUYET (chỉ TU_CHOI khi còn CHO_DUYET). PO 2026-10-29 cấm sửa số tồn.",
     "lenh_kiem": "grep -rliE 'phieu_nguoc|dao_phieu|storno|reverse_of|phieu_goc|giao_dich_goc' src supabase/migrations | wc -l (hiện 0 file: chưa có đường đảo phiếu xuất hóa chất)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DANG_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
     "commit": "",
     "ghi_chu": "Đường đảo phải do PO chốt (phiếu ngược có lý do vs không cho hủy). | MẶC ĐỊNH Claude 2026-11-14: giữ nguyên (không thêm đường hủy); nếu cần đảo thì lập phiếu nhập/xuất ngược có lý do, duyệt như thường. Hệ quả nếu PO im: sự cố có phiếu xuất đã duyệt không vô hiệu được. | PO 2026-11-17 (phiếu C7): cho lập phiếu ngược, bắt buộc ghi lý do; duyệt như thường. Thay mặc định «giữ nguyên» của 2026-11-14. Việc làm: RPC + màn phiếu ngược (migration-author, local trước, prod theo lệnh PO)."

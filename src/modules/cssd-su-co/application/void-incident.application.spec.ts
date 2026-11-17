@@ -43,7 +43,7 @@ function planOf(cycle: CyclePlan | null): IncidentVoidDomain.IncidentVoidPlan {
 }
 
 /** Client giả theo bảng + cách kết thúc truy vấn (maybeSingle hay await trực tiếp). Bảng lạ thì ném lỗi. */
-function createClient(opts: { ticket: Row | null; rpcData?: unknown; rpcError?: string }) {
+function createClient(opts: { ticket: Row | null; kho?: Row[]; rpcData?: unknown; rpcError?: string }) {
   const rpc = vi.fn<(name: string, args: Record<string, unknown>) => Promise<RpcReply>>(async () => ({
     data: opts.rpcData ?? null,
     error: opts.rpcError ? { message: opts.rpcError } : null,
@@ -64,10 +64,21 @@ function createClient(opts: { ticket: Row | null; rpcData?: unknown; rpcError?: 
           throw new Error(`maybeSingle ngoài kịch bản: ${table}`);
       }
     };
+    // Bộ lọc của truy vấn hiện hành, áp lên `opts.kho` để test kiểm đúng vị từ chứ không chỉ kết quả cố định.
+    const eqs: Array<[string, unknown]> = [];
+    const neqs: Array<[string, unknown]> = [];
+    const ins: Array<[string, unknown[]]> = [];
     const list = () => {
       switch (table) {
-        case "cssd_fact_kho_hoa_chat_giao_dich":
-          return { data: null, count: 0, error: null };
+        case "cssd_fact_kho_hoa_chat_giao_dich": {
+          const rows = (opts.kho ?? []).filter(
+            (r) =>
+              eqs.every(([c, v]) => r[c] === v) &&
+              neqs.every(([c, v]) => r[c] !== v) &&
+              ins.every(([c, vs]) => vs.includes(r[c])),
+          );
+          return { data: rows, count: rows.length, error: null };
+        }
         case "cssd_fact_kho_giao_dich":
         case "cssd_fact_su_co": // phiếu cùng chu trình
         case "cssd_fact_quy_trinh": // tableHasColumn: select("id,<cột>").limit(1) rồi await; luôn "có cột"
@@ -78,8 +89,9 @@ function createClient(opts: { ticket: Row | null; rpcData?: unknown; rpcError?: 
     };
     const b: Record<string, unknown> = {};
     b.select = () => b;
-    b.eq = () => b;
-    b.neq = () => b;
+    b.eq = (c: string, v: unknown) => (eqs.push([c, v]), b);
+    b.neq = (c: string, v: unknown) => (neqs.push([c, v]), b);
+    b.in = (c: string, vs: unknown[]) => (ins.push([c, vs]), b);
     b.limit = () => b;
     b.maybeSingle = async () => single();
     b.then = (resolve: (v: unknown) => unknown, reject: (e: unknown) => unknown) =>
@@ -92,6 +104,7 @@ type FakeClient = ReturnType<typeof createClient>;
 
 async function runVoid(opts: {
   ticket?: Row | null;
+  kho?: Row[];
   plan?: IncidentVoidDomain.IncidentVoidPlan;
   incidentId?: string;
   rpcData?: unknown;
@@ -100,6 +113,7 @@ async function runVoid(opts: {
   if (opts.plan) mocks.planCssdIncidentVoid.mockReturnValue(opts.plan);
   const supabase = createClient({
     ticket: opts.ticket === undefined ? TICKET : opts.ticket,
+    kho: opts.kho,
     rpcData: opts.rpcData,
     rpcError: opts.rpcError,
   });
@@ -146,6 +160,86 @@ describe("executeVoidIncidentReport", () => {
       expect(result).toStrictEqual({ ok: true, already: true });
       expect(supabase.rpc).not.toHaveBeenCalled();
       expect(mocks.planCssdIncidentVoid).not.toHaveBeenCalled();
+    });
+  });
+
+  // CSSD-034: phiếu XUẤT kho hóa chất đã duyệt không sửa được; chỉ vô hiệu sự cố khi mọi phiếu hiệu lực
+  // của sự cố đều đã có phiếu ngược DA_DUYET (PO 2026-11-17).
+  describe("phiếu xuất kho hóa chất của sự cố (CSSD-034)", () => {
+    const xuat = (id: string, extra: Row = {}): Row => ({
+      id,
+      su_co_id: INCIDENT_ID,
+      is_active: true,
+      trang_thai: "DA_DUYET",
+      phieu_goc_id: null,
+      ...extra,
+    });
+    const nguoc = (goc: string, extra: Row = {}): Row => ({
+      id: `ng-${goc}`,
+      su_co_id: null,
+      is_active: true,
+      trang_thai: "DA_DUYET",
+      phieu_goc_id: goc,
+      ...extra,
+    });
+    const CHAN = "Đã ghi xuất kho hóa chất theo phiếu này.";
+
+    it("không có phiếu kho → vô hiệu bình thường", async () => {
+      const { result, supabase } = await runVoid({ kho: [] });
+      expect(result).toStrictEqual({ ok: true });
+      rpcArgsOf(supabase);
+    });
+
+    it("phiếu xuất DA_DUYET chưa có phiếu ngược → chặn, không gọi rpc", async () => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1")] });
+      expect(result).toMatchObject({ ok: false });
+      expect((result as { error: string }).error).toContain(CHAN);
+      expect(supabase.rpc).not.toHaveBeenCalled();
+    });
+
+    it("phiếu xuất CHO_DUYET (chưa duyệt nên chưa đảo được) → chặn", async () => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1", { trang_thai: "CHO_DUYET" })] });
+      expect(result).toMatchObject({ ok: false });
+      expect(supabase.rpc).not.toHaveBeenCalled();
+    });
+
+    it.each(["CHO_DUYET", "TU_CHOI"])("phiếu ngược %s chưa có hiệu lực → chặn", async (trang_thai) => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1"), nguoc("p1", { trang_thai })] });
+      expect(result).toMatchObject({ ok: false });
+      expect((result as { error: string }).error).toContain(CHAN);
+      expect(supabase.rpc).not.toHaveBeenCalled();
+    });
+
+    it("phiếu ngược DA_DUYET nhưng is_active=false → chặn", async () => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1"), nguoc("p1", { is_active: false })] });
+      expect(result).toMatchObject({ ok: false });
+      expect(supabase.rpc).not.toHaveBeenCalled();
+    });
+
+    it("phiếu xuất DA_DUYET đã có phiếu ngược DA_DUYET → cho vô hiệu", async () => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1"), nguoc("p1")] });
+      expect(result).toStrictEqual({ ok: true });
+      rpcArgsOf(supabase);
+    });
+
+    it("hai phiếu xuất, chỉ một đã có ngược DA_DUYET → chặn", async () => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1"), xuat("p2"), nguoc("p1")] });
+      expect(result).toMatchObject({ ok: false });
+      expect(supabase.rpc).not.toHaveBeenCalled();
+    });
+
+    it("hai phiếu xuất đều đã có ngược DA_DUYET → cho vô hiệu", async () => {
+      const { result, supabase } = await runVoid({ kho: [xuat("p1"), xuat("p2"), nguoc("p1"), nguoc("p2")] });
+      expect(result).toStrictEqual({ ok: true });
+      rpcArgsOf(supabase);
+    });
+
+    it("phiếu xuất bị TU_CHOI hoặc is_active=false → không tính là đã ghi xuất", async () => {
+      const { result, supabase } = await runVoid({
+        kho: [xuat("p1", { trang_thai: "TU_CHOI" }), xuat("p2", { is_active: false })],
+      });
+      expect(result).toStrictEqual({ ok: true });
+      rpcArgsOf(supabase);
     });
   });
 
