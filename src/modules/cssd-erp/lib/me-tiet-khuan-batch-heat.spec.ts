@@ -117,13 +117,13 @@ describe("từ chối quét bộ sai phương pháp", () => {
     expect(assertKitFitsSterilizerMethod({ method: "EO", lines: heatFalse }).ok).toBe(true);
   });
 
-  it("CSSD-10: lệch PP chỉ định Plasma trên EO bị chặn; thiếu PP chỉ cảnh báo", () => {
+  it("CSSD-10: PP chỉ định Plasma trên EO được nạp (PO 2026-11-10); thiếu PP chỉ cảnh báo", () => {
     expect(
       assertKitFitsSterilizerMethod({
         method: "EO",
         lines: [{ is_chiu_nhiet: false, phuong_phap_tiet_khuan_chi_dinh: "PLASMA" }],
       }).ok,
-    ).toBe(false);
+    ).toBe(true);
     const warnOnly = assertKitFitsSterilizerMethod({
       method: "HOI_NUOC",
       steamCycle: "STEAM_134",

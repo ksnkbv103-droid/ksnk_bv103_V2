@@ -1,32 +1,14 @@
-import GenericDmMasterPage from "@/modules/quan-tri-he-thong/danh-muc/views/GenericDmMasterPage";
-import { getDedicatedDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
-import { canAccessDanhMucModuleRoute } from "@/lib/auth/quan-tri-access";
-import QuanTriAccessDenied from "@/components/shared/QuanTriAccessDenied";
-import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
+import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
+import { notFound, redirect } from "next/navigation";
+import { normalizeLoaiParam } from "@/components/master-data/generic-dm/OwnedLookupPages";
 
-export async function generateMetadata(props: {
-  params: Promise<{ loai: string }>;
-}): Promise<Metadata> {
-  const { loai } = await props.params;
-  return {
-    title: `Danh mục ${decodeURIComponent(loai)}`,
-    description: "Quản lý danh mục master dm_* theo registry",
-  };
-}
-
+/**
+ * AR-8g (PO 2026-11-11): danh mục sửa trong module sở hữu — route cũ chỉ còn chuyển hướng
+ * bookmark. Trang đích tự kiểm quyền; loại không có trong registry → 404.
+ */
 export default async function Page(props: { params: Promise<{ loai: string }> }) {
-  const { loai } = await props.params;
-  const decoded = decodeURIComponent(loai);
-  const dedicated = getDedicatedDanhMucAdminPath(decoded);
-  if (dedicated) redirect(dedicated);
-
-  const allowed = await canAccessDanhMucModuleRoute(`DANH_MUC_${decoded}`);
-  if (!allowed) {
-    return (
-      <QuanTriAccessDenied detail="Cần quyền xem danh mục hoặc vai trò quản trị để mở trang này." />
-    );
-  }
-
-  return <GenericDmMasterPage loaiDanhMuc={decoded} />;
+  const loai = normalizeLoaiParam((await props.params).loai);
+  if (!getRegistryEntryOrNull(loai)) notFound();
+  redirect(getDanhMucAdminPath(loai));
 }

@@ -189,13 +189,13 @@ export default function InstrumentSetReconcileTable({
         </div>
       ) : null}
       {!maQR.trim() ? (
-        <p className="px-2.5 py-3 text-[11px] text-slate-500">Chọn bộ để xem thành phần.</p>
+        <p className="px-2.5 py-3 text-xs text-slate-500">Chọn bộ để xem thành phần.</p>
       ) : gateError ? (
         <p className="px-2.5 py-3 text-[12px] text-amber-800">{gateError}</p>
       ) : (
         <>
           <div className="min-h-0 flex-1 overflow-auto">
-            <table className="w-full min-w-[48rem] text-left text-[11px]">
+            <table className="w-full min-w-[48rem] text-left text-xs">
               <thead className={bv103TableLayout.theadRow}>
                 <tr>
                   <th className={bv103TableLayout.th}>Mã loại</th>
@@ -230,10 +230,10 @@ export default function InstrumentSetReconcileTable({
             </table>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 px-2.5 py-1.5">
-            <p className="text-[11px] text-slate-500">Đổi mã · tên · số lượng chuẩn chờ duyệt. Lấy/trả kho và điều chuyển ở tab Chuyển.</p>
+            <p className="text-xs text-slate-500">Đổi mã · tên · số lượng chuẩn chờ duyệt. Lấy/trả kho và điều chuyển ở tab Chuyển.</p>
             <button
               type="button"
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--primary)]"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary)]"
               onClick={addLine}
             >
               <Plus size={14} /> Thêm dòng vào bộ (chờ duyệt)

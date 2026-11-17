@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isEligibleForNghiemThu } from "./nghiem-thu-gate";
+import { isEligibleForNghiemThu, qlcvNghiemThuActorError } from "./nghiem-thu-gate";
 
 describe("isEligibleForNghiemThu", () => {
   it("allows CHO_DUYET", () => {
@@ -78,5 +78,26 @@ describe("isEligibleForNghiemThu", () => {
         is_qua_han: true,
       }),
     ).toBe(false);
+  });
+});
+
+describe("qlcvNghiemThuActorError (QLCV-003)", () => {
+  const base = { nguoiTaoId: "tao", nguoiPhuTrachId: "pt" };
+  it("chặn khi thiếu hồ sơ nhân sự", () => {
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: null, roles: ["ADMIN"] })).toMatch(/hồ sơ nhân sự/);
+  });
+  it("chặn người tạo tự nghiệm thu", () => {
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: "tao", roles: ["NHAN_VIEN_KSNK"] })).toMatch(/mình tạo/);
+  });
+  it("cho người khác nghiệm thu", () => {
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: "khac", roles: [] })).toBeNull();
+  });
+  it("miễn người tạo là ADMIN hoặc CHU_NHIEM_KHOA", () => {
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: "tao", roles: ["ADMIN"] })).toBeNull();
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: "tao", roles: ["CHU_NHIEM_KHOA"] })).toBeNull();
+  });
+  it("người phụ trách tự nghiệm thu: chỉ miễn ADMIN", () => {
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: "pt", roles: ["CHU_NHIEM_KHOA"] })).toMatch(/phụ trách/);
+    expect(qlcvNghiemThuActorError({ ...base, actorNhanSuId: "pt", roles: ["ADMIN"] })).toBeNull();
   });
 });

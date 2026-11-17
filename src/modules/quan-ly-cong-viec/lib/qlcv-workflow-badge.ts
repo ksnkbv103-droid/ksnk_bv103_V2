@@ -19,7 +19,7 @@ const GATE_MAU_SAC_MA: Record<QlcvWorkflowGate, string> = {
 };
 
 const BADGE_BASE_CLASS =
-  "inline-block rounded-full border px-2.5 py-1 text-[11px] font-medium normal-case";
+  "inline-block rounded-full border px-2.5 py-1 text-xs font-medium normal-case";
 
 function normalizeHex(raw: string): string | null {
   const t = raw.trim();

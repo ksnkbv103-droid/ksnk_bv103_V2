@@ -21,6 +21,7 @@ import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVST
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { formatTimeVi } from "@/lib/format-datetime-vi";
+import { Bv103Button } from "@/components/ui/bv103";
 
 interface VSTOpportunityFormProps {
   opp: ExtendedOpportunity;
@@ -54,16 +55,16 @@ const MOMENT_TOOLTIPS: Record<MomentType, string> = {
 
 const C = bv103LayoutChrome;
 
-/** Mọi ô chọn (thời điểm, hành động) cùng chiều cao và padding; thời điểm một hàng 5 cột. */
+/** Thang đều: ô hành động = --bv103-control-h (48px); ô thời điểm 56px (chữ WHO đầy đủ, tối đa 2 dòng). */
 const CELL_BASE =
-  "box-border flex h-11 min-h-[40px] w-full min-w-0 items-center justify-center overflow-hidden rounded border px-1 text-center transition-colors touch-manipulation";
+  "box-border flex h-11 min-h-[40px] w-full min-w-0 items-center justify-center overflow-hidden rounded-[var(--radius-control)] border px-1 text-center transition-colors touch-manipulation";
 const MOMENT_CELL = `${CELL_BASE} flex-col !px-0.5`;
 const CELL = CELL_BASE;
-const CELL_IDLE = "border-slate-200 bg-white text-slate-800 hover:border-slate-400";
+const CELL_IDLE = "border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-50";
 const CELL_ON = "border-[var(--primary)] bg-[var(--primary)] text-white";
 const CELL_MISS = "border-rose-800 bg-rose-800 text-white";
-const SECTION_HEAD = "flex h-7 items-center justify-between gap-2";
-const GRID_GAP = "gap-1.5";
+const SECTION_HEAD = "flex h-6 items-center justify-between gap-2";
+const GRID_GAP = "gap-2";
 
 function MomentCellLabel({ moment }: { moment: MomentType }) {
   const timing = moment.startsWith("Trước") ? "TRƯỚC" : "SAU";
@@ -72,7 +73,7 @@ function MomentCellLabel({ moment }: { moment: MomentType }) {
       <span className="bv103-type-label w-full whitespace-nowrap text-center leading-none font-medium uppercase !text-inherit">
         {timing}
       </span>
-      <span className="bv103-type-label w-full whitespace-nowrap text-center text-[11px] leading-none font-semibold uppercase tracking-tight !text-inherit">
+      <span className="bv103-type-label w-full whitespace-nowrap text-center text-xs leading-none font-semibold uppercase tracking-tight !text-inherit">
         {MOMENT_SHORT_CODE[moment]}
       </span>
     </>
@@ -112,7 +113,7 @@ export default function VSTOpportunityForm({
       <button
         type="button"
         aria-label={`Mở cơ hội ${oIdx + 1}: ${momentsLine || "chưa chọn thời điểm"}`}
-        className="box-border flex h-14 min-h-[40px] w-full cursor-pointer items-center gap-3 rounded border border-slate-200 bg-white px-3 text-left transition-colors hover:border-slate-400 touch-manipulation"
+        className="box-border flex h-14 min-h-[40px] w-full cursor-pointer items-center gap-3 border-b border-slate-100 px-1 text-left transition-colors hover:bg-slate-50 touch-manipulation"
         onClick={() => openOpportunity(pIdx, oIdx)}
       >
         <div className="min-w-0 flex-1">
@@ -139,12 +140,12 @@ export default function VSTOpportunityForm({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded border border-slate-200 bg-white p-3">
-      <section className="space-y-1.5">
+    <div className="flex flex-col gap-4">
+      <section className="space-y-2">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Thời điểm</h3>
-          <p className="bv103-type-label shrink-0 text-slate-500 !text-slate-500">
-            {isVstMissedAction(opp.hanh_dong) ? "Tối đa 1" : `Tối đa ${momentCap}`}
+          <p className="bv103-type-label shrink-0 tabular-nums text-slate-500 !text-slate-500">
+            Đã chọn {opp.thoi_diems.length}/{isVstMissedAction(opp.hanh_dong) ? 1 : momentCap}
           </p>
         </div>
         <div
@@ -172,7 +173,7 @@ export default function VSTOpportunityForm({
         </div>
       </section>
 
-      <section className="space-y-1.5">
+      <section className="space-y-2">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Hành động</h3>
           <span className="bv103-type-label invisible select-none" aria-hidden>
@@ -205,7 +206,7 @@ export default function VSTOpportunityForm({
         </div>
       </section>
 
-      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-1.5">
+      <section ref={postActionFieldsRef} className="scroll-mt-2 space-y-2">
         <div className={SECTION_HEAD}>
           <h3 className={`${C.sectionTitle} !m-0`}>Đánh giá</h3>
           <span className="bv103-type-label invisible select-none" aria-hidden>
@@ -215,14 +216,14 @@ export default function VSTOpportunityForm({
         <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
       </section>
 
-      <button
-        type="button"
-        onClick={() => submitOpportunity(pIdx, oIdx)}
+      <Bv103Button
+        variant="secondary"
+        className="w-full"
         aria-label={`Ghi nhận cơ hội ${oIdx + 1}`}
-        className={`${C.btnPrimaryBlock} h-11 min-h-[40px] touch-manipulation`}
+        onClick={() => submitOpportunity(pIdx, oIdx)}
       >
         Ghi nhận cơ hội
-      </button>
+      </Bv103Button>
     </div>
   );
 }

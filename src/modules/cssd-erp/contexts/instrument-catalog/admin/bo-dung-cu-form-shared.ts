@@ -1,0 +1,87 @@
+/** Giá trị form khớp cột có thể sửa trên cssd_dm_bo_dung_cu. */
+
+export interface BoDungCuFormValues {
+  id?: string;
+  ma_bo: string;
+  ten_bo: string;
+  loai_dung_cu_id: string;
+  loai_bao_goi_id: string;
+  khoa_su_dung_id: string;
+  quy_cach: string;
+  ghi_chu: string;
+  trang_thai: string;
+  ngay_kiem_ke_gan_nhat: string;
+  phan_loai_bo: string;
+  co_ma_dinh_danh_rieng: boolean;
+  is_implant: boolean;
+  is_active: boolean;
+}
+
+/** Dòng từ bảng đã join loai_dung_cu (embedded). */
+export interface BoDungCuTableRow {
+  id: string;
+  ma_bo?: string;
+  ten_bo?: string;
+  loai_dung_cu_id?: string | null;
+  loai_bao_goi_id?: string | null;
+  loai_bao_goi?: { ten: string; so_ngay_han_dung: number | null } | null;
+  loai_dung_cu?: { ten_danh_muc?: string; ma_danh_muc?: string | null } | null;
+  khoa_su_dung_id?: string | null;
+  khoa_su_dung?: { ten_khoa?: string; ma_khoa?: string | null } | null;
+  quy_cach?: string | null;
+  ghi_chu?: string | null;
+  trang_thai?: string | null;
+  ngay_kiem_ke_gan_nhat?: string | null;
+  phan_loai_bo?: string;
+  co_ma_dinh_danh_rieng?: boolean;
+  is_implant?: boolean;
+  so_luong_bo?: number;
+  so_khoan?: number;
+  tong_so_luong_dung_cu?: number;
+  tong_phan_bo?: number;
+  is_active?: boolean;
+  /** Giao phương pháp được phép của các loại trong BOM (chỉ hiển thị). */
+  phuong_phap_chung?: string[];
+  co_dong_loai?: boolean;
+}
+
+export function mapBoDungCuRowToForm(row: BoDungCuTableRow | null): BoDungCuFormValues {
+  if (!row) {
+    return {
+      ma_bo: "",
+      ten_bo: "",
+      loai_dung_cu_id: "",
+      loai_bao_goi_id: "",
+      khoa_su_dung_id: "",
+      quy_cach: "",
+      ghi_chu: "",
+      trang_thai: "ACTIVE",
+      ngay_kiem_ke_gan_nhat: "",
+      phan_loai_bo: "PHAU_THUAT",
+      co_ma_dinh_danh_rieng: true,
+      is_implant: false,
+      is_active: true,
+    };
+  }
+  let dateStr = "";
+  if (row.ngay_kiem_ke_gan_nhat) {
+    const t = String(row.ngay_kiem_ke_gan_nhat);
+    dateStr = t.slice(0, 16);
+  }
+  return {
+    id: row.id,
+    ma_bo: row.ma_bo || "",
+    ten_bo: row.ten_bo || "",
+    loai_dung_cu_id: row.loai_dung_cu_id || "",
+    loai_bao_goi_id: row.loai_bao_goi_id || "",
+    khoa_su_dung_id: row.khoa_su_dung_id || "",
+    quy_cach: row.quy_cach || "",
+    ghi_chu: row.ghi_chu || "",
+    trang_thai: row.trang_thai || "ACTIVE",
+    ngay_kiem_ke_gan_nhat: dateStr,
+    phan_loai_bo: row.phan_loai_bo || "PHAU_THUAT",
+    co_ma_dinh_danh_rieng: row.co_ma_dinh_danh_rieng !== false,
+    is_implant: row.is_implant === true,
+    is_active: row.is_active !== false,
+  };
+}

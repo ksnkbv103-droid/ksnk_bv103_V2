@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Chỉ cho phép import master-crud-core từ actions trong module quan-tri-he-thong (+ bang-kiem/nhan-su).
+ * Chỉ cho phép import master-crud-core từ engine (src/lib/master-data/engine), actions quản trị/nhân sự và giam-sat-chung/bang-kiem.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -10,9 +10,11 @@ const target = join(root, "src");
 const needle = "master-crud-core";
 
 const allowed = [
+  /src\/lib\/master-data\/engine\//,
+  /src\/modules\/cssd-erp\/contexts\/[^/]+\/admin\/[^/]+\.actions\.ts$/,
+  /src\/modules\/to-chuc\/[^/]+\/actions\//,
   /src\/modules\/quan-tri-he-thong\/danh-muc\/actions\//,
-  /src\/modules\/quan-tri-he-thong\/bang-kiem\/actions\//,
-  /src\/modules\/quan-tri-he-thong\/nhan-su\/actions\//,
+  /src\/modules\/giam-sat-chung\/bang-kiem\/actions\//,
 ];
 
 function walk(dir, out = []) {

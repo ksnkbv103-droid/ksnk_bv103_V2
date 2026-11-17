@@ -67,7 +67,7 @@ export default function NkbvAdjudicationPanel({
     >
       {isRoleLocked && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/10 rounded-[var(--radius-shell)] backdrop-blur-[0.5px]">
-          <span className="rounded-full bg-slate-800/95 border border-slate-700 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md flex items-center gap-1.5 animate-in zoom-in-95 duration-250">
+          <span className="rounded-full bg-slate-800/95 border border-slate-700 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white shadow-md flex items-center gap-1.5 animate-in zoom-in-95 duration-250">
             🔒 Chỉ KSNK có quyền phán quyết ca bệnh
           </span>
         </div>
@@ -87,7 +87,7 @@ export default function NkbvAdjudicationPanel({
               type="button"
               disabled={adjudicating || isRoleLocked}
               onClick={() => handleAction("APPROVE")}
-              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
+              className="rounded-full bg-emerald-600 hover:bg-emerald-700 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
             >
               <Check className="h-3.5 w-3.5" /> Phê duyệt (Xác nhận NKBV)
             </button>
@@ -96,7 +96,7 @@ export default function NkbvAdjudicationPanel({
               type="button"
               disabled={adjudicating || isRoleLocked}
               onClick={() => handleAction("EXCLUDE")}
-              className="rounded-full bg-slate-700 hover:bg-slate-800 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
+              className="rounded-full bg-slate-700 hover:bg-slate-800 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-md transition flex items-center gap-1 disabled:opacity-50"
               title={classification ? `Đóng theo kết luận ${classification}` : undefined}
             >
               <Ban className="h-3.5 w-3.5" /> Đóng — không phải NKBV
@@ -107,7 +107,7 @@ export default function NkbvAdjudicationPanel({
               type="button"
               disabled={adjudicating || isRoleLocked}
               onClick={() => setShowRejectForm(!showRejectForm)}
-              className="rounded-full bg-red-55 hover:bg-red-100 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-red-655 border border-red-200 transition flex items-center gap-1 disabled:opacity-50"
+              className="rounded-full bg-red-55 hover:bg-red-100 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-red-655 border border-red-200 transition flex items-center gap-1 disabled:opacity-50"
             >
               <Ban className="h-3.5 w-3.5" /> Loại trừ (Từ chối NKBV)
             </button>

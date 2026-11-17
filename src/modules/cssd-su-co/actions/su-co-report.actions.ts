@@ -356,6 +356,7 @@ export async function voidIncidentReport(
     allowVoidConfirmed = canApproveCssdIncident(actorRoles);
   }
   const actorNhanSuId = await getActorNhanSuId();
+  const actorAuthUserId = await getActorAuthUserId();
   let actorHoTen: string | null = null;
   if (actorNhanSuId) {
     const { data: ns } = await supabase.from("mdm_nhan_su").select("ho_ten").eq("id", actorNhanSuId).maybeSingle();
@@ -368,6 +369,8 @@ export async function voidIncidentReport(
     voidReasonCode: opts?.voidReasonCode,
     voidReasonNote: opts?.voidReasonNote,
     allowVoidConfirmed,
+    actorAuthUserId,
+    actorIsApprover: allowVoidConfirmed,
   });
   if (!result.ok) return { success: false as const, error: result.error };
   revalidateCssdIncidentSurfaces();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { countsTowardCssdSafetyTally } from "./cssd-incident-attributes";
-import { planCssdIncidentVoid, summarizeVoidLedger } from "./cssd-incident-void";
+import { canActorVoidIncident, planCssdIncidentVoid, summarizeVoidLedger } from "./cssd-incident-void";
 
 const processAttrs = {
   INCIDENT_GROUP: "PROCESS",
@@ -251,5 +251,22 @@ describe("planCssdIncidentVoid", () => {
       voidReasonCode: "NHAP_NHAM",
     });
     expect(plan).toEqual({ ok: true, already: true });
+  });
+});
+
+describe("canActorVoidIncident (CSSD-011)", () => {
+  const attributes = { REPORTER_AUTH_USER_ID: "u-1" };
+  it("người báo được vô hiệu", () => {
+    expect(canActorVoidIncident({ attributes, actorAuthUserId: "u-1", actorIsApprover: false })).toBe(true);
+  });
+  it("người khác không có quyền xác nhận bị chặn", () => {
+    expect(canActorVoidIncident({ attributes, actorAuthUserId: "u-2", actorIsApprover: false })).toBe(false);
+  });
+  it("người có quyền xác nhận được vô hiệu phiếu của người khác", () => {
+    expect(canActorVoidIncident({ attributes, actorAuthUserId: "u-2", actorIsApprover: true })).toBe(true);
+  });
+  it("phiếu không có người báo hoặc không có phiên: chặn nếu không phải approver", () => {
+    expect(canActorVoidIncident({ attributes: {}, actorAuthUserId: "u-1", actorIsApprover: false })).toBe(false);
+    expect(canActorVoidIncident({ attributes, actorAuthUserId: null, actorIsApprover: false })).toBe(false);
   });
 });

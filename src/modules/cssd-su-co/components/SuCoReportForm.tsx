@@ -729,7 +729,7 @@ export default function SuCoReportForm({
       {fLoading ? (
         <div className="flex items-center gap-2 py-10 text-[var(--primary)]">
           <Loader2 className="animate-spin" size={20} />
-          <p className="text-[11px] font-semibold">Đang tải danh mục…</p>
+          <p className="text-xs font-semibold">Đang tải danh mục…</p>
         </div>
       ) : (
         <div className={"bv103-stack-in"}>
@@ -740,7 +740,7 @@ export default function SuCoReportForm({
           ) : isBatchRecallEntry ? (
             <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-2" data-testid="batch-recall-group-lock">
               <span className="text-[12px] font-semibold text-amber-900">Sự cố quy trình · Thu hồi theo mẻ</span>
-              <span className="text-[11px] text-slate-500">(không mở cửa Hỏng/Mất)</span>
+              <span className="text-xs text-slate-500">(không mở cửa Hỏng/Mất)</span>
               <Link
                 href={buildQlcvSourceDeepLink({
                   from: "CSSD_SU_CO",
@@ -755,7 +755,7 @@ export default function SuCoReportForm({
                   sourceLabel: "Thu hồi mẻ / sự cố CSSD",
                   sourceHref: "/cssd-su-co",
                 })}
-                className="text-[11px] font-semibold text-sky-800 underline-offset-2 hover:underline"
+                className="text-xs font-semibold text-sky-800 underline-offset-2 hover:underline"
               >
                 Tạo việc theo dõi NB
               </Link>
@@ -773,7 +773,7 @@ export default function SuCoReportForm({
                   sourceLabel: "RCA sự cố CSSD",
                   sourceHref: "/cssd-su-co",
                 })}
-                className="text-[11px] font-semibold text-sky-800 underline-offset-2 hover:underline"
+                className="text-xs font-semibold text-sky-800 underline-offset-2 hover:underline"
               >
                 Tạo việc RCA / khắc phục
               </Link>

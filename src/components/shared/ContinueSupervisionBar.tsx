@@ -40,7 +40,7 @@ export default function ContinueSupervisionBar({
         <div className="min-w-0 flex-1 space-y-3">
           <div>
             <p className={`${T.sectionTitle} text-emerald-950`}>Đã lưu phiên — tiếp tục?</p>
-            <p className="mt-0.5 text-[11px] font-medium leading-snug text-emerald-900/80">
+            <p className="mt-0.5 text-xs font-medium leading-snug text-emerald-900/80">
               Chỉ giữ thông tin hành chính (khoa, chức năng phòng, vị trí, cách thức) — không giữ điểm /
               tiêu chí vừa chấm. {summaryLine ? `Vừa lưu: ${summaryLine}` : null}
             </p>

@@ -17,7 +17,7 @@ const routes = [
   "danh-muc/hoa-chat/page.tsx",
   "danh-muc/khoa-phong/page.tsx",
   "nhan-su/page.tsx",
-  "bang-kiem/page.tsx",
+  "bang-kiem/page.tsx", // AR-5c: chỉ còn redirect sang /giam-sat-chung/bang-kiem
 ];
 
 let ok = 0;

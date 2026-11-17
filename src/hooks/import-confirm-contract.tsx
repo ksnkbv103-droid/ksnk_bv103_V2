@@ -90,23 +90,23 @@ function ImportConfirmContractDialog({ preview, onDecide }: DialogProps) {
           </ul>
           {preview.sampleLines.length > 0 ? (
             <div>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Mẫu dòng đầu
               </p>
-              <pre className="max-h-28 overflow-auto rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+              <pre className="max-h-28 overflow-auto rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs leading-relaxed text-slate-600">
                 {preview.sampleLines.join("\n")}
               </pre>
             </div>
           ) : null}
           {(preview.errorLines?.length ?? 0) > 0 ? (
             <div>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-rose-600">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-rose-600">
                 Dòng lỗi / bỏ qua
                 {typeof preview.errorTotal === "number" && preview.errorTotal > (preview.errorLines?.length ?? 0)
                   ? ` (hiện ${preview.errorLines?.length}/${preview.errorTotal})`
                   : ` (${preview.errorTotal ?? preview.errorLines?.length})`}
               </p>
-              <pre className="max-h-36 overflow-auto rounded-lg border border-rose-200 bg-rose-50/80 px-3 py-2 text-[11px] leading-relaxed text-rose-900">
+              <pre className="max-h-36 overflow-auto rounded-lg border border-rose-200 bg-rose-50/80 px-3 py-2 text-xs leading-relaxed text-rose-900">
                 {(preview.errorLines ?? []).join("\n")}
               </pre>
             </div>

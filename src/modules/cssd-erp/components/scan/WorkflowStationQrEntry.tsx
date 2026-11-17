@@ -25,7 +25,7 @@ export default function WorkflowStationQrEntry({ disabled, onConfirm }: Props) {
   return (
     <div className="space-y-3">
       <CssdQrLabelKindsNotice />
-      <p className="text-[11px] font-medium text-slate-500">Quét mã hoặc bấm Xử lý trên hàng chờ.</p>
+      <p className="text-xs font-medium text-slate-500">Quét mã hoặc bấm Xử lý trên hàng chờ.</p>
 
       <div className="flex w-full items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-2">
         <QrScanInput

@@ -1,6 +1,6 @@
 // src/lib/master-data/domain-registry.ts
 // **Registry pattern** (map loaiDanhMuc → `{module}_dm_*`) — KHÔNG phải `src/lib/domain/` (pure business logic).
-// Hub UI mở rộng (trang dedicated + lookup): SSOT `danh-muc-hub-catalog.ts`.
+// Danh mục nghiệp vụ sửa trong module sở hữu (AR-8g); đường dẫn: `danh-muc-admin-routes.ts`.
 // Source-of-Truth: bảng/view prefix module (`mdm_dm_*`, `cssd_dm_*`, `gstt_dm_*`, …).
 // Không còn fallback về danh_muc_tuy_bien.
 // Đọc dropdown đồng bộ: `fetchActiveRegistryDmRows` trong `registry-select-fetch.ts`.

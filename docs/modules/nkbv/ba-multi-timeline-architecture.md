@@ -162,7 +162,7 @@ Form tiêu chuẩn (BSI/UTI/VAE/PNEU/SSI) mở khi IP bấm **Tạo phiếu** �
 
 ## 6. In phiếu / báo cáo gửi khoa
 
-Hai bản in hiện có: `NkbvCasePrintView` (mục) · `NkbvBaGridCasePrintView` (văn bản).  
+Bản in hiện có: `NkbvCasePrintView` (mục). `NkbvBaGridCasePrintView` (văn bản) đã xóa 2026-11-16 (mã chết, không nơi nào render).  
 Mẫu gửi khoa (dải ngày + lời tiếng Việt): [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md) §3–§5.
 
 ## Luồng chuẩn
@@ -270,7 +270,7 @@ Neo **Index**: trước **7** ngày · sau **14** ngày.
 | Lab / máu (PNEU) | Máu (+) ∈ IWP có thể gắn PNU2 |
 | Can thiệp | Vent / Foley / CVC |
 | NSK · RIT · SBAP | DOE → RIT 14d · SBAP |
-| Kết luận · In phiếu văn bản | `NkbvBaGridCasePrintView` |
+| Kết luận · In phiếu văn bản | `NkbvBaGridCasePrintView` (đã xóa 2026-11-16, mã chết) |
 
 ## 4. Runtime
 

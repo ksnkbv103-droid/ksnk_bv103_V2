@@ -13,14 +13,3 @@ export function filterCatalogRows(catalog: Catalog, q: string) {
     : catalog.loai.filter((x) => `${x.ma_loai_dung_cu} ${x.ten_loai_dung_cu}`.toLowerCase().includes(lowerQ));
   return { lowerQ, boRows, loaiRows };
 }
-
-export function boIdsForLoai(catalog: Catalog, loaiId: string | null) {
-  if (!loaiId) return [];
-  return [
-    ...new Set(
-      catalog.chi_tiet
-        .filter((x) => x.loai_dung_cu_id === loaiId && x.bo_dung_cu_id)
-        .map((x) => String(x.bo_dung_cu_id)),
-    ),
-  ];
-}

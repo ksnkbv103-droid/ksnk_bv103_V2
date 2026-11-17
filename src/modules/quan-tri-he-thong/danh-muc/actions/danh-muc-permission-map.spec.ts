@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveDanhMucViewModuleByType } from "./danh-muc-permission-map";
+import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 
 describe("resolveDanhMucViewModuleByType", () => {
   it("uses PHAN_QUYEN for system role category", () => {

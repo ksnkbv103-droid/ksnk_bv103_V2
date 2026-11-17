@@ -37,7 +37,7 @@ export function DaoTaoHeader({
       {backHref ? (
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 transition-colors hover:text-[var(--primary)]"
+          className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition-colors hover:text-[var(--primary)]"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
           {backLabel}
@@ -86,7 +86,7 @@ export function DaoTaoField({
     <label className="grid gap-1.5">
       <span className={T.labelBlock}>{label}</span>
       {children}
-      {hint ? <span className="text-[11px] text-slate-400">{hint}</span> : null}
+      {hint ? <span className="text-xs text-slate-400">{hint}</span> : null}
     </label>
   );
 }

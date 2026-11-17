@@ -50,7 +50,7 @@ function remapGscGapRows(rows: GscStrategicPayload["gap_analysis"] | undefined) 
 export function normalizeGscStrategicPercents(payload: GscStrategicPayload): GscStrategicPayload {
   return {
     ...payload,
-    kpis: withCountsPercent(payload.kpis),
+    chi_so: withCountsPercent(payload.chi_so),
     trendline: (payload.trendline ?? []).map(withCountsPercent),
     matrix_khoa: (payload.matrix_khoa ?? []).map(withCountsPercent),
     matrix_khoi: payload.matrix_khoi?.map(withCountsPercent),
@@ -70,7 +70,7 @@ export function normalizeGscChecklistDetailPercents(
 ): GscChecklistDetailPayload {
   return {
     ...payload,
-    kpis: withCountsPercent(payload.kpis),
+    chi_so: withCountsPercent(payload.chi_so),
     trendline: (payload.trendline ?? []).map(withCountsPercent),
     matrix_khoa: (payload.matrix_khoa ?? []).map(withCountsPercent),
     matrix_khoi: payload.matrix_khoi?.map(withCountsPercent),
@@ -87,9 +87,9 @@ export function normalizeGscChecklistDetailPercents(
 /** Cụm biểu mẫu chỉ hiện khi có phiên hoặc tiêu chí áp dụng trong kỳ lọc. */
 export function gscAnalyticsPayloadHasData(payload: GscStrategicPayload | null | undefined): boolean {
   if (!payload) return false;
-  const kpis = payload.kpis;
-  if ((kpis?.tong_phien ?? 0) > 0) return true;
-  if ((kpis?.tong_quan_sat ?? 0) > 0) return true;
+  const chi_so = payload.chi_so;
+  if ((chi_so?.tong_phien ?? 0) > 0) return true;
+  if ((chi_so?.tong_quan_sat ?? 0) > 0) return true;
   return (payload.trendline ?? []).some((t) => (t.tong_quan_sat ?? 0) > 0);
 }
 

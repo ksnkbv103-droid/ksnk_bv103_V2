@@ -1,0 +1,70 @@
+"use client";
+
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
+import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { buildVeSinhTayChiSoCards } from "@/lib/domain/ve-sinh-tay-chi-so";
+import { bcthModuleComplianceTone } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import { dashboardChrome as D } from "@/modules/dashboard/lib/dashboard-chrome";
+import type { BaoCaoTongHopPayload } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
+
+/** Ba chỉ số cạnh nhau — WHO + KSNK.QT.07.BM.02 + BM.03; không gộp %. */
+export function VeSinhTayChiSoTriptych({ payload }: { payload: BaoCaoTongHopPayload | null }) {
+  const cards = buildVeSinhTayChiSoCards({
+    vst: payload?.vst ?? null,
+    // BCTH-01: BM.02/03 từ payload hub riêng — không phụ thuộc lọc BK GSC.
+    gsc: payload?.gsc_ve_sinh_tay ?? payload?.gsc ?? null,
+    filters: payload
+      ? {
+          tu_ngay: payload.filters.tu_ngay,
+          den_ngay: payload.filters.den_ngay,
+          khoa_ids: payload.filters.khoa_ids,
+        }
+      : undefined,
+  });
+
+  return (
+    <div className="mb-[var(--bv103-space-3)] space-y-[var(--bv103-space-2)]">
+      <p className="bv103-type-label text-slate-500">
+        Ba tỷ lệ riêng — WHO 5 thời điểm · kỹ thuật thường quy (KSNK.QT.07.BM.02) · ngoại khoa (KSNK.QT.07.BM.03). Không gộp thành một %.
+      </p>
+      <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
+        {cards.map((card) => {
+          const isWho = card.catalogMaBk == null;
+          const value =
+            card.tyLe == null ? "—" : isWho ? formatPercent1(card.tyLe) : formatPercent2(card.tyLe);
+          const tone = bcthModuleComplianceTone("vst", card.tyLe);
+          return (
+            <div
+              key={card.qtMa}
+              className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}
+            >
+              <p className={D.chiSoLabel}>
+                {card.label}
+                {card.catalogMaBk ? (
+                  <span className="ml-1 font-normal text-slate-400">({card.catalogMaBk})</span>
+                ) : null}
+              </p>
+              <p className={`mt-[var(--bv103-space-1)] ${D.chiSoValue}`}>{value}</p>
+              {card.volumeNote ? (
+                <p className="mt-[var(--bv103-space-1)] bv103-type-label font-medium tabular-nums opacity-80">
+                  {card.volumeNote}
+                </p>
+              ) : (
+                <p className="mt-[var(--bv103-space-1)] bv103-type-label text-slate-400">
+                  Chưa có phiên trong kỳ lọc
+                </p>
+              )}
+              <Link
+                href={card.statsHref}
+                className="mt-[var(--bv103-space-1)] inline-flex min-h-11 sm:min-h-0 items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline"
+              >
+                Chi tiết thống kê <ExternalLink size={10} aria-hidden />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

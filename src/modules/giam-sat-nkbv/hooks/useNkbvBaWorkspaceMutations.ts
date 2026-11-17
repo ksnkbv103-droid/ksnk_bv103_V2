@@ -149,6 +149,33 @@ export function useNkbvBaWorkspaceMutations({
       }
       return;
     }
+    // Kết quả CĐHA là 1 trong 3 lựa chọn/ngày: chọn kết quả khác = sửa cùng mốc (giữ id + ghi chú)
+    const RESULT_KEYS = ["imaging_chest_normal", "imaging_chest", "abscess_imaging"];
+    const other = RESULT_KEYS.includes(criteriaKey)
+      ? cdhaList.find(
+          (x) =>
+            x.ngay.slice(0, 10) === date &&
+            !x.id.startsWith("local-") &&
+            RESULT_KEYS.includes(x.tieu_chuan_key || "imaging_chest") &&
+            (x.tieu_chuan_key || "imaging_chest") !== criteriaKey,
+        )
+      : undefined;
+    if (other) {
+      inFlightRef.current.add(flightKey);
+      const sw = await upsertNkbvBaTimelineMilestone({
+        id: other.id,
+        ma_benh_an: maBenhAn,
+        milestone_kind: milestoneKind,
+        milestone_date: date,
+        title,
+        detail: other.ghi_chu ?? null,
+        criteria_key: criteriaKey as never,
+      });
+      inFlightRef.current.delete(flightKey);
+      if (!sw.success) toast.error(sw.error || "Không đổi kết quả CĐHA");
+      else applyUpsertRow(sw.data as Record<string, unknown> | undefined);
+      return;
+    }
     inFlightRef.current.add(flightKey);
     const localId = `local-cdha-${date}-${criteriaKey}`;
     setLocalCdha((p) => [
@@ -188,9 +215,28 @@ export function useNkbvBaWorkspaceMutations({
       milestone_kind: "IMAGING_CHEST",
       milestone_date: nextDate,
       title: cell.mo_ta_benh_ly || "CĐHA",
+      detail: cell.ghi_chu ?? null,
       criteria_key: (cell.tieu_chuan_key || "imaging_chest") as never,
     });
     if (!res.success) toast.error(res.error || "Không sửa ngày CĐHA");
+    else applyUpsertRow(res.data as Record<string, unknown> | undefined);
+  };
+
+  /** Ghi chú tự do của mốc CĐHA (lưu ở detail). */
+  const editCdhaNote = async (id: string, note: string) => {
+    if (!allowedEdit || !id || id.startsWith("local-")) return;
+    const cell = cdhaList.find((x) => x.id === id);
+    if (!cell || (cell.ghi_chu ?? "") === note.trim()) return;
+    const res = await upsertNkbvBaTimelineMilestone({
+      id,
+      ma_benh_an: maBenhAn,
+      milestone_kind: "IMAGING_CHEST",
+      milestone_date: cell.ngay.slice(0, 10),
+      title: cell.mo_ta_benh_ly || "CĐHA",
+      detail: note.trim() || null,
+      criteria_key: (cell.tieu_chuan_key || "imaging_chest") as never,
+    });
+    if (!res.success) toast.error(res.error || "Không lưu ghi chú CĐHA");
     else applyUpsertRow(res.data as Record<string, unknown> | undefined);
   };
 
@@ -335,6 +381,7 @@ export function useNkbvBaWorkspaceMutations({
     changeKhoa,
     toggleCdha,
     editCdhaDate,
+    editCdhaNote,
     addSurgery,
     removeMilestone,
     toggleSsiTc,

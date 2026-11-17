@@ -81,8 +81,3 @@ export function forceReleaseScrollLock() {
     delete el.dataset.bv103ScrollLock;
   });
 }
-
-/** @deprecated — dùng `forceReleaseScrollLock` */
-export function repairBodyScrollLockIfStale() {
-  forceReleaseScrollLock();
-}

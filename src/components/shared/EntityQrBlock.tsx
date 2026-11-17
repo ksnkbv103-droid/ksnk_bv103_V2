@@ -27,7 +27,7 @@ export default function EntityQrBlock({
       <div className="inline-flex flex-col items-center gap-1 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         { }
         <img src={dataUrl} alt={`QR ${displayCode}`} className="h-28 w-28" />
-        <p className="max-w-[10rem] break-all text-center font-mono text-[11px] font-bold tracking-wide text-slate-800">
+        <p className="max-w-[10rem] break-all text-center font-mono text-xs font-bold tracking-wide text-slate-800">
           {displayCode}
         </p>
         <p className="bv103-type-note">{caption}</p>

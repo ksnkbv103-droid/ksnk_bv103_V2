@@ -3,6 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { mapLoaiPhysicalToListRow, splitLoaiStock } from "@/lib/master-data/cssd-loai-list-map";
+import { fetchTrongBoByLoai } from "@/lib/master-data/cssd-trong-bo-by-loai";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { CSSD_KHO_CATALOG_PERMISSION_CANDIDATES } from "../lib/cssd-catalog-permission-candidates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
@@ -59,20 +60,8 @@ export async function searchKhoCatalogLoaiAction(q: string, page = 1): Promise<
       };
     });
     const ids = mapped.map((r) => r.id);
-    const trongBo = new Map<string, number>();
-    if (ids.length) {
-      const { data: setRows, error: setErr } = await supabase
-        .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
-        .select("loai_dung_cu_id, so_luong_thuc_te")
-        .in("loai_dung_cu_id", ids)
-        .eq("is_active", true);
-      if (setErr) throw setErr;
-      for (const row of setRows || []) {
-        const id = String((row as { loai_dung_cu_id?: string }).loai_dung_cu_id || "");
-        if (!id) continue;
-        trongBo.set(id, (trongBo.get(id) || 0) + Number((row as { so_luong_thuc_te?: number }).so_luong_thuc_te || 0));
-      }
-    }
+    const { data: trongBo, error: setErr } = await fetchTrongBoByLoai(supabase, ids);
+    if (setErr) throw new Error(setErr);
     return {
       success: true,
       totalCount: count ?? mapped.length,

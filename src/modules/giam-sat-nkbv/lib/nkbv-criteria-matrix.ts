@@ -13,6 +13,7 @@ export type NkbvCriteriaKey =
   | "resp_culture"
   | "wound_culture"
   | "imaging_chest"
+  | "imaging_chest_normal"
   | "fever_or_wbc"
   | "fever"
   | "chills"
@@ -63,6 +64,12 @@ export const NKBV_CRITERIA_ADD_CATALOG: Array<{
   title: string;
   gates: NkbvChecklistTypeCode[];
 }> = [
+{
+    criteriaKey: "imaging_chest_normal",
+    milestoneKind: "IMAGING_CHEST",
+    title: "XQ/CT phổi không thâm nhiễm / đông đặc / hang",
+    gates: ["HAP", "VAP"],
+  },
 {
     criteriaKey: "imaging_chest",
     milestoneKind: "IMAGING_CHEST",
@@ -325,7 +332,7 @@ function criteriaKeysFromMilestone(m: BaTimelineMilestone): NkbvCriteriaKey[] {
   const kind = String(m.kind || "").toUpperCase();
   const specimen = String(m.loai_benh_pham || m.title || "").toUpperCase();
 
-  if (kind === "IMAGING_CHEST" || ck === "imaging_chest") keys.push("imaging_chest");
+  if ((kind === "IMAGING_CHEST" && ck !== "imaging_chest_normal") || ck === "imaging_chest") keys.push("imaging_chest");
   if (kind === "PROCEDURE_SURGERY" || ck === "procedure_surgery") keys.push("procedure_surgery");
 
   if (m.source === "LIS" || kind === "LIS") {

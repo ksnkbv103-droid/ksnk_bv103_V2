@@ -8,8 +8,8 @@
  * Đặc tính an toàn:
  *  - Lưu vào `sessionStorage` → tự dọn khi đóng tab, không "đầu độc" lâu dài.
  *  - TTL 15 phút (khớp `unstable_cache` server: revalidate 900s).
- *  - Có hàm `invalidateClientDanhMucCache()` để gọi sau khi user CRUD danh mục
- *    trong module Quản trị (bắt buộc khi vận hành).
+ *  - Chưa có hàm xóa cache client khi CRUD danh mục: trong cùng tab, thay đổi ở Quản trị
+ *    hiện sau tối đa 15 phút (tab mới đọc lại ngay; cache server đã làm mới theo tag).
  *  - Phòng vệ JSON parse / quota lỗi: rơi về fetch trực tiếp.
  */
 
@@ -77,23 +77,4 @@ export async function getCategoriesByTypeCached<T>(
   const res = await fetcher(type);
   if (res.success && res.data !== undefined) writeCache(type, res.data);
   return res;
-}
-
-/** Gọi sau khi CRUD danh mục (module Quản trị) để đảm bảo các tab khác sẽ fetch mới khi mở. */
-export function invalidateClientDanhMucCache(type?: string): void {
-  if (!isBrowserStorageAvailable()) return;
-  try {
-    if (type) {
-      window.sessionStorage.removeItem(KEY_PREFIX + type);
-      return;
-    }
-    const keys: string[] = [];
-    for (let i = 0; i < window.sessionStorage.length; i += 1) {
-      const k = window.sessionStorage.key(i);
-      if (k && k.startsWith(KEY_PREFIX)) keys.push(k);
-    }
-    keys.forEach((k) => window.sessionStorage.removeItem(k));
-  } catch {
-    // ignore
-  }
 }

@@ -19,7 +19,7 @@ AS $$
 DECLARE
   v_bk_id uuid;
   v_ten_bang_kiem text;
-  v_kpis jsonb;
+  v_chi_so jsonb;
   v_trendline jsonb;
   v_matrix_khoa jsonb;
   v_matrix_criterion jsonb;
@@ -36,7 +36,7 @@ BEGIN
     RETURN jsonb_build_object(
       'ma_bk', p_ma_bk,
       'ten_bang_kiem', NULL,
-      'kpis', '{}'::jsonb,
+      'chi_so', '{}'::jsonb,
       'trendline', '[]'::jsonb,
       'matrix_khoa', '[]'::jsonb,
       'matrix_criterion', '[]'::jsonb,
@@ -52,7 +52,7 @@ BEGIN
     'tong_vi_pham', COALESCE(SUM(s.tong_vi_pham), 0),
     'ty_le_tuan_thu', CASE WHEN SUM(s.tong_quan_sat) > 0
       THEN ROUND((SUM(s.tong_dat)::numeric * 100) / SUM(s.tong_quan_sat), 1) ELSE 0 END
-  ) INTO v_kpis
+  ) INTO v_chi_so
   FROM public.gstt_fact_gsc_dashboard_summary s
   LEFT JOIN public.mdm_dm_khoa_phong k ON s.khoa_id = k.id
   WHERE s.bang_kiem_id = v_bk_id
@@ -200,7 +200,7 @@ BEGIN
   RETURN jsonb_build_object(
     'ma_bk', p_ma_bk,
     'ten_bang_kiem', v_ten_bang_kiem,
-    'kpis', COALESCE(v_kpis, '{}'::jsonb),
+    'chi_so', COALESCE(v_chi_so, '{}'::jsonb),
     'trendline', COALESCE(v_trendline, '[]'::jsonb),
     'matrix_khoa', COALESCE(v_matrix_khoa, '[]'::jsonb),
     'matrix_criterion', COALESCE(v_matrix_criterion, '[]'::jsonb),
@@ -225,7 +225,7 @@ SECURITY DEFINER
 SET search_path TO public
 AS $$
 DECLARE
-  v_kpis jsonb;
+  v_chi_so jsonb;
   v_trendline jsonb;
   v_matrix_khoa jsonb;
   v_top_violations jsonb;
@@ -241,7 +241,7 @@ BEGIN
     'tong_vi_pham', COALESCE(SUM(s.tong_vi_pham), 0),
     'ty_le_tuan_thu', CASE WHEN SUM(s.tong_quan_sat) > 0
       THEN ROUND((SUM(s.tong_dat)::numeric * 100) / SUM(s.tong_quan_sat), 1) ELSE 0 END
-  ) INTO v_kpis
+  ) INTO v_chi_so
   FROM public.gstt_fact_gsc_dashboard_summary s
   LEFT JOIN public.mdm_dm_khoa_phong k ON s.khoa_id = k.id
   WHERE s.ngay_giam_sat >= p_tu_ngay AND s.ngay_giam_sat <= p_den_ngay
@@ -551,7 +551,7 @@ BEGIN
   ) INTO v_workload;
 
   RETURN jsonb_build_object(
-    'kpis', COALESCE(v_kpis, '{}'::jsonb),
+    'chi_so', COALESCE(v_chi_so, '{}'::jsonb),
     'trendline', COALESCE(v_trendline, '[]'::jsonb),
     'matrix_khoa', COALESCE(v_matrix_khoa, '[]'::jsonb),
     'top_violations', COALESCE(v_top_violations, '[]'::jsonb),

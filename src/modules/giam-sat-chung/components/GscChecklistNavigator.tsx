@@ -79,7 +79,7 @@ export function GscChecklistNavigator({
     <div className={`${UI.shell} max-sm:overflow-visible sm:overflow-hidden`}>
       <div className="border-b border-slate-100 px-4 py-3">
         <h3 className="bv103-type-section text-slate-800">Bảng kiểm cần chú ý</h3>
-        <p className="mt-0.5 text-[11px] text-slate-500">
+        <p className="mt-0.5 text-xs text-slate-500">
           {effectiveLimit > 0
             ? `Năm bảng kiểm tuân thủ thấp / vi phạm nhiều (đủ mẫu)${hiddenCount > 0 ? ` — còn ${hiddenCount}` : ""}.`
             : "Sắp xếp theo rủi ro. Chọn một dòng để xem lỗi theo khoa và tiêu chí."}
@@ -88,7 +88,7 @@ export function GscChecklistNavigator({
           <button
             type="button"
             onClick={() => setShowAll(true)}
-            className="mt-1 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+            className="mt-1 text-xs font-semibold text-[var(--primary)] hover:underline"
           >
             Xem mọi bảng kiểm
           </button>
@@ -132,10 +132,10 @@ export function GscChecklistNavigator({
           <p className="bv103-type-label font-semibold uppercase tracking-wide text-slate-500">
             Mẫu mỏng ({thinRows.length})
           </p>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-xs text-slate-500">
             Chưa đủ mẫu để so sánh (cần ≥30 tiêu chí áp dụng và ≥3 phiên). Không xếp hạng.
           </p>
-          <ul className="mt-2 space-y-1 text-[11px] text-slate-600">
+          <ul className="mt-2 space-y-1 text-xs text-slate-600">
             {thinRows.slice(0, showAll ? 50 : 8).map((r) => (
               <li key={r.ma_bk}>
                 <button
@@ -184,7 +184,7 @@ function ChecklistRow({
         <p className="font-semibold text-slate-800" title={label}>
           {label}
         </p>
-        <p className="max-w-[220px] truncate text-[11px] text-slate-500" title={row.ma_bk}>
+        <p className="max-w-[220px] truncate text-xs text-slate-500" title={row.ma_bk}>
           {row.ma_bk}
         </p>
       </td>
@@ -194,7 +194,7 @@ function ChecklistRow({
       <td className={`px-2 py-2 text-right tabular-nums font-bold ${complianceClass(ty)}`}>
         {formatTyLe(row)}
       </td>
-      <td className="px-2 py-2 text-[11px] text-slate-600">
+      <td className="px-2 py-2 text-xs text-slate-600">
         {row.top_violation_ten ? (
           <span className="inline-flex items-start gap-1">
             <AlertTriangle size={12} className="mt-0.5 shrink-0 text-amber-600" />

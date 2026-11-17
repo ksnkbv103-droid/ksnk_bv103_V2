@@ -129,7 +129,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
       <div className="space-y-2 rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--primary)] p-3 shadow-sm">
         <div className="flex items-center gap-2 px-2 text-white/80">
           <QrCode className="h-4 w-4" aria-hidden />
-          <span className="text-[11px] font-semibold">Truy vết QR</span>
+          <span className="text-xs font-semibold">Truy vết QR</span>
         </div>
         <QrScanInput
           inputRef={scanInputRef}
@@ -152,7 +152,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
       {loading ? (
         <div className="py-24 text-center space-y-[var(--bv103-space-3)] animate-pulse">
           <Clock className="mx-auto text-slate-200" size={48} />
-          <p className="text-[11px] font-medium text-slate-400 tracking-wide">Đang truy xuất dữ liệu...</p>
+          <p className="text-xs font-medium text-slate-400 tracking-wide">Đang truy xuất dữ liệu...</p>
         </div>
       ) : batchTrace ? (
         <div className="bv103-layer-panel bv103-pad-panel bv103-stack-in animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -194,7 +194,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           <div className="bv103-layer-panel bv103-pad-panel flex items-center justify-between overflow-hidden relative">
             <div className="relative z-10 space-y-2">
               <h3 className="bv103-type-title mb-1 font-mono">{process.ma_vach_qr}</h3>
-              <p className="text-[11px] font-medium text-[var(--primary)] flex items-center gap-2">
+              <p className="text-xs font-medium text-[var(--primary)] flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" /> Trạng thái:{" "}
                 {stationLabel(String(process.trang_thai_hien_tai || ""))}
               </p>
@@ -209,7 +209,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                     Tem chu trình (túi hấp): {String(process.ma_cycle_qr)}
                   </span>
                 ) : (
-                  <span className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                  <span className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">
                     Chưa gắn tem chu trình — thường sau Đóng gói
                   </span>
                 )}
@@ -236,7 +236,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
             <h4 className="text-xs font-semibold tracking-wide text-emerald-800">
               Truy vết ca mổ / người bệnh
             </h4>
-            <p className="text-[11px] text-emerald-700">
+            <p className="text-xs text-emerald-700">
               Ghi nhận sử dụng trên người bệnh sau cấp phát: gắn ca mổ kèm người ghi và thời điểm.
               Không tự ghi khi in phiếu cấp phát.
             </p>
@@ -245,14 +245,14 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               usedClinicallyAt: process.used_clinically_at,
               usedClinicallyBy: process.used_clinically_by,
             }) ? (
-              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[11px] text-emerald-900">
+              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs text-emerald-900">
                 Đã dùng lâm sàng
                 {process.used_clinically_source ? ` · nguồn ${process.used_clinically_source}` : ""}
                 {process.used_clinically_at ? ` · ${formatCssdPrintDateTime(process.used_clinically_at)}` : ""}
                 {process.used_clinically_by ? ` · người ghi ${String(process.used_clinically_by).slice(0, 8)}…` : ""}
               </p>
             ) : (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                 Chưa dùng trên người bệnh — bộ sau cấp phát vẫn chọn được trên Sự cố; có thể thu hồi khi BI dương (nếu chưa dùng).
               </p>
             )}
@@ -301,7 +301,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                 {/* Log Card */}
                 <div className={`p-4 rounded-[var(--radius-shell)] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100' : 'bg-white border-slate-200'}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <span className={`text-[11px] font-semibold ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
+                    <span className={`text-xs font-semibold ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
                       Trạm {stationLabel(String(log.tram || ""))}
                     </span>
                     <span className="bv103-type-label font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
@@ -314,7 +314,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                   </p>
                   <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-50">
                     <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-slate-400"><User size={12} /></div>
-                    <span className="text-[11px] font-medium text-slate-400 tracking-tighter">Nhân viên khoa KSNK</span>
+                    <span className="text-xs font-medium text-slate-400 tracking-tighter">Nhân viên khoa KSNK</span>
                   </div>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
             <History className="text-slate-300" size={32} />
           </div>
           <div className="space-y-1">
-            <p className="text-[11px] font-medium text-slate-400 tracking-wide">Chưa có dữ liệu</p>
+            <p className="text-xs font-medium text-slate-400 tracking-wide">Chưa có dữ liệu</p>
             <p className="bv103-type-label font-semibold text-slate-300">Vui lòng nhập hoặc quét mã để truy vết</p>
           </div>
         </div>

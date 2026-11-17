@@ -613,7 +613,7 @@ export default function NkbvDiagnosticCaseForm({
               ngayPhatHien={String(row.ngay_phat_hien || "").slice(0, 10)}
             />
           )}
-          <p className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             Khoa và Foley/máy/CVC lấy từ lưới bệnh án. Sửa trên lưới — không nhập lại trên phiếu.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -643,7 +643,7 @@ export default function NkbvDiagnosticCaseForm({
           Tác nhân mới trong RIT được bổ sung vào ca gốc, không tạo ca mới cùng loại chính.
         </p>
         {baRitLabs.length > 0 ? (
-          <ul className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/60 px-2 py-1.5 text-[11px] text-emerald-950">
+          <ul className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/60 px-2 py-1.5 text-xs text-emerald-950">
             <li className="font-medium text-emerald-800">
               Lab ∈ RIT (seed từ bảng BA)
             </li>
@@ -678,7 +678,7 @@ export default function NkbvDiagnosticCaseForm({
         }
       >
         {baSbapLabs.length > 0 ? (
-          <ul className="mb-2 space-y-1 rounded-lg border border-sky-200 bg-sky-50/70 px-2 py-1.5 text-[11px] text-sky-950">
+          <ul className="mb-2 space-y-1 rounded-lg border border-sky-200 bg-sky-50/70 px-2 py-1.5 text-xs text-sky-950">
             <li className="font-medium text-sky-800">
               Cấy máu ∈ SBAP (seed từ bảng BA)
             </li>
@@ -742,7 +742,7 @@ export default function NkbvDiagnosticCaseForm({
         <div className="space-y-3">
           <NkbvClinicalRationaleCard deduction={clinicalDeduction} />
           {liveEvaluation.warnings?.length ? (
-            <div className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-950">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs text-amber-950">
               <strong>Cảnh báo bổ sung:</strong>{" "}
               {liveEvaluation.warnings.join(" · ")}
             </div>
@@ -892,7 +892,7 @@ function TypePicker({
                 }`}
               >
                 {isSuggested ? (
-                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-medium text-white">
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white">
                     Gợi ý
                   </span>
                 ) : null}

@@ -12,7 +12,7 @@ import {
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import { CatalogDeNghiDiff } from "@/components/shared/CatalogDeNghiDiff";
-import { SetReconcileHistoryList } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/SetReconcileHistoryList";
+import { SetReconcileHistoryList } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/SetReconcileHistoryList";
 
 /** Tab Phiếu — bấm một dòng để xem Cũ → Mới và in. Hàng đợi duyệt (ADMIN) hiện phía trên, gắn ở trang. */
 export function CSSDCatalogDeNghiTab() {
@@ -43,7 +43,7 @@ export function CSSDCatalogDeNghiTab() {
           <button
             type="button"
             onClick={() => setHistoryTab("CATALOG")}
-            className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
               historyTab === "CATALOG"
                 ? "bg-white text-[var(--primary)] shadow-xs"
                 : "text-slate-600 hover:text-slate-800"
@@ -54,7 +54,7 @@ export function CSSDCatalogDeNghiTab() {
           <button
             type="button"
             onClick={() => setHistoryTab("RECONCILE")}
-            className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
               historyTab === "RECONCILE"
                 ? "bg-white text-[var(--primary)] shadow-xs"
                 : "text-slate-600 hover:text-slate-800"
@@ -102,7 +102,7 @@ export function CSSDCatalogDeNghiTab() {
                   rows.map((r) => (
                     <React.Fragment key={r.id}>
                     <tr className={`cursor-pointer ${L.row}`} onClick={() => setOpenId(openId === r.id ? null : r.id)}>
-                      <td className={`${L.td} whitespace-nowrap text-[11px]`}>
+                      <td className={`${L.td} whitespace-nowrap text-xs`}>
                         {r.createdAt ? new Date(r.createdAt).toLocaleString("vi-VN") : "—"}
                       </td>
                       <td className={L.td}>{CSSD_CATALOG_DE_NGHI_KIND_LABEL[r.targetKind]}
@@ -113,13 +113,13 @@ export function CSSDCatalogDeNghiTab() {
                           ? ` · ${normalizeDeNghiItems({ targetKind: r.targetKind, payloadAfter: r.payloadAfter }).length} mục`
                           : ""}</td>
                       <td className={L.td}>
-                        <div className="font-mono text-[11px] text-violet-700">{r.targetMa || "—"}</div>
+                        <div className="font-mono text-xs text-violet-700">{r.targetMa || "—"}</div>
                         <div className="text-[12px]">{r.targetTen || ""}</div>
                       </td>
                       <td className={`${L.td} text-[12px]`}>
                         {summarizeDeNghiAfter(r.targetKind, r.payloadAfter)}
                         {r.note ? (
-                          <div className="mt-0.5 text-[11px] text-slate-500">{r.note}</div>
+                          <div className="mt-0.5 text-xs text-slate-500">{r.note}</div>
                         ) : null}
                       </td>
                       <td className={L.td}>

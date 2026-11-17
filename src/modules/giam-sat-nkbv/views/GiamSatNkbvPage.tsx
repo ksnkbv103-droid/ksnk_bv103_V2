@@ -40,7 +40,8 @@ import NkbvCdcLocationBanner from "../components/NkbvCdcLocationBanner";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
 import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
-import { confirmAction } from "@/components/shared/confirm-action";
+import { confirmAction, promptText } from "@/components/shared/confirm-action";
+import { isNkbvTerminalCaseStatus } from "../lib/nkbv-case-status";
 import { NkbvNapDuLieuSwitch } from "../components/NkbvNapDuLieuSwitch";
 import NkbvCaseSummaryBookPrintView from "../components/NkbvCaseSummaryBookPrintView";
 
@@ -383,7 +384,7 @@ export default function GiamSatNkbvPage() {
           <div className="flex flex-col">
             <span className="font-bold text-slate-900">{item.ho_ten_benh_nhan}</span>
             {item.ngay_sinh && (
-              <span className="text-[11px] text-slate-400">
+              <span className="text-xs text-slate-400">
                 Sinh: {formatDateVi(item.ngay_sinh)} {item.gioi_tinh ? `(${item.gioi_tinh})` : ""}
               </span>
             )}
@@ -451,7 +452,7 @@ export default function GiamSatNkbvPage() {
               <button
                 type="button"
                 onClick={() => setEditStay(item)}
-                className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-200"
+                className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
               >
                 Sửa BA
               </button>
@@ -459,7 +460,7 @@ export default function GiamSatNkbvPage() {
             <button
               type="button"
               onClick={() => openHubBa(String(item.ma_benh_an || ""))}
-              className="rounded-full bg-[var(--primary)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#026615]"
+              className="rounded-full bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#026615]"
             >
               Hub BA
             </button>
@@ -531,7 +532,7 @@ export default function GiamSatNkbvPage() {
             <span className="bv103-type-label font-semibold text-slate-800 font-mono">
               {String((item as any).ma_benh_an || "—")}
             </span>
-            <span className="text-[11px] text-[11px] font-medium text-slate-500">
+            <span className="text-xs text-xs font-medium text-slate-500">
               {String((item as any).ma_benh_nhan || "")} - {String((item as any).ho_ten_benh_nhan || "—")}
             </span>
           </div>
@@ -590,7 +591,7 @@ export default function GiamSatNkbvPage() {
         header: "Nghi ngờ nkbv",
         accessorKey: "loai",
         cell: (item: NkbvCaseLike) => (
-          <span className="font-mono text-[11px] font-medium text-[var(--primary)] bg-[var(--primary)]/10 px-2.5 py-0.5 rounded-full">
+          <span className="font-mono text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 px-2.5 py-0.5 rounded-full">
             {formatNkbvLoaiDisplay(
               (item as { loai_nkbv?: { ma_loai?: string; ten_loai?: string } }).loai_nkbv?.ma_loai,
               (item as { loai_nkbv?: { ma_loai?: string; ten_loai?: string } }).loai_nkbv?.ten_loai,
@@ -602,7 +603,7 @@ export default function GiamSatNkbvPage() {
         header: "Trạng thái",
         accessorKey: "tt",
         cell: (item: NkbvCaseLike) => (
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
             {(item as { trang_thai_row?: { ten_trang_thai?: string } }).trang_thai_row?.ten_trang_thai || "—"}
           </span>
         ),
@@ -633,7 +634,7 @@ export default function GiamSatNkbvPage() {
               {[...codes].map((c) => (
                 <span
                   key={c}
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                     c === "CSSD_RECALL"
                       ? "bg-rose-100 text-rose-800 border border-rose-200"
                       : c === "SBAP"
@@ -670,7 +671,7 @@ export default function GiamSatNkbvPage() {
                     setChecklistCase(item as NkbvTableRow);
                     setChecklistOpen(true);
                   }}
-                  className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                     isPendingVerification
                       ? "text-amber-600 hover:bg-amber-600/10"
                       : "text-blue-600 hover:bg-blue-600/10"
@@ -686,7 +687,7 @@ export default function GiamSatNkbvPage() {
                     setChecklistCase(item);
                     setChecklistOpen(true);
                   }}
-                  className="rounded-full px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                  className="rounded-full px-3 py-1.5 font-mono text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10"
                 >
                   Sửa
                 </button>
@@ -695,9 +696,20 @@ export default function GiamSatNkbvPage() {
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!(await confirmAction("Ẩn phiếu này khỏi danh sách?"))) return;
                     const id = String(item.id ?? "");
-                    const res = await softDeleteGiamSatNkbvCa(id);
+                    const maTt = String((item as any).trang_thai_row?.ma_trang_thai || "");
+                    let lyDo: string | undefined;
+                    if (isNkbvTerminalCaseStatus(maTt)) {
+                      // NKBV-023: ca đã chốt — chỉ ADMIN, bắt buộc lý do (máy chủ kiểm lại).
+                      const v = await promptText({
+                        title: "Ẩn ca đã chốt",
+                        message: "Ca đã xác nhận/loại trừ. Chỉ ADMIN được ẩn; lý do được ghi nhật ký.",
+                        label: "Lý do ẩn",
+                      });
+                      if (v == null) return;
+                      lyDo = v;
+                    } else if (!(await confirmAction("Ẩn phiếu này khỏi danh sách?"))) return;
+                    const res = await softDeleteGiamSatNkbvCa(id, lyDo);
                     if (res.success) {
                       toast.success("Đã ẩn phiếu");
                       void refresh();
@@ -902,7 +914,7 @@ export default function GiamSatNkbvPage() {
                     });
                     void loadDashboard();
                   }}
-                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation"
+                  className="inline-flex h-11 shrink-0 items-center gap-1 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation"
                 >
                   Cập nhật
                 </button>
@@ -946,7 +958,7 @@ export default function GiamSatNkbvPage() {
 
       {mainTab === "vi-sinh" ? (
         <KsnkSupervisionPanel className="pt-2">
-          <NkbvViSinhImportPortal khoas={header.khoas} />
+          <NkbvViSinhImportPortal khoas={header.khoas} canImport={allowed.import} />
         </KsnkSupervisionPanel>
       ) : null}
 
@@ -1054,7 +1066,7 @@ export default function GiamSatNkbvPage() {
                 Chỉ BA còn XN (+) chưa phân tích
               </label>
               <div className="min-w-[200px] flex-1">
-                <span className="mb-1 block text-[11px] font-medium text-slate-500">Khoa điều trị</span>
+                <span className="mb-1 block text-xs font-medium text-slate-500">Khoa điều trị</span>
                 <SearchableSelect
                   value={recordsKhoaId}
                   onChange={(v) => {

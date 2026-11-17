@@ -169,7 +169,7 @@ export default function OfflineSyncManager() {
       <div className="flex flex-col">
         <span>{!isOnline ? "Chế độ Offline" : "Đang kết nối..."}</span>
         {pendingTasks.length > 0 && (
-          <span className="text-[11px] font-medium text-white/80">
+          <span className="text-xs font-medium text-white/80">
             {pendingTasks.length} thao tác chờ đồng bộ
           </span>
         )}

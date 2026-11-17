@@ -8,7 +8,7 @@ import {
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 
 const emptyPayload = (): GscStrategicPayload => ({
-  kpis: {
+  chi_so: {
     tong_phien: 0,
     tong_quan_sat: 0,
     tong_dat: 0,
@@ -33,7 +33,7 @@ const emptyPayload = (): GscStrategicPayload => ({
 describe("normalizeGscStrategicPercents", () => {
   it("recomputes 2/3 as 66.67 instead of RPC 1-decimal 66.7", () => {
     const p = emptyPayload();
-    p.kpis = {
+    p.chi_so = {
       tong_phien: 1,
       tong_quan_sat: 3,
       tong_dat: 2,
@@ -67,7 +67,7 @@ describe("normalizeGscStrategicPercents", () => {
       },
     ];
     const out = normalizeGscStrategicPercents(p);
-    expect(out.kpis.ty_le_tuan_thu).toBe(66.67);
+    expect(out.chi_so.ty_le_tuan_thu).toBe(66.67);
     expect(out.trendline[0]?.ty_le_tuan_thu).toBe(66.67);
     expect(out.top_violations[0]?.ty_le_vi_pham).toBe(33.33);
     expect(out.gap_analysis[0]?.ty_le_tgs).toBe(66.67);
@@ -86,7 +86,7 @@ describe("normalizeGscChecklistDetailPercents", () => {
     const out = normalizeGscChecklistDetailPercents({
       ma_bk: "BM.01.03",
       ten_bang_kiem: "BK",
-      kpis: emptyPayload().kpis,
+      chi_so: emptyPayload().chi_so,
       trendline: [],
       matrix_khoa: [],
       matrix_criterion: [],
@@ -114,11 +114,11 @@ describe("gscAnalyticsPayloadHasData", () => {
 
   it("returns true when có phiên hoặc tiêu chí áp dụng", () => {
     const withSessions = emptyPayload();
-    withSessions.kpis.tong_phien = 2;
+    withSessions.chi_so.tong_phien = 2;
     expect(gscAnalyticsPayloadHasData(withSessions)).toBe(true);
 
     const withCriteria = emptyPayload();
-    withCriteria.kpis.tong_quan_sat = 5;
+    withCriteria.chi_so.tong_quan_sat = 5;
     expect(gscAnalyticsPayloadHasData(withCriteria)).toBe(true);
   });
 

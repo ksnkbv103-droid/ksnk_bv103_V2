@@ -69,7 +69,7 @@ export function previewMauSoFromRegistry(
   khoaId?: string | null,
 ): MauSoPreview {
   const filtered = khoaId
-    ? rows.filter((r) => !r.khoa_id || r.khoa_id === khoaId)
+    ? rows.filter((r) => r.khoa_id === khoaId)
     : rows;
   let cvc = 0;
   let foley = 0;

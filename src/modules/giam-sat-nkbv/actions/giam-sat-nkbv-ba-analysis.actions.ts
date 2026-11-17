@@ -14,7 +14,9 @@ import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveMdmLoaiId, type NkbvChecklistTypeCode } from "../lib/nkbv-loai-labels";
 import { isNkbvCaTrangThaiChot, resolveKhoaQuyKet } from "../lib/nkbv-ba-ngay";
-import { bareViSinhIdFromMilestoneId } from "../lib/nkbv-vi-sinh-analysis-status";
+import { bareViSinhIdFromMilestoneId, resolveViSinhAnalysisStatus, type ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
+import { validateBloodLast } from "../lib/nkbv-chrono-precedence";
+import { bloodPrimaryBlockedByPriorEvents } from "../lib/nkbv-blood-primary-guard";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import {
@@ -61,6 +63,100 @@ export type NkbvBaAnalysisSeedInput = {
   /** HAP vs VAP (PNEU) — cổng phiếu; mặc định suy từ panel. */
   checklistGate?: NkbvChecklistTypeCode | null;
 };
+
+/** Chặn server: mở BSI/CLABSI từ mẫu máu khi còn mẫu cấy (+) khác ±14 ngày chưa phân tích. */
+async function checkBloodLastServer(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  input: { maBa: string; gate: string; milestoneId: string; indexDate: string; loaiBenhPham?: string | null },
+): Promise<string | null> {
+  if (input.gate !== "BSI" && input.gate !== "CLABSI") return null;
+  const vsId = bareViSinhIdFromMilestoneId(input.milestoneId);
+  if (!vsId) return null;
+  const { data: rows } = await supabase
+    .from("nkbv_fact_vi_sinh")
+    .select("id, ngay_lay_mau, loai_benh_pham, tac_nhan, metadata")
+    .eq("ma_benh_an", input.maBa)
+    .eq("is_active", true)
+    .eq("ket_qua_duong_tinh", true);
+  const list = rows ?? [];
+  const { data: cases } = await supabase
+    .from("v_nkbv_su_kien_full")
+    .select("id, ngay_phat_hien, loai_ma, loai_ten, vi_tri_nhiem_khuan, tac_nhan_vi_khuan, trang_thai_ma, verification_data")
+    .eq("ma_benh_an", input.maBa)
+    .eq("is_active", true);
+  const dispositions: ViSinhAnalysisDispositionRow[] = [
+    ...(cases ?? []).map((c) => {
+      const vd = (c.verification_data && typeof c.verification_data === "object" ? c.verification_data : {}) as Record<string, unknown>;
+      return {
+        index_vi_sinh_id: vd.index_vi_sinh_id ? String(vd.index_vi_sinh_id) : null,
+        analysis_disposition: null,
+        is_active: true,
+      };
+    }),
+    ...list.map((r) => {
+      const m = (r.metadata && typeof r.metadata === "object" ? r.metadata : {}) as Record<string, unknown>;
+      const d = m.analysis_disposition;
+      return {
+        index_vi_sinh_id: String(r.id),
+        analysis_disposition: d === "BO_QUA" || d === "KHONG_DU_TC" || d === "DA_PHAN_TICH" ? d : undefined,
+        is_active: true,
+      } as ViSinhAnalysisDispositionRow;
+    }).filter((r) => r.analysis_disposition),
+  ];
+  const statusById: Record<string, string> = {};
+  for (const r of list) statusById[String(r.id)] = resolveViSinhAnalysisStatus(String(r.id), dispositions);
+  // CĐHA: mốc IMAGING_* còn hoạt động; đã xử lý khi metadata.analysis_disposition có giá trị.
+  const { data: imgRows } = await supabase
+    .from("nkbv_fact_ba_timeline")
+    .select("id, milestone_date, milestone_kind, criteria_key, metadata")
+    .eq("ma_benh_an", input.maBa)
+    .eq("is_active", true)
+    .or("milestone_kind.ilike.IMAGING%,criteria_key.in.(imaging_chest,imaging_chest_normal,abscess_imaging)");
+  const cdhaList = (imgRows ?? []).map((r) => {
+    const m = (r.metadata && typeof r.metadata === "object" ? r.metadata : {}) as Record<string, unknown>;
+    statusById[String(r.id)] = m.analysis_disposition || r.criteria_key === "imaging_chest_normal" ? "DA_XU_LY" : "CHUA_PHAN_TICH";
+    return { id: String(r.id), ngay: String(r.milestone_date ?? "").slice(0, 10), label: String(r.milestone_kind ?? "CĐHA") };
+  });
+  const res = validateBloodLast({
+    cdhaList,
+    targetId: vsId,
+    targetDate: input.indexDate,
+    targetBenhPham: list.find((r) => String(r.id) === vsId)?.loai_benh_pham || input.loaiBenhPham,
+    xnList: list.map((r) => ({
+      id: String(r.id),
+      ngay: String(r.ngay_lay_mau).slice(0, 10),
+      benh_pham: r.loai_benh_pham,
+      vi_khuan: r.tac_nhan,
+    })),
+    statusById,
+  });
+  if (!res.allowed) return res.message;
+  // Khung thứ phát: máu ∈ SBAP/RIT của sự kiện đủ TC → không tạo BSI nguyên phát.
+  const priorEvents = (cases ?? []).map((c) => {
+    const vd = (c.verification_data && typeof c.verification_data === "object" ? c.verification_data : {}) as Record<string, unknown>;
+    const calc = typeof vd.calculated_doe === "string" ? vd.calculated_doe.slice(0, 10) : null;
+    return {
+      id: String(c.id),
+      ngay_phat_hien: calc || (c.ngay_phat_hien ? String(c.ngay_phat_hien).slice(0, 10) : null),
+      loai_ma: c.loai_ma ? String(c.loai_ma) : null,
+      loai_ten: c.loai_ten ? String(c.loai_ten) : null,
+      vi_tri_nhiem_khuan: c.vi_tri_nhiem_khuan ? String(c.vi_tri_nhiem_khuan) : null,
+      index_vi_sinh_id: vd.index_vi_sinh_id ? String(vd.index_vi_sinh_id) : null,
+      tac_nhan_vi_khuan: c.tac_nhan_vi_khuan ? String(c.tac_nhan_vi_khuan) : null,
+      attributed_vi_sinh_ids: Array.isArray(vd.attributed_vi_sinh_ids)
+        ? (vd.attributed_vi_sinh_ids as unknown[]).map((x) => String(x)).filter(Boolean)
+        : [],
+    };
+  });
+  const target = list.find((r) => String(r.id) === vsId);
+  return bloodPrimaryBlockedByPriorEvents({
+    bloodId: vsId,
+    bloodDate: input.indexDate,
+    specimen: String(target?.loai_benh_pham || input.loaiBenhPham || "Máu"),
+    organism: target?.tac_nhan ? String(target.tac_nhan) : null,
+    priorEvents,
+  });
+}
 
 async function markViSinhAnalyzedForCase(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
@@ -203,6 +299,12 @@ export async function ensureNkbvBaAnalysisCase(input: {
   if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), maBa))) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
+  if (!input.existing_case_id) {
+    const blocked = await checkBloodLastServer(supabase, {
+      maBa, gate, milestoneId, indexDate, loaiBenhPham: input.loai_benh_pham,
+    });
+    if (blocked) return { success: false as const, error: blocked };
+  }
 
   const reloadCase = async (id: string) => {
     const { data, error } = await supabase
@@ -230,6 +332,13 @@ export async function ensureNkbvBaAnalysisCase(input: {
           : {};
       // Chỉ seed lần đầu (tránh ghi đè form đã sửa tay)
       if (!vd.seeded_from_ba_analysis) {
+        // Phiếu có sẵn nhận kết luận lần đầu: áp cùng luật máu-sau-cùng như khi tạo mới.
+        if (input.existing_case_id) {
+          const blocked = await checkBloodLastServer(supabase, {
+            maBa, gate, milestoneId, indexDate, loaiBenhPham: input.loai_benh_pham,
+          });
+          if (blocked) return { success: false as const, error: blocked };
+        }
         await applyAnalysisSeedToCase(supabase, caseId, milestoneId, seed, vd, notes);
         const refreshed = await reloadCase(caseId);
         if (refreshed) {
@@ -441,6 +550,23 @@ export async function ensureNkbvBaAnalysisCase(input: {
     );
   } else if (vsId) {
     await markViSinhAnalyzedForCase(supabase, created.id, [vsId]);
+  }
+
+  // Ca tạo từ mốc CĐHA: đánh dấu mốc đã phân tích (không còn chặn cấy máu). Không khớp dòng nào = mốc XN → no-op.
+  if (seed?.indexKind === "CDHA" && /^[0-9a-f-]{36}$/i.test(milestoneId)) {
+    const { data: tl } = await supabase
+      .from("nkbv_fact_ba_timeline")
+      .select("metadata")
+      .eq("id", milestoneId)
+      .eq("ma_benh_an", maBa)
+      .maybeSingle();
+    if (tl) {
+      const prev = tl.metadata && typeof tl.metadata === "object" ? (tl.metadata as Record<string, unknown>) : {};
+      await supabase
+        .from("nkbv_fact_ba_timeline")
+        .update({ metadata: { ...prev, analysis_disposition: "DA_PHAN_TICH" }, updated_at: new Date().toISOString() })
+        .eq("id", milestoneId);
+    }
   }
 
   await syncNkbvPhieuFromBaNgay(maBa);

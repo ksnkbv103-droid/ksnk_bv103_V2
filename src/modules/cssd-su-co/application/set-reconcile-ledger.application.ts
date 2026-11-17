@@ -98,33 +98,3 @@ export async function applySetReconcilePhysicalLines(
     touchNgayKiemKe: false,
   });
 }
-
-/** Ghi mã khắc viện lên dòng thành phần (specs.ma_khac) khi NV bổ sung lúc kiểm kê. */
-export async function applySetReconcileEngravedCodes(
-  supabase: SupabaseClient,
-  lines: SetReconcileLineInput[],
-): Promise<void> {
-  for (const line of lines) {
-    const id = String(line.chiTietId || "").trim();
-    if (!id) continue;
-    const next = String(line.maKhac || "").trim();
-    const orig = String(line.maKhacGoc || "").trim();
-    if (next === orig) continue;
-    const { data, error } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .select("specs")
-      .eq("id", id)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    const prev =
-      data?.specs && typeof data.specs === "object" && !Array.isArray(data.specs)
-        ? (data.specs as Record<string, unknown>)
-        : {};
-    const specs = { ...prev, ma_khac: next, co_ma_khac: Boolean(next) };
-    const { error: updErr } = await supabase
-      .from("cssd_dm_bo_dung_cu_chi_tiet")
-      .update({ specs, updated_at: new Date().toISOString() })
-      .eq("id", id);
-    if (updErr) throw new Error(updErr.message);
-  }
-}

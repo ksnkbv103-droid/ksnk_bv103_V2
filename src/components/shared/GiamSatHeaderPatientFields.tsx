@@ -199,14 +199,14 @@ export default function GiamSatHeaderPatientFields({
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className={C.sectionTitle}>Thông tin người bệnh (đang nằm viện)</p>
-            <p className="mt-1 text-[11px] font-medium text-slate-500">
+            <p className="mt-1 text-xs font-medium text-slate-500">
               Danh sách theo khoa đã chọn ở khung trên — không chọn khoa lần nữa.
             </p>
           </div>
           {mdroChecklist ? (
             <button
               type="button"
-              className={`${C.btnSecondary} h-auto min-h-0 px-2.5 py-1 text-[11px]`}
+              className={`${C.btnSecondary} h-auto min-h-0 px-2.5 py-1 text-xs`}
               onClick={() => setShowAllInpatients((v) => !v)}
             >
               {showAllInpatients ? "Chỉ BN đa kháng" : "Xem tất cả BN khoa"}
@@ -214,7 +214,7 @@ export default function GiamSatHeaderPatientFields({
           ) : null}
         </div>
         {mdroChecklist ? (
-          <p className="mb-3 text-[11px] font-medium text-slate-500">
+          <p className="mb-3 text-xs font-medium text-slate-500">
             {useMdroFilter
               ? "Đang lọc BN còn nằm viện có nhãn đa kháng (kho vi sinh)."
               : "Đang hiện mọi BN còn nằm viện tại khoa (không lọc đa kháng)."}
@@ -240,12 +240,12 @@ export default function GiamSatHeaderPatientFields({
               ))}
             </select>
             {useMdroFilter && !loadingList && session.khoa_id && inpatients.length === 0 ? (
-              <p className="pt-1 text-[11px] text-amber-800">
+              <p className="pt-1 text-xs text-amber-800">
                 Chưa có BN đa kháng tại khoa — bấm 「Xem tất cả BN khoa」 nếu cần chọn thủ công.
               </p>
             ) : null}
             {hintLoading ? (
-              <p className="pt-1 text-[11px] text-slate-500">Đang gợi ý can thiệp / đa kháng từ hồ sơ…</p>
+              <p className="pt-1 text-xs text-slate-500">Đang gợi ý can thiệp / đa kháng từ hồ sơ…</p>
             ) : null}
           </div>
           <div className="min-w-0 space-y-1">

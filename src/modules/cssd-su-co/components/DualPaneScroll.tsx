@@ -50,7 +50,7 @@ export function MovePaneToolbar({
             key={k}
             type="button"
             onClick={() => onKind(k)}
-            className={`h-8 px-2.5 text-[11px] font-semibold ${
+            className={`h-8 px-2.5 text-xs font-semibold ${
               kind === k
                 ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
                 : "text-slate-500 hover:text-slate-800"

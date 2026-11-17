@@ -6,8 +6,6 @@ export type KitDesignatedLine = {
   phuong_phap_tiet_khuan_chi_dinh?: string | null;
 };
 
-export const MSG_PP_PLASMA_EO_CROSS =
-  "PP chỉ định bộ không khớp máy (Plasma/EO) — không thêm vào mẻ.";
 export const MSG_PP_STEAM_ON_LOW_TEMP =
   "Bộ chỉ định hơi nước — không nạp máy Plasma hoặc EO.";
 export const MSG_PP_STEAM_CYCLE =
@@ -80,14 +78,13 @@ export function evaluatePpChiDinhGate(input: {
       continue;
     }
     if (input.method === "PLASMA_H2O2") {
-      if (pp === "EO") return { ok: false, message: MSG_PP_PLASMA_EO_CROSS };
+      // PO 2026-11-10: Plasma và EO tương đương — không chặn chéo.
       if (pp === "STEAM_121" || pp === "STEAM_134") {
         return { ok: false, message: MSG_PP_STEAM_ON_LOW_TEMP };
       }
       continue;
     }
     if (input.method === "EO") {
-      if (pp === "PLASMA") return { ok: false, message: MSG_PP_PLASMA_EO_CROSS };
       if (pp === "STEAM_121" || pp === "STEAM_134") {
         return { ok: false, message: MSG_PP_STEAM_ON_LOW_TEMP };
       }

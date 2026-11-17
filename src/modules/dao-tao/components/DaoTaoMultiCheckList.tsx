@@ -29,7 +29,7 @@ export function DaoTaoMultiCheckList(props: {
             />
             <span className="text-slate-700">
               {it.label}{" "}
-              {it.hint ? <span className="text-[11px] text-slate-400">({it.hint})</span> : null}
+              {it.hint ? <span className="text-xs text-slate-400">({it.hint})</span> : null}
             </span>
           </label>
         ))}

@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   execScan: vi.fn(),
   updateResult: { data: [{ id: "x" }], error: null } as unknown,
   rpc: vi.fn(),
+  recv: vi.fn(async (..._a: unknown[]) => ({ handled: false }) as unknown),
+  operatorId: "ns-op-01" as string | null,
 }));
 
 const QT_ID = "11111111-1111-4111-8111-111111111111";
@@ -17,6 +19,13 @@ vi.mock("@/lib/supabase-server", () => ({
     from: (table: string) => {
       if (table === "cssd_fact_lo_tiet_khuan") {
         return { select: () => ({ eq: () => ({ maybeSingle: async () => mocks.loMe }) }) };
+      }
+      if (table === "cssd_fact_quy_trinh") {
+        return {
+          select: () => ({
+            eq: () => ({ maybeSingle: async () => ({ data: { metadata: { thu_hoi: { trang_thai: "CHO_THU_VE" } } } }) }),
+          }),
+        };
       }
       return {
         update: (patch: unknown) => {
@@ -41,9 +50,9 @@ vi.mock("../shared/application/cssd-qr-hub", () => ({
 vi.mock("../shared/application/cssd-bo-bootstrap", () => ({ bootstrapCssdQuyTrinhFromMaBo: vi.fn() }));
 vi.mock("@/lib/cssd-server-gates", () => ({ verifyCssdWorkflowEdit: vi.fn(async () => undefined) }));
 vi.mock("../shared/application/cssd-workflow-resolve", () => ({ fetchActiveQuyTrinhByScanCode: async () => mocks.qt }));
-vi.mock("../shared/application/cssd-operator-resolve", () => ({ resolveCssdOperatorNhanSuId: async () => null }));
+vi.mock("../shared/application/cssd-operator-resolve", () => ({ resolveCssdOperatorNhanSuId: async () => mocks.operatorId }));
 vi.mock("@/modules/cssd-su-co/application/recall-receive.application", () => ({
-  tryReceiveChoThuVeAtTiepNhan: async () => ({ handled: false }),
+  tryReceiveChoThuVeAtTiepNhan: (...a: unknown[]) => mocks.recv(...a),
 }));
 vi.mock("@/lib/actor-auth-server", () => ({ getActorNhanSuId: async () => null }));
 
@@ -115,11 +124,22 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
     expect(mocks.rpc).toHaveBeenCalledWith("rpc_cssd_cap_phat_commit", {
       p_quy_trinh_id: QT_ID,
-      p_nguoi_cap_phat_id: null,
+      p_nguoi_cap_phat_id: "ns-op-01",
       p_khoa_nhan_id: "22222222-2222-4222-8222-222222222222",
       p_ma_ca_mo_id: "CM1",
     });
     expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
+    expect((res as { daCapTruoc?: boolean }).daCapTruoc).toBe(false);
+  });
+
+  it("tài khoản chưa gắn hồ sơ nhân sự: chặn cấp phát, không gọi RPC (CSSD-007)", async () => {
+    mocks.operatorId = null;
+    try {
+      await expect(scanQR("B01.SET.01", "CAP_PHAT")).rejects.toThrow(/chưa gắn hồ sơ nhân sự/);
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    } finally {
+      mocks.operatorId = "ns-op-01";
+    }
   });
 
   it("đã cấp phát: quét lại chỉ in phiếu, không gọi cap_phat_commit", async () => {
@@ -127,11 +147,37 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     const res = await scanQR("B01.SET.01", "CAP_PHAT");
     expect(mocks.rpc).not.toHaveBeenCalled();
     expect((res as { issuanceOnly?: boolean }).issuanceOnly).toBe(true);
+    expect((res as { daCapTruoc?: boolean }).daCapTruoc).toBe(true);
   });
 
   it("khoa_nhan_id không phải uuid bị từ chối trước mọi thao tác", async () => {
     await expect(scanQR("B01.SET.01", "CAP_PHAT", { khoa_nhan_id: "abc" })).rejects.toThrow(/khoa_nhan_id/);
     expect(mocks.update).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("SC-01 pha 2: view không có metadata → đọc từ cssd_fact_quy_trinh trước khi nhận lại", async () => {
+    mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
+    mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1" });
+    const r = await scanQR("B01.SET.01", "TIEP_NHAN");
+    const arg = mocks.recv.mock.calls[0][1] as { quyTrinh: { metadata: unknown } };
+    expect(arg.quyTrinh.metadata).toEqual({ thu_hoi: { trang_thai: "CHO_THU_VE" } });
+    expect(r).toMatchObject({ recallReceive: true, quyTrinhId: "new-1" });
+  });
+  it("CSSD-026: nhận lại thu hồi dùng resolver nhân sự (không phụ thuộc getActorNhanSuId)", async () => {
+    mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
+    mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1" });
+    await scanQR("B01.SET.01", "TIEP_NHAN");
+    const arg = mocks.recv.mock.calls[0][1] as { operatorNhanSuId: string | null };
+    expect(arg.operatorNhanSuId).toBe("ns-op-01");
+  });
+  it("CSSD-022: nhận bộ thành công nhưng chưa cập nhật phiếu sự cố thì trả warning", async () => {
+    mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
+    mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1", incidentPatchFailed: true });
+    const r = await scanQR("B01.SET.01", "TIEP_NHAN");
+    expect(r).toMatchObject({
+      recallReceive: true,
+      warning: "Đã nhận bộ, chưa cập nhật được phiếu sự cố",
+    });
   });
 });

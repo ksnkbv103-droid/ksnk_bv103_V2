@@ -34,7 +34,7 @@ export function MeTietKhuanSlipStepper({ current, moc = {} }: { current: MeSlipS
             }`}
           >
             <span
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                 state === "current"
                   ? "bg-emerald-700 text-white"
                   : state === "done"
@@ -47,7 +47,7 @@ export function MeTietKhuanSlipStepper({ current, moc = {} }: { current: MeSlipS
             <span className={`text-xs font-semibold ${state === "todo" ? "text-slate-400" : "text-slate-800"}`}>
               {step.label}
               {moc[step.n] ? (
-                <span className="block text-[11px] font-normal text-slate-500">
+                <span className="block text-xs font-normal text-slate-500">
                   {moc[step.n]?.ten} · {moc[step.n]?.gio}
                 </span>
               ) : null}

@@ -1,17 +1,13 @@
 "use client";
 
-import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import { formatPercent1, roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
-import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
-  momentRowBg,
-  momentToneClass,
   percentTooltipFormatter,
   SupervisionResponsiveChart,
   complianceBarColor,
@@ -38,7 +34,7 @@ export type MomentRow = {
   ty_le_tuan_thu: number;
 };
 
-export function SupervisionKpiRow({
+export function SupervisionChiSoRow({
   items,
   loading,
 }: {
@@ -46,12 +42,14 @@ export function SupervisionKpiRow({
   items: { label: string; value: string | number }[];
 }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]">
       {items.map((k) => (
-        <p key={k.label} className="text-sm text-slate-600">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{k.label}</span>{" "}
-          <span className="font-semibold tabular-nums text-slate-800">{loading ? "…" : k.value}</span>
-        </p>
+        <div key={k.label} className="bv103-card flex min-h-32 flex-col justify-between gap-3 p-5">
+          <span className="text-sm font-medium leading-snug text-slate-500">{k.label}</span>
+          <span className="bv103-type-chi-so-lg font-semibold leading-none tabular-nums text-slate-900">
+            {loading ? "…" : k.value}
+          </span>
+        </div>
       ))}
     </div>
   );
@@ -105,10 +103,10 @@ export function SupervisionTrendChart({
   const runUnit = { week: "tuần", month: "tháng", quarter: "quý", year: "năm" }[granularity];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="min-w-0">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-        <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
+        <div className="grid grid-flow-col auto-cols-fr overflow-x-auto rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
           {SUPERVISION_TREND_GRANULARITY_OPTIONS.map(({ id, label }) => (
             <button
               key={id}
@@ -117,7 +115,7 @@ export function SupervisionTrendChart({
                 userChangedGranularityRef.current = true;
                 setGranularity(id);
               }}
-              className={`rounded-md px-3 py-1.5 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 ${granularity === id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"}`}
             >
               {label}
             </button>
@@ -159,7 +157,7 @@ export function SupervisionTrendChart({
         )}
       </div>
       {source === "vst" && !loading && chartData.length > 0 ? (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-xs text-slate-500">
           {runChart == null
             ? `Chưa đủ ${RUN_CHART_MIN_POINTS} ${runUnit} có mẫu để đọc tín hiệu so với trung vị.`
             : runChart.signals.length === 0
@@ -208,7 +206,7 @@ function SupervisionCompareBarChart({
     [rows, minSample],
   );
   return (
-    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="w-full min-w-0">
       <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
       <KhoaChartViewport rowCount={data.length}>
         {!loading && data.length > 0 ? (
@@ -282,102 +280,6 @@ function SupervisionCompareBarChart({
   );
 }
 
-/** Radar 5 moment WHO + bảng số luôn hiện (không phụ thuộc hover) — dùng khi báo cáo VST. */
-export function SupervisionMomentsPanel({
-  title = "5 thời điểm WHO",
-  moments,
-  loading,
-  stroke = "#10b981",
-}: {
-  title?: string;
-  moments: MomentRow[];
-  loading?: boolean;
-  stroke?: string;
-}) {
-  const rows = moments.map((m) => ({
-    ...m,
-    ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
-  }));
-
-  if (!loading && rows.length === 0) return null;
-
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="h-[240px] min-h-[200px]">
-          {!loading && rows.length > 0 ? (
-            <SupervisionResponsiveChart
-              className="h-full w-full min-w-0"
-              role="img"
-              ariaLabel={`Biểu đồ radar ${title}`}
-            >
-              <RadarChart data={rows}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="ten" tick={{ fontSize: 9 }} />
-                <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                <Tooltip formatter={percentTooltipFormatter()} />
-                <Radar
-                  name="Tuân thủ %"
-                  dataKey="ty_le_tuan_thu"
-                  stroke={stroke}
-                  fill={stroke}
-                  fillOpacity={0.35}
-                />
-              </RadarChart>
-            </SupervisionResponsiveChart>
-          ) : (
-            <p className="flex h-full items-center justify-center text-sm text-slate-400">
-              {loading ? "Đang tải…" : "Chưa có dữ liệu"}
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col justify-center">
-          {!loading && rows.length > 0 ? (
-            <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(280px,40dvh)]">
-              <table className="w-full min-w-[280px] text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                    <th className="px-3 py-2 text-left">Thời điểm</th>
-                    <th className="px-3 py-2 text-right">Cơ hội</th>
-                    <th className="px-3 py-2 text-right">Tuân thủ</th>
-                    <th className="px-3 py-2 text-right">Tỷ lệ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((m) => {
-                    const tone = complianceToneFromPercent(m.ty_le_tuan_thu);
-                    return (
-                      <tr key={m.ten} className={`border-b border-slate-100 last:border-0 ${momentRowBg[tone]}`}>
-                        <td className="px-3 py-2 text-left text-xs font-medium text-slate-800">{m.ten}</td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                          {m.tong_co_hoi.toLocaleString("vi-VN")}
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                          {m.da_tuan_thu.toLocaleString("vi-VN")}
-                        </td>
-                        <td className={`px-3 py-2 text-right font-bold tabular-nums ${momentToneClass[tone]}`}>
-                          {formatPercent1(m.ty_le_tuan_thu)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </ResponsiveTableShell>
-          ) : (
-            <p className="text-sm text-slate-400">{loading ? "Đang tải…" : "Chưa có dữ liệu"}</p>
-          )}
-          <p className="mt-2 text-[11px] text-slate-400">
-            Số liệu hiển thị cố định — phù hợp trình bày và in màn hình; radar thể hiện chênh lệch giữa các moment.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SupervisionCompareGrid({
   sections,
   loading,
@@ -426,15 +328,15 @@ export function SupervisionCompareAccordion({
   return (
     <details
       open={defaultOpen || undefined}
-      className="group rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white"
+      className="group border-t border-slate-200"
     >
-      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none px-0 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="inline-flex items-center gap-2">
           {summaryLabel}
-          <span className="text-[11px] font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
+          <span className="text-xs font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
         </span>
       </summary>
-      <div className="border-t border-slate-200 p-4">
+      <div className="pb-4 pt-1">
         <SupervisionCompareGrid sections={visible} loading={loading} minSample={minSample} />
       </div>
     </details>

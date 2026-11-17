@@ -59,7 +59,7 @@ const GSC_SIBLING_DOORS: { loai: GscLoaiGiamSatRoute; label: string }[] = [
 
 function GscSiblingDoors({ current }: { current?: GscLoaiGiamSatRoute }) {
   return (
-    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+    <p className="px-0.5 text-xs leading-snug text-slate-500">
       Giám sát chung:{" "}
       {GSC_SIBLING_DOORS.map((d, i) => (
         <React.Fragment key={d.loai}>
@@ -85,7 +85,7 @@ function GscVeSinhTayQuietLinks({ show }: { show: boolean }) {
   if (!show) return null;
   const gscEntries = VE_SINH_TAY_ENTRIES.filter((e) => e.kind === "gsc");
   return (
-    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+    <p className="px-0.5 text-xs leading-snug text-slate-500">
       Vệ sinh tay:{" "}
       {gscEntries.map((e, i) => (
         <React.Fragment key={e.qtMa}>

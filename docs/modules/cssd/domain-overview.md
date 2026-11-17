@@ -190,6 +190,8 @@ flowchart TD
 | `PLASMA` | Tyvek / non-cellulose | **Cấm cellulose** |
 | `EO` | Theo IFU EO | Không dùng pack không tương thích EO |
 
+- **Tách theo nhóm PP** (PO 2026-11-09): chịu nhiệt `-CN` · nhiệt thấp Plasma `-KCN` · nhiệt thấp EO `-EO` (Plasma và EO không chung mẻ).
+- **Hạn dùng theo thời gian** (PO 2026-11-09; nguồn QT.KSNK.22 mục «Giám sát hạn sử dụng», giấy 3 tháng theo giáo trình): vải dệt 30 ngày · giấy/vải không dệt 90 · hộp phin lọc 90 · túi ép (EO/Plasma) 180. Hạn = mốc kết thúc mẻ + ngày của `loai_bao_goi`. Loại có `loai_bao_goi_mac_dinh_id` (hơi nước → giấy, Plasma/EO → túi ép); bộ thành phần mới tách nhận bao gói theo nhóm.
 - Fail path: tách SUB / đổi PP / báo sự cố — không “ép” hỗn hợp.
 - **Wet pack = bẩn** → làm lại từ `LAM_SACH` (không cấp phát).
 

@@ -81,7 +81,7 @@ export default function InstrumentLifecycleHistoryTable() {
                 key={pill.key}
                 type="button"
                 onClick={() => setFilterType(pill.key)}
-                className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                   active
                     ? "bg-[var(--primary)] text-white shadow-xs"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
@@ -116,7 +116,7 @@ export default function InstrumentLifecycleHistoryTable() {
                 <li key={item.id} className="p-3.5 space-y-1.5 bg-white">
                   <div className="flex items-center justify-between gap-2">
                     <span
-                      className={`inline-block rounded-md border px-2 py-0.5 text-[11px] font-bold ${
+                      className={`inline-block rounded-md border px-2 py-0.5 text-xs font-bold ${
                         VARIANT_STYLES[item.badge_variant]
                       }`}
                     >
@@ -132,9 +132,9 @@ export default function InstrumentLifecycleHistoryTable() {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800">{item.ten_loai}</p>
-                    <p className="text-[11px] text-slate-500">Mã: {item.ma_loai}</p>
+                    <p className="text-xs text-slate-500">Mã: {item.ma_loai}</p>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-50">
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-50">
                     <span>{item.ten_bo ? `${item.ma_bo || ""}: ${item.ten_bo}` : "Kho lẻ CSSD"}</span>
                     <span>
                       {new Date(item.created_at).toLocaleString("vi-VN", {
@@ -144,7 +144,7 @@ export default function InstrumentLifecycleHistoryTable() {
                     </span>
                   </div>
                   {item.ghi_chu ? (
-                    <p className="text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded">
+                    <p className="text-xs text-slate-600 bg-slate-50 p-1.5 rounded">
                       {item.ghi_chu}
                     </p>
                   ) : null}
@@ -190,7 +190,7 @@ export default function InstrumentLifecycleHistoryTable() {
                   </td>
                   <td className={L.td}>
                     <span
-                      className={`inline-block rounded-md border px-2 py-0.5 text-[11px] font-bold ${
+                      className={`inline-block rounded-md border px-2 py-0.5 text-xs font-bold ${
                         VARIANT_STYLES[item.badge_variant]
                       }`}
                     >
@@ -199,7 +199,7 @@ export default function InstrumentLifecycleHistoryTable() {
                   </td>
                   <td className={L.td}>
                     <div className="font-semibold text-slate-800">{item.ten_loai}</div>
-                    <div className="text-[11px] text-slate-400 font-mono">{item.ma_loai}</div>
+                    <div className="text-xs text-slate-400 font-mono">{item.ma_loai}</div>
                   </td>
                   <td className={L.td}>
                     {item.ten_bo ? (

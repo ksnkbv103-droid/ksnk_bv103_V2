@@ -45,7 +45,7 @@ export default function QtyJumpField({
         type="button"
         disabled={disabled || cap < 1 || qty < 1}
         onClick={jump}
-        className="h-8 shrink-0 px-2 text-[11px] font-semibold text-[var(--primary)] disabled:text-slate-300"
+        className="h-8 shrink-0 px-2 text-xs font-semibold text-[var(--primary)] disabled:text-slate-300"
       >
         {arrow}
       </button>

@@ -6,7 +6,7 @@ import React, { useMemo } from "react";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
-  SupervisionKpiRow,
+  SupervisionChiSoRow,
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { SupervisionCoverageCard } from "@/lib/analytics/SupervisionCoverageCard";
@@ -40,7 +40,7 @@ type Props = {
 };
 
 /**
- * Thống kê VST, 4 tầng: tổng quan (KPI · độ phủ) · thời điểm WHO · theo khoa · xu hướng và so sánh.
+ * Thống kê VST, 4 tầng: tổng quan (chỉ số · độ phủ) · thời điểm WHO · theo khoa · xu hướng và so sánh.
  * Nâng cao: đối soát chuyên trách và tự giám sát.
  */
 export default function VstStrategicAnalyticsPanel(p: Props) {
@@ -83,36 +83,36 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           onChange={p.onSourceLensChange}
           disabled={p.loading}
         />
-        <p className="text-[11px] text-slate-500">
+        <p className="text-xs text-slate-500">
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
       </div>
 
-      <SupervisionKpiRow
+      <SupervisionChiSoRow
         loading={p.loading}
         items={[
-          { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
-          { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
-          { label: "Số phiên", value: p.payload?.kpis?.tong_phien ?? 0 },
-          { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
+          { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.chi_so?.da_tuan_thu ?? 0, p.payload?.chi_so?.tong_co_hoi ?? 0) },
+          { label: "Cơ hội quan sát", value: p.payload?.chi_so?.tong_co_hoi ?? 0 },
+          { label: "Số phiên", value: p.payload?.chi_so?.tong_phien ?? 0 },
+          { label: "Đã tuân thủ", value: p.payload?.chi_so?.da_tuan_thu ?? 0 },
           {
             label: "Kỹ thuật quan sát nhanh (phiếu WHO)",
             value: formatPercent1FromRatio(
-              p.payload?.kpis?.dung_ky_thuat ?? 0,
-              p.payload?.kpis?.danh_gia_ky_thuat ?? 0,
+              p.payload?.chi_so?.dung_ky_thuat ?? 0,
+              p.payload?.chi_so?.danh_gia_ky_thuat ?? 0,
             ),
           },
         ]}
       />
 
-      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.kpis?.tong_phien} loading={p.loading} />
+      <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.chi_so?.tong_phien} loading={p.loading} />
 
       <SupervisionMomentsBars moments={p.payload?.moments ?? []} loading={p.loading} />
 
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-xs text-slate-500">
             Tab tỷ lệ hoặc khối lượng — dưới {VST_KHOA_CHART_THRESHOLDS.warnPct}% vàng, dưới{" "}
             {VST_KHOA_CHART_THRESHOLDS.redPct}% đỏ.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
@@ -133,7 +133,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       <details className={`${UI.shell}`} open>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           So sánh và xu hướng
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+          <span className="mt-0.5 block text-xs font-normal text-slate-400">
             Xu hướng · khối · khu vực · đối tượng — bấm để thu gọn
           </span>
         </summary>
@@ -158,7 +158,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       <details className={`${UI.shell}`}>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+          <span className="mt-0.5 block text-xs font-normal text-slate-400">
             Đối soát chuyên trách và tự giám sát
           </span>
         </summary>

@@ -50,7 +50,7 @@ export type NkbvBaMultiTimelineWorkspaceProps = {
     analysisSeed?: NkbvBaAnalysisSeedInput | null;
   }) => void;
   /** Bỏ qua XN (+) có lý do */
-  onSkipViSinh?: (input: { viSinhId: string; reason: string }) => void;
+  onSkipViSinh?: (input: { viSinhId: string; reason: string; kind?: "XN" | "CDHA" }) => void;
   /** Chốt Index không đủ TC (KHONG_DU_TC) */
   onMarkKhongDuTc?: (input: { viSinhId: string; indexDate: string }) => void;
   /** Xóa phiên → mở lại XN đã gắn KHONG_DU_TC trên DB */

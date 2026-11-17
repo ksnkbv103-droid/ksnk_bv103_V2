@@ -134,7 +134,7 @@ function BiBm02Fields({
 }) {
   return (
     <div className="space-y-3 rounded-xl border border-violet-100 bg-violet-50/40 p-3">
-      <p className="text-[11px] font-medium text-violet-900">Sổ BI (BM.02) — đối chứng phải dương mới hợp lệ</p>
+      <p className="text-xs font-medium text-violet-900">Sổ BI (BM.02) — đối chứng phải dương mới hợp lệ</p>
       <OngChoice label="Ống đối chứng" value={ongDoiChung} onChange={setOngDoiChung} />
       <OngChoice label="Ống thử nghiệm" value={ongThu} onChange={setOngThu} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -284,7 +284,7 @@ export default function MeTietKhuanProcessQcPanel({
         <p className="text-sm font-semibold text-violet-900">
           {biTuanSauNha ? "Ghi BI tuần (mẻ đã nhả)" : "Mẻ đang chờ kết quả BI"}
         </p>
-        <p className="text-[11px] font-medium text-violet-800/80">
+        <p className="text-xs font-medium text-violet-800/80">
           {biTuanSauNha
             ? "Ghi sổ BM.02 — âm chỉ cập nhật mốc tuần; dương thì thu hồi."
             : "Ống đối chứng phải dương. Âm → nhả mẻ; dương → lập sự cố."}
@@ -319,7 +319,7 @@ export default function MeTietKhuanProcessQcPanel({
             </button>
           </div>
         ) : (
-          <p className="text-[11px] font-medium text-violet-900">
+          <p className="text-xs font-medium text-violet-900">
             Ghi BI và nhả mẻ cần quyền nhả implant (tổ trưởng).
           </p>
         )}
@@ -380,14 +380,14 @@ export default function MeTietKhuanProcessQcPanel({
                 {coImplant ? " · có implant" : ""}
               </p>
               {biBatBuoc ? (
-                <span className="text-[11px] font-medium text-violet-700">
+                <span className="text-xs font-medium text-violet-700">
                   BI bắt buộc trước khi nhả
                   {coImplant ? " · không nhả khẩn mẻ có implant" : ""}
                 </span>
               ) : null}
             </div>
             {steamBiReminder ? (
-              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-900">{steamBiReminder}</p>
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">{steamBiReminder}</p>
             ) : null}
             <label className="block space-y-1">
               <span className={CSSD_UI_FORM_LABEL}>Chương trình</span>
@@ -409,7 +409,7 @@ export default function MeTietKhuanProcessQcPanel({
               ) : (
                 <input className={CSSD_UI_CONTROL} value={chuongTrinh} maxLength={80} onChange={(e) => setChuongTrinh(e.target.value)} />
               )}
-              <span className="block text-[11px] text-slate-500">NV có thể sửa nhiệt/áp/thời gian bên dưới — lệch prefill được ghi audit QC.</span>
+              <span className="block text-xs text-slate-500">NV có thể sửa nhiệt/áp/thời gian bên dưới — lệch prefill được ghi audit QC.</span>
             </label>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <label className="space-y-1">
@@ -456,7 +456,7 @@ export default function MeTietKhuanProcessQcPanel({
               />
             ) : null}
             {blockPass ? (
-              <p className="text-[11px] font-medium text-violet-800">
+              <p className="text-xs font-medium text-violet-800">
                 Nhả mẻ implant hoặc chờ BI cần quyền nhả implant (tổ trưởng). Kết luận không đạt vẫn dùng được.
               </p>
             ) : null}

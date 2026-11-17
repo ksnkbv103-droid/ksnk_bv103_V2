@@ -46,7 +46,7 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
       </Suspense>
 
       {isVst ? (
-        <p className="no-print mb-2 px-0.5 text-[11px] leading-snug text-slate-500">
+        <p className="no-print mb-2 px-0.5 text-xs leading-snug text-slate-500">
           Khối Vệ sinh tay ·{" "}
           <Link
             href="/lich-su/gsc?bk=KSNK.QT.07.BM.02"

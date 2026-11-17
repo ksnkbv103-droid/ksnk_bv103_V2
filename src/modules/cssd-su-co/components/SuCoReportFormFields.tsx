@@ -171,7 +171,7 @@ export function BoSourceFields({
   return (
     <div className={wrap || undefined}>
       {maLoHint ? (
-        <p className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-900">
+        <p className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900">
           Mẻ {maLoHint}: chọn đúng bộ trong mẻ này (một phiếu / một bộ).
         </p>
       ) : null}
@@ -244,8 +244,8 @@ export function BatchRecallEntryBanner() {
       data-testid="batch-recall-entry-banner"
     >
       <p className="text-xs font-semibold text-amber-950">{BATCH_RECALL_ENTRY_COPY.title}</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-amber-900">{BATCH_RECALL_ENTRY_COPY.subtitle}</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-amber-800">{BATCH_RECALL_ENTRY_COPY.effect}</p>
+      <p className="mt-0.5 text-xs leading-relaxed text-amber-900">{BATCH_RECALL_ENTRY_COPY.subtitle}</p>
+      <p className="mt-1 text-xs leading-relaxed text-amber-800">{BATCH_RECALL_ENTRY_COPY.effect}</p>
     </div>
   );
 }
@@ -352,7 +352,7 @@ export function IncidentGroupPicker({
         })}
       </div>
       {isInstrument ? (
-        <p className="px-1 text-[11px] text-slate-500">
+        <p className="px-1 text-xs text-slate-500">
           Luân chuyển số lượng (kho ↔ bộ, bộ ↔ bộ) mở tại{" "}
           <Link href="/cssd-dung-cu?tab=LUAN_CHUYEN" className="font-semibold text-[var(--primary)] hover:underline">
             Dụng cụ · Luân chuyển

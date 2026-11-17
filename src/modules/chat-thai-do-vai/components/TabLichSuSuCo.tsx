@@ -314,7 +314,7 @@ export function TabLichSuSuCo() {
                       </td>
                       <td className="px-3 py-2.5 whitespace-nowrap">
                         <span
-                          className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${
                             sc.phan_he === "CHAT_THAI"
                               ? "bg-amber-100 text-amber-800"
                               : "bg-sky-100 text-sky-800"

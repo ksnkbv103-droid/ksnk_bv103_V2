@@ -1,7 +1,9 @@
 "use server";
 
-import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { GSC_BK_ISOLATION, GSC_BK_MDRO } from "../lib/nkbv-mdro";
 
 export type NkbvPatientRcaRow = {
@@ -27,10 +29,21 @@ export async function listNkbvPatientRcaByKhoa(params: { khoaId: string; limit?:
     { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
   ]);
 
-  const khoaId = String(params.khoaId || "").trim();
+  // NK-SCOPE: khoa bị giới hạn thì ép khoaId theo quyền, bỏ qua giá trị client.
+  // NKBV-005: người chỉ có quyền GSC bị RLS nkbv chặn → đọc bằng admin client, vẫn ép theo khoa của họ.
+  const { restriction, viaGscOnly, identityDenied } = await getNkbvCensusAccess();
+  // NKBV-032: Hội đồng thuần không nhận danh sách có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định) — chặn trước mọi truy vấn.
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as NkbvPatientRcaRow[] };
+  }
+  if (viaGscOnly && restriction.kind === "none") {
+    return { success: false as const, error: NKBV_GSC_NO_KHOA_ERROR, data: [] as NkbvPatientRcaRow[] };
+  }
+  if (restriction.kind === "none") return { success: true as const, data: [] as NkbvPatientRcaRow[] };
+  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : String(params.khoaId || "").trim();
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvPatientRcaRow[] };
 
-  const supabase = await createServerSupabaseUserClient();
+  const supabase = viaGscOnly ? createAdminSupabaseClient() : await createServerSupabaseUserClient();
   const limit = Math.min(Math.max(params.limit || 100, 1), 300);
 
   const { data: stays, error: stayErr } = await supabase

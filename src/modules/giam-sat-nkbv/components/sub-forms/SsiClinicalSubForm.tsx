@@ -172,7 +172,7 @@ export default function SsiClinicalSubForm({
                 ))}
               </select>
               {proc ? (
-                <p className="mt-1 text-[11px] text-slate-500">{proc.name_en}</p>
+                <p className="mt-1 text-xs text-slate-500">{proc.name_en}</p>
               ) : null}
             </div>
             <div>
@@ -250,7 +250,7 @@ export default function SsiClinicalSubForm({
             Quay lại phòng mổ trong 24 giờ
           </label>
           {isTimeframeExpired ? (
-            <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-[11px] text-red-800">
+            <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-xs text-red-800">
               Vượt surveillance {limitDays} ngày.
             </p>
           ) : null}
@@ -331,12 +331,12 @@ export default function SsiClinicalSubForm({
             ))}
           </select>
           {secondaryWarn ? (
-            <p className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] text-amber-950">
+            <p className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-950">
               {secondaryWarn}
             </p>
           ) : null}
           {depthEngineWarn ? (
-            <p className="mt-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] text-amber-950">
+            <p className="mt-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-950">
               <strong>Sâu nhất thắng:</strong> {depthEngineWarn}
             </p>
           ) : null}

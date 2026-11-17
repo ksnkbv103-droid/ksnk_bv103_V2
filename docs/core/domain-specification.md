@@ -34,7 +34,7 @@
 * **Đối tượng giám sát:** Nhân viên y tế tại các khoa lâm sàng — tối đa **3 đối tượng / phiên**.
 * **Thời điểm giám sát (WHO 5 Moments):** T1–T5 theo chuẩn WHO (nhãn tiếng Việt trên phiếu). Một cơ hội tuân thủ (rửa tay / chà cồn) tối đa **2 chỉ định**; không tuân thủ (bỏ sót) tối đa **1 chỉ định** — không bắt ghi đủ 5 mốc trên một cơ hội.
 * **Khoa / khu vực:** Khoa từ `mdm_dm_khoa_phong`; khu vực từ danh mục `KHU_VUC_GIAM_SAT` — bắt buộc khi lưu, không gõ tự do.
-* **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → KPI qua RPC **`rpc_dashboard_vst_strategic_analytics`** (Command Center + `/thong-ke/vst`). Bảng `gstt_fact_*_summary` đã DROP (2026-06-04); thay bằng **VIEW live** phục vụ RPC — app không đọc summary trực tiếp trừ ngoại lệ TGS coverage (xem metric-dictionary). Đọc lịch sử/chi tiết: **`v_gstt_giam_sat_vst_*_full`**. Bookmark cũ `?tab=analytics|history` redirect sang `/thong-ke/vst` / `/lich-su/vst`.
+* **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → chỉ số qua RPC **`rpc_dashboard_vst_strategic_analytics`** (Command Center + `/thong-ke/vst`). Bảng `gstt_fact_*_summary` đã DROP (2026-06-04); thay bằng **VIEW live** phục vụ RPC — app không đọc summary trực tiếp trừ ngoại lệ TGS coverage (xem metric-dictionary). Đọc lịch sử/chi tiết: **`v_gstt_giam_sat_vst_*_full`**. Bookmark cũ `?tab=analytics|history` redirect sang `/thong-ke/vst` / `/lich-su/vst`.
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
 

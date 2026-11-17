@@ -5,6 +5,7 @@ import SearchableSelect, { SearchableSelectOption } from "./SearchableSelect";
 import { getActiveMasterDataAction } from "@/lib/master-data/master-data.actions";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import { ChevronDown } from "./FloatingLabelContent";
 
 export type RegistrySelectOption = {
   id: string;
@@ -28,6 +29,8 @@ type Props = {
   staticOptions?: RegistrySelectOption[];
   /** Bật/tắt chế độ tìm kiếm nhanh. Mặc định là true (SearchableSelect), false sẽ dùng thẻ <select> vanilla */
   searchable?: boolean;
+  /** Nhãn nổi trong ô (thay nhãn rời phía trên). */
+  label?: string;
 };
 
 function mapRegistryOptions(
@@ -67,6 +70,7 @@ export default function RegistrySelect({
   required,
   staticOptions,
   searchable = true,
+  label,
 }: Props) {
   const [fetchedOptions, setFetchedOptions] = useState<SearchableSelectOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -134,7 +138,39 @@ export default function RegistrySelect({
         className={className}
         name={name}
         required={required}
+        label={label}
       />
+    );
+  }
+
+  if (label) {
+    return (
+      <div className={`relative ${className}`}>
+        {value ? (
+          <span className="pointer-events-none absolute left-3.5 top-1.5 text-xs font-medium leading-none text-slate-500">
+            {label}
+          </span>
+        ) : null}
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled || loading || isPending}
+          required={required}
+          name={name}
+          aria-label={label}
+          className={`${bv103LayoutChrome.controlFloatingNative} ${value ? "pt-4 font-semibold text-slate-900" : "text-slate-500"}`}
+        >
+          <option value="">{loading || isPending ? selectPlaceholder : label}</option>
+          {options.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2">
+          <ChevronDown />
+        </span>
+      </div>
     );
   }
 

@@ -34,7 +34,7 @@ $$;
 COMMENT ON FUNCTION public.fn_vst_is_valid_opportunity(text, text) IS
   'VST-01: cơ hội hợp lệ = hành động ∈ {3} và ≥1 thời điểm thuộc 5 nhãn WHO.';
 
--- View summary: chỉ dòng hợp lệ (compare matrices / KPI phụ).
+-- View summary: chỉ dòng hợp lệ (compare matrices / chỉ số phụ).
 CREATE OR REPLACE VIEW public.gstt_fact_vst_opportunities_summary WITH (security_invoker = true) AS
 SELECT
   d.id AS opportunity_id,
@@ -305,7 +305,7 @@ BEGIN
     INNER JOIN session_base sb ON d.session_id = sb.session_id
     WHERE public.fn_vst_is_valid_opportunity(d.hanh_dong, d.thoi_diem)
   ),
-  kpis AS (
+  chi_so AS (
     SELECT jsonb_build_object(
       'tong_phien', COALESCE(COUNT(DISTINCT session_id), 0),
       'tong_co_hoi', COALESCE(SUM(so_co_hoi), 0),
@@ -456,7 +456,7 @@ BEGIN
     ) AS payload
   )
   SELECT jsonb_build_object(
-    'kpis', COALESCE((SELECT payload FROM kpis), '{}'::jsonb),
+    'chi_so', COALESCE((SELECT payload FROM chi_so), '{}'::jsonb),
     'trendline', COALESCE((SELECT payload FROM trendline), '[]'::jsonb),
     'matrix_khoa', COALESCE((SELECT payload FROM matrix_khoa), '[]'::jsonb),
     'matrix_nghe', COALESCE((SELECT payload FROM matrix_nghe), '[]'::jsonb),

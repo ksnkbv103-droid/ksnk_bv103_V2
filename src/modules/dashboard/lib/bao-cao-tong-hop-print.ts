@@ -3,7 +3,7 @@ import { CSSD_MAY_COUNTS_LABEL, formatCssdMayReadyRepairing } from "@/lib/analyt
 import { resolveChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { isVstHubBangKiemExcludedFromGscGeneric } from "@/lib/domain/gsc-lop-giam-sat-filter";
-import { buildVeSinhTayKpiCards } from "@/lib/domain/ve-sinh-tay-kpi";
+import { buildVeSinhTayChiSoCards } from "@/lib/domain/ve-sinh-tay-chi-so";
 import { mergeKhoaRankWithSelected } from "./bao-cao-tong-hop-core";
 import { escHtml, fmtDelta, fmtIsoDate, fmtKyTruocDelta, fmtPct, pickLabels } from "./bao-cao-tong-hop-print-format";
 import {
@@ -52,7 +52,7 @@ export type BaoCaoTongHopPrintParams = {
 };
 
 export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
-  const kpi = p.payload?.kpis;
+  const chiSo = p.payload?.chi_so;
   const fullKhoaRank = mergeKhoaRankWithSelected(
     p.payload?.khoa_rank ?? [],
     p.selectedKhoaIds,
@@ -96,14 +96,14 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     return `${escHtml(fmtDelta(week, digits))}${coCauLine}${priorLine}`;
   };
 
-  const vstKpiToneClass = (pct: number | null | undefined) => {
+  const vstChiSoToneClass = (pct: number | null | undefined) => {
     const tone = bcthModuleComplianceTone("vst", pct ?? null);
     if (tone === "green") return "text-success";
     if (tone === "yellow") return "text-warning";
     if (tone === "red") return "text-danger";
     return "";
   };
-  const gscKpiToneClass = (pct: number | null | undefined) => {
+  const gscChiSoToneClass = (pct: number | null | undefined) => {
     const tone = bcthModuleComplianceTone("gsc", pct ?? null);
     if (tone === "green") return "text-success";
     if (tone === "yellow") return "text-warning";
@@ -126,13 +126,13 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       <tbody>
         <tr>
           <td class="text-left"><strong>Vệ sinh tay (VST)</strong></td>
-          <td class="${vstKpiToneClass(kpi?.ty_le_vst ?? null)}"><strong>${fmtPct(kpi?.ty_le_vst)}</strong></td>
-          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_vst, ky?.delta_vst, 1)}</td>
+          <td class="${vstChiSoToneClass(chiSo?.ty_le_vst ?? null)}"><strong>${fmtPct(chiSo?.ty_le_vst)}</strong></td>
+          <td style="font-size:11px;">${weekAndPrior(chiSo?.delta_vst, ky?.delta_vst, 1)}</td>
         </tr>
         <tr>
           <td class="text-left"><strong>Giám sát chung (GSC)</strong></td>
-          <td class="${gscKpiToneClass(kpi?.ty_le_gsc ?? null)}"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
-          <td style="font-size:11px;">${weekAndPrior(kpi?.delta_gsc, ky?.delta_gsc, 2, kpi?.delta_gsc_khac_co_cau === true)}</td>
+          <td class="${gscChiSoToneClass(chiSo?.ty_le_gsc ?? null)}"><strong>${fmtPct(chiSo?.ty_le_gsc)}</strong></td>
+          <td style="font-size:11px;">${weekAndPrior(chiSo?.delta_gsc, ky?.delta_gsc, 2, chiSo?.delta_gsc_khac_co_cau === true)}</td>
         </tr>
       </tbody>
     </table>
@@ -156,11 +156,11 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       <tbody>
         <tr>
           <td class="text-left">Tỷ lệ xác nhận (mẫu đã kết luận)</td>
-          <td>${fmtPct(kpi?.ti_le_xac_nhan_nkbv)}${
-            p.payload?.nkbv?.kpis
-              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.kpis)}; ${p.payload.nkbv.kpis.tong_phieu} phiếu trong kỳ)`
-              : kpi?.tong_phieu_nkbv != null
-                ? ` (${kpi.tong_phieu_nkbv} phiếu)`
+          <td>${fmtPct(chiSo?.ti_le_xac_nhan_nkbv)}${
+            p.payload?.nkbv?.chi_so
+              ? ` (${formatNkbvXacNhanVolume(p.payload.nkbv.chi_so)}; ${p.payload.nkbv.chi_so.tong_phieu} phiếu trong kỳ)`
+              : chiSo?.tong_phieu_nkbv != null
+                ? ` (${chiSo.tong_phieu_nkbv} phiếu)`
                 : ""
           }</td>
         </tr>
@@ -303,12 +303,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     ${renderGscKhoaMatrix(p.gscPayload)}
   `;
 
-  const veSinhTayCards = buildVeSinhTayKpiCards({
+  const veSinhTayCards = buildVeSinhTayChiSoCards({
     vst: p.vstPayload,
     gsc: p.payload?.gsc_ve_sinh_tay ?? null,
   });
   const veSinhTayTriptychTable = `
-    <h3>1. Bộ ba KPI Vệ sinh tay</h3>
+    <h3>1. Bộ ba chỉ số Vệ sinh tay</h3>
     <table>
       <thead>
         <tr>
@@ -334,8 +334,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     </table>
     <p class="muted" style="font-size:11px">Ba tỷ lệ riêng — không gộp thành một %. BM.02/BM.03 không thuộc tổng Giám sát chung.</p>`;
 
-  const vstKpis = p.vstPayload?.kpis;
-  const vstNoSample = (vstKpis?.tong_co_hoi ?? 0) <= 0;
+  const vstChiSo = p.vstPayload?.chi_so;
+  const vstNoSample = (vstChiSo?.tong_co_hoi ?? 0) <= 0;
   const vstPctCell = (v: number | null | undefined) =>
     vstNoSample || v == null ? "—" : `${v}%`;
   const vstSection = p.vstPayload
@@ -357,12 +357,12 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       </thead>
       <tbody>
         <tr>
-          <td>${vstNoSample ? "—" : vstKpis!.tong_co_hoi.toLocaleString()}</td>
-          <td>${vstNoSample ? "—" : vstKpis!.da_tuan_thu.toLocaleString()}</td>
-          <td>${vstPctCell(vstKpis?.ty_le_tuan_thu ?? null)}</td>
-          <td>${vstPctCell(vstKpis?.ty_le_dung_ky_thuat ?? null)}</td>
-          <td>${vstPctCell(vstKpis?.ty_le_du_thoi_gian ?? null)}</td>
-          <td>${vstPctCell(vstKpis?.ty_le_lam_dung_gang ?? null)}</td>
+          <td>${vstNoSample ? "—" : vstChiSo!.tong_co_hoi.toLocaleString()}</td>
+          <td>${vstNoSample ? "—" : vstChiSo!.da_tuan_thu.toLocaleString()}</td>
+          <td>${vstPctCell(vstChiSo?.ty_le_tuan_thu ?? null)}</td>
+          <td>${vstPctCell(vstChiSo?.ty_le_dung_ky_thuat ?? null)}</td>
+          <td>${vstPctCell(vstChiSo?.ty_le_du_thoi_gian ?? null)}</td>
+          <td>${vstPctCell(vstChiSo?.ty_le_lam_dung_gang ?? null)}</td>
         </tr>
       </tbody>
     </table>
@@ -407,7 +407,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     (v) => !isVstHubBangKiemExcludedFromGscGeneric(v.ma_bk),
   );
   const gscSection =
-    p.gscPayload && p.gscPayload.kpis.tong_phien > 0
+    p.gscPayload && p.gscPayload.chi_so.tong_phien > 0
       ? `
     <div class="page-break"></div>
     <h2>II. KẾT QUẢ GIÁM SÁT CHUNG (CÁC CHUYÊN ĐỀ)</h2>

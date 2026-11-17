@@ -1,4 +1,4 @@
-export type VstStrategicKpis = {
+export type VstStrategicChiSo = {
   tong_phien: number;
   tong_co_hoi: number;
   da_tuan_thu: number;
@@ -21,7 +21,7 @@ export type VstStrategicKpis = {
 };
 
 export type VstStrategicPayload = {
-  kpis: VstStrategicKpis;
+  chi_so: VstStrategicChiSo;
   trendline: { label: string; min_date: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
   matrix_khoa: { id: string; ma_khoa?: string; ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
   matrix_khoi?: { ten: string; ma_khoi?: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];

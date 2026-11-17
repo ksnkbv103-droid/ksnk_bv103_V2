@@ -1,4 +1,4 @@
--- Lát B2a: idempotency cho lưu phiên VST/GSC (hàng đợi offline gửi lại sau khi server đã lưu → phiên trùng, lệch KPI).
+-- Lát B2a: idempotency cho lưu phiên VST/GSC (hàng đợi offline gửi lại sau khi server đã lưu → phiên trùng, lệch chỉ số).
 --
 -- 1) Cột client_request_id uuid NULLABLE trên gstt_fact_vst_sessions + gstt_fact_chung_sessions.
 --    UNIQUE partial (WHERE client_request_id IS NOT NULL), toàn cục (không ghép nguoi_giam_sat_id):

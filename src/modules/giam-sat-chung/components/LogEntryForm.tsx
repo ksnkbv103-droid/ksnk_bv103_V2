@@ -90,7 +90,7 @@ export default function LogEntryForm({
           </span>
         ) : null}
       </div>
-      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
         {typeof ngay_min === "number" && typeof ngay_max === "number"
           ? `Ngưỡng: ${ngay_min} – ${ngay_max}${donVi ? ` ${donVi}` : ""}`
           : typeof ngay_min === "number"
@@ -100,7 +100,7 @@ export default function LogEntryForm({
               : "Không có ngưỡng quy định"}
       </p>
       {isOOR ? (
-        <p className="text-[11px] font-medium text-rose-600">
+        <p className="text-xs font-medium text-rose-600">
           ⚠ Giá trị ngoài ngưỡng — sẽ được đánh dấu nghi vấn ở dashboard.
         </p>
       ) : null}

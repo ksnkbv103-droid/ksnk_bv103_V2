@@ -33,23 +33,8 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     actions: ["EXPORT"],
   },
   {
-    code: "DANH_MUC",
-    displayName: "Quản trị Danh mục",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
-  },
-  {
     code: "DANH_MUC_ORG",
     displayName: "Danh mục Tổ chức (lookup)",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
-  },
-  {
-    code: "DANH_MUC_GSTT",
-    displayName: "Danh mục Giám sát (lookup)",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
-  },
-  {
-    code: "DANH_MUC_CSSD_LOOKUP",
-    displayName: "Danh mục CSSD (lookup)",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
   {
@@ -70,17 +55,17 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "LOAI_DC",
     displayName: "Danh mục Loại dụng cụ",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "BO_DC",
     displayName: "Danh mục Bộ dụng cụ",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "DC_LE",
     displayName: "Danh mục Dụng cụ chi tiết",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "THIET_BI",

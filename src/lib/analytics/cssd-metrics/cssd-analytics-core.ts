@@ -507,18 +507,18 @@ export type CssdSafetyIncidentRow = {
   attributes?: Record<string, unknown> | null;
 };
 
-/** SC PROCESS còn hiệu lực gắn chu trình — vào tử KPI an toàn (N-CSSD-1). */
+/** SC PROCESS còn hiệu lực gắn chu trình — vào tử chỉ số an toàn (N-CSSD-1). */
 export function isProcessCycleSafetyIncident(row: CssdSafetyIncidentRow): boolean {
   const quyTrinhId = String(row.quy_trinh_id || "").trim();
   if (!quyTrinhId) return false;
   const attrs = row.attributes && typeof row.attributes === "object" ? row.attributes : {};
   const status = String(attrs.INCIDENT_STATUS ?? attrs.incident_status ?? "OPEN").trim().toUpperCase();
-  // DA_DONG = đã giải phóng — không còn tính vào tử KPI «chu trình có SC».
+  // DA_DONG = đã giải phóng — không còn tính vào tử chỉ số «chu trình có SC».
   if (status === "VO_HIEU" || status === "DA_DONG") return false;
   const group = String(attrs.INCIDENT_GROUP ?? attrs.incident_group ?? "").trim().toUpperCase();
   if (group !== "PROCESS") return false;
   const typeCode = String(attrs.INCIDENT_TYPE_CODE ?? "").trim().toUpperCase();
-  // Luân chuyển / rà soát bộ không vào KPI an toàn quy trình.
+  // Luân chuyển / rà soát bộ không vào chỉ số an toàn quy trình.
   if (typeCode === "INSTRUMENT_MOVE" || typeCode === "SET_RECONCILE" || typeCode.startsWith("CIRCULATION")) {
     return false;
   }

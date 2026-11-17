@@ -29,7 +29,7 @@ function stationLabel(station: string) {
 }
 
 const btn =
-  "inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 touch-manipulation";
+  "inline-flex h-11 shrink-0 items-center gap-1 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 touch-manipulation";
 
 /**
  * Bộ lọc báo cáo CSSD — thin adapter họ AnalyticsFilterBar (kỳ h-9 + SearchableSelect trạm).
@@ -115,7 +115,7 @@ export default function ReportFilters({
           <span className="text-xs font-semibold text-slate-800">
             {fmtShort(filters.from)} – {fmtShort(filters.to)}
           </span>
-          <span className="truncate text-[11px] font-medium text-slate-500">
+          <span className="truncate text-xs font-medium text-slate-500">
             {stationLabel(filters.station)}
           </span>
         </button>

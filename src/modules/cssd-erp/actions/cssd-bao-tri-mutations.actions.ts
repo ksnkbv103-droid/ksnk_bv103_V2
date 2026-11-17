@@ -211,3 +211,51 @@ export async function xacNhanThamDinhThietBiAction(input: {
     return { success: false as const, error: getErrorMessage(e) };
   }
 }
+
+/**
+ * PO 2026-11-10: Admin / Chủ nhiệm khoa KSNK mở khóa máy `HOLD_QC` → READY (bắt buộc lý do, ghi vết trong specs).
+ * Chỉ mở khi máy đang HOLD_QC; không thay luồng bảo trì → thẩm định.
+ */
+export async function moKhoaMayHoldQcAction(input: { thietBiId: string; lyDo: string }) {
+  try {
+    const { getActorRoleNames } = await import("@/lib/server-permission");
+    const { canUnlockHoldQcMachine } = await import("@/lib/domain/cssd-equipment-pm");
+    if (!canUnlockHoldQcMachine(await getActorRoleNames())) {
+      return { success: false as const, error: "Chỉ Admin hoặc Chủ nhiệm khoa KSNK được mở khóa máy tạm giữ." };
+    }
+    const id = String(input.thietBiId || "").trim();
+    const lyDo = String(input.lyDo || "").trim();
+    if (!id) return { success: false as const, error: "Thiếu máy." };
+    if (lyDo.length < 5) return { success: false as const, error: "Nhập lý do mở khóa (tối thiểu 5 ký tự)." };
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+
+    const supabase = createAdminSupabaseClient();
+    const { data: tb, error } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .select("trang_thai, specs")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) return { success: false as const, error: error.message };
+    if (!tb) return { success: false as const, error: "Không tìm thấy máy." };
+    if (String(tb.trang_thai || "").toUpperCase() !== "HOLD_QC") {
+      return { success: false as const, error: "Máy không ở trạng thái tạm giữ QC." };
+    }
+    const specs = (tb.specs && typeof tb.specs === "object" ? tb.specs : {}) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    const { error: upErr } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .update({
+        trang_thai: "READY",
+        specs: { ...specs, mo_khoa_hold_qc: { boi_user_id: actor.userId, luc: now, ly_do: lyDo } },
+        updated_at: now,
+      })
+      .eq("id", id)
+      .eq("trang_thai", "HOLD_QC");
+    if (upErr) return { success: false as const, error: upErr.message };
+    revalidateCssdMaintenanceSurfaces();
+    return { success: true as const };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}

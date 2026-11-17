@@ -1,9 +1,21 @@
-import { quanTriDungCuHref } from "./quan-tri-paths";
+import { getRegistryEntryOrNull } from "./domain-registry";
+import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import {
+  CSSD_DANH_MUC_PATH,
+  GSC_DANH_MUC_PATH,
+  NKBV_DANH_MUC_PATH,
+  quanTriDungCuHref,
+  quanTriHubHref,
+  TO_CHUC_KHOA_PHONG_PATH,
+  TO_CHUC_PATH,
+} from "./quan-tri-paths";
 
 /** Route chuyên dụng (form đầy đủ) — khớp việc hàng ngày trên hub. */
 const DEDICATED_LOAI_TO_PATH: Record<string, string> = {
-  KHOA_PHONG: "/quan-tri-he-thong/danh-muc/khoa-phong",
+  KHOA_PHONG: TO_CHUC_KHOA_PHONG_PATH,
   LOAI_DUNG_CU: quanTriDungCuHref("loai"),
+  /** AR-8g: vai trò (khóa, mã máy) = hàng của ma trận phân quyền. */
+  VAI_TRO_HE_THONG_KSNK: quanTriHubHref("PHAN_QUYEN"),
 };
 
 /** Trang chuyên dụng nếu loại không được sửa qua form generic mã–tên. */
@@ -21,8 +33,46 @@ export function genericDmMustUseDedicatedPageError(loaiDanhMuc: string): string 
   return `Dùng trang chuyên dụng — form mã–tên không đủ trường nghiệp vụ. Mở: ${path}`;
 }
 
-/** Đường dẫn quản trị chuẩn theo registry: dedicated nếu có, không thì `/danh-muc/chuyen-biet/[LOAI]`. */
+/**
+ * AR-8e/8f (PO 2026-11-11): danh mục tra cứu sửa trong module sở hữu — khóa quyền xem → base route.
+ * AR-8g: mọi loại trong registry đều có nơi ở; `chuyen-biet` chỉ còn redirect bookmark cũ.
+ */
+export const DANH_MUC_OWNER_BASE = {
+  DANH_MUC_ORG: `${TO_CHUC_PATH}/danh-muc`,
+  /** AR-8h: lookup GSC/CSSD xem theo quyền xem module, ghi chỉ ADMIN. */
+  GIAM_SAT_CHUNG: GSC_DANH_MUC_PATH,
+  CSSD_WORKFLOW: CSSD_DANH_MUC_PATH,
+  /** LOAI_NKBV, TRANG_THAI_NKBV_CA — khóa, chỉ xem. */
+  GIAM_SAT_NKBV: NKBV_DANH_MUC_PATH,
+} as const;
+export type DanhMucOwnerKey = keyof typeof DANH_MUC_OWNER_BASE;
+
+/** Khóa quyền module sở hữu loại danh mục (null = chưa có module sở hữu). */
+export function getDanhMucOwnerKey(loaiDanhMuc: string): DanhMucOwnerKey | null {
+  const entry = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!entry) return null;
+  const key = getRegistryModuleForMasterTable(entry.sourceTable);
+  return key && key in DANH_MUC_OWNER_BASE ? (key as DanhMucOwnerKey) : null;
+}
+
+/** Đường dẫn trang danh mục trong module sở hữu (null nếu loại không thuộc `owner`). */
+export function getOwnedDanhMucHref(loaiDanhMuc: string, owner: DanhMucOwnerKey): string | null {
+  const k = loaiDanhMuc.trim();
+  if (getDanhMucOwnerKey(k) !== owner) return null;
+  return `${DANH_MUC_OWNER_BASE[owner]}/${encodeURIComponent(k)}`;
+}
+
+/** AR-8e: loại thuộc quyền `DANH_MUC_ORG` (khối, tổ CT, chức vụ…) sửa trong module Tổ chức. */
+export function isToChucLookupType(loaiDanhMuc: string): boolean {
+  return getDanhMucOwnerKey(loaiDanhMuc) === "DANH_MUC_ORG";
+}
+
+/** Đường dẫn chuẩn theo registry: dedicated → module sở hữu → `/danh-muc/chuyen-biet/[LOAI]`. */
 export function getDanhMucAdminPath(loaiDanhMuc: string): string {
   const k = loaiDanhMuc.trim();
-  return getDedicatedDanhMucAdminPath(k) ?? `/quan-tri-he-thong/danh-muc/chuyen-biet/${encodeURIComponent(k)}`;
+  const dedicated = getDedicatedDanhMucAdminPath(k);
+  if (dedicated) return dedicated;
+  const owner = getDanhMucOwnerKey(k);
+  if (owner) return `${DANH_MUC_OWNER_BASE[owner]}/${encodeURIComponent(k)}`;
+  return `/quan-tri-he-thong/danh-muc/chuyen-biet/${encodeURIComponent(k)}`;
 }

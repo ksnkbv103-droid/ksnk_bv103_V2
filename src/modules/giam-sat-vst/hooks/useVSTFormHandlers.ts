@@ -181,7 +181,7 @@ export function useVSTFormHandlers(
     if (sid && requiresEditReason) {
       const lyDo = await promptText({
         title: "Sửa phiên giám sát",
-        message: "Phiên đã quá 30 phút — cần ghi lý do sửa để lưu vết.",
+        message: "Phiên đã quá 30 phút — cần ghi lý do sửa. Nếu bạn không phải quản trị, thay đổi sẽ chờ chủ nhiệm khoa duyệt.",
         label: "Lý do sửa phiên",
         minLength: VST_EDIT_REASON_MIN_CHARS,
         multiline: true,

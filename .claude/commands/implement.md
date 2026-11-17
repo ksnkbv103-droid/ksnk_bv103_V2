@@ -27,7 +27,7 @@ Chỉ dùng sau khi intake đã được user **duyệt** (hoặc user nói rõ 
 
 ## Spec freeze
 
-Nếu user đổi KPI/công thức/acceptance giữa chừng: ghi `Spec change`, cập nhật intake ngắn, rồi mới sửa tiếp.
+Nếu user đổi chỉ số/công thức/acceptance giữa chừng: ghi `Spec change`, cập nhật intake ngắn, rồi mới sửa tiếp.
 
 ## Output bắt buộc
 

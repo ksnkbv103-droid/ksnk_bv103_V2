@@ -43,7 +43,7 @@ type Q = {
 /** Trần dòng đọc; chạm trần = dữ liệu có thể bị cắt → không kết luận. */
 export const GSC_WEEK_SETS_ROW_CAP = 5000;
 
-/** Chuỗi chú thích dùng chung cho thẻ KPI và bản in A4. */
+/** Chuỗi chú thích dùng chung cho thẻ chỉ số và bản in A4. */
 export const GSC_KHAC_CO_CAU_NOTE =
   "Hai tuần chấm bộ bảng kiểm khác nhau — chênh lệch chủ yếu do cơ cấu bảng kiểm, không phải tuân thủ thật.";
 

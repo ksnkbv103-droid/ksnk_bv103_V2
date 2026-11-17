@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { isCssdUnifiedBoMa } from "@/lib/domain/cssd-bo-ma";
-import { quanTriDungCuHref, quanTriNhanSuChuaTkHref } from "@/lib/master-data/quan-tri-paths";
+import { quanTriDungCuHref, toChucNhanSuChuaTkHref } from "@/lib/master-data/quan-tri-paths";
 export type SystemHealthMetric = {
   id: string;
   label: string;
@@ -27,16 +27,12 @@ export async function fetchSystemHealthBrief(): Promise<
   { success: true; data: SystemHealthBrief } | { success: false; error: string }
 > {
   try {
-    await verifyPermission("DANH_MUC", "view");
-  } catch {
-    try {
-      await verifyPermission("PHAN_QUYEN", "view");
-    } catch (e) {
-      return {
-        success: false,
-        error: e instanceof Error ? e.message : "Không đủ quyền xem sức khỏe hệ thống",
-      };
-    }
+    await verifyPermission("PHAN_QUYEN", "view");
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Không đủ quyền xem sức khỏe hệ thống",
+    };
   }
 
   const supabase = createAdminSupabaseClient();
@@ -72,7 +68,7 @@ export async function fetchSystemHealthBrief(): Promise<
       count: chuaLink,
       total,
       hint: "Hồ sơ đang dùng chưa tạo đăng nhập — danh sách cùng điều kiện.",
-      href: quanTriNhanSuChuaTkHref(),
+      href: toChucNhanSuChuaTkHref(),
       severity: chuaLink > 0 ? "warn" : "ok",
     });
   }
@@ -86,7 +82,7 @@ export async function fetchSystemHealthBrief(): Promise<
       count: noKhoi,
       total,
       hint: "Khoa chưa gắn khối — lọc/so sánh theo khối trên thống kê dễ lệch.",
-      href: "/quan-tri-he-thong/danh-muc/khoa-phong",
+      href: "/to-chuc/khoa-phong",
       severity: noKhoi > 0 ? "warn" : "ok",
     });
   }
@@ -120,7 +116,7 @@ export async function fetchSystemHealthBrief(): Promise<
       count: thieuApDung,
       total,
       hint: "Chưa chọn khoa áp dụng — thống kê bao phủ dễ lệch.",
-      href: "/quan-tri-he-thong/bang-kiem",
+      href: "/giam-sat-chung/bang-kiem",
       severity: thieuApDung > 0 ? "warn" : "ok",
     });
   }

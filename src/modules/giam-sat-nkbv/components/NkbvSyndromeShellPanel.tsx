@@ -386,21 +386,21 @@ export default function NkbvSyndromeShellPanel({
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className={`${C.sectionTitle} text-violet-950`}>{title}</h3>
             {computedClassification ? (
-              <span className="rounded-full bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 text-[11px] border border-emerald-300">
+              <span className="rounded-full bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 text-xs border border-emerald-300">
                 🎯 {computedClassification} Đạt chuẩn CDC/NHSN
               </span>
             ) : hasVac ? (
-              <span className="rounded-full bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 text-[11px] border border-amber-300">
+              <span className="rounded-full bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 text-xs border border-amber-300">
                 Đạt VAC (chờ IVAC/PVAP)
               </span>
             ) : (
-              <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-[11px] border border-slate-200">
+              <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs border border-slate-200">
                 Chưa đạt VAC
               </span>
             )}
           </div>
 
-          <p className="text-[11px] text-violet-900 leading-relaxed">
+          <p className="text-xs text-violet-900 leading-relaxed">
             Index {indexDate || "—"}
             {indexLabel ? ` · ${indexLabel}` : ""}
             {doe ? ` · DOE gợi ý: ${doe}` : ""}
@@ -409,21 +409,21 @@ export default function NkbvSyndromeShellPanel({
 
           {/* Reasoning banner */}
           <div
-            className={`rounded p-2 text-[11px] leading-snug border ${
+            className={`rounded p-2 text-xs leading-snug border ${
               hasVac
                 ? "bg-emerald-50/80 border-emerald-200 text-emerald-900"
                 : "bg-amber-50/80 border-amber-200 text-amber-900"
             }`}
           >
             <div className="font-medium">{vacResult.reason}</div>
-            <div className="mt-1 text-[11px] text-slate-600">
+            <div className="mt-1 text-xs text-slate-600">
               Nhập PEEP tối thiểu (cmH₂O) và FiO₂ tối thiểu (%) trên các cột ngày bên dưới. CDC tự quét chuỗi ≥2 ngày ổn định rồi ≥2 ngày suy giảm (ΔPEEP ≥ 3 hoặc ΔFiO₂ ≥ 20%).
             </div>
           </div>
 
           {/* Tiêu chí phân cấp IVAC & PVAP */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-            <div className="bg-white/80 rounded border border-violet-150 p-2 text-[11px] space-y-1.5">
+            <div className="bg-white/80 rounded border border-violet-150 p-2 text-xs space-y-1.5">
               <span className="font-semibold text-violet-950 block">
                 Cấp 2 — IVAC (Infection-related VAC):
               </span>
@@ -453,7 +453,7 @@ export default function NkbvSyndromeShellPanel({
               </label>
             </div>
 
-            <div className="bg-white/80 rounded border border-violet-150 p-2 text-[11px] space-y-1.5">
+            <div className="bg-white/80 rounded border border-violet-150 p-2 text-xs space-y-1.5">
               <span className="font-semibold text-violet-950 block">
                 Cấp 3 — PVAP (Possible VAP) &amp; Ngoại lệ:
               </span>
@@ -470,7 +470,7 @@ export default function NkbvSyndromeShellPanel({
                 <span>Đờm mủ (≥25 BCĐN và ≤10 TBBM / vi trường) hoặc cấy định lượng dịch hô hấp (+)</span>
               </label>
 
-              <div className="flex items-center gap-3 pt-0.5 text-[11px] text-slate-700">
+              <div className="flex items-center gap-3 pt-0.5 text-xs text-slate-700">
                 <label className="flex items-center gap-1 cursor-pointer">
                   <input
                     type="checkbox"
@@ -506,7 +506,7 @@ export default function NkbvSyndromeShellPanel({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-violet-800 hover:bg-violet-100 border border-violet-200 shrink-0"
+          className="rounded-full px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-100 border border-violet-200 shrink-0"
         >
           Đóng bảng
         </button>
@@ -515,7 +515,7 @@ export default function NkbvSyndromeShellPanel({
       {typeof children === "function" ? (
         children({ analysisColumns })
       ) : (
-        <p className="mt-2 text-[11px] text-amber-800">Thiếu slot bảng chung.</p>
+        <p className="mt-2 text-xs text-amber-800">Thiếu slot bảng chung.</p>
       )}
     </section>
   );

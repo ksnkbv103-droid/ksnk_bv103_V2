@@ -19,14 +19,14 @@ export function CatalogDeNghiDiff({ row }: { row: CssdCatalogDeNghiRow }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] text-slate-500">
+        <p className="text-xs text-slate-500">
           {CSSD_CATALOG_DE_NGHI_KIND_LABEL[row.targetKind]} · {row.targetMa || "—"} · {created} ·{" "}
           {catalogDeNghiStatusLabel(row.status)}
         </p>
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-lg border border-slate-200 px-3 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
         >
           In phiếu
         </button>

@@ -1,7 +1,5 @@
 /** SSOT cột vật lý `cssd_dm_loai_dung_cu` vs alias UI/view (`ma_loai_dung_cu`). */
 
-export const CSSD_LOAI_DM_VIEW = "v_cssd_loai_dung_cu_summary" as const;
-
 export const CSSD_LOAI_PHYSICAL_SELECT = "id, ma_loai, ten_loai, is_active" as const;
 
 export type CssdLoaiAlias = { ma_loai_dung_cu: string; ten_loai_dung_cu: string };
@@ -194,69 +192,6 @@ export function suggestCssdSterileMethodFromMaster(input: {
   return { phuongPhapChiDinh: "STEAM_134", lyDo: "Thiết yếu/Bán thiết yếu + chịu nhiệt → hơi 134°C." };
 }
 
-/** @deprecated CSSD-10 — giữ compat test cũ; map PP → mã máy ảo (không ghi specs). */
-export type CssdStationSuggestion = {
-  maTramGoiY: string;
-  lyDo: string;
-};
-
-/** @deprecated Dùng suggestCssdSterileMethodFromMaster. */
-export function suggestCssdStationFromMaster(input: {
-  spaulding?: unknown;
-  sterileMethod?: unknown;
-  isChiuNhiet?: unknown;
-}): CssdStationSuggestion {
-  const s = suggestCssdSterileMethodFromMaster(input);
-  if (!s.phuongPhapChiDinh) {
-    return { maTramGoiY: "", lyDo: s.lyDo };
-  }
-  const map: Record<CssdSterileMethod, string> = {
-    STEAM_134: "TRAM_HOI_134",
-    STEAM_121: "TRAM_HOI_121",
-    PLASMA: "TRAM_PLASMA",
-    EO: "TRAM_EO",
-  };
-  return { maTramGoiY: map[s.phuongPhapChiDinh], lyDo: s.lyDo };
-}
-
-/** Gợi ý máy/PP → mã trạm quy trình đang có trên sổ `TRAM_CSSD` của viện. */
-export const TRAM_GOI_Y_TO_WORKFLOW_MA: Readonly<Record<string, string>> = {
-  TRAM_HOI_134: "TIET_KHUAN",
-  TRAM_HOI_121: "TIET_KHUAN",
-  TRAM_PLASMA: "TIET_KHUAN",
-  TRAM_EO: "TIET_KHUAN",
-};
-
-export type CssdTramCatalogRow = { id: string; ma: string; ten: string };
-
-export type ResolvedCssdTram = CssdTramCatalogRow & { matchedBy: "exact" | "alias" };
-
-export function candidateTramCodesForSuggestion(maTramGoiY: string): string[] {
-  const ma = maTramGoiY.trim().toUpperCase();
-  if (!ma) return [];
-  const alias = TRAM_GOI_Y_TO_WORKFLOW_MA[ma];
-  if (alias && alias !== ma) return [ma, alias];
-  return [ma];
-}
-
-/** Tra gợi ý với sổ trạm viện — exact mã gợi ý, không thì alias quy trình. */
-export function resolveSuggestedTramFromCatalog(
-  maTramGoiY: string,
-  trams: readonly CssdTramCatalogRow[],
-): ResolvedCssdTram | null {
-  const byMa = new Map(
-    trams.map((t) => [t.ma.trim().toUpperCase(), t] as const),
-  );
-  const candidates = candidateTramCodesForSuggestion(maTramGoiY);
-  for (let i = 0; i < candidates.length; i++) {
-    const hit = byMa.get(candidates[i]);
-    if (hit) {
-      return { ...hit, matchedBy: i === 0 ? "exact" : "alias" };
-    }
-  }
-  return null;
-}
-
 /** CSSD-10: gỡ ma_tram_goi_y khỏi specs; có thể gắn PP chỉ định. */
 export function applySterileMethodSuggestionToLoaiSpecs(
   specs: Record<string, unknown>,
@@ -273,24 +208,6 @@ export function applySterileMethodSuggestionToLoaiSpecs(
     delete next.phuong_phap_tiet_khuan_chi_dinh_goi_y;
   }
   return next;
-}
-
-/** @deprecated CSSD-10 — không còn gắn trạm gợi ý. */
-export function applyResolvedTramToLoaiSpecs(
-  specs: Record<string, unknown>,
-  _resolved: ResolvedCssdTram | null,
-  _maTramGoiY: string,
-): Record<string, unknown> {
-  const next = { ...specs };
-  delete next.ma_tram_goi_y;
-  delete next.tram_cssd_id;
-  delete next.ma_tram_thuc_te;
-  delete next.ten_tram_thuc_te;
-  return next;
-}
-
-export function missingTramCssdSeedMessage(_maTramGoiY: string): string {
-  return "";
 }
 
 function khoDuPhongBanDau(value: unknown): number {
@@ -376,6 +293,10 @@ export function buildLoaiPhysicalUpsertPayload(
     phuong_phap_tiet_khuan_chi_dinh: sterile,
     phuong_phap_cho_phep: choPhep.length ? choPhep : [sterile],
   };
+  // Chỉ ghi khi form gửi (import/đề nghị không có trường này → giữ nguyên giá trị cũ).
+  if ("loai_bao_goi_mac_dinh_id" in input) {
+    payload.loai_bao_goi_mac_dinh_id = String(input.loai_bao_goi_mac_dinh_id || "").trim() || null;
+  }
   if (mode === "create") {
     payload.so_luong_kho_du_phong = khoDuPhongBanDau(input.so_luong_kho_du_phong);
   }
@@ -406,6 +327,7 @@ export function mapLoaiDungCuExcelExportRow(r: Record<string, unknown>): Record<
     phan_loai_spaulding: r.phan_loai_spaulding ?? specs.phan_loai_spaulding ?? null,
     phan_loai: r.phan_loai ?? "PHAU_THUAT",
     so_luong_kho_du_phong: r.so_luong_kho_du_phong ?? 0,
+    loai_bao_goi_mac_dinh_id: r.loai_bao_goi_mac_dinh_id ?? null,
     is_active: r.is_active !== false,
   };
 }
@@ -418,6 +340,18 @@ export function normalizeLoaiDungCuExcelImportRow(row: Record<string, unknown>):
   if (ma) out.ma_loai_dung_cu = ma;
   if (ten) out.ten_loai_dung_cu = ten;
   return out;
+}
+
+/**
+ * Cờ chịu nhiệt SAU khi lưu: trigger DB suy từ `phuong_phap_cho_phep` (có STEAM_*), không từ `is_chiu_nhiet`.
+ * Import dùng hàm này để so với giá trị cũ khi tách/gộp bộ; mảng trống/thiếu → dùng cờ trong payload.
+ */
+export function resolveLoaiImportNextChiuNhiet(payload: Record<string, unknown>): boolean | undefined {
+  const arr = payload.phuong_phap_cho_phep;
+  if (Array.isArray(arr) && arr.length > 0) {
+    return arr.some((m) => m === "STEAM_134" || m === "STEAM_121");
+  }
+  return typeof payload.is_chiu_nhiet === "boolean" ? payload.is_chiu_nhiet : undefined;
 }
 
 /** Smart import hybrid: đồng bộ cột vật lý sau khi gom mã vào specs. */

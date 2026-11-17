@@ -1,5 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { clearTableHasColumnCache } from "@/modules/cssd-erp/shared/cssd-db-utils";
+import { describe, expect, it } from "vitest";
 import { executeIncidentReportAndRollback } from "./su-co-report.application";
 
 type RpcResult = { success: boolean; message?: string; su_co_id?: string; idempotent?: boolean };
@@ -19,6 +18,8 @@ const SAFETY_PAIR = [
   },
 ];
 
+type DraftRow = { id: string; is_active: boolean; attributes: Record<string, unknown> };
+
 function client(opts: {
   rpcResult: RpcResult;
   quyTrinhUpdateError?: boolean;
@@ -28,8 +29,10 @@ function client(opts: {
     quy_trinh_id?: string | null;
     is_active?: boolean | null;
   }[];
+  draftRows?: Record<string, DraftRow | null>;
 }) {
   const ops: string[] = [];
+  const draftRows: Record<string, DraftRow | null> = opts.draftRows ?? { "draft-1": DRAFT_OK };
   return {
     ops,
     rpc: async (name: string) => {
@@ -38,26 +41,33 @@ function client(opts: {
     },
     from(table: string) {
       let mode = "row";
+      let eqId: string | null = null;
       const terminal = () => {
         if (mode === "count") return { data: null, error: null, count: 2 };
         if (mode === "safety") return { data: opts.priorRows ?? SAFETY_PAIR, error: null };
         if (mode === "list") return { data: [], error: null };
+        if (mode === "draft") return { data: (eqId && draftRows[eqId]) || null, error: null };
         return { data: null, error: null };
       };
       const b: Record<string, unknown> = {};
       const chain = () => b;
       b.select = (cols: string, extra?: { head?: boolean }) => {
         if (extra?.head) mode = "count";
+        else if (table === "cssd_fact_su_co" && cols === "id, is_active, attributes") mode = "draft";
         else if (String(cols).includes("attributes")) mode = "safety";
         return b;
       };
-      b.eq = chain;
+      b.eq = (col: string, val: unknown) => {
+        if (col === "id") eqId = String(val);
+        return b;
+      };
       b.order = chain;
       b.limit = chain;
       b.maybeSingle = async () => terminal();
       b.single = async () => ({ data: { id: "new-1" }, error: null });
       b.insert = () => ({ select: () => ({ single: async () => ({ data: { id: "new-1" }, error: null }) }) });
       b.update = () => {
+        ops.push("update:" + table);
         if (table === "cssd_fact_quy_trinh" && opts.quyTrinhUpdateError) {
           return { eq: async () => ({ error: { message: "fail tram" } }) };
         }
@@ -74,7 +84,18 @@ function client(opts: {
   };
 }
 
+const DRAFT_OK: DraftRow = {
+  id: "draft-1",
+  is_active: true,
+  attributes: {
+    SET_RECONCILE_STATUS: "DRAFT",
+    BO_DUNG_CU_ID: "bo-1",
+    REPORTER_AUTH_USER_ID: "u-1",
+  },
+};
+
 const draftArgs = {
+  reporterAuthUserId: "u-1",
   station: "DONG_GOI" as const,
   incidentGroup: "INSTRUMENT" as const,
   typeTen: "Rà soát bộ",
@@ -98,10 +119,6 @@ const draftArgs = {
 };
 
 describe("executeIncidentReportAndRollback nháp", () => {
-  beforeEach(() => {
-    clearTableHasColumnCache();
-  });
-
   it("không xóa nháp khi RPC sổ trả lỗi", async () => {
     const supabase = client({
       rpcResult: { success: false, message: "Số lượng vượt quá số thực tế (0)." },
@@ -251,5 +268,24 @@ describe("executeIncidentReportAndRollback nháp", () => {
       { id: "qt-moi", tram_hien_tai_id: "tram-1" },
     );
     expect(res.isRedAlert).toBe(false);
+  });
+
+  it("từ chối gửi khi draftIncidentId là phiếu người khác / không còn nháp", async () => {
+    const cases = [
+      { ...DRAFT_OK, attributes: { ...DRAFT_OK.attributes, REPORTER_AUTH_USER_ID: "u-khac" } },
+      { ...DRAFT_OK, attributes: { ...DRAFT_OK.attributes, SET_RECONCILE_STATUS: "NONE" } },
+      { ...DRAFT_OK, attributes: { ...DRAFT_OK.attributes, BO_DUNG_CU_ID: "bo-khac" } },
+      { ...DRAFT_OK, is_active: false },
+      null,
+    ];
+    for (const row of cases) {
+      const supabase = client({ rpcResult: { success: true, su_co_id: "draft-1" }, draftRows: { "draft-1": row } });
+      await expect(executeIncidentReportAndRollback(supabase as never, draftArgs, null)).rejects.toThrow(
+        /phiếu nháp/,
+      );
+      expect(supabase.ops.filter((op) => op.startsWith("rpc:") || op.startsWith("update:cssd_fact_su_co"))).toEqual(
+        [],
+      );
+    }
   });
 });

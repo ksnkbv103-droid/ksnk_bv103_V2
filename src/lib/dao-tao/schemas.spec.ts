@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   examFormThongTinSchema,
   kyThiInputSchema,
+  importMcqMatrixSchema,
   parseDaoTaoInput,
+  setCauHoiActiveSchema,
+  setKyThiGanSchema,
+  updateCauHoiDaoTaoSchema,
   saveTraLoiInputSchema,
   traLoiSchema,
   updateMucDoThiThuSchema,
@@ -80,5 +84,43 @@ describe("schema quản trị", () => {
     expect(updateMucDoThiThuSchema.safeParse({ id: ID, so_cau: 20, thoi_gian_phut: 30 }).success).toBe(true);
     expect(updateMucDoThiThuSchema.safeParse({ id: "x", so_cau: 20, thoi_gian_phut: 30 }).success).toBe(false);
     expect(updateMucDoThiThuSchema.safeParse({ id: ID, so_cau: 2.5, thoi_gian_phut: 30 }).success).toBe(false);
+  });
+});
+
+describe("DT-003: schema action quản trị", () => {
+  it("setKyThiGan: id phải là uuid, hạn 1..60 tháng", () => {
+    expect(setKyThiGanSchema.safeParse({ kyThiId: ID, khoaPhongIds: [ID], hanChungChiThang: 12 }).success).toBe(true);
+    expect(() => parseDaoTaoInput(setKyThiGanSchema, { kyThiId: "x" })).toThrow("Mã định danh không hợp lệ.");
+    expect(() => parseDaoTaoInput(setKyThiGanSchema, { kyThiId: ID, nhanSuIds: ["x"] })).toThrow(
+      "Mã định danh không hợp lệ.",
+    );
+    expect(() => parseDaoTaoInput(setKyThiGanSchema, { kyThiId: ID, hanChungChiThang: 99 })).toThrow(
+      "Hạn chứng chỉ từ 1 đến 60 tháng.",
+    );
+  });
+
+  it("setCauHoiActive: isActive phải là boolean", () => {
+    expect(setCauHoiActiveSchema.safeParse({ cauHoiId: ID, isActive: false }).success).toBe(true);
+    expect(() => parseDaoTaoInput(setCauHoiActiveSchema, { cauHoiId: ID, isActive: "true" })).toThrow(
+      "Trạng thái kích hoạt không hợp lệ.",
+    );
+  });
+
+  it("updateCauHoiDaoTao: bloom 1..5, loai enum, stem không rỗng", () => {
+    const ok = { id: ID, stem: "Q", bloomLevel: 2, optionA: "a", optionB: "b", dapAnRaw: "A", loai: "single" };
+    expect(updateCauHoiDaoTaoSchema.safeParse(ok).success).toBe(true);
+    expect(() => parseDaoTaoInput(updateCauHoiDaoTaoSchema, { ...ok, bloomLevel: 9 })).toThrow("Mức Bloom từ 1 đến 5.");
+    expect(() => parseDaoTaoInput(updateCauHoiDaoTaoSchema, { ...ok, loai: "x" })).toThrow("Loại câu hỏi không hợp lệ.");
+    expect(() => parseDaoTaoInput(updateCauHoiDaoTaoSchema, { ...ok, stem: " " })).toThrow(
+      "Vui lòng nhập nội dung câu hỏi.",
+    );
+  });
+
+  it("importMcqMatrix: rows phải là mảng 2 chiều, giới hạn dòng", () => {
+    expect(importMcqMatrixSchema.safeParse({ rows: [["a", 1]], dryRun: true }).success).toBe(true);
+    expect(() => parseDaoTaoInput(importMcqMatrixSchema, { rows: "x" })).toThrow("Dữ liệu import không hợp lệ.");
+    expect(() => parseDaoTaoInput(importMcqMatrixSchema, { rows: Array.from({ length: 20001 }, () => []) })).toThrow(
+      "Import tối đa 20000 dòng.",
+    );
   });
 });

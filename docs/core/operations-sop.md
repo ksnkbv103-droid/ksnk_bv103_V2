@@ -116,6 +116,7 @@ npm run local:golden:verify
 3. **Chạy Precheck Schema:** Chạy lệnh `npm run trial:db:precheck:local` để xác thực toàn bộ RPC, View và khóa ngoại (FK) cần thiết.
 4. **Deploy & Sync Remote:** Không db push lên prod — migration prod đi qua Lead/MCP (`apply_migration`); local: `npm run mdm:migrate:local`. Kết hợp kiểm tra hậu migration (`npm run mdm:postcheck:sql`).
 5. **Auth pilot:** `npm run trial:auth:precheck` (linked) — khớp `auth.users` ↔ `mdm_nhan_su.email`.
+6. **Cache danh mục (VST-002):** sửa trực tiếp bằng SQL/migration các bảng `mdm_dm_khoa_phong`, `mdm_dm_nghe_nghiep` (kể cả cột `specs`) thì cache `unstable_cache` (`src/lib/cache/master-data-cache.ts`, TTL 15 phút) còn giữ bản cũ; UI có thể hiện khu vực không còn được phép. Sau khi áp, chờ ≥ 15 phút hoặc deploy lại mã trước khi kiểm bằng giao diện; sửa qua Server Action thì tự `revalidateTag`.
 
 ---
 

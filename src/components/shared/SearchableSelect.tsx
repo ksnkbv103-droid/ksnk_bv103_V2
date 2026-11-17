@@ -7,6 +7,7 @@ import { DismissableLayerBranch } from "@radix-ui/react-dismissable-layer";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import FloatingLabelContent from "./FloatingLabelContent";
 import {
   BV103_PICKER_PORTAL_ATTR,
   resolveBv103PickerPortalRoot,
@@ -36,6 +37,8 @@ type Props = {
   /** Ô gõ ngay trên trigger — tìm / dán mã / súng QR, không cần ô riêng. */
   inputTrigger?: boolean;
   endSlot?: React.ReactNode;
+  /** Nhãn nổi trong ô: rỗng = nhãn giữa ô; có giá trị = nhãn nhỏ phía trên, giá trị bên dưới. */
+  label?: string;
 };
 
 const normalizeSearchText = (value: string) =>
@@ -68,6 +71,7 @@ export default function SearchableSelect({
   allowCustom = false,
   inputTrigger = false,
   endSlot,
+  label,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -139,7 +143,7 @@ export default function SearchableSelect({
         nodes.push(
           <div
             key={`group-${group}-${idx}`}
-            className="sticky top-0 z-[1] px-2 py-1.5 text-[11px] font-medium text-slate-500 bg-white/95 backdrop-blur-sm border-b border-slate-100 mb-1"
+            className="sticky top-0 z-[1] px-2 py-1.5 text-xs font-medium text-slate-500 bg-white/95 backdrop-blur-sm border-b border-slate-100 mb-1"
           >
             {group}
           </div>,
@@ -302,6 +306,16 @@ export default function SearchableSelect({
           }}
           className={`${bv103LayoutChrome.controlInput} min-w-0 flex-1 font-mono uppercase tracking-wide ${className}`}
         />
+      ) : label ? (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((v) => !v)}
+          aria-label={label}
+          className={`${bv103LayoutChrome.controlFloatingTrigger} min-w-0 flex-1 ${className}`}
+        >
+          <FloatingLabelContent label={label} value={selectedOption || (allowCustom && value) ? displayText : ""} />
+        </button>
       ) : (
         <button
           type="button"
@@ -363,7 +377,7 @@ export default function SearchableSelect({
                         <button
                           type="button"
                           onClick={() => setOpen(false)}
-                          className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
+                          className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-800 active:bg-slate-100"
                         >
                           Đóng
                         </button>

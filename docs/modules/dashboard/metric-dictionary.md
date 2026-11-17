@@ -12,9 +12,9 @@
 | GSC | `rpc_dashboard_gsc_strategic_analytics` | Phiên checklist động |
 | NKBV | aggregate action module NKBV | Outcome nhiễm khuẩn — **không** gộp CCS |
 
-App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic. Bảng summary đã DROP (migration `20260604100000`, 2026-06-04). Command Center và báo cáo tổng hợp đọc RPC strategic / v4 (compose phía app). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
+App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho chỉ số strategic. Bảng summary đã DROP (migration `20260604100000`, 2026-06-04). Command Center và báo cáo tổng hợp đọc RPC strategic / v4 (compose phía app). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
 
-**Hits TGS (bao phủ / BK tôi):** app gọi RPC `rpc_gsc_tgs_session_hits` (không select VIEW summary trực tiếp). RPC scan live VIEW `gstt_fact_gsc_dashboard_summary` ở lớp DB — **không** dùng cho CCS / Command Center KPI.
+**Hits TGS (bao phủ / BK tôi):** app gọi RPC `rpc_gsc_tgs_session_hits` (không select VIEW summary trực tiếp). RPC scan live VIEW `gstt_fact_gsc_dashboard_summary` ở lớp DB — **không** dùng cho CCS / Command Center chỉ số.
 
 ---
 
@@ -36,7 +36,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 - **Công thức (backend giữ field):** `0.5 × ty_le_vst + 0.5 × ty_le_gsc` khi **cả hai** có giá trị
 - **Một nguồn:** dùng nguồn duy nhất + ghi chú «Chỉ có dữ liệu VST/GSC»
-- **Spec change 2026-07-31:** **không** dùng CCS trên KPI / xu hướng / xếp hạng khoa / Command Center / bản in / draft nhận xét. Điều hành chỉ nhìn **`ty_le_vst`** và **`ty_le_gsc`** (và theo từng chuyên đề/BK khi lọc).
+- **Spec change 2026-07-31:** **không** dùng CCS trên chỉ số / xu hướng / xếp hạng khoa / Command Center / bản in / draft nhận xét. Điều hành chỉ nhìn **`ty_le_vst`** và **`ty_le_gsc`** (và theo từng chuyên đề/BK khi lọc).
 - **2026-08-23:** BCTH **không** còn compose `ty_le_ccs` / `delta_ccs` trong payload. Công thức `computeCcs` giữ trong `supervision-metrics` (PDCA đọc khóa cũ `ty_le_ccs`). **Cấm** hiển thị nhãn CCS cho người dùng.
 - **Không nhầm với:** `ty_le_avg` (trung bình đơn giản, không trọng số)
 
@@ -74,7 +74,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 ### `ky_truoc` (so kỳ lãnh đạo — BCTH, 2026-07-29)
 
 - **Định nghĩa:** cùng độ dài kỳ lọc `[tu_ngay, den_ngay]` dịch lùi liền trước (inclusive calendar days).
-- **Hiển thị:** nhãn «vs kỳ trước (dd-mm→dd-mm)» trên KPI BCTH — **tách** khỏi badge «Δ 2 tuần ISO».
+- **Hiển thị:** nhãn «vs kỳ trước (dd-mm→dd-mm)» trên chỉ số BCTH — **tách** khỏi badge «Δ 2 tuần ISO».
 - **Nguồn:** gọi lại strategic VST/GSC cho kỳ trước (soft-fail); không đổi công thức CCS.
 
 ---
@@ -83,26 +83,18 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 | Ngưỡng | Giá trị | Ý nghĩa UI & Căn cứ |
 |--------|---------|---------------------|
-| `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `GREEN_MIN` | 85% | Đạt (màu xanh) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 | `YELLOW_MIN` | 70% | Cần theo dõi — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 | `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) — Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
-| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi mục tiêu viện / CCS. Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
+| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi CCS. Ngưỡng vận hành pilot — chưa có căn cứ định lượng từ nghiên cứu (quyết định PO 2026-11-06) |
 
 SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
-### Mục tiêu chuẩn viện (`ksnk_dm_muc_tieu_kpi`) — Spec 2026-07-29
+### Đơn vị Δ trên thẻ chỉ số BCTH (`ComprehensiveChiSoCards`)
 
-| Trường | Ý nghĩa |
-|--------|---------|
-| `metric_key` | **Ưu tiên surface:** `ty_le_vst` · `ty_le_gsc`. `ty_le_ccs` **chỉ compat đọc cũ** (không badge / KPI điều hành) |
-| `khoa_id` | NULL = toàn viện; UUID = mục tiêu theo khoa (tương lai) |
-| `target_pct` | Mục tiêu % (0–100) |
-
-- **Hiển thị:** badge «Mục tiêu viện» + Δ trên KPI BCTH (`ComprehensiveKpiCards`) — **chỉ** VST/GSC. Spec 2026-08-22: **một mũi tên** so mục tiêu viện trên thẻ; Δ 2 tuần ISO / `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng / payload).
 - **Đơn vị Δ (sửa hiển thị 2026-10-12, công thức giữ nguyên):** Δ tuần và Δ kỳ trước là chênh lệch **điểm phần trăm** (tuần gần nhất trừ tuần liền trước), hiển thị «+3.4 điểm %», **không** phải % tương đối. «Tỷ lệ tuần trước» in cạnh Δ là đúng tuần mà Δ đem so (cùng điều kiện cỡ mẫu và hai tuần ISO liên tiếp). Lưu ý: nếu hai tuần chấm bộ bảng kiểm khác nhau thì chênh lệch phản ánh cơ cấu bảng kiểm, không phải tuân thủ thật — **PO chọn cách 1 (2026-10-12): hiện chú thích «khác cơ cấu bảng kiểm» cạnh Δ GSC, giữ nguyên công thức và vẫn hiện Δ.** Chú thích so bộ bảng kiểm (TUAN_THU trừ BM.02/03) của hai tuần Δ đem so, theo bộ lọc khoa của BCTH; không rõ phạm vi, lỗi đọc hay dữ liệu chạm trần 5000 phiên thì không chú thích.
-- **Fallback:** khi bảng chưa migrate / lỗi đọc → `GREEN_MIN`.
-- **Không** đổi công thức CCS; mục tiêu chỉ để so sánh lãnh đạo.
-- Seed mặc định toàn viện = 85% (có thể còn dòng `ty_le_ccs` trong DB — app **không** surface).
+- **Đã bỏ (PO 2026-11-16):** bảng mục tiêu viện, action đọc mục tiêu và badge «Mục tiêu viện». Màu thẻ dùng ngưỡng ở bảng trên. Migration `20261116100000_drop_bang_muc_tieu_cu.sql` (local; CHƯA apply prod).
+- **Không** đổi công thức CCS.
 
 ---
 
@@ -166,7 +158,7 @@ Surface: `/thong-ke/vst`, `/thong-ke/gsc`, BCTH mục VST/GSC.
 | Toggle Chuyên trách \| Tự giám sát | Một nguồn % mỗi lần |
 | Chart khoa **tab** «Tỷ lệ tuân thủ» / «Khối lượng» | Thấp·cao trên chart |
 | So sánh & xu hướng | Accordion (mở được, không bắt cuộn Nâng cao) |
-| Nâng cao | Đối soát · bao phủ TGS · KPI (đóng mặc định) |
+| Nâng cao | Đối soát · bao phủ TGS · chỉ số (đóng mặc định) |
 | BCTH fold chính | Tổng quan · VST · GSC · Phần III; Thêm = xu hướng/NKBV/chi tiết |
 
 - **Không** badge Action board trên fold 0.
@@ -228,7 +220,7 @@ Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 
 
 ### Câu mô tả trụ (thống kê mô tả — 2026-07-29)
 
-Mỗi trụ trên `/` hiển thị theo mẫu cố định (không đổi công thức KPI):
+Mỗi trụ trên `/` hiển thị theo mẫu cố định (không đổi công thức chỉ số):
 
 1. **Giá trị** — số / % chính của trụ  
 2. **Câu mô tả** — 1 dòng tiếng Việt (trạng thái kỳ lọc)  
@@ -319,7 +311,7 @@ Hiển thị: bảng NV Khoa KSNK trên `/` (lazy). **Không** gộp với `so_q
 | Khái niệm | Nguồn | Ý nghĩa |
 |-----------|-------|---------|
 | `checklist_overview[]` | `rpc_dashboard_gsc_strategic_analytics` | Một dòng/BK có phiên: % tuân thủ, vi phạm, lỗi nổi bật, khoa yếu nhất |
-| `rpc_gsc_checklist_detail` | Lazy khi chọn BK (`?bk=`) | KPI · trend · gap TGS/KSNK · `matrix_criterion[]` (mọi tiêu chí áp dụng) · `criterion_khoa[]` (drill khoa) |
+| `rpc_gsc_checklist_detail` | Lazy khi chọn BK (`?bk=`) | chỉ số · trend · gap TGS/KSNK · `matrix_criterion[]` (mọi tiêu chí áp dụng) · `criterion_khoa[]` (drill khoa) |
 | `rpc_gsc_compare_matrices` | Gộp vào strategic + detail BK | **Khối** · chức năng phòng · đối tượng · hình thức · cách thức (accordion) |
 | Xếp hạng rủi ro | App `sortChecklistOverviewByRisk` / `sortCriterionMatrix` | BK và tiêu chí: tuân thủ ASC · vi phạm DESC — **không đổi CCS** |
 

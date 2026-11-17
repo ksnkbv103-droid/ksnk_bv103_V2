@@ -26,19 +26,6 @@ export const QLCV_TRANG_THAI_MAU_SAC: Record<string, string> = {
   CHO_XAC_NHAN_HOAN_THANH: "#F59E0B",
 };
 
-/** Nhãn trạng thái canonical (đồng bộ seed; UI cổng vẫn dùng getQlcvWorkflowGateLabel). */
-export const QLCV_TRANG_THAI_TEN: Record<string, string> = {
-  MOI: "Mới",
-  DANG_LAM: "Đang làm",
-  CHO_DUYET: "Chờ nghiệm thu",
-  HOAN_THANH: "Hoàn thành",
-  TU_CHOI: "Từ chối",
-  QUA_HAN: "Quá hạn",
-  DA_HUY: "Đã hủy",
-  CHUA_BAT_DAU: "Chưa bắt đầu",
-  DANG_THUC_HIEN: "Đang thực hiện",
-};
-
 /** Bản sao map màu — hot path không query view. */
 export function getQlcvTrangThaiMauSacMap(): Record<string, string> {
   return { ...QLCV_TRANG_THAI_MAU_SAC };

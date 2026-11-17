@@ -9,14 +9,20 @@ export type HeatSplitBomLine = {
   isChiuNhiet: boolean;
   ten: string;
   soLuong: number;
+  /** Phương pháp tiệt khuẩn chỉ định của loại; EO tách nhóm riêng (không chung mẻ Plasma). */
+  phuongPhap?: string | null;
 };
 
 export type HeatSplitPlan = {
   needsSplit: boolean;
   mainChiTietIds: string[];
   subChiTietIds: string[];
+  /** Dòng không chịu nhiệt dùng EO — thành phần riêng (-EO). */
+  eoChiTietIds: string[];
   reason: string;
 };
+
+const isEoLine = (l: HeatSplitBomLine) => !l.isChiuNhiet && String(l.phuongPhap || "").toUpperCase() === "EO";
 
 /** Chỉ tách khi bộ có CẢ dòng chịu nhiệt VÀ dòng không chịu nhiệt. */
 export function planHeatSplitForBo(lines: HeatSplitBomLine[]): HeatSplitPlan {
@@ -26,32 +32,33 @@ export function planHeatSplitForBo(lines: HeatSplitBomLine[]): HeatSplitPlan {
       needsSplit: false,
       mainChiTietIds: [],
       subChiTietIds: [],
+      eoChiTietIds: [],
       reason: "Bộ không có dòng cấu phần.",
     };
   }
   const heat = active.filter((l) => l.isChiuNhiet);
-  const cold = active.filter((l) => !l.isChiuNhiet);
-  if (heat.length === 0) {
+  const eo = active.filter(isEoLine);
+  const cold = active.filter((l) => !l.isChiuNhiet && !isEoLine(l));
+  const groups = [heat, cold, eo].filter((g) => g.length > 0).length;
+  const ids = (g: HeatSplitBomLine[]) => g.map((l) => l.chiTietId);
+  if (groups <= 1) {
     return {
       needsSplit: false,
-      mainChiTietIds: [],
-      subChiTietIds: cold.map((l) => l.chiTietId),
-      reason: "Toàn bộ không chịu nhiệt — không cần tách thành phần.",
-    };
-  }
-  if (cold.length === 0) {
-    return {
-      needsSplit: false,
-      mainChiTietIds: heat.map((l) => l.chiTietId),
-      subChiTietIds: [],
-      reason: "Toàn bộ chịu nhiệt — không cần tách.",
+      mainChiTietIds: ids(heat),
+      subChiTietIds: ids(cold),
+      eoChiTietIds: ids(eo),
+      reason:
+        heat.length > 0
+          ? "Toàn bộ chịu nhiệt — không cần tách."
+          : "Toàn bộ cùng nhóm phương pháp nhiệt thấp — không cần tách thành phần.",
     };
   }
   return {
     needsSplit: true,
-    mainChiTietIds: heat.map((l) => l.chiTietId),
-    subChiTietIds: cold.map((l) => l.chiTietId),
-    reason: `Hỗn hợp: ${heat.length} dòng chịu nhiệt · ${cold.length} dòng không chịu nhiệt.`,
+    mainChiTietIds: ids(heat),
+    subChiTietIds: ids(cold),
+    eoChiTietIds: ids(eo),
+    reason: `Hỗn hợp: ${heat.length} dòng chịu nhiệt · ${cold.length} dòng nhiệt thấp (Plasma) · ${eo.length} dòng EO.`,
   };
 }
 

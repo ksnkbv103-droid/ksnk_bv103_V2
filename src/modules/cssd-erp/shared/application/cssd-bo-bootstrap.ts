@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
+import { rejectParentBoScan } from "@/lib/domain/cssd-heat-split";
 import { mapFkError } from "../../actions/cssd-action-common";
 import { appendQuyTrinhException } from "./cssd-quy-trinh-exceptions";
 
@@ -60,7 +61,7 @@ export async function bootstrapCssdQuyTrinhFromBoId(
   if (!id) throw new Error("Thiếu bộ dụng cụ (danh mục bộ).");
 
   const { data: bo, error: boErr } = await supabase
-    .from("cssd_dm_bo_dung_cu")
+    .from("v_cssd_bo_dung_cu_summary")
     .select("id, ten_bo, ma_bo, phan_loai_bo, tong_so_luong_dung_cu, so_khoan, khoa_su_dung_id")
     .eq("id", id)
     .eq("is_active", true)
@@ -69,6 +70,16 @@ export async function bootstrapCssdQuyTrinhFromBoId(
   if (!bo) throw new Error("Không tìm thấy bộ dụng cụ hoạt động trong danh mục bộ.");
 
   const ma_vach_qr = assertUnifiedBoMaFromRow(bo as { ma_bo?: string | null });
+
+  // Bộ mẹ đã tách thành phần: chặn trước khi tạo chu trình rỗng (tránh rác ở Tiếp nhận).
+  const { count: childCount, error: childErr } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("id", { count: "exact", head: true })
+    .eq("parent_bo_id", id)
+    .eq("is_active", true);
+  if (childErr) throw new Error(mapFkError(childErr.message));
+  const parentMsg = rejectParentBoScan({ hasChildComponents: (childCount ?? 0) > 0 });
+  if (parentMsg) throw new Error(parentMsg);
 
   let ten_khoa: string | null = null;
   const boRow = bo as {

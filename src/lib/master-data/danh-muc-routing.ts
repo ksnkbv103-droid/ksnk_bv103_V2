@@ -1,5 +1,4 @@
-import { type RegistryEntry, getRegistryEntry } from "./domain-registry";
-import { getDanhMucItemById } from "./repository";
+import type { RegistryEntry } from "./domain-registry";
 import {
   collectExistingCodes,
   composeLookupCode,
@@ -81,14 +80,4 @@ export function buildMigratedUpsertPayload(
     patch.ten_loai = input.ten;
   }
   return patch;
-}
-
-/** Bật/tắt is_active trên bảng `{module}_dm_*` từ registry. */
-export async function setDanhMucActiveFlag(supabase: any, id: string, isActive: boolean): Promise<void> {
-  const item = await getDanhMucItemById(supabase, id);
-  if (!item?.loai_danh_muc) throw new Error("Không tìm thấy danh mục.");
-  const reg = getRegistryEntry(item.loai_danh_muc);
-  const ts = nowIso();
-  const { error } = await supabase.from(reg.sourceTable).update({ is_active: isActive, updated_at: ts }).eq("id", id);
-  if (error) throw error;
 }

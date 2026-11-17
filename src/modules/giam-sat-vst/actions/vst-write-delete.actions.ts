@@ -1,15 +1,14 @@
 "use server";
 
+import { isValidVstEditReason, VST_EDIT_REASON_MIN_CHARS } from "../lib/vst-edit-reason";
 import { getDb } from "@/lib/data-access";
 import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
-import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
+import { getActorRoleNames, hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
+import { quyetDinhDuongDieuChinhVst, VST_VAI_TRO_CAN_BO_KSNK } from "../lib/vst-yeu-cau-dieu-chinh";
 import { formatVstKhoaFkViolation, vstWriteErrorMessage } from "./vst-write.helpers";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
-import {
-  isSupervisionSessionMutationExpired,
-  SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
-} from "@/lib/supervision-mutation-window";
+import { isSupervisionSessionMutationExpired } from "@/lib/supervision-mutation-window";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { logAdminAction } from "@/lib/admin-audit";
 import { normalizeSessionIds } from "@/lib/normalize-session-ids";
@@ -21,18 +20,21 @@ export type DeleteVSTSessionsOpts = {
   lyDo?: string | null;
 };
 
-/** Xóa mềm phiên VST (`is_active=false` + lý do + nhật ký). Không xóa cứng cơ hội. */
+/**
+ * Xóa mềm phiên VST (`is_active=false` + lý do + nhật ký). Không xóa cứng cơ hội.
+ * Chủ phiên trong 30 phút hoặc ADMIN: xóa ngay. Còn lại: tạo yêu cầu chờ duyệt (`choDuyet` = số yêu cầu).
+ */
 export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSessionsOpts) {
   try {
     await verifyPermission("GIAM_SAT_VST", "delete");
     const norm = normalizeSessionIds(sessionIds);
     if (!norm.ok) return { success: false, error: norm.error };
     const ids = norm.ids;
-    if (!ids.length) return { success: true };
+    if (!ids.length) return { success: true, choDuyet: 0 };
 
     const lyDo = String(opts?.lyDo ?? "").trim();
-    if (lyDo.length < 3) {
-      return { success: false, error: "Vui lòng nhập lý do xóa (tối thiểu 3 ký tự)." };
+    if (!isValidVstEditReason(lyDo)) {
+      return { success: false, error: `Vui lòng nhập lý do xóa (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).` };
     }
 
     const adminBypass = await hasRBACAdminSupervisionBypass();
@@ -61,17 +63,27 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
       return isSupervisionSessionMutationExpired(r?.created_at ?? null);
     });
 
-    if (!adminBypass) {
-      const notOwner = ids.filter((id) => {
+    // @dac-ta R1.24, R1.25 — quá 30 phút hoặc không phải chủ phiên: tạo yêu cầu chờ chủ nhiệm khoa duyệt.
+    const roles = adminBypass ? [] : await getActorRoleNames();
+    const laCanBoKsnk = roles.some((r) => (VST_VAI_TRO_CAN_BO_KSNK as readonly string[]).includes(r));
+    const expiredSet = new Set(expired.map(String));
+    const duongTheoId = new Map(
+      ids.map((id) => {
         const r = rowById.get(String(id)) as { nguoi_giam_sat_id?: string } | undefined;
-        return String(r?.nguoi_giam_sat_id || "") !== String(actorNhanSuId);
-      });
-      if (notOwner.length) {
-        return { success: false, error: VST_OWNER_ONLY_VI };
-      }
-      if (expired.length) {
-        return { success: false, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
-      }
+        const laChuPhien = !!actorNhanSuId && String(r?.nguoi_giam_sat_id || "") === String(actorNhanSuId);
+        return [
+          String(id),
+          quyetDinhDuongDieuChinhVst({ adminBypass, laChuPhien, quaHan: expiredSet.has(String(id)), laCanBoKsnk }),
+        ] as const;
+      }),
+    );
+    if ([...duongTheoId.values()].includes("TU_CHOI")) {
+      return { success: false, error: VST_OWNER_ONLY_VI };
+    }
+    const requestIds = ids.filter((id) => duongTheoId.get(String(id)) === "YEU_CAU");
+    const directIds = ids.filter((id) => duongTheoId.get(String(id)) === "TRUC_TIEP");
+    if (requestIds.length && !actorAuthUserId) {
+      return { success: false, error: "Không xác định được tài khoản của bạn." };
     }
 
     const inactive = ids.filter((id) => {
@@ -89,19 +101,41 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
       await assertSupervisionNotLockedForDate(db, "VST", row.ngay_giam_sat ?? null);
     }
 
+    if (requestIds.length) {
+      const { error: reqErr } = await db.from("gstt_fact_vst_yeu_cau_dieu_chinh").insert(
+        requestIds.map((id) => ({
+          session_id: id,
+          loai: "XOA",
+          ly_do: lyDo,
+          nguoi_yeu_cau_auth_id: actorAuthUserId,
+          nguoi_yeu_cau_nhan_su_id: actorNhanSuId || null,
+        })),
+      );
+      if (reqErr) {
+        if ((reqErr as { code?: string }).code === "23505") {
+          return { success: false, error: "Phiên đã có yêu cầu đang chờ duyệt." };
+        }
+        throw reqErr;
+      }
+    }
+    if (!directIds.length) {
+      revalidatePath("/phe-duyet");
+      return { success: true, choDuyet: requestIds.length };
+    }
+
     const nowIso = new Date().toISOString();
     const { data: updated, error: sessionErr } = await vstRepo.softDeleteVstSessions({
-      ids,
+      ids: directIds,
       nowIso,
       deletedBy: actorNhanSuId || actorAuthUserId || null,
       lyDo,
     });
     if (sessionErr) throw sessionErr;
-    if ((updated?.length ?? 0) !== ids.length) {
+    if ((updated?.length ?? 0) !== directIds.length) {
       return { success: false, error: "Phiên đã bị vô hiệu hoặc thay đổi trước đó, vui lòng tải lại." };
     }
 
-    for (const id of ids) {
+    for (const id of directIds) {
       const before = rowById.get(String(id));
       await logAdminAction({
         action: "VST_SOFT_DELETE_SESSION",
@@ -120,7 +154,7 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
       "@/lib/analytics/strategic-analytics-cache"
     );
     invalidateVstStrategicAnalyticsCache();
-    return { success: true };
+    return { success: true, choDuyet: requestIds.length };
   } catch (error: unknown) {
     return { success: false, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };
   }
@@ -128,7 +162,7 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
 
 /**
  * Kiểm tra phiên VST có được phép mở form sửa hay không.
- * Chủ phiên trong 30 phút; sau 30 phút chỉ Admin (bắt lý do khi lưu).
+ * Chủ phiên trong 30 phút: sửa ngay. Sau 30 phút: chủ phiên gửi yêu cầu chờ duyệt, Admin sửa ngay (đều bắt lý do).
  */
 export async function assertCanEditVSTSession(sessionId: string) {
   try {
@@ -160,18 +194,15 @@ export async function assertCanEditVSTSession(sessionId: string) {
     }
 
     const expired = isSupervisionSessionMutationExpired(row.created_at);
-    if (!adminBypass) {
-      if (String(row.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-        return { success: false as const, error: VST_OWNER_ONLY_VI };
-      }
-      if (expired) {
-        return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
-      }
-    }
+    const laChuPhien = !!actorNhanSuId && String(row.nguoi_giam_sat_id || "") === String(actorNhanSuId);
+    // @dac-ta R1.24 — chủ phiên quá 30 phút vẫn mở được form; lưu sẽ thành yêu cầu chờ duyệt.
+    const duong = quyetDinhDuongDieuChinhVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk: false });
+    if (duong === "TU_CHOI") return { success: false as const, error: VST_OWNER_ONLY_VI };
 
     return {
       success: true as const,
-      requiresReason: Boolean(adminBypass && expired),
+      requiresReason: expired,
+      choDuyet: duong === "YEU_CAU",
     };
   } catch (error: unknown) {
     return { success: false as const, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };

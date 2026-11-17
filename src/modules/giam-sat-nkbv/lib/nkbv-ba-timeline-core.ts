@@ -49,6 +49,8 @@ export type BaTimelineMilestone = {
   ket_qua_duong_tinh?: boolean | null;
   /** Khóa tiêu chuẩn CDC khi mốc là yếu tố chẩn đoán (XQ, sốt…). */
   criteriaKey?: NkbvCriteriaKey | null;
+  /** metadata.analysis_disposition của mốc thủ công (CĐHA): BO_QUA / DA_PHAN_TICH… */
+  analysisDisposition?: string | null;
   majorType: NkbvMajorType;
   gate: NkbvChecklistTypeCode | null;
 };
@@ -376,6 +378,7 @@ export function mergeBaTimelineMilestones(input: {
     detail: string | null;
     specimen_hint: string | null;
     criteria_key?: string | null;
+    analysis_disposition?: string | null;
   }>;
   devices: Array<{
     id: string;
@@ -465,6 +468,7 @@ export function mergeBaTimelineMilestones(input: {
       detail: m.detail,
       loai_benh_pham: m.specimen_hint,
       criteriaKey,
+      analysisDisposition: m.analysis_disposition ?? null,
       majorType: majorType === "OTHER" && criteriaKey === "imaging_chest" ? "PNEU" : majorType,
       gate,
     });

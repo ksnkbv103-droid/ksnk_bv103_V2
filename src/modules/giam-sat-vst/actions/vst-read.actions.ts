@@ -7,8 +7,10 @@ import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { assertVstHistoryAccess } from "../lib/vst-read-scope";
+import { assertVstHistoryAccess, vstSessionVisibleToActor } from "../lib/vst-read-scope";
 import { vstRepo } from "../repo/vst.repo";
+import { sortKhoaLamSangTruoc } from "../lib/vst-khoa-order";
+import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 
 /**
  * Phiên bản phân trang Server-side cho Lịch sử VST.
@@ -115,16 +117,9 @@ export async function getVSTSessionDetail(sessionId: string) {
       return { success: false as const, error: "Phiên giám sát đã vô hiệu (xóa mềm)." };
     }
 
-    if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {
-      const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
-      const myNs = scope.actorNhanSuId ? String(scope.actorNhanSuId) : null;
-      const sessionKhoa = sessionView.khoa_id ? String(sessionView.khoa_id) : null;
-      const sessionGs = sessionView.nguoi_giam_sat_id ? String(sessionView.nguoi_giam_sat_id) : null;
-      const allowedByKhoa = Boolean(myKhoa && sessionKhoa && myKhoa === sessionKhoa);
-      const allowedByGs = Boolean(myNs && sessionGs && myNs === sessionGs);
-      if (!allowedByKhoa && !allowedByGs) {
-        return { success: false as const, error: "Không tìm thấy phiên giám sát." };
-      }
+    // Cùng luật với danh sách (VST-026); phiên ngoài phạm vi báo như không tồn tại.
+    if (!vstSessionVisibleToActor(scope, sessionView)) {
+      return { success: false as const, error: "Không tìm thấy phiên giám sát." };
     }
 
     // Query metadata directly from gstt_fact_vst_sessions to preserve patient risk factors (bn_*)
@@ -182,11 +177,15 @@ export async function getVstHeaderDmDropdowns() {
       };
     }
 
-    const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes] = await Promise.all([
+    const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes, khoiRows] = await Promise.all([
       vstRepo.getRegistryOptionsRpc(["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"]),
       getCachedDmKhoaPhong(),
       vstRepo.findVstHeaderNhanSu(scope.isMangLuoiKsnk ? actorKhoaId : null),
       vstRepo.findVstKhuVucFallback(),
+      // VST-013a: thứ tự khối để xếp khoa lâm sàng lên trước; lỗi đọc khối thì giữ thứ tự tên.
+      getDb()
+        .then((db) => fetchActiveRegistryDmRows(db, "KHOI_KHOA"))
+        .catch(() => []),
     ]);
 
     if (registriesRes.error) throw registriesRes.error;
@@ -199,11 +198,12 @@ export async function getVstHeaderDmDropdowns() {
         : []
       : khoaData;
 
-    const khoas = khoaFiltered.map((x) => ({
+    const khoas = sortKhoaLamSangTruoc(khoaFiltered, khoiRows).map((x) => ({
       id: x.id,
       ma_danh_muc: x.ma_khoa,
       ten_danh_muc: x.ten_khoa,
       loai_danh_muc: "KHOA_PHONG",
+      specs: x.specs
     }));
 
     const nhanSus = (nhanSuRes.data || []).map((x) => ({
@@ -220,6 +220,7 @@ export async function getVstHeaderDmDropdowns() {
       ten: String(x.ten_khu_vuc || ""),
       ma: String(x.ma_khu_vuc || ""),
       thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
+      metadata: (x as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
     }));
     const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
     const khuVucs = effectiveKhuVucs.map((r) => ({
@@ -229,6 +230,8 @@ export async function getVstHeaderDmDropdowns() {
       loai_danh_muc: "KHU_VUC_GIAM_SAT",
       source: "registry_lookup" as const,
       thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
+      // Giữ metadata.is_common để bộ lọc khu vực theo khoa (khu-vuc-giam-sat-ui) nhận ra khu vực dùng chung.
+      metadata: (r as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
     }));
     const ngheNghieps = mapDanhMucOptions(
       (registry.NGHE_NGHIEP || []).map((r) => ({

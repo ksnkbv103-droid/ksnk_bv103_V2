@@ -82,7 +82,7 @@ export default function RbacItDangerActions() {
       <p className="text-xs font-semibold text-amber-950">
         Phân quyền — thao tác dành cho quản trị hệ thống
       </p>
-      <p className="text-[11px] text-amber-900">
+      <p className="text-xs text-amber-900">
         Cập nhật danh sách quyền theo phiên bản phần mềm (không ghi đè vai trò KSNK). Đặt lại quyền
         mặc định ghi đè Hội đồng / NV / Mạng lưới / Khách.
       </p>

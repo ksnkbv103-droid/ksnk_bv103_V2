@@ -4,9 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   resetPasswordForEmail: vi.fn(),
   getUser: vi.fn(),
+  getClaims: vi.fn(),
   signInWithPassword: vi.fn(),
   updateUser: vi.fn(),
   staffMaybeSingle: vi.fn(),
+  updateUserById: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase-server", () => {
@@ -19,11 +21,12 @@ vi.mock("@/lib/supabase-server", () => {
     return q;
   };
   return {
-    createAdminSupabaseClient: () => ({ from: () => chain() }),
+    createAdminSupabaseClient: () => ({ from: () => chain(), auth: { admin: { updateUserById: mocks.updateUserById } } }),
     createServerSupabaseClient: () => ({ auth: { resetPasswordForEmail: mocks.resetPasswordForEmail } }),
     createServerSupabaseUserClient: async () => ({
       auth: {
         getUser: mocks.getUser,
+        getClaims: mocks.getClaims,
         signInWithPassword: mocks.signInWithPassword,
         updateUser: mocks.updateUser,
       },
@@ -31,7 +34,7 @@ vi.mock("@/lib/supabase-server", () => {
   };
 });
 
-import { changePasswordWithReauth, requestPasswordResetEmail } from "./staff-password.actions";
+import { changePasswordWithReauth, completePasswordRecovery, requestPasswordResetEmail } from "./staff-password.actions";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -39,6 +42,8 @@ beforeEach(() => {
   mocks.resetPasswordForEmail.mockResolvedValue({ error: null });
   mocks.signInWithPassword.mockResolvedValue({ error: null });
   mocks.updateUser.mockResolvedValue({ error: null });
+  mocks.getClaims.mockResolvedValue({ data: { claims: { amr: [{ method: "otp", timestamp: Math.floor(Date.now() / 1000) }] } } });
+  mocks.updateUserById.mockResolvedValue({ error: null });
 });
 
 afterEach(() => {
@@ -79,5 +84,75 @@ describe("changePasswordWithReauth", () => {
     expect(res.ok).toBe(false);
     expect(mocks.signInWithPassword).not.toHaveBeenCalled();
     expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+});
+
+describe("completePasswordRecovery", () => {
+  it("xóa cờ ở app_metadata theo id của phiên", async () => {
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: "u9", user_metadata: { ma_nv: "NV1", must_change_password: true }, app_metadata: { provider: "email", must_change_password: true } } },
+    });
+    mocks.updateUserById.mockResolvedValue({ error: null });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(true);
+    expect(mocks.updateUser).toHaveBeenCalledWith({ password: "new-pass-123", data: { ma_nv: "NV1", must_change_password: false } });
+    expect(mocks.updateUserById).toHaveBeenCalledWith("u9", { app_metadata: { provider: "email", must_change_password: false } });
+  });
+
+  it("không có phiên khôi phục → từ chối, không đổi gì", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(false);
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+    expect(mocks.updateUserById).not.toHaveBeenCalled();
+  });
+
+  it("đặt mật khẩu lỗi → không xóa cờ", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u9", user_metadata: {}, app_metadata: { must_change_password: true } } } });
+    mocks.updateUser.mockResolvedValue({ error: { message: "weak" } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(false);
+    expect(mocks.updateUserById).not.toHaveBeenCalled();
+  });
+
+  it("QT-004: phiên khôi phục quá 15 phút (không cờ) → từ chối", async () => {
+    mocks.getClaims.mockResolvedValue({
+      data: { claims: { amr: [{ method: "otp", timestamp: Math.floor(Date.now() / 1000) - 16 * 60 }] } },
+    });
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u9", user_metadata: {}, app_metadata: {} } } });
+    const r = await completePasswordRecovery("matkhaumoi1");
+    expect(r.ok).toBe(false);
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("QT-004: phiên đăng nhập thường (amr password, không cờ) → từ chối", async () => {
+    mocks.getClaims.mockResolvedValue({ data: { claims: { amr: [{ method: "password" }] } } });
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u9", user_metadata: {}, app_metadata: {} } } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(false);
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("QT-004: phiên password nhưng đang bị ép đổi (cờ app_metadata) → cho phép", async () => {
+    mocks.getClaims.mockResolvedValue({ data: { claims: { amr: [{ method: "password" }] } } });
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u9", user_metadata: {}, app_metadata: { must_change_password: true } } } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res.ok).toBe(true);
+  });
+
+  it("QT-007: xóa cờ lỗi → báo thất bại", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u9", user_metadata: {}, app_metadata: { must_change_password: true } } } });
+    mocks.updateUserById.mockResolvedValue({ error: { message: "boom" } });
+    const res = await completePasswordRecovery("new-pass-123");
+    expect(res).toEqual({ ok: false, error: "Mật khẩu đã đổi nhưng chưa mở khóa tài khoản, vui lòng thử lại hoặc báo quản trị." });
+  });
+});
+
+describe("changePasswordWithReauth xóa cờ", () => {
+  it("QT-007: xóa cờ lỗi → báo thất bại", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "u1", email: "s@bv103.vn", user_metadata: {} } } });
+    mocks.updateUserById.mockResolvedValue({ error: { message: "boom" } });
+    const res = await changePasswordWithReauth("old-pass", "new-pass-123");
+    expect(res.ok).toBe(false);
   });
 });

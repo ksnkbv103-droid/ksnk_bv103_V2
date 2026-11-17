@@ -18,7 +18,7 @@
 ## Quy tắc
 
 1. **Không** `max-w-[1400px]` trong module view — `KsnkPageShell` đủ.
-2. **Không** `text-[8px]` / `text-[9px]` — label tối thiểu `text-[11px]` (`BV103_MIN_LABEL_CLASS`).
+2. **Không** `text-[8px]` / `text-[9px]` — label tối thiểu `text-[11px]`.
 3. **Không** card lồng card — tối đa: hero → một panel → bảng.
 4. Radius: `rounded-2xl` / `rounded-xl` — `npm run layout:drift-check`.
 5. Filter analytics: **`AnalyticsFilterBar`** cho mọi màn có bộ lọc khoa/kỳ.

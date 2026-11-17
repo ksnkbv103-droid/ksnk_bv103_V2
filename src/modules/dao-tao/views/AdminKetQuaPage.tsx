@@ -4,11 +4,14 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
+  huyLanThiQuaHan,
   listChuaNopKyThi,
   listKetQuaKyThi,
   listKhoaPhongOptions,
   listKyThiThatAdmin,
+  listLuotQuaHan,
   type KetQuaKyThiRow,
+  type LuotQuaHanRow,
 } from "@/modules/dao-tao/actions/dao-tao-admin.actions";
 import { DaoTaoAdminTabs } from "@/modules/dao-tao/components/DaoTaoAdminTabs";
 import {
@@ -78,6 +81,8 @@ export default function AdminKetQuaPage() {
   const [kyThiId, setKyThiId] = useState("");
   const [khoaId, setKhoaId] = useState("");
   const [coverage, setCoverage] = useState<ChuaNop | null>(null);
+  const [truncatedMax, setTruncatedMax] = useState<number | null>(null);
+  const [quaHan, setQuaHan] = useState<LuotQuaHanRow[]>([]);
   const [pending, startTransition] = useTransition();
 
   const reload = async (ky: string, khoa: string) => {
@@ -85,7 +90,9 @@ export default function AdminKetQuaPage() {
       kyThiId: ky || undefined,
       khoaId: khoa || undefined,
     });
-    setRows(data);
+    setRows(data.rows);
+    setTruncatedMax(data.truncated ? data.max : null);
+    setQuaHan(await listLuotQuaHan(ky || undefined));
     if (ky) {
       setCoverage(await listChuaNopKyThi(ky));
     } else {
@@ -128,6 +135,12 @@ export default function AdminKetQuaPage() {
           </button>
         }
       />
+
+      {truncatedMax ? (
+        <p role="alert" className="rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          Chỉ hiển thị và xuất {truncatedMax} bài nộp gần nhất, danh sách chưa đầy đủ. Chọn một kỳ thi để thu hẹp.
+        </p>
+      ) : null}
 
       <DaoTaoPanel className="flex flex-wrap gap-3">
         <label className="grid min-w-[12rem] flex-1 gap-1">
@@ -182,6 +195,44 @@ export default function AdminKetQuaPage() {
         </label>
       </DaoTaoPanel>
 
+      {quaHan.length > 0 ? (
+        <DaoTaoPanel>
+          <p className={T.sectionTitle}>Lượt đang làm đã quá hạn nộp ({quaHan.length})</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Không tự chấm. Hủy lượt để người học thi lại; lượt hủy không tính vào số lượt.
+          </p>
+          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-sm text-slate-700">
+            {quaHan.map((l) => (
+              <li key={l.id} className="flex items-center justify-between gap-3">
+                <span>
+                  {l.hoTen} · {l.kyTen} · hạn {formatDateTimeVi(l.hanNopLuc)}
+                </span>
+                <button
+                  type="button"
+                  className={daoTaoBtnSecondary}
+                  disabled={pending}
+                  onClick={() => {
+                    const lyDo = window.prompt(`Lý do hủy lượt của ${l.hoTen}:`)?.trim();
+                    if (!lyDo) return;
+                    startTransition(async () => {
+                      try {
+                        await huyLanThiQuaHan({ lanThiId: l.id, lyDo });
+                        toast.success("Đã hủy lượt");
+                        await reload(kyThiId, khoaId);
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Lỗi");
+                      }
+                    });
+                  }}
+                >
+                  Hủy lượt
+                </button>
+              </li>
+            ))}
+          </ul>
+        </DaoTaoPanel>
+      ) : null}
+
       {coverage ? (
         <DaoTaoPanel>
           <p className={T.sectionTitle}>
@@ -200,13 +251,13 @@ export default function AdminKetQuaPage() {
             </ul>
           )}
           {coverage.chuaTaiKhoan.length > 0 ? (
-            <p className="mt-2 text-[11px] text-slate-500">
+            <p className="mt-2 text-xs text-slate-500">
               {coverage.chuaTaiKhoan.length} người được gán nhưng chưa gắn tài khoản đăng nhập.
             </p>
           ) : null}
         </DaoTaoPanel>
       ) : (
-        <p className="text-[11px] text-slate-500">Chọn một kỳ thi để xem ai chưa nộp.</p>
+        <p className="text-xs text-slate-500">Chọn một kỳ thi để xem ai chưa nộp.</p>
       )}
 
       <DaoTaoPanel className="!p-0 overflow-hidden">
@@ -239,7 +290,7 @@ export default function AdminKetQuaPage() {
                     ) : (
                       <span
                         className={cn(
-                          "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                          "rounded-full px-2 py-0.5 text-xs font-semibold",
                           r.dat
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-rose-50 text-rose-700",
@@ -249,8 +300,8 @@ export default function AdminKetQuaPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-[11px] text-slate-600">{r.chungChiLabel}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-[11px] text-slate-500">
+                  <td className="px-3 py-2.5 text-xs text-slate-600">{r.chungChiLabel}</td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-slate-500">
                     {formatDateTimeVi(r.nop_luc)}
                   </td>
                   <td className="px-3 py-2.5">

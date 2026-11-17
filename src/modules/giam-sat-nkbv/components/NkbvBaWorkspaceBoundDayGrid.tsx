@@ -40,6 +40,7 @@ export type NkbvBaWorkspaceDayGridBind = {
   onOpenCdha: (x: BaGridCdhaCell) => void;
   onRemoveMilestone: (id: string | undefined) => Promise<void>;
   onEditCdhaDate: (id: string, nextDate: string) => Promise<void>;
+  onEditCdhaNote?: (id: string, note: string) => Promise<void>;
   onToggleCdha: (
     date: string,
     criteriaKey: string,

@@ -84,14 +84,6 @@ export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
   return { nhanSu, toCongTac, nhomChuyenMon, khoaPhong, trangThaiMauSac: getQlcvTrangThaiMauSacMap() };
 }
 
-/**
- * Map mã trạng thái → mau_sac (hardcode SSOT — không đọc qlcv_dm_trang_thai_cong_viec).
- * Giữ async export cho caller cũ; Wave 3 FE nên import sync từ qlcv-labels.
- */
-export async function getTrangThaiMauSacMap(): Promise<Record<string, string>> {
-  return getQlcvTrangThaiMauSacMap();
-}
-
 /** SSOT gate counts from `rpc_qlcv_board_counts` (global — no loai/period args on RPC). */
 export type QlcvBoardGateCounts = {
   myTasks: number;

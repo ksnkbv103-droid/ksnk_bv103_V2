@@ -259,7 +259,7 @@ export default function InstrumentTransferDualTable({
             />
           }
         >
-            <table className="w-full text-left text-[11px]">
+            <table className="w-full text-left text-xs">
               <thead className={L.theadRow}>
                 <tr>
                   <th className={L.th}>Loại</th>
@@ -297,7 +297,7 @@ export default function InstrumentTransferDualTable({
               </tbody>
             </table>
             {!sourceMa.trim() ? (
-              <p className="px-2.5 py-3 text-[11px] text-slate-500">Chọn bộ nguồn để xem thành phần.</p>
+              <p className="px-2.5 py-3 text-xs text-slate-500">Chọn bộ nguồn để xem thành phần.</p>
             ) : null}
         </DualPaneScroll>
 
@@ -311,7 +311,7 @@ export default function InstrumentTransferDualTable({
             />
           }
         >
-            <table className="w-full text-left text-[11px]">
+            <table className="w-full text-left text-xs">
               <thead className={L.theadRow}>
                 <tr>
                   <th className={L.th}>Loại</th>
@@ -334,7 +334,7 @@ export default function InstrumentTransferDualTable({
                           <button
                             type="button"
                             onClick={() => moveQty(chiTietId, sourceHit?.soLuongThucTe || 0, -1)}
-                            className="h-8 px-2 text-[11px] font-semibold text-slate-500"
+                            className="h-8 px-2 text-xs font-semibold text-slate-500"
                           >
                             ←
                           </button>
@@ -346,7 +346,7 @@ export default function InstrumentTransferDualTable({
               </tbody>
             </table>
             {!destMa.trim() ? (
-              <p className="px-2.5 py-3 text-[11px] text-slate-500">Chọn bộ đích — số chuyển sẽ hiện bên này.</p>
+              <p className="px-2.5 py-3 text-xs text-slate-500">Chọn bộ đích — số chuyển sẽ hiện bên này.</p>
             ) : null}
         </DualPaneScroll>
       </div>

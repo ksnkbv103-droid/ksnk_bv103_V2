@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCatalogDeNghiCart } from "./CatalogDeNghiCart";
-import { LoaiDungCuTypeahead } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/loai-dung-cu-typeahead";
+import { LoaiDungCuTypeahead } from "@/modules/cssd-erp/contexts/instrument-catalog/admin/loai-dung-cu-typeahead";
 
 type Kind = "LOAI" | "BO" | "BOM";
 
@@ -33,7 +33,7 @@ type Props = {
 };
 
 const inputCls = "mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm";
-const labelCls = "text-[11px] font-medium text-slate-600";
+const labelCls = "text-xs font-medium text-slate-600";
 
 export function CatalogDeNghiCreateDialog({
   open,

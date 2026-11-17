@@ -43,7 +43,6 @@ function isDashboardCcExport(p: PermRow): boolean {
 function isNetworkOperatorPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
-  if (m === "DANH_MUC" && a === "view") return true;
   if (m === "GIAM_SAT_NKBV" && a === "view") return true;
   if (m === "BAO_SU_CO" && ["view", "create"].includes(a)) return true;
   if (m === "GIAM_SAT_VST" && ["view", "create", "edit", "delete"].includes(a)) return true;
@@ -69,8 +68,7 @@ function isKsnkStaffPerm(p: PermRow): boolean {
   if (isDashboardFamilyView(p)) return true;
   if (isDashboardCcExport(p)) return true;
 
-  if (m === "DANH_MUC" && a === "view") return true;
-  if (["DANH_MUC_ORG", "DANH_MUC_GSTT", "DANH_MUC_CSSD_LOOKUP"].includes(m) && a === "view") return true;
+  if (m === "DANH_MUC_ORG" && a === "view") return true;
 
   if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC", "DAO_TAO", "HAU_CAN_MOI_TRUONG"].includes(m)) {
     return ["view", "create", "edit", "delete", "import"].includes(a);

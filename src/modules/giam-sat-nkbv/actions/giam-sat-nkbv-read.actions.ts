@@ -11,10 +11,12 @@ import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import type { NkbvListSortKey } from "@/lib/validations/nkbv-list-pagination";
 import { NKBV_LIST_SORT_KEYS, nkbvListPaginationSchema } from "@/lib/validations/nkbv-list-pagination";
 import {
+  getNkbvIdentityScope,
   getNkbvKhoaRestriction,
   isNkbvBenhAnInScope,
   NKBV_OUT_OF_SCOPE_ERROR,
 } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { scanStayCrossCaseAlerts } from "../lib/nkbv-import-window-scan";
 import { mergeBaTimelineMilestones } from "../lib/nkbv-ba-timeline-core";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
@@ -50,7 +52,11 @@ function resolveSortColumn(key: string): NkbvListSortKey {
 export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   const supabase = await createServerSupabaseUserClient();
   await verifyPermission("GIAM_SAT_NKBV", "view");
-  const restriction = await getNkbvKhoaRestriction();
+  // NKBV-034: Hội đồng thuần không nhận danh sách ca có họ tên/mã BN (M03 «Xa»; HĐ ≈ BGĐ là giả định) — chặn trước mọi truy vấn.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as unknown[], totalCount: 0 };
+  }
   if (restriction.kind === "none") return { success: true as const, data: [], totalCount: 0 };
   const khoaGhiNhanId = restriction.kind === "khoa" ? restriction.khoaId : filters.khoa_ghi_nhan_id;
 
@@ -152,6 +158,9 @@ export async function getNkbvFormDmBundle() {
 export async function getGiamSatNkbvCaById(caseId: string) {
   try {
     await verifyPermission("GIAM_SAT_NKBV", "view");
+    // NKBV-034: select("*") từ v_nkbv_su_kien_full có họ tên + mã BN → Hội đồng thuần bị chặn trước truy vấn.
+    const { restriction, identityDenied } = await getNkbvIdentityScope();
+    if (identityDenied) return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED };
     const id = String(caseId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã phiếu" };
     const supabase = await createServerSupabaseUserClient();
@@ -164,7 +173,6 @@ export async function getGiamSatNkbvCaById(caseId: string) {
     if (error) throw error;
     if (!data) return { success: false as const, error: "Không tìm thấy phiếu NKBV" };
     const r = data as Record<string, unknown>;
-    const restriction = await getNkbvKhoaRestriction();
     if (restriction.kind !== "all") {
       const inScope =
         restriction.kind === "khoa" && String(r.khoa_ghi_nhan_id ?? "").trim() === restriction.khoaId;
@@ -191,12 +199,13 @@ export async function getGiamSatNkbvCaById(caseId: string) {
 export async function listAllMaNkbvCas() {
   try {
     await verifyPermission("GIAM_SAT_NKBV", "view");
+    // NKBV-012: admin client bỏ qua RLS → tự giới hạn theo khoa ghi nhận như các action đọc khác.
+    const restriction = await getNkbvKhoaRestriction();
+    if (restriction.kind === "none") return { success: true as const, data: [] };
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase
-      .from("nkbv_fact_su_kien")
-      .select("ma_ca")
-      .eq("is_active", true)
-      .limit(500);
+    let q = supabase.from("nkbv_fact_su_kien").select("ma_ca").eq("is_active", true);
+    if (restriction.kind === "khoa") q = q.eq("khoa_ghi_nhan_id", restriction.khoaId);
+    const { data, error } = await q.limit(500);
     if (error) throw error;
     return { success: true as const, data: data || [] };
   } catch (e: unknown) {
@@ -224,7 +233,11 @@ export async function listNkbvMedicalRecords(params: {
   const rawPs = Math.floor(Number(params.pageSize) || 20);
   const pageSize = Math.min(50, Math.max(1, rawPs));
   const search = (params.search || "").trim().toLowerCase();
-  const restriction = await getNkbvKhoaRestriction();
+  // NKBV-034: danh sách hồ sơ BA có họ tên + mã BN/BA → Hội đồng thuần bị chặn trước mọi truy vấn.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [], totalCount: 0 };
+  }
   if (restriction.kind === "none") return { success: true as const, data: [], totalCount: 0 };
   const khoaId = restriction.kind === "khoa" ? restriction.khoaId : params.khoaId ? String(params.khoaId).trim() : "";
 
@@ -466,9 +479,13 @@ export async function listInpatientsByKhoa(params: {
     { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
   ]);
 
+  // NKBV-032: Hội đồng thuần không nhận danh sách có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định) — chặn trước mọi truy vấn.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as NkbvInpatientRow[] };
+  }
   const khoaId = String(params.khoaId || "").trim();
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvInpatientRow[] };
-  const restriction = await getNkbvKhoaRestriction();
   if (restriction.kind !== "all" && (restriction.kind === "none" || restriction.khoaId !== khoaId)) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as NkbvInpatientRow[] };
   }
@@ -509,9 +526,12 @@ export async function listInpatientsByKhoa(params: {
 /** Hồ sơ bệnh án theo mã BA — nguồn ngày vào viện cho HAI/POA trên phiếu xác định ca. */
 export async function getNkbvBenhAnByMa(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  // NKBV-034: hồ sơ BA trả họ tên, ngày sinh, mã BN → Hội đồng thuần bị chặn trước mọi truy vấn.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED };
   const ma = String(maBenhAn || "").trim();
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
-  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+  if (!(await isNkbvBenhAnInScope(restriction, ma))) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
 
@@ -574,9 +594,12 @@ export type NkbvBenhAnHubLis = {
 /** Hub 1 màn theo mã BA: ADT + LIS/MDRO + phiếu + cảnh báo RIT/SBAP. */
 export async function getNkbvBenhAnHub(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  // NKBV-034: hub theo mã BA trả stay có họ tên/mã BN + LIS + phiếu → Hội đồng thuần bị chặn trước mọi truy vấn.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED };
   const ma = String(maBenhAn || "").trim();
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
-  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+  if (!(await isNkbvBenhAnInScope(restriction, ma))) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
 
@@ -674,7 +697,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
         fetchAllRangeRows<HubRow>((from, to) =>
           supabase
             .from("nkbv_fact_ba_timeline")
-            .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key")
+            .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key, metadata")
             .eq("ma_benh_an", ma)
             .eq("is_active", true)
             .order("milestone_date", { ascending: true })
@@ -810,6 +833,11 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       criteria_key: (m as { criteria_key?: string | null }).criteria_key
         ? String((m as { criteria_key?: string | null }).criteria_key)
         : null,
+      analysis_disposition: (() => {
+        const md = (m as { metadata?: unknown }).metadata;
+        const d = md && typeof md === "object" ? (md as Record<string, unknown>).analysis_disposition : null;
+        return d ? String(d) : null;
+      })(),
     })),
     devices: [],
     hasActiveVent,

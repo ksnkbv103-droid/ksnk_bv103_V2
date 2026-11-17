@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { getActorRoleNames } from "@/lib/server-permission";
 import { verifyCssdIncidentCreate } from "@/lib/cssd-server-gates";
 import { SET_RECONCILE_TYPE_ID } from "@/lib/domain/cssd-set-reconcile";
 import { buildSetReconcileAttributePatch } from "../domain/cssd-set-reconcile-attrs";
@@ -9,7 +10,7 @@ import {
   loadSetReconcileIncidentsForBo,
 } from "../application/set-reconcile-incident.application";
 import { isSetReconcileDraftExpired } from "@/lib/domain/cssd-set-reconcile";
-import { readSetReconcileStatus } from "../domain/cssd-set-reconcile-attrs";
+import { canReleaseSetReconcileDraft, readSetReconcileStatus } from "../domain/cssd-set-reconcile-attrs";
 
 async function reporterAuthId(): Promise<string | null> {
   try {
@@ -79,6 +80,10 @@ export async function releaseSetReconcileDraftAction(draftId: string) {
     if (!data) return { success: true as const };
     if (readSetReconcileStatus((data.attributes as Record<string, unknown>) || {}) !== "DRAFT") {
       return { success: true as const };
+    }
+    const actorIsAdmin = (await getActorRoleNames()).includes("ADMIN");
+    if (!canReleaseSetReconcileDraft((data.attributes as Record<string, unknown>) || {}, await reporterAuthId(), actorIsAdmin)) {
+      return { success: false as const, error: "Chỉ người mở phiếu nháp này hoặc ADMIN mới được hủy." };
     }
     await supabase.from("cssd_fact_su_co").delete().eq("id", id);
     return { success: true as const };

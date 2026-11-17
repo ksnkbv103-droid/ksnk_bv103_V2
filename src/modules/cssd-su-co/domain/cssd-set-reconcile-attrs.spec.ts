@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSetReconcileAttributePatch,
+  canReleaseSetReconcileDraft,
   isSetReconcileDraftAttr,
+  isSetReconcileDraftOwner,
   parseSetReconcileSnapshot,
   readSetReconcileStatus,
 } from "./cssd-set-reconcile-attrs";
@@ -41,4 +43,20 @@ describe("cssd-set-reconcile-attrs", () => {
     expect(readSetReconcileStatus({ SET_RECONCILE_STATUS: "BOM_APPLYING" })).toBe("BOM_APPLYING");
     expect(readSetReconcileStatus({ SET_RECONCILE_STATUS: "BOM_APPLY_FAILED" })).toBe("BOM_APPLY_FAILED");
   });
+});
+
+describe("isSetReconcileDraftOwner (CSSD-012)", () => {
+  it("chỉ khớp khi auth user trùng chủ nháp", () => {
+    expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, "u-1")).toBe(true);
+    expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, "u-2")).toBe(false);
+    expect(isSetReconcileDraftOwner({ REPORTER_AUTH_USER_ID: "u-1" }, null)).toBe(false);
+    expect(isSetReconcileDraftOwner({}, "u-1")).toBe(false);
+  });
+});
+
+describe("canReleaseSetReconcileDraft (CSSD-012 ADMIN)", () => {
+  const attrs = { REPORTER_AUTH_USER_ID: "u-1" };
+  it("chủ nháp được hủy", () => expect(canReleaseSetReconcileDraft(attrs, "u-1", false)).toBe(true));
+  it("người khác không phải ADMIN bị từ chối", () => expect(canReleaseSetReconcileDraft(attrs, "u-2", false)).toBe(false));
+  it("ADMIN hủy được nháp của người khác", () => expect(canReleaseSetReconcileDraft(attrs, "u-2", true)).toBe(true));
 });

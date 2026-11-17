@@ -1,10 +1,9 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
+import { verifyAnyPermission } from "@/lib/server-permission";
 import { z } from "zod";
-import { getErrorMessage, mapFkError, revalidateCssdInventorySurfaces } from "./cssd-action-common";
-import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
+import { getErrorMessage, revalidateCssdInventorySurfaces } from "./cssd-action-common";
 import { bootstrapCssdQuyTrinhFromBoId } from "../shared/application/cssd-bo-bootstrap";
 
 async function verifyCanRegisterPhysicalLabel(): Promise<void> {
@@ -14,54 +13,6 @@ async function verifyCanRegisterPhysicalLabel(): Promise<void> {
     { moduleKey: "CSSD_WORKFLOW", action: "create" },
     { moduleKey: "CSSD_WORKFLOW", action: "edit" },
   ]);
-}
-
-async function verifyCanReadBoListForCssd(): Promise<void> {
-  const checks: Array<[string, string]> = [
-    ["CSSD_KHO_DUNGCU", "view"],
-    ["CSSD_KHO_DUNGCU", "edit"],
-    ["CSSD_KHO_DUNGCU", "create"],
-    ["CSSD_KHO_DUNGCU", "import"],
-    ["CSSD_WORKFLOW", "view"],
-  ];
-  for (const [moduleKey, action] of checks) {
-    try {
-      await verifyPermission(moduleKey, action);
-      return;
-    } catch {
-      /* try next permission candidate */
-    }
-  }
-  await verifyPermission("CSSD_KHO_DUNGCU", "view");
-}
-
-/** Danh sách bộ đang hoạt động để đăng ký nhãn QR (đọc từ `cssd_dm_bo_dung_cu`). */
-export async function listActiveBoDungCuForCssdLabel(search?: string): Promise<
-  { success: true; data: { id: string; ten_bo: string; ma_bo: string | null }[] } | { success: false; error: string }
-> {
-  try {
-    await verifyCanReadBoListForCssd();
-    const supabase = createAdminSupabaseClient();
-    let q = supabase
-      .from("cssd_dm_bo_dung_cu")
-      .select("id, ten_bo, ma_bo")
-      .eq("is_active", true)
-      .order("ma_bo", { ascending: true });
-
-    const searchFilter = buildSupabaseSearchFilter(search, ["ten_bo", "ma_bo"]);
-    if (searchFilter) q = q.or(searchFilter);
-
-    const { data, error } = await q;
-    if (error) return { success: false, error: mapFkError(error.message) };
-    const rows = (data || []).map((r: { id?: string; ten_bo?: string; ma_bo?: string | null }) => ({
-      id: String(r.id || ""),
-      ten_bo: String(r.ten_bo || "").trim() || "—",
-      ma_bo: r.ma_bo != null ? String(r.ma_bo).trim() : null,
-    }));
-    return { success: true, data: rows.filter((x) => x.id) };
-  } catch (e: unknown) {
-    return { success: false, error: getErrorMessage(e) };
-  }
 }
 
 /**

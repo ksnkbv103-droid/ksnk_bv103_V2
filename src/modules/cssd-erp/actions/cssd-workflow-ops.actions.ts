@@ -7,7 +7,7 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { revalidateCssdIncidentSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
+import { revalidateCssdIncidentSurfaces, appendQuyTrinhException } from "./cssd-action-common";
 import { verifyCssdInventoryEdit } from "@/lib/cssd-server-gates";
 import { createIncidentReport as createIncidentReportImpl } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
@@ -23,8 +23,6 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   await verifyCssdInventoryEdit();
   const supabase = createAdminSupabaseClient();
   const code = String(maQR || "").trim().toUpperCase();
-  const hasCol = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-  if (!hasCol) throw new Error("Phiên bản DB chưa hỗ trợ khóa an toàn.");
 
   const row = await fetchActiveQuyTrinhByScanCode(supabase, code);
   if (!row?.id) throw new Error("Không tìm thấy mã QR.");
@@ -59,14 +57,6 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
     );
   }
 
-  const { data: unlocked, error: upErr } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .update({ is_dong_bang: false, updated_at: new Date().toISOString() })
-    .eq("id", quyId)
-    .select("id");
-  if (upErr) throw new Error(upErr.message);
-  if (!unlocked?.length) throw new Error("Không mở khóa được bộ — bản ghi không còn hoặc đã đổi.");
-
   let operator = "CSSD";
   try {
     const nsId = await getActorNhanSuId();
@@ -82,6 +72,7 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   } catch {
     /* giữ CSSD */
   }
+  // Ghi nhật ký trước (không soft): lỗi thì ném ra và không mở khóa.
   await appendQuyTrinhException(
     supabase,
     quyId,
@@ -90,8 +81,15 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
       ly_do: "Mở khóa an toàn sau khi phiếu sự cố đã đóng (giải phóng)",
       nguoi_thao_tac: operator,
     },
-    { soft: true },
   );
+
+  const { data: unlocked, error: upErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .update({ is_dong_bang: false, updated_at: new Date().toISOString() })
+    .eq("id", quyId)
+    .select("id");
+  if (upErr) throw new Error(upErr.message);
+  if (!unlocked?.length) throw new Error("Không mở khóa được bộ — bản ghi không còn hoặc đã đổi.");
 
   revalidateCssdIncidentSurfaces();
   return { success: true as const };

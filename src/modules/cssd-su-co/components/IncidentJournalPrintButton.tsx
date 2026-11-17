@@ -54,7 +54,7 @@ export default function IncidentJournalPrintButton({ incidentId, className }: Pr
         disabled={loading}
         className={
           className ??
-          "inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          "inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
         }
         aria-label="In biên bản sự cố"
       >

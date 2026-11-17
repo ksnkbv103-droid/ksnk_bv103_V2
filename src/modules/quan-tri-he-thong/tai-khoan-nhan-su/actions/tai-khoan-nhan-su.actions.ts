@@ -199,16 +199,18 @@ export async function setStaffKsnkRbacRole(params: {
     }
 
     // Đồng bộ vai_tro_he_thong_id trên mdm_nhan_su để view v_mdm_nhan_su_full và các bộ lọc luôn nhất quán
-    await supabase
+    const { error: syncErr } = await supabase
       .from("mdm_nhan_su")
       .update({
         vai_tro_he_thong_id: targetRoleId,
         updated_at: new Date().toISOString(),
       })
       .eq("id", input.staffId);
+    if (syncErr) throw syncErr;
 
     await logAdminAction({
       action: "CHANGE_RBAC_ROLE",
+      failClosed: true,
       targetTable: "mdm_nhan_su",
       targetId: input.staffId,
       after: { roleName: canonicalName || null },
@@ -289,6 +291,7 @@ export async function provisionStaffAuthAccount(params: {
     });
     await logAdminAction({
       action: "PROVISION_AUTH_ACCOUNT",
+      failClosed: true,
       targetTable: "mdm_nhan_su",
       targetId: staff.id,
       actorUserId: actor.id,
@@ -420,6 +423,7 @@ export async function adminResetStaffPasswordAction(params: {
     });
     await logAdminAction({
       action: "ADMIN_RESET_PASSWORD",
+      failClosed: true,
       targetTable: "mdm_nhan_su",
       targetId: staff.id,
       after: { confirmMode: isSelf ? "reauth+second_email" : "reauth" },

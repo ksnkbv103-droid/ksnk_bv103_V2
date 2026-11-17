@@ -15,7 +15,7 @@ export default function NkbvFormSection({ title, hint, children }: NkbvFormSecti
     <div className="space-y-3 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/75 p-4">
       <div>
         <span className={`${C.blockSection} text-slate-600`}>{title}</span>
-        {hint ? <p className="mt-0.5 text-[11px] text-slate-400">{hint}</p> : null}
+        {hint ? <p className="mt-0.5 text-xs text-slate-400">{hint}</p> : null}
       </div>
       {children}
     </div>

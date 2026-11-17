@@ -22,7 +22,6 @@ import {
 } from "@/lib/dao-tao/schemas";
 import { randomUUID } from "crypto";
 import {
-  isWithinLuot,
   summarizeLuot,
   TRANG_THAI_TIEU_LUOT,
 } from "@/modules/dao-tao/lib/dao-tao-luot";
@@ -190,6 +189,11 @@ async function canAccessKyThiThat(
   }
 }
 
+function clampDuoiCauHinh(requested: number | undefined, cauHinh: number): number {
+  const n = typeof requested === "number" && Number.isFinite(requested) ? Math.floor(requested) : 0;
+  return n > 0 ? Math.min(n, cauHinh) : cauHinh;
+}
+
 export async function startThiThuAttempt(input: {
   mucDoId: string;
   form: ExamFormThongTin;
@@ -223,8 +227,9 @@ export async function startThiThuAttempt(input: {
   const bank = await loadActiveBank(selectedChuDeMas, input.targetRole);
   if (bank.length === 0) throw new Error("Ngân hàng câu hỏi trống cho tiêu chí này. Vui lòng chọn lại vai trò hoặc chuyên đề.");
 
-  const soCauChon = input.soCau && input.soCau > 0 ? input.soCau : mucDo.so_cau;
-  const thoiGianPhut = input.thoiGianPhut && input.thoiGianPhut > 0 ? input.thoiGianPhut : mucDo.thoi_gian_phut;
+  // DT-002 (PO 2026-11-11): thi thử không vượt cấu hình mức độ (thời gian, số câu); được chọn ít hơn.
+  const soCauChon = clampDuoiCauHinh(input.soCau, mucDo.so_cau);
+  const thoiGianPhut = clampDuoiCauHinh(input.thoiGianPhut, mucDo.thoi_gian_phut);
 
   const seed = randomUUID();
   const { questions, report } = selectBalancedExam({
@@ -308,6 +313,7 @@ export async function listLanThiCuaToi() {
       "id, che_do, cau_hinh_id, diem_pct, dat, trang_thai, nop_luc, bat_dau_luc, so_cau",
     )
     .eq("auth_user_id", user.id)
+    .in("trang_thai", ["dang_lam", "da_nop", "het_gio"]) // lượt `huy` không hiện ở "Bài của tôi"
     .order("bat_dau_luc", { ascending: false })
     .limit(20);
   if (error) throw error;
@@ -387,34 +393,29 @@ export async function startThiThatAttempt(input: {
   const hanNop = new Date(batDau.getTime() + ky.thoi_gian_phut * 60_000);
   const deSnapshot = snapshotsToDeJson(questions);
 
-  const { data: lanThi, error: ltErr } = await admin
-    .from("dao_tao_lan_thi")
-    .insert({
-      che_do: "thi_that",
-      cau_hinh_id: ky.id,
-      auth_user_id: user.id,
-      form_thong_tin: form,
-      seed,
-      so_cau: questions.length,
-      thoi_gian_phut: ky.thoi_gian_phut,
-      bat_dau_luc: batDau.toISOString(),
-      han_nop_luc: hanNop.toISOString(),
-      trang_thai: "dang_lam",
-      quota_report: report,
-      de_snapshot: deSnapshot,
-    })
-    .select("id, han_nop_luc")
-    .single();
-  if (ltErr || !lanThi) throw ltErr ?? new Error("Không tạo được lần thi.");
+  // DT-005: đếm lượt + chèn nguyên tử trong RPC (khóa theo người học + kỳ thi), không chèn-rồi-xóa.
+  const { data: lanThi, error: ltErr } = await admin.rpc("rpc_dao_tao_tao_luot_thi_that", {
+    p_cau_hinh_id: ky.id,
+    p_auth_user_id: user.id,
+    p_form_thong_tin: form,
+    p_seed: seed,
+    p_so_cau: questions.length,
+    p_thoi_gian_phut: ky.thoi_gian_phut,
+    p_bat_dau_luc: batDau.toISOString(),
+    p_han_nop_luc: hanNop.toISOString(),
+    p_quota_report: report,
+    p_de_snapshot: deSnapshot,
+  });
+  if (ltErr) throw ltErr;
+  const res = lanThi as { success?: boolean; code?: string; id?: string; han_nop_luc?: string } | null;
+  if (res?.success === false && res.code === "HET_LUOT") throw new Error("Bạn đã hết lượt thi cho kỳ này.");
+  if (!res?.success || !res.id) throw new Error("Không tạo được lần thi.");
 
-  // Chống race (chưa có unique/RPC): đếm lại sau insert, lần ngoài hạn mức bị thu hồi.
-  if (!isWithinLuot(await fetchLuot(), lanThi.id as string, ky.so_lan_cho_phep)) {
-    await admin.from("dao_tao_lan_thi").delete().eq("id", lanThi.id).eq("trang_thai", "dang_lam");
-    throw new Error("Bạn đã hết lượt thi cho kỳ này.");
-  }
-
-  return { lanThiId: lanThi.id as string, hanNopLuc: lanThi.han_nop_luc as string };
+  return { lanThiId: res.id, hanNopLuc: res.han_nop_luc as string };
 }
+
+/** DT-006: lượt ADMIN đã hủy — người học không mở/nộp/lưu được. */
+const LUOT_HUY_MESSAGE = "Lượt thi này đã bị hủy.";
 
 export async function getLanThiForTake(lanThiId: string) {
   const { user } = await requireDaoTaoUser();
@@ -439,9 +440,20 @@ export async function getLanThiForTake(lanThiId: string) {
     }
   }
 
+  if (lanThi.trang_thai === "huy") throw new Error(LUOT_HUY_MESSAGE);
   const submitted = lanThi.trang_thai !== "dang_lam";
   if (isAdminViewer && !submitted) {
     throw new Error("Chỉ xem được bài đã nộp.");
+  }
+
+  // DT-008 (PO 2026-11-12): thi thật chưa đóng kỳ → người học chỉ thấy điểm và đúng/sai từng câu.
+  // Admin xem bài người khác không bị ẩn. Thiếu cấu hình kỳ → ẩn (an toàn).
+  let giauDapAn = false;
+  if (submitted && !isAdminViewer && lanThi.che_do === "thi_that") {
+    const { data: ky } = lanThi.cau_hinh_id
+      ? await admin.from("dao_tao_cau_hinh").select("trang_thai").eq("id", lanThi.cau_hinh_id).maybeSingle()
+      : { data: null };
+    giauDapAn = ky?.trang_thai !== "closed";
   }
 
   const snap = (lanThi.de_snapshot ?? []) as DeSnapshotItem[];
@@ -459,18 +471,21 @@ export async function getLanThiForTake(lanThiId: string) {
       chuDeTen: c.chu_de_ten ?? null,
       targetRoles: c.target_roles ?? [],
       sopRefs: c.sop_refs ?? [],
-      options: submitted
+      options: submitted && !giauDapAn
         ? c.options
         : c.options.map((o) => ({ id: o.id, noiDung: o.noiDung, displayIndex: o.displayIndex })),
       traLoi: c.tra_loi,
       ...(submitted
         ? {
             dung: c.dung,
+            ...(giauDapAn
+              ? {}
+              : {
             giaiThich: c.giai_thich,
             dapAnDung: c.dap_an_dung,
             distractorRationales: c.distractor_rationales ?? {},
             evidenceLock: c.evidence_lock ?? {},
-          }
+            })}
         : {}),
     }));
 
@@ -510,10 +525,28 @@ export async function saveTraLoiCau(rawInput: {
       .select("id, auth_user_id, trang_thai, de_snapshot, han_nop_luc, updated_at")
       .eq("id", input.lanThiId)
       .maybeSingle();
-    if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
-    if (lanThi.trang_thai !== "dang_lam") throw new Error("Bài đã nộp.");
-    if (Date.now() > new Date(lanThi.han_nop_luc).getTime() + LATE_GRACE_MS) {
-      throw new Error("Đã hết giờ làm bài — không thể lưu thêm câu trả lời.");
+    if (!lanThi || lanThi.auth_user_id !== user.id) return { ok: false as const, error: "Không tìm thấy lần thi." };
+    if (lanThi.trang_thai === "huy") return { ok: false as const, error: LUOT_HUY_MESSAGE };
+    if (lanThi.trang_thai !== "dang_lam") return { ok: false as const, error: "Bài đã nộp." };
+    // DT-007 (PO 2026-11-12): ân hạn 30 giây chỉ để nộp bài, không để ghi thêm câu trả lời.
+    if (Date.now() > new Date(lanThi.han_nop_luc).getTime()) {
+      return { ok: false as const, error: "Đã hết giờ làm bài — không thể lưu thêm câu trả lời." };
+    }
+
+    const cur = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).find((item) => item.id === input.cauId);
+    if (!cur) return { ok: false as const, error: "Câu hỏi không thuộc đề thi này." };
+    const optionIds = new Set((cur.options ?? []).map((o) => o.id));
+    const t = input.traLoi;
+    const gui =
+      t.kind === "single"
+        ? t.optionId === null ? [] : [t.optionId]
+        : t.kind === "multi"
+          ? t.optionIds
+          : t.kind === "order"
+            ? t.orderedOptionIds
+            : Object.keys(t.byOptionId);
+    if (gui.some((id) => !optionIds.has(id))) {
+      return { ok: false as const, error: "Phương án không thuộc câu hỏi này." };
     }
 
     const snap = ((lanThi.de_snapshot ?? []) as DeSnapshotItem[]).map((item) =>
@@ -528,7 +561,7 @@ export async function saveTraLoiCau(rawInput: {
     query = lanThi.updated_at ? query.eq("updated_at", lanThi.updated_at) : query.is("updated_at", null);
     const { data: written, error } = await query.select("id");
     if (error) throw error;
-    if (written?.length) return { ok: true };
+    if (written?.length) return { ok: true as const };
   }
   throw new Error("Không lưu được câu trả lời do nhiều thao tác cùng lúc — vui lòng thử lại.");
 }
@@ -544,6 +577,7 @@ export async function submitLanThi(lanThiId: string) {
     .maybeSingle();
   if (error) throw error;
   if (!lanThi || lanThi.auth_user_id !== user.id) throw new Error("Không tìm thấy lần thi.");
+  if (lanThi.trang_thai === "huy") throw new Error(LUOT_HUY_MESSAGE);
   if (lanThi.trang_thai !== "dang_lam") {
     return { lanThiId, alreadySubmitted: true };
   }

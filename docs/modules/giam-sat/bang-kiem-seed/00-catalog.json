@@ -1344,7 +1344,7 @@
     "lop_giam_sat": "he_thong",
     "co_quan_chu_tri": "Khoa_KSNK",
     "noi_quan_sat": "van_phong_ksnk|hoi_dong",
-    "ly_do_phan_bo": "Tên «mức độ thiết lập và vận hành Hệ thống KSNK»; TC01–TC11 kiểm HĐ/Khoa/Mạng lưới, kế hoạch năm, bộ QT/QĐ, FTE, giám sát NKBV, KPI — đánh giá hệ thống cấp viện do Khoa KSNK chủ trì."
+    "ly_do_phan_bo": "Tên «mức độ thiết lập và vận hành Hệ thống KSNK»; TC01–TC11 kiểm HĐ/Khoa/Mạng lưới, kế hoạch năm, bộ QT/QĐ, FTE, giám sát NKBV, chỉ số — đánh giá hệ thống cấp viện do Khoa KSNK chủ trì."
   },
   {
     "ma_qt_bm": "KSNK.QĐ.02.BM.01",

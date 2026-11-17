@@ -5,7 +5,7 @@ export type MeSlipStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type MeTrangThaiBadge = { label: string; className: string };
 
-const BADGE = "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold";
+const BADGE = "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold";
 
 const TRANG_THAI_BADGE: Record<string, MeTrangThaiBadge> = {
   DANG_CHUAN_NAP: { label: "Đang nạp", className: `${BADGE} border-sky-200 bg-sky-50 text-sky-800` },

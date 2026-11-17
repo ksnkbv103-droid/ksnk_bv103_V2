@@ -147,7 +147,7 @@ describe("vst.repo", () => {
     });
 
     it("callRpcDashboardVstStrategicAnalytics gọi rpc_dashboard_vst_strategic_analytics_impl", async () => {
-      mocks.callRpc.mockResolvedValueOnce({ data: { kpis: {} }, error: null });
+      mocks.callRpc.mockResolvedValueOnce({ data: { chi_so: {} }, error: null });
       const args = { p_tu_ngay: "2026-01-01", p_den_ngay: "2026-01-31" };
       await vstRepo.callRpcDashboardVstStrategicAnalytics(args);
       expect(mocks.callRpc).toHaveBeenCalledWith(
@@ -156,15 +156,14 @@ describe("vst.repo", () => {
         "admin",
       );
     });
+  });
 
-    it("callRpcVstDeleteSession gọi rpc_vst_delete_session", async () => {
-      mocks.callRpc.mockResolvedValueOnce({ data: true, error: null });
-      await vstRepo.callRpcVstDeleteSession({ sessionId: "s-1", lyDo: "test" });
-      expect(mocks.callRpc).toHaveBeenCalledWith(
-        "rpc_vst_delete_session",
-        { sessionId: "s-1", lyDo: "test" },
-        "admin",
-      );
+  describe("findActiveVstObservations", () => {
+    // Bảng cơ hội gstt_fact_vst không có cột is_active (RPC lưu phiên xóa rồi ghi lại cơ hội);
+    // lọc theo cột đó làm mọi lần sửa phiên vỡ với lỗi 42703.
+    it("chỉ lọc theo session_id, không lọc cột is_active không tồn tại", async () => {
+      await vstRepo.findActiveVstObservations("s-1");
+      expect(mocks.eqMock.mock.calls.map((c) => c[0])).toEqual(["session_id"]);
     });
   });
 });

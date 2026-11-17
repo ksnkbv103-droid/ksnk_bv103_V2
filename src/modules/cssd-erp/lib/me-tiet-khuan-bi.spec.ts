@@ -39,6 +39,25 @@ describe("assertBiBm02HopLe", () => {
     expect(assertBiBm02HopLe({ ...base, gioBatDauU: "" }).ok).toBe(false);
     expect(assertBiBm02HopLe({ ...base, gioDoc: "2026-10-04T00:00:00.000Z" }).ok).toBe(false);
   });
+
+  it("CSSD-017: chặn giờ đọc BI muộn hơn hiện tại quá 2 phút (dung sai lệch đồng hồ)", () => {
+    const now = Date.parse("2026-10-05T09:00:00.000Z");
+    const docLuc = (iso: string) => assertBiBm02HopLe({ ...base, gioDoc: iso }, now);
+    const r = docLuc("2026-10-05T09:05:00.000Z");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toBe("Giờ đọc BI không được muộn hơn thời điểm hiện tại.");
+    expect(docLuc("2026-10-05T09:01:30.000Z").ok).toBe(true);
+    expect(docLuc("2026-10-05T08:59:00.000Z").ok).toBe(true);
+  });
+
+  it("CSSD-017: thời gian ủ BI tối thiểu 20 phút (PO 2026-11-13)", () => {
+    const now = Date.parse("2026-10-05T10:00:00.000Z");
+    const uLuc = (iso: string) => assertBiBm02HopLe({ ...base, gioBatDauU: iso }, now);
+    const r = uLuc("2026-10-05T08:59:00.000Z");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toBe("Thời gian ủ BI tối thiểu 20 phút.");
+    expect(uLuc("2026-10-05T08:40:00.000Z").ok).toBe(true);
+  });
 });
 
 describe("assertBiAmReleaseAllowed", () => {

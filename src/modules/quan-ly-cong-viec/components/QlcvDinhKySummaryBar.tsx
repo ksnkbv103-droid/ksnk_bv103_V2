@@ -83,11 +83,11 @@ export function QlcvDinhKySummaryBar({
   ).length;
 
   return (
-    <div className="rounded-[var(--radius-shell)] border border-slate-200/90 bg-white px-4 py-3">
+    <div className="rounded-[var(--radius-shell)] border border-slate-200/90 bg-white px-4 py-2">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold text-slate-700"
+        className="flex min-h-10 w-full items-center justify-between gap-2 text-left text-sm font-semibold text-slate-700 touch-manipulation"
       >
         <span className="inline-flex items-center gap-2">
           <CalendarRange className="h-4 w-4 text-slate-500" aria-hidden />
@@ -111,7 +111,7 @@ export function QlcvDinhKySummaryBar({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <select
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
+              className="h-11 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
               value={loaiFilter}
               onChange={(e) => onLoaiFilterChange(e.target.value as QlcvLoaiFilter)}
               aria-label="Lọc đột xuất / định kỳ"
@@ -121,7 +121,7 @@ export function QlcvDinhKySummaryBar({
               <option value="DINH_KY">Định kỳ</option>
             </select>
             <select
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
+              className="h-11 rounded-[var(--radius-control)] sm:h-9 border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
               value={periodKind}
               onChange={(e) => onPeriodKindChange(e.target.value as QlcvPeriodKind)}
               aria-label="Kỳ tổng hợp"
@@ -132,7 +132,7 @@ export function QlcvDinhKySummaryBar({
                 </option>
               ))}
             </select>
-            <label className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700">
+            <label className="inline-flex h-11 sm:h-9 items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700">
               <input
                 type="checkbox"
                 checked={filterBoardByPeriod}
@@ -145,7 +145,7 @@ export function QlcvDinhKySummaryBar({
               <button
                 type="button"
                 onClick={onPrintExec}
-                className="bv103-control-h rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                className="inline-flex h-11 sm:h-9 items-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
               >
                 In bảng thực thi
               </button>

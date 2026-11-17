@@ -418,19 +418,19 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
                 ) : null}
               </button>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Ảnh / chụp: màn «Thông tin bệnh nhân» HIS → OCR → xem trước. Ưu tiên JPEG/PNG; HEIC có thể cần đổi JPEG trên iPhone.
             </p>
             {showPastePanel ? (
               <div className="space-y-2 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/40 p-3">
                 <label className="block space-y-1">
-                  <span className="text-[11px] font-medium text-slate-500">Dán bảng (TSV/CSV)</span>
+                  <span className="text-xs font-medium text-slate-500">Dán bảng (TSV/CSV)</span>
                   <textarea
                     value={paste}
                     onChange={(e) => setPaste(e.target.value)}
                     rows={6}
                     placeholder="Dán header + dữ liệu từ HIS…"
-                    className="w-full rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 font-mono text-[11px] text-slate-800 shadow-sm outline-none focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15"
+                    className="w-full rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 font-mono text-xs text-slate-800 shadow-sm outline-none focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15"
                   />
                 </label>
                 <button type="button" onClick={onParsePaste} className={C.btnSecondary}>
@@ -470,7 +470,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
 
             <ResponsiveTableShell>
               <table className="min-w-full text-left text-xs">
-                <thead className="bg-slate-50 text-[11px] font-semibold text-slate-500">
+                <thead className="bg-slate-50 text-xs font-semibold text-slate-500">
                   <tr>
                     <th className="px-2 py-2">Mã BA</th>
                     <th className="px-2 py-2">Mã BN</th>

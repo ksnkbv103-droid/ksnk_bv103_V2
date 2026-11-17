@@ -2,15 +2,12 @@
  * Mô tả nghiệp vụ tiếng Việt cho ma trận RBAC — giúp PO/IT duyệt quyền.
  */
 const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
-  DASHBOARD: "Xem Báo cáo chính thức (KPI giám sát, xu hướng, in A4).",
+  DASHBOARD: "Xem Báo cáo chính thức (chỉ số giám sát, xu hướng, in A4).",
   DASHBOARD_CC_OVERVIEW: "Quyền widget tổng hợp trên Báo cáo chính thức (tương thích mã CC cũ).",
   DASHBOARD_CC_SUPERVISION: "Quyền widget giám sát chuyên trách / chéo / tự giám sát trên Báo cáo chính thức.",
   DASHBOARD_CC_GAP: "Quyền widget đối soát / lệch dữ liệu trên Báo cáo chính thức.",
   DASHBOARD_CC_EXPORT: "Xuất hoặc in báo cáo PDF từ Báo cáo chính thức.",
-  DANH_MUC: "Quản trị danh mục lookup chung (tổ chức, trạm CSSD, khu vực…).",
   DANH_MUC_ORG: "Danh mục tổ chức: khối khoa, tổ công tác, chức vụ, chức danh, nghề nghiệp.",
-  DANH_MUC_GSTT: "Lookup giám sát: khu vực, hình thức, cách thức giám sát.",
-  DANH_MUC_CSSD_LOOKUP: "Lookup CSSD: loại sự cố, loại máy, trạm workflow.",
   NHAN_SU: "Hồ sơ nhân sự toàn viện — gán khoa, tổ, vai trò KSNK.",
   BANG_KIEM: "Mẫu bảng kiểm giám sát tuân thủ.",
   BANG_KIEM_DETAIL: "Tiêu chí chi tiết trong từng mẫu bảng kiểm.",

@@ -48,6 +48,21 @@ vi.mock("../lib/qlcv-nhat-ky", () => ({
   appendQlcvNhatKy: mocks.appendNhatKy,
 }));
 
+const transitionMocks = vi.hoisted(() => ({
+  invoke: vi.fn(),
+  approve: vi.fn(),
+}));
+
+vi.mock("../lib/qlcv-transition-rpc", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/qlcv-transition-rpc")>()),
+  invokeQlcvTransition: transitionMocks.invoke,
+}));
+
+vi.mock("../lib/qlcv-rbac", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/qlcv-rbac")>()),
+  verifyQlcvApproveCapability: transitionMocks.approve,
+}));
+
 const NS_NEW = "66666666-6666-4666-8666-666666666666";
 
 describe("updateCongViec", () => {
@@ -345,6 +360,131 @@ describe("updateCongViec", () => {
       expect.anything(),
       expect.objectContaining({ loaiHoatDong: "CAP_NHAT", trangThai: "DANG_LAM" }),
     );
+  });
+
+  it("QLCV-007: phê duyệt đề xuất gửi 7 cột mở rộng trong patch RPC, không UPDATE riêng trước", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    mocks.getActorNhanSuId.mockResolvedValue("ns-actor");
+    transitionMocks.approve.mockResolvedValue(undefined);
+    transitionMocks.invoke.mockResolvedValue({ id: "cv-dx", trang_thai: "DANG_LAM" });
+    const factUpdates: unknown[] = [];
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_qlcv_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-dx",
+                  tieu_de: "Đề xuất",
+                  trang_thai: "MOI",
+                  is_active: false,
+                  nguoi_phu_trach_id: NS_NEW,
+                  han_hoan_thanh: "2099-12-31",
+                  loai_cong_viec: "DOT_XUAT",
+                  phan_tram_hoan_thanh: 0,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "qlcv_fact_cong_viec") {
+        return {
+          update: (payload: unknown) => {
+            factUpdates.push(payload);
+            return { eq: async () => ({ error: null }) };
+          },
+        };
+      }
+      if (table === "mdm_nhan_su") {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: NS_NEW, khoa_id: "ksnk-khoa-id", ho_ten: "Trần Thị Mới" },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    const result = await updateCongViec("cv-dx", {
+      vi_tri_thuc_hien: "  Kho tiệt khuẩn  ",
+      nhom_chuyen_mon_id: null,
+      dia_diem_khoa_ids: [],
+      nguoi_phoi_hop_ids: [],
+      nguoi_theo_doi_ids: [],
+    } as never);
+
+    expect(result).toMatchObject({ success: true, activated: true });
+    expect(factUpdates).toHaveLength(0);
+    expect(transitionMocks.invoke).toHaveBeenCalledTimes(1);
+    const call = transitionMocks.invoke.mock.calls[0][1] as { action: string; patch: Record<string, unknown> };
+    expect(call.action).toBe("PHE_DUYET_DEXUAT");
+    expect(call.patch).toMatchObject({
+      vi_tri_thuc_hien: "Kho tiệt khuẩn",
+      nhom_chuyen_mon_id: null,
+      dia_diem_khoa_ids: [],
+      dia_diem_khoa_id: null,
+      nguoi_phoi_hop_ids: [],
+      nguoi_theo_doi_ids: [],
+    });
+  });
+
+  it("QLCV-007: RPC phê duyệt lỗi → không có ghi riêng nào lên bảng việc", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    mocks.getActorNhanSuId.mockResolvedValue("ns-actor");
+    transitionMocks.approve.mockResolvedValue(undefined);
+    transitionMocks.invoke.mockRejectedValue(new Error("Không phải đề xuất chờ duyệt"));
+    const factUpdates: unknown[] = [];
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_qlcv_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-dx", tieu_de: "Đề xuất", trang_thai: "MOI", is_active: false,
+                  nguoi_phu_trach_id: NS_NEW, han_hoan_thanh: "2099-12-31",
+                  loai_cong_viec: "DOT_XUAT", phan_tram_hoan_thanh: 0,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "qlcv_fact_cong_viec") {
+        return { update: (p: unknown) => (factUpdates.push(p), { eq: async () => ({ error: null }) }) };
+      }
+      if (table === "mdm_nhan_su") {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: NS_NEW, khoa_id: "ksnk-khoa-id", ho_ten: "Trần Thị Mới" },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    await expect(
+      updateCongViec("cv-dx", { vi_tri_thuc_hien: "Kho", nguoi_theo_doi_ids: [] } as never),
+    ).rejects.toThrow("Không phải đề xuất chờ duyệt");
+    expect(factUpdates).toHaveLength(0);
   });
 
   it("blocks modifying a closed task (HOAN_THANH or DA_HUY)", async () => {

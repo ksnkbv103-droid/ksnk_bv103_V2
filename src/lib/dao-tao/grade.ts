@@ -52,3 +52,20 @@ export function scoreAttempt(
   const pct = tong === 0 ? 0 : Math.round((dung / tong) * 1000) / 10;
   return { dung, tong, pct, flags };
 }
+
+/** Đã trả lời đầy đủ? Chùm Đúng/Sai phải chọn hết mọi ý; multi phải có ≥1 lựa chọn. */
+export function isAnswered(traLoi: TraLoi | null | undefined, soPhuongAn: number): boolean {
+  if (!traLoi) return false;
+  switch (traLoi.kind) {
+    case "single":
+      return !!traLoi.optionId;
+    case "multi":
+      return traLoi.optionIds.length > 0;
+    case "true_false_cluster": {
+      const v = Object.values(traLoi.byOptionId ?? {});
+      return v.length >= soPhuongAn && v.every((x) => x === true || x === false);
+    }
+    case "order":
+      return traLoi.orderedOptionIds.length > 0;
+  }
+}

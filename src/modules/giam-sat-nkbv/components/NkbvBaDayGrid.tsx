@@ -146,7 +146,7 @@ export function baDayIdentityColumns(): BaDayGridColumnDef[] {
     },
     {
       id: "hos_day",
-      header: "Hd",
+      header: "HD",
       sticky: true,
       stickyLeft: BA_DAY_COL_W_ID,
       minWidth: BA_DAY_COL_W_ID,

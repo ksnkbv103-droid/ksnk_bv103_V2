@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Chuẩn hóa panel / form / modal — font-black, IN HOA label, KPI.
+ * Chuẩn hóa panel / form / modal — font-black, IN HOA label, chỉ số.
  * Chạy: npm run panel:normalize
  */
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
@@ -27,8 +27,8 @@ const isPanelFormFile = (name) =>
   (name.endsWith(".tsx") || name.endsWith(".ts"));
 
 const REPLACEMENTS = [
-  ["text-3xl font-black", "bv103-type-kpi-lg"],
-  ["text-2xl font-black", "bv103-type-kpi"],
+  ["text-3xl font-black", "bv103-type-chi-so-lg"],
+  ["text-2xl font-black", "bv103-type-chi-so"],
   ["text-xl font-black", "bv103-type-title"],
   ["text-xl font-extrabold", "bv103-type-title"],
   ["text-xs font-black", "bv103-type-label font-semibold"],
@@ -45,9 +45,9 @@ const REPLACEMENTS = [
   ["text-xs font-bold", "bv103-type-label font-semibold"],
   ["text-[11px] font-bold", "bv103-type-label font-semibold"],
   ["text-base font-bold", "bv103-type-section"],
-  ["text-4xl font-semibold", "bv103-type-kpi-lg"],
-  ["text-3xl font-semibold", "bv103-type-kpi-lg"],
-  ["text-2xl font-semibold", "bv103-type-kpi"],
+  ["text-4xl font-semibold", "bv103-type-chi-so-lg"],
+  ["text-3xl font-semibold", "bv103-type-chi-so-lg"],
+  ["text-2xl font-semibold", "bv103-type-chi-so"],
   ["text-xl font-semibold", "bv103-type-title"],
   ["text-xl font-bold", "bv103-type-title"],
   ["text-lg font-semibold", "bv103-type-title"],

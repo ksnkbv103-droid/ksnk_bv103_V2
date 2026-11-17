@@ -10,11 +10,11 @@ import {
 } from "./nkbv-dashboard-aggregate";
 
 describe("aggregateNkbvDashboard", () => {
-  it("returns zero KPIs when no rows in range", () => {
+  it("returns zero chỉ số when no rows in range", () => {
     const out = aggregateNkbvDashboard([], "2026-01-01", "2026-01-31");
-    expect(out.kpis.tong_phieu).toBe(0);
-    expect(out.kpis.da_xac_nhan).toBe(0);
-    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBeNull();
+    expect(out.chi_so.tong_phieu).toBe(0);
+    expect(out.chi_so.da_xac_nhan).toBe(0);
+    expect(out.chi_so.ti_le_xac_nhan_so_voi_pa).toBeNull();
     expect(out.monthly.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -43,7 +43,7 @@ describe("aggregateNkbvDashboard", () => {
         khoa_ghi_nhan: { ten_khoa: "Khoa B" },
       },
       {
-        // XAC_NHAN nhưng không dương tính → không đếm KPI NKBV
+        // XAC_NHAN nhưng không dương tính → không đếm chỉ số NKBV
         ngay_phat_hien: "2026-01-18",
         trang_thai_row: { ma_trang_thai: "XAC_NHAN", ten_trang_thai: "Đã xác nhận" },
         loai_nkbv: { ma_loai: "UTI", ten_loai: "UTI" },
@@ -53,13 +53,13 @@ describe("aggregateNkbvDashboard", () => {
       },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
-    expect(out.kpis.tong_phieu).toBe(4);
-    expect(out.kpis.da_xac_nhan).toBe(1);
-    expect(out.kpis.loai_tru).toBe(1);
-    expect(out.kpis.dang_va_cho_xn).toBe(1);
+    expect(out.chi_so.tong_phieu).toBe(4);
+    expect(out.chi_so.da_xac_nhan).toBe(1);
+    expect(out.chi_so.loai_tru).toBe(1);
+    expect(out.chi_so.dang_va_cho_xn).toBe(1);
     // Mẫu = 2 XAC_NHAN + 1 LOAI_TRU = 3 → 1/3 ≈ 33.3%
-    expect(out.kpis.phieu_xac_nhan_trang_thai).toBe(2);
-    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(33.3);
+    expect(out.chi_so.phieu_xac_nhan_trang_thai).toBe(2);
+    expect(out.chi_so.ti_le_xac_nhan_so_voi_pa).toBe(33.3);
     expect(out.by_loai).toEqual(
       expect.arrayContaining([expect.objectContaining({ ma: "UTI", so_phieu: 1 })]),
     );
@@ -81,7 +81,7 @@ describe("aggregateNkbvDashboard", () => {
       "2026-10-01",
       "2026-10-31",
     );
-    expect(out.kpis.tong_phieu).toBe(1);
+    expect(out.chi_so.tong_phieu).toBe(1);
     expect(nkbvReportDate({ ngay_phat_hien: "2026-11-02", report_date: "2026-10-30" })).toBe(
       "2026-10-30",
     );
@@ -115,10 +115,10 @@ describe("aggregateNkbvDashboard", () => {
       },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
-    expect(out.kpis.tong_phieu).toBe(1);
-    expect(out.kpis.dang_va_cho_xn).toBe(1);
-    expect(out.kpis.da_xac_nhan).toBe(0);
-    expect(out.kpis.loai_tru).toBe(0);
+    expect(out.chi_so.tong_phieu).toBe(1);
+    expect(out.chi_so.dang_va_cho_xn).toBe(1);
+    expect(out.chi_so.da_xac_nhan).toBe(0);
+    expect(out.chi_so.loai_tru).toBe(0);
   });
 
   it("counts CHO_DUYET in dang_va_cho_xn (phiếu đã gửi form, chưa duyệt)", () => {
@@ -131,10 +131,10 @@ describe("aggregateNkbvDashboard", () => {
       },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
-    expect(out.kpis.tong_phieu).toBe(1);
-    expect(out.kpis.dang_va_cho_xn).toBe(1);
-    expect(out.kpis.da_xac_nhan).toBe(0);
-    expect(out.kpis.loai_tru).toBe(0);
+    expect(out.chi_so.tong_phieu).toBe(1);
+    expect(out.chi_so.dang_va_cho_xn).toBe(1);
+    expect(out.chi_so.da_xac_nhan).toBe(0);
+    expect(out.chi_so.loai_tru).toBe(0);
   });
 
   it("filters by date range on ngay_phat_hien", () => {
@@ -155,7 +155,7 @@ describe("aggregateNkbvDashboard", () => {
       },
     ];
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
-    expect(out.kpis.tong_phieu).toBe(1);
+    expect(out.chi_so.tong_phieu).toBe(1);
   });
 
   it("formatNkbvXacNhanVolume uses đã kết luận (XAC_NHAN + LOAI_TRU), not tong phiếu", () => {
@@ -181,7 +181,7 @@ describe("aggregateNkbvDashboard", () => {
         khoa_ghi_nhan: { ten_khoa: "B" },
       },
     ];
-    const k = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31").kpis;
+    const k = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31").chi_so;
     expect(k.tong_phieu).toBe(3);
     expect(nkbvPaMauSo(k)).toBe(2);
     expect(formatNkbvXacNhanVolume(k)).toBe("1/2 đã kết luận");
@@ -239,9 +239,9 @@ describe("nkbvDashboard fetch/LOA helpers", () => {
     expect(row.report_date).toBe("2026-10-30");
     expect(row.loa_khoa_id).toBe("khoa-loa");
     const inOct = aggregateNkbvDashboard([row], "2026-10-01", "2026-10-31");
-    expect(inOct.kpis.tong_phieu).toBe(1);
+    expect(inOct.chi_so.tong_phieu).toBe(1);
     const inNov = aggregateNkbvDashboard([row], "2026-11-01", "2026-11-30");
-    expect(inNov.kpis.tong_phieu).toBe(0);
+    expect(inNov.chi_so.tong_phieu).toBe(0);
   });
 
   it("map SSI: kỳ theo ngày mổ (không Index)", () => {

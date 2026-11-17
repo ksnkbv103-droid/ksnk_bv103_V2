@@ -1,0 +1,121 @@
+"use server";
+
+import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
+import {
+  isLockedSystemLookup,
+  lockedSystemLookupMutateError,
+} from "@/lib/master-data/locked-system-lookups";
+import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
+import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
+import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
+import { buildMigratedUpsertPayload, buildNextDmBusinessCode } from "@/lib/master-data/danh-muc-routing";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import {
+  listMasterRows,
+  softDeleteMasterRow,
+  softDeleteManyMasterRows,
+  toggleMasterStatus,
+  upsertMasterRow,
+} from "@/lib/master-data/engine/master-crud-core";
+
+function getPermissionModuleForLoai(loaiDanhMuc: string): string {
+  const key = loaiDanhMuc.trim();
+  if (key === "VAI_TRO_HE_THONG_KSNK") return "PHAN_QUYEN";
+  return resolveDanhMucViewModuleByType(key);
+}
+
+function rejectDedicatedGenericWrite(loaiDanhMuc: string) {
+  const locked = lockedSystemLookupMutateError(loaiDanhMuc);
+  if (locked) return { success: false as const, error: locked };
+  const error = genericDmMustUseDedicatedPageError(loaiDanhMuc);
+  if (!error) return null;
+  return { success: false as const, error };
+}
+
+function rejectLockedSystemLookup(loaiDanhMuc: string) {
+  if (!isLockedSystemLookup(loaiDanhMuc)) return null;
+  return {
+    success: false as const,
+    error: `Danh mục «${loaiDanhMuc.trim()}» là mã hệ thống (khóa) — không thêm/sửa/xóa trên hub.`,
+  };
+}
+
+export async function listGenericDmAction(loaiDanhMuc: string) {
+  await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "view");
+  const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
+  return listMasterRows(reg.sourceTable, reg.maColumn);
+}
+
+/** Gợi ý mã dòng mới (DM-xxxx) dựa trên mã đang có trong bảng dm_* — dùng khi thêm danh mục chuyên biệt. */
+export async function suggestNextGenericDmMaAction(loaiDanhMuc: string, ten?: string) {
+  await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "view");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
+  const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
+  try {
+    const supabase = createAdminSupabaseClient();
+    const data = await buildNextDmBusinessCode(supabase, reg, { ten: ten?.trim() || undefined });
+    return { success: true as const, data };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { success: false as const, error: msg };
+  }
+}
+
+export async function upsertGenericDmAction(
+  loaiDanhMuc: string,
+  id: string | null,
+  ma: string,
+  ten: string,
+  isActive: boolean
+) {
+  await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), id ? "edit" : "create");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
+  const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
+  const payload = buildMigratedUpsertPayload(reg, {
+    ma: ma.trim(),
+    ten: ten.trim(),
+    isActive,
+  });
+  return upsertMasterRow(reg.sourceTable, id || "", payload);
+}
+
+export async function toggleGenericDmAction(loaiDanhMuc: string, id: string, currentActive: boolean) {
+  await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "edit");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
+  const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
+  return toggleMasterStatus(reg.sourceTable, id, currentActive);
+}
+
+export async function softDeleteGenericDmAction(loaiDanhMuc: string, id: string) {
+  await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "delete");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
+  const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
+  return softDeleteMasterRow(reg.sourceTable, id);
+}
+
+export async function softDeleteManyGenericDmAction(loaiDanhMuc: string, ids: string[]) {
+  await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "delete");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
+  const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
+  if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
+  if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
+  return softDeleteManyMasterRows(reg.sourceTable, ids);
+}

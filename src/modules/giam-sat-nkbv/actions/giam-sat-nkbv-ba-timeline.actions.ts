@@ -1,7 +1,6 @@
 "use server";
 
-import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { normalizeBaTimelineDbId } from "../lib/nkbv-ba-timeline-id";
 import { isDeviceCriteriaKey } from "../lib/nkbv-criteria-matrix";
@@ -10,28 +9,6 @@ import { nkbvBaTimelineDeleteByKeySchema } from "@/lib/validations/giam-sat-nkbv
 /** Client hub đã patch/reload — không revalidatePath mỗi tick (gây lag RSC). */
 
 const KINDS = new Set(["IMAGING_CHEST", "LAB_OTHER", "SYMPTOM", "PROCEDURE_SURGERY", "NOTE"]);
-
-export async function listNkbvBaTimelineManual(maBenhAn: string) {
-  await verifyPermission("GIAM_SAT_NKBV", "view");
-  const ma = String(maBenhAn || "").trim();
-  if (!ma) return { success: false as const, error: "Thiếu mã bệnh án", data: [] as const };
-  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
-    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as const };
-  }
-
-  const supabase = await createServerSupabaseUserClient();
-  const { data, error } = await supabase
-    .from("nkbv_fact_ba_timeline")
-    .select(
-      "id, ma_benh_an, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key, is_active",
-    )
-    .eq("ma_benh_an", ma)
-    .eq("is_active", true)
-    .order("milestone_date", { ascending: true })
-    .limit(200);
-  if (error) return { success: false as const, error: error.message, data: [] as const };
-  return { success: true as const, data: data || [] };
-}
 
 export async function upsertNkbvBaTimelineMilestone(payload: {
   id?: string;

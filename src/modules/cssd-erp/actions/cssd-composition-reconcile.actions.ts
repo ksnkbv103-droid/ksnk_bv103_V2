@@ -75,7 +75,8 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
 async function fetchBoCompositionPayload(boId: string) {
   const supabase = createAdminSupabaseClient();
   const { data: rows, error } = await supabase
-    .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
+    // C′: bộ con -CN/-KCN lấy thành phần dẫn xuất từ bộ tổng.
+    .from("v_cssd_bo_thanh_phan_hieu_luc_realtime")
     .select(
       "chi_tiet_id, bo_dung_cu_id, ma_bo, ten_bo, loai_dung_cu_id, ma_loai_dung_cu, ten_loai_dung_cu, so_luong_tieu_chuan, so_luong_thuc_te, is_missing, missing_count, is_chiu_nhiet, phan_loai_spaulding, phuong_phap_tiet_khuan",
     )

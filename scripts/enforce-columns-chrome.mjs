@@ -12,7 +12,7 @@ const CHROME_NEEDLE =
   /table-chrome|ui-chrome|dashboard-chrome|quanTriTableChrome|gscTableChrome|qlcvTableChrome|CSSD_UI_CELL|dashboardChrome\.cell/;
 
 const SKIP = new Set([
-  "src/modules/quan-tri-he-thong/bang-kiem/components/tieu-chi-table-columns.tsx",
+  "src/modules/giam-sat-chung/bang-kiem/components/tieu-chi-table-columns.tsx",
 ]);
 
 function walk(dir, out = []) {

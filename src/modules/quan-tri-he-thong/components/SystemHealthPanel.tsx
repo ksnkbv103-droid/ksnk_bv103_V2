@@ -7,7 +7,7 @@ import {
   fetchSystemHealthBrief,
   type SystemHealthBrief,
 } from "../actions/system-health-brief.actions";
-import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { quanTriFormChrome as UI } from "@/lib/master-data-form-chrome";
 
 export function SystemHealthPanel() {
   const [data, setData] = useState<SystemHealthBrief | null>(null);
@@ -73,13 +73,13 @@ export function SystemHealthPanel() {
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
               )}
             </div>
-            <p className={`mt-2 ${UI.kpiValueSm}`}>
+            <p className={`mt-2 ${UI.chiSoValueSm}`}>
               {m.count}
               {m.total != null ? (
                 <span className="ml-1 text-sm font-medium text-slate-500">/ {m.total}</span>
               ) : null}
             </p>
-            <p className={`mt-1 ${UI.kpiCaption}`}>{m.hint}</p>
+            <p className={`mt-1 ${UI.chiSoCaption}`}>{m.hint}</p>
             <Link
               href={m.href}
               className="mt-2 inline-flex items-center gap-0.5 bv103-type-label font-semibold text-[var(--primary)]"

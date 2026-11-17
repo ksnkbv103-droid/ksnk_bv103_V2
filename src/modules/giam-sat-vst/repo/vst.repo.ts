@@ -199,8 +199,7 @@ export async function findActiveVstObservations(sessionId: string) {
   return await db
     .from("gstt_fact_vst")
     .select("nhan_vien_id, metadata")
-    .eq("session_id", sessionId)
-    .eq("is_active", true);
+    .eq("session_id", sessionId);
 }
 
 /**
@@ -249,7 +248,7 @@ export async function findVstKhuVucFallback() {
   const db = await getDb("admin");
   return await db
     .from("gstt_dm_khu_vuc_giam_sat")
-    .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu")
+    .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu, metadata")
     .eq("is_active", true)
     .order("thu_tu");
 }
@@ -292,13 +291,6 @@ export async function callRpcVstCompareMatrices(args: Record<string, unknown>) {
 }
 
 /**
- * Gọi RPC xóa phiên VST (nếu môi trường có cài đặt RPC).
- */
-export async function callRpcVstDeleteSession(args: { sessionId: string; lyDo: string }) {
-  return await callRpc("rpc_vst_delete_session", args, "admin");
-}
-
-/**
  * Gọi RPC lấy options danh mục (Khu vực, Nghề nghiệp).
  */
 export async function getRegistryOptionsRpc(categories: string[]) {
@@ -333,6 +325,5 @@ export const vstRepo = {
   saveVstSessionViaRpc,
   callRpcDashboardVstStrategicAnalytics,
   callRpcVstCompareMatrices,
-  callRpcVstDeleteSession,
   getRegistryOptionsRpc,
 };

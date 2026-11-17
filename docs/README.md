@@ -15,6 +15,7 @@
 | 3. Module | [`modules/<mod>/`](modules/) | Domain đang dùng của đúng một module | Luật nghiệp vụ còn hiệu lực, **không** gắn ngày / `_audit` / A–B |
 | 4. Reference | [`reference/`](reference/) | Kiến trúc sống + ADR + runbook | Hợp đồng / quyết định còn hiệu lực |
 | 5. UX | [`ux/principles.md`](ux/principles.md) | IA / tương tác | Chỉ sửa file này |
+| 6. Bộ gốc | [`bo-tai-lieu/`](bo-tai-lieu/) | Bản gốc lộ trình · nghiệp vụ · tiến độ (01 · 02 · 03; PO duyệt 2026-11-16); lệch nguồn sống thì nguồn sống thắng | Không thêm file; chỉ sửa 01 · 02 · 03 bằng Edit từng đoạn |
 
 **Một chủ đề = một bản đang dùng.** Toàn bộ lịch sử mốc, nhật ký lát cũ đã chốt đã được lưu trong git history.
 
@@ -25,6 +26,8 @@
 Sửa repo: [`../CLAUDE.md`](../CLAUDE.md). Chủ đề đang dùng: [`ssot-map.md`](ssot-map.md). Đọc thêm theo diff: [`core/read-minimum.md`](core/read-minimum.md).
 
 Wiki tổng hợp: [`wiki/entities.md`](wiki/entities.md) · [`wiki/concepts.md`](wiki/concepts.md). Catalog máy: [`wiki/index.md`](wiki/index.md).
+
+Bộ tài liệu gom (PO đã duyệt 2026-11-16): [`bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md`](bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md).
 
 ## Lớp Core (13 file)
 

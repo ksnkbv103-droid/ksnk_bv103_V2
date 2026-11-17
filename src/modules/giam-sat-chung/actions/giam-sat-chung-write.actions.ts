@@ -8,6 +8,7 @@ import { ChecklistResult } from "@/types/giam-sat-chung";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
+import { resolveSupervisorIdForSave } from "@/lib/supervision-supervisor-id";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
@@ -102,10 +103,11 @@ export async function saveGiamSatChung(
     const actorNhanSuId = await getActorNhanSuId();
 
     const adminBypass = await hasRBACAdminSupervisionBypass();
-    const nguoiGsId =
-      adminBypass && sessionData.nguoi_giam_sat_id
-        ? sessionData.nguoi_giam_sat_id
-        : actorNhanSuId || sessionData.nguoi_giam_sat_id;
+    const nguoiGsId = resolveSupervisorIdForSave({
+      adminBypass,
+      actorNhanSuId,
+      clientNguoiGiamSatId: sessionData.nguoi_giam_sat_id,
+    });
     const nguoiGsNorm = await normalizeHoSoNhanVienOptionalOrThrow(
       supabase,
       nguoiGsId,

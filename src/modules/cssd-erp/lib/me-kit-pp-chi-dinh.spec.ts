@@ -3,7 +3,6 @@ import {
   evaluatePpChiDinhGate,
   inferSteamCycleFromChuongTrinh,
   MSG_PP_MISSING_WARN,
-  MSG_PP_PLASMA_EO_CROSS,
   MSG_PP_STEAM_CYCLE,
 } from "./me-kit-pp-chi-dinh";
 
@@ -15,25 +14,19 @@ describe("inferSteamCycleFromChuongTrinh", () => {
 });
 
 describe("evaluatePpChiDinhGate (CSSD-10)", () => {
-  it("chặn Plasma chỉ định trên máy EO và ngược lại", () => {
+  it("Plasma và EO tương đương: không chặn chéo (PO 2026-11-10)", () => {
     expect(
       evaluatePpChiDinhGate({
         method: "EO",
         lines: [{ phuong_phap_tiet_khuan_chi_dinh: "PLASMA" }],
       }).ok,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       evaluatePpChiDinhGate({
         method: "PLASMA_H2O2",
         lines: [{ phuong_phap_tiet_khuan_chi_dinh: "EO" }],
       }).ok,
-    ).toBe(false);
-    const cross = evaluatePpChiDinhGate({
-      method: "PLASMA_H2O2",
-      lines: [{ phuong_phap_tiet_khuan_chi_dinh: "EO" }],
-    });
-    expect(cross.ok).toBe(false);
-    if (!cross.ok) expect(cross.message).toBe(MSG_PP_PLASMA_EO_CROSS);
+    ).toBe(true);
   });
 
   it("chặn STEAM_121 vs chu trình 134 khi đã biết chương trình", () => {

@@ -10,6 +10,8 @@ import { pmDueLabel, trangThaiMayLabel } from "@/lib/domain/cssd-equipment-pm";
 import { CSSD_UI_CELL_CODE, CSSD_UI_DATA_SURFACE } from "../../shared/ui/cssd-ui-chrome";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
 import ThietBiPrintQrButton from "./thiet-bi-print-qr-button";
+import ThietBiMoKhoaButton from "./thiet-bi-mo-khoa-button";
+import ThietBiThamDinhButton from "./thiet-bi-tham-dinh-button";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -31,13 +33,19 @@ function mayStatusClass(st: string | null) {
 export default function ThietBiFleetPanel() {
   const [rows, setRows] = useState<ThietBiFleetRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canUnlock, setCanUnlock] = useState(false);
+  const [canThamDinh, setCanThamDinh] = useState(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
     const r = await listThietBiFleetAction();
     if (!r.success) toast.error(r.error);
-    else setRows(r.data);
+    else {
+      setRows(r.data);
+      setCanUnlock(r.can_unlock);
+      setCanThamDinh(r.can_tham_dinh);
+    }
     setLoading(false);
   }, []);
 
@@ -101,7 +109,7 @@ export default function ThietBiFleetPanel() {
               <p className="truncate text-sm font-medium text-slate-800" title={ten}>
                 {ten}
               </p>
-              <p className="truncate text-[11px] text-slate-500" title={loai}>
+              <p className="truncate text-xs text-slate-500" title={loai}>
                 {loai}
               </p>
             </div>
@@ -137,7 +145,7 @@ export default function ThietBiFleetPanel() {
                 {label}
               </span>
               {m.ngay_bao_tri_tiep_theo ? (
-                <p className="truncate text-[11px] text-slate-500" title={`Kế: ${formatDateVi(m.ngay_bao_tri_tiep_theo)}`}>
+                <p className="truncate text-xs text-slate-500" title={`Kế: ${formatDateVi(m.ngay_bao_tri_tiep_theo)}`}>
                   Kế: {formatDateVi(m.ngay_bao_tri_tiep_theo)}
                 </p>
               ) : null}
@@ -154,7 +162,7 @@ export default function ThietBiFleetPanel() {
         cell: (m) => {
           const v = String(m.vi_tri || "").trim() || "—";
           return (
-            <span className="block truncate text-[11px] text-slate-600" title={v}>
+            <span className="block truncate text-xs text-slate-600" title={v}>
               {v}
             </span>
           );
@@ -166,7 +174,7 @@ export default function ThietBiFleetPanel() {
         sortable: true,
         headerClassName: bv103TableLayout.colNarrow,
         cellClassName: bv103TableLayout.colNarrow,
-        cell: (m) => <span className="tabular-nums text-[11px] text-slate-700">{m.so_me_tk}</span>,
+        cell: (m) => <span className="tabular-nums text-xs text-slate-700">{m.so_me_tk}</span>,
       },
       {
         header: "Thao tác",
@@ -181,11 +189,17 @@ export default function ThietBiFleetPanel() {
               tenThietBi={m.ten_thiet_bi}
               variant="compact"
             />
+            {canUnlock && m.trang_thai === "HOLD_QC" ? (
+              <ThietBiMoKhoaButton thietBiId={m.id} maThietBi={m.ma_thiet_bi} onDone={() => void reload()} />
+            ) : null}
+            {canThamDinh && m.trang_thai === "CHO_THAM_DINH" ? (
+              <ThietBiThamDinhButton thietBiId={m.id} maThietBi={m.ma_thiet_bi} onDone={() => void reload()} />
+            ) : null}
           </span>
         ),
       },
     ],
-    [],
+    [reload, canUnlock, canThamDinh],
   );
 
   if (loading) {
@@ -198,7 +212,7 @@ export default function ThietBiFleetPanel() {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm">
         <StatInline label="Sẵn sàng" value={ready} icon={<CheckCircle2 size={14} />} tone="emerald" />
         <StatInline label="Đang BD" value={repairing} icon={<Wrench size={14} />} tone="blue" />
         <StatInline label="Tạm giữ QC" value={holdQc} icon={<AlertTriangle size={14} />} tone="amber" />

@@ -100,7 +100,7 @@ export default function DaoTaoHubPage() {
             >
               <Icon className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
               <span className="min-w-0 truncate">{tile.title}</span>
-              <span className="ml-auto hidden text-[11px] font-normal text-slate-500 sm:inline">
+              <span className="ml-auto hidden text-xs font-normal text-slate-500 sm:inline">
                 {tile.desc}
               </span>
             </Link>
@@ -125,11 +125,11 @@ export default function DaoTaoHubPage() {
                   >
                     <span className="min-w-0">
                       <span className="font-medium text-slate-800">{row.kyTen}</span>
-                      <span className="ml-2 text-[11px] text-slate-500">
+                      <span className="ml-2 text-xs text-slate-500">
                         {labelCheDoThi(row.cheDo)}
                       </span>
                     </span>
-                    <span className="shrink-0 text-[11px] text-slate-500">
+                    <span className="shrink-0 text-xs text-slate-500">
                       {row.trangThai === "dang_lam"
                         ? "Đang làm"
                         : `${row.diemPct ?? 0}%`}

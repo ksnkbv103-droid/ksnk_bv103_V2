@@ -5,11 +5,16 @@ const mocks = vi.hoisted(() => ({
   verifyAnyPermission: vi.fn(),
   getUser: vi.fn(),
   from: vi.fn(),
+  scope: { isGuestStatsOnly: false, isAdmin: false },
 }));
 
 vi.mock("@/lib/server-permission", () => ({
   verifyPermission: mocks.verifyPermission,
   verifyAnyPermission: mocks.verifyAnyPermission,
+}));
+
+vi.mock("@/lib/actor-ksnk-scope-server", () => ({
+  getActorKsnkScope: async () => mocks.scope,
 }));
 
 vi.mock("@/lib/supabase-server", () => ({
@@ -21,13 +26,19 @@ import {
   getBankStats,
   getCauHoiDetail,
   getDaoTaoBankForExport,
+  importMcqMatrixAction,
   listCauHoiDaoTao,
+  setCauHoiActive,
+  updateCauHoiDaoTao,
 } from "./dao-tao-bank.actions";
 import {
   listChuaNopKyThi,
   listKetQuaKyThi,
   listKyThiThatAdmin,
   listNhanSuOptions,
+  setKyThiGan,
+  updateKyThiThat,
+  updateMucDoThiThu,
 } from "./dao-tao-admin.actions";
 import { getLanThiForTake, saveTraLoiCau } from "./dao-tao-attempt.actions";
 
@@ -147,6 +158,88 @@ describe("DT-1: saveTraLoiCau kiểm input", () => {
         traLoi: { kind: "true_false_cluster" } as never,
       }),
     ).rejects.toThrow();
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+
+  describe("DT-004: đối chiếu de_snapshot", () => {
+    const CAU = "5f1c2b4a-9d8e-4f7a-8b6c-1a2b3c4d5e6f";
+    function lan() {
+      mocks.from.mockReturnValue(
+        chain({
+          data: {
+            id: LAN_THI_ID,
+            auth_user_id: "user-a",
+            trang_thai: "dang_lam",
+            han_nop_luc: new Date(Date.now() + 600_000).toISOString(),
+            updated_at: "2026-01-01T00:00:00Z",
+            de_snapshot: [{ id: CAU, options: [{ id: "a" }, { id: "b" }] }],
+          },
+        }),
+      );
+    }
+
+    it("cauId không thuộc đề: ok:false, không ghi", async () => {
+      lan();
+      const r = await saveTraLoiCau({
+        lanThiId: LAN_THI_ID,
+        cauId: LAN_THI_ID,
+        traLoi: { kind: "single", optionId: "a" },
+      });
+      expect(r).toEqual({ ok: false, error: "Câu hỏi không thuộc đề thi này." });
+    });
+
+    it("optionId không thuộc câu: ok:false", async () => {
+      lan();
+      const r = await saveTraLoiCau({
+        lanThiId: LAN_THI_ID,
+        cauId: CAU,
+        traLoi: { kind: "multi", optionIds: ["a", "zzz"] },
+      });
+      expect(r).toEqual({ ok: false, error: "Phương án không thuộc câu hỏi này." });
+    });
+  });
+});
+
+describe("Action ghi Thi KSNK qua requireDaoTaoAdmin (chặn khách thống kê còn sót grant)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "guest-1" } } });
+    mocks.verifyPermission.mockResolvedValue(undefined);
+    mocks.verifyAnyPermission.mockResolvedValue(undefined);
+    mocks.from.mockReturnValue(chain({ data: null, error: null }));
+    mocks.scope = { isGuestStatsOnly: true, isAdmin: false };
+  });
+
+  const writes: Array<[string, () => Promise<unknown>]> = [
+    ["updateMucDoThiThu", () => updateMucDoThiThu({ id: LAN_THI_ID, so_cau: 10, thoi_gian_phut: 15 })],
+    ["updateKyThiThat", () => updateKyThiThat(LAN_THI_ID, { ten: "Kỳ thi" })],
+    ["setKyThiGan", () => setKyThiGan({ kyThiId: LAN_THI_ID, khoaPhongIds: [] })],
+    ["importMcqMatrixAction", () => importMcqMatrixAction({ rows: [], dryRun: true })],
+    ["setCauHoiActive", () => setCauHoiActive(LAN_THI_ID, false)],
+    [
+      "updateCauHoiDaoTao",
+      () =>
+        updateCauHoiDaoTao({
+          id: LAN_THI_ID,
+          stem: "?",
+          bloomLevel: 1,
+          optionA: "a",
+          optionB: "b",
+          dapAnRaw: "A",
+          loai: "single",
+        }),
+    ],
+  ];
+
+  it.each(writes)("%s ném lỗi khách và không đụng DB", async (_name, call) => {
+    await expect(call()).rejects.toThrow("Tài khoản khách thống kê không dùng được Thi KSNK.");
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+
+  it("chưa đăng nhập: setCauHoiActive từ chối, không đụng DB", async () => {
+    mocks.scope = { isGuestStatsOnly: false, isAdmin: false };
+    mocks.getUser.mockResolvedValue({ data: { user: null } });
+    await expect(setCauHoiActive(LAN_THI_ID, false)).rejects.toThrow("Bạn chưa đăng nhập.");
     expect(mocks.from).not.toHaveBeenCalled();
   });
 });

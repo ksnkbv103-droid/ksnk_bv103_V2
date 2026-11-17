@@ -22,7 +22,7 @@ export function ImportExportHint({ className, disableSyncFull }: HintProps) {
     <ol
       className={
         className ??
-        "list-decimal list-inside space-y-0.5 text-[11px] leading-relaxed text-slate-500"
+        "list-decimal list-inside space-y-0.5 text-xs leading-relaxed text-slate-500"
       }
     >
       <li>

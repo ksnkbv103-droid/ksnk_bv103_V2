@@ -77,14 +77,14 @@ export default function BaoTriStartModal({
               <button
                 type="button"
                 onClick={() => onLoaiPhieu("DINH_KY")}
-                className={`flex-1 rounded-lg border px-3 py-2 text-[11px] font-semibold ${loaiPhieu === "DINH_KY" ? "border-[var(--primary)] bg-emerald-50 text-[var(--primary)]" : "border-slate-200 text-slate-600"}`}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${loaiPhieu === "DINH_KY" ? "border-[var(--primary)] bg-emerald-50 text-[var(--primary)]" : "border-slate-200 text-slate-600"}`}
               >
                 Bảo dưỡng định kỳ
               </button>
               <button
                 type="button"
                 onClick={() => onLoaiPhieu("SUA_CHUA")}
-                className={`flex-1 rounded-lg border px-3 py-2 text-[11px] font-semibold ${loaiPhieu === "SUA_CHUA" ? "border-red-300 bg-red-50 text-red-700" : "border-slate-200 text-slate-600"}`}
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${loaiPhieu === "SUA_CHUA" ? "border-red-300 bg-red-50 text-red-700" : "border-slate-200 text-slate-600"}`}
               >
                 Sửa chữa
               </button>
@@ -101,7 +101,7 @@ export default function BaoTriStartModal({
                 onCameraScan={applyScan}
               />
               {maMayHoacQr ? (
-                <p className="mt-1 font-mono text-[11px] text-slate-500">Đã nhận: {maMayHoacQr}</p>
+                <p className="mt-1 font-mono text-xs text-slate-500">Đã nhận: {maMayHoacQr}</p>
               ) : null}
             </div>
           </div>

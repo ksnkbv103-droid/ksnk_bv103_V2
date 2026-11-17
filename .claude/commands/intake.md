@@ -11,6 +11,10 @@ Chạy lệnh này **đầu tiên** cho task không trivial. **Không sửa code
 
 > **PO / không rành code:** dùng [`/intake-nv`](intake-nv.md) — mô tả bằng ngôn ngữ nghiệp vụ.
 
+## Bước 0 — cổng module
+
+Chạy `npm run module:gate -- <module>`. Exit 1 hoặc trạng thái không cho phép loại việc này → dừng, báo PO. Module mới chưa có `docs/modules/<m>/van-de-nguoi-dung.md` → tạo từ trang `giam-sat` (làm mẫu) trước khi lập intake.
+
 ## Yêu cầu
 
 Điền (hoặc hỏi user nếu thiếu) các mục sau:

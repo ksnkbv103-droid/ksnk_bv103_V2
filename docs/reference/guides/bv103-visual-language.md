@@ -4,7 +4,7 @@ Ngôn ngữ giao diện thống nhất — MIS bệnh viện: trang trọng, đ�
 
 ## Chuỗi áp dụng (hook chỉ đọc class — không set font runtime)
 
-1. **Màu / 5 vai trò chữ CSS** → `src/app/globals.css` (`:root` `--bv103-type-*`, `.bv103-type-title|section|body|label|kpi|note`)
+1. **Màu / 5 vai trò chữ CSS** → `src/app/globals.css` (`:root` `--bv103-type-*`, `.bv103-type-title|section|body|label|chi-so|note`)
 2. **Typography + nhịp trang** → `src/lib/bv103-design-tokens.ts` (`bv103DesignTokens` chỉ alias class CSS)
 3. **Control / panel / nút** → `src/lib/bv103-layout-chrome.ts`
 4. **Panel + form surface (L3 chung)** → `src/lib/bv103-panel-chrome.ts` (`bv103PanelChrome`)
@@ -19,21 +19,21 @@ Ngôn ngữ giao diện thống nhất — MIS bệnh viện: trang trọng, đ�
 | **L0** `globals.css` | `--radius-*`, `--surface-*`, `--primary` | Sửa từng file khi đổi bo góc |
 | **L1** `bv103-design-tokens` | 6 cấp typography + `tableCell*` | Hardcode `text-sm font-black` |
 | **L2** `bv103-layout-chrome` | Input, panel, nút primary/secondary | Inline `rounded-xl` lẻ tẻ |
-| **L3** `bv103-panel-chrome` | List/panel/form: `panelTitle`, `kpiValue`, `innerTable*` | Mỗi panel tự định nghĩa KPI |
+| **L3** `bv103-panel-chrome` | List/panel/form: `panelTitle`, `chiSoValue`, `innerTable*` | Mỗi panel tự định nghĩa chỉ số |
 | **L3 domain** | Module chrome (bảng dưới) | Header `"MÃ / TÊN"` trong Column |
 | **L4** Component import chrome | `className={UI.cellBody}` | `uppercase` trên paragraph dài |
 
 **Quy tắc viết hoa:** IN HOA chỉ ở **điều hướng** (`navGroupLabel`) và **nút lựa chọn touch** (`choiceBtn`, `btnTouch`, segment Đạt/Không). Toolbar + header bảng + tiêu đề panel + nội dung = chữ thường.
 
-**Quy tắc đậm:** `font-semibold` tiêu đề dòng; `font-medium` nội dung; `font-black` chỉ số KPI (`statValue` / `kpiValue`) và nút touch workstation (CSSD/NKBV).
+**Quy tắc đậm:** `font-semibold` tiêu đề dòng; `font-medium` nội dung; `font-black` chỉ số (`statValue` / `chiSoValue`) và nút touch workstation (CSSD/NKBV).
 
-**Ops density:** chọn loại = chip ngang; danh sách máy/danh mục = bảng + QR thumb; KPI list = strip 1 hàng; CTA = `btnPrimary`/`btnSecondary`/`btnPrimaryBlock`. Chi tiết bảng: [`page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) §8.
+**Ops density:** chọn loại = chip ngang; danh sách máy/danh mục = bảng + QR thumb; chỉ số list = strip 1 hàng; CTA = `btnPrimary`/`btnSecondary`/`btnPrimaryBlock`. Chi tiết bảng: [`page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) §8.
 
 ### Module chrome (L3 domain)
 
 | Domain | File |
 |--------|------|
-| Quản trị MDM | `quan-tri-form-chrome.ts`, `quan-tri-table-chrome.ts` |
+| Form/bảng danh mục (dùng chung) | `src/lib/master-data-form-chrome.ts`, `src/lib/master-data-table-chrome.ts`, `src/components/shared/QuanTriFormDialogShell.tsx` |
 | CSSD | `cssd-ui-chrome.ts` (`CSSD_UI_PANEL_CHROME`, `CSSD_UI_CELL_*`) |
 | GSC (+ VST history) | `gsc-form-chrome.ts`, `gsc-table-chrome.ts` |
 | NKBV | `nkbv-form-chrome.ts` |
@@ -52,7 +52,7 @@ Mọi `*Panel*`, `*Form*`, `*Modal*` **bắt buộc** import chrome (`npm run pa
 | `bv103-type-section` | Thường | 600 | slate-800 | Tiêu đề nhóm form |
 | `bv103-type-body` | Thường | 500 | `--text-body` | Nội dung, ô bảng |
 | `bv103-type-label` | Thường | 500 | `--text-muted` | Nhãn, header cột |
-| `bv103-type-kpi` | Tabular | 600 | `--text-title` | Số liệu |
+| `bv103-type-chi-so` | Tabular | 600 | `--text-title` | Số liệu |
 | `bv103-type-note` | Nghiêng | 400 | slate-400 | Ghi chú phụ — **italic duy nhất** |
 
 ## Màu semantic

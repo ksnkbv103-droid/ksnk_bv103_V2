@@ -122,6 +122,57 @@ export const updateKyThiPatchSchema = kyThiInputSchema.partial().extend({
   trang_thai: z.enum(["draft", "published", "closed"], { error: "Trạng thái không hợp lệ." }).optional(),
 });
 
+export const setKyThiGanSchema = z.object({
+  kyThiId: daoTaoIdSchema,
+  khoaPhongIds: z.array(daoTaoIdSchema, { error: "Danh sách khoa không hợp lệ." }).max(500, { error: "Tối đa 500 khoa." }).optional(),
+  nhanSuIds: z.array(daoTaoIdSchema, { error: "Danh sách nhân sự không hợp lệ." }).max(5000, { error: "Tối đa 5000 nhân sự." }).optional(),
+  hanChungChiThang: z
+    .number({ error: "Hạn chứng chỉ phải là số." })
+    .int({ error: "Hạn chứng chỉ phải là số tháng nguyên." })
+    .min(1, { error: "Hạn chứng chỉ từ 1 đến 60 tháng." })
+    .max(60, { error: "Hạn chứng chỉ từ 1 đến 60 tháng." })
+    .optional(),
+});
+
+export const setCauHoiActiveSchema = z.object({
+  cauHoiId: daoTaoIdSchema,
+  isActive: z.boolean({ error: "Trạng thái kích hoạt không hợp lệ." }),
+});
+
+const optText = (max: number, msg: string) => z.string({ error: msg }).max(max, { error: msg }).optional();
+
+export const updateCauHoiDaoTaoSchema = z.object({
+  id: daoTaoIdSchema,
+  stem: z
+    .string({ error: "Vui lòng nhập nội dung câu hỏi." })
+    .trim()
+    .min(1, { error: "Vui lòng nhập nội dung câu hỏi." })
+    .max(5000, { error: "Nội dung câu hỏi tối đa 5000 ký tự." }),
+  bloomLevel: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)], {
+    error: "Mức Bloom từ 1 đến 5.",
+  }),
+  giaiThich: optText(5000, "Giải thích tối đa 5000 ký tự."),
+  optionA: z.string({ error: "Phương án A không hợp lệ." }).max(2000, { error: "Phương án tối đa 2000 ký tự." }),
+  optionB: z.string({ error: "Phương án B không hợp lệ." }).max(2000, { error: "Phương án tối đa 2000 ký tự." }),
+  optionC: optText(2000, "Phương án tối đa 2000 ký tự."),
+  optionD: optText(2000, "Phương án tối đa 2000 ký tự."),
+  dapAnRaw: z.string({ error: "Đáp án không hợp lệ." }).max(200, { error: "Đáp án tối đa 200 ký tự." }),
+  loai: z.enum(["single", "multi", "true_false_cluster", "order"], { error: "Loại câu hỏi không hợp lệ." }),
+});
+
+export const importMcqMatrixSchema = z.object({
+  rows: z
+    .array(z.array(z.unknown(), { error: "Dòng import không hợp lệ." }).max(100, { error: "Dòng import tối đa 100 cột." }), {
+      error: "Dữ liệu import không hợp lệ.",
+    })
+    .max(20000, { error: "Import tối đa 20000 dòng." }),
+  chuDeMa: z.string().trim().min(1, { error: "Mã chủ đề không hợp lệ." }).max(80, { error: "Mã chủ đề quá dài." }).optional(),
+  chuDeTen: z.string().trim().min(1, { error: "Tên chủ đề không hợp lệ." }).max(200, { error: "Tên chủ đề quá dài." }).optional(),
+  dryRun: z.boolean({ error: "dryRun không hợp lệ." }).optional(),
+  softDeleteMissing: z.boolean({ error: "softDeleteMissing không hợp lệ." }).optional(),
+  replaceActive: z.boolean({ error: "replaceActive không hợp lệ." }).optional(),
+});
+
 /** Parse và ném lỗi tiếng Việt (thông điệp đầu tiên) — dùng trong server action. */
 export function parseDaoTaoInput<T>(schema: z.ZodType<T>, input: unknown): T {
   const r = schema.safeParse(input);

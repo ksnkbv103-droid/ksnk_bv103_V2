@@ -123,7 +123,8 @@ export function useNkbvBaWorkspaceSessionOps({
       const sameIds =
         sameLen && prev.every((s, i) => s.id === next[i]?.id && s.panel === next[i]?.panel);
       if (sameIds) return prev;
-      persistSessions(next, analysisMode);
+      // Server action trong updater chạy lúc render → cảnh báo "Cannot update Router"; dời ra microtask.
+      queueMicrotask(() => persistSessions(next, analysisMode));
       return next;
     });
     setOpenSessionId((cur) => (cur && next.some((s) => s.id === cur) ? cur : null));

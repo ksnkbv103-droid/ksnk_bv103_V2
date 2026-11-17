@@ -14,11 +14,10 @@ describe("IA menu copy lock — Vận hành / Tra cứu / Sửa danh mục", () 
     expect(traCuu?.items.map((i) => i.href)).toEqual(["/cssd-dung-cu", "/cssd-thiet-bi", "/cssd-hoa-chat"]);
   });
 
-  it("admin: nhóm «Quản trị» → /quan-tri-he-thong (nhãn SSOT = UI)", () => {
+  it("admin: nhóm «Quản trị» → Tổ chức (AR-8e) + /quan-tri-he-thong (nhãn SSOT = UI)", () => {
     expect(SIDEBAR_ADMIN_GROUPS).toHaveLength(1);
     expect(SIDEBAR_ADMIN_GROUPS[0]?.label).toBe("Quản trị");
-    expect(SIDEBAR_ADMIN_GROUPS[0]?.items).toHaveLength(1);
-    expect(SIDEBAR_ADMIN_GROUPS[0]?.items[0]?.href).toBe("/quan-tri-he-thong");
-    expect(SIDEBAR_ADMIN_GROUPS[0]?.items[0]?.name).toBe("Quản trị hệ thống");
+    expect(SIDEBAR_ADMIN_GROUPS[0]?.items.map((i) => i.href)).toEqual(["/to-chuc", "/quan-tri-he-thong"]);
+    expect(SIDEBAR_ADMIN_GROUPS[0]?.items.map((i) => i.name)).toEqual(["Tổ chức", "Quản trị hệ thống"]);
   });
 });

@@ -3,12 +3,12 @@
 import { z } from "zod";
 import {
   getGscStrategicAnalytics,
-  getGscStrategicKpisOnly,
+  getGscStrategicChiSoOnly,
 } from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
 import { resolveTuanThuBangKiemMas } from "@/modules/giam-sat-chung/lib/resolve-tuan-thu-bang-kiem-mas";
 import {
   getVstStrategicAnalytics,
-  getVstStrategicKpisOnly,
+  getVstStrategicChiSoOnly,
 } from "@/modules/giam-sat-vst/actions/vst-strategic-analytics.actions";
 import { getGiamSatNkbvDashboardPayload } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
 import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/contexts/reporting/analytics";
@@ -282,7 +282,7 @@ export async function getBaoCaoTongHopAnalytics(
     );
   }
 
-  // Kỳ trước cùng độ dài — chỉ KPI (soft-fail).
+  // Kỳ trước cùng độ dài — chỉ chỉ số (soft-fail).
   let kyTruoc:
     | {
         tu_ngay: string;
@@ -307,16 +307,16 @@ export async function getBaoCaoTongHopAnalytics(
       (async () => {
         const [priorVst, priorGsc] = await Promise.all([
           shouldFetchSource(chuyenDe, "VST")
-            ? getVstStrategicKpisOnly(priorVstInput)
+            ? getVstStrategicChiSoOnly(priorVstInput)
             : Promise.resolve(null),
           shouldFetchSource(chuyenDe, "GSC") && !errors.gsc
-            ? getGscStrategicKpisOnly(priorGscInput, gscOpts)
+            ? getGscStrategicChiSoOnly(priorGscInput, gscOpts)
             : Promise.resolve(null),
         ]);
         const priorVstPct =
-          priorVst && priorVst.success ? computeTyLeVst(priorVst.data.kpis) : null;
+          priorVst && priorVst.success ? computeTyLeVst(priorVst.data.chi_so) : null;
         const priorGscPct =
-          priorGsc && priorGsc.success ? computeTyLeGsc(priorGsc.data.kpis) : null;
+          priorGsc && priorGsc.success ? computeTyLeGsc(priorGsc.data.chi_so) : null;
         if (priorVstPct != null || priorGscPct != null) {
           kyTruoc = {
             tu_ngay: priorBounds.tu_ngay,

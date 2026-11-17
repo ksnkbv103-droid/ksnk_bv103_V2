@@ -100,7 +100,7 @@ export default function ThiThuPage() {
             type="button"
             onClick={() => setSelectedRole("ALL")}
             className={cn(
-              "rounded px-2 py-0.5 text-[11px] font-medium transition",
+              "rounded px-2 py-0.5 text-xs font-medium transition",
               selectedRole === "ALL"
                 ? "bg-blue-600 text-white font-semibold"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200",
@@ -130,16 +130,16 @@ export default function ThiThuPage() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                       {r.badge}
                     </span>
-                    <span className="rounded bg-slate-100 px-1 py-0.2 text-[11px] font-medium text-slate-500">
+                    <span className="rounded bg-slate-100 px-1 py-0.2 text-xs font-medium text-slate-500">
                       {r.defaultQuestions}c / {r.durationMinutes}p
                     </span>
                   </div>
                   <p className="mt-1 text-xs font-bold leading-snug">{r.label}</p>
                 </div>
-                <p className="mt-2 text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                <p className="mt-2 text-xs text-slate-500 line-clamp-2 leading-relaxed">
                   {r.description}
                 </p>
               </button>
@@ -157,7 +157,7 @@ export default function ThiThuPage() {
             <p className="mt-1 text-slate-700 leading-relaxed font-normal">
               {currentRolePreset.scopeSummary}
             </p>
-            <div className="mt-2 flex items-center gap-2 text-[11px] text-blue-800 font-medium">
+            <div className="mt-2 flex items-center gap-2 text-xs text-blue-800 font-medium">
               <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
               <span>
                 Cấu trúc đề thi định chuẩn: <strong>{currentRolePreset.defaultQuestions} câu trắc nghiệm</strong> trong <strong>{currentRolePreset.durationMinutes} phút</strong>.
@@ -212,7 +212,7 @@ export default function ThiThuPage() {
                 )}
               >
                 <span className="text-xs font-bold text-slate-800">{m.ten}</span>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
+                <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
                   <span className="inline-flex items-center gap-1">
                     <Layers className="h-3 w-3" />
                     {m.so_cau} câu

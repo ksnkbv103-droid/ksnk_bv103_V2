@@ -87,7 +87,7 @@ const qlcvDetailChrome = {
   metaTile:
     "rounded-[var(--radius-shell)] border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5",
   dashedEmpty: "rounded-[var(--radius-shell)] border border-dashed border-slate-200/90 bg-slate-50/50 px-3 py-6 text-center",
-  sectionLabel: "text-[11px] font-semibold tracking-wide text-slate-500",
+  sectionLabel: "text-xs font-semibold tracking-wide text-slate-500",
   sectionHeading: "text-sm font-semibold tracking-wide text-slate-800",
   btnOutline:
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-slate-200/90 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50",
@@ -339,11 +339,11 @@ export function CongViecDetail({ id, onClose, onRefreshList, onCloneTask }: Prop
               {statusDisplay}
             </span>
             {isQlcvBoardOverdue(data) ? (
-              <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-800">
+              <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800">
                 Quá hạn
               </span>
             ) : null}
-            <span className="text-[11px] font-medium tracking-wide text-slate-400">
+            <span className="text-xs font-medium tracking-wide text-slate-400">
               #{data.id?.slice(0, 8)}
             </span>
           </div>

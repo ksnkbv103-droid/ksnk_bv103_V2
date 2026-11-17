@@ -32,33 +32,26 @@ export const NAV_GATE_DAO_TAO: NavGate = { id: "dao-tao", moduleKeys: ["DAO_TAO"
 export const NAV_GATE_CSSD_QUY_TRINH: NavGate = { id: "cssd-qt", moduleKeys: ["CSSD_WORKFLOW", "CSSD_ME_TIET_KHUAN", "CSSD_REPORT"] };
 export const NAV_GATE_CSSD_SU_CO: NavGate = { id: "cssd-su-co", moduleKeys: ["BAO_SU_CO"] };
 export const NAV_GATE_CSSD_DUNG_CU: NavGate = { id: "cssd-dung-cu", moduleKeys: ["CSSD_KHO_DUNGCU"] };
+/** Màn Phê duyệt chủ nhiệm khoa: thấy menu khi có VIEW một danh mục dụng cụ; trang tự kiểm quyền approve. */
+export const NAV_GATE_PHE_DUYET: NavGate = { id: "phe-duyet", moduleKeys: ["LOAI_DC", "BO_DC", "DC_LE"] };
 export const NAV_GATE_CSSD_THIET_BI: NavGate = { id: "cssd-thiet-bi", moduleKeys: ["THIET_BI"] };
 export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys: ["KSNK_KHO_HOACHAT"] };
 export const NAV_GATE_HAU_CAN_MT: NavGate = { id: "hau-can-mt", moduleKeys: ["HAU_CAN_MOI_TRUONG"] };
 
 
 /**
- * Cửa vào khu Quản trị. Khớp trang dedicated: mã chi tiết (KHOA_PHONG, BANG_KIEM, …)
- * cũng mở menu, không chỉ DANH_MUC / PHAN_QUYEN / NHAN_SU.
+ * Cửa vào khu Quản trị (AR-8g): tài khoản/phân quyền (PHAN_QUYEN); tab Hệ thống chỉ ADMIN (AR-8h).
+ * Danh mục nghiệp vụ mở từ module sở hữu (Tổ chức, GSC, CSSD, NKBV), không qua hub này.
  */
 export const QUAN_TRI_ENTRY_MODULE_KEYS = [
-  "DANH_MUC",
-  "DANH_MUC_ORG",
-  "DANH_MUC_GSTT",
-  "DANH_MUC_CSSD_LOOKUP",
   "PHAN_QUYEN",
-  "NHAN_SU",
-  "KHOA_PHONG",
-  "BANG_KIEM",
-  "LOAI_DC",
-  "BO_DC",
-  "DC_LE",
-  "THIET_BI",
-  "HOA_CHAT",
-  "GIAM_SAT_NKBV",
 ] as const;
 
 export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: QUAN_TRI_ENTRY_MODULE_KEYS };
+
+/** AR-8e (PO 2026-11-11): module Tổ chức — khoa phòng, nhân sự, danh mục tổ chức. */
+export const TO_CHUC_MODULE_KEYS = ["KHOA_PHONG", "NHAN_SU", "DANH_MUC_ORG"] as const;
+export const NAV_GATE_TO_CHUC: NavGate = { id: "to-chuc", moduleKeys: TO_CHUC_MODULE_KEYS };
 
 /** Hub `/giam-sat` + lịch sử: hiện nếu có VIEW ít nhất một phân hệ giám sát. */
 export const NAV_GATE_GIAM_SAT_HUB: NavGate = {

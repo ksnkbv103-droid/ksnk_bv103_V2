@@ -238,20 +238,20 @@ export default function InstrumentReplenishDualTable({
   return (
     <>
       {hideHint ? null : (
-        <p className="mb-2 text-[11px] text-slate-500">
+        <p className="mb-2 text-xs text-slate-500">
           Mỗi bên cuộn riêng. Số chuyển không vượt tồn hiện có. → kho vào bộ, ← bộ về kho.
         </p>
       )}
       {gateError ? <p className="mb-2 text-[12px] text-amber-800">{gateError}</p> : null}
       <div className="mb-2 flex flex-wrap items-center gap-3">
-        <label className="inline-flex items-center gap-1.5 text-[11px] text-slate-600">
+        <label className="inline-flex items-center gap-1.5 text-xs text-slate-600">
           <input type="checkbox" checked={onlyLech} onChange={(e) => setOnlyLech(e.target.checked)} />
           Chỉ lệch
         </label>
         <button
           type="button"
           disabled={!destRows.length}
-          className="text-[11px] font-semibold text-[var(--primary)] disabled:text-slate-300"
+          className="text-xs font-semibold text-[var(--primary)] disabled:text-slate-300"
           onClick={() => setDelta(fillLechVsChuanDelta(destRows, loaiOptions))}
         >
           Điền thiếu/thừa
@@ -265,11 +265,11 @@ export default function InstrumentReplenishDualTable({
               <MovePaneToolbar
                 kind={khoOnLeft ? leftKind : rightKind}
                 onKind={khoOnLeft ? onLeftKind : onRightKind}
-                extra={<p className="text-[11px] text-slate-500">Kho lẻ dự phòng</p>}
+                extra={<p className="text-xs text-slate-500">Kho lẻ dự phòng</p>}
               />
             }
           >
-            <table className="w-full text-left text-[11px]">
+            <table className="w-full text-left text-xs">
               <thead className={L.theadRow}>
                 <tr>
                   <th className={L.th}>Loại</th>
@@ -305,7 +305,7 @@ export default function InstrumentReplenishDualTable({
               </tbody>
             </table>
             {khoRows.length === 0 ? (
-              <p className="px-2.5 py-3 text-[11px] text-slate-500">Chưa có loại kho / bộ để chuyển.</p>
+              <p className="px-2.5 py-3 text-xs text-slate-500">Chưa có loại kho / bộ để chuyển.</p>
             ) : null}
           </DualPaneScroll>
 
@@ -338,7 +338,7 @@ export default function InstrumentReplenishDualTable({
               />
             }
           >
-            <table className="w-full text-left text-[11px]">
+            <table className="w-full text-left text-xs">
               <thead className={L.theadRow}>
                 <tr>
                   <th className={L.th}>Loại</th>
@@ -378,7 +378,7 @@ export default function InstrumentReplenishDualTable({
               </tbody>
             </table>
             {!destMa.trim() ? (
-              <p className="px-2.5 py-3 text-[11px] text-slate-500">Chọn bộ để chuyển với kho lẻ.</p>
+              <p className="px-2.5 py-3 text-xs text-slate-500">Chọn bộ để chuyển với kho lẻ.</p>
             ) : null}
           </DualPaneScroll>
       </div>

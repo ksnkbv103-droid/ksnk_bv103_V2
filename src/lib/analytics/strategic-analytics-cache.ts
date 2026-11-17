@@ -52,13 +52,14 @@ function fetchCachedVstStrategicRpcRaw(rpcArgs: RpcArgs) {
       } as VstStrategicPayload;
       return { success: true as const, data: normalizeVstStrategicPercents(merged) };
     },
-    [VST_STRATEGIC_CACHE_TAG, key],
+    // "v2": payload đổi khóa `chi_so`; không phục vụ bản cache cũ sau khi triển khai.
+    [VST_STRATEGIC_CACHE_TAG, "v2", key],
     { revalidate: REVALIDATE_SEC, tags: [VST_STRATEGIC_CACHE_TAG] },
   )();
 }
 
 /**
- * KPI/trend/matrix theo lens (`p_hinh_thuc_ids`); đối soát (`gap_analysis`) luôn đọc cả 2 lens.
+ * Chỉ số/trend/matrix theo lens (`p_hinh_thuc_ids`); đối soát (`gap_analysis`) luôn đọc cả 2 lens.
  * Cache key gồm lens (qua JSON rpcArgs) — PERF-2 TTL 90s.
  */
 export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
@@ -73,10 +74,10 @@ export async function getCachedVstStrategicRpc(rpcArgs: RpcArgs) {
 }
 
 /**
- * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
+ * Chỉ chỉ số kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
  * Tag invalidate giữ VST_STRATEGIC_CACHE_TAG; key khác cặp full.
  */
-export function getCachedVstStrategicKpisOnly(rpcArgs: RpcArgs) {
+export function getCachedVstStrategicChiSoOnly(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
@@ -88,7 +89,7 @@ export function getCachedVstStrategicKpisOnly(rpcArgs: RpcArgs) {
         data: normalizeVstStrategicPercents(data as VstStrategicPayload),
       };
     },
-    [VST_STRATEGIC_CACHE_TAG, "kpis-only", key],
+    [VST_STRATEGIC_CACHE_TAG, "chi-so-only", key],
     { revalidate: REVALIDATE_SEC, tags: [VST_STRATEGIC_CACHE_TAG] },
   )();
 }
@@ -112,12 +113,13 @@ function fetchCachedGscStrategicRpcRaw(rpcArgs: RpcArgs) {
       } as GscStrategicPayload;
       return { success: true as const, data: normalizeGscStrategicPercents(merged) };
     },
-    [GSC_STRATEGIC_CACHE_TAG, key],
+    // "v2": payload đổi khóa `chi_so`; không phục vụ bản cache cũ sau khi triển khai.
+    [GSC_STRATEGIC_CACHE_TAG, "v2", key],
     { revalidate: REVALIDATE_SEC, tags: [GSC_STRATEGIC_CACHE_TAG] },
   )();
 }
 
-/** KPI/trend/matrix theo lens; `gap_analysis` giữ cả 2 lens. Cache key gồm lens. */
+/** chỉ số/trend/matrix theo lens; `gap_analysis` giữ cả 2 lens. Cache key gồm lens. */
 export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
   const main = await fetchCachedGscStrategicRpcRaw(rpcArgs);
   if (!main.success || !hasHinhThucLensFilter(rpcArgs)) return main;
@@ -130,10 +132,10 @@ export async function getCachedGscStrategicRpc(rpcArgs: RpcArgs) {
 }
 
 /**
- * Chỉ KPI kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
+ * Chỉ chỉ số kỳ trước (BCTH): 1× strategic_impl — không matrices, không lượt gap.
  * Tag invalidate giữ GSC_STRATEGIC_CACHE_TAG; key khác cặp full.
  */
-export function getCachedGscStrategicKpisOnly(rpcArgs: RpcArgs) {
+export function getCachedGscStrategicChiSoOnly(rpcArgs: RpcArgs) {
   const key = JSON.stringify(rpcArgs);
   return unstable_cache(
     async () => {
@@ -145,7 +147,7 @@ export function getCachedGscStrategicKpisOnly(rpcArgs: RpcArgs) {
         data: normalizeGscStrategicPercents(data as GscStrategicPayload),
       };
     },
-    [GSC_STRATEGIC_CACHE_TAG, "kpis-only", key],
+    [GSC_STRATEGIC_CACHE_TAG, "chi-so-only", key],
     { revalidate: REVALIDATE_SEC, tags: [GSC_STRATEGIC_CACHE_TAG] },
   )();
 }

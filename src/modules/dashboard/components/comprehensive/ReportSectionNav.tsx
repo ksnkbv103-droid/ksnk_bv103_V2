@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export type ReportSectionId =
-  | "bc-kpi"
+  | "bc-chi-so"
   | "bc-trend"
   | "bc-vst"
   | "bc-gsc"
@@ -19,7 +19,7 @@ export type ReportSectionId =
 
 /** Mục chính — nhìn nhanh: số + VST + GSC + nhận xét. Xu hướng/NKBV/chi tiết → Thêm. */
 const PRIMARY_SECTIONS: { id: ReportSectionId; label: string; mobileLabel?: string }[] = [
-  { id: "bc-kpi", label: "Tổng quan" },
+  { id: "bc-chi-so", label: "Tổng quan" },
   { id: "bc-vst", label: "Vệ sinh tay" },
   { id: "bc-gsc", label: "Giám sát chung" },
   { id: "bc-phan-iii", label: "Phần III", mobileLabel: "P.III" },

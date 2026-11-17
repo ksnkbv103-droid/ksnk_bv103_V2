@@ -28,3 +28,20 @@ export function nkbvKhoaVisible(
   if (r.kind === "none") return false;
   return khoaIds.some((k) => String(k ?? "").trim() === r.khoaId);
 }
+
+export const NKBV_KHOA_REQUIRED_ERROR = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";
+
+export const NKBV_HOI_DONG_IDENTITY_DENIED =
+  "Hội đồng KSNK chỉ được xem số liệu NKBV tổng hợp (ẩn danh), không xem danh sách người bệnh có danh tính.";
+
+/**
+ * NKBV-041 (PO 2026-11-17, phiếu K5): Hội đồng KSNK thuần ĐƯỢC xem danh sách có danh tính (họ tên, mã bệnh án,
+ * mã bệnh nhân) → không còn ai bị chặn. Thay giả định NKBV-032 «Hội đồng ≈ BGĐ, M03 cột «Xa» = ẩn danh».
+ * Hàm giữ lại (luôn false) vì `identityDenied` còn nằm trong action và server; dọn hết plumbing đó là việc riêng (SO_NO).
+ * Phạm vi khoa (`resolveNkbvKhoaRestriction`) không đổi: Hội đồng vẫn toàn viện.
+ */
+export function isNkbvHoiDongOnly(
+  _scope: Pick<ActorKsnkScope, "isAdmin" | "isNhanVienKsnk" | "isMangLuoiKsnk" | "roles">,
+): boolean {
+  return false;
+}

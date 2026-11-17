@@ -38,14 +38,14 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
         </h2>
         <Link
           href={href}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-white"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-control)] sm:min-h-9 border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-white"
         >
           Báo cáo CSSD
           <ExternalLink size={13} aria-hidden />
         </Link>
       </div>
       {payload.filters.khoa_ids?.length ? (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-xs text-slate-500">
           Bộ lọc khoa không đổi phụ lục này — số máy và sản lượng vẫn toàn viện.
         </p>
       ) : null}

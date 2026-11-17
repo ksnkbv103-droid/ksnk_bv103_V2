@@ -82,8 +82,8 @@ export const MUC_DO_LABELS: Record<BkMucDo, string> = {
 };
 
 export const MUC_DO_DESCRIPTIONS: Record<BkMucDo, string> = {
-  BAT_BUOC: "Tính vào KPI bao phủ — khoa trong phạm vi thiếu sẽ bị ghi nhận «Thiếu tự giám sát».",
-  KHUYEN_NGH: "Khuyến nghị thực hiện — không phạt thiếu trên KPI bắt buộc.",
+  BAT_BUOC: "Tính vào chỉ số bao phủ — khoa trong phạm vi thiếu sẽ bị ghi nhận «Thiếu tự giám sát».",
+  KHUYEN_NGH: "Khuyến nghị thực hiện — không phạt thiếu trên chỉ số bắt buộc.",
   CHI_KSNK: "Chỉ áp dụng nội bộ Khoa KSNK — không đưa vào mẫu số tự giám sát lâm sàng.",
 };
 
@@ -216,7 +216,7 @@ function parseIsoDate(iso: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** Số kỳ tần suất trong khoảng ngày (dùng đánh giá nghĩa vụ phiên, không KPI analytics). */
+/** Số kỳ tần suất trong khoảng ngày (dùng đánh giá nghĩa vụ phiên, không chỉ số analytics). */
 export function countKyTanSuatTrongKhoang(
   don_vi: BkTanSuatDonVi,
   tuNgay: string,
@@ -381,7 +381,7 @@ export function describeNghiaVuChoKhoa(
   if (!apDung) {
     huongDan.push("Không thuộc phạm vi áp dụng của bảng kiểm này.");
   } else if (ap.muc_do === "KHUYEN_NGH") {
-    huongDan.push("Khuyến nghị thực hiện — không tính thiếu trên KPI bắt buộc.");
+    huongDan.push("Khuyến nghị thực hiện — không tính thiếu trên chỉ số bắt buộc.");
     if (ap.bat_buoc.tu_giam_sat) {
       huongDan.push("Mạng lưới KSNK khoa: có thể tự giám sát (TGS) khi phù hợp.");
     }

@@ -4,13 +4,15 @@
  * Kho vi sinh toàn viện — CRUD + chuẩn hóa bệnh phẩm (không điều tra HAI).
  */
 
-import { getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvIdentityScope, getNkbvKhoaRestriction, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
-import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
-import type { NkbvMdroPhenotype } from "../lib/nkbv-mdro";
+import { z } from "zod";
+import { NKBV_VI_SINH_KET_QUA, type NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
+import { NKBV_MDRO_PHENOTYPES, type NkbvMdroPhenotype } from "../lib/nkbv-mdro";
 import {
   isNkbvSpecimenCode,
   type NkbvSpecimenCode,
@@ -104,8 +106,13 @@ export async function listNkbvViSinhStore(params?: {
   limit?: number;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
+  // NKBV-040: HĐ KSNK thuần giữ quyền view nhưng không nhận mã BA, mã BN, họ tên (M03 «Xa»; HĐ ≈ BGĐ là giả định) và không tìm theo tên được.
+  const { restriction, identityDenied } = await getNkbvIdentityScope();
+  if (identityDenied) {
+    return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as NkbvViSinhStoreRow[] };
+  }
   // Kho XN thô không gắn khoa: Mạng lưới xem qua hồ sơ BA theo khoa, không xem kho chung.
-  if ((await getNkbvKhoaRestriction()).kind !== "all") {
+  if (restriction.kind !== "all") {
     return { success: true as const, data: [] as NkbvViSinhStoreRow[] };
   }
   const supabase = await createServerSupabaseUserClient();
@@ -248,9 +255,25 @@ export async function createNkbvViSinhStoreRecord(input: {
   return { success: true as const, data };
 }
 
+const viSinhStorePatchSchema = z.object({
+  loai_benh_pham: z.string().optional(),
+  loai_benh_pham_chuan: z.string().nullable().optional(),
+  khoa_yeu_cau_id: z.string().optional(),
+  tac_nhan: z.string().optional(),
+  so_luong: z.string().nullable().optional(),
+  ket_qua: z.enum(NKBV_VI_SINH_KET_QUA).optional(),
+  is_mdro: z.boolean().optional(),
+  mdro_phenotype: z.enum(NKBV_MDRO_PHENOTYPES).nullable().optional(),
+  ma_benh_an: z.string().optional(),
+  ngay_lay_mau: z
+    .string()
+    .refine((v) => !Number.isNaN(new Date(v).getTime()))
+    .optional(),
+});
+
 export async function updateNkbvViSinhStoreRecord(
   id: string,
-  patch: {
+  rawPatch: {
     loai_benh_pham?: string;
     loai_benh_pham_chuan?: string | null;
     khoa_yeu_cau_id?: string;
@@ -268,6 +291,13 @@ export async function updateNkbvViSinhStoreRecord(
   if (outOfScope) return outOfScope;
   const rowId = String(id || "").trim();
   if (!rowId) return { success: false as const, error: "Thiếu id xét nghiệm" };
+
+  const parsed = viSinhStorePatchSchema.safeParse(rawPatch);
+  if (!parsed.success) {
+    const keys = [...new Set(parsed.error.issues.map((i) => i.path.join(".")))].join(", ");
+    return { success: false as const, error: `Dữ liệu không hợp lệ: ${keys}` };
+  }
+  const patch = parsed.data;
 
   if (patch.is_mdro && !patch.mdro_phenotype) {
     return { success: false as const, error: "Đa kháng cần chọn phenotype" };
@@ -352,7 +382,8 @@ export async function quickToggleNkbvViSinhMdro(input: {
 
 /** Xóa cứng — chặn nếu đã dùng trên phân tích BA. */
 export async function deleteNkbvViSinhStoreRecordHard(id: string) {
-  await verifyPermission("GIAM_SAT_NKBV", "edit");
+  // NKBV-006 (PO 2026-11-12): xóa cứng đòi quyền delete, khớp RLS DELETE.
+  await verifyPermission("GIAM_SAT_NKBV", "delete");
   const outOfScope = await denyIfStoreOutOfScope();
   if (outOfScope) return outOfScope;
   const rowId = String(id || "").trim();

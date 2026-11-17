@@ -33,3 +33,11 @@ export function trangThaiMayLabel(st: string | null | undefined): string {
   return s || "—";
 }
 
+
+/** PO 2026-11-10: chỉ Admin hoặc Chủ nhiệm khoa KSNK được mở khóa máy `HOLD_QC` (kèm lý do). */
+export const CSSD_HOLD_QC_UNLOCK_ROLES = ["ADMIN", "CHU_NHIEM_KHOA"] as const;
+
+export function canUnlockHoldQcMachine(roles: readonly string[]): boolean {
+  const set = new Set(roles.map((r) => String(r || "").trim().toUpperCase()).filter(Boolean));
+  return CSSD_HOLD_QC_UNLOCK_ROLES.some((r) => set.has(r));
+}

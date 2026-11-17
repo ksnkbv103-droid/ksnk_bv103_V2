@@ -8,7 +8,7 @@ paths:
 
 # Dashboard & Analytics — ngữ cảnh spec
 
-Trước khi sửa KPI, biểu đồ, báo cáo tổng hợp, deep link, in ấn:
+Trước khi sửa chỉ số, biểu đồ, báo cáo tổng hợp, deep link, in ấn:
 
 1. [`metric-dictionary.md`](../../docs/modules/dashboard/metric-dictionary.md) — SSOT công thức; đổi công thức → `Spec change`
 2. [`bao-cao-tong-hop.md`](../../docs/modules/dashboard/bao-cao-tong-hop.md) — thứ tự màn hình, in, comparable TGS/KSNK
@@ -33,7 +33,7 @@ Trước khi sửa KPI, biểu đồ, báo cáo tổng hợp, deep link, in ấn
 - **Nguồn:** RPC strategic VST/GSC — **không** đọc `*_summary` trực tiếp.
 - **Comparable đối soát:** `vol_tgs > 0` và `vol_ksnk > 0`; thiếu một nguồn → bảng loại trừ.
 - **Badge «vs kỳ trước»:** chênh 2 tuần cuối trên trendline tuần — không so kỳ lọc trước.
-- **Đổi công thức KPI** → bắt buộc `Spec change` + cập nhật `metric-dictionary.md`.
+- **Đổi công thức chỉ số** → bắt buộc `Spec change` + cập nhật `metric-dictionary.md`.
 
 ## Đọc bắt buộc
 

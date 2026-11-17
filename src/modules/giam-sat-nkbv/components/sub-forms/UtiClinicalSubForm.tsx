@@ -98,7 +98,7 @@ export default function UtiClinicalSubForm({
             </div>
           </div>
           {form.pathogen_count > 2 ? (
-            <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-[11px] text-red-800">
+            <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-xs text-red-800">
               Tạp nhiễm (&gt;2 chủng) — CDC không chẩn đoán UTI/CAUTI.
             </p>
           ) : null}
@@ -167,7 +167,7 @@ export default function UtiClinicalSubForm({
               Sonde hiện diện đúng ngày sự kiện hoặc ngày trước (DOE−1)
             </label>
             {form.device_placed_date ? (
-              <p className="text-[11px] text-emerald-800">
+              <p className="text-xs text-emerald-800">
                 Sonde {liveDeviceDays ?? form.foley_placed_days} ngày ·{" "}
                 {foleyActive ? "Đủ điều kiện gắn CAUTI (nếu ≥2 ngày)" : "Không gắn CAUTI"}
               </p>
@@ -193,7 +193,7 @@ export default function UtiClinicalSubForm({
               disabled={isMicrobiologyBlocked}
             />
             {foleyActive ? (
-              <p className="text-[11px] text-amber-800">
+              <p className="text-xs text-amber-800">
                 Đang đặt sonde → không nhập tiểu buốt/gấp/rắt (tiêu chuẩn loại trừ).
               </p>
             ) : null}

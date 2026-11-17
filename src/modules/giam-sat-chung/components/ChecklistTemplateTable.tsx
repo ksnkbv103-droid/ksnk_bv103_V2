@@ -60,7 +60,7 @@ export default function ChecklistTemplateTable({
                   <p className="truncate text-sm font-semibold leading-snug text-slate-900 group-hover:text-[var(--primary)]">
                     {t.ten_bk || t.ten_bang_kiem || t.title}
                   </p>
-                  <p className="truncate font-mono text-[11px] font-medium text-slate-500">{t.ma_bk || t.id}</p>
+                  <p className="truncate font-mono text-xs font-medium text-slate-500">{t.ma_bk || t.id}</p>
                 </div>
               </div>
             ),
@@ -70,7 +70,7 @@ export default function ChecklistTemplateTable({
             accessorKey: "loai_bang_kiem",
             sortable: true,
             cell: (t) => (
-              <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500 ring-1 ring-inset ring-slate-900/5">
+              <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500 ring-1 ring-inset ring-slate-900/5">
                 {t.loai_bang_kiem || t.category || "—"}
               </span>
             ),

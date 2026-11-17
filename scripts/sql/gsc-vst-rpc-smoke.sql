@@ -11,8 +11,8 @@ BEGIN
 
   j := public.rpc_dashboard_vst_strategic_analytics(v_tu, v_den, NULL, NULL, NULL, NULL, NULL);
   IF NOT (
-    j ? 'kpis'
-    AND j->'kpis' ? 'ty_le_tuan_thu'
+    j ? 'chi_so'
+    AND j->'chi_so' ? 'ty_le_tuan_thu'
     AND j ? 'matrix_khoa'
     AND j ? 'matrix_nghe'
     AND j ? 'moments'
@@ -29,8 +29,8 @@ BEGIN
 
   j := public.rpc_dashboard_gsc_strategic_analytics(v_tu, v_den, NULL, NULL, NULL, NULL, NULL, NULL);
   IF NOT (
-    j ? 'kpis'
-    AND j->'kpis' ? 'tong_quan_sat'
+    j ? 'chi_so'
+    AND j->'chi_so' ? 'tong_quan_sat'
     AND j ? 'matrix_khoa'
     AND j ? 'gap_analysis'
     AND j ? 'trendline'
@@ -43,7 +43,7 @@ BEGIN
   j := public.rpc_gsc_checklist_detail(v_tu, v_den, 'BM.01.01', NULL, NULL, NULL, NULL, NULL);
   IF NOT (
     j ? 'ma_bk'
-    AND j ? 'kpis'
+    AND j ? 'chi_so'
     AND j ? 'matrix_criterion'
     AND j ? 'criterion_khoa'
   ) THEN

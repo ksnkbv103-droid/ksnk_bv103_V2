@@ -61,7 +61,7 @@ describe("bản ký phụ lục CSSD", () => {
       selectedKhuVucIds: [],
       khuVucOptions: [],
       payload: {
-        kpis: {
+        chi_so: {
           ty_le_vst: 66.7,
           ty_le_gsc: 66.67,
           ti_le_xac_nhan_nkbv: null,

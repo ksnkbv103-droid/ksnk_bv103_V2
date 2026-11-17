@@ -4,7 +4,7 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 
 function emptyPayload(): VstStrategicPayload {
   return {
-    kpis: {
+    chi_so: {
       tong_phien: 0,
       tong_co_hoi: 0,
       da_tuan_thu: 0,
@@ -37,8 +37,8 @@ function emptyPayload(): VstStrategicPayload {
 describe("normalizeVstStrategicPercents", () => {
   it("recomputes 2/3 as 66.7 (1 decimal) instead of RPC 66.67", () => {
     const p = emptyPayload();
-    p.kpis = {
-      ...p.kpis,
+    p.chi_so = {
+      ...p.chi_so,
       tong_phien: 1,
       tong_co_hoi: 3,
       da_tuan_thu: 2,
@@ -48,13 +48,13 @@ describe("normalizeVstStrategicPercents", () => {
       { label: "T1", min_date: "2026-01-01", tong_co_hoi: 3, da_tuan_thu: 2, ty_le_tuan_thu: 66.67 },
     ];
     const out = normalizeVstStrategicPercents(p);
-    expect(out.kpis.ty_le_tuan_thu).toBe(66.7);
+    expect(out.chi_so.ty_le_tuan_thu).toBe(66.7);
     expect(out.trendline[0]?.ty_le_tuan_thu).toBe(66.7);
   });
 
   it("recomputes gap from counts", () => {
     const p = emptyPayload();
-    p.kpis.tong_co_hoi = 1;
+    p.chi_so.tong_co_hoi = 1;
     p.gap_analysis = [
       {
         id: "k1",
@@ -76,8 +76,8 @@ describe("normalizeVstStrategicPercents", () => {
 
   it("VST-03: kỹ thuật / thời gian / găng theo ô đã đánh giá (NULL không vào mẫu)", () => {
     const p = emptyPayload();
-    p.kpis = {
-      ...p.kpis,
+    p.chi_so = {
+      ...p.chi_so,
       tong_co_hoi: 3,
       da_tuan_thu: 2,
       bo_sot: 1,
@@ -92,17 +92,17 @@ describe("normalizeVstStrategicPercents", () => {
       ty_le_lam_dung_gang: 33.3,
     };
     const out = normalizeVstStrategicPercents(p);
-    expect(out.kpis.ty_le_tuan_thu).toBe(66.7);
-    expect(out.kpis.ty_le_dung_ky_thuat).toBe(50);
-    expect(out.kpis.ty_le_du_thoi_gian).toBe(50);
-    expect(out.kpis.ty_le_lam_dung_gang).toBe(100);
+    expect(out.chi_so.ty_le_tuan_thu).toBe(66.7);
+    expect(out.chi_so.ty_le_dung_ky_thuat).toBe(50);
+    expect(out.chi_so.ty_le_du_thoi_gian).toBe(50);
+    expect(out.chi_so.ty_le_lam_dung_gang).toBe(100);
   });
 
   it("VST-06: mẫu 0 → null (không giữ 0% RPC)", () => {
     const p = emptyPayload();
-    p.kpis.ty_le_tuan_thu = 0;
+    p.chi_so.ty_le_tuan_thu = 0;
     const out = normalizeVstStrategicPercents(p);
-    expect(out.kpis.ty_le_tuan_thu).toBeNull();
+    expect(out.chi_so.ty_le_tuan_thu).toBeNull();
   });
 });
 

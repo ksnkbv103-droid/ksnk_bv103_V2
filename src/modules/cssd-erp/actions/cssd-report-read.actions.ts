@@ -337,7 +337,7 @@ export type CssdAnalyticsBundle = {
   brief: ReturnType<typeof summarizeCssdAnalyticsBrief>;
   tyLeQuyTrinhKhongSuCo: number | null;
   quyTrinhKyCount: number;
-  /** Số chu trình có ≥1 SC PROCESS (tử KPI) — không đếm phiếu. */
+  /** Số chu trình có ≥1 SC PROCESS (tử chỉ số) — không đếm phiếu. */
   suCoKyCount: number;
   stationIncidentRates: CssdStationIncidentRateRow[];
 };
@@ -643,14 +643,4 @@ export async function fetchCssdAnalyticsBundle(filters: {
   } catch (e: unknown) {
     return { success: false, error: getErrorMessage(e), data: empty };
   }
-}
-
-/** Tóm tắt mỏng cho Command Center / BCTH — soft-fail ở caller. */
-export async function fetchCssdAnalyticsBriefSummary(filters: {
-  from: string;
-  to: string;
-}): Promise<{ success: true; data: CssdAnalyticsBundle["brief"] } | { success: false; error: string }> {
-  const res = await fetchCssdAnalyticsBundle({ from: filters.from, to: filters.to, station: "ALL" });
-  if (!res.success) return { success: false, error: res.error };
-  return { success: true, data: res.data.brief };
 }

@@ -104,7 +104,7 @@ export function pickHighest(rows: ActionBoardRankRow[], minSample: number, limit
 
 export function vstErrorsFromMoments(
   moments: MomentLike[] | null | undefined,
-  kpis?: {
+  chi_so?: {
     loi_ky_thuat?: number | null;
     bo_sot?: number | null;
     tong_co_hoi?: number | null;
@@ -122,10 +122,10 @@ export function vstErrorsFromMoments(
 
   const errors: ActionBoardErrorItem[] = fromMoments.slice(0, limit);
 
-  const tong = num(kpis?.tong_co_hoi);
+  const tong = num(chi_so?.tong_co_hoi);
   if (tong > 0) {
-    const loiKt = num(kpis?.loi_ky_thuat);
-    const boSot = num(kpis?.bo_sot);
+    const loiKt = num(chi_so?.loi_ky_thuat);
+    const boSot = num(chi_so?.bo_sot);
     if (loiKt > 0) {
       errors.push({
         ten: "Lỗi kỹ thuật (toàn kỳ)",
@@ -142,7 +142,7 @@ export function vstErrorsFromMoments(
     }
   }
 
-  // Ưu tiên moment yếu; KPI tổng chỉ bổ sung nếu còn chỗ
+  // Ưu tiên moment yếu; chỉ số tổng chỉ bổ sung nếu còn chỗ
   const momentsOnly = errors.filter((e) => e.tyLe != null).slice(0, limit);
   if (momentsOnly.length >= limit) return momentsOnly;
   const extras = errors.filter((e) => e.tyLe == null).slice(0, limit - momentsOnly.length);
@@ -170,7 +170,7 @@ export function buildActionBoardModel(input: {
   matrixKhoa?: MatrixKhoaLike[] | null;
   moments?: MomentLike[] | null;
   topViolations?: TopViolationLike[] | null;
-  vstKpis?: {
+  vstChiSo?: {
     loi_ky_thuat?: number | null;
     bo_sot?: number | null;
     tong_co_hoi?: number | null;
@@ -187,7 +187,7 @@ export function buildActionBoardModel(input: {
     highest: pickHighest(ranked, minSample, limit),
     errors:
       input.source === "vst"
-        ? vstErrorsFromMoments(input.moments, input.vstKpis, limit)
+        ? vstErrorsFromMoments(input.moments, input.vstChiSo, limit)
         : gscErrorsFromTopViolations(input.topViolations, limit),
   };
 }

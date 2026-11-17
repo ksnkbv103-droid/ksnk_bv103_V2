@@ -46,7 +46,7 @@ export default function RbacCatalogPackPanel({
         <Layers className="h-4 w-4 text-slate-400" aria-hidden />
         Gói quyền danh mục
       </p>
-      <p className="mt-1 text-[11px] text-slate-500">
+      <p className="mt-1 text-xs text-slate-500">
         Gom ~13 ô sửa danh mục thành vài gói. Không đổi cửa RLS. Còn chỉnh từng ô bên dưới nếu cần. Quản trị (ADMIN) giữ đủ quyền — không áp gói.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -65,10 +65,10 @@ export default function RbacCatalogPackPanel({
             </option>
           ))}
         </select>
-        <span className="text-[11px] text-slate-500">{roleLabel}</span>
+        <span className="text-xs text-slate-500">{roleLabel}</span>
       </div>
       {isAdmin ? (
-        <p className="mt-2 text-[11px] text-amber-800">Vai trò Quản trị không áp gói — luôn đủ quyền.</p>
+        <p className="mt-2 text-xs text-amber-800">Vai trò Quản trị không áp gói — luôn đủ quyền.</p>
       ) : (
         <div className="mt-3 space-y-2">
           <div className="flex flex-wrap gap-1.5">
@@ -83,7 +83,7 @@ export default function RbacCatalogPackPanel({
                   title={tip}
                   disabled={!previewRoleId}
                   onClick={() => apply(pack.modules, "full")}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-white"
+                  className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-white"
                 >
                   {pack.label} (đầy đủ)
                 </button>
@@ -93,7 +93,7 @@ export default function RbacCatalogPackPanel({
               type="button"
               disabled={!previewRoleId}
               onClick={() => apply(ALL_CATALOG_MODULES, "view")}
-              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
             >
               Chỉ xem mọi danh mục
             </button>
@@ -101,13 +101,13 @@ export default function RbacCatalogPackPanel({
               type="button"
               disabled={!previewRoleId}
               onClick={() => apply(ALL_CATALOG_MODULES, "off")}
-              className="rounded-lg border border-red-100 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+              className="rounded-lg border border-red-100 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
             >
               Tắt mọi danh mục
             </button>
           </div>
           {"description" in CATALOG_PERMISSION_PACKS.CSSD && CATALOG_PERMISSION_PACKS.CSSD.description ? (
-            <p className="text-[11px] leading-snug text-slate-500">
+            <p className="text-xs leading-snug text-slate-500">
               <span className="font-semibold text-slate-600">Master CSSD:</span>{" "}
               {CATALOG_PERMISSION_PACKS.CSSD.description}
             </p>

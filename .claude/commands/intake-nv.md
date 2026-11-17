@@ -11,13 +11,18 @@ Dành cho **người không rành code**. **Không sửa code** — chỉ lập 
 
 Agent gợi ý: `intake-coach` khi chưa rõ module. Luôn đọc `read-minimum.md` dòng module; rule `.claude/rules/*` tự nạp khi chạm file.
 
+## Bước 0 — cổng module
+
+Chạy `npm run module:gate -- <module>`. Exit 1 hoặc trạng thái không cho phép loại việc này → dừng, báo PO. Module mới chưa có `docs/modules/<m>/van-de-nguoi-dung.md` → tạo từ trang `giam-sat` (làm mẫu) trước khi lập intake.
+Module đã có: chạy `/ra-soat <m>` trước; chỉ hỏi phần còn thiếu, không phỏng vấn lại từ đầu, không hỏi điều trang/SSOT/code đã trả lời.
+
 ## User điền (tiếng Việt nghiệp vụ)
 
 1. **Module / màn hình** — QLCV, CSSD, Giám sát VST/GSC, Dashboard, Danh mục, NKBV, …
 2. **Tính năng hoặc lỗi** — hiện tại thế nào, muốn thế nào (2–5 câu)
 3. **Ai dùng** — role, khoa, quyền
 4. **Luồng mong muốn** — bước 1 → 2 → kết quả
-5. **Không được đụng** — module khác, dữ liệu cũ, công thức KPI đã chốt, …
+5. **Không được đụng** — module khác, dữ liệu cũ, công thức chỉ số đã chốt, …
 6. **Kiểm tra tay** — ít nhất 3 tình huống: làm gì → thấy gì (user có thể để trống; AI đề xuất thêm)
 
 ## AI tự điền (phần kỹ thuật — user không cần viết)
@@ -43,7 +48,7 @@ Sau khi nhận mô tả nghiệp vụ, bổ sung:
 | vệ sinh tay, WHO, VST | Giám sát VST |
 | giám sát chung, phiên GSC | Giám sát GSC |
 | bảng kiểm template | Bang kiem / MDM |
-| báo cáo, dashboard, thống kê, KPI, CCS | Dashboard |
+| báo cáo, dashboard, thống kê, chỉ số, CCS | Dashboard |
 | danh mục, khoa, nhân viên, MDM | Danh mục |
 | nhiễm khuẩn, NKBV | NKBV |
 
@@ -65,6 +70,7 @@ Sau khi nhận mô tả nghiệp vụ, bổ sung:
 3. **Top 3 rủi ro**
 4. **Giả định** cần user xác nhận (nếu có)
 5. **Câu hỏi** — tối đa 2, chỉ khi thiếu thông tin chặn triển khai
+6. **Tự kiểm** — trước khi trình, đọc nơi gọi + `.claude/rules` liên quan + HANDOFF/roadmap của lát, rồi soát 6 phép (CLAUDE.md toàn cục): yêu cầu ↔ bước + tiêu chí đo được · bước thừa · mâu thuẫn rules/schema · từ mơ hồ → số · cùng tên một khái niệm · thứ tự/nhánh khác đang sửa cùng file. Mỗi lệch: phép — lệch — `file:dòng`; sửa mục 2 theo lệch. Không lệch → «0 lệch» + đã đọc gì.
 
 Chờ user trả lời **「OK triển khai」** hoặc chỉnh sửa trước `/implement`.
 

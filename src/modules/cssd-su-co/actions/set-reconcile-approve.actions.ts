@@ -2,9 +2,13 @@
 
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { getActorRoleNames, verifyPermission } from "@/lib/server-permission";
+import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
-import { checkCatalogApprover, resolveCatalogApprover } from "@/lib/master-data/cssd-catalog-approver-guard";
+import {
+  checkCatalogApprover,
+  requireCssdCatalogApprove,
+  resolveCatalogApprover,
+} from "@/lib/master-data/cssd-catalog-approver-guard";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
 import {
   canClaimBomApprove,
@@ -25,10 +29,9 @@ async function requireCatalogRead() {
   }
 }
 
-/** PO 2026-10-27: chỉ chủ nhiệm khoa (ADMIN) duyệt phiếu rà soát bộ — kiểm ở server, không chỉ ẩn UI. */
+/** PO 2026-10-27 + AR-1 (2026-11-10): chủ nhiệm khoa duyệt phiếu rà soát bộ — kiểm quyền `approve` ở server. */
 async function requireCatalogApprove() {
-  const roles = await getActorRoleNames();
-  if (!roles.includes("ADMIN")) throw new Error("Chỉ chủ nhiệm khoa (ADMIN) được duyệt phiếu rà soát bộ.");
+  await requireCssdCatalogApprove("phiếu rà soát bộ");
 }
 
 const CLAIMED_MSG = "Phiếu đã được xử lý hoặc không còn chờ duyệt.";

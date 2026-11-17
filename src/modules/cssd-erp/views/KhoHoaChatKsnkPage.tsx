@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import HoaChatMasterPage from "@/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage";
+import HoaChatMasterPage from "@/modules/cssd-erp/contexts/inventory-chemical/admin/HoaChatMasterPage";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import KhoHoaChatMoveSheet from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
 import KhoHoaChatSuCoPanel from "../components/kho-hoa-chat/kho-hoa-chat-su-co-panel";
@@ -43,10 +43,11 @@ export default function KhoHoaChatKsnkPage() {
   );
   const [dmMovs, setDmMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
   // Lịch sử riêng từng mặt hàng (không cắt theo 120 dòng toàn kho); tải lại sau mỗi reload (duyệt/nhập/xuất).
+  // Cửa sổ 200 dòng theo ngày duyệt (CSSD-036) để thẻ kho tính tồn lũy kế đúng thứ tự tồn đổi.
   useEffect(() => {
     if (!openId || h.busy) return;
     let alive = true;
-    void listGiaoDichKhoHoaChatAction({ limit: 200, dm_hoa_chat_id: openId }).then((r) => {
+    void listGiaoDichKhoHoaChatAction({ limit: 200, dm_hoa_chat_id: openId, theo_ngay_hieu_luc: true }).then((r) => {
       if (!alive) return;
       if (r.success) setDmMovs(r.data);
       else toast.error(r.error);

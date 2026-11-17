@@ -16,7 +16,6 @@ import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { tryReceiveChoThuVeAtTiepNhan } from "@/modules/cssd-su-co/application/recall-receive.application";
-import { getActorNhanSuId } from "@/lib/actor-auth-server";
 // DOM-04: quét trạm không stamp bom_kiem_dem_at (RPC persist checkpoint giữ trong DB, app không gọi).
 
 async function cssdScanOperatorLabel(): Promise<string> {
@@ -86,9 +85,24 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
 
   /** SC-01 pha 2: bộ chờ thu hồi — nhận lại tại Tiếp nhận (bỏ qua đóng băng). */
   if (station === "TIEP_NHAN" && preRow?.id) {
-    const operatorId = await getActorNhanSuId();
+    const ucRecall = await createServerSupabaseUserClient();
+    const { data: recallAuth } = await ucRecall.auth.getUser();
+    const operatorId = await resolveCssdOperatorNhanSuId(supabase, {
+      authUserId: recallAuth.user?.id,
+      email: recallAuth.user?.email || operatorLabel,
+    });
+    // View v_cssd_quy_trinh_full không có cột metadata → đọc từ bảng gốc.
+    let quyTrinhRow: Record<string, unknown> = preRow;
+    if (preRow.metadata === undefined) {
+      const { data: metaRow } = await supabase
+        .from("cssd_fact_quy_trinh")
+        .select("metadata")
+        .eq("id", String(preRow.id))
+        .maybeSingle();
+      quyTrinhRow = { ...preRow, metadata: metaRow?.metadata ?? null };
+    }
     const received = await tryReceiveChoThuVeAtTiepNhan(supabase, {
-      quyTrinh: preRow,
+      quyTrinh: quyTrinhRow,
       operatorLabel,
       operatorNhanSuId: operatorId,
     });
@@ -101,6 +115,7 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
         quyTrinhId: received.newQuyTrinhId,
         maLoTietKhuan: "",
         recallReceive: true as const,
+        warning: received.incidentPatchFailed ? "Đã nhận bộ, chưa cập nhật được phiếu sự cố" : undefined,
       };
     }
   }
@@ -163,6 +178,7 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
     // Domain 23: CAP_PHAT may store ma_ca_mo_id for trace, but MUST NOT set used_clinically
     // (cấp ≠ dùng lâm sàng). used only via explicit event (Truy vết / manual).
     if (!daCapPhat) {
+      if (!operatorId) throw new Error("Tài khoản chưa gắn hồ sơ nhân sự, không thể cấp phát.");
       const { data: capRes, error: capErr } = await supabase.rpc("rpc_cssd_cap_phat_commit", {
         p_quy_trinh_id: String(preRow.id),
         p_nguoi_cap_phat_id: operatorId || null,
@@ -197,6 +213,8 @@ export async function scanQR(maQRInput: string, station: Station, extraPayloadIn
       quyTrinhId: String(preRow.id),
       maLoTietKhuan,
       issuanceOnly: true as const,
+      /** CSSD-027: bộ đã cấp phát trước lần quét này — nơi nhận không đổi. */
+      daCapTruoc: daCapPhat,
       ledgerWarning: ledger.ok && "warning" in ledger ? ledger.warning : undefined,
     };
   }

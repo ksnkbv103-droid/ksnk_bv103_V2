@@ -101,27 +101,27 @@ export default function NkbvCssdRcaPanel({ maQr, quyTrinhId, showEmptyHint = fal
             <div className="space-y-1.5">
               <div className="flex flex-wrap gap-1.5">
                 {data.trangThaiBi === "DUONG" || data.ketQuaBi === false ? (
-                  <span className="inline-flex items-center rounded-md bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  <span className="inline-flex items-center rounded-md bg-rose-600 px-2 py-0.5 text-xs font-bold text-white shadow-xs">
                     BI DƯƠNG TÍNH / THẤT BẠI TIỆT KHUẨN
                   </span>
                 ) : null}
                 {data.isRecalledBatch || data.trangThaiMe === "THU_HOI" ? (
-                  <span className="inline-flex items-center rounded-md bg-red-700 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  <span className="inline-flex items-center rounded-md bg-red-700 px-2 py-0.5 text-xs font-bold text-white shadow-xs">
                     MẺ TIỆT KHUẨN BỊ THU HỒI
                   </span>
                 ) : null}
                 {data.ketQuaMe === false ? (
-                  <span className="inline-flex items-center rounded-md bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  <span className="inline-flex items-center rounded-md bg-rose-500 px-2 py-0.5 text-xs font-bold text-white shadow-xs">
                     QC MẺ KHÔNG ĐẠT
                   </span>
                 ) : null}
                 {data.hasRedAlertIncident ? (
-                  <span className="inline-flex items-center rounded-md bg-amber-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  <span className="inline-flex items-center rounded-md bg-amber-600 px-2 py-0.5 text-xs font-bold text-white shadow-xs">
                     SỰ CỐ KHẨN (RED ALERT)
                   </span>
                 ) : null}
               </div>
-              <p className="rounded-lg bg-rose-100/90 p-2 text-[11px] font-medium leading-relaxed text-rose-950">
+              <p className="rounded-lg bg-rose-100/90 p-2 text-xs font-medium leading-relaxed text-rose-950">
                 <strong>Khuyến cáo KSNK:</strong> Bộ dụng cụ này thuộc chu kỳ tiệt khuẩn có nguy cơ vi sinh cao. Đề nghị kích
                 hoạt ngay quy trình theo dõi vết mổ, chỉ định cấy mủ/dịch vết mổ và phân tích SSI theo QT.24 HD.01.
               </p>
@@ -160,7 +160,7 @@ export default function NkbvCssdRcaPanel({ maQr, quyTrinhId, showEmptyHint = fal
                     {inc.typeLabel || "Sự cố"}
                   </Link>
                   {inc.isRedAlert ? (
-                    <span className="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[11px] font-bold text-rose-700">
+                    <span className="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-xs font-bold text-rose-700">
                       Khẩn cấp
                     </span>
                   ) : null}

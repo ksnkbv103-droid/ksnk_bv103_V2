@@ -104,7 +104,7 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
                     <tr key={r.ma_benh_an}>
                       <td className="px-3 py-2">
                         <div className="font-semibold text-slate-800">{r.ho_ten_benh_nhan}</div>
-                        <div className="font-mono text-[11px] text-slate-500">
+                        <div className="font-mono text-xs text-slate-500">
                           {r.ma_benh_an} · {r.ma_benh_nhan}
                         </div>
                       </td>
@@ -156,13 +156,13 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
                     <tr key={r.ma_benh_an}>
                       <td className="px-3 py-2">
                         <div className="font-semibold">{r.ho_ten_benh_nhan}</div>
-                        <div className="font-mono text-[11px] text-slate-500">{r.ma_benh_an}</div>
+                        <div className="font-mono text-xs text-slate-500">{r.ma_benh_an}</div>
                       </td>
                       <td className="px-3 py-2">{r.is_mdro ? r.mdro_phenotype || "có" : "—"}</td>
                       <td className="px-3 py-2">
                         {r.nkbv_case_count}
                         {r.latest_nkbv_ngay ? (
-                          <span className="block text-[11px] text-slate-400">
+                          <span className="block text-xs text-slate-400">
                             {formatDateVi(r.latest_nkbv_ngay)}
                           </span>
                         ) : null}
@@ -170,7 +170,7 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
                       <td className="px-3 py-2">
                         {r.gsc_session_count}
                         {r.latest_gsc_ngay ? (
-                          <span className="block text-[11px] text-slate-400">
+                          <span className="block text-xs text-slate-400">
                             {formatDateVi(r.latest_gsc_ngay)}
                           </span>
                         ) : null}

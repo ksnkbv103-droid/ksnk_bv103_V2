@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
-import { verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
+import {
+  verifyPermission,
+  hasRBACAdminSupervisionBypass,
+  getActorRbacRoleNamesStrict,
+} from "@/lib/server-permission";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability, verifyQlcvDeleteCapability, verifyQlcvNghiemThuCapability } from "../lib/qlcv-rbac";
 import { congViecCreateSchema, parseCongViecUpdate, phanTramHoanThanhSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
@@ -15,7 +19,7 @@ import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
-import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { isEligibleForNghiemThu, qlcvNghiemThuActorError } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { hasQlcvChecklistFullResult, normalizeQlcvKetQuaText, validateQlcvCloseRequiresResult } from "@/lib/domain/qlcv/close-requires-result";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
@@ -298,13 +302,8 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
     if (updates.loai_cong_viec !== undefined) patch.loai_cong_viec = dmFk.loai_cong_viec;
     if (updates.muc_do_uu_tien !== undefined) patch.muc_do_uu_tien = updates.muc_do_uu_tien;
     if (updates.han_hoan_thanh !== undefined) patch.han_hoan_thanh = updates.han_hoan_thanh;
-    if (updates.dia_diem_khoa_id !== undefined) patch.dia_diem_khoa_id = updates.dia_diem_khoa_id;
-    if (updates.dia_diem_khoa_ids !== undefined) {
-      patch.dia_diem_khoa_ids = dbUpdates.dia_diem_khoa_ids;
-      patch.dia_diem_khoa_id = dbUpdates.dia_diem_khoa_id;
-    }
-    if (updates.nhiem_vu_id !== undefined) patch.nhiem_vu_id = updates.nhiem_vu_id;
 
+    // QLCV-007: 7 cột mở rộng đi cùng patch của RPC (ghi trong cùng UPDATE phê duyệt) — giá trị đã chuẩn hóa ở dbUpdates.
     const extraProposalCols = [
       "dia_diem_khoa_id",
       "dia_diem_khoa_ids",
@@ -314,18 +313,10 @@ export async function updateCongViec(id: string, rawUpdates: CongViecUpdateInput
       "nguoi_phoi_hop_ids",
       "nguoi_theo_doi_ids",
     ] as const;
-    const extraProposalUpdates: Record<string, unknown> = {};
     for (const col of extraProposalCols) {
       if (dbUpdates[col] !== undefined) {
-        extraProposalUpdates[col] = dbUpdates[col];
+        patch[col] = dbUpdates[col];
       }
-    }
-    if (Object.keys(extraProposalUpdates).length > 0) {
-      const { error: extraErr } = await supabase
-        .from(QLCV_FACT_WRITE_TABLE)
-        .update(extraProposalUpdates)
-        .eq("id", id);
-      if (extraErr) throwQlcvDbError(extraErr, "Không lưu trường mở rộng khi kích hoạt đề xuất.");
     }
 
     await invokeQlcvTransition(supabase, {
@@ -453,15 +444,14 @@ export async function xacNhanHoanThanh(id: string, ketQua?: string | null) {
   if (!isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Chỉ nghiệm thu khi việc đã báo 100% (cổng chờ nghiệm thu).");
   }
-  // N-QLCV-5 / QLCV-06: cấm tự nghiệm thu (trừ quản trị / Chủ nhiệm).
-  if (
-    actorNhanSuId &&
-    cur.nguoi_phu_trach_id &&
-    actorNhanSuId === cur.nguoi_phu_trach_id &&
-    !(await hasRBACAdminSupervisionBypass())
-  ) {
-    throw new Error("Không được tự nghiệm thu việc mình phụ trách.");
-  }
+  // N-QLCV-5 / QLCV-003: cấm tự nghiệm thu — khớp RPC (ADMIN / CHU_NHIEM_KHOA thật, không break-glass).
+  const actorErr = qlcvNghiemThuActorError({
+    actorNhanSuId,
+    nguoiTaoId: cur.nguoi_tao_id,
+    nguoiPhuTrachId: cur.nguoi_phu_trach_id,
+    roles: await getActorRbacRoleNamesStrict(),
+  });
+  if (actorErr) throw new Error(actorErr);
 
   // 19c TAC-3A: đóng việc bắt buộc 1 dòng kết quả (hoặc checklist 100%).
   const closeErr = validateQlcvCloseRequiresResult({

@@ -42,13 +42,13 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
             Không nhân bản biểu đồ module. Chi tiết thống kê tại tab Thống kê từng mảng.
           </p>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 p-0.5">
+        <div className="grid grid-flow-col auto-cols-fr gap-1 overflow-x-auto rounded-lg border border-slate-200 p-0.5">
           {TOPIC_TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => onChuyenDeChange(t.id)}
-              className={`rounded-md px-3 py-1.5 bv103-type-label font-semibold ${
+              className={`inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[var(--radius-control)] sm:min-h-9 px-3 bv103-type-label font-semibold ${
                 chuyenDe === t.id ? "bg-[var(--primary)] text-white" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -112,7 +112,7 @@ function TopicSummary({
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="bv103-type-section text-slate-700">{title}</h3>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
+          <Link href={deepHref} className="inline-flex min-h-11 sm:min-h-0 items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
             {extraDeepLinks?.length ? "WHO" : "Chi tiết thống kê"}
             <ExternalLink size={10} aria-hidden className="ml-0.5 inline" />
           </Link>
@@ -141,7 +141,7 @@ function TopicSummary({
 }
 
 function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.vst?.kpis;
+  const k = payload?.vst?.chi_so;
   if (!k) return [];
   const lines = [
     `Tuân thủ: ${formatPercent1(k.ty_le_tuan_thu)} (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
@@ -153,7 +153,7 @@ function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
 }
 
 function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.gsc?.kpis;
+  const k = payload?.gsc?.chi_so;
   if (!k) return [];
   const lines = [
     `Tuân thủ: ${formatPercent2(k.ty_le_tuan_thu)} (${k.tong_dat}/${k.tong_quan_sat} lượt quan sát, ${k.tong_phien} phiên)`,
@@ -167,7 +167,7 @@ function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {
 }
 
 function buildNkbvLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.nkbv?.kpis;
+  const k = payload?.nkbv?.chi_so;
   if (!k) return [];
   const lines = [
     `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận (đã kết luận): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`} (${formatNkbvXacNhanVolume(k)})`,

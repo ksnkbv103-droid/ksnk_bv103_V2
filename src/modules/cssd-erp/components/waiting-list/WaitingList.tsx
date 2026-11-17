@@ -76,10 +76,10 @@ export default function WaitingList({
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-700 shadow-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700 shadow-sm">
                     Mã bộ: {item.ma_vach_qr}
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+                  <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
                     <Clock size={12} className="-mt-0.5 text-slate-400" />
                     {formatTimeVi(item.updated_at)}
                   </span>
@@ -87,7 +87,7 @@ export default function WaitingList({
 
                 {item.nguoi_tram_truoc && (
                   <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-blue-100 bg-blue-50/40 px-3 py-2 text-[11px] text-blue-800">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-blue-100 bg-blue-50/40 px-3 py-2 text-xs text-blue-800">
                       <span className="flex items-center gap-1.5 font-bold">
                         <User size={12} className="shrink-0 text-blue-600" />
                         {ACTION_VERBS[item.tram_truoc || ""] || "Được xử lý bởi"}:{" "}

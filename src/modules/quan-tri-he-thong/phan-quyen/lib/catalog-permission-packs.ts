@@ -6,19 +6,19 @@ export const CATALOG_PERMISSION_PACKS = {
   TO_CHUC: {
     label: "Tổ chức",
     hint: "Khoa, nhân sự, lookup tổ chức",
-    modules: ["KHOA_PHONG", "NHAN_SU", "DANH_MUC_ORG", "DANH_MUC"],
+    modules: ["KHOA_PHONG", "NHAN_SU", "DANH_MUC_ORG"],
   },
   BANG_KIEM: {
     label: "Bảng kiểm",
     hint: "Mẫu bảng kiểm, tiêu chí, lookup giám sát",
-    modules: ["BANG_KIEM", "BANG_KIEM_DETAIL", "DANH_MUC_GSTT", "DANH_MUC"],
+    modules: ["BANG_KIEM", "BANG_KIEM_DETAIL"],
   },
   CSSD: {
     label: "Master CSSD",
     hint: "Loại, bộ, chi tiết, máy, hóa chất, lookup CSSD. Hard-write master loại/bộ/BOM chỉ ADMIN; BO_DC.edit = duyệt phiếu (D5).",
     description:
       "Hard-write master loại/bộ/BOM chỉ ADMIN; BO_DC.edit = duyệt phiếu (D5). Gói đầy đủ bật ô ma trận danh mục — không mở form MDM cho non-ADMIN.",
-    modules: ["LOAI_DC", "BO_DC", "DC_LE", "THIET_BI", "HOA_CHAT", "DANH_MUC_CSSD_LOOKUP", "DANH_MUC"],
+    modules: ["LOAI_DC", "BO_DC", "DC_LE", "THIET_BI", "HOA_CHAT"],
   },
 } as const;
 

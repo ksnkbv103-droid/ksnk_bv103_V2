@@ -1,9 +1,9 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
-import { getNkbvKhoaRestriction } from "../lib/nkbv-khoa-scope.server";
-import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
+import { verifyPermission, verifyPermissions } from "@/lib/server-permission";
+import { getNkbvIdentityScope } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_HOI_DONG_IDENTITY_DENIED, nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { readLoTietKhuanId, readIncidentTypeLabel } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 
@@ -43,7 +43,11 @@ export async function fetchCssdRcaBundle(args: {
   quyTrinhId?: string | null;
 }): Promise<{ success: true; data: CssdRcaBundle | null } | { success: false; error: string }> {
   try {
-    await verifyPermission("GIAM_SAT_NKBV", "view");
+    // NKBV-014: RCA đọc dữ liệu CSSD bằng admin client → phải có cả quyền xem CSSD (Mạng lưới không có).
+    await verifyPermissions([
+      { moduleKey: "GIAM_SAT_NKBV", action: "view" },
+      { moduleKey: "CSSD_WORKFLOW", action: "view" },
+    ]);
     const supabase = createAdminSupabaseClient();
 
     let quyTrinhId = String(args.quyTrinhId || "").trim();
@@ -180,11 +184,19 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
       return { success: false, error: "Mã mẻ hoặc quy trình không hợp lệ." };
     }
 
+    // NKBV-015: lọc khoa trong query TRƯỚC limit để không cắt mất ca của khoa mình
+    const { restriction, identityDenied } = await getNkbvIdentityScope();
+    // NKBV-039: HĐ KSNK thuần giữ cả hai quyền view nhưng không nhận dữ liệu có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định).
+    // Action đọc bằng admin client (vượt RLS) nên chặn tại đây, trước truy vấn; mã ca nhúng mã bệnh án nên cũng không trả.
+    if (identityDenied) return { success: false, error: NKBV_HOI_DONG_IDENTITY_DENIED };
+    if (restriction.kind === "none") return { success: true, cases: [] };
+
     let q = supabase
       .from("nkbv_fact_su_kien")
       .select("id, ma_ca, ho_ten_benh_nhan, ngay_phat_hien, khoa_ghi_nhan_id")
-      .eq("is_active", true)
-      .limit(20);
+      .eq("is_active", true);
+    if (restriction.kind === "khoa") q = q.eq("khoa_ghi_nhan_id", restriction.khoaId);
+    q = q.limit(20);
 
     if (loId && qtId) {
       q = q.or(`lo_tiet_khuan_id.eq.${loId},quy_trinh_id.eq.${qtId}`);
@@ -194,9 +206,15 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
       q = q.eq("quy_trinh_id", qtId);
     }
 
-    const { data, error } = await q;
+    // NKBV-018: người chỉ có quyền CSSD thấy mã ca để truy vết, không thấy họ tên bệnh nhân.
+    const [{ data, error }, canSeePatientName] = await Promise.all([
+      q,
+      verifyPermission("GIAM_SAT_NKBV", "view").then(
+        () => true,
+        () => false,
+      ),
+    ]);
     if (error) throw new Error(error.message);
-    const restriction = await getNkbvKhoaRestriction();
     const visibleRows = (data || []).filter((r) =>
       nkbvKhoaVisible(restriction, [r.khoa_ghi_nhan_id as string | null]),
     );
@@ -206,7 +224,7 @@ export async function fetchNkbvCasesLinkedToCssd(args: {
       cases: visibleRows.map((r) => ({
         id: String(r.id),
         maCa: r.ma_ca != null ? String(r.ma_ca) : null,
-        hoTen: r.ho_ten_benh_nhan != null ? String(r.ho_ten_benh_nhan) : null,
+        hoTen: canSeePatientName && r.ho_ten_benh_nhan != null ? String(r.ho_ten_benh_nhan) : null,
         ngayPhatHien: r.ngay_phat_hien != null ? String(r.ngay_phat_hien) : null,
       })),
     };

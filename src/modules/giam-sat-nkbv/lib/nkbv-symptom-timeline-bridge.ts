@@ -35,6 +35,7 @@ export function criteriaKeyToSymptomDateKey(
 export function isBaIndexMilestone(m: BaTimelineMilestone): boolean {
   if (m.source === "DEVICE" || m.source === "EVENT") return false;
   if (m.source === "LIS") return true;
+  if (m.criteriaKey === "imaging_chest_normal") return false;
   if (m.kind === "IMAGING_CHEST" || m.criteriaKey === "imaging_chest") return true;
   if (m.kind === "PROCEDURE_SURGERY" || m.criteriaKey === "procedure_surgery") return true;
   if (

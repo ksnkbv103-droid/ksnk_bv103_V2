@@ -48,7 +48,7 @@ export default function IncidentBatchRecallButton({ incidentId, onOrdered, class
       disabled={loading}
       className={
         className ??
-        "inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-orange-300 bg-orange-50 px-3 text-[11px] font-semibold text-orange-900 hover:bg-orange-100 disabled:opacity-50"
+        "inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-orange-300 bg-orange-50 px-3 text-xs font-semibold text-orange-900 hover:bg-orange-100 disabled:opacity-50"
       }
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

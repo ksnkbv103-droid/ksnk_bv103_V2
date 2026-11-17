@@ -25,7 +25,8 @@ export async function assertLedgerDuChoCapPhat(
   if (!boId) return { ok: false, message: "Quy trình chưa gán bộ dụng cụ — không thể kiểm tra cấu phần." };
 
   const { data: rows, error } = await supabase
-    .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
+    // C′: quy trình có thể chạy trên bộ con -CN/-KCN → thành phần dẫn xuất từ bộ tổng.
+    .from("v_cssd_bo_thanh_phan_hieu_luc_realtime")
     .select("ten_loai_dung_cu, so_luong_tieu_chuan, so_luong_thuc_te, is_missing, missing_count")
     .eq("bo_dung_cu_id", boId)
     .eq("is_active", true);

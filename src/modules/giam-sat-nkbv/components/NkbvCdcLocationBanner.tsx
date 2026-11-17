@@ -37,7 +37,7 @@ export default function NkbvCdcLocationBanner() {
             ? ` Đã gắn mã CDC Location: ${mapped}/${total} khoa đang dùng.`
             : " Đang tải mức map khoa…"}{" "}
           Ghi mã tại{" "}
-          <Link href="/quan-tri-he-thong/danh-muc/khoa-phong" className="font-semibold underline">
+          <Link href="/to-chuc/khoa-phong" className="font-semibold underline">
             Quản trị → Khoa phòng
           </Link>
           . Ngoài phạm vi: nhi khoa, nội soi, kháng sinh (AU).

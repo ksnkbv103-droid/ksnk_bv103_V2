@@ -5,7 +5,7 @@ paths:
   - "src/app/giam-sat/**"
   - "src/app/giam-sat-vst/**"
   - "src/app/giam-sat-chung/**"
-  - "src/modules/quan-tri-he-thong/bang-kiem/**"
+  - "src/modules/giam-sat-chung/bang-kiem/**"
 ---
 
 # Giám sát — ngữ cảnh spec

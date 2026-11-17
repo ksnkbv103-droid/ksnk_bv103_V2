@@ -186,7 +186,7 @@ export default function AdminKyThiPage() {
             value={hanThang}
             onChange={(e) => setHanThang(Math.min(60, Math.max(1, Number(e.target.value) || 12)))}
           />
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-xs text-slate-500">
             Đạt thi chính thức thì chứng chỉ còn hạn bấy nhiêu tháng; sắp hết / hết hạn hiện nhắc học lại trên trang Thi KSNK.
           </p>
         </DaoTaoField>
@@ -281,11 +281,11 @@ export default function AdminKyThiPage() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-slate-800">{ky.ten}</p>
-                  <p className="mt-1 text-[11px] font-medium text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-slate-500">
                     {ky.so_cau} câu · {ky.thoi_gian_phut} phút · đạt {ky.diem_dat_pct}% ·{" "}
                     {ky.so_lan_cho_phep ?? 1} lần · chứng chỉ {han} tháng · {labelTrangThaiKy(ky.trang_thai)}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-slate-500">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     Gán {nKhoa} khoa · {nNv} NV
                   </p>
                 </div>

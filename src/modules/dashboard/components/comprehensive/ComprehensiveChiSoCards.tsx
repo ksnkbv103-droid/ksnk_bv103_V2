@@ -1,0 +1,192 @@
+"use client";
+
+import React from "react";
+import { TrendingDown, TrendingUp } from "lucide-react";
+import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
+import { bcthModuleComplianceTone } from "../../lib/bao-cao-tong-hop-thresholds";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { prevWeekRateFromPeriodPoints } from "../../lib/bao-cao-tong-hop-core";
+import { GSC_KHAC_CO_CAU_NOTE } from "../../lib/gsc-week-checklist-sets";
+import { formatNkbvXacNhanVolume } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
+
+function DeltaLine({
+  label,
+  delta,
+  prevRate,
+  digits,
+}: {
+  label: string;
+  delta: number | null;
+  prevRate?: number | null;
+  digits: 1 | 2;
+}) {
+  if (delta == null && prevRate == null) {
+    return <span className="bv103-type-label text-slate-400">{label}: —</span>;
+  }
+  const fmt = digits === 2 ? formatPercent2 : formatPercent1;
+  const up = (delta ?? 0) >= 0;
+  const Icon = up ? TrendingUp : TrendingDown;
+  return (
+    <span className="bv103-type-label text-slate-500">
+      <span className="mr-1">{label}:</span>
+      {prevRate != null ? <span className="mr-1 tabular-nums">{fmt(prevRate)} · </span> : null}
+      {delta != null ? (
+        <span
+          className={`inline-flex items-center gap-0.5 font-medium ${up ? "text-[var(--surface-success-text)]" : "text-[var(--surface-danger-text)]"}`}
+        >
+          <Icon size={12} aria-hidden />
+          {delta > 0 ? "+" : ""}
+          <span title="Chênh lệch tính bằng điểm phần trăm (tuần gần nhất trừ tuần liền trước)">{fmt(delta, { suffix: false })} điểm %</span>
+        </span>
+      ) : (
+        <span>—</span>
+      )}
+    </span>
+  );
+}
+
+function shortDayMonth(iso: string): string {
+  const [, m, d] = iso.split("-");
+  if (!m || !d) return iso;
+  return `${d}-${m}`;
+}
+
+function ChiSoCard({
+  label,
+  value,
+  suffix,
+  digits,
+  weekDelta,
+  weekPrev,
+  periodDelta,
+  periodPrev,
+  periodLabel,
+  note,
+  volumeNote,
+  complianceModule,
+  neutralTone,
+  weekCoCauKhac,
+}: {
+  label: string;
+  value: string;
+  suffix?: string;
+  digits: 1 | 2;
+  weekDelta?: number | null;
+  weekPrev?: number | null;
+  periodDelta?: number | null;
+  periodPrev?: number | null;
+  periodLabel?: string | null;
+  note?: string | null;
+  volumeNote?: string | null;
+  complianceModule?: "vst" | "gsc";
+  neutralTone?: boolean;
+  /** Hai tuần đem so chấm bộ bảng kiểm khác nhau. */
+  weekCoCauKhac?: boolean;
+}) {
+  const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
+  const tone = neutralTone
+    ? "neutral"
+    : complianceModule
+      ? bcthModuleComplianceTone(complianceModule, pct)
+      : "neutral";
+  return (
+    <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
+      <p className={D.chiSoLabel}>{label}</p>
+      <p className={`mt-[var(--bv103-space-1)] ${D.chiSoValue}`} title="Tỷ lệ tích lũy trong toàn bộ phạm vi lọc">
+        {value}
+        {suffix ? <span className="ml-1 bv103-type-body font-medium opacity-70">{suffix}</span> : null}
+      </p>
+      {volumeNote ? <p className="mt-[var(--bv103-space-1)] bv103-type-label font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
+      {weekDelta != null || periodDelta != null ? (
+        <div className="mt-[var(--bv103-space-1)] flex flex-col gap-0.5">
+          {weekDelta != null ? (
+            <DeltaLine label="So với tuần trước" delta={weekDelta} prevRate={weekPrev} digits={digits} />
+          ) : null}
+          {weekDelta != null && weekCoCauKhac ? (
+            <span className="bv103-type-label leading-snug text-amber-700">
+              {GSC_KHAC_CO_CAU_NOTE}
+            </span>
+          ) : null}
+          {periodDelta != null && periodLabel ? (
+            <DeltaLine label={periodLabel} delta={periodDelta} prevRate={periodPrev} digits={digits} />
+          ) : null}
+        </div>
+      ) : null}
+      {note ? <p className="mt-[var(--bv103-space-1)] bv103-type-label leading-snug opacity-80">{note}</p> : null}
+    </div>
+  );
+}
+
+export function ComprehensiveChiSoCards({ payload }: { payload: BaoCaoTongHopPayload | null }) {
+
+  const k = payload?.chi_so;
+  const trend = payload?.trend_week;
+  const ky = payload?.ky_truoc;
+  if (!payload) return null;
+
+  const vstVol =
+    payload.vst?.chi_so != null
+      ? `${payload.vst.chi_so.da_tuan_thu.toLocaleString()}/${payload.vst.chi_so.tong_co_hoi.toLocaleString()} tuân thủ`
+      : null;
+  const gscVol =
+    payload.gsc?.chi_so != null
+      ? `${payload.gsc.chi_so.tong_dat.toLocaleString()}/${payload.gsc.chi_so.tong_quan_sat.toLocaleString()} đạt`
+      : null;
+  const nkbvVol =
+    payload.nkbv?.chi_so != null ? formatNkbvXacNhanVolume(payload.nkbv.chi_so) : null;
+  const periodLabel = ky
+    ? `vs kỳ trước (${shortDayMonth(ky.tu_ngay)}→${shortDayMonth(ky.den_ngay)})`
+    : null;
+
+  return (
+    <div className="space-y-[var(--bv103-space-2)]">
+      <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
+        <ChiSoCard
+          label="Vệ sinh tay"
+          digits={1}
+          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "—"}
+          complianceModule="vst"
+          weekDelta={k?.delta_vst}
+          weekPrev={prevWeekRateFromPeriodPoints(trend ?? [], "ty_le_vst")}
+          periodDelta={ky?.delta_vst}
+          periodPrev={ky?.ty_le_vst}
+          periodLabel={periodLabel}
+          volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
+        />
+        <ChiSoCard
+          label="Giám sát chung"
+          digits={2}
+          value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "—"}
+          complianceModule="gsc"
+          weekDelta={k?.delta_gsc}
+          weekCoCauKhac={k?.delta_gsc_khac_co_cau === true}
+          weekPrev={prevWeekRateFromPeriodPoints(trend ?? [], "ty_le_gsc")}
+          periodDelta={ky?.delta_gsc}
+          periodPrev={ky?.ty_le_gsc}
+          periodLabel={periodLabel}
+          volumeNote={gscVol ? `Tiêu chí quan sát: ${gscVol}` : null}
+        />
+        <ChiSoCard
+          label="NKBV — tỷ lệ xác nhận"
+          digits={1}
+          value={k?.ti_le_xac_nhan_nkbv != null ? formatPercent1(k.ti_le_xac_nhan_nkbv) : "—"}
+          volumeNote={nkbvVol ? `Xác nhận: ${nkbvVol}` : null}
+          neutralTone
+          note="Mẫu số = phiếu đã kết luận (xác nhận + loại trừ). Tách khỏi vệ sinh tay / giám sát chung."
+        />
+      </div>
+      <p className="bv103-type-label text-slate-500">
+        Tỷ lệ % hiển thị là kết quả tích lũy trong toàn bộ kỳ lọc. So với tuần trước = biến động giữa hai tuần ISO liền kề cuối trên xu hướng. Dòng kỳ trước = cùng độ dài kỳ lọc, lùi liền trước.
+      </p>
+      {(payload.sources.vst === "denied" ||
+        payload.sources.gsc === "denied" ||
+        payload.sources.nkbv === "denied") && (
+        <p className={C.noticeWarning}>
+          Một số nguồn bị ẩn do quyền truy cập. Số liệu hiển thị chỉ phản ánh module bạn được xem.
+        </p>
+      )}
+    </div>
+  );
+}

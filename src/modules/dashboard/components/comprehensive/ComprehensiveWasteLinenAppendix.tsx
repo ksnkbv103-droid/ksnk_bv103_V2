@@ -51,7 +51,7 @@ export function ComprehensiveWasteLinenAppendix({
 
         <Link
           href="/chat-thai-do-vai"
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-white transition"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-control)] sm:min-h-9 border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-white transition"
         >
           Mở sổ cân & sự cố
           <ExternalLink size={13} aria-hidden />
@@ -59,7 +59,7 @@ export function ComprehensiveWasteLinenAppendix({
       </div>
 
       {payload.filters.khoa_ids?.length ? (
-        <p className="text-[11px] text-slate-500">
+        <p className="text-xs text-slate-500">
           * Lưu ý: Khối lượng cân được thực hiện tập trung toàn viện tại nhà rác và ĐVGL nên không phân tách theo bộ lọc khoa phòng đơn lẻ.
         </p>
       ) : null}
@@ -121,11 +121,11 @@ export function ComprehensiveWasteLinenAppendix({
                 <span className={stats.chat_thai.ty_le_ctln_pct > 20 ? "text-rose-600" : "text-emerald-700"}>
                   {stats.chat_thai.ty_le_ctln_pct}%
                 </span>
-                <span className="text-[11px] font-normal text-slate-400 ml-1">
+                <span className="text-xs font-normal text-slate-400 ml-1">
                   ({stats.chat_thai.tong_ctln_kg} kg)
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Chuẩn &le; 20%</div>
+              <div className="text-xs text-slate-400 mt-0.5">Chuẩn &le; 20%</div>
             </div>
 
             <div className="p-2.5 bg-white rounded-lg border border-slate-200/60">
@@ -133,7 +133,7 @@ export function ComprehensiveWasteLinenAppendix({
               <div className="text-base font-bold text-amber-800 mt-0.5">
                 {stats.chat_thai.kg_sac_nhon.toLocaleString()} kg
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Hộp kháng thủng vàng</div>
+              <div className="text-xs text-slate-400 mt-0.5">Hộp kháng thủng vàng</div>
             </div>
 
             <div className="p-2.5 bg-white rounded-lg border border-slate-200/60">
@@ -141,7 +141,7 @@ export function ComprehensiveWasteLinenAppendix({
               <div className="text-base font-bold text-indigo-700 mt-0.5">
                 {stats.chat_thai.chat_thai_per_1000_ngay_giuong.toLocaleString()} kg
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Mẫu số: {stats.tong_ngay_giuong.toLocaleString()} ng-g</div>
+              <div className="text-xs text-slate-400 mt-0.5">Mẫu số: {stats.tong_ngay_giuong.toLocaleString()} ng-g</div>
             </div>
 
             <div className="p-2.5 bg-white rounded-lg border border-slate-200/60">
@@ -149,7 +149,7 @@ export function ComprehensiveWasteLinenAppendix({
               <div className="text-base font-bold text-slate-900 mt-0.5">
                 {stats.chat_thai.so_su_co} vụ
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Rách túi, sai loại, mở nắp</div>
+              <div className="text-xs text-slate-400 mt-0.5">Rách túi, sai loại, mở nắp</div>
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export function ComprehensiveWasteLinenAppendix({
               <div className="text-base font-bold text-rose-700 mt-0.5">
                 {stats.do_vai.ty_le_ban_ln_pct}%
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
+              <div className="text-xs text-slate-400 mt-0.5">
                 {stats.do_vai.kg_ban_lay_nhiem} kg (túi vàng/tự tan)
               </div>
             </div>
@@ -183,11 +183,11 @@ export function ComprehensiveWasteLinenAppendix({
                 <span className={Math.abs(stats.do_vai.ty_le_chenh_lech_pct) > 10 ? "text-amber-600" : "text-slate-900"}>
                   {stats.do_vai.chenh_lech_kg > 0 ? `+${stats.do_vai.chenh_lech_kg}` : stats.do_vai.chenh_lech_kg} kg
                 </span>
-                <span className="text-[11px] font-normal text-slate-400 ml-1">
+                <span className="text-xs font-normal text-slate-400 ml-1">
                   ({stats.do_vai.ty_le_chenh_lech_pct}%)
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Sạch về: {stats.do_vai.kg_sach_ve} kg</div>
+              <div className="text-xs text-slate-400 mt-0.5">Sạch về: {stats.do_vai.kg_sach_ve} kg</div>
             </div>
 
             <div className="p-2.5 bg-white rounded-lg border border-slate-200/60">
@@ -195,7 +195,7 @@ export function ComprehensiveWasteLinenAppendix({
               <div className="text-base font-bold text-teal-700 mt-0.5">
                 {stats.do_vai.do_vai_per_1000_ngay_giuong.toLocaleString()} kg
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Mẫu số: {stats.tong_ngay_giuong.toLocaleString()} ng-g</div>
+              <div className="text-xs text-slate-400 mt-0.5">Mẫu số: {stats.tong_ngay_giuong.toLocaleString()} ng-g</div>
             </div>
 
             <div
@@ -213,7 +213,7 @@ export function ComprehensiveWasteLinenAppendix({
               >
                 {stats.do_vai.so_su_co_sac_nhon} vụ
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Mục tiêu: 0 vụ (an toàn NVYT)</div>
+              <div className="text-xs text-slate-400 mt-0.5">Mục tiêu: 0 vụ (an toàn NVYT)</div>
             </div>
           </div>
         </div>

@@ -15,19 +15,9 @@ const TYPE_TITLE = "bv103-type-title";
 const TYPE_SECTION = "bv103-type-section";
 const TYPE_BODY = "bv103-type-body";
 const TYPE_LABEL = "bv103-type-label";
-const TYPE_KPI = "bv103-type-kpi";
-const TYPE_KPI_LG = "bv103-type-kpi-lg";
+const TYPE_CHI_SO = "bv103-type-chi-so";
+const TYPE_CHI_SO_LG = "bv103-type-chi-so-lg";
 const TYPE_NOTE = "bv103-type-note";
-
-export const bv103TypeRole = {
-  title: TYPE_TITLE,
-  section: TYPE_SECTION,
-  body: TYPE_BODY,
-  label: TYPE_LABEL,
-  kpi: TYPE_KPI,
-  kpiLg: TYPE_KPI_LG,
-  note: TYPE_NOTE,
-} as const;
 
 export const bv103DesignTokens = {
   pageOuter: PAGE_OUTER,
@@ -71,9 +61,9 @@ export const bv103DesignTokens = {
   tableCellIndex: `${TYPE_LABEL} text-slate-400`,
   tableCellMeta: TYPE_LABEL,
   metaMono: `font-mono ${TYPE_LABEL} text-slate-400`,
-  statValue: TYPE_KPI,
-  statValueLg: TYPE_KPI_LG,
-  statValueXl: TYPE_KPI_LG,
+  statValue: TYPE_CHI_SO,
+  statValueLg: TYPE_CHI_SO_LG,
+  statValueXl: TYPE_CHI_SO_LG,
 
   /** Auth / tài khoản — title case slate */
   authBrand: TYPE_TITLE,
@@ -99,5 +89,3 @@ export const bv103DesignTokens = {
 
   skeletonBlock: "animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-100/80",
 } as const;
-
-export const BV103_MIN_LABEL_CLASS = "bv103-type-label" as const;

@@ -22,7 +22,7 @@ export default function NkbvBaWorkspaceToolbar({
 }: Props) {
   const effectivePreferVae = autoPreferVae || preferVae;
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 text-[11px]">
+    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 text-xs">
       <span className="font-semibold text-slate-800">Bảng BA dọc (hàng = ngày)</span>
       <span className="text-slate-500">
         Cột chung gọn + cột phân tích cùng hàng (trượt ngang). Highlight theo cột: IPW / RIT / SBAP

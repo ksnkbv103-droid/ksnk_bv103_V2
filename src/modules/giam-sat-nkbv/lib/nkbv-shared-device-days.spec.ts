@@ -59,4 +59,14 @@ describe("nkbv-shared-device-days", () => {
     expect(p.so_ngay_sonde_tieu).toBe(2);
     expect(p.so_ngay_tho_may).toBe(3);
   });
+
+  it("lọc theo khoa thì loại dòng khoa null; không lọc khoa thì giữ", () => {
+    const rows = [
+      { device_type: "FOLEY" as const, insertion_date: "2026-08-01", removal_date: "2026-08-02", khoa_id: "K1" },
+      { device_type: "FOLEY" as const, insertion_date: "2026-08-01", removal_date: "2026-08-02", khoa_id: null },
+      { device_type: "FOLEY" as const, insertion_date: "2026-08-01", removal_date: "2026-08-02", khoa_id: "K2" },
+    ];
+    expect(previewMauSoFromRegistry(rows, "2026-08-01", "2026-08-03", "K1").device_rows_considered).toBe(1);
+    expect(previewMauSoFromRegistry(rows, "2026-08-01", "2026-08-03", null).device_rows_considered).toBe(3);
+  });
 });

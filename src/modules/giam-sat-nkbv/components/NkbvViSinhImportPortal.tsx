@@ -36,6 +36,8 @@ import NkbvViSinhStorePanel from "./NkbvViSinhStorePanel";
 
 type NkbvViSinhImportPortalProps = {
   khoas: Array<{ id: string; ten_danh_muc: string; ma_danh_muc?: string }>;
+  /** Quyền import GIAM_SAT_NKBV (khớp verifyPermission "import" phía server). */
+  canImport: boolean;
 };
 
 type ParsedRecord = {
@@ -156,7 +158,7 @@ function draftToParsed(r: NkbvLisDraftRow, khoas: NkbvViSinhImportPortalProps["k
   };
 }
 
-export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortalProps) {
+export default function NkbvViSinhImportPortal({ khoas, canImport }: NkbvViSinhImportPortalProps) {
   const khoaOptions = useMemo(() => nkbvKhoaSelectOptions(khoas), [khoas]);
   const [pasteData, setPasteData] = useState("");
   const [showPastePanel, setShowPastePanel] = useState(false);
@@ -439,7 +441,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 void navigator.clipboard.writeText(sampleLis);
                 toast.success("Đã copy mẫu LIS vào Clipboard");
               }}
-              className="w-full h-28 font-mono text-[11px] bg-white border border-slate-200 rounded-xl p-2 cursor-pointer focus:outline-none"
+              className="w-full h-28 font-mono text-xs bg-white border border-slate-200 rounded-xl p-2 cursor-pointer focus:outline-none"
             />
           </div>
         )}
@@ -462,7 +464,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                disabled={isLoading}
+                disabled={!canImport || isLoading}
                 className="flex items-center gap-1.5 rounded-full bg-blue-50 hover:bg-blue-100 px-4 py-2 bv103-type-label font-semibold text-blue-800 disabled:opacity-50"
               >
                 <UploadCloud className="h-4 w-4" />
@@ -471,7 +473,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => setShowPastePanel((v) => !v)}
-                disabled={isLoading}
+                disabled={!canImport || isLoading}
                 aria-expanded={showPastePanel}
                 className={`flex items-center gap-1.5 rounded-full px-4 py-2 bv103-type-label font-semibold disabled:opacity-50 ${
  showPastePanel
@@ -491,7 +493,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
           </div>
           {showPastePanel ? (
             <div className="space-y-3 bv103-layer-inset bv103-pad-inset">
-              <span className="text-[11px] font-medium text-slate-500">
+              <span className="text-xs font-medium text-slate-500">
                 Dán bảng LIS / mẫu nội bộ (TSV)
               </span>
               <textarea
@@ -504,7 +506,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 <button
                   type="button"
                   onClick={() => void handleParsePaste()}
-                  disabled={isLoading}
+                  disabled={!canImport || isLoading}
                   className={`${C.ctaPrimary} hover:bg-[var(--primary-hover)] disabled:opacity-50`}
                 >
                   Phân tích <ArrowRight className="h-4 w-4" />
@@ -546,7 +548,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => void handleImportSubmit()}
-                disabled={isLoading || incompleteCount > 0}
+                disabled={!canImport || isLoading || incompleteCount > 0}
                 className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-xs font-semibold text-white shadow-lg disabled:opacity-50"
               >
                 {isLoading ? "Đang lưu..." : "Lưu vào kho vi sinh"}
@@ -601,10 +603,10 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                         className={`${C.controlInput} ${!r.ngay_vao_vien ? "border-amber-400" : ""}`}
                       />
                     </td>
-                    <td className="px-3 py-3 font-mono text-[11px]">{r.ma_xet_nghiem}</td>
+                    <td className="px-3 py-3 font-mono text-xs">{r.ma_xet_nghiem}</td>
                     <td className="px-3 py-3">
                       <div className="font-bold">{r.ho_ten_benh_nhan}</div>
-                      <div className="text-[11px] text-slate-400">{r.ma_benh_nhan}</div>
+                      <div className="text-xs text-slate-400">{r.ma_benh_nhan}</div>
                     </td>
                     <td className="px-3 py-3">
                       <span
@@ -621,7 +623,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-3 py-3 text-slate-500">
                       {formatDateVi(vnYmd(r.ngay_lay_mau))}
-                      {r.ngay_vao_vien ? <div className="text-[11px]">Ngày {r.diffDays + 1}</div> : null}
+                      {r.ngay_vao_vien ? <div className="text-xs">Ngày {r.diffDays + 1}</div> : null}
                     </td>
                     <td className="px-3 py-3 min-w-[200px]">
                       <SearchableSelect
@@ -638,7 +640,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                       <div className="bv103-type-body text-amber-700">{r.tac_nhan || "—"}</div>
                     </td>
                     <td className="px-3 py-3">
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold">
                         <input
                           type="checkbox"
                           checked={r.is_mdro}
@@ -668,11 +670,11 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-3 py-3">
                       {r.needs_stay_fields ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
                           <AlertTriangle className="h-3 w-3" /> Thiếu BA/VV
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-semibold text-emerald-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
                           <CheckCircle className="h-3 w-3" /> Lưu kho
                         </span>
                       )}
@@ -685,7 +687,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                           {r.alerts.map((a) => (
                             <li
                               key={`${a.code}-${a.related_event_id}`}
-                              className={`rounded-lg px-2 py-1 text-[11px] font-semibold ${
+                              className={`rounded-lg px-2 py-1 text-xs font-semibold ${
  a.code === "SBAP"
  ? "bg-violet-50 text-violet-800"
  : "bg-amber-50 text-amber-900"

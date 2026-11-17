@@ -195,7 +195,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cellClassName: "whitespace-nowrap align-middle",
       cell: (row: CongViecView) => (
         <span
-          className={`text-[11px] font-semibold ${row.is_qua_han ? "text-red-600" : "text-slate-600"}`}
+          className={`text-xs font-semibold ${row.is_qua_han ? "text-red-600" : "text-slate-600"}`}
         >
           {formatDateVi(row.han_hoan_thanh)}
         </span>
@@ -216,7 +216,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
         const code = String(row.muc_do_uu_tien || "TRUNG_BINH").trim().toUpperCase();
         const color = priorityColors[code] || priorityColors.TRUNG_BINH;
         return (
-          <span className={`rounded-lg border px-2 py-0.5 text-[11px] font-medium normal-case ${color}`}>
+          <span className={`rounded-lg border px-2 py-0.5 text-xs font-medium normal-case ${color}`}>
             {formatMucDoUuTienLabel(row.muc_do_uu_tien)}
           </span>
         );
@@ -234,7 +234,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Sao chép / Nhân bản công việc này"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
               onClick={() => h.onClone?.(row)}
             >
               <Copy size={12} aria-hidden /> Nhân bản
@@ -244,7 +244,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Sửa"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
               onClick={() => h.onEdit(row)}
             >
               <Pencil size={12} aria-hidden /> Sửa
@@ -254,7 +254,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Xóa"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50/90 px-2 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50/90 px-2 text-xs font-semibold text-red-700 hover:bg-red-100"
               onClick={() => void h.onDelete(row)}
             >
               <Trash2 size={12} aria-hidden />

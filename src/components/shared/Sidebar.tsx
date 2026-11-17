@@ -49,8 +49,8 @@ function NavLinkRow({
       aria-current={isActive ? "page" : undefined}
       className={`app-shell-focus flex min-h-12 items-center gap-3 rounded-[var(--radius-control)] px-4 py-3.5 text-[0.9375rem] font-medium transition-colors md:min-h-0 md:py-3 md:text-sm ${
         isActive
-          ? "bg-[var(--primary)] text-white shadow-sm shadow-[var(--primary)]/20"
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          ? "bg-[var(--primary)] text-white"
+          : "text-[var(--text-secondary)] hover:bg-slate-100 hover:text-slate-900"
       }`}
     >
       <Icon className={`h-5 w-5 shrink-0 ${isActive ? "opacity-100" : "opacity-80"}`} aria-hidden />
@@ -82,7 +82,7 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
   return (
     <div className="space-y-[var(--bv103-space-3)]">
       {loading ? (
-        <div className="px-4 py-3 text-xs font-medium text-slate-400" aria-busy="true">
+        <div className="px-4 py-3 text-xs font-medium text-[var(--text-muted)]" aria-busy="true">
           Đang tải menu…
         </div>
       ) : !hasAnyNav ? (
@@ -138,7 +138,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
     <aside
       className={`
       fixed md:sticky left-0 top-0 z-[10000] flex h-dvh max-h-dvh w-[min(18.5rem,92vw)] flex-col md:h-auto md:max-h-none md:min-h-screen md:w-[17.5rem]
-      border-r border-slate-200/90 bg-[var(--bg-panel)] transition-transform duration-300
+      border-r border-slate-200 bg-[var(--bg-panel)] transition-transform duration-300
       ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full md:translate-x-0 pointer-events-none md:pointer-events-auto"}
       max-md:pt-[env(safe-area-inset-top,0px)]
     `}
@@ -156,14 +156,14 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
               alt=""
               width={64}
               height={64}
-              className="h-16 w-16 shrink-0 bg-transparent object-contain drop-shadow-[0_6px_18px_rgba(15,23,42,0.12)]"
+              className="h-16 w-16 shrink-0 bg-transparent object-contain "
               priority
             />
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
-              <p className="truncate whitespace-nowrap text-[11px] font-bold leading-tight tracking-wide text-slate-900 md:text-xs">
+              <p className="text-xs font-semibold leading-tight text-slate-900">
                 BỆNH VIỆN QUÂN Y 103
               </p>
-              <p className="truncate whitespace-nowrap text-[11px] font-semibold leading-tight text-[var(--primary)] md:text-[11px]">
+              <p className="text-xs font-medium leading-tight text-[var(--primary)]">
                 Khoa Kiểm soát nhiễm khuẩn
               </p>
             </div>
@@ -187,7 +187,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         aria-label="Điều hướng chính"
       >
         <Suspense
-          fallback={<div className="px-2 py-8 text-center text-xs font-medium text-slate-400">Đang tải menu…</div>}
+          fallback={<div className="px-2 py-8 text-center text-xs font-medium text-[var(--text-muted)]">Đang tải menu…</div>}
         >
           <SidebarNavLinks onClose={onClose} />
         </Suspense>
@@ -205,7 +205,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
             Đổi mật khẩu
           </Link>
         </div>
-        <p className="text-center text-[11px] font-medium leading-snug text-slate-500 md:text-[11px]">
+        <p className="text-center text-xs leading-snug text-[var(--text-secondary)]">
           Số hóa quy trình kiểm soát nhiễm khuẩn
         </p>
       </div>

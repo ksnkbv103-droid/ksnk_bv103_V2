@@ -82,7 +82,7 @@ export function RBACMatrixMobileView({
                           {getModuleDisplayName(moduleName)}
                         </span>
                         {getPermissionModuleBusinessDescription(moduleName) ? (
-                          <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">
+                          <span className="mt-0.5 block text-xs leading-snug text-slate-500">
                             {getPermissionModuleBusinessDescription(moduleName)}
                           </span>
                         ) : null}
@@ -101,14 +101,14 @@ export function RBACMatrixMobileView({
                                 <button
                                   type="button"
                                   onClick={() => onBulkSetAllForRole(role.id, true)}
-                                  className="rounded border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--primary)]"
+                                  className="rounded border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-2 py-1 text-xs font-semibold text-[var(--primary)]"
                                 >
                                   Bật hết
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => onBulkSetAllForRole(role.id, false)}
-                                  className="rounded border border-red-100 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700"
+                                  className="rounded border border-red-100 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700"
                                 >
                                   Tắt hết
                                 </button>
@@ -121,7 +121,7 @@ export function RBACMatrixMobileView({
                                     type="button"
                                     title={`Bật ${a.full}`}
                                     onClick={() => onBulkSetActionForRole(role.id, a.key, true)}
-                                    className="min-h-9 rounded border border-emerald-200 bg-emerald-50 px-2 text-[11px] font-semibold text-emerald-800"
+                                    className="min-h-9 rounded border border-emerald-200 bg-emerald-50 px-2 text-xs font-semibold text-emerald-800"
                                   >
                                     +{a.label}
                                   </button>
@@ -129,7 +129,7 @@ export function RBACMatrixMobileView({
                                     type="button"
                                     title={`Tắt ${a.full}`}
                                     onClick={() => onBulkSetActionForRole(role.id, a.key, false)}
-                                    className="min-h-9 rounded border border-slate-200 bg-white px-2 text-[11px] text-slate-500"
+                                    className="min-h-9 rounded border border-slate-200 bg-white px-2 text-xs text-slate-500"
                                   >
                                     −{a.label}
                                   </button>

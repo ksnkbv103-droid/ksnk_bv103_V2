@@ -165,7 +165,7 @@ export default function SearchableMultiSelect({
 
   const compact = size === "compact";
   const triggerClass = compact
-    ? `h-9 ${minWidthClassName} rounded-lg border border-slate-200 bg-white px-2.5 text-left text-xs font-medium`
+    ? `h-11 sm:h-9 ${minWidthClassName} rounded-(--radius-control) border border-slate-200 bg-white px-2.5 text-left text-xs font-medium`
     : `h-11 ${minWidthClassName} rounded-xl border border-slate-200 bg-white px-3 text-left text-sm font-semibold`;
 
   return (
@@ -229,7 +229,7 @@ export default function SearchableMultiSelect({
                         <button
                           type="button"
                           onClick={() => setOpen(false)}
-                          className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
+                          className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-800 active:bg-slate-100"
                         >
                           Đóng
                         </button>
@@ -251,7 +251,7 @@ export default function SearchableMultiSelect({
                         <button
                           type="button"
                           onClick={() => onChange(allSelected ? [] : options.map((opt) => opt.id))}
-                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[11px] font-bold text-slate-800 active:bg-slate-100"
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 active:bg-slate-100"
                         >
                           {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
                         </button>
@@ -324,14 +324,14 @@ export default function SearchableMultiSelect({
                       <button
                         type="button"
                         onClick={() => onChange(allSelected ? [] : options.map((opt) => opt.id))}
-                        className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold"
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold"
                       >
                         {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
                       </button>
                       <button
                         type="button"
                         onClick={() => setOpen(false)}
-                        className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold"
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold"
                       >
                         Đóng
                       </button>

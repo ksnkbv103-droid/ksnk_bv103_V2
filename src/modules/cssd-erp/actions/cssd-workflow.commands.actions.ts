@@ -5,7 +5,7 @@
  */
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import type { Station } from "../types/cssd.types";
-import { revalidateCssdWorkflowSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
+import { revalidateCssdWorkflowSurfaces, appendQuyTrinhException } from "./cssd-action-common";
 import { scanQR } from "./cssd-scan.actions";
 import {
   executeRejectToPreviousStation,
@@ -25,6 +25,15 @@ async function cssdOperatorLabel(): Promise<string> {
   }
 }
 
+/** Id người dùng phiên — RPC chạy service_role cần biết ai thao tác (`p_actor_user_id`). */
+async function cssdSessionUserId(): Promise<string> {
+  const uc = await createServerSupabaseUserClient();
+  const { data, error } = await uc.auth.getUser();
+  const userId = data.user?.id ? String(data.user.id) : "";
+  if (error || !userId) throw new Error("Không xác định được người thực hiện.");
+  return userId;
+}
+
 /** Bước tiếp theo theo ô trạm đang quét — cùng hành vi `scanQR` (kể cả offline replay). */
 export async function cssdCommandAdvanceStation(
   maQR: string,
@@ -41,14 +50,14 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
   const code = String(maQR || "").trim().toUpperCase();
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR quy trình.");
-  const hasDong = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-  const op = await cssdOperatorLabel();
+  const [op, actorUserId] = await Promise.all([cssdOperatorLabel(), cssdSessionUserId()]);
   await executeRejectToPreviousStation(supabase, {
     maQR: code,
     quyTrinh: row as WorkflowQuyTrinhInput,
-    hasDongBangColumn: hasDong,
+    hasDongBangColumn: true,
     lyDo,
     operatorLabel: op,
+    actorUserId,
   });
   revalidateCssdWorkflowSurfaces();
   return { success: true as const };
@@ -58,8 +67,6 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
 export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   await verifyCssdWorkflowEdit();
   const supabase = createAdminSupabaseClient();
-  const has = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-  if (!has) throw new Error("Phiên bản DB chưa có cột khóa an toàn.");
 
   const code = String(maQR || "").trim().toUpperCase();
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
@@ -74,16 +81,23 @@ export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   if (freezeErr) throw new Error(freezeErr.message);
   if (!frozenRows?.length) throw new Error("Không khóa được bộ — bản ghi không còn hoặc đã đổi.");
   const op = await cssdOperatorLabel();
-  await appendQuyTrinhException(
-    supabase,
-    quyId,
-    {
+  // Khóa trước, ghi lý do sau (không soft); ghi lý do lỗi thì hoàn tác khóa để không có bộ bị khóa vô danh.
+  try {
+    await appendQuyTrinhException(supabase, quyId, {
       su_kien: "DONG_BANG_THU_CONG",
       ly_do: `Khóa an toàn thủ công. ${String(lyDo || "").trim().slice(0, 280)}`,
       nguoi_thao_tac: op,
-    },
-    { soft: true },
-  );
+    });
+  } catch {
+    const { error: rollbackErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .update({ is_dong_bang: false, updated_at: new Date().toISOString() })
+      .eq("id", quyId);
+    if (rollbackErr) {
+      console.error({ module: "cssd-erp", action: "cssdCommandFreezeSet", rollbackError: rollbackErr.message });
+    }
+    throw new Error("Không ghi được lý do đóng băng, thao tác đã hủy.");
+  }
 
   revalidateCssdWorkflowSurfaces();
   return { success: true as const };

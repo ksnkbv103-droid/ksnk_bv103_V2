@@ -1,11 +1,28 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { getActorRoleNames } from "@/lib/server-permission";
+import { getActorRoleNames, verifyAnyPermission } from "@/lib/server-permission";
 
 export const SELF_APPROVAL_FORBIDDEN =
   "Không được tự duyệt phiếu do chính mình đề nghị — nhờ người khác có quyền duyệt.";
 export const APPROVER_UNMAPPED =
   "Tài khoản duyệt chưa gắn hồ sơ nhân sự — không ghi được người duyệt. Liên hệ quản trị gắn nhân sự trước khi duyệt.";
+
+/**
+ * AR-1 (PO 2026-11-10): duyệt danh mục dụng cụ kiểm theo quyền `approve`, không theo tên vai trò.
+ * ADMIN và tài khoản break-glass tự qua (verifyAnyPermission).
+ */
+export async function requireCssdCatalogApprove(what: string): Promise<void> {
+  try {
+    await verifyAnyPermission([
+      { moduleKey: "BO_DC", action: "approve" },
+      { moduleKey: "DC_LE", action: "approve" },
+      { moduleKey: "LOAI_DC", action: "approve" },
+    ]);
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === "Bạn chưa đăng nhập.") throw e;
+    throw new Error(`Chỉ người có quyền duyệt danh mục dụng cụ (chủ nhiệm khoa) được duyệt ${what}.`);
+  }
+}
 
 export type ApproverIdentity = { authUserId: string; nhanSuId: string | null; isAdmin: boolean };
 

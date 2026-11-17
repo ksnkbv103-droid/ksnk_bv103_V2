@@ -7,7 +7,7 @@ import {
   collectStationStampSnapshot,
   listStationStampSelectColumns,
 } from "@/modules/cssd-erp/workflow/domain/cssd-station-clear";
-import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
+import { mapFkError, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import {
   buildIncidentAttributes,
   countPriorSafetyIncidentsOnCycle,
@@ -44,7 +44,12 @@ import {
   validateInstrumentDoorLines,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
-import { buildSetReconcileAttributePatch } from "../domain/cssd-set-reconcile-attrs";
+import {
+  buildSetReconcileAttributePatch,
+  isSetReconcileDraftAttr,
+  isSetReconcileDraftOwner,
+  readSetReconcileBoId,
+} from "../domain/cssd-set-reconcile-attrs";
 import { collectSubmittedSetReconcileWrite } from "./set-reconcile-incident.application";
 
 type QuyRow = Record<string, unknown> & {
@@ -230,14 +235,11 @@ export async function executeIncidentReportAndRollback(
     isRedAlert = shouldRaiseRedAlert(prior, typeId);
   }
 
-  const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
-  const hasDongBang = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
-
   const originalState = q
     ? {
         tram_hien_tai_id: (q as { tram_hien_tai_id?: string | null }).tram_hien_tai_id,
-        is_red_alert: hasQuyTrinhIsRedAlert ? Boolean(q.is_red_alert) : undefined,
-        is_dong_bang: hasDongBang ? Boolean((q as { is_dong_bang?: boolean }).is_dong_bang) : undefined,
+        is_red_alert: Boolean(q.is_red_alert),
+        is_dong_bang: Boolean((q as { is_dong_bang?: boolean }).is_dong_bang),
         lo_tiet_khuan_id: (q as { lo_tiet_khuan_id?: string | null }).lo_tiet_khuan_id,
       }
     : null;
@@ -301,13 +303,9 @@ export async function executeIncidentReportAndRollback(
     ma_tram_gay_loi: rollbackStation ? rollbackStation.faultStation : null,
     attributes,
   };
-  if (q && await tableHasColumn(supabase, "cssd_fact_su_co", "quy_trinh_id")) suCoPayload.quy_trinh_id = q.id;
-  if (loaiSuCo && await tableHasColumn(supabase, "cssd_fact_su_co", "loai_su_co_id")) {
-    suCoPayload.loai_su_co_id = loaiSuCo.id;
-  }
-  if (nguoiBaoId && await tableHasColumn(supabase, "cssd_fact_su_co", "nguoi_bao_id")) {
-    suCoPayload.nguoi_bao_id = nguoiBaoId;
-  }
+  if (q) suCoPayload.quy_trinh_id = q.id;
+  if (loaiSuCo) suCoPayload.loai_su_co_id = loaiSuCo.id;
+  if (nguoiBaoId) suCoPayload.nguoi_bao_id = nguoiBaoId;
 
   const draftId = String(setReconcile?.draftIncidentId || "").trim();
   const commitPayload: SuCoCommitPayload = {
@@ -321,6 +319,23 @@ export async function executeIncidentReportAndRollback(
     loai_su_co_id: loaiSuCo?.id ?? null,
     nguoi_bao_id: nguoiBaoId,
   };
+  if (draftId) {
+    // Chỉ gửi được phiếu nháp rà soát của chính người báo, đúng bộ, còn hiệu lực — không ghi đè phiếu khác.
+    const { data: draftRow, error: draftErr } = await supabase
+      .from("cssd_fact_su_co")
+      .select("id, is_active, attributes")
+      .eq("id", draftId)
+      .maybeSingle();
+    if (draftErr) throw new Error("Lỗi đọc phiếu nháp: " + draftErr.message);
+    const draftAttrs = (draftRow?.attributes as Record<string, unknown> | null) ?? {};
+    const okDraft =
+      draftRow?.is_active !== false &&
+      Boolean(draftRow?.id) &&
+      isSetReconcileDraftAttr(draftAttrs) &&
+      isSetReconcileDraftOwner(draftAttrs, data.reporterAuthUserId) &&
+      readSetReconcileBoId(draftAttrs) === setReconcile?.boDungCuId;
+    if (!okDraft) throw new Error("Không gửi được: phiếu nháp không còn hoặc không phải của bạn.");
+  }
   let incident: { id: string } | null = null;
   let atomicWrite = false;
 
@@ -421,11 +436,11 @@ export async function executeIncidentReportAndRollback(
         quyTrinhUpdate.lo_tiet_khuan_id = null;
       }
 
-      if (rollbackStation.freezeSafetyLock && hasDongBang) {
+      if (rollbackStation.freezeSafetyLock) {
         quyTrinhUpdate.is_dong_bang = true;
       }
 
-      if (hasQuyTrinhIsRedAlert) quyTrinhUpdate.is_red_alert = isRedAlert;
+      quyTrinhUpdate.is_red_alert = isRedAlert;
       const { error: qErr } = await supabase.from("cssd_fact_quy_trinh").update(quyTrinhUpdate).eq("id", q.id);
       if (qErr) throw new Error(mapFkError(qErr.message));
 
@@ -463,8 +478,8 @@ export async function executeIncidentReportAndRollback(
         },
         { soft: true },
       );
-    } else if (q && isRedAlert && hasQuyTrinhIsRedAlert) {
-      // Không rollback trạm (vd. sự cố dụng cụ) nhưng vẫn gắn cờ đỏ trên quy trình khi DB đã có cột.
+    } else if (q && isRedAlert) {
+      // Không rollback trạm (vd. sự cố dụng cụ) nhưng vẫn gắn cờ đỏ trên quy trình.
       const { error: alertErr } = await supabase
         .from("cssd_fact_quy_trinh")
         .update({ is_red_alert: true, updated_at: new Date().toISOString() })
@@ -502,10 +517,10 @@ export async function executeIncidentReportAndRollback(
       const rollbackPayload: Record<string, unknown> = {
         tram_hien_tai_id: originalState.tram_hien_tai_id,
         lo_tiet_khuan_id: originalState.lo_tiet_khuan_id,
+        is_red_alert: originalState.is_red_alert,
+        is_dong_bang: originalState.is_dong_bang,
         updated_at: new Date().toISOString(),
       };
-      if (hasQuyTrinhIsRedAlert) rollbackPayload.is_red_alert = originalState.is_red_alert;
-      if (hasDongBang) rollbackPayload.is_dong_bang = originalState.is_dong_bang;
       const { error: undoErr } = await supabase.from("cssd_fact_quy_trinh").update(rollbackPayload).eq("id", q.id);
       if (undoErr) {
         console.error({ module: "cssd-su-co", action: "report-incident-undo", quyTrinhId: q.id, error: undoErr.message });

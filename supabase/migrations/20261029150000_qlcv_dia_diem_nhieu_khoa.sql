@@ -1,6 +1,6 @@
 -- QLCV L3 · Địa điểm nhiều khoa trên phiếu và mẫu định kỳ (PO 2026-10-29).
 -- (1) dia_diem_khoa_ids uuid[] NOT NULL DEFAULT '{}' trên qlcv_fact_cong_viec và qlcv_fact_cong_viec_dinh_ky.
---     dia_diem_khoa_id (đơn) giữ nguyên = khoa đầu tiên; view/KPI cũ không đổi. (ke_hoach_tuan_dong không còn cột địa điểm → bỏ qua.)
+--     dia_diem_khoa_id (đơn) giữ nguyên = khoa đầu tiên; view/chỉ số cũ không đổi. (ke_hoach_tuan_dong không còn cột địa điểm → bỏ qua.)
 -- (2) Backfill ids = ARRAY[dia_diem_khoa_id].
 -- (3) Trigger BEFORE INSERT/UPDATE đồng bộ ids <-> id đơn, loại trùng (giữ thứ tự), kiểm tồn tại mdm_dm_khoa_phong.
 --     Tên trg_a_* để chạy trước trg_mdm_validate_lookup_* (thứ tự trigger theo tên).

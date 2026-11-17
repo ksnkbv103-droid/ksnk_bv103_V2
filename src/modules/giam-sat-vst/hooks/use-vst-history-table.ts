@@ -1,5 +1,6 @@
 "use client";
 
+import { VST_EDIT_REASON_MIN_CHARS } from "../lib/vst-edit-reason";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -117,7 +118,7 @@ export function useVstHistoryTable() {
       if (!ids.length) return;
       if (
         !(await confirmAction(
-          `Vô hiệu ${ids.length} phiên giám sát (xóa mềm — dữ liệu vẫn lưu ≥3 năm theo QT.07)? Chỉ phiên do bạn giám sát (hoặc Admin sau 30 phút).`,
+          `Vô hiệu ${ids.length} phiên giám sát (xóa mềm — dữ liệu vẫn lưu ≥3 năm theo QT.07)? Phiên của bạn trong 30 phút được xóa ngay; quá 30 phút sẽ gửi yêu cầu chờ chủ nhiệm khoa duyệt.`,
         ))
       ) {
         return;
@@ -125,7 +126,7 @@ export function useVstHistoryTable() {
       const lyDo = await promptText({
         title: "Lý do xóa phiên",
         label: "Lý do xóa (bắt buộc)",
-        minLength: 3,
+        minLength: VST_EDIT_REASON_MIN_CHARS,
         multiline: true,
         tone: "danger",
         confirmText: "Xóa phiên",
@@ -133,7 +134,9 @@ export function useVstHistoryTable() {
       if (lyDo == null) return;
       const res = await deleteVSTSessions(ids, { lyDo });
       if (res.success) {
-        toast.success(`Đã vô hiệu ${ids.length} phiên`);
+        const cho = res.choDuyet ?? 0;
+        if (cho > 0) toast.message(`Đã gửi ${cho} yêu cầu xóa, chờ chủ nhiệm khoa duyệt.`);
+        if (ids.length - cho > 0) toast.success(`Đã vô hiệu ${ids.length - cho} phiên`);
         refresh();
       } else {
         toast.error("Lỗi khi xóa: " + res.error);

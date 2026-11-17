@@ -25,3 +25,13 @@ describe("cssd-equipment-pm", () => {
     expect(trangThaiMayLabel("SAN_SANG")).toBe("Sẵn sàng");
   });
 });
+
+describe("canUnlockHoldQcMachine", () => {
+  it("chỉ Admin / Chủ nhiệm khoa", async () => {
+    const { canUnlockHoldQcMachine } = await import("./cssd-equipment-pm");
+    expect(canUnlockHoldQcMachine(["admin"])).toBe(true);
+    expect(canUnlockHoldQcMachine(["CHU_NHIEM_KHOA"])).toBe(true);
+    expect(canUnlockHoldQcMachine(["NHAN_VIEN_KSNK", "TRUONG_CSSD"])).toBe(false);
+    expect(canUnlockHoldQcMachine([])).toBe(false);
+  });
+});

@@ -1,0 +1,236 @@
+"use server";
+
+import { getCachedDmKhoaPhong, getCachedDmNgheNghiep } from "@/lib/cache/master-data-cache";
+import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
+import { sanitizeBusinessMaPrefix } from "@/lib/master-data/business-ma-prefix";
+import { type NhanSu } from "@/modules/to-chuc/nhan-su/types";
+import { verifyPermission } from "@/lib/server-permission";
+import { buildNhanSuExportRows } from "@/modules/to-chuc/nhan-su/actions/nhan-su-read-export-rows";
+import { errNhanSu } from "@/modules/to-chuc/nhan-su/actions/nhan-su-read-errors";
+import { enrichNhanSuListRows } from "@/modules/to-chuc/nhan-su/actions/nhan-su-read-list-enrich";
+import { NHAN_SU_EXPORT_VIEW_SELECT } from "@/modules/to-chuc/nhan-su/lib/nhan-su-export-view-select";
+import {
+  RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER,
+  selectRolesForStaffKsnkAssignment,
+  staffKsnkRoleDisplayLabel,
+} from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
+
+/**
+ * Lấy danh sách nhân sự với tìm kiếm và phân trang
+ */
+export async function getNhanSus(params: {
+  search?: string;
+  khoaId?: string;
+  toId?: string;
+  chucVuId?: string;
+  chucDanhId?: string;
+  vaiTroId?: string;
+  ngheNghiepId?: string;
+  /** Hồ sơ `is_active` và chưa `auth_user_id` — cùng đếm sức khỏe hệ thống. */
+  missingAuth?: boolean;
+  page?: number;
+  pageSize?: number;
+}) {
+  const supabase = await createServerSupabaseUserClient();
+  try {
+    await verifyPermission("NHAN_SU", "view");
+    const {
+      search,
+      khoaId,
+      toId,
+      chucVuId,
+      chucDanhId,
+      vaiTroId,
+      ngheNghiepId,
+      missingAuth,
+      page = 1,
+      pageSize = 20,
+    } = params;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    let query = supabase
+      .from("v_mdm_nhan_su_full")
+      .select(NHAN_SU_EXPORT_VIEW_SELECT, { count: "exact" });
+
+    const searchFilter = buildSupabaseSearchFilter(search, [
+      "ho_ten",
+      "ma_nv",
+      "email",
+      "so_dien_thoai",
+      "chuc_vu",
+      "chuc_danh",
+      "vai_tro_he_thong_ksnk"
+    ]);
+
+    if (searchFilter) {
+      query = query.or(searchFilter);
+    }
+
+    if (khoaId && khoaId !== "Tất cả") {
+      query = query.eq("khoa_id", khoaId);
+    }
+    if (toId && toId !== "Tất cả") {
+      query = query.eq("to_id", toId);
+    }
+    if (chucVuId && chucVuId !== "Tất cả") {
+      query = query.eq("chuc_vu_id", chucVuId);
+    }
+    if (chucDanhId && chucDanhId !== "Tất cả") {
+      query = query.eq("chuc_danh_id", chucDanhId);
+    }
+    if (vaiTroId && vaiTroId !== "Tất cả") {
+      const { data: roleUsers } = await supabase
+        .from("sys_user_roles")
+        .select("user_id")
+        .eq("role_id", vaiTroId);
+      const authUserIds = (roleUsers || []).map((x) => x.user_id).filter(Boolean);
+      if (authUserIds.length > 0) {
+        query = query.or(`vai_tro_he_thong_id.eq.${vaiTroId},auth_user_id.in.(${authUserIds.join(",")})`);
+      } else {
+        query = query.eq("vai_tro_he_thong_id", vaiTroId);
+      }
+    }
+    if (ngheNghiepId && ngheNghiepId !== "Tất cả") {
+      query = query.eq("nghe_nghiep_id", ngheNghiepId);
+    }
+    if (missingAuth) {
+      query = query.eq("is_active", true).is("auth_user_id", null);
+    }
+
+    const { data, error, count } = await query
+      .order("is_active", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(start, end);
+
+    if (error) throw error;
+    const enriched = await enrichNhanSuListRows(data || []);
+
+    return {
+      success: true,
+      data: enriched as NhanSu[],
+      total: count || 0,
+      totalCount: count || 0,
+      page,
+      pageSize
+    };
+  } catch (error: unknown) {
+    console.error("Lỗi getNhanSus:", errNhanSu(error));
+    return { success: false, error: "Không thể tải danh sách nhân sự" };
+  }
+}
+
+/**
+ * Gợi ý mã nhân viên kế tiếp theo tiền tố (một RPC, không tải danh sách ma_nv).
+ */
+export async function suggestNextMaNhanSuMaAction(prefixRaw: string) {
+  const supabase = await createServerSupabaseUserClient();
+  try {
+    await verifyPermission("NHAN_SU", "view");
+    const prefix = sanitizeBusinessMaPrefix(prefixRaw);
+    if (!prefix) {
+      return { success: false as const, error: "Tiền tố mã không hợp lệ." };
+    }
+    const { data, error } = await supabase.rpc("rpc_mdm_nhan_su_max_numeric_suffix", {
+      p_prefix: prefix,
+    });
+    if (error) throw error;
+    const maxSuffix = typeof data === "number" ? data : Number.parseInt(String(data ?? "0"), 10);
+    const maxSafe = Number.isFinite(maxSuffix) ? maxSuffix : 0;
+    const nextNum = maxSafe + 1;
+    const nextCode = `${prefix}${nextNum.toString().padStart(3, "0")}`;
+    return { success: true as const, nextCode };
+  } catch (error: unknown) {
+    return { success: false as const, error: errNhanSu(error) };
+  }
+}
+
+/**
+ * Lấy toàn bộ nhân sự để Export
+ */
+export async function getNhanSuExportData() {
+  const supabase = await createServerSupabaseUserClient();
+  try {
+    await verifyPermission("NHAN_SU", "view");
+    const { data, error } = await supabase
+      .from("v_mdm_nhan_su_full")
+      .select(NHAN_SU_EXPORT_VIEW_SELECT)
+      .order("is_active", { ascending: false })
+      .order("ma_nv");
+    if (error) throw error;
+    const rows = (data || []) as NhanSu[];
+    const exportRows = await buildNhanSuExportRows(supabase, rows);
+    return {
+      success: true,
+      data: exportRows,
+    };
+  } catch (error: unknown) {
+    return { success: false, error: errNhanSu(error) };
+  }
+}
+
+/**
+ * Lấy danh mục dùng cho form Nhân sự.
+ * Tối ưu bằng Cache layer cho các danh mục master data.
+ */
+export async function getNhanSuFormOptionsAction() {
+  const supabase = await createServerSupabaseUserClient();
+  try {
+    await verifyPermission("NHAN_SU", "view");
+    
+    // Lấy Khoa và Nghề nghiệp từ Cache
+    const [khoaData, ngheData, registryRes, roleRes] = await Promise.all([
+      getCachedDmKhoaPhong(),
+      getCachedDmNgheNghiep(),
+      supabase.rpc("rpc_get_registry_options", {
+        p_categories: ["CHUC_DANH", "CHUC_VU", "TO_CONG_TAC"],
+      }),
+      supabase
+        .from("sys_roles")
+        .select("id, name")
+        .eq("is_active", true)
+        .in("name", [...RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER]),
+    ]);
+
+    if (registryRes.error) throw registryRes.error;
+    if (roleRes.error) throw roleRes.error;
+    const registry = registryRes.data as Record<string, any[]>;
+
+    return {
+      success: true as const,
+      data: {
+        khoas: khoaData.map((k) => ({
+          id: k.id,
+          ma_danh_muc: k.ma_khoa,
+          ten_danh_muc: k.ten_khoa,
+        })),
+        chucDanhs: (registry.CHUC_DANH || []).map((x) => ({
+          id: x.id,
+          ten_danh_muc: x.ten,
+        })),
+        chucVus: (registry.CHUC_VU || []).map((x) => ({
+          id: x.id,
+          ten_danh_muc: x.ten,
+        })),
+        tos: (registry.TO_CONG_TAC || []).map((x) => ({ id: x.id, ten_danh_muc: x.ten })),
+        vaiTros: selectRolesForStaffKsnkAssignment(
+          (roleRes.data || []) as Array<{ id: string; name: string }>,
+        ).map((r) => ({
+          id: r.id,
+          name: r.name,
+          ten_danh_muc: staffKsnkRoleDisplayLabel(r.name),
+        })),
+        ngheNghieps: ngheData.map((x) => ({
+          id: x.id,
+          ten_danh_muc: x.ten_nghe_nghiep,
+        })),
+      },
+    };
+  } catch (error: unknown) {
+    return {
+      success: false as const,
+      error: errNhanSu(error) || "Không tải được danh mục form nhân sự.",
+    };
+  }
+}

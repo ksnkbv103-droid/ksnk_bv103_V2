@@ -92,7 +92,7 @@ Insert **65 BK** vào `gstt_dm_bang_kiem`; **skip WHO** BM.01 (VST module); **0 
 | Biên bản họp / giao nhận / sự cố / nghiệm thu | 8 | QT.02.BM.01, QT.03.BM.04, QT.05.BM.03… |
 | NKBV / vụ dịch case-finding · line-list · phiếu điều tra | 8 | QT.34.BM.01–03… |
 | Checklist / BM đào tạo · BDNL (không dùng GS tuân thủ) | 6 | QT.04.BM.01–06… |
-| Mẫu báo cáo hành chính / tổng hợp KPI | 3 | QT.06.BM.01, QT.07.BM.04, QT.24.BM.02… |
+| Mẫu báo cáo hành chính / tổng hợp chỉ số | 3 | QT.06.BM.01, QT.07.BM.04, QT.24.BM.02… |
 | QT.33 báo cáo phản hồi / sổ tổng hợp dữ liệu GS | 2 | QT.33.BM.01, QT.33.BM.02 |
 
 **Tổng EXCLUDE: 69** / corpus 135 BM.

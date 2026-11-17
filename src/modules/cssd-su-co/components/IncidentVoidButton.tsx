@@ -48,7 +48,7 @@ export default function IncidentVoidButton({ incidentId, onVoided }: Props) {
         type="button"
         onClick={() => setOpen(true)}
         disabled={loading}
-        className="inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 text-[11px] font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+        className="inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Vô hiệu phiếu
@@ -57,10 +57,10 @@ export default function IncidentVoidButton({ incidentId, onVoided }: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
             <p className="text-sm font-semibold text-slate-900">Vô hiệu phiếu sự cố</p>
-            <p className="mt-1 text-[11px] text-slate-600">
+            <p className="mt-1 text-xs text-slate-600">
               Bắt buộc chọn lý do. Không kéo lùi chu trình nếu bộ đã đi tiếp sau rollback.
             </p>
-            <label className="mt-3 block text-[11px] font-medium text-slate-700">
+            <label className="mt-3 block text-xs font-medium text-slate-700">
               Lý do
               <select
                 className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
@@ -74,7 +74,7 @@ export default function IncidentVoidButton({ incidentId, onVoided }: Props) {
                 ))}
               </select>
             </label>
-            <label className="mt-2 block text-[11px] font-medium text-slate-700">
+            <label className="mt-2 block text-xs font-medium text-slate-700">
               Ghi chú {reason === "KHAC" ? "(bắt buộc)" : "(tuỳ chọn)"}
               <textarea
                 className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
@@ -86,7 +86,7 @@ export default function IncidentVoidButton({ incidentId, onVoided }: Props) {
             <div className="mt-3 flex justify-end gap-2">
               <button
                 type="button"
-                className="rounded-lg border border-slate-200 px-3 py-2 text-[11px] font-semibold"
+                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold"
                 onClick={() => setOpen(false)}
                 disabled={loading}
               >
@@ -94,7 +94,7 @@ export default function IncidentVoidButton({ incidentId, onVoided }: Props) {
               </button>
               <button
                 type="button"
-                className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-semibold text-white disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
                 onClick={() => void onConfirm()}
                 disabled={loading}
               >

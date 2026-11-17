@@ -3,9 +3,10 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { fetchAllRangeRows } from "@/lib/fetch-all-range";
 import { revalidatePath } from "next/cache";
-import { verifyPermission } from "@/lib/server-permission";
+import { getActorRoleNames, verifyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
-import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
+import { NKBV_KHOA_REQUIRED_ERROR, nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { normalizeAndValidateDmKhoaPhong } from "@/lib/master-data/validation";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
@@ -28,6 +29,7 @@ import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import {
   clean,
   callThamDinhRpc,
+  isLoaKhoaInBaGrid,
   releaseViSinhStampsAfterHide,
   validateLoaiTrangAndLyDo,
   type Payload,
@@ -47,14 +49,26 @@ import {
   NKBV_CLINICAL_SUBMIT_LOCKED_VI,
 } from "../lib/nkbv-case-status";
 import { vnYmd } from "@/lib/format-datetime-vi";
+import { resolveServerLoa } from "../lib/nkbv-loa-server";
 
-export async function createGiamSatNkbvCa(_payload: Payload) {
-  await verifyPermission("GIAM_SAT_NKBV", "create");
-  return {
-    success: false as const,
-    error:
-      "Phiếu mới chỉ tạo từ Hub bệnh án sau khi phân tích (nút Tạo phiếu). Không tạo phiếu trống từ danh sách.",
-  };
+const NKBV_UPDATE_LOCKED_VI =
+  "Ca đã chốt (xác nhận / loại trừ / đã đóng) — không sửa phiếu. Dùng panel thẩm định hoặc ẩn phiếu nếu cần.";
+
+/** Phiếu có nằm trong phạm vi khoa của actor không (cùng mẫu updateGiamSatNkbvCa). Phiếu không tồn tại → true để luồng cũ tự báo lỗi. */
+async function isNkbvCaInScope(supabase: ReturnType<typeof createAdminSupabaseClient>, id: string): Promise<boolean> {
+  const restriction = await getNkbvKhoaRestriction();
+  if (restriction.kind === "all") return true;
+  const { data: row, error } = await supabase
+    .from("nkbv_fact_su_kien")
+    .select("ma_benh_an, khoa_ghi_nhan_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!row) return true;
+  if (row.ma_benh_an) {
+    return isNkbvBenhAnInScope(restriction, String(row.ma_benh_an), [row.khoa_ghi_nhan_id as string | null]);
+  }
+  return nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null]);
 }
 
 /** Cập nhật phiếu sự kiện nhiễm khuẩn (ghi nhận / đổi trạng thái…). */
@@ -90,11 +104,40 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     if (!cur?.trang_thai_id) return { success: false as const, error: "Không tìm thấy phiếu" };
     const restriction = await getNkbvKhoaRestriction();
     if (cur.ma_benh_an) {
-      if (!(await isNkbvBenhAnInScope(restriction, String(cur.ma_benh_an)))) {
+      if (!(await isNkbvBenhAnInScope(restriction, String(cur.ma_benh_an), [cur.khoa_ghi_nhan_id as string | null]))) {
         return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
       }
     } else if (!nkbvKhoaVisible(restriction, [cur.khoa_ghi_nhan_id as string | null])) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+    // NKBV-021: chỉ chặn khi ĐỔI khoa ghi nhận sang khoa ngoài phạm vi (giữ nguyên khoa cũ thì cho qua).
+    if (
+      raw.khoa_ghi_nhan_id &&
+      String(raw.khoa_ghi_nhan_id) !== String(cur.khoa_ghi_nhan_id ?? "") &&
+      !nkbvKhoaVisible(restriction, [String(raw.khoa_ghi_nhan_id)])
+    ) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+    // NKBV-021: người bị giới hạn khoa không được xóa trống khoa ghi nhận đang có.
+    if (restriction.kind !== "all" && !raw.khoa_ghi_nhan_id && cur.khoa_ghi_nhan_id) {
+      return { success: false as const, error: NKBV_KHOA_REQUIRED_ERROR };
+    }
+    // NKBV-021: gắn phiếu sang bệnh án khác thì bệnh án mới cũng phải trong phạm vi.
+    if (
+      raw.ma_benh_an &&
+      String(raw.ma_benh_an) !== String(cur.ma_benh_an ?? "") &&
+      !(await isNkbvBenhAnInScope(restriction, String(raw.ma_benh_an)))
+    ) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+    const { data: statusProbe, error: statusProbeErr } = await supabase
+      .from("v_nkbv_su_kien_full")
+      .select("trang_thai_ma")
+      .eq("id", id)
+      .maybeSingle();
+    if (statusProbeErr) throw statusProbeErr;
+    if (isNkbvTerminalCaseStatus(statusProbe?.trang_thai_ma as string | null | undefined)) {
+      return { success: false as const, error: NKBV_UPDATE_LOCKED_VI };
     }
     await validateLoaiTrangAndLyDo(supabase, String(raw.loai_nkbv_id), String(cur.trang_thai_id), raw.ly_do_loai_tru);
     
@@ -130,7 +173,7 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     };
 
     if (raw.vi_sinh_record_id !== undefined) patch.vi_sinh_record_id = raw.vi_sinh_record_id;
-    if (raw.verification_data !== undefined) patch.verification_data = raw.verification_data;
+    // verification_data chỉ được ghi qua submitClinicalVerification (NKBV-002), không nhận từ form sửa.
 
     const { data, error } = await supabase.from("nkbv_fact_su_kien").update(patch).eq("id", id).select().single();
     if (error) return { success: false as const, error: error.message };
@@ -142,7 +185,7 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
 }
 
 /** Ẩn phiếu sự kiện khỏi danh sách (soft delete). */
-export async function softDeleteGiamSatNkbvCa(id: string) {
+export async function softDeleteGiamSatNkbvCa(id: string, lyDo?: string) {
   await verifyPermission("GIAM_SAT_NKBV", "delete");
   const supabase = createAdminSupabaseClient();
   const { data: row, error: loadErr } = await supabase
@@ -154,21 +197,67 @@ export async function softDeleteGiamSatNkbvCa(id: string) {
   if (!row) return { success: false as const, error: "Không tìm thấy phiếu" };
   const restriction = await getNkbvKhoaRestriction();
   if (row.ma_benh_an) {
-    if (!(await isNkbvBenhAnInScope(restriction, String(row.ma_benh_an)))) {
+    if (!(await isNkbvBenhAnInScope(restriction, String(row.ma_benh_an), [row.khoa_ghi_nhan_id as string | null]))) {
       return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
     }
   } else if (!nkbvKhoaVisible(restriction, [row.khoa_ghi_nhan_id as string | null])) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }
 
-  const releaseErr = await releaseViSinhStampsAfterHide(supabase, id, row.verification_data);
-  if (releaseErr) return { success: false as const, error: releaseErr };
+  // NKBV-023 (PO 2026-11-13): ca đã XÁC NHẬN/LOẠI TRỪ chỉ ADMIN được ẩn, bắt buộc lý do, ghi nhật ký trước khi ẩn.
+  const { data: statusProbe, error: statusErr } = await supabase
+    .from("v_nkbv_su_kien_full")
+    .select("trang_thai_ma")
+    .eq("id", id)
+    .maybeSingle();
+  if (statusErr) return { success: false as const, error: statusErr.message };
+  const trangThai = (statusProbe?.trang_thai_ma as string | null | undefined) ?? null;
+  if (isNkbvTerminalCaseStatus(trangThai)) {
+    if (!(await getActorRoleNames()).includes("ADMIN")) {
+      return { success: false as const, error: "Ca đã chốt (xác nhận/loại trừ): chỉ ADMIN được ẩn." };
+    }
+    const reason = String(lyDo ?? "").trim();
+    if (!reason) return { success: false as const, error: "Ẩn ca đã chốt phải nhập lý do." };
+    try {
+      await logAdminAction({
+        action: "NKBV_HIDE_TERMINAL_CASE",
+        targetTable: "nkbv_fact_su_kien",
+        targetId: id,
+        before: { trang_thai_ma: trangThai },
+        reason,
+        failClosed: true,
+      });
+    } catch (e: unknown) {
+      return { success: false as const, error: e instanceof Error ? e.message : "Không ghi được nhật ký" };
+    }
+  }
 
-  const { error } = await supabase
+  // Ẩn phiếu trước; chỉ khi ẩn thành công mới trả XN về hàng chờ (tránh XN về hàng chờ mà ca còn hiện).
+  const { data: hidden, error } = await supabase
     .from("nkbv_fact_su_kien")
     .update({ is_active: false, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("is_active", true)
+    .select("id");
   if (error) return { success: false as const, error: error.message };
+  if (!hidden || hidden.length === 0) {
+    return { success: false as const, error: "Không ẩn được phiếu (không tìm thấy hoặc đã ẩn)" };
+  }
+
+  const releaseErr = await releaseViSinhStampsAfterHide(supabase, id, row.verification_data);
+  if (releaseErr) {
+    console.error("[giam-sat-nkbv] release vi sinh sau khi ẩn lỗi", {
+      module: "giam-sat-nkbv",
+      action: "softDeleteGiamSatNkbvCa",
+      userId: await getActorNhanSuId().catch(() => null),
+      error: releaseErr,
+    });
+    revalidatePath("/giam-sat-nkbv");
+    return {
+      success: false as const,
+      error: `Đã ẩn phiếu nhưng chưa trả xét nghiệm vi sinh về hàng chờ: ${releaseErr}. Báo quản trị để xử lý.`,
+    };
+  }
 
   revalidatePath("/giam-sat-nkbv");
   return { success: true as const };
@@ -180,6 +269,9 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
   const supabase = createAdminSupabaseClient();
 
   try {
+    if (!(await isNkbvCaInScope(supabase, id))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: statusProbe, error: statusProbeErr } = await supabase
       .from("v_nkbv_su_kien_full")
       .select("trang_thai_ma")
@@ -495,19 +587,6 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
           })
         : null;
 
-    // NKBV-03: CHO_DUYET bắt buộc LOA (Transfer Rule) — không silent fallback
-    const loaKhoaId = String(
-      (verificationInput as { attributed_khoa_id?: string } | null | undefined)
-        ?.attributed_khoa_id || "",
-    ).trim();
-    if (!loaKhoaId) {
-      return {
-        success: false as const,
-        error:
-          "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
-      };
-    }
-
     const calculatedDoeRaw = String(
       (verificationInput as { calculated_doe?: string } | null | undefined)
         ?.calculated_doe || "",
@@ -521,6 +600,55 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         success: false as const,
         error: "Thiếu DOE (calculated_doe) — chưa đủ để đưa phiếu chờ duyệt.",
       };
+    }
+
+    // NKBV-03: CHO_DUYET bắt buộc LOA (Transfer Rule) — không silent fallback
+    let loaKhoaId = String(
+      (verificationInput as { attributed_khoa_id?: string } | null | undefined)
+        ?.attributed_khoa_id || "",
+    ).trim();
+    if (calculatedDoe && caRow?.ma_benh_an) {
+      // NKBV-026 (PO 2026-11-13): có DOE → máy chủ tự tính LOA theo Transfer Rule, bỏ khoa client.
+      const maBa = String(caRow.ma_benh_an);
+      const [{ data: luoi, error: luoiErr }, { data: ba, error: baErr }] = await Promise.all([
+        supabase.from("nkbv_fact_ba_ngay_khoa").select("ngay_lich, khoa_id").eq("ma_benh_an", maBa),
+        supabase
+          .from("nkbv_fact_benh_an")
+          .select("ngay_vao_vien, ngay_ra_vien, khoa_dieu_tri_id")
+          .eq("ma_benh_an", maBa)
+          .maybeSingle(),
+      ]);
+      if (luoiErr || baErr) throw luoiErr || baErr;
+      const loa = resolveServerLoa({
+        gridRows: (luoi || []).map((r) => ({
+          ngay_lich: String(r.ngay_lich).slice(0, 10),
+          khoa_id: String(r.khoa_id),
+        })),
+        doe: calculatedDoe,
+        ngayVaoVien: ngayVaoVienServer || (ba?.ngay_vao_vien ? vnYmd(ba.ngay_vao_vien) : null),
+        ngayRaVien: ba?.ngay_ra_vien ? vnYmd(ba.ngay_ra_vien) : null,
+        khoaDieuTriId: (ba?.khoa_dieu_tri_id as string | null | undefined) ?? null,
+      });
+      if (!loa.ok) return { success: false as const, error: loa.error };
+      loaKhoaId = loa.khoaId;
+    }
+    if (!loaKhoaId) {
+      return {
+        success: false as const,
+        error:
+          "Thiếu khoa quy kết (LOA) — nhập lưới ngày–khoa trước khi gửi chờ duyệt.",
+      };
+    }
+
+    // NKBV-013: ca không có DOE — khoa client phải thuộc lưới ngày–khoa của BA
+    if (!calculatedDoe && caRow?.ma_benh_an) {
+      const okLoa = await isLoaKhoaInBaGrid(supabase, String(caRow.ma_benh_an), loaKhoaId);
+      if (!okLoa) {
+        return {
+          success: false as const,
+          error: "Khoa quy kết (LOA) không thuộc lưới ngày–khoa của bệnh án này.",
+        };
+      }
     }
 
     const surgeryDate =
@@ -652,6 +780,9 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
   const supabase = createAdminSupabaseClient();
 
   try {
+    if (!(await isNkbvCaInScope(supabase, id))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: ca, error: fetchErr } = await supabase
       .from("nkbv_fact_su_kien")
       .select("clinical_notes, verification_data")
@@ -709,14 +840,29 @@ export async function updateNkbvBenhAnStay(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
+    const restriction = await getNkbvKhoaRestriction();
+    if (!(await isNkbvBenhAnInScope(restriction, ma))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
+    if (restriction.kind !== "all" && input.khoa_dieu_tri_id !== undefined && !String(input.khoa_dieu_tri_id ?? "").trim()) {
+      return { success: false as const, error: NKBV_KHOA_REQUIRED_ERROR };
+    }
     const { data: prev, error: prevErr } = await supabase
       .from("nkbv_fact_benh_an")
-      .select("id, ngay_vao_vien")
+      .select("id, ngay_vao_vien, khoa_dieu_tri_id")
       .eq("ma_benh_an", ma)
       .eq("is_active", true)
       .maybeSingle();
     if (prevErr) throw prevErr;
     if (!prev) return { success: false as const, error: "Không tìm thấy hồ sơ bệnh án" };
+    // NKBV-021: chỉ chặn khi ĐỔI khoa điều trị sang khoa ngoài phạm vi (giữ nguyên khoa cũ thì cho qua).
+    if (
+      input.khoa_dieu_tri_id &&
+      String(input.khoa_dieu_tri_id) !== String(prev.khoa_dieu_tri_id ?? "") &&
+      !nkbvKhoaVisible(restriction, [input.khoa_dieu_tri_id])
+    ) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
 
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
@@ -829,6 +975,13 @@ export async function createNkbvBenhAnStay(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
+    const restriction = await getNkbvKhoaRestriction();
+    if (restriction.kind !== "all" && !String(input.khoa_dieu_tri_id ?? "").trim()) {
+      return { success: false as const, error: NKBV_KHOA_REQUIRED_ERROR };
+    }
+    if (!nkbvKhoaVisible(restriction, [input.khoa_dieu_tri_id])) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const { data: existing } = await supabase
       .from("nkbv_fact_benh_an")
       .select("id")
@@ -895,6 +1048,9 @@ export async function syncNkbvAdmissionDate(input: {
 
   const supabase = createAdminSupabaseClient();
   try {
+    if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+      return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
+    }
     const iso = new Date(`${ngay}T12:00:00`).toISOString();
     const { error: stayErr } = await supabase
       .from("nkbv_fact_benh_an")
@@ -907,7 +1063,9 @@ export async function syncNkbvAdmissionDate(input: {
       const { error: evErr } = await supabase
         .from("nkbv_fact_su_kien")
         .update({ ngay_vao_vien: ngay, updated_at: new Date().toISOString() })
-        .eq("id", input.su_kien_id);
+        .eq("id", input.su_kien_id)
+        // NKBV-010: phạm vi đã kiểm theo mã BA, nên chỉ ghi phiếu thuộc đúng BA đó (không tin su_kien_id từ client).
+        .eq("ma_benh_an", ma);
       if (evErr) throw evErr;
     }
 

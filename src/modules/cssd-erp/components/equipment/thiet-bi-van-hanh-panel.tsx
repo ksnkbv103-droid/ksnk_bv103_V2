@@ -60,16 +60,16 @@ export default function ThietBiVanHanhPanel() {
 
   const columns: Column<MeTietKhuanTheoMayRow>[] = [
     { header: "Mã mẻ", accessorKey: "ma_lo_tiet_khuan", sortable: true, cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_lo_tiet_khuan}</span> },
-    { header: "Bắt đầu", accessorKey: "thoi_gian_bat_dau", sortable: true, cell: (i) => <span className="text-[11px]">{fmtDt(i.thoi_gian_bat_dau)}</span> },
-    { header: "Kết thúc", accessorKey: "thoi_gian_ket_thuc", sortable: true, cell: (i) => <span className="text-[11px]">{fmtDt(i.thoi_gian_ket_thuc)}</span> },
-    { header: "Qc mẻ", accessorKey: "ket_qua_test", sortable: true, cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_test)}</span> },
-    { header: "Bi", accessorKey: "ket_qua_bi", sortable: true, cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_bi)}</span> },
-    { header: "Ci", accessorKey: "ket_qua_ci", sortable: true, cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_ci)}</span> },
+    { header: "Bắt đầu", accessorKey: "thoi_gian_bat_dau", sortable: true, cell: (i) => <span className="text-xs">{fmtDt(i.thoi_gian_bat_dau)}</span> },
+    { header: "Kết thúc", accessorKey: "thoi_gian_ket_thuc", sortable: true, cell: (i) => <span className="text-xs">{fmtDt(i.thoi_gian_ket_thuc)}</span> },
+    { header: "Qc mẻ", accessorKey: "ket_qua_test", sortable: true, cell: (i) => <span className="text-xs">{triLabel(i.ket_qua_test)}</span> },
+    { header: "Bi", accessorKey: "ket_qua_bi", sortable: true, cell: (i) => <span className="text-xs">{triLabel(i.ket_qua_bi)}</span> },
+    { header: "Ci", accessorKey: "ket_qua_ci", sortable: true, cell: (i) => <span className="text-xs">{triLabel(i.ket_qua_ci)}</span> },
     {
       header: "Nhiệt / Áp",
       accessorKey: "nhiet_do", sortable: true,
       cell: (i) => (
-        <span className="text-[11px] text-slate-600">
+        <span className="text-xs text-slate-600">
           {i.nhiet_do ?? "—"}° / {i.ap_suat ?? "—"}
         </span>
       ),
@@ -91,7 +91,7 @@ export default function ThietBiVanHanhPanel() {
       </p>
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-[240px] flex-1">
-          <label className="text-[11px] font-medium text-slate-500">Chọn máy</label>
+          <label className="text-xs font-medium text-slate-500">Chọn máy</label>
           <select
             className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             value={selId}

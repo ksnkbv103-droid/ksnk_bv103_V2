@@ -63,6 +63,7 @@ type Props = {
   onOpenCdha: (x: BaGridCdhaCell) => void;
   onRemoveMilestone: (id: string | undefined) => Promise<void>;
   onEditCdhaDate: (id: string, nextDate: string) => Promise<void>;
+  onEditCdhaNote?: (id: string, note: string) => Promise<void>;
   onToggleCdha: (
     date: string,
     criteriaKey: string,
@@ -141,6 +142,7 @@ export default function NkbvBaCommonDayGrid({
   onOpenCdha,
   onRemoveMilestone,
   onEditCdhaDate: _onEditCdhaDate,
+  onEditCdhaNote,
   onToggleCdha,
   onOpenSurgeryOrSsi,
   onAddSurgery,
@@ -263,7 +265,7 @@ export default function NkbvBaCommonDayGrid({
     },
     {
       id: "ct_cvc",
-      header: "Cvc",
+      header: "CVC",
       minWidth: BA_DAY_COL_W_NARROW,
       render: (day) => {
         const info = cvcStreaks[day.date] || { streak: 0, isRemovedYesterday: false };
@@ -273,7 +275,7 @@ export default function NkbvBaCommonDayGrid({
         let text = "·";
         let cls = "text-slate-400";
         if (on) {
-          text = `d${info.streak}`;
+          text = `D${info.streak}`;
           cls = isGe3
             ? "bg-amber-800 text-white font-bold ring-1 ring-amber-400 shadow-xs"
             : "bg-amber-700/80 text-white font-semibold";
@@ -314,7 +316,7 @@ export default function NkbvBaCommonDayGrid({
         let text = "·";
         let cls = "text-slate-400";
         if (on) {
-          text = `d${info.streak}`;
+          text = `D${info.streak}`;
           cls = isGe3
             ? "bg-violet-800 text-white font-bold ring-1 ring-violet-400 shadow-xs"
             : "bg-violet-700/80 text-white font-semibold";
@@ -355,7 +357,7 @@ export default function NkbvBaCommonDayGrid({
         let text = "·";
         let cls = "text-slate-400";
         if (on) {
-          text = `d${info.streak}`;
+          text = `D${info.streak}`;
           cls = isGe3
             ? "bg-sky-800 text-white font-bold ring-1 ring-sky-400 shadow-xs"
             : "bg-sky-700/80 text-white font-semibold";
@@ -386,7 +388,7 @@ export default function NkbvBaCommonDayGrid({
     },
     {
       id: "xn",
-      header: "Xn",
+      header: "XN",
       minWidth: cw,
       render: (day) => {
         const items = xnByDate[day.date] || [];
@@ -444,7 +446,7 @@ export default function NkbvBaCommonDayGrid({
     },
     {
       id: "cdha",
-      header: "Cđha",
+      header: "CĐHA",
       minWidth: cw,
       render: (day) => {
         const items = cdhaByDate[day.date] || [];
@@ -459,7 +461,9 @@ export default function NkbvBaCommonDayGrid({
                   <button
                     type="button"
                     onClick={() => onOpenCdha(x)}
-                    className="min-w-0 flex-1 truncate text-left font-medium text-emerald-900 hover:underline"
+                    className={`min-w-0 flex-1 truncate text-left font-medium hover:underline ${
+                      x.tieu_chuan_key === "imaging_chest_normal" ? "text-slate-500" : "text-emerald-900"
+                    }`}
                   >
                     {x.mo_ta_benh_ly}
                   </button>
@@ -474,6 +478,18 @@ export default function NkbvBaCommonDayGrid({
                     </button>
                   ) : null}
                 </div>
+                {allowedEdit && !x.id.startsWith("local-") && onEditCdhaNote ? (
+                  <input
+                    key={`${x.id}-${x.ghi_chu ?? ""}`}
+                    defaultValue={x.ghi_chu ?? ""}
+                    placeholder="Ghi chú CĐHA…"
+                    maxLength={300}
+                    className="w-full rounded border border-slate-200 px-1 text-[11px] text-slate-700 placeholder:text-slate-300"
+                    onBlur={(e) => void onEditCdhaNote(x.id, e.target.value)}
+                  />
+                ) : x.ghi_chu ? (
+                  <span className="text-[11px] text-slate-600">{x.ghi_chu}</span>
+                ) : null}
               </div>
             ))}
             {allowedEdit ? (
@@ -515,7 +531,7 @@ export default function NkbvBaCommonDayGrid({
     },
     {
       id: "ls",
-      header: "Ls",
+      header: "LS",
       minWidth: cw,
       render: (day) => {
         const items = lamSangByDate[day.date] || [];
@@ -580,7 +596,7 @@ export default function NkbvBaCommonDayGrid({
     },
     {
       id: "ssi_tc",
-      header: "Tc ssi",
+      header: "TC SSI",
       minWidth: cw,
       render: (day) => {
         const items = ssiTcByDate[day.date] || [];

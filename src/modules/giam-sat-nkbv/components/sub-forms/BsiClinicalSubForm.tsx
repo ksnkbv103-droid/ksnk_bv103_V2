@@ -211,7 +211,7 @@ export default function BsiClinicalSubForm({
               </div>
             </div>
             {form.device_placed_date ? (
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-2.5 text-[11px] text-emerald-900">
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-2.5 text-xs text-emerald-900">
                 CVC {liveDeviceDays ?? form.cvc_placed_days} ngày ·{" "}
                 {(liveDeviceActive ?? form.cvc_active_on_event) ? "Hiện diện DOE/DOE−1" : "Không hiện diện ngày sự kiện"}
               </div>

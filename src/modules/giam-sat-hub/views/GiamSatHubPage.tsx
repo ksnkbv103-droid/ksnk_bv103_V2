@@ -75,7 +75,7 @@ function QuietLink({ href, label }: { href: string; label: string }) {
     <Link
       href={href}
       prefetch={false}
-      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-white hover:text-[var(--primary)]"
+      className="inline-flex min-h-11 items-center gap-1 rounded-[var(--radius-control)] px-2.5 text-xs font-medium text-slate-600 sm:min-h-9 hover:bg-white hover:text-[var(--primary)]"
     >
       {label}
       <ChevronRight className="h-3.5 w-3.5 opacity-60" aria-hidden />
@@ -201,7 +201,7 @@ export default function GiamSatHubPage() {
       {visibleVeSinhTay.length > 0 ? (
         <section className="space-y-2">
           <h2 className="bv103-type-label">Vệ sinh tay</h2>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             Ba mẫu riêng — WHO 5 thời điểm · kỹ thuật thường quy · ngoại khoa. Không gộp một form.
           </p>
           <div className="grid gap-2 sm:grid-cols-3">
@@ -215,7 +215,7 @@ export default function GiamSatHubPage() {
       {visiblePrimary.length > 0 ? (
         <section className="space-y-2">
           <h2 className="bv103-type-label">Nhập giám sát khác</h2>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             Ba loại giám sát chung: tuân thủ, nhật ký vận hành, đánh giá hệ thống.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -239,10 +239,10 @@ export default function GiamSatHubPage() {
 
       {quietLinks.length > 0 ? (
         <section className={`${bv103LayoutChrome.panelInset} px-3 py-2`}>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Lịch sử · Thống kê · QR
           </p>
-          <p className="mb-1 text-[11px] leading-snug text-slate-500">
+          <p className="mb-1 text-xs leading-snug text-slate-500">
             Thống kê khoa và tra cứu ca. Bản ký gửi Ban Giám đốc ở{" "}
             <Link href="/bao-cao-tong-hop" prefetch={false} className="font-medium text-[var(--primary)] underline">
               Báo cáo chính thức

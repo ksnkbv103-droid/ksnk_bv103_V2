@@ -25,7 +25,7 @@
 | `nkbv.md` | `giam-sat-nkbv` | ADR 1 module, cấm CDC thô |
 | `giam-sat.md` | VST/GSC/bảng kiểm | Trần 3 đối tượng, scoring, `results_jsonb` |
 | `qlcv.md` | `quan-ly-cong-viec` | Trạng thái, checklist RPC, spawn định kỳ |
-| `dashboard.md` | dashboard, analytics, thống kê | CCS, nguồn RPC, đổi KPI = Spec change |
+| `dashboard.md` | dashboard, analytics, thống kê | CCS, nguồn RPC, đổi chỉ số = Spec change |
 | `mdm.md` | `quan-tri-he-thong`, `master-data` | Đặt chỗ master data, registry, `sys_lookup_value` |
 | `dao-tao.md` | `dao-tao` | Schema 3 bảng, chấm theo id phương án |
 
@@ -73,7 +73,7 @@
 |------|-------|---------|
 | Sửa lát theo SSOT đã chốt, UI, action, docs, verify | **Sonnet** (mặc định) | 90% công việc |
 | Đọc nhiều file, khảo sát, checklist, commit/PR | **Haiku** (subagent/lệnh đã ghim) | Rẻ nhất |
-| Ranh giới CSSD vs MDM mơ hồ, thiết kế migration/RPC khó, KPI lệch, debug sau 2 lần Sonnet thất bại | **`/model opusplan`** | Opus lập kế hoạch, Sonnet thực thi |
+| Ranh giới CSSD vs MDM mơ hồ, thiết kế migration/RPC khó, chỉ số lệch, debug sau 2 lần Sonnet thất bại | **`/model opusplan`** | Opus lập kế hoạch, Sonnet thực thi |
 | Kiến trúc đổi lớn (hiếm) | **Opus** | Phiên riêng; xong thì `/clear`, phiên sau mở bằng Sonnet |
 | Không dùng Opus | — | Sửa nhãn, UI nhỏ, docs, chạy verify |
 

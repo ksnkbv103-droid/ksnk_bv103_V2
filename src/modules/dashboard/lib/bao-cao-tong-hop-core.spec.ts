@@ -161,8 +161,8 @@ describe("bao-cao-tong-hop-core", () => {
   it("ky_truoc GSC delta stays two decimals after each rate is rounded", () => {
     const payload = composeBaoCaoTongHopPayload({
       filters: { tu_ngay: "2026-06-08", den_ngay: "2026-06-14", chuyen_de: "ALL" },
-      vst: { kpis: { tong_co_hoi: 3, da_tuan_thu: 2, ty_le_tuan_thu: 66.67 } } as never,
-      gsc: { kpis: { tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 66.7 } } as never,
+      vst: { chi_so: { tong_co_hoi: 3, da_tuan_thu: 2, ty_le_tuan_thu: 66.67 } } as never,
+      gsc: { chi_so: { tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 66.7 } } as never,
       nkbv: null,
       sources: { vst: "ok", gsc: "ok", nkbv: "skipped" },
       errors: {},
@@ -173,8 +173,8 @@ describe("bao-cao-tong-hop-core", () => {
         ty_le_gsc: 33.33,
       },
     });
-    expect(payload.kpis.ty_le_vst).toBe(66.7);
-    expect(payload.kpis.ty_le_gsc).toBe(66.67);
+    expect(payload.chi_so.ty_le_vst).toBe(66.7);
+    expect(payload.chi_so.ty_le_gsc).toBe(66.67);
     expect(payload.ky_truoc?.delta_vst).toBe(33.4);
     expect(payload.ky_truoc?.delta_gsc).toBe(33.34);
   });
@@ -383,13 +383,13 @@ describe("bao-cao-tong-hop-core", () => {
     const payload = composeBaoCaoTongHopPayload({
       filters: { tu_ngay: "2026-01-01", den_ngay: "2026-01-31", chuyen_de: "ALL" },
       vst: {
-        kpis: { tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 },
+        chi_so: { tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 },
         trendline: [],
         matrix_khoi: [{ ten: "Khối A", tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 }],
         matrix_nghe: [{ id: "n1", ten: "ĐD", tong_co_hoi: 5, da_tuan_thu: 4, ty_le_tuan_thu: 80 }],
       } as never,
       gsc: {
-        kpis: { tong_phien: 1, tong_quan_sat: 10, tong_dat: 9, tong_vi_pham: 1, ty_le_tuan_thu: 90 },
+        chi_so: { tong_phien: 1, tong_quan_sat: 10, tong_dat: 9, tong_vi_pham: 1, ty_le_tuan_thu: 90 },
         trendline: [],
         matrix_khu_vuc: [{ ten: "ICU", tong_quan_sat: 10, tong_dat: 9, ty_le_tuan_thu: 90 }],
       } as never,

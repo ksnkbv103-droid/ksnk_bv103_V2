@@ -183,7 +183,7 @@ export function resolveGscHistoryCompliancePercent(
 }
 
 /**
- * Cách tính điểm cho nhãn lịch sử GSC.
+ * Cách tính điểm cho nhãn lịch sử GSC. @dac-ta R2.20
  * Ưu tiên snapshot phiên (`metadata.bang_kiem_snapshot.cach_tinh_diem`, persist lúc ghi).
  * Fallback live `row.cach_tinh_diem` (view JOIN dm) chỉ khi thiếu snapshot — tránh lệch nhãn khi đổi mẫu BK.
  */

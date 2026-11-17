@@ -33,14 +33,14 @@ export default function DaoTaoChungChiBanner() {
         <div className="min-w-0 text-sm">
           <p className="font-semibold">{labelChungChiKind(status.kind)}</p>
           {status.kind === "chua_co" ? (
-            <p className="mt-0.5 text-[11px] opacity-80">
+            <p className="mt-0.5 text-xs opacity-80">
               Chứng chỉ ghi từ lần <strong>thi chính thức đạt</strong>.{" "}
               <Link href="/dao-tao/thi-that" className="font-semibold underline">
                 Vào thi chính thức
               </Link>
             </p>
           ) : (
-            <p className="mt-0.5 text-[11px] opacity-80">
+            <p className="mt-0.5 text-xs opacity-80">
               {status.kyTen ?? "Kỳ thi"}
               {status.datLuc ? ` · đạt ${formatDateTimeVi(status.datLuc)}` : ""}
               {status.hetHanLuc ? ` · hạn đến ${formatDateTimeVi(status.hetHanLuc)}` : ""}

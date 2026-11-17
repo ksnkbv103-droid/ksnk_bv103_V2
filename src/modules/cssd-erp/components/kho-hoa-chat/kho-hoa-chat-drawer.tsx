@@ -3,7 +3,7 @@
 import { lyDoXuatLabel } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import React, { useEffect, useState } from "react";
 import { Printer, X } from "lucide-react";
-import { buildTheKho } from "@/lib/domain/cssd-kho-hoa-chat-the-kho";
+import { buildTheKho, ngayHieuLuc } from "@/lib/domain/cssd-kho-hoa-chat-the-kho";
 import KhoHoaChatPrintView, { type KhoPrintState } from "./kho-hoa-chat-print-view";
 import { fefoSortLots } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { canShowDuyetButtons, normalizeTrangThai, trangThaiLabel, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
@@ -120,6 +120,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
               const tt = normalizeTrangThai(m.trang_thai);
               const showBtn = canShowDuyetButtons({ trangThai: m.trang_thai, canApprove: approve.canApprove });
               const busy = approve.decidingId === m.id;
+              const ngay = ngayHieuLuc(m);
               return (
                 <li key={m.id} className="rounded-lg border border-slate-100 px-2.5 py-2">
                   <p className="bv103-type-label flex justify-between font-semibold text-slate-800">
@@ -127,7 +128,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
                     <span className={tt === "CHO_DUYET" ? "text-amber-700" : tt === "TU_CHOI" ? "text-rose-700" : "text-emerald-700"}>{trangThaiLabel(m.trang_thai)}</span>
                   </p>
                   <p className="bv103-type-label text-slate-500">
-                    {m.created_at ? formatDateTimeVi(m.created_at) : "—"} · Lập: {m.nguoi_lap_ten || "—"}
+                    {ngay ? formatDateTimeVi(ngay) : "—"} · Lập: {m.nguoi_lap_ten || "—"}
                     {m.nguoi_duyet_ten ? ` · Duyệt: ${m.nguoi_duyet_ten}` : ""}
                     {m.tu_duyet_ngoai_le ? " · tự duyệt ngoại lệ" : ""}
                   </p>

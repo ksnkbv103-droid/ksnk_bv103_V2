@@ -18,7 +18,7 @@ export default function ReportCharts({ pieData, barData }: Props) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--bv103-space-3)]">
       {/* 1. Biểu đồ tròn: Tỷ lệ sự cố theo loại */}
       <div className="bg-white p-8 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm space-y-8 flex flex-col">
-        <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Tỷ lệ sự cố theo danh mục</h3>
+        <h3 className="text-xs font-medium text-slate-400 tracking-wide">Tỷ lệ sự cố theo danh mục</h3>
         <div className="h-[320px] w-full min-w-0 relative">
           <Bv103ResponsiveChart className="absolute inset-0 min-h-[320px]">
             <PieChart>
@@ -32,14 +32,14 @@ export default function ReportCharts({ pieData, barData }: Props) {
             <span className="text-2xl font-semibold tabular-nums text-[var(--primary)]">
               {pieData.reduce((acc, curr) => acc + curr.value, 0)}
             </span>
-            <span className="text-[11px] font-medium text-slate-400">Sự cố</span>
+            <span className="text-xs font-medium text-slate-400">Sự cố</span>
           </div>
         </div>
       </div>
 
       {/* 2. Lượt hoàn thành trạm trong kỳ vs sự cố phát hiện tại trạm */}
       <div className="bg-white p-8 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm space-y-8">
-        <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Lượt hoàn thành trạm vs Sự cố (kỳ lọc)</h3>
+        <h3 className="text-xs font-medium text-slate-400 tracking-wide">Lượt hoàn thành trạm vs Sự cố (kỳ lọc)</h3>
         <div className="h-[320px] w-full min-w-0">
           <Bv103ResponsiveChart className="h-full w-full">
             <BarChart data={barData}>

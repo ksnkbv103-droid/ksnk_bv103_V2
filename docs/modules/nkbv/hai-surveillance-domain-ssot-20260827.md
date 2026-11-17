@@ -1023,7 +1023,7 @@ Quy tắc khi **có** SIR chuẩn (tương lai): `numPred < 1` → không in SIR
 | 8 Retired | — | — | — |
 | 9 SSI | Đủ người lớn | `evaluateSsi`; PATOS P1 | Đạt pilot |
 | 10 VAE | Đủ người lớn | `evaluateVaeVap(..., VAE)` | Đạt pilot; APRV/ECMO P1 |
-| 12 LabID | **Ngoài domain** | `nkbv-labid-engine` còn (lát cũ) | Không neo SSOT |
+| 12 LabID | **Ngoài domain** | `nkbv-labid-engine` đã xóa (mã chết, 2026-11-16) | Không neo SSOT |
 | 13 Retired | — | — | — |
 | 14 AUR | **Ngoài domain** | **Chưa** | Không neo SSOT |
 | 15 Location | **Ngoài domain** | Mã trên khoa (lát dashboard) | Không neo SSOT |

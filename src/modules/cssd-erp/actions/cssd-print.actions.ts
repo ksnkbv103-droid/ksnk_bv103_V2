@@ -344,14 +344,3 @@ export async function fetchCssdCapPhatPrintDataByQr(qr: string) {
     return { success: false as const, error: getErrorMessage(e) };
   }
 }
-
-/** Truy vết tab: quét mã lô LOT-* → trả payload phiếu mẻ. */
-export async function fetchCssdBatchTraceByMaLo(maLo: string) {
-  const res = await fetchCssdBatchPrintDataByMaLo(maLo);
-  if (!res.success) return res;
-  return {
-    success: true as const,
-    kind: "BATCH" as const,
-    data: res.data,
-  };
-}

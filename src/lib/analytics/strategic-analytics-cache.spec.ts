@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
     if (name.includes("vst_strategic")) {
       return {
         data: {
-          kpis: {
+          chi_so: {
             tong_phien: 1,
             tong_co_hoi: 100,
             da_tuan_thu: 85,
@@ -45,7 +45,7 @@ const mocks = vi.hoisted(() => ({
     if (name.includes("gsc_strategic")) {
       return {
         data: {
-          kpis: {
+          chi_so: {
             tong_phien: 1,
             tong_quan_sat: 50,
             tong_dat: 40,
@@ -92,9 +92,9 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 
 import {
-  getCachedGscStrategicKpisOnly,
+  getCachedGscStrategicChiSoOnly,
   getCachedGscStrategicRpc,
-  getCachedVstStrategicKpisOnly,
+  getCachedVstStrategicChiSoOnly,
   getCachedVstStrategicRpc,
 } from "./strategic-analytics-cache";
 
@@ -108,7 +108,7 @@ const lensArgs = {
   p_hinh_thuc_ids: ["KSNK"],
 };
 
-describe("strategic-analytics-cache BCTH KPI-only", () => {
+describe("strategic-analytics-cache BCTH chỉ số riêng", () => {
   beforeEach(() => {
     rpcCalls.length = 0;
     mocks.rpc.mockClear();
@@ -118,12 +118,12 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     await getCachedVstStrategicRpc(lensArgs);
     await getCachedGscStrategicRpc({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
     await getCachedGscStrategicRpc({ ...lensArgs, p_bang_kiem_mas: ["BM.02"] });
-    await getCachedVstStrategicKpisOnly({
+    await getCachedVstStrategicChiSoOnly({
       ...lensArgs,
       p_tu_ngay: "2026-08-02",
       p_den_ngay: "2026-08-31",
     });
-    await getCachedGscStrategicKpisOnly({
+    await getCachedGscStrategicChiSoOnly({
       ...lensArgs,
       p_tu_ngay: "2026-08-02",
       p_den_ngay: "2026-08-31",
@@ -147,12 +147,12 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
     expect(priorCalls.some((n) => n.includes("compare_matrices"))).toBe(false);
   });
 
-  it("KPI kỳ trước qua đường kpis-only == normalize + computeTyLe (kể cả ty_le 0–1)", async () => {
-    const vstOnly = await getCachedVstStrategicKpisOnly(lensArgs);
+  it("chỉ số kỳ trước qua đường chi-so-only == normalize + computeTyLe (kể cả ty_le 0–1)", async () => {
+    const vstOnly = await getCachedVstStrategicChiSoOnly(lensArgs);
     expect(vstOnly.success).toBe(true);
     if (!vstOnly.success) return;
     const rawVst = {
-      kpis: {
+      chi_so: {
         tong_phien: 1,
         tong_co_hoi: 100,
         da_tuan_thu: 85,
@@ -180,15 +180,15 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
         co_cau_giam_sat: [],
       },
     };
-    const oldPath = computeTyLeVst(normalizeVstStrategicPercents(rawVst).kpis);
-    expect(computeTyLeVst(vstOnly.data.kpis)).toBe(oldPath);
+    const oldPath = computeTyLeVst(normalizeVstStrategicPercents(rawVst).chi_so);
+    expect(computeTyLeVst(vstOnly.data.chi_so)).toBe(oldPath);
     expect(oldPath).toBe(85);
 
-    const gscOnly = await getCachedGscStrategicKpisOnly({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
+    const gscOnly = await getCachedGscStrategicChiSoOnly({ ...lensArgs, p_bang_kiem_mas: ["BK.01"] });
     expect(gscOnly.success).toBe(true);
     if (!gscOnly.success) return;
     const rawGsc = {
-      kpis: {
+      chi_so: {
         tong_phien: 1,
         tong_quan_sat: 50,
         tong_dat: 40,
@@ -208,8 +208,8 @@ describe("strategic-analytics-cache BCTH KPI-only", () => {
         co_cau_giam_sat: [],
       },
     };
-    const oldGsc = computeTyLeGsc(normalizeGscStrategicPercents(rawGsc).kpis);
-    expect(computeTyLeGsc(gscOnly.data.kpis)).toBe(oldGsc);
+    const oldGsc = computeTyLeGsc(normalizeGscStrategicPercents(rawGsc).chi_so);
+    expect(computeTyLeGsc(gscOnly.data.chi_so)).toBe(oldGsc);
     expect(oldGsc).toBe(80);
   });
 });

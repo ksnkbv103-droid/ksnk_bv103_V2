@@ -5,7 +5,6 @@
  */
 
 export const FUNNEL_Z_95 = 1.96;
-export const FUNNEL_Z_998 = 3.09;
 
 export type FunnelVerdict = "above" | "below" | "within";
 

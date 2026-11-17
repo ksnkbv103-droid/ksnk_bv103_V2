@@ -93,7 +93,7 @@ function BkTable({ rows, showStatus }: { rows: Row[]; showStatus: boolean }) {
                   <td className="py-3 pr-3">
                     <TanSuatLabel row={row} />
                     {row.tan_suat_label ? (
-                      <p className="mt-1 text-[11px] font-medium text-slate-500">{row.tan_suat_label}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-500">{row.tan_suat_label}</p>
                     ) : null}
                   </td>
                 </>
@@ -240,19 +240,19 @@ export default function GscBangKiemToiPhaiTgsPanel({
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className={`${UI.inset} px-4 py-3`}>
-                <p className={UI.kpiLabel}>BK bắt buộc</p>
+                <p className={UI.chiSoLabel}>BK bắt buộc</p>
                 <p className="bv103-type-title text-slate-800">{data.tom_tat.tong_bat_buoc}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-emerald-50 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-emerald-700`}>Đã tự giám sát</p>
+                <p className={`${UI.chiSoLabel} text-emerald-700`}>Đã tự giám sát</p>
                 <p className="bv103-type-title text-emerald-900">{data.tom_tat.da_tgs}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-amber-50 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-amber-700`}>Thiếu</p>
+                <p className={`${UI.chiSoLabel} text-amber-700`}>Thiếu</p>
                 <p className="bv103-type-title text-amber-900">{data.tom_tat.thieu}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-[var(--primary)]/5 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-[var(--primary)]`}>Bao phủ</p>
+                <p className={`${UI.chiSoLabel} text-[var(--primary)]`}>Bao phủ</p>
                 <p className="bv103-type-title text-[var(--primary)]">{formatPercent2(data.tom_tat.ty_le_bao_phu)}</p>
               </div>
             </div>
@@ -267,7 +267,7 @@ export default function GscBangKiemToiPhaiTgsPanel({
             {data.khuyen_ngh.length > 0 ? (
               <div className="space-y-2">
                 <h3 className={`${UI.sectionTitle} text-slate-500 px-1`}>
-                  Khuyến nghị ({data.khuyen_ngh.length}) — không tính thiếu KPI
+                  Khuyến nghị ({data.khuyen_ngh.length}) — không tính thiếu chỉ số
                 </h3>
                 <BkTable rows={data.khuyen_ngh} showStatus={false} />
               </div>

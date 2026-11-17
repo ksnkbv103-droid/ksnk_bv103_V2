@@ -16,7 +16,7 @@ import {
   readSetReconcileStatus,
   type SetReconcileSnapshot,
 } from "../domain/cssd-set-reconcile-attrs";
-import { applyInstrumentLinesRpc, type CssdLedgerLine } from "./instrument-incident.application";
+import type { CssdLedgerLine } from "./instrument-incident.application";
 import { buildSetReconcileLedgerLines } from "./set-reconcile-ledger.application";
 
 type SuCoRow = { id: string; attributes: Record<string, unknown> | null; created_at?: string | null };
@@ -110,30 +110,6 @@ export async function collectSubmittedSetReconcileWrite(
     attributes: { ...args.existingAttrs, ...patch },
     bomPending: patch.SET_RECONCILE_STATUS === "BOM_PENDING",
   };
-}
-
-export async function applySubmittedSetReconcile(
-  supabase: SupabaseClient,
-  suCoId: string,
-  args: {
-    boDungCuId: string;
-    quyTrinhId?: string | null;
-    maQr?: string;
-    headerNote: string;
-    snapshot: SetReconcileSnapshot;
-    existingAttrs: Record<string, string>;
-    typeId?: string;
-  },
-): Promise<{ bomPending: boolean }> {
-  const prepared = await collectSubmittedSetReconcileWrite(supabase, suCoId, args);
-  await applyInstrumentLinesRpc(supabase, {
-    suCoId,
-    lines: prepared.lines,
-    boDungCuId: args.boDungCuId,
-    touchNgayKiemKe: true,
-    attributes: prepared.attributes,
-  });
-  return { bomPending: prepared.bomPending };
 }
 
 export function catalogLinesOf(lines: SetReconcileLineInput[]): SetReconcileLineInput[] {

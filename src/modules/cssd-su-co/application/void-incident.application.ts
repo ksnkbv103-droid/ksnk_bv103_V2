@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/shared/cssd-tram-persist";
-import { tableHasColumn } from "@/modules/cssd-erp/shared/cssd-db-utils";
-import { planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
+import { removeChiTietIssueNoteLines } from "@/modules/cssd-erp/workflow/domain/instrument-issue-note";
+import { canActorVoidIncident, INCIDENT_VOID_NOT_OWNER, planCssdIncidentVoid, type VoidLedgerLine, type VoidPeer, type VoidRollbackEvent } from "../domain/cssd-incident-void";
 
 export async function executeVoidIncidentReport(
   supabase: SupabaseClient,
@@ -12,6 +12,9 @@ export async function executeVoidIncidentReport(
     voidReasonCode?: string | null;
     voidReasonNote?: string | null;
     allowVoidConfirmed?: boolean;
+    /** CSSD-011: auth user người gọi + cờ có quyền xác nhận (qua gate hoặc vai trò). */
+    actorAuthUserId?: string | null;
+    actorIsApprover?: boolean;
   },
 ): Promise<{ ok: true; already?: boolean } | { ok: false; error: string }> {
   const id = String(opts.incidentId || "").trim();
@@ -34,6 +37,15 @@ export async function executeVoidIncidentReport(
     quy_trinh_id?: string | null;
   };
   if (row.is_active === false) return { ok: true, already: true };
+  if (
+    !canActorVoidIncident({
+      attributes: row.attributes,
+      actorAuthUserId: opts.actorAuthUserId,
+      actorIsApprover: Boolean(opts.actorIsApprover),
+    })
+  ) {
+    return { ok: false, error: INCIDENT_VOID_NOT_OWNER };
+  }
   const quyId = String(row.quy_trinh_id || "").trim();
 
   const { count: stockCount, error: stockErr } = await supabase
@@ -138,12 +150,8 @@ export async function executeVoidIncidentReport(
       Object.assign(patch, await buildQuyTrinhTramPatch(supabase, plan.cycle.restoreStation));
     }
     Object.assign(patch, plan.cycle.stamps);
-    if (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert")) {
-      patch.is_red_alert = plan.cycle.isRedAlert;
-    }
-    if (plan.cycle.isDongBang != null && (await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang"))) {
-      patch.is_dong_bang = plan.cycle.isDongBang;
-    }
+    patch.is_red_alert = plan.cycle.isRedAlert;
+    if (plan.cycle.isDongBang != null) patch.is_dong_bang = plan.cycle.isDongBang;
     if (plan.cycle.restoreLoId) patch.lo_tiet_khuan_id = plan.cycle.restoreLoId;
     quyTrinhPatch = patch;
     event = {
@@ -171,5 +179,48 @@ export async function executeVoidIncidentReport(
   });
   if (rpcErr) return { ok: false, error: rpcErr.message };
   if ((rpcData as { already?: boolean } | null)?.already) return { ok: true, already: true };
+  await stripVoidedIssueNotes(supabase, plan.deactivateLedgerIds);
   return { ok: true };
+}
+
+/**
+ * Gỡ dòng `[HONG]/[MAT]` trên `ghi_chu` thành phần bộ khi phiếu Hỏng/Mất bị vô hiệu (PO 2026-11-11).
+ * Best-effort sau RPC: phiếu đã vô hiệu, lỗi ở đây chỉ để lại ghi chú audit cũ.
+ */
+async function stripVoidedIssueNotes(supabase: SupabaseClient, ledgerIds: string[]): Promise<void> {
+  if (!ledgerIds.length) return;
+  try {
+    const { data: rows } = await supabase
+      .from("cssd_fact_kho_giao_dich")
+      .select("loai_giao_dich, bo_dung_cu_id, loai_dung_cu_id, created_at")
+      .in("id", ledgerIds)
+      .in("loai_giao_dich", ["BAO_HONG", "BAO_MAT"]);
+    const groups = new Map<string, { bo: string; loai: string; lines: { issueType: "HONG" | "MAT"; createdAt: string }[] }>();
+    for (const r of (rows || []) as { loai_giao_dich: string; bo_dung_cu_id: string | null; loai_dung_cu_id: string | null; created_at: string }[]) {
+      if (!r.bo_dung_cu_id || !r.loai_dung_cu_id) continue;
+      const key = `${r.bo_dung_cu_id}|${r.loai_dung_cu_id}`;
+      const g = groups.get(key) ?? { bo: r.bo_dung_cu_id, loai: r.loai_dung_cu_id, lines: [] };
+      g.lines.push({ issueType: r.loai_giao_dich === "BAO_HONG" ? "HONG" : "MAT", createdAt: r.created_at });
+      groups.set(key, g);
+    }
+    for (const g of groups.values()) {
+      const { data: ct } = await supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .select("id, ghi_chu")
+        .eq("bo_dung_cu_id", g.bo)
+        .eq("loai_dung_cu_id", g.loai)
+        .eq("is_active", true)
+        .maybeSingle();
+      const old = String((ct as { ghi_chu?: string | null } | null)?.ghi_chu || "");
+      if (!ct || !old) continue;
+      const next = removeChiTietIssueNoteLines(old, g.lines);
+      if (next === old.trim()) continue;
+      await supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .update({ ghi_chu: next || null, updated_at: new Date().toISOString() })
+        .eq("id", (ct as { id: string }).id);
+    }
+  } catch (e) {
+    console.error({ module: "cssd-su-co", action: "stripVoidedIssueNotes", error: e instanceof Error ? e.message : String(e) });
+  }
 }

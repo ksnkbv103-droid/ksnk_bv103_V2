@@ -21,7 +21,7 @@ Sự cố/kho doors · QLCV Domain file 19 (4 tabs; person/work/progress/respons
    From module entry to scan / tạo việc / nhập giám sát / mở mẻ: at most two intentional clicks (hub choose → form counts as one hop).
 
 4. **Status is ambient**  
-   Counts and status chips refresh on mutate. Prefer a one-row strip over poster KPI grids on ops screens.
+   Counts and status chips refresh on mutate. Prefer a one-row strip over poster chỉ số grids on ops screens.
 
 5. **Person · work · progress · responsibility**  
    List/board rows answer who does what, how far, and who owns outcome — without opening detail. Standing QLCV rule; apply the spirit to CSSD station queues where possible.

@@ -12,7 +12,7 @@ function minimalPayload(over: Partial<BaoCaoTongHopPayload> = {}): BaoCaoTongHop
     gsc_ve_sinh_tay: null,
     nkbv: null,
     cssd: null,
-    kpis: {
+    chi_so: {
       ty_le_vst: 90,
       ty_le_gsc: 80,
       ti_le_xac_nhan_nkbv: null,

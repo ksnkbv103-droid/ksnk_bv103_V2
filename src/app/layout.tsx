@@ -11,6 +11,9 @@ const ClientLayoutWrapper = dynamic(() => import("../components/shared/ClientLay
 
 import { PermissionProvider } from "@/contexts/PermissionProvider";
 import { getServerRbacSnapshot } from "@/lib/auth/rbac-request";
+import { ThamSoHydrate } from "@/components/shared/ThamSoHydrate";
+import { applyThamSo } from "@/lib/analytics/supervision-thresholds";
+import { loadThamSoHienHanh } from "@/lib/analytics/supervision-thresholds-server";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext", "vietnamese"],
@@ -45,10 +48,12 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const initialRbac = await getServerRbacSnapshot();
+  const [initialRbac, thamSo] = await Promise.all([getServerRbacSnapshot(), loadThamSoHienHanh()]);
+  applyThamSo(thamSo);
   return (
     <html lang="vi" className={`${inter.className} ${inter.variable}`}>
       <body className="bg-slate-50 text-slate-900 pointer-events-auto">
+        <ThamSoHydrate values={thamSo} />
         <PermissionProvider initialSnapshot={initialRbac}>
           <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
         </PermissionProvider>

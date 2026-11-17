@@ -89,12 +89,6 @@ async function loadLinkedBatchMembers(
   return { ok: true, rows };
 }
 
-function unwrapRelation(value: unknown): Record<string, unknown> | null {
-  const row = Array.isArray(value) ? value[0] : value;
-  if (!row || typeof row !== "object") return null;
-  return row as Record<string, unknown>;
-}
-
 function asHeatFlag(value: unknown): boolean | null {
   if (value === true || value === false) return value;
   return null;
@@ -140,22 +134,47 @@ export async function loadKitHeatLinesByBoIds(
   for (const id of ids) byBo.set(id, []);
   if (!ids.length) return { ok: true, byBo };
 
-  const { data, error } = await client
-    .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh)")
-    .in("bo_dung_cu_id", ids);
-  if (error) return { ok: false, message: error.message };
+  // Một bộ có thể tới ~150 dòng thành phần; PostgREST cắt im lặng ở 1000 dòng/lần.
+  // Thiếu dòng = có thể bỏ sót món không chịu nhiệt → chia lô 20 bộ và đọc hết từng trang.
+  const BO_CHUNK = 20;
+  const PAGE = 1000;
+  const data: { bo_dung_cu_id?: string | null; loai_dung_cu_id?: string | null }[] = [];
+  for (let i = 0; i < ids.length; i += BO_CHUNK) {
+    const chunk = ids.slice(i, i + BO_CHUNK);
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error } = await client
+        .from("v_cssd_bo_thanh_phan_hieu_luc")
+        .select("bo_dung_cu_id, loai_dung_cu_id")
+        .in("bo_dung_cu_id", chunk)
+        .order("bo_dung_cu_id", { ascending: true })
+        .order("loai_dung_cu_id", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) return { ok: false, message: error.message };
+      data.push(...((page || []) as typeof data));
+      if ((page || []).length < PAGE) break;
+    }
+  }
+
+  // View không hỗ trợ join lồng: tra loại dụng cụ bằng truy vấn riêng.
+  const loaiIds = [
+    ...new Set((data || []).map((r) => String((r as { loai_dung_cu_id?: string | null }).loai_dung_cu_id || "").trim()).filter(Boolean)),
+  ];
+  const loaiById = new Map<string, Record<string, unknown>>();
+  // Tra theo lô 100 mã: một lần `.in()` vài trăm UUID làm URL quá dài (414) → cả danh sách chờ bị chặn.
+  for (let i = 0; i < loaiIds.length; i += 100) {
+    const { data: loais, error: lErr } = await client
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, is_chiu_nhiet, phuong_phap_tiet_khuan_chi_dinh")
+      .in("id", loaiIds.slice(i, i + 100));
+    if (lErr) return { ok: false, message: lErr.message };
+    for (const l of loais || []) loaiById.set(String((l as { id: string }).id), l as Record<string, unknown>);
+  }
 
   for (const raw of data || []) {
-    const row = raw as {
-      bo_dung_cu_id?: string | null;
-      is_active?: boolean | null;
-      cssd_dm_loai_dung_cu?: unknown;
-    };
-    if (row.is_active === false) continue;
+    const row = raw as { bo_dung_cu_id?: string | null; loai_dung_cu_id?: string | null };
     const boId = String(row.bo_dung_cu_id || "").trim();
     if (!boId || !byBo.has(boId)) continue;
-    const loai = unwrapRelation(row.cssd_dm_loai_dung_cu);
+    const loai = loaiById.get(String(row.loai_dung_cu_id || "").trim());
     byBo.get(boId)?.push({
       is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null,
       phuong_phap_tiet_khuan_chi_dinh: loai

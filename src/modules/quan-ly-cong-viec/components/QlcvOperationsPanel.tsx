@@ -256,7 +256,7 @@ export function QlcvOperationsPanel({
           </span>
           <button
             type="button"
-            className="bv103-control-h rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-500 hover:bg-slate-100 touch-manipulation"
+            className="bv103-control-h rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-500 hover:bg-slate-100 touch-manipulation"
             onClick={() => onBoardFilter("TOTAL")}
           >
             Bỏ lọc
@@ -272,8 +272,8 @@ export function QlcvOperationsPanel({
         refreshKey={gateCountsRefreshKey}
       />
 
-      <div className={`min-w-0 ${UI.shell} space-y-3 p-3 sm:p-4`}>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <div className="min-w-0 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <KsnkSupervisionTabList
             tabs={viewTabs}
             activeId={viewMode}

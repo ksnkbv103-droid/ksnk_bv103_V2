@@ -74,10 +74,6 @@ export async function getCongViecListForBoard(opts?: {
   return fetchAllActiveRootTasksInScope(supabase, scope, opts);
 }
 
-export async function getCongViecList() {
-  return getCongViecListForBoard();
-}
-
 /** Chuẩn hóa dòng đề xuất (fact inactive) về cùng hình dạng view danh sách gốc. */
 function mapProposalToRootListRow(p: Record<string, unknown>) {
   return {

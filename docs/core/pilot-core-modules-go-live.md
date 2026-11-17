@@ -11,7 +11,7 @@ KSNK_PILOT_CORE_MODULES=1
 
 - **Sidebar:** ẩn Dashboard, Báo cáo tổng hợp, NKBV, toàn bộ CSSD.
 - **Proxy:** trả 404 cho route CSSD, `/giam-sat-nkbv`, `/bao-cao-tong-hop`.
-- **QLCV:** vẫn bật (`isModuleEnabled('QLCV')` = true).
+- **QLCV:** vẫn bật (`/quan-ly-cong-viec` không nằm trong danh sách route bị chặn).
 
 **Không** dùng `KSNK_PILOT_FOUR_MODULES=1` cùng lúc nếu cần QLCV — pilot-4 **chặn** `/quan-ly-cong-viec`.
 

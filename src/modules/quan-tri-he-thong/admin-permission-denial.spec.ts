@@ -36,8 +36,8 @@ import {
   approveAccountAccessRequest,
   approveForgotResetRequest,
   rejectAccountAccessRequest,
-} from "./nhan-su/actions/account-access-request.actions";
-import { deleteBangKiem, deleteMultipleTieuChis, deleteTieuChi } from "./bang-kiem/actions/bang-kiem-write.actions";
+} from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-access-request.actions";
+import { deleteBangKiem, deleteMultipleTieuChis, deleteTieuChi } from "@/modules/giam-sat-chung/bang-kiem/actions/bang-kiem-write.actions";
 
 const UUID = "123e4567-e89b-12d3-a456-426614174000";
 const DENY = "Chỉ quản trị hệ thống được thao tác phân quyền / tài khoản.";

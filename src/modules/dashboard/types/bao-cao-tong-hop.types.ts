@@ -93,7 +93,7 @@ export type BaoCaoTongHopPayload = {
   cssd: BaoCaoCssdAppendix | null;
   /** Phụ lục Hậu cần: Chất thải y tế & Đồ vải y tế — tinh gọn, không gộp vào VST/GSC. */
   chat_thai_do_vai?: BaoCaoChatThaiDoVaiAppendix | null;
-  kpis: {
+  chi_so: {
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
     ti_le_xac_nhan_nkbv: number | null;

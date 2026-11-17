@@ -87,7 +87,7 @@ export default function ThiThatPage() {
                   )}
                 >
                   <p className="text-sm font-semibold text-slate-800">{k.ten}</p>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-slate-500">
+                  <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
                     <span className="inline-flex items-center gap-1">
                       <Layers className="h-3.5 w-3.5" />
                       {k.so_cau} câu

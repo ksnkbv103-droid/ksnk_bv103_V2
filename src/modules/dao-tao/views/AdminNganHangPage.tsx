@@ -414,10 +414,10 @@ export default function AdminNganHangPage() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/50">
-                  <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] font-semibold text-slate-700">
+                  <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs font-semibold text-slate-700">
                     <div>{r.ma_cau || "—"}</div>
                     {r.sop_refs && r.sop_refs.length > 0 && (
-                      <span className="mt-0.5 inline-block rounded bg-amber-50 px-1.5 py-0.2 text-[11px] font-medium text-amber-800 border border-amber-200/60">
+                      <span className="mt-0.5 inline-block rounded bg-amber-50 px-1.5 py-0.2 text-xs font-medium text-amber-800 border border-amber-200/60">
                         {r.sop_refs[0]}
                       </span>
                     )}
@@ -427,7 +427,7 @@ export default function AdminNganHangPage() {
                   </td>
                   <td className="px-3 py-2.5 text-xs">
                     {r.clinical_vignette && (
-                      <p className="mb-0.5 text-[11px] text-slate-500 line-clamp-1">
+                      <p className="mb-0.5 text-xs text-slate-500 line-clamp-1">
                         &ldquo;{r.clinical_vignette}&rdquo;
                       </p>
                     )}
@@ -437,7 +437,7 @@ export default function AdminNganHangPage() {
                         {r.target_roles.slice(0, 3).map((role) => (
                           <span
                             key={role}
-                            className="rounded bg-blue-50 px-1.5 py-0.2 text-[11px] text-blue-700 border border-blue-200/50 font-normal"
+                            className="rounded bg-blue-50 px-1.5 py-0.2 text-xs text-blue-700 border border-blue-200/50 font-normal"
                             title={TARGET_ROLE_LABELS[role] || role}
                           >
                             {TARGET_ROLE_LABELS[role] ? TARGET_ROLE_LABELS[role].split("(")[0].trim() : role.replace("ROLE_", "")}
@@ -451,7 +451,7 @@ export default function AdminNganHangPage() {
                       type="button"
                       disabled={pending}
                       className={cn(
-                        "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        "rounded-full px-2 py-0.5 text-xs font-semibold",
                         r.is_active
                           ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                           : "bg-slate-100 text-slate-500 hover:bg-slate-200",

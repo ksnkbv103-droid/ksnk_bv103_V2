@@ -32,10 +32,12 @@ const PANEL_CHROME_NEEDLE =
 const PANEL_SKIP = new Set([
   "src/modules/giam-sat-chung/components/GiamSatChungForm.tsx",
   "src/modules/giam-sat-vst/components/VSTForm.tsx",
+  // Nút dùng Bv103Button (Lát 4 redesign), không cần chrome cũ.
+  "src/modules/giam-sat-chung/components/GiamSatChungFormActions.tsx",
   // Thin alias → IncidentReportModal (đã wire panel chrome).
   "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
   // Wrapper mỏng ghép 3 hàng đợi duyệt (đã wire chrome ở từng component con).
-  "src/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuPhieuAdminPanels.tsx",
+  "src/modules/dieu-hanh-khoa/PheDuyetDungCuPanel.tsx",
   // Sau tách N1 (lát C, D): chỉ ghép hook + panel con, không còn token chrome (chrome nằm ở NkbvSyndromeIwpGrid).
   "src/modules/giam-sat-nkbv/components/NkbvSyndromeIwpPanel.tsx",
   "src/modules/giam-sat-nkbv/components/NkbvBaWorkspaceSessionPanels.tsx",
@@ -49,7 +51,7 @@ const PANEL_TYPO_PATTERNS = [
   },
 ];
 
-/** Cho phép font-black: KPI, tabular số, choiceBtn/segment touch */
+/** Cho phép font-black: chỉ số, tabular số, choiceBtn/segment touch */
 const FONT_BLACK_ALLOW = new RegExp(
   [
     "statValue",
@@ -59,7 +61,7 @@ const FONT_BLACK_ALLOW = new RegExp(
     "choiceBtn",
     "segmentBtn",
     "btnPrimaryBlock",
-    "kpiValue",
+    "chiSoValue",
     "no-print",
     "print:",
     "h-16 w-full",
@@ -91,7 +93,7 @@ const LAYOUT_PATTERNS = [
 const TYPO_PATTERNS = [
   {
     re: /["'`][^"'`\n]*\bfont-black\b/g,
-    hint: "font-black — bv103-type-kpi / font-semibold",
+    hint: "font-black — bv103-type-chi-so / font-semibold",
   },
   {
     re: /["'`][^"'`\n]*\bfont-extrabold\b/g,
@@ -195,7 +197,7 @@ for (const base of SCAN_DIRS) {
         const fb = countFontBlackDrift(text);
         if (fb > 0) {
           hits += fb;
-          console.warn(`[columns-drift] ${rel}: font-black ngoài KPI (${fb})`);
+          console.warn(`[columns-drift] ${rel}: font-black ngoài chỉ số (${fb})`);
         }
       }
       if (isPanelFormFile(rel) && !PANEL_SKIP.has(rel)) {
@@ -209,7 +211,7 @@ for (const base of SCAN_DIRS) {
         const fb = countFontBlackDrift(text);
         if (fb > 0) {
           hits += fb;
-          console.warn(`[panel-drift] ${rel}: font-black ngoài KPI (${fb})`);
+          console.warn(`[panel-drift] ${rel}: font-black ngoài chỉ số (${fb})`);
         }
       }
     }
