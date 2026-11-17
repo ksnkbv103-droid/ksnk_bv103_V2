@@ -4,7 +4,8 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## ĐANG LÀM
 - CSSD-034 (DA_SUA): lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT). Còn mở: dòng MOI «sau khi đảo» (xuất lại/NXT, cần PO).
-- Nợ đã đóng (PO 17/11): GSC UTC, nhãn login, verify-changed, README, VST-031 (prod; cổng PO), VST-018 `d9f380a5`. CSSD-032 `3165749c`: ĐÃ ÁP PROD 18/11 (PO duyệt; ledger `20261117235006` cssd_hc_chan_trung_su_co; 0 sự cố trùng trước; md5 thân hàm sau áp khớp file).
+- Chạy nối 18/11: VST-020 `6018d180`, NKBV-031 `c7b637ce` DA_SUA; VST-027 CHO_PO. Kế: VST-030 (client admin đọc view GSC: BCTH :345, MDRO :110, RCA :74; test fail trước; `review-bv103`), rồi NKBV-030 (`ba-ngay.actions.ts` :66, :139 ghi nhật ký trước xóa), rồi `next 10`.
+- CSSD-032 `3165749c`: ĐÃ ÁP PROD 18/11 (PO duyệt; ledger `20261117235006` cssd_hc_chan_trung_su_co; 0 sự cố trùng trước; md5 thân hàm sau áp khớp file).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 `e908e7e0`, deploy success, B1–B5 đã áp (17/11). Còn TC09: mục 4.
 
@@ -25,7 +26,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Kịch bản tay: làm trên :3001, đối chiếu DB local, rồi `tay <ID> DAT|KHONG_DAT|CHUA "<ghi chú>"`. Không dựng được trên UI → `CHUA` kèm lý do «chỉ spec».
 
 ## Trạng thái (2026-11-13)
-- Điểm cơ học (`module:audit`, số bước có/10): giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước còn thiếu (1, 2, 5, 8, 9, 10) đều cần người dùng/PO: đầu mối, kịch bản thật, ngưỡng, UAT, số đo. Sửa mã không nâng được điểm.
+- Điểm cơ học: chạy `npm run module:audit`; bước thiếu (1, 2, 5, 8, 9, 10) cần PO, sửa mã không nâng được.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
 - Dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture).
