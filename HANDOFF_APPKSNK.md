@@ -6,7 +6,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Không có (CSSD-036 đóng: DA_SUA 67beb5bb, tay ĐẠT).
 
 ## KẾ
-- Sửa layout-drift `PheDuyetVstPanel.tsx`, `ThamSoPanel.tsx` để `npm run verify` xanh trước PR vào main (SO_NO 2026-11-17).
+- Cổng build của `npm run verify` đôi khi dừng exit 1 vì cảnh báo bảo mật Next 16.4.4 (SO_NO 2026-11-17); PO quyết nâng Next hay chấp nhận thử lại.
 - Smoke VST + GSC: ĐÃ XONG 17/11, 6/6 pass trên :3001 chạy từ worktree. `preview_start` luôn mở ở checkout chính (code cũ `kpis`) → chạy `node scripts/dev-local.mjs` bằng Bash từ worktree.
 - CSSD-032 (`migration-author`) → PR vào `main` → dọn 15 nhánh, 5 worktree.
 

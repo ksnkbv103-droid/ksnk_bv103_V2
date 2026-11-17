@@ -4,12 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { themThamSo } from "../actions/tham-so.actions";
+import { quanTriFormChrome as UI } from "@/lib/master-data-form-chrome";
 
 export type ThamSoRow = { id: string; ma_tham_so: string; gia_tri: number; hieu_luc_tu: string; nguon: string };
 
 type Props = { rows: ThamSoRow[]; maList: string[]; homNay: string };
 
-const inputCls = "w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm";
+const inputCls = UI.controlInput;
 
 export default function ThamSoPanel({ rows, maList, homNay }: Props) {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function ThamSoPanel({ rows, maList, homNay }: Props) {
         Ngưỡng % và cỡ mẫu tối thiểu theo ngày hiệu lực. Chỉ thêm dòng mới, không sửa hay xóa dòng cũ.
       </p>
 
-      <form onSubmit={submit} className="grid gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-4">
+      <form onSubmit={submit} className={`${UI.shellPadded} grid gap-3 sm:grid-cols-4`}>
         <label className="text-sm sm:col-span-2">
           Mã tham số
           <select className={inputCls} value={ma} onChange={(e) => setMa(e.target.value)}>
@@ -75,7 +76,7 @@ export default function ThamSoPanel({ rows, maList, homNay }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="self-end rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary-hover)] disabled:opacity-60"
+          className={`${UI.ctaPrimary} self-end justify-center`}
         >
           {pending ? "Đang lưu…" : "Thêm giá trị"}
         </button>

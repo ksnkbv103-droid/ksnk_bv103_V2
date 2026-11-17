@@ -9,6 +9,7 @@ import {
   type VstYeuCauDieuChinhRow,
 } from "@/modules/giam-sat-vst/actions/vst-yeu-cau-dieu-chinh.actions";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 /** Hàng chờ duyệt sửa/xóa muộn phiên giám sát vệ sinh tay (đặc tả M01 R1.24, R1.25). */
 export function PheDuyetVstPanel() {
@@ -42,8 +43,8 @@ export function PheDuyetVstPanel() {
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
-      <h2 className="border-b border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900">
+    <section className={P.shell}>
+      <h2 className={`${P.panelTitle} border-b border-slate-200 px-4 py-2.5`}>
         Giám sát vệ sinh tay — yêu cầu sửa, xóa phiên sau 30 phút ({rows.length})
       </h2>
       {rows.length === 0 ? (
