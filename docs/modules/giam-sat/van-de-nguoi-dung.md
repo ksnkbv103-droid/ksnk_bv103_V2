@@ -1,7 +1,7 @@
 # Giám sát (VST/GSC) — Vấn đề & giá trị
 
 Trạng thái: CHẠY_THỬ
-Đầu mối: CHƯA CÓ
+Đầu mối: Tổ giám sát KSNK
 
 > Bước 1–2 vòng đời sản phẩm. Chỉ trỏ SSOT, không chép nghiệp vụ. Nhãn: `[SSOT]` đã chốt · `[GIẢ THUYẾT]` suy từ domain, chưa kiểm · `[CẦN XÁC NHẬN]` hỏi người dùng thật · `[ĐỀ XUẤT]` ngưỡng chờ PO sửa.
 > Nghiệp vụ: [`README.md`](README.md) · Mức sẵn sàng: [`handover-roadmap.md`](../../core/handover-roadmap.md) §5.
@@ -10,7 +10,7 @@ Trạng thái: CHẠY_THỬ
 - Điều dưỡng/giám sát viên nhập phiên VST (5 thời điểm WHO) và phiếu GSC (BM.07.02/03). `[SSOT]` README «3 kịch bản tay L1».
 - Admin KSNK đặt ngày khóa sổ trước chốt báo cáo. `[SSOT]` README «Khóa sổ».
 - Lãnh đạo khoa/KSNK xem số liệu trên Báo cáo tổng hợp. `[SSOT]` README «Báo cáo».
-- Đầu mối: đã có người dùng thật, chưa ghi tên. `[CẦN XÁC NHẬN]` tên, số người nhập mỗi tuần.
+- Đầu mối: Tổ giám sát KSNK; đợt UAT đầu chạy VST + GSC trước các module khác. `[SSOT]` PO 2026-11-17. Còn `[CẦN XÁC NHẬN]` tên từng người, số người nhập mỗi tuần.
 
 ## 2. Hiện làm thế nào (không có app)
 - Ghi tay/Excel khi đi giám sát, tổng hợp cuối kỳ. `[CẦN XÁC NHẬN]` cách ghi, ai tổng hợp, mất bao lâu mỗi kỳ.

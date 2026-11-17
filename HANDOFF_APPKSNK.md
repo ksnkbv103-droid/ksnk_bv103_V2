@@ -7,7 +7,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## KẾ
 - Sửa layout-drift `PheDuyetVstPanel.tsx`, `ThamSoPanel.tsx` để `npm run verify` xanh trước PR vào main (SO_NO 2026-11-17).
-- Smoke VST + GSC `e2e/gsc-vst-supervision.spec.ts` ở :3001 (cần PO cho tải Playwright chromium).
+- Smoke VST + GSC: ĐÃ XONG 17/11, 6/6 pass trên :3001 chạy từ worktree. `preview_start` luôn mở ở checkout chính (code cũ `kpis`) → chạy `node scripts/dev-local.mjs` bằng Bash từ worktree.
 - CSSD-032 (`migration-author`) → PR vào `main` → dọn 15 nhánh, 5 worktree.
 
 ## Mở phiên mới

@@ -63,7 +63,7 @@ Mỗi module có 3 màn: **Nhập · Danh sách/lịch sử · Thống kê** (ch
 
 | Module | Mức | Người đầu mối | Việc tới L1 | Đang chặn |
 |---|---|---|---|---|
-| VST + GSC + thống kê | L1 (đang dùng thật) · **Đạt có điều kiện** vận hành thử (2026-11-10) | Đã có | Đo thời gian nhập phiếu (2 lỗi Thấp của đợt 2026-11-10 đã sửa: báo riêng thiếu danh tính NV, báo thiếu Vị trí ngay ở client) | GS-1 RLS đọc cần ma trận «ai xem gì» (L2); e2e Playwright chưa chạy được (thiếu Chromium) |
+| VST + GSC + thống kê | L1 (đang dùng thật) · **Đạt có điều kiện** vận hành thử (2026-11-10) | Tổ giám sát KSNK (PO 2026-11-17; UAT đợt đầu) | Đo thời gian nhập phiếu (2 lỗi Thấp của đợt 2026-11-10 đã sửa: báo riêng thiếu danh tính NV, báo thiếu Vị trí ngay ở client) | GS-1 RLS đọc cần ma trận «ai xem gì» (L2); e2e Playwright chưa chạy được (thiếu Chromium) |
 | CSSD (+ sự cố) | L0, nhiều cổng L2 đã lên prod | Tổ CSSD: Nguyễn Thanh Bình (PO 2026-10-31) | K1–K5 ở SSOT 18 đã chạy tay qua UI trên DB local (Claude chạy thay tổ CSSD; PO chốt đạt 2026-11-01), chưa chạy trên prod/bộ Đóng gói thật; kho/hóa chất/BOM tạm nhập tay hoặc Excel | Người đầu mối; máy quét |
 | NKBV | L0 | Chưa có | Ghi ca + danh sách + tỉ lệ; rules engine chỉ gợi ý, không chặn | HIS/LIS (L3); người đầu mối |
 | QLCV | L0 | Nhóm KSNK | Tạo việc, giao, hạn, hoàn thành, xem theo người/khoa; kịch bản tay ≥ 3 | QL-1 đã chốt 2026-10-24 (xóa mềm, ghi chú theo người tạo); code xóa mềm chưa kiểm |
