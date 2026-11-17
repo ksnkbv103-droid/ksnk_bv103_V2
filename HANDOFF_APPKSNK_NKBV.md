@@ -1,4 +1,4 @@
-# HANDOFF — NKBV → NHSN 2026 (GĐ0–GĐ2)
+# HANDOFF_APPKSNK_NKBV — NKBV → NHSN 2026 (GĐ0–GĐ2)
 
 Nhánh `claude/nkbv-nhsn2026-core-df1243`. Commit: 060d579d (GĐ0 SSOT), 54c1ce49 (GĐ1 bộ ca), a20d9453 (lát 1), 637544f2 (lát 2), 59e9585d (lát 3), 55df1651 (lát 4), + lát 5.
 

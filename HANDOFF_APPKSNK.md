@@ -9,8 +9,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
-- Push 403: `gh` active `DrNghiaIPC103MH`, repo của `ksnkbv103-droid` → PO chạy `gh auth switch -u ksnkbv103-droid`, rồi «push» (20 commit).
-- Nhánh 18/11: đã gỡ 2 worktree + 4 nhánh đã gộp. Còn 4 nhánh có commit chưa vào integrate (PO quyết giữ/gộp/bỏ): `chore/code-vs-ai-phase1` 1 · `claude/ksnk-bv103-audit-0616a7` 1 · `claude/monitoring-module-review-3384e5` 7 · `claude/nkbv-nhsn2026-core-df1243` 12. Remote chưa đụng.
+- Nhánh 18/11 (đã push 21 commit; 17 commit gộp chưa push): vào integrate nkbv 12 + chore 1 + audit 1. Còn `claude/monitoring-module-review-3384e5` (7 commit) = CHO_PO: khóa PO 11-01 (đỏ <85, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) xung đột `ksnk_dm_tham_so` (85/70/80, mẫu 20/30); migration `20261101010000` lệch thứ tự. Remote chưa đụng.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 
 ## Mở phiên mới
