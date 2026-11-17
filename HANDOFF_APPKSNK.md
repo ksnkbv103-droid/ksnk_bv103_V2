@@ -9,7 +9,8 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
-- Dọn 15 nhánh, 5 worktree.
+- Push 403: `gh` active `DrNghiaIPC103MH`, repo của `ksnkbv103-droid` → PO chạy `gh auth switch -u ksnkbv103-droid`, rồi «push» (20 commit).
+- Nhánh 18/11: đã gỡ 2 worktree + 4 nhánh đã gộp. Còn 4 nhánh có commit chưa vào integrate (PO quyết giữ/gộp/bỏ): `chore/code-vs-ai-phase1` 1 · `claude/ksnk-bv103-audit-0616a7` 1 · `claude/monitoring-module-review-3384e5` 7 · `claude/nkbv-nhsn2026-core-df1243` 12. Remote chưa đụng.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 
 ## Mở phiên mới
@@ -26,7 +27,6 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 ## Trạng thái (2026-11-13)
 - Điểm cơ học (`module:audit`, số bước có/10): giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước còn thiếu (1, 2, 5, 8, 9, 10) đều cần người dùng/PO: đầu mối, kịch bản thật, ngưỡng, UAT, số đo. Sửa mã không nâng được điểm.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
-- QT-013 đã sửa + thử tay đạt. Thử tay ĐẠT CSSD-024, NKBV-022, VST-013b (fixture đã trả về gốc). NKBV-024 (Kho vi sinh hiện nút ghi cho vai chỉ xem) đã sửa d5d60fdb + thử tay đạt.
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
 - 15 dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture). Chạy khi có đầu mối/UAT thật.
 
@@ -39,10 +39,9 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Gỡ «mục tiêu viện» (`b13ef7b6`…`f44b7705`): phần prod gộp vào B2–B4 của plan lô prod pha 1; chi tiết `SO_NO_APPKSNK.md`.
 
 ## Lát chưa mở / nợ
-- NKBV-025 ĐẠT 2026-11-13 (sửa nhánh BA chưa có khoa điều trị, 4 spec; chi tiết `git show 9c1509fb:HANDOFF_APPKSNK.md`).
 - Thử tay 2026-11-13 ĐẠT 36/43; 7 mục không lối UI giữ CHUA, có spec pass. Mẹo fixture: vai tạm có quyền cần thử, xóa sau phiên; BM.31.03 local is_active=false. Ghi nhận nhỏ chưa sửa: nút «Phê duyệt và giao» vẫn hiện cho người đề xuất; banner NKBV hiện link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
 - Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
-- Review 2026-11-13 (CSSD-011/012, NKBV-013..016, QT-011): Go; sửa CSSD-028 (8d571e6a), QT-014 (1261395c); NKBV-026 đã sửa. Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import (chỉ seed, không migration).
+- Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import (chỉ seed, không migration).
 - Roadmap 65,9 KB (mục tiêu 25 KB).
 
 ## Lệnh kiểm chứng
