@@ -8,7 +8,7 @@ test.describe("BV103 pilot smoke", () => {
     test.skip(!email || !password, "Set E2E_USER_EMAIL and E2E_USER_PASSWORD to run E2E");
     await page.goto("/login");
     await page.getByLabel(/email|tài khoản/i).fill(email!);
-    await page.getByLabel(/mật khẩu|password/i).fill(password!);
+    await page.getByLabel("Mật khẩu", { exact: true }).fill(password!);
     await page.getByRole("button", { name: /đăng nhập|login/i }).click();
     await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 60_000 });
   });
