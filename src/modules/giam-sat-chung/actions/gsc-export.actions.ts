@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { GSC_SESSIONS_FULL_LIST_SELECT } from "../lib/gsc-read-view-select";
 import { mapGscSessionToExportRow, type GscExportRow } from "../lib/gsc-export-map";
@@ -77,6 +78,20 @@ export async function exportGscSessionsRaw(params: {
     }
     const withSnap = mergeGscHistoryRowsWithSessionMetadata(listRows, metaById);
     const rows = withSnap.map(mapGscSessionToExportRow);
+    // VST-020: xuất dữ liệu thô để lại nhật ký (best-effort, không chặn xuất).
+    await logAdminAction({
+      action: "GSC_EXPORT_RAW",
+      targetTable: "v_gstt_giam_sat_chung_sessions_full",
+      after: {
+        tu_ngay: params.tu_ngay,
+        den_ngay: params.den_ngay,
+        loai_giam_sat: params.loaiGiamSat ?? null,
+        bang_kiem_id: params.bang_kiem_id ?? null,
+        ma_bang_kiem: params.maBk ?? null,
+        so_dong: rows.length,
+      },
+      reason: "Xuất dữ liệu thô GSC",
+    });
     return { success: true, rows };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Không xuất được GSC" };

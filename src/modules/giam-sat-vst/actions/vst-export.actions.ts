@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
@@ -43,6 +44,16 @@ function mapMomentsDisplay(raw: string | null): string | null {
     .join(", ");
 }
 
+/** VST-020: xuất dữ liệu thô để lại nhật ký (đặc tả M01 T1.32). Ghi best-effort, không chặn xuất. */
+async function logVstExport(params: { tu_ngay: string; den_ngay: string }, soDong: number): Promise<void> {
+  await logAdminAction({
+    action: "VST_EXPORT_RAW",
+    targetTable: "v_gstt_giam_sat_vst_full",
+    after: { tu_ngay: params.tu_ngay, den_ngay: params.den_ngay, so_dong: soDong },
+    reason: "Xuất dữ liệu thô VST",
+  });
+}
+
 /**
  * Xuất cơ hội VST thô theo kỳ + scope. Đọc hết trang; lỗi đọc trả success: false.
  */
@@ -80,7 +91,10 @@ export async function exportVstOpportunitiesRaw(params: {
         .order("id", { ascending: true })
         .range(from, to);
     });
-    if (sessionList.length === 0) return { success: true, rows: [] };
+    if (sessionList.length === 0) {
+      await logVstExport(params, 0);
+      return { success: true, rows: [] };
+    }
 
     const sessionIds = sessionList.map((s) => String(s.id));
     const sessionMap = new Map(sessionList.map((s) => [String(s.id), s]));
@@ -144,6 +158,7 @@ export async function exportVstOpportunitiesRaw(params: {
       };
     });
 
+    await logVstExport(params, rows.length);
     return { success: true, rows };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : "Không xuất được VST" };
