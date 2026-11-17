@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Stop hook: chặn kết lượt (exit 2 + stderr) khi
-//  (a) câu trả lời cuối thiếu khối 4 dòng («Lộ trình:»), hoặc
-//  (b) câu trả lời cuối nói pass/xong/hoàn tất trong khi code chưa commit chưa qua `npm run verify:changed` (dấu verify không khớp).
+// Stop hook: chỉ xét câu trả lời cuối báo pass/xong/hoàn tất/hoàn thành/đạt/đã commit (khớp ~/.claude/CLAUDE.md «khi xong một mục»); chặn (exit 2 + stderr) khi
+//  (a) thiếu khối 4 dòng («Lộ trình:»), hoặc
+//  (b) code chưa commit chưa qua `npm run verify:changed` (dấu verify không khớp).
 // stop_hook_active=true (đã nhắc một lần trong lượt) → cho qua, không lặp.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -13,10 +13,12 @@ if (input.stop_hook_active) process.exit(0);
 const msg = String(input.last_assistant_message || "");
 if (!msg.trim()) process.exit(0);
 
-const errs = [];
-if (!/Lộ trình:/.test(msg)) errs.push("Thiếu khối 4 dòng cuối trả lời (Lộ trình · Clear · Bước kế · Model) theo CLAUDE.md.");
+if (!/\bpass\b|xong|hoàn tất|hoàn thành|đạt|đã commit/i.test(msg)) process.exit(0);
 
-if (/\b(pass|PASS)\b|xong|hoàn tất/i.test(msg)) {
+const errs = [];
+if (!/Lộ trình:/.test(msg)) errs.push("Báo xong/pass/commit nhưng thiếu khối 4 dòng (Lộ trình · Clear · Bước kế · Model) theo CLAUDE.md.");
+
+{
   const root = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
   try {
     const { codeStamp, readStamp } = await import(pathToFileURL(join(root, "scripts/verify-stamp.mjs")).href);

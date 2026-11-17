@@ -1,5 +1,5 @@
 ---
-description: Vòng lặp liên tục qua MỌI module — rà lỗi/bất hợp lý, phân tích, phản biện, chấm điểm phương án, sửa, kiểm, commit cục bộ. Không dừng hỏi.
+description: Vòng lặp liên tục qua MỌI module (trần 10 vòng/ngày) — rà lỗi/bất hợp lý, phân tích, phản biện, chấm điểm phương án, sửa, kiểm, commit cục bộ. Không dừng hỏi.
 argument-hint: "[module bắt đầu: VST_GSC|CSSD|NKBV|QLCV|DAO_TAO|QUAN_TRI|NEN] — bỏ trống = tự chọn"
 ---
 
@@ -14,6 +14,7 @@ Thân mã: worktree `integrate-2026-11`. Nguồn điều hướng duy nhất: `n
 - `git status --short` — file lạ không phải của mình: để yên, không stage.
 - Không kiểm hạn mức (PO 2026-11-14: bỏ mọi ngưỡng hạn mức; không gọi `get_usage` để quyết định dừng hay thu hẹp việc).
 - `node scripts/readiness/so-loi.mjs stats`.
+- Trần vòng (người dùng 2026-11-17; luật riêng dự án): `grep -c "^- $(date +%F) " .claude/plans/NHAT_KY_VONG_LAP.md` ≥ 10 → không làm vòng mới, dừng `/loop`, ghi HANDOFF một dòng.
 
 ## 1. Chọn việc (theo thứ tự, lấy cái đầu tiên có)
 
@@ -27,7 +28,7 @@ Một vùng hẹp mỗi vòng (một luồng: nhập → lưu → chỉ số, ho
 
 - `npm run trace` — quy tắc R/T của đặc tả M01–M15 (`~/Desktop/KSNK_BENH_VIEN_103/09_DOMAIN_PHAN_MEM/02_DAC_TA/`) chưa có mã dẫn: R «chặn/bắt buộc» chưa cài = phát hiện.
 - `npm run module:audit -- <m>` và `module:gate -- <m>`.
-- Giao MỘT agent đọc (`explore-module`; vùng quyền/RLS thì `security-auditor`) với câu hỏi: lỗi sai dữ liệu, bước thiếu kiểm quyền, trạng thái đi sai chiều, số chỉ số lệch công thức, **điều bất hợp lý** (màn cho làm việc mà quy trình cấm; bắt nhập thứ hệ thống đã biết; hai nơi tính cùng một số khác nhau; nút không có đường quay lại). Chỉ nhận mức Nghiêm trọng/Cao/Trung bình có `file:dòng`.
+- Giao MỘT agent đọc (`explore-module`; vùng quyền/RLS thì `security-auditor`) với câu hỏi: lỗi sai dữ liệu, bước thiếu kiểm quyền, trạng thái đi sai chiều, số chỉ số lệch công thức, **điều bất hợp lý** (màn cho làm việc mà quy trình cấm; bắt nhập thứ hệ thống đã biết; hai nơi tính cùng một số khác nhau; nút không có đường quay lại). Chỉ nhận mức Nghiêm trọng/Cao/Trung bình có `file:dòng`, tối đa 10 phát hiện/vòng (`~/.claude/CLAUDE.md:12`).
 - Phát hiện → `scripts/readiness/inbox/<ten>.json` → `so-loi.mjs merge`. Vòng rà không ra phát hiện nào → ghi nhật ký «sạch», sang module kế.
 
 ## 2b. Rà mẫu in và lưu trữ (P1)
@@ -72,4 +73,4 @@ Giới hạn «≤ 8 file/task» tính **theo vòng**; việc lớn hơn → tá
 
 ## 6. Kết vòng
 
-Một dòng vào `NHAT_KY_VONG_LAP.md`: `ngày giờ · module · ID · phương án chọn (điểm) · verify · sha | CHO_PO | HOAN | sạch` (vòng P1/P2: cột ID ghi `P1:<module>` hoặc `P2:<tài liệu>`, và cập nhật §7 của kế hoạch). Không viết báo cáo dài, không khối hỏi. Dừng `/loop` chỉ khi: P0, P1, P2 đã đạt **và** ba vòng liền «sạch» trên cả 7 module; hoặc cùng một lỗi verify lặp 3 vòng liền (ghi HANDOFF; lỗi ngoài diff của vòng theo ngoại lệ ở §4 không tính). Bước P3 thiếu điều kiện (chưa có đặc tả hoặc người dùng thật) → CHO_PO, không giữ vòng lặp chạy.
+Một dòng vào `NHAT_KY_VONG_LAP.md`: `ngày giờ · module · ID · phương án chọn (điểm) · verify · sha | CHO_PO | HOAN | sạch` (vòng P1/P2: cột ID ghi `P1:<module>` hoặc `P2:<tài liệu>`, và cập nhật §7 của kế hoạch). Không viết báo cáo dài, không khối hỏi. Dừng `/loop` chỉ khi: chạm trần vòng ở §0; hoặc P0, P1, P2 đã đạt **và** ba vòng liền «sạch» trên cả 7 module; hoặc cùng một lỗi verify lặp 3 vòng liền (ghi HANDOFF; lỗi ngoài diff của vòng theo ngoại lệ ở §4 không tính). Bước P3 thiếu điều kiện (chưa có đặc tả hoặc người dùng thật) → CHO_PO, không giữ vòng lặp chạy.
