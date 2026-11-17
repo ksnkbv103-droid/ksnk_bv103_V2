@@ -119,7 +119,7 @@ Thứ tự pilot theo khóa PO: CSSD → NKBV → QLCV → Đào tạo. QLCV/Đ�
 3. Đơn giản nền: loại `.claude/worktrees` khỏi tsconfig · rút script (H1) · lint chặn `src/lib` → `src/modules` (41 file) · 5 thành phần ui chuẩn · một bảng mục tiêu đo được + một thứ tự ưu tiên.
 4. Mở từng module qua cổng «người thật chạy kịch bản tay»: CSSD chỉ luồng mẻ · NKBV che dữ liệu định danh trước ca thật · QLCV kiểm pg_cron prod · Đào tạo duyệt 6.000 câu.
 
-**Giai đoạn 1: PO duyệt 2026-11-10, tiến độ** (nhánh `chore/code-vs-ai-phase1`, chưa push):
+**Giai đoạn 1: PO duyệt 2026-11-10, tiến độ** (nhánh `chore/code-vs-ai-phase1`, đã push 2026-11-15, PR gộp vào `main`):
 
 - Lát 1 cổng đổi mật khẩu: cờ `must_change_password` kiểm ở mọi cổng `verify*`, `ensureRbacAdmin`, `getActorRoleNames`, `hasRBACAdminSupervisionBypass` (kể cả break-glass); nhánh prefetch ở `src/proxy.ts` chỉ còn cho GET. Spec `src/lib/server-permission.spec.ts`. Đã qua một vòng `security-auditor`. Chưa test tay với tài khoản có cờ.
 - Lát 2 xuất file: `rowsToCsv` (QLCV) vô hiệu hóa công thức, commit `4177f102`. Các chỗ xuất `.xlsx` không cần sửa: exceljs ghi chuỗi thành ô văn bản (`src/lib/analytics/excel-string-cell.spec.ts`).

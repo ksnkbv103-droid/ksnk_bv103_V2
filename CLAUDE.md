@@ -29,6 +29,9 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 - **Mục tiêu: triển khai TẤT CẢ module** (PO 2026-10-12, thay lệnh đóng băng cùng ngày). Thứ tự: VST/GSC + thống kê (đang dùng thật) → CSSD → NKBV → QLCV → Đào tạo; mỗi module cần người dùng + kịch bản tay trước khi coi là xong
 - Không tạo bảng summary khi chưa có số đo và PO đồng ý. Không viết lại engine lâm sàng; lệch chỉ số thì sửa hàm chỉ số
 - Diff tối thiểu, truy vết được tới yêu cầu. Đọc migration/DB trước khi đặt tên; không đoán schema
+- Không trừu tượng hóa/làm linh hoạt thừa cho code dùng một lần; không xử lý lỗi cho tình huống bất khả
+- Chỉ dọn phần mồ côi do chính mình tạo; gặp code chết có sẵn thì báo, không xóa
+- Sửa lỗi: viết test tái hiện (fail) trước; refactor: test pass trước và sau. Trước khi sửa bảng/view/RPC/file dùng chung: `npm run impact -- <tên|file>`
 - ≤ 8 file/task; > 3 file ngoài scope → hỏi PO. Output delta-only, lọc log (`tail -30`)
 - Pilot DoD một lát: người dùng/môi trường rõ · ≥ 3 kịch bản tay · migration + RPC apply đúng · `verify:engineering` pass
 
@@ -53,8 +56,8 @@ Chạy nối (PO 2026-11-11): cột cuối của `so-loi.mjs next` quyết việ
 - Rà module đã có: `/ra-soat <module>` (chấm 10 bước vòng đời, tự trả lời điều SSOT/code đã nói, gom hỏi PO một lần; không hỏi lại điều PO đã trả lời trong trang)
 - Xong một lát/mục hoặc trước khi dừng chờ PO: kết bằng khối 4 dòng của CLAUDE.md toàn cục (Lộ trình · Clear · Bước kế · Model); **Bước kế** lấy một việc từ roadmap §5. Trả lời ngắn giữa chừng không cần khối; không thêm khối thứ hai
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
-- Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · push/PR/deploy · đổi quyền người dùng thật
-- Plan đã duyệt → tự commit theo lát khi verify pass. Push/PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
+- Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · PR/deploy · đổi quyền người dùng thật
+- Plan đã duyệt → tự commit theo lát khi verify pass. Push theo đợt: không tự push, không hỏi push; chỉ chạy `git push` khi PO gõ «push». PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
 - Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file (sổ lỗi `scripts/readiness/` là dữ liệu + script, không phải tài liệu)
 - Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
