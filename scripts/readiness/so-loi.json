@@ -1748,9 +1748,9 @@
     "tieu_de": "Xuất dữ liệu thô VST và GSC không ghi nhật ký (đặc tả yêu cầu xuất có nhật ký)",
     "bang_chung": "App: src/modules/giam-sat-vst/actions/vst-export.actions.ts:49 (exportVstOpportunitiesRaw) và src/modules/giam-sat-chung/actions/gsc-export.actions.ts:23 (exportGscSessionsRaw): 0 lần gọi logAdminAction mỗi file (hàm ở src/lib/admin-audit.ts). Kho (bản nháp): 09_DOMAIN_PHAN_MEM/02_DAC_TA/M01_VE_SINH_TAY.md:705 (T1.32: ĐDT khoa quản lý xuất danh sách «được (có nhật ký)»)",
     "lenh_kiem": "grep -c logAdminAction src/modules/giam-sat-vst/actions/vst-export.actions.ts src/modules/giam-sat-chung/actions/gsc-export.actions.ts (hiện 0 và 0; kỳ vọng ≥ 1 mỗi file)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "P1:VST_GSC",
-    "commit": "",
+    "commit": "6018d180",
     "ghi_chu": "Phương án dự kiến: logAdminAction best-effort (không failClosed), action EXPORT_VST_RAW và EXPORT_GSC_RAW, after gồm tu_ngay, den_ngay, so_dong; không ghi nội dung dòng (tránh đưa PII vào nhật ký). Không phụ thuộc đáp án của dòng về cột danh tính khi xuất."
   },
   {
