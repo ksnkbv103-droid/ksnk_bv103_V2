@@ -1,4 +1,4 @@
-# HANDOFF_APPKSNK — Rà 5 module để vận hành thử (cập nhật 2026-11-17)
+# HANDOFF_APPKSNK — Rà 5 module để vận hành thử (cập nhật 2026-11-18)
 
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
@@ -9,7 +9,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
-- Nhánh 18/11 (21 commit đã push; phần gộp chưa push: `git status -sb`): integrate đã gộp nkbv, chore, audit, monitoring. Monitoring theo khóa PO 11-01 (đỏ <85, vàng 85–<90, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) qua `ksnk_dm_tham_so`: migration `20261118100000` (6 dòng từ 2026-11-01) + `20261118110000` (kế hoạch, đổi số từ `20261101010000`). Áp local; áp prod = CHO_PO. Tay UI kế hoạch đạt (VST-032, chưa thử không-admin).
+- Nhánh 18/11 (21 commit đã push; phần gộp chưa push: `git status -sb`): integrate đã gộp nkbv, chore, audit, monitoring. Monitoring theo khóa PO 11-01 (đỏ <85, vàng 85–<90, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) qua `ksnk_dm_tham_so`: migration `20261118100000` (6 dòng từ 2026-11-01) + `20261118110000` (kế hoạch, đổi số từ `20261101010000`). Áp local; áp prod = CHO_PO. Tay UI kế hoạch đạt gồm KB8 không-admin (VST-032); VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 
 ## Mở phiên mới
