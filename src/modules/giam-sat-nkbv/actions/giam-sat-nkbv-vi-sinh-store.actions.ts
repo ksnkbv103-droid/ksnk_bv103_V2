@@ -10,6 +10,7 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { z } from "zod";
 import { NKBV_VI_SINH_KET_QUA, type NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
 import { NKBV_MDRO_PHENOTYPES, type NkbvMdroPhenotype } from "../lib/nkbv-mdro";
@@ -395,6 +396,33 @@ export async function deleteNkbvViSinhStoreRecordHard(id: string) {
       success: false as const,
       error: "Không xóa được: xét nghiệm đã dùng trên Hub bệnh án (Index phiếu hoặc đã bỏ qua phân tích).",
     };
+  }
+
+  // NKBV-031: xóa cứng phải để lại nhật ký (fail-closed, ghi trước khi xóa). before không chứa danh tính BN.
+  const { data: row } = await supabase
+    .from("nkbv_fact_vi_sinh")
+    .select("id, ma_xet_nghiem, ngay_lay_mau, loai_benh_pham, tac_nhan, ket_qua_phan_loai, is_mdro")
+    .eq("id", rowId)
+    .maybeSingle();
+  if (!row) return { success: false as const, error: "Không tìm thấy xét nghiệm" };
+  try {
+    await logAdminAction({
+      action: "NKBV_VI_SINH_HARD_DELETE",
+      targetTable: "nkbv_fact_vi_sinh",
+      targetId: rowId,
+      before: {
+        ma_xet_nghiem: row.ma_xet_nghiem,
+        ngay_lay_mau: row.ngay_lay_mau,
+        loai_benh_pham: row.loai_benh_pham,
+        tac_nhan: row.tac_nhan,
+        ket_qua_phan_loai: row.ket_qua_phan_loai,
+        is_mdro: row.is_mdro,
+      },
+      reason: "Xóa cứng xét nghiệm vi sinh",
+      failClosed: true,
+    });
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không ghi được nhật ký" };
   }
 
   const { error } = await supabase.from("nkbv_fact_vi_sinh").delete().eq("id", rowId);
