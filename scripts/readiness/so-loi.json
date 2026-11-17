@@ -1614,10 +1614,11 @@
     "tieu_de": "RPC lập phiếu xuất hóa chất không chặn hai phiếu cùng su_co_id (xuất trùng theo sự cố)",
     "bang_chung": "supabase/migrations/20261029130000_cssd_hc_e_cam_sua_ton_ly_do_xuat.sql:136-142 INSERT p_su_co_id không kiểm đã có phiếu khác trang_thai<>'TU_CHOI' cùng sự cố; không có unique index su_co_id (grep migrations). Local chưa có dòng trùng nhưng đường UI cho phép (kết hợp lỗi bấm đúp).",
     "lenh_kiem": "npm run verify:mdm:local",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-cssd-kho-hoa-chat",
-    "commit": "",
-    "ghi_chu": "Migration additive chỉ DB local (migration-author); áp prod là CHO_PO. Unique index một phần có thể fail trên prod nếu đã có dữ liệu trùng → ưu tiên kiểm trong RPC."
+    "commit": "3165749c",
+    "ghi_chu": "Migration additive chỉ DB local (migration-author); áp prod là CHO_PO. Unique index một phần có thể fail trên prod nếu đã có dữ liệu trùng → ưu tiên kiểm trong RPC. | Tay 2026-11-17 CHUA: chỉ probe: scripts/cssd-hc-su-co-trung-smoke.mjs 5 ca PASS (lần 2 P0001, TU_CHOI, is_active=false, su_co_id NULL, đua khóa); không đổi UI; áp prod = CHO_PO (đếm sự cố trùng trước)",
+    "test_tay": "CHUA"
   },
   {
     "id": "CSSD-033",

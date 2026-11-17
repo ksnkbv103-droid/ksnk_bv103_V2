@@ -3,13 +3,13 @@
 File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
 
 ## ĐANG LÀM
-- NỢ KỸ THUẬT (PO 17/11: tập trung nợ): đã đóng: GSC UTC `fac83d80`, nhãn login + e2e `375cdf8f`, verify-changed `704f6040`, README `f55b5d23`. VST-031 xong `d9b1f08e`, áp prod (v20261117123534; chưa gán ai, cổng PO). VST-018 xong `d9f380a5`. Kế: CSSD-032.
+- NỢ KỸ THUẬT (PO 17/11: tập trung nợ): đã đóng: GSC UTC, nhãn login + e2e, verify-changed, README, VST-031 (áp prod v20261117123534; chưa gán ai, cổng PO), VST-018 `d9f380a5`. CSSD-032 `3165749c` (migration `20261118090000`, local; áp prod = CHO_PO, đếm sự cố trùng trước: SQL cuối file).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 merge `e908e7e0`, deploy success, B1–B5 đã áp prod (17/11). Còn TC09 do PO (mục 4 dưới).
 
 ## KẾ
 - Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
-- CSSD-032 (`migration-author`) → dọn 15 nhánh, 5 worktree.
+- Dọn 15 nhánh, 5 worktree.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 
 ## Mở phiên mới
