@@ -47,7 +47,9 @@
     "ask": [
       "Bash(git push*)",
       "Bash(vercel*)",
-      "Bash(npx supabase db reset*)"
+      "Bash(npx supabase db reset*)",
+      "mcp__supabase__apply_migration",
+      "mcp__c60a61bd-1601-4bc0-be0f-c5b6c40d5a3f__apply_migration"
     ],
     "deny": [
       "Bash(git reset --hard*)",
@@ -72,7 +74,11 @@
       "Read(./**/*.tsbuildinfo)",
       "Read(./**/_agent-*)",
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.*)",
+      "Edit(./.env)",
+      "Edit(./.env.local)",
+      "Edit(./.env.production*)",
+      "Edit(./.vercel/**)"
     ]
   }
 }
