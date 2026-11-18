@@ -5,7 +5,6 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 ## TIẾN ĐỘ HIỆN TẠI (đo 2026-11-18: `so-loi.mjs stats` · `check` · `npm run module:gate`)
 - Sổ 166 dòng: MOI 0 · DA_XAC_MINH 1 · LOI_GIA 16 · DANG_SUA 0 · DA_SUA 131 (có test/migration 107) · HOAN 10 · CHO_PO 8 (`so-loi.mjs status`). Tay: DAT 57 · CHUA 8 · KHONG_DAT 0.
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check`: VST_GSC chưa đạt (VST-025), NKBV chưa đạt (NKBV-041), 5 module kia không còn lỗi chặn. Hai FAIL này có từ trước đợt gộp tài liệu.
-- Nhánh `claude/consolidate-reports-progress-46e328` (gộp HANDOFF + `docs/archive/bao-cao/BAO-CAO-TONG-HOP.md`) chưa vào `integrate/2026-11`; gộp khi PO đồng ý.
 
 ## ĐANG LÀM
 - Chạy nối 18/11: CSSD-034 DA_SUA, lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO) + lát B `c44f87db` (drawer «Lập phiếu ngược», tay DAT; dòng «sau khi đảo» = CSSD-037, cần PO). NKBV-046/045/033/043/037/044 đã sửa, tay DAT. NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; trước khi áp prod phải đo (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037.
