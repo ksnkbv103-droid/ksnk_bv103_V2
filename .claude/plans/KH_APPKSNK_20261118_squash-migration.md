@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261118 — Lát 4: squash migration (mở, chưa sửa gì)
 
-Trạng thái: 4a DỪNG 2026-11-18 — DB-1 (dựng sạch từ 316 file, trong project thải bỏ) KHÔNG dựng được, dừng ở file thứ 178, nguyên nhân chưa xác định; tiêu chí 1–2 chưa đo được; xem §5 · `supabase/migrations/` KHÔNG đổi · chưa chạm prod · TC09 chưa đạt (xem Cần người). PO chọn A (squash) 2026-11-18; kế 4a′ ở §6, 4b chưa mở.
+Trạng thái: 4a DỪNG 2026-11-18 — DB-1 (dựng sạch từ 316 file, trong project thải bỏ) KHÔNG dựng được, dừng ở file thứ 178, nguyên nhân chưa xác định; tiêu chí 1–2 chưa đo được; xem §5 · `supabase/migrations/` KHÔNG đổi · chưa chạm prod · TC09 chưa đạt (xem Cần người). PO chọn A (squash) 2026-11-18; 4a′ xong (§7), PO chọn thay ở bản sao; 4b chưa mở.
 Nguồn: `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` dòng lát 4 · `docs/reference/guides/migration-squash-runbook.md` (lệch, xem §1) · skill `destructive-change`.
 
 ## 1. Đo hiện trạng (2026-11-18, chỉ đọc)
@@ -117,3 +117,5 @@ Repo không đổi: `git status -- supabase/migrations/` rỗng sau mọi lần 
 Tức baseline nháp hiện tại KHÔNG dùng được nguyên trạng; 4b phải đặt default ACL (kể cả toàn cục) trước khi tạo đối tượng và mang phần ngoài `public` (role, cấu hình role, ACL schema) rồi chạy lại đến khi `KHỚP`.
 
 **Hệ quả cho 4b (PO quyết):** baseline squash phải dựng từ DB-1 có thay `20260729121000` (như lần 2), hoặc trả nội dung gốc file đó vào repo (đi ngược chỉ đạo «Sạch cả migration cũ» 2026-11-16). Dù chọn cách nào, DB-1 dựng sạch chưa chắc bằng prod ở 27 migration lệch còn lại; phép thử độc lập với prod vẫn là diff schema DB-2 vs dump prod đọc-only (HANDOFF CẦN NGƯỜI mục 3).
+
+**Quyết định PO (2026-11-18, trong chat): thay ở bản sao.** Repo giữ stub `20260729121000_bang_muc_tieu_cu_da_go.sql`; 4b sinh baseline với `SQUASH_REPLACE=20260729121000_bang_muc_tieu_cu_da_go.sql=<file chứa git show f44b7705^:supabase/migrations/20260729121000_ksnk_dm_muc_tieu_kpi.sql>` (như lần 2). Dựng DB sạch từ repo vẫn lỗi 139≠140 cho tới khi 4b thay chuỗi bằng baseline. Chưa phải lệnh phá hủy: 4b vẫn cần lệnh `destructive-change` + TC09.
