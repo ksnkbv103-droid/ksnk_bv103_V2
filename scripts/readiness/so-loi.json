@@ -2217,9 +2217,9 @@
     "tieu_de": "Chú thích «hai tuần chấm bộ bảng kiểm khác nhau» của BCTH không bao giờ hiện: truy vấn lọc hinh_thuc_id (uuid) bằng mã lens «KSNK»/«TU_GIAM_SAT» → Postgres 22P02, hàm trả null",
     "bang_chung": "src/modules/dashboard/lib/gsc-week-checklist-sets.ts:93 `.in(\"hinh_thuc_id\", hinhThucIds)` nhận hinhThucIds = f.hinh_thuc_ids_gsc ?? f.hinh_thuc_ids (bao-cao-tong-hop.actions.ts:115); mã đến từ src/lib/analytics/supervision-source-lens.ts (SUPERVISION_LENS_HINH_THUC_IDS = KSNK/TU_GIAM_SAT, hinhThucIdsForLens) qua useBaoCaoTongHopData.ts:41. View v_gstt_giam_sat_chung_sessions_full: hinh_thuc_id kiểu uuid, ma_hinh_thuc_giam_sat kiểu text (information_schema local). psql: `invalid input syntax for type uuid: \"KSNK\"`. Log dev-local: `{ module:'dashboard', action:'gsc-week-sets', step:'sessions' }` lặp mỗi lần mở BCTH. Có từ commit 6716ddb7 (2026-11-06), có trước VST-030/RLS VST-023; spec gsc-week-checklist-sets.spec.ts không phủ tham số hinhThucIds. Tay 2026-11-18 local :3001 (tài khoản chỉ vai HOI_DONG_KSNK, kỳ 21/09–11/10: tuần 21/09 có 5 bảng kiểm, tuần 28/09 có 6, tuần 05/10 có 1): mã gốc → trang render, KHÔNG có chú thích; chỉ bỏ dòng lọc hinh_thuc_id (sửa tạm, đã hoàn lại) → chú thích hiện, log không còn lỗi gsc-week-sets.",
     "lenh_kiem": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -c \"select 1 from v_gstt_giam_sat_chung_sessions_full where hinh_thuc_id in ('KSNK')\" (phải báo 22P02 trước khi sửa); thêm ca spec fetchGscWeeksUseDifferentChecklists với hinhThucIds=['KSNK'] trả true khi hai tuần khác bộ bảng kiểm: npm run test:cssd -- src/modules/dashboard/lib/gsc-week-checklist-sets.spec.ts",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "tay VST-030 (2026-11-18)",
-    "commit": "",
+    "commit": "74aec5aa",
     "ghi_chu": "Hướng sửa cần db-verify chốt: ánh xạ mã lens → ma_hinh_thuc_giam_sat (lọc cột text) hoặc bỏ lọc hình thức khỏi truy vấn chú thích (docstring hiện nói các bộ lọc khác như hình thức «không áp dụng»: chú thích là tín hiệu cảnh báo, không phải số liệu → bỏ lọc khớp ý docstring). Đổi hành vi chú thích cần PO xác nhận nếu chọn giữ lọc."
   }
 ]
