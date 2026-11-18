@@ -118,3 +118,22 @@ describe("NKBV-038: vai có GIAM_SAT_NKBV:view ngoài KSNK chỉ nhận danh sá
     expect((await getNkbvCensusAccess()).restriction).toEqual({ kind: "all" });
   });
 });
+
+describe("NKBV-033: khách thống kê không nhận census MDRO/RCA có danh tính (chặn vô điều kiện như GSC/VST)", () => {
+  const GUEST = { roles: ["KHACH_THONG_KE_GSTT"], isGuestStatsOnly: true, actorKhoaId: "A" };
+
+  it("khách có khoa → guestDenied, phạm vi none, không vào nhánh admin client; chặn trước khi xét quyền NKBV", async () => {
+    setScope(GUEST);
+    vi.mocked(verifyPermission).mockClear();
+    const r = await getNkbvCensusAccess();
+    expect(r.guestDenied).toBe(true);
+    expect(r.restriction).toEqual({ kind: "none" });
+    expect(r.viaGscOnly).toBe(false);
+    expect(verifyPermission).not.toHaveBeenCalled();
+  });
+
+  it("người không phải khách: guestDenied = false", async () => {
+    setScope({ roles: ["NHAN_VIEN_KSNK"], isNhanVienKsnk: true, actorKhoaId: "A" });
+    expect((await getNkbvCensusAccess()).guestDenied).toBe(false);
+  });
+});

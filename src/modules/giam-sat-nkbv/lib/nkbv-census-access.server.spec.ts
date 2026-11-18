@@ -31,6 +31,7 @@ describe("getNkbvCensusAccess", () => {
       restriction: { kind: "khoa", khoaId: K1 },
       viaGscOnly: true,
       identityDenied: false,
+      guestDenied: false,
     });
   });
 
@@ -41,6 +42,7 @@ describe("getNkbvCensusAccess", () => {
       restriction: { kind: "none" },
       viaGscOnly: true,
       identityDenied: false,
+      guestDenied: false,
     });
   });
 
@@ -51,6 +53,7 @@ describe("getNkbvCensusAccess", () => {
       restriction: { kind: "all" },
       viaGscOnly: false,
       identityDenied: false,
+      guestDenied: false,
     });
   });
 });
@@ -77,6 +80,7 @@ describe("NKBV-041 cờ identityDenied: không vai nào bị chặn danh sách c
       restriction: { kind: "khoa", khoaId: K1 },
       viaGscOnly: true,
       identityDenied: false,
+      guestDenied: false,
     });
   });
 });

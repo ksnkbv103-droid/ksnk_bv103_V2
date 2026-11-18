@@ -29,24 +29,37 @@ export async function getNkbvIdentityScope(): Promise<{ restriction: NkbvKhoaRes
  * Phạm vi cho màn MDRO/RCA (cho phép cả GIAM_SAT_CHUNG view). Người không có GIAM_SAT_NKBV view
  * (RLS nkbv sẽ trả rỗng) bị coi như mạng lưới: chỉ khoa của mình; `viaGscOnly` = true → action phải đọc bằng admin client.
  * `identityDenied` (NKBV-032) tính theo vai, độc lập với đường đọc: true → action trả lỗi, không truy vấn.
+ * `guestDenied` (NKBV-033): khách thống kê bị chặn vô điều kiện (như `assertGscHistoryAccess`/`assertVstHistoryAccess`)
+ * — action phải kiểm trước mọi truy vấn, vì nhánh GSC-only đọc bằng admin client.
  */
 export async function getNkbvCensusAccess(): Promise<{
   restriction: NkbvKhoaRestriction;
   viaGscOnly: boolean;
   identityDenied: boolean;
+  guestDenied: boolean;
 }> {
   const scope = await getActorKsnkScope();
   const identityDenied = isNkbvHoiDongOnly(scope);
+  if (scope.isGuestStatsOnly) {
+    return { restriction: { kind: "none" }, viaGscOnly: false, identityDenied, guestDenied: true };
+  }
   let hasNkbvView = true;
   try {
     await verifyPermission("GIAM_SAT_NKBV", "view");
   } catch {
     hasNkbvView = false;
   }
-  if (hasNkbvView) return { restriction: resolveNkbvIdentityRestriction(scope), viaGscOnly: false, identityDenied };
+  if (hasNkbvView) {
+    return { restriction: resolveNkbvIdentityRestriction(scope), viaGscOnly: false, identityDenied, guestDenied: false };
+  }
   // Đọc bằng admin client nên không xét vai rộng: chỉ khoa của chính họ, không có khoa thì không thấy gì.
   const khoaId = scope.actorKhoaId?.trim() || "";
-  return { restriction: khoaId ? { kind: "khoa", khoaId } : { kind: "none" }, viaGscOnly: true, identityDenied };
+  return {
+    restriction: khoaId ? { kind: "khoa", khoaId } : { kind: "none" },
+    viaGscOnly: true,
+    identityDenied,
+    guestDenied: false,
+  };
 }
 
 export const NKBV_GSC_NO_KHOA_ERROR =

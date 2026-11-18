@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   calls: [] as Array<{ client: "user" | "admin"; table: string; eq: Array<[string, unknown]> }>,
   gscRows: [] as Array<Record<string, unknown>>,
   identityDenied: false,
+  guestDenied: false,
 }));
 
 vi.mock("@/lib/server-permission", () => ({ verifyAnyPermission: vi.fn(async () => {}) }));
@@ -19,6 +20,7 @@ vi.mock("../lib/nkbv-khoa-scope.server", () => ({
     restriction: { kind: "khoa", khoaId: "K1" },
     viaGscOnly: false,
     identityDenied: mocks.identityDenied,
+    guestDenied: mocks.guestDenied,
   }),
   NKBV_GSC_NO_KHOA_ERROR: "NO_KHOA",
 }));
@@ -55,6 +57,7 @@ vi.mock("@/lib/supabase-server", () => {
   };
 });
 
+import { NKBV_GUEST_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { GSC_BK_ISOLATION, GSC_BK_MDRO } from "../lib/nkbv-mdro";
 import { listMdroInpatientsByKhoa } from "./giam-sat-nkbv-mdro.actions";
 import { listNkbvPatientRcaByKhoa } from "./giam-sat-nkbv-rca.actions";
@@ -62,6 +65,7 @@ import { listNkbvPatientRcaByKhoa } from "./giam-sat-nkbv-rca.actions";
 beforeEach(() => {
   mocks.calls.length = 0;
   mocks.identityDenied = false;
+  mocks.guestDenied = false;
   mocks.gscRows = [
     { ma_benh_an: "BA1", ma_nguoi_benh: "P1", loai_bang_kiem: GSC_BK_MDRO, ngay_giam_sat: "2026-11-12" },
     { ma_benh_an: "BA1", ma_nguoi_benh: "P1", loai_bang_kiem: GSC_BK_ISOLATION, ngay_giam_sat: "2026-11-13" },
@@ -106,6 +110,15 @@ describe("VST-030: MDRO/RCA đọc phiên GSC bằng admin client", () => {
     const mdro = await listMdroInpatientsByKhoa({ khoaId: "K1" });
     expect(rca.success).toBe(false);
     expect(mdro.success).toBe(false);
+    expect(mocks.calls).toHaveLength(0);
+  });
+
+  it("guestDenied (khách thống kê, NKBV-033): báo lỗi khách, không tạo truy vấn nào", async () => {
+    mocks.guestDenied = true;
+    const rca = await listNkbvPatientRcaByKhoa({ khoaId: "K1" });
+    const mdro = await listMdroInpatientsByKhoa({ khoaId: "K1" });
+    expect(rca).toMatchObject({ success: false, error: NKBV_GUEST_IDENTITY_DENIED, data: [] });
+    expect(mdro).toMatchObject({ success: false, error: NKBV_GUEST_IDENTITY_DENIED, data: [] });
     expect(mocks.calls).toHaveLength(0);
   });
 });

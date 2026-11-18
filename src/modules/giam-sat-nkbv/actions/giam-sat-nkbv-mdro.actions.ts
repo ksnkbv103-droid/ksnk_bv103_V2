@@ -12,7 +12,7 @@ import {
 } from "../lib/nkbv-mdro";
 import { vnYmd } from "@/lib/format-datetime-vi";
 import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR } from "../lib/nkbv-khoa-scope.server";
-import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
+import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 
 export type MdroInpatientRow = {
   ma_benh_an: string;
@@ -47,7 +47,11 @@ export async function listMdroInpatientsByKhoa(params: {
   await assertCensusRead();
   // NK-SCOPE: khoa bị giới hạn thì ép khoaId theo quyền, bỏ qua giá trị client.
   // NKBV-005: người chỉ có quyền GSC bị RLS nkbv chặn → đọc bằng admin client, vẫn ép theo khoa của họ.
-  const { restriction, viaGscOnly, identityDenied } = await getNkbvCensusAccess();
+  const { restriction, viaGscOnly, identityDenied, guestDenied } = await getNkbvCensusAccess();
+  // NKBV-033: khách thống kê (chỉ GIAM_SAT_CHUNG:view) không nhận danh sách có danh tính — chặn trước mọi truy vấn.
+  if (guestDenied) {
+    return { success: false as const, error: NKBV_GUEST_IDENTITY_DENIED, data: [] as MdroInpatientRow[] };
+  }
   // NKBV-032: Hội đồng thuần không nhận danh sách có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định) — chặn trước mọi truy vấn.
   if (identityDenied) {
     return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as MdroInpatientRow[] };

@@ -48,6 +48,9 @@ export function nkbvKhoaVisible(
 
 export const NKBV_KHOA_REQUIRED_ERROR = "Vui lòng chọn khoa điều trị — tài khoản của bạn bị giới hạn theo khoa.";
 
+/** NKBV-033: cùng câu với GSC (`gsc-read-scope.ts`), không import chéo module. */
+export const NKBV_GUEST_IDENTITY_DENIED = "Tài khoản khách chỉ được xem Thống kê VST/GSC.";
+
 export const NKBV_HOI_DONG_IDENTITY_DENIED =
   "Hội đồng KSNK chỉ được xem số liệu NKBV tổng hợp (ẩn danh), không xem danh sách người bệnh có danh tính.";
 
