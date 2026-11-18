@@ -85,7 +85,10 @@ describe("approveVstYeuCauAction — yêu cầu SỬA (R1.24)", () => {
   it("duyệt: áp nội dung đề nghị qua RPC lưu phiên, ghi nhật ký trước/sau, không vô hiệu phiên", async () => {
     const r = await approveVstYeuCauAction(RID);
     expect(r).toEqual({ success: true });
-    expect(m.rpcCalls).toEqual([{ sessionId: SID, session: payload.session, observations: payload.observations }]);
+    // gate-ok: VST-027 kỳ vọng chặt hơn (thêm nguoi_giam_sat_id = chủ phiên), không bỏ kiểm tra
+    expect(m.rpcCalls).toEqual([
+      { sessionId: SID, session: { ...payload.session, nguoi_giam_sat_id: "ns-1" }, observations: payload.observations },
+    ]);
     expect(m.softDeletes).toBe(0);
     expect(m.audits).toHaveLength(1);
     expect(m.audits[0]).toMatchObject({
@@ -96,6 +99,13 @@ describe("approveVstYeuCauAction — yêu cầu SỬA (R1.24)", () => {
       before: { so_co_hoi: 1 },
       after: { so_co_hoi: 2, yeu_cau_id: RID },
     });
+  });
+
+  // VST-027: khi duyệt không đổi chủ phiên, kể cả yêu cầu cũ mang người gửi trong payload.
+  it("duyệt: ép nguoi_giam_sat_id về chủ phiên hiện tại, bỏ giá trị trong payload", async () => {
+    m.req = { ...m.req, payload: { ...payload, session: { ...payload.session, nguoi_giam_sat_id: "ns-nguoi-gui" } } };
+    await approveVstYeuCauAction(RID);
+    expect((m.rpcCalls[0] as { session: Record<string, unknown> }).session.nguoi_giam_sat_id).toBe("ns-1");
   });
 
   it("RPC lỗi: trả yêu cầu về chờ duyệt, báo lỗi", async () => {

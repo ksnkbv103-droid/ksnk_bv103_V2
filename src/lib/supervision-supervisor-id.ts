@@ -6,9 +6,14 @@ export function resolveSupervisorIdForSave(input: {
   adminBypass: boolean;
   actorNhanSuId: string | null | undefined;
   clientNguoiGiamSatId: string | null | undefined;
+  /** VST-027: chủ phiên gốc khi sửa phiên đã có. */
+  chuPhienGoc?: string | null;
+  /** VST-027: CB_KSNK sửa phiên người khác giữ chủ phiên gốc, không đổi sang người gửi. */
+  laCanBoKsnk?: boolean;
 }): string | null | undefined {
-  const { adminBypass, actorNhanSuId, clientNguoiGiamSatId } = input;
+  const { adminBypass, actorNhanSuId, clientNguoiGiamSatId, chuPhienGoc, laCanBoKsnk } = input;
   if (adminBypass) return clientNguoiGiamSatId || actorNhanSuId || clientNguoiGiamSatId;
   if (!actorNhanSuId) throw new Error(SUPERVISOR_NO_PROFILE_ERROR_VI);
+  if (laCanBoKsnk && chuPhienGoc) return chuPhienGoc;
   return actorNhanSuId;
 }

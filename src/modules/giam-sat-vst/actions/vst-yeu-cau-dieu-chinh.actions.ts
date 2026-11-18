@@ -145,7 +145,10 @@ async function apDungYeuCauSua(
   if (obsErr) throw obsErr;
   const { error: rpcErr } = await vstRepo.saveVstSessionViaRpc({
     sessionId: p.sid,
-    session: payload.session,
+    // VST-027: duyệt không đổi chủ phiên (kể cả yêu cầu cũ mang người gửi trong payload).
+    session: p.before.nguoi_giam_sat_id
+      ? { ...payload.session, nguoi_giam_sat_id: p.before.nguoi_giam_sat_id }
+      : payload.session,
     observations: payload.observations as Record<string, unknown>[],
   });
   if (rpcErr) throw rpcErr;
@@ -178,7 +181,9 @@ export async function approveVstYeuCauAction(id: string): Promise<Kq> {
       const lyDo = String(req.ly_do);
       const { data: rows, error: qErr } = await vstRepo.findVstSessionsForDelete([sid]);
       if (qErr) throw qErr;
-      const before = (rows || [])[0] as { is_active?: boolean; ngay_giam_sat?: string | null } | undefined;
+      const before = (rows || [])[0] as
+        | { is_active?: boolean; ngay_giam_sat?: string | null; nguoi_giam_sat_id?: string | null }
+        | undefined;
       if (!before || before.is_active === false) throw new Error("Phiên không còn hoặc đã bị vô hiệu.");
       await assertSupervisionNotLockedForDate(db, "VST", before.ngay_giam_sat ?? null);
       if (req.loai === "SUA") {

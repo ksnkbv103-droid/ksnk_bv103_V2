@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { duocDuyetYeuCauVst, quyetDinhDuongDieuChinhVst } from "./vst-yeu-cau-dieu-chinh";
+import {
+  coVaiTroCanBoKsnk,
+  duocDuyetYeuCauVst,
+  quyetDinhDuongDieuChinhVst,
+  quyetDinhSuaVst,
+} from "./vst-yeu-cau-dieu-chinh";
 
 // @dac-ta T1.33
 describe("quyetDinhDuongDieuChinhVst (R1.24)", () => {
@@ -38,5 +43,53 @@ describe("duocDuyetYeuCauVst", () => {
   });
   it("thiếu danh tính người duyệt: chặn", () => {
     expect(duocDuyetYeuCauVst({ nguoiDuyetAuthId: null, nguoiYeuCauAuthId: "u-1", laAdmin: false })).toBe(false);
+  });
+});
+
+// @dac-ta T1.33 — VST-027
+describe("quyetDinhSuaVst (R1.24)", () => {
+  const base = { adminBypass: false, laChuPhien: false, quaHan: false, laCanBoKsnk: true };
+
+  it("CB_KSNK sửa phiên người khác, chưa quá hạn: vẫn gửi yêu cầu và bắt lý do", () => {
+    expect(quyetDinhSuaVst(base)).toEqual({ duong: "YEU_CAU", guiYeuCau: true, canLyDo: true });
+  });
+  it("chủ phiên trong 30 phút: ghi thẳng, không cần lý do", () => {
+    expect(quyetDinhSuaVst({ ...base, laChuPhien: true, laCanBoKsnk: false })).toEqual({
+      duong: "TRUC_TIEP",
+      guiYeuCau: false,
+      canLyDo: false,
+    });
+  });
+  it("chủ phiên quá hạn: yêu cầu + lý do", () => {
+    expect(quyetDinhSuaVst({ ...base, laChuPhien: true, laCanBoKsnk: false, quaHan: true })).toEqual({
+      duong: "YEU_CAU",
+      guiYeuCau: true,
+      canLyDo: true,
+    });
+  });
+  it("ADMIN quá hạn: ghi thẳng nhưng vẫn bắt lý do", () => {
+    expect(quyetDinhSuaVst({ ...base, adminBypass: true, quaHan: true })).toEqual({
+      duong: "TRUC_TIEP",
+      guiYeuCau: false,
+      canLyDo: true,
+    });
+  });
+  it("người khác, không phải CB_KSNK: từ chối, không đòi lý do", () => {
+    expect(quyetDinhSuaVst({ ...base, laCanBoKsnk: false, quaHan: true })).toEqual({
+      duong: "TU_CHOI",
+      guiYeuCau: false,
+      canLyDo: false,
+    });
+  });
+});
+
+describe("coVaiTroCanBoKsnk", () => {
+  it("NHAN_VIEN_KSNK và CHU_NHIEM_KHOA là CB_KSNK", () => {
+    expect(coVaiTroCanBoKsnk(["NHAN_VIEN_KSNK"])).toBe(true);
+    expect(coVaiTroCanBoKsnk(["X", "CHU_NHIEM_KHOA"])).toBe(true);
+  });
+  it("vai khác hoặc rỗng: không", () => {
+    expect(coVaiTroCanBoKsnk(["MANG_LUOI_KSNK", "ADMIN"])).toBe(false);
+    expect(coVaiTroCanBoKsnk([])).toBe(false);
   });
 });

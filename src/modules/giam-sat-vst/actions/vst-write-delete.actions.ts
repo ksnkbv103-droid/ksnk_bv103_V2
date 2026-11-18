@@ -5,7 +5,7 @@ import { getDb } from "@/lib/data-access";
 import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
 import { getActorRoleNames, hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
-import { quyetDinhDuongDieuChinhVst, VST_VAI_TRO_CAN_BO_KSNK } from "../lib/vst-yeu-cau-dieu-chinh";
+import { coVaiTroCanBoKsnk, quyetDinhDuongDieuChinhVst, quyetDinhSuaVst } from "../lib/vst-yeu-cau-dieu-chinh";
 import { formatVstKhoaFkViolation, vstWriteErrorMessage } from "./vst-write.helpers";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import { isSupervisionSessionMutationExpired } from "@/lib/supervision-mutation-window";
@@ -65,7 +65,7 @@ export async function deleteVSTSessions(sessionIds: string[], opts?: DeleteVSTSe
 
     // @dac-ta R1.24, R1.25 — quá 30 phút hoặc không phải chủ phiên: tạo yêu cầu chờ chủ nhiệm khoa duyệt.
     const roles = adminBypass ? [] : await getActorRoleNames();
-    const laCanBoKsnk = roles.some((r) => (VST_VAI_TRO_CAN_BO_KSNK as readonly string[]).includes(r));
+    const laCanBoKsnk = coVaiTroCanBoKsnk(roles);
     const expiredSet = new Set(expired.map(String));
     const duongTheoId = new Map(
       ids.map((id) => {
@@ -195,14 +195,15 @@ export async function assertCanEditVSTSession(sessionId: string) {
 
     const expired = isSupervisionSessionMutationExpired(row.created_at);
     const laChuPhien = !!actorNhanSuId && String(row.nguoi_giam_sat_id || "") === String(actorNhanSuId);
-    // @dac-ta R1.24 — chủ phiên quá 30 phút vẫn mở được form; lưu sẽ thành yêu cầu chờ duyệt.
-    const duong = quyetDinhDuongDieuChinhVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk: false });
+    // @dac-ta R1.24 — chủ phiên quá 30 phút hoặc CB_KSNK (VST-027) vẫn mở được form; lưu sẽ thành yêu cầu chờ duyệt.
+    const laCanBoKsnk = adminBypass ? false : coVaiTroCanBoKsnk(await getActorRoleNames());
+    const { duong, guiYeuCau, canLyDo } = quyetDinhSuaVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk });
     if (duong === "TU_CHOI") return { success: false as const, error: VST_OWNER_ONLY_VI };
 
     return {
       success: true as const,
-      requiresReason: expired,
-      choDuyet: duong === "YEU_CAU",
+      requiresReason: canLyDo,
+      choDuyet: guiYeuCau,
     };
   } catch (error: unknown) {
     return { success: false as const, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };

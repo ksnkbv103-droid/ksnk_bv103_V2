@@ -10,10 +10,10 @@ import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveSupervisorIdForSave } from "@/lib/supervision-supervisor-id";
 import { isSupervisionSessionMutationExpired } from "@/lib/supervision-mutation-window";
-import { quyetDinhDuongDieuChinhVst } from "../lib/vst-yeu-cau-dieu-chinh";
+import { coVaiTroCanBoKsnk, quyetDinhSuaVst } from "../lib/vst-yeu-cau-dieu-chinh";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
+import { getActorRoleNames, hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { resolveVstScopedKhoaId } from "../lib/vst-khoa-scope";
 import {
   formatVstKhoaFkViolation,
@@ -34,6 +34,8 @@ import {
 import { vstSaveSessionSchema } from "@/lib/validations/giam-sat-vst.validations";
 import { VST_MAX_PERSONS_NEW } from "../lib/vst-form-model";
 import { logAdminAction } from "@/lib/admin-audit";
+
+type ExistingVst = NonNullable<Awaited<ReturnType<typeof vstRepo.findExistingVstSessionForSave>>["data"]>;
 
 type SaveVSTSessionOpts = {
   existingSessionId?: string | null;
@@ -135,10 +137,23 @@ export async function saveVSTSession(
     const actorAuthUserId = await getActorAuthUserId();
     const actorNhanSuId = await getActorNhanSuId();
     const adminBypass = await hasRBACAdminSupervisionBypass();
+    // VST-027: nạp phiên gốc trước để CB_KSNK sửa phiên người khác giữ chủ phiên gốc.
+    let existing: ExistingVst | null = null;
+    let laCanBoKsnk = false;
+    if (existingSessionId) {
+      if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
+      const { data, error: exErr } = await vstRepo.findExistingVstSessionForSave(existingSessionId);
+      if (exErr) throw exErr;
+      if (!data) throw new Error("Phiên không còn tồn tại.");
+      existing = data;
+      if (!adminBypass) laCanBoKsnk = coVaiTroCanBoKsnk(await getActorRoleNames());
+    }
     const nguoiGsId = resolveSupervisorIdForSave({
       adminBypass,
       actorNhanSuId,
       clientNguoiGiamSatId: sessionData.nguoi_giam_sat_id,
+      chuPhienGoc: existing?.nguoi_giam_sat_id,
+      laCanBoKsnk,
     });
     const nguoiGsNorm = await normalizeHoSoNhanVienOptionalOrThrow(
       supabase,
@@ -178,12 +193,7 @@ export async function saveVSTSession(
     let guiYeuCauSua = false;
     let existingMeta: Record<string, unknown> = {};
 
-    if (existingSessionId) {
-      if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
-
-      const { data: existing, error: exErr } = await vstRepo.findExistingVstSessionForSave(existingSessionId);
-      if (exErr) throw exErr;
-      if (!existing) throw new Error("Phiên không còn tồn tại.");
+    if (existingSessionId && existing) {
       if (typeof existing.is_active === "boolean" && existing.is_active === false) {
         throw new Error("Phiên đã bị vô hiệu, không sửa được.");
       }
@@ -199,17 +209,19 @@ export async function saveVSTSession(
       }
       const expired = isSupervisionSessionMutationExpired(existing.created_at);
       const laChuPhien = !!actorNhanSuId && String(existing.nguoi_giam_sat_id || "") === String(actorNhanSuId);
-      // @dac-ta R1.24 — chủ phiên quá 30 phút: gửi yêu cầu sửa chờ chủ nhiệm khoa duyệt (không ghi thẳng).
-      const duong = quyetDinhDuongDieuChinhVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk: false });
+      // @dac-ta R1.24 — chủ phiên quá 30 phút hoặc CB_KSNK sửa phiên người khác: gửi yêu cầu chờ duyệt (không ghi thẳng).
+      const { duong, guiYeuCau, canLyDo } = quyetDinhSuaVst({ adminBypass, laChuPhien, quaHan: expired, laCanBoKsnk });
       if (duong === "TU_CHOI") {
         throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
       }
-      if (expired) {
+      if (canLyDo) {
         requiresEditReason = true;
-        guiYeuCauSua = duong === "YEU_CAU";
+        guiYeuCauSua = guiYeuCau;
         const lyDo = String(opts?.lyDoSua ?? "").trim();
         if (!isValidVstEditReason(lyDo)) {
-          throw new Error(`Sửa phiên sau 30 phút phải ghi lý do (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).`);
+          throw new Error(
+            `${expired ? "Sửa phiên sau 30 phút" : "Đề nghị sửa phiên của người khác"} phải ghi lý do (tối thiểu ${VST_EDIT_REASON_MIN_CHARS} ký tự).`,
+          );
         }
         if (guiYeuCauSua && !actorAuthUserId) throw new Error("Không xác định được tài khoản của bạn.");
       }

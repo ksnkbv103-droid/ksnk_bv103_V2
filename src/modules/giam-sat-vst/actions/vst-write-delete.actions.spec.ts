@@ -9,13 +9,14 @@ const m = vi.hoisted(() => ({
   inserts: [] as unknown[],
   updateCount: 0,
   ownerId: "ns-1",
+  roles: [] as string[],
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/server-permission", () => ({
   verifyPermission: vi.fn(),
   hasRBACAdminSupervisionBypass: vi.fn().mockResolvedValue(false),
-  getActorRoleNames: vi.fn().mockResolvedValue([]),
+  getActorRoleNames: vi.fn(async () => m.roles),
 }));
 vi.mock("@/lib/actor-auth-server", () => ({
   getActorNhanSuId: vi.fn().mockResolvedValue("ns-1"),
@@ -109,6 +110,7 @@ describe("assertCanEditVSTSession (R1.24)", () => {
   beforeEach(() => {
     m.createdAt = null;
     m.ownerId = "ns-1";
+    m.roles = [];
   });
 
   it("chủ phiên trong 30 phút: sửa trực tiếp, không cần lý do", async () => {
@@ -120,8 +122,15 @@ describe("assertCanEditVSTSession (R1.24)", () => {
     expect(await assertCanEditVSTSession(SID)).toEqual({ success: true, requiresReason: true, choDuyet: true });
   });
 
-  it("không phải chủ phiên: chặn", async () => {
+  it("không phải chủ phiên và không phải CB_KSNK: chặn", async () => {
     m.ownerId = "ns-khac";
     expect((await assertCanEditVSTSession(SID)).success).toBe(false);
+  });
+
+  // @dac-ta T1.33 — VST-027: CB_KSNK sửa phiên người khác luôn qua yêu cầu, kể cả chưa quá 30 phút.
+  it.each(["NHAN_VIEN_KSNK", "CHU_NHIEM_KHOA"])("%s không phải chủ phiên: mở được form, bắt lý do, chờ duyệt", async (role) => {
+    m.ownerId = "ns-khac";
+    m.roles = [role];
+    expect(await assertCanEditVSTSession(SID)).toEqual({ success: true, requiresReason: true, choDuyet: true });
   });
 });
