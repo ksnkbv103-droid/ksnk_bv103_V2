@@ -42,6 +42,7 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 - VST: rửa/chà ≤2 thời điểm WHO phân biệt; bỏ sót = 1; năm mốc một hàng; quá trần bỏ mốc cũ nhất, không toast; ô chọn nền `#026f17` chữ trắng
 - Chỉ số `fn_vst_is_valid_opportunity` cùng trần với form
 - Xóa phiên VST: mềm `is_active=false` cho đến khi PO nói khác
+- Giám sát (2026-11-01): ngưỡng 2 mức <85 đỏ · 85–<90 vàng · ≥90 xanh; cỡ mẫu tối thiểu 50 theo khoa/kỳ; có kế hoạch giám sát khoa/tháng; quy trình QT.KSNK.33
 
 ## Đang làm
 

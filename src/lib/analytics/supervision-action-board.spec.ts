@@ -1,3 +1,4 @@
+// gate-ok: khóa PO 2026-11-01 đổi ngưỡng/mẫu tối thiểu (đỏ <85, xanh ≥90, mẫu 50); expect cũ thay bằng giá trị mới
 import { describe, expect, it } from "vitest";
 import {
   ACTION_BOARD_MIN_SAMPLE,
@@ -11,8 +12,8 @@ import {
 
 describe("supervision-action-board", () => {
   it("exposes locked min-sample thresholds", () => {
-    expect(ACTION_BOARD_MIN_SAMPLE.vst).toBe(20);
-    expect(ACTION_BOARD_MIN_SAMPLE.gsc).toBe(30);
+    expect(ACTION_BOARD_MIN_SAMPLE.vst).toBe(50);
+    expect(ACTION_BOARD_MIN_SAMPLE.gsc).toBe(50);
   });
 
   it("filters zero volume and picks lowest / highest with min sample", () => {
@@ -34,8 +35,8 @@ describe("supervision-action-board", () => {
     const model = buildActionBoardModel({
       source: "vst",
       matrixKhoa: [
-        { ten: "X", tong_co_hoi: 25, da_tuan_thu: 5, ty_le_tuan_thu: 20 },
-        { ten: "Y", tong_co_hoi: 40, da_tuan_thu: 38, ty_le_tuan_thu: 95 },
+        { ten: "X", tong_co_hoi: 55, da_tuan_thu: 11, ty_le_tuan_thu: 20 },
+        { ten: "Y", tong_co_hoi: 60, da_tuan_thu: 57, ty_le_tuan_thu: 95 },
       ],
       moments: [
         { ten: "Trước tiếp xúc", tong_co_hoi: 30, da_tuan_thu: 12, ty_le_tuan_thu: 40 },
@@ -60,8 +61,8 @@ describe("supervision-action-board", () => {
     const model = buildActionBoardModel({
       source: "gsc",
       matrixKhoa: [
-        { ten: "K1", tong_quan_sat: 40, tong_dat: 10, ty_le_tuan_thu: 25 },
-        { ten: "K2", tong_quan_sat: 50, tong_dat: 48, ty_le_tuan_thu: 96 },
+        { ten: "K1", tong_quan_sat: 60, tong_dat: 15, ty_le_tuan_thu: 25 },
+        { ten: "K2", tong_quan_sat: 70, tong_dat: 67, ty_le_tuan_thu: 96 },
       ],
       topViolations: [
         { ten_tieu_chi: "Tiêu chí A", ma_bk: "BK1", so_vi_pham: 10, ty_le_vi_pham: 80 },

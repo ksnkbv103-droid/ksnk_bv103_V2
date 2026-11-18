@@ -23,6 +23,7 @@ import { validateLyDoXuat, type LyDoXuat } from "@/lib/domain/cssd-kho-hoa-chat-
 import { normalizeTrangThai, validateLyDoTuChoi } from "@/lib/domain/cssd-kho-hoa-chat-duyet";
 import { buildDmStockSummary, type DmLite } from "@/lib/domain/cssd-kho-hoa-chat-summary";
 import { duyetPhieuKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat-duyet.actions";
+import { lapPhieuNguocKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat-phieu-nguoc.actions";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { createExclusiveRunner } from "../lib/cssd-run-exclusive";
 
@@ -142,7 +143,20 @@ export function useKhoHoaChatPage() {
     void reload();
     return true;
   };
-  const approve = { canApprove: !apprLoading && apprAllowed.approve, decidingId, onDecide: decide };
+  /** CSSD-034: lập phiếu ngược (NHẬP, chờ duyệt) cho phiếu XUẤT đã duyệt; tồn chỉ đổi khi duyệt như mọi phiếu. */
+  const lapNguoc = async (row: KhoHoaChatGiaoDichRow, lyDo: string): Promise<boolean> => {
+    setDecidingId(row.id);
+    const r = await lapPhieuNguocKhoHoaChatAction({ giao_dich_id: row.id, ly_do: lyDo });
+    setDecidingId(null);
+    if (!r.success) {
+      toast.error(r.error);
+      return false;
+    }
+    toast.success("Đã lập phiếu ngược, chờ duyệt.");
+    void reload();
+    return true;
+  };
+  const approve = { canApprove: !apprLoading && apprAllowed.approve, decidingId, onDecide: decide, onLapNguoc: lapNguoc };
 
   /** Số phiếu chờ duyệt theo mặt hàng. */
   const choDuyetByDm = useMemo(() => {

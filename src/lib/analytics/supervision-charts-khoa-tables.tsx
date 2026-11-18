@@ -48,7 +48,7 @@ export function SupervisionKhoaMasterTable({
       <h3 className="mb-2 text-sm font-bold text-slate-800">{title}</h3>
       <p className="mb-3 text-xs text-slate-500">
         Chỉ khoa có dữ liệu · sắp chuyên trách % thấp → cao · tô cảnh báo &lt;{KHOA_COMPLIANCE_WARN_PCT}%.
-        {minSample != null ? ` Dưới ${minSample} mẫu = «mẫu mỏng» (không tô cảnh báo, tỷ lệ chưa chắc).` : ""}
+        {minSample != null ? ` Dưới ${minSample} mẫu = «chưa đủ mẫu» (không tô cảnh báo, tỷ lệ chưa chắc).` : ""}
       </p>
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[720px] text-left text-xs">
@@ -102,11 +102,11 @@ export function SupervisionKhoaMasterTable({
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[tgsTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs, percentDigits)}
-                      {tgsThin ? <span className="block bv103-type-label font-medium text-slate-400">mẫu mỏng</span> : null}
+                      {tgsThin ? <span className="block bv103-type-label font-medium text-slate-400">chưa đủ mẫu ({r.vol_tgs}/{minSample})</span> : null}
                     </td>
                     <td className={`px-2 py-2 text-center tabular-nums font-semibold ${momentToneClass[ksnkTone]}`}>
                       {formatGapPctWithDatTong(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk, percentDigits)}
-                      {ksnkThin ? <span className="block bv103-type-label font-medium text-slate-400">mẫu mỏng</span> : null}
+                      {ksnkThin ? <span className="block bv103-type-label font-medium text-slate-400">chưa đủ mẫu ({r.vol_ksnk}/{minSample})</span> : null}
                     </td>
                     <td className={`px-2 py-2 text-center text-xs font-medium ${momentToneClass[compare.tone]}`}>
                       {compare.label}

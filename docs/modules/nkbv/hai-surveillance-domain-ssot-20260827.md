@@ -1,7 +1,7 @@
-# Domain SSOT v3.3 — Giám sát nhiễm khuẩn bệnh viện (NKBV / HAI)
+# Domain SSOT v3.4 (NHSN 2026) — Giám sát nhiễm khuẩn bệnh viện (NKBV / HAI)
 
-> **Phiên bản:** 3.3 · **Ngày:** 2026-08-27  
-> **Chuẩn:** *National Healthcare Safety Network (NHSN) Patient Safety Component Manual*, **January 2025** (CDC)  
+> **Phiên bản:** 3.4 · **Ngày:** 2026-11-11 (nền v3.3 2026-08-27)  
+> **Chuẩn gốc:** *NHSN Patient Safety Component Manual*, **January 2026** (CDC), qua gói phân rã `KSNK_BENH_VIEN_103/RASOAT/nkbv/` (mã tiêu chí G2.xx, B4.xx, P6.xx, U7.xx, S9.xx, V10.xx, D17.xx…; `trich` là chuẩn khi khác `noi_dung`). Mục 0.5 là lớp 2026; thân tài liệu bên dưới viết theo bản **January 2025** và đang được rà dần theo 0.5.  
 > **Nguồn PDF:** Google Drive `ksnkbv103@gmail.com` — [CDC · 2025 NHSN Patient Safety Component Manual](https://drive.google.com/file/d/1srXXSWNWpXJzuiVK0PNxbXxHtNXW4qgv/view) (458 trang; file id `1srXXSWNWpXJzuiVK0PNxbXxHtNXW4qgv`)  
 > **Loại:** Đặc tả logic domain (thuật toán & thực thể). **Không** thay hợp đồng UI/state BV103.  
 > **Đối tượng:** PO / bác sĩ KSNK / người viết rule engine  
@@ -49,6 +49,35 @@ Sổ tay ghi rõ: chương **8** và **13** đã rút, **không** dồn số.
 | 17 | Specific types of infections | [§17](#17-định-nghĩa-vị-trí-nhiễm-khuẩn-cụ-thể) — **đủ tiêu chí người lớn** |
 
 Lớp sản phẩm → [Phụ lục A](#phụ-lục-a--lớp-sản-phẩm-bv103). Đối chiếu app → [Phụ lục B](#phụ-lục-b--chuẩn-cdc-vs-phần-mềm). Từ điển → [Phụ lục E](#phụ-lục-e--từ-điển-nhsn-2025--ksnk-bv103). **Quy trình ca + dữ liệu** → [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md).
+
+### 0.5. Lớp NHSN 2026 (v3.4)
+
+**Quy tắc đọc:** gói 2026 thắng thân tài liệu 2025 khi hai bên khác nhau. Gói chưa được người kiểm hết (`noi_dung` tiếng Việt, `tham_so`, đáp án ca thử); `trich` nguyên văn là chuẩn. Không sao chép gói sang kho app; tham chiếu theo mã tiêu chí. Không có Ch.05, 08, 13 trong Manual 2026.
+
+**Cách app đang đọc các điểm Manual 2026 tự mâu thuẫn / mơ hồ** (PO chưa chốt; đổi cách đọc phải hỏi PO):
+
+| Điểm (chương) | App đang đọc |
+|---|---|
+| LCBI 3 «<1 tuổi» vs «≤1 tuổi» (Ch.04) | ≤1 tuổi (`nkbv-rules-engine.ts`, `evaluateBsiClabsiCore`) |
+| CFU «≥100.000» vs «>100.000» (Ch.07; ABUTI U7.39 dùng «>») | ≥10⁵ |
+| Sốt «>38» (U7.24) vs «>38,0» (U7.19) | cùng một ô tick, không phân biệt |
+| PaO2/FiO2 «≤240» vs «<240» (Ch.06) | ≤240, ô tick không có số |
+| Ngưỡng bạch cầu 12.000/15.000, mốc thở nhanh quanh 12 tháng (Ch.06) | chưa kiểm |
+| IgG Bartonella ENDO 4e «≥1:800» vs ENDO 5e «>1:800» (Ch.17) | chưa kiểm |
+| Quy tắc 60 % khu (Ch.15; «more than 60%» vs ví dụ) | không áp dụng (không có thuật toán Locations) |
+| Tỷ suất EMV «×1000» vs «per 100 EMV» (Ch.11) | ngoài phạm vi (người lớn) |
+| Khung 7–10 ngày giữa các yếu tố SSI, không có ngưỡng cứng (S9.18) | SBAP SSI 17 ngày |
+| PEEP thứ Ba = 10 (C10.05), trang 10-22 in «January 2024» (Ch.10) | ngưỡng PEEP↑≥3 / FiO2↑≥20 |
+
+Bảng/hình bị xen cột hoặc là ảnh (Ch.04 Table 3,5,6,8; Ch.06 Table 1–5; Ch.07 Figure 3; Ch.09 Bảng 2–4; Ch.10 Figure 1, Table 2–4; Ch.12; Ch.14; Ch.15; Ch.17 ENDO 4, ENDO 6): phải đối chiếu mắt với PDF trước khi dùng làm nguồn. Ca thử có đáp án suy ra, **không dùng làm test**: C4.13, C4.14, C4.30, C10.44–46, C11.11–12, C12.04, C12.07.
+
+**Sốt đơn độc trong UTI (U7.19, U7.24, U7.36) — đã xác minh với gói, 2026-11-11:**
+- Trích nguyên văn: SUTI 1a «fever (>38.0°C)…» (p7-5), SUTI 1b «fever (>38°C)…» (p7-6); không có điều kiện tuổi nào ở hai tiêu chí. U7.36 (p7-8): sốt và hạ thân nhiệt không bị loại khỏi UTI dù được cho là do nguyên nhân khác.
+- Tìm «65» trong toàn bộ `nhsn2026_ch07_tieu_chi.json`: không có mốc 65 tuổi.
+- Kết luận: theo gói 2026, sốt tính cho **mọi tuổi**, kể cả không có IUC. Gói chỉ là bản 2026 nên **không chứng minh** được mốc ≤65 là thay đổi 2025→2026 hay chưa từng có; nhưng không có cơ sở giữ mốc 65 trong SSOT này (grep SSOT 2025 cũng không có «65»).
+- App hiện lệch: `nkbv-rules-engine.ts:616-619` chỉ cho sốt đơn độc khi ≤65 tuổi nếu không có IUC. Chưa sửa (ngoài phạm vi lát GĐ0–2 đã chốt); ghi vào HANDOFF để PO quyết sửa theo gói.
+
+**Thay đổi lệch app ↔ 2026 đang xử lý theo thứ tự rủi ro** (SSI PATOS, VAE baseline/PEEP, BSI loại trừ, PNEU, BONE IWP/RIT): xem `HANDOFF_APPKSNK_NKBV.md` và báo cáo đối chiếu; mỗi lát ghi mã tiêu chí bám.
 
 ### 0.4. Từ điển thời gian (không nhầm cửa sổ)
 

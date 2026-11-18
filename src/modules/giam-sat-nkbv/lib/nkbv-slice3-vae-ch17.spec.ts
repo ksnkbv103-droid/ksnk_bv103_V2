@@ -108,6 +108,10 @@ describe("Slice 3: VAE Timeline Compute & Ch.17 Unlocking", () => {
       expect(endoIwp.end).toBe("2026-04-20"); // ±10 days (21 days)
     });
 
+    it("BONE: IWP 21 ngày như ENDO (G2.15)", () => {
+      expect(endoExtendedIwp("2026-04-10")).toEqual({ start: "2026-03-31", end: "2026-04-20" });
+    });
+
     it("evaluates Ch.17 criteria tree (SKIN criteria)", () => {
       const skinDef = ch17TypeDef("SKIN");
       expect(skinDef).toBeDefined();

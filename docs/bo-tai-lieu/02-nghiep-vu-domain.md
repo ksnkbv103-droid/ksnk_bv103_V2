@@ -29,7 +29,7 @@
 | `QV` | `modules/qlcv/van-de-nguoi-dung.md` | 67 |
 | `DT` | `modules/dao-tao/domain-overview.md` | 324 |
 | `DV` | `modules/dao-tao/van-de-nguoi-dung.md` | 68 |
-| `roadmap` | `core/handover-roadmap.md` | 195 |
+| `roadmap` | `core/handover-roadmap.md` bản `95d2bbe0` (`git show 95d2bbe0:docs/core/handover-roadmap.md`; file hiện hành đã cắt còn 146 dòng 2026-11-18, số dòng ở các mục trích `roadmap:N` theo bản này) | 197 |
 
 - **Nguồn ngoài `docs/`**: `.claude/rules/dashboard.md` (53 dòng) · `src/lib/supervision-policy.ts` (139 dòng) · `src/lib/analytics/supervision-thresholds.ts` (129 dòng) · `CLAUDE.md` mục Khóa PO 2026-10-09 (không có số dòng). Khi trích, ghi đường dẫn đầy đủ cùng số dòng, ví dụ `src/lib/supervision-policy.ts:23-25`.
 - **Nhãn do nguồn đặt** (không phải nhãn của file này): `QV` và `DV` dùng `[SSOT]`, `[GIẢ THUYẾT]`, `[CẦN XÁC NHẬN]`, `[ĐỀ XUẤT]`; nghĩa theo từng nguồn, đừng nhầm `[ĐỀ XUẤT]` của nguồn với `[ĐỀ XUẤT]` ở đầu file này.

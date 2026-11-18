@@ -285,6 +285,8 @@ export function useNkbvIwpVerdicts({
       ancWbcLt500Ge2d: Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d),
       hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
       hasSevereDiarrheaMbi: Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi),
+      clabsiExclusions: draft.bsiClabsiExcl,
+      commensalDrawnSeparate: draft.bsiCommensalSeparate,
     });
   }, [
     panel,
@@ -443,6 +445,8 @@ export function useNkbvIwpVerdicts({
       ancWbcLt500Ge2d: Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d),
       hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
       hasSevereDiarrheaMbi: Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi),
+      clabsiExclusions: draft.bsiClabsiExcl,
+      commensalDrawnSeparate: draft.bsiCommensalSeparate,
     });
   }, [
     panel,

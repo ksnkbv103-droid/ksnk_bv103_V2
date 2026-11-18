@@ -19,7 +19,13 @@ import { GscChecklistNavigator } from "./GscChecklistNavigator";
 import { GscBkAnalyticsDashboard } from "./GscBkAnalyticsDashboard";
 import GscTgsCoverageRankingPanel from "./GscTgsCoverageRankingPanel";
 import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
-import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
+import { SupervisionAttentionBlock } from "@/lib/analytics/SupervisionAttentionBlock";
+import { SupervisionKeHoachCard } from "@/lib/analytics/SupervisionKeHoachCard";
+import { getKeHoachTienDo, setKeHoachKhoa } from "@/modules/giam-sat-hub/actions/ke-hoach-giam-sat.actions";
+import { buildSupervisionAlerts } from "@/lib/analytics/supervision-alerts";
+import { buildActionBoardModel } from "@/lib/analytics/supervision-action-board";
+import { SupervisionSourceTabs } from "@/lib/analytics/SupervisionSourceTabs";
+import { defaultSourceView, type SupervisionSourceView } from "@/lib/analytics/supervision-source-tabs";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
   gapRowsWithLensData,
@@ -59,6 +65,17 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   const router = useRouter();
   const [selectedMaBk, setSelectedMaBk] = useState<string | null>(() => searchParams.get("bk"));
   const sourceLens = p.sourceLens;
+  const [view, setView] = useState<SupervisionSourceView>(() => defaultSourceView(p.khoaFilterLocked));
+  const { onSourceLensChange } = p;
+  useEffect(() => {
+    const first = defaultSourceView(p.khoaFilterLocked);
+    if (first !== "ksnk") onSourceLensChange(first);
+    // chỉ áp tab mặc định theo vai trò một lần
+  }, []);
+  const changeView = (v: SupervisionSourceView) => {
+    setView(v);
+    if (v !== "sosanh") onSourceLensChange(v);
+  };
 
   useEffect(() => {
     const fromUrl = searchParams.get("bk");
@@ -108,6 +125,19 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
     () => buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
     [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
   );
+  const khoaScope = useMemo(
+    () => (p.selectedKhoaIds.length ? p.khoaOptions.filter((k) => p.selectedKhoaIds.includes(k.id)) : p.khoaOptions),
+    [p.khoaOptions, p.selectedKhoaIds],
+  );
+  const alerts = useMemo(
+    () => buildSupervisionAlerts({ source: "gsc", matrixKhoa: p.payload?.matrix_khoa, khoaScope }),
+    [p.payload?.matrix_khoa, khoaScope],
+  );
+  const board = useMemo(
+    () => buildActionBoardModel({ source: "gsc", matrixKhoa: p.payload?.matrix_khoa, topViolations: p.payload?.top_violations }),
+    [p.payload],
+  );
+
   const coverage = useMemo(() => buildCoverageSummary(gapKhoaRows), [gapKhoaRows]);
 
   const chartRows = useMemo(
@@ -133,15 +163,16 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       <div id="so-sanh" className="scroll-mt-24 flex flex-wrap items-center justify-between gap-2">
-        <SupervisionSourceLensToggle
-          value={sourceLens}
-          onChange={p.onSourceLensChange}
-          disabled={p.loading}
-        />
+        <SupervisionSourceTabs value={view} onChange={changeView} disabled={p.loading} />
         <p className="text-xs text-slate-500">
-          Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
+          Kỳ {p.tuNgay} → {p.denNgay} · {view === "sosanh" ? "so sánh hai nguồn" : `nguồn ${sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}`}
         </p>
       </div>
+
+      {view === "sosanh" ? (
+        <SupervisionDoiSoatPanel rows={gapKhoaRows} source="gsc" loading={p.loading} />
+      ) : (
+        <>
 
       <SupervisionChiSoRow
         loading={p.loading}
@@ -151,6 +182,16 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           { label: "Vi phạm", value: p.payload?.chi_so?.tong_vi_pham ?? 0 },
           { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.chi_so?.tong_dat ?? 0, p.payload?.chi_so?.tong_quan_sat ?? 0) },
         ]}
+      />
+
+      <SupervisionAttentionBlock alerts={alerts} board={board} loading={p.loading} />
+
+      <SupervisionKeHoachCard
+        loai="GSC"
+        denNgay={p.denNgay}
+        khoaOptions={p.khoaOptions}
+        getTienDo={getKeHoachTienDo}
+        setKhoa={setKeHoachKhoa}
       />
 
       <SupervisionCoverageCard summary={coverage} tongPhien={p.payload?.chi_so?.tong_phien} loading={p.loading} />
@@ -178,6 +219,14 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       ) : null}
 
+      <details className={`${UI.shell} group`}>
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Chi tiết
+          <span className="mt-0.5 block text-xs font-normal text-slate-400">
+            Thống kê theo khoa · xu hướng · so sánh · đối soát — bấm để mở
+          </span>
+        </summary>
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 p-4">
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
@@ -197,7 +246,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       </section>
 
-      <details className={`${UI.shell}`} open>
+      <details className={`${UI.shell}`}>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           So sánh và xu hướng
           <span className="mt-0.5 block text-xs font-normal text-slate-400">
@@ -224,11 +273,10 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Nâng cao
           <span className="mt-0.5 block text-xs font-normal text-slate-400">
-            Đối soát hai nguồn · Bao phủ tự giám sát
+            Bao phủ tự giám sát
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
-          <SupervisionDoiSoatPanel rows={gapKhoaRows} source="gsc" loading={p.loading} />
           <GscTgsCoverageRankingPanel
             tuNgay={p.tuNgay}
             denNgay={p.denNgay}
@@ -236,6 +284,10 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           />
         </div>
       </details>
+        </div>
+      </details>
+        </>
+      )}
     </div>
   );
 }

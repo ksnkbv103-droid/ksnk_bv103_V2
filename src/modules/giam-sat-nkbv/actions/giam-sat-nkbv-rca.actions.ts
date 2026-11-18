@@ -2,8 +2,8 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
-import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR } from "../lib/nkbv-khoa-scope.server";
-import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
+import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { GSC_BK_ISOLATION, GSC_BK_MDRO } from "../lib/nkbv-mdro";
 
 export type NkbvPatientRcaRow = {
@@ -31,16 +31,25 @@ export async function listNkbvPatientRcaByKhoa(params: { khoaId: string; limit?:
 
   // NK-SCOPE: khoa bị giới hạn thì ép khoaId theo quyền, bỏ qua giá trị client.
   // NKBV-005: người chỉ có quyền GSC bị RLS nkbv chặn → đọc bằng admin client, vẫn ép theo khoa của họ.
-  const { restriction, viaGscOnly, identityDenied } = await getNkbvCensusAccess();
+  const { restriction, viaGscOnly, identityDenied, guestDenied } = await getNkbvCensusAccess();
+  // NKBV-033: khách thống kê (chỉ GIAM_SAT_CHUNG:view) không nhận danh sách có danh tính — chặn trước mọi truy vấn.
+  if (guestDenied) {
+    return { success: false as const, error: NKBV_GUEST_IDENTITY_DENIED, data: [] as NkbvPatientRcaRow[] };
+  }
   // NKBV-032: Hội đồng thuần không nhận danh sách có danh tính (M03 «Xa»; HĐ ≈ BGĐ là giả định) — chặn trước mọi truy vấn.
   if (identityDenied) {
     return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as NkbvPatientRcaRow[] };
   }
-  if (viaGscOnly && restriction.kind === "none") {
+  // NKBV-043: không xác định được khoa (kể cả người có NKBV:view, vd Mạng lưới chưa gán khoa) → lỗi rõ, không rỗng-success.
+  if (restriction.kind === "none") {
     return { success: false as const, error: NKBV_GSC_NO_KHOA_ERROR, data: [] as NkbvPatientRcaRow[] };
   }
-  if (restriction.kind === "none") return { success: true as const, data: [] as NkbvPatientRcaRow[] };
-  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : String(params.khoaId || "").trim();
+  // NKBV-046: khoa bị giới hạn mà client xin khoa khác → lỗi rõ, không trả BN khoa mình dưới nhãn khoa lạ.
+  const khoaXin = String(params.khoaId || "").trim();
+  if (restriction.kind === "khoa" && khoaXin && khoaXin !== restriction.khoaId) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as NkbvPatientRcaRow[] };
+  }
+  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : khoaXin;
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvPatientRcaRow[] };
 
   const supabase = viaGscOnly ? createAdminSupabaseClient() : await createServerSupabaseUserClient();
@@ -71,7 +80,8 @@ export async function listNkbvPatientRcaByKhoa(params: { khoaId: string; limit?:
       .select("ma_benh_an, ngay_phat_hien")
       .eq("is_active", true)
       .in("ma_benh_an", baList),
-    supabase
+    // VST-030: RLS GSC (VST-023) trả 0 dòng cho Hội đồng qua user client; chỉ lấy số phiên/ngày/loại bảng kiểm nên đọc bằng admin client (vẫn lọc khoa).
+    createAdminSupabaseClient()
       .from("v_gstt_giam_sat_chung_sessions_full")
       .select("ma_benh_an, ma_nguoi_benh, loai_bang_kiem, ngay_giam_sat")
       .eq("is_active", true)

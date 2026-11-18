@@ -27,6 +27,7 @@ vi.mock("../lib/nkbv-khoa-scope.server", () => ({
   getNkbvKhoaRestriction: async () => mocks.restriction.v,
   isNkbvBenhAnInScope: (...a: unknown[]) => mocks.inScope(...a),
   NKBV_OUT_OF_SCOPE_ERROR: "OUT_OF_SCOPE",
+  NKBV_NO_KHOA_ERROR: "NO_KHOA_CHUNG",
 }));
 vi.mock("@/lib/supabase-server", () => {
   // Chuỗi truy vấn giả: mọi phương thức trả chính nó; await → rỗng; maybeSingle/single → mocks.row.
@@ -145,10 +146,11 @@ describe("NKBV-034 vai khác không bị chặn (giữ hành vi cũ)", () => {
     expect(mocks.eq).toHaveBeenCalledWith("khoa_ghi_nhan_id", K1);
   });
 
-  it("listGiamSatNkbvCas và listNkbvMedicalRecords: kind=none rỗng, không truy vấn", async () => {
+  // gate-ok: NKBV-045 — kỳ vọng cũ «none → success []» là lỗi (báo «khoa chưa có ca» khi chưa gán khoa); đổi thành lỗi rõ, giữ số expect.
+  it("listGiamSatNkbvCas và listNkbvMedicalRecords: kind=none báo lỗi NO_KHOA, không truy vấn", async () => {
     mocks.restriction.v = { kind: "none" };
-    expect(await listGiamSatNkbvCas({ page: 1 })).toEqual({ success: true, data: [], totalCount: 0 });
-    expect(await listNkbvMedicalRecords({ page: 1 })).toEqual({ success: true, data: [], totalCount: 0 });
+    expect(await listGiamSatNkbvCas({ page: 1 })).toEqual({ success: false, error: "NO_KHOA_CHUNG", data: [], totalCount: 0 });
+    expect(await listNkbvMedicalRecords({ page: 1 })).toEqual({ success: false, error: "NO_KHOA_CHUNG", data: [], totalCount: 0 });
     expect(mocks.from).not.toHaveBeenCalled();
   });
 

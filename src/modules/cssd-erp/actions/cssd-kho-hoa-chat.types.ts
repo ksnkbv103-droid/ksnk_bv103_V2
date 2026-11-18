@@ -37,4 +37,8 @@ export type KhoHoaChatGiaoDichRow = {
   duyet_at?: string | null;
   ly_do_tu_choi?: string | null;
   tu_duyet_ngoai_le?: boolean;
+  /** CSSD-034: phiếu NHẬP này là phiếu ngược của phiếu XUẤT có id này (NULL = phiếu thường). */
+  phieu_goc_id?: string | null;
+  /** CSSD-034: lý do lập phiếu ngược. */
+  ly_do_dao?: string | null;
 };

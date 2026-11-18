@@ -29,10 +29,23 @@ describe("nkbv-mdro", () => {
       khoaId: "k1",
       maBenhAn: "BA-1",
       maBenhNhan: "P1",
-      tenBenhNhan: "A",
     });
     expect(href).toContain("/giam-sat-chung/tuan-thu?");
     expect(href).toContain("bk=BM.31.03");
     expect(href).toContain("ma_benh_an=BA-1");
+  });
+
+  it("NKBV-036: deep-link không đưa họ tên người bệnh vào URL", () => {
+    // Biến (không phải literal) để mã cũ còn truyền tên thì spec vẫn biên dịch và bắt được rò rỉ.
+    const input = {
+      bangKiemMa: "BM.31.03" as const,
+      khoaId: "k1",
+      maBenhAn: "BA-1",
+      maBenhNhan: "P1",
+      tenBenhNhan: "Nguyễn Văn A",
+    };
+    const href = buildGscMdroDeepLink(input);
+    expect(href).not.toContain("ten_nguoi_benh");
+    expect(decodeURIComponent(href)).not.toContain("Nguyễn Văn A");
   });
 });

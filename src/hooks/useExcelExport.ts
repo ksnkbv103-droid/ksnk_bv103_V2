@@ -5,6 +5,15 @@ import { toast } from "sonner";
 import { buildLockedTemplateMapping } from "@/lib/import-export-template";
 import type { ImportExportConfig, ImportRow } from "./importExport.types";
 
+/** Chống CSV/Excel injection: ô chuỗi mở đầu bằng = + - @ (hoặc tab/CR) bị Excel hiểu là công thức. */
+function neutralizeFormula<T extends Record<string, unknown>>(row: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(row)) {
+    out[k] = typeof v === "string" && /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+  }
+  return out as T;
+}
+
 function addImportGuideSheet(
   workbook: { addWorksheet: (name: string) => { addRow: (v: unknown[]) => void; getColumn: (n: number) => { width?: number } } },
   config: ImportExportConfig,
@@ -69,17 +78,19 @@ export function useExcelExport(config: ImportExportConfig, normalizedMapping: Re
             const children = Array.isArray(rawChildren) ? rawChildren : [];
             if (children.length > 0) {
               (children as ImportRow[]).forEach((child: ImportRow) =>
-                worksheet.addRow({
-                  ...baseItem,
-                  ...child,
-                  is_active: child?.is_active ?? baseItem.is_active,
-                }),
+                worksheet.addRow(
+                  neutralizeFormula({
+                    ...baseItem,
+                    ...child,
+                    is_active: child?.is_active ?? baseItem.is_active,
+                  }),
+                ),
               );
             } else {
-              worksheet.addRow(baseItem);
+              worksheet.addRow(neutralizeFormula(baseItem));
             }
           } else {
-            worksheet.addRow(baseItem);
+            worksheet.addRow(neutralizeFormula(baseItem));
           }
         });
       }

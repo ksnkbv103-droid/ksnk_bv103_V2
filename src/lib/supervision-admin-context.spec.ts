@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildContinueAdminSession,
   buildFreshAdminSession,
@@ -87,6 +87,25 @@ describe("buildFreshAdminSession", () => {
     expect(next.khoa_id).toBe("mine");
     expect(next.khu_vuc_id).toBe("");
     expect(next.vi_tri).toBe("");
+  });
+});
+
+describe("ngày giám sát theo lịch VN (không lấy ngày UTC)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // 2026-11-16T17:27Z = 00:27 ngày 17/11 giờ VN (UTC+7); ngày UTC còn là 16/11.
+  it("buildContinueAdminSession lúc 00:27 VN → ngày VN 2026-11-17", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-16T17:27:00Z"));
+    expect(buildContinueAdminSession(baseSession(), { keepSubjects: false }).ngay_giam_sat).toBe("2026-11-17");
+  });
+
+  it("buildFreshAdminSession lúc 00:27 VN → ngày VN 2026-11-17", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-16T17:27:00Z"));
+    expect(buildFreshAdminSession(baseSession(), { lockedKhoaId: "mine" }).ngay_giam_sat).toBe("2026-11-17");
   });
 });
 

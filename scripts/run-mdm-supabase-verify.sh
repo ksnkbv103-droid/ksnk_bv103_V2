@@ -38,5 +38,3 @@ if [[ "$TARGET" == "local" ]]; then
 else
   npx supabase db query "${QUERY_FLAGS[@]}" --agent=no -f scripts/sql/fk-public-referencing-danh-muc-tuy-bien.sql
 fi
-
-echo "Tuỳ chọn kiểm tra Node (đếm legacy): npm run mdm:fallback:audit hoặc mdm:fallback:audit:strict"

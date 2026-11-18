@@ -144,8 +144,9 @@ export default function LoginPage() {
 
           <form id="ksnk-login-form" onSubmit={handleLogin} className="space-y-[var(--bv103-space-3)]">
             <div>
-              <label className={T.authLabel}>Mã nhân viên hoặc email</label>
+              <label htmlFor="login-identifier" className={T.authLabel}>Mã nhân viên hoặc email</label>
               <input
+                id="login-identifier"
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
@@ -157,8 +158,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className={T.authLabel}>Mật khẩu</label>
+              <label htmlFor="login-password" className={T.authLabel}>Mật khẩu</label>
               <PasswordField
+                id="login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={T.authInput}

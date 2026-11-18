@@ -58,7 +58,6 @@ export async function fetchGscWeeksUseDifferentChecklists(
   weeks: ComparedWeeks,
   bangKiemMas: string[] | null,
   khoaIds?: string[] | null,
-  hinhThucIds?: string[] | null,
 ): Promise<boolean | null> {
   if (!bangKiemMas || bangKiemMas.length === 0) return null;
   const filteredMas = bangKiemMas.filter(
@@ -91,9 +90,8 @@ export async function fetchGscWeeksUseDifferentChecklists(
     if (khoaIds && khoaIds.length > 0) {
       base = (base as unknown as { in: (c: string, v: string[]) => typeof base }).in("khoa_id", khoaIds);
     }
-    if (hinhThucIds && hinhThucIds.length > 0) {
-      base = (base as unknown as { in: (c: string, v: string[]) => typeof base }).in("hinh_thuc_id", hinhThucIds);
-    }
+    // VST-035: không lọc hình thức. Mã lens («KSNK»/«TU_GIAM_SAT») là stype do RPC suy ra, không phải uuid của cột hinh_thuc_id
+    // (22P02 → chú thích không bao giờ hiện); suy lại stype ở đây là viết lại engine phân loại phiên.
     const res = await (base as unknown as { limit: (n: number) => Rows }).limit(GSC_WEEK_SETS_ROW_CAP);
     if (res.error || !res.data) {
       console.error({ module: "dashboard", action: "gsc-week-sets", step: "sessions" });

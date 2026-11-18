@@ -71,14 +71,12 @@ export function buildGscMdroDeepLink(input: {
   khoaId?: string | null;
   maBenhAn?: string | null;
   maBenhNhan?: string | null;
-  tenBenhNhan?: string | null;
 }): string {
   const q = new URLSearchParams();
   q.set("bk", input.bangKiemMa);
   if (input.khoaId) q.set("khoa_id", input.khoaId);
   if (input.maBenhAn) q.set("ma_benh_an", input.maBenhAn);
   if (input.maBenhNhan) q.set("ma_nguoi_benh", input.maBenhNhan);
-  if (input.tenBenhNhan) q.set("ten_nguoi_benh", input.tenBenhNhan);
   q.set("bo_sung_nb", "1");
   return `/giam-sat-chung/tuan-thu?${q.toString()}`;
 }

@@ -8,6 +8,7 @@ import type { VstSessionLocationHistoryRow } from "@/lib/master-data/master-data
 import { getGscHeaderDmDropdowns } from "@/modules/giam-sat-chung/actions/giam-sat-chung-read.actions";
 import { resolveDefaultKhoaId } from "@/lib/supervision-admin-context";
 import { usePermission } from "@/hooks/usePermission";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 
 export type GiamSatHeaderPermissionContext = "admin" | "vst" | "gsc" | "nkbv";
 
@@ -31,7 +32,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
   // State chọn
   const [selectedKhoa, setSelectedKhoa] = useState<string>("");
   const [selectedKhuVuc, setSelectedKhuVuc] = useState<string>("");
-  const [ngayGiamSat, setNgayGiamSat] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [ngayGiamSat, setNgayGiamSat] = useState<string>(todayYmdInVn());
   const [khoaDefaultsApplied, setKhoaDefaultsApplied] = useState(false);
 
   const lockKhoa = Boolean(isMangLuoi && !isAdmin);
@@ -119,7 +120,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
       });
     setSelectedKhoa(fallback);
     setSelectedKhuVuc("");
-    setNgayGiamSat(new Date().toISOString().split('T')[0]);
+    setNgayGiamSat(todayYmdInVn());
   }, [isMangLuoi, isAdmin, userData?.khoa_id, khoas]);
 
   return {

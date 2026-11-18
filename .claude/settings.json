@@ -74,7 +74,11 @@
       "Read(./**/*.tsbuildinfo)",
       "Read(./**/_agent-*)",
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.*)",
+      "Edit(./.env)",
+      "Edit(./.env.local)",
+      "Edit(./.env.production*)",
+      "Edit(./.vercel/**)"
     ]
   }
 }

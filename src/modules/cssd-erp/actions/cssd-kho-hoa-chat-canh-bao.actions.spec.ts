@@ -197,6 +197,18 @@ describe("listLuuLuongKhoHoaChatAction: cửa sổ 30 ngày theo ngày duyệt (
     expect(byDm.get(DM1)).toEqual({ dm_hoa_chat_id: DM1, nhap_30n: 100, xuat_su_dung_30n: 35 });
     expect(byDm.get(DM2)).toEqual({ dm_hoa_chat_id: DM2, nhap_30n: 4, xuat_su_dung_30n: 0 });
   });
+
+  it("phiếu ngược (đảo phiếu xuất, CSSD-034) là NHẬP trên sổ nhưng không phải hàng mới về → không cộng vào nhap_30n", async () => {
+    mocks.table = [
+      slip({ so_luong_co_dau: 100, duyet_at: "2026-11-12T03:00:00Z" }),
+      slip({ loai_giao_dich: "XUAT", so_luong_co_dau: -30, ly_do_xuat: "CAP_SU_DUNG", duyet_at: "2026-11-13T03:00:00Z" }),
+      slip({ so_luong_co_dau: 30, phieu_goc_id: "gd-0002", duyet_at: "2026-11-13T05:00:00Z" }),
+    ];
+    const r = await listLuuLuongKhoHoaChatAction();
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(r.data.find((x) => x.dm_hoa_chat_id === DM1)?.nhap_30n).toBe(100);
+  });
 });
 
 describe("listSoKhoHoaChatDenNgayAction: sổ đến hết ngày theo ngày duyệt (CSSD-033)", () => {

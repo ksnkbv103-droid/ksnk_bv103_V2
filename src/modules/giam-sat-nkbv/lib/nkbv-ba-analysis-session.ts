@@ -4,6 +4,7 @@
  * Key tách theo chế độ CDC | MANUAL để không lẫn draft KL.
  */
 
+import type { ClabsiExclusions } from "./nkbv-bsi-clabsi-exclusions";
 import type { BaAnalysisMode } from "./nkbv-ba-analysis-mode";
 import { BA_ANALYSIS_MODE_DEFAULT, parseBaAnalysisMode } from "./nkbv-ba-analysis-mode";
 import type { BaGridActiveIndex, BaGridNghiNgo, BaGridSymptomByDate } from "./nkbv-ba-grid-engine";
@@ -54,6 +55,10 @@ export type BaAnalysisSessionDraft = {
     has_hsct_or_gvhd?: boolean;
     has_severe_diarrhea_mbi?: boolean;
   };
+  /** BSI — loại trừ CLABSI (B4.40–48), vẫn là LCBI. */
+  bsiClabsiExcl?: ClabsiExclusions;
+  /** BSI commensal: ≥2 mẫu là 2 lần lấy máu riêng (kể cả cùng ngày) — B4.56. */
+  bsiCommensalSeparate?: boolean;
   /** BSI — ngữ cảnh site khu trú khi mở Primary (Secondary-before-CLABSI). */
   bsiLocalizedSite?: {
     majorType: "UTI" | "PNEU" | "SSI" | "VAE" | "OTHER";

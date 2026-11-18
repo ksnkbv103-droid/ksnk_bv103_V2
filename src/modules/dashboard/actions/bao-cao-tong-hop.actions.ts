@@ -15,7 +15,7 @@ import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/contexts/reporting/
 import { getThongKeKyAction } from "@/modules/chat-thai-do-vai/actions/chat-thai-do-vai.actions";
 import { describeCssdKhoaOwnershipProxy } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import { veSinhTayHubBangKiemMasForRpc } from "@/lib/domain/gsc-lop-giam-sat-filter";
-import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import {
@@ -342,14 +342,15 @@ export async function getBaoCaoTongHopAnalytics(
   let gscKhacCoCau: boolean | null = null;
   const comparedWeeks = gsc ? gscComparedWeekStarts(gsc) : null;
   if (comparedWeeks) {
-    const supabase = await createServerSupabaseUserClient();
+    // VST-030: chú thích chỉ đọc bang_kiem_id + ngày (không danh tính) và đã lọc theo effectiveKhoaIds; đọc bằng user client thì
+    // RLS gsc_sessions_select_permission (VST-023) trả 0 dòng cho Hội đồng → chú thích biến mất im lặng.
+    const supabase = createAdminSupabaseClient();
     const mas = (f.bang_kiem_mas && f.bang_kiem_mas.length > 0 ? f.bang_kiem_mas : gscOpts?.resolvedTuanThuBangKiemMas) ?? null;
     gscKhacCoCau = await fetchGscWeeksUseDifferentChecklists(
       supabase as never,
       comparedWeeks,
       mas,
       effectiveKhoaIds,
-      hinhThucGsc,
     );
   }
 

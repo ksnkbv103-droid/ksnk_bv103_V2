@@ -13,6 +13,7 @@ import {
 } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv.actions";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
+import { gopLoiTaiCensus } from "../lib/nkbv-census-load-error";
 
 type KhoaOpt = { id: string; ma_danh_muc?: string; ten_danh_muc?: string };
 
@@ -21,8 +22,10 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
   const [mdroRows, setMdroRows] = useState<MdroInpatientRow[]>([]);
   const [rcaRows, setRcaRows] = useState<NkbvPatientRcaRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setLoadError(null);
     if (!khoaId) {
       setMdroRows([]);
       setRcaRows([]);
@@ -34,10 +37,17 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
         listMdroInpatientsByKhoa({ khoaId, limit: 200 }),
         listNkbvPatientRcaByKhoa({ khoaId, limit: 100 }),
       ]);
-      if (mdro.success) setMdroRows(mdro.data);
-      else toast.error(mdro.error || "Không tải được danh sách MDRO");
-      if (rca.success) setRcaRows(rca.data.filter((r) => r.is_mdro || r.nkbv_case_count > 0 || r.gsc_session_count > 0));
-      else toast.error(rca.error || "Không tải được bảng RCA");
+      setMdroRows(mdro.success ? mdro.data : []);
+      setRcaRows(
+        rca.success ? rca.data.filter((r) => r.is_mdro || r.nkbv_case_count > 0 || r.gsc_session_count > 0) : [],
+      );
+      // NKBV-037: hai nhánh thường cùng một câu chặn quyền → gộp, một toast.
+      const err = gopLoiTaiCensus(
+        mdro.success ? null : mdro.error || "Không tải được danh sách MDRO",
+        rca.success ? null : rca.error || "Không tải được bảng RCA",
+      );
+      setLoadError(err);
+      if (err) toast.error(err);
     } finally {
       setLoading(false);
     }
@@ -95,8 +105,12 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
               <tbody className="divide-y divide-slate-100">
                 {mdroRows.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-4 text-slate-500">
-                      Không có BN đa kháng còn nằm viện tại khoa.
+                    <td colSpan={5} className={`px-3 py-4 ${loadError ? "text-rose-800" : "text-slate-500"}`}>
+                      {loading
+                        ? "Đang tải…"
+                        : loadError
+                          ? `Không tải được danh sách: ${loadError}`
+                          : "Không có BN đa kháng còn nằm viện tại khoa."}
                     </td>
                   </tr>
                 ) : (

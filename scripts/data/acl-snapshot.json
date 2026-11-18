@@ -1,11 +1,11 @@
 {
   "note": "Sinh bởi scripts/acl-snapshot.mjs --write từ DB local. Đổi quyền có chủ ý thì ghi lại.",
   "debt": {
-    "fn_thieu_pg_temp": 98,
+    "fn_thieu_pg_temp": 99,
     "fn_auth_goi_duoc": 16,
     "fn_anon_goi_duoc": 0,
     "tbl_khong_rls": 0,
-    "tbl_anon_ghi": 42
+    "tbl_anon_ghi": 41
   },
   "rows": [
     "fn fn_admin_module_stats() | anon=false auth=false | search_path=public",
@@ -85,6 +85,7 @@
     "fn rpc_cssd_decommission_kho_le(uuid,integer,text,uuid) | anon=false auth=false | search_path=public",
     "fn rpc_cssd_kho_hoa_chat_duyet_phieu(uuid,text,text,uuid) | anon=false auth=false | search_path=public",
     "fn rpc_cssd_kho_hoa_chat_ghi_giao_dich(text,uuid,numeric,text,date,text,uuid,uuid,text,text) | anon=false auth=false | search_path=public",
+    "fn rpc_cssd_kho_hoa_chat_lap_phieu_nguoc(uuid,text,uuid) | anon=false auth=false | search_path=public",
     "fn rpc_cssd_me_bat_dau(uuid,uuid) | anon=false auth=false | search_path=public, auth",
     "fn rpc_cssd_me_ghi_test(uuid,text,text,jsonb,uuid) | anon=false auth=false | search_path=public, auth",
     "fn rpc_cssd_me_ket_thuc_nap(uuid,uuid) | anon=false auth=false | search_path=public, auth",

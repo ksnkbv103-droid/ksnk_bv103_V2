@@ -6,6 +6,15 @@ import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { isGscNhatKyCach } from "../lib/gsc-score-display";
 
 const border = "1px solid #000";
+/** PO 2026-11-17 (V5): ô kết quả đã chọn in ● (cùng kiểu cho Đạt / K.Đạt / KAD). */
+const CHON = <span style={{ fontWeight: "bold" }}>●</span>;
+const markCell: React.CSSProperties = {
+  textAlign: "center",
+  fontSize: "14px",
+  border,
+  padding: "4px 5px",
+  verticalAlign: "middle",
+};
 
 export function GiamSatChungPrintCriteriaSection({
   template,
@@ -70,15 +79,9 @@ export function GiamSatChungPrintCriteriaSection({
                     </>
                   ) : null}
                 </td>
-                <td style={{ textAlign: "center", fontSize: "14px", border, padding: "4px 5px", verticalAlign: "middle" }}>
-                  {res?.value === "DAT" ? <span style={{ fontWeight: "bold" }}>✓</span> : null}
-                </td>
-                <td style={{ textAlign: "center", fontSize: "14px", border, padding: "4px 5px", verticalAlign: "middle" }}>
-                  {res?.value === "KHONG_DAT" ? <span style={{ fontWeight: "bold" }}>✕</span> : null}
-                </td>
-                <td style={{ textAlign: "center", border, padding: "4px 5px", verticalAlign: "middle" }}>
-                  {res?.value === "NA" ? "✓" : ""}
-                </td>
+                <td style={markCell}>{res?.value === "DAT" ? CHON : null}</td>
+                <td style={markCell}>{res?.value === "KHONG_DAT" ? CHON : null}</td>
+                <td style={markCell}>{res?.value === "NA" ? CHON : null}</td>
                 <td
                   style={{
                     fontSize: "11px",

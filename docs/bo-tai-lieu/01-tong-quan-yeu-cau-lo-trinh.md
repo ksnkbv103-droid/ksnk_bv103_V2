@@ -9,7 +9,7 @@
 - Gom từ tài liệu rải rác theo yêu cầu PO 2026-11-15, chỉ nói về module hiện có, để rà soát và sửa nhanh hơn. Không thêm công cụ, sổ hay cổng mới.
 - Lệch với bộ này thì các nguồn sống thắng: `CLAUDE.md` (luật + khóa PO) · sổ lỗi `node scripts/readiness/so-loi.mjs status` · `npm run module:gate` · `HANDOFF_APPKSNK.md`.
 - `docs/bo-tai-lieu/` đã xếp thành lớp 6 trong bảng «Phân lớp» của `docs/README.md` (PO «Xếp lớp» 2026-11-16) nhưng vẫn trái câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`: bộ này làm theo yêu cầu PO và đã được PO duyệt làm bản gốc ngày 2026-11-16. Chưa xóa hay di chuyển tài liệu nào; `CLAUDE.md` thuộc cấu hình đóng băng nên câu đó chưa sửa.
-- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO chốt 2026-11-16: không xóa, không di chuyển). Đã xếp lớp thư mục này vào `docs/README.md` (lớp 6, PO 2026-11-16). Chưa làm: quyết câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`, chờ PO (§6.5 mục 6). Bản đồ nguồn: §8.
+- PO đã duyệt 2026-11-16: bộ này thay phần lộ trình/chiến lược của `docs/core/handover-roadmap.md` (65,9KB, mục tiêu 25KB), `docs/archive/bao-cao/BAO-CAO-TONG-THE-2026-11-13.md` §4 và hai KH trong `.claude/plans`. Bản cũ đã đánh dấu «đã gộp vào bộ 3 file» (PO chốt 2026-11-16: không xóa; 4 file `BAO-CAO-*` chuyển vào `docs/archive/bao-cao/` theo plan thu-hep-len-prod, PO duyệt 2026-11-17; hai KH vẫn ở `.claude/plans`). Đã xếp lớp thư mục này vào `docs/README.md` (lớp 6, PO 2026-11-16). Chưa làm: quyết câu «Never tạo tài liệu thứ hai» của `CLAUDE.md`, chờ PO (§6.5 mục 6). Bản đồ nguồn: §8.
 
 ## 1. Mục đích và ý tưởng
 
@@ -68,7 +68,7 @@ Thang sẵn sàng (PO 2026-10-24): **L0** code chạy (`verify:engineering` pass
 | 2026-11-13 | CSSD xây lại lõi · lưu danh tính người được quan sát (R2.07) · lý do sửa/xóa ≥ 10 ký tự (VST), ≥ 3 (GSC) · giữ tick tay (R1.09/R1.10) · mẻ không đạt xử lý lại từ đầu, về Tiếp nhận (code chưa đổi) · CSSD-017 ủ BI ≥ 20 phút · NKBV-023 ẩn ca chốt = ADMIN + lý do · NKBV-026 LOA máy chủ · CSSD-025 hoãn |
 | 2026-11-14 | Không có ngưỡng hạn mức nào làm dừng hay thu hẹp việc |
 
-Nguồn: `CLAUDE.md`; `docs/core/handover-roadmap.md` dòng 76; `docs/modules/dashboard/metric-dictionary.md:86-89`; `BAO-CAO-TONG-THE-2026-11-13.md`; `HANDOFF_APPKSNK.md`.
+Nguồn: `CLAUDE.md`; `docs/core/handover-roadmap.md` dòng 81; `docs/modules/dashboard/metric-dictionary.md:86-89`; `docs/archive/bao-cao/BAO-CAO-TONG-THE-2026-11-13.md`; `HANDOFF_APPKSNK.md`.
 
 ## 6. Phân tích và lộ trình
 
@@ -154,8 +154,8 @@ Ngừng làm đến khi PO đổi: `feat` ở NKBV/QLCV/Đào tạo · P3 và mo
 
 | Nhóm | Tài liệu | Trạng thái |
 |---|---|---|
-| Lộ trình/chiến lược, đã gộp vào §6 | `docs/core/handover-roadmap.md` · `BAO-CAO-TONG-THE-2026-11-13.md` §4 · `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` · `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` | đã đánh dấu «đã gộp vào bộ 3 file» (2026-11-16); không xóa, không di chuyển |
-| Báo cáo ảnh chụp | `BAO-CAO-NEN-MONG-2026-11-13.md` (sáu tầng T0 Nguồn → T6 Dùng thật) · `BAO-CAO-RA-SOAT-2026-11-05.md` · `BAO-CAO-CAI-TO-2026-11-06.md` | hai báo cáo sau chưa đối chiếu trong lượt gom: «cần kiểm» |
+| Lộ trình/chiến lược, đã gộp vào §6 | `docs/core/handover-roadmap.md` · `docs/archive/bao-cao/BAO-CAO-TONG-THE-2026-11-13.md` §4 · `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` · `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` | đã đánh dấu «đã gộp vào bộ 3 file» (2026-11-16); không xóa; báo cáo đã chuyển vào archive (2026-11-18), hai KH không di chuyển |
+| Báo cáo ảnh chụp | `docs/archive/bao-cao/BAO-CAO-NEN-MONG-2026-11-13.md` (sáu tầng T0 Nguồn → T6 Dùng thật) · `docs/archive/bao-cao/BAO-CAO-RA-SOAT-2026-11-05.md` · `docs/archive/bao-cao/BAO-CAO-CAI-TO-2026-11-06.md` | hai báo cáo sau chưa đối chiếu trong lượt gom: «cần kiểm» |
 | Nghiệp vụ chi tiết, đọc khi làm đúng lát đó | `docs/modules/<module>/` (giam-sat, dashboard, cssd, nkbv, qlcv, dao-tao, mdm) và `van-de-nguoi-dung.md` của từng module (nhãn `[SSOT]` · `[GIẢ THUYẾT]` · `[CẦN XÁC NHẬN]` · `[ĐỀ XUẤT]`) | còn là nguồn; tóm tắt ở 02 |
 | Sống, máy đọc hoặc sinh | `scripts/readiness/so-loi.json` · `supabase/migrations/` · `docs/data/` · `docs/wiki/index.md` | không sửa tay |
 | Sổ và handoff sống | `HANDOFF_APPKSNK.md` · `SO_NO_APPKSNK.md` (đã cũ so với sổ lỗi) · `CHANGELOG.md` · `AGENTS.md` · `README.md` | cập nhật bằng quy trình hiện có |

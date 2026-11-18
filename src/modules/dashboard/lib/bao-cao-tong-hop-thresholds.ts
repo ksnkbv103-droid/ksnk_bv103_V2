@@ -9,7 +9,7 @@ import {
 export type { ComplianceTone };
 export { complianceToneFromPercent, khoaChartTone, DEFAULT_KHOA_CHART_THRESHOLDS, VST_KHOA_CHART_THRESHOLDS };
 
-/** BCTH-06: VST 90/85 · GSC (mặc định) 80/70 — dùng chung UI + in. */
+/** BCTH-06: VST/GSC cùng 90/85 — dùng chung UI + in. */
 export function bcthModuleComplianceTone(
   module: "vst" | "gsc",
   value: number | null | undefined,

@@ -1,0 +1,65 @@
+{
+ "nguon": "nhsn2026_ch07_ca_thu.json C7.01–C7.03",
+ "gan_tay": "Hình trang 7-4 là ảnh/bảng ngày; gắn tay theo su_kien. Đoạn IUC liên tục = danh sách ngày có IUC (ngày rút vẫn tính có IUC). Kỳ vọng CAUTI theo ngày DOE lấy từ dap_an gói (C7.03 suy theo luật, gói ghi rõ).",
+ "ca": [
+  {
+   "ma": "C7.01",
+   "iuc_days": [
+    "2026-03-29",
+    "2026-03-30",
+    "2026-03-31",
+    "2026-04-01",
+    "2026-04-02",
+    "2026-04-03",
+    "2026-04-04"
+   ],
+   "cauti_doe": {
+    "2026-03-30": false,
+    "2026-03-31": true,
+    "2026-04-01": true,
+    "2026-04-02": true,
+    "2026-04-03": true,
+    "2026-04-04": true,
+    "2026-04-05": true,
+    "2026-04-06": false
+   },
+   "luu_y": "Gói: DOE từ 31/3 đến 5/4 là CAUTI; ô 4/2,4/3 ghi «Inserted» nhưng IUC liên tục (không có ngày lịch trống) nên không đếm lại"
+  },
+  {
+   "ma": "C7.02",
+   "iuc_days": [
+    "2026-03-29",
+    "2026-03-30",
+    "2026-03-31",
+    "2026-04-01",
+    "2026-04-03",
+    "2026-04-04",
+    "2026-04-05"
+   ],
+   "cauti_doe": {
+    "2026-03-31": true,
+    "2026-04-01": true,
+    "2026-04-02": true,
+    "2026-04-03": false,
+    "2026-04-04": false,
+    "2026-04-05": true
+   },
+   "luu_y": "Gap rule: 4/2 không IUC → đếm lại từ 4/3; gói: 31/3–2/4 là CAUTI, đủ lại ngày 5/4"
+  },
+  {
+   "ma": "C7.03",
+   "iuc_days": [
+    "2026-01-22",
+    "2026-01-23",
+    "2026-01-24",
+    "2026-01-25"
+   ],
+   "cauti_doe": {
+    "2026-01-23": false,
+    "2026-01-24": true,
+    "2026-01-25": true
+   },
+   "luu_y": "Gói: DOE ngày IUC 2 không phải CAUTI (kỳ vọng ngày ≥3 suy theo định nghĩa 7-3)"
+  }
+ ]
+}

@@ -198,7 +198,7 @@ function SupervisionCompareBarChart({
           const thin = minSample != null && tong < minSample;
           return {
             ...r,
-            ten: thin ? `${r.ten} · mẫu mỏng (${tong})` : r.ten,
+            ten: thin ? `${r.ten} · chưa đủ mẫu (${tong}/${minSample})` : r.ten,
             tong,
             thinSample: thin,
           };

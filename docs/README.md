@@ -7,8 +7,6 @@
 
 | Lớp | Đường dẫn | Vai trò | Được phép thêm file khi |
 |-----|-----------|---------|-------------------------|
-| Lớp | Đường dẫn | Vai trò | Được phép thêm file khi |
-|-----|-----------|---------|-------------------------|
 | 0. Raw | [`data/`](data/) | Máy đọc (seed, catalog máy) | Seed mới |
 | 1. Core | [`core/`](core/) | SSOT vận hành (tối đa 13 file) | Chỉ khi gộp/thay file hiện có; không nở thêm |
 | 2. Wiki | [`wiki/`](wiki/) | Tổng hợp chéo module | Sửa `entities.md` / `concepts.md` — không tách file mới |

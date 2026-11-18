@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   linkedSuCoIds: new Set<string>(),
   linkedError: null as null | { message: string },
   dms: [] as Array<Record<string, unknown>>,
+  dmsError: null as null | { message: string },
   suCoCalls: [] as Array<{ window?: [number, number] }>,
   linkedCalls: [] as Array<{
     eqs: Array<[string, unknown]>;
@@ -50,6 +51,7 @@ function makeBuilder(table: string): Builder {
         error: null,
       };
     }
+    if (mocks.dmsError) return { data: null, error: mocks.dmsError };
     const [col, vals] = rec.ins[0] ?? ["id", []];
     return { data: mocks.dms.filter((d) => vals.includes(d[col])), error: null };
   };
@@ -113,6 +115,7 @@ describe("listSuCoChemicalChuaGhiKhoAction: lọc «đã ghi kho» trước khi 
     mocks.linkedCalls.length = 0;
     mocks.linkedSuCoIds.clear();
     mocks.linkedError = null;
+    mocks.dmsError = null;
     mocks.verifyPermission.mockResolvedValue(undefined);
     mocks.incidents = [];
     mocks.dms = [{ id: CHEM_ID, ma_hoa_chat: "HC-01", ten_hoa_chat: "Hóa chất 01" }];
@@ -188,5 +191,21 @@ describe("listSuCoChemicalChuaGhiKhoAction: lọc «đã ghi kho» trước khi 
     const q = mocks.linkedCalls[0];
     expect(q.eqs).toContainEqual(["is_active", true]);
     expect(q.neqs).toContainEqual(["trang_thai", "TU_CHOI"]);
+  });
+
+  it("CSSD-035: 40 sự cố mới nhất không xác định được hóa chất không che sự cố cũ hơn xác định được", async () => {
+    const khongRo = (n: number): Row => ({ ...incident(n), attributes: {} });
+    mocks.incidents = [...Array.from({ length: 40 }, (_, i) => khongRo(i + 1)), ...[41, 42, 43, 44, 45].map(incident)];
+    const r = await listSuCoChemicalChuaGhiKhoAction();
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(r.data.map((x) => x.id)).toEqual([41, 42, 43, 44, 45].map(scId));
+  });
+
+  it("CSSD-035: truy vấn danh mục hóa chất lỗi → trả lỗi, không trả danh sách thiếu", async () => {
+    mocks.incidents = incidents(1);
+    mocks.dmsError = { message: "dm boom" };
+    const r = await listSuCoChemicalChuaGhiKhoAction();
+    expect(r).toEqual({ success: false, error: "dm boom" });
   });
 });

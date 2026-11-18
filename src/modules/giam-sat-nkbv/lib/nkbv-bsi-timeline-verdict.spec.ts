@@ -226,6 +226,28 @@ describe("nkbv-bsi-timeline-verdict", () => {
     expect(v.result.classification).toBe("CONTAMINATION");
   });
 
+  it("CoNS cùng ngày 2 ống + xác nhận 2 lần lấy riêng + sốt → đạt LCBI (B4.56)", () => {
+    const ix = "2026-07-20";
+    const a = blood({ id: "c1", ngay: ix, vi_khuan: "Staphylococcus epidermidis" });
+    const b = blood({ id: "c2", ngay: ix, vi_khuan: "Staphylococcus epidermidis" });
+    const base = {
+      admissionDate: "2026-07-01",
+      indexXn: a,
+      bloodXn: [a, b],
+      lamSang: { [ix]: [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", ix],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      devicePlacedDate: "2026-07-17",
+    };
+    expect(buildBsiTimelineVerdict({ ...base, commensalDrawnSeparate: true }).criteriaMet).toBe(true);
+    expect(buildBsiTimelineVerdict(base).criteriaMet).toBe(false);
+    // chỉ 1 mẫu: cờ không có tác dụng
+    expect(
+      buildBsiTimelineVerdict({ ...base, bloodXn: [a], commensalDrawnSeparate: true }).criteriaMet,
+    ).toBe(false);
+  });
+
   it("MBI: ANC ≥2 ngày + tác nhân đường ruột → MBI_LCBI (không CLABSI)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({
@@ -282,5 +304,22 @@ describe("nkbv-bsi-timeline-verdict", () => {
     expect(v.gate.pathogenType).toBe("RECOGNIZED");
     expect(v.result.classification).toBe("CLABSI");
     expect(v.result.is_positive).toBe(true);
+  });
+
+  it("Cờ loại trừ CLABSI (ECMO >2d) từ lưới BA → LCBI non-CLABSI (B4.40–48)", () => {
+    const bloodDate = "2026-07-04";
+    const v = buildBsiTimelineVerdict({
+      admissionDate: "2026-07-01",
+      indexXn: blood({ id: "b-sa", ngay: bloodDate, vi_khuan: "Staphylococcus aureus" }),
+      bloodXn: [blood({ id: "b-sa", ngay: bloodDate, vi_khuan: "Staphylococcus aureus" })],
+      lamSang: {},
+      canThiepDates: ["2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04"],
+      iwpDates: iwpAround(bloodDate),
+      nsk: bloodDate,
+      devicePlacedDate: "2026-07-01",
+      clabsiExclusions: { excl_ecmo_gt2d: true },
+    });
+    expect(v.result.is_positive).toBe(true);
+    expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
   });
 });
