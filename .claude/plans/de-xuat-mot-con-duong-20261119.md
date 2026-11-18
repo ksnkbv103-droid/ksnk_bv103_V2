@@ -1,6 +1,6 @@
-# Một con đường duy nhất cho APPKSNK — CHỜ PO DUYỆT (2026-11-19)
+# Một con đường duy nhất cho APPKSNK — PO DUYỆT (2026-11-19)
 
-Đây là bản đề xuất. Chưa sửa config, CI hay migration nào.
+PO duyệt ngày 19/11: chọn «Duyệt cả 3» đáp án đề xuất ở §9. Chưa sửa config, CI hay migration nào; thực thi bắt đầu từ §8 Lát 1.
 
 - Số đo lấy trên `integrate/2026-11` ngày 19/11.
 - Phiên thực thi mở tại worktree `integrate-2026-11`.
@@ -132,7 +132,7 @@ Cổng của bước 3:
 | Sau | Squash 4b, giữ quyết định 18/11 | `db-dung` xanh với baseline | `destructive-change` và TC09 |
 | Sau | CSSD → NKBV → QLCV → ĐT, làm lần lượt từng module | Phát triển: e2e theo ca T xanh. Đưa vào dùng thật: người dùng có tên chấm ≥ 3 kịch bản | PO, ở bước đưa vào dùng thật |
 
-## 9. Câu hỏi PO (đáp án đề xuất in đậm)
+## 9. Câu hỏi PO (đáp án đề xuất in đậm; PO duyệt cả 3 ngày 19/11)
 
 1. Từ nay, migration đã có trong repo có là bất biến không? CI sẽ fail khi có file bị sửa hoặc xóa; muốn đổi chữ thì viết migration mới.
    - **Đề xuất: Có.**
@@ -260,7 +260,7 @@ Lát 3 chép bảng này vào `docs/core/skills-catalog.md` (file đã có), nê
   - 28 file bị sửa sau khi áp.
   - Có hàm bị định nghĩa lại 15 lần.
 
-  Vẫn chờ PO duyệt.
+  PO đã duyệt 19/11.
 - `CLAUDE.md:29` «TẤT CẢ module». Câu 2 không bỏ mục tiêu này, chỉ thêm điều kiện mở module.
 - `CLAUDE.md:51` «Tiến độ chỉ ghi ở sổ lỗi» khớp với câu 3.
 - Memory «Bộ 3 file = bản gốc» coi 03 là bản gốc. Vì 03 sinh từ sổ nên không lệch.
