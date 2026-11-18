@@ -4,7 +4,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## ĐANG LÀM
 - CSSD-034 (DA_SUA): lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT). Còn mở: dòng MOI «sau khi đảo» (xuất lại/NXT, cần PO).
-- Chạy nối 18/11 DA_SUA: VST-020 `6018d180`, NKBV-031 `c7b637ce`, VST-030 `2c788ae2` (review Go), NKBV-030 `953cb5c9`; tay CHUA (chỉ spec). VST-027, NKBV-041 CHO_PO. Kế: `next 10` → VST-029 (SỬA, slice-fixer), rồi MOI qua db-verify (VST-024, NKBV-036/037/038, CSSD-037/035).
+- Chạy nối 18/11 DA_SUA: VST-020 `6018d180`, NKBV-031 `c7b637ce`, VST-030 `2c788ae2`, NKBV-030 `953cb5c9`, VST-029 `554ff441` (review Go, tay DAT). CHO_PO: VST-027, NKBV-041, VST-024. DA_XAC_MINH chờ sửa: NKBV-036 (FE, 5 file), NKBV-038 (RLS: migration + review + đếm vai prod). Kế: db-verify MOI (NKBV-037/033, CSSD-035/037, VST-022/033), rồi sửa NKBV-036.
 - CSSD-032 `3165749c`: ĐÃ ÁP PROD 18/11 (PO duyệt; ledger `20261117235006` cssd_hc_chan_trung_su_co; 0 sự cố trùng trước; md5 thân hàm sau áp khớp file).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 `e908e7e0`, deploy success, B1–B5 đã áp (17/11). Còn TC09: mục 4.
@@ -17,7 +17,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 ## Mở phiên mới
 1. Làm ở worktree `integrate-2026-11` (nhánh `integrate/2026-11`; `git status -sb` xem số commit chưa push).
 2. `node scripts/readiness/so-loi.mjs status` → `next 10` → `next --tay` → `stats`.
-3. Bật `dev-local` (:3001, DB local) bằng `preview_start` (17/11: phục vụ mã worktree).
+3. Bật `dev-local` (:3001, DB local) bằng `preview_start`.
 4. Fixture thử tay: NV_TEST01 gốc chỉ có vai NHAN_VIEN_KSNK, khoa C18. Đã đổi tạm thì phải trả về gốc cuối phiên. Mật khẩu NV_TEST01 đang là giá trị thử; `npm run trial:prep` đặt lại.
 
 ## Vòng một việc
