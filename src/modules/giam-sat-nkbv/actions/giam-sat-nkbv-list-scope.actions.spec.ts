@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   restriction: vi.fn(),
   viaGsc: { v: false },
   denied: { v: false },
+  guest: { v: false },
   admin: vi.fn(),
   eq: vi.fn(),
 }));
@@ -14,6 +15,7 @@ vi.mock("../lib/nkbv-khoa-scope.server", () => ({
     restriction: await mocks.restriction(),
     viaGscOnly: mocks.viaGsc.v,
     identityDenied: mocks.denied.v,
+    guestDenied: mocks.guest.v,
   }),
   getNkbvIdentityScope: async () => ({ restriction: await mocks.restriction(), identityDenied: mocks.denied.v }),
   NKBV_GSC_NO_KHOA_ERROR: "NO_KHOA",
@@ -40,7 +42,7 @@ vi.mock("@/lib/supabase-server", () => ({
   createAdminSupabaseClient: () => makeClient("admin"),
 }));
 
-import { NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
+import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { getPatientMdroSupervisionStatus, listMdroInpatientsByKhoa } from "./giam-sat-nkbv-mdro.actions";
 import { listNkbvPatientRcaByKhoa } from "./giam-sat-nkbv-rca.actions";
 import { listInpatientsByKhoa } from "./giam-sat-nkbv-read.actions";
@@ -53,6 +55,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.viaGsc.v = false;
   mocks.denied.v = false;
+  mocks.guest.v = false;
 });
 
 describe("NK-SCOPE danh sách MDRO / RCA theo khoa", () => {
@@ -64,10 +67,11 @@ describe("NK-SCOPE danh sách MDRO / RCA theo khoa", () => {
     expect(khoaEqs()).toEqual([K1, K1, K1]);
   });
 
-  it("kind=none: trả mảng rỗng, không truy vấn", async () => {
+  // gate-ok: NKBV-043 — kỳ vọng cũ «none → success []» chính là lỗi (báo «không có BN» khi chưa gán khoa); đổi thành lỗi rõ, giữ số expect.
+  it("kind=none (có NKBV:view, chưa gán khoa — NKBV-043): báo lỗi, không truy vấn", async () => {
     mocks.restriction.mockResolvedValue({ kind: "none" });
-    expect(await listMdroInpatientsByKhoa({ khoaId: K2 })).toEqual({ success: true, data: [] });
-    expect(await listNkbvPatientRcaByKhoa({ khoaId: K2 })).toEqual({ success: true, data: [] });
+    expect(await listMdroInpatientsByKhoa({ khoaId: K2 })).toEqual({ success: false, error: "NO_KHOA", data: [] });
+    expect(await listNkbvPatientRcaByKhoa({ khoaId: K2 })).toEqual({ success: false, error: "NO_KHOA", data: [] });
     expect(mocks.eq).not.toHaveBeenCalled();
   });
 
@@ -153,5 +157,46 @@ describe("NKBV-032 Hội đồng thuần không nhận danh sách người bện
     expect(mocks.admin).not.toHaveBeenCalled();
     expect(await listInpatientsByKhoa({ khoaId: K1 })).toMatchObject({ success: true });
     expect(khoaEqs()).toEqual([K1]);
+  });
+});
+
+/**
+ * NKBV-043: người chỉ có GIAM_SAT_CHUNG:view (vd Chủ nhiệm khoa) bị RLS nkbv cắt hết → «Xem tất cả BN khoa» rỗng im lặng.
+ * listInpatientsByKhoa đi qua getNkbvCensusAccess như MDRO/RCA (NKBV-005): GSC-only đọc admin client, ép khoa của mình.
+ */
+describe("NKBV-043 nội trú theo khoa qua getNkbvCensusAccess", () => {
+  it("GSC-only có khoa: đọc bằng admin client, chỉ khoa của mình", async () => {
+    mocks.viaGsc.v = true;
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: K1 });
+    expect(await listInpatientsByKhoa({ khoaId: K1 })).toMatchObject({ success: true });
+    expect(new Set(mocks.admin.mock.calls.map((c) => c[0]))).toEqual(new Set(["admin"]));
+    expect(khoaEqs()).toEqual([K1]);
+  });
+
+  it("GSC-only xin khoa khác hoặc không có khoa: lỗi rõ, không truy vấn", async () => {
+    mocks.viaGsc.v = true;
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: K1 });
+    expect(await listInpatientsByKhoa({ khoaId: K2 })).toMatchObject({ success: false, error: "OUT_OF_SCOPE" });
+    mocks.restriction.mockResolvedValue({ kind: "none" });
+    expect(await listInpatientsByKhoa({ khoaId: K1 })).toMatchObject({ success: false, error: "OUT_OF_SCOPE" });
+    expect(mocks.admin).not.toHaveBeenCalled();
+  });
+
+  it("khách thống kê (NKBV-033): báo lỗi khách, không truy vấn", async () => {
+    mocks.guest.v = true;
+    mocks.restriction.mockResolvedValue({ kind: "none" });
+    expect(await listInpatientsByKhoa({ khoaId: K1 })).toEqual({
+      success: false,
+      error: NKBV_GUEST_IDENTITY_DENIED,
+      data: [],
+    });
+    expect(mocks.admin).not.toHaveBeenCalled();
+  });
+
+  it("có NKBV:view toàn viện (CB KSNK): user client, khoa theo tham số", async () => {
+    mocks.restriction.mockResolvedValue({ kind: "all" });
+    expect(await listInpatientsByKhoa({ khoaId: K2 })).toMatchObject({ success: true });
+    expect(new Set(mocks.admin.mock.calls.map((c) => c[0]))).toEqual(new Set(["user"]));
+    expect(khoaEqs()).toEqual([K2]);
   });
 });

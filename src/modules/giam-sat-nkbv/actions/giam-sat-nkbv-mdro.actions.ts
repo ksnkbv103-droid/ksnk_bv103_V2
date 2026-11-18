@@ -56,11 +56,11 @@ export async function listMdroInpatientsByKhoa(params: {
   if (identityDenied) {
     return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as MdroInpatientRow[] };
   }
-  if (viaGscOnly && restriction.kind === "none") {
+  // NKBV-043: không xác định được khoa (kể cả người có NKBV:view, vd Mạng lưới chưa gán khoa) → lỗi rõ, không rỗng-success.
+  if (restriction.kind === "none") {
     return { success: false as const, error: NKBV_GSC_NO_KHOA_ERROR, data: [] as MdroInpatientRow[] };
   }
   const supabase = viaGscOnly ? createAdminSupabaseClient() : await createServerSupabaseUserClient();
-  if (restriction.kind === "none") return { success: true as const, data: [] as MdroInpatientRow[] };
   const khoaId =
     restriction.kind === "khoa" ? restriction.khoaId : params.khoaId ? String(params.khoaId).trim() : "";
   const limit = Math.min(Math.max(params.limit || 200, 1), 500);
