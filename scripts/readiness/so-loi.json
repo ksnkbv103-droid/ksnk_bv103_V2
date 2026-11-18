@@ -1680,10 +1680,10 @@
     "muc": "THAP",
     "tieu_de": "Kho hóa chất: trần 40 sự cố chưa ghi kho áp trước bước xác định hóa chất, và hai truy vấn cssd_dm_hoa_chat bỏ qua lỗi",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-kho-hoa-chat-su-co.actions.ts:74 cắt 40 rồi mới xác định hóa chất; dòng 159 .filter(r => r.dm_hoa_chat_id) bỏ sự cố không xác định được hóa chất sau khi chúng đã chiếm chỗ trong 40 → đủ 40 sự cố không xác định thì sự cố xác định được không hiện. Dòng 101 và 115: const { data: dms } không kiểm error → truy vấn lỗi thì sự cố gán theo mã nhãn biến mất im lặng, sự cố gán theo id hiện tên rỗng.",
-    "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "DA_XAC_MINH",
+    "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp/actions/cssd-kho-hoa-chat-su-co.actions.spec.ts (2 ca CSSD-035)",
+    "trang_thai": "DA_SUA",
     "nguon": "vong-cssd-031-lan-can",
-    "commit": "",
+    "commit": "4c6a378f",
     "ghi_chu": "Phát hiện khi sửa CSSD-031, ngoài phạm vi nên chưa sửa. Mức THẤP: sự cố không xác định được hóa chất vốn không ghi xuất được (nút Ghi xuất cần dm_hoa_chat_id). Hướng sửa: xác định hóa chất ngay trong vòng quét trang rồi mới đếm đủ 40; kiểm error của hai truy vấn danh mục. | Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. su-co.actions.ts:73 cắt 40 trước khi xác định hóa chất, :159 lọc dm_hoa_chat_id sau; hai truy vấn dms (~101, ~115) không kiểm error. DB local 0 sự cố CHEMICAL nên chưa xảy ra thật."
   },
   {
@@ -2106,10 +2106,11 @@
     "tieu_de": "Thẻ kế hoạch giám sát xếp khoa theo khoa_id (UUID), không theo tên/mã khoa",
     "bang_chung": "src/lib/analytics/SupervisionKeHoachCard.tsx:83 rows.map giữ nguyên thứ tự RPC; fn_gstt_ke_hoach_tien_do có ORDER BY kh.khoa_id. Quan sát :3001 (ADMIN, tháng 11/2026, 3 khoa lập): thứ tự hiển thị B05 → GV → A03, không theo tên.",
     "lenh_kiem": "Lập kế hoạch ≥3 khoa trên thẻ (/thong-ke/vst), đọc thứ tự dòng: phải theo tên/mã khoa ổn định giữa các lần tải",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "uat-ke-hoach-giam-sat",
-    "commit": "",
-    "ghi_chu": "Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. 20261118110000_gstt_ke_hoach_giam_sat.sql fn_gstt_ke_hoach_tien_do ORDER BY kh.khoa_id (pg_get_functiondef local khớp); SupervisionKeHoachCard.tsx:83 và ke-hoach-giam-sat.actions.ts không sort. Sửa gọn: sort theo tenKhoa ở client."
+    "commit": "2f5e40fc",
+    "ghi_chu": "Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. 20261118110000_gstt_ke_hoach_giam_sat.sql fn_gstt_ke_hoach_tien_do ORDER BY kh.khoa_id (pg_get_functiondef local khớp); SupervisionKeHoachCard.tsx:83 và ke-hoach-giam-sat.actions.ts không sort. Sửa gọn: sort theo tenKhoa ở client. | Tay 2026-11-18 DAT: 2026-11-18 :3001 /thong-ke/vst: lập KH 3 khoa B02(048d…), A21(0820…), A01(6b01…) — thứ tự UUID ngược thứ tự nhãn; thẻ hiện A01 → A21 → B02, giữ nguyên sau tải lại; đã Bỏ cả 3 (dọn dữ liệu thử).",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-034",
