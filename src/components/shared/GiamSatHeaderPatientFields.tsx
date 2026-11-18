@@ -18,6 +18,7 @@ import {
   NKBV_MDRO_PHENOTYPES,
   type NkbvMdroPhenotype,
 } from "@/modules/giam-sat-nkbv/lib/nkbv-mdro";
+import { gopLoiTaiCensus, goiYChonBnTheoKhoa } from "@/modules/giam-sat-nkbv/lib/nkbv-census-load-error";
 
 type PatientPickRow = {
   ma_benh_an: string;
@@ -60,6 +61,9 @@ export default function GiamSatHeaderPatientFields({
 
   const [inpatients, setInpatients] = useState<PatientPickRow[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  /** NKBV-037: lỗi tải danh sách/trạng thái — không được hiện như «khoa không có BN». */
+  const [listError, setListError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [status, setStatus] = useState<{
     is_mdro: boolean;
     mdro_phenotype: NkbvMdroPhenotype | null;
@@ -78,6 +82,7 @@ export default function GiamSatHeaderPatientFields({
 
   useEffect(() => {
     const khoaId = String(session.khoa_id || "").trim();
+    setListError(null);
     if (!khoaId) {
       setInpatients([]);
       return;
@@ -91,6 +96,7 @@ export default function GiamSatHeaderPatientFields({
         setLoadingList(false);
         if (!res.success) {
           setInpatients([]);
+          setListError(res.error || "Không tải được danh sách BN đa kháng");
           return;
         }
         setInpatients(
@@ -110,6 +116,7 @@ export default function GiamSatHeaderPatientFields({
       setLoadingList(false);
       if (!res.success) {
         setInpatients([]);
+        setListError(res.error || "Không tải được danh sách BN");
         return;
       }
       setInpatients(
@@ -145,6 +152,7 @@ export default function GiamSatHeaderPatientFields({
   useEffect(() => {
     const ba = String(session.ma_benh_an || "").trim();
     const pid = String(session.ma_nguoi_benh || "").trim();
+    setStatusError(null);
     if (!ba && !pid) {
       setStatus(null);
       return;
@@ -158,7 +166,10 @@ export default function GiamSatHeaderPatientFields({
       });
       if (cancelled) return;
       if (res.success) setStatus(res.data);
-      else setStatus(null);
+      else {
+        setStatus(null);
+        setStatusError(res.error || "Không tải được trạng thái đa kháng");
+      }
     })();
     return () => {
       cancelled = true;
@@ -194,17 +205,15 @@ export default function GiamSatHeaderPatientFields({
     })();
   };
 
-  const emptyHint = !session.khoa_id
-    ? "Chọn khoa ở khung trên trước…"
-    : loadingList
-      ? "Đang tải danh sách…"
-      : inpatients.length
-        ? useMdroFilter
-          ? "— Chọn BN đa kháng còn nằm viện —"
-          : "— Chọn BN còn nằm viện (hoặc nhập tay bên dưới) —"
-        : useMdroFilter
-          ? "Không có BN đa kháng còn nằm tại khoa"
-          : "Không có BN còn nằm viện tại khoa — nhập tay bên dưới";
+  const emptyHint = goiYChonBnTheoKhoa({
+    coKhoa: Boolean(session.khoa_id),
+    dangTai: loadingList,
+    soBn: inpatients.length,
+    locMdro: useMdroFilter,
+    loiTai: listError,
+  });
+  /** Danh sách và trạng thái thường cùng một câu chặn quyền → một dòng. */
+  const loadErrorText = gopLoiTaiCensus(listError, statusError);
 
   const checkCls = "flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700";
 
@@ -254,7 +263,11 @@ export default function GiamSatHeaderPatientFields({
                 </option>
               ))}
             </select>
-            {useMdroFilter && !loadingList && session.khoa_id && inpatients.length === 0 ? (
+            {loadErrorText ? (
+              <p className="pt-1 text-xs text-rose-800" role="alert">
+                Không tải được dữ liệu người bệnh: {loadErrorText}
+              </p>
+            ) : useMdroFilter && !loadingList && session.khoa_id && inpatients.length === 0 ? (
               <p className="pt-1 text-xs text-amber-800">
                 Chưa có BN đa kháng tại khoa — bấm 「Xem tất cả BN khoa」 nếu cần chọn thủ công.
               </p>

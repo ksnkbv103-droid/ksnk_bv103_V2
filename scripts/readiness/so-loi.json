@@ -2137,5 +2137,18 @@
     "nguon": "cssd-034-lat-a",
     "commit": "",
     "ghi_chu": "Cần PO chốt cách đọc: sau đảo, sự cố được lập lại phiếu xuất mới (đề xuất: có) và phiếu gốc đã đảo có tính vào tiêu thụ 30 ngày không (đề xuất: không). Cũng ghi: acl-snapshot tbl_anon_ghi 42→41 là lệch có sẵn của DB local bị ghi theo ở commit 61148266, không do lát A. | Xác minh 2026-11-18 (db-verify, chỉ đọc mã, chưa probe): (a) DUNG — 20261118090000_cssd_hc_chan_trung_su_co.sql:64-70 chỉ lọc su_co_id/is_active/trang_thai<>TU_CHOI; phiếu ngược đặt su_co_id NULL có chủ ý (20261118120000:6,123) → sự cố đã đảo không lập lại phiếu xuất được, su-co.actions.ts ~70 cũng coi là «đã ghi». (b) DUNG, TRUNG_BINH — canh-bao.actions.ts:44-50 bỏ qua NHAP có phieu_goc_id nhưng vẫn cộng XUAT gốc vào xuat_su_dung_30n. (c) SAI — the-kho.ts:62-77 cộng theo dấu, phiếu ngược +q ở cột nhập là đúng ghi sổ kho (chỉ thiếu nhãn «ngược»; NXT chưa mở). (d) DUNG nhưng hợp lý kế toán — 20261029130000:211-212 chỉ kiểm hạn khi so_luong_co_dau<0. CHO_PO: (1) sự cố đã đảo có được lập lại phiếu xuất (đề xuất: có, cần migration mới sửa vị từ CSSD-032 — đã ở prod); (2) phiếu xuất gốc đã đảo có tính tiêu thụ 30 ngày (đề xuất: không); (3) đảo phiếu HET_HAN_HUY có cho cộng lại lô quá hạn (đề xuất: cho, kèm ghi chú)."
+  },
+  {
+    "id": "NKBV-043",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Danh sách BN theo khoa (form GSC) rỗng im lặng khi action trả success: CNK chỉ có GIAM_SAT_CHUNG:view bị RLS nkbv cắt hết ở chế độ «Xem tất cả BN khoa»; người có NKBV:view mà phạm vi none nhận MDRO/RCA success rỗng",
+    "bang_chung": "(a) src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:483 listInpatientsByKhoa dùng getNkbvIdentityScope (CNK toàn viện → kind all, src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.ts:33-34) rồi :493 user client; policy nkbv_fact_benh_an_select đòi fn_sys_is_admin() hoặc fn_sys_has_permission('GIAM_SAT_NKBV','view') nên vai CHU_NHIEM_KHOA (chỉ GIAM_SAT_CHUNG:view) nhận 0 dòng, success:true. Không đi qua getNkbvCensusAccess/admin client như listMdroInpatientsByKhoa (NKBV-005). (b) src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:59 và giam-sat-nkbv-rca.actions.ts:42: có NKBV:view mà restriction none (Mạng lưới chưa gán khoa) → return success [] thay vì lỗi. Thử tay 2026-11-18 trên :3001 (DB local, fixture nv.test1 tạm đổi vai rồi khôi phục): CNK không khoa, khoa A27 (14 BN nằm viện trong DB) bấm «Xem tất cả BN khoa» → «Không có BN còn nằm viện tại khoa — nhập tay bên dưới»; MANG_LUOI_KSNK không khoa, lọc MDRO khoa A27 → «Không có BN đa kháng còn nằm tại khoa» (không lỗi).",
+    "lenh_kiem": "Spec đỏ trước cho phạm vi đọc của listInpatientsByKhoa (người không có GIAM_SAT_NKBV:view) và nhánh restriction none của MDRO/RCA. Test tay :3001: (1) CNK chỉ GSC:view, có khoa → «Xem tất cả BN khoa» ở khoa mình ra danh sách; khoa khác hoặc không có khoa → báo lỗi, không «Không có BN…»; (2) MANG_LUOI_KSNK không khoa → lọc MDRO báo lỗi; (3) khách thống kê (sau NKBV-033) không nhận danh sách; (4) CB_KSNK như cũ.",
+    "trang_thai": "MOI",
+    "nguon": "thử tay NKBV-037 (2026-11-18)",
+    "commit": "",
+    "ghi_chu": "Phát hiện khi thử tay NKBV-037: phần UI của NKBV-037 hiện đúng lỗi khi action trả success:false, nhưng hai đường này trả success:true nên giao diện vẫn nói «không có BN». Đổi đường đọc (user client → admin client theo khoa) là thay đổi quyền → qua review-bv103. Hướng sửa có thể: listInpatientsByKhoa đi qua getNkbvCensusAccess như MDRO/RCA; nhánh none có NKBV:view trả lỗi. NKBV-033 sắp sửa getNkbvCensusAccess → làm việc này SAU NKBV-033, lenh_kiem gồm ca khách thống kê. Cần db-verify xác nhận CNK có khoa cũng bị (đọc mã: có, vì kind all + RLS)."
   }
 ]
