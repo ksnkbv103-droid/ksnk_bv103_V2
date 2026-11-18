@@ -351,7 +351,6 @@ export async function getBaoCaoTongHopAnalytics(
       comparedWeeks,
       mas,
       effectiveKhoaIds,
-      hinhThucGsc,
     );
   }
 

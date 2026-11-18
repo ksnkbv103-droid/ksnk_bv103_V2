@@ -244,4 +244,23 @@ describe("getBaoCaoTongHopAnalytics RPC wiring", () => {
       }));
     }
   });
+
+  it("VST-035: mã lens hình thức (hinh_thuc_ids_gsc = KSNK) không được truyền xuống truy vấn chú thích (cột hinh_thuc_id là uuid → 22P02)", async () => {
+    const tl = (min_date: string) => ({ label: min_date, min_date, tong_quan_sat: 100, tong_dat: 90, ty_le_tuan_thu: 90 });
+    mocks.getGsc.mockResolvedValue({
+      success: true as const,
+      data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 }, trendline: [tl("2026-09-21"), tl("2026-09-28")] },
+    } as never);
+    try {
+      const res = await getBaoCaoTongHopAnalytics(range);
+      expect(res.success).toBe(true);
+      expect(mocks.fetchWeeks).toHaveBeenCalledTimes(1);
+      expect(mocks.fetchWeeks.mock.calls[0]).toHaveLength(4);
+    } finally {
+      mocks.getGsc.mockImplementation(async () => ({
+        success: true as const,
+        data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 } },
+      }));
+    }
+  });
 });
