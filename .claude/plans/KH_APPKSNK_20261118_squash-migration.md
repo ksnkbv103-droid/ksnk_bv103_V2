@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261118 — Lát 4: squash migration (mở, chưa sửa gì)
 
-Trạng thái: 4a DỪNG 2026-11-18 — DB-1 (dựng sạch từ 316 file, trong project thải bỏ) KHÔNG dựng được, dừng ở file thứ 178, nguyên nhân chưa xác định; tiêu chí 1–2 chưa đo được; xem §5 · `supabase/migrations/` KHÔNG đổi · chưa chạm prod · TC09 chưa đạt (xem Cần người). Đề xuất: chọn B, không squash (chờ PO).
+Trạng thái: 4a DỪNG 2026-11-18 — DB-1 (dựng sạch từ 316 file, trong project thải bỏ) KHÔNG dựng được, dừng ở file thứ 178, nguyên nhân chưa xác định; tiêu chí 1–2 chưa đo được; xem §5 · `supabase/migrations/` KHÔNG đổi · chưa chạm prod · TC09 chưa đạt (xem Cần người). PO chọn A (squash) 2026-11-18; kế 4a′ ở §6, 4b chưa mở.
 Nguồn: `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` dòng lát 4 · `docs/reference/guides/migration-squash-runbook.md` (lệch, xem §1) · skill `destructive-change`.
 
 ## 1. Đo hiện trạng (2026-11-18, chỉ đọc)
@@ -83,3 +83,14 @@ Phán quyết theo quy tắc §2: trong thiết lập thải bỏ, DB-1 không d
 - Lý lẽ mạnh nhất chống B: nếu chuỗi 316 file thật sự không dựng được DB sạch, repo hiện không có cách dựng lại schema từ nguồn đã review; snapshot của B lấy từ DB sống nên cũng chỉ chép lại trạng thái hiện tại, không có phép thử độc lập, và nợ «chuỗi hỏng» vẫn nằm đó cho mọi lần dựng sau.
 - Cải chính ý trước («A không kiểm được»): A có thể kiểm bằng cách khác, không cần DB-1: so `pg_dump --schema-only` của DB-2 (baseline) với dump schema đọc-only từ prod (cần authorize MCP Supabase hoặc PO chạy `pg_dump`). Đây là điều kiện khác điều kiện §3, cần PO duyệt thay đổi tiêu chí.
 - Việc nên làm trước khi PO chọn (ngoài phạm vi 4a, chưa mở): loại trừ sai khác thiết lập bằng `db reset` với config giống stack chính, và xác định policy lệch 139/140 qua prod đọc-only.
+
+## 6. Quyết định PO (2026-11-18, trong chat): chọn A (squash)
+
+PO chọn A, thay đề xuất B của §5. Đây chưa phải lệnh phá hủy: chuyển 316 file sang `archive_legacy/` (4b) vẫn cần lệnh riêng theo skill `destructive-change`, TC09 đạt, không áp prod (§3 «Cần người»).
+
+Chặn: tiêu chí 1–2 của 4a chưa đo được, nên chưa có phép thử baseline. Lát kế, **4a′** (phiên mới, chỉ local, đọc-only với prod):
+- **Sản phẩm:** biết vì sao DB-1 lỗi 139≠140 và có đường kiểm baseline độc lập. Người dùng: PO quyết 4b.
+- **Xong khi:** (1) một trong hai: `db reset` bằng `supabase/config.toml` của repo (trên cổng thải bỏ) áp đủ 316 file exit 0 kèm số giây, hoặc chỉ đúng tên policy lệch so với prod; (2) `scripts/squash-baseline-check.sh all` in `KẾT LUẬN: KHỚP` hoặc số dòng lệch cụ thể; nếu (1) chỉ làm được qua prod: tiêu chí 1 đổi thành «diff DB-2 vs dump schema prod» và PO xác nhận đổi; (3) `git status -- supabase/migrations/` rỗng.
+- **Ngoài phạm vi:** chuyển/xóa 316 file, sửa `sync-check`/`admin-health-check`/`acl-snapshot`, ghi prod.
+- **Cỡ:** ≤ 3 file. **Cần người:** dump prod đọc-only (PO chạy `pg_dump --schema-only`, hoặc authorize MCP Supabase, HANDOFF CẦN NGƯỜI mục 3); lệnh trước phải thử `db reset` bằng config repo trước.
+- Thứ tự thử (rẻ → đắt): `db reset` config repo → tên policy lệch → dump prod.
