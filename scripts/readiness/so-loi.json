@@ -2162,10 +2162,11 @@
     "tieu_de": "Phạm vi Chủ nhiệm khoa khi đọc BN nội trú có danh tính (form GSC): chỉ khoa mình (hiện tại sau NKBV-043) hay toàn viện như TK_KSNK; và mở nhánh admin client từ danh sách MDRO (NKBV-005) sang mọi BN nội trú",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:485-500; src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.server.ts:55-58; src/modules/giam-sat-chung/lib/gsc-read-scope.ts:11-14 (CNK ≡ TK_KSNK toàn viện); review-bv103 NKBV-043 Major 1+2",
     "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-list-scope.actions.spec.ts",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "DA_SUA",
     "nguon": "review-bv103 NKBV-043",
-    "commit": "",
-    "ghi_chu": "CHO_PO 2026-11-18. Mặc định đang chạy: CNK (chỉ GIAM_SAT_CHUNG:view) xem BN nội trú đúng khoa mình qua admin client; khoa khác hoặc chưa gán khoa → lỗi «Hồ sơ nằm ngoài khoa của bạn.». Cổng vào admin client là «không có NKBV:view» (local: chỉ CNK và khách lọt nhánh; khách bị chặn trước). Hỏi PO: (1) CNK đi giám sát khoa khác có cần thấy BN khoa đó không; (2) đồng ý mở admin client cho danh sách BN nội trú. Nếu PO im: giữ chỉ khoa mình, không lộ ngoài khoa. Trước khi đổi: đo prod (chỉ đọc) số vai có GSC:view mà không có NKBV:view."
+    "commit": "b8c2f54f",
+    "ghi_chu": "CHO_PO 2026-11-18. Mặc định đang chạy: CNK (chỉ GIAM_SAT_CHUNG:view) xem BN nội trú đúng khoa mình qua admin client; khoa khác hoặc chưa gán khoa → lỗi «Hồ sơ nằm ngoài khoa của bạn.». Cổng vào admin client là «không có NKBV:view» (local: chỉ CNK và khách lọt nhánh; khách bị chặn trước). Hỏi PO: (1) CNK đi giám sát khoa khác có cần thấy BN khoa đó không; (2) đồng ý mở admin client cho danh sách BN nội trú. Nếu PO im: giữ chỉ khoa mình, không lộ ngoài khoa. Trước khi đổi: đo prod (chỉ đọc) số vai có GSC:view mà không có NKBV:view. | PO 2026-11-18: «CNK xem BN khoa mình» → giữ nguyên hành vi đang chạy (b8c2f54f, NKBV-043): CNK chỉ thấy BN nội trú khoa của mình, khoa khác hoặc chưa gán khoa → lỗi; chấp nhận admin client cho danh sách BN nội trú với phạm vi ép về khoa người dùng (không đổi mã). Không đo prod vì không đổi gì; rủi ro bị chặn bởi hàng rào `.eq(khoa_dieu_tri_id)` + fail-closed khi none. Kiểm 2026-11-18: giam-sat-nkbv-list-scope.actions.spec.ts 17/17 pass, có ca «GSC-only xin khoa khác hoặc không có khoa: lỗi rõ, không truy vấn». Tay: ca CNK trong khoa + CNK chưa gán khoa đã DAT ở NKBV-043; ca CNK xin khoa khác trên giao diện chưa chạy tay (chỉ có spec) → test_tay CHUA.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NKBV-045",
