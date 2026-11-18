@@ -7,7 +7,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check`: cả 7 nhóm «không còn lỗi chặn» (VST-025 và NKBV-041 đã đóng 19/11).
 
 ## ĐANG LÀM
-- 19/11 PO duyệt áp prod 3 migration, đã áp qua MCP `apply_migration` và kiểm sau áp: `20261118100000` (tham số khóa PO), `20261118110000` (kế hoạch giám sát), `20261118120000` (CSSD-034 lát A; 0 phiếu ngược trên prod). Code lát B (drawer) và trang kế hoạch giám sát chưa deploy. NKBV-041 gỡ migration + probe `aecd3eb6`. VST-025 đóng: policy prod khớp local (md5). NKBV-038 `1efc3867`: đo prod = 17 người có `GIAM_SAT_NKBV:view`, đều NV KSNK (1 kiêm ADMIN), ngoài nhóm toàn viện 0 → `20261118130000` chưa áp, chờ PO. NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). Còn 4 đường admin client (SO_NO). CHO_PO: NEN-003, VST-017/019/024/027/028, CSSD-037.
+- 19/11 PO duyệt áp prod 4 migration, đã áp qua MCP `apply_migration` và kiểm sau áp: `20261118100000` (tham số khóa PO), `20261118110000` (kế hoạch giám sát), `20261118120000` (CSSD-034 lát A; 0 phiếu ngược trên prod), `20261118130000` (NKBV-038). Code lát B (drawer) và trang kế hoạch giám sát chưa deploy. NKBV-041 gỡ migration + probe `aecd3eb6`. VST-025 đóng: policy prod khớp local (md5). NKBV-038 `1efc3867`: đo prod = 17 người có `GIAM_SAT_NKBV:view`, đều NV KSNK (1 kiêm ADMIN), ngoài nhóm toàn viện 0; đã áp, thân hàm khớp file. NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). Còn 4 đường admin client (SO_NO). CHO_PO: NEN-003, VST-017/019/024/027/028, CSSD-037.
 
 ## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)
 - Xong: 31 ca hồi quy (`lib/__fixtures__/nhsn2026/`); SSI PATOS chỉ là nhãn; VAE baseline/PEEP; BSI `excl_*`; PNEU; BONE IWP 21 ngày. `npm run test:cssd -- src/modules/giam-sat-nkbv` → 676 passed | 2 skipped; `tsc` sạch.
@@ -28,7 +28,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 ## CẦN NGƯỜI (Lát E) — im = không push, không áp prod
 1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo (CSSD: Nguyễn Thanh Bình); đợt thử đầu gồm module nào. NKBV: cổng module báo KHÁM_PHÁ nhưng đã nhiều commit `feat` — PO chốt trạng thái thật (nâng cổng hay giữ); chưa có dòng sổ.
 2. Mặc định Claude 11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 (dung sai 2 phút). Còn treo: câu 7 GSC, DT-008.
-3. MCP Supabase đã authorize (19/11); còn NEN-003, CSSD-004 chờ PO. `20261118130000` (NKBV-038): PO quyết áp hay chờ (số đo prod ở ĐANG LÀM).
+3. MCP Supabase đã authorize (19/11); còn NEN-003, CSSD-004 chờ PO. Việc kế: PO «deploy» code lát B + trang kế hoạch giám sát.
 4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`) đã áp 17/11; còn TC09 (PO) và xem dashboard VST/GSC prod sau B2.
 5. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (13 câu; im = không xóa gì).
 6. Lát 4 (A): 4a′ xong, hỏng do `f44b7705` stub hóa `20260729121000` (plan §7); 4b chờ lệnh phá hủy + TC09.
