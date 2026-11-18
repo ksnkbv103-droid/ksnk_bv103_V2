@@ -144,6 +144,12 @@ case "${1:-}" in
     setup; : > "$OUT/timing.txt"
     use_migrations "$WORK/00000000000000_pg_cron.sql"; reset_timed db0-chi-pg_cron; capture db0
     use_migrations "$WORK/00000000000000_pg_cron.sql" "$REPO"/supabase/migrations/*.sql
+    # Thử giả thuyết thứ tự: SQUASH_REVERSION="<tên file>=<version mới> ..." đổi version BẢN SAO trong project thải bỏ (repo không đổi).
+    for kv in ${SQUASH_REVERSION:-}; do
+      old="${kv%%=*}"; new="${kv##*=}"
+      mv "$PROJ/supabase/migrations/$old" "$PROJ/supabase/migrations/${new}_${old#*_}"
+      echo ">> đổi version bản sao: $old -> ${new}_${old#*_}"
+    done
     echo ">> DB-1: $(ls "$PROJ"/supabase/migrations/*.sql | wc -l) file (gồm pg_cron)"
     reset_timed db1-316-file; capture db1
     make_baseline
