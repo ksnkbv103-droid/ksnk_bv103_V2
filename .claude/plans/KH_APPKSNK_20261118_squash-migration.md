@@ -94,3 +94,26 @@ Chặn: tiêu chí 1–2 của 4a chưa đo được, nên chưa có phép thử
 - **Ngoài phạm vi:** chuyển/xóa 316 file, sửa `sync-check`/`admin-health-check`/`acl-snapshot`, ghi prod.
 - **Cỡ:** ≤ 3 file. **Cần người:** dump prod đọc-only (PO chạy `pg_dump --schema-only`, hoặc authorize MCP Supabase, HANDOFF CẦN NGƯỜI mục 3); lệnh trước phải thử `db reset` bằng config repo trước.
 - Thứ tự thử (rẻ → đắt): `db reset` config repo → tên policy lệch → dump prod.
+
+## 7. Kết quả 4a′ (2026-11-18)
+
+**Nguyên nhân 139≠140 đã xác định:** commit `f44b7705` (2026-11-16, «bỏ chữ KPI khỏi migration cũ», PO «Sạch cả migration cũ») thay nội dung migration ĐÃ ÁP `20260729121000_ksnk_dm_muc_tieu_kpi.sql` (42 dòng: bảng `ksnk_dm_muc_tieu_kpi`, seed 85.0, RLS, policy `ksnk_dm_muc_tieu_kpi_select` + `ksnk_dm_muc_tieu_kpi_write_admin` dùng `public.fn_sys_has_permission('QUAN_TRI_HE_THONG', 'edit') OR public.is_admin_user()`) bằng stub `20260729121000_bang_muc_tieu_cu_da_go.sql` (`SELECT 1`). Policy thiếu khớp regex chốt: **`public.ksnk_dm_muc_tieu_kpi` · `ksnk_dm_muc_tieu_kpi_write_admin`**. Bảng bị drop sau ở `20261116100000_drop_bang_muc_tieu_cu.sql`, nên DB đang chạy (local, prod) không bị ảnh hưởng; chỉ đường dựng sạch hỏng. Không phải do thiết lập thải bỏ (loại trừ bằng lần 1 dưới).
+
+Phép thử (`scripts/squash-baseline-check.sh repo-reset`, `config.toml` của repo chỉ đổi `project_id` + cổng 554xx, seed bật như repo, không thêm `pg_cron`):
+
+| Lần | Chuỗi | Kết quả | Giây |
+|---|---|---|---|
+| 1 | 316 file nguyên repo | exit 1, áp 177 migration rồi lỗi y hệt 4a: `perf_rls_initplan guard failed: altered=139 md5=aaabe0baa34326a6118120066914c838` | 19 |
+| 2 | như 1, BẢN SAO `20260729121000` trả nội dung `git show f44b7705^:supabase/migrations/20260729121000_ksnk_dm_muc_tieu_kpi.sql` (`SQUASH_REPLACE`; md5 chuẩn hóa = `statements` trong ledger local, 0 khác) | exit 0, ledger 316 dòng, 198 policy `public`, «Finished supabase db reset.» | start (áp chuỗi + seed) 31 · `db reset` 34 |
+
+Repo không đổi: `git status -- supabase/migrations/` rỗng sau mọi lần chạy.
+
+**Ledger local lệch file:** so `statements` trong `supabase_migrations.schema_migrations` (DB local chính, đọc-only) với nội dung file (bỏ khoảng trắng và `;` hai phía): 28 migration khác (sửa sau khi áp), 30 dòng ledger không có `statements` (không so được). 28 version: `20260530000000 20260531200000 20260609060000 20260609061000 20260610060000 20260630140000 20260704120000 20260729121000 20260909004833 20261005160000 20261005181000 20261006025128 20261021010000 20261021020000 20261021030000 20261029100000 20261029150000 20261111170000 20261111190000 20261112120000 20261112130000 20261113100000 20261114100000 20261114130000 20261114180000 20261116100000 20261117100000 20261118130000`. Chỉ `20260729121000` đã chứng minh làm hỏng dựng sạch; 27 cái còn lại chưa đánh giá từng cái (lần 2 exit 0 nên không cái nào chặn dựng, nhưng schema có thể khác DB đang chạy).
+
+**So baseline (`all`, cùng `SQUASH_REPLACE` như lần 2; config tối giản + `pg_cron` như 4a):** DB-1 dựng được (`db reset` 28 giây; 32 916 dòng schema, 63 bảng `public`, 2 cron job). Lần đầu DB-2 lỗi `permission denied to change default privileges (SQLSTATE 42501)` ở `ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres` → script bỏ các dòng default ACL `supabase_admin` khỏi baseline nháp (DB-0 và DB-1 giống hệt nhau ở phần này, image đặt sẵn). Lần chạy lại (108 giây tổng; DB-2 dựng 26 giây): **`KẾT LUẬN: LỆCH`** — schema 632 dòng · catalog 18 dòng · data 0 · cron 0 · 63/63 bảng, 0 bảng lệch count/md5 · delta ngoài `public` 61 dòng. Lệch chính:
+- DB-2 thừa 331 dòng `GRANT ALL` (267 FUNCTION, 64 TABLE; 171 cho `anon`, 148 `authenticated`, 12 `service_role`): baseline nới quyền. Gốc: `pg_dump -n public` in `ALTER DEFAULT PRIVILEGES` ở cuối file, sau khi tạo đối tượng, và không mang default ACL toàn cục (`defacl|postgres||f|{postgres=X/postgres}`, tức thu EXECUTE hàm mới khỏi PUBLIC). 35 dòng `GRANT SELECT` của DB-1 bị gộp thành `GRANT ALL` ở DB-2 (cùng gốc).
+- Catalog: thiếu role `ci_migration_reader` (+ thành viên `postgres`, cấu hình `statement_timeout=10s,default_transaction_read_only=on`, quyền `USAGE` trên `supabase_migrations`); default ACL `postgres` ở `public` còn `anon`.
+- 5 dòng `CONSTRAINT ... CHECK` khác dạng in cast (`cssd_dm_hoa_chat_loai_chk`…), cần kiểm tương đương nghĩa.
+Tức baseline nháp hiện tại KHÔNG dùng được nguyên trạng; 4b phải đặt default ACL (kể cả toàn cục) trước khi tạo đối tượng và mang phần ngoài `public` (role, cấu hình role, ACL schema) rồi chạy lại đến khi `KHỚP`.
+
+**Hệ quả cho 4b (PO quyết):** baseline squash phải dựng từ DB-1 có thay `20260729121000` (như lần 2), hoặc trả nội dung gốc file đó vào repo (đi ngược chỉ đạo «Sạch cả migration cũ» 2026-11-16). Dù chọn cách nào, DB-1 dựng sạch chưa chắc bằng prod ở 27 migration lệch còn lại; phép thử độc lập với prod vẫn là diff schema DB-2 vs dump prod đọc-only (HANDOFF CẦN NGƯỜI mục 3).

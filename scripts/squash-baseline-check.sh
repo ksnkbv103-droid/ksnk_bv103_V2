@@ -60,9 +60,32 @@ EOF
   sb start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,postgres-meta,supavisor,realtime
 }
 
+setup_repo() {  # lát 4a′: config.toml CỦA REPO, chỉ đổi project_id + cổng; seed như repo; không thêm pg_cron
+  rm -rf "$PROJ" "$OUT"; mkdir -p "$PROJ/supabase/migrations" "$OUT"
+  cp -R "$REPO/supabase/seed.sql" "$REPO/supabase/seeds" "$PROJ/supabase/"
+  {
+    echo "project_id = \"$PID\""
+    awk '
+      /^\[api\]$/ { print; print "port = 55421"; next }
+      /^\[db\]$/  { print; print "shadow_port = 55420"; next }
+      /^port = 54322$/ { print "port = 55422"; next }
+      { print }' "$REPO/supabase/config.toml"
+    printf '\n[inbucket]\nport = 55424\n\n[analytics]\nport = 55427\n'
+  } > "$PROJ/supabase/config.toml"
+  echo ">> config repo (đã đổi cổng):"; grep -nE '^(project_id|port|shadow_port|\[)' "$PROJ/supabase/config.toml"
+}  # không start ở đây: seed bật nên phải chép migration trước (start trên volume mới tự áp chuỗi + seed)
+
 use_migrations() {  # $@ = các file .sql sẽ thành chuỗi migration
   rm -f "$PROJ"/supabase/migrations/*.sql
   cp "$@" "$PROJ/supabase/migrations/"
+}
+
+# SQUASH_REPLACE="<tên file trong chuỗi>=<file nguồn> ..." thay nội dung BẢN SAO (repo không đổi), vd bản gốc lấy từ git.
+replace_copies() {
+  for kv in ${SQUASH_REPLACE:-}; do
+    [ -f "$PROJ/supabase/migrations/${kv%%=*}" ] || { echo "SQUASH_REPLACE: không có ${kv%%=*} trong chuỗi — dừng" >&2; exit 2; }
+    cp "${kv##*=}" "$PROJ/supabase/migrations/${kv%%=*}"; echo ">> thay nội dung bản sao: ${kv%%=*} <- ${kv##*=}"
+  done
 }
 
 reset_timed() {  # $1 = nhãn; ghi giây vào timing.txt
@@ -111,7 +134,8 @@ make_baseline() {  # từ DB-1 đang chạy
       | awk -F'|' '{printf "CREATE EXTENSION IF NOT EXISTS \"%s\" WITH SCHEMA \"%s\";\n", $1, $2}'
     echo "-- Phần 2: schema public + dữ liệu (pg_dump -n public --column-inserts)"
     docker exec "$DBC" pg_dump -U postgres -d postgres -n public --column-inserts --rows-per-insert=100 \
-      | filt | sed 's/^CREATE SCHEMA public;$/CREATE SCHEMA IF NOT EXISTS public;/'
+      | filt | sed -e 's/^CREATE SCHEMA public;$/CREATE SCHEMA IF NOT EXISTS public;/' \
+          -e '/^ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin /d'  # image đặt sẵn (DB-0 = DB-1), postgres không có quyền đặt lại; so catalog vẫn kiểm
     echo "-- Phần 3: lịch pg_cron (chỉ khi extension có sẵn, giống các migration gốc)"
     echo 'DO $cron$ BEGIN'
     echo "  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN"
@@ -150,6 +174,7 @@ case "${1:-}" in
       mv "$PROJ/supabase/migrations/$old" "$PROJ/supabase/migrations/${new}_${old#*_}"
       echo ">> đổi version bản sao: $old -> ${new}_${old#*_}"
     done
+    replace_copies
     echo ">> DB-1: $(ls "$PROJ"/supabase/migrations/*.sql | wc -l) file (gồm pg_cron)"
     reset_timed db1-316-file; capture db1
     make_baseline
@@ -158,8 +183,19 @@ case "${1:-}" in
     reset_timed db2-baseline-nhap; capture db2
     compare
     ;;
+  repo-reset)  # lát 4a′ bước 1: chỉ dựng DB-1 bằng config repo, đo giây; không so
+    setup_repo; : > "$OUT/timing.txt"
+    use_migrations "$REPO"/supabase/migrations/*.sql
+    replace_copies
+    echo ">> DB-1 (config repo): $(ls "$PROJ"/supabase/migrations/*.sql | wc -l) file"
+    t0=$(date +%s); echo ">> start stack thải bỏ $PID (cùng dịch vụ với stack chính; volume mới tự áp chuỗi + seed)"
+    sb start -x imgproxy,edge-runtime,postgres-meta,supavisor
+    echo "start-ap-chuoi $(( $(date +%s) - t0 ))" >> "$OUT/timing.txt"
+    reset_timed db1-config-repo
+    echo ">> ledger: $(q -c 'select count(*) from supabase_migrations.schema_migrations') dòng; policy public: $(q -c "select count(*) from pg_policies where schemaname='public'")"
+    ;;
   down)
     sb stop --no-backup || true
     ;;
-  *) echo "Dùng: $0 all|down" >&2; exit 1 ;;
+  *) echo "Dùng: $0 all|repo-reset|down" >&2; exit 1 ;;
 esac
