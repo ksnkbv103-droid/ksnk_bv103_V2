@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261118 — Lát 4: squash migration (mở, chưa sửa gì)
 
-Trạng thái: MỞ 2026-11-18 theo lệnh «Mở lát 4» của PO · chỉ đo + chốt thẻ việc · `supabase/migrations/` KHÔNG đổi · chưa chạm prod · TC09 chưa đạt (xem Cần người).
+Trạng thái: 4a ĐÃ CHẠY 2026-11-18 — DB-1 (dựng sạch từ 316 file) KHÔNG dựng được, dừng ở file thứ 178; tiêu chí 1–2 chưa đo được; xem §5 · `supabase/migrations/` KHÔNG đổi · chưa chạm prod · TC09 chưa đạt (xem Cần người). Đề xuất: chọn B, không squash (chờ PO).
 Nguồn: `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` dòng lát 4 · `docs/reference/guides/migration-squash-runbook.md` (lệch, xem §1) · skill `destructive-change`.
 
 ## 1. Đo hiện trạng (2026-11-18, chỉ đọc)
@@ -49,3 +49,32 @@ Rủi ro cần chốt đầu 4a:
 - Mơ hồ đã thành số: «đủ nhanh» → < 120 giây (ngưỡng đề xuất, PO đổi được); «khớp» → diff 0 + md5.
 - Lệch tài liệu đã ghi: 316 vs 310 vs 92 (§1), runbook v2 vs thực tế (§1). Chưa sửa README/runbook, để 4b.
 - Mâu thuẫn: plan 17/11 ghi squash «CHỈ sau B5 + TC09 đạt»; HANDOFF ghi TC09 còn mở. 4a chỉ local nên không chạm điều kiện đó; 4b chờ TC09. Giả định này cần PO xác nhận.
+
+## 5. Kết quả 4a (2026-11-18)
+
+Cách làm: `scripts/squash-baseline-check.sh all` dựng project Supabase thải bỏ `ksnk_sq4a` (cổng 55420–55422, container `supabase_*_ksnk_sq4a`; stack chính `supabase_*_ksnk_bv103` không chạm, còn nguyên 9 container). DB-0 = chỉ `pg_cron` (dựng 25 giây). DB-1 = `pg_cron` + 316 file. Đã dừng và xóa stack thải bỏ sau khi đo (`down`: 0 container `ksnk_sq4a`).
+
+**Kết quả: DB-1 không dựng được.** `db reset` dừng ở file thứ 178/317 (gồm `pg_cron`; ledger DB-1 lúc lỗi: 177 dòng, version cuối `20261004183253`). Lỗi nguyên văn:
+
+```
+{"_tag":"Error","error":{"code":"MigrationApplyError","message":"ERROR: perf_rls_initplan guard failed: altered=139 md5=aaabe0baa34326a6118120066914c838 (SQLSTATE P0001)\nAt statement: 7 ... IF cnt <> 140 OR md5(acc) <> '60f7b186b28adace07e4fab005a2c6fa' THEN RAISE EXCEPTION 'perf_rls_initplan guard failed: altered=% md5=%', cnt, md5(acc);"}}
+```
+
+Migration lỗi: `supabase/migrations/20261004194907_perf_rls_initplan_20261005.sql:15-38` (khối DO có chốt cứng: phải sửa đúng 140 policy với md5 `60f7b186…`; DB sạch cho 139 và md5 khác).
+
+Nguyên nhân gốc (đã đọc, chưa chạy lại để chứng minh):
+- Migration liền trước, `20261004183253_security_p0_rls_cleanup_20261005.sql`, chỉ có 4 dòng: `SELECT 1;`, chú thích «Version này đã có trên production. SQL gốc nằm ở bản cùng tên (hoặc đã apply ngoài file git)… File no-op» (commit `cc85aea9`, 2026-10-07). DDL dọn RLS thật không nằm trong repo, nên tập policy trên DB sạch lệch prod.
+- Có 9 file stub kiểu này (`grep -l 'Version này đã có trên production'`): `20260907064308_nkbv_chua_phan_tich_rpc`, `20260909000147_security_harden_rpc_bodies_views_rls`, `20260909000342_security_harden_ledger_views_rls_indexes`, `20260909010503_nkbv_fact_ba_phan_tich`, `20260909010509_nkbv_loai_usi_seed`, `20260909013613_nkbv_pneu_non_vap_major_type`, `20260921063340_cssd_fact_kho_kiem_ke`, `20260927171313_qlcv_wave3_drop_dm_loai_trang_thai`, `20261004183253_security_p0_rls_cleanup_20261005`. Chưa biết stub nào còn thiếu DDL ngoài cái trên; file `migration_perf_rls_initplan_20261005.expanded.sql` mà chú thích tham chiếu không có trong repo (`git ls-files | grep expanded` rỗng).
+- Hệ quả: chuỗi 316 file KHÔNG phải nguồn sự thật dựng lại schema; nguồn thật là DB đang sống (local/prod). `trial:prep` = `env:bootstrap` + `env:check` (package.json:46), không dựng DB từ chuỗi, nên lỗi này chưa lộ.
+
+Đối chiếu từng tiêu chí `Xong khi`:
+
+| # | Tiêu chí | Kết quả | Bằng chứng |
+|---|---|---|---|
+| 1 | `pg_dump --schema-only` DB-1 vs DB-2 diff 0 | CHƯA ĐO được | DB-1 không tồn tại; script dừng ở bước dựng DB-1 (`script_exit=1`) |
+| 2 | count + md5 mọi bảng seed + `cron.job` khớp | CHƯA ĐO được | cùng lý do |
+| 3 | `git status -- supabase/migrations/` rỗng | ĐẠT | 0 dòng, kiểm lại sau lần chạy cuối |
+
+Số đo có: DB-0 dựng 25 giây (một file `pg_cron`); DB-1 dừng ở file 178/317, chưa có tổng thời gian; baseline hiện tại 11 593 dòng, 102 file có `INSERT INTO`, 4 file gọi `cron.schedule` (đều có chốt `pg_cron` tồn tại).
+
+Phán quyết theo quy tắc §2: chuỗi cũ không dựng được từ DB sạch, nên không thể kiểm baseline mới bằng cách đối chiếu với chuỗi. Phương án A giữ nguyên điều kiện «DB-2 khớp DB-1» thì không kiểm được; baseline sinh từ DB sống sẽ ghi lại cả những gì chuỗi không có, và không có phép thử độc lập. Đề xuất cho PO: **chọn B** (giữ 316 file, thêm snapshot `pg_dump -Fc` từ DB sống làm đường dựng local), và ghi nợ «chuỗi migration không tự dựng được DB sạch: 9 stub + chốt cứng 140/md5» vào `SO_NO_APPKSNK.md`. Nếu PO vẫn muốn A: lát tiếp theo phải lấy DDL thật của 9 stub từ prod (đọc, không ghi) rồi mới dựng lại DB-1; ngoài phạm vi 4a, cần PO duyệt.
