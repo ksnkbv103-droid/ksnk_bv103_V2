@@ -17,7 +17,9 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
-import { isNkbvBenhAnInScope } from "./nkbv-khoa-scope.server";
+import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { verifyPermission } from "@/lib/server-permission";
+import { getNkbvCensusAccess, getNkbvIdentityScope, isNkbvBenhAnInScope } from "./nkbv-khoa-scope.server";
 
 const KHOA_A = { kind: "khoa", khoaId: "A" } as const;
 
@@ -73,5 +75,46 @@ describe("isNkbvBenhAnInScope — ca có mã BA nhưng chưa có hồ sơ BA/lư
   it("BA đã có hồ sơ, khoa điều trị là khoa mình: trong phạm vi", async () => {
     db.ba = { khoa_dieu_tri_id: "A" };
     expect(await isNkbvBenhAnInScope(KHOA_A, "BA-A")).toBe(true);
+  });
+});
+
+const scopeBase = {
+  roles: [] as string[],
+  actorNhanSuId: null,
+  actorKhoaId: null as string | null,
+  isAdmin: false,
+  isNhanVienKsnk: false,
+  isMangLuoiKsnk: false,
+  isGuestStatsOnly: false,
+};
+const setScope = (over: Partial<typeof scopeBase>) =>
+  vi.mocked(getActorKsnkScope).mockResolvedValue({ ...scopeBase, ...over });
+
+describe("NKBV-038: vai có GIAM_SAT_NKBV:view ngoài KSNK chỉ nhận danh sách người bệnh của khoa mình", () => {
+  it("getNkbvIdentityScope: vai ngoài KSNK có khoa → khoa của mình, không toàn viện", async () => {
+    setScope({ roles: ["TO_TRUONG_CSSD_TEST"], actorKhoaId: "A" });
+    expect((await getNkbvIdentityScope()).restriction).toEqual({ kind: "khoa", khoaId: "A" });
+  });
+
+  it("getNkbvIdentityScope: vai ngoài KSNK chưa gán khoa → không thấy gì", async () => {
+    setScope({ roles: ["TO_TRUONG_CSSD_TEST"] });
+    expect((await getNkbvIdentityScope()).restriction).toEqual({ kind: "none" });
+  });
+
+  it("getNkbvIdentityScope: NV KSNK vẫn toàn viện", async () => {
+    setScope({ roles: ["NHAN_VIEN_KSNK"], isNhanVienKsnk: true, actorKhoaId: "A" });
+    expect((await getNkbvIdentityScope()).restriction).toEqual({ kind: "all" });
+  });
+
+  it("getNkbvCensusAccess (đường có quyền NKBV view): vai ngoài KSNK → khoa của mình", async () => {
+    setScope({ roles: ["TO_TRUONG_CSSD_TEST"], actorKhoaId: "A" });
+    const r = await getNkbvCensusAccess();
+    expect(r.restriction).toEqual({ kind: "khoa", khoaId: "A" });
+    expect(r.viaGscOnly).toBe(false);
+  });
+
+  it("getNkbvCensusAccess: Hội đồng vẫn toàn viện (NKBV-041)", async () => {
+    setScope({ roles: ["HOI_DONG_KSNK"], actorKhoaId: "A" });
+    expect((await getNkbvCensusAccess()).restriction).toEqual({ kind: "all" });
   });
 });

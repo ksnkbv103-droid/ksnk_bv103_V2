@@ -19,6 +19,23 @@ export function resolveNkbvKhoaRestriction(
   return khoaId ? { kind: "khoa", khoaId } : { kind: "none" };
 }
 
+/**
+ * NKBV-038: phạm vi cho đường đọc DANH SÁCH NGƯỜI BỆNH CÓ DANH TÍNH (census MDRO/RCA, hub, vi sinh…), mặc định ĐÓNG.
+ * Toàn viện chỉ cho admin, NV KSNK, Hội đồng và Chủ nhiệm khoa (≡ TK_KSNK, M03) không kiêm Mạng lưới; mọi vai khác
+ * có quyền xem NKBV (kể cả vai ngoài KSNK) chỉ thấy khoa của mình, chưa gán khoa → `none`.
+ * Khớp `fn_nkbv_actor_khoa_restricted` (migration 20261118130000) để app và RLS không lệch.
+ * KHÔNG dùng cho thống kê: phạm vi thống kê vẫn là `resolveNkbvKhoaRestriction`.
+ */
+export function resolveNkbvIdentityRestriction(
+  scope: Pick<ActorKsnkScope, "isAdmin" | "isNhanVienKsnk" | "isMangLuoiKsnk" | "actorKhoaId" | "roles">,
+): NkbvKhoaRestriction {
+  const wide = scope.isAdmin || scope.isNhanVienKsnk || scope.roles.includes("HOI_DONG_KSNK");
+  const cnkToanVien = !scope.isMangLuoiKsnk && scope.roles.includes("CHU_NHIEM_KHOA");
+  if (wide || cnkToanVien) return { kind: "all" };
+  const khoaId = scope.actorKhoaId?.trim() || "";
+  return khoaId ? { kind: "khoa", khoaId } : { kind: "none" };
+}
+
 /** Khoa thấy được của một hồ sơ: khoa điều trị hiện tại hoặc bất kỳ khoa nào trên lưới ngày. */
 export function nkbvKhoaVisible(
   r: NkbvKhoaRestriction,

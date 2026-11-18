@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isNkbvHoiDongOnly, nkbvKhoaVisible, resolveNkbvKhoaRestriction } from "./nkbv-khoa-scope";
+import {
+  isNkbvHoiDongOnly,
+  nkbvKhoaVisible,
+  resolveNkbvIdentityRestriction,
+  resolveNkbvKhoaRestriction,
+} from "./nkbv-khoa-scope";
 
 const base = { isAdmin: false, isNhanVienKsnk: false, isMangLuoiKsnk: false, actorKhoaId: null, roles: [] as string[] };
 
@@ -52,5 +57,37 @@ describe("nkbvKhoaVisible", () => {
     expect(nkbvKhoaVisible(r, ["k2", undefined])).toBe(false);
     expect(nkbvKhoaVisible({ kind: "none" }, ["k1"])).toBe(false);
     expect(nkbvKhoaVisible({ kind: "all" }, [])).toBe(true);
+  });
+});
+
+describe("resolveNkbvIdentityRestriction (NKBV-038: đường đọc danh sách người bệnh có danh tính, mặc định ĐÓNG)", () => {
+  it("admin, NV KSNK, Hội đồng → toàn viện", () => {
+    expect(resolveNkbvIdentityRestriction({ ...base, isAdmin: true })).toEqual({ kind: "all" });
+    expect(resolveNkbvIdentityRestriction({ ...base, isNhanVienKsnk: true })).toEqual({ kind: "all" });
+    expect(resolveNkbvIdentityRestriction({ ...base, roles: ["HOI_DONG_KSNK"] })).toEqual({ kind: "all" });
+  });
+
+  it("Chủ nhiệm khoa (≡ TK_KSNK, M03) không kiêm Mạng lưới → toàn viện", () => {
+    expect(resolveNkbvIdentityRestriction({ ...base, roles: ["CHU_NHIEM_KHOA"], actorKhoaId: "k1" })).toEqual({ kind: "all" });
+  });
+
+  it("Mạng lưới kiêm Chủ nhiệm khoa vẫn bị khóa vào khoa mình (không nới so với trước)", () => {
+    expect(
+      resolveNkbvIdentityRestriction({ ...base, isMangLuoiKsnk: true, roles: ["CHU_NHIEM_KHOA"], actorKhoaId: "k1" }),
+    ).toEqual({ kind: "khoa", khoaId: "k1" });
+  });
+
+  it("Mạng lưới thuần → khoa mình; chưa gán khoa → không thấy gì", () => {
+    expect(resolveNkbvIdentityRestriction({ ...base, isMangLuoiKsnk: true, actorKhoaId: " k1 " })).toEqual({ kind: "khoa", khoaId: "k1" });
+    expect(resolveNkbvIdentityRestriction({ ...base, isMangLuoiKsnk: true })).toEqual({ kind: "none" });
+  });
+
+  it("vai ngoài KSNK có quyền xem NKBV (ví dụ TO_TRUONG_CSSD_TEST) → chỉ khoa mình; chưa gán khoa → không thấy gì", () => {
+    expect(resolveNkbvIdentityRestriction({ ...base, roles: ["TO_TRUONG_CSSD_TEST"], actorKhoaId: "k1" })).toEqual({ kind: "khoa", khoaId: "k1" });
+    expect(resolveNkbvIdentityRestriction({ ...base, roles: ["TO_TRUONG_CSSD_TEST"] })).toEqual({ kind: "none" });
+  });
+
+  it("không đổi phạm vi thống kê: resolveNkbvKhoaRestriction vẫn toàn viện cho vai ngoài KSNK", () => {
+    expect(resolveNkbvKhoaRestriction({ ...base, roles: ["TO_TRUONG_CSSD_TEST"], actorKhoaId: "k1" })).toEqual({ kind: "all" });
   });
 });

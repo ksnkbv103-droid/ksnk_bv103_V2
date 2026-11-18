@@ -7,6 +7,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import {
   isNkbvHoiDongOnly,
   nkbvKhoaVisible,
+  resolveNkbvIdentityRestriction,
   resolveNkbvKhoaRestriction,
   type NkbvKhoaRestriction,
 } from "./nkbv-khoa-scope";
@@ -21,7 +22,7 @@ export async function getNkbvKhoaRestriction(): Promise<NkbvKhoaRestriction> {
  */
 export async function getNkbvIdentityScope(): Promise<{ restriction: NkbvKhoaRestriction; identityDenied: boolean }> {
   const scope = await getActorKsnkScope();
-  return { restriction: resolveNkbvKhoaRestriction(scope), identityDenied: isNkbvHoiDongOnly(scope) };
+  return { restriction: resolveNkbvIdentityRestriction(scope), identityDenied: isNkbvHoiDongOnly(scope) };
 }
 
 /**
@@ -42,7 +43,7 @@ export async function getNkbvCensusAccess(): Promise<{
   } catch {
     hasNkbvView = false;
   }
-  if (hasNkbvView) return { restriction: resolveNkbvKhoaRestriction(scope), viaGscOnly: false, identityDenied };
+  if (hasNkbvView) return { restriction: resolveNkbvIdentityRestriction(scope), viaGscOnly: false, identityDenied };
   // Đọc bằng admin client nên không xét vai rộng: chỉ khoa của chính họ, không có khoa thì không thấy gì.
   const khoaId = scope.actorKhoaId?.trim() || "";
   return { restriction: khoaId ? { kind: "khoa", khoaId } : { kind: "none" }, viaGscOnly: true, identityDenied };
