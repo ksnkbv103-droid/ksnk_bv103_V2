@@ -4,7 +4,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## ĐANG LÀM
 - CSSD-034 (DA_SUA): lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT). Còn mở: dòng MOI «sau khi đảo» (xuất lại/NXT, cần PO).
-- Chạy nối 18/11: 17 DA_SUA, gồm NKBV-045 `6330f4b5`, NKBV-033 `04ce599d`, NKBV-043 `b8c2f54f` (review Go có điều kiện; tay 5 ca DAT) và NKBV-037 (tay lại DAT). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; áp prod = CHO_PO, phải đo prod (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK trước. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037, NKBV-044 (CNK xem BN khoa mình hay toàn viện). Kế (phiên mới): `next` → xác minh NKBV-045 (db-verify).
+- Chạy nối 18/11: 18 DA_SUA, gồm NKBV-046 `95d6af58` + NKBV-045 `6330f4b5` (tay CHUA, cần fixture GSC-only), NKBV-033 `04ce599d`, NKBV-043 `b8c2f54f` (tay 5 ca DAT), NKBV-037 (tay DAT). NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; áp prod = CHO_PO, phải đo prod (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK trước. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037, NKBV-044 (CNK xem BN khoa mình hay toàn viện). `next` chỉ còn CHO_PO (NKBV-041).
 - CSSD-032 `3165749c`: ĐÃ ÁP PROD 18/11 (PO duyệt; ledger `20261117235006` cssd_hc_chan_trung_su_co; 0 sự cố trùng trước).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 `e908e7e0` deploy xong; còn TC09 (mục 4).
@@ -29,7 +29,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Điểm cơ học: chạy `npm run module:audit`; bước thiếu (1, 2, 5, 8, 9, 10) cần PO, sửa mã không nâng được.
 - `module:gate`: giam-sat CHẠY_THỬ · cssd XÂY (đầu mối Nguyễn Thanh Bình) · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ; 4 module chưa có đầu mối.
 - Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
-- Dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload sai từ client, hoặc cần tài khoản chỉ có quyền GSC/Mạng lưới (chưa có fixture).
+- Dòng `test_tay=CHUA`: phần lớn là race, giới hạn số dòng, payload client, hoặc cần tài khoản GSC/Mạng lưới (chưa có fixture).
 
 ## CẦN NGƯỜI (Lát E) — im = không push, không áp prod
 1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo; đợt thử đầu gồm module nào; trạng thái NKBV (đang KHÁM_PHÁ nhưng nhiều commit `feat`).
