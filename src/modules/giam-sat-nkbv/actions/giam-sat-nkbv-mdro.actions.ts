@@ -11,7 +11,7 @@ import {
   type NkbvMdroPhenotype,
 } from "../lib/nkbv-mdro";
 import { vnYmd } from "@/lib/format-datetime-vi";
-import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 
 export type MdroInpatientRow = {
@@ -60,9 +60,13 @@ export async function listMdroInpatientsByKhoa(params: {
   if (restriction.kind === "none") {
     return { success: false as const, error: NKBV_GSC_NO_KHOA_ERROR, data: [] as MdroInpatientRow[] };
   }
+  // NKBV-046: khoa bị giới hạn mà client xin khoa khác → lỗi rõ, không trả BN khoa mình dưới nhãn khoa lạ (cùng mẫu listInpatientsByKhoa).
+  const khoaXin = params.khoaId ? String(params.khoaId).trim() : "";
+  if (restriction.kind === "khoa" && khoaXin && khoaXin !== restriction.khoaId) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as MdroInpatientRow[] };
+  }
   const supabase = viaGscOnly ? createAdminSupabaseClient() : await createServerSupabaseUserClient();
-  const khoaId =
-    restriction.kind === "khoa" ? restriction.khoaId : params.khoaId ? String(params.khoaId).trim() : "";
+  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : khoaXin;
   const limit = Math.min(Math.max(params.limit || 200, 1), 500);
 
   let stayQ = supabase

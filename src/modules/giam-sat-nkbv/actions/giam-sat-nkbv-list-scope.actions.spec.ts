@@ -63,12 +63,26 @@ beforeEach(() => {
 });
 
 describe("NK-SCOPE danh sách MDRO / RCA theo khoa", () => {
-  it("kind=khoa: ép khoaId theo quyền, bỏ qua client", async () => {
+  it("kind=khoa: khoa đúng hoặc rỗng → ép khoa của mình", async () => {
     mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: K1 });
-    await listMdroInpatientsByKhoa({ khoaId: K2 });
+    await listMdroInpatientsByKhoa({ khoaId: K1 });
     await listMdroInpatientsByKhoa({ khoaId: "" });
-    await listNkbvPatientRcaByKhoa({ khoaId: K2 });
-    expect(khoaEqs()).toEqual([K1, K1, K1]);
+    await listNkbvPatientRcaByKhoa({ khoaId: K1 });
+    await listNkbvPatientRcaByKhoa({ khoaId: "" });
+    expect(khoaEqs()).toEqual([K1, K1, K1, K1]);
+  });
+
+  // gate-ok: NKBV-046 — kỳ vọng cũ «khoa lạ → vẫn trả BN khoa mình» làm ô khoa của panel gắn nhãn sai; đổi thành lỗi OUT_OF_SCOPE, không truy vấn.
+  it("NKBV-046 kind=khoa: chọn khoa khác khoa mình → OUT_OF_SCOPE, không truy vấn", async () => {
+    mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: K1 });
+    expect(await listMdroInpatientsByKhoa({ khoaId: K2 })).toEqual({ success: false, error: "OUT_OF_SCOPE", data: [] });
+    expect(await listNkbvPatientRcaByKhoa({ khoaId: K2 })).toEqual({ success: false, error: "OUT_OF_SCOPE", data: [] });
+    expect(await getPatientMdroSupervisionStatus({ maBenhAn: "BA1", khoaId: K2 })).toMatchObject({
+      success: false,
+      error: "OUT_OF_SCOPE",
+    });
+    expect(mocks.eq).not.toHaveBeenCalled();
+    expect(mocks.admin).not.toHaveBeenCalled();
   });
 
   // gate-ok: NKBV-043 — kỳ vọng cũ «none → success []» chính là lỗi (báo «không có BN» khi chưa gán khoa); đổi thành lỗi rõ, giữ số expect.
@@ -90,8 +104,8 @@ describe("NK-SCOPE danh sách MDRO / RCA theo khoa", () => {
   it("NKBV-005 GSC-only trong khoa: đọc bằng admin client, ép khoa của mình", async () => {
     mocks.viaGsc.v = true;
     mocks.restriction.mockResolvedValue({ kind: "khoa", khoaId: K1 });
-    await listMdroInpatientsByKhoa({ khoaId: K2 });
-    await listNkbvPatientRcaByKhoa({ khoaId: K2 });
+    await listMdroInpatientsByKhoa({ khoaId: K1 });
+    await listNkbvPatientRcaByKhoa({ khoaId: "" });
     expect(khoaEqs()).toEqual([K1, K1]);
     expect(new Set(mocks.admin.mock.calls.map((c) => c[0]))).toEqual(new Set(["admin"]));
   });

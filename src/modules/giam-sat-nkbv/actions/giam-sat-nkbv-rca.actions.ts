@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
-import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvCensusAccess, NKBV_GSC_NO_KHOA_ERROR, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { GSC_BK_ISOLATION, GSC_BK_MDRO } from "../lib/nkbv-mdro";
 
@@ -44,7 +44,12 @@ export async function listNkbvPatientRcaByKhoa(params: { khoaId: string; limit?:
   if (restriction.kind === "none") {
     return { success: false as const, error: NKBV_GSC_NO_KHOA_ERROR, data: [] as NkbvPatientRcaRow[] };
   }
-  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : String(params.khoaId || "").trim();
+  // NKBV-046: khoa bị giới hạn mà client xin khoa khác → lỗi rõ, không trả BN khoa mình dưới nhãn khoa lạ.
+  const khoaXin = String(params.khoaId || "").trim();
+  if (restriction.kind === "khoa" && khoaXin && khoaXin !== restriction.khoaId) {
+    return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as NkbvPatientRcaRow[] };
+  }
+  const khoaId = restriction.kind === "khoa" ? restriction.khoaId : khoaXin;
   if (!khoaId) return { success: false as const, error: "Thiếu khoa", data: [] as NkbvPatientRcaRow[] };
 
   const supabase = viaGscOnly ? createAdminSupabaseClient() : await createServerSupabaseUserClient();
