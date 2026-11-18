@@ -1,6 +1,6 @@
-# Báo cáo tổng thể và chiến lược KSNK BV103 — 2026-11-13 (bản 2)
+# Báo cáo tổng hợp KSNK BV103 — tổng thể và chiến lược 2026-11-13 (bản 2), gộp 2026-11-18
 
-Thay [`BAO-CAO-RA-SOAT-2026-11-05.md`](BAO-CAO-RA-SOAT-2026-11-05.md) và [`BAO-CAO-CAI-TO-2026-11-06.md`](BAO-CAO-CAI-TO-2026-11-06.md) làm **bản nhìn tổng thể hiện hành**. Hai bản cũ giữ làm chứng cứ. Nhánh `integrate/2026-11`. **§4 (chiến lược, cổng G1–G6) đã gộp vào bộ 3 file (PO duyệt 2026-11-16):** lộ trình hiện hành ở [`01 §6.3`](docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md); các mục còn lại giữ nguyên.
+**Gộp 2026-11-18 (PO: `git rm`, không giữ bản rời):** file này là báo cáo duy nhất trong `docs/archive/bao-cao/`. Phần chính (§0–§6) là bản tổng thể 2026-11-13; **Phụ lục A** rút gọn báo cáo nền móng 2026-11-13, **Phụ lục B** rút gọn báo cáo rà soát 2026-11-05 và cải tổ 2026-11-06. Nguyên văn các bản cũ: `git show 5618ae82:docs/archive/bao-cao/<tên cũ>.md` (`BAO-CAO-RA-SOAT-2026-11-05`, `BAO-CAO-CAI-TO-2026-11-06`, `BAO-CAO-NEN-MONG-2026-11-13`, `BAO-CAO-TONG-THE-2026-11-13`). Nhánh `integrate/2026-11`. **§4 (chiến lược, cổng G1–G6) đã gộp vào bộ 3 file (PO duyệt 2026-11-16):** lộ trình hiện hành ở [`01 §6.3`](../../bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md); các mục còn lại giữ nguyên.
 
 **Nguồn và mức tin cậy:**
 - Tài liệu SSOT từng module, danh sách route `src/app/**/page.tsx` (đếm lại 2026-11-13), sổ lỗi, roadmap §5, báo cáo đối chiếu NHSN 2026 (2026-11-11).
@@ -358,3 +358,57 @@ G4 (QLCV) và G5 (Đào tạo) có thể chạy song song với G3 (CSSD), vì n
 - Rủi ro NKBV §3.3 lấy từ bản đối chiếu NHSN 2026 (agent đọc mã, chưa chạy ca thử).
 - `target_roles`: chỉ biết vắng trong migration repo; chưa biết trạng thái prod.
 - Đếm commit theo đường dẫn: commit chạm nhiều module được đếm ở mỗi module.
+
+---
+
+# Phụ lục A — Nền móng: nguồn → quy trình → đặc tả → lược đồ → app (rút gọn từ báo cáo 2026-11-13)
+
+Nguyên văn: `git show 5618ae82:docs/archive/bao-cao/BAO-CAO-NEN-MONG-2026-11-13.md`. Số đo dưới đây là **ảnh chụp 2026-11-13**, không cập nhật; đo lại trước khi trích.
+
+**Kết luận gốc:** chuỗi nguồn → quy trình → đặc tả → ca kiểm thử đã dựng ở kho `KSNK_BENH_VIEN_103`, nhưng app không nối vào: 0 file trong `src/`, `docs/`, `supabase/migrations/` tham chiếu mã quy tắc R/TH/T/XM của đặc tả. Khoảng 40 lệnh kiểm đều trả lời «code có chạy không», không lệnh nào trả lời «code có đúng quy trình không».
+
+**Số đo 2026-11-13:** 138 file quy trình `[HIỆN HÀNH]` (175 file đang sửa chưa commit); đặc tả M01–M15: bước B=760, quy tắc R=685, số liệu K=295, ca T=487, 0 lỗi cấu trúc, còn 520 nhãn «CẦN XÁC MINH» và 192 «giả định»; bản đối chiếu đặc tả ↔ app (2026-11-07) mới ở cấp tên bảng, nháp; 430 file test, 0 file dẫn mã R.
+
+**Xung đột mở (quyết định lâm sàng của PO; báo cáo không chọn thay):** mẻ tiệt khuẩn không đạt. KSNK.QT.20 `[HIỆN HÀNH]` dòng 95 và đặc tả M05 B5.37: làm sạch lại từ đầu (coi như dụng cụ bẩn). App `docs/modules/cssd/18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md:177` («PO chốt lại 2026-10-10»): về `DONG_GOI`, bỏ bước làm sạch. Tình trạng hiện nay: chưa có dòng sổ lỗi theo dõi (grep `QT.20`/`DONG_GOI` trong `so-loi.json` 2026-11-18 không khớp dòng nào); cần PO quyết, có thể mở dòng sổ.
+
+**Đã giải quyết:** ngưỡng VST (từng là hằng số có test khóa, chưa ai chốt) = khóa PO 2026-11-01: <85 đỏ · 85–<90 vàng · ≥90 xanh, mẫu tối thiểu 50 theo khoa/kỳ; cài qua `ksnk_dm_tham_so` (migration `20261118100000`, `20261118110000`).
+
+**Quy tắc đặc tả chưa thấy trong code VST** (tìm theo từ khóa, chỉ kết luận «chưa thấy»): R1.03 từ chối nhập bù sau 24 giờ · R1.10 đủ thời gian chà (cồn ≥ 20 giây, nước ≥ 40 giây) · R1.11 chỉ tính cơ hội của phiên đã xác nhận/khóa · R1.15 ẩn tỷ lệ khi mẫu số < 10. Cần kiểm trên code hiện hành.
+
+**Sáu tầng và cổng** (`01 §8` trích bảng này): T0 Nguồn (mỗi câu QT dẫn về nguồn) → T1 Quy trình (đã commit, hết XM trong phần số hóa) → T2 Sổ quyết định (mọi XM đã «chốt» hoặc «chấp nhận tạm, giá trị X») → T3 Đặc tả M0x (`kiem_domain.py` sạch, phản biện độc lập) → T4 Lược đồ và tham số (mỗi bảng/cột dẫn về thực thể ở M; giá trị chưa chốt để NULL) → T5 Code và test (mỗi R «chặn» ≥ 1 test dẫn mã) → T6 Dùng thật (ý kiến quay về T1/T2, không sửa thẳng T5). Ba luật: (1) không có mã R thì không viết quy tắc vào code; (2) R còn XM mở chỉ cài dạng tham số, không hằng số, không test khóa giá trị; (3) sửa QT thì R liên quan bị đánh dấu nghi ngờ.
+
+**Hàng đợi module:** VST/GSC truy vết ngược gắn mã R, lập danh sách R chưa cài · CSSD dừng viết thêm đến khi chốt xung đột M04–M06 rồi đi T2 → T5 · NKBV chốt bộ định nghĩa NHSN năm nào (đã đi theo NHSN 2026, xem `HANDOFF_APPKSNK.md`) · QLCV, Đào tạo bắt đầu từ T1. Ý tưởng công cụ: lệnh `trace` gắn mã R ↔ code/test ra bảng «đã cài / chưa cài / lệch» (chưa làm; tên có thể đã đổi, cần kiểm).
+
+**Câu hỏi PO còn treo (từ §8, cần đối chiếu sổ):** M01–M15 có là nguồn yêu cầu duy nhất của app không · ai đóng các XM, trong bao lâu · cho phép gộp lệnh, dọn công cụ.
+**Chưa kiểm khi viết:** §2 tìm theo từ khóa (quy tắc có thể cài dưới tên khác); chưa đếm lệch từng R cho M02–M06; chưa đọc nội dung repo tham khảo ngoài README; chưa đo prod; chưa có phản biện độc lập.
+
+# Phụ lục B — Rà soát 2026-11-05 và cải tổ 2026-11-06 (rút gọn)
+
+Nguyên văn: `git show 5618ae82:docs/archive/bao-cao/BAO-CAO-RA-SOAT-2026-11-05.md` và `…/BAO-CAO-CAI-TO-2026-11-06.md`. Số đo là ảnh chụp 2026-11-06: 216.654 dòng TS/TSX · 52 `page.tsx` · 263 mục migration (82 trong 10/2026) · prod 250 migration đã apply, 57 bảng, 21 auth user (4 đăng nhập 30 ngày). Không dùng làm số hiện hành.
+
+**B.1 Lát sửa đã làm (nhánh `chore/code-vs-ai-phase1`, 2026-11-06; trạng thái prod xem sổ):**
+
+| Lát | Commit | Nội dung |
+|---|---|---|
+| A1 | `789d84b0` | chat-thai-do-vai: quyền view, zod, `HAU_CAN_MOI_TRUONG` |
+| A2 | `5b33c6f0` | CSSD scan/lifecycle/register-label: gate trước ghi, zod |
+| A3 | `42ff680e` | NKBV import/phân tích/BA ngày, QLCV định kỳ, báo cáo tổng hợp, in sự cố |
+| B1 | `a6a72672` | thu quyền RPC BOM về service_role, kiểm quyền thống kê chất thải |
+| B2 | `52a083b3` | idempotency `client_request_id` VST/GSC + hàng đợi offline (đóng câu PO #6) |
+| B3 | `c7bd5347` | RPC nguyên tử: quét trạm, cấp phát, hủy kho lẻ |
+| C1 | `fec700c8`, `7bc6b1e4` | fallback RPC đúng mã, audit fail-closed, duyệt đề nghị, recall (review No-go → sửa 3 finding) |
+| C2 | `24e2be14` | DOE trước nhập viện = ngày nhập viện (RIT/HD), badge chờ XN, CSSD bundle theo lockNetwork |
+| C3 | `5530bf63` | QLCV (đóng, actor board counts), VST (clamp, xóa phiên) |
+| D/E | `752ddeb6` | Esc picker/dialog, catch sổ cân, bỏ id trùng `bc-waste-linen` |
+
+Kiểm chứng cuối lúc đó: `tsc` 0 lỗi; `test:cssd` 389 file / 2307 test pass; `eslint` 0 error / 59 warning.
+
+**B.2 Hoãn (chưa đối chiếu sổ — cần kiểm):** audit phân quyền trong cùng transaction RPC · trạng thái riêng cho phiếu đã ghi danh mục + UI chốt thủ công · server re-check chrono-precedence · recall ghi đè `lo_tiet_khuan_id` · `nkbv_fact_labid_event.vi_sinh_id` trong `isViSinhInUse` · `setDinhKyMauActive`, duyệt `dexuat` không scope · `vst-write-save-session` đọc phiên cũ không lọc `is_active` · 14 nhãn «&»→«và» (9 file), 59 warning unused vars.
+
+**B.3 Trả lời PO 2026-11-05:** (1) `resolveNkbvKhoaRestriction` trả `all` cho user ngoài mạng lưới: chờ PO xác nhận (KSNK xem toàn viện là chủ ý thì không sửa) · (2) chuyển BA sang khoa khác do nhân viên KSNK làm, chỉ kiểm `khoa_id` tồn tại và trong phạm vi · (3) DOE trước ngày nhập viện quy về ngày nhập viện, cho cả RIT và HD · (4) `getIncidentForPrint`: khoa nào in khoa đó, KSNK in tất cả · (5) QLCV quyền `create` đúng · (6) `client_request_id`: đã làm ở B2 · (7) IWP viêm nội tâm mạc: mã dùng 21 ngày (`nkbv-ch17-criteria.ts:29`), cần kiểm với tài liệu.
+
+**B.4 Quyết định PO 2026-11-06 (9):** (1) 90 ngày đầu dồn VST+GSC+thống kê, sau đó CSSD; NKBV/QLCV/Đào tạo ưu tiên thấp (khớp thứ tự trong CLAUDE.md dự án) · (2) không xóa file chết đến khi PO xem danh sách cụ thể · (3) giữ cả hai nguồn công thức (RPC + TS), thêm spec chống lệch · (4) giữ `ty_le_ccs` · (5) giữ ngưỡng, ghi «chưa có căn cứ» (ngưỡng VST đã chốt lại 2026-11-01, xem Phụ lục A) · (6) coi Auth prod chưa an toàn cho đến khi xác nhận signup, JWT TTL, rate-limit · (7) số QT lấy từ thư mục soạn quy trình làm chuẩn · (8) quy trình chưa có chỗ trong app (QT.01, 02, 04, 05, 09, 34, 35, 36…) không đưa vào lộ trình · (9) chỉ giữ khả năng độc lập nền tảng: adapter PoC VST, không di chuyển.
+
+**B.5 Ý tưởng còn giá trị (chưa làm, cần PO):** (a) adapter nhỏ `src/lib/data-access/` với 3 cổng `getActor()`, `db(role)`, `rpc(name,args)`; PoC trên VST (≈ 19 `.from()` + 2 RPC, ước lượng chưa đo); tiêu chí: VST không còn import `@supabase/*` ngoài lớp này và `test:cssd` vẫn pass; không bọc toàn bộ PostgREST · (b) thống kê theo 5 chuyên đề: ① vệ sinh tay (QT.06) ② PPE + tiêm an toàn (QT.07, 08) ③ vệ sinh môi trường (QT.10) ④ chất thải + đồ vải (QT.11, 12) ⑤ gói phòng ngừa NK (QT.28–31, 33); làm ① trước, ②–⑤ khi GSC ổn · (c) từ điển chỉ số: mỗi chỉ số một dòng (tử số, mẫu số, nguồn duy nhất, kỳ, phạm vi, ngưỡng + căn cứ, người quyết định).
+
+**B.6 Đã đóng, không còn là việc mở:** `must_change_password` ở `user_metadata` (sổ 2026-11-13: ĐẠT) · `client_request_id` (B2) · số QT lệch VST (QT.06 trong kho, QT.07 trong docs app: theo kho). Còn nợ bảo mật mức thấp từ báo cáo gốc (token sống sau vô hiệu hóa nhân sự, form public không throttle IP, `ilike` coi `_`/`%` là wildcard): cần đối chiếu sổ trước khi mở lại.
