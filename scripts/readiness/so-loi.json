@@ -1681,10 +1681,10 @@
     "tieu_de": "Kho hóa chất: trần 40 sự cố chưa ghi kho áp trước bước xác định hóa chất, và hai truy vấn cssd_dm_hoa_chat bỏ qua lỗi",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-kho-hoa-chat-su-co.actions.ts:74 cắt 40 rồi mới xác định hóa chất; dòng 159 .filter(r => r.dm_hoa_chat_id) bỏ sự cố không xác định được hóa chất sau khi chúng đã chiếm chỗ trong 40 → đủ 40 sự cố không xác định thì sự cố xác định được không hiện. Dòng 101 và 115: const { data: dms } không kiểm error → truy vấn lỗi thì sự cố gán theo mã nhãn biến mất im lặng, sự cố gán theo id hiện tên rỗng.",
     "lenh_kiem": "npm run test:cssd -- src/modules/cssd-erp",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "vong-cssd-031-lan-can",
     "commit": "",
-    "ghi_chu": "Phát hiện khi sửa CSSD-031, ngoài phạm vi nên chưa sửa. Mức THẤP: sự cố không xác định được hóa chất vốn không ghi xuất được (nút Ghi xuất cần dm_hoa_chat_id). Hướng sửa: xác định hóa chất ngay trong vòng quét trang rồi mới đếm đủ 40; kiểm error của hai truy vấn danh mục."
+    "ghi_chu": "Phát hiện khi sửa CSSD-031, ngoài phạm vi nên chưa sửa. Mức THẤP: sự cố không xác định được hóa chất vốn không ghi xuất được (nút Ghi xuất cần dm_hoa_chat_id). Hướng sửa: xác định hóa chất ngay trong vòng quét trang rồi mới đếm đủ 40; kiểm error của hai truy vấn danh mục. | Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. su-co.actions.ts:73 cắt 40 trước khi xác định hóa chất, :159 lọc dm_hoa_chat_id sau; hai truy vấn dms (~101, ~115) không kiểm error. DB local 0 sự cố CHEMICAL nên chưa xảy ra thật."
   },
   {
     "id": "CSSD-036",
@@ -1774,10 +1774,10 @@
     "tieu_de": "Mở chi tiết phiên GSC không tồn tại hoặc đã xóa mềm trả lỗi PostgREST thô thay vì «Không tìm thấy phiên.»; nhánh kiểm null là mã chết",
     "bang_chung": "src/modules/giam-sat-chung/actions/giam-sat-chung-session-detail.actions.ts:37-44 — .single() ở dòng 41 ném lỗi khi 0 dòng (view v_gstt_giam_sat_chung_sessions_full loại phiên is_active=false), if (sErr) throw ở dòng 43 chuyển lỗi thô cho người dùng, nhánh if (!ses) ở dòng 44 không bao giờ chạy",
     "lenh_kiem": "grep -n -e 'single()' -e 'maybeSingle()' src/modules/giam-sat-chung/actions/giam-sat-chung-session-detail.actions.ts (kỳ vọng maybeSingle ở truy vấn phiên)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "P1:VST_GSC",
     "commit": "",
-    "ghi_chu": "Phương án dự kiến: .maybeSingle() ở dòng 41, giữ nhánh if (!ses) trả «Không tìm thấy phiên.»; test fail-trước: mock supabase trả data null, kỳ vọng success false với đúng thông báo đó."
+    "ghi_chu": "Phương án dự kiến: .maybeSingle() ở dòng 41, giữ nhánh if (!ses) trả «Không tìm thấy phiên.»; test fail-trước: mock supabase trả data null, kỳ vọng success false với đúng thông báo đó. | Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. session-detail.actions.ts:41 .single(), :43 throw, :44 mã chết; view lọc COALESCE(s.is_active,true)=true (pg_get_viewdef local); catch :80-81 trả getErrorMessage → người dùng thấy lỗi PostgREST thô. Chưa chạy thử thông điệp thật."
   },
   {
     "id": "NKBV-030",
@@ -1960,10 +1960,10 @@
     "tieu_de": "getNkbvCensusAccess bỏ qua isGuestStatsOnly: tài khoản KHACH_THONG_KE_GSTT (chỉ có GIAM_SAT_CHUNG:view) mà có khoa thì đọc census MDRO/RCA của khoa đó kèm họ tên bằng admin client",
     "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-khoa-scope.server.ts:25-28 (không có GIAM_SAT_NKBV view → {kind:'khoa'} + viaGscOnly=true, không xét isGuestStatsOnly); giam-sat-nkbv-mdro.actions.ts:31-36 assertCensusRead chấp nhận GIAM_SAT_CHUNG:view, dòng 53 đọc bằng createAdminSupabaseClient(); giam-sat-nkbv-rca.actions.ts:41 tương tự. Local: 1 tài khoản KHACH_THONG_KE_GSTT, 0 tài khoản có khoa nên chưa tái hiện được. Đường UI của khách bị chặn theo đường dẫn (src/lib/auth/guest-stats-access.ts:13-17) nên chỉ gọi trực tiếp server action mới tới được.",
     "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/lib/nkbv-census-access.server.spec.ts (thêm ca: khách thống kê có khoa → {kind:'none'})",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "vòng VST-023 (hệ quả RLS và rà đường rò GSC, 2026-11-14)",
     "commit": "",
-    "ghi_chu": "Xác minh trước khi sửa: cần seed một tài khoản khách có khoa để tái hiện. Mặc định đề xuất: khách thống kê → {kind:'none'} kèm thông báo; không đổi hành vi cho Mạng lưới thuần chỉ có quyền GSC (thiết kế NKBV-005)."
+    "ghi_chu": "Xác minh trước khi sửa: cần seed một tài khoản khách có khoa để tái hiện. Mặc định đề xuất: khách thống kê → {kind:'none'} kèm thông báo; không đổi hành vi cho Mạng lưới thuần chỉ có quyền GSC (thiết kế NKBV-005). | Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. nkbv-khoa-scope.server.ts:25-39 không xét isGuestStatsOnly (cờ có sẵn ở actor-ksnk-scope-server.ts:55); KHACH_THONG_KE_GSTT có GIAM_SAT_CHUNG:view (20260718110000_ensure_khach_thong_ke_role.sql:19-23). Giảm nhẹ: khoa lấy từ mdm_nhan_su theo auth_user_id; local 1 tài khoản khách khoa_id NULL → restriction none, trả NKBV_GSC_NO_KHOA_ERROR. Chỉ khai thác được nếu quản trị gán khoa cho tài khoản khách."
   },
   {
     "id": "NKBV-034",
@@ -2013,10 +2013,10 @@
     "tieu_de": "NKBV/GSC giao diện: khi action danh sách người bệnh trả lỗi (kể cả bị chặn theo NKBV-032) màn hình nói như «khoa không có BN đa kháng»: panel MDRO/RCA hiện hai toast trùng và bảng trống, form header GSC nuốt lỗi im lặng",
     "bang_chung": "src/modules/giam-sat-nkbv/components/NkbvMdroCensusPanel.tsx:34-35 gọi listMdroInpatientsByKhoa và listNkbvPatientRcaByKhoa song song, :38 và :40 mỗi nhánh toast.error(error) nên câu NKBV_HOI_DONG_IDENTITY_DENIED hiện hai lần; khi lỗi mdroRows không bị đặt lại nên bảng rơi vào dòng «Không có BN đa kháng còn nằm viện tại khoa.» (:96-100); panel gắn ở src/modules/giam-sat-nkbv/components/GiamSatNkbvPage.tsx:1016. src/components/shared/GiamSatHeaderPatientFields.tsx: nhánh !res.success đặt setInpatients([]) không toast ở :91-94 (MDRO) và :110-113 (listInpatientsByKhoa, gọi ở :108); :145-146 else setStatus(null) (getPatientMdroSupervisionStatus gọi ở :139); placeholder «Không có BN đa kháng còn nằm tại khoa» và «Không có BN còn nằm viện tại khoa — nhập tay bên dưới» (:191-192) cùng dòng gợi ý «Chưa có BN đa kháng tại khoa — …» (:242-246) hiện cả khi nguyên nhân là bị chặn quyền hoặc lỗi tải, không phải khoa không có ca. Đã đọc mã, chưa chạy giao diện.",
     "lenh_kiem": "Test tay trên localhost: đăng nhập tài khoản chỉ có vai HOI_DONG_KSNK → NKBV → tab MDRO/RCA: chỉ còn một thông báo giải thích và không có dòng «Không có BN đa kháng…»; form header GSC: lỗi hiện thành thông báo chứ không phải «Không có BN…»; tài khoản CB_KSNK không đổi",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "vòng NKBV-032 (hệ quả: đường đọc còn hở, 2026-11-14)",
     "commit": "",
-    "ghi_chu": "Hệ quả trực tiếp của NKBV-032 (nhận diện lúc rà, chưa sửa vì sẽ là file thứ 9 của vòng). Nâng từ THAP lên TRUNG_BINH vì câu «không có BN đa kháng» là sai sự thật khi nguyên nhân là bị chặn hoặc lỗi tải, người đọc có thể hiểu nhầm khoa không có ca MDRO. Hành vi nuốt lỗi ở GiamSatHeaderPatientFields có từ trước NKBV-032. Mặc định đề xuất: tách trạng thái lỗi khỏi trạng thái rỗng (một khung giải thích tĩnh hoặc một toast, không hai); khi lỗi thì không hiện dòng «không có BN». Không cần PO. Hệ quả nếu PO im: người bị chặn hoặc gặp lỗi tải thấy thông báo khoa không có người bệnh."
+    "ghi_chu": "Hệ quả trực tiếp của NKBV-032 (nhận diện lúc rà, chưa sửa vì sẽ là file thứ 9 của vòng). Nâng từ THAP lên TRUNG_BINH vì câu «không có BN đa kháng» là sai sự thật khi nguyên nhân là bị chặn hoặc lỗi tải, người đọc có thể hiểu nhầm khoa không có ca MDRO. Hành vi nuốt lỗi ở GiamSatHeaderPatientFields có từ trước NKBV-032. Mặc định đề xuất: tách trạng thái lỗi khỏi trạng thái rỗng (một khung giải thích tĩnh hoặc một toast, không hai); khi lỗi thì không hiện dòng «không có BN». Không cần PO. Hệ quả nếu PO im: người bị chặn hoặc gặp lỗi tải thấy thông báo khoa không có người bệnh. | Xác minh 2026-11-18 (db-verify + đọc lại): DUNG, giữ TRUNG_BINH. NkbvMdroCensusPanel.tsx:34-40 mỗi nhánh lỗi toast riêng, cả mdro.actions.ts và rca.actions.ts:37 trả cùng NKBV_HOI_DONG_IDENTITY_DENIED → hai toast trùng; mdroRows không đặt lại, dòng rỗng :96-100 chỉ xét length. Riêng NKBV_GSC_NO_KHOA_ERROR chỉ ở nhánh mdro. GiamSatHeaderPatientFields.tsx: !res.success → setInpatients([]) không báo (:92-95, :112-115); câu rỗng ở :206-207 và :259 (số dòng lệch nhẹ so với bằng chứng gốc)."
   },
   {
     "id": "NKBV-038",
@@ -2106,10 +2106,10 @@
     "tieu_de": "Thẻ kế hoạch giám sát xếp khoa theo khoa_id (UUID), không theo tên/mã khoa",
     "bang_chung": "src/lib/analytics/SupervisionKeHoachCard.tsx:83 rows.map giữ nguyên thứ tự RPC; fn_gstt_ke_hoach_tien_do có ORDER BY kh.khoa_id. Quan sát :3001 (ADMIN, tháng 11/2026, 3 khoa lập): thứ tự hiển thị B05 → GV → A03, không theo tên.",
     "lenh_kiem": "Lập kế hoạch ≥3 khoa trên thẻ (/thong-ke/vst), đọc thứ tự dòng: phải theo tên/mã khoa ổn định giữa các lần tải",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "uat-ke-hoach-giam-sat",
     "commit": "",
-    "ghi_chu": ""
+    "ghi_chu": "Xác minh 2026-11-18 (db-verify): DUNG, giữ THAP. 20261118110000_gstt_ke_hoach_giam_sat.sql fn_gstt_ke_hoach_tien_do ORDER BY kh.khoa_id (pg_get_functiondef local khớp); SupervisionKeHoachCard.tsx:83 và ke-hoach-giam-sat.actions.ts không sort. Sửa gọn: sort theo tenKhoa ở client."
   },
   {
     "id": "VST-034",
@@ -2132,9 +2132,9 @@
     "tieu_de": "Sau khi đảo phiếu xuất (CSSD-034): sự cố vẫn bị coi «đã có phiếu» nên không lập lại phiếu xuất; cảnh báo/NXT còn tính phiếu gốc đã đảo; đảo HET_HAN_HUY cộng tồn lô quá hạn",
     "bang_chung": "supabase/migrations/20261118090000* (CSSD-032 chặn phiếu XUẤT thứ hai cho cùng su_co_id, không loại phiếu đã có ngược DA_DUYET); src/modules/cssd-erp/actions/cssd-kho-hoa-chat-canh-bao.actions.ts: xuat_su_dung_30n vẫn cộng phiếu gốc đã bị đảo (đếm thừa tiêu thụ); báo cáo NXT/thẻ kho (src/lib/domain/cssd-kho-hoa-chat-the-kho.ts) tính phiếu ngược là nhập theo dấu; rpc_cssd_kho_hoa_chat_duyet_phieu không kiểm hạn dùng với số dương nên đảo phiếu lý do HET_HAN_HUY cộng lại tồn lô đã quá hạn. Đã biết từ lát A CSSD-034 (commit 61148266), chủ ý chưa xử lý trong lát đó.",
     "lenh_kiem": "đọc vị từ CSSD-032 trong migration 20261118090000 và vòng NHAP của cssd-kho-hoa-chat-canh-bao.actions.ts; sau khi sửa: test spec canh-bao + RPC probe (ghi → đảo → duyệt ngược → ghi lại phiếu xuất cho cùng sự cố phải được)",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "cssd-034-lat-a",
     "commit": "",
-    "ghi_chu": "Cần PO chốt cách đọc: sau đảo, sự cố được lập lại phiếu xuất mới (đề xuất: có) và phiếu gốc đã đảo có tính vào tiêu thụ 30 ngày không (đề xuất: không). Cũng ghi: acl-snapshot tbl_anon_ghi 42→41 là lệch có sẵn của DB local bị ghi theo ở commit 61148266, không do lát A."
+    "ghi_chu": "Cần PO chốt cách đọc: sau đảo, sự cố được lập lại phiếu xuất mới (đề xuất: có) và phiếu gốc đã đảo có tính vào tiêu thụ 30 ngày không (đề xuất: không). Cũng ghi: acl-snapshot tbl_anon_ghi 42→41 là lệch có sẵn của DB local bị ghi theo ở commit 61148266, không do lát A. | Xác minh 2026-11-18 (db-verify, chỉ đọc mã, chưa probe): (a) DUNG — 20261118090000_cssd_hc_chan_trung_su_co.sql:64-70 chỉ lọc su_co_id/is_active/trang_thai<>TU_CHOI; phiếu ngược đặt su_co_id NULL có chủ ý (20261118120000:6,123) → sự cố đã đảo không lập lại phiếu xuất được, su-co.actions.ts ~70 cũng coi là «đã ghi». (b) DUNG, TRUNG_BINH — canh-bao.actions.ts:44-50 bỏ qua NHAP có phieu_goc_id nhưng vẫn cộng XUAT gốc vào xuat_su_dung_30n. (c) SAI — the-kho.ts:62-77 cộng theo dấu, phiếu ngược +q ở cột nhập là đúng ghi sổ kho (chỉ thiếu nhãn «ngược»; NXT chưa mở). (d) DUNG nhưng hợp lý kế toán — 20261029130000:211-212 chỉ kiểm hạn khi so_luong_co_dau<0. CHO_PO: (1) sự cố đã đảo có được lập lại phiếu xuất (đề xuất: có, cần migration mới sửa vị từ CSSD-032 — đã ở prod); (2) phiếu xuất gốc đã đảo có tính tiêu thụ 30 ngày (đề xuất: không); (3) đảo phiếu HET_HAN_HUY có cho cộng lại lô quá hạn (đề xuất: cho, kèm ghi chú)."
   }
 ]
