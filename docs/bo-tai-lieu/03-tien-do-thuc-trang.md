@@ -313,7 +313,7 @@ Khớp HANDOFF 11-13: 31 + 1 + 9 = 41. Số chính xác và «prod chạy sha n�
 
 ### Thứ tự áp lô RLS và điều kiện kiểm
 
-- Thứ tự (KH 11-14 §6–§7, sổ VST-025): VST-003 `20261108100000` → `20261114150000` (VST-015) → `20261114160000` (VST-026) → `20261114170000` (VST-023, GSC; cuối lô VST-025). `20261114180000` (NKBV-035) KHÔNG áp: PO 11-17 (K5, «sửa P3») cho Hội đồng thấy danh tính; file chờ gỡ khỏi repo (NKBV-041). Các file RLS `150000/160000/170000` không có BEGIN/COMMIT nên chỉ áp qua MCP `apply_migration`, không dùng psql autocommit.
+- Thứ tự (KH 11-14 §6–§7, sổ VST-025): VST-003 `20261108100000` → `20261114150000` (VST-015) → `20261114160000` (VST-026) → `20261114170000` (VST-023, GSC; cuối lô VST-025). `20261114180000` (NKBV-035) KHÔNG áp: PO 11-17 (K5, «sửa P3») cho Hội đồng thấy danh tính; file đã gỡ khỏi repo (NKBV-041, `aecd3eb6`). Các file RLS `150000/160000/170000` không có BEGIN/COMMIT nên chỉ áp qua MCP `apply_migration`, không dùng psql autocommit.
 - Mâu thuẫn VST-003: HANDOFF 11-12 ghi đã áp (`20261112022506`), sổ VST-025 ghi chưa: «cần kiểm» bằng `list_migrations`.
 - NKBV-011 `20261112090000`: kiểm mọi ADMIN đã gắn `mdm_nhan_su` trước khi áp. NKBV-008 `20261112100000`: sau khi áp, kiểm `proacl` chỉ còn `service_role`. DT-006 `20261112120000`: không deploy mã trước khi áp (prod chưa có cột `huy_*`).
 - AR-8h (`20261111150400`, bỏ khóa `DANH_MUC`, `DANH_MUC_GSTT`, `DANH_MUC_CSSD_LOOKUP`, giữ `DANH_MUC_ORG`): áp cùng lúc deploy code, chạy 2 query kiểm trước, hỏi PO.
@@ -350,7 +350,7 @@ KH 11-14 §7 nói các mục này đủ mặc định, nhưng sổ chỉ ghi m�
 | VST-025 (CAO) | áp lô migration RLS đọc phiên VST lên prod (`20261108100000` rồi `20261114150000`); chưa áp thì CNK và HĐ gọi thẳng PostgREST còn đọc toàn viện kèm danh tính; mâu thuẫn HANDOFF 11-12: «cần kiểm» bằng `list_migrations` | không ghi |
 | VST-028 | đặc tả R1.34 cần vai ĐDT/CN_KHOA lâm sàng xem danh sách có danh tính của khoa mình; RBAC chưa có vai này (`CHU_NHIEM_KHOA` là chủ nhiệm khoa KSNK) | không ghi |
 | VST-031 | `CHU_NHIEM_KHOA` không có `GIAM_SAT_CHUNG:view` (chỉ GIAM_SAT_VST approve và view) nên không mở được GSC, dù đặc tả M02 cho TK_KSNK đọc toàn viện, sửa muộn và CNK ≡ TK_KSNK | không ghi |
-| NKBV-041 (CAO) | ~~áp `20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql` lên prod~~: PO 11-17 (K5, «sửa P3») chọn KHÔNG áp, Hội đồng thấy danh tính; còn gỡ file này và probe khỏi repo, DB local | đã chọn: prod giữ policy hiện hành |
+| NKBV-041 (CAO) | ~~áp `20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql` lên prod~~: PO 11-17 (K5, «sửa P3») chọn KHÔNG áp, Hội đồng thấy danh tính; đã gỡ file này và probe khỏi repo, DB local (`aecd3eb6`) | đã chọn: prod giữ policy hiện hành |
 | NKBV-042 | `ma_ca` nhúng 12 ký tự đầu của mã bệnh án (không phải mã giả hóa), nên NKBV-018 vẫn để lộ mã bệnh án cho người chỉ có quyền CSSD | giữ NKBV-018, chưa code che; PO im thì không đổi mã đã sinh |
 
 ### PO trả lời phiếu hỏi 2026-11-17
@@ -368,7 +368,7 @@ Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng ch�
 | VST-025 | Duyệt áp lên prod (P2) | `CHO_PO` | cần lệnh trong chính lượt áp và MCP Supabase được cấp quyền qua `/mcp`; chạy truy vấn chỉ đọc ở `lenh_kiem` trước |
 | VST-028 | Cần ĐDT/chủ nhiệm khoa lâm sàng xem danh sách có tên của khoa mình (N3) | `CHO_PO` | chờ tên vai riêng và người giữ vai (đổi quyền người dùng thật là cổng PO) |
 | VST-031 | CNK được mở GSC, đọc toàn viện (N4) | `DA_XAC_MINH` | migration seed `GIAM_SAT_CHUNG:view` cho `CHU_NHIEM_KHOA`, local trước |
-| NKBV-041 | K5: Hội đồng thấy danh tính; P3 sửa thành không áp sáu policy chặn Hội đồng | `DA_XAC_MINH` | tầng app đã gỡ chặn (lát 1); còn lát 2: gỡ `20261114180000` + probe khỏi repo và DB local. Đến lúc đó DB local vẫn chặn Hội đồng thuần; KHÔNG áp prod |
+| NKBV-041 | K5: Hội đồng thấy danh tính; P3 sửa thành không áp sáu policy chặn Hội đồng | `DA_SUA` (`aecd3eb6`) | tầng app đã gỡ chặn (lát 1); lát 2: đã gỡ `20261114180000` + probe khỏi repo và DB local (policy đếm 0). KHÔNG áp prod |
 | NKBV-042 | Không đổi gì (K6) | `HOAN` | giữ `ma_ca` và NKBV-018 như hiện tại |
 
 ### Cổng PO khác
