@@ -1,39 +1,40 @@
 # HANDOFF_APPKSNK — Rà 5 module để vận hành thử (cập nhật 2026-11-18)
 
-File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`test_tay` của sổ. Bản đầy đủ trước khi rút gọn: `git show ae5ca6fd:HANDOFF.md`. `so-loi.mjs check` FAIL khi file này > 6000 byte.
+File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_tay` của sổ. `so-loi.mjs check` FAIL khi file này > 6000 byte. Khôi phục file đã gộp/xóa: `git show 5618ae82:<đường dẫn>` (`HANDOFF_APPKSNK_NKBV.md`, `docs/archive/bao-cao/BAO-CAO-{RA-SOAT-2026-11-05,CAI-TO-2026-11-06,NEN-MONG-2026-11-13,TONG-THE-2026-11-13}.md`); bản đầy đủ cũ: `git show ae5ca6fd:HANDOFF.md`.
+
+## TIẾN ĐỘ HIỆN TẠI (đo 2026-11-18: `so-loi.mjs stats` · `check` · `npm run module:gate`)
+- Sổ 166 dòng: MOI 0 · DA_XAC_MINH 1 · LOI_GIA 16 · DANG_SUA 0 · DA_SUA 131 (có test/migration 107) · HOAN 10 · CHO_PO 8 (`so-loi.mjs status`). Tay: DAT 57 · CHUA 8 · KHONG_DAT 0.
+- Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check`: VST_GSC chưa đạt (VST-025), NKBV chưa đạt (NKBV-041), 5 module kia không còn lỗi chặn. Hai FAIL này có từ trước đợt gộp tài liệu.
+- Nhánh `claude/consolidate-reports-progress-46e328` (gộp HANDOFF + `docs/archive/bao-cao/BAO-CAO-TONG-HOP.md`) chưa vào `integrate/2026-11`; gộp khi PO đồng ý.
 
 ## ĐANG LÀM
-- Chạy nối 18/11: CSSD-034 (DA_SUA) lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT; còn mở dòng «sau khi đảo» = CSSD-037, cần PO). 18 DA_SUA, gồm NKBV-046 `95d6af58` + NKBV-045 `6330f4b5` (tay DAT, fixture local đã hoàn), NKBV-033 `04ce599d`, NKBV-043 `b8c2f54f` (tay 5 ca DAT), NKBV-037 (tay DAT). NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; áp prod = CHO_PO, phải đo prod (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK trước. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037. NKBV-044 đã sửa (CNK xem khoa mình; tay DAT). `next` chỉ còn CHO_PO (NKBV-041).
+- Chạy nối 18/11: CSSD-034 DA_SUA, lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO) + lát B `c44f87db` (drawer «Lập phiếu ngược», tay DAT; dòng «sau khi đảo» = CSSD-037, cần PO). NKBV-046/045/033/043/037/044 đã sửa, tay DAT. NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; trước khi áp prod phải đo (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037.
 
-## Đã xong (không đếm lát)
-- CSSD-032 `3165749c` ĐÃ ÁP PROD 18/11 (ledger `20261117235006`, 0 sự cố trùng trước) · Lát 2: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module) · Lát 1: PR #131 `e908e7e0` deploy xong, còn TC09 (CẦN NGƯỜI mục 4).
+## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)
+- Xong: 31 ca hồi quy (`lib/__fixtures__/nhsn2026/`); SSI PATOS chỉ là nhãn; VAE baseline/PEEP; BSI `excl_*`; PNEU; BONE IWP 21 ngày. `npm run test:cssd -- src/modules/giam-sat-nkbv` → 676 passed | 2 skipped; `tsc` sạch.
+- Dở (không có trong sổ): DOE theo tầng sâu nhất (`resolveSsiDoe` đang lấy sớm nhất) · cửa sổ ±2 (V10.27) chưa có chỗ cài · `excl_*` chưa tay trên UI (cần `.env.local`); B4.56 ô «Commensal: 2 lần lấy máu riêng» (`draft.bsiCommensalSeparate`, PO 11-12) · PNU3 không cần xét nghiệm, mẫu máu `table2Culture` (P6.20/60), chất lượng đờm (P6.53–55) · G2.02 mới có cờ `is_fungi_respiratory`, thiếu Pneumocystis/Paracoccidioides/véc-tơ.
+- Lệch lâm sàng chờ PO: UTI sốt đơn độc app đòi ≤65 tuổi (`nkbv-rules-engine.ts:616-619`), gói U7.19/24/36 nói mọi tuổi.
 
 ## KẾ
-- Lát 3b xong (nợ: SO_NO). Lát 4: plan `KH_APPKSNK_20261118_squash-migration.md` §5–7.
-- Nhánh 18/11 (21 commit đã push; phần gộp chưa push: `git status -sb`): integrate đã gộp nkbv, chore, audit, monitoring. Monitoring theo khóa PO 11-01 (đỏ <85, vàng 85–<90, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) qua `ksnk_dm_tham_so`: migration `20261118100000` (6 dòng từ 2026-11-01) + `20261118110000` (kế hoạch, đổi số từ `20261101010000`). Áp local; áp prod = CHO_PO. Tay UI kế hoạch đạt gồm KB8 không-admin (VST-032); VST-034 LOI_GIA.
+- Lát 3b xong (nợ: SO_NO). Lát 4: `KH_APPKSNK_20261118_squash-migration.md` §5–7.
+- Monitoring theo khóa PO 11-01 qua `ksnk_dm_tham_so`: migration `20261118100000` + `20261118110000` áp local; áp prod = CHO_PO. VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
+- Đã xong: CSSD-032 `3165749c` áp prod 18/11 · `KSNK_PILOT_FOUR_MODULES` (công tắc TẮT) · PR #131 deploy xong, còn TC09.
 
 ## Mở phiên mới
-1. Làm ở worktree `integrate-2026-11` (nhánh `integrate/2026-11`; `git status -sb` xem số commit chưa push).
-2. `node scripts/readiness/so-loi.mjs status` → `next 10` → `next --tay` → `stats`.
-3. Bật `dev-local` (:3001, DB local) bằng `preview_start`.
-4. Fixture thử tay: NV_TEST01 gốc chỉ có vai NHAN_VIEN_KSNK, khoa C18. Đã đổi tạm thì phải trả về gốc cuối phiên. Mật khẩu NV_TEST01 đang là giá trị thử; `npm run trial:prep` đặt lại.
-5. Vòng một việc theo CLAUDE.md dự án; dòng `lop=DB` → `migration-author`, `VAN_HANH` → chờ PO. Tay: làm trên :3001, đối chiếu DB local, rồi `tay <ID> DAT|KHONG_DAT|CHUA "<ghi chú>"`; không dựng được trên UI → `CHUA` kèm «chỉ spec».
-6. Trạng thái module: `npm run module:gate` (đầu mối CSSD Nguyễn Thanh Bình; 4 module còn lại chưa có đầu mối) · điểm cơ học: `npm run module:audit`.
+1. Làm ở worktree `integrate-2026-11`. `so-loi.mjs status` → `next 10` → `next --tay` → `stats`; bật `dev-local` (:3001) bằng `preview_start`.
+2. Fixture tay: NV_TEST01 gốc chỉ vai NHAN_VIEN_KSNK, khoa C18; đổi tạm thì trả về gốc cuối phiên (`npm run trial:prep` đặt lại mật khẩu).
+3. Vòng một việc theo CLAUDE.md dự án; `lop=DB` → `migration-author`, `VAN_HANH` → chờ PO. Tay: `tay <ID> DAT|KHONG_DAT|CHUA "<ghi chú>"`; không dựng được trên UI → `CHUA` «chỉ spec».
 
 ## CẦN NGƯỜI (Lát E) — im = không push, không áp prod
-1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo; đợt thử đầu gồm module nào; trạng thái NKBV (đang KHÁM_PHÁ nhưng nhiều commit `feat`).
-2. PO chốt 11-13 (đã sửa, sha trong sổ): CSSD-017 ủ BI ≥20', NKBV-023 ẩn ca chốt = ADMIN + lý do, NKBV-026 LOA máy chủ; CSSD-025 HOAN. Còn treo: câu 7 GSC, DT-008. Mặc định Claude 2026-11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 giờ đọc tương lai (dung sai 2 phút).
-3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004 và đối chiếu prod.
-4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`): nhóm A đã áp prod 17/11 (37/37 khớp). Cửa sổ rủi ro §3.4 đã đóng; B1–B5 đã áp (17/11). Còn: TC09 do PO; mở dashboard VST/GSC prod xem số sau B2.
-5. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (làm gọn mã mọi module, 13 câu hỏi; im = không xóa gì).
-6. Lát 4 (A): 4a′ xong, hỏng do `f44b7705` stub hóa `20260729121000` (plan §7). PO chọn thay ở bản sao; 4b chờ lệnh phá hủy + TC09.
+1. Tên đầu mối VST/GSC, NKBV, QLCV, Đào tạo (CSSD: Nguyễn Thanh Bình); đợt thử đầu gồm module nào.
+2. Mặc định Claude 11-13 chờ PO bác (đảo = revert sha trong sổ): QLCV-010, QT-012, NKBV-018, VST-013a, CSSD-017 (dung sai 2 phút). Còn treo: câu 7 GSC, DT-008.
+3. Authorize MCP Supabase (`/mcp`) để gỡ NEN-003, CSSD-004, đối chiếu prod.
+4. Lô prod pha 1 (`.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md`) đã áp 17/11; còn TC09 (PO) và xem dashboard VST/GSC prod sau B2.
+5. Duyệt `.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md` (13 câu; im = không xóa gì).
+6. Lát 4 (A): 4a′ xong, hỏng do `f44b7705` stub hóa `20260729121000` (plan §7); 4b chờ lệnh phá hủy + TC09.
 
-## Lát chưa mở / nợ
-- Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai + chọn cả hàng/cột) trên ma trận trang × thao tác hiện có.
-- Thử tay (18/11): ĐẠT 57; 8 mục CHUA không lối UI (race, payload client, thiếu fixture GSC/Mạng lưới), có spec/probe pass. Chưa sửa: nút «Phê duyệt và giao» hiện cho người đề xuất; banner NKBV có link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
-- Review 2026-11-13: Đào tạo 6 action ghi qua `requireDaoTaoAdmin` (DT-016, d1ab156f). Nợ «break-glass ở RPC QLCV» đóng, không sửa: PO 11-11 (QLCV-003) chốt chỉ ADMIN/CNK thật, app đã khớp (`getActorRbacRoleNamesStrict`).
-- Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import (chỉ seed, không migration).
-
-## Lệnh kiểm chứng
-`node scripts/readiness/so-loi.mjs check` · `npm run verify:changed` · `npm run docs:links:check` · `npm run module:gate`
+## Nợ khác
+- Ý tưởng chờ PO: «gói quyền nhanh» (gán sẵn theo vai) trên ma trận trang × thao tác.
+- Tay 8 mục CHUA không có lối UI (race, payload client, thiếu fixture GSC/Mạng lưới), spec/probe pass. Chưa sửa: nút «Phê duyệt và giao» hiện cho người đề xuất; banner NKBV link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD. Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import.
+- Lệnh kiểm chứng: `node scripts/readiness/so-loi.mjs check` · `npm run verify:changed` · `npm run docs:links:check` · `npm run module:gate`

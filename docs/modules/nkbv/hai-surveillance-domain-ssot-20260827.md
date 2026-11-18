@@ -77,7 +77,7 @@ Bảng/hình bị xen cột hoặc là ảnh (Ch.04 Table 3,5,6,8; Ch.06 Table 1
 - Kết luận: theo gói 2026, sốt tính cho **mọi tuổi**, kể cả không có IUC. Gói chỉ là bản 2026 nên **không chứng minh** được mốc ≤65 là thay đổi 2025→2026 hay chưa từng có; nhưng không có cơ sở giữ mốc 65 trong SSOT này (grep SSOT 2025 cũng không có «65»).
 - App hiện lệch: `nkbv-rules-engine.ts:616-619` chỉ cho sốt đơn độc khi ≤65 tuổi nếu không có IUC. Chưa sửa (ngoài phạm vi lát GĐ0–2 đã chốt); ghi vào HANDOFF để PO quyết sửa theo gói.
 
-**Thay đổi lệch app ↔ 2026 đang xử lý theo thứ tự rủi ro** (SSI PATOS, VAE baseline/PEEP, BSI loại trừ, PNEU, BONE IWP/RIT): xem `HANDOFF_APPKSNK_NKBV.md` và báo cáo đối chiếu; mỗi lát ghi mã tiêu chí bám.
+**Thay đổi lệch app ↔ 2026 đang xử lý theo thứ tự rủi ro** (SSI PATOS, VAE baseline/PEEP, BSI loại trừ, PNEU, BONE IWP/RIT): xem `HANDOFF_APPKSNK.md` (mục NKBV → NHSN 2026); mỗi lát ghi mã tiêu chí bám.
 
 ### 0.4. Từ điển thời gian (không nhầm cửa sổ)
 
