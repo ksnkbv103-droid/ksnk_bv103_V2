@@ -40,7 +40,9 @@ const mocks = vi.hoisted(() => ({
       boByKhoa: [],
     },
   })),
-  createUserClient: vi.fn(async () => ({})),
+  createUserClient: vi.fn(async () => ({ __user: true })),
+  createAdminClient: vi.fn(() => ({ __admin: true })),
+  fetchWeeks: vi.fn(async (..._a: unknown[]): Promise<boolean | null> => null),
   getScope: vi.fn(async (): Promise<{ isAdmin: boolean; isNhanVienKsnk: boolean; isMangLuoiKsnk: boolean; actorKhoaId: string | null }> => ({ isAdmin: true, isNhanVienKsnk: true, isMangLuoiKsnk: false, actorKhoaId: null })),
   verifyPerm: vi.fn(async () => undefined),
   thongKe: vi.fn(async () => ({ stats: {}, insights: [] })),
@@ -81,7 +83,15 @@ vi.mock("@/modules/cssd-erp/contexts/reporting/analytics", () => ({
 
 vi.mock("@/lib/supabase-server", () => ({
   createServerSupabaseUserClient: mocks.createUserClient,
+  createAdminSupabaseClient: mocks.createAdminClient,
 }));
+
+vi.mock("../lib/gsc-week-checklist-sets", async () => {
+  const actual = await vi.importActual<typeof import("../lib/gsc-week-checklist-sets")>(
+    "../lib/gsc-week-checklist-sets",
+  );
+  return { ...actual, fetchGscWeeksUseDifferentChecklists: mocks.fetchWeeks };
+});
 
 vi.mock("../lib/bao-cao-tong-hop-core", async () => {
   const actual = await vi.importActual<typeof import("../lib/bao-cao-tong-hop-core")>(
@@ -187,5 +197,51 @@ describe("getBaoCaoTongHopAnalytics RPC wiring", () => {
     const res = await getBaoCaoTongHopAnalytics(range);
     const p = (res as unknown as { data: { errors: { gsc?: string } } }).data;
     expect(p.errors.gsc).toMatch(/BM\.02\/03: boom/);
+  });
+
+  it("VST-030: chú thích «hai tuần chấm bộ bảng kiểm khác nhau» đọc view GSC bằng admin client, không bằng user client (RLS VST-023 trả 0 dòng cho Hội đồng)", async () => {
+    const tl = (min_date: string) => ({ label: min_date, min_date, tong_quan_sat: 100, tong_dat: 90, ty_le_tuan_thu: 90 });
+    const withTrend = {
+      success: true as const,
+      data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 }, trendline: [tl("2026-09-21"), tl("2026-09-28")] },
+    };
+    mocks.getGsc.mockResolvedValue(withTrend as never);
+    mocks.fetchWeeks.mockResolvedValueOnce(true);
+    try {
+      const res = await getBaoCaoTongHopAnalytics(range);
+      expect(res.success).toBe(true);
+      expect(mocks.fetchWeeks).toHaveBeenCalledTimes(1);
+      const client = mocks.fetchWeeks.mock.calls[0]?.[0];
+      expect(client).toEqual({ __admin: true });
+      const p = (res as unknown as { data: { gscKhacCoCau: boolean | null } }).data;
+      expect(p.gscKhacCoCau).toBe(true);
+    } finally {
+      mocks.getGsc.mockImplementation(async () => ({
+        success: true as const,
+        data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 } },
+      }));
+    }
+  });
+
+  it("VST-030: người dùng mạng lưới (khóa khoa) → admin client chỉ đọc đúng khoa của họ (tham số khoaIds = [actorKhoaId])", async () => {
+    const tl = (min_date: string) => ({ label: min_date, min_date, tong_quan_sat: 100, tong_dat: 90, ty_le_tuan_thu: 90 });
+    mocks.getScope.mockResolvedValue({ isAdmin: false, isNhanVienKsnk: false, isMangLuoiKsnk: true, actorKhoaId: "K9" });
+    mocks.getGsc.mockResolvedValue({
+      success: true as const,
+      data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 }, trendline: [tl("2026-09-21"), tl("2026-09-28")] },
+    } as never);
+    try {
+      const res = await getBaoCaoTongHopAnalytics({ ...range, khoa_ids: ["K1", "K2"] } as never);
+      expect(res.success).toBe(true);
+      expect(mocks.fetchWeeks).toHaveBeenCalledTimes(1);
+      expect(mocks.fetchWeeks.mock.calls[0]?.[0]).toEqual({ __admin: true });
+      expect(mocks.fetchWeeks.mock.calls[0]?.[3]).toEqual(["K9"]);
+    } finally {
+      mocks.getScope.mockResolvedValue({ isAdmin: true, isNhanVienKsnk: true, isMangLuoiKsnk: false, actorKhoaId: null });
+      mocks.getGsc.mockImplementation(async () => ({
+        success: true as const,
+        data: { chi_so: { tong_quan_sat: 20, tong_dat: 16, ty_le_tuan_thu: 80 } },
+      }));
+    }
   });
 });

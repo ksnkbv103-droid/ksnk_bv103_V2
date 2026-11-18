@@ -106,9 +106,11 @@ export async function listMdroInpatientsByKhoa(params: {
     ma_nguoi_benh?: string | null;
     loai_bang_kiem?: string | null;
   }[] = [];
+  // VST-030: RLS GSC (VST-023) trả 0 dòng cho Hội đồng qua user client → cờ giám sát/cách ly sai; chỉ lấy cờ nên đọc bằng admin client.
+  const gscClient = createAdminSupabaseClient();
   try {
     sessions = await fetchAllRangeRows((from, to) =>
-      supabase
+      gscClient
         .from("v_gstt_giam_sat_chung_sessions_full")
         .select("ma_benh_an, ma_nguoi_benh, loai_bang_kiem")
         .eq("is_active", true)

@@ -71,7 +71,8 @@ export async function listNkbvPatientRcaByKhoa(params: { khoaId: string; limit?:
       .select("ma_benh_an, ngay_phat_hien")
       .eq("is_active", true)
       .in("ma_benh_an", baList),
-    supabase
+    // VST-030: RLS GSC (VST-023) trả 0 dòng cho Hội đồng qua user client; chỉ lấy số phiên/ngày/loại bảng kiểm nên đọc bằng admin client (vẫn lọc khoa).
+    createAdminSupabaseClient()
       .from("v_gstt_giam_sat_chung_sessions_full")
       .select("ma_benh_an, ma_nguoi_benh, loai_bang_kiem, ngay_giam_sat")
       .eq("is_active", true)
