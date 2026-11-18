@@ -38,7 +38,7 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
       .from("v_gstt_giam_sat_chung_sessions_full")
       .select(GSC_SESSIONS_FULL_DETAIL_SELECT)
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (sErr) throw sErr;
     if (!ses) return { success: false as const, error: "Không tìm thấy phiên." };
