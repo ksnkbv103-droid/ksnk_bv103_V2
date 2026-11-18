@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { summarizeKeHoach, toThangDauThang, type KeHoachTienDoRow } from "@/lib/analytics/ke-hoach-giam-sat";
+import {
+  sortKeHoachTheoTenKhoa,
+  summarizeKeHoach,
+  toThangDauThang,
+  type KeHoachTienDoRow,
+} from "@/lib/analytics/ke-hoach-giam-sat";
 
 type Loai = "VST" | "GSC";
 
@@ -47,6 +52,7 @@ export function SupervisionKeHoachCard({ loai, denNgay, khoaOptions, getTienDo, 
   }, [load]);
 
   const tenKhoa = useMemo(() => new Map(khoaOptions.map((k) => [k.id, k.label])), [khoaOptions]);
+  const rowsXep = useMemo(() => sortKeHoachTheoTenKhoa(rows, tenKhoa), [rows, tenKhoa]);
   const sum = summarizeKeHoach(rows);
   const planned = new Set(rows.map((r) => r.khoa_id));
 
@@ -80,7 +86,7 @@ export function SupervisionKeHoachCard({ loai, denNgay, khoaOptions, getTienDo, 
         <p className="text-xs text-slate-500">Chưa có kế hoạch</p>
       ) : (
         <ul className="space-y-1">
-          {rows.map((r) => (
+          {rowsXep.map((r) => (
             <li key={r.khoa_id} className="flex items-center justify-between gap-2 text-sm">
               <span className="min-w-0 font-medium leading-snug">{tenKhoa.get(r.khoa_id) ?? r.khoa_id}</span>
               <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums">

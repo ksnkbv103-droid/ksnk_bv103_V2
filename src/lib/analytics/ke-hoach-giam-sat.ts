@@ -23,3 +23,14 @@ export function summarizeKeHoach(rows: KeHoachTienDoRow[]) {
   const dat = rows.filter((r) => r.dat).length;
   return { tong: rows.length, dat, chua: rows.length - dat };
 }
+
+/** Xếp dòng kế hoạch theo tên khoa (tiếng Việt); khoa không có tên xuống cuối; hòa thì theo khoa_id. Không sửa mảng gốc. */
+export function sortKeHoachTheoTenKhoa(rows: KeHoachTienDoRow[], tenKhoa: Map<string, string>): KeHoachTienDoRow[] {
+  return [...rows].sort((a, b) => {
+    const ta = tenKhoa.get(a.khoa_id);
+    const tb = tenKhoa.get(b.khoa_id);
+    if (ta && tb) return ta.localeCompare(tb, "vi", { numeric: true }) || a.khoa_id.localeCompare(b.khoa_id);
+    if (ta || tb) return ta ? -1 : 1;
+    return a.khoa_id.localeCompare(b.khoa_id);
+  });
+}
