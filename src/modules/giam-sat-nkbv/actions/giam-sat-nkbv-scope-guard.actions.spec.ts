@@ -14,6 +14,8 @@ vi.mock("@/lib/server-permission", () => ({
   verifyAnyPermission: vi.fn(async () => {}),
 }));
 vi.mock("@/lib/actor-auth-server", () => ({ getActorNhanSuId: vi.fn(async () => null) }));
+// NKBV-030: xóa ô khoa giờ ghi nhật ký fail-closed trước khi xóa (chi tiết ở ...-ba-ngay-delete-audit.actions.spec.ts).
+vi.mock("@/lib/admin-audit", () => ({ logAdminAction: vi.fn(async () => {}) }));
 vi.mock("@/lib/master-data/validation", () => ({
   normalizeAndValidateDmKhoaPhong: mocks.validateKhoa,
 }));

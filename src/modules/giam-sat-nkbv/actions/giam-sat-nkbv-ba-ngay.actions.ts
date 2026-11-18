@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { logAdminAction } from "@/lib/admin-audit";
 import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
 import { criteriaKeyToDungCuLoai } from "../lib/nkbv-ba-ngay";
@@ -13,6 +14,43 @@ import { nkbvBaNgayDungCuSchema, nkbvBaNgayKhoaSchema } from "@/lib/validations/
 
 /** Re-export cho ba-analysis (cùng entry server). */
 export { syncNkbvPhieuFromBaNgay };
+
+type BaNgayTable = "nkbv_fact_ba_ngay_khoa" | "nkbv_fact_ba_ngay_dung_cu";
+
+/**
+ * NKBV-030: xóa ô lưới BA (khoa / dụng cụ theo ngày) phải để lại nhật ký, fail-closed: đọc dòng → ghi nhật ký → (caller) xóa.
+ * Không có dòng (hoặc đọc lỗi → trả lỗi) thì không có gì để ghi. Trả chuỗi lỗi khi KHÔNG được phép xóa, null khi được.
+ */
+async function auditBaNgayDelete(args: {
+  supabase: ReturnType<typeof createAdminSupabaseClient>;
+  table: BaNgayTable;
+  action: string;
+  select: string;
+  match: Record<string, string>;
+  after?: Record<string, unknown> | null;
+  reason: string;
+}): Promise<string | null> {
+  let q = args.supabase.from(args.table).select(args.select);
+  for (const [col, val] of Object.entries(args.match)) q = q.eq(col, val);
+  const { data, error } = await q.maybeSingle();
+  if (error) return error.message;
+  if (!data) return null;
+  const row = data as unknown as Record<string, unknown>;
+  try {
+    await logAdminAction({
+      action: args.action,
+      targetTable: args.table,
+      targetId: String(row.id ?? ""),
+      before: row,
+      after: args.after ?? null,
+      reason: args.reason,
+      failClosed: true,
+    });
+  } catch (e: unknown) {
+    return e instanceof Error ? e.message : "Không ghi được nhật ký";
+  }
+  return null;
+}
 
 async function stayBounds(ma: string): Promise<
   { ok: true; vv: string; rv: string | null } | { ok: false; error: string }
@@ -61,6 +99,16 @@ export async function upsertNkbvBaNgayKhoa(input: {
 
   const supabase = createAdminSupabaseClient();
   if (!khoaId) {
+    const auditErr = await auditBaNgayDelete({
+      supabase,
+      table: "nkbv_fact_ba_ngay_khoa",
+      action: "NKBV_BA_NGAY_KHOA_DELETE",
+      select: "id, ma_benh_an, ngay_lich, khoa_id",
+      match: { ma_benh_an: ma, ngay_lich: date },
+      after: date === vv ? { khoa_dieu_tri_id_cleared: true } : null,
+      reason: "Xóa ô khoa theo ngày",
+    });
+    if (auditErr) return { success: false as const, error: auditErr };
     const { error } = await supabase
       .from("nkbv_fact_ba_ngay_khoa")
       .delete()
@@ -134,6 +182,15 @@ export async function toggleNkbvBaNgayDungCu(input: {
 
   const supabase = createAdminSupabaseClient();
   if (!input.on) {
+    const auditErr = await auditBaNgayDelete({
+      supabase,
+      table: "nkbv_fact_ba_ngay_dung_cu",
+      action: "NKBV_BA_NGAY_DUNG_CU_DELETE",
+      select: "id, ma_benh_an, ngay_lich, loai_dung_cu",
+      match: { ma_benh_an: ma, ngay_lich: date, loai_dung_cu: loai },
+      reason: "Bỏ tích dụng cụ theo ngày",
+    });
+    if (auditErr) return { success: false as const, error: auditErr };
     const { error } = await supabase
       .from("nkbv_fact_ba_ngay_dung_cu")
       .delete()
