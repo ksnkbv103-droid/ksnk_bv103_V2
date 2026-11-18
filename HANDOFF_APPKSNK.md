@@ -4,7 +4,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## ĐANG LÀM
 - CSSD-034 (DA_SUA): lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT). Còn mở: dòng MOI «sau khi đảo» (xuất lại/NXT, cần PO).
-- Chạy nối 18/11 DA_SUA: VST-020 `6018d180`, NKBV-031 `c7b637ce`, VST-030 `2c788ae2`, NKBV-030 `953cb5c9`, VST-029 `554ff441` (review Go, tay DAT). CHO_PO: VST-027, NKBV-041, VST-024. DA_XAC_MINH chờ sửa: NKBV-036 (FE, 5 file), NKBV-038 (RLS: migration + review + đếm vai prod). Kế: db-verify MOI (NKBV-037/033, CSSD-035/037, VST-022/033), rồi sửa NKBV-036.
+- Chạy nối 18/11 DA_SUA: VST-020 `6018d180`, NKBV-031 `c7b637ce`, VST-030 `2c788ae2`, NKBV-030 `953cb5c9`, VST-029 `554ff441`, NKBV-036 `103a81a7`, NKBV-038 `1efc3867` (tay DAT; review Go). NKBV-038: migration `20261118130000` chỉ local; áp prod = CHO_PO, phải đo prod (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK trước. Còn 3 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024. Kế: db-verify 6 MOI (NKBV-037/033, CSSD-035/037, VST-022/033) ở phiên mới, rồi sửa DA_XAC_MINH theo mức nặng.
 - CSSD-032 `3165749c`: ĐÃ ÁP PROD 18/11 (PO duyệt; ledger `20261117235006` cssd_hc_chan_trung_su_co; 0 sự cố trùng trước; md5 thân hàm sau áp khớp file).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 `e908e7e0`, deploy success, B1–B5 đã áp (17/11). Còn TC09: mục 4.
@@ -40,7 +40,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## Lát chưa mở / nợ
 - Thử tay 2026-11-13 ĐẠT 36/43; 7 mục không lối UI giữ CHUA, có spec pass. Mẹo fixture: vai tạm có quyền cần thử, xóa sau phiên. Chưa sửa: nút «Phê duyệt và giao» hiện cho người đề xuất; banner NKBV có link `/giam-sat-nkbv?case=` cho người chỉ có quyền CSSD.
-- Review 2026-11-13: 6 action ghi Đào tạo đã qua `requireDaoTaoAdmin` (DT-016, d1ab156f; siết thêm: thiếu DAO_TAO view thì không ghi được). Nợ «break-glass không được miễn ở RPC QLCV» đóng 2026-11-13, không sửa: PO 11-11 (QLCV-003) chốt bỏ miễn break-glass, chỉ ADMIN/CNK thật; QLCV-010 cùng mẫu; app đã khớp (`getActorRbacRoleNamesStrict`). Muốn miễn thì PO đổi quyết định trước.
+- Review 2026-11-13: Đào tạo 6 action ghi qua `requireDaoTaoAdmin` (DT-016, d1ab156f). Nợ «break-glass ở RPC QLCV» đóng, không sửa: PO 11-11 (QLCV-003) chốt chỉ ADMIN/CNK thật, app đã khớp (`getActorRbacRoleNamesStrict`).
 - Trước deploy: kiểm prod NHAN_VIEN_KSNK có GIAM_SAT_NKBV import (chỉ seed, không migration).
 
 ## Lệnh kiểm chứng
