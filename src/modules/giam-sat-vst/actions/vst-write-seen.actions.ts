@@ -4,7 +4,7 @@ import { vstRepo } from "../repo/vst.repo";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { assertVstHistoryAccess } from "../lib/vst-read-scope";
+import { assertVstHistoryAccess, hasHospitalWideVstRead } from "../lib/vst-read-scope";
 import { resolveVstScopedSessionIds } from "../lib/vst-session-scope";
 import { vstWriteErrorMessage } from "./vst-write.helpers";
 import { normalizeSessionIds } from "@/lib/normalize-session-ids";
@@ -37,7 +37,8 @@ export async function markVSTSessionsSeen(sessionIds: string[]) {
         }),
       ),
       {
-        isMangLuoiKsnk: scope.isMangLuoiKsnk,
+        // VST-029: NV KSNK/CNK đọc toàn viện (kể cả kèm MANG_LUOI) → không khóa theo khoa.
+        isMangLuoiKsnk: scope.isMangLuoiKsnk && !hasHospitalWideVstRead(scope),
         actorKhoaId: scope.actorKhoaId ?? null,
         actorNhanSuId: scope.actorNhanSuId ?? null,
       },
