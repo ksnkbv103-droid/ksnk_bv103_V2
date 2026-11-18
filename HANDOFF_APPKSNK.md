@@ -4,7 +4,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 
 ## ĐANG LÀM
 - CSSD-034 (DA_SUA): lát A `61148266` (migration `20261118120000` chỉ local, áp prod = CHO_PO; review Go) + lát B `c44f87db` (drawer «Lập phiếu ngược», 3 kịch bản tay :3001 DAT). Còn mở: dòng MOI «sau khi đảo» (xuất lại/NXT, cần PO).
-- Chạy nối 18/11: 16 DA_SUA, gồm NKBV-033 `04ce599d`, NKBV-043 `b8c2f54f` (review Go có điều kiện; tay 5 ca DAT) và NKBV-037 (tay lại DAT). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; áp prod = CHO_PO, phải đo prod (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK trước. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037, NKBV-044 (CNK xem BN khoa mình hay toàn viện). Kế (phiên mới): `next` → xác minh NKBV-045 (db-verify).
+- Chạy nối 18/11: 17 DA_SUA, gồm NKBV-045 `6330f4b5`, NKBV-033 `04ce599d`, NKBV-043 `b8c2f54f` (review Go có điều kiện; tay 5 ca DAT) và NKBV-037 (tay lại DAT). NKBV-038 `1efc3867`: migration `20261118130000` chỉ local; áp prod = CHO_PO, phải đo prod (read-only) số người có `GIAM_SAT_NKBV:view` ngoài ADMIN/NV KSNK/HĐ/CNK trước. Còn 4 đường admin client (SO_NO). CHO_PO: VST-027, NKBV-041, VST-024, CSSD-037, NKBV-044 (CNK xem BN khoa mình hay toàn viện). Kế (phiên mới): `next` → xác minh NKBV-045 (db-verify).
 - CSSD-032 `3165749c`: ĐÃ ÁP PROD 18/11 (PO duyệt; ledger `20261117235006` cssd_hc_chan_trung_su_co; 0 sự cố trùng trước).
 - LÁT 2 để nguyên: `KSNK_PILOT_FOUR_MODULES` xong, công tắc TẮT, không đặt biến Vercel (PO không muốn ẩn module).
 - Lát 1 Lên prod: PR #131 `e908e7e0` deploy xong; còn TC09 (mục 4).

@@ -2175,9 +2175,35 @@
     "tieu_de": "Phạm vi «none» còn trả success rỗng ở 3 hàm đọc NKBV khác (cùng lớp lỗi NKBV-043); MDRO/RCA âm thầm thay khoa xin xem bằng khoa người dùng",
     "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:61,205,242; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:64-65; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-rca.actions.ts:47",
     "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-list-scope.actions.spec.ts",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "review-bv103 NKBV-043",
+    "commit": "6330f4b5",
+    "ghi_chu": "Có sẵn trước NKBV-043, reviewer ghi Pre-existing. Kèm Minor: kind=none ở listInpatientsByKhoa trả câu OUT_OF_SCOPE thay vì NO_KHOA; mock spec chưa có .or nên chưa test nhánh search qua admin client. | Xác minh 2026-11-18 (db-verify + đọc lại): MỘT PHẦN, giữ THAP. THẬT: read.actions.ts:61 (listGiamSatNkbvCas) và :242 (listNkbvMedicalRecords) trả success rỗng khi none. MỘT PHẦN: :205 listAllMaNkbvCas (đổi sang lỗi không đổi hành vi vì useGenerateMa rơi về NK001 cả hai trường hợp) → giữ nguyên. ĐÃ SỬA từ b8c2f54f: mdro.actions.ts:21-23 và rca.actions.ts:43-45 trả NO_KHOA. «Thay khoa xin xem bằng khoa người dùng» ở MDRO/RCA: LỖI GIẢ về bảo mật (fail-closed theo NK-SCOPE), chỉ còn UX nhãn khoa → tách thành mục riêng. 045 không phụ thuộc NKBV-044. | Sửa 2026-11-18 6330f4b5: hằng chung NKBV_NO_KHOA_ERROR (nkbv-khoa-scope.server.ts), hai hàm trả lỗi rõ không truy vấn; spec list-scope thêm ca none, read-identity.actions.spec.ts đổi kỳ vọng cũ (gate-ok). verify:changed PASS 6/6, test:cssd giam-sat-nkbv 853/853. Nơi gọi GiamSatNkbvPage:118 và useNkbvRecordsTable đã toast khi !success. Không chạm RLS/auth/migration."
+  },
+  {
+    "id": "NKBV-046",
+    "module": "NKBV",
+    "lop": "UX",
+    "muc": "THAP",
+    "tieu_de": "Panel MDRO/RCA: người chỉ xem khoa mình (Mạng lưới/GSC-only) chọn khoa B trong ô khoa vẫn thấy BN khoa A với nhãn khoa B",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-mdro.actions.ts:25-26; src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-rca.actions.ts:~47 (ép khoaId theo quyền, bỏ qua tham số); NkbvMdroCensusPanel nhận header.khoas là toàn bộ KHOA_PHONG (master-data-gateway.actions.ts:175; lọc theo phạm vi chỉ khi permissionContext===\"gsc\", useGiamSatHeader.ts:54)",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-list-scope.actions.spec.ts",
+    "trang_thai": "MOI",
+    "nguon": "nkbv-045-tach",
     "commit": "",
-    "ghi_chu": "Có sẵn trước NKBV-043, reviewer ghi Pre-existing. Kèm Minor: kind=none ở listInpatientsByKhoa trả câu OUT_OF_SCOPE thay vì NO_KHOA; mock spec chưa có .or nên chưa test nhánh search qua admin client."
+    "ghi_chu": "Tách từ NKBV-045 (db-verify 2026-11-18). Bảo mật đúng (fail-closed); chỉ nhãn sai. Đề xuất tối thiểu: khoaId khác rỗng và khác khoa của user → NKBV_OUT_OF_SCOPE_ERROR (như read.actions.ts:495-497), rỗng/null mặc định khoa user; kiểm getPatientMdroSupervisionStatus (mdro.actions.ts:~197 truyền params.khoaId || null) và GiamSatHeaderPatientFields:94; đổi spec list-scope 'kind=khoa: ép khoaId' cần // gate-ok. CNK toàn viện (restriction all) không bị ảnh hưởng. Hoặc: lọc ô khoa của panel theo phạm vi như ngữ cảnh gsc."
+  },
+  {
+    "id": "NKBV-047",
+    "module": "NKBV",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Gợi ý mã phiếu NKBV có thể trùng: listAllMaNkbvCas lấy max trong khoa của user (limit 500, không order) nhưng ma_ca UNIQUE toàn bảng; chưa rõ server có sinh/kiểm lại mã khi lưu",
+    "bang_chung": "src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions.ts:200-215 (listAllMaNkbvCas); src/modules/giam-sat-nkbv/hooks/useGenerateMa.ts:60-73; migration 20260530000000_init_pilot_baseline.sql:8038 (UNIQUE ma_ca); validations giam-sat-nkbv.validations.ts:16 (client gửi ma_ca)",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read-ma-ca-scope.actions.spec.ts",
+    "trang_thai": "MOI",
+    "nguon": "nkbv-045-tach",
+    "commit": "",
+    "ghi_chu": "Tách từ NKBV-045 (db-verify 2026-11-18). CHƯA XÁC MINH: cần đọc đường lưu phiếu (action tạo/sửa su_kien) xem server có kiểm/sinh ma_ca hay tin client; hook đã hỗ trợ nextCode phía server. Nếu server tin client thì người dùng hai khoa khác nhau có thể sinh cùng NK00x → lỗi unique khi lưu. Không sửa ở 045."
   }
 ]
