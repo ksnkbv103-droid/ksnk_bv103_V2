@@ -52,14 +52,14 @@ dao-tao   KHÁM_PHÁ   đầu mối: CHƯA CÓ · mở: 6 · được phép: ch�
 
 - Gate đếm «mở» lệch `so-loi.mjs status`: giam-sat 5 so với 13; nkbv 5 so với 8; qlcv 5 so với 0; dao-tao 6 so với 0; cssd 3 so với 3. Dùng `so-loi.mjs status` làm số chuẩn cho việc mở (01 §7); cột được phép của gate vẫn thắng khi mở lát (01 §6.2). Nguồn đếm của gate: «cần kiểm».
 - Roadmap dòng 66 ghi đầu mối VST+GSC là `Đã có`, gate ghi `CHƯA CÓ`. Roadmap dòng 67 (CSSD) có tên cá nhân nên không chép sang bộ này.
-- Điều đang chặn mỗi module (roadmap dòng 64–70):
+- Điều đang chặn mỗi module (roadmap dòng 66–72):
   - VST/GSC: GS-1 (RLS đọc cần ma trận «ai xem gì», mức L2); e2e Playwright chưa chạy được vì thiếu Chromium.
   - CSSD: người đầu mối và máy quét. K1–K5 ở SSOT 18 đã chạy tay qua UI trên DB local do Claude chạy thay Tổ CSSD, PO chốt đạt 2026-11-01; chưa chạy trên prod hoặc bộ Đóng gói thật.
   - NKBV: HIS/LIS (L3) và đầu mối. Việc tới L1: ghi ca, danh sách, tỉ lệ; rules engine chỉ gợi ý, không chặn.
   - QLCV: câu QL-1 (quyền ghi chú, xóa cứng); PO đã chốt 2026-10-24, còn chặn hay không «cần kiểm».
   - Đào tạo: ba câu DT-2 (thi thử dùng chung ngân hàng và lộ đáp án; nộp trễ hơn 30 giây vẫn tính đạt).
 - NKBV ở trạng thái `KHÁM_PHÁ` mà cả khoảng có 12 commit `feat` chạm; từ 11-13 00:00 là 0 feat, 15 fix (§3.2).
-- Ngày của cột dữ liệu prod: CSSD, NKBV, QLCV, Đào tạo có hai ảnh chụp cùng giá trị, roadmap dòng 62 (prod 2026-10-11) và dòng 105 (rà soát 2026-11-10). VST/GSC chỉ có số ở dòng 105 và HANDOFF 11-12.
+- Ngày của cột dữ liệu prod: CSSD, NKBV, QLCV, Đào tạo có hai ảnh chụp cùng giá trị, roadmap dòng 64 (prod 2026-10-11) và bản `95d2bbe0` dòng 107 (rà soát 2026-11-10). VST/GSC chỉ có số ở dòng 107 đó và HANDOFF 11-12.
 
 Điểm cơ học của `module:audit` (output nguyên văn; công cụ không in điểm):
 
@@ -73,7 +73,7 @@ dao-tao   thiếu: — · cần chấm: 1,2,5,8,9,10
 
 Điểm cơ học ở 01 §6.1 hàng 1 = 10 trừ số bước «cần chấm»: giam-sat 5 · cssd 6 · nkbv 4 · qlcv 4 · dao-tao 4. Các bước 1, 2, 5, 8, 9, 10 đều cần người dùng hoặc PO nên Claude không tự chấm được.
 
-Nguồn: `docs/core/handover-roadmap.md` dòng 62–70, 105; C17, C18.
+Nguồn: `docs/core/handover-roadmap.md` dòng 64–72; bản `95d2bbe0` dòng 107; C17, C18.
 
 ## 3. Số đo sống
 
@@ -151,7 +151,7 @@ Mỗi ô là đang mở/tổng; bảng không tính 14 lỗi giả (142 + 14 = 1
 | File có `use server` · `page.tsx` | 152 · 65 | C14 |
 | npm script · e2e spec | 121 · 5 | C14 |
 | File `.md` trong `docs/` (không tính `docs/bo-tai-lieu`) · `.md` ở gốc | 70 · 10 | C15 |
-| `docs/core/handover-roadmap.md` | 65.888 byte (mục tiêu 25KB) | C15 |
+| `docs/core/handover-roadmap.md` | 25.483 byte, đạt mục tiêu 25KB (cắt 2026-11-18; trước đó 65.888) | C15 |
 | `HANDOFF_APPKSNK.md` · `SO_NO_APPKSNK.md` | 46 dòng (trần 40) · 44 dòng | C15 |
 | Đo việc mở của `wip.py` | 4 mục `VƯỢT` (khối dưới) | C16 |
 
@@ -228,7 +228,7 @@ Nguồn: các lệnh trên; `scripts/readiness/so-loi.json` (qua `so-loi.mjs`).
 |---|---|---|
 | 10-09 | PO khóa quy tắc VST: rửa/chà ≤2 thời điểm WHO, bỏ sót = 1, năm mốc một hàng, xóa phiên mềm | `CLAUDE.md` mục Khóa PO |
 | 10-12 | Mục tiêu triển khai TẤT CẢ module, thay lệnh đóng băng cùng ngày | `CLAUDE.md` mục Kỷ luật |
-| 10-24 | Thang sẵn sàng L0–L3; đối soát chỉ số VST trên DB local: RPC khớp tính tay, 39 khoa 0 lệch | roadmap dòng 76; `docs/modules/giam-sat/README.md:111` |
+| 10-24 | Thang sẵn sàng L0–L3; đối soát chỉ số VST trên DB local: RPC khớp tính tay, 39 khoa 0 lệch | roadmap dòng 81; `docs/modules/giam-sat/README.md:111` |
 | 11-08 | VST-003 `20261108100000` (RLS đọc phiên VST theo phạm vi) | sổ lỗi; §5 |
 | 11-09 | Thử tay CSSD L1/L2 trên DB local | `21579fed` |
 | 11-10 | Tuần 0: production = `origin/main`; PR #125 `86f5b55b` và #126 `11515851`; role `ci_migration_reader` NOLOGIN; `main` chưa có branch protection (ảnh chụp 11-10) | roadmap; HANDOFF |
@@ -277,7 +277,7 @@ Nguồn: `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` dòng 3; `.
 ## 5. Prod và local
 
 - Production = `origin/main` (Tuần 0, 11-10). Migration prod đi qua MCP `apply_migration`; `mdm:migrate` lên prod bị chặn. Local áp bằng `npm run mdm:migrate:local`.
-- Vercel prod đang ở `d147bda2` (2026-11-02) theo roadmap dòng 105: đề xuất chờ PO duyệt, chưa có hiệu lực; sha đang chạy thật «cần kiểm».
+- Vercel prod đang ở `d147bda2` (2026-11-02) theo roadmap bản `95d2bbe0` dòng 107: đề xuất chờ PO duyệt, chưa có hiệu lực; sha đang chạy thật «cần kiểm».
 
 ### 7 file đã áp prod 2026-11-12 (PO ra lệnh)
 
@@ -325,8 +325,8 @@ Khớp HANDOFF 11-13: 31 + 1 + 9 = 41. Số chính xác và «prod chạy sha n�
 
 | Số | Ngày | Nguồn |
 |---|---|---|
-| VST 3.613 phiên; GSC 1.400 phiên; QLCV 0 việc; Đào tạo 1 lần thi; CSSD 10 chu trình thử; NKBV 1 sự kiện; đồ vải 0 | rà soát 2026-11-10 | roadmap dòng 105 |
-| NKBV 1 phiếu; CSSD 10 chu trình thử; QLCV 0 việc; Đào tạo 1 lần thi | prod 2026-10-11 | roadmap dòng 62 |
+| VST 3.613 phiên; GSC 1.400 phiên; QLCV 0 việc; Đào tạo 1 lần thi; CSSD 10 chu trình thử; NKBV 1 sự kiện; đồ vải 0 | rà soát 2026-11-10 | roadmap bản `95d2bbe0` dòng 107 |
+| NKBV 1 phiếu; CSSD 10 chu trình thử; QLCV 0 việc; Đào tạo 1 lần thi | prod 2026-10-11 | roadmap dòng 64 |
 | `vst_sessions` 3.637; `chung_sessions` 1.435; `vst` 33.421; `nhan_su` 36; `khoa_phong` 66 | 2026-11-12 | HANDOFF 11-12 |
 | vai ADMIN 1 · KHACH_THONG_KE_GSTT 1 · NHAN_VIEN_KSNK 19 (2 tài khoản không có hồ sơ nhân sự đang hoạt động) · MANG_LUOI_KSNK 0 | 2026-11-12 | HANDOFF 11-12 |
 | Đào tạo 787 câu hỏi (571 chọn một, 94 chọn nhiều, 76 Đúng/Sai, 46 sắp xếp); chưa có kỳ thi chính thức | 2026-09-07 | `docs/modules/dao-tao/domain-overview.md` |

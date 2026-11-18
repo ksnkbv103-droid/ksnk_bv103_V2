@@ -68,7 +68,7 @@ Thang sẵn sàng (PO 2026-10-24): **L0** code chạy (`verify:engineering` pass
 | 2026-11-13 | CSSD xây lại lõi · lưu danh tính người được quan sát (R2.07) · lý do sửa/xóa ≥ 10 ký tự (VST), ≥ 3 (GSC) · giữ tick tay (R1.09/R1.10) · mẻ không đạt xử lý lại từ đầu, về Tiếp nhận (code chưa đổi) · CSSD-017 ủ BI ≥ 20 phút · NKBV-023 ẩn ca chốt = ADMIN + lý do · NKBV-026 LOA máy chủ · CSSD-025 hoãn |
 | 2026-11-14 | Không có ngưỡng hạn mức nào làm dừng hay thu hẹp việc |
 
-Nguồn: `CLAUDE.md`; `docs/core/handover-roadmap.md` dòng 76; `docs/modules/dashboard/metric-dictionary.md:86-89`; `BAO-CAO-TONG-THE-2026-11-13.md`; `HANDOFF_APPKSNK.md`.
+Nguồn: `CLAUDE.md`; `docs/core/handover-roadmap.md` dòng 81; `docs/modules/dashboard/metric-dictionary.md:86-89`; `BAO-CAO-TONG-THE-2026-11-13.md`; `HANDOFF_APPKSNK.md`.
 
 ## 6. Phân tích và lộ trình
 

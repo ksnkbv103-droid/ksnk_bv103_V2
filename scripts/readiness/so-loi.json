@@ -1671,7 +1671,7 @@
     "trang_thai": "LOI_GIA",
     "nguon": "vst-rls-approve",
     "commit": "",
-    "ghi_chu": "LỖI GIẢ (xác minh 2026-11-14). Tiền đề «CNK khác TK_KSNK» sai: CHU_NHIEM_KHOA là «Chủ nhiệm khoa KSNK — duyệt chuyên môn, giám sát thay đổi danh mục» (migration AR-1 20261111150000, PO 2026-11-10; docs/core/handover-roadmap.md:80) = vai TK_KSNK của đặc tả, đúng người mà R1.24 (M01_VE_SINH_TAY.md dòng 444) giao duyệt sửa muộn và ma trận M01 dòng 22 giao «D (xác nhận khóa), X, E» không giới hạn khoa. Cùng cách hiểu ở src/lib/domain/cssd-equipment-pm.ts:37-38 (CSSD_HOLD_QC_UNLOCK_ROLES = ADMIN, CHU_NHIEM_KHOA) và src/modules/giam-sat-vst/lib/vst-yeu-cau-dieu-chinh.ts (VST_VAI_TRO_CAN_BO_KSNK). Vì vậy GIAM_SAT_VST.approve gán CNK và hàng chờ duyệt toàn viện (vst-yeu-cau-dieu-chinh.actions.ts, không lọc khoa) là ĐÚNG; không cần vai «TK_KSNK» riêng, không đổi quyền người dùng thật. Hệ quả phát hiện khi xác minh: VST-014/015 cắt CNK về «khoa mình» (sai) → VST-026; CB_KSNK không phải chủ phiên chưa tạo được yêu cầu SỬA muộn → VST-027; vai ĐDT/CN_KHOA lâm sàng (R1.34) chưa có trong RBAC → VST-028 (CHO_PO)."
+    "ghi_chu": "LỖI GIẢ (xác minh 2026-11-14). Tiền đề «CNK khác TK_KSNK» sai: CHU_NHIEM_KHOA là «Chủ nhiệm khoa KSNK — duyệt chuyên môn, giám sát thay đổi danh mục» (migration AR-1 20261111150000, PO 2026-11-10; docs/core/handover-roadmap.md:85) = vai TK_KSNK của đặc tả, đúng người mà R1.24 (M01_VE_SINH_TAY.md dòng 444) giao duyệt sửa muộn và ma trận M01 dòng 22 giao «D (xác nhận khóa), X, E» không giới hạn khoa. Cùng cách hiểu ở src/lib/domain/cssd-equipment-pm.ts:37-38 (CSSD_HOLD_QC_UNLOCK_ROLES = ADMIN, CHU_NHIEM_KHOA) và src/modules/giam-sat-vst/lib/vst-yeu-cau-dieu-chinh.ts (VST_VAI_TRO_CAN_BO_KSNK). Vì vậy GIAM_SAT_VST.approve gán CNK và hàng chờ duyệt toàn viện (vst-yeu-cau-dieu-chinh.actions.ts, không lọc khoa) là ĐÚNG; không cần vai «TK_KSNK» riêng, không đổi quyền người dùng thật. Hệ quả phát hiện khi xác minh: VST-014/015 cắt CNK về «khoa mình» (sai) → VST-026; CB_KSNK không phải chủ phiên chưa tạo được yêu cầu SỬA muộn → VST-027; vai ĐDT/CN_KHOA lâm sàng (R1.34) chưa có trong RBAC → VST-028 (CHO_PO)."
   },
   {
     "id": "CSSD-035",
@@ -1864,7 +1864,7 @@
     "lop": "DOMAIN",
     "muc": "CAO",
     "tieu_de": "VST-014/015 đọc nhầm CHU_NHIEM_KHOA (chủ nhiệm khoa KSNK = TK_KSNK) thành chủ nhiệm khoa lâm sàng: app và RLS giới hạn CNK về «khoa mình» (khoa NULL → 0 dòng), trái đặc tả M01:22 (TK_KSNK xem/xuất không giới hạn khoa)",
-    "bang_chung": "src/modules/giam-sat-vst/lib/vst-read-scope.ts:19-22 (isVstKhoaOnlyScope) và :50-58 (applyVstHistoryReadScope); src/modules/giam-sat-vst/actions/vst-read.actions.ts:120-125; supabase/migrations/20261114150000_gstt_vst_rls_cnk_hoi_dong.sql:75-84 và :113-122 (CASE CHU_NHIEM_KHOA → khoa_id = khoa mình). Vai trò: supabase/migrations/20261111150000_ar1_chu_nhiem_khoa_role_catalog_approve.sql «Chủ nhiệm khoa KSNK — duyệt chuyên môn»; docs/core/handover-roadmap.md:80; src/lib/domain/cssd-equipment-pm.ts:37-38. Đặc tả: M01_VE_SINH_TAY.md dòng 22 (TK_KSNK X/E không giới hạn khoa) và dòng 454 (R1.34: chỉ ĐDT khoa quản lý + CB_KSNK thấy danh tính).",
+    "bang_chung": "src/modules/giam-sat-vst/lib/vst-read-scope.ts:19-22 (isVstKhoaOnlyScope) và :50-58 (applyVstHistoryReadScope); src/modules/giam-sat-vst/actions/vst-read.actions.ts:120-125; supabase/migrations/20261114150000_gstt_vst_rls_cnk_hoi_dong.sql:75-84 và :113-122 (CASE CHU_NHIEM_KHOA → khoa_id = khoa mình). Vai trò: supabase/migrations/20261111150000_ar1_chu_nhiem_khoa_role_catalog_approve.sql «Chủ nhiệm khoa KSNK — duyệt chuyên môn»; docs/core/handover-roadmap.md:85; src/lib/domain/cssd-equipment-pm.ts:37-38. Đặc tả: M01_VE_SINH_TAY.md dòng 22 (TK_KSNK X/E không giới hạn khoa) và dòng 454 (R1.34: chỉ ĐDT khoa quản lý + CB_KSNK thấy danh tính).",
     "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst/lib/vst-read-scope.spec.ts ; docker exec -i supabase_db_ksnk_bv103 psql -q -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/sql/gstt-session-read-scope-probe.sql (mã thoát 0 = đạt)",
     "trang_thai": "DA_SUA",
     "nguon": "vòng VST-016 (xác minh 2026-11-14)",
@@ -1890,7 +1890,7 @@
     "lop": "DOMAIN",
     "muc": "TRUNG_BINH",
     "tieu_de": "Đặc tả R1.34 cần vai ĐDT/CN_KHOA lâm sàng xem danh sách có danh tính của khoa mình; RBAC chưa có vai này (CHU_NHIEM_KHOA là chủ nhiệm khoa KSNK)",
-    "bang_chung": "Đặc tả M01_VE_SINH_TAY.md dòng 454 (R1.34) và dòng 22; 00_TONG_QUAN.md:54 liệt kê NV_YT, DD_TRUONG, CN_KHOA. DB local sys_roles chỉ có ADMIN, CHU_NHIEM_KHOA, HOI_DONG_KSNK, KHACH_THONG_KE_GSTT, MANG_LUOI_KSNK, NHAN_VIEN_KSNK, TO_TRUONG_CSSD_TEST. docs/core/handover-roadmap.md:66 và :101 (ma trận «ai xem gì» GS-1 chờ PO).",
+    "bang_chung": "Đặc tả M01_VE_SINH_TAY.md dòng 454 (R1.34) và dòng 22; 00_TONG_QUAN.md:54 liệt kê NV_YT, DD_TRUONG, CN_KHOA. DB local sys_roles chỉ có ADMIN, CHU_NHIEM_KHOA, HOI_DONG_KSNK, KHACH_THONG_KE_GSTT, MANG_LUOI_KSNK, NHAN_VIEN_KSNK, TO_TRUONG_CSSD_TEST. docs/core/handover-roadmap.md:68 và :101 (ma trận «ai xem gì» GS-1 chờ PO).",
     "lenh_kiem": "",
     "trang_thai": "CHO_PO",
     "nguon": "vòng VST-016 (xác minh 2026-11-14)",

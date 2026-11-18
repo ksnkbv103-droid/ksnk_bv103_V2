@@ -10,7 +10,7 @@ File này chỉ trỏ đường. Tiến độ từng lỗi nằm ở `ghi_chu`/`
 - Lát 1 Lên prod: PR #131 `e908e7e0`, deploy success, B1–B5 đã áp (17/11). Còn TC09: mục 4.
 
 ## KẾ
-- Lát 3: roadmap ≤ 25 KB + cắt script (PO duyệt danh sách). Lát 4: squash migration (sau B5 + TC09).
+- Lát 3a-i xong (roadmap 25 483 B). Kế: 3a-ii chuyển 4 `BAO-CAO-*`; 3b cắt script (PO duyệt). Lát 4: squash migration (sau B5 + TC09).
 - Nhánh 18/11 (21 commit đã push; phần gộp chưa push: `git status -sb`): integrate đã gộp nkbv, chore, audit, monitoring. Monitoring theo khóa PO 11-01 (đỏ <85, vàng 85–<90, xanh ≥90, mẫu 50, kế hoạch giám sát khoa/tháng) qua `ksnk_dm_tham_so`: migration `20261118100000` (6 dòng từ 2026-11-01) + `20261118110000` (kế hoạch, đổi số từ `20261101010000`). Áp local; áp prod = CHO_PO. Tay UI kế hoạch đạt gồm KB8 không-admin (VST-032); VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 
