@@ -1,5 +1,5 @@
 -- View đọc runtime (grep src .from("v_...")) — một dòng kết quả.
--- Local: npm run pilot:views:precheck
+-- Local: docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -t < scripts/sql/pilot-app-views-precheck.sql
 -- Linked: npx supabase db query --linked --agent=no -f scripts/sql/pilot-app-views-precheck.sql
 
 SELECT bool_and(ok) AS all_app_views_ok

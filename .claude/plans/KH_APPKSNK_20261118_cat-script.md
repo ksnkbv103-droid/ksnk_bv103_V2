@@ -1,6 +1,6 @@
 # KH_APPKSNK_20261118 — Lô 3b: cắt npm script không có nơi gọi (CHỈ ĐO, CHƯA XÓA)
 
-Trạng thái: CHỜ PO DUYỆT · chưa xóa gì · `package.json` và `scripts/` không đổi · chưa push
+Trạng thái: PO DUYỆT CẮT 11 DÒNG (2026-11-18, câu 1) · câu 2, 3 theo đề xuất · `package.json` còn 111 script · file `scripts/*` giữ nguyên, sửa 1 echo + 1 chú thích SQL · chưa push
 Nguồn: `HANDOFF_APPKSNK.md` KẾ «Lát 3a xong … Kế: 3b cắt script (PO duyệt)» · CLAUDE.md toàn cục (đo bằng script, không dùng AI đếm)
 Nơi đo: worktree `integrate-2026-11`, nhánh `integrate/2026-11`, HEAD `1d7cd8ab`, 122 script trong `package.json`.
 
