@@ -381,7 +381,6 @@ export default function NkbvBenhAnHubPanel({
         khoaId: stay.khoa_dieu_tri_id ? String(stay.khoa_dieu_tri_id) : null,
         maBenhAn: String(stay.ma_benh_an || ""),
         maBenhNhan: String(stay.ma_benh_nhan || ""),
-        tenBenhNhan: String(stay.ho_ten_benh_nhan || ""),
       })
     : "#";
   const linkIsolation = stay
@@ -390,7 +389,6 @@ export default function NkbvBenhAnHubPanel({
         khoaId: stay.khoa_dieu_tri_id ? String(stay.khoa_dieu_tri_id) : null,
         maBenhAn: String(stay.ma_benh_an || ""),
         maBenhNhan: String(stay.ma_benh_nhan || ""),
-        tenBenhNhan: String(stay.ho_ten_benh_nhan || ""),
       })
     : "#";
 

@@ -1,7 +1,7 @@
 // src/components/shared/GiamSatHeaderPatientFields.tsx
 "use client";
 
-import React, { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import React, { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import type { GiamSatSession } from "./giam-sat-header.types";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
@@ -126,6 +126,21 @@ export default function GiamSatHeaderPatientFields({
       cancelled = true;
     };
   }, [session.khoa_id, useMdroFilter]);
+
+  /** NKBV-036: link từ NKBV chỉ mang mã bệnh án; tên điền từ danh sách khoa (đã qua cổng quyền), một lần cho mỗi mã. */
+  const tenDienSanChoBa = useRef("");
+  useEffect(() => {
+    const ba = String(session.ma_benh_an || "").trim();
+    if (!ba || String(session.ten_nguoi_benh || "").trim() || tenDienSanChoBa.current === ba) return;
+    const row = inpatients.find((r) => r.ma_benh_an === ba);
+    if (!row?.ho_ten_benh_nhan) return;
+    tenDienSanChoBa.current = ba;
+    setSession((prev) =>
+      String(prev.ma_benh_an || "").trim() === ba && !String(prev.ten_nguoi_benh || "").trim()
+        ? { ...prev, ten_nguoi_benh: row.ho_ten_benh_nhan }
+        : prev,
+    );
+  }, [inpatients, session.ma_benh_an, session.ten_nguoi_benh, setSession]);
 
   useEffect(() => {
     const ba = String(session.ma_benh_an || "").trim();

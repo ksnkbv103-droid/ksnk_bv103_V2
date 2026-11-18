@@ -154,14 +154,12 @@ export async function listMdroInpatientsByKhoa(params: {
         khoaId: khoa,
         maBenhAn: ba,
         maBenhNhan: pid,
-        tenBenhNhan: String(s.ho_ten_benh_nhan || ""),
       }),
       link_isolation: buildGscMdroDeepLink({
         bangKiemMa: GSC_BK_ISOLATION,
         khoaId: khoa,
         maBenhAn: ba,
         maBenhNhan: pid,
-        tenBenhNhan: String(s.ho_ten_benh_nhan || ""),
       }),
     };
   });
