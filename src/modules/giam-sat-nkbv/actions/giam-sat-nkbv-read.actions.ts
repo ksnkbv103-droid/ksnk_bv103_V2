@@ -15,6 +15,7 @@ import {
   getNkbvIdentityScope,
   getNkbvKhoaRestriction,
   isNkbvBenhAnInScope,
+  NKBV_NO_KHOA_ERROR,
   NKBV_OUT_OF_SCOPE_ERROR,
 } from "../lib/nkbv-khoa-scope.server";
 import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
@@ -58,7 +59,10 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   if (identityDenied) {
     return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [] as unknown[], totalCount: 0 };
   }
-  if (restriction.kind === "none") return { success: true as const, data: [], totalCount: 0 };
+  // NKBV-045: không xác định được khoa → lỗi rõ, không rỗng-success (cùng lớp NKBV-043).
+  if (restriction.kind === "none") {
+    return { success: false as const, error: NKBV_NO_KHOA_ERROR, data: [] as unknown[], totalCount: 0 };
+  }
   const khoaGhiNhanId = restriction.kind === "khoa" ? restriction.khoaId : filters.khoa_ghi_nhan_id;
 
   const parsed = nkbvListPaginationSchema.safeParse({
@@ -239,7 +243,10 @@ export async function listNkbvMedicalRecords(params: {
   if (identityDenied) {
     return { success: false as const, error: NKBV_HOI_DONG_IDENTITY_DENIED, data: [], totalCount: 0 };
   }
-  if (restriction.kind === "none") return { success: true as const, data: [], totalCount: 0 };
+  // NKBV-045: không xác định được khoa → lỗi rõ, không rỗng-success (cùng lớp NKBV-043).
+  if (restriction.kind === "none") {
+    return { success: false as const, error: NKBV_NO_KHOA_ERROR, data: [] as unknown[], totalCount: 0 };
+  }
   const khoaId = restriction.kind === "khoa" ? restriction.khoaId : params.khoaId ? String(params.khoaId).trim() : "";
 
   const from = (page - 1) * pageSize;

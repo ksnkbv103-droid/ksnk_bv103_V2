@@ -9,7 +9,10 @@ const mocks = vi.hoisted(() => ({
   eq: vi.fn(),
 }));
 
-vi.mock("@/lib/server-permission", () => ({ verifyAnyPermission: vi.fn(async () => {}) }));
+vi.mock("@/lib/server-permission", () => ({
+  verifyAnyPermission: vi.fn(async () => {}),
+  verifyPermission: vi.fn(async () => {}),
+}));
 vi.mock("../lib/nkbv-khoa-scope.server", () => ({
   getNkbvCensusAccess: async () => ({
     restriction: await mocks.restriction(),
@@ -19,6 +22,7 @@ vi.mock("../lib/nkbv-khoa-scope.server", () => ({
   }),
   getNkbvIdentityScope: async () => ({ restriction: await mocks.restriction(), identityDenied: mocks.denied.v }),
   NKBV_GSC_NO_KHOA_ERROR: "NO_KHOA",
+  NKBV_NO_KHOA_ERROR: "NO_KHOA_CHUNG",
   NKBV_OUT_OF_SCOPE_ERROR: "OUT_OF_SCOPE",
 }));
 const makeClient = (tag: string) => ({
@@ -45,7 +49,7 @@ vi.mock("@/lib/supabase-server", () => ({
 import { NKBV_GUEST_IDENTITY_DENIED, NKBV_HOI_DONG_IDENTITY_DENIED } from "../lib/nkbv-khoa-scope";
 import { getPatientMdroSupervisionStatus, listMdroInpatientsByKhoa } from "./giam-sat-nkbv-mdro.actions";
 import { listNkbvPatientRcaByKhoa } from "./giam-sat-nkbv-rca.actions";
-import { listInpatientsByKhoa } from "./giam-sat-nkbv-read.actions";
+import { listGiamSatNkbvCas, listInpatientsByKhoa, listNkbvMedicalRecords } from "./giam-sat-nkbv-read.actions";
 
 const K1 = "11111111-1111-4111-8111-111111111111";
 const K2 = "22222222-2222-4222-8222-222222222222";
@@ -199,4 +203,20 @@ describe("NKBV-043 nội trú theo khoa qua getNkbvCensusAccess", () => {
     expect(new Set(mocks.admin.mock.calls.map((c) => c[0]))).toEqual(new Set(["user"]));
     expect(khoaEqs()).toEqual([K2]);
   });
+});
+
+/**
+ * NKBV-045: cùng lớp lỗi NKBV-043 — phạm vi «none» (có NKBV:view nhưng chưa gán khoa) không được trả success rỗng,
+ * vì người dùng đọc là «khoa chưa có ca/hồ sơ». Lỗi rõ, không truy vấn.
+ */
+describe("NKBV-045 danh sách ca và hồ sơ BA: phạm vi none báo lỗi rõ", () => {
+  const noKhoa = { success: false, error: "NO_KHOA_CHUNG", data: [], totalCount: 0 };
+
+  it("kind=none: listGiamSatNkbvCas và listNkbvMedicalRecords trả lỗi, không truy vấn", async () => {
+    mocks.restriction.mockResolvedValue({ kind: "none" });
+    expect(await listGiamSatNkbvCas({ page: 1 })).toEqual(noKhoa);
+    expect(await listNkbvMedicalRecords({ page: 1 })).toEqual(noKhoa);
+    expect(mocks.eq).not.toHaveBeenCalled();
+  });
+
 });

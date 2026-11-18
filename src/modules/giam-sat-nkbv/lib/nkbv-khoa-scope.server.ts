@@ -65,6 +65,9 @@ export async function getNkbvCensusAccess(): Promise<{
 export const NKBV_GSC_NO_KHOA_ERROR =
   "Chưa xác định được khoa của bạn nên không xem được danh sách MDRO. Liên hệ quản trị để gán khoa.";
 
+/** Có NKBV:view nhưng chưa gán khoa (NKBV-045): lỗi rõ thay vì «không có ca/hồ sơ». */
+export const NKBV_NO_KHOA_ERROR = "Chưa xác định được khoa của bạn nên không xem được danh sách. Liên hệ quản trị để gán khoa.";
+
 export const NKBV_OUT_OF_SCOPE_ERROR = "Hồ sơ nằm ngoài khoa của bạn.";
 
 /**
