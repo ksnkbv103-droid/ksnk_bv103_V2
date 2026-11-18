@@ -371,7 +371,7 @@ Nguyên văn: `git show 5618ae82:docs/archive/bao-cao/BAO-CAO-NEN-MONG-2026-11-1
 
 **Xung đột mở (quyết định lâm sàng của PO; báo cáo không chọn thay):** mẻ tiệt khuẩn không đạt. KSNK.QT.20 `[HIỆN HÀNH]` dòng 95 và đặc tả M05 B5.37: làm sạch lại từ đầu (coi như dụng cụ bẩn). App `docs/modules/cssd/18-CSSD-PHIEU-ME-TIET-KHUAN-SSOT.md:177` («PO chốt lại 2026-10-10»): về `DONG_GOI`, bỏ bước làm sạch. Tình trạng hiện nay: chưa có dòng sổ lỗi theo dõi (grep `QT.20`/`DONG_GOI` trong `so-loi.json` 2026-11-18 không khớp dòng nào); cần PO quyết, có thể mở dòng sổ.
 
-**Đã giải quyết:** ngưỡng VST (từng là hằng số có test khóa, chưa ai chốt) = khóa PO 2026-11-01: <85 đỏ · 85–<90 vàng · ≥90 xanh, mẫu tối thiểu 50 theo khoa/kỳ; cài qua `ksnk_dm_tham_so` (migration `20261118100000`, `20261118110000`).
+**Đã giải quyết:** ngưỡng VST (từng là hằng số có test khóa, chưa ai chốt) = khóa PO 2026-11-01: <85 đỏ · 85–<90 vàng · ≥90 xanh, mẫu tối thiểu 50 theo khoa/kỳ; cài qua `ksnk_dm_tham_so` (migration `20261118100000`, `20261118110000`). **Áp local; prod = CHO_PO** (chưa áp prod).
 
 **Quy tắc đặc tả chưa thấy trong code VST** (tìm theo từ khóa, chỉ kết luận «chưa thấy»): R1.03 từ chối nhập bù sau 24 giờ · R1.10 đủ thời gian chà (cồn ≥ 20 giây, nước ≥ 40 giây) · R1.11 chỉ tính cơ hội của phiên đã xác nhận/khóa · R1.15 ẩn tỷ lệ khi mẫu số < 10. Cần kiểm trên code hiện hành.
 
