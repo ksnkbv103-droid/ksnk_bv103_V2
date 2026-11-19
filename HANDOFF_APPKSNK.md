@@ -16,7 +16,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Lệch lâm sàng UTI sốt đơn độc (`nkbv-rules-engine.ts:651-654`): câu P8 trong `CAU_HOI_PO_APPKSNK.md`.
 
 ## KẾ
-- **Kế luồng:** `.claude/plans/de-xuat-mot-con-duong-20261119.md` §8. Lát 1 xong (`feedb6ef`); Lát 1b → 1c → 2 → 3 làm ở phiên riêng (PO 19/11), câu PO phát sinh ghi vào `CAU_HOI_PO_APPKSNK.md`. Chỉ dùng số lát §8. `npm run db:dung` (42 s; CI `db-dung.yml` sau push) · reset stack `scripts/db-reset-local.sh` · hàng rào `supabase/PROD_HEAD` + `guard-migrations.mjs`.
+- **Kế luồng:** `.claude/plans/de-xuat-mot-con-duong-20261119.md` §8. Xong: Lát 1 (`feedb6ef`), Lát 3 (`90d8e40a`, chưa push). Còn, theo thứ tự: Lát 2 (sổ thêm 6 trường + `report`/`trace`/3 chỉ số luồng) → Lát 1b (pgTAP; `supabase/tests/` chưa track, chưa rõ chủ) → Lát 1c → làm nốt `CAU_HOI_PO_APPKSNK.md` (13 khối thiếu nhãn «Nếu im», «Mở khóa», «ID sổ»; thiếu mục «Đã làm theo mặc định» và bước PO cho `typescript-lsp`/superpowers). Câu PO phát sinh ghi vào file đó. Chỉ dùng số lát §8. `npm run db:dung` (42 s; CI `db-dung.yml` sau push) · reset stack `scripts/db-reset-local.sh` · hàng rào `supabase/PROD_HEAD` + `guard-migrations.mjs`.
 - Ngoài §8, đã xong: migration > PROD_HEAD cần `-- ADR: docs/adr/*.md` (`9d979794`, `eafbe659`); bỏ `rules/review-flow.md` (`9a12116e`).
 - Monitoring theo khóa PO 11-01 qua `ksnk_dm_tham_so`: `20261118100000` + `20261118110000` đã ở prod (19/11); chờ deploy code. VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
