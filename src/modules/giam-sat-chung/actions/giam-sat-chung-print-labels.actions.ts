@@ -5,6 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import type { GscPrintLabelPack } from "../lib/gsc-session-labels";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
+import { hasHospitalWideGscRead } from "../lib/gsc-read-scope";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 function getErrorMessage(error: unknown): string {
@@ -29,7 +30,12 @@ export async function getGscSessionPrintLabels(input: {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
     const requestedKhoaId = String(input.khoa_id ?? "").trim() || null;
-    const scopedKhoa = resolveGscScopedKhoaId(scope, requestedKhoaId);
+    // VST-038: ADMIN / NV KSNK / CNK đọc phiên toàn viện (hasHospitalWideGscRead) nên không khóa khoa dù kiêm MANG_LUOI.
+    const khoaLocked = scope.isMangLuoiKsnk && !hasHospitalWideGscRead(scope);
+    const scopedKhoa = resolveGscScopedKhoaId(
+      { isMangLuoiKsnk: khoaLocked, actorKhoaId: scope.actorKhoaId ?? null },
+      requestedKhoaId,
+    );
     if (!scopedKhoa.ok) {
       return { success: false, error: scopedKhoa.error };
     }
@@ -49,7 +55,7 @@ export async function getGscSessionPrintLabels(input: {
     const nvP = nvId
       ? (() => {
           let q = supabase.from("mdm_nhan_su").select("ho_ten, khoa_id").eq("id", nvId);
-          if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+          if (khoaLocked && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
           return q.maybeSingle();
         })()
       : Promise.resolve({ data: null as { ho_ten?: string; khoa_id?: string } | null, error: null });
@@ -59,7 +65,7 @@ export async function getGscSessionPrintLabels(input: {
     const ngsP = ngsId
       ? (() => {
           let q = supabase.from("mdm_nhan_su").select("ho_ten, khoa_id").eq("id", ngsId);
-          if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+          if (khoaLocked && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
           return q.maybeSingle();
         })()
       : Promise.resolve({ data: null as { ho_ten?: string; khoa_id?: string } | null, error: null });

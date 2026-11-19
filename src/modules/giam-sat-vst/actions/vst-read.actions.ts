@@ -169,8 +169,10 @@ export async function getVstHeaderDmDropdowns() {
       return { success: false as const, error: historyAccess.error };
     }
 
+    // VST-038: bám lưu phiên (vst-write-save-session) và dropdown GSC — ADMIN / NV KSNK kiêm MANG_LUOI không bị khóa khoa.
+    const isMangLuoiOnly = scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk;
     const actorKhoaId = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
-    if (scope.isMangLuoiKsnk && !actorKhoaId) {
+    if (isMangLuoiOnly && !actorKhoaId) {
       return {
         success: true as const,
         data: { khoas: [], khuVucs: [], ngheNghieps: [], nhanSus: [] },
@@ -180,7 +182,7 @@ export async function getVstHeaderDmDropdowns() {
     const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes, khoiRows] = await Promise.all([
       vstRepo.getRegistryOptionsRpc(["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"]),
       getCachedDmKhoaPhong(),
-      vstRepo.findVstHeaderNhanSu(scope.isMangLuoiKsnk ? actorKhoaId : null),
+      vstRepo.findVstHeaderNhanSu(isMangLuoiOnly ? actorKhoaId : null),
       vstRepo.findVstKhuVucFallback(),
       // VST-013a: thứ tự khối để xếp khoa lâm sàng lên trước; lỗi đọc khối thì giữ thứ tự tên.
       getDb()
@@ -192,7 +194,7 @@ export async function getVstHeaderDmDropdowns() {
     if (nhanSuRes.error) throw nhanSuRes.error;
     if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
 
-    const khoaFiltered = scope.isMangLuoiKsnk
+    const khoaFiltered = isMangLuoiOnly
       ? actorKhoaId
         ? khoaData.filter((x) => String(x.id) === actorKhoaId)
         : []

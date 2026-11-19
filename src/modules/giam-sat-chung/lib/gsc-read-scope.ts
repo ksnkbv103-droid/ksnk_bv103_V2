@@ -10,7 +10,7 @@ const EMPTY_SCOPE_ID = "00000000-0000-0000-0000-000000000000";
  * Vai đọc phiên GSC có danh tính trên toàn viện, không bị siết theo khoa hay mạng lưới.
  * CHU_NHIEM_KHOA = chủ nhiệm khoa KSNK (≡ TK_KSNK, M02 «X E» phiên giám sát), cùng luật VST-026.
  */
-function hasHospitalWideGscRead(scope: ActorKsnkScope): boolean {
+export function hasHospitalWideGscRead(scope: ActorKsnkScope): boolean {
   return scope.isAdmin || scope.isNhanVienKsnk || scope.roles.includes("CHU_NHIEM_KHOA");
 }
 
