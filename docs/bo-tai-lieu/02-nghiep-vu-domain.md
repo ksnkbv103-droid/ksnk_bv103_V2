@@ -134,7 +134,38 @@ Ba lối nhập, không gộp form:
 
 - BM.01 (`VST_WHO`) bị cấm trong picker GSC, lọc tại `getBangKiemsForGiamSat` (`GS:66`).
 - Không trung bình ba khối thành một %; ba khối dùng chung bộ lọc kỳ, khoa, lens TGS hoặc KSNK; tab VST cũng tải GSC (`shouldFetchSource("VST","GSC") === true`). Mã ở `src/lib/domain/ve-sinh-tay-catalog.ts`.
-- Hai bảng cùng file đặt mã khác nhau (`KSNK.QT.07.BM.02` và `BM.07.02`): «cần kiểm». `MD:374` ghi `gsc-bk-short-long-map.ts` còn dùng cặp mã cũ (§8.3).
+- `BM.07.02`/`BM.07.03` là mã ngắn (alias) của `KSNK.QT.07.BM.02`/`.03`, khai ở `src/lib/domain/gsc-bk-short-long-map.ts:8-9`; hai mã cùng một biểu mẫu. `MD:374` ghi file này còn dùng cặp mã cũ (§8.3).
+- **Mã app ↔ mã kho (PO 2026-11-19, câu P11 = B: giữ mã app, không đánh số lại dãy QT, không đổi `ma_bk`).** Mã `KSNK.QT.nn` trong app (seed `gstt_dm_bang_kiem`, `ma_bk`) lệch **+1** so với kho quy trình `03_QUY_TRINH_BENH_VIEN/02_QUY_TRINH_SOPS/` từ QT.02 trở đi, vì app có thêm một QT kiểm soát văn bản (QT.01) mà kho không có. Đã đối chiếu tên QT và tên BM từng hàng với file kho; số BM có hàng khớp, có hàng lệch (cột «BM kho»). Tra mã nào thì nhìn cột còn lại, không suy theo số.
+
+| Nội dung | Mã app (`ma_bk`) | Mã kho | Ghi chú |
+|---|---|---|---|
+| Kiểm soát văn bản (giám sát) | `KSNK.QT.01.BM.03` | không có trong kho | `02_QUY_TRINH_SOPS` không có QT kiểm soát văn bản (QT.01–QT.37 đã xem tên) |
+| Đánh giá rủi ro (giám sát) | `KSNK.QT.02.BM.04` | `KSNK.QT.01.BM.04` | khớp tên |
+| ICRA (giám sát) | `KSNK.QT.03.BM.03` | `KSNK.QT.02.BM.03` | khớp tên |
+| Hội đồng KSNK (giám sát) | `KSNK.QT.05.BM.04` | `KSNK.QT.04.BM.04` | khớp tên |
+| Mạng lưới KSNK (giám sát) | `KSNK.QT.06.BM.03` | `KSNK.QT.05.BM.03` | khớp tên |
+| VST 5 thời điểm (WHO) | `KSNK.QT.07.BM.01` | `KSNK.QT.06.BM.01` | khớp tên |
+| Kỹ thuật VST thường quy | `KSNK.QT.07.BM.02` (alias `BM.07.02`) | `KSNK.QT.06.BM.02` | khớp tên |
+| Kỹ thuật VST ngoại khoa | `KSNK.QT.07.BM.03` (alias `BM.07.03`) | `KSNK.QT.06.BM.03` | khớp tên |
+| Chỉ định dùng PTPH | `KSNK.QT.08.BM.01` | `KSNK.QT.07.BM.01` | khớp tên |
+| Mặc/tháo PTPH | `KSNK.QT.08.BM.02` | `KSNK.QT.07.BM.02` | khớp tên |
+| Tiêm an toàn | `KSNK.QT.09.BM.01` | `KSNK.QT.08.BM.01` | khớp tên |
+| Hệ thống xử lý phơi nhiễm | `KSNK.QT.10.BM.04` | `KSNK.QT.09.BM.04` | khớp tên |
+| Vệ sinh môi trường: thực hành · chất lượng · khu phẫu thuật | `KSNK.QT.11.BM.02` · `.03` · `.04` | `KSNK.QT.10.BM.02` · `.03` · `.04` | khớp tên; `QT.11.BM.01` (phiếu phân công) «cần kiểm» |
+| Chất thải y tế | `KSNK.QT.12.BM.01` | `KSNK.QT.11.BM.01` | khớp tên |
+| Thu gom đồ vải · đơn vị giặt là | `KSNK.QT.13.BM.01` · `.02` | `KSNK.QT.12.BM.01` · `.02` | khớp tên |
+| Phòng ngừa theo đường lây | `KSNK.QT.14.BM.01` | `KSNK.QT.13.BM.01` | khớp tên |
+| Vận chuyển người bệnh | `KSNK.QT.15.BM.01` | `KSNK.QT.14.BM.01` | khớp tên |
+| Xử lý tử thi | `KSNK.QT.16.BM.01` | `KSNK.QT.15.BM.01` | khớp tên |
+| PTPH cấp cao (giám sát chéo) | `KSNK.QT.17.BM.01` | `KSNK.QT.16.BM.01` | khớp tên |
+| Làm sạch dụng cụ | `KSNK.QT.18.BM.02` | `KSNK.QT.17.BM.04` | **số BM lệch** (02 ↔ 04) |
+| Kiểm tra và bảo dưỡng | `KSNK.QT.19.BM.02` | `KSNK.QT.18.BM.02` | khớp tên |
+| Đóng gói | `KSNK.QT.20.BM.01` | `KSNK.QT.19.BM.03` | **số BM lệch** (01 ↔ 03) |
+| Tiệt khuẩn (vận hành, sổ IUSS) | `KSNK.QT.21.BM.01` | `KSNK.QT.20.BM.03` (nạp tải, vận hành) | «cần kiểm»: app ghi thêm sổ IUSS |
+| Lưu trữ và cấp phát | `KSNK.QT.22.BM.04` | `KSNK.QT.21.BM.04` | khớp tên |
+| Quy trình giám sát tuân thủ | `QT.33` (tên gọi trong app và luật dự án) | `KSNK.QT.32` | chỉ đối chiếu tên QT; chưa kiểm dãy QT.23–QT.37 của kho theo từng BM |
+
+Nguồn app: `docs/modules/giam-sat/12-BANG-KIEM-inventory-from-KSNK-final.md` (bảng STT 1–28). Nguồn kho: danh sách BM trong từng file `KSNK.QT.nn` ở đường dẫn trên (ngoài repo).
 
 ### 2.4 Chỉ số, mẫu mỏng, đối soát
 
