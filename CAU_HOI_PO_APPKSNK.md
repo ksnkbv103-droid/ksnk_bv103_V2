@@ -1,6 +1,6 @@
 # CAU_HOI_PO_APPKSNK — Câu hỏi chờ PO (một file duy nhất)
 
-Cập nhật 2026-11-19 (đã xóa P1–P11 sau khi PO trả lời; đáp án ở sổ lỗi). Mọi câu cần PO nằm ở đây, mỗi câu có bối cảnh, lựa chọn, hậu quả và đề xuất. Câu đã trả lời: ghi đáp án vào sổ lỗi (`so-loi.mjs`), rồi xóa câu khỏi file này.
+Cập nhật 2026-11-19 (đã xóa P1–P14, D2, D4 sau khi PO trả lời; đáp án ở sổ lỗi). Mọi câu cần PO nằm ở đây, mỗi câu có bối cảnh, lựa chọn, hậu quả và đề xuất. Câu đã trả lời: ghi đáp án vào sổ lỗi (`so-loi.mjs`), rồi xóa câu khỏi file này.
 
 **Cách trả lời:** gõ trong chat theo mã, ví dụ «P12: đề xuất · C1: hỏi khoa rồi báo». Câu nào im thì mục «Nếu im» được áp dụng.
 
@@ -8,29 +8,7 @@ Cập nhật 2026-11-19 (đã xóa P1–P11 sau khi PO trả lời; đáp án �
 
 ## P — Cần PO quyết để làm tiếp
 
-### P12 · QT-017 phần 2 · Gán vai «Chủ nhiệm khoa» (CHU_NHIEM_KHOA) cho người thật bằng cách nào
-- **Bối cảnh:** Vai này là vai cộng thêm, hiện 0 người giữ. Ô chọn vai trên trang Tài khoản nhân sự không có vai này (`rbac.types.ts:72-77`), vì lệnh gán ở đó thay toàn bộ vai cũ của người được chọn (`rpc_assign_staff_ksnk_role`), nên gán Chủ nhiệm khoa qua ô đó sẽ làm mất vai KSNK sẵn có của người ấy. Hệ quả: trên giao diện không ai gán được; các việc cần vai này (duyệt hóa chất/thiết bị, nghiệm thu QLCV, mở GSC cho khoa) chưa có người dùng thật.
-- **Hỏi:** Gán vai này cho người thật bằng cách nào?
-- **A.** PO ra lệnh gán một lần trên prod (SQL cộng thêm dòng vai, không bỏ vai cũ), cho người giữ vai theo ghi nhận N6 của lộ trình; không làm đường gán trên giao diện vì chỉ vài người.
-- **B.** Làm đường gán «vai cộng thêm» trên giao diện (không thay vai cũ): 1 migration + RPC + màn hình, qua `review-bv103` vì chạm quyền.
-- **Đề xuất: A** (ít file nhất, không đụng giao diện; dùng được ngay khi PO gõ lệnh).
-- **Nếu im:** giữ hiện trạng, vai vẫn 0 người.
-- **Mở khóa:** A → PO gõ lệnh gán, Claude soạn sẵn câu SQL chỉ-thêm; B → một lát theo CLAUDE.md (≥ 3 kịch bản tay, RPC apply local).
-- **ID sổ:** QT-019 (tách từ QT-017)
-
-### P13 · NEN-010 · Cổng tài khoản break-glass (email quản trị khẩn cấp) có cần kiểm email đã xác nhận không
-- **Bối cảnh:** App coi email trong `KSNK_BREAK_GLASS_EMAILS` là ADMIN (`src/lib/auth/trusted-admin-email.ts:22`) mà không kiểm `email_confirmed_at`. Nâng quyền chỉ xảy ra nếu biến này được đặt và prod cho đăng ký/đổi email không cần xác nhận; repo không đo được cấu hình Auth prod. Sửa chạm ≥ 11 file (7 file auth + nơi gọi) và nằm ở `src/lib`, vượt trần 8 file/lát.
-- **Hỏi:** (a) Prod: các tài khoản break-glass hiện có `email_confirmed_at` khác rỗng không (nếu rỗng, sửa sẽ khóa chính PO ra khỏi quyền ADMIN)? (b) Cho phép lát chạm `src/lib` và tách 2 lát (A ≤ 8 file, B 3–5 file)? (c) Chỉ kiểm `email_confirmed_at` hay cả `confirmed_at` (đăng nhập bằng SĐT)?
-- **Đề xuất:** (a) PO hoặc MCP chỉ đọc chạy `select email, email_confirmed_at from auth.users where lower(email) = any(string_to_array(lower('<danh sách trong KSNK_BREAK_GLASS_EMAILS>'), ','))`; (b) có, tách 2 lát; (c) chỉ `email_confirmed_at`.
-- **Nếu im:** giữ nguyên; mức THẤP, `fn_sys_is_admin()` không biết break-glass nên RLS vẫn đóng (fail-closed).
-- **ID sổ:** NEN-010
-
-### P14 · NEN-015 · Thêm khóa chạy đồng thời cho `scripts/db-dung.sh`
-- **Bối cảnh:** `db-dung.sh` dùng cố định project id `ksnk_dd` (cổng 55620–55627); hai phiên chạy cùng lúc thì phiên sau tắt stack của phiên trước, phiên trước báo ĐỎ giả «No such container» (gặp 19/11 13:03).
-- **Hỏi:** Thêm khóa bằng thư mục (`mkdir $TMP/ksnk_dd.lock`, thoát nếu đã có, `trap` xóa khi thoát) vào script, khoảng 10 dòng, không đổi hành vi khi chạy một phiên?
-- **Đề xuất:** Có (một lát nhỏ, kiểm bằng chạy hai bản song song).
-- **Nếu im:** giữ như hiện tại; quy ước «chỉ chạy khi `pgrep -f "bash scripts/db-dung.sh"` rỗng» vẫn ở `HANDOFF_APPKSNK.md`.
-- **ID sổ:** NEN-015
+_Không còn câu quyết mới (19/11). P12–P14 đã trả lời trong chat; phần còn thiếu dữ liệu ghi ở «Còn chờ dữ liệu» ngay dưới bảng D._
 
 ---
 
@@ -64,11 +42,16 @@ Cập nhật 2026-11-19 (đã xóa P1–P11 sau khi PO trả lời; đáp án �
 | Mã | Việc | Lệnh PO gõ | Trước khi chạy, máy sẽ tự kiểm |
 |---|---|---|---|
 | D1 | Deploy code lát B (ngăn kéo CSSD-034) và trang kế hoạch giám sát. Migration của hai phần này đã áp prod 19/11 | «deploy» | prod: vai NHAN_VIEN_KSNK có quyền GIAM_SAT_NKBV import |
-| D2 | VST-043 · TC09: sửa câu trích QĐ 3651 trên prod. Một lệnh UPDATE `gstt_dm_bang_kiem`, `WHERE id = '9d3c00f2-eb9c-4edb-8ee7-bb0cfb0f6f9d'`, thay đúng cụm chữ cũ đứng trước «6 rõ», giống file seed `KSNK.QĐ.01.BM.01.json:60` | «áp TC09» | SELECT trước và sau, đúng 1 dòng đổi |
-| D4 | QT-015 ý (3): đếm trên prod số tài khoản chỉ có cờ `must_change_password` ở `user_metadata` (không có ở `app_metadata`). Câu chỉ đọc: `select count(*) from auth.users where raw_user_meta_data->>'must_change_password'='true' and not raw_app_meta_data ? 'must_change_password'`. Local = 0; prod = 0 thì đóng ý này, > 0 thì sửa cổng | «đếm QT-015» (PO hoặc MCP chỉ đọc) | câu `select count(*)` chỉ đọc, không ghi |
 | D5 | CSSD-041: prod có quy trình kẹt trên bộ tổng còn con active không (S2 đã áp prod, kế hoạch chỉ đo số dòng). Câu chỉ đọc: `select b.ma_bo, t.ma_tram, q.id from cssd_fact_quy_trinh q join cssd_dm_bo_dung_cu b on b.id=q.bo_dung_cu_id and b.parent_bo_id is null left join cssd_dm_tram t on t.id=q.tram_hien_tai_id where q.is_active and exists (select 1 from cssd_dm_bo_dung_cu k where k.parent_bo_id=b.id and k.is_active and k.vai_tro_tach in ('CHIU_NHIET','KHONG_CHIU_NHIET'))`. 0 dòng thì đóng CSSD-041; có dòng thì PO quyết hoàn thành hay hủy từng quy trình (xử lý dữ liệu, không cần migration) | «đếm CSSD-041» (PO hoặc MCP chỉ đọc) | câu `select` chỉ đọc, không ghi |
 | D6 | CSSD-048 (PO 19/11 P7=Tắt): tắt đúng 68 bộ mẹ rỗng sau tách bộ nhiệt. Một lệnh UPDATE `cssd_dm_bo_dung_cu` đặt `is_active=false` cho đúng 68 bộ mẹ không còn dụng cụ (có thể bật lại) | «tắt 68 bộ» | SELECT count trước và sau, đúng 68 dòng đổi |
 | D3 | Đẩy các commit local lên GitHub; CI `db-dung.yml` chỉ chạy sau bước này | «push» | `npm run verify` |
+
+**Còn chờ dữ liệu** (19/11, sau khi PO trả lời P12–P14 và chọn D1/D2/D4/D5/D6 trong chat):
+- **D2** đã áp prod (VST-043 DA_SUA). **D4** đếm = 0 (QT-015 ý 3, chờ PO quyết đóng). **D5** đếm = 0 nhưng vô nghĩa: prod chưa có bộ con (CSSD-041 chưa đóng).
+- **D6** KHÔNG chạy: prod 164 bộ, 0 bộ con, nên không có «68 bộ mẹ rỗng»; số 68 chỉ có ở DB local (CSSD-048). Đo lại sau khi dữ liệu tách nhiệt lên prod.
+- **D1** chưa chạy: phiên không có công cụ deploy Vercel; cần authorize server `vercel` qua `/mcp`. Lát B + trang kế hoạch giám sát đã ở GitHub (đầu nhánh `f24445a3`).
+- **P12** cần tên người giữ vai CHU_NHIEM_KHOA (N6) để soạn SQL gán. **P13** cần danh sách `KSNK_BREAK_GLASS_EMAILS` (Claude không đọc `.env*`): PO dán hoặc tự chạy SELECT. **P14** không cần gì thêm, làm ở lát kế.
+
 
 ---
 
