@@ -11,6 +11,8 @@ import {
   toggleMasterStatus,
   upsertMasterRow,
 } from "@/lib/master-data/engine/master-crud-core";
+import { parseOrFirstError } from "@/lib/validations/tai-khoan-nhan-su.validations";
+import { khoaPhongSaveSchema } from "@/modules/to-chuc/khoa-phong/actions/khoa-phong.validations";
 import type { KhoaPhongRow } from "@/modules/to-chuc/khoa-phong/actions/khoa-phong.types";
 
 function normalizeNonNegativeNumber(value: unknown): number {
@@ -98,9 +100,12 @@ export async function getKhuVucGiamSatOptionsAction() {
   }
 }
 
-export async function saveKhoaPhongAction(input: Record<string, unknown>) {
+export async function saveKhoaPhongAction(raw: Record<string, unknown>) {
+  await verifyPermission("KHOA_PHONG", String(raw?.id || "").trim() ? "edit" : "create");
+  const parsed = parseOrFirstError(khoaPhongSaveSchema, raw);
+  if (!parsed.ok) return { success: false as const, error: parsed.error };
+  const input = parsed.data;
   const id = String(input.id || "").trim();
-  await verifyPermission("KHOA_PHONG", id ? "edit" : "create");
   const supabase = createAdminSupabaseClient();
   let khoiNorm: string | null = null;
   try {
@@ -115,7 +120,7 @@ export async function saveKhoaPhongAction(input: Record<string, unknown>) {
       error: "Khối khoa không hợp lệ: chọn trong danh mục KHOI_KHOA hoặc để trống.",
     };
   }
-  const existingSpecs = (input.specs as Record<string, unknown>) || {};
+  const existingSpecs = input.specs || {};
   const typedCode = String(input.cdc_location_code ?? existingSpecs.cdc_location_code ?? "").trim();
   if (typedCode && !normalizeCdcLocationCode(typedCode)) {
     return {
@@ -139,9 +144,6 @@ export async function saveKhoaPhongAction(input: Record<string, unknown>) {
     },
     updated_at: new Date().toISOString(),
   };
-  if (!payload.ma_khoa || !payload.ten_khoa) {
-    return { success: false as const, error: "Thiếu mã hoặc tên khoa phòng." };
-  }
   return upsertMasterRow("mdm_dm_khoa_phong", id, payload);
 }
 
