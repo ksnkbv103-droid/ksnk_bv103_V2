@@ -2243,11 +2243,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Kho hóa chất: dmMovs không xóa khi mở mặt hàng khác — ngăn kéo hiện «Chưa có phiếu.» hoặc phiếu của mặt hàng trước cho tới khi tải xong; bấm «In thẻ kho» lúc đó có thể in sai",
     "bang_chung": "src/modules/cssd-erp/views/KhoHoaChatKsnkPage.tsx:44-58. «Chưa có phiếu.» lần mở đầu đã thấy trên :3012; phiếu mặt hàng trước và in sai mới suy từ code.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "Tái hiện: mở thẻ kho mặt hàng A, đóng, mở mặt hàng B trên :3001 → ngăn kéo B hiện phiếu của A. Đọc: KhoHoaChatKsnkPage.tsx:44-58,147-159 (dmMovs chỉ set ở :52, không reset khi openId đổi); the-kho.ts:60-65 buildTheKho không lọc dm_hoa_chat_id. Sau sửa: npm run test:cssd -- src/modules/cssd-erp",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. | Xác minh 19/11 (db-verify): MỘT PHẦN. Phần dmMovs cũ/in sai ĐÚNG (buildTheKho in dòng của A dưới tiêu đề B, tồn đầu sai). Phần «request cũ ghi đè» LỜI GIẢ: cờ alive (:49,51,55-57) đã bỏ kết quả cũ. Sửa tối thiểu: lưu {dmId, rows}, chỉ truyền movs khi dmId===openId, drawer hiện «Đang tải…» và disable In thẻ kho; ≈ 2 file."
   },
   {
     "id": "CSSD-039",
@@ -2256,11 +2256,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Hủy sự cố không lấy khóa cssd_kho_hoa_chat_su_co: nên hủy chạy đồng thời với lập phiếu vẫn để phiếu gắn sự cố đã hủy; RPC không kiểm p_su_co_id tồn tại/còn is_active",
     "bang_chung": "src/modules/cssd-su-co/application/void-incident.application.ts:51-60 (bước kiểm trước rpc_cssd_apply_incident_void); review CSSD-032 18/11.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql, BEGIN…ROLLBACK: su_co is_active=false + rpc_cssd_kho_hoa_chat_ghi_giao_dich('XUAT',…, su_co_id) trả phiếu CHO_DUYET is_active=t gắn sự cố đã hủy (đã thấy 19/11). Sau sửa: pgTAP supabase/tests/database + npm run verify:mdm:local + node scripts/…/acl-snapshot.mjs",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Dòng :185 (so_luong_kho_du_phong) đã kiểm: cập nhật nằm trong RPC 20261110110000:85-94, không còn nợ."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Dòng :185 (so_luong_kho_du_phong) đã kiểm: cập nhật nằm trong RPC 20261110110000:85-94, không còn nợ. | Xác minh 19/11 (db-verify): MỘT PHẦN. Mô tả về RPC void SAI: rpc_cssd_apply_incident_void (20261110110000:39-45) đã có SELECT…FOR UPDATE, báo không tìm thấy, trả already nếu is_active=false. Lỗ hổng thật ở (a) rpc_cssd_kho_hoa_chat_ghi_giao_dich (20261118090000:61-73) khóa advisory nhưng không đọc cssd_fact_su_co nên không kiểm sự cố còn is_active (tái hiện tuần tự được); (b) race giữa tra phiếu kho (void-incident.application.ts:53-60) và RPC void, RPC void không kiểm lại phiếu kho. Sửa: 1 migration CREATE OR REPLACE 2 hàm (FOR SHARE su_co trong ghi_giao_dich; kiểm lại phiếu hiệu lực trong void), không đổi chữ ký."
   },
   {
     "id": "NEN-008",
