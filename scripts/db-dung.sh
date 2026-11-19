@@ -8,7 +8,7 @@
 #  3. db lint --level error không vượt mốc scripts/data/db-lint-baseline.json (lỗi cũ ghi trong mốc; chỉ chặn lỗi mới).
 #  4. audit:views (0 view không ai dùng).
 #  5. pgTAP: `supabase test db` chạy supabase/tests/** (§10 #1, Lát 1b).
-#  6. gen types: src/lib/database.types.ts phải bằng output `supabase gen types typescript --local` (§10 #2, Lát 1b).
+#  6. gen types: src/lib/database.types.ts phải bằng output `supabase gen types typescript --db-url …:55622` (§10 #2, Lát 1b).
 # Chạy đủ các bước rồi mới thoát; bước nào đỏ thì exit 1.
 # Biến: MIGRATION_BASE · DB_DUNG_GHI_MOC=1 (ghi lại mốc lint) · DB_DUNG_GHI_TYPES=1 (sinh lại database.types.ts) · DB_DUNG_GIU=1 (giữ stack để soi) · SUPABASE_CLI (mặc định npx supabase).
 set -uo pipefail
@@ -103,7 +103,8 @@ tail -3 "$TMP/pgtap.log"
 
 # 6. Kiểu TypeScript sinh từ schema: file đã commit phải bằng output `gen types` của chính chuỗi migration này
 TYPES="$REPO/src/lib/database.types.ts"
-if sb gen types typescript --local --schema public > "$TMP/database.types.ts" 2> "$TMP/types.err"; then
+# --db-url + sslmode=disable: `--local` tới DB cổng 55622 lỗi TLS ("server does not support SSL"); lỗi CLI in JSON ra stdout nên in cả hai khi đỏ.
+if sb gen types typescript --db-url "postgresql://postgres:postgres@127.0.0.1:55622/postgres?sslmode=disable" --schema public > "$TMP/database.types.ts" 2> "$TMP/types.err"; then
   if [ "${DB_DUNG_GHI_TYPES:-}" = 1 ]; then
     cp "$TMP/database.types.ts" "$TYPES"; echo "[db:dung] ghi $TYPES ($(wc -l < "$TYPES") dòng)"
   elif ! cmp -s "$TMP/database.types.ts" "$TYPES"; then
@@ -111,7 +112,7 @@ if sb gen types typescript --local --schema public > "$TMP/database.types.ts" 2>
     diff "$TYPES" "$TMP/database.types.ts" | head -20 >&2
     fail="$fail · gen types lệch"
   else echo "[db:dung] gen types khớp $(basename "$TYPES")"; fi
-else cat "$TMP/types.err" >&2; fail="$fail · gen types không chạy được"; fi
+else cat "$TMP/types.err" >&2; head -c 600 "$TMP/database.types.ts" >&2; fail="$fail · gen types không chạy được"; fi
 
 if [ -n "$fail" ]; then echo "[db:dung] ĐỎ${fail}" >&2; exit 1; fi
 echo "[db:dung] XANH (base bất biến: $base)"
