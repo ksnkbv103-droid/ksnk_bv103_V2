@@ -2393,10 +2393,10 @@
     "tieu_de": "Mất probe local duy nhất kiểm RLS phạm vi khoa sáu bảng nkbv_fact_* bằng JWT giả (CNK/Mạng lưới/TO_TRUONG) khi gỡ cùng NKBV-041",
     "bang_chung": "aecd3eb6 xóa scripts/sql/nkbv-identity-rls-probe.sql; còn spec nkbv-khoa-scope; RLS 20261111170000 (NKBV-003).",
     "lenh_kiem": "git show aecd3eb6^:scripts/sql/nkbv-identity-rls-probe.sql (khôi phục phần NKBV-003 rồi chạy trên DB local)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "LOI_GIA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. | db-verify 19/11: khẳng định «mất probe duy nhất» sai. scripts/sql/nkbv-khoa-vai-ngoai-probe.sql (NKBV-038, 1efc3867) phủ sáu bảng nkbv_fact_* cho NV_KSNK/ADMIN, TO_TRUONG, CNK, HĐ+CNK, MANG_LUOI(+CNK); phần HĐ-deny PO đã bỏ ở NKBV-041. Lưu ý còn hở: probe không chạy được trên DB local hiện tại (nkbv_fact_benh_an=0, không có user NHAN_VIEN_KSNK thuần → «no rows returned for \\gset»; nghi do db:dung dựng lại) — cần seed NKBV trước khi chạy lại probe, chưa ghi dòng sổ riêng."
   },
   {
     "id": "QT-015",
