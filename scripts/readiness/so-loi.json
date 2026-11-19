@@ -2447,10 +2447,11 @@
     "tieu_de": "Thanh điều hướng GSC chưa có tab «Bảng kiểm»",
     "bang_chung": "Thanh GSC (ghi chú AR-1/4/5 trong roadmap cũ).",
     "lenh_kiem": "grep -c 'bang-kiem\\|BANG_KIEM\\|QUAN_TRI_BANG_KIEM_PATH' src/components/shared/SupervisionModeNav.tsx",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. | Xác minh 2026-11-19 (db-verify, chỉ đọc): DA_XAC_MINH, mức THAP/UX. src/components/shared/SupervisionModeNav.tsx:49-56 chỉ có 3 tab (Nhập, Lịch sử, Thống kê) + «Danh mục» khi có quyền; chưa tab dẫn tới /giam-sat-chung/bang-kiem (page src/app/giam-sat-chung/bang-kiem/page.tsx:11-18 đã có, chặn bằng canAccessDanhMucModuleRoute(\"BANG_KIEM\")). Sửa: thêm tab chỉ cho module gsc, href QUAN_TRI_BANG_KIEM_PATH (src/lib/master-data/quan-tri-paths.ts:19), gate useModulePermission(\"BANG_KIEM\").allowed.view (đã đăng ký VIEW ở src/lib/permission-registry-data.ts:46); 1-2 file, không migration, không quyền mới. VST không cần tab này. Cần ≥1 kịch bản tay trên :3001 khi sửa."
+    "commit": "bff55cbc",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. | Xác minh 2026-11-19 (db-verify, chỉ đọc): DA_XAC_MINH, mức THAP/UX. src/components/shared/SupervisionModeNav.tsx:49-56 chỉ có 3 tab (Nhập, Lịch sử, Thống kê) + «Danh mục» khi có quyền; chưa tab dẫn tới /giam-sat-chung/bang-kiem (page src/app/giam-sat-chung/bang-kiem/page.tsx:11-18 đã có, chặn bằng canAccessDanhMucModuleRoute(\"BANG_KIEM\")). Sửa: thêm tab chỉ cho module gsc, href QUAN_TRI_BANG_KIEM_PATH (src/lib/master-data/quan-tri-paths.ts:19), gate useModulePermission(\"BANG_KIEM\").allowed.view (đã đăng ký VIEW ở src/lib/permission-registry-data.ts:46); 1-2 file, không migration, không quyền mới. VST không cần tab này. Cần ≥1 kịch bản tay trên :3001 khi sửa. | Tay 2026-11-19 DAT: ADMIN ở /giam-sat-chung/tuan-thu thấy tab «Bảng kiểm», bấm vào /giam-sat-chung/bang-kiem (tab được tô, danh sách bảng kiểm hiện); /giam-sat-vst vẫn chỉ 3 tab Nhập/Lịch sử/Thống kê. Chưa thử tài khoản không có BANG_KIEM:view.",
+    "test_tay": "DAT"
   },
   {
     "id": "QT-017",
