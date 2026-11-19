@@ -2234,7 +2234,7 @@
     "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "610e69f0",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (ghi 15/11, lát CSSD-036). | Tay 2026-11-19 DAT: 1280 px :3001 ADMIN01 /cssd-hoa-chat: mở ngăn kéo NEN007, elementFromPoint tại nút In thẻ kho = BUTTON (trước sửa = NAV), overlay parent BODY z 10040; click thật gọi window.print với #print-area có mặt; Esc và nút Đóng đóng được; 0 lỗi console mới (hook lỗi trong trang: errsSinceHook rỗng sau 2 chu kỳ mở/đóng)",
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (ghi 15/11, lát CSSD-036). | Tay 2026-11-19 DAT: 1280 px :3001 ADMIN01 /cssd-hoa-chat: mở ngăn kéo NEN007, elementFromPoint tại nút In thẻ kho = BUTTON (trước sửa = NAV), overlay parent BODY z 10040; click thật gọi window.print với #print-area có mặt; Esc và nút Đóng đóng được; 0 lỗi console mới (hook lỗi trong trang: errsSinceHook rỗng sau 2 chu kỳ mở/đóng) | Tay 2026-11-19 DAT: 1280 px, ADMIN, :3001: elementFromPoint tại nút In thẻ kho (y=16) trả BUTTON, ngăn kéo là con của body; click gọi print với #print-area; Esc đóng được",
     "test_tay": "DAT"
   },
   {
