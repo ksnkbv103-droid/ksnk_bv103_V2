@@ -50,9 +50,9 @@ Không thêm luồng mới. Thẻ việc của lam-het thêm 3 trường:
 | # | Bước | Đầu ra | Cổng do máy kiểm | Ai làm |
 |---|---|---|---|---|
 | 1 | Nhận yêu cầu | 1 dòng sổ có vai người dùng và mã R | `so-loi.mjs check` fail nếu thiếu | Claude |
-| 2 | Spec 1 trang (`/intake`) | Thẻ việc đủ trường | Thiếu trường thì không mở lát | Claude |
-| 3 | Phản biện | Phiếu phản biện | Xem chi tiết dưới bảng | `phan-bien` (độc lập) |
-| 4 | PO duyệt | Duyệt một lần | PO gõ «duyệt» | PO |
+| 2 | Spec 1 trang (`/intake`) | Thẻ việc đủ trường; phương án ghi vào trường sổ `phuong_an` | `so-loi.mjs set <ID> DANG_SUA` bị chặn khi dòng `tinh_nang` thiếu `phuong_an` | Claude |
+| 3 | Phản biện | Phiếu phản biện, ghi vào trường sổ `phan_bien` | Thiếu `phan_bien` thì `set DANG_SUA` bị chặn; chi tiết dưới bảng | `phan-bien` (độc lập) |
+| 4 | PO duyệt | Duyệt một lần, ngày duyệt ghi vào trường sổ `duyet` | PO gõ «duyệt»; thiếu `duyet` thì `set DANG_SUA` bị chặn | PO |
 | 5 | Làm | Một lát đi theo thứ tự DB → BE → FE, tối đa 1 migration. Code dẫn `@dac-ta R…`; test và e2e dẫn `@dac-ta T…`, với đáp án lấy từ ca T của đặc tả chứ không do Claude tự đặt | `verify:changed` pass, `trace` tăng đúng mã của lát, e2e của lát chạy local trên DB seed | Claude |
 | 6 | CI | lint, test, build, dựng DB từ cả chuỗi, kiểm migration bất biến | Đỏ thì chặn merge | Máy |
 | 7 | Người dùng thử, rồi deploy — **một lần mỗi module, trước khi đưa vào dùng thật**, không phải mỗi lát | ≥ 3 kịch bản, chấm ĐẠT | ĐẠT do người dùng có tên chấm; deploy khi PO gõ «deploy» | Người dùng, PO |
@@ -69,7 +69,7 @@ Cổng của bước 3:
 ## 4. Biện pháp giữ phản biện cao
 
 - **Phản biện mù.** Reviewer nhận yêu cầu, diff và kết quả verify. Reviewer không nhận lập luận của người viết. Quy tắc này đã có, giữ nguyên.
-- **Pre-mortem bắt buộc.** Thẻ việc thiếu trường «điều gì làm phương án sai» thì không mở lát.
+- **Pre-mortem bắt buộc.** Mỗi phương án trong `phuong_an` phải có «điều gì làm phương án sai»; thiếu thì `set DANG_SUA` bị chặn (Lát 2).
 - **Phản biện bằng số.** Đề xuất mở rộng phạm vi phải kèm số dùng thật (số phiên, số người dùng). Không có số thì không mở.
 - **Đo chính việc phản biện.** `stats` theo dõi tỉ lệ lỗi giả và số KHÔNG ĐẠT. Nếu sau ≥ 20 kịch bản do người dùng chấm mà KHÔNG ĐẠT vẫn = 0, máy gắn cờ nghi chấm dễ.
 - **Người ngoài chấm.** Tổ giám sát KSNK chấm kịch bản tay. Claude chỉ chạy e2e và tiền kiểm.
@@ -93,7 +93,7 @@ Cổng của bước 3:
 |---|---|---|
 | Script `npm run db:dung` (chạy local) và workflow riêng `.github/workflows/db-dung.yml` gọi lại chính script đó. `ci.yml` giữ nguyên | Xem chi tiết dưới bảng | 1 |
 | `scripts/migration-bat-bien.mjs` | So với nhánh gốc. File migration có trạng thái M hoặc D thì fail. Ngoại lệ: commit squash có lệnh phá hủy | 1 |
-| Thêm 3 trường cho sổ: `nguoi_dung`, `ma_dac_ta`, `loai` (`loi` hoặc `tinh_nang`) | `check` fail khi việc `tinh_nang` thiếu trường. `next` chỉ trả việc tính năng của module đang làm (một module một lúc). 166 dòng hiện có được điền mặc định `loai=loi` để `check` không đỏ ngay | 2 |
+| Thêm 6 trường cho sổ: `nguoi_dung`, `ma_dac_ta`, `loai` (`loi` hoặc `tinh_nang`); và 3 trường cổng phản biện: `phuong_an` (≥ 2 phương án, mỗi cái có «điều gì làm phương án sai»), `phan_bien` (kết quả `phan-bien`: ≥ 1 phản đối có bằng chứng kèm câu trả lời, hoặc «không phản đối» kèm số đo), `duyet` (ngày PO duyệt) | `check` fail khi việc `tinh_nang` thiếu trường. `set <ID> DANG_SUA` thoát khác 0 khi dòng `tinh_nang` thiếu `phuong_an`, `phan_bien` hoặc `duyet`; việc `loi` không bị chặn (đường tắt 1 → 5 → 6). `next` chỉ trả việc tính năng của module đang làm (một module một lúc). 166 dòng hiện có được điền mặc định `loai=loi` để `check` không đỏ ngay | 2 |
 | `so-loi.mjs report` | Sinh mục tiến độ trong `03-tien-do`, nằm giữa 2 dấu mốc | 2 |
 | `trace` trong `verify:changed` | Chạy khi đổi `src/modules/**`. Chỉ chạy local, vì đặc tả nằm ngoài repo nên CI không đọc được | 2 |
 
@@ -126,7 +126,7 @@ Cổng của bước 3:
 | 1 | Dựng DB, kiểm migration bất biến, `db lint` có mốc (§10 #4, #6) (≤ 5 file) | 1. `npm run db:dung` xanh ở local, gồm `audit:views` và `db lint` không vượt mốc đã ghi ở `scripts/data/db-lint-baseline.json`<br>2. Sửa thử một migration cũ thì `migration-bat-bien.mjs` thoát khác 0 (chạy local)<br>3. `db-dung.yml` có trigger push `integrate/**` + PR và gọi `db:dung`; `git diff --stat` không có `ci.yml` | Kết quả CI chỉ thấy sau khi PO gõ «push» |
 | 1b | pgTAP + type sinh (§10 #1, #2) | Xem cuối §10 | Như Lát 1 |
 | 1c | e2e trong CI (§10 #5) | Xem cuối §10 | Như Lát 1 |
-| 2 | Sổ thêm 3 trường, `report` cho 03, `trace` trong verify; `dac-ta-test.mjs`; 3 số đo luồng (§10 #3, #8) (≤ 5 file) | 1. `check` fail với dòng `tinh_nang` thiếu trường<br>2. `report` khớp `stats`<br>3. `verify:changed --dry` có liệt kê trace | Không |
+| 2 | Sổ thêm 6 trường, gồm cổng phản biện 2–4 do máy kiểm (§6); `report` cho 03, `trace` trong verify; `dac-ta-test.mjs`; 3 số đo luồng (§10 #3, #8) (≤ 5 file; cổng phản biện nằm trong `so-loi.mjs` nên không thêm file) | 1. `check` fail với dòng `tinh_nang` thiếu trường, và `set <ID> DANG_SUA` thoát khác 0 trên dòng `tinh_nang` thử thiếu `phan_bien`<br>2. `report` khớp `stats`<br>3. `verify:changed --dry` có liệt kê trace | Không |
 | 3 | Gom luồng và tài liệu theo §7; cấu hình theo §11 và §12 (cờ `disable-model-invocation`, skill DB chính thức ghim sha, bước so schema prod + lỗi runtime trong `/go-live-check`, chép bảng §12 vào `docs/core/skills-catalog.md`) (≤ 8 file tự viết; ≤ 6 file skill chép nguyên văn từ §12 #1 tính riêng) | 1. `docs:links:check` pass<br>2. docs/core còn 11 file<br>3. CLAUDE.md có đúng 1 bảng luồng và `grep -L disable-model-invocation` trên `/commit`, `/pr-create` rỗng | PO bật `typescript-lsp` (`~/.claude/settings.json`) và tắt superpowers ở mục Plugins của app: đều là cấu hình toàn cục |
 | Tiếp | VST/GSC: deploy lát B (drawer) và trang kế hoạch giám sát; TC09 | PO xem prod | PO gõ «deploy» |
 | Sau | Squash 4b, giữ quyết định 18/11 | `db-dung` xanh với baseline | `destructive-change` và TC09 |
@@ -242,6 +242,8 @@ Lát 3 chép bảng này vào `docs/core/skills-catalog.md` (file đã có), nê
 | Công cụ | §6 |
 
 **Yêu cầu lần 5 (19/11: còn thiếu gì, nhanh/tự động/chính xác hơn, học từ docs/repo):** §10 (8 lỗ, mỗi lỗ có bằng chứng đo và lát), §11 (giữ/thêm/bỏ theo từng thành phần, có nguồn).
+
+**Yêu cầu lần 7 (19/11: cấu hình đã đảm bảo yêu cầu chưa; PO chọn «Thêm vào Lát 2»):** cổng 2–4 trước đây chỉ là văn xuôi, nay do `so-loi.mjs` kiểm (§3, §4, §6, §8 Lát 2).
 
 **Yêu cầu lần 6 (19/11: tìm repo, plugin phù hợp để PO khỏi đề xuất lại):** §12. 16 dòng, mỗi dòng có bằng chứng đo và quyết định; có luật giữ sổ sống ở cổng 2.
 
