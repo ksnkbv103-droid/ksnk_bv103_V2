@@ -79,9 +79,10 @@ export const cssdIncidentReportInputSchema = z.object({
   causeClass: causeClassSchema.optional(),
   faultStation: stationEnum.optional(),
   faultOperator: z.string().trim().max(150).optional(),
-  faultOperatorId: z.string().uuid().optional(),
+  /** Id nhân sự: `.guid()` để nhận cả id seed không chuẩn RFC (NEN-016). */
+  faultOperatorId: z.guid().optional(),
   nguoiPhatHien: z.string().trim().max(150).optional(),
-  nguoiPhatHienId: z.string().uuid().optional(),
+  nguoiPhatHienId: z.guid().optional(),
   thoiGianPhatHien: z.string().trim().max(40).optional(),
   desc: z.string().trim().min(1, "Thiếu mô tả sự cố."),
   errorQR: z.string().trim().optional(),

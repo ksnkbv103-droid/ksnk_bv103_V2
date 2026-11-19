@@ -9,13 +9,16 @@ import { parseOrFirstError } from "./tai-khoan-nhan-su.validations";
 export const MASTER_MAX_STRING_LEN = 4000;
 export const MASTER_MAX_BATCH_IDS = 200;
 
-/** `""` = tạo mới; còn lại phải là UUID. */
+/**
+ * `""` = tạo mới; còn lại phải là UUID. Dùng `.guid()` (8-4-4-4-12 hex, như cột Postgres `uuid`) thay vì `.uuid()`:
+ * Zod 4 `.uuid()` kiểm RFC và từ chối id seed (khoa KSNK, nhân sự, hóa chất) — NEN-016.
+ */
 export const masterRowIdSchema = z.union([
   z.literal(""),
-  z.string().trim().uuid("Mã bản ghi không hợp lệ."),
+  z.string().trim().guid("Mã bản ghi không hợp lệ."),
 ]);
 
-export const masterRequiredIdSchema = z.string().trim().uuid("Mã bản ghi không hợp lệ.");
+export const masterRequiredIdSchema = z.string().trim().guid("Mã bản ghi không hợp lệ.");
 
 const looksTooLong = (v: unknown): boolean =>
   typeof v === "string" ? v.length > MASTER_MAX_STRING_LEN : false;

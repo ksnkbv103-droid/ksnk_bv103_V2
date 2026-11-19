@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   masterSoftDeleteManySchema,
+  masterSoftDeleteSchema,
   masterToggleSchema,
   masterUpsertSchema,
   parseOrFirstError,
@@ -37,6 +38,34 @@ describe("master-data-write.validations", () => {
     expect(parseOrFirstError(masterSoftDeleteManySchema, { tableName: "t", ids: Array(201).fill(UUID) }).ok).toBe(false);
     expect(parseOrFirstError(masterSoftDeleteManySchema, { tableName: "t", ids: [UUID, "x"] }).ok).toBe(false);
     expect(parseOrFirstError(masterSoftDeleteManySchema, { tableName: "t", ids: [UUID] }).ok).toBe(true);
+  });
+});
+
+/**
+ * NEN-016 lát D: id bản ghi danh mục có thể là id seed không chuẩn RFC (khoa KSNK, nhân sự ADMIN01/KHACH01, hóa chất NEN007);
+ * Zod 4 `.uuid()` từ chối nên admin không sửa/tắt/xóa/phân bổ được các dòng này.
+ */
+describe("master-data-write.validations — id seed không chuẩn RFC (NEN-016 D)", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const SEED2 = "aaaaaaaa-bbbb-cccc-dddd-000000000002";
+  const ERR = "Mã bản ghi không hợp lệ.";
+
+  it("upsert / toggle / xóa / xóa nhiều nhận id seed", () => {
+    expect(parseOrFirstError(masterUpsertSchema, { tableName: "mdm_dm_khoa_phong", id: SEED, payload: { ten_khoa: "A" } }).ok).toBe(true);
+    expect(parseOrFirstError(masterToggleSchema, { tableName: "t", id: SEED, currentStatus: true }).ok).toBe(true);
+    expect(parseOrFirstError(masterSoftDeleteSchema, { tableName: "t", id: SEED }).ok).toBe(true);
+    expect(parseOrFirstError(masterSoftDeleteManySchema, { tableName: "t", ids: [SEED, SEED2] }).ok).toBe(true);
+  });
+
+  it("phân bổ bộ dụng cụ theo khoa nhận khoaPhongId seed; ma trận RBAC nhận khóa/giá trị seed", () => {
+    expect(parseOrFirstError(allocateProceduralSetSchema, { boDungCuId: UUID, khoaPhongId: SEED, quantity: 1 }).ok).toBe(true);
+    expect(parseOrFirstError(rbacMatrixSchema, { [SEED]: [SEED2] }).ok).toBe(true);
+  });
+
+  it("vẫn từ chối chuỗi rác với câu lỗi cũ", () => {
+    expect(parseOrFirstError(masterUpsertSchema, { tableName: "t", id: "khong-phai-uuid", payload: { a: 1 } })).toMatchObject({ ok: false, error: ERR });
+    expect(parseOrFirstError(masterToggleSchema, { tableName: "t", id: "khong-phai-uuid", currentStatus: true })).toMatchObject({ ok: false, error: ERR });
+    expect(parseOrFirstError(masterSoftDeleteManySchema, { tableName: "t", ids: [SEED, "x"] }).ok).toBe(false);
   });
 });
 
