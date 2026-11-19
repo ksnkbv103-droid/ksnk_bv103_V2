@@ -1,0 +1,8 @@
+20261118130000
+# PROD_HEAD = version FILE migration mới nhất đã áp lên prod (khớp theo TÊN, không theo version).
+# Đo 2026-11-19 bằng MCP list_migrations (chỉ đọc, project cvzwslpxwgqiugzzhqej): bản ghi cuối trên prod
+#   version 20261118213521 name nkbv_actor_khoa_restricted_vai_ngoai_ksnk  <-> file 20261118130000_nkbv_actor_khoa_restricted_vai_ngoai_ksnk.sql
+# Lưu ý: version trên prod là giờ áp (apply_migration tự gán), KHÁC version file; nên so theo tên.
+# Đối chiếu: 45/45 tên file có version >= 20261111100000 đều có trên prod. Tên prod không có file cùng version: cssd_kd4_transfer_lock_by_id (file 20261021040000).
+# Từ đây: file version <= PROD_HEAD bị cấm sửa/đổi tên/xóa/thêm (scripts/guard-migrations.mjs); file mới > PROD_HEAD phải có dòng `-- ADR: <đường dẫn hoặc tóm tắt>`.
+# Sau mỗi lần áp migration lên prod (PO duyệt), nâng số ở dòng 1 lên version file vừa áp.
