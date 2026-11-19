@@ -15,9 +15,23 @@ export function hasHospitalWideVstRead(scope: ActorKsnkScope): boolean {
   return scope.isAdmin || scope.isNhanVienKsnk || scope.roles.includes("CHU_NHIEM_KHOA");
 }
 
-/** Vai đọc toàn viện hoặc theo mạng lưới — không bị siết thêm theo vai hội đồng. */
+/**
+ * Lãnh đạo khoa lâm sàng (ĐDT / CN khoa, mã LANH_DAO_KHOA — VST-028): đọc phiên có danh tính của khoa mình.
+ * Chỉ có GIAM_SAT_VST:view, không thuộc mạng lưới; không được rơi vào nhánh «vai khác → toàn viện» (R1.34).
+ * Chỉ siết khi không kiêm vai rộng hơn (toàn viện hoặc mạng lưới — hai vai này có luật riêng).
+ */
+export function isKhoaScopedLanhDao(scope: ActorKsnkScope): boolean {
+  return (
+    scope.roles.includes("LANH_DAO_KHOA") &&
+    !scope.isGuestStatsOnly &&
+    !hasHospitalWideVstRead(scope) &&
+    !scope.isMangLuoiKsnk
+  );
+}
+
+/** Vai đọc toàn viện, theo mạng lưới hoặc theo khoa (LĐK) — không bị siết thêm theo vai hội đồng. */
 function hasWiderVstReadRole(scope: ActorKsnkScope): boolean {
-  return hasHospitalWideVstRead(scope) || scope.isMangLuoiKsnk;
+  return hasHospitalWideVstRead(scope) || scope.isMangLuoiKsnk || scope.roles.includes("LANH_DAO_KHOA");
 }
 
 /** @dac-ta R1.34 — HOI_DONG_KSNK (BGĐ) chỉ thấy số liệu ẩn danh, không đọc lịch sử có danh tính. */
@@ -43,6 +57,7 @@ export function assertVstHistoryAccess(
  * - Admin / nhân viên KSNK / chủ nhiệm khoa KSNK (CHU_NHIEM_KHOA): toàn viện (đi giám sát nhiều khoa, duyệt sửa muộn) (VST-026).
  * - Hội đồng KSNK (không kiêm vai rộng hơn): không đọc lịch sử có danh tính (VST-014).
  * - Mạng lưới: phiên do mình giám sát HOẶC phiên tại khoa được gán (không ẩn import cũ khi khoa HS = KSNK).
+ * - Lãnh đạo khoa (LANH_DAO_KHOA, không kiêm vai rộng hơn): chỉ phiên khoa mình; chưa gắn khoa → 0 dòng (VST-028).
  */
 export function applyVstHistoryReadScope<T extends { eq: (col: string, val: string) => T; or: (filter: string) => T }>(
   query: T,
@@ -50,6 +65,9 @@ export function applyVstHistoryReadScope<T extends { eq: (col: string, val: stri
 ): T {
   if (scope.isGuestStatsOnly || isHoiDongOnly(scope)) {
     return query.eq("id", ZERO_UUID);
+  }
+  if (isKhoaScopedLanhDao(scope)) {
+    return scope.actorKhoaId ? query.eq("khoa_id", String(scope.actorKhoaId)) : query.eq("id", ZERO_UUID);
   }
   // Vai toàn viện, hoặc vai khác không thuộc mạng lưới/hội đồng: không lọc (khớp RLS gstt_fact_vst_sessions).
   if (hasHospitalWideVstRead(scope) || !scope.isMangLuoiKsnk) {
@@ -79,8 +97,11 @@ export function vstSessionVisibleToActor(
   session: { khoa_id?: unknown; nguoi_giam_sat_id?: unknown },
 ): boolean {
   if (scope.isGuestStatsOnly || isHoiDongOnly(scope)) return false;
-  if (hasHospitalWideVstRead(scope) || !scope.isMangLuoiKsnk) return true;
   const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : "";
+  if (isKhoaScopedLanhDao(scope)) {
+    return myKhoa !== "" && session.khoa_id != null && String(session.khoa_id) === myKhoa;
+  }
+  if (hasHospitalWideVstRead(scope) || !scope.isMangLuoiKsnk) return true;
   const myNs = scope.actorNhanSuId ? String(scope.actorNhanSuId) : "";
   const sessionKhoa = session.khoa_id ? String(session.khoa_id) : "";
   const sessionGs = session.nguoi_giam_sat_id ? String(session.nguoi_giam_sat_id) : "";

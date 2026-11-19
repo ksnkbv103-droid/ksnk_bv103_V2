@@ -68,7 +68,7 @@ describe("applyVstHistoryReadScope", () => {
 });
 
 // @dac-ta M01 dòng 22 — CHU_NHIEM_KHOA = chủ nhiệm khoa KSNK (TK_KSNK): xem/xuất phiên, không giới hạn khoa (VST-026).
-// @dac-ta R1.34 — BGĐ (HOI_DONG_KSNK) chỉ thấy số liệu ẩn danh; vai ĐDT/CN_KHOA lâm sàng chưa có trong RBAC (VST-028).
+// @dac-ta R1.34 — BGĐ (HOI_DONG_KSNK) chỉ thấy số liệu ẩn danh; vai ĐDT/CN_KHOA lâm sàng = LANH_DAO_KHOA (VST-028, khối cuối file).
 // gate-ok: VST-026 đảo kỳ vọng CNK từ «lọc khoa_id / 0 dòng khi chưa có khoa» sang «toàn viện» (CNK = TK_KSNK, M01 dòng 22); expect cũ được thay bằng expectNoFilter ở đúng các ca đó
 describe("applyVstHistoryReadScope — vai không phải mạng lưới/KSNK (VST-014, VST-026)", () => {
   const base = {
@@ -261,5 +261,75 @@ describe("assertVstHistoryAccess", () => {
       roles: [],
     });
     expect(out).toEqual({ ok: true });
+  });
+});
+
+// @dac-ta R1.34 — danh sách có danh tính chỉ cho ĐDT của khoa và CB_KSNK; ĐDT/CN khoa lâm sàng = vai LANH_DAO_KHOA (VST-028).
+// Vai chỉ có GIAM_SAT_VST:view, không thuộc mạng lưới: trước VST-028 rơi vào nhánh «vai khác → toàn viện».
+describe("LANH_DAO_KHOA — chỉ phiên của khoa mình (VST-028)", () => {
+  const base = {
+    isAdmin: false,
+    isNhanVienKsnk: false,
+    isMangLuoiKsnk: false,
+    isGuestStatsOnly: false,
+    actorKhoaId: "khoa-a",
+    actorNhanSuId: "ns-a",
+    roles: ["LANH_DAO_KHOA"],
+  };
+  const phienKhoaA = { khoa_id: "khoa-a", nguoi_giam_sat_id: "ns-b" };
+  const phienKhoaB = { khoa_id: "khoa-b", nguoi_giam_sat_id: "ns-b" };
+  const phienKhoaBDoMinhGiamSat = { khoa_id: "khoa-b", nguoi_giam_sat_id: "ns-a" };
+
+  it("không thuộc vai đọc toàn viện", () => {
+    expect(hasHospitalWideVstRead(base)).toBe(false);
+  });
+
+  it("danh sách: lọc đúng khoa mình, không mở rộng theo người giám sát", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, base);
+    expect(q.eq).toHaveBeenCalledWith("khoa_id", "khoa-a");
+    expect(q.or).not.toHaveBeenCalled();
+  });
+
+  it("danh sách: chưa gắn khoa → 0 dòng (fail-closed)", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, { ...base, actorKhoaId: null });
+    expect(q.eq).toHaveBeenCalledWith("id", "00000000-0000-0000-0000-000000000000");
+  });
+
+  it("chi tiết: thấy phiên khoa mình, không thấy phiên khoa khác kể cả phiên mình giám sát", () => {
+    expect(vstSessionVisibleToActor(base, phienKhoaA)).toBe(true);
+    expect(vstSessionVisibleToActor(base, phienKhoaB)).toBe(false);
+    expect(vstSessionVisibleToActor(base, phienKhoaBDoMinhGiamSat)).toBe(false);
+  });
+
+  it("chi tiết: chưa gắn khoa → không thấy phiên nào, kể cả phiên thiếu khoa (NULL = NULL là false như RLS)", () => {
+    const khongKhoa = { ...base, actorKhoaId: null };
+    expect(vstSessionVisibleToActor(khongKhoa, phienKhoaA)).toBe(false);
+    expect(vstSessionVisibleToActor(khongKhoa, { khoa_id: null, nguoi_giam_sat_id: "ns-a" })).toBe(false);
+  });
+
+  it("kiêm HOI_DONG_KSNK: vẫn đọc khoa mình, không bị chặn như hội đồng thuần", () => {
+    const hd = { ...base, roles: ["LANH_DAO_KHOA", "HOI_DONG_KSNK"] };
+    expect(assertVstHistoryAccess(hd)).toEqual({ ok: true });
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, hd);
+    expect(q.eq).toHaveBeenCalledWith("khoa_id", "khoa-a");
+    expect(vstSessionVisibleToActor(hd, phienKhoaB)).toBe(false);
+  });
+
+  it("kiêm NHAN_VIEN_KSNK: giữ toàn viện", () => {
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, { ...base, isNhanVienKsnk: true, roles: ["LANH_DAO_KHOA", "NHAN_VIEN_KSNK"] });
+    expect(q.eq).not.toHaveBeenCalled();
+    expect(q.or).not.toHaveBeenCalled();
+  });
+
+  it("kiêm MANG_LUOI_KSNK: theo luật mạng lưới (khoa mình hoặc phiên mình giám sát)", () => {
+    const ml = { ...base, isMangLuoiKsnk: true, roles: ["LANH_DAO_KHOA", "MANG_LUOI_KSNK"] };
+    const q = mockQuery();
+    applyVstHistoryReadScope(q, ml);
+    expect(q.or).toHaveBeenCalledWith("nguoi_giam_sat_id.eq.ns-a,khoa_id.eq.khoa-a");
+    expect(vstSessionVisibleToActor(ml, phienKhoaBDoMinhGiamSat)).toBe(true);
   });
 });

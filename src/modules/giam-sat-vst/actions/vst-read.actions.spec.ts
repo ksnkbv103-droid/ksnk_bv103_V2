@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({
   scope: {} as Record<string, unknown>,
   nhanSuKhoaArgs: [] as Array<string | null | undefined>,
+  sessionView: null as Record<string, unknown> | null,
+  obsCalls: 0,
 }));
 
 const KHOAS = [
@@ -28,10 +30,16 @@ vi.mock("../repo/vst.repo", () => ({
       return { data: [], error: null };
     },
     findVstKhuVucFallback: async () => ({ data: [], error: null }),
+    getVstSessionDetailView: async () => ({ data: m.sessionView, error: null }),
+    getVstSessionMetadataById: async () => ({ data: null, error: null }),
+    getVstObservationsView: async () => {
+      m.obsCalls += 1;
+      return { data: [], error: null };
+    },
   },
 }));
 
-import { getVstHeaderDmDropdowns } from "./vst-read.actions";
+import { getVSTSessionDetail, getVstHeaderDmDropdowns } from "./vst-read.actions";
 
 const base = {
   roles: [] as string[],
@@ -97,5 +105,44 @@ describe("getVstHeaderDmDropdowns — khóa khoa theo vai (VST-038 lát A, bám 
     m.scope = { ...base, roles: ["CHU_NHIEM_KHOA", "MANG_LUOI_KSNK"], isMangLuoiKsnk: true };
     expect(await khoaIds()).toEqual(["khoa-minh"]);
     expect(m.nhanSuKhoaArgs).toEqual(["khoa-minh"]);
+  });
+
+  it("LANH_DAO_KHOA thuần: chỉ khoa của mình, nhân sự lọc theo khoa mình (VST-028, không lộ tên nhân sự toàn viện)", async () => {
+    m.scope = { ...base, roles: ["LANH_DAO_KHOA"] };
+    expect(await khoaIds()).toEqual(["khoa-minh"]);
+    expect(m.nhanSuKhoaArgs).toEqual(["khoa-minh"]);
+  });
+
+  it("LANH_DAO_KHOA chưa gán khoa: danh mục rỗng", async () => {
+    m.scope = { ...base, roles: ["LANH_DAO_KHOA"], actorKhoaId: null };
+    expect(await khoaIds()).toEqual([]);
+  });
+
+  it("LANH_DAO_KHOA kiêm NHAN_VIEN_KSNK: thấy mọi khoa", async () => {
+    m.scope = { ...base, roles: ["LANH_DAO_KHOA", "NHAN_VIEN_KSNK"], isNhanVienKsnk: true };
+    expect(await khoaIds()).toEqual(["khoa-minh", "khoa-khac"]);
+    expect(m.nhanSuKhoaArgs).toEqual([null]);
+  });
+});
+
+describe("getVSTSessionDetail — LANH_DAO_KHOA chỉ mở phiên khoa mình (VST-028, R1.34)", () => {
+  beforeEach(() => {
+    m.obsCalls = 0;
+    m.scope = { ...base, roles: ["LANH_DAO_KHOA"] };
+  });
+
+  it("phiên của khoa khác: báo như không tồn tại, không đọc quan sát", async () => {
+    m.sessionView = { id: "s-b", khoa_id: "khoa-khac", is_active: true };
+    const r = await getVSTSessionDetail("s-b");
+    expect(r).toEqual({ success: false, error: "Không tìm thấy phiên giám sát." });
+    expect(m.obsCalls).toBe(0);
+  });
+
+  it("LANH_DAO_KHOA chưa gán khoa: không mở được phiên nào", async () => {
+    m.scope = { ...base, roles: ["LANH_DAO_KHOA"], actorKhoaId: null };
+    m.sessionView = { id: "s-a", khoa_id: "khoa-minh", is_active: true };
+    const r = await getVSTSessionDetail("s-a");
+    expect(r).toEqual({ success: false, error: "Không tìm thấy phiên giám sát." });
+    expect(m.obsCalls).toBe(0);
   });
 });

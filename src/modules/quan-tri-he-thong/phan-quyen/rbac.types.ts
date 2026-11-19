@@ -39,6 +39,7 @@ export type RBACDataResult = RBACDataSuccess | { success: false; error: string }
 const RBAC_MATRIX_COLUMN_ROLE_ORDER = [
   "ADMIN",
   "CHU_NHIEM_KHOA",
+  "LANH_DAO_KHOA",
   "HOI_DONG_KSNK",
   "NHAN_VIEN_KSNK",
   "MANG_LUOI_KSNK",
@@ -49,6 +50,7 @@ const RBAC_MATRIX_COLUMN_ROLE_ORDER = [
 export const RBAC_MATRIX_ROLE_HEADER_LABEL: Record<string, string> = {
   ADMIN: "Quản trị",
   CHU_NHIEM_KHOA: "Chủ nhiệm khoa",
+  LANH_DAO_KHOA: "Lãnh đạo khoa (ĐDT/CN khoa)",
   HOI_DONG_KSNK: "Hội đồng KSNK",
   NHAN_VIEN_KSNK: "Nhân viên khoa KSNK",
   MANG_LUOI_KSNK: "Mạng lưới KSNK",

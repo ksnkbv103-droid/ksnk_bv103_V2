@@ -46,4 +46,15 @@ describe("rbac.types taxonomy (5 chân dung)", () => {
     expect(RBAC_MATRIX_ROLE_HEADER_LABEL.MANG_LUOI_KSNK).toBe("Mạng lưới KSNK");
     expect(RBAC_MATRIX_ROLE_HEADER_LABEL.KHACH_THONG_KE_GSTT).toContain("Khách");
   });
+
+  it("VST-028: vai LANH_DAO_KHOA hiện ở ma trận (sau CHU_NHIEM_KHOA), chưa gán được từ trang nhân sự", () => {
+    const cols = selectRolesForRbacMatrixColumns([
+      { id: "1", name: "NHAN_VIEN_KSNK" },
+      { id: "2", name: "LANH_DAO_KHOA" },
+      { id: "3", name: "CHU_NHIEM_KHOA" },
+    ]);
+    expect(cols.map((r) => r.name)).toEqual(["CHU_NHIEM_KHOA", "LANH_DAO_KHOA", "NHAN_VIEN_KSNK"]);
+    expect(RBAC_MATRIX_ROLE_HEADER_LABEL.LANH_DAO_KHOA).toContain("Lãnh đạo khoa");
+    expect([...RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER]).not.toContain("LANH_DAO_KHOA");
+  });
 });

@@ -4,7 +4,7 @@
 -- @dac-ta: khóa PO 2026-11-01 (giám sát) và CLAUDE.md «Khóa PO»: xóa phiên VST là xóa mềm (is_active=false) nên vai thường không thấy phiên đã xóa.
 -- Chính sách đọc (migration 20261111180000 trở đi): ADMIN thấy hết; còn lại cần quyền GIAM_SAT_VST:view, phiên is_active,
 -- không phải KHACH_THONG_KE_GSTT; NHAN_VIEN_KSNK / CHU_NHIEM_KHOA thấy mọi phiên; MANG_LUOI_KSNK chỉ phiên của mình hoặc cùng khoa;
--- HOI_DONG_KSNK không thấy. Ghi trực tiếp vào bảng chỉ ADMIN (policy «Admin full access»); vai khác phải qua RPC.
+-- HOI_DONG_KSNK không thấy; LANH_DAO_KHOA (20261119150000) chỉ phiên khoa mình. Ghi trực tiếp vào bảng chỉ ADMIN (policy «Admin full access»); vai khác phải qua RPC.
 -- Hàm tests.authenticate_as mượn ý usebasejump/supabase-test-helpers (MIT), rút gọn, dựng trong giao dịch.
 begin;
 
@@ -29,7 +29,7 @@ begin
 end $$;
 grant execute on function tests.rows_affected(text) to anon, authenticated;
 
-select plan(19);
+select plan(30);
 
 -- ── Dữ liệu thử ──────────────────────────────────────────────────────────────
 insert into mdm_dm_khoa_phong (id, ma_khoa, ten_khoa)
@@ -37,18 +37,21 @@ values ('00000000-0000-4000-8000-0000000000a1', 'T_RLS_K1', 'Khoa thử RLS 1'),
        ('00000000-0000-4000-8000-0000000000a2', 'T_RLS_K2', 'Khoa thử RLS 2');
 
 -- id user: 1 admin · 2 NHAN_VIEN_KSNK · 3 MANG_LUOI_KSNK (khoa 1) · 4 KHACH_THONG_KE_GSTT · 5 HOI_DONG_KSNK · 6 không vai
+-- · 7 LANH_DAO_KHOA (khoa 2) · 8 LANH_DAO_KHOA chưa gắn khoa · 9 LANH_DAO_KHOA + NHAN_VIEN_KSNK (khoa 2) — VST-028
 insert into auth.users (id, email)
-select ('00000000-0000-4000-8000-0000000000b' || n)::uuid, 'rls-vst-' || n || '@example.test' from generate_series(1, 6) n;
+select ('00000000-0000-4000-8000-0000000000b' || n)::uuid, 'rls-vst-' || n || '@example.test' from generate_series(1, 9) n;
 
 insert into mdm_nhan_su (id, ho_ten, ma_nv, khoa_id, is_active, auth_user_id)
 select ('00000000-0000-4000-8000-0000000000c' || n)::uuid, 'Người thử RLS ' || n, 'T_RLS_' || n,
-       case when n = 3 then '00000000-0000-4000-8000-0000000000a1'::uuid end, true,
+       case when n = 3 then '00000000-0000-4000-8000-0000000000a1'::uuid
+            when n in (7, 9) then '00000000-0000-4000-8000-0000000000a2'::uuid end, true,
        ('00000000-0000-4000-8000-0000000000b' || n)::uuid
-from generate_series(1, 6) n;
+from generate_series(1, 9) n;
 
 insert into sys_user_roles (user_id, role_id)
 select ('00000000-0000-4000-8000-0000000000b' || m.n)::uuid, r.id
-from (values (1, 'ADMIN'), (2, 'NHAN_VIEN_KSNK'), (3, 'MANG_LUOI_KSNK'), (4, 'KHACH_THONG_KE_GSTT'), (5, 'HOI_DONG_KSNK')) m(n, ten)
+from (values (1, 'ADMIN'), (2, 'NHAN_VIEN_KSNK'), (3, 'MANG_LUOI_KSNK'), (4, 'KHACH_THONG_KE_GSTT'), (5, 'HOI_DONG_KSNK'),
+             (7, 'LANH_DAO_KHOA'), (8, 'LANH_DAO_KHOA'), (9, 'LANH_DAO_KHOA'), (9, 'NHAN_VIEN_KSNK')) m(n, ten)
 join sys_roles r on r.name = m.ten;
 
 -- 3 phiên: S1 khoa 1 do người 3 giám sát · S2 khoa 2 không người giám sát · S3 khoa 1 đã xóa mềm
@@ -66,6 +69,11 @@ select ok((select relrowsecurity from pg_class where oid = 'public.gstt_fact_vst
 select ok((select relrowsecurity from pg_class where oid = 'public.gstt_fact_vst'::regclass), 'gstt_fact_vst: RLS bật');
 select policies_are('public', 'gstt_fact_vst_sessions', array['Admin full access', 'vst_sessions_select_permission'], 'gstt_fact_vst_sessions: đúng 2 policy');
 select policies_are('public', 'gstt_fact_vst', array['Admin full access', 'vst_obs_select_permission'], 'gstt_fact_vst: đúng 2 policy');
+-- VST-028: vai LANH_DAO_KHOA tồn tại và chỉ có đúng quyền GIAM_SAT_VST:view
+select is((select array_agg(p.module_name || ':' || p.action) from sys_role_permissions rp
+             join sys_roles r on r.id = rp.role_id join sys_permissions p on p.id = rp.permission_id
+            where r.name = 'LANH_DAO_KHOA' and r.is_active),
+          array['GIAM_SAT_VST:view'], 'LANH_DAO_KHOA chỉ có quyền GIAM_SAT_VST:view');
 
 -- ── Đọc theo vai ──
 select tests.authenticate_as('00000000-0000-4000-8000-0000000000b1');
@@ -96,6 +104,23 @@ select tests.authenticate_as('00000000-0000-4000-8000-0000000000b6');
 select is((select count(*) from gstt_fact_vst_sessions where id::text like '00000000-0000-4000-8000-0000000000d%'), 0::bigint, 'người không có vai không thấy phiên nào');
 reset role;
 
+-- VST-028: lãnh đạo khoa lâm sàng chỉ thấy phiên/quan sát của khoa mình
+select tests.authenticate_as('00000000-0000-4000-8000-0000000000b7');
+select is((select array_agg(id) from gstt_fact_vst_sessions where id::text like '00000000-0000-4000-8000-0000000000d%'), array['00000000-0000-4000-8000-0000000000d2']::uuid[], 'LANH_DAO_KHOA khoa 2 chỉ thấy S2 (không S1 khoa 1, không S3)');
+select is((select count(*) from gstt_fact_vst where session_id::text like '00000000-0000-4000-8000-0000000000d%'), 1::bigint, 'LANH_DAO_KHOA khoa 2 thấy đúng 1 dòng quan sát');
+select is((select array_agg(session_id) from gstt_fact_vst where session_id::text like '00000000-0000-4000-8000-0000000000d%'), array['00000000-0000-4000-8000-0000000000d2']::uuid[], 'LANH_DAO_KHOA khoa 2: dòng quan sát thuộc S2');
+reset role;
+
+select tests.authenticate_as('00000000-0000-4000-8000-0000000000b8');
+select is((select count(*) from gstt_fact_vst_sessions where id::text like '00000000-0000-4000-8000-0000000000d%'), 0::bigint, 'LANH_DAO_KHOA chưa gắn khoa không thấy phiên nào');
+select is((select count(*) from gstt_fact_vst where session_id::text like '00000000-0000-4000-8000-0000000000d%'), 0::bigint, 'LANH_DAO_KHOA chưa gắn khoa không thấy quan sát nào');
+reset role;
+
+select tests.authenticate_as('00000000-0000-4000-8000-0000000000b9');
+select is((select count(*) from gstt_fact_vst_sessions where id::text like '00000000-0000-4000-8000-0000000000d%'), 2::bigint, 'LANH_DAO_KHOA + NHAN_VIEN_KSNK thấy toàn viện (2 phiên còn hiệu lực)');
+select is((select count(*) from gstt_fact_vst where session_id::text like '00000000-0000-4000-8000-0000000000d%'), 2::bigint, 'LANH_DAO_KHOA + NHAN_VIEN_KSNK thấy 2 dòng quan sát');
+reset role;
+
 set local role anon;
 select is((select count(*) from gstt_fact_vst_sessions where id::text like '00000000-0000-4000-8000-0000000000d%'), 0::bigint, 'anon không thấy phiên nào');
 select is((select count(*) from gstt_fact_vst where session_id::text like '00000000-0000-4000-8000-0000000000d%'), 0::bigint, 'anon không thấy dòng quan sát nào');
@@ -110,6 +135,17 @@ select is(tests.rows_affected($$update gstt_fact_vst_sessions set is_seen = true
   0::bigint, 'NHAN_VIEN_KSNK không UPDATE trực tiếp phiên (0 dòng)');
 select is(tests.rows_affected($$delete from gstt_fact_vst_sessions where id = '00000000-0000-4000-8000-0000000000d1'$$),
   0::bigint, 'NHAN_VIEN_KSNK không DELETE trực tiếp phiên (0 dòng)');
+reset role;
+
+-- VST-028: LANH_DAO_KHOA chỉ xem; không ghi trực tiếp kể cả phiên mình thấy được (S2)
+select tests.authenticate_as('00000000-0000-4000-8000-0000000000b7');
+select throws_ok(
+  $$insert into gstt_fact_vst_sessions (khoa_id, ngay_giam_sat) values ('00000000-0000-4000-8000-0000000000a2', current_date)$$,
+  '42501', null, 'LANH_DAO_KHOA không INSERT trực tiếp vào bảng phiên');
+select is(tests.rows_affected($$update gstt_fact_vst_sessions set is_seen = true where id = '00000000-0000-4000-8000-0000000000d2'$$),
+  0::bigint, 'LANH_DAO_KHOA không UPDATE trực tiếp phiên khoa mình (0 dòng)');
+select is(tests.rows_affected($$delete from gstt_fact_vst_sessions where id = '00000000-0000-4000-8000-0000000000d2'$$),
+  0::bigint, 'LANH_DAO_KHOA không DELETE trực tiếp phiên khoa mình (0 dòng)');
 reset role;
 
 select * from finish();

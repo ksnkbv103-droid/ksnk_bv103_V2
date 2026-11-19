@@ -7,7 +7,7 @@ import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { assertVstHistoryAccess, vstSessionVisibleToActor } from "../lib/vst-read-scope";
+import { assertVstHistoryAccess, isKhoaScopedLanhDao, vstSessionVisibleToActor } from "../lib/vst-read-scope";
 import { vstRepo } from "../repo/vst.repo";
 import { sortKhoaLamSangTruoc } from "../lib/vst-khoa-order";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
@@ -170,7 +170,9 @@ export async function getVstHeaderDmDropdowns() {
     }
 
     // VST-038: bám lưu phiên (vst-write-save-session) và dropdown GSC — ADMIN / NV KSNK kiêm MANG_LUOI không bị khóa khoa.
-    const isMangLuoiOnly = scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk;
+    // VST-028: lãnh đạo khoa lâm sàng (LANH_DAO_KHOA) cũng bị khóa khoa — không liệt kê nhân sự toàn viện.
+    const isMangLuoiOnly =
+      (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) || isKhoaScopedLanhDao(scope);
     const actorKhoaId = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
     if (isMangLuoiOnly && !actorKhoaId) {
       return {
