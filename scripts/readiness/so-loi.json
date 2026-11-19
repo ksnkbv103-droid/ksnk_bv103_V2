@@ -2509,10 +2509,11 @@
     "tieu_de": "rpc_get_registry_options nhánh LOAI_DUNG_CU đọc cột ten_loai_dung_cu/ma_loai_dung_cu không còn trong cssd_dm_loai_dung_cu (42703)",
     "bang_chung": "supabase db lint --level error trên DB dựng sạch báo 42703 (19/11); gọi từ master-data-gateway.actions.ts; đang nằm trong mốc scripts/data/db-lint-baseline.json (1 lỗi).",
     "lenh_kiem": "npm run db:dung (db lint --level error: mốc 1 lỗi = 42703 này); sau sửa hạ mốc về 0",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Sửa bằng migration mới rồi hạ mốc db-lint-baseline."
+    "commit": "3a09369c",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Sửa bằng migration mới rồi hạ mốc db-lint-baseline. | Tay 2026-11-19 DAT: DB local: role authenticated gọi rpc_get_registry_options(['LOAI_DUNG_CU']) trả {id,ma,ten} chỉ dòng is_active (1/2 dòng thử), không 42703; ROLLBACK sạch. Chưa áp prod",
+    "test_tay": "DAT"
   },
   {
     "id": "DT-018",
