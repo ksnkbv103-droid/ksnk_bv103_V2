@@ -21,6 +21,18 @@ SB="${SUPABASE_CLI:-npx supabase}"
 STUB="20260729121000_bang_muc_tieu_cu_da_go.sql"
 ORIG_REF="f44b7705^:supabase/migrations/20260729121000_ksnk_dm_muc_tieu_kpi.sql"
 MOC="$REPO/scripts/data/db-lint-baseline.json"
+# Khóa chạy đồng thời (NEN-015): PID/cổng cố định nên hai phiên chạy cùng lúc sẽ tắt stack của nhau. mkdir nguyên tử;
+# đặt TRƯỚC mktemp và trap để phiên bị từ chối không tắt stack hay xóa thư mục của phiên đang chạy.
+LOCK="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/ksnk_dd.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  holder="$(cat "$LOCK/pid" 2>/dev/null || true)"
+  if [ -n "$holder" ] && kill -0 "$holder" 2>/dev/null; then
+    echo "[db:dung] đang có phiên khác chạy (pid $holder, khóa $LOCK) — chờ nó xong rồi chạy lại" >&2; exit 2
+  fi
+  rm -rf "$LOCK"   # khóa mồ côi (phiên trước bị kill -9 hoặc mất điện)
+  mkdir "$LOCK" 2>/dev/null || { echo "[db:dung] không lấy được khóa $LOCK (phiên khác vừa giành)" >&2; exit 2; }
+fi
+echo $$ > "$LOCK/pid"
 TMP="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/db-dung.XXXXXX")"
 WD="$TMP/$PID"
 fail=""
@@ -31,7 +43,7 @@ don() {
   [ -n "${E2E_PID:-}" ] && kill "$E2E_PID" 2>/dev/null
   if [ "${DB_DUNG_GIU:-}" = 1 ]; then echo "[db:dung] giữ stack $PID (db :55622); tắt: $SB stop --project-id $PID --no-backup"
   else $SB stop --project-id "$PID" --no-backup >/dev/null 2>&1 || true; fi
-  rm -rf "$TMP"
+  rm -rf "$TMP" "$LOCK"
 }
 trap don EXIT
 
