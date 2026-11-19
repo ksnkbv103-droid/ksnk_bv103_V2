@@ -7,7 +7,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check` đỏ do CSSD-043 (CAO, MOI): xác minh trước tiên.
 
 ## ĐANG LÀM
-- 19/11 phân loại SO_NO một lần (PO «Đồng ý»): 33 dòng mới vào sổ, mọi câu PO gom ở `CAU_HOI_PO_APPKSNK.md`. Đốt sổ 19/11: CSSD-043(b) `7d79bdec` ((a) chờ C2), CSSD-038, VST-038A ; `check` hết đỏ. CSSD-039 `8fc96fc5`. Stats: MOI 14 · DA_XAC_MINH 8 · DA_SUA 138 · CHO_PO 15 · tay CHUA 9. Dở VST-037: code+spec+`vitest.config.ts` chưa commit; migration+pgTAP nháp ở `side-session-notes/local_3bfcaae0…/vst037/` (cần ADR). Kế: VST-037 → CSSD-045 → NEN-007 (portal drawer); VST-038 A2 + VST-044 chờ PO.
+- 19/11 phân loại SO_NO một lần (PO «Đồng ý»): 33 dòng mới vào sổ, mọi câu PO gom ở `CAU_HOI_PO_APPKSNK.md`. Đốt sổ 19/11: CSSD-043(b) `7d79bdec` ((a) chờ C2), CSSD-038, VST-038A ; `check` hết đỏ. CSSD-039 `8fc96fc5`. Đã đóng 19/11: VST-037 `ccb50cad`, CSSD-045 `3a09369c`, NEN-007 `610e69f0` (migration chưa áp prod, chờ PO). Stats: MOI 13 · DA_XAC_MINH 5 · LOI_GIA 17 · DA_SUA 141 · CHO_PO 15 · tay CHUA 9. Kế: `so-loi.mjs next 10` (CSSD-037, VST-017, NKBV-048, VST-036; xác minh CSSD-040/QT-015/DT-018 bằng db-verify); VST-038 A2 + VST-044 chờ PO.
 - 19/11 đã áp prod 4 migration `20261118100000`…`130000`. Code lát B (drawer) + trang kế hoạch giám sát chưa deploy (câu D1).
 
 ## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)
