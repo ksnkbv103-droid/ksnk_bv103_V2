@@ -13,6 +13,7 @@ import {
   type CssdCatalogDeNghiKind,
   type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
+import { chuanHoaLyDoTuChoi } from "@/lib/domain/ly-do-tu-choi";
 import { applyCatalogDeNghiOverwrite } from "@/lib/master-data/cssd-catalog-de-nghi-apply";
 import { applyHeatSplitForLoaiChanges } from "@/modules/cssd-erp/workflow/application/cssd-heat-split-apply";
 import {
@@ -218,6 +219,8 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
     const parsedId = ticketIdSchema.safeParse(id);
     if (!parsedId.success) return { success: false as const, error: parsedId.error.issues[0]?.message || "Thiếu phiếu." };
     const ticketId = parsedId.data;
+    const lyDo = chuanHoaLyDoTuChoi(reason);
+    if (!lyDo.ok) return { success: false as const, error: lyDo.error };
     const supabase = createAdminSupabaseClient();
     const { data: row, error: loadErr } = await supabase
       .from("cssd_catalog_de_nghi")
@@ -237,7 +240,7 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
       .from("cssd_catalog_de_nghi")
       .update({
         status: "REJECTED",
-        reject_reason: String(reason || "").trim() || null,
+        reject_reason: lyDo.value,
         updated_at: now,
       })
       .eq("id", ticketId)
@@ -251,7 +254,7 @@ export async function rejectCatalogDeNghiAction(id: string, reason?: string | nu
       targetTable: "cssd_catalog_de_nghi",
       targetId: ticketId,
       before: { status: st },
-      after: { status: "REJECTED", reject_reason: String(reason || "").trim() || null },
+      after: { status: "REJECTED", reject_reason: lyDo.value },
     });
     revalidateCssdInventorySurfaces();
     return { success: true as const };

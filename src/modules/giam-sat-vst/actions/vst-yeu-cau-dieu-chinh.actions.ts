@@ -6,6 +6,7 @@ import { getActorRoleNames, verifyPermission } from "@/lib/server-permission";
 import { getActorAuthUserId } from "@/lib/actor-auth-server";
 import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 import { logAdminAction } from "@/lib/admin-audit";
+import { chuanHoaLyDoTuChoi } from "@/lib/domain/ly-do-tu-choi";
 import { vstRepo } from "../repo/vst.repo";
 import { vstWriteErrorMessage } from "./vst-write.helpers";
 import { duocDuyetYeuCauVst, type VstLoaiYeuCau } from "../lib/vst-yeu-cau-dieu-chinh";
@@ -225,14 +226,17 @@ export async function approveVstYeuCauAction(id: string): Promise<Kq> {
 /** Từ chối yêu cầu: phiên giữ nguyên. */
 export async function rejectVstYeuCauAction(id: string, lyDoTuChoi?: string): Promise<Kq> {
   try {
-    const { req, actorAuthUserId } = await chiemYeuCau(id, "TU_CHOI", String(lyDoTuChoi ?? "").trim() || undefined);
+    // QT-016: bắt buộc lý do ≥ 3 ký tự, kiểm trước khi chiếm yêu cầu (không đổi trạng thái khi thiếu).
+    const lyDo = chuanHoaLyDoTuChoi(lyDoTuChoi);
+    if (!lyDo.ok) return { success: false, error: lyDo.error };
+    const { req, actorAuthUserId } = await chiemYeuCau(id, "TU_CHOI", lyDo.value);
     await logAdminAction({
       action: "VST_REJECT_ADJUST_REQUEST",
       targetTable: BANG,
       targetId: String(req.id),
       before: { trang_thai: "CHO_DUYET" },
       after: { trang_thai: "TU_CHOI" },
-      reason: String(lyDoTuChoi ?? "").trim() || null,
+      reason: lyDo.value,
       actorUserId: actorAuthUserId,
     });
     revalidatePath("/phe-duyet");

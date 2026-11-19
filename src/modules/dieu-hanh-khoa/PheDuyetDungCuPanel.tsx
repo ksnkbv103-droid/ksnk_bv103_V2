@@ -19,6 +19,8 @@ import {
   type CssdCatalogDeNghiRow,
 } from "@/lib/domain/cssd-catalog-de-nghi";
 import { CatalogDeNghiDiff } from "@/components/shared/CatalogDeNghiDiff";
+import { promptText } from "@/components/shared/confirm-action";
+import { LY_DO_TU_CHOI_TOI_THIEU } from "@/lib/domain/ly-do-tu-choi";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { CheckCircle2, RotateCw, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -89,8 +91,18 @@ export function PheDuyetDungCuPanel() {
   };
 
   const onRejectCatalog = async (id: string) => {
+    // QT-016: bắt buộc lý do từ chối (≥ 3 ký tự); server kiểm lại cùng ngưỡng.
+    const reason = await promptText({
+      title: "Từ chối đề nghị danh mục",
+      label: "Lý do từ chối",
+      minLength: LY_DO_TU_CHOI_TOI_THIEU,
+      multiline: true,
+      tone: "danger",
+      confirmText: "Từ chối",
+    });
+    if (reason === null) return;
     setBusyId(id);
-    const res = await rejectCatalogDeNghiAction(id);
+    const res = await rejectCatalogDeNghiAction(id, reason);
     setBusyId(null);
     if (!res.success) toast.error(res.error);
     else {

@@ -53,4 +53,31 @@ describe("rejectCatalogDeNghiAction", () => {
     expect(res.success).toBe(true);
     expect(update).toHaveBeenCalled();
   });
+
+  // QT-016 (PO 19/11 P10=A): từ chối đề nghị danh mục bắt buộc lý do ≥ 3 ký tự, kiểm cả phía server.
+  describe("lý do từ chối bắt buộc ≥ 3 ký tự (QT-016)", () => {
+    beforeEach(() => {
+      row = { id: ID, status: "PENDING", reject_reason: null };
+    });
+
+    it.each([
+      ["không truyền", undefined],
+      ["null", null],
+      ["chuỗi rỗng", ""],
+      ["chỉ khoảng trắng", "     "],
+      ["2 ký tự", "ab"],
+      ["2 ký tự sau trim", "  ab  "],
+    ])("%s → từ chối, không ghi DB", async (_ten, reason) => {
+      const res = await rejectCatalogDeNghiAction(ID, reason as string | null | undefined);
+      expect(res.success).toBe(false);
+      if (!res.success) expect(res.error).toMatch(/3 ký tự/);
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it("đủ 3 ký tự → ghi reject_reason đã trim", async () => {
+      const res = await rejectCatalogDeNghiAction(ID, "  sai mã  ");
+      expect(res.success).toBe(true);
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "REJECTED", reject_reason: "sai mã" }));
+    });
+  });
 });

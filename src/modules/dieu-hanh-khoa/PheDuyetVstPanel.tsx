@@ -8,7 +8,9 @@ import {
   rejectVstYeuCauAction,
   type VstYeuCauDieuChinhRow,
 } from "@/modules/giam-sat-vst/actions/vst-yeu-cau-dieu-chinh.actions";
+import { promptText } from "@/components/shared/confirm-action";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { LY_DO_TU_CHOI_TOI_THIEU } from "@/lib/domain/ly-do-tu-choi";
 import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 /** Hàng chờ duyệt sửa/xóa muộn phiên giám sát vệ sinh tay (đặc tả M01 R1.24, R1.25). */
@@ -32,8 +34,21 @@ export function PheDuyetVstPanel() {
 
   const xuLy = async (id: string, duyet: boolean) => {
     const laSua = rows.find((r) => r.id === id)?.loai === "SUA";
+    let lyDoTuChoi: string | null = null;
+    if (!duyet) {
+      // QT-016: bắt buộc lý do từ chối (≥ 3 ký tự); server kiểm lại cùng ngưỡng.
+      lyDoTuChoi = await promptText({
+        title: "Từ chối yêu cầu sửa/xóa phiên",
+        label: "Lý do từ chối",
+        minLength: LY_DO_TU_CHOI_TOI_THIEU,
+        multiline: true,
+        tone: "danger",
+        confirmText: "Từ chối",
+      });
+      if (lyDoTuChoi === null) return;
+    }
     setBusyId(id);
-    const res = duyet ? await approveVstYeuCauAction(id) : await rejectVstYeuCauAction(id);
+    const res = duyet ? await approveVstYeuCauAction(id) : await rejectVstYeuCauAction(id, lyDoTuChoi ?? "");
     setBusyId(null);
     if (!res.success) toast.error(res.error);
     else {

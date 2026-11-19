@@ -55,7 +55,7 @@ vi.mock("../repo/vst.repo", () => ({
   },
 }));
 
-import { approveVstYeuCauAction } from "./vst-yeu-cau-dieu-chinh.actions";
+import { approveVstYeuCauAction, rejectVstYeuCauAction } from "./vst-yeu-cau-dieu-chinh.actions";
 
 const payload = {
   session: { khoa_id: "k-1", ngay_giam_sat: "2026-11-01" },
@@ -121,5 +121,44 @@ describe("approveVstYeuCauAction — yêu cầu SỬA (R1.24)", () => {
     const r = await approveVstYeuCauAction(RID);
     expect(r.success).toBe(false);
     expect(m.rpcCalls).toHaveLength(0);
+  });
+});
+
+// QT-016 (PO 19/11 P10=A): từ chối yêu cầu sửa/xóa phiên VST bắt buộc lý do ≥ 3 ký tự, kiểm cả phía server.
+describe("rejectVstYeuCauAction — lý do từ chối bắt buộc (QT-016)", () => {
+  beforeEach(() => {
+    m.updates.length = 0;
+    m.audits.length = 0;
+    m.req = {
+      id: RID,
+      session_id: SID,
+      loai: "SUA",
+      ly_do: "ghi nhầm hành động",
+      trang_thai: "CHO_DUYET",
+      payload,
+      nguoi_yeu_cau_auth_id: "u-yeu-cau",
+      nguoi_yeu_cau_nhan_su_id: "ns-1",
+    };
+  });
+
+  it.each([
+    ["không truyền", undefined],
+    ["chuỗi rỗng", ""],
+    ["chỉ khoảng trắng", "     "],
+    ["2 ký tự", "ab"],
+    ["2 ký tự sau trim", "  ab  "],
+  ])("%s → từ chối, không chiếm yêu cầu, không ghi nhật ký", async (_ten, lyDo) => {
+    const r = await rejectVstYeuCauAction(RID, lyDo);
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error).toMatch(/3 ký tự/);
+    expect(m.updates).toHaveLength(0);
+    expect(m.audits).toHaveLength(0);
+  });
+
+  it("đủ 3 ký tự → TU_CHOI, lưu lý do đã trim và ghi nhật ký", async () => {
+    const r = await rejectVstYeuCauAction(RID, "  thiếu bằng chứng  ");
+    expect(r.success).toBe(true);
+    expect(m.updates.at(-1)).toMatchObject({ trang_thai: "TU_CHOI", ly_do_tu_choi: "thiếu bằng chứng" });
+    expect(m.audits.at(-1)).toMatchObject({ action: "VST_REJECT_ADJUST_REQUEST", reason: "thiếu bằng chứng" });
   });
 });
