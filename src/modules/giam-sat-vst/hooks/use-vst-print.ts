@@ -2,11 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { getVSTSessionDetail } from "../actions/vst-read.actions";
+import { getVSTSessionDetail, getVstViewDanhMuc } from "../actions/vst-read.actions";
 import { markVSTSessionsSeen } from "../actions/vst-write-seen.actions";
 import { buildVstViewDataFromDetail } from "../lib/vst-session-view-data";
-import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
-import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VSTFormPerson } from "../lib/vst-form-model";
 import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { generateEntityQrDataUrl } from "@/lib/entity-qr/generate-entity-qr";
@@ -79,12 +77,7 @@ export function useVstPrint() {
     setIsPrinting(true);
     setPrintingSessionId(sessionId);
     try {
-      const [detailRes, nnRes, kRes, kvRes] = await Promise.all([
-        getVSTSessionDetail(sessionId),
-        getCategoriesByTypeCached("NGHE_NGHIEP", getCategoriesByType),
-        getCategoriesByTypeCached("KHOA_PHONG", getCategoriesByType),
-        getCategoriesByTypeCached("KHU_VUC_GIAM_SAT", getCategoriesByType),
-      ]);
+      const [detailRes, dmRes] = await Promise.all([getVSTSessionDetail(sessionId), getVstViewDanhMuc()]);
 
       let settled = false;
       let detachPrintFinish: (() => void) | null = null;
@@ -105,6 +98,13 @@ export function useVstPrint() {
         return;
       }
 
+      if (!dmRes.success) {
+        toast.error(dmRes.error || "Không đọc được danh mục để in");
+        setIsPrinting(false);
+        setPrintingSessionId(null);
+        return;
+      }
+
       void markVSTSessionsSeen([sessionId]);
 
       const base = buildVstViewDataFromDetail(
@@ -114,9 +114,9 @@ export function useVstPrint() {
           nhanSuForPrint: detailRes.nhanSuForPrint,
         },
         {
-          ngheNghieps: (nnRes.data || []) as VstDmRow[],
-          khoas: (kRes.data || []) as VstDmRow[],
-          khuVucs: (kvRes.data || []) as VstDmRow[],
+          ngheNghieps: dmRes.data.ngheNghieps as VstDmRow[],
+          khoas: dmRes.data.khoas as VstDmRow[],
+          khuVucs: dmRes.data.khuVucs as VstDmRow[],
         },
       );
       const qrCode = buildEntityQrCode("VST_SESSION", sessionId);

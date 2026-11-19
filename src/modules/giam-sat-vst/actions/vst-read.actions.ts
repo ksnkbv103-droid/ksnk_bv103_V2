@@ -159,6 +159,79 @@ export async function getVSTSessionDetail(sessionId: string) {
   }
 }
 
+type VstRegistryOption = { id: string; ten: string; ma?: string };
+
+/** Map khu vực + nghề nghiệp (registry RPC, khu vực rơi về bảng khu vực khi RPC rỗng) sang dạng dropdown/in phiếu. */
+function mapVstKhuVucNgheNghiep(
+  registryData: unknown,
+  khuVucFallbackRows: Array<Record<string, unknown>> | null,
+) {
+  const registry = (registryData || {}) as Record<string, VstRegistryOption[]>;
+  const rpcKhuVucs = Array.isArray(registry.KHU_VUC_GIAM_SAT) ? registry.KHU_VUC_GIAM_SAT : [];
+  const fallbackKhuVucs = (khuVucFallbackRows || []).map((x) => ({
+    id: String(x.id || ""),
+    ten: String(x.ten_khu_vuc || ""),
+    ma: String(x.ma_khu_vuc || ""),
+    thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
+    metadata: (x as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
+  }));
+  const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
+  const khuVucs = effectiveKhuVucs.map((r) => ({
+    id: r.id,
+    ma_danh_muc: r.ma || "",
+    ten_danh_muc: r.ten,
+    loai_danh_muc: "KHU_VUC_GIAM_SAT",
+    source: "registry_lookup" as const,
+    thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
+    // Giữ metadata.is_common để bộ lọc khu vực theo khoa (khu-vuc-giam-sat-ui) nhận ra khu vực dùng chung.
+    metadata: (r as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
+  }));
+  const ngheNghieps = mapDanhMucOptions(
+    (registry.NGHE_NGHIEP || []).map((r) => ({
+      id: r.id,
+      ma_danh_muc: r.ma || "",
+      ten_danh_muc: r.ten,
+    })),
+    "NGHE_NGHIEP",
+  );
+  return { khuVucs, ngheNghieps };
+}
+
+/**
+ * VST-041: danh mục để dựng chi tiết «Xem» và «In phiếu» — cổng GIAM_SAT_VST:view (không đòi DANH_MUC_ORG:view
+ * như getCategoriesByType, vai nào cũng không có). Khoa KHÔNG khóa theo vai: phiên đọc được có thể thuộc khoa khác
+ * (import cũ, phiên mạng lưới tự giám sát) và chỉ cần tên khoa để hiển thị; phạm vi phiên đã khóa ở getVSTSessionDetail.
+ */
+export async function getVstViewDanhMuc() {
+  try {
+    await verifyPermission("GIAM_SAT_VST", "view");
+    const scope = await getActorKsnkScope();
+    const historyAccess = assertVstHistoryAccess(scope);
+    if (!historyAccess.ok) {
+      return { success: false as const, error: historyAccess.error };
+    }
+
+    const [registriesRes, khoaData, khuVucFallbackRes] = await Promise.all([
+      vstRepo.getRegistryOptionsRpc(["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"]),
+      getCachedDmKhoaPhong(),
+      vstRepo.findVstKhuVucFallback(),
+    ]);
+    if (registriesRes.error) throw registriesRes.error;
+    if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
+
+    const khoas = khoaData.map((x) => ({
+      id: x.id,
+      ma_danh_muc: x.ma_khoa,
+      ten_danh_muc: x.ten_khoa,
+      loai_danh_muc: "KHOA_PHONG",
+    }));
+    const { khuVucs, ngheNghieps } = mapVstKhuVucNgheNghiep(registriesRes.data, khuVucFallbackRes.data);
+    return { success: true as const, data: { khoas, khuVucs, ngheNghieps } };
+  } catch (error: unknown) {
+    return { success: false as const, error: vstReadErrorMessage(error) };
+  }
+}
+
 /** Danh mục header VST — khóa khoa/nhân sự theo phạm vi mạng lưới (parity GSC). */
 export async function getVstHeaderDmDropdowns() {
   try {
@@ -217,34 +290,7 @@ export async function getVstHeaderDmDropdowns() {
       nghe_nghiep_id: (x as { nghe_nghiep_id?: string | null }).nghe_nghiep_id || null,
     }));
 
-    const registry = (registriesRes.data || {}) as Record<string, Array<{ id: string; ten: string; ma?: string }>>;
-    const rpcKhuVucs = Array.isArray(registry.KHU_VUC_GIAM_SAT) ? registry.KHU_VUC_GIAM_SAT : [];
-    const fallbackKhuVucs = (khuVucFallbackRes.data || []).map((x) => ({
-      id: String(x.id || ""),
-      ten: String(x.ten_khu_vuc || ""),
-      ma: String(x.ma_khu_vuc || ""),
-      thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
-      metadata: (x as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
-    }));
-    const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
-    const khuVucs = effectiveKhuVucs.map((r) => ({
-      id: r.id,
-      ma_danh_muc: r.ma || "",
-      ten_danh_muc: r.ten,
-      loai_danh_muc: "KHU_VUC_GIAM_SAT",
-      source: "registry_lookup" as const,
-      thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
-      // Giữ metadata.is_common để bộ lọc khu vực theo khoa (khu-vuc-giam-sat-ui) nhận ra khu vực dùng chung.
-      metadata: (r as { metadata?: { is_common?: boolean } | null }).metadata ?? null,
-    }));
-    const ngheNghieps = mapDanhMucOptions(
-      (registry.NGHE_NGHIEP || []).map((r) => ({
-        id: r.id,
-        ma_danh_muc: r.ma || "",
-        ten_danh_muc: r.ten,
-      })),
-      "NGHE_NGHIEP",
-    );
+    const { khuVucs, ngheNghieps } = mapVstKhuVucNgheNghiep(registriesRes.data, khuVucFallbackRes.data);
 
     return { success: true as const, data: { khoas, khuVucs, ngheNghieps, nhanSus } };
   } catch (error: unknown) {

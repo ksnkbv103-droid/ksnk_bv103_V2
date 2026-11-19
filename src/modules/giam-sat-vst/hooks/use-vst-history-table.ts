@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { deleteVSTSessions, assertCanEditVSTSession } from "../actions/vst-write-delete.actions";
-import { getVSTSessionDetail, getVSTSessionsPaginated } from "../actions/vst-read.actions";
+import { getVSTSessionDetail, getVSTSessionsPaginated, getVstViewDanhMuc } from "../actions/vst-read.actions";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
 import { getVSTHistoryColumns } from "../components/VSTHistoryColumns";
@@ -13,8 +13,6 @@ import { useVstPrint } from "../hooks/use-vst-print";
 import { enrichVstSessionRows, type VstHistoryRow } from "../lib/vst-read-utils";
 import { buildVstViewDataFromDetail } from "../lib/vst-session-view-data";
 import { consumeSupervisionHistoryStale } from "@/lib/supervision-form-nav";
-import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
-import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VstPrintData } from "../hooks/use-vst-print";
 import { confirmAction, promptText } from "@/components/shared/confirm-action";
 
@@ -61,14 +59,13 @@ export function useVstHistoryTable() {
   }, [refresh]);
 
   const loadViewData = useCallback(async (sessionId: string) => {
-    const [detailRes, nnRes, kRes, kvRes] = await Promise.all([
-      getVSTSessionDetail(sessionId),
-      getCategoriesByTypeCached("NGHE_NGHIEP", getCategoriesByType),
-      getCategoriesByTypeCached("KHOA_PHONG", getCategoriesByType),
-      getCategoriesByTypeCached("KHU_VUC_GIAM_SAT", getCategoriesByType),
-    ]);
+    const [detailRes, dmRes] = await Promise.all([getVSTSessionDetail(sessionId), getVstViewDanhMuc()]);
     if (!detailRes.success) {
       toast.error(String(detailRes.error || "Không đọc được phiên"));
+      return null;
+    }
+    if (!dmRes.success) {
+      toast.error(dmRes.error || "Không đọc được danh mục");
       return null;
     }
     return buildVstViewDataFromDetail(
@@ -78,9 +75,9 @@ export function useVstHistoryTable() {
         nhanSuForPrint: detailRes.nhanSuForPrint,
       },
       {
-        ngheNghieps: (nnRes.data || []) as VstPrintData["ngheNghieps"],
-        khoas: (kRes.data || []) as VstPrintData["khoas"],
-        khuVucs: (kvRes.data || []) as VstPrintData["khuVucs"],
+        ngheNghieps: dmRes.data.ngheNghieps as VstPrintData["ngheNghieps"],
+        khoas: dmRes.data.khoas as VstPrintData["khoas"],
+        khuVucs: dmRes.data.khuVucs as VstPrintData["khuVucs"],
       },
     );
   }, []);

@@ -5,6 +5,7 @@ const m = vi.hoisted(() => ({
   nhanSuKhoaArgs: [] as Array<string | null | undefined>,
   sessionView: null as Record<string, unknown> | null,
   obsCalls: 0,
+  permCalls: [] as string[],
 }));
 
 const KHOAS = [
@@ -12,7 +13,13 @@ const KHOAS = [
   { id: "khoa-khac", ma_khoa: "K2", ten_khoa: "Khoa 2", specs: null },
 ];
 
-vi.mock("@/lib/server-permission", () => ({ verifyPermission: vi.fn() }));
+vi.mock("@/lib/server-permission", () => ({
+  // Giống thật: chỉ GIAM_SAT_VST:view được cấp; DANH_MUC_ORG:view không vai nào có (VST-041).
+  verifyPermission: async (moduleKey: string) => {
+    m.permCalls.push(moduleKey);
+    if (moduleKey !== "GIAM_SAT_VST") throw new Error(`không có quyền [view] trên module [${moduleKey}]`);
+  },
+}));
 vi.mock("@/lib/actor-ksnk-scope-server", () => ({ getActorKsnkScope: async () => m.scope }));
 vi.mock("@/lib/data-access", () => ({ getDb: async () => ({}) }));
 vi.mock("@/lib/cache/master-data-cache", () => ({ getCachedDmKhoaPhong: async () => KHOAS }));
@@ -39,7 +46,7 @@ vi.mock("../repo/vst.repo", () => ({
   },
 }));
 
-import { getVSTSessionDetail, getVstHeaderDmDropdowns } from "./vst-read.actions";
+import { getVSTSessionDetail, getVstHeaderDmDropdowns, getVstViewDanhMuc } from "./vst-read.actions";
 
 const base = {
   roles: [] as string[],
@@ -144,5 +151,32 @@ describe("getVSTSessionDetail — LANH_DAO_KHOA chỉ mở phiên khoa mình (VS
     const r = await getVSTSessionDetail("s-a");
     expect(r).toEqual({ success: false, error: "Không tìm thấy phiên giám sát." });
     expect(m.obsCalls).toBe(0);
+  });
+});
+
+describe("getVstViewDanhMuc — danh mục cho chi tiết/in phiếu chỉ cần GIAM_SAT_VST:view (VST-041)", () => {
+  beforeEach(() => {
+    m.permCalls = [];
+  });
+
+  it("LANH_DAO_KHOA / CNK mạng lưới: có đủ khoa, khu vực, nghề nghiệp mà không đòi DANH_MUC_ORG", async () => {
+    for (const roles of [["LANH_DAO_KHOA"], ["CHU_NHIEM_KHOA", "MANG_LUOI_KSNK"]]) {
+      m.permCalls = [];
+      m.scope = { ...base, roles, isMangLuoiKsnk: roles.includes("MANG_LUOI_KSNK") };
+      const r = await getVstViewDanhMuc();
+      if (!r.success) throw new Error(r.error);
+      // khoa của phiên (kể cả import cũ ở khoa khác) vẫn có tên để hiển thị
+      expect(r.data.khoas.map((k) => k.id)).toEqual(["khoa-minh", "khoa-khac"]);
+      expect(Array.isArray(r.data.khuVucs)).toBe(true);
+      expect(Array.isArray(r.data.ngheNghieps)).toBe(true);
+      expect(m.permCalls).toEqual(["GIAM_SAT_VST"]);
+    }
+  });
+
+  it("khách thống kê / hội đồng KSNK: bị chặn như chi tiết phiên", async () => {
+    m.scope = { ...base, roles: ["HOI_DONG_KSNK"] };
+    expect((await getVstViewDanhMuc()).success).toBe(false);
+    m.scope = { ...base, isGuestStatsOnly: true };
+    expect((await getVstViewDanhMuc()).success).toBe(false);
   });
 });
