@@ -3,12 +3,17 @@ import { test, expect, type Page } from "@playwright/test";
 const email = process.env.E2E_USER_EMAIL;
 const password = process.env.E2E_USER_PASSWORD;
 
+// Banner lỗi tải của app dùng border-red-200 bg-red-50 text-red-800. Ô «Dưới 85%» của khối cảnh báo giám sát (SupervisionAttentionBlock) cùng nền đỏ nhưng chữ text-red-900 và hiện cả khi 0 khoa: không phải lỗi.
+const ERROR_BANNER = ".border-red-200.bg-red-50.text-red-800";
+
 async function login(page: Page) {
   await page.goto("/login");
   await page.getByPlaceholder(/NV001|email@/i).fill(email!);
   await page.getByPlaceholder("••••••••").fill(password!);
   await page.getByRole("button", { name: /đăng nhập|login/i }).click();
-  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 60_000 });
+  // Sau đăng nhập app gán "/" rồi `/` tự chuyển sang trang vào mặc định: chờ trang đích thật, không dừng ở "/" (goto kế tiếp sẽ bị ngắt: ERR_ABORTED).
+  await page.waitForURL((url) => !url.pathname.startsWith("/login") && url.pathname !== "/", { timeout: 60_000 });
+  await page.waitForLoadState("load");
 }
 
 test.describe("GSC + VST supervision E2E (function-based routes)", () => {
@@ -27,7 +32,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await expect(page.locator("body")).not.toContainText('column "so_co_hoi" does not exist', { timeout: 60_000 });
     await expect(page.getByText("Tỷ lệ tuân thủ").first()).toBeVisible({ timeout: 25_000 }); // gate-ok: tiêu đề «Tổng hợp (mọi chuyên đề trong kỳ)» đã bỏ khỏi UI, thay bằng chỉ số thật
     await expect(page.getByRole("button", { name: /tải lại/i })).toBeVisible();
-    await expect(page.locator(".border-red-200.bg-red-50")).toHaveCount(0);
+    await expect(page.locator(ERROR_BANNER)).toHaveCount(0); // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện, chỉ banner lỗi text-red-800 mới là lỗi // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện kể cả 0 khoa; chỉ banner lỗi text-red-800 mới là lỗi
 
     await page.goto("/lich-su/gsc");
     await expect(page.locator("body")).not.toContainText("Đang tải…", { timeout: 60_000 });
@@ -68,7 +73,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await reload.click();
     await expect(page.getByText("Tỷ lệ tuân thủ").first()).toBeVisible({ timeout: 60_000 });
     await reload.click();
-    await expect(page.locator(".border-red-200.bg-red-50")).toHaveCount(0);
+    await expect(page.locator(ERROR_BANNER)).toHaveCount(0); // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện, chỉ banner lỗi text-red-800 mới là lỗi // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện kể cả 0 khoa; chỉ banner lỗi text-red-800 mới là lỗi
     await expect(page.locator("body")).not.toContainText('column "so_co_hoi" does not exist');
   });
 

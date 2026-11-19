@@ -71,3 +71,4 @@ scripts/*-report.json
 scripts/*-extract-report.json
 scripts/*-parse-report.json
 /.next-measure/
+/.next-e2e/

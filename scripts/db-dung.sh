@@ -9,8 +9,9 @@
 #  4. audit:views (0 view không ai dùng).
 #  5. pgTAP: `supabase test db` chạy supabase/tests/** (§10 #1, Lát 1b).
 #  6. gen types: src/lib/database.types.ts phải bằng output `supabase gen types typescript --db-url …:55622` (§10 #2, Lát 1b).
+#  7. e2e smoke VST+GSC (§8 Lát 1c): chỉ khi DB_DUNG_E2E=1; build + start Next trỏ stack này, Playwright e2e/gsc-vst-supervision.spec.ts.
 # Chạy đủ các bước rồi mới thoát; bước nào đỏ thì exit 1.
-# Biến: MIGRATION_BASE · DB_DUNG_GHI_MOC=1 (ghi lại mốc lint) · DB_DUNG_GHI_TYPES=1 (sinh lại database.types.ts) · DB_DUNG_GIU=1 (giữ stack để soi) · SUPABASE_CLI (mặc định npx supabase).
+# Biến: MIGRATION_BASE · DB_DUNG_GHI_MOC=1 (ghi lại mốc lint) · DB_DUNG_GHI_TYPES=1 (sinh lại database.types.ts) · DB_DUNG_GIU=1 (giữ stack để soi) · DB_DUNG_E2E=1 (thêm bước 7) · SUPABASE_CLI (mặc định npx supabase).
 set -uo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -27,6 +28,7 @@ fail=""
 sb() { $SB --workdir "$WD" "$@"; }
 q() { docker exec -i "$DBC" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 -tA "$@"; }
 don() {
+  [ -n "${E2E_PID:-}" ] && kill "$E2E_PID" 2>/dev/null
   if [ "${DB_DUNG_GIU:-}" = 1 ]; then echo "[db:dung] giữ stack $PID (db :55622); tắt: $SB stop --project-id $PID --no-backup"
   else $SB stop --project-id "$PID" --no-backup >/dev/null 2>&1 || true; fi
   rm -rf "$TMP"
@@ -113,6 +115,48 @@ if sb gen types typescript --db-url "postgresql://postgres:postgres@127.0.0.1:55
     fail="$fail · gen types lệch"
   else echo "[db:dung] gen types khớp $(basename "$TYPES")"; fi
 else cat "$TMP/types.err" >&2; head -c 600 "$TMP/database.types.ts" >&2; fail="$fail · gen types không chạy được"; fi
+
+# 7. e2e smoke VST+GSC trên chính stack này (§8 Lát 1c, §10 #5). Chỉ chạy khi DB_DUNG_E2E=1 (CI bật; local mặc định tắt cho nhanh).
+#    Build + start Next trỏ stack ksnk_dd (cổng 3100, distDir .next-e2e: không đè .next/.next-local của dev server), đăng nhập bằng
+#    tài khoản seed local (supabase/seeds/01-pilot-nhan-su.sql, chỉ có trong stack thải bỏ). Không secret.
+#    Xanh giả: spec tự test.skip khi thiếu credential và Playwright vẫn exit 0 → đòi số «passed» + «flaky» = tổng số ca, 0 failed/skipped.
+if [ "${DB_DUNG_E2E:-}" = 1 ]; then
+  E2E_SPEC="e2e/gsc-vst-supervision.spec.ts"
+  E2E_PORT=3100
+  kv="$(sb status -o env 2> "$TMP/status.err")" || { cat "$TMP/status.err" >&2; fail="$fail · e2e: supabase status lỗi"; kv=""; }
+  kvget() { printf '%s\n' "$kv" | sed -n "s/^$1=\"\{0,1\}\(.*[^\"]\)\"\{0,1\}$/\1/p" | head -1; }
+  api="$(kvget API_URL)"; anon="$(kvget ANON_KEY)"; srv="$(kvget SERVICE_ROLE_KEY)"
+  if [ -n "$api" ] && [ -n "$anon" ] && [ -n "$srv" ]; then
+    export NEXT_DIST_DIR=.next-e2e NEXT_PUBLIC_SUPABASE_URL="$api" NEXT_PUBLIC_SUPABASE_ANON_KEY="$anon" SUPABASE_SERVICE_ROLE_KEY="$srv"
+    t1=$(date +%s)
+    if ! (cd "$REPO" && npx next build) > "$TMP/e2e-build.log" 2>&1; then
+      tail -40 "$TMP/e2e-build.log" >&2; fail="$fail · e2e: next build lỗi"
+    else
+      echo "[db:dung] e2e: build xong sau $(( $(date +%s) - t1 )) giây"
+      (cd "$REPO" && exec "$REPO/node_modules/.bin/next" start -p "$E2E_PORT") > "$TMP/e2e-start.log" 2>&1 &
+      E2E_PID=$!
+      up=""; for _ in $(seq 1 60); do curl -fs -o /dev/null "http://localhost:$E2E_PORT/login" && { up=1; break; }; sleep 1; done
+      if [ -z "$up" ]; then tail -20 "$TMP/e2e-start.log" >&2; fail="$fail · e2e: next start không lên :$E2E_PORT"
+      else
+        export PLAYWRIGHT_SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL="http://localhost:$E2E_PORT"
+        # Tài khoản seed ADMIN pilot: email lấy từ DB của stack, mật khẩu từ dòng «Password mặc định local» của file seed (không ghi cứng ở đây).
+        export E2E_USER_EMAIL="${E2E_USER_EMAIL:-$(q -c "select email from auth.users where id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb001'")}"
+        export E2E_USER_PASSWORD="${E2E_USER_PASSWORD:-$(sed -n 's/^-- Password mặc định local: \([^ ]*\).*/\1/p' "$REPO/supabase/seeds/01-pilot-nhan-su.sql")}"
+        total="$(cd "$REPO" && npx playwright test "$E2E_SPEC" --list 2>/dev/null | sed -n 's/^Total: \([0-9]*\) test.*/\1/p')"
+        (cd "$REPO" && npx playwright test "$E2E_SPEC" --reporter=list --output "$TMP/e2e-results") > "$TMP/e2e.log" 2>&1; rc=$?
+        tail -120 "$TMP/e2e.log"
+        # Workdir tạm bị xóa khi thoát: đỏ thì in ảnh chụp cây trang (error-context.md) ra log để chẩn đoán được trên CI.
+        if [ "$rc" != 0 ]; then for f in "$TMP"/e2e-results/*/error-context.md; do [ -f "$f" ] && { echo "--- $(basename "$(dirname "$f")")"; head -200 "$f"; }; done; fi
+        n() { sed -n "s/^ *\([0-9][0-9]*\) $1.*/\1/p" "$TMP/e2e.log" | tail -1; }
+        ok=$(( ${total:-0} > 0 )) ; p="$(n passed)"; fl="$(n flaky)"
+        if [ "$rc" != 0 ] || [ -n "$(n failed)" ] || [ -n "$(n skipped)" ] || [ -n "$(n 'did not run')" ] || [ "$ok" != 1 ] \
+           || [ "$(( ${p:-0} + ${fl:-0} ))" != "$total" ]; then
+          fail="$fail · e2e (passed ${p:-0}${fl:+ + flaky $fl}/${total:-?}, exit $rc)"
+        else echo "[db:dung] e2e ${p:-0}/$total ca xanh${fl:+ (flaky $fl)}"; fi
+      fi
+    fi
+  else fail="$fail · e2e: thiếu API_URL/ANON_KEY/SERVICE_ROLE_KEY từ supabase status"; fi
+fi
 
 if [ -n "$fail" ]; then echo "[db:dung] ĐỎ${fail}" >&2; exit 1; fi
 echo "[db:dung] XANH (base bất biến: $base)"

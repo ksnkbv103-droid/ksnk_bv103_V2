@@ -29,13 +29,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
       - uses: supabase/setup-cli@v1
         with:
           version: 2.122.0 # khớp package-lock.json
 
-      - name: npm run db:dung
+      # e2e smoke VST+GSC (§8 Lát 1c) cần next + playwright: build Next trỏ stack Supabase local của db:dung, không secret.
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+
+      - name: npm run db:dung (+ e2e smoke VST+GSC)
         env:
           SUPABASE_CLI: supabase
+          DB_DUNG_E2E: "1"
           MIGRATION_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: npm run db:dung

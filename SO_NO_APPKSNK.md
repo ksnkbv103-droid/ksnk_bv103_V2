@@ -22,3 +22,7 @@ Mọi lỗi và việc mở nằm ở sổ lỗi: `node scripts/readiness/so-loi
 ## Ghi nhận ngoài lát (một dòng mỗi mục: `file:dòng — vấn đề`; phân loại vào sổ ở lần kế)
 - `supabase/migrations/20261119110000_cssd_039_khoa_su_co_ghi_giao_dich.sql:182-193` — void sự cố không khóa dòng phiếu ngược đang bị tắt `is_active` cùng lúc; rủi ro rất thấp (review-bv103 19/11, Minor).
 - `supabase/migrations/20261119110000_cssd_039_khoa_su_co_ghi_giao_dich.sql:56` — phiếu NHẬP có `su_co_id` vẫn lọt vào sự cố đã hủy; app hiện không gửi trường này (review-bv103 19/11, Minor).
+- `scripts/db-dung.sh:137` — bước chờ chỉ curl `/login`, không kiểm `next start` của chính script còn sống: cổng 3100 có server mồ côi (SIGKILL lần trước) thì e2e chạy trên build cũ, có thể xanh giả. Sửa 1 dòng: `kill -0 "$E2E_PID"` sau vòng chờ, hoặc kiểm cổng trống trước khi start (review-bv103 Lát 1c, Minor).
+- `scripts/db-dung.sh:142-143` — `${E2E_USER_EMAIL:-…}` nhận tài khoản có sẵn trong shell; và `next build/start` local còn nạp `.env.local` (`KSNK_PILOT_FOUR_MODULES`, `KSNK_BREAK_GLASS_EMAILS`) mà CI không có, nên xanh local chưa chắc xanh CI. Sửa: luôn gán tài khoản seed, unset hai biến trong bước 7 (Minor).
+- `.github/workflows/db-dung.yml:41` — chưa cache `~/.cache/ms-playwright`; `npm ci` + `next build` + e2e làm job dài thêm, theo dõi trần `timeout-minutes: 30` sau lần chạy CI đầu (Minor).
+- `e2e/gsc-vst-supervision.spec.ts:35,76` — `toHaveCount(0)` qua ngay khi thấy chữ «Tỷ lệ tuân thủ»; panel tải chậm báo lỗi sau đó thì lọt (có từ trước Lát 1c).
