@@ -1,9 +1,7 @@
 {
   "cap": "error",
-  "so_loi": 1,
+  "so_loi": 0,
   "ghi_ngay": "2026-11-19",
   "cach_ghi": "DB_DUNG_GHI_MOC=1 npm run db:dung",
-  "loi": [
-    "public.rpc_get_registry_options: column \"ten_loai_dung_cu\" does not exist"
-  ]
+  "loi": []
 }
