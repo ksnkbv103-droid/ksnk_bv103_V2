@@ -3,11 +3,11 @@
 File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_tay` của sổ. `so-loi.mjs check` FAIL khi file này > 6000 byte. Khôi phục file đã gộp/xóa: `git show 5618ae82:<đường dẫn>` (`HANDOFF_APPKSNK_NKBV.md`, `docs/archive/bao-cao/BAO-CAO-{RA-SOAT-2026-11-05,CAI-TO-2026-11-06,NEN-MONG-2026-11-13,TONG-THE-2026-11-13}.md`); bản đầy đủ cũ: `git show ae5ca6fd:HANDOFF.md`.
 
 ## TIẾN ĐỘ HIỆN TẠI (đo 2026-11-19: `so-loi.mjs stats` · `check` · `npm run module:gate`)
-- Sổ (đo 19/11 cuối phiên): MOI 5 · DA_XAC_MINH 2 · LOI_GIA 21 · DANG_SUA 0 · DA_SUA 146 · HOAN 13 · CHO_PO 19. Tay: DAT 67 · CHUA 10 · KHONG_DAT 0.
+- Sổ (đo 19/11 cuối phiên): MOI 4 · DA_XAC_MINH 1 · LOI_GIA 21 · DANG_SUA 0 · DA_SUA 148 · HOAN 13 · CHO_PO 20. Tay: DAT 67 · CHUA 11 · KHONG_DAT 0.
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check` đỏ do CSSD-043 (CAO, MOI): xác minh trước tiên.
 
 ## ĐANG LÀM
-- 19/11 đốt sổ đợt 5 (nén 2 lần, dừng). Đóng: NEN-008 `ff5043ce`; VST-040 `bff55cbc`; VST-028 `c14598fd` (migration `20261119150000` chỉ local; chi tiết/in LĐK → VST-041); VST-017 và QT-016 → CHO_PO (P11, P10). NEN-016 vẫn DA_XAC_MINH: lát A–E xong (C `ebc03516`, D `35704d4a`; E: scan, cap-phat-batch, helper VST/GSC; chi tiết ở ghi_chu). Migration chưa áp prod: NEN-007 `610e69f0`, CSSD-037 `49fdab3f` (chờ PO). Kế: NEN-016 lát E2 (test tái hiện trước): chat-thai-do-vai `khoa_lien_quan_id` (trỏ khoa-phòng); hóa chất giữ `.uuid()` (id nhóm/phiếu là v4); xong thì NEN-016 → DA_SUA. Rồi CSSD-042 (migration-author + review-bv103), db-verify QT-017/018, NEN-009/010/015. Chờ PO: VST-038 A2, VST-044, CSSD-041, CSSD-043(a).
+- 19/11 đốt sổ đợt 5 (nén 2 lần, dừng). Đóng: NEN-008 `ff5043ce`; VST-040 `bff55cbc`; VST-028 `c14598fd` (migration `20261119150000` chỉ local; chi tiết/in LĐK → VST-041); VST-017 và QT-016 → CHO_PO (P11, P10). NEN-016 vẫn DA_XAC_MINH: lát A–E xong (C `ebc03516`, D `35704d4a`; E: scan, cap-phat-batch, helper VST/GSC; chi tiết ở ghi_chu). Migration chưa áp prod: NEN-007 `610e69f0`, CSSD-037 `49fdab3f` (chờ PO). Kế: NEN-016 lát E2 (test tái hiện trước): chat-thai-do-vai `khoa_lien_quan_id` (trỏ khoa-phòng); hóa chất giữ `.uuid()` (id nhóm/phiếu là v4); xong thì NEN-016 → DA_SUA. Đợt 7 (nén 2 lần, dừng): CSSD-042 `eb67c90d` (chưa áp prod), QT-017 `cb0ccf67` DA_SUA; QT-019 CHO_PO (P12). Còn: QT-018 (zod `saveKhoaPhongAction`, chưa sửa), NEN-009/010/015. Chờ PO: VST-038 A2, VST-044, CSSD-041, CSSD-043(a).
 - 19/11 đã áp prod 4 migration `20261118100000`…`130000`. Code lát B (drawer) + trang kế hoạch giám sát chưa deploy (câu D1).
 
 ## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)
