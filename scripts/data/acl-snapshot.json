@@ -142,7 +142,7 @@
     "tbl dao_tao_lan_thi | rls=true | anon= auth=",
     "tbl gstt_dm_bang_kiem | rls=true | anon=IUD auth=IUD",
     "tbl gstt_fact_chung_sessions | rls=true | anon=IUD auth=IUD",
-    "tbl gstt_fact_ke_hoach_giam_sat | rls=true | anon= auth=IU",
+    "tbl gstt_fact_ke_hoach_giam_sat | rls=true | anon= auth=",
     "tbl gstt_fact_vst | rls=true | anon=IUD auth=IUD",
     "tbl gstt_fact_vst_sessions | rls=true | anon=IUD auth=IUD",
     "tbl gstt_fact_vst_yeu_cau_dieu_chinh | rls=true | anon= auth=",

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { logAdminAction } from "@/lib/admin-audit";
 import { KE_HOACH_CHI_TIEU_MAC_DINH, toThangDauThang, type KeHoachTienDoRow } from "@/lib/analytics/ke-hoach-giam-sat";
 
 const loaiSchema = z.enum(["VST", "GSC"]);
@@ -89,19 +90,32 @@ export async function setKeHoachKhoa(input: {
     const { error } = await supabase
       .from("gstt_fact_ke_hoach_giam_sat")
       .insert({ khoa_id: khoaId, thang, loai, is_active: true, nguoi_lap_id: scope.actorNhanSuId });
-    // 23505 = đã có (đua ghi) → coi như thành công
+    // 23505 = đã có (đua ghi) → coi như thành công, không ghi nhật ký (không có thay đổi)
     if (error && error.code !== "23505") return fail("setKeHoachKhoa.insert", error.message);
+    if (!error) await auditKeHoach({ khoaId, thang, loai, isActive: true });
     return { success: true };
   }
-  const { error } = await supabase
+  const { data: bo, error } = await supabase
     .from("gstt_fact_ke_hoach_giam_sat")
     .update({ is_active: false })
     .eq("khoa_id", khoaId)
     .eq("thang", thang)
     .eq("loai", loai)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .select("id");
   if (error) return fail("setKeHoachKhoa.update", error.message);
+  // Chỉ ghi nhật ký khi thật sự bỏ được một kế hoạch hiệu lực (UPDATE khớp 0 dòng = không đổi gì)
+  if (bo && bo.length > 0) await auditKeHoach({ khoaId, thang, loai, isActive: false });
   return { success: true };
+}
+
+/** VST-037: ghi nhật ký quản trị (best-effort) cho lập/bỏ kế hoạch khoa/tháng, như vst-write-delete.actions.ts. */
+async function auditKeHoach(p: { khoaId: string; thang: string; loai: "VST" | "GSC"; isActive: boolean }) {
+  await logAdminAction({
+    action: p.isActive ? "KE_HOACH_GIAM_SAT_LAP" : "KE_HOACH_GIAM_SAT_BO",
+    targetTable: "gstt_fact_ke_hoach_giam_sat",
+    after: { khoa_id: p.khoaId, thang: p.thang, loai: p.loai, is_active: p.isActive },
+  });
 }
 
 function fail(action: string, message: string) {

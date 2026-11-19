@@ -30,6 +30,7 @@ export default defineConfig({
       "src/modules/giam-sat-vst/**/*.spec.ts",
       "src/modules/giam-sat-chung/**/*.spec.ts",
       "src/modules/giam-sat-nkbv/**/*.spec.ts",
+      "src/modules/giam-sat-hub/**/*.spec.ts",
       "src/modules/dashboard/**/*.spec.ts",
       "src/modules/auth/**/*.spec.ts",
       "src/modules/dao-tao/**/*.spec.ts",
