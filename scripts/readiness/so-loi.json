@@ -2836,10 +2836,11 @@
     "tieu_de": "Preset quyền NHAN_VIEN_KSNK cho HAU_CAN_MOI_TRUONG view/create/edit/delete/import, rộng hơn quyết định PO 11-06 (chỉ create + view)",
     "bang_chung": "src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-ksnk-role-mappings.ts:72-74 (isKsnkStaffPerm gom HAU_CAN_MOI_TRUONG cùng NHAN_SU/BANG_KIEM/CONG_VIEC/DAO_TAO); đường gọi rbac-registry-sync.ts → syncKsnkRolePermissionMappings. PO 11-06: migration 20261105110000:29 chỉ create, 20261106100000 thêm view. Chưa đo: preset có chạy trên prod không, prod hiện có bao nhiêu liên kết NHAN_VIEN_KSNK–HAU_CAN_MOI_TRUONG.",
     "lenh_kiem": "npm run test:cssd -- src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-ksnk-role-mappings.spec.ts (thêm assert: ksnkStaffAllows('HAU_CAN_MOI_TRUONG','edit'|'delete'|'import') = false)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "db-verify NEN-017 19/11",
-    "commit": "",
-    "ghi_chu": "Phát hiện phụ khi xác minh NEN-017. Module Chất thải & Đồ vải đang ẩn khỏi menu (NEN-011) nên chưa gấp; cần xác minh trước khi sửa (db-verify), và sửa cùng lúc với NEN-017 khi mở lại module."
+    "commit": "9cf03698",
+    "ghi_chu": "Phát hiện phụ khi xác minh NEN-017. Module Chất thải & Đồ vải đang ẩn khỏi menu (NEN-011) nên chưa gấp; cần xác minh trước khi sửa (db-verify), và sửa cùng lúc với NEN-017 khi mở lại module. | Phát hiện phụ khi xác minh NEN-017. Module Chất thải & Đồ vải đang ẩn khỏi menu (NEN-011) nên chưa gấp. | Xác minh 19/11 (đối chiếu tay, nguồn gốc): ĐÚNG. rbac-ksnk-role-mappings.ts:73-74 cho HAU_CAN_MOI_TRUONG đủ view/create/edit/delete/import, trái PO 11-06 (migration 20261105110000:29 «chỉ create», 20261106100000:2 «vẫn không có edit/delete»). Chỉ chạy khi ADMIN bấm áp preset (rbac-registry-sync.ts:61 applyKsnkRolePermissionPresets, RbacItDangerActions.tsx) hoặc scripts/admin-rbac-sync.ts; không tự chạy; local hiện 0 liên kết. Prod chưa đo. Sửa = thu nhánh HAU_CAN_MOI_TRUONG về view+create trong code (không migration, không đổi quyền thật cho tới khi ADMIN áp preset). | Tay 2026-11-19 CHUA: Tay 2026-11-19 CHUA: chỉ spec (rbac-ksnk-role-mappings.spec.ts 12/12 PASS, đỏ trước sửa: edit=true). Kịch bản tay khi mở lại module Chất thải & Đồ vải: ADMIN bấm áp preset ở /quan-tri-he-thong (RbacItDangerActions) trên DB local → NHAN_VIEN_KSNK có đúng HAU_CAN_MOI_TRUONG view+create, không edit/delete/import. Không bấm trên prod trước khi PO gõ.",
+    "test_tay": "CHUA"
   },
   {
     "id": "NEN-018",
