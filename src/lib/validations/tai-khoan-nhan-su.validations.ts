@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 
-export const staffIdSchema = z.string().trim().uuid("Mã nhân sự không hợp lệ.");
+export const staffIdSchema = z.string().trim().pipe(z.guid("Mã nhân sự không hợp lệ."));
 
 /** Supabase Auth giới hạn 72 ký tự cho mật khẩu. */
 export const passwordSchema = z

@@ -14,7 +14,7 @@ import { authUserHasAdminRole } from "@/modules/to-chuc/nhan-su/actions/nhan-su-
 import { syncStaffAuthBan } from "@/modules/to-chuc/nhan-su/lib/nhan-su-auth-ban";
 
 const setNhanSuActiveSchema = z.object({
-  ids: z.array(z.string().uuid("Mã nhân sự không hợp lệ.")).min(1, "Chưa chọn nhân sự.").max(200, "Tối đa 200 hồ sơ mỗi lần."),
+  ids: z.array(z.guid("Mã nhân sự không hợp lệ.")).min(1, "Chưa chọn nhân sự.").max(200, "Tối đa 200 hồ sơ mỗi lần."),
   active: z.boolean(),
   /** `delete` = xóa mềm (cần quyền delete); `toggle` = bật/tắt (cần quyền edit). */
   mode: z.enum(["toggle", "delete"]),

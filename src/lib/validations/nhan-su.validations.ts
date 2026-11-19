@@ -22,7 +22,7 @@ export const nhanSuSchema = z.object({
   /** Hỗ trợ cả key hiện hành `ma_nv` và alias cũ `ma_nhan_vien` khi validate input. */
   ma_nv: z.string().max(50).nullable().optional(),
   ma_nhan_vien: z.string().max(50).nullable().optional(),
-  khoa_id: z.string().uuid("Khoa không hợp lệ").nullable().optional(),
+  khoa_id: z.guid("Khoa không hợp lệ").nullable().optional(),
   to_id: z.string().uuid("Tổ không hợp lệ").nullable().optional(),
   chuc_vu_id: z.string().uuid("Chức vụ không hợp lệ").nullable().optional(),
   chuc_danh_id: z.string().uuid("Chức danh không hợp lệ").nullable().optional(),

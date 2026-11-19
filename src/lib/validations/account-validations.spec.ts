@@ -12,6 +12,7 @@ import {
   provisionStaffAuthAccountSchema,
   setStaffKsnkRbacRoleSchema,
   setupGuestStatsPilotAccountSchema,
+  staffIdSchema,
 } from "./tai-khoan-nhan-su.validations";
 
 const UUID = "123e4567-e89b-12d3-a456-426614174000";
@@ -95,6 +96,52 @@ describe("account-access-request.validations", () => {
     expect(parseOrFirstError(rejectAccountAccessRequestSchema, { staffId: UUID, reason: "ab" })).toEqual({
       ok: false,
       error: "Lý do từ chối tối thiểu 3 ký tự.",
+    });
+  });
+});
+
+/**
+ * NEN-016 lát B1: `staffIdSchema` (có trim) và `khoa_id` của yêu cầu cấp tài khoản dùng `z.guid()`;
+ * Zod 4 `.uuid()` từ chối id seed không chuẩn RFC trong khi cột Postgres `uuid` chấp nhận.
+ */
+describe("staffIdSchema — NEN-016", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+
+  it("nhận id nhân sự seed không chuẩn RFC, vẫn cắt khoảng trắng hai đầu", () => {
+    expect(staffIdSchema.safeParse(SEED)).toMatchObject({ success: true, data: SEED });
+    expect(staffIdSchema.safeParse(`  ${SEED}  `)).toMatchObject({ success: true, data: SEED });
+  });
+
+  it("nhận UUID v4 chuẩn", () => {
+    expect(staffIdSchema.safeParse(V4)).toMatchObject({ success: true, data: V4 });
+  });
+
+  it("vẫn từ chối chuỗi rác với câu lỗi cũ", () => {
+    const r = staffIdSchema.safeParse("khong-phai-uuid");
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues[0]?.message).toBe("Mã nhân sự không hợp lệ.");
+  });
+});
+
+describe("submitAccountAccessRequestSchema.khoa_id — NEN-016", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+  const base = { ho_ten: "Nguyễn Văn A", email: "a@bv103.vn", khoa_id: V4, chuc_danh_id: V4, ly_do: "Cần tài khoản để giám sát" };
+
+  it("nhận id khoa seed không chuẩn RFC, vẫn cắt khoảng trắng", () => {
+    const r = parseOrFirstError(submitAccountAccessRequestSchema, { ...base, khoa_id: ` ${SEED} ` });
+    expect(r.ok && r.data.khoa_id).toBe(SEED);
+  });
+
+  it("nhận UUID v4 chuẩn", () => {
+    expect(parseOrFirstError(submitAccountAccessRequestSchema, base).ok).toBe(true);
+  });
+
+  it("vẫn từ chối chuỗi rác với câu lỗi cũ", () => {
+    expect(parseOrFirstError(submitAccountAccessRequestSchema, { ...base, khoa_id: "khong-phai-uuid" })).toEqual({
+      ok: false,
+      error: "Khoa / phòng không hợp lệ — chọn lại từ danh sách.",
     });
   });
 });

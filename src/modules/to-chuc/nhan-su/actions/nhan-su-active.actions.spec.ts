@@ -76,3 +76,32 @@ describe("setNhanSuActiveAction", () => {
     expect(mocks.verifyPermission).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * NEN-016 lát B1: `ids` dùng `z.string().uuid()`; Zod 4 kiểm RFC nên từ chối id nhân sự seed
+ * `aaaaaaaa-bbbb-cccc-dddd-000000000001` (cột Postgres `uuid` chấp nhận mọi dạng 8-4-4-4-12 hex).
+ */
+describe("setNhanSuActiveAction — parse ids (NEN-016)", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+
+  it("nhận id nhân sự seed không chuẩn RFC (tới bước kiểm quyền và ghi)", async () => {
+    mocks.rows = [{ id: SEED, auth_user_id: null, is_active: true }];
+    const res = await setNhanSuActiveAction({ ids: [SEED], active: false, mode: "toggle" });
+    expect(res).toMatchObject({ success: true, count: 1 });
+    expect(mocks.verifyPermission).toHaveBeenCalledWith("NHAN_SU", "edit");
+  });
+
+  it("nhận id UUID v4 chuẩn", async () => {
+    mocks.rows = [{ id: V4, auth_user_id: null, is_active: true }];
+    const res = await setNhanSuActiveAction({ ids: [V4], active: false, mode: "toggle" });
+    expect(res.success).toBe(true);
+    expect(mocks.verifyPermission).toHaveBeenCalledTimes(1);
+  });
+
+  it("vẫn từ chối chuỗi rác với câu lỗi cũ, không tới bước kiểm quyền", async () => {
+    const res = await setNhanSuActiveAction({ ids: ["khong-phai-uuid"], active: false, mode: "toggle" });
+    expect(res).toEqual({ success: false, error: "Mã nhân sự không hợp lệ." });
+    expect(mocks.verifyPermission).not.toHaveBeenCalled();
+  });
+});

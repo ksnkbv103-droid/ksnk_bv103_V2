@@ -14,7 +14,7 @@ const trimmed = (max: number, msg: string) => z.string().trim().max(max, msg);
 export const submitAccountAccessRequestSchema = z.object({
   ho_ten: trimmed(200, "Họ tên không hợp lệ.").min(2, "Họ tên không hợp lệ."),
   email: loginEmailSchema,
-  khoa_id: z.string().trim().min(1, "Chọn khoa / phòng từ danh mục.").uuid("Khoa / phòng không hợp lệ — chọn lại từ danh sách."),
+  khoa_id: z.string().trim().min(1, "Chọn khoa / phòng từ danh mục.").pipe(z.guid("Khoa / phòng không hợp lệ — chọn lại từ danh sách.")),
   chuc_danh_id: z.string().trim().min(1, "Chọn chức danh từ danh mục.").uuid("Chức danh không hợp lệ — chọn lại từ danh mục."),
   ma_nv: trimmed(50, "Mã nhân viên quá dài.").optional(),
   so_dien_thoai: trimmed(20, "Số điện thoại không hợp lệ.").optional(),
