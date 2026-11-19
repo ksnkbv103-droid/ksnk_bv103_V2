@@ -2231,10 +2231,11 @@
     "tieu_de": "Header dính z-50 phủ ~44 px đầu ngăn kéo (ngăn kéo fixed z-50 bị nhốt trong main.relative z-0): ở viewport 1280 nút «In thẻ kho» không bấm chuột được",
     "bang_chung": "src/components/shared/Header.tsx:72; src/components/shared/ClientLayoutWrapper.tsx:118; kho-hoa-chat-drawer.tsx (nút In thẻ kho). Đã thấy 15/11 trên :3001: elementFromPoint tại nút trả NAV; Tab + Enter vẫn in được.",
     "lenh_kiem": "trên :3001 viewport 1280, mở ngăn kéo kho hóa chất CSSD, document.elementFromPoint(tâm nút «In thẻ kho») phải trả nút, không phải NAV",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (ghi 15/11, lát CSSD-036)."
+    "commit": "610e69f0",
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (ghi 15/11, lát CSSD-036). | Tay 2026-11-19 DAT: 1280 px :3001 ADMIN01 /cssd-hoa-chat: mở ngăn kéo NEN007, elementFromPoint tại nút In thẻ kho = BUTTON (trước sửa = NAV), overlay parent BODY z 10040; click thật gọi window.print với #print-area có mặt; Esc và nút Đóng đóng được; 0 lỗi console mới (hook lỗi trong trang: errsSinceHook rỗng sau 2 chu kỳ mở/đóng)",
+    "test_tay": "DAT"
   },
   {
     "id": "CSSD-038",
