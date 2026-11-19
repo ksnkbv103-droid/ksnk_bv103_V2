@@ -1707,11 +1707,12 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Mã biểu mẫu VST trong app (KSNK.QT.07.BM.01–03) lệch quy trình hiện hành KSNK.QT.06 Vệ sinh tay; QT.07 trong kho là phương tiện phòng hộ",
     "bang_chung": "App: src/modules/giam-sat-vst/components/VSTPrintView.tsx:94 (tiêu đề in …KSNK.QT.07.BM.01); src/lib/domain/ve-sinh-tay-catalog.ts:71,115,123; docs/modules/giam-sat/16-BANG-KIEM-PHAM-VI-KHOA-DOI-TUONG.md:95. Kho (bản nháp): 03_QUY_TRINH_BENH_VIEN/02_QUY_TRINH_SOPS/KSNK.QT.06 - Quy trình vệ sinh tay - BV103 2026 [HIỆN HÀNH].md:188-191,197-200 (QT.06.BM.01–04 là bảng kiểm VST); KSNK.QT.07 - Quy trình sử dụng phương tiện phòng hộ cá nhân - BV103 2026 [HIỆN HÀNH].md:186-187,193-194 (QT.07.BM.01–02 là bảng kiểm phương tiện phòng hộ); 09_DOMAIN_PHAN_MEM/05_DOI_CHIEU_PROJECT/DOI_CHIEU_DAC_TA_VA_KSNK_BV103.md:60 (L2, cột Hướng xử lý đề xuất: «Theo quyết định PO: đánh số theo thư mục Word; domain phải đối chiếu lại M01»)",
-    "lenh_kiem": "grep -rlF -e 'QT.07' -e 'BM.07' src supabase scripts docs | wc -l (hiện 46 file, gồm 3 migration đã apply — không sửa tại chỗ)",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run docs:links:check",
+    "trang_thai": "DA_SUA",
     "nguon": "kho tri thức (dự thảo)",
-    "commit": "",
-    "ghi_chu": "CHO_PO 2026-11-14. Mặc định: giữ mã QT.07 trong app; không sửa riêng tiêu đề in (in QT.06 mà ma_bk còn QT.07 làm lệch nội bộ). Khi PO duyệt đổi: một đợt duy nhất — migration mới đổi ma_bk trên DB local + code + docs + test; prod qua MCP apply_migration theo lệnh PO; không sửa migration đã apply. Hệ quả nếu PO im: phiếu in VST mang mã BM của quy trình phương tiện phòng hộ; đối chiếu hồ sơ với bản hiện hành QT.06 thấy lệch mã, số liệu không sai. Hướng «theo thư mục Word» nằm ở cột đề xuất của kho (bản nháp), chưa là lệnh áp vào app. | PO 2026-11-17 (phiếu V4): trả lời «dùng biểu mẫu đang có», chưa nêu mã. Chưa rõ giữ mã QT.07 app đang in hay mã của biểu mẫu giấy đang dùng (QT.06). Chờ PO ghi mã đầy đủ từng biểu mẫu; chưa đổi gì. | PO 2026-11-19 (khung tích chọn): ĐỔI sang mã QT.06.BM. Việc: (1) đối chiếu số BM của app (01–03) với kho QT.06.BM.01–04 trước khi đổi, lệch số thì chuyển CHO_PO hỏi tiếp; (2) migration MỚI đổi ma_bk (không sửa migration đã apply) + code + docs + test, tách lát ≤ 8 file, phần docs đổi bằng script; (3) lên prod qua MCP chỉ khi PO ra lệnh. lop DOMAIN→DB vì bước đầu là migration. | Gợi ý cho phiên làm (19/11): «khớp 1-1» = khớp tên biểu mẫu tại từng số BM (kho …KSNK.QT.06 [HIỆN HÀNH].md:188-200 so với app); lệch tên ở bất kỳ BM nào → so-loi.mjs set VST-017 CHO_PO kèm ghi chú rồi dừng, không đổi ma_bk. | Đợt 5 (19/11): đối chiếu theo gợi ý — tên BM.01–03 của app khớp 1-1 với kho QT.06.BM.01–03. NHƯNG đổi mã VST sang QT.06 trùng KSNK.QT.06.BM.03 «Mạng lưới» của chính app (docs/modules/giam-sat/12-BANG-KIEM-inventory-from-KSNK-final.md:49,191; bang-kiem-seed/00-catalog.json:121) và gstt_dm_bang_kiem.ma_bk có UNIQUE (danh_muc_bang_kiem_ma_bk_key). Dãy mã app lệch 1 số so với kho (kho: mạng lưới QT.05, VST QT.06, PTPH QT.07; app: 06/07/08), nên đổi riêng VST là không an toàn; cần đánh số lại cả dãy. Không đổi ma_bk. Câu P11 ở CAU_HOI_PO_APPKSNK.md."
+    "commit": "d34da30c",
+    "ghi_chu": "CHO_PO 2026-11-14. Mặc định: giữ mã QT.07 trong app; không sửa riêng tiêu đề in (in QT.06 mà ma_bk còn QT.07 làm lệch nội bộ). Khi PO duyệt đổi: một đợt duy nhất — migration mới đổi ma_bk trên DB local + code + docs + test; prod qua MCP apply_migration theo lệnh PO; không sửa migration đã apply. Hệ quả nếu PO im: phiếu in VST mang mã BM của quy trình phương tiện phòng hộ; đối chiếu hồ sơ với bản hiện hành QT.06 thấy lệch mã, số liệu không sai. Hướng «theo thư mục Word» nằm ở cột đề xuất của kho (bản nháp), chưa là lệnh áp vào app. | PO 2026-11-17 (phiếu V4): trả lời «dùng biểu mẫu đang có», chưa nêu mã. Chưa rõ giữ mã QT.07 app đang in hay mã của biểu mẫu giấy đang dùng (QT.06). Chờ PO ghi mã đầy đủ từng biểu mẫu; chưa đổi gì. | PO 2026-11-19 (khung tích chọn): ĐỔI sang mã QT.06.BM. Việc: (1) đối chiếu số BM của app (01–03) với kho QT.06.BM.01–04 trước khi đổi, lệch số thì chuyển CHO_PO hỏi tiếp; (2) migration MỚI đổi ma_bk (không sửa migration đã apply) + code + docs + test, tách lát ≤ 8 file, phần docs đổi bằng script; (3) lên prod qua MCP chỉ khi PO ra lệnh. lop DOMAIN→DB vì bước đầu là migration. | Gợi ý cho phiên làm (19/11): «khớp 1-1» = khớp tên biểu mẫu tại từng số BM (kho …KSNK.QT.06 [HIỆN HÀNH].md:188-200 so với app); lệch tên ở bất kỳ BM nào → so-loi.mjs set VST-017 CHO_PO kèm ghi chú rồi dừng, không đổi ma_bk. | Đợt 5 (19/11): đối chiếu theo gợi ý — tên BM.01–03 của app khớp 1-1 với kho QT.06.BM.01–03. NHƯNG đổi mã VST sang QT.06 trùng KSNK.QT.06.BM.03 «Mạng lưới» của chính app (docs/modules/giam-sat/12-BANG-KIEM-inventory-from-KSNK-final.md:49,191; bang-kiem-seed/00-catalog.json:121) và gstt_dm_bang_kiem.ma_bk có UNIQUE (danh_muc_bang_kiem_ma_bk_key). Dãy mã app lệch 1 số so với kho (kho: mạng lưới QT.05, VST QT.06, PTPH QT.07; app: 06/07/08), nên đổi riêng VST là không an toàn; cần đánh số lại cả dãy. Không đổi ma_bk. Câu P11 ở CAU_HOI_PO_APPKSNK.md. | PO 19/11: P11=B giữ mã app, không đánh số lại dãy QT, không đổi ma_bk. Bảng mã app↔kho ở docs/bo-tai-lieu/02-nghiep-vu-domain.md §2.3 (d34da30c). Thay ghi chú 19/11 trước đó «ĐỔI sang QT.06».",
+    "duyet": "2026-11-19"
   },
   {
     "id": "VST-018",
@@ -2435,11 +2436,12 @@
     "muc": "THAP",
     "tieu_de": "Từ chối đề nghị (AR-4/AR-5) không hỏi lý do, reject_reason rỗng",
     "bang_chung": "Luồng duyệt đề nghị Quản trị (AR-1/4/5); chưa thử bằng tài khoản không phải ADMIN.",
-    "lenh_kiem": "grep -n 'rejectCatalogDeNghiAction\\|rejectSetReconcileBomAction\\|rejectVstYeuCauAction' src/modules/dieu-hanh-khoa/PheDuyetDungCuPanel.tsx src/modules/dieu-hanh-khoa/PheDuyetVstPanel.tsx",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/dieu-hanh-khoa && npm run verify:changed",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Chuyển master-crud-core về src/lib/master-data: tái cấu trúc, không vào sổ. | Xác minh 2026-11-19 (db-verify, chỉ đọc): ĐÚNG cho hàng chờ /phe-duyet, không đúng cho màn duyệt tài khoản (NhanSuTable.tsx:215-226 đã bắt buộc lý do ≥3 ký tự; account-access-request.validations.ts:45-48). PheDuyetDungCuPanel.tsx:93,115 và PheDuyetVstPanel.tsx:36 gọi reject không truyền lý do; catalog-de-nghi-approve.actions.ts:215,240 lý do tùy chọn → NULL; set-reconcile-approve.actions.ts:160 không có tham số lý do (phiếu BOM chỉ có attributes JSON); vst-yeu-cau-dieu-chinh.actions.ts:226 lyDoTuChoi tùy chọn; cột reject_reason text NULL (20260918013014_cssd_catalog_de_nghi.sql:18), không cần migration. Chờ PO câu P10 (CAU_HOI_PO_APPKSNK.md): lý do từ chối có bắt buộc không."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Chuyển master-crud-core về src/lib/master-data: tái cấu trúc, không vào sổ. | Xác minh 2026-11-19 (db-verify, chỉ đọc): ĐÚNG cho hàng chờ /phe-duyet, không đúng cho màn duyệt tài khoản (NhanSuTable.tsx:215-226 đã bắt buộc lý do ≥3 ký tự; account-access-request.validations.ts:45-48). PheDuyetDungCuPanel.tsx:93,115 và PheDuyetVstPanel.tsx:36 gọi reject không truyền lý do; catalog-de-nghi-approve.actions.ts:215,240 lý do tùy chọn → NULL; set-reconcile-approve.actions.ts:160 không có tham số lý do (phiếu BOM chỉ có attributes JSON); vst-yeu-cau-dieu-chinh.actions.ts:226 lyDoTuChoi tùy chọn; cột reject_reason text NULL (20260918013014_cssd_catalog_de_nghi.sql:18), không cần migration. Chờ PO câu P10 (CAU_HOI_PO_APPKSNK.md): lý do từ chối có bắt buộc không. | PO 19/11: P10=A: bắt buộc lý do ≥ 3 ký tự khi từ chối đề xuất danh mục (PheDuyetDungCuPanel.tsx:93) và yêu cầu sửa VST (PheDuyetVstPanel.tsx:36), kèm min(3) ở zod/server action; test trước; không migration.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "VST-040",
@@ -2555,10 +2557,11 @@
     "tieu_de": "Câu PO: phương án C′ (BOM ở bộ tổng) còn S4b, S5/S7/S6/S8 — làm tiếp ngay hay sau khi hết lỗi VST/GSC",
     "bang_chung": "Plan rippling-churning-flurry; lên prod theo thứ tự 100000→110000→120000→125000→130000→140000 sau SQL đo trước, cổng PO.",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: sau khi hết lỗi VST/GSC (theo thứ tự module PO 12/10)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: sau khi hết lỗi VST/GSC (theo thứ tự module PO 12/10). | PO 19/11: P6=C′: làm phương án C′ (BOM ở bộ tổng) khi tới lượt CSSD",
+    "duyet": "2026-11-19"
   },
   {
     "id": "CSSD-048",
@@ -2571,7 +2574,8 @@
     "trang_thai": "CHO_PO",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: tắt mềm (is_active=false, đảo được)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: tắt mềm (is_active=false, đảo được). | PO 19/11: P7=Tắt: UPDATE is_active=false đúng 68 bộ mẹ rỗng, SELECT count trước/sau; lệnh PO «tắt 68 bộ» (dòng D6 ở CAU_HOI_PO_APPKSNK.md). Chờ PO gõ lệnh.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "CSSD-049",
@@ -2593,11 +2597,12 @@
     "muc": "THAP",
     "tieu_de": "Câu PO: module chat-thai-do-vai chưa có trong lộ trình/ssot-map — giữ hay gác",
     "bang_chung": "src/modules/chat-thai-do-vai; không có trong docs/ssot-map.md và lộ trình.",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run verify:changed",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: gác (ẩn khỏi menu, không xóa)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: gác (ẩn khỏi menu, không xóa). | PO 19/11: P5=Gác: ẩn chat-thai-do-vai khỏi menu, giữ mã, không xóa.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "VST-041",
@@ -2606,11 +2611,12 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Câu PO: Chủ nhiệm khoa trên VST — có được tạo yêu cầu sửa phiên (GIAM_SAT_VST:edit) và in phiếu VST (hiện cần DANH_MUC_ORG:view) không",
     "bang_chung": "VST-027 (0b18ee06): CNK thiếu GIAM_SAT_VST:edit nên verifyPermission chặn. VST-029 tay 18/11: CNK + MANG_LUOI bấm «In phiếu» lỗi «không có quyền [view] trên module [DANH_MUC_ORG]» (use-vst-print.ts:82-87 gọi getCategoriesByType).",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-vst && npm run verify:changed",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: in phiếu — có, bằng cách đổi nguồn danh mục (không cấp DANH_MUC_ORG); sửa phiên — không (CNK chỉ duyệt). Đổi quyền người dùng thật = cổng PO. | VST-028 tay 19/11: vai LANH_DAO_KHOA (chỉ GIAM_SAT_VST:view) cũng không mở được dialog «Xem» chi tiết, cùng gốc: use-vst-history-table.ts loadViewData và use-vst-print.ts onPrint gọi getCategoriesByTypeCached (NGHE_NGHIEP→DANH_MUC_ORG, KHOA_PHONG, KHU_VUC_GIAM_SAT→GIAM_SAT_CHUNG); getCategoriesByType ném khi thiếu quyền nên Promise.all reject. DANH_MUC_ORG:view hiện không vai nào có. Phương án «đổi nguồn danh mục» ở đề xuất trên sửa cả chi tiết lẫn in; không cấp thêm quyền cho LĐK."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: in phiếu — có, bằng cách đổi nguồn danh mục (không cấp DANH_MUC_ORG); sửa phiên — không (CNK chỉ duyệt). Đổi quyền người dùng thật = cổng PO. | VST-028 tay 19/11: vai LANH_DAO_KHOA (chỉ GIAM_SAT_VST:view) cũng không mở được dialog «Xem» chi tiết, cùng gốc: use-vst-history-table.ts loadViewData và use-vst-print.ts onPrint gọi getCategoriesByTypeCached (NGHE_NGHIEP→DANH_MUC_ORG, KHOA_PHONG, KHU_VUC_GIAM_SAT→GIAM_SAT_CHUNG); getCategoriesByType ném khi thiếu quyền nên Promise.all reject. DANH_MUC_ORG:view hiện không vai nào có. Phương án «đổi nguồn danh mục» ở đề xuất trên sửa cả chi tiết lẫn in; không cấp thêm quyền cho LĐK. | PO 19/11: (1) KHÔNG: CNK không tạo yêu cầu sửa phiên, không đổi quyền; (2) CÓ: sửa nút in (use-vst-print.ts:82-87) và dialog chi tiết (use-vst-history-table.ts loadViewData) lấy danh mục cách khác, KHÔNG cấp DANH_MUC_ORG. Cần review-bv103 + 1 kịch bản tay vai CNK.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NKBV-049",
@@ -2619,11 +2625,12 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Câu PO: 3 đường NKBV đọc bằng admin client (phân tích BA, sổ thiết bị ×2) là thống kê toàn viện hay danh sách có danh tính",
     "bang_chung": "giam-sat-nkbv-ba-phan-tich.actions.ts:36; giam-sat-nkbv-device-registry.actions.ts:36,96 gọi getNkbvKhoaRestriction rồi đọc bằng admin client, bỏ qua RLS 20261118130000. Prod 19/11: 17 người có GIAM_SAT_NKBV:view, đều NV KSNK, ngoài nhóm toàn viện 0.",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-nkbv && npm run verify:changed",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (NKBV-038 phần còn lại). Đề xuất: danh sách có danh tính → đổi sang getNkbvIdentityScope (đóng khi thiếu quyền). Rủi ro trên prod hiện bằng 0."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (NKBV-038 phần còn lại). Đề xuất: danh sách có danh tính → đổi sang getNkbvIdentityScope (đóng khi thiếu quyền). Rủi ro trên prod hiện bằng 0. | PO 19/11: P1=A đọc có danh tính: đổi 3 đường sang getNkbvIdentityScope (giam-sat-nkbv-ba-phan-tich.actions.ts:36; giam-sat-nkbv-device-registry.actions.ts:36,96). Cần review-bv103 một vòng + ≥ 1 kịch bản tay trước DA_SUA.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "VST-042",
@@ -2632,11 +2639,12 @@
     "muc": "THAP",
     "tieu_de": "Câu PO: chữ «dưới mục tiêu» ở dashboard bảng kiểm GSC — ngưỡng đèn màu GREEN_MIN/YELLOW_MIN/KHOA_WARN_PCT có coi là «mục tiêu» không",
     "bang_chung": "src/modules/giam-sat-chung/components/GscBkAnalyticsDashboard.tsx:117,122; src/lib/analytics/supervision-thresholds.ts (bảng ksnk_dm_tham_so).",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "npm run test:cssd -- src/modules/giam-sat-chung && npm run verify:changed",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (lát gỡ mục tiêu viện 16/11). Đề xuất: đổi chữ thành «dưới ngưỡng», giữ ngưỡng đèn màu."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (lát gỡ mục tiêu viện 16/11). Đề xuất: đổi chữ thành «dưới ngưỡng», giữ ngưỡng đèn màu. | PO 19/11: P3=Có: đổi «dưới mục tiêu» thành «dưới ngưỡng» ở GscBkAnalyticsDashboard.tsx:117,122; giữ ngưỡng đèn.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NEN-012",
@@ -2645,11 +2653,12 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Câu PO: aecd3eb6 xóa migration 20261114180000 vốn có ở main nên PR integrate→main sẽ đỏ ở db-dung.yml — khôi phục file hay ngoại lệ/squash (4b)",
     "bang_chung": "guard-migrations.mjs --bat-bien --base origin/main FAIL. Kèm: ledger local lệch 28 file (plan KH_APPKSNK_20261118_squash-migration.md §7); f44b7705 stub hóa 20260729121000; policy «Authenticated users can read dm_khoa_phong» trên prod nằm ngoài migration (không được mất khi squash).",
-    "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "lenh_kiem": "node scripts/guard-migrations.mjs && npm run db:dung",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. db:dung xanh local 19/11 (Lát 1, 315 migration). Đề xuất: khôi phục file đã xóa (nội dung no-op), không squash."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. db:dung xanh local 19/11 (Lát 1, 315 migration). Đề xuất: khôi phục file đã xóa (nội dung no-op), không squash. | PO 19/11: P4=A: khôi phục nguyên văn supabase/migrations/20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql từ main (prod kiểm chỉ đọc 19/11: chưa áp, so theo TÊN) + migration rollback mới (migration-author + review-bv103, ADR). Phải xong trước khi PO gõ «push» kẻo db-dung.yml đỏ.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "VST-043",
@@ -2672,10 +2681,11 @@
     "tieu_de": "Câu PO: người kiêm MANG_LUOI_KSNK + CNK/NV KSNK còn bị khóa theo khoa ở analytics Command Center, bảng kiểm TGS, tạo/lưu phiên GSC và đọc phiên GSC — giữ khóa hay mở theo ma trận «ai xem gì» (GS-1)",
     "bang_chung": "Phần còn lại của VST-038 sau lát A: src/lib/analytics/resolve-analytics-rpc-scope.ts:46,73; src/modules/dashboard/actions/bao-cao-tong-hop.actions.ts:110 (gần như không tới được: vào Command Center cần quyền DASHBOARD mà CNK và MANG_LUOI không có); src/modules/**/bang-kiem-toi-phai-tgs.actions.ts:76 (CNK có GSC view từ 20261117100000); giam-sat-chung-write.actions.ts:77,237, bang-kiem-read.actions.ts:147, giam-sat-chung-read.actions.ts:165 (khóa theo thiết kế M01/M02, VST-029 giữ khóa khi tạo/lưu, fail-closed).",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "dieu-phoi-vst038-con-lai",
     "commit": "",
-    "ghi_chu": "Tách từ VST-038 19/11. Hiện giữ khóa (an toàn). Đi cùng ma trận GS-1 (docs/core/handover-roadmap.md:68,101) và VST-028/VST-041. Cần đưa vào CAU_HOI_PO_APPKSNK.md — file đó thuộc phạm vi phiên khác, chưa sửa."
+    "ghi_chu": "Tách từ VST-038 19/11. Hiện giữ khóa (an toàn). Đi cùng ma trận GS-1 (docs/core/handover-roadmap.md:68,101) và VST-028/VST-041. Cần đưa vào CAU_HOI_PO_APPKSNK.md — file đó thuộc phạm vi phiên khác, chưa sửa. | PO 19/11: P9=A giữ khóa theo khoa",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NKBV-050",
@@ -2685,10 +2695,11 @@
     "tieu_de": "Câu PO (P8): sốt đơn độc ở người bệnh trên 65 tuổi không đặt sonde có tính là triệu chứng UTI không — giữ NHSN (app hiện tại) hay theo gói U7 (mọi tuổi)",
     "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.ts:651-654: sốt chỉ tính khi đang có sonde tiểu (mọi tuổi) hoặc không sonde nhưng ≤ 65 tuổi (chú thích mã: NHSN Ch.7, SUTI 1b); gói tài liệu U7.19/24/36 ghi sốt tính ở mọi tuổi. Ví dụ: 70 tuổi, không sonde, sốt > 38 °C, cấy nước tiểu ≥ 10^5 CFU/ml → app hiện không tính là UTI.",
     "lenh_kiem": "",
-    "trang_thai": "CHO_PO",
+    "trang_thai": "HOAN",
     "nguon": "cau-hoi-po-20261119",
     "commit": "",
-    "ghi_chu": "Câu lâm sàng của PO, không có đề xuất. Nếu im: giữ A (theo NHSN, như app). Chọn B: sửa hàm ở nkbv-rules-engine.ts tính sốt mọi tuổi + test. Khối P8 trong CAU_HOI_PO_APPKSNK.md."
+    "ghi_chu": "Câu lâm sàng của PO, không có đề xuất. Nếu im: giữ A (theo NHSN, như app). Chọn B: sửa hàm ở nkbv-rules-engine.ts tính sốt mọi tuổi + test. Khối P8 trong CAU_HOI_PO_APPKSNK.md. | PO 19/11: P8=A giữ NHSN, không sửa nkbv-rules-engine.ts",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NKBV-051",
@@ -2701,7 +2712,8 @@
     "trang_thai": "CHO_PO",
     "nguon": "cau-hoi-po-20261119",
     "commit": "",
-    "ghi_chu": "Đề xuất: có. Nếu im: giữ KHÁM_PHÁ, tới lượt NKBV sẽ hỏi lại. Khối N1 trong CAU_HOI_PO_APPKSNK.md."
+    "ghi_chu": "Đề xuất: có. Nếu im: giữ KHÁM_PHÁ, tới lượt NKBV sẽ hỏi lại. Khối N1 trong CAU_HOI_PO_APPKSNK.md. | PO 19/11: N1=Có nâng cổng NKBV lên XÂY; còn chờ tên đầu mối (N3) và 2 dòng [CẦN XÁC NHẬN].",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NEN-013",
@@ -2714,7 +2726,8 @@
     "trang_thai": "CHO_PO",
     "nguon": "cau-hoi-po-20261119",
     "commit": "",
-    "ghi_chu": "Đề xuất: có (PO bật trên Vercel và tự sửa dòng mô tả .env.example:23). Nếu im: giữ TẮT. Khối N2 trong CAU_HOI_PO_APPKSNK.md."
+    "ghi_chu": "Đề xuất: có (PO bật trên Vercel và tự sửa dòng mô tả .env.example:23). Nếu im: giữ TẮT. Khối N2 trong CAU_HOI_PO_APPKSNK.md. | PO 19/11: N2=Có: PO tự bật KSNK_PILOT_FOUR_MODULES trên Vercel và sửa .env.example:23; Claude không đụng .env*.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NEN-014",
@@ -2727,7 +2740,8 @@
     "trang_thai": "CHO_PO",
     "nguon": "cau-hoi-po-20261119",
     "commit": "",
-    "ghi_chu": "Đề xuất (2): đợt đầu = VST/GSC và CSSD, khớp N2; câu (1) tên người không thay được bằng mặc định. Nếu im: Claude chạy kịch bản tay trên local, chưa module nào tính là «xong». Khối N3 trong CAU_HOI_PO_APPKSNK.md."
+    "ghi_chu": "Đề xuất (2): đợt đầu = VST/GSC và CSSD, khớp N2; câu (1) tên người không thay được bằng mặc định. Nếu im: Claude chạy kịch bản tay trên local, chưa module nào tính là «xong». Khối N3 trong CAU_HOI_PO_APPKSNK.md. | PO 19/11: N3: đợt vận hành thử đầu = VST/GSC + CSSD, ghi vào bảng «Người đầu mối» ở docs/core/handover-roadmap.md; tên người còn chờ.",
+    "duyet": "2026-11-19"
   },
   {
     "id": "NEN-015",

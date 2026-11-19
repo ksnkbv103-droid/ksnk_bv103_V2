@@ -127,27 +127,27 @@ Lệnh: C10 (dòng), C11 (spec), C12 (commit).
 <!-- so-loi:report:begin -->
 Đo ngày 2026-11-19 bằng `node scripts/readiness/so-loi.mjs report --ghi`; sinh từ sổ, không sửa tay (kiểm: `report --kiem`). Mỗi ô là đang mở/tổng, không tính lỗi giả.
 
-Sổ lỗi: 200 dòng · mở 35 · đã sửa 136 · lỗi giả 16 · hoãn 13
+Sổ lỗi: 207 dòng · mở 21 · đã sửa 149 · lỗi giả 21 · hoãn 16
 
 | Module | NGHIEM_TRONG | CAO | TRUNG_BINH | THAP |
 |---|---|---|---|---|
-| VST_GSC | 0/0 | 0/7 | 4/14 | 7/18 |
-| CSSD | 0/1 | 0/7 | 5/23 | 6/17 |
-| NKBV | 0/0 | 0/11 | 1/19 | 1/16 |
+| VST_GSC | 0/0 | 0/7 | 1/14 | 2/17 |
+| CSSD | 0/1 | 0/7 | 0/22 | 4/16 |
+| NKBV | 0/0 | 0/11 | 1/20 | 1/16 |
 | QLCV | 0/0 | 0/0 | 0/5 | 0/1 |
-| DAO_TAO | 0/1 | 0/0 | 1/9 | 0/6 |
-| QUAN_TRI | 0/0 | 0/2 | 1/9 | 3/6 |
-| NEN | 0/0 | 0/2 | 2/5 | 4/5 |
+| DAO_TAO | 0/1 | 0/0 | 0/8 | 0/6 |
+| QUAN_TRI | 0/0 | 0/2 | 1/9 | 3/7 |
+| NEN | 0/0 | 0/2 | 4/8 | 4/6 |
 
 ```text
-MOI 14 · DA_XAC_MINH 10 · LOI_GIA 16 · DANG_SUA 0 · DA_SUA 136 · HOAN 13 · CHO_PO 11
-Tỉ lệ lỗi giả: 16/152 việc đã đóng
-Việc kế: xác minh 14 · sửa 10 · chờ PO 11
-Kịch bản tay: CHUA 9 · DAT 58 · KHONG_DAT 0
-DA_SUA có test/migration trong commit: 112/136
-Tuổi TB việc mở: 0,3 ngày (35/35 dòng mở có ngày; mốc = commit đầu đưa id vào so-loi.json)
-Migration mỗi lát: TB 0,24 · lớn nhất 1 · lát có ≥ 1 migration 28/116 (file migration thêm mới trong mỗi commit DA_SUA, mỗi commit đếm một lần; trần plan ≤ 1)
-Hàm định nghĩa lại 30 ngày: 34 hàm (52 lần) · tổng 322 lần định nghĩa cho 164 hàm (CREATE OR REPLACE FUNCTION trong supabase/migrations, từ 2026-10-20)
+MOI 4 · DA_XAC_MINH 7 · LOI_GIA 21 · DANG_SUA 0 · DA_SUA 149 · HOAN 16 · CHO_PO 10
+Tỉ lệ lỗi giả: 21/170 việc đã đóng
+Việc kế: xác minh 4 · sửa 7 · chờ PO 10
+Kịch bản tay: CHUA 11 · DAT 67 · KHONG_DAT 0
+DA_SUA có test/migration trong commit: 122/149
+Tuổi TB việc mở: 0,0 ngày (21/21 dòng mở có ngày; mốc = commit đầu đưa id vào so-loi.json)
+Migration mỗi lát: TB 0,26 · lớn nhất 1 · lát có ≥ 1 migration 34/129 (file migration thêm mới trong mỗi commit DA_SUA, mỗi commit đếm một lần; trần plan ≤ 1)
+Hàm định nghĩa lại 30 ngày: 37 hàm (57 lần) · tổng 327 lần định nghĩa cho 164 hàm (CREATE OR REPLACE FUNCTION trong supabase/migrations, từ 2026-10-20)
 ```
 <!-- so-loi:report:end -->
 

@@ -25,6 +25,7 @@ const PREFIX = { VST_GSC: "VST", CSSD: "CSSD", NKBV: "NKBV", QLCV: "QLCV", DAO_T
 const LOAI = ["loi", "tinh_nang"];
 const loaiOf = (r) => r.loai || "loi"; // dòng cũ không có trường `loai` = lỗi (đường tắt)
 const TRUONG_GHI = ["nguoi_dung", "ma_dac_ta", "loai", "phuong_an", "phan_bien", "duyet"];
+const TRUONG_TUDO = ["ghi_chu", "lenh_kiem"]; // không thuộc cổng luồng nên tách khỏi TRUONG_GHI (validate/merge/check dùng TRUONG_GHI)
 const REPO = join(DIR, "..", "..");
 const BAO_CAO = process.env.SO_LOI_BAO_CAO || join(REPO, "docs/bo-tai-lieu/03-tien-do-thuc-trang.md"); // nơi `report --ghi` ghi; biến môi trường chỉ để thử
 const MOC_DAU = "<!-- so-loi:report:begin -->";
@@ -233,15 +234,19 @@ if (cmd === "merge") {
   // Điền trường cổng luồng. phuong_an / phan_bien là JSON; ma_dac_ta là danh sách mã cách nhau bởi dấu phẩy/khoảng trắng.
   const [id, truong, ...giaTri] = args;
   const r = rows.find((x) => x.id === id) || die(`Không có ${id}`);
-  if (!TRUONG_GHI.includes(truong)) die(`trường phải là ${TRUONG_GHI.join("|")}`);
+  if (!TRUONG_GHI.includes(truong) && !TRUONG_TUDO.includes(truong)) die(`trường phải là ${[...TRUONG_GHI, ...TRUONG_TUDO].join("|")}`);
   const tho = giaTri.join(" ").trim();
   if (!tho) die(`${truong}: thiếu giá trị`);
-  let v = tho;
-  if (truong === "phuong_an" || truong === "phan_bien") { try { v = JSON.parse(tho); } catch (e) { die(`${truong} phải là JSON hợp lệ (${e.message})`); } }
-  if (truong === "ma_dac_ta") v = maDacTa(tho);
-  const loi = VALIDATE_TRUONG[truong](v);
-  if (loi) die(`${id}: ${loi}`);
-  r[truong] = v;
+  if (TRUONG_TUDO.includes(truong)) { // ngoài cổng luồng: ghi_chu nối thêm sau « | », lenh_kiem thay hẳn
+    r[truong] = truong === "ghi_chu" ? [r.ghi_chu, tho].filter(Boolean).join(" | ") : tho;
+  } else {
+    let v = tho;
+    if (truong === "phuong_an" || truong === "phan_bien") { try { v = JSON.parse(tho); } catch (e) { die(`${truong} phải là JSON hợp lệ (${e.message})`); } }
+    if (truong === "ma_dac_ta") v = maDacTa(tho);
+    const loi = VALIDATE_TRUONG[truong](v);
+    if (loi) die(`${id}: ${loi}`);
+    r[truong] = v;
+  }
   save(rows); console.log(`${id}.${truong} đã ghi`);
 } else if (cmd === "tay") {
   const [id, kq, ...note] = args;
