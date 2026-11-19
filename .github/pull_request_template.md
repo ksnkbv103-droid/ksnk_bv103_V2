@@ -40,7 +40,7 @@
 
 ## 5. Testing · Risk · Revert
 * **Đã test thế nào:** (lệnh đã chạy + kết quả; kịch bản tay)
-* **Risk:** `Thấp` / `Vừa` / `Cao` — lý do (tầng theo `.claude/rules/review-flow.md`)
+* **Risk:** `Thấp` / `Vừa` / `Cao` — lý do (tầng theo skill `review-discipline`)
 * **How to revert:** (ví dụ: revert commit; migration down/bù; flag tắt)
 
 ---

@@ -40,7 +40,7 @@ Tham chiếu: `/review`. Mức độ: Critical = bug/lộ dữ liệu/mất dữ
 - Gắn **Pre-existing** cho lỗi nằm ngoài diff (không tính vào Go/No-go, chỉ ghi nhận).
 - Bỏ finding về style/format/lint (linter lo) và finding chỉ là chẩn đoán trình biên dịch.
 - Dòng đầu của báo cáo: số lượng (`Critical n · Major n · Minor n · Pre-existing n`); nếu không có gì cần sửa thì nói thẳng «Không có vấn đề cần sửa».
-- Vòng review lặp (do orchestrator báo): chỉ xét phần diff mới so với vòng trước; không lặp lại finding cũ; khi gặp một lỗi, nêu **lớp lỗi** (cùng mẫu có thể ở file khác) để sửa một lần. Tối đa 3 vòng, theo [`review-flow`](../rules/review-flow.md).
-- Phê duyệt của agent không thay phê duyệt của người (xem `review-flow`).
+- Vòng review lặp (do orchestrator báo): chỉ xét phần diff mới so với vòng trước; không lặp lại finding cũ; khi gặp một lỗi, nêu **lớp lỗi** (cùng mẫu có thể ở file khác) để sửa một lần. Tối đa 3 vòng, theo skill `review-discipline`.
+- Phê duyệt của agent không thay phê duyệt của người (xem `review-discipline`).
 
 **Giới hạn trả về:** ≤ 30 dòng, tối đa 10 findings, mỗi finding `file:dòng — vấn đề — cách sửa` 1–2 dòng. Chỉ nêu vấn đề thật; không khen, không chép code, bỏ Minor nếu đã đủ 10.

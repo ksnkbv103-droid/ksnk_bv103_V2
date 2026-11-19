@@ -7,7 +7,7 @@ argument-hint: "[path; để trống = git diff hiện tại]"
 
 **Đầu vào:** $ARGUMENTS (mặc định: `git diff` hiện tại)
 
-1. Chọn tầng rủi ro (Thấp/Vừa/Cao) theo [`review-flow`](../rules/review-flow.md); không chắc → tầng cao hơn. Nêu tầng trong báo cáo.
+1. Chọn tầng rủi ro (Thấp/Vừa/Cao) theo skill `review-discipline`; không chắc → tầng cao hơn. Nêu tầng trong báo cáo.
 2. Sau khi test tay pass: chạy verify theo intake (không mặc định full `verify`), dán lệnh + kết quả pass/fail. Thất bại → dừng, báo nguyên văn lỗi.
 3. Tầng Vừa/Cao: giao cho subagent `review-bv103` (context cô lập, model Opus theo `CLAUDE.md`) với yêu cầu + diff + kết quả verify, không kèm lập luận của người viết. Tầng Cao: thêm `security-auditor` cho một vùng hẹp.
 4. Có finding Critical/Major: sửa (`slice-fixer`), review lại **chỉ phần diff mới**, tối đa 3 vòng. Dừng sớm nếu không còn finding.
