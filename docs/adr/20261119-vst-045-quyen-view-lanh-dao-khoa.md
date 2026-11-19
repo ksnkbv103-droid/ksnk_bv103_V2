@@ -24,4 +24,4 @@ Phương án A.
 
 Kiểm chứng: `npm run db:dung` (pgTAP `vst_rls` 30/30), `scripts/acl-snapshot.mjs`, `so-loi.mjs check` exit 0.
 
-Hoàn tác: xóa dòng `sys_role_permissions` của `LANH_DAO_KHOA` + `GIAM_SAT_VST:view` nếu cần; không xóa hàng `sys_permissions` (seed và prod dùng chung).
+Hoàn tác: chỉ áp dụng cho DB dựng mới (local, CI): xóa dòng `sys_role_permissions` của `LANH_DAO_KHOA` + `GIAM_SAT_VST:view`; không xóa hàng `sys_permissions` (seed và prod dùng chung). Không hoàn tác trên prod: liên kết đó do `20261119150000` tạo từ trước, xóa sẽ làm mất quyền xem của vai thật.
