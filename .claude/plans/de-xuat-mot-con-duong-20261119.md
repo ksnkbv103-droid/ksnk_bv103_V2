@@ -132,6 +132,8 @@ Cổng của bước 3:
 | Sau | Squash 4b, giữ quyết định 18/11 | `db-dung` xanh với baseline | `destructive-change` và TC09 |
 | Sau | CSSD → NKBV → QLCV → ĐT, làm lần lượt từng module | Phát triển: e2e theo ca T xanh. Đưa vào dùng thật: người dùng có tên chấm ≥ 3 kịch bản | PO, ở bước đưa vào dùng thật |
 
+**Kết quả Lát 1 (19/11, integrate):** `npm run db:dung` XANH local (315 migration, ledger 315, dựng 30 s, cả lệnh 42 s; db lint 1 lỗi = mốc 1; audit:views 0 view thừa). Mốc tạm 0 → EXIT 1. Bất biến là cờ `guard-migrations.mjs --bat-bien` (không tạo `migration-bat-bien.mjs`); `--base 'f44b7705^'` → EXIT 1. `db-dung.yml` đã viết, CI chỉ thấy sau «push». `--base origin/main` FAIL vì `aecd3eb6` xóa `20261114180000_…` (SO_NO). Cỡ 6 file (plan ≤ 5, trần dự án 8).
+
 ## 9. Câu hỏi PO (đáp án đề xuất in đậm; PO duyệt cả 3 ngày 19/11)
 
 1. Từ nay, migration đã có trong repo có là bất biến không? CI sẽ fail khi có file bị sửa hoặc xóa; muốn đổi chữ thì viết migration mới.

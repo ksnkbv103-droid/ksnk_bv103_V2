@@ -9,6 +9,8 @@ import { join } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const PG_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+// npm run db:dung đặt AUDIT_VIEWS_PSQL="docker exec -i <container> psql …" (stack thải bỏ; máy không cần cài psql).
+const PSQL = process.env.AUDIT_VIEWS_PSQL || `psql "${PG_URL}"`;
 
 function listFiles(dir, acc = []) {
   for (const name of readdirSync(dir)) {
@@ -24,7 +26,7 @@ function listFiles(dir, acc = []) {
 let views;
 try {
   views = execSync(
-    `psql "${PG_URL}" -t -A -c "SELECT viewname FROM pg_views WHERE schemaname='public' ORDER BY 1;"`,
+    `${PSQL} -t -A -c "SELECT viewname FROM pg_views WHERE schemaname='public' ORDER BY 1;"`,
     { encoding: "utf8" },
   )
     .trim()

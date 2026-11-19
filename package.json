@@ -99,6 +99,7 @@
     "layout:typography-check": "node scripts/check-layout-typography.mjs",
     "audit:legacy-rpc": "node scripts/audit-legacy-rpc.mjs",
     "audit:views": "node scripts/audit-view-usage.mjs",
+    "db:dung": "bash scripts/db-dung.sh",
     "gstt:gap:backfill": "node scripts/gstt-gap-backfill.mjs",
     "seed:gstt-bang-kiem": "node --env-file=.env.local scripts/seed-gstt-bang-kiem-from-seed.mjs",
     "admin:health:check": "node scripts/admin-health-check.mjs",

@@ -7,7 +7,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check`: cả 7 nhóm «không còn lỗi chặn» (VST-025 và NKBV-041 đã đóng 19/11).
 
 ## ĐANG LÀM
-- 19/11 PO duyệt áp prod 4 migration, đã áp qua MCP `apply_migration` và kiểm sau áp: `20261118100000` (tham số khóa PO), `20261118110000` (kế hoạch giám sát), `20261118120000` (CSSD-034 lát A; 0 phiếu ngược trên prod), `20261118130000` (NKBV-038). Code lát B (drawer) và trang kế hoạch giám sát chưa deploy. NKBV-041 gỡ migration + probe `aecd3eb6`. VST-025 đóng: policy prod khớp local (md5). NKBV-038 `1efc3867`: đo prod = 17 người có `GIAM_SAT_NKBV:view`, đều NV KSNK (1 kiêm ADMIN), ngoài nhóm toàn viện 0; đã áp, thân hàm khớp file. NKBV-047 LOI_GIA (nợ: hook `useGenerateMa` thừa, GiamSatNkbvPage:321). Còn 4 đường admin client (SO_NO). PO đã chốt 7 câu 19/11 (CHO_PO 0). VST-027 `0b18ee06` DA_SUA (CNK chưa tới được: thiếu `GIAM_SAT_VST:edit`, xem ghi_chu). Làm tiếp: CSSD-037, VST-028, VST-017 (`next 10`).
+- 19/11 PO duyệt áp prod 4 migration, đã áp qua MCP `apply_migration` và kiểm sau áp: `20261118100000` (tham số khóa PO), `20261118110000` (kế hoạch giám sát), `20261118120000` (CSSD-034 lát A; 0 phiếu ngược trên prod), `20261118130000` (NKBV-038). Code lát B (drawer) và trang kế hoạch giám sát chưa deploy. NKBV-041 gỡ migration + probe `aecd3eb6`. NKBV-038 `1efc3867`: đo prod = 17 người có `GIAM_SAT_NKBV:view`, đều NV KSNK (1 kiêm ADMIN), ngoài nhóm toàn viện 0; đã áp, thân hàm khớp file. Còn 4 đường admin client (SO_NO). PO đã chốt 7 câu 19/11 (CHO_PO 0). VST-027 `0b18ee06` DA_SUA (CNK chưa tới được: thiếu `GIAM_SAT_VST:edit`, xem ghi_chu). Làm tiếp: CSSD-037, VST-028, VST-017 (`next 10`).
 
 ## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)
 - Xong: 31 ca hồi quy (`lib/__fixtures__/nhsn2026/`); SSI PATOS chỉ là nhãn; VAE baseline/PEEP; BSI `excl_*`; PNEU; BONE IWP 21 ngày. `npm run test:cssd -- src/modules/giam-sat-nkbv` → 676 passed | 2 skipped; `tsc` sạch.
@@ -15,7 +15,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Lệch lâm sàng chờ PO: UTI sốt đơn độc app đòi ≤65 tuổi (`nkbv-rules-engine.ts:616-619`), gói U7.19/24/36 nói mọi tuổi.
 
 ## KẾ
-- L1 hàng rào migration XONG (396d4e8d + L1b): `supabase/PROD_HEAD`=20261118130000, `scripts/guard-migrations.mjs`; dựng DB local sạch = `bash scripts/db-reset-local.sh` (thay stub 20260729121000 ở bản sao, exit 0, 28 s, ledger 315). KHÔNG phải baseline prod (lệch ~27 migration). Baseline thật: PO tự chạy pg_dump prod.
+- Hàng rào migration: `supabase/PROD_HEAD`=20261118130000 + `guard-migrations.mjs` (396d4e8d). Kiểm chuỗi: `npm run db:dung` (stack thải bỏ, bất biến + lint có mốc + audit:views, 42 s; CI `db-dung.yml` sau push); reset stack chính: `scripts/db-reset-local.sh`. Kế: plan một con đường §8 Lát 1b.
 - LC2 XONG: `scripts/guard-adr.mjs` (hook Write + lint; migration > PROD_HEAD cần `-- ADR: docs/adr/*.md` có `## Phương án/Phản biện/Chọn`), spec `src/lib/guard-adr.spec.ts`; `phan-bien` đọc ADR trước. Chưa nối `npm run`/CI (package.json do phiên db:dung giữ).
 - Monitoring theo khóa PO 11-01 qua `ksnk_dm_tham_so`: `20261118100000` + `20261118110000` đã ở prod (19/11); chờ deploy code. VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.

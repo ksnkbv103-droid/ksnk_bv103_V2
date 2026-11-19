@@ -5,6 +5,8 @@
 //      * file mới version > PROD_HEAD thiếu dòng `-- ADR: <nội dung>` -> lỗi
 //  - Hook (node scripts/guard-migrations.mjs --hook, PreToolUse Edit|Write|MultiEdit|Bash): đọc JSON stdin,
 //    chặn (exit 2 + stderr) khi ghi/xóa/đổi tên file migration version <= PROD_HEAD.
+//  - Bất biến (--bat-bien [--base <ref>], npm run db:dung + CI db-dung.yml; PO duyệt 19/11, plan một con đường §9 câu 1):
+//      * MỌI file migration đã có ở <ref> bị sửa / xóa / đổi tên -> lỗi (không xét PROD_HEAD, không xét file mới)
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { dirname, join, resolve, relative } from "node:path";
@@ -76,6 +78,27 @@ function lint(head, base) {
   }
   console.log(`[guard-migrations] OK (PROD_HEAD ${head}, base ${base})`);
 }
+
+function batBien(base) {
+  let diff;
+  try { diff = git(["diff", "--name-status", "--no-renames", base, "--", DIR]); } catch {
+    console.error(`[guard-migrations] FAIL bất biến: base «${base}» không có trong clone (force-push? cần fetch-depth 0)`);
+    process.exit(1);
+  }
+  const errs = diff.split("\n").filter(Boolean)
+    .map((l) => l.split("\t"))
+    .filter(([st, path]) => st !== "A" && versionOf(path))
+    .map(([st, path]) => `${st === "D" ? "xóa/đổi tên" : "sửa"} ${path}`);
+  if (errs.length) {
+    console.error(`[guard-migrations] FAIL bất biến (base ${base}) — muốn đổi thì viết migration mới:\n- ${errs.join("\n- ")}`);
+    process.exit(1);
+  }
+  console.log(`[guard-migrations] OK bất biến (base ${base})`);
+  process.exit(0);
+}
+
+const iBase = process.argv.indexOf("--base");
+if (process.argv.includes("--bat-bien")) batBien(iBase > 0 ? process.argv[iBase + 1] : "HEAD");
 
 let head;
 try { head = prodHead(); } catch (e) { console.error(`[guard-migrations] ${e.message}`); process.exit(process.argv.includes("--hook") ? 2 : 1); }

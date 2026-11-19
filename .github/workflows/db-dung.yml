@@ -1,0 +1,41 @@
+# Dựng DB sạch từ chuỗi migration + migration bất biến + db lint có mốc + audit:views = `npm run db:dung` (scripts/db-dung.sh).
+# Plan .claude/plans/de-xuat-mot-con-duong-20261119.md §6, §10 #4: workflow riêng, ci.yml giữ nguyên
+# (ở integrate, sync-check --strict của ci.yml sẽ đỏ vì migration chưa lên prod). Không dùng secret: stack Supabase local trên runner.
+
+name: DB dựng sạch (db:dung)
+
+on:
+  push:
+    branches: ["integrate/**"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  db-dung:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # bất biến so với base + git show f44b7705^ (bản thay stub)
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0 # khớp package-lock.json
+
+      - name: npm run db:dung
+        env:
+          SUPABASE_CLI: supabase
+          MIGRATION_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: npm run db:dung
