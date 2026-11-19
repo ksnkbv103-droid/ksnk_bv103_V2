@@ -139,6 +139,7 @@ Cập nhật 2026-11-19. Mọi câu cần PO nằm ở đây, mỗi câu có b�
 |---|---|---|---|
 | D1 | Deploy code lát B (ngăn kéo CSSD-034) và trang kế hoạch giám sát. Migration của hai phần này đã áp prod 19/11 | «deploy» | prod: vai NHAN_VIEN_KSNK có quyền GIAM_SAT_NKBV import |
 | D2 | VST-043 · TC09: sửa câu trích QĐ 3651 trên prod. Một lệnh UPDATE `gstt_dm_bang_kiem`, `WHERE id = '9d3c00f2-eb9c-4edb-8ee7-bb0cfb0f6f9d'`, thay đúng cụm chữ cũ đứng trước «6 rõ», giống file seed `KSNK.QĐ.01.BM.01.json:60` | «áp TC09» | SELECT trước và sau, đúng 1 dòng đổi |
+| D4 | QT-015 ý (3): đếm trên prod số tài khoản chỉ có cờ `must_change_password` ở `user_metadata` (không có ở `app_metadata`). Câu chỉ đọc: `select count(*) from auth.users where raw_user_meta_data->>'must_change_password'='true' and not raw_app_meta_data ? 'must_change_password'`. Local = 0; prod = 0 thì đóng ý này, > 0 thì sửa cổng | «đếm QT-015» (PO hoặc MCP chỉ đọc) | câu `select count(*)` chỉ đọc, không ghi |
 | D3 | Đẩy các commit local lên GitHub; CI `db-dung.yml` chỉ chạy sau bước này | «push» | `npm run verify` |
 
 ---

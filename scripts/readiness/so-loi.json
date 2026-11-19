@@ -2405,10 +2405,10 @@
     "tieu_de": "Cổng đổi mật khẩu: người có cờ must_change_password vẫn gọi thẳng PostgREST theo RLS; prefetch GET trả trước khi kiểm cờ; tài khoản cũ chỉ có cờ ở user_metadata tự gỡ được",
     "bang_chung": "src/lib/server-permission.ts (cổng đổi mật khẩu, nợ vòng rà lát 1). Cần đếm trên prod số tài khoản chỉ có cờ ở user_metadata.",
     "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -Upostgres -Atc \"select count(*) from auth.users where raw_user_meta_data->>'must_change_password'='true' and not raw_app_meta_data ? 'must_change_password'\"  # local = 0; chạy cùng câu trên prod (chỉ đọc, qua PO/MCP)",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "CHO_PO",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | db-verify 19/11 DUNG, thu còn ý (3): ý (1) không phải ranh giới phân quyền (RLS vẫn chặn, cổng ở proxy.ts:185, server-permission.ts:70-72); ý (2) prefetch SAI, đã sửa ở QT-001 9375652e. Ý (3): cờ ghi cả app_metadata lẫn user_metadata (tai-khoan-nhan-su.actions.ts:266-267,410-411), cổng dùng OR (password-change-gate.ts:14-16), tài khoản chỉ có user_metadata tự gỡ được bằng auth.updateUser. Local 0 tài khoản như vậy; CẦN ĐẾM PROD (nếu 0 thì đóng ý này). Đề xuất hạ THAP."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | db-verify 19/11 DUNG, thu còn ý (3): ý (1) không phải ranh giới phân quyền (RLS vẫn chặn, cổng ở proxy.ts:185, server-permission.ts:70-72); ý (2) prefetch SAI, đã sửa ở QT-001 9375652e. Ý (3): cờ ghi cả app_metadata lẫn user_metadata (tai-khoan-nhan-su.actions.ts:266-267,410-411), cổng dùng OR (password-change-gate.ts:14-16), tài khoản chỉ có user_metadata tự gỡ được bằng auth.updateUser. Local 0 tài khoản như vậy; CẦN ĐẾM PROD (nếu 0 thì đóng ý này). Đề xuất hạ THAP. | 2026-11-19 (đốt sổ): không chạy SQL lên prod; câu đếm gom vào CAU_HOI_PO_APPKSNK.md mục D4; chuyển CHO_PO."
   },
   {
     "id": "VST-039",
