@@ -106,6 +106,16 @@ Cập nhật 2026-11-19. Mọi câu cần PO nằm ở đây, mỗi câu có b�
 - **Mở khóa:** B → sau khi PO chốt ma trận GS-1, làm mỗi chỗ một lát, mỗi lát qua `review-bv103` vì chạm quyền; A → đóng VST-044.
 - **ID sổ:** VST-044 (liên quan VST-038, VST-041)
 
+### P10 · QT-016 · Từ chối đề nghị ở hàng chờ «Phê duyệt» có bắt buộc nhập lý do không
+- **Bối cảnh:** Ở hàng chờ `/phe-duyet`, bấm «Từ chối» đề nghị danh mục (`PheDuyetDungCuPanel.tsx:93`), phiếu đổi BOM (`:115`) và yêu cầu sửa phiên VST (`PheDuyetVstPanel.tsx:36`) không hỏi lý do, nên cột `reject_reason` rỗng. Màn duyệt tài khoản đã bắt buộc lý do ≥ 3 ký tự, không lỗi.
+- **Hỏi:** Lý do từ chối có bắt buộc không?
+- **A.** Bắt buộc ≥ 3 ký tự cho đề nghị danh mục và yêu cầu VST (hiện hộp nhập trước khi từ chối); phiếu BOM tách riêng vì chưa có cột lý do.
+- **B.** Không bắt buộc: giữ như hiện tại.
+- **Đề xuất: A.**
+- **Nếu im:** giữ hiện tại.
+- **Mở khóa:** A → sửa 3–4 file UI/action, không migration; B → đóng QT-016.
+- **ID sổ:** QT-016
+
 ---
 
 ## C — Hỏi khoa CSSD (đầu mối: Nguyễn Thanh Bình)
