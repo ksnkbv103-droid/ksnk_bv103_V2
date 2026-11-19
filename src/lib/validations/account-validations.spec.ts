@@ -145,3 +145,30 @@ describe("submitAccountAccessRequestSchema.khoa_id — NEN-016", () => {
     });
   });
 });
+
+/** NEN-016 lát B2: `chuc_danh_id` của yêu cầu cấp tài khoản dùng `z.guid()` (giữ trim + min(1) + hai thông điệp). */
+describe("submitAccountAccessRequestSchema.chuc_danh_id — NEN-016 B2", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+  const base = { ho_ten: "Nguyễn Văn A", email: "a@bv103.vn", khoa_id: V4, chuc_danh_id: V4, ly_do: "Cần tài khoản để giám sát" };
+
+  it("nhận id chức danh seed không chuẩn RFC, vẫn cắt khoảng trắng", () => {
+    const r = parseOrFirstError(submitAccountAccessRequestSchema, { ...base, chuc_danh_id: ` ${SEED} ` });
+    expect(r.ok && r.data.chuc_danh_id).toBe(SEED);
+  });
+
+  it("nhận UUID v4 chuẩn", () => {
+    expect(parseOrFirstError(submitAccountAccessRequestSchema, base).ok).toBe(true);
+  });
+
+  it("vẫn từ chối chuỗi rác và chuỗi trống với câu lỗi cũ", () => {
+    expect(parseOrFirstError(submitAccountAccessRequestSchema, { ...base, chuc_danh_id: "khong-phai-uuid" })).toEqual({
+      ok: false,
+      error: "Chức danh không hợp lệ — chọn lại từ danh mục.",
+    });
+    expect(parseOrFirstError(submitAccountAccessRequestSchema, { ...base, chuc_danh_id: "  " })).toEqual({
+      ok: false,
+      error: "Chọn chức danh từ danh mục.",
+    });
+  });
+});

@@ -32,3 +32,34 @@ describe("nhanSuSchema — khoa_id (NEN-016)", () => {
     }
   });
 });
+
+/** NEN-016 lát B2: năm id danh mục của hồ sơ nhân sự cũng dùng `z.guid()` (cùng nguyên nhân khoa_id). */
+describe("nhanSuSchema — id danh mục (NEN-016 B2)", () => {
+  const FIELDS = [
+    ["to_id", "Tổ không hợp lệ"],
+    ["chuc_vu_id", "Chức vụ không hợp lệ"],
+    ["chuc_danh_id", "Chức danh không hợp lệ"],
+    ["nghe_nghiep_id", "Nghề nghiệp không hợp lệ"],
+    ["vai_tro_he_thong_id", "Vai trò không hợp lệ"],
+  ] as const;
+  const parseField = (field: string, value: unknown) =>
+    nhanSuSchema.safeParse({ ho_ten: "Nguyễn Văn A", [field]: value });
+
+  it.each(FIELDS)("%s nhận id seed không chuẩn RFC", (field) => {
+    expect(parseField(field, SEED).success).toBe(true);
+  });
+
+  it.each(FIELDS)("%s nhận UUID v4 chuẩn, null và bỏ trống", (field) => {
+    expect(parseField(field, V4).success).toBe(true);
+    expect(parseField(field, null).success).toBe(true);
+    expect(nhanSuSchema.safeParse({ ho_ten: "Nguyễn Văn A" }).success).toBe(true);
+  });
+
+  it.each(FIELDS)("%s vẫn từ chối chuỗi rác, giữ câu lỗi cũ", (field, message) => {
+    const parsed = parseField(field, JUNK);
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues.find((i) => i.path.join(".") === field)?.message).toBe(message);
+    }
+  });
+});

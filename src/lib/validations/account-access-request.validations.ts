@@ -15,7 +15,7 @@ export const submitAccountAccessRequestSchema = z.object({
   ho_ten: trimmed(200, "Họ tên không hợp lệ.").min(2, "Họ tên không hợp lệ."),
   email: loginEmailSchema,
   khoa_id: z.string().trim().min(1, "Chọn khoa / phòng từ danh mục.").pipe(z.guid("Khoa / phòng không hợp lệ — chọn lại từ danh sách.")),
-  chuc_danh_id: z.string().trim().min(1, "Chọn chức danh từ danh mục.").uuid("Chức danh không hợp lệ — chọn lại từ danh mục."),
+  chuc_danh_id: z.string().trim().min(1, "Chọn chức danh từ danh mục.").pipe(z.guid("Chức danh không hợp lệ — chọn lại từ danh mục.")),
   ma_nv: trimmed(50, "Mã nhân viên quá dài.").optional(),
   so_dien_thoai: trimmed(20, "Số điện thoại không hợp lệ.").optional(),
   ly_do: trimmed(1000, "Lý do quá dài (tối đa 1000 ký tự).").min(5, "Lý do xin cấp tài khoản tối thiểu 5 ký tự."),
