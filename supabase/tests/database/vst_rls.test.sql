@@ -29,7 +29,7 @@ begin
 end $$;
 grant execute on function tests.rows_affected(text) to anon, authenticated;
 
-select plan(30);
+select plan(33);
 
 -- ── Dữ liệu thử ──────────────────────────────────────────────────────────────
 insert into mdm_dm_khoa_phong (id, ma_khoa, ten_khoa)
@@ -74,6 +74,21 @@ select is((select array_agg(p.module_name || ':' || p.action) from sys_role_perm
              join sys_roles r on r.id = rp.role_id join sys_permissions p on p.id = rp.permission_id
             where r.name = 'LANH_DAO_KHOA' and r.is_active),
           array['GIAM_SAT_VST:view'], 'LANH_DAO_KHOA chỉ có quyền GIAM_SAT_VST:view');
+-- VST-046: CHU_NHIEM_KHOA có quyền xem VST và GSC (liên kết do migration tạo, không dựa seed)
+select ok(exists (select 1 from sys_role_permissions rp
+                    join sys_roles r on r.id = rp.role_id join sys_permissions p on p.id = rp.permission_id
+                   where r.name = 'CHU_NHIEM_KHOA' and p.module_name = 'GIAM_SAT_VST' and p.action = 'view'),
+          'CHU_NHIEM_KHOA có quyền GIAM_SAT_VST:view');
+select ok(exists (select 1 from sys_role_permissions rp
+                    join sys_roles r on r.id = rp.role_id join sys_permissions p on p.id = rp.permission_id
+                   where r.name = 'CHU_NHIEM_KHOA' and p.module_name = 'GIAM_SAT_CHUNG' and p.action = 'view'),
+          'CHU_NHIEM_KHOA có quyền GIAM_SAT_CHUNG:view');
+select is((select array_agg(p.module_name order by p.module_name)
+             from sys_role_permissions rp
+             join sys_roles r on r.id = rp.role_id join sys_permissions p on p.id = rp.permission_id
+            where r.name = 'CHU_NHIEM_KHOA' and p.action = 'view'),
+          array['BO_DC','DC_LE','GIAM_SAT_CHUNG','GIAM_SAT_VST','HOA_CHAT','LOAI_DC','THIET_BI'],
+          'CHU_NHIEM_KHOA có đúng 7 quyền view (VST, GSC, 5 danh mục CSSD)');
 
 -- ── Đọc theo vai ──
 select tests.authenticate_as('00000000-0000-4000-8000-0000000000b1');
