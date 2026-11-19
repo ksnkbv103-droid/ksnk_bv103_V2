@@ -70,12 +70,12 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "THIET_BI",
     displayName: "Danh mục Thiết bị",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "HOA_CHAT",
     displayName: "Danh mục Hóa chất và vật tư",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "KHOA_PHONG",
