@@ -14,6 +14,13 @@ describe("IA menu copy lock — Vận hành / Tra cứu / Sửa danh mục", () 
     expect(traCuu?.items.map((i) => i.href)).toEqual(["/cssd-dung-cu", "/cssd-thiet-bi", "/cssd-hoa-chat"]);
   });
 
+  it("NEN-011 (PO 19/11 «Gác»): menu không có /chat-thai-do-vai; mã module vẫn còn", () => {
+    const hrefs = SIDEBAR_NAV_GROUPS.flatMap((g) => g.items.map((i) => i.href));
+    expect(hrefs).not.toContain("/chat-thai-do-vai");
+    const internal = SIDEBAR_NAV_GROUPS.find((g) => g.id === "internal");
+    expect(internal?.items.map((i) => i.href)).toEqual(["/quan-ly-cong-viec", "/dao-tao"]);
+  });
+
   it("admin: nhóm «Quản trị» → Tổ chức (AR-8e) + /quan-tri-he-thong (nhãn SSOT = UI)", () => {
     expect(SIDEBAR_ADMIN_GROUPS).toHaveLength(1);
     expect(SIDEBAR_ADMIN_GROUPS[0]?.label).toBe("Quản trị");
