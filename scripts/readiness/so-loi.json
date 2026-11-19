@@ -2615,7 +2615,7 @@
     "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: in phiếu — có, bằng cách đổi nguồn danh mục (không cấp DANH_MUC_ORG); sửa phiên — không (CNK chỉ duyệt). Đổi quyền người dùng thật = cổng PO. | VST-028 tay 19/11: vai LANH_DAO_KHOA (chỉ GIAM_SAT_VST:view) cũng không mở được dialog «Xem» chi tiết, cùng gốc: use-vst-history-table.ts loadViewData và use-vst-print.ts onPrint gọi getCategoriesByTypeCached (NGHE_NGHIEP→DANH_MUC_ORG, KHOA_PHONG, KHU_VUC_GIAM_SAT→GIAM_SAT_CHUNG); getCategoriesByType ném khi thiếu quyền nên Promise.all reject. DANH_MUC_ORG:view hiện không vai nào có. Phương án «đổi nguồn danh mục» ở đề xuất trên sửa cả chi tiết lẫn in; không cấp thêm quyền cho LĐK. | PO 19/11: (1) KHÔNG: CNK không tạo yêu cầu sửa phiên, không đổi quyền; (2) CÓ: sửa nút in (use-vst-print.ts:82-87) và dialog chi tiết (use-vst-history-table.ts loadViewData) lấy danh mục cách khác, KHÔNG cấp DANH_MUC_ORG. Cần review-bv103 + 1 kịch bản tay vai CNK.",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: in phiếu — có, bằng cách đổi nguồn danh mục (không cấp DANH_MUC_ORG); sửa phiên — không (CNK chỉ duyệt). Đổi quyền người dùng thật = cổng PO. | VST-028 tay 19/11: vai LANH_DAO_KHOA (chỉ GIAM_SAT_VST:view) cũng không mở được dialog «Xem» chi tiết, cùng gốc: use-vst-history-table.ts loadViewData và use-vst-print.ts onPrint gọi getCategoriesByTypeCached (NGHE_NGHIEP→DANH_MUC_ORG, KHOA_PHONG, KHU_VUC_GIAM_SAT→GIAM_SAT_CHUNG); getCategoriesByType ném khi thiếu quyền nên Promise.all reject. DANH_MUC_ORG:view hiện không vai nào có. Phương án «đổi nguồn danh mục» ở đề xuất trên sửa cả chi tiết lẫn in; không cấp thêm quyền cho LĐK. | PO 19/11: (1) KHÔNG: CNK không tạo yêu cầu sửa phiên, không đổi quyền; (2) CÓ: sửa nút in (use-vst-print.ts:82-87) và dialog chi tiết (use-vst-history-table.ts loadViewData) lấy danh mục cách khác, KHÔNG cấp DANH_MUC_ORG. Cần review-bv103 + 1 kịch bản tay vai CNK. | PO 19/11 = P2 (CAU_HOI cũ)",
     "duyet": "2026-11-19"
   },
   {
@@ -2657,7 +2657,7 @@
     "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. db:dung xanh local 19/11 (Lát 1, 315 migration). Đề xuất: khôi phục file đã xóa (nội dung no-op), không squash. | PO 19/11: P4=A: khôi phục nguyên văn supabase/migrations/20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql từ main (prod kiểm chỉ đọc 19/11: chưa áp, so theo TÊN) + migration rollback mới (migration-author + review-bv103, ADR). Phải xong trước khi PO gõ «push» kẻo db-dung.yml đỏ.",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. db:dung xanh local 19/11 (Lát 1, 315 migration). Đề xuất: khôi phục file đã xóa (nội dung no-op), không squash. | PO 19/11: P4=A: khôi phục nguyên văn supabase/migrations/20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql từ main (prod kiểm chỉ đọc 19/11: chưa áp, so theo TÊN) + migration rollback mới (migration-author + review-bv103, ADR). Phải xong trước khi PO gõ «push» kẻo db-dung.yml đỏ. | Định tuyến (19/11): P4=A ĐÃ TRẢ LỜI nên KHÔNG chờ PO — khôi phục 20261114180000 từ main + migration rollback 20261119170000 qua migration-author + review-bv103; phải xong TRƯỚC «push»",
     "duyet": "2026-11-19"
   },
   {
