@@ -2477,11 +2477,11 @@
     "muc": "THAP",
     "tieu_de": "saveKhoaPhongAction không kiểm đầu vào bằng zod",
     "bang_chung": "src/modules/to-chuc/khoa-phong/actions/khoa-phong.actions.ts:101",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "npm run test:cssd -- src/modules/to-chuc/khoa-phong/actions/khoa-phong.actions.spec.ts (trước sửa: 5/8 fail — specs chuỗi/mảng, id sai, tên object, mã >50)",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (AR-7)."
+    "commit": "8671349b",
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (AR-7). | Sửa 2026-11-19 @8671349b: khoa-phong.validations.ts + nối vào saveKhoaPhongAction; spec 5/8 fail → 8/8 pass; payload hopLe mô phỏng mapForm của form. Chưa thử tay trên giao diện Khoa phòng (không đổi UI, verifyPermission vẫn chạy trước)."
   },
   {
     "id": "NEN-009",
