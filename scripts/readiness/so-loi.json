@@ -2295,24 +2295,24 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Kế hoạch giám sát: RLS cho mọi nhân sự khoa KSNK ghi qua PostgREST trong khi action chỉ cho NHAN_VIEN_KSNK; policy INSERT không ràng buộc nguoi_lap_id = người đăng nhập; setKeHoachKhoa không gọi logAdminAction",
     "bang_chung": "supabase/migrations/20261118110000_gstt_ke_hoach_giam_sat.sql:264-293; src/modules/giam-sat-hub/actions/ke-hoach-giam-sat.actions.ts:112; so với vst-write-delete.actions.ts:13. Migration đã áp prod 19/11 nên sửa phải bằng migration mới.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -c \"select polname, cmd, pg_get_expr(polqual,polrelid), pg_get_expr(polwithcheck,polrelid) from pg_policy where polrelid='gstt_ke_hoach_giam_sat'::regclass\" → gstt_ke_hoach_insert/update cho khoa KSNK theo fn_qlcv_ksnk_khoa_id không xét vai; sau sửa: pgTAP không còn policy INSERT/UPDATE cho authenticated + npm run verify:mdm:local + acl-snapshot.mjs",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (review 18/11, Minor)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (review 18/11, Minor). | Xác minh 19/11 (db-verify): ĐÚNG cả 3 ý (số dòng sổ lệch: migration 206 dòng, action 111 dòng). RLS rộng hơn action: GRANT INSERT,UPDATE cho authenticated (migration:57), policy INSERT :89-101 / UPDATE :103-123 chỉ xét thuộc khoa KSNK, không xét vai; WITH CHECK không khóa nguoi_lap_id/khoa_id/thang/loai; ke-hoach-giam-sat.actions.ts không import logAdminAction (so vst-write-delete.actions.ts:13,140). Các bảng gstt_* cùng họ ghi qua service_role/admin, chỉ bảng này dựa khoa. Chỉ action này ghi bảng (grep src, scripts) nên không có đường client ghi trực tiếp. Sửa tối thiểu 3-4 file: migration mới DROP policy insert/update + REVOKE INSERT,UPDATE FROM authenticated; action gọi logAdminAction ở 2 nhánh; acl-snapshot.json --write; (pgTAP nếu muốn). Migration gốc 20261118110000 đã áp prod 19/11 nên phải migration mới; áp prod cần PO. Cần PO chỉ khi cho CHU_NHIEM_KHOA/MANG_LUOI_KSNK lập kế hoạch khoa mình."
   },
   {
     "id": "VST-038",
     "module": "VST_GSC",
     "lop": "BACKEND",
-    "muc": "TRUNG_BINH",
-    "tieu_de": "VST-029 phần còn lại: CNK/NV KSNK kiêm MANG_LUOI_KSNK vẫn bị khóa theo khoa ở analytics, bảng kiểm, báo cáo tổng hợp, đọc/ghi GSC, in nhãn",
+    "muc": "THAP",
+    "tieu_de": "VST-029 phần còn lại (lát A): in nhãn GSC khóa theo khoa cả ADMIN/NV KSNK kiêm MANG_LUOI; dropdown khoa VST khóa NV KSNK kiêm MANG_LUOI trong khi lưu phiên thì không",
     "bang_chung": "src/lib/analytics/resolve-analytics-rpc-scope.ts:46,73; bang-kiem-toi-phai-tgs.actions.ts:76; dashboard/actions/bao-cao-tong-hop.actions.ts:110; giam-sat-chung/actions/giam-sat-chung-read.actions.ts:165; giam-sat-chung-write.actions.ts:77,237; giam-sat-chung-print-labels.actions.ts:52,62; bang-kiem-read.actions.ts:147; client use-permission-api.ts:33, useGiamSatHeader.ts:38.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "npx vitest run src/modules/giam-sat-chung src/modules/giam-sat-vst — spec mới: NV KSNK kiêm MANG_LUOI in nhãn phiên khoa khác không bị «Khoa… ngoài phạm vi»; vst-read lấy dropdown không khóa khi hasHospitalWideVstRead",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (sau 554ff441). Giữ khóa khi lưu phiên VST + dropdown header (M01: TK_KSNK chỉ D,X,E). Lệch ngược: dropdown khóa NV_KSNK+MANG_LUOI theo cờ thô còn lưu phiên thì không. vst.repo.ts:186 «đã xem» đổi updated_at; use-vst-print.ts:108 nuốt lỗi khóa kỳ. Phần NKBV cần PO + RLS 20261111170000."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (sau 554ff441). Giữ khóa khi lưu phiên VST + dropdown header (M01: TK_KSNK chỉ D,X,E). Lệch ngược: dropdown khóa NV_KSNK+MANG_LUOI theo cờ thô còn lưu phiên thì không. vst.repo.ts:186 «đã xem» đổi updated_at; use-vst-print.ts:108 nuốt lỗi khóa kỳ. Phần NKBV cần PO + RLS 20261111170000. | Xác minh 19/11 (db-verify): MỘT PHẦN, hạ TRUNG_BINH→THAP. Lát A (không cần PO): giam-sat-chung-print-labels.actions.ts:33,52,62 truyền scope thô vào resolveGscScopedKhoaId nên khóa cả ADMIN/NV KSNK (truyền isMangLuoiKsnk && !hasHospitalWideGscRead; export hàm từ gsc-read-scope.ts:13-15); vst-read.actions.ts:173,183,195 khóa NV KSNK kiêm MANG_LUOI trong khi vst-write-save-session.actions.ts:76 không khóa (dùng hasHospitalWideVstRead, vst-read-scope.ts:15-17); ≈ 4 file + spec. Lát A2 (client lockKhoa: useGiamSatHeader.ts:38, useVSTForm.ts:42, use-giam-sat-chung-form.ts:263) để sau. Phần còn lại đi cùng ma trận «ai xem gì» GS-1, ghi riêng ở dòng CHO_PO: analytics CC (resolve-analytics-rpc-scope.ts:46,73; bao-cao-tong-hop.actions.ts:110, gần như không tới được vì cần quyền DASHBOARD), bang-kiem-toi-phai-tgs.actions.ts:76, khóa ghi/đọc theo thiết kế M01/M02 (giam-sat-chung-write.actions.ts:77,237; bang-kiem-read.actions.ts:147; giam-sat-chung-read.actions.ts:165). Local không có tài khoản nào giữ 2 vai; prod chưa đo."
   },
   {
     "id": "CSSD-040",
@@ -2651,5 +2651,18 @@
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
     "ghi_chu": "Chuyển từ SO_NO 19/11 (HANDOFF CẦN NGƯỜI 4). Thay đúng cụm, WHERE id đó, kiểm lại bằng SELECT; chờ lệnh PO."
+  },
+  {
+    "id": "VST-044",
+    "module": "VST_GSC",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Câu PO: người kiêm MANG_LUOI_KSNK + CNK/NV KSNK còn bị khóa theo khoa ở analytics Command Center, bảng kiểm TGS, tạo/lưu phiên GSC và đọc phiên GSC — giữ khóa hay mở theo ma trận «ai xem gì» (GS-1)",
+    "bang_chung": "Phần còn lại của VST-038 sau lát A: src/lib/analytics/resolve-analytics-rpc-scope.ts:46,73; src/modules/dashboard/actions/bao-cao-tong-hop.actions.ts:110 (gần như không tới được: vào Command Center cần quyền DASHBOARD mà CNK và MANG_LUOI không có); src/modules/**/bang-kiem-toi-phai-tgs.actions.ts:76 (CNK có GSC view từ 20261117100000); giam-sat-chung-write.actions.ts:77,237, bang-kiem-read.actions.ts:147, giam-sat-chung-read.actions.ts:165 (khóa theo thiết kế M01/M02, VST-029 giữ khóa khi tạo/lưu, fail-closed).",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "dieu-phoi-vst038-con-lai",
+    "commit": "",
+    "ghi_chu": "Tách từ VST-038 19/11. Hiện giữ khóa (an toàn). Đi cùng ma trận GS-1 (docs/core/handover-roadmap.md:68,101) và VST-028/VST-041. Cần đưa vào CAU_HOI_PO_APPKSNK.md — file đó thuộc phạm vi phiên khác, chưa sửa."
   }
 ]
