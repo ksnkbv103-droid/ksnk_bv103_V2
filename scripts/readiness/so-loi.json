@@ -2437,11 +2437,12 @@
     "tieu_de": "Từ chối đề nghị (AR-4/AR-5) không hỏi lý do, reject_reason rỗng",
     "bang_chung": "Luồng duyệt đề nghị Quản trị (AR-1/4/5); chưa thử bằng tài khoản không phải ADMIN.",
     "lenh_kiem": "npm run test:cssd -- src/modules/dieu-hanh-khoa && npm run verify:changed",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Chuyển master-crud-core về src/lib/master-data: tái cấu trúc, không vào sổ. | Xác minh 2026-11-19 (db-verify, chỉ đọc): ĐÚNG cho hàng chờ /phe-duyet, không đúng cho màn duyệt tài khoản (NhanSuTable.tsx:215-226 đã bắt buộc lý do ≥3 ký tự; account-access-request.validations.ts:45-48). PheDuyetDungCuPanel.tsx:93,115 và PheDuyetVstPanel.tsx:36 gọi reject không truyền lý do; catalog-de-nghi-approve.actions.ts:215,240 lý do tùy chọn → NULL; set-reconcile-approve.actions.ts:160 không có tham số lý do (phiếu BOM chỉ có attributes JSON); vst-yeu-cau-dieu-chinh.actions.ts:226 lyDoTuChoi tùy chọn; cột reject_reason text NULL (20260918013014_cssd_catalog_de_nghi.sql:18), không cần migration. Chờ PO câu P10 (CAU_HOI_PO_APPKSNK.md): lý do từ chối có bắt buộc không. | PO 19/11: P10=A: bắt buộc lý do ≥ 3 ký tự khi từ chối đề xuất danh mục (PheDuyetDungCuPanel.tsx:93) và yêu cầu sửa VST (PheDuyetVstPanel.tsx:36), kèm min(3) ở zod/server action; test trước; không migration.",
-    "duyet": "2026-11-19"
+    "commit": "440c32d0",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Chuyển master-crud-core về src/lib/master-data: tái cấu trúc, không vào sổ. | Xác minh 2026-11-19 (db-verify, chỉ đọc): ĐÚNG cho hàng chờ /phe-duyet, không đúng cho màn duyệt tài khoản (NhanSuTable.tsx:215-226 đã bắt buộc lý do ≥3 ký tự; account-access-request.validations.ts:45-48). PheDuyetDungCuPanel.tsx:93,115 và PheDuyetVstPanel.tsx:36 gọi reject không truyền lý do; catalog-de-nghi-approve.actions.ts:215,240 lý do tùy chọn → NULL; set-reconcile-approve.actions.ts:160 không có tham số lý do (phiếu BOM chỉ có attributes JSON); vst-yeu-cau-dieu-chinh.actions.ts:226 lyDoTuChoi tùy chọn; cột reject_reason text NULL (20260918013014_cssd_catalog_de_nghi.sql:18), không cần migration. Chờ PO câu P10 (CAU_HOI_PO_APPKSNK.md): lý do từ chối có bắt buộc không. | PO 19/11: P10=A: bắt buộc lý do ≥ 3 ký tự khi từ chối đề xuất danh mục (PheDuyetDungCuPanel.tsx:93) và yêu cầu sửa VST (PheDuyetVstPanel.tsx:36), kèm min(3) ở zod/server action; test trước; không migration. | Tay 2026-11-19 DAT: Tay 19/11 local (ADMIN, dev-local :3001, /phe-duyet; phiếu thử chèn SQL rồi xóa, hash admin đã khôi phục): Từ chối đề nghị danh mục và Từ chối yêu cầu VST đều mở hộp lý do; nút xác nhận tắt với 0/1/2 ký tự (kể cả «  a » sau trim), bật từ 3; Hủy giữ nguyên phiếu CHO_DUYET; xác nhận → DB REJECTED reject_reason='Trùng mã đã có' và TU_CHOI ly_do_tu_choi='Phiên đúng, không cần xóa'. Test đơn vị: 19 ca (server chặn <3 ký tự, không chạm DB). Form BOM không đổi.",
+    "duyet": "2026-11-19",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-040",
