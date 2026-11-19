@@ -2,7 +2,9 @@
 
 import { lyDoXuatLabel } from "@/lib/domain/cssd-kho-hoa-chat-ly-do-xuat";
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Printer, X } from "lucide-react";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { buildTheKho, ngayHieuLuc } from "@/lib/domain/cssd-kho-hoa-chat-the-kho";
 import KhoHoaChatPrintView, { type KhoPrintState } from "./kho-hoa-chat-print-view";
 import { fefoSortLots } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
@@ -89,8 +91,9 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
+  // NEN-007: portal ra body — nằm trong main (z-0) thì Header z-50 luôn phủ đầu ngăn kéo.
+  return createPortal(
+    <div className={`fixed inset-0 ${BV103_DIALOG_STACK.hubContent} flex justify-end bg-black/30`} onClick={onClose}>
       <aside className="flex h-full w-full max-w-md flex-col overflow-y-auto bg-white p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
@@ -220,6 +223,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
         </ul>
       </aside>
       <KhoHoaChatPrintView state={printState} />
-    </div>
+    </div>,
+    document.body,
   );
 }
