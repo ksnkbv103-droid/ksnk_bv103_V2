@@ -2793,9 +2793,10 @@
     "tieu_de": "VST-028: vai LANH_DAO_KHOA không có quyền GIAM_SAT_VST:view trên chuỗi migration dựng mới (pgTAP vst_rls test 5, 16, 17, 18 đỏ trong db:dung)",
     "bang_chung": "supabase/migrations/20261119150000_vst_028_vai_lanh_dao_khoa.sql chèn sys_role_permissions bằng JOIN sys_permissions (module_name='GIAM_SAT_VST', action='view'), nhưng không migration nào chèn hàng đó (chỉ có 'GIAM_SAT_VST','approve' ở 20261114110000); 'view' chỉ có từ seed chạy SAU migration. Chuỗi dựng mới: role có, role_permissions = 0 → vst_rls.test.sql test 5 have NULL want {GIAM_SAT_VST:view}; test 16 have NULL want {…d2}; test 17 have 0 want 1; test 18 have NULL want {…d2}. DB local đã seed trước nên migration chạy đúng, che lỗi. Trên prod (nếu hàng view đã có) migration đúng; chỉ đỏ ở db-dung.yml (CI) và bản dựng mới.",
     "lenh_kiem": "npm run db:dung",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "nen012-20261119",
-    "commit": "",
-    "ghi_chu": "Hướng sửa gợi ý (chưa làm): migration mới > PROD_HEAD (+ADR) chèn sys_permissions('GIAM_SAT_VST','view') ON CONFLICT DO NOTHING rồi chèn lại role_permissions của LANH_DAO_KHOA; KHÔNG sửa file 20261119150000 nếu đã áp prod. Phát hiện khi đóng NEN-012; NEN-012 không ghi bảng vai/quyền."
+    "commit": "f34aa08f",
+    "ghi_chu": "Hướng sửa gợi ý (chưa làm): migration mới > PROD_HEAD (+ADR) chèn sys_permissions('GIAM_SAT_VST','view') ON CONFLICT DO NOTHING rồi chèn lại role_permissions của LANH_DAO_KHOA; KHÔNG sửa file 20261119150000 nếu đã áp prod. Phát hiện khi đóng NEN-012; NEN-012 không ghi bảng vai/quyền. | Tay 2026-11-19 CHUA: Chỉ spec: vai LANH_DAO_KHOA chưa gán cho tài khoản nào (cổng PO) nên không thao tác được trên UI. Bằng chứng thay thế: db:dung 19/11 pgTAP vst_rls 30/30 PASS + e2e 6/6; psql local: LANH_DAO_KHOA có đúng GIAM_SAT_VST:view. Kịch bản tay khi PO gán vai: đăng nhập LĐK khoa A → /giam-sat-vst thấy phiên khoa A, không thấy khoa B.",
+    "test_tay": "CHUA"
   }
 ]
