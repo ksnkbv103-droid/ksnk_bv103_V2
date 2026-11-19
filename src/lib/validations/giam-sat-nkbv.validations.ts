@@ -14,7 +14,8 @@ const clinicalNotesSchema = z.object({
 
 export const giamSatNkbvCaSchema = z.object({
   ma_ca: z.string().min(1, "Mã phiếu không được để trống").max(50),
-  khoa_ghi_nhan_id: z.string().uuid("Khoa ghi nhận không hợp lệ"),
+  // NEN-016: z.guid() — `.uuid()` của Zod 4 kiểm RFC và từ chối id khoa/nhân sự seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres.
+  khoa_ghi_nhan_id: z.guid("Khoa ghi nhận không hợp lệ"),
   ma_benh_nhan: z.string().max(50).nullable().optional(),
   ho_ten_benh_nhan: z.string().min(1, "Họ tên bệnh nhân không được để trống").max(200),
   ngay_sinh: z.string().nullable().optional(),
@@ -44,7 +45,7 @@ export const giamSatNkbvCaSchema = z.object({
   
   loai_nkbv_id: z.string().uuid("Loại NKBV không hợp lệ"),
   trang_thai_id: z.string().uuid("Trạng thái phiếu không hợp lệ"),
-  nguoi_ghi_id: z.string().uuid("Người ghi không hợp lệ").nullable().optional(),
+  nguoi_ghi_id: z.guid("Người ghi không hợp lệ").nullable().optional(),
   is_active: z.boolean().default(true),
 });
 

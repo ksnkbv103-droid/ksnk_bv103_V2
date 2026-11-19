@@ -139,3 +139,56 @@ describe("congViecSchema — nhiều khoa địa điểm (L3)", () => {
     expect(congViecSchema.safeParse({ ...base, dia_diem_khoa_ids: ["abc"] }).success).toBe(false);
   });
 });
+
+/**
+ * NEN-016 lát C: id khoa (dia_diem_khoa_id/_ids, analytics_meta.khoa_id) và id nhân sự (nguoi_phu_trach_id,
+ * nguoi_phoi_hop_ids, nguoi_theo_doi_ids) dùng `z.guid()` — id seed không chuẩn RFC phải được nhận.
+ */
+describe("congViecSchema — id khoa/nhân sự (NEN-016 C)", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+  const JUNK = "khong-phai-uuid";
+  const base = { tieu_de: "Việc thử", loai_cong_viec: "DOT_XUAT", muc_do_uu_tien: "TRUNG_BINH", han_hoan_thanh: "2026-12-31" };
+  const SCALARS = [
+    ["nguoi_phu_trach_id", "Người thực hiện không hợp lệ"],
+    ["to_cong_tac_id", "Tổ công tác không hợp lệ"],
+    ["nhom_chuyen_mon_id", "Nhóm chuyên môn không hợp lệ"],
+    ["dia_diem_khoa_id", "Khoa/đơn vị địa điểm không hợp lệ"],
+    ["nhiem_vu_id", "Nhiệm vụ không hợp lệ"],
+  ] as const;
+
+  it.each(SCALARS)("%s nhận id seed không chuẩn RFC, UUID v4, null và rỗng", (field) => {
+    expect(congViecSchema.safeParse({ ...base, [field]: SEED }).success).toBe(true);
+    expect(congViecSchema.safeParse({ ...base, [field]: V4 }).success).toBe(true);
+    expect(congViecSchema.safeParse({ ...base, [field]: null }).success).toBe(true);
+    expect(congViecSchema.safeParse({ ...base, [field]: "" }).success).toBe(true);
+  });
+
+  it.each(SCALARS)("%s vẫn từ chối chuỗi rác, giữ câu lỗi cũ", (field, message) => {
+    const r = congViecSchema.safeParse({ ...base, [field]: JUNK });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues.find((i) => i.path[0] === field)?.message).toBe(message);
+  });
+
+  const ARRAYS = [
+    ["dia_diem_khoa_ids", "Khoa địa điểm không hợp lệ"],
+    ["nguoi_phoi_hop_ids", "Người phối hợp không hợp lệ"],
+    ["nguoi_theo_doi_ids", "Người theo dõi không hợp lệ"],
+  ] as const;
+
+  it.each(ARRAYS)("%s nhận id seed không chuẩn RFC cùng UUID v4", (field) => {
+    expect(congViecSchema.safeParse({ ...base, [field]: [SEED, V4] }).success).toBe(true);
+  });
+
+  it.each(ARRAYS)("%s vẫn từ chối phần tử rác, giữ câu lỗi cũ", (field, message) => {
+    const r = congViecSchema.safeParse({ ...base, [field]: [SEED, JUNK] });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues[0]?.message).toBe(message);
+  });
+
+  it("analytics_meta.khoa_id nhận id seed, vẫn từ chối chuỗi rác", () => {
+    expect(congViecSchema.safeParse({ ...base, analytics_meta: { khoa_id: SEED } }).success).toBe(true);
+    expect(congViecSchema.safeParse({ ...base, analytics_meta: { khoa_id: V4 } }).success).toBe(true);
+    expect(congViecSchema.safeParse({ ...base, analytics_meta: { khoa_id: JUNK } }).success).toBe(false);
+  });
+});

@@ -11,10 +11,11 @@ function qlcvEmptyToNull(v: unknown): unknown {
   return v;
 }
 
+/* NEN-016: z.guid() — `.uuid()` của Zod 4 kiểm RFC và từ chối id khoa/nhân sự seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres. */
 const optionalUuid = (field: string) =>
   z.preprocess(
     qlcvEmptyToNull,
-    z.union([z.string().uuid(`${field} không hợp lệ`), z.null()]).optional(),
+    z.union([z.guid(`${field} không hợp lệ`), z.null()]).optional(),
   );
 
 /**
@@ -36,17 +37,17 @@ export const congViecSchema = z.object({
   /** Domain A FE-first: địa điểm optional (cột DB giữ soft-optional). */
   dia_diem_khoa_id: optionalUuid("Khoa/đơn vị địa điểm"),
   /** Nhiều khoa địa điểm (L3); trigger DB đặt dia_diem_khoa_id = phần tử đầu. */
-  dia_diem_khoa_ids: z.array(z.string().uuid("Khoa địa điểm không hợp lệ")).max(50).optional(),
+  dia_diem_khoa_ids: z.array(z.guid("Khoa địa điểm không hợp lệ")).max(50).optional(),
   nhiem_vu_id: optionalUuid("Nhiệm vụ"),
 
   vi_tri_thuc_hien: z.preprocess(qlcvEmptyToNull, z.union([z.string(), z.null()]).optional()),
   nguoi_phoi_hop_ids: z
-    .array(z.string().uuid("Người phối hợp không hợp lệ"))
+    .array(z.guid("Người phối hợp không hợp lệ"))
     .max(20)
     .optional()
     .default([]),
   nguoi_theo_doi_ids: z
-    .array(z.string().uuid("Người theo dõi không hợp lệ"))
+    .array(z.guid("Người theo dõi không hợp lệ"))
     .max(20)
     .optional()
     .default([]),
@@ -58,7 +59,7 @@ export const congViecSchema = z.object({
   analytics_meta: z
     .object({
       chi_so: z.string().trim().min(1).optional().nullable(),
-      khoa_id: z.string().uuid().optional().nullable(),
+      khoa_id: z.guid().optional().nullable(),
       ky_do_lai: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/)

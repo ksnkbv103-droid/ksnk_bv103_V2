@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  giamSatNkbvCaSchema,
   nkbvBaNgayDungCuSchema,
   nkbvBaNgayKhoaSchema,
   nkbvBaTimelineDeleteByKeySchema,
@@ -26,5 +27,42 @@ describe("zod ranh giới action NKBV", () => {
     expect(nkbvThamDinhSchema.safeParse({ id: "abc", decision: "APPROVE" }).success).toBe(false);
     expect(nkbvThamDinhSchema.safeParse({ id: "0b1c7f4e-1f0e-4c1a-9a53-0d8f0c1b2a3d", decision: "DELETE" }).success).toBe(false);
     expect(nkbvThamDinhSchema.safeParse({ id: "0b1c7f4e-1f0e-4c1a-9a53-0d8f0c1b2a3d", decision: "EXCLUDE" }).success).toBe(true);
+  });
+});
+
+/**
+ * NEN-016 lát C: `khoa_ghi_nhan_id` (khoa) và `nguoi_ghi_id` (nhân sự) dùng `z.guid()`; Zod 4 `.uuid()` kiểm RFC
+ * nên từ chối id seed `aaaaaaaa-bbbb-cccc-dddd-000000000001` trong khi cột Postgres `uuid` chấp nhận.
+ */
+describe("giamSatNkbvCaSchema — id khoa/nhân sự (NEN-016 C)", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+  const JUNK = "khong-phai-uuid";
+  const base = {
+    ma_ca: "CA1",
+    khoa_ghi_nhan_id: V4,
+    ho_ten_benh_nhan: "Nguyễn Văn A",
+    loai_nkbv_id: V4,
+    trang_thai_id: V4,
+  };
+  const FIELDS = [
+    ["khoa_ghi_nhan_id", "Khoa ghi nhận không hợp lệ"],
+    ["nguoi_ghi_id", "Người ghi không hợp lệ"],
+  ] as const;
+
+  it.each(FIELDS)("%s nhận id seed không chuẩn RFC và UUID v4", (field) => {
+    expect(giamSatNkbvCaSchema.safeParse({ ...base, [field]: SEED }).success).toBe(true);
+    expect(giamSatNkbvCaSchema.safeParse({ ...base, [field]: V4 }).success).toBe(true);
+  });
+
+  it("nguoi_ghi_id vẫn cho null và bỏ trống", () => {
+    expect(giamSatNkbvCaSchema.safeParse({ ...base, nguoi_ghi_id: null }).success).toBe(true);
+    expect(giamSatNkbvCaSchema.safeParse(base).success).toBe(true);
+  });
+
+  it.each(FIELDS)("%s vẫn từ chối chuỗi rác, giữ câu lỗi cũ", (field, message) => {
+    const r = giamSatNkbvCaSchema.safeParse({ ...base, [field]: JUNK });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues.find((i) => i.path[0] === field)?.message).toBe(message);
   });
 });
