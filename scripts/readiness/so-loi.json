@@ -2327,10 +2327,10 @@
     "tieu_de": "Phiếu đổi danh mục dụng cụ kẹt ở APPLYING không có lối ra",
     "bang_chung": "src/modules/cssd-erp/actions/cssd-lifecycle.actions.ts (applyInstrumentTransferAction); InstrumentTransferForm.tsx. Chưa chạy tay UI duyệt; form nhập mới/loại bỏ chưa rà.",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | LOI_GIA 2026-11-19 (db-verify, chỉ đọc): applyInstrumentTransferAction (cssd-lifecycle.actions.ts:48-99) không đặt trạng thái nào, gọi rpc_cssd_apply_instrument_lines (20260925010536_cssd_ledger_atomic.sql:600-633, atomic, lỗi trả success:false + rollback); InstrumentTransferForm.tsx:86-109 gửi lại được. APPLYING chỉ có ở cssd_catalog_de_nghi (catalog-de-nghi-approve.actions.ts:133-177) và BOM_APPLYING (set-reconcile, giao dịch DB, từ chối được). Phần hở NGOÀI phạm vi dòng này, mức THẤP, chưa tái hiện: cssd_catalog_de_nghi kẹt APPLYING nếu tiến trình chết giữa claim và markClaimFailed (canRejectCatalogDeNghi, cssd-catalog-de-nghi.ts:23-25, loại APPLYING). Sửa nhỏ nhất nếu PO muốn: cho từ chối APPLYING như BOM (slice-fixer, không migration, đổi kỳ vọng cssd-catalog-de-nghi-claim.spec.ts:22)."
   },
   {
     "id": "CSSD-041",
