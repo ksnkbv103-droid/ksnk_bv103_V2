@@ -1,6 +1,6 @@
 "use server";
 
-import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import { getNkbvIdentityScope, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
 import { nkbvKhoaVisible } from "../lib/nkbv-khoa-scope";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { fetchAllByIdChunks, fetchAllRangeRows } from "@/lib/fetch-all-range";
@@ -33,7 +33,8 @@ export type DeviceRegistryRecord = {
 async function listNkbvDeviceRegistry(maBenhAn: string) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
   const ma = String(maBenhAn || "").trim();
-  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+  // NKBV-049: sổ đặt–rút có mã BA, đọc bằng admin client → phạm vi danh tính.
+  if (!(await isNkbvBenhAnInScope((await getNkbvIdentityScope()).restriction, ma))) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, data: [] as DeviceRegistryRecord[] };
   }
   const supabase = createAdminSupabaseClient();
@@ -93,7 +94,7 @@ export async function previewMauSoFromDeviceRegistryAction(input: {
   ma_benh_an?: string;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", "view");
-  const restriction = await getNkbvKhoaRestriction();
+  const { restriction } = await getNkbvIdentityScope();
   if (restriction.kind === "none") {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR };
   }

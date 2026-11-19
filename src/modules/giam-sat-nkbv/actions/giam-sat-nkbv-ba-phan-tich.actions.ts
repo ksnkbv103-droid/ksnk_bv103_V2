@@ -4,7 +4,12 @@
  * Nháp phiên phân tích BA — lưu máy chủ (đổi máy / F5 còn nháp).
  */
 
-import { getNkbvKhoaRestriction, isNkbvBenhAnInScope, NKBV_OUT_OF_SCOPE_ERROR } from "../lib/nkbv-khoa-scope.server";
+import {
+  getNkbvIdentityScope,
+  getNkbvKhoaRestriction,
+  isNkbvBenhAnInScope,
+  NKBV_OUT_OF_SCOPE_ERROR,
+} from "../lib/nkbv-khoa-scope.server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
@@ -33,7 +38,8 @@ export async function loadNkbvBaPhanTichSessions(input: {
   const ma = String(input.ma_benh_an || "").trim();
   const mode = parseBaAnalysisMode(input.mode);
   if (!ma) return { success: false as const, error: "Thiếu mã bệnh án", sessions: [] as BaAnalysisSession[] };
-  if (!(await isNkbvBenhAnInScope(await getNkbvKhoaRestriction(), ma))) {
+  // NKBV-049: đọc có danh tính bằng admin client → phạm vi danh tính (vai ngoài KSNK chỉ khoa mình).
+  if (!(await isNkbvBenhAnInScope((await getNkbvIdentityScope()).restriction, ma))) {
     return { success: false as const, error: NKBV_OUT_OF_SCOPE_ERROR, sessions: [] as BaAnalysisSession[] };
   }
 
