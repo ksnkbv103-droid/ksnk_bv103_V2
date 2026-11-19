@@ -70,9 +70,12 @@ function isKsnkStaffPerm(p: PermRow): boolean {
 
   if (m === "DANH_MUC_ORG" && a === "view") return true;
 
-  if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC", "DAO_TAO", "HAU_CAN_MOI_TRUONG"].includes(m)) {
+  if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC", "DAO_TAO"].includes(m)) {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
+
+  // QT-020: PO 2026-11-06 — Chất thải & Đồ vải chỉ view + create (không edit/delete/import).
+  if (m === "HAU_CAN_MOI_TRUONG") return ["view", "create"].includes(a);
 
   if (m === "BAO_SU_CO") return ["view", "create"].includes(a);
 

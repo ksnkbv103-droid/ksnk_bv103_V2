@@ -13,6 +13,15 @@ describe("NHAN_VIEN_KSNK preset — master CSSD chỉ xem", () => {
     },
   );
 
+  // QT-020 @dac-ta: PO 2026-11-06 — HAU_CAN_MOI_TRUONG chỉ create + view (migration 20261105110000, 20261106100000)
+  it("HAU_CAN_MOI_TRUONG: chỉ view + create, không edit/delete/import", () => {
+    expect(ksnkStaffAllows("HAU_CAN_MOI_TRUONG", "view")).toBe(true);
+    expect(ksnkStaffAllows("HAU_CAN_MOI_TRUONG", "create")).toBe(true);
+    expect(ksnkStaffAllows("HAU_CAN_MOI_TRUONG", "edit")).toBe(false);
+    expect(ksnkStaffAllows("HAU_CAN_MOI_TRUONG", "delete")).toBe(false);
+    expect(ksnkStaffAllows("HAU_CAN_MOI_TRUONG", "import")).toBe(false);
+  });
+
   it("vẫn vận hành CSSD và báo sự cố", () => {
     expect(ksnkStaffAllows("CSSD_WORKFLOW", "edit")).toBe(true);
     expect(ksnkStaffAllows("BAO_SU_CO", "create")).toBe(true);
