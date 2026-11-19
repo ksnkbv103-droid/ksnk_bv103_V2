@@ -26,7 +26,8 @@ import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 const inputSchema = z.object({
   tu_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
   den_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
-  khoa_id: z.string().uuid().optional(),
+  // NEN-016: z.guid(): `.uuid()` của Zod 4 kiểm RFC (nibble phiên bản 1–8) và từ chối id khoa seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres (mọi dạng 8-4-4-4-12 hex).
+  khoa_id: z.guid().optional(),
 });
 
 export type BangKiemToiPhaiTgsRow = {

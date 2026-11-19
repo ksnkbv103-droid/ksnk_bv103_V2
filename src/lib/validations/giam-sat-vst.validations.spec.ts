@@ -225,3 +225,54 @@ describe("vstSaveSessionSchema — Bổ sung người bệnh optional", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+/**
+ * NEN-016 lát A: Zod 4 `z.string().uuid()` kiểm RFC (nibble phiên bản 1–8) nên từ chối id khoa seed
+ * `aaaaaaaa-bbbb-cccc-dddd-000000000001` (id thật của khoa KSNK trên DB local); cột Postgres `uuid` chấp nhận mọi dạng 8-4-4-4-12 hex.
+ * Các id này dùng `z.guid()`; id junk vẫn bị từ chối.
+ */
+describe("vstSaveSessionSchema — id khoa/người giám sát dạng seed không chuẩn RFC (NEN-016)", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+  const V4 = "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34";
+  const JUNK = "khong-phai-uuid";
+
+  it("khoa_id phiên + dòng quan sát: nhận id seed", () => {
+    const parsed = parse([observation({ khoa_id: SEED })], { ...baseSession, khoa_id: SEED });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("khoa_id phiên + dòng quan sát: nhận UUID v4 chuẩn", () => {
+    const parsed = parse([observation({ khoa_id: V4 })], { ...baseSession, khoa_id: V4 });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("khoa_id phiên: vẫn từ chối chuỗi không phải UUID", () => {
+    const parsed = parse([observation()], { ...baseSession, khoa_id: JUNK });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues.some((i) => i.path.join(".") === "session.khoa_id")).toBe(true);
+    }
+  });
+
+  it("khoa_id dòng quan sát: vẫn từ chối chuỗi không phải UUID", () => {
+    const parsed = parse([observation({ khoa_id: JUNK })]);
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues.some((i) => i.path.join(".") === "observations.0.khoa_id")).toBe(true);
+    }
+  });
+
+  it("nguoi_giam_sat_id: nhận id seed, UUID v4 chuẩn và null", () => {
+    expect(parse([observation()], { ...baseSession, nguoi_giam_sat_id: SEED }).success).toBe(true);
+    expect(parse([observation()], { ...baseSession, nguoi_giam_sat_id: V4 }).success).toBe(true);
+    expect(parse([observation()], { ...baseSession, nguoi_giam_sat_id: null }).success).toBe(true);
+  });
+
+  it("nguoi_giam_sat_id: vẫn từ chối chuỗi không phải UUID", () => {
+    const parsed = parse([observation()], { ...baseSession, nguoi_giam_sat_id: JUNK });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues.some((i) => i.path.join(".") === "session.nguoi_giam_sat_id")).toBe(true);
+    }
+  });
+});

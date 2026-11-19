@@ -18,7 +18,8 @@ const thangSchema = z
     return t ?? "";
   });
 const readSchema = z.object({ thang: thangSchema, loai: loaiSchema });
-const writeSchema = readSchema.extend({ khoaId: z.string().uuid(), active: z.boolean() });
+// NEN-016: z.guid(): `.uuid()` của Zod 4 kiểm RFC (nibble phiên bản 1–8) và từ chối id khoa seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres (mọi dạng 8-4-4-4-12 hex).
+const writeSchema = readSchema.extend({ khoaId: z.guid(), active: z.boolean() });
 
 async function requireView(loai: "VST" | "GSC") {
   await verifyPermission(loai === "VST" ? "GIAM_SAT_VST" : "GIAM_SAT_CHUNG", "view");

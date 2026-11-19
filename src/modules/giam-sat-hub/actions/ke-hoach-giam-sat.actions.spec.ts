@@ -125,3 +125,30 @@ describe("setKeHoachKhoa — nhật ký quản trị (VST-037)", () => {
     expect(mocks.logAdminAction).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * NEN-016 lát A: `writeSchema.khoaId` dùng `z.string().uuid()`; Zod 4 kiểm RFC (nibble phiên bản 1–8) nên từ chối id khoa seed
+ * `aaaaaaaa-bbbb-cccc-dddd-000000000001` (id thật của khoa KSNK trên DB local; cột Postgres `uuid` chấp nhận mọi dạng 8-4-4-4-12 hex).
+ */
+describe("setKeHoachKhoa — parse khoaId (NEN-016)", () => {
+  const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+
+  it("nhận id khoa seed không chuẩn RFC (tới bước ghi)", async () => {
+    expect(await setKeHoachKhoa({ ...input, khoaId: SEED })).toEqual({ success: true });
+    expect(mocks.insert).toHaveBeenCalledWith(expect.objectContaining({ khoa_id: SEED }));
+  });
+
+  it("nhận id UUID v4 chuẩn", async () => {
+    expect(await setKeHoachKhoa({ ...input, khoaId: "3f2b8c1e-9a4d-4e6b-8c2f-1d5a7b9e0c34" })).toEqual({ success: true });
+    expect(mocks.insert).toHaveBeenCalledTimes(1);
+  });
+
+  it("vẫn từ chối chuỗi không phải UUID (không tới bước kiểm quyền)", async () => {
+    expect(await setKeHoachKhoa({ ...input, khoaId: "khong-phai-uuid" })).toEqual({
+      success: false,
+      error: "Tham số không hợp lệ",
+    });
+    expect(mocks.verifyPermission).not.toHaveBeenCalled();
+    expect(mocks.insert).not.toHaveBeenCalled();
+  });
+});

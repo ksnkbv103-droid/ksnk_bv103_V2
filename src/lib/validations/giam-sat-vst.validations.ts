@@ -67,7 +67,8 @@ const vstOpportunitySchema = z
   });
 
 const vstObservationSchema = z.object({
-  khoa_id: z.string().uuid("Khoa không hợp lệ"),
+  // NEN-016: z.guid(): `.uuid()` của Zod 4 kiểm RFC (nibble phiên bản 1–8) và từ chối id khoa seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres (mọi dạng 8-4-4-4-12 hex).
+  khoa_id: z.guid("Khoa không hợp lệ"),
   nhan_vien_id: optionalUuid("Nhân viên không hợp lệ"),
   ten_nhan_vien_ngoai: z.string().optional(),
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
@@ -80,9 +81,9 @@ const vstObservationSchema = z.object({
 });
 
 const vstSessionSchema = z.object({
-  khoa_id: z.string().uuid("Khoa không hợp lệ"),
+  khoa_id: z.guid("Khoa không hợp lệ"),
   khu_vuc_id: requiredUuid("Khu vực giám sát là bắt buộc", "Khu vực không hợp lệ"),
-  nguoi_giam_sat_id: z.string().uuid("Người giám sát không hợp lệ").nullable().optional(),
+  nguoi_giam_sat_id: z.guid("Người giám sát không hợp lệ").nullable().optional(),
   ngay_giam_sat: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày YYYY-MM-DD"),
   /** GS-01: bắt buộc khi tạo mới (action); optional grandfather khi sửa. */
   vi_tri: z.string().optional(),

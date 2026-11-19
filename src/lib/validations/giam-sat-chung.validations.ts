@@ -18,7 +18,8 @@ const optionalUuid = (msg: string) =>
 // ============================================================
 
 const gscSessionSchema = z.object({
-  khoa_id: z.string().uuid("Khoa không hợp lệ"),
+  // NEN-016: z.guid(): `.uuid()` của Zod 4 kiểm RFC (nibble phiên bản 1–8) và từ chối id khoa seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres (mọi dạng 8-4-4-4-12 hex).
+  khoa_id: z.guid("Khoa không hợp lệ"),
   /** GS-01: bắt buộc khi tạo mới (action); optional để grandfather phiên cũ khi sửa. */
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
   nguoi_giam_sat_id: optionalUuid("Người giám sát không hợp lệ"),
