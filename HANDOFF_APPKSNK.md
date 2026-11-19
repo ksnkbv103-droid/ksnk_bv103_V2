@@ -3,13 +3,14 @@
 File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_tay` của sổ. `so-loi.mjs check` FAIL khi file này > 6000 byte. Khôi phục file đã gộp/xóa: `git show 5618ae82:<đường dẫn>` (`HANDOFF_APPKSNK_NKBV.md`, `docs/archive/bao-cao/BAO-CAO-*.md`); bản đầy đủ cũ: `git show ae5ca6fd:HANDOFF.md`.
 
 ## TIẾN ĐỘ HIỆN TẠI (đo 2026-11-19: `so-loi.mjs stats` · `check` · `npm run module:gate`)
-- Sổ (đo 19/11 cuối đợt 8): MOI 1 · DA_XAC_MINH 1 · LOI_GIA 21 · DANG_SUA 0 · DA_SUA 159 · HOAN 16 · CHO_PO 12. Tay: DAT 70 · CHUA 14 · KHONG_DAT 0.
+- Sổ (đo 19/11 đợt 9): MOI 3 · DA_XAC_MINH 0 · LOI_GIA 21 · DANG_SUA 0 · DA_SUA 160 · HOAN 17 · CHO_PO 12. Tay: DAT 70 · CHUA 15 · KHONG_DAT 0.
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ (PO duyệt nâng XÂY, chờ tên đầu mối + 2 `[CẦN XÁC NHẬN]`) · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check` exit 0 (đo 19/11 cuối đợt 8).
 
 ## ĐANG LÀM
-- 19/11 đốt sổ đợt 5. Đóng: NEN-008 `ff5043ce`; VST-040 `bff55cbc`; VST-028 `c14598fd` (migration `20261119150000` chỉ local; chi tiết/in LĐK → VST-041); VST-017 `d34da30c` (bảng mã app↔kho ở `02-nghiep-vu-domain.md` §2.3, giữ mã app). NKBV-049 DA_SUA `bbf60b55` (3 đường đọc theo phạm vi danh tính; tay CHUA: DB local 0 BA). NEN-016 DA_SUA `3be6d9d5`. Migration chưa áp prod: NEN-007 `610e69f0`, CSSD-037 `49fdab3f` (chờ PO). Đợt 7: CSSD-042 `eb67c90d` (chưa áp prod), QT-017 `cb0ccf67` DA_SUA; QT-019 CHO_PO (P12).
-- Đợt 8 (19/11, local, chưa push): VST-046 DA_SUA `ab392af8` (migration `20261119190000` nối CHU_NHIEM_KHOA 7 quyền view; pgTAP vst_rls 33/33; tay CHUA: QT-019). NEN-011 DA_SUA `5d58bf17` (ẩn menu «Chất thải & Đồ vải», tay DAT). Trước đó: NEN-012 `1b97c49f` (KHÔNG áp `20261114180000` lên prod), VST-045 `f34aa08f`; sha khác ở sổ.
-- **Việc kế = NEN-009** (`migration-author`): ADR trước, rồi migration REVOKE EXECUTE `rpc_mdm_nhan_su_max_numeric_suffix(text)` FROM PUBLIC, anon + GRANT authenticated, service_role; `acl-snapshot --write`, `db:dung`, `review-bv103`. NEN-017 MOI: NHAN_VIEN_KSNK 0 liên kết HAU_CAN_MOI_TRUONG (cùng lớp VST-046, mẫu `ab392af8`). NEN-010 → P13, NEN-015 → P14 (CHO_PO). HOAN: NKBV-050, VST-044, CSSD-047. CSSD-048 chờ «tắt 68 bộ» (D6). Chờ PO: CSSD-041, CSSD-043(a), P12–P14.
+- 19/11 đốt sổ đợt 5. Đóng: NEN-008 `ff5043ce`; VST-040 `bff55cbc`; VST-028 `c14598fd` (migration `20261119150000` chỉ local; chi tiết/in LĐK → VST-041); VST-017 `d34da30c` (bảng mã app↔kho ở `02-nghiep-vu-domain.md` §2.3, giữ mã app). NKBV-049 `bbf60b55` (tay CHUA: local 0 BA); NEN-016 `3be6d9d5`. Migration chưa áp prod: NEN-007 `610e69f0`, CSSD-037 `49fdab3f`, CSSD-042 `eb67c90d` (chờ PO).
+- Đợt 8 (19/11, local, chưa push): VST-046 `ab392af8` (migration `20261119190000` nối CHU_NHIEM_KHOA 7 quyền view; pgTAP vst_rls 33/33; tay CHUA: QT-019). NEN-011 `5d58bf17` (ẩn menu «Chất thải & Đồ vải»). NEN-012 `1b97c49f` (KHÔNG áp `20261114180000` lên prod); sha khác ở sổ.
+- Đợt 9: NEN-009 DA_SUA `8318520a` (migration `20261119200000` REVOKE anon; pgTAP 3/3; review Go; tay CHUA; **chưa áp prod**, chờ «prod» + đối chiếu proacl). NEN-017 HOAN (module ẩn; khi mở lại: thêm HAU_CAN_MOI_TRUONG view/create vào luật NHAN_VIEN_KSNK ở `supabase/seeds/00-rbac.sql`).
+- **Việc kế = `db-verify` xác minh NEN-018** (2 hàm `*_dm_bang_kiem_max_numeric_suffix` còn anon, mẫu `8318520a`), **NEN-019** (default privileges cấp anon; 39/177 hàm; cần PO quyết), QT-020 (thấp, module gác). NEN-010 → P13, NEN-015 → P14 (CHO_PO). HOAN: NKBV-050, VST-044, CSSD-047. CSSD-048 chờ «tắt 68 bộ» (D6). Chờ PO: CSSD-041, CSSD-043(a), P12–P14.
 - 19/11 đã áp prod 4 migration `20261118100000`…`130000`. Code lát B (drawer) + trang kế hoạch giám sát chưa deploy (câu D1).
 
 ## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)

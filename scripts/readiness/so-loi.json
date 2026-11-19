@@ -2492,10 +2492,11 @@
     "tieu_de": "Vai anon còn quyền EXECUTE rpc_mdm_nhan_su_max_numeric_suffix",
     "bang_chung": "rpc_mdm_nhan_su_max_numeric_suffix (AR-7); kiểm bằng has_function_privilege('anon', ...).",
     "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tA -c \"select has_function_privilege('anon','public.rpc_mdm_nhan_su_max_numeric_suffix(text)','EXECUTE')\"  # t = lỗi; sửa xong phải ra f",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (AR-7). | Chuyển từ SO_NO 19/11 (AR-7). Xác minh 19/11 (db-verify): ĐÚNG, mức THẤP. anon còn EXECUTE (baseline 20260530000000 GRANT, không REVOKE về sau; ACL còn =X cho PUBLIC nên cần REVOKE FROM PUBLIC, anon). Hàm SECURITY INVOKER, anon không có SELECT mdm_nhan_su → gọi lỗi quyền bảng, không lộ dữ liệu. Chỉ 2 nơi gọi (nhan-su-read.actions.ts:135, account-access-request.actions.ts:37), đều không dùng anon. Sửa = migration REVOKE riêng + acl-snapshot --write."
+    "commit": "8318520a",
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (AR-7). | Chuyển từ SO_NO 19/11 (AR-7). Xác minh 19/11 (db-verify): ĐÚNG, mức THẤP. anon còn EXECUTE (baseline 20260530000000 GRANT, không REVOKE về sau; ACL còn =X cho PUBLIC nên cần REVOKE FROM PUBLIC, anon). Hàm SECURITY INVOKER, anon không có SELECT mdm_nhan_su → gọi lỗi quyền bảng, không lộ dữ liệu. Chỉ 2 nơi gọi (nhan-su-read.actions.ts:135, account-access-request.actions.ts:37), đều không dùng anon. Sửa = migration REVOKE riêng + acl-snapshot --write. | 19/11 migration 20261119200000 (commit 8318520a), CHƯA áp prod (chờ PO «prod»; đối chiếu proacl prod trước). Đo local: anon f, authenticated t, service_role t. pgTAP nen_009 3/3, vst_037 6/6; db:dung XANH; verify:changed PASS; review-bv103 Go. acl-snapshot không áp dụng (chỉ chụp SECURITY DEFINER). Phát hiện cùng lớp → NEN-018, NEN-019. | Tay 2026-11-19 CHUA: chỉ trace local: SET ROLE anon → permission denied; authenticated, service_role gọi được (trả 0). Chưa chạy UI: thêm nhân sự gõ tiền tố NV (authenticated) và ADMIN duyệt yêu cầu tài khoản (service_role, fallback ở account-access-request.actions.ts:47-48 che lỗi quyền).",
+    "test_tay": "CHUA"
   },
   {
     "id": "NEN-010",
@@ -2822,9 +2823,48 @@
     "tieu_de": "Cùng lớp VST-045/046: NHAN_VIEN_KSNK thiếu liên kết quyền HAU_CAN_MOI_TRUONG create/view trên DB dựng mới và DB local",
     "bang_chung": "supabase/migrations/20261105110000:30-37 (chỉ create, PO 11-06) và 20261106100000 nối NHAN_VIEN_KSNK bằng JOIN vào hàng sys_permissions HAU_CAN_MOI_TRUONG; hàng quyền chỉ do seed 00-rbac.sql chèn SAU migration nên JOIN ra 0 dòng. Đo 19/11 trên DB local: NHAN_VIEN_KSNK có 0 liên kết HAU_CAN_MOI_TRUONG dù sys_permissions có đủ 4 hàng. Prod chưa đo. Module đang ẩn khỏi menu (NEN-011, PO «Gác») nên chưa ai chạm.",
     "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tA -c \"select count(*) from sys_role_permissions rp join sys_roles r on r.id=rp.role_id join sys_permissions p on p.id=rp.permission_id where r.name='NHAN_VIEN_KSNK' and p.module_name='HAU_CAN_MOI_TRUONG'\"  # 0 = lỗi còn; sửa xong phải ≥ 1 (create; view nếu PO xác nhận)",
-    "trang_thai": "MOI",
+    "trang_thai": "HOAN",
     "nguon": "dot8-nen-009",
     "commit": "",
-    "ghi_chu": "Phát hiện khi điều tra NEN-009, ngoài lát nên không sửa. Mở lại module (bỏ «Gác») thì làm trước. Sửa = migration mới INSERT hàng quyền ON CONFLICT DO NOTHING + nối lại liên kết (mẫu VST-046 `ab392af8`); kiểm prod xem NHAN_VIEN_KSNK có liên kết chưa và PO muốn chỉ create hay cả view. Cần ADR vì chạm quyền."
+    "ghi_chu": "Phát hiện khi điều tra NEN-009, ngoài lát nên không sửa. Mở lại module (bỏ «Gác») thì làm trước. Sửa = migration mới INSERT hàng quyền ON CONFLICT DO NOTHING + nối lại liên kết (mẫu VST-046 `ab392af8`); kiểm prod xem NHAN_VIEN_KSNK có liên kết chưa và PO muốn chỉ create hay cả view. Cần ADR vì chạm quyền. | Xác minh 19/11 (db-verify, đối chiếu tay): triệu chứng ĐÚNG (NHAN_VIEN_KSNK 0 liên kết HAU_CAN_MOI_TRUONG trên DB local), cơ chế ghi ở trên SAI: migration 20261105110000:12-18 tự chèn đủ 4 hàng quyền; thiếu là hàng VAI NHAN_VIEN_KSNK (chỉ seed 00-rbac.sql:9 tạo, sau migration) nên JOIN ra 0 dòng, và rule seed NHAN_VIEN_KSNK (00-rbac.sql:140-157) không liệt kê HAU_CAN_MOI_TRUONG. KHÔNG dùng mẫu migration VST-046 (cũng ra 0 dòng). Sửa nhỏ nhất khi mở lại module: thêm mệnh đề (p.module_name='HAU_CAN_MOI_TRUONG' AND p.action IN ('view','create')) vào rule seed; PO 11-06 cấp create + view (không edit/delete). Mức THAP, fail-closed, chỉ DB dựng mới/local; prod chưa đo (kỳ vọng đã có vì vai tồn tại lúc áp). Đường sống: phụ lục soft-fail của bao-cao-tong-hop.actions.ts:267 thiếu trên UAT local. HOAN theo NEN-011 (PO «Gác»); làm trước khi mở lại module."
+  },
+  {
+    "id": "QT-020",
+    "module": "QUAN_TRI",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "Preset quyền NHAN_VIEN_KSNK cho HAU_CAN_MOI_TRUONG view/create/edit/delete/import, rộng hơn quyết định PO 11-06 (chỉ create + view)",
+    "bang_chung": "src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-ksnk-role-mappings.ts:72-74 (isKsnkStaffPerm gom HAU_CAN_MOI_TRUONG cùng NHAN_SU/BANG_KIEM/CONG_VIEC/DAO_TAO); đường gọi rbac-registry-sync.ts → syncKsnkRolePermissionMappings. PO 11-06: migration 20261105110000:29 chỉ create, 20261106100000 thêm view. Chưa đo: preset có chạy trên prod không, prod hiện có bao nhiêu liên kết NHAN_VIEN_KSNK–HAU_CAN_MOI_TRUONG.",
+    "lenh_kiem": "npm run test:cssd -- src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-ksnk-role-mappings.spec.ts (thêm assert: ksnkStaffAllows('HAU_CAN_MOI_TRUONG','edit'|'delete'|'import') = false)",
+    "trang_thai": "MOI",
+    "nguon": "db-verify NEN-017 19/11",
+    "commit": "",
+    "ghi_chu": "Phát hiện phụ khi xác minh NEN-017. Module Chất thải & Đồ vải đang ẩn khỏi menu (NEN-011) nên chưa gấp; cần xác minh trước khi sửa (db-verify), và sửa cùng lúc với NEN-017 khi mở lại module."
+  },
+  {
+    "id": "NEN-018",
+    "module": "NEN",
+    "lop": "DB",
+    "muc": "THAP",
+    "tieu_de": "Hai hàm anh em rpc_dm_bang_kiem_max_numeric_suffix và rpc_gstt_dm_bang_kiem_max_numeric_suffix còn EXECUTE cho anon (cùng lớp NEN-009)",
+    "bang_chung": "Đo 19/11 trên DB local: has_function_privilege('anon', ...,'EXECUTE') = t cho cả hai (cả hai SECURITY INVOKER). supabase/migrations/20260701000000_drop_dm_bang_kiem_compat_reprise.sql:45 GRANT tường minh cho anon, authenticated, service_role trên rpc_gstt_dm_bang_kiem_max_numeric_suffix; rpc_dm_bang_kiem_max_numeric_suffix là bản compat (cùng file :42-43). Prod chưa đo.",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tA -c \"select p.proname, has_function_privilege('anon',p.oid,'EXECUTE') from pg_proc p where p.proname in ('rpc_dm_bang_kiem_max_numeric_suffix','rpc_gstt_dm_bang_kiem_max_numeric_suffix')\"  # t = lỗi; sửa xong phải ra f",
+    "trang_thai": "MOI",
+    "nguon": "review-bv103 NEN-009",
+    "commit": "",
+    "ghi_chu": "Sửa = một migration REVOKE ... FROM PUBLIC, anon + GRANT authenticated, service_role cho cả hai hàm, mẫu 20261119200000 (NEN-009). Trước đó kiểm hai nơi gọi trong src/ không dùng anon (đặc biệt đường đăng ký/gstt)."
+  },
+  {
+    "id": "NEN-019",
+    "module": "NEN",
+    "lop": "DB",
+    "muc": "THAP",
+    "tieu_de": "Default privileges của postgres trên schema public tự cấp EXECUTE cho anon mọi hàm mới; 39/177 hàm public đang cho anon EXECUTE (cần PO quyết)",
+    "bang_chung": "supabase/migrations/20260530000000_init_pilot_baseline.sql:11573-11576 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon (cùng authenticated, service_role). Đo 19/11 DB local: count(anon EXECUTE)=39 trên 177 hàm public (prokind='f'); pg_default_acl dòng (postgres,f) có anon=X. Prod chưa đo.",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tA -c \"select count(*) filter (where has_function_privilege('anon', p.oid,'EXECUTE')), count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prokind='f'\"",
+    "trang_thai": "MOI",
+    "nguon": "review-bv103 NEN-009",
+    "commit": "",
+    "ghi_chu": "Gốc của lớp lỗi NEN-009. Cần PO quyết trước khi sửa: (a) ALTER DEFAULT PRIVILEGES ... REVOKE EXECUTE ON FUNCTIONS FROM anon cho hàm mới; (b) rà 39 hàm hiện có, hàm nào anon thật sự cần (ví dụ trang đăng nhập/đăng ký công khai) thì giữ. Không làm trong lát NEN-009; không đổi default khi chưa đo ảnh hưởng lên các RPC công khai."
   }
 ]
