@@ -114,12 +114,12 @@ export function GscBkAnalyticsDashboard({
         {(detail?.chi_so?.tong_quan_sat ?? 0) > 0 &&
         (detail?.chi_so?.tong_dat ?? 0) / (detail?.chi_so?.tong_quan_sat ?? 1) < 0.8 ? (
           <p className="text-xs text-slate-600">
-            Chỉ số dưới mục tiêu —{" "}
+            Chỉ số dưới ngưỡng —{" "}
             <Link
               href={buildQlcvSourceDeepLink({
                 from: "GIAM_SAT",
                 tieuDe: `Theo dõi kế hoạch cải tiến · ${label || maBk}`,
-                moTa: `Bảng kiểm ${maBk}: tuân thủ dưới mục tiêu. QT.33 — theo dõi hoàn thành kế hoạch cải tiến khoa.`,
+                moTa: `Bảng kiểm ${maBk}: tuân thủ dưới ngưỡng. QT.33 — theo dõi hoàn thành kế hoạch cải tiến khoa.`,
                 sourceMa: maBk,
                 sourceLabel: label || maBk,
                 sourceHref: `/giam-sat-chung?bk=${encodeURIComponent(maBk)}`,
