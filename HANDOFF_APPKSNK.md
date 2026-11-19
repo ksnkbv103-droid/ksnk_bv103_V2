@@ -7,7 +7,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Cổng module: giam-sat CHẠY_THỬ · cssd XÂY · nkbv KHÁM_PHÁ · qlcv XÁC_NHẬN · dao-tao KHÁM_PHÁ. `check` đỏ do CSSD-043 (CAO, MOI): xác minh trước tiên.
 
 ## ĐANG LÀM
-- 19/11 phân loại SO_NO một lần (PO «Đồng ý»): 33 dòng mới vào sổ (bảng ở `SO_NO_APPKSNK.md`), nợ công cụ đóng «không làm», mọi câu PO gom ở `CAU_HOI_PO_APPKSNK.md`. Kế: đốt sổ theo `next 10`, CSSD-043 (CAO) trước.
+- 19/11 phân loại SO_NO một lần (PO «Đồng ý»): 33 dòng mới vào sổ (bảng ở `SO_NO_APPKSNK.md`), nợ công cụ đóng «không làm», mọi câu PO gom ở `CAU_HOI_PO_APPKSNK.md`. Đốt sổ 19/11: CSSD-043(b) `7d79bdec` (local, chưa prod; (a) -EO chờ C2), CSSD-038 `2e50a423`, VST-038A `4e076eae`; `check` hết đỏ. Stats: MOI 14 · DA_XAC_MINH 9 · DA_SUA 137 · CHO_PO 11 · tay CHUA 9. Kế: CSSD-039 → VST-037 → CSSD-045 (mỗi cái 1 migration + ADR), NEN-007; VST-038 A2 + VST-044 chờ PO.
 - 19/11 đã áp prod 4 migration `20261118100000`…`130000` (MCP, kiểm sau áp). Code lát B (drawer) + trang kế hoạch giám sát chưa deploy (câu D1).
 
 ## NKBV → NHSN 2026 (GĐ0–GĐ2; mọi commit đã vào integrate)
