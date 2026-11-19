@@ -116,6 +116,16 @@ Cập nhật 2026-11-19. Mọi câu cần PO nằm ở đây, mỗi câu có b�
 - **Mở khóa:** A → sửa 3–4 file UI/action, không migration; B → đóng QT-016.
 - **ID sổ:** QT-016
 
+### P11 · VST-017 · Đổi mã biểu mẫu VST sang QT.06 thì trùng mã «Mạng lưới KSNK», cần đánh số lại cả dãy
+- **Bối cảnh:** PO (19/11) đã chọn đổi mã VST từ `KSNK.QT.07.BM.01–03` sang `KSNK.QT.06.BM.01–03`. Tên 3 biểu mẫu khớp 1-1 với kho (QT.06.BM.01 năm thời điểm, BM.02 kỹ thuật thường quy, BM.03 ngoại khoa). Nhưng app đang dùng dãy mã lệch một số so với kho: `KSNK.QT.06.BM.03` trong app là «Hoạt động Mạng lưới KSNK» (kho: mạng lưới thuộc QT.05; QT.06 là vệ sinh tay; QT.07 là phương tiện phòng hộ). Cột `ma_bk` của `gstt_dm_bang_kiem` có ràng buộc UNIQUE (`danh_muc_bang_kiem_ma_bk_key`), nên đổi riêng VST sang QT.06.BM.03 sẽ trùng bảng kiểm Mạng lưới.
+- **Hỏi:** Đổi cả dãy theo kho hay giữ mã app?
+- **A.** Đánh số lại cả dãy theo kho (mạng lưới QT.06→05, VST QT.07→06, phương tiện phòng hộ QT.08→07, các QT sau tương tự). Một đợt migration mới + code + docs + test, ảnh hưởng nhiều file và dữ liệu prod; tách lát ≤ 8 file, prod chỉ khi PO ra lệnh.
+- **B.** Giữ mã app như hiện tại; ghi bảng đối chiếu «mã app ↔ mã kho» vào docs để hồ sơ giấy tra được.
+- **Đề xuất: B** (nhỏ nhất, không đụng prod, số liệu không đổi); chọn A nếu hồ sơ giấy bắt buộc đúng mã kho trên phiếu in.
+- **Nếu im:** giữ mã app, không đổi gì.
+- **Mở khóa:** A → làm theo lát (migration đổi `ma_bk` cả dãy, không sửa migration đã apply); B → đóng VST-017 bằng bảng đối chiếu.
+- **ID sổ:** VST-017
+
 ---
 
 ## C — Hỏi khoa CSSD (đầu mối: Nguyễn Thanh Bình)
