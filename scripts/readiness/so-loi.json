@@ -2381,11 +2381,11 @@
     "muc": "THAP",
     "tieu_de": "Spec e2e cssd-bo-active-cycle.spec.ts còn đọc đường dẫn cũ sau AR-8c",
     "bang_chung": "e2e/cssd-bo-active-cycle.spec.ts (roadmap cũ 18/11).",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "git merge-base --is-ancestor 28128a20 HEAD && grep -n 'smart-import.actions' src/lib/domain/cssd-bo-active-cycle.spec.ts",
+    "trang_thai": "LOI_GIA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. e2e chưa vào CI (Lát 1c hoãn)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. e2e chưa vào CI (Lát 1c hoãn). | Xác minh 2026-11-19 (db-verify, chỉ đọc): LOI_GIA. Không có e2e/cssd-bo-active-cycle.spec.ts; spec thật là src/lib/domain/cssd-bo-active-cycle.spec.ts (vitest). Commit 28128a20 (2026-11-11) đã đổi đường dẫn cũ sang src/lib/master-data/engine/smart-import.actions.ts, nằm trong HEAD; spec dòng 64 trỏ đúng đường mới. Còn sót: docs/core/handover-roadmap.md:97 vẫn ghi «Còn: …đường dẫn cũ» (ghi chú lỗi thời, không phải lỗi code)."
   },
   {
     "id": "NKBV-048",
@@ -2420,11 +2420,11 @@
     "muc": "THAP",
     "tieu_de": "Bảng khoa VST chưa có nhãn «chưa đủ mẫu» khi n < 20",
     "bang_chung": "Bảng khoa VST (UI v2), UAT 2026-11-10.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -n 'chưa đủ mẫu' src/lib/analytics/supervision-charts-khoa-tables.tsx",
+    "trang_thai": "LOI_GIA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | Xác minh 2026-11-19 (db-verify, chỉ đọc): LOI_GIA. Nhãn «chưa đủ mẫu (n/N)» đã có ở src/lib/analytics/supervision-charts-khoa-tables.tsx:44,51,79-80,105,109 và supervision-charts-khoa-compare.tsx:120-123,221-222 (commit a41ecbcb 18/11). Ngưỡng n<20 trong phát hiện là số cũ: migration 20261118100000_ksnk_tham_so_khoa_po_20261101.sql:8 đã đổi sang 50 (khóa PO 2026-11-01), hằng VST_COMPARE_MIN_SAMPLE=50 ở supervision-thresholds.ts. Còn sót: docs/modules/giam-sat/van-de-nguoi-dung.md:21 ghi «n<20»."
   },
   {
     "id": "QT-016",
@@ -2433,11 +2433,11 @@
     "muc": "THAP",
     "tieu_de": "Từ chối đề nghị (AR-4/AR-5) không hỏi lý do, reject_reason rỗng",
     "bang_chung": "Luồng duyệt đề nghị Quản trị (AR-1/4/5); chưa thử bằng tài khoản không phải ADMIN.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -n 'rejectCatalogDeNghiAction\\|rejectSetReconcileBomAction\\|rejectVstYeuCauAction' src/modules/dieu-hanh-khoa/PheDuyetDungCuPanel.tsx src/modules/dieu-hanh-khoa/PheDuyetVstPanel.tsx",
+    "trang_thai": "CHO_PO",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Chuyển master-crud-core về src/lib/master-data: tái cấu trúc, không vào sổ."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Chuyển master-crud-core về src/lib/master-data: tái cấu trúc, không vào sổ. | Xác minh 2026-11-19 (db-verify, chỉ đọc): ĐÚNG cho hàng chờ /phe-duyet, không đúng cho màn duyệt tài khoản (NhanSuTable.tsx:215-226 đã bắt buộc lý do ≥3 ký tự; account-access-request.validations.ts:45-48). PheDuyetDungCuPanel.tsx:93,115 và PheDuyetVstPanel.tsx:36 gọi reject không truyền lý do; catalog-de-nghi-approve.actions.ts:215,240 lý do tùy chọn → NULL; set-reconcile-approve.actions.ts:160 không có tham số lý do (phiếu BOM chỉ có attributes JSON); vst-yeu-cau-dieu-chinh.actions.ts:226 lyDoTuChoi tùy chọn; cột reject_reason text NULL (20260918013014_cssd_catalog_de_nghi.sql:18), không cần migration. Chờ PO câu P10 (CAU_HOI_PO_APPKSNK.md): lý do từ chối có bắt buộc không."
   },
   {
     "id": "VST-040",
@@ -2446,11 +2446,11 @@
     "muc": "THAP",
     "tieu_de": "Thanh điều hướng GSC chưa có tab «Bảng kiểm»",
     "bang_chung": "Thanh GSC (ghi chú AR-1/4/5 trong roadmap cũ).",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "grep -c 'bang-kiem\\|BANG_KIEM\\|QUAN_TRI_BANG_KIEM_PATH' src/components/shared/SupervisionModeNav.tsx",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. | Xác minh 2026-11-19 (db-verify, chỉ đọc): DA_XAC_MINH, mức THAP/UX. src/components/shared/SupervisionModeNav.tsx:49-56 chỉ có 3 tab (Nhập, Lịch sử, Thống kê) + «Danh mục» khi có quyền; chưa tab dẫn tới /giam-sat-chung/bang-kiem (page src/app/giam-sat-chung/bang-kiem/page.tsx:11-18 đã có, chặn bằng canAccessDanhMucModuleRoute(\"BANG_KIEM\")). Sửa: thêm tab chỉ cho module gsc, href QUAN_TRI_BANG_KIEM_PATH (src/lib/master-data/quan-tri-paths.ts:19), gate useModulePermission(\"BANG_KIEM\").allowed.view (đã đăng ký VIEW ở src/lib/permission-registry-data.ts:46); 1-2 file, không migration, không quyền mới. VST không cần tab này. Cần ≥1 kịch bản tay trên :3001 khi sửa."
   },
   {
     "id": "QT-017",
@@ -2750,6 +2750,6 @@
     "trang_thai": "DA_XAC_MINH",
     "nguon": "lat-1c-20261119",
     "commit": "",
-    "ghi_chu": "Chỉ đổi chỗ nào nhận id từ dữ liệu có thể là seed; mỗi chỗ cần test tái hiện. Không đổi hàng loạt. | Xác minh 2026-11-19 (db-verify, chạy thử zod 4.6.7 + psql chỉ đọc): ĐÚNG, thu hẹp. z.string().uuid() từ chối aaaaaaaa-bbbb-cccc-dddd-000000000001 (guid:true); id v4 như a0000000-0000-4000-8000-000000000001 qua. Tổng .uuid( trong src = 76 dòng/30 file (24 ở lenh_kiem chỉ là phần). Id không chuẩn RFC trên DB local chỉ ở mdm_dm_khoa_phong (1/1 khoa KSNK), mdm_nhan_su (2/2: ADMIN01 dddd…01, KHACH01 dddd…02), auth_user_id, cssd_dm_hoa_chat 1 dòng NEN007 — nguồn supabase/seeds/01-pilot-nhan-su.sql:10,101 và 03-qlcv-local-test-staff.sql:9-10 (seed «chỉ local/dev»; migrations và e2e không có). Trường bị ảnh hưởng thật: khoa_id (giam-sat-vst.validations.ts:70,83 · giam-sat-chung.validations.ts:21 · nhan-su:25 · account-access-request:17 · bang-kiem-toi-phai-tgs.actions.ts:29), khoaId (ke-hoach-giam-sat.actions.ts:21), khoaNhanId (cssd-cap-phat-batch.actions.ts:14, cssd-scan.actions.ts:39), staffIdSchema, nhan-su-active.actions.ts:17, nguoi_giam_sat_id, nguoi_ghi_id. Phần còn lại là id gen_random_uuid() (v4) → LOI_GIA. Helper dùng chung (vst.validations.ts:20,27; gsc:13; qlcv:17; master-data-write:15,18) KHÔNG đổi hàng loạt. Việc kế: đổi sang z.guid() từng nhóm, mỗi nhóm một test theo mẫu tgs-coverage-ranking.actions.spec.ts; ưu tiên khoa_id VST/GSC. Prod: CHUA_RO (không đụng)."
+    "ghi_chu": "Chỉ đổi chỗ nào nhận id từ dữ liệu có thể là seed; mỗi chỗ cần test tái hiện. Không đổi hàng loạt. | Xác minh 2026-11-19 (db-verify, chạy thử zod 4.6.7 + psql chỉ đọc): ĐÚNG, thu hẹp. z.string().uuid() từ chối aaaaaaaa-bbbb-cccc-dddd-000000000001 (guid:true); id v4 như a0000000-0000-4000-8000-000000000001 qua. Tổng .uuid( trong src = 76 dòng/30 file (24 ở lenh_kiem chỉ là phần). Id không chuẩn RFC trên DB local chỉ ở mdm_dm_khoa_phong (1/1 khoa KSNK), mdm_nhan_su (2/2: ADMIN01 dddd…01, KHACH01 dddd…02), auth_user_id, cssd_dm_hoa_chat 1 dòng NEN007 — nguồn supabase/seeds/01-pilot-nhan-su.sql:10,101 và 03-qlcv-local-test-staff.sql:9-10 (seed «chỉ local/dev»; migrations và e2e không có). Trường bị ảnh hưởng thật: khoa_id (giam-sat-vst.validations.ts:70,83 · giam-sat-chung.validations.ts:21 · nhan-su:25 · account-access-request:17 · bang-kiem-toi-phai-tgs.actions.ts:29), khoaId (ke-hoach-giam-sat.actions.ts:21), khoaNhanId (cssd-cap-phat-batch.actions.ts:14, cssd-scan.actions.ts:39), staffIdSchema, nhan-su-active.actions.ts:17, nguoi_giam_sat_id, nguoi_ghi_id. Phần còn lại là id gen_random_uuid() (v4) → LOI_GIA. Helper dùng chung (vst.validations.ts:20,27; gsc:13; qlcv:17; master-data-write:15,18) KHÔNG đổi hàng loạt. Việc kế: đổi sang z.guid() từng nhóm, mỗi nhóm một test theo mẫu tgs-coverage-ranking.actions.spec.ts; ưu tiên khoa_id VST/GSC. Prod: CHUA_RO (không đụng). | Tiến độ 2026-11-19: lát A 7c98b4aa (khoa_id VST/GSC/kế hoạch); lát B1 57f267eb (nhan-su khoa_id, staffIdSchema, account-access-request khoa_id, nhan-su-active ids). Còn lại (mỗi chỗ cần test tái hiện, không đổi hàng loạt): helper requiredUuid/optionalUuid giam-sat-vst.validations.ts:20,27 + hinh_thuc_id/cach_thuc_id :90-91; gsc:13 + criterionId :69; nhan-su.validations.ts to_id/chuc_vu_id/chuc_danh_id/nghe_nghiep_id/vai_tro_he_thong_id; account-access-request chuc_danh_id :18; giam-sat-nkbv.validations.ts nguoi_ghi_id :47; cssd-scan.actions.ts:39 khoa_nhan_id; cssd-cap-phat-batch.actions.ts:14 khoaNhanId; ke-hoach-giam-sat.actions.ts:21; bang-kiem-toi-phai-tgs.actions.ts:29. Quét id không chuẩn RFC trên DB local: scratchpad scan_non_rfc.sql chưa chạy."
   }
 ]
