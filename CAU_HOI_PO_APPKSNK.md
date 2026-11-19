@@ -126,6 +126,16 @@ Cập nhật 2026-11-19. Mọi câu cần PO nằm ở đây, mỗi câu có b�
 - **Mở khóa:** A → làm theo lát (migration đổi `ma_bk` cả dãy, không sửa migration đã apply); B → đóng VST-017 bằng bảng đối chiếu.
 - **ID sổ:** VST-017
 
+### P12 · QT-017 phần 2 · Gán vai «Chủ nhiệm khoa» (CHU_NHIEM_KHOA) cho người thật bằng cách nào
+- **Bối cảnh:** Vai này là vai cộng thêm, hiện 0 người giữ. Ô chọn vai trên trang Tài khoản nhân sự không có vai này (`rbac.types.ts:72-77`), vì lệnh gán ở đó thay toàn bộ vai cũ của người được chọn (`rpc_assign_staff_ksnk_role`), nên gán Chủ nhiệm khoa qua ô đó sẽ làm mất vai KSNK sẵn có của người ấy. Hệ quả: trên giao diện không ai gán được; các việc cần vai này (duyệt hóa chất/thiết bị, nghiệm thu QLCV, mở GSC cho khoa) chưa có người dùng thật.
+- **Hỏi:** Gán vai này cho người thật bằng cách nào?
+- **A.** PO ra lệnh gán một lần trên prod (SQL cộng thêm dòng vai, không bỏ vai cũ), cho người giữ vai theo ghi nhận N6 của lộ trình; không làm đường gán trên giao diện vì chỉ vài người.
+- **B.** Làm đường gán «vai cộng thêm» trên giao diện (không thay vai cũ): 1 migration + RPC + màn hình, qua `review-bv103` vì chạm quyền.
+- **Đề xuất: A** (ít file nhất, không đụng giao diện; dùng được ngay khi PO gõ lệnh).
+- **Nếu im:** giữ hiện trạng, vai vẫn 0 người.
+- **Mở khóa:** A → PO gõ lệnh gán, Claude soạn sẵn câu SQL chỉ-thêm; B → một lát theo CLAUDE.md (≥ 3 kịch bản tay, RPC apply local).
+- **ID sổ:** QT-019 (tách từ QT-017)
+
 ---
 
 ## C — Hỏi khoa CSSD (đầu mối: Nguyễn Thanh Bình)
