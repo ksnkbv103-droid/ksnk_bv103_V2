@@ -209,6 +209,41 @@ describe("listLuuLuongKhoHoaChatAction: cửa sổ 30 ngày theo ngày duyệt (
     if (!r.success) return;
     expect(r.data.find((x) => x.dm_hoa_chat_id === DM1)?.nhap_30n).toBe(100);
   });
+
+  it("CSSD-037: phiếu XUẤT gốc đã được đảo xong (phiếu ngược DA_DUYET) không cộng vào xuat_su_dung_30n", async () => {
+    mocks.table = [
+      slip({ so_luong_co_dau: 100, duyet_at: "2026-11-12T03:00:00Z" }),
+      slip({ loai_giao_dich: "XUAT", so_luong_co_dau: -30, ly_do_xuat: "CAP_SU_DUNG", duyet_at: "2026-11-13T03:00:00Z" }),
+      slip({ so_luong_co_dau: 30, phieu_goc_id: "gd-0002", duyet_at: "2026-11-13T05:00:00Z" }),
+    ];
+    const r = await listLuuLuongKhoHoaChatAction();
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(r.data).toEqual([{ dm_hoa_chat_id: DM1, nhap_30n: 100, xuat_su_dung_30n: 0 }]);
+  });
+
+  it("CSSD-037: chỉ phiếu gốc đã đảo bị bỏ; phiếu XUẤT khác chưa đảo vẫn cộng", async () => {
+    mocks.table = [
+      slip({ loai_giao_dich: "XUAT", so_luong_co_dau: -30, ly_do_xuat: "CAP_SU_DUNG", duyet_at: "2026-11-13T03:00:00Z" }),
+      slip({ loai_giao_dich: "XUAT", so_luong_co_dau: -8, ly_do_xuat: "CAP_SU_DUNG", duyet_at: "2026-11-13T04:00:00Z" }),
+      slip({ so_luong_co_dau: 30, phieu_goc_id: "gd-0001", duyet_at: "2026-11-13T05:00:00Z" }),
+    ];
+    const r = await listLuuLuongKhoHoaChatAction();
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(r.data).toEqual([{ dm_hoa_chat_id: DM1, nhap_30n: 0, xuat_su_dung_30n: 8 }]);
+  });
+
+  it("CSSD-037: phiếu ngược mới CHO_DUYET chưa tính là đảo xong → phiếu XUẤT gốc vẫn cộng", async () => {
+    mocks.table = [
+      slip({ loai_giao_dich: "XUAT", so_luong_co_dau: -30, ly_do_xuat: "CAP_SU_DUNG", duyet_at: "2026-11-13T03:00:00Z" }),
+      slip({ so_luong_co_dau: 30, phieu_goc_id: "gd-0001", trang_thai: "CHO_DUYET", duyet_at: null, created_at: "2026-11-13T05:00:00Z" }),
+    ];
+    const r = await listLuuLuongKhoHoaChatAction();
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(r.data).toEqual([{ dm_hoa_chat_id: DM1, nhap_30n: 0, xuat_su_dung_30n: 30 }]);
+  });
 });
 
 describe("listSoKhoHoaChatDenNgayAction: sổ đến hết ngày theo ngày duyệt (CSSD-033)", () => {

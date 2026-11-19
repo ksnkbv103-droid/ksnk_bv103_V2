@@ -132,17 +132,34 @@ export async function listSuCoChemicalChuaGhiKhoAction(): Promise<
 
       const { data: linkedRows, error: linkedErr } = await supabase
         .from("cssd_fact_kho_hoa_chat_giao_dich")
-        .select("su_co_id")
+        .select("id, su_co_id")
         .in("su_co_id", batch.map((r) => String(r.id || "")))
         .eq("is_active", true)
         // HC-C: phiếu xuất bị từ chối không còn liên kết — sự cố hiện lại để lập phiếu mới.
         .neq("trang_thai", "TU_CHOI");
       // Lỗi tra liên kết phải báo lỗi, không coi mọi sự cố là «chưa ghi» (dễ lập phiếu xuất trùng).
       if (linkedErr) return { success: false, error: mapFkError(linkedErr.message) };
+      // CSSD-037: phiếu gốc đã đảo xong (có phiếu ngược DA_DUYET còn hiệu lực; CHO_DUYET thì chưa) không còn tính là
+      // «đã có phiếu» — cùng vị từ với rpc_cssd_kho_hoa_chat_ghi_giao_dich, để sự cố hiện lại và lập được phiếu xuất mới.
+      const daDao = new Set<string>();
+      const phieuIds = (linkedRows || []).map((g) => String((g as { id?: string }).id || "")).filter(Boolean);
+      if (phieuIds.length) {
+        const { data: nguocRows, error: nguocErr } = await supabase
+          .from("cssd_fact_kho_hoa_chat_giao_dich")
+          .select("phieu_goc_id")
+          .in("phieu_goc_id", phieuIds)
+          .eq("is_active", true)
+          .eq("trang_thai", "DA_DUYET");
+        if (nguocErr) return { success: false, error: mapFkError(nguocErr.message) };
+        for (const n of nguocRows || []) {
+          const gid = (n as { phieu_goc_id?: string }).phieu_goc_id;
+          if (gid) daDao.add(String(gid));
+        }
+      }
       const linked = new Set<string>();
       for (const g of linkedRows || []) {
-        const sid = (g as { su_co_id?: string }).su_co_id;
-        if (sid) linked.add(String(sid));
+        const { id, su_co_id: sid } = g as { id?: string; su_co_id?: string };
+        if (sid && !daDao.has(String(id))) linked.add(String(sid));
       }
       const parsed = batch.filter((r) => !linked.has(String(r.id || ""))).map(parseSuCo);
       const dmErr = await napDanhMucHoaChat(supabase, parsed, dm);

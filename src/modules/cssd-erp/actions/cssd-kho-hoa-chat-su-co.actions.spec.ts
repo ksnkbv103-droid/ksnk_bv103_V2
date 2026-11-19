@@ -24,6 +24,9 @@ const mocks = vi.hoisted(() => ({
   incidents: [] as Array<Record<string, unknown>>,
   linkedSuCoIds: new Set<string>(),
   linkedError: null as null | { message: string },
+  /** CSSD-037: id phiếu XUẤT gốc đã có phiếu ngược (mock chỉ trả khi truy vấn đã lọc DA_DUYET + is_active). */
+  daoGocIds: new Set<string>(),
+  nguocError: null as null | { message: string },
   dms: [] as Array<Record<string, unknown>>,
   dmsError: null as null | { message: string },
   suCoCalls: [] as Array<{ window?: [number, number] }>,
@@ -33,6 +36,8 @@ const mocks = vi.hoisted(() => ({
     ins: Array<[string, unknown[]]>;
   }>,
 }));
+/** id phiếu giả của sự cố đã có phiếu — để test CSSD-037 chỉ định phiếu gốc nào đã đảo. */
+const phieuIdOf = (suCoId: string) => `gd-${suCoId}`;
 
 function makeBuilder(table: string): Builder {
   const rec: Recorded = { eqs: [], neqs: [], ins: [] };
@@ -44,10 +49,18 @@ function makeBuilder(table: string): Builder {
       return { data: mocks.incidents.slice(from, to + 1), error: null };
     }
     if (table === "cssd_fact_kho_hoa_chat_giao_dich") {
+      const gocIds = rec.ins.find(([c]) => c === "phieu_goc_id")?.[1];
+      if (gocIds) {
+        // Truy vấn phiếu ngược (CSSD-037): trả phieu_goc_id của phiếu gốc đã đảo.
+        if (mocks.nguocError) return { data: null, error: mocks.nguocError };
+        return { data: gocIds.filter((id) => mocks.daoGocIds.has(String(id))).map((phieu_goc_id) => ({ phieu_goc_id })), error: null };
+      }
       if (mocks.linkedError) return { data: null, error: mocks.linkedError };
       const ids = rec.ins.find(([c]) => c === "su_co_id")?.[1] ?? [];
       return {
-        data: ids.filter((id) => mocks.linkedSuCoIds.has(String(id))).map((su_co_id) => ({ su_co_id })),
+        data: ids
+          .filter((id) => mocks.linkedSuCoIds.has(String(id)))
+          .map((su_co_id) => ({ id: phieuIdOf(String(su_co_id)), su_co_id })),
         error: null,
       };
     }
@@ -115,6 +128,8 @@ describe("listSuCoChemicalChuaGhiKhoAction: lọc «đã ghi kho» trước khi 
     mocks.linkedCalls.length = 0;
     mocks.linkedSuCoIds.clear();
     mocks.linkedError = null;
+    mocks.daoGocIds.clear();
+    mocks.nguocError = null;
     mocks.dmsError = null;
     mocks.verifyPermission.mockResolvedValue(undefined);
     mocks.incidents = [];
@@ -191,6 +206,42 @@ describe("listSuCoChemicalChuaGhiKhoAction: lọc «đã ghi kho» trước khi 
     const q = mocks.linkedCalls[0];
     expect(q.eqs).toContainEqual(["is_active", true]);
     expect(q.neqs).toContainEqual(["trang_thai", "TU_CHOI"]);
+  });
+
+  it("CSSD-037: sự cố có phiếu gốc đã đảo xong (phiếu ngược DA_DUYET) hiện lại để lập phiếu xuất mới", async () => {
+    mocks.incidents = incidents(3);
+    markLinked(3);
+    mocks.daoGocIds.add(phieuIdOf(scId(2)));
+    const r = await listSuCoChemicalChuaGhiKhoAction();
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(r.data.map((x) => x.id)).toEqual([scId(2)]);
+  });
+
+  it("CSSD-037: sự cố có phiếu gốc chưa đảo vẫn ẩn (không có phiếu ngược DA_DUYET)", async () => {
+    mocks.incidents = incidents(2);
+    markLinked(2);
+    const r = await listSuCoChemicalChuaGhiKhoAction();
+    expect(r).toEqual({ success: true, data: [] });
+  });
+
+  it("CSSD-037: chỉ phiếu ngược đã duyệt còn hiệu lực mới tính là đã đảo (CHO_DUYET thì phiếu gốc vẫn chặn)", async () => {
+    mocks.incidents = incidents(1);
+    markLinked(1);
+    await listSuCoChemicalChuaGhiKhoAction();
+    const q = mocks.linkedCalls.find((c) => c.ins.some(([col]) => col === "phieu_goc_id"));
+    expect(q).toBeDefined();
+    expect(q!.eqs).toContainEqual(["is_active", true]);
+    expect(q!.eqs).toContainEqual(["trang_thai", "DA_DUYET"]);
+    expect(q!.ins.find(([col]) => col === "phieu_goc_id")?.[1]).toEqual([phieuIdOf(scId(1))]);
+  });
+
+  it("CSSD-037: truy vấn phiếu ngược lỗi: trả lỗi, không coi sự cố đã đảo là đã ghi hay chưa ghi", async () => {
+    mocks.incidents = incidents(1);
+    markLinked(1);
+    mocks.nguocError = { message: "nguoc boom" };
+    const r = await listSuCoChemicalChuaGhiKhoAction();
+    expect(r).toEqual({ success: false, error: "nguoc boom" });
   });
 
   it("CSSD-035: 40 sự cố mới nhất không xác định được hóa chất không che sự cố cũ hơn xác định được", async () => {

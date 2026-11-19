@@ -28,13 +28,18 @@ export async function listLuuLuongKhoHoaChatAction(): Promise<
     const rows = await fetchAllRangeRows<Record<string, unknown>>((from, to) =>
       supabase
         .from("cssd_fact_kho_hoa_chat_giao_dich")
-        .select("dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ly_do_xuat, phieu_goc_id")
+        .select("id, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ly_do_xuat, phieu_goc_id")
         .eq("is_active", true)
         .eq("trang_thai", "DA_DUYET")
         .in("loai_giao_dich", ["NHAP", "XUAT"])
         .or(hieuLucTu(tu))
         .order("created_at", { ascending: true })
         .range(from, to),
+    );
+    // CSSD-037: phiếu XUẤT gốc đã được đảo xong (có phiếu ngược DA_DUYET còn hiệu lực — đúng tập truy vấn trên) không còn là lượng cấp sử dụng.
+    // Phiếu ngược luôn duyệt sau phiếu gốc nên gốc trong cửa sổ 30 ngày thì ngược cũng nằm trong.
+    const daDao = new Set(
+      rows.filter((r) => r.loai_giao_dich === "NHAP" && r.phieu_goc_id != null).map((r) => String(r.phieu_goc_id)),
     );
     const map = new Map<string, KhoHoaChatLuuLuong>();
     for (const r of rows) {
@@ -47,7 +52,9 @@ export async function listLuuLuongKhoHoaChatAction(): Promise<
         if (r.phieu_goc_id == null) cur.nhap_30n += Math.abs(q);
       }
       // Phiếu xuất cũ (trước HC-E) chưa có lý do → coi là cấp sử dụng.
-      else if (r.ly_do_xuat == null || r.ly_do_xuat === "CAP_SU_DUNG") cur.xuat_su_dung_30n += Math.abs(q);
+      else if (!daDao.has(String(r.id)) && (r.ly_do_xuat == null || r.ly_do_xuat === "CAP_SU_DUNG")) {
+        cur.xuat_su_dung_30n += Math.abs(q);
+      }
       map.set(id, cur);
     }
     return { success: true, data: [...map.values()] };
