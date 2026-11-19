@@ -2272,11 +2272,11 @@
     "muc": "THAP",
     "tieu_de": "Xuất Excel: neutralizeFormula thêm dấu ' trước mọi chuỗi bắt đầu = + - @, kể cả số âm dạng chuỗi (vd -5), nên nhập lại file xuất sẽ lệch",
     "bang_chung": "src/hooks/useExcelExport.ts (neutralizeFormula); chưa có ca thử.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "node -e: exceljs ghi {num:-5,str:'-5',phone:'+84901234567'} qua useExcelExport rồi đọc lại → số âm kiểu number giữ nguyên, chuỗi «+84…» đọc về «'+84…»; sau khi sửa: spec round-trip export→import trả đúng «+84901234567»",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (gộp nhánh audit 18/11)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (gộp nhánh audit 18/11). | Xác minh 2026-11-19 (db-verify, chạy thử exceljs): ĐÚNG, thu hẹp, mức THAP. Ví dụ trong sổ SAI: số âm kiểu number không bị đổi (useExcelExport.ts:12 chỉ xử lý typeof v === string). Lỗi thật: mọi CHUỖI bắt đầu = + - @ (sđt «+84…», ghi chú «- …») ghi kèm dấu ' thật vào ô (đọc lại bằng exceljs: «'+84901234567»). Importer không gỡ ': useExcelImport.ts:59 → excelCellToPlain (importExport.utils.ts:6-16) chỉ lấy text/result/richText; so_dien_thoai nằm trong NHAN_SU_IMPORT_EXTRA_KEYS (nhan-su-import-allowlist.ts:25) nên nhập lại sẽ ghi «'+84…» vào DB. excel-string-cell.spec.ts đã chứng minh exceljs ghi chuỗi thành ô văn bản, không thành công thức. Ảnh hưởng hiện tại 0/2 dòng nhan_su local (sđt VN thường bắt đầu bằng 0). Việc kế tối thiểu: importer gỡ một ' đầu khi ký tự kế tiếp thuộc [=+-@ tab CR], kèm test round-trip; bỏ hẳn neutralize là tradeoff bảo mật, không đề nghị."
   },
   {
     "id": "VST-036",
@@ -2341,10 +2341,10 @@
     "tieu_de": "Quy trình kẹt ở bộ tổng B01.SET.05, B09.SET.10, B19.SET.07 sau S2",
     "bang_chung": "Sau migration 20261111130000 (S2); chưa xử lý (roadmap cũ).",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "CHO_PO",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | Xác minh 2026-11-19 (db-verify): CHUA_RO — local không còn dữ liệu (cssd_dm_bo_dung_cu=0, cssd_fact_quy_trinh=0; B01.SET.05/B09.SET.10/B19.SET.07 truy rỗng). Ba mã chỉ có ở handover-roadmap.md:79 và commit 254de0f2 (NOTICE D6 của lần chạy S2 trên DB dev cũ 192 bộ/93 QT). «Kẹt» = QT is_active gắn bộ tổng (parent_bo_id IS NULL) còn con CN/KCN active (20261111130000_cssd_bo_tong_chuyen_du_lieu.sql:222-234; D6 chỉ RAISE NOTICE); core không tự xử lý vì v_co_the_tro đòi bộ tổng chưa có QT active (20261111140000_cssd_bo_tong_hardening_2.sql:201-203). Prod: S2 đã áp (KH_APPKSNK_20261117_lo-prod-pha1.md:48 chuyển 0 dòng) nhưng kế hoạch chỉ đo số dòng, không đo điều kiện D6. Đây là xử lý dữ liệu, không phải lỗi code, không cần migration. CHO_PO câu D5 trong CAU_HOI_PO_APPKSNK.md: PO/MCP chạy SELECT chỉ đọc D6 (…chuyen_du_lieu.sql:322-326) trên prod; có ca thì PO quyết hoàn thành hay hủy QT trên bộ tổng."
   },
   {
     "id": "CSSD-042",
@@ -2353,11 +2353,11 @@
     "muc": "THAP",
     "tieu_de": "RLS ghi cssd_dm_loai_bao_goi dùng quyền module CSSD không tồn tại nên thực tế chỉ ADMIN ghi được",
     "bang_chung": "RLS cssd_dm_* (policy ghi cssd_dm_loai_bao_goi); roadmap cũ, mức Thấp.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "select policyname, qual, with_check from pg_policies where tablename='cssd_dm_loai_bao_goi'; select count(*) from sys_permissions where module_name='CSSD' (kỳ vọng 0); sau khi sửa: policy dùng BO_DC và vai có BO_DC edit ghi được qua user client",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | Xác minh 2026-11-19 (db-verify, pg_policies local): ĐÚNG kỹ thuật, tác động thực tế 0. cssd_dm_loai_bao_goi_write (ALL) dùng fn_sys_has_permission('CSSD','edit'), _select dùng ('CSSD','view') (20261005145000_cssd_me05_hsd_bao_goi.sql:57-69); sys_permissions module_name='CSSD' = 0 dòng nên chỉ ADMIN qua. Không có đường ghi bằng user client: bo-dung-cu.actions.ts:64,:91 và master-crud-core.ts:213,293,368 dùng admin client; sys_mdm_registry 0 dòng cho bảng này; fn_cssd_me_chuyen_bo_kho_vo_khuan là INVOKER, authenticated không có EXECUTE; chỉ migration (owner) ghi. Việc kế (hoãn được, khi có người ghi): migration mới (> PROD_HEAD, có -- ADR:) đổi cả hai policy sang BO_DC view/edit khớp verifyPermission(BO_DC,view) ở bo-dung-cu.actions.ts:61. Chưa kiểm sys_permissions trên prod."
   },
   {
     "id": "CSSD-043",
@@ -2745,9 +2745,9 @@
     "tieu_de": "24 chỗ `z.string().uuid()` (Zod 4, kiểm RFC) có thể từ chối id seed không chuẩn RFC như aaaaaaaa-bbbb-cccc-dddd-000000000001",
     "bang_chung": "Lát 1c: getTgsCoverageRankingAction báo «Invalid UUID» vì khoa_ids dùng z.string().uuid(); đã đổi z.guid() ở tgs-coverage-ranking.actions.ts. Còn 24 chỗ cùng mẫu ở src/lib/validations/*, src/lib/analytics/bang-kiem-toi-phai-tgs.actions.ts, src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts, ke-hoach-giam-sat.actions.ts… Cột DB là uuid Postgres (mọi dạng 8-4-4-4-12 hex); id thật sinh bởi gen_random_uuid() là v4 nên chỉ lộ với dữ liệu seed/nhập tay.",
     "lenh_kiem": "grep -rn \"z\\.string()\\.uuid()\" src --include='*.ts' | grep -v spec | wc -l",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "lat-1c-20261119",
     "commit": "",
-    "ghi_chu": "Chỉ đổi chỗ nào nhận id từ dữ liệu có thể là seed; mỗi chỗ cần test tái hiện. Không đổi hàng loạt."
+    "ghi_chu": "Chỉ đổi chỗ nào nhận id từ dữ liệu có thể là seed; mỗi chỗ cần test tái hiện. Không đổi hàng loạt. | Xác minh 2026-11-19 (db-verify, chạy thử zod 4.6.7 + psql chỉ đọc): ĐÚNG, thu hẹp. z.string().uuid() từ chối aaaaaaaa-bbbb-cccc-dddd-000000000001 (guid:true); id v4 như a0000000-0000-4000-8000-000000000001 qua. Tổng .uuid( trong src = 76 dòng/30 file (24 ở lenh_kiem chỉ là phần). Id không chuẩn RFC trên DB local chỉ ở mdm_dm_khoa_phong (1/1 khoa KSNK), mdm_nhan_su (2/2: ADMIN01 dddd…01, KHACH01 dddd…02), auth_user_id, cssd_dm_hoa_chat 1 dòng NEN007 — nguồn supabase/seeds/01-pilot-nhan-su.sql:10,101 và 03-qlcv-local-test-staff.sql:9-10 (seed «chỉ local/dev»; migrations và e2e không có). Trường bị ảnh hưởng thật: khoa_id (giam-sat-vst.validations.ts:70,83 · giam-sat-chung.validations.ts:21 · nhan-su:25 · account-access-request:17 · bang-kiem-toi-phai-tgs.actions.ts:29), khoaId (ke-hoach-giam-sat.actions.ts:21), khoaNhanId (cssd-cap-phat-batch.actions.ts:14, cssd-scan.actions.ts:39), staffIdSchema, nhan-su-active.actions.ts:17, nguoi_giam_sat_id, nguoi_ghi_id. Phần còn lại là id gen_random_uuid() (v4) → LOI_GIA. Helper dùng chung (vst.validations.ts:20,27; gsc:13; qlcv:17; master-data-write:15,18) KHÔNG đổi hàng loạt. Việc kế: đổi sang z.guid() từng nhóm, mỗi nhóm một test theo mẫu tgs-coverage-ranking.actions.spec.ts; ưu tiên khoa_id VST/GSC. Prod: CHUA_RO (không đụng)."
   }
 ]
