@@ -36,7 +36,8 @@ const scanQrInputSchema = z.object({
   extraPayload: z
     .object({
       ma_ca_mo_id: z.string().trim().max(200).optional().nullable(),
-      khoa_nhan_id: z.union([z.literal(""), z.string().uuid("khoa_nhan_id không hợp lệ.")]).optional().nullable(),
+      // NEN-016: `.guid()` nhận cả id khoa seed không chuẩn RFC (`.uuid()` của Zod 4 từ chối).
+      khoa_nhan_id: z.union([z.literal(""), z.guid("khoa_nhan_id không hợp lệ.")]).optional().nullable(),
     })
     .passthrough()
     .optional(),

@@ -27,6 +27,13 @@ const optionalUuid = (msg: string) =>
     z.string().uuid(msg).nullable().optional(),
   );
 
+/** Id nhân sự tùy chọn — như `optionalUuid` nhưng `.guid()` để nhận id seed không chuẩn RFC (NEN-016). */
+const optionalGuid = (msg: string) =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? null : v),
+    z.guid(msg).nullable().optional(),
+  );
+
 const vstMomentSchema = z.enum(MOMENTS, { error: "Thời điểm WHO không hợp lệ" });
 const vstActionSchema = z.enum(ACTIONS, { error: "Hành động vệ sinh tay không hợp lệ" });
 
@@ -69,7 +76,7 @@ const vstOpportunitySchema = z
 const vstObservationSchema = z.object({
   // NEN-016: z.guid(): `.uuid()` của Zod 4 kiểm RFC (nibble phiên bản 1–8) và từ chối id khoa seed `aaaaaaaa-bbbb-cccc-dddd-000000000001`; cột là `uuid` Postgres (mọi dạng 8-4-4-4-12 hex).
   khoa_id: z.guid("Khoa không hợp lệ"),
-  nhan_vien_id: optionalUuid("Nhân viên không hợp lệ"),
+  nhan_vien_id: optionalGuid("Nhân viên không hợp lệ"),
   ten_nhan_vien_ngoai: z.string().optional(),
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
   khu_vuc: z.string().optional(),

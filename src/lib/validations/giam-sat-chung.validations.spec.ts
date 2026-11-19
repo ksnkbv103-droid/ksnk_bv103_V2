@@ -35,3 +35,33 @@ describe("gscSaveSessionSchema — session.khoa_id (NEN-016)", () => {
     }
   });
 });
+
+/**
+ * NEN-016 lát E: id nhân sự của phiên GSC (`nguoi_giam_sat_id`, `nhan_vien_id`) trỏ `mdm_nhan_su`
+ * (có id seed không chuẩn RFC: ADMIN01, KHACH01) nên dùng `z.guid()`; chuỗi junk vẫn bị từ chối.
+ */
+describe("gscSaveSessionSchema — id nhân sự dạng seed không chuẩn RFC (NEN-016 E)", () => {
+  function parseSession(extra: Record<string, unknown>) {
+    return gscSaveSessionSchema.safeParse({
+      session: { khoa_id: V4, ...extra },
+      results: [{ criterionId: CRITERION, value: "DAT" }],
+    });
+  }
+
+  for (const field of ["nguoi_giam_sat_id", "nhan_vien_id"] as const) {
+    it(`${field}: nhận id seed, UUID v4 chuẩn, null và chuỗi rỗng`, () => {
+      expect(parseSession({ [field]: SEED }).success).toBe(true);
+      expect(parseSession({ [field]: V4 }).success).toBe(true);
+      expect(parseSession({ [field]: null }).success).toBe(true);
+      expect(parseSession({ [field]: "" }).success).toBe(true);
+    });
+
+    it(`${field}: vẫn từ chối chuỗi không phải UUID`, () => {
+      const parsed = parseSession({ [field]: JUNK });
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.issues.some((i) => i.path.join(".") === `session.${field}`)).toBe(true);
+      }
+    });
+  }
+});

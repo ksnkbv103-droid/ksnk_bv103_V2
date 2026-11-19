@@ -275,4 +275,20 @@ describe("vstSaveSessionSchema — id khoa/người giám sát dạng seed khôn
       expect(parsed.error.issues.some((i) => i.path.join(".") === "session.nguoi_giam_sat_id")).toBe(true);
     }
   });
+
+  it("nhan_vien_id dòng quan sát (nhân sự): nhận id seed, UUID v4 chuẩn, null và chuỗi rỗng", () => {
+    expect(parse([observation({ nhan_vien_id: SEED })]).success).toBe(true);
+    expect(parse([observation({ nhan_vien_id: V4 })]).success).toBe(true);
+    expect(parse([observation({ nhan_vien_id: null })]).success).toBe(true);
+    expect(parse([observation({ nhan_vien_id: "" })]).success).toBe(true);
+  });
+
+  it("nhan_vien_id dòng quan sát: vẫn từ chối chuỗi không phải UUID với câu lỗi cũ", () => {
+    const parsed = parse([observation({ nhan_vien_id: JUNK })]);
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      const issue = parsed.error.issues.find((i) => i.path.join(".") === "observations.0.nhan_vien_id");
+      expect(issue?.message).toBe("Nhân viên không hợp lệ");
+    }
+  });
 });

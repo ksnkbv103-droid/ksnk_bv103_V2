@@ -156,6 +156,15 @@ describe("scanQR CAP_PHAT issuanceOnly", () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
+  it("NEN-016: khoa_nhan_id là id khoa seed không chuẩn RFC vẫn được nhận và chuyển xuống RPC", async () => {
+    const SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+    await scanQR("B01.SET.01", "CAP_PHAT", { khoa_nhan_id: SEED });
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      "rpc_cssd_cap_phat_commit",
+      expect.objectContaining({ p_khoa_nhan_id: SEED }),
+    );
+  });
+
   it("SC-01 pha 2: view không có metadata → đọc từ cssd_fact_quy_trinh trước khi nhận lại", async () => {
     mocks.qt = { id: QT_ID, ma_trang_thai_hien_tai: "CAP_PHAT", ten_bo: "Bộ A" };
     mocks.recv.mockResolvedValueOnce({ handled: true, newQuyTrinhId: "new-1" });

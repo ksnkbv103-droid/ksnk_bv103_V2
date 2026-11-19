@@ -13,6 +13,13 @@ const optionalUuid = (msg: string) =>
     z.string().uuid(msg).nullable().optional(),
   );
 
+/** Id nhân sự tùy chọn — như `optionalUuid` nhưng `.guid()` để nhận id seed không chuẩn RFC (NEN-016). */
+const optionalGuid = (msg: string) =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? null : v),
+    z.guid(msg).nullable().optional(),
+  );
+
 // ============================================================
 // Phiên giám sát (Session)
 // ============================================================
@@ -22,8 +29,8 @@ const gscSessionSchema = z.object({
   khoa_id: z.guid("Khoa không hợp lệ"),
   /** GS-01: bắt buộc khi tạo mới (action); optional để grandfather phiên cũ khi sửa. */
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
-  nguoi_giam_sat_id: optionalUuid("Người giám sát không hợp lệ"),
-  nhan_vien_id: optionalUuid("Nhân viên không hợp lệ"),
+  nguoi_giam_sat_id: optionalGuid("Người giám sát không hợp lệ"),
+  nhan_vien_id: optionalGuid("Nhân viên không hợp lệ"),
   nghe_nghiep_id: optionalUuid("Nghề nghiệp không hợp lệ"),
   bang_kiem_id: optionalUuid("Bảng kiểm không hợp lệ"),
   loai_bang_kiem: z.string().optional(),

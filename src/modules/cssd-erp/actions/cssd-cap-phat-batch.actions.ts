@@ -11,7 +11,8 @@ import {
 } from "../lib/cssd-cap-phat-batch";
 
 const batchSchema = z.object({
-  khoaNhanId: z.string().uuid("Chưa chọn nơi nhận."),
+  // NEN-016: `.guid()` nhận cả id khoa seed không chuẩn RFC (`.uuid()` của Zod 4 từ chối).
+  khoaNhanId: z.guid("Chưa chọn nơi nhận."),
   maQrs: z.array(z.string().max(200)).min(1, "Chưa quét bộ nào.").max(CAP_PHAT_BATCH_MAX, `Tối đa ${CAP_PHAT_BATCH_MAX} bộ mỗi lần.`),
   maCaMoId: z.string().trim().max(200).optional().nullable(),
 });
