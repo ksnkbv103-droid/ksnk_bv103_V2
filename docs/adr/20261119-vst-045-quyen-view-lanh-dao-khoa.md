@@ -22,6 +22,6 @@ Dòng sổ lỗi: VST-045. Migration: `supabase/migrations/20261119180000_vst_04
 
 Phương án A.
 
-Kiểm chứng: `npm run db:dung` (pgTAP `vst_rls` 30/30), `scripts/readiness/acl-snapshot.mjs`, `so-loi.mjs check` exit 0.
+Kiểm chứng: `npm run db:dung` (pgTAP `vst_rls` 30/30), `scripts/acl-snapshot.mjs`, `so-loi.mjs check` exit 0.
 
 Hoàn tác: xóa dòng `sys_role_permissions` của `LANH_DAO_KHOA` + `GIAM_SAT_VST:view` nếu cần; không xóa hàng `sys_permissions` (seed và prod dùng chung).
