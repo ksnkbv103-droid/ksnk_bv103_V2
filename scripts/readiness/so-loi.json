@@ -2274,10 +2274,11 @@
     "tieu_de": "Xuất Excel: neutralizeFormula thêm dấu ' trước mọi chuỗi bắt đầu = + - @, kể cả số âm dạng chuỗi (vd -5), nên nhập lại file xuất sẽ lệch",
     "bang_chung": "src/hooks/useExcelExport.ts (neutralizeFormula); chưa có ca thử.",
     "lenh_kiem": "node -e: exceljs ghi {num:-5,str:'-5',phone:'+84901234567'} qua useExcelExport rồi đọc lại → số âm kiểu number giữ nguyên, chuỗi «+84…» đọc về «'+84…»; sau khi sửa: spec round-trip export→import trả đúng «+84901234567»",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (gộp nhánh audit 18/11). | Xác minh 2026-11-19 (db-verify, chạy thử exceljs): ĐÚNG, thu hẹp, mức THAP. Ví dụ trong sổ SAI: số âm kiểu number không bị đổi (useExcelExport.ts:12 chỉ xử lý typeof v === string). Lỗi thật: mọi CHUỖI bắt đầu = + - @ (sđt «+84…», ghi chú «- …») ghi kèm dấu ' thật vào ô (đọc lại bằng exceljs: «'+84901234567»). Importer không gỡ ': useExcelImport.ts:59 → excelCellToPlain (importExport.utils.ts:6-16) chỉ lấy text/result/richText; so_dien_thoai nằm trong NHAN_SU_IMPORT_EXTRA_KEYS (nhan-su-import-allowlist.ts:25) nên nhập lại sẽ ghi «'+84…» vào DB. excel-string-cell.spec.ts đã chứng minh exceljs ghi chuỗi thành ô văn bản, không thành công thức. Ảnh hưởng hiện tại 0/2 dòng nhan_su local (sđt VN thường bắt đầu bằng 0). Việc kế tối thiểu: importer gỡ một ' đầu khi ký tự kế tiếp thuộc [=+-@ tab CR], kèm test round-trip; bỏ hẳn neutralize là tradeoff bảo mật, không đề nghị."
+    "commit": "ff5043ce",
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (gộp nhánh audit 18/11). | Xác minh 2026-11-19 (db-verify, chạy thử exceljs): ĐÚNG, thu hẹp, mức THAP. Ví dụ trong sổ SAI: số âm kiểu number không bị đổi (useExcelExport.ts:12 chỉ xử lý typeof v === string). Lỗi thật: mọi CHUỖI bắt đầu = + - @ (sđt «+84…», ghi chú «- …») ghi kèm dấu ' thật vào ô (đọc lại bằng exceljs: «'+84901234567»). Importer không gỡ ': useExcelImport.ts:59 → excelCellToPlain (importExport.utils.ts:6-16) chỉ lấy text/result/richText; so_dien_thoai nằm trong NHAN_SU_IMPORT_EXTRA_KEYS (nhan-su-import-allowlist.ts:25) nên nhập lại sẽ ghi «'+84…» vào DB. excel-string-cell.spec.ts đã chứng minh exceljs ghi chuỗi thành ô văn bản, không thành công thức. Ảnh hưởng hiện tại 0/2 dòng nhan_su local (sđt VN thường bắt đầu bằng 0). Việc kế tối thiểu: importer gỡ một ' đầu khi ký tự kế tiếp thuộc [=+-@ tab CR], kèm test round-trip; bỏ hẳn neutralize là tradeoff bảo mật, không đề nghị. | Tay 2026-11-19 CHUA: chỉ spec: round-trip exceljs (export→import) 6 ca pass; chưa thử nạp lại file xuất trên giao diện. Còn mơ hồ đã biết: chuỗi người dùng tự gõ «'+84…» sẽ mất dấu ' khi nhập.",
+    "test_tay": "CHUA"
   },
   {
     "id": "VST-036",
