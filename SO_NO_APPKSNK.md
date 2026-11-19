@@ -20,3 +20,5 @@ Mọi lỗi và việc mở nằm ở sổ lỗi: `node scripts/readiness/so-loi
 - **Dữ liệu UAT local:** 80 (B99). Khi cần, dọn bằng `node scripts/uat-cleanup.mjs`.
 
 ## Ghi nhận ngoài lát (một dòng mỗi mục: `file:dòng — vấn đề`; phân loại vào sổ ở lần kế)
+- `supabase/migrations/20261119110000_cssd_039_khoa_su_co_ghi_giao_dich.sql:182-193` — void sự cố không khóa dòng phiếu ngược đang bị tắt `is_active` cùng lúc; rủi ro rất thấp (review-bv103 19/11, Minor).
+- `supabase/migrations/20261119110000_cssd_039_khoa_su_co_ghi_giao_dich.sql:56` — phiếu NHẬP có `su_co_id` vẫn lọt vào sự cố đã hủy; app hiện không gửi trường này (review-bv103 19/11, Minor).
