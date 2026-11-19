@@ -30,7 +30,8 @@ export type DrawerApprove = {
 type Props = {
   dm: DmStockSummary;
   lots: KhoHoaChatTonLo[];
-  movs: KhoHoaChatGiaoDichRow[];
+  /** `null` = đang tải lịch sử của mặt hàng này. */
+  movs: KhoHoaChatGiaoDichRow[] | null;
   suCo: SuCoChemicalRow[];
   canEdit: boolean;
   approve: DrawerApprove;
@@ -98,7 +99,7 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
               {dm.ma_hoa_chat} · Tồn {dm.tong_ton} {dm.don_vi_tinh || ""}
             </p>
           </div>
-          <button type="button" onClick={() => setPrintState({ kind: "THE_KHO", item, the: buildTheKho(movs, dm.tong_ton) })} className="ml-auto flex items-center gap-1 rounded border border-slate-200 px-2 py-1 bv103-type-label font-semibold text-slate-700 hover:bg-slate-50">
+          <button type="button" disabled={!movs} onClick={() => movs && setPrintState({ kind: "THE_KHO", item, the: buildTheKho(movs, dm.tong_ton) })} className="ml-auto flex items-center gap-1 rounded border border-slate-200 px-2 py-1 bv103-type-label font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
             <Printer className="h-3.5 w-3.5" /> In thẻ kho
           </button>
           <button type="button" aria-label="Đóng" onClick={onClose} className="rounded p-1 hover:bg-slate-100">
@@ -138,7 +139,9 @@ export default function KhoHoaChatDrawer({ dm, lots, movs, suCo, canEdit, approv
 
         <p className={H}>Lịch sử nhập, xuất</p>
         <ul className="mt-1 space-y-2">
-          {movs.length ? (
+          {!movs ? (
+            <li className="bv103-type-label text-slate-500">Đang tải…</li>
+          ) : movs.length ? (
             movs.map((m) => {
               const tt = normalizeTrangThai(m.trang_thai);
               const showBtn = canShowDuyetButtons({ trangThai: m.trang_thai, canApprove: approve.canApprove });

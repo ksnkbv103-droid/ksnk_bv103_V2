@@ -14,7 +14,8 @@ import KhoHoaChatFilterBar from "../components/kho-hoa-chat/kho-hoa-chat-filter-
 import KhoHoaChatItemTable from "../components/kho-hoa-chat/kho-hoa-chat-item-table";
 import KhoHoaChatBaoCaoPanel from "../components/kho-hoa-chat/kho-hoa-chat-bao-cao-panel";
 import KhoHoaChatDrawer from "../components/kho-hoa-chat/kho-hoa-chat-drawer";
-import { listGiaoDichKhoHoaChatAction, type KhoHoaChatGiaoDichRow } from "../actions/cssd-kho-hoa-chat.actions";
+import { listGiaoDichKhoHoaChatAction } from "../actions/cssd-kho-hoa-chat.actions";
+import { movsForOpenDm, type DmMovsState } from "../helpers/kho-hoa-chat-movs";
 import { useKhoHoaChatPage } from "../hooks/use-kho-hoa-chat-page";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
@@ -41,7 +42,7 @@ export default function KhoHoaChatKsnkPage() {
     () => filterKhoRows(h.dmSummary, chip, search, h.choDuyetByDm, nhomEff),
     [h.dmSummary, chip, search, h.choDuyetByDm, nhomEff],
   );
-  const [dmMovs, setDmMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
+  const [dmMovs, setDmMovs] = useState<DmMovsState>(null);
   // Lịch sử riêng từng mặt hàng (không cắt theo 120 dòng toàn kho); tải lại sau mỗi reload (duyệt/nhập/xuất).
   // Cửa sổ 200 dòng theo ngày duyệt (CSSD-036) để thẻ kho tính tồn lũy kế đúng thứ tự tồn đổi.
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function KhoHoaChatKsnkPage() {
     let alive = true;
     void listGiaoDichKhoHoaChatAction({ limit: 200, dm_hoa_chat_id: openId, theo_ngay_hieu_luc: true }).then((r) => {
       if (!alive) return;
-      if (r.success) setDmMovs(r.data);
+      if (r.success) setDmMovs({ dmId: openId, rows: r.data });
       else toast.error(r.error);
     });
     return () => {
@@ -148,7 +149,7 @@ export default function KhoHoaChatKsnkPage() {
         <KhoHoaChatDrawer
           dm={openDm}
           lots={h.tons.filter((t) => t.dm_hoa_chat_id === openDm.id)}
-          movs={dmMovs}
+          movs={movsForOpenDm(dmMovs, openId)}
           suCo={h.suCoRows.filter((r) => r.dm_hoa_chat_id === openDm.id)}
           canEdit={canEdit}
           approve={h.approve}
