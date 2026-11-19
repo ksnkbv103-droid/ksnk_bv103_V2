@@ -32,7 +32,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await expect(page.locator("body")).not.toContainText('column "so_co_hoi" does not exist', { timeout: 60_000 });
     await expect(page.getByText("Tỷ lệ tuân thủ").first()).toBeVisible({ timeout: 25_000 }); // gate-ok: tiêu đề «Tổng hợp (mọi chuyên đề trong kỳ)» đã bỏ khỏi UI, thay bằng chỉ số thật
     await expect(page.getByRole("button", { name: /tải lại/i })).toBeVisible();
-    await expect(page.locator(ERROR_BANNER)).toHaveCount(0); // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện, chỉ banner lỗi text-red-800 mới là lỗi // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện kể cả 0 khoa; chỉ banner lỗi text-red-800 mới là lỗi
+    await expect(page.locator(ERROR_BANNER)).toHaveCount(0); // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện, chỉ banner lỗi text-red-800 mới là lỗi
 
     await page.goto("/lich-su/gsc");
     await expect(page.locator("body")).not.toContainText("Đang tải…", { timeout: 60_000 });
@@ -73,7 +73,7 @@ test.describe("GSC + VST supervision E2E (function-based routes)", () => {
     await reload.click();
     await expect(page.getByText("Tỷ lệ tuân thủ").first()).toBeVisible({ timeout: 60_000 });
     await reload.click();
-    await expect(page.locator(ERROR_BANNER)).toHaveCount(0); // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện, chỉ banner lỗi text-red-800 mới là lỗi // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện kể cả 0 khoa; chỉ banner lỗi text-red-800 mới là lỗi
+    await expect(page.locator(ERROR_BANNER)).toHaveCount(0); // gate-ok: ô «Dưới 85%» (text-red-900) luôn hiện, chỉ banner lỗi text-red-800 mới là lỗi
     await expect(page.locator("body")).not.toContainText('column "so_co_hoi" does not exist');
   });
 
