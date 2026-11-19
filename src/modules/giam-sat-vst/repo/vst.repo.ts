@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDb, callRpc } from "@/lib/data-access";
+import type { Database } from "@/lib/database.types";
 import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
 import { applyVstHistoryReadScope } from "../lib/vst-read-scope";
 import {
@@ -97,7 +99,8 @@ export async function getVstObservationsView(sessionId: string) {
  * Lấy metadata thô của phiên từ gstt_fact_vst_sessions để giữ các yếu tố nguy cơ người bệnh (bn_*).
  */
 export async function getVstSessionMetadataById(sessionId: string) {
-  const db = await getDb("admin");
+  // Hàm mẫu gõ kiểu theo schema sinh (plan §10 #2, Lát 1b): đổi tên bảng/cột thì build đỏ. Không gõ kiểu client dùng chung getDb.
+  const db = (await getDb("admin")) as SupabaseClient<Database>;
   return await db
     .from("gstt_fact_vst_sessions")
     .select("metadata")

@@ -7,8 +7,10 @@
 #     (PO 18/11, như scripts/db-reset-local.sh); ledger phải bằng số file.
 #  3. db lint --level error không vượt mốc scripts/data/db-lint-baseline.json (lỗi cũ ghi trong mốc; chỉ chặn lỗi mới).
 #  4. audit:views (0 view không ai dùng).
+#  5. pgTAP: `supabase test db` chạy supabase/tests/** (§10 #1, Lát 1b).
+#  6. gen types: src/lib/database.types.ts phải bằng output `supabase gen types typescript --local` (§10 #2, Lát 1b).
 # Chạy đủ các bước rồi mới thoát; bước nào đỏ thì exit 1.
-# Biến: MIGRATION_BASE · DB_DUNG_GHI_MOC=1 (ghi lại mốc lint) · DB_DUNG_GIU=1 (giữ stack để soi) · SUPABASE_CLI (mặc định npx supabase).
+# Biến: MIGRATION_BASE · DB_DUNG_GHI_MOC=1 (ghi lại mốc lint) · DB_DUNG_GHI_TYPES=1 (sinh lại database.types.ts) · DB_DUNG_GIU=1 (giữ stack để soi) · SUPABASE_CLI (mặc định npx supabase).
 set -uo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -41,7 +43,7 @@ node "$REPO/scripts/guard-migrations.mjs" --bat-bien --base "$base" || fail="$fa
 
 # 2. Dựng
 mkdir -p "$WD/supabase/migrations"
-for f in seed.sql seeds; do ln -s "$REPO/supabase/$f" "$WD/supabase/$f"; done
+for f in seed.sql seeds tests; do ln -s "$REPO/supabase/$f" "$WD/supabase/$f"; done
 { echo "project_id = \"$PID\""
   awk '/^\[api\]$/ { print; print "port = 55621"; next }
        /^\[db\]$/  { print; print "shadow_port = 55620"; next }
@@ -94,6 +96,22 @@ JS
 AUDIT_VIEWS_PSQL="docker exec -i $DBC psql -U postgres -d postgres -X" node "$REPO/scripts/audit-view-usage.mjs" > "$TMP/views.json" \
   || { cat "$TMP/views.json"; fail="$fail · audit:views"; }
 tail -1 "$TMP/views.json"
+
+# 5. pgTAP: supabase/tests/** (RLS theo vai; dựng dữ liệu trong giao dịch rồi ROLLBACK)
+sb test db > "$TMP/pgtap.log" 2>&1 || { tail -40 "$TMP/pgtap.log" >&2; fail="$fail · pgTAP"; }
+tail -3 "$TMP/pgtap.log"
+
+# 6. Kiểu TypeScript sinh từ schema: file đã commit phải bằng output `gen types` của chính chuỗi migration này
+TYPES="$REPO/src/lib/database.types.ts"
+if sb gen types typescript --local --schema public > "$TMP/database.types.ts" 2> "$TMP/types.err"; then
+  if [ "${DB_DUNG_GHI_TYPES:-}" = 1 ]; then
+    cp "$TMP/database.types.ts" "$TYPES"; echo "[db:dung] ghi $TYPES ($(wc -l < "$TYPES") dòng)"
+  elif ! cmp -s "$TMP/database.types.ts" "$TYPES"; then
+    echo "[db:dung] $TYPES lệch schema thật (migration đổi mà chưa sinh lại): DB_DUNG_GHI_TYPES=1 npm run db:dung" >&2
+    diff "$TYPES" "$TMP/database.types.ts" | head -20 >&2
+    fail="$fail · gen types lệch"
+  else echo "[db:dung] gen types khớp $(basename "$TYPES")"; fi
+else cat "$TMP/types.err" >&2; fail="$fail · gen types không chạy được"; fi
 
 if [ -n "$fail" ]; then echo "[db:dung] ĐỎ${fail}" >&2; exit 1; fi
 echo "[db:dung] XANH (base bất biến: $base)"

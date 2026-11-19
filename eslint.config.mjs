@@ -220,6 +220,8 @@ const eslintConfig = defineConfig([
     "scratch/**",
     // Claude Code configs/skills — không phải mã ứng dụng.
     ".claude/**",
+    // File sinh bởi `supabase gen types` (db:dung kiểm khớp schema) — không lint tay.
+    "src/lib/database.types.ts",
   ]),
 ]);
 
