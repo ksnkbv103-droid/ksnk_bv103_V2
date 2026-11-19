@@ -2330,7 +2330,7 @@
     "trang_thai": "LOI_GIA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | LOI_GIA 2026-11-19 (db-verify, chỉ đọc): applyInstrumentTransferAction (cssd-lifecycle.actions.ts:48-99) không đặt trạng thái nào, gọi rpc_cssd_apply_instrument_lines (20260925010536_cssd_ledger_atomic.sql:600-633, atomic, lỗi trả success:false + rollback); InstrumentTransferForm.tsx:86-109 gửi lại được. APPLYING chỉ có ở cssd_catalog_de_nghi (catalog-de-nghi-approve.actions.ts:133-177) và BOM_APPLYING (set-reconcile, giao dịch DB, từ chối được). Phần hở NGOÀI phạm vi dòng này, mức THẤP, chưa tái hiện: cssd_catalog_de_nghi kẹt APPLYING nếu tiến trình chết giữa claim và markClaimFailed (canRejectCatalogDeNghi, cssd-catalog-de-nghi.ts:23-25, loại APPLYING). Sửa nhỏ nhất nếu PO muốn: cho từ chối APPLYING như BOM (slice-fixer, không migration, đổi kỳ vọng cssd-catalog-de-nghi-claim.spec.ts:22)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | LOI_GIA 2026-11-19 (db-verify, chỉ đọc): applyInstrumentTransferAction (cssd-lifecycle.actions.ts:48-99) không đặt trạng thái nào, gọi rpc_cssd_apply_instrument_lines (20260925010536_cssd_ledger_atomic.sql:600-633, atomic, lỗi trả success:false + rollback); InstrumentTransferForm.tsx:86-109 gửi lại được. APPLYING chỉ có ở cssd_catalog_de_nghi (catalog-de-nghi-approve.actions.ts:133-177) và BOM_APPLYING (set-reconcile, giao dịch DB, từ chối được). Phần hở NGOÀI phạm vi dòng này, mức THẤP, chưa tái hiện: cssd_catalog_de_nghi kẹt APPLYING nếu tiến trình chết giữa claim và markClaimFailed (canRejectCatalogDeNghi, cssd-catalog-de-nghi.ts:23-25, loại APPLYING). Sửa nhỏ nhất nếu PO muốn: cho từ chối APPLYING như BOM (slice-fixer, không migration, đổi kỳ vọng cssd-catalog-de-nghi-claim.spec.ts:22). | db-verify lần 2 19/11 xác nhận: phần hở thật nằm ở cssd_catalog_de_nghi — claim chỉ từ PENDING (catalog-de-nghi-approve.actions.ts:130-140), từ APPLYING không có lối ra (cssd-catalog-de-nghi.ts:23-29), markClaimFailed lỗi chỉ console.error (:74-76), không có cron. Chưa thấy ca kẹt thật (local 0 dòng). Mức THẤP, chưa mở dòng riêng (MOI ≥ 10)."
   },
   {
     "id": "CSSD-041",
@@ -2404,11 +2404,11 @@
     "muc": "TRUNG_BINH",
     "tieu_de": "Cổng đổi mật khẩu: người có cờ must_change_password vẫn gọi thẳng PostgREST theo RLS; prefetch GET trả trước khi kiểm cờ; tài khoản cũ chỉ có cờ ở user_metadata tự gỡ được",
     "bang_chung": "src/lib/server-permission.ts (cổng đổi mật khẩu, nợ vòng rà lát 1). Cần đếm trên prod số tài khoản chỉ có cờ ở user_metadata.",
-    "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -Upostgres -Atc \"select count(*) from auth.users where raw_user_meta_data->>'must_change_password'='true' and not raw_app_meta_data ? 'must_change_password'\"  # local = 0; chạy cùng câu trên prod (chỉ đọc, qua PO/MCP)",
+    "trang_thai": "DA_XAC_MINH",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11 (từ roadmap 18/11). | db-verify 19/11 DUNG, thu còn ý (3): ý (1) không phải ranh giới phân quyền (RLS vẫn chặn, cổng ở proxy.ts:185, server-permission.ts:70-72); ý (2) prefetch SAI, đã sửa ở QT-001 9375652e. Ý (3): cờ ghi cả app_metadata lẫn user_metadata (tai-khoan-nhan-su.actions.ts:266-267,410-411), cổng dùng OR (password-change-gate.ts:14-16), tài khoản chỉ có user_metadata tự gỡ được bằng auth.updateUser. Local 0 tài khoản như vậy; CẦN ĐẾM PROD (nếu 0 thì đóng ý này). Đề xuất hạ THAP."
   },
   {
     "id": "VST-039",
@@ -2523,10 +2523,10 @@
     "tieu_de": "dao_tao_cau_hoi trên DB local có 7 cột + 3 chỉ mục không có migration",
     "bang_chung": ".claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md §8(b).",
     "lenh_kiem": "",
-    "trang_thai": "MOI",
+    "trang_thai": "LOI_GIA",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Cần so với prod và với chuỗi migration (db:dung)."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Cần so với prod và với chuỗi migration (db:dung). | db-verify 19/11 SAI với phần «local lệch migration»: 14 cột + 3 chỉ mục đều do migration tạo (20260729150000_dao_tao_exam_module.sql:17-28,33; 20260729160000_dao_tao_lean_3_tables.sql:6-8,46,220-222; 20260802120000_dao_tao_cau_hoi_ma_cau.sql:3-4,34-37), ba version đã áp local. Phần còn lại là lệch ở PROD (KH_APPKSNK_20261117_lo-prod-pha1.md:145 Q7: prod thiếu 7 cột + 3 chỉ mục) — việc lô prod, không phải lỗi local."
   },
   {
     "id": "CSSD-046",
