@@ -15,7 +15,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 - Lệch lâm sàng chờ PO: UTI sốt đơn độc app đòi ≤65 tuổi (`nkbv-rules-engine.ts:616-619`), gói U7.19/24/36 nói mọi tuổi.
 
 ## KẾ
-- L1 hàng rào migration ĐANG MỞ: `supabase/PROD_HEAD`=20261118130000 + `scripts/guard-migrations.mjs` (hook + `guard:migrations`) đạt (1)(2); (3) CHƯA ĐẠT: `db reset` lỗi `perf_rls_initplan guard failed: altered=139` ở 20261004194907 (file ≤ head khóa, không sửa); chờ PO: baseline từ prod, không squash.
+- L1 hàng rào migration XONG (396d4e8d + L1b): `supabase/PROD_HEAD`=20261118130000 (PO duyệt qua phiên chủ trì), `scripts/guard-migrations.mjs`; dựng DB local sạch = `bash scripts/db-reset-local.sh` (thay stub 20260729121000 ở bản sao, exit 0, 28 s, ledger 315). KHÔNG phải baseline prod (lệch ~27 migration). Chờ PO: pg_dump prod tự chạy nếu muốn baseline thật.
 - Monitoring theo khóa PO 11-01 qua `ksnk_dm_tham_so`: `20261118100000` + `20261118110000` đã ở prod (19/11); chờ deploy code. VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 - Đã xong: CSSD-032 `3165749c` áp prod 18/11 · `KSNK_PILOT_FOUR_MODULES` (công tắc TẮT) · PR #131 deploy xong, còn TC09.
