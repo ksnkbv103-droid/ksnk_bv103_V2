@@ -5,6 +5,8 @@ argument-hint: "[module hoặc lát]"
 
 # /domain-slice — Rà, phản biện, chọn theo domain, sửa một lát
 
+> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Mỗi lát đi bước 1–7; không rà/sửa tách riêng. Giữ file để tra lịch sử, không xóa.
+
 **Đầu vào:** $ARGUMENTS
 
 Dùng khi PO bảo rà soát, làm chuẩn, hoặc sửa cho bám yêu cầu đã chốt.

@@ -1,5 +1,6 @@
 ---
 description: Commit khi người dùng yêu cầu
+disable-model-invocation: true
 allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git add *) Bash(git commit *)
 ---
 

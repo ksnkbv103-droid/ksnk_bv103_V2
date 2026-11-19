@@ -5,11 +5,13 @@ argument-hint: "[mô tả nghiệp vụ]"
 
 # /intake-nv — Khóa phạm vi theo ngôn ngữ nghiệp vụ (PO)
 
+> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Bước 2 (spec 1 trang) dùng `/intake`. Giữ file để tra lịch sử, không xóa.
+
 **Đầu vào:** $ARGUMENTS
 
 Dành cho **người không rành code**. **Không sửa code** — chỉ lập kế hoạch để user duyệt.
 
-Agent gợi ý: `intake-coach` khi chưa rõ module. Luôn đọc `read-minimum.md` dòng module; rule `.claude/rules/*` tự nạp khi chạm file.
+Agent gợi ý: `intake-coach` khi chưa rõ module. Luôn đọc `engineering-guidelines.md` §6 dòng module; rule `.claude/rules/*` tự nạp khi chạm file.
 
 ## Bước 0 — cổng module
 
@@ -32,7 +34,7 @@ Sau khi nhận mô tả nghiệp vụ, bổ sung:
 | Mục | Nội dung |
 |-----|----------|
 | Goal | Một câu kết quả |
-| In scope | File/module path (từ mapping + read-minimum) |
+| In scope | File/module path (từ mapping + engineering-guidelines §6) |
 | Out of scope | Cấm đụng (kỹ thuật + nghiệp vụ) |
 | Acceptance criteria | 3 case kiểm UI/RPC (song ngữ: nghiệp vụ + kỹ thuật ngắn) |
 | Verify plan | Lệnh BV103 phù hợp (bảng dưới) |

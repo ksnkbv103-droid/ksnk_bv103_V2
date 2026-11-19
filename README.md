@@ -37,7 +37,7 @@ npm run pilot:go-live:gate      # linked: precheck DB/auth + verify + smoke
 npm run pilot:go-live:gate:local
 ```
 
-Pipeline schema & ship: [`docs/core/governance-pipeline.md`](docs/core/governance-pipeline.md)
+Pipeline schema & ship: [`docs/core/engineering-guidelines.md`](docs/core/engineering-guidelines.md) §5
 
 ## Tài liệu
 

@@ -1,5 +1,6 @@
 ---
 description: Tạo pull request khi người dùng yêu cầu
+disable-model-invocation: true
 ---
 
 # /pr-create — Tạo pull request qua gh

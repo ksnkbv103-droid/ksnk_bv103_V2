@@ -8,7 +8,7 @@ paths:
 # Schema Sync Gate (application code)
 
 - Đồng bộ code–app–database là cổng ra release.
-- Trước khi đặt tên bảng/cột/FK hoặc type mapping mới: đọc [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md), và pipeline [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+- Trước khi đặt tên bảng/cột/FK hoặc type mapping mới: đọc [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md), và quy trình schema & ship [`docs/core/engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §5.
 - Khi đổi field DB: cập nhật trong **cùng task** actions, types, form, bảng UI.
 - Ưu tiên migration additive (`ADD COLUMN IF NOT EXISTS`) trước destructive; rename có lộ trình rollback.
 - Trước khi xong: kiểm tra `UI input -> server action -> DB` nhất quán.

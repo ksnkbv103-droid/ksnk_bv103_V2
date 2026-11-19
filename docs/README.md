@@ -21,7 +21,7 @@
 
 ## Cửa
 
-Sửa repo: [`../CLAUDE.md`](../CLAUDE.md). Chủ đề đang dùng: [`ssot-map.md`](ssot-map.md). Đọc thêm theo diff: [`core/read-minimum.md`](core/read-minimum.md).
+Sửa repo: [`../CLAUDE.md`](../CLAUDE.md). Chủ đề đang dùng: [`ssot-map.md`](ssot-map.md). Đọc thêm theo diff: [`core/engineering-guidelines.md`](core/engineering-guidelines.md) §6.
 
 Wiki tổng hợp: [`wiki/entities.md`](wiki/entities.md) · [`wiki/concepts.md`](wiki/concepts.md). Catalog máy: [`wiki/index.md`](wiki/index.md).
 
@@ -29,7 +29,7 @@ Bộ tài liệu gom (PO đã duyệt 2026-11-16): [`bo-tai-lieu/01-tong-quan-ye
 
 ## Lớp Core (13 file)
 
-**Mục lục, không đọc hết:** `read-minimum` · `lean-execution` · `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `governance-pipeline` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap`
+**Mục lục, không đọc hết:** `pilot-core-modules-go-live` · `domain-specification` · `implementation-mapping` · `skills-catalog` · `engineering-guidelines` · `operations-sop` · `handover-roadmap`
 
 **Ký / ADR / catalog:** `domain-decisions-cssd-instrument` · `adr-cssd-fact-write-rls` · `database-view-catalog`
 

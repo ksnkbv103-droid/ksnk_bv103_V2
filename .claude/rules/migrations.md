@@ -6,9 +6,10 @@ paths:
 
 # Database migration (Postgres / Supabase)
 
-Trước khi ghi SQL: mở hoặc `@` [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md) và [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+Trước khi ghi SQL: mở hoặc `@` [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md) và [`docs/core/engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §5.
 
-- **Tên file:** ưu tiên `YYYYMMDDHHMMSS_<mô_tả_ngắn>.sql` cho file **mới**; không rename migration đã apply — xem [`docs/core/lean-execution.md`](../../docs/core/lean-execution.md) §2 và [`governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+- **Tên file:** ưu tiên `YYYYMMDDHHMMSS_<mô_tả_ngắn>.sql` cho file **mới**; không rename migration đã apply — xem [`docs/core/engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §4–5.
+- **Bất biến (PO 19/11/2026):** migration đã có trong repo không sửa, không xóa; muốn đổi thì viết migration mới. Một lát tối đa 1 migration. `npm run db:dung` dựng cả chuỗi từ đầu; `db-dung.yml` chặn khi vi phạm.
 
 - Ưu tiên **additive**: `ADD COLUMN IF NOT EXISTS`, backfill, index trước khi drop/rename.
 - Mọi rename/drop cần **tương thích ngược** hoặc migration nhiều bước + rollback plan.

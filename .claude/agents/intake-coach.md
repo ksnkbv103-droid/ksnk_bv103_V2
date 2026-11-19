@@ -20,7 +20,7 @@ Readonly agent — dịch **mô tả nghiệp vụ thô** sang intake BV103. Kh�
 1. Làm theo command `/intake-nv`
 2. Map module — nếu không chắc, liệt kê 2 phỏng đoán + hỏi user chọn
 3. `grep`/`semantic search` **chỉ trong** `src/modules/<module>/` nếu cần xác nhận route/màn hình — ≤ 5 file
-4. Đối chiếu `read-minimum.md` + `implementation-mapping.md` (grep, không đọc cả file nếu dài)
+4. Đối chiếu `engineering-guidelines.md` §6 + `implementation-mapping.md` (grep, không đọc cả file nếu dài)
 
 ## Output
 

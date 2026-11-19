@@ -22,13 +22,10 @@ _Generated 2026-10-09 — `npm run wiki:index`_
 - [`docs/core/domain-decisions-cssd-instrument.md`](../core/domain-decisions-cssd-instrument.md) — Decision log — CSSD dụng cụ (Phase 0)
 - [`docs/core/domain-specification.md`](../core/domain-specification.md) — ĐẶC TẢ NGHIỆP VỤ Y TẾ THỐNG NHẤT — KSNK BV103
 - [`docs/core/engineering-guidelines.md`](../core/engineering-guidelines.md) — QUY CHUẨN KỸ THUẬT & UI/UX THỐNG NHẤT — KSNK BV103
-- [`docs/core/governance-pipeline.md`](../core/governance-pipeline.md) — Governance pipeline — schema & ship
 - [`docs/core/handover-roadmap.md`](../core/handover-roadmap.md) — Bàn giao & onboarding — KSNK BV103
 - [`docs/core/implementation-mapping.md`](../core/implementation-mapping.md) — BV103 — Ánh xạ thuật ngữ spec ↔ module ↔ bảng / thực thể thật
-- [`docs/core/lean-execution.md`](../core/lean-execution.md) — LEAN Execution — BV103
 - [`docs/core/operations-sop.md`](../core/operations-sop.md) — CẨM NANG VẬN HÀNH, BẢO MẬT & DB THỐNG NHẤT — KSNK BV103
 - [`docs/core/pilot-core-modules-go-live.md`](../core/pilot-core-modules-go-live.md) — Pilot gấp — Quản trị + Giám sát + QLCV
-- [`docs/core/read-minimum.md`](../core/read-minimum.md) — Đọc tối thiểu theo loại thay đổi
 - [`docs/core/skills-catalog.md`](../core/skills-catalog.md) — Skills catalog — BV103
 
 ### Modules

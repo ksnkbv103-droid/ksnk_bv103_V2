@@ -33,21 +33,22 @@
 
 | Lệnh | Mục đích | Model |
 |------|----------|-------|
-| `/intake-nv` | PO mô tả nghiệp vụ → intake (chưa code) | Sonnet |
+| `/intake-nv` | *Không dùng — xem bảng luồng ở `CLAUDE.md`.* PO mô tả nghiệp vụ → intake (chưa code) | Sonnet |
 | `/intake` | Khóa scope kỹ thuật | Sonnet |
-| `/domain-slice` | Rà + sửa một lát theo SSOT đã chốt | Sonnet |
+| `/domain-slice` | *Không dùng — xem bảng luồng.* Rà + sửa một lát theo SSOT đã chốt | Sonnet |
 | `/implement` | Code lát đã duyệt | Sonnet |
 | `/review` | Verify theo intake + giao subagent `review-bv103` soát whitelist/DoD, Go/No-go (chưa deploy) | Sonnet |
 | `/uat-cases` | Kịch bản test tay cho PO | Haiku |
-| `/go-live-check` | Cổng sẵn sàng pilot (không deploy) | Sonnet |
+| `/go-live-check` | Cổng sẵn sàng pilot (không deploy); có bước so schema prod chỉ đọc + lỗi runtime Vercel sau deploy | Sonnet |
 | `/explain` | Giải thích, không sửa | Sonnet |
-| `/commit` · `/pr-create` | Chỉ khi PO ra lệnh | Haiku |
+| `/commit` · `/pr-create` | Chỉ khi PO ra lệnh (cờ `disable-model-invocation: true`: model không tự gọi) | Haiku |
 
 ## 4. Skills (`.claude/skills/`)
 
 | Skill | Khi nào |
 |-------|---------|
 | `smart-db-bv103` | Schema, RPC, index, RLS, import lô, báo cáo chậm |
+| `supabase-postgres-best-practices` | Luật Postgres/RLS/index/migration chính thức của Supabase (chép nguyên văn, ghim sha — xem §9 dòng 1). `smart-db-bv103` chỉ giữ phần riêng BV103 |
 | `supabase` | Auth, RLS, client, CLI |
 | `react-dev` | Component React 19 / hook mới (không mở khi chỉ sửa action/SQL) |
 | `destructive-change` | DROP, xóa module, đổi không đảo được — dừng chờ PO |
@@ -97,3 +98,31 @@ Giữ credit (đo 2026-10-12: hai phiên ~900 lượt, ngữ cảnh trung bình 
 ## 8. MCP (`.mcp.json`)
 
 Supabase `cvzwslpxwgqiugzzhqej` · GitHub `ksnkbv103-droid/ksnk_bv103_V2` · Vercel `ksnk-bv103-v2`. OAuth một lần bằng `/mcp`.
+
+## 9. Công cụ ngoài đã xét (sổ sống, đo 19/11/2026)
+
+Chép từ plan «một con đường» §12. Mỗi dòng có bằng chứng và quyết định; cột Lát là lát của plan đó đưa quyết định vào cấu hình; ký hiệu «§n» trong bảng là mục của plan `.claude/plans/de-xuat-mot-con-duong-20261119.md`.
+
+**Luật dùng sổ:**
+- Dòng đã có quyết định thì không đề xuất lại. Muốn mở lại phải có số đo mới (theo luật đóng băng: lỗi lặp ≥ 2 lần).
+- Ở cổng 2, phương án B của spec phải là «dùng công cụ có sẵn», tra trong sổ này hoặc catalog. Tra được công cụ mới thì thêm một dòng kèm quyết định.
+- PO không cần tự đi tìm repo nữa.
+
+| # | Công cụ | Làm gì | Bằng chứng (đo 19/11) | Quyết định | Lát |
+|---|---|---|---|---|---|
+| 1 | `supabase/agent-skills` → skill `supabase-postgres-best-practices` | Luật Postgres/RLS/index/migration do Supabase giữ; 34 file tham chiếu | ★3,1k · đẩy 12/11 · MIT · chính MCP Supabase khuyên cài | **Dùng.** Đã chép nguyên văn 19/11/2026 vào `.claude/skills/supabase-postgres-best-practices/`: `SKILL.md` + 5 file tham chiếu (`security-rls-basics`, `security-rls-performance`, `schema-foreign-key-indexes`, `lock-short-transactions`, `query-missing-indexes`). **Ghim sha `c9be0e931b7930f7d02126d04774d904c381e7d7`** (repo `supabase/agent-skills`). Cập nhật = chép lại từ sha mới và đổi dòng này. Không cài plugin `supabase` (partner), vì nó kèm thêm 1 MCP Supabase trùng `.mcp.json` | 3 |
+| 2 | `typescript-lsp` (Anthropic) | Báo lỗi type ngay sau mỗi lần sửa; tìm định nghĩa/tham chiếu | Đã cài, `typescript-language-server` có sẵn, nhưng đang `false` | **Bật** | 3 |
+| 3 | `supabase/setup-cli` (Action chính thức) | Cài Supabase CLI trong runner để chạy `supabase start` + `db:dung` | ★213 · đẩy 17/11 · MIT | **Dùng** trong `db-dung.yml` | 1 |
+| 4 | `usebasejump/supabase-test-helpers` | Hàm pgTAP `tests.authenticate_as`, tạo user test, kiểm RLS bật; docs Supabase dùng các hàm này | ★133 · đẩy lần cuối 05/2024 (đứng yên 18 tháng) · MIT | **Mượn.** Chép đúng các hàm cần vào `supabase/tests/`; không cài qua dbdev để khỏi phụ thuộc gói đứng yên | 1b |
+| 5 | `github/spec-kit` | constitution → … → analyze → implement | ★150k · đẩy 18/11 | **Không cài.** Mượn ý `analyze` (§11) | 2 |
+| 6 | `mattpocock/skills` (catalog: `mattpocock-skills`) | 21 skill kỹ thuật; `grill-with-docs` = phỏng vấn dồn để bắt lỗ kế hoạch, ghi ADR + glossary | ★327k · đẩy 18/11 · MIT | **Mượn ý, không cài.** Cả bộ có `to-spec`, `implement`, `tdd`, `triage`… nên sẽ thành luồng chồng lam-het, đúng lỗi §1. Đọc skill «grilling» rồi đưa câu hỏi vào prompt giao `phan-bien` ở cổng 3 (chỉ đổi prompt, không thêm file) | 3 |
+| 7 | `vercel-labs/agent-skills` | `react-best-practices`, `composition-patterns`, `web-design-guidelines` | ★34k · đẩy 12/11 · không ghi license | **Không, trừ khi cần.** Đã có skill `react-dev` + `ui-redesign-plan.md`. Repo không ghi license nên không chép nguyên văn. Chỉ xét khi một lát UI có vấn đề hiệu năng đo được | — |
+| 8 | `sbdchd/squawk` (+ `squawk-action`) | Linter migration: bắt thao tác khóa bảng lâu (index không CONCURRENTLY, thêm NOT NULL…) | ★1,27k · đẩy 18/11 · Apache-2.0 | **Không bây giờ.** Dữ liệu pilot nhỏ nên khóa bảng không gây gián đoạn. Lỗi thật của dự án là chuỗi gãy, sửa file đã áp và thân hàm hỏng, đã có `migration-bat-bien` + `db lint` lo. Xét lại khi bảng prod đủ lớn để khóa gây gián đoạn (đo bằng MCP) | — |
+| 9 | `vercel/next-devtools-mcp` | Đọc lỗi runtime/route của dev server Next 16 | ★838 · đẩy 15/09 | **Không.** Browser pane + `read_console_messages` + `preview_logs` trên `dev-local` đã làm việc này | — |
+| 10 | `context7` (Upstash) | Tra docs đúng phiên bản thư viện | ★65k · MIT · MCP chạy trên máy chủ ngoài | **Không.** Docs Supabase/Next đã tra được qua MCP Supabase/Vercel; context7 gửi truy vấn ra ngoài. Xét lại nếu lỗi dùng API cũ của React 19/Zod 4 lặp ≥ 2 lần | — |
+| 11 | `obra/superpowers` | Brainstorm, TDD, subagent… | ★321k. Nạp từ plugin đồng bộ của tài khoản (`~/.claude/plugins/synced/…`), không qua `settings.json`. Mỗi phiên chèn khối «EXTREMELY_IMPORTANT» bắt gọi skill trước mọi việc, chồng lam-het | **Tắt** ở mục Plugins của app. Việc này ảnh hưởng mọi dự án; chưa kiểm được có tắt riêng một dự án được không | 3 (PO) |
+| 12 | `security-guidance` (Anthropic) | Cảnh báo theo mẫu khi sửa; LLM review diff ở Stop; review commit | Catalog chính thức | **Không.** Thêm hook Stop gọi LLM mỗi lượt (docs: Stop phải nhanh). RLS/auth/migration đã có `security-auditor` + `review-bv103` | — |
+| 13 | `code-review`, `pr-review-toolkit` (Anthropic); `coderabbit`, `greptile`, `claude-code-review-council` | Review PR nhiều agent | Catalog | **Không cài.** `/code-review` có sẵn trong Claude Code, cộng `review-bv103`. Dịch vụ ngoài gửi mã ra ngoài | — |
+| 14 | `feature-dev`, `ralph-loop`, `hookify`, `claude-md-management`, `session-report` | Luồng phát triển, vòng lặp tự chạy, tạo hook, sửa CLAUDE.md, báo cáo token | Catalog | **Không.** Mỗi cái thêm một luồng hoặc lớp cấu hình, trái §7 và luật đóng băng. Token đã đo bằng `agent_dung.py` và `/usage` | — |
+| 15 | `semgrep`, `sonarqube`, `sentry` | SAST; giám sát lỗi | Catalog; `package.json` không có `@sentry` | **Không bây giờ.** Lỗi runtime prod đọc qua Vercel MCP (§10 #7). ESLint + `security-auditor` lo phần mã | — |
+| 16 | `playwright` (Microsoft) | Điều khiển browser, e2e | Đã nạp | **Giữ** | — |

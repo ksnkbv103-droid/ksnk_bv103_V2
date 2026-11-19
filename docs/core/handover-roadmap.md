@@ -21,7 +21,7 @@ npm run trial:prep
 npm run dev
 ```
 
-Verify trước push: `npm run verify` (full) — xem [`lean-execution.md`](lean-execution.md).
+Verify trước push: `npm run verify` (full) — xem [`engineering-guidelines.md`](engineering-guidelines.md).
 
 ## 3. Pilot DoD (một mảnh)
 

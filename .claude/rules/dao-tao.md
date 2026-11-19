@@ -10,7 +10,7 @@ paths:
 Trước khi sửa ngân hàng câu, cấu hình kỳ thi, làm bài / chấm điểm:
 
 1. [`modules/dao-tao/domain-overview.md`](../../docs/modules/dao-tao/domain-overview.md) — schema 3 bảng, import Excel, thi thử vs thi thật
-2. [`read-minimum.md`](../../docs/core/read-minimum.md) — dòng Đào tạo
+2. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6 — dòng Đào tạo
 3. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/RPC liên quan (nếu có)
 
 **Invariant:**

@@ -16,7 +16,7 @@ Trước khi sửa form, phiên quan sát, điểm số, import/export:
 
 1. [`domain-specification.md`](../../docs/core/domain-specification.md)
 2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md)
-3. [`read-minimum.md`](../../docs/core/read-minimum.md)
+3. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6
 4. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) § UI mobile khi đụng form hiện trường
 
 **Nhắc domain:** VST tối đa **3 đối tượng** một phiên (trừ khi có yêu cầu mới). Fact: ưu tiên đính chính + soft-delete khi phù hợp.
@@ -33,7 +33,7 @@ Trước khi sửa form, phiên quan sát, điểm số, import/export:
 
 ## Đọc bắt buộc
 
-1. [`read-minimum.md`](../../docs/core/read-minimum.md) — dòng Giám sát VST/GSC
+1. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6 — dòng Giám sát VST/GSC
 2. [`domain-specification.md`](../../docs/core/domain-specification.md) — § VST, § GSC
 
 ## Rule & verify
@@ -44,5 +44,5 @@ Trước khi sửa form, phiên quan sát, điểm số, import/export:
 ## Bảng kiểm — ngữ cảnh spec
 
 - [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md)
-- [`read-minimum.md`](../../docs/core/read-minimum.md) khi đổi import/export hoặc action lưu
+- [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6 khi đổi import/export hoặc action lưu
 - `src/lib/permission-registry.ts` — quyền module `BANG_KIEM` (ví dụ `import`)

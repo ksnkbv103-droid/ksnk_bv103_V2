@@ -39,7 +39,7 @@ Nếu user đổi chỉ số/công thức/acceptance giữa chừng: ghi `Spec c
 
 Chạy lệnh đã chốt trong intake. Mặc định khi đụng action/DB: `npm run verify:engineering`.
 
-Tham chiếu: `docs/core/lean-execution.md`, Pilot DoD trong `CLAUDE.md`.
+Tham chiếu: `docs/core/engineering-guidelines.md` §4, Pilot DoD trong `CLAUDE.md`.
 
 ## Nếu task có whitelist
 

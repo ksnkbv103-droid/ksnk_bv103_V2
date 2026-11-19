@@ -16,6 +16,8 @@ Readonly trừ khi PO bảo sửa. **Không** Vercel, **không** migrate remote/
 4. ≥3 kịch bản tay (`/uat-cases` hoặc subagent `acceptance-ui`)
 5. Không CRITICAL nợ mới (dual-path, bypass, đoán schema)
 6. Migration chỉ local — prod chỉ khi PO yêu cầu
+7. Trước lô prod: so schema prod (MCP Supabase `list_tables` / `execute_sql` **chỉ đọc**) với DB do `npm run db:dung` dựng; lệch thì dừng, ghi sổ `CHO_PO`
+8. Sau deploy 24 giờ: đọc lỗi runtime Vercel (MCP Vercel, chỉ đọc); có lỗi thì ghi vào sổ lỗi
 
 ## Output
 ```markdown

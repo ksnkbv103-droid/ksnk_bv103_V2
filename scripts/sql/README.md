@@ -52,4 +52,4 @@ Chuỗi apply: `supabase/migrations/*.sql` (92 file, `20260530000000` … `20260
 
 **Lưu ý khu vực giám sát:** chuỗi `20260608030000` → `20260608032500` (revert) → `20260608050000` (mã code cuối) — trạng thái cuối SSOT là sau `20260608050000`; không tái dùng mã `KV_TR_*`/`KV_DO_*` trong app/script mới.
 
-Xem [`../../supabase/migrations/README.md`](../../supabase/migrations/README.md) và [`../../docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
+Xem [`../../supabase/migrations/README.md`](../../supabase/migrations/README.md) và [`../../docs/core/engineering-guidelines.md`](../../docs/core/engineering-guidelines.md).

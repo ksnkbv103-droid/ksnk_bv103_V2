@@ -10,7 +10,7 @@ paths:
 
 - `permission-registry.ts` = SSOT module/quyền; module mới phải đăng ký.
 - Ranh giới CSSD workflow vs MDM danh mục — không coupling chéo module.
-- SSOT: `CLAUDE.md` → `ssot-map.md` → `read-minimum.md` → `domain-specification.md` → `implementation-mapping.md`.
+- SSOT: `CLAUDE.md` → `ssot-map.md` → `engineering-guidelines.md` §6 → `domain-specification.md` → `implementation-mapping.md`.
 - Prefix DB: `mdm_*`, `gstt_*`, `cssd_*`, `nkbv_*`, `qlcv_*`, `sys_*` — không `fact_*`/`dm_*` compat.
 - Đổi field DB: cập nhật action + types + form + UI **cùng task**; đọc migration trước khi kết luận cột.
 

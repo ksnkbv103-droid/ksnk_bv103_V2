@@ -111,7 +111,7 @@ Cổng của bước 3:
 - Ghi «không dùng — xem bảng luồng» vào `/intake-nv`, `/domain-slice`, `/ra-soat`. Không xóa file.
 - Tắt plugin superpowers cho dự án.
 
-**docs/core:** gộp `governance-pipeline` (32 dòng), `lean-execution` (46) và `read-minimum` (24) vào `engineering-guidelines`. Sau khi gộp còn 11 file, vẫn trong trần 13 (`CLAUDE.md:62`).
+**docs/core:** gộp `governance-pipeline` (32 dòng), `lean-execution` (46) và `read-minimum` (24) vào `engineering-guidelines`. Sau khi gộp còn 10 file (13 − 3; bản đầu ghi nhầm 11), vẫn trong trần 13 (`CLAUDE.md:62`).
 
 **Trạng thái:**
 - Sổ là nơi ghi duy nhất.
@@ -127,12 +127,14 @@ Cổng của bước 3:
 | 1b | pgTAP + type sinh (§10 #1, #2) | Xem cuối §10 | Như Lát 1 |
 | 1c | e2e trong CI (§10 #5) | Xem cuối §10 | Như Lát 1 |
 | 2 | Sổ thêm 6 trường, gồm cổng phản biện 2–4 do máy kiểm (§6); `report` cho 03, `trace` trong verify; `dac-ta-test.mjs`; 3 số đo luồng (§10 #3, #8) (≤ 5 file; cổng phản biện nằm trong `so-loi.mjs` nên không thêm file) | 1. `check` fail với dòng `tinh_nang` thiếu trường, và `set <ID> DANG_SUA` thoát khác 0 trên dòng `tinh_nang` thử thiếu `phan_bien`<br>2. `report` khớp `stats`<br>3. `verify:changed --dry` có liệt kê trace | Không |
-| 3 | Gom luồng và tài liệu theo §7; cấu hình theo §11 và §12 (cờ `disable-model-invocation`, skill DB chính thức ghim sha, bước so schema prod + lỗi runtime trong `/go-live-check`, chép bảng §12 vào `docs/core/skills-catalog.md`) (≤ 8 file tự viết; ≤ 6 file skill chép nguyên văn từ §12 #1 tính riêng) | 1. `docs:links:check` pass<br>2. docs/core còn 11 file<br>3. CLAUDE.md có đúng 1 bảng luồng và `grep -L disable-model-invocation` trên `/commit`, `/pr-create` rỗng | PO bật `typescript-lsp` (`~/.claude/settings.json`) và tắt superpowers ở mục Plugins của app: đều là cấu hình toàn cục |
+| 3 | Gom luồng và tài liệu theo §7; cấu hình theo §11 và §12 (cờ `disable-model-invocation`, skill DB chính thức ghim sha, bước so schema prod + lỗi runtime trong `/go-live-check`, chép bảng §12 vào `docs/core/skills-catalog.md`) (≤ 8 file tự viết; ≤ 6 file skill chép nguyên văn từ §12 #1 tính riêng) | 1. `docs:links:check` pass<br>2. docs/core còn 10 file (13 − 3)<br>3. CLAUDE.md có đúng 1 bảng luồng và `grep -L disable-model-invocation` trên `/commit`, `/pr-create` rỗng | PO bật `typescript-lsp` (`~/.claude/settings.json`) và tắt superpowers ở mục Plugins của app: đều là cấu hình toàn cục |
 | Tiếp | VST/GSC: deploy lát B (drawer) và trang kế hoạch giám sát; TC09 | PO xem prod | PO gõ «deploy» |
 | Sau | Squash 4b, giữ quyết định 18/11 | `db-dung` xanh với baseline | `destructive-change` và TC09 |
 | Sau | CSSD → NKBV → QLCV → ĐT, làm lần lượt từng module | Phát triển: e2e theo ca T xanh. Đưa vào dùng thật: người dùng có tên chấm ≥ 3 kịch bản | PO, ở bước đưa vào dùng thật |
 
 **Kết quả Lát 1 (19/11, integrate):** `npm run db:dung` XANH local (315 migration, ledger 315, dựng 30 s, cả lệnh 42 s; db lint 1 lỗi = mốc 1; audit:views 0 view thừa). Mốc tạm 0 → EXIT 1. Bất biến là cờ `guard-migrations.mjs --bat-bien` (không tạo `migration-bat-bien.mjs`); `--base 'f44b7705^'` → EXIT 1. `db-dung.yml` đã viết, CI chỉ thấy sau «push». `--base origin/main` FAIL vì `aecd3eb6` xóa `20261114180000_…` (SO_NO). Cỡ 6 file (plan ≤ 5, trần dự án 8).
+
+**Kết quả Lát 3 (19/11, integrate):** (1) `docs:links:check OK`; (2) `ls docs/core | wc -l` = **10** (13 − 3; plan ghi nhầm 11, đã sửa ở §7, §8, §10); (3) CLAUDE.md có 1 bảng luồng (`grep -c "^| # | Bước"` = 1), `grep -L disable-model-invocation` trên `/commit`, `/pr-create` rỗng. `verify:changed`: gate-integrity, trace-dac-ta, docs:links:check, verify:engineering, verify:mdm:local, vitest related, verify:quick đều PASS, EXIT=0. `engineering-guidelines.md` 85 → 198 dòng (§4 LEAN, §5 Schema & ship gồm luật migration bất biến + `db-dung.yml`, §6 Đọc tối thiểu); 3 file gốc xóa, tra bản cũ bằng `git show 3312cfe8:docs/core/<tên>.md`. Skill DB chính thức chép ở `.claude/skills/supabase-postgres-best-practices/` (SKILL.md + 5 tham chiếu, sha `c9be0e93…` ghi ở `skills-catalog.md` §9 dòng 1). `skills-catalog.md` có thêm §9 = bảng 16 dòng của §12. `go-live-check` thêm bước 7 (so schema prod chỉ đọc) và 8 (lỗi runtime Vercel sau deploy). Cỡ: 13 file viết tay (plan ≤ 8; 6 file chỉ 1–2 dòng: 2 cờ, 4 ghi chú «không dùng») + 24 file chỉ sửa link bằng sed + 6 file skill chép. Không chạm `~/.claude/settings.json`: PO bật `typescript-lsp` (`false` → `true`) và tắt superpowers ở mục Plugins của app, sẽ ghi thành bước cụ thể trong `CAU_HOI_PO_APPKSNK.md` (phần B).
 
 ## 9. Câu hỏi PO (đáp án đề xuất in đậm; PO duyệt cả 3 ngày 19/11)
 
@@ -268,7 +270,7 @@ Lát 3 chép bảng này vào `docs/core/skills-catalog.md` (file đã có), nê
 - `CLAUDE.md:29` «TẤT CẢ module». Câu 2 không bỏ mục tiêu này, chỉ thêm điều kiện mở module.
 - `CLAUDE.md:51` «Tiến độ chỉ ghi ở sổ lỗi» khớp với câu 3.
 - Memory «Bộ 3 file = bản gốc» coi 03 là bản gốc. Vì 03 sinh từ sổ nên không lệch.
-- `CLAUDE.md:62` giới hạn docs/core 13 file. Gộp còn 11 file, vẫn trong trần.
+- `CLAUDE.md:62` giới hạn docs/core 13 file. Gộp còn 10 file, vẫn trong trần.
 - Squash plan:121 (quyết định 18/11). Câu 1 và workflow `db-dung.yml` giữ nguyên quyết định này.
 - `ci.yml:117` ghi audit:views không chạy trong CI. Lát 1 đưa nó vào CI.
 

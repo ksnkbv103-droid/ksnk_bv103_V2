@@ -39,7 +39,7 @@ Trước khi sửa chỉ số, biểu đồ, báo cáo tổng hợp, deep link, 
 
 1. [`metric-dictionary.md`](../../docs/modules/dashboard/metric-dictionary.md) — SSOT công thức
 2. [`bao-cao-tong-hop.md`](../../docs/modules/dashboard/bao-cao-tong-hop.md) — luồng màn hình + in
-3. [`read-minimum.md`](../../docs/core/read-minimum.md) — dòng Dashboard
+3. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6 — dòng Dashboard
 
 ## Code chính
 

@@ -25,14 +25,14 @@ entrypoints:
   human: docs/README.md
   ssot_map: docs/ssot-map.md
   agent: CLAUDE.md
-  read_minimum: docs/core/read-minimum.md
+  read_minimum: docs/core/engineering-guidelines.md
   wiki_schema: docs/wiki/WIKI_SCHEMA.md
   wiki_index: docs/wiki/index.md
 
 routes:
   cssd-workflow:
     read:
-      - docs/core/read-minimum.md
+      - docs/core/engineering-guidelines.md
       - docs/modules/cssd/README.md
       - docs/modules/cssd/domain-overview.md
       - docs/core/implementation-mapping.md

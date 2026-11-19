@@ -14,7 +14,7 @@ Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
 
 1. [`domain-specification.md`](../../docs/core/domain-specification.md) — luồng CSSD.
 2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/cột thật.
-3. [`read-minimum.md`](../../docs/core/read-minimum.md).
+3. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6.
 4. Catalog tại `/cssd-dung-cu`: nhân viên chỉ xem + đề nghị; ADMIN duyệt/sửa/import tại tab Phiếu/Quản lý (PO 2026-10-27, mã nằm ở `quan-tri-he-thong/danh-muc`). Gate: `npm run imports:cssd-mdm`.
 
 **Luật nghiệp vụ:** tiệt khuẩn theo nhiệt/phi nhiệt; bộ chỉ đạt vô khuẩn khi **mọi** thành phần/mẻ liên quan đạt — không shortcut trong action.
@@ -31,7 +31,7 @@ Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
 
 ## Đọc bắt buộc
 
-1. [`read-minimum.md`](../../docs/core/read-minimum.md) — dòng CSSD
+1. [`engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §6 — dòng CSSD
 2. [`domain-specification.md`](../../docs/core/domain-specification.md) — §2.2 CSSD
 3. [`modules/cssd/domain-overview.md`](../../docs/modules/cssd/domain-overview.md)
 4. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — § CSSD

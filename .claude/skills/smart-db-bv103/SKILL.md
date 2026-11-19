@@ -18,9 +18,10 @@ description: Schema, RPC, index, RLS, import lô, báo cáo chậm. Không mở 
 
 ## Bắt buộc đọc trước khi sửa
 
-1. [`docs/core/lean-execution.md`](../../../docs/core/lean-execution.md) — checklist + verify.
+0. Luật Postgres/RLS/index/migration chung: skill [`supabase-postgres-best-practices`](../supabase-postgres-best-practices/SKILL.md) (chính thức của Supabase, ghim sha trong `docs/core/skills-catalog.md` §9). File này chỉ giữ phần riêng BV103.
+1. [`docs/core/engineering-guidelines.md`](../../../docs/core/engineering-guidelines.md) §4 — checklist + verify.
 2. [`docs/core/operations-sop.md`](../../../docs/core/operations-sop.md) — Smart DB / hiệu năng / RLS.
-3. Khi đụng DB: [`docs/core/governance-pipeline.md`](../../../docs/core/governance-pipeline.md) và [`docs/core/implementation-mapping.md`](../../../docs/core/implementation-mapping.md).
+3. Khi đụng DB: [`docs/core/engineering-guidelines.md`](../../../docs/core/engineering-guidelines.md) §5 và [`docs/core/implementation-mapping.md`](../../../docs/core/implementation-mapping.md).
 
 ## Quy tắc vàng (ROI-first)
 
@@ -95,4 +96,4 @@ description: Schema, RPC, index, RLS, import lô, báo cáo chậm. Không mở 
   1. Chứng minh được performance bottleneck bằng dữ liệu đo lường thực tế (query time > 2s hoặc Seq Scan nặng).
   2. Đã viết phân tích đánh đổi (tradeoffs) và được phê duyệt thông qua `implementation_plan.md` hoặc `decision log`.
   3. Đảm bảo tính nhất quán dữ liệu tuyệt đối bằng cơ chế đồng bộ an toàn (như Trigger hoặc Transaction).
-- Chi tiết: [`lean-execution.md`](../../../docs/core/lean-execution.md) §2 và §6.
+- Chi tiết: [`engineering-guidelines.md`](../../../docs/core/engineering-guidelines.md) §4–5.

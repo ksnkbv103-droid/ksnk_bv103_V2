@@ -5,6 +5,8 @@ argument-hint: "<module: giam-sat|cssd|nkbv|qlcv|dao-tao>"
 
 # /ra-soat — Rà module theo 10 bước (không phỏng vấn lại từ đầu)
 
+> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Câu hỏi PO vào `CAU_HOI_PO_APPKSNK.md` và sổ (`CHO_PO`), không vào trang module. Giữ file để tra lịch sử, không xóa.
+
 **Đầu vào:** $ARGUMENTS · **Không sửa code.** Chỉ ghi mục 8 của `docs/modules/<m>/van-de-nguoi-dung.md`.
 
 Bước: 1 vấn đề · 2 giải pháp · 3 phạm vi MVP · 4 yêu cầu/DoD · 5 thiết kế · 6 xây lát · 7 kiểm chứng · 8 chạy thử · 9 phát hành/vận hành · 10 đo & lặp.

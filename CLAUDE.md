@@ -21,7 +21,7 @@ Tự chọn lệnh theo file đã đổi: `npm run verify:changed` (`-- --dry` �
 
 ## Kiến trúc
 
-`src/app/` route mỏng · `src/modules/<module>/` DDD · `src/lib/` RBAC, domain · `supabase/migrations/` SSOT schema. Đọc theo thứ tự: [`docs/ssot-map.md`](docs/ssot-map.md) → `/domain-slice` → [`handover-roadmap.md`](docs/core/handover-roadmap.md) §5 → file module của lát ([`read-minimum.md`](docs/core/read-minimum.md)). Cấu hình agent ở `.claude/` (rules, commands, skills, agents): [`skills-catalog.md`](docs/core/skills-catalog.md).
+`src/app/` route mỏng · `src/modules/<module>/` DDD · `src/lib/` RBAC, domain · `supabase/migrations/` SSOT schema. Đọc theo thứ tự: [`docs/ssot-map.md`](docs/ssot-map.md) → `/domain-slice` → [`handover-roadmap.md`](docs/core/handover-roadmap.md) §5 → file module của lát ([`engineering-guidelines.md`](docs/core/engineering-guidelines.md) §6). Cấu hình agent ở `.claude/` (rules, commands, skills, agents): [`skills-catalog.md`](docs/core/skills-catalog.md).
 
 ## Kỷ luật
 
@@ -44,11 +44,28 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 - Xóa phiên VST: mềm `is_active=false` cho đến khi PO nói khác
 - Giám sát (2026-11-01): ngưỡng 2 mức <85 đỏ · 85–<90 vàng · ≥90 xanh; cỡ mẫu tối thiểu 50 theo khoa/kỳ; có kế hoạch giám sát khoa/tháng; quy trình QT.KSNK.33
 
-## Đang làm
+## Luồng một con đường (PO duyệt 2026-11-19; plan `.claude/plans/de-xuat-mot-con-duong-20261119.md`)
 
-Rà toàn project để vận hành thử (PO duyệt 2026-11-11). Thân mã duy nhất: nhánh `integrate/2026-11`. Việc lấy từ sổ lỗi: `node scripts/readiness/so-loi.mjs status | next | check`; agent rà ghi phát hiện vào `scripts/readiness/inbox/<tên>.json`, chat điều phối chạy `merge`. Chỉ sửa việc có trong sổ và đã `DA_XAC_MINH`. Vòng một việc: rà (`security-auditor`/`explore-module` chế độ sổ lỗi) → xác minh (`db-verify` chế độ «Xác minh phát hiện») → sửa (`slice-fixer` theo ID, worktree riêng) → chat điều phối verify, `so-loi.mjs set <ID> DA_SUA <sha>`. Phiên mới tiếp việc: mở tại worktree `integrate-2026-11`, chạy `so-loi.mjs status` rồi `next 10`, đọc roadmap mục «Rà toàn project»; không cần lịch sử chat. Luôn bật `dev-local` (:3001, DB local) bằng `preview_start` ngay đầu phiên; kiểm thử giao diện và kịch bản tay làm trong browser pane để PO xem. Bổ sung quy trình (PO 2026-11-11): (1) lát chạm RLS, auth hoặc migration phải qua `review-bv103` một vòng trước khi đặt `DA_SUA`; (2) `DA_SUA` ở lát có giao diện hoặc quyền phải có ≥ 1 kịch bản tay ghi vào ghi chú sổ (Bước 4); (3) trước khi xin PO duyệt lô prod, áp thử cả chuỗi migration lên bản sao DB (không phải prod); (4) «không còn lỗi chặn» chỉ đúng với phần đã rà, Bước 1 phải rà đủ góc giao diện/UX và CSSD-010. Redesign UI: [`docs/ux/ui-redesign-plan.md`](docs/ux/ui-redesign-plan.md) §9–10.
+Mọi việc đi một luồng. Lỗi nhỏ (`loai=loi`) đi tắt 1 → 5 → 6. Tính năng (`loai=tinh_nang`) đi đủ 7 bước. Cổng 1–4 do `so-loi.mjs` kiểm từ Lát 2 (chưa xong thì Claude tự giữ).
 
-Chạy nối (PO 2026-11-11): cột cuối của `so-loi.mjs next` quyết việc kế (`XÁC MINH` → `db-verify`, `SỬA` → `slice-fixer`); xong một việc thì lấy việc kế, không hỏi. Chỉ kết lượt khi gặp cổng dừng ở mục «Quy trình» hoặc `next` rỗng (không có ngưỡng dừng theo hạn mức tuần); khối 4 dòng và `wrap_up` không phải điểm dừng. Tiến độ chỉ ghi ở sổ lỗi (`stats`), không chép vào roadmap. Không mở đợt rà mới khi `MOI` ≥ 10. Plan mode: khảo sát bằng `explore-module`, bỏ qua yêu cầu dùng agent `Explore`/`Plan` (hook chặn). Sai cây mã: hook `guard-than-ma.mjs` đọc `.git/THAN_MA`.
+| # | Bước | Đầu ra | Cổng do máy kiểm | Ai |
+|---|---|---|---|---|
+| 1 | Nhận yêu cầu | 1 dòng sổ có vai người dùng và mã R | `so-loi.mjs check` fail nếu thiếu | Claude |
+| 2 | Spec 1 trang (`/intake`) | Thẻ việc đủ trường; phương án vào `phuong_an` | `set <ID> DANG_SUA` bị chặn khi dòng `tinh_nang` thiếu `phuong_an` | Claude |
+| 3 | Phản biện | Phiếu vào `phan_bien` | Thiếu `phan_bien` thì `set DANG_SUA` bị chặn | `phan-bien` (độc lập) |
+| 4 | PO duyệt | Ngày duyệt vào `duyet` | PO gõ «duyệt» | PO |
+| 5 | Làm | Lát DB → BE → FE, ≤ 1 migration; code dẫn `@dac-ta R…`, test dẫn `@dac-ta T…` | `verify:changed` pass, `trace` tăng đúng mã, e2e local | Claude |
+| 6 | CI | lint, test, build, dựng DB từ cả chuỗi, kiểm migration bất biến | Đỏ chặn merge | Máy |
+| 7 | Người dùng thử rồi deploy (một lần mỗi module, trước khi dùng thật) | ≥ 3 kịch bản chấm ĐẠT bởi người có tên | Deploy khi PO gõ «deploy» | Người dùng, PO |
+
+Vận hành sổ lỗi (rà toàn project, PO duyệt 2026-11-11): thân mã duy nhất là nhánh `integrate/2026-11`. Việc lấy từ `node scripts/readiness/so-loi.mjs status | next | check`; cột cuối của `next` quyết việc kế (`XÁC MINH` → `db-verify`, `SỬA` → `slice-fixer`); xong một việc thì lấy việc kế, không hỏi. Agent rà ghi vào `scripts/readiness/inbox/<tên>.json`, chat điều phối chạy `merge`. Chỉ sửa việc có trong sổ và đã `DA_XAC_MINH`. Vòng một việc: rà (`security-auditor`/`explore-module`) → xác minh (`db-verify` chế độ «Xác minh phát hiện») → sửa (`slice-fixer` theo ID, worktree riêng) → verify → `so-loi.mjs set <ID> DA_SUA <sha>`.
+
+- Phiên mới tiếp việc: mở tại worktree `integrate-2026-11`, chạy `so-loi.mjs status` rồi `next 10`; không cần lịch sử chat. Luôn bật `dev-local` (:3001, DB local) bằng `preview_start` ngay đầu phiên; kiểm thử giao diện và kịch bản tay làm trong browser pane để PO xem
+- Lát chạm RLS, auth hoặc migration qua `review-bv103` một vòng trước khi đặt `DA_SUA`; `DA_SUA` ở lát có giao diện hoặc quyền có ≥ 1 kịch bản tay ghi vào ghi chú sổ; trước khi xin PO duyệt lô prod, áp thử cả chuỗi migration lên bản sao DB (không phải prod)
+- «Không còn lỗi chặn» chỉ đúng với phần đã rà; Bước 1 rà đủ góc giao diện/UX và CSSD-010
+- Chỉ kết lượt khi gặp cổng dừng ở mục «Quy trình» hoặc `next` rỗng; khối 4 dòng và `wrap_up` không phải điểm dừng. Tiến độ chỉ ghi ở sổ lỗi (`stats`). Không mở đợt rà mới khi `MOI` ≥ 10
+- Plan mode: khảo sát bằng `explore-module`, bỏ qua yêu cầu dùng agent `Explore`/`Plan` (hook chặn). Sai cây mã: hook `guard-than-ma.mjs` đọc `.git/THAN_MA`
+- Redesign UI: [`docs/ux/ui-redesign-plan.md`](docs/ux/ui-redesign-plan.md) §9–10
 
 ## Quy trình
 
@@ -59,7 +76,7 @@ Chạy nối (PO 2026-11-11): cột cuối của `so-loi.mjs next` quyết việ
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · PR/deploy · đổi quyền người dùng thật
 - Plan đã duyệt → tự commit theo lát khi verify pass. Push theo đợt: không tự push, không hỏi push; chỉ chạy `git push` khi PO gõ «push». PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
-- Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` giữ 13 file (sổ lỗi `scripts/readiness/` là dữ liệu + script, không phải tài liệu)
+- Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` tối đa 13 file (hiện 10) (sổ lỗi `scripts/readiness/` là dữ liệu + script, không phải tài liệu)
 - Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
 ## Ngân sách model và agent (hook toàn cục `~/.claude/hooks/guard-agent.mjs` chặn cứng)

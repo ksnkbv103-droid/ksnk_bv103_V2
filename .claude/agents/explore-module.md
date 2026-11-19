@@ -32,7 +32,7 @@ Readonly agent — khám phá **một** module BV103, không sửa code.
 
 ## Quy trình
 
-1. Đọc `read-minimum.md` dòng module + rule `.claude/rules/<module>.md` (tự nạp khi chạm file)
+1. Đọc `engineering-guidelines.md` §6 dòng module + rule `.claude/rules/<module>.md` (tự nạp khi chạm file)
 2. `grep`/`semantic search` trong phạm vi module — không scan toàn repo
 3. Đối chiếu `implementation-mapping.md` cho bảng/RPC
 

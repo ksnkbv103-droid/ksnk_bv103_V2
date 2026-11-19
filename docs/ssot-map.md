@@ -1,6 +1,6 @@
 # Bản đồ nguồn chuẩn — KSNK BV103
 
-> **Một chủ đề → một bản đang dùng.** Cổng: [`README.md`](README.md). Khi sửa code: [`core/read-minimum.md`](core/read-minimum.md). Lịch sử mốc cũ nằm trong git log.
+> **Một chủ đề → một bản đang dùng.** Cổng: [`README.md`](README.md). Khi sửa code: [`core/engineering-guidelines.md`](core/engineering-guidelines.md) §6. Lịch sử mốc cũ nằm trong git log.
 
 | Chủ đề | Đang dùng | Không mở khi sửa |
 |--------|-----------|------------------|

@@ -62,5 +62,5 @@ npm run verify:mdm:local
 ## Tài liệu
 
 - App ↔ DB: [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md)
-- Pipeline: [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md)
+- Pipeline: [`docs/core/engineering-guidelines.md`](../../docs/core/engineering-guidelines.md) §5
 - Squash runbook: [`docs/reference/guides/migration-squash-runbook.md`](../../docs/reference/guides/migration-squash-runbook.md)

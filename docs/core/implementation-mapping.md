@@ -1,6 +1,6 @@
 # BV103 — Ánh xạ thuật ngữ spec ↔ module ↔ bảng / thực thể thật
 
-> Bản này nối **ngôn ngữ nghiệp vụ** trong [`domain-specification.md`](./domain-specification.md) với **mã nguồn và schema đang chạy**. Khi lệch tên bảng, **Postgres + changelog file này** là chuẩn. Đọc tối thiểu: [`read-minimum.md`](./read-minimum.md), thực thi: [`lean-execution.md`](./lean-execution.md).
+> Bản này nối **ngôn ngữ nghiệp vụ** trong [`domain-specification.md`](./domain-specification.md) với **mã nguồn và schema đang chạy**. Khi lệch tên bảng, **Postgres + changelog file này** là chuẩn. Đọc tối thiểu và thực thi: [`engineering-guidelines.md`](./engineering-guidelines.md) §4–6.
 
 ## Quy ước
 
@@ -318,7 +318,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | 2026-06-07 | **Phiếu bảo trì thiết bị CSSD:** bảng **`fact_bao_tri_thiet_bi`**; đồng bộ **`dm_thiet_bi`** (REPAIRING khi đang bảo trì, READY khi xong/hủy); cập nhật ngày bảo trì sau hoàn thành; chặn tạo mẻ TK / thêm bộ vào mẻ khi máy không READY (`20260607001_fact_bao_tri_thiet_bi.sql`). |
 | 2026-06-06 | **CSSD workflow tái cấu trúc:** `fact_cssd_lifecycle_event`, `fact_quy_trinh_thanh_phan`, cột `fact_quy_trinh.is_dong_bang`, `quy_trinh_cha_id`, `ma_vai_tro_bo`; domino rollback sự cố + QC mẻ không đạt; merge gate cấp phát SUB; SSOT domain `cssd-state-engine` / `cssd-incident-policy` (`20260606001_cssd_workflow_lifecycle_asset.sql`). Verify: `npm run verify:cssd`. |
 | 2026-05-25 | Chuẩn hóa `mdm_nhan_su.email`, unique partial khi đang hoạt động (`20260525001_mdm_nhan_su_email_normalize_unique.sql`); RBAC sync; trang **`/quan-tri-he-thong/tai-khoan-nhan-su`**; auth email/mật khẩu. Chi tiết: `operations-sop.md`. |
-| 2026-05-05 | **NKBV MVP:** `giam_sat_nkbv_ca` + `dm_loai_nkbv` + `dm_trang_thai_nkbv_ca` (`20260522001_giam_sat_nkbv_mvp.sql`); module `giam-sat-nkbv`, `GIAM_SAT_NKBV`; Rules CDC / HIS: chưa. Pipeline: [`governance-pipeline.md`](./governance-pipeline.md). |
+| 2026-05-05 | **NKBV MVP:** `giam_sat_nkbv_ca` + `dm_loai_nkbv` + `dm_trang_thai_nkbv_ca` (`20260522001_giam_sat_nkbv_mvp.sql`); module `giam-sat-nkbv`, `GIAM_SAT_NKBV`; Rules CDC / HIS: chưa. Pipeline: [`engineering-guidelines.md`](./engineering-guidelines.md). |
 | 2026-05-22 | **Governance SSOT:** `LEAN_EXECUTION`, `READ_MINIMUM`, `SKILLS_CATALOG`, `GOVERNANCE_PIPELINE`; CSSD catalog read-only tại `/cssd-dung-cu`; `verify` = `verify:full`. |
 | 2026-05-31 | **Doc thu gọn:** lớp wiki `entities.md` + `concepts.md`; bỏ `docs/specs/README`, doc module trùng; `handover-roadmap` → onboarding ngắn. Lộ trình H2 lúc đó ghi `reference/architecture/roadmap-2026h2.md` — nay `../archive/plans/architecture/roadmap-2026h2.md`. Việc mở: handover §5, không phải Phase 0–5. |
 | 2026-05-31 | **QLCV lean UI:** gỡ tab Báo cáo/chỉ số tháng, việc con, cổng «chưa giao phụ trách», `xacNhanDaNhanCongViec`; tạo việc bắt buộc phụ trách. |
