@@ -16,7 +16,7 @@ File này chỉ trỏ đường; tiến độ từng lỗi ở `ghi_chu`/`test_t
 
 ## KẾ
 - Hàng rào migration: `supabase/PROD_HEAD`=20261118130000 + `guard-migrations.mjs` (396d4e8d). Kiểm chuỗi: `npm run db:dung` (stack thải bỏ, bất biến + lint có mốc + audit:views, 42 s; CI `db-dung.yml` sau push); reset stack chính: `scripts/db-reset-local.sh`. Kế: plan một con đường §8 Lát 1b.
-- LC2 XONG: `scripts/guard-adr.mjs` (hook Write + lint; migration > PROD_HEAD cần `-- ADR: docs/adr/*.md` có `## Phương án/Phản biện/Chọn`), spec `src/lib/guard-adr.spec.ts`; `phan-bien` đọc ADR trước. Chưa nối `npm run`/CI (package.json do phiên db:dung giữ).
+- LC2 XONG: `scripts/guard-adr.mjs` (hook Write + lint; migration > PROD_HEAD cần `-- ADR: docs/adr/*.md` có `## Phương án/Phản biện/Chọn`), spec `src/lib/guard-adr.spec.ts`; `phan-bien` đọc ADR trước. Đã nối `npm run guard:adr` vào cuối `verify:engineering` (CI) `eafbe659`.
 - Monitoring theo khóa PO 11-01 qua `ksnk_dm_tham_so`: `20261118100000` + `20261118110000` đã ở prod (19/11); chờ deploy code. VST-034 LOI_GIA.
 - Hook `guard-migration` (853fe8bc): migration prod kế tiếp PO duyệt trước bằng `duyet_migration.py`; chưa thử với dialog thật.
 - Đã xong: CSSD-032 `3165749c` áp prod 18/11 · `KSNK_PILOT_FOUR_MODULES` (công tắc TẮT) · PR #131 deploy xong, còn TC09.
