@@ -99,6 +99,27 @@ describe("chat-thai-do-vai: zod chặn input sai", () => {
   });
 });
 
+describe("chat-thai-do-vai: NEN-016 E2 — id khoa seed không chuẩn RFC", () => {
+  const base = { ngay_ghi_nhan: "2026-11-05", phan_he: "DO_VAI", loai_su_co: "KHAC" } as const;
+  const KHOA_SEED = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+
+  it("khoa_lien_quan_id dạng seed (trỏ mdm_dm_khoa_phong) được nhận và ghi xuống DB", async () => {
+    const res = await saveSuCo({ ...base, khoa_lien_quan_id: KHOA_SEED });
+    expect(res.success).toBe(true);
+    expect(mocks.from).toHaveBeenCalledWith("ctyt_dovai_fact_su_co");
+  });
+
+  it("khoa_lien_quan_id rác vẫn bị chặn, không chạm DB", async () => {
+    expect((await saveSuCo({ ...base, khoa_lien_quan_id: "khong-phai-uuid" })).success).toBe(false);
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+
+  it("id sự cố (gen_random_uuid v4) vẫn đòi RFC: id dạng seed bị chặn", async () => {
+    expect((await saveSuCo({ ...base, id: KHOA_SEED })).success).toBe(false);
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+});
+
 describe("chat-thai-do-vai: quyền theo thao tác", () => {
   it("saveSuCo: có id -> edit, không id -> create", async () => {
     const base = { ngay_ghi_nhan: "2026-11-05", phan_he: "DO_VAI", loai_su_co: "KHAC" } as const;

@@ -64,7 +64,7 @@ const suCoInputSchema = z.object({
     "DO_VAI_RACH_HONG",
     "KHAC",
   ]),
-  khoa_lien_quan_id: z.string().uuid().nullish(),
+  khoa_lien_quan_id: z.guid().nullish(),
   mo_ta: z.string().nullish(),
 });
 
