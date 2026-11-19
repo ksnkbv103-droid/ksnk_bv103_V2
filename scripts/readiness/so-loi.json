@@ -2722,5 +2722,31 @@
     "nguon": "cau-hoi-po-20261119",
     "commit": "",
     "ghi_chu": "Đề xuất (2): đợt đầu = VST/GSC và CSSD, khớp N2; câu (1) tên người không thay được bằng mặc định. Nếu im: Claude chạy kịch bản tay trên local, chưa module nào tính là «xong». Khối N3 trong CAU_HOI_PO_APPKSNK.md."
+  },
+  {
+    "id": "NEN-015",
+    "module": "NEN",
+    "lop": "VAN_HANH",
+    "muc": "THAP",
+    "tieu_de": "db-dung.sh không có khóa chạy đồng thời: hai phiên chạy cùng lúc thì phiên sau tắt stack của phiên trước",
+    "bang_chung": "scripts/db-dung.sh dùng cố định project id ksnk_dd và cổng 55620–55627; `supabase stop` của lần chạy sau xóa container supabase_db_ksnk_dd đang dùng, lần chạy trước báo «No such container» và ĐỎ giả (gặp 19/11 13:03, Lát 1c).",
+    "lenh_kiem": "pgrep -f \"bash scripts/db-dung.sh\"  # phải rỗng trước khi chạy npm run db:dung",
+    "trang_thai": "MOI",
+    "nguon": "lat-1c-20261119",
+    "commit": "",
+    "ghi_chu": "Đề xuất: khóa bằng thư mục `mkdir $TMP/ksnk_dd.lock` (thoát nếu đã có, `trap` xóa khi thoát). Chưa sửa vì ngoài Lát 1c."
+  },
+  {
+    "id": "NEN-016",
+    "module": "NEN",
+    "lop": "BACKEND",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "24 chỗ `z.string().uuid()` (Zod 4, kiểm RFC) có thể từ chối id seed không chuẩn RFC như aaaaaaaa-bbbb-cccc-dddd-000000000001",
+    "bang_chung": "Lát 1c: getTgsCoverageRankingAction báo «Invalid UUID» vì khoa_ids dùng z.string().uuid(); đã đổi z.guid() ở tgs-coverage-ranking.actions.ts. Còn 24 chỗ cùng mẫu ở src/lib/validations/*, src/lib/analytics/bang-kiem-toi-phai-tgs.actions.ts, src/modules/giam-sat-chung/actions/giam-sat-chung-write.actions.ts, ke-hoach-giam-sat.actions.ts… Cột DB là uuid Postgres (mọi dạng 8-4-4-4-12 hex); id thật sinh bởi gen_random_uuid() là v4 nên chỉ lộ với dữ liệu seed/nhập tay.",
+    "lenh_kiem": "grep -rn \"z\\.string()\\.uuid()\" src --include='*.ts' | grep -v spec | wc -l",
+    "trang_thai": "MOI",
+    "nguon": "lat-1c-20261119",
+    "commit": "",
+    "ghi_chu": "Chỉ đổi chỗ nào nhận id từ dữ liệu có thể là seed; mỗi chỗ cần test tái hiện. Không đổi hàng loạt."
   }
 ]
