@@ -6,7 +6,7 @@ import { buildLockedTemplateMapping } from "@/lib/import-export-template";
 import type { ImportExportConfig, ImportRow } from "./importExport.types";
 
 /** Chống CSV/Excel injection: ô chuỗi mở đầu bằng = + - @ (hoặc tab/CR) bị Excel hiểu là công thức. */
-function neutralizeFormula<T extends Record<string, unknown>>(row: T): T {
+export function neutralizeFormula<T extends Record<string, unknown>>(row: T): T {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(row)) {
     out[k] = typeof v === "string" && /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;

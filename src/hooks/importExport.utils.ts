@@ -3,16 +3,21 @@
 import type ExcelJS from "exceljs";
 import { buildLockedTemplateMapping, hasImportTemplatePreset } from "@/lib/import-export-template";
 
+/** Gỡ đúng một «'» mà bước xuất (neutralizeFormula) thêm trước chuỗi mở đầu bằng = + - @ tab CR; chuỗi thường giữ nguyên. */
+function stripExportFormulaGuard(v: unknown): unknown {
+  return typeof v === "string" && /^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v;
+}
+
 export function excelCellToPlain(val: unknown): unknown {
   if (val !== null && typeof val === "object") {
     const o = val as Record<string, unknown>;
-    if ("text" in o && o.text !== undefined) return o.text;
-    if ("result" in o && o.result !== undefined) return o.result;
+    if ("text" in o && o.text !== undefined) return stripExportFormulaGuard(o.text);
+    if ("result" in o && o.result !== undefined) return stripExportFormulaGuard(o.result);
     if ("richText" in o && Array.isArray(o.richText)) {
-      return (o.richText as { text?: string }[]).map((t) => t.text ?? "").join("");
+      return stripExportFormulaGuard((o.richText as { text?: string }[]).map((t) => t.text ?? "").join(""));
     }
   }
-  return val;
+  return stripExportFormulaGuard(val);
 }
 
 export function normalizeImportedIsActive(v: unknown): boolean {
