@@ -18,6 +18,20 @@ Cập nhật 2026-11-19 (đã xóa P1–P11 sau khi PO trả lời; đáp án �
 - **Mở khóa:** A → PO gõ lệnh gán, Claude soạn sẵn câu SQL chỉ-thêm; B → một lát theo CLAUDE.md (≥ 3 kịch bản tay, RPC apply local).
 - **ID sổ:** QT-019 (tách từ QT-017)
 
+### P13 · NEN-010 · Cổng tài khoản break-glass (email quản trị khẩn cấp) có cần kiểm email đã xác nhận không
+- **Bối cảnh:** App coi email trong `KSNK_BREAK_GLASS_EMAILS` là ADMIN (`src/lib/auth/trusted-admin-email.ts:22`) mà không kiểm `email_confirmed_at`. Nâng quyền chỉ xảy ra nếu biến này được đặt và prod cho đăng ký/đổi email không cần xác nhận; repo không đo được cấu hình Auth prod. Sửa chạm ≥ 11 file (7 file auth + nơi gọi) và nằm ở `src/lib`, vượt trần 8 file/lát.
+- **Hỏi:** (a) Prod: các tài khoản break-glass hiện có `email_confirmed_at` khác rỗng không (nếu rỗng, sửa sẽ khóa chính PO ra khỏi quyền ADMIN)? (b) Cho phép lát chạm `src/lib` và tách 2 lát (A ≤ 8 file, B 3–5 file)? (c) Chỉ kiểm `email_confirmed_at` hay cả `confirmed_at` (đăng nhập bằng SĐT)?
+- **Đề xuất:** (a) PO hoặc MCP chỉ đọc chạy `select email, email_confirmed_at from auth.users where lower(email) = any(string_to_array(lower('<danh sách trong KSNK_BREAK_GLASS_EMAILS>'), ','))`; (b) có, tách 2 lát; (c) chỉ `email_confirmed_at`.
+- **Nếu im:** giữ nguyên; mức THẤP, `fn_sys_is_admin()` không biết break-glass nên RLS vẫn đóng (fail-closed).
+- **ID sổ:** NEN-010
+
+### P14 · NEN-015 · Thêm khóa chạy đồng thời cho `scripts/db-dung.sh`
+- **Bối cảnh:** `db-dung.sh` dùng cố định project id `ksnk_dd` (cổng 55620–55627); hai phiên chạy cùng lúc thì phiên sau tắt stack của phiên trước, phiên trước báo ĐỎ giả «No such container» (gặp 19/11 13:03).
+- **Hỏi:** Thêm khóa bằng thư mục (`mkdir $TMP/ksnk_dd.lock`, thoát nếu đã có, `trap` xóa khi thoát) vào script, khoảng 10 dòng, không đổi hành vi khi chạy một phiên?
+- **Đề xuất:** Có (một lát nhỏ, kiểm bằng chạy hai bản song song).
+- **Nếu im:** giữ như hiện tại; quy ước «chỉ chạy khi `pgrep -f "bash scripts/db-dung.sh"` rỗng» vẫn ở `HANDOFF_APPKSNK.md`.
+- **ID sổ:** NEN-015
+
 ---
 
 ## C — Hỏi khoa CSSD (đầu mối: Nguyễn Thanh Bình)

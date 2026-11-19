@@ -2505,10 +2505,10 @@
     "tieu_de": "Tài khoản break-glass theo email: không kiểm email_confirmed_at; app coi là ADMIN nhưng fn_sys_is_admin() không biết nên đường RLS có thể khóa khoa",
     "bang_chung": "Cổng break-glass trong src/lib (AR-7); ghi chú NKBV-038 18/11.",
     "lenh_kiem": "grep -n email_confirmed_at src/lib/auth/trusted-admin-email.ts src/lib/server-permission.ts  # rỗng (exit 1) = lệch còn; DB: docker exec supabase_db_ksnk_bv103 psql -U postgres -tA -c \"select prosrc ilike '%email%' from pg_proc where proname='fn_sys_is_admin'\" → f",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "CHO_PO",
     "nguon": "so-no-phan-loai-20261119",
     "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. | Chuyển từ SO_NO 19/11. Xác minh 19/11 (db-verify): lệch ĐÚNG, mức THẤP. Cổng isTrustedAdminEmail (trusted-admin-email.ts:22; gọi ở server-permission.ts:84,116,144,155,185, quan-tri-access.ts:20, rbac-request.ts:46, actor-ksnk-scope-server.ts:46) không kiểm email_confirmed_at; fn_sys_is_admin() (20261021003002:176) không biết break-glass → app coi ADMIN, RLS không (fail-closed). Nâng quyền chỉ xảy ra nếu env KSNK_BREAK_GLASS_EMAILS được đặt và prod cho đăng ký/đổi email không xác nhận — KHÔNG kiểm được từ repo (cấu hình Supabase Auth prod). Hỏi PO/đo prod trước khi sửa; nhan-su-login-email.guard.ts:71 đã cấm đổi sang email break-glass."
+    "ghi_chu": "Chuyển từ SO_NO 19/11. | Chuyển từ SO_NO 19/11. Xác minh 19/11 (db-verify): lệch ĐÚNG, mức THẤP. Cổng isTrustedAdminEmail (trusted-admin-email.ts:22; gọi ở server-permission.ts:84,116,144,155,185, quan-tri-access.ts:20, rbac-request.ts:46, actor-ksnk-scope-server.ts:46) không kiểm email_confirmed_at; fn_sys_is_admin() (20261021003002:176) không biết break-glass → app coi ADMIN, RLS không (fail-closed). Nâng quyền chỉ xảy ra nếu env KSNK_BREAK_GLASS_EMAILS được đặt và prod cho đăng ký/đổi email không xác nhận — KHÔNG kiểm được từ repo (cấu hình Supabase Auth prod). Hỏi PO/đo prod trước khi sửa; nhan-su-login-email.guard.ts:71 đã cấm đổi sang email break-glass. | Chuyển từ SO_NO 19/11. | Chuyển từ SO_NO 19/11. Xác minh 19/11 (db-verify): lệch ĐÚNG, mức THẤP. Cổng isTrustedAdminEmail (trusted-admin-email.ts:22; gọi ở server-permission.ts:84,116,144,155,185, quan-tri-access.ts:20, rbac-request.ts:46, actor-ksnk-scope-server.ts:46) không kiểm email_confirmed_at; fn_sys_is_admin() (20261021003002:176) không biết break-glass → app coi ADMIN, RLS không (fail-closed). Nâng quyền chỉ xảy ra nếu env KSNK_BREAK_GLASS_EMAILS được đặt và prod cho đăng ký/đổi email không xác nhận — KHÔNG kiểm được từ repo (cấu hình Supabase Auth prod). Hỏi PO/đo prod trước khi sửa; nhan-su-login-email.guard.ts:71 đã cấm đổi sang email break-glass. | 19/11 phiên đốt sổ đợt 8: không sửa. Lát vượt trần 8 file (≥ 11: trusted-admin-email.ts + server-permission.ts + quan-tri-access.ts + rbac-request.ts + actor-ksnk-scope-server.ts + nhan-su-login-email.guard.ts + spec) và `src/lib` ngoài vùng slice-fixer; sửa sai có thể khóa chính tài khoản break-glass nếu prod chưa có email_confirmed_at. Hỏi PO ở CAU_HOI_PO_APPKSNK.md P13."
   },
   {
     "id": "CSSD-045",
@@ -2599,11 +2599,12 @@
     "tieu_de": "Câu PO: module chat-thai-do-vai chưa có trong lộ trình/ssot-map — giữ hay gác",
     "bang_chung": "src/modules/chat-thai-do-vai; không có trong docs/ssot-map.md và lộ trình.",
     "lenh_kiem": "npm run verify:changed",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: gác (ẩn khỏi menu, không xóa). | PO 19/11: P5=Gác: ẩn chat-thai-do-vai khỏi menu, giữ mã, không xóa.",
-    "duyet": "2026-11-19"
+    "commit": "5d58bf17",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. Đề xuất: gác (ẩn khỏi menu, không xóa). | PO 19/11: P5=Gác: ẩn chat-thai-do-vai khỏi menu, giữ mã, không xóa. | Tay 2026-11-19 DAT: dev-local :3001 ADMIN01: menu «Vận hành nội bộ» chỉ còn Công việc, Thi KSNK, không có Chất thải & Đồ vải (18 link sidebar, không link /chat-thai-do-vai); vào thẳng /chat-thai-do-vai vẫn mở trang Quản lý Chất thải y tế & Đồ vải y tế",
+    "duyet": "2026-11-19",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-041",
@@ -2754,10 +2755,10 @@
     "tieu_de": "db-dung.sh không có khóa chạy đồng thời: hai phiên chạy cùng lúc thì phiên sau tắt stack của phiên trước",
     "bang_chung": "scripts/db-dung.sh dùng cố định project id ksnk_dd và cổng 55620–55627; `supabase stop` của lần chạy sau xóa container supabase_db_ksnk_dd đang dùng, lần chạy trước báo «No such container» và ĐỎ giả (gặp 19/11 13:03, Lát 1c).",
     "lenh_kiem": "pgrep -f \"bash scripts/db-dung.sh\"  # phải rỗng trước khi chạy npm run db:dung",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "CHO_PO",
     "nguon": "lat-1c-20261119",
     "commit": "",
-    "ghi_chu": "Đề xuất: khóa bằng thư mục `mkdir $TMP/ksnk_dd.lock` (thoát nếu đã có, `trap` xóa khi thoát). Chưa sửa vì ngoài Lát 1c. | Đề xuất: khóa bằng thư mục mkdir $TMP/ksnk_dd.lock (thoát nếu đã có, trap xóa khi thoát). Xác minh 19/11 (db-verify): ĐÚNG, mức THẤP. db-dung.sh:18 PID=ksnk_dd cố định, cổng :50-53, supabase stop --project-id ở dòng 33 (trap EXIT) và 61 (đầu) → phiên sau tắt stack phiên trước; mktemp -d (:24) chỉ tách thư mục tạm, không là khóa. lenh_kiem phụ: grep -nE 'flock|mkdir .*lock|lockfile|pgrep' scripts/db-dung.sh → rỗng."
+    "ghi_chu": "Đề xuất: khóa bằng thư mục `mkdir $TMP/ksnk_dd.lock` (thoát nếu đã có, `trap` xóa khi thoát). Chưa sửa vì ngoài Lát 1c. | Đề xuất: khóa bằng thư mục mkdir $TMP/ksnk_dd.lock (thoát nếu đã có, trap xóa khi thoát). Xác minh 19/11 (db-verify): ĐÚNG, mức THẤP. db-dung.sh:18 PID=ksnk_dd cố định, cổng :50-53, supabase stop --project-id ở dòng 33 (trap EXIT) và 61 (đầu) → phiên sau tắt stack phiên trước; mktemp -d (:24) chỉ tách thư mục tạm, không là khóa. lenh_kiem phụ: grep -nE 'flock|mkdir .*lock|lockfile|pgrep' scripts/db-dung.sh → rỗng. | Đề xuất: khóa bằng thư mục `mkdir $TMP/ksnk_dd.lock` (thoát nếu đã có, `trap` xóa khi thoát). Chưa sửa vì ngoài Lát 1c. | Đề xuất: khóa bằng thư mục mkdir $TMP/ksnk_dd.lock (thoát nếu đã có, trap xóa khi thoát). Xác minh 19/11 (db-verify): ĐÚNG, mức THẤP. db-dung.sh:18 PID=ksnk_dd cố định, cổng :50-53, supabase stop --project-id ở dòng 33 (trap EXIT) và 61 (đầu) → phiên sau tắt stack phiên trước; mktemp -d (:24) chỉ tách thư mục tạm, không là khóa. lenh_kiem phụ: grep -nE 'flock|mkdir .*lock|lockfile|pgrep' scripts/db-dung.sh → rỗng. | 19/11 đợt 8: chuyển CHO_PO (lop VAN_HANH). Câu hỏi PO ở CAU_HOI_PO_APPKSNK.md P14 (thêm khóa mkdir cho db-dung.sh)."
   },
   {
     "id": "NEN-016",
@@ -2807,9 +2808,23 @@
     "tieu_de": "Cùng lớp VST-045: vai CHU_NHIEM_KHOA thiếu liên kết quyền GIAM_SAT_VST:view và GIAM_SAT_CHUNG:view trên chuỗi migration dựng mới",
     "bang_chung": "supabase/migrations/20261114110000_vst_yeu_cau_dieu_chinh.sql:44-54 và 20261117100000_vst031_cnk_gsc_view.sql:10-16 gán CHU_NHIEM_KHOA bằng JOIN/CROSS JOIN vào hàng sys_permissions ('GIAM_SAT_VST','view') và ('GIAM_SAT_CHUNG','view'); không migration nào chèn các hàng này trước hai file đó (grep INSERT INTO sys_permissions chỉ có me04, adm04, hc_c, ar5d, ctyt, ar1, 20261114110000 'approve', 20261119180000 chỉ chèn GIAM_SAT_VST:view và chỉ nối lại LANH_DAO_KHOA). Seed 00-rbac.sql chèn hàng quyền SAU migration nên liên kết CHU_NHIEM_KHOA không bao giờ được tạo trên DB dựng mới. Prod có sẵn hàng nên không ảnh hưởng prod.",
     "lenh_kiem": "npm run db:dung (thêm assert pgTAP trong supabase/tests/database/vst_rls.test.sql: CHU_NHIEM_KHOA có GIAM_SAT_VST:view và GIAM_SAT_CHUNG:view)",
-    "trang_thai": "MOI",
+    "trang_thai": "DA_SUA",
     "nguon": "review-bv103 VST-045",
+    "commit": "ab392af8",
+    "ghi_chu": "Tách khỏi VST-045 để không nới lát. Sửa = migration mới (INSERT hàng quyền ON CONFLICT DO NOTHING + nối lại 2 liên kết CHU_NHIEM_KHOA) + assert pgTAP; không sửa file migration cũ. | Tay 2026-11-19 CHUA: DB local sau mdm:migrate:local: CHU_NHIEM_KHOA đúng 13 liên kết (6 approve + 7 view); pgTAP vst_rls 33/33 trên db:dung sạch; tay UI chưa chạy vì vai CNK không gán được từ giao diện (QT-019); trước khi áp prod đối chiếu CNK prod = 13 liên kết",
+    "test_tay": "CHUA"
+  },
+  {
+    "id": "NEN-017",
+    "module": "NEN",
+    "lop": "DB",
+    "muc": "THAP",
+    "tieu_de": "Cùng lớp VST-045/046: NHAN_VIEN_KSNK thiếu liên kết quyền HAU_CAN_MOI_TRUONG create/view trên DB dựng mới và DB local",
+    "bang_chung": "supabase/migrations/20261105110000:30-37 (chỉ create, PO 11-06) và 20261106100000 nối NHAN_VIEN_KSNK bằng JOIN vào hàng sys_permissions HAU_CAN_MOI_TRUONG; hàng quyền chỉ do seed 00-rbac.sql chèn SAU migration nên JOIN ra 0 dòng. Đo 19/11 trên DB local: NHAN_VIEN_KSNK có 0 liên kết HAU_CAN_MOI_TRUONG dù sys_permissions có đủ 4 hàng. Prod chưa đo. Module đang ẩn khỏi menu (NEN-011, PO «Gác») nên chưa ai chạm.",
+    "lenh_kiem": "docker exec supabase_db_ksnk_bv103 psql -U postgres -tA -c \"select count(*) from sys_role_permissions rp join sys_roles r on r.id=rp.role_id join sys_permissions p on p.id=rp.permission_id where r.name='NHAN_VIEN_KSNK' and p.module_name='HAU_CAN_MOI_TRUONG'\"  # 0 = lỗi còn; sửa xong phải ≥ 1 (create; view nếu PO xác nhận)",
+    "trang_thai": "MOI",
+    "nguon": "dot8-nen-009",
     "commit": "",
-    "ghi_chu": "Tách khỏi VST-045 để không nới lát. Sửa = migration mới (INSERT hàng quyền ON CONFLICT DO NOTHING + nối lại 2 liên kết CHU_NHIEM_KHOA) + assert pgTAP; không sửa file migration cũ."
+    "ghi_chu": "Phát hiện khi điều tra NEN-009, ngoài lát nên không sửa. Mở lại module (bỏ «Gác») thì làm trước. Sửa = migration mới INSERT hàng quyền ON CONFLICT DO NOTHING + nối lại liên kết (mẫu VST-046 `ab392af8`); kiểm prod xem NHAN_VIEN_KSNK có liên kết chưa và PO muốn chỉ create hay cả view. Cần ADR vì chạm quyền."
   }
 ]
