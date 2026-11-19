@@ -2286,10 +2286,11 @@
     "tieu_de": "Bản nháp localStorage của form VST chưa có kịch bản tay (khôi phục nháp, cảnh báo beforeunload khi thoát, nháp quá 12 giờ bị bỏ)",
     "bang_chung": "src/modules/giam-sat-vst/hooks/useVSTForm.ts; spec form-draft.spec.ts đã có, chưa chạy tay trên :3001.",
     "lenh_kiem": "kịch bản tay trên :3001: nhập dở form VST → tải lại trang → nháp được khôi phục; thoát trang → cảnh báo beforeunload",
-    "trang_thai": "DA_XAC_MINH",
+    "trang_thai": "DA_SUA",
     "nguon": "so-no-phan-loai-20261119",
-    "commit": "",
-    "ghi_chu": "Chuyển từ SO_NO 19/11."
+    "commit": "c26f776c",
+    "ghi_chu": "Chuyển từ SO_NO 19/11. | Tay 2026-11-19 DAT: 19/11 trên :3001 (dev-local, DB local, form /giam-sat-vst): (1) điền Điều dưỡng + TRƯỚC TXNB + RỬA TAY + 2 đánh giá Có → «Ghi nhận cơ hội» → localStorage có khóa bv103_form_draft_v1:vst:<hồ sơ>; (2) phát sự kiện beforeunload cancelable → defaultPrevented=true; (3) tải lại → thẻ NV1 «1 cơ hội», TRƯỚC TXNB, RỬA TAY khôi phục; (4) sửa savedAt lùi 13 giờ rồi tải lại → không khôi phục, khóa bị xóa. Ghi chú: cảnh báo beforeunload kiểm bằng sự kiện giả, hộp thoại gốc của trình duyệt không bấm được trong browser pane. | 2026-11-19 (đốt sổ): không có code mới; việc là kịch bản tay trên mã c26f776c (spec form-draft.spec.ts có sẵn), DAT.",
+    "test_tay": "DAT"
   },
   {
     "id": "VST-037",
