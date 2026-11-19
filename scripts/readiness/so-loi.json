@@ -2666,5 +2666,57 @@
     "nguon": "dieu-phoi-vst038-con-lai",
     "commit": "",
     "ghi_chu": "Tách từ VST-038 19/11. Hiện giữ khóa (an toàn). Đi cùng ma trận GS-1 (docs/core/handover-roadmap.md:68,101) và VST-028/VST-041. Cần đưa vào CAU_HOI_PO_APPKSNK.md — file đó thuộc phạm vi phiên khác, chưa sửa."
+  },
+  {
+    "id": "NKBV-050",
+    "module": "NKBV",
+    "lop": "DOMAIN",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Câu PO (P8): sốt đơn độc ở người bệnh trên 65 tuổi không đặt sonde có tính là triệu chứng UTI không — giữ NHSN (app hiện tại) hay theo gói U7 (mọi tuổi)",
+    "bang_chung": "src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.ts:651-654: sốt chỉ tính khi đang có sonde tiểu (mọi tuổi) hoặc không sonde nhưng ≤ 65 tuổi (chú thích mã: NHSN Ch.7, SUTI 1b); gói tài liệu U7.19/24/36 ghi sốt tính ở mọi tuổi. Ví dụ: 70 tuổi, không sonde, sốt > 38 °C, cấy nước tiểu ≥ 10^5 CFU/ml → app hiện không tính là UTI.",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "cau-hoi-po-20261119",
+    "commit": "",
+    "ghi_chu": "Câu lâm sàng của PO, không có đề xuất. Nếu im: giữ A (theo NHSN, như app). Chọn B: sửa hàm ở nkbv-rules-engine.ts tính sốt mọi tuổi + test. Khối P8 trong CAU_HOI_PO_APPKSNK.md."
+  },
+  {
+    "id": "NKBV-051",
+    "module": "NKBV",
+    "lop": "VAN_HANH",
+    "muc": "THAP",
+    "tieu_de": "Câu PO (N1): cổng module NKBV đang ghi KHÁM_PHÁ trong khi đã làm nhiều — nâng lên XÂY",
+    "bang_chung": "npm run module:gate báo nkbv = KHÁM_PHÁ; thực tế NKBV có bộ luật NHSN 2026 giai đoạn 0–2 với 676 test pass và nhiều commit tính năng. Cổng sai làm lát NKBV bị chặn khi tới lượt (CLAUDE.md: trước khi mở lát chạy module:gate).",
+    "lenh_kiem": "npm run module:gate -- nkbv",
+    "trang_thai": "CHO_PO",
+    "nguon": "cau-hoi-po-20261119",
+    "commit": "",
+    "ghi_chu": "Đề xuất: có. Nếu im: giữ KHÁM_PHÁ, tới lượt NKBV sẽ hỏi lại. Khối N1 trong CAU_HOI_PO_APPKSNK.md."
+  },
+  {
+    "id": "NEN-013",
+    "module": "NEN",
+    "lop": "VAN_HANH",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Câu PO (N2): bật công tắc KSNK_PILOT_FOUR_MODULES trên Vercel khi QLCV, NKBV, Đào tạo chưa xong",
+    "bang_chung": "Công tắc đang TẮT. Bật thì ẩn QLCV, NKBV và Đào tạo khỏi người dùng prod; VST/GSC và CSSD vẫn mở. Mô tả ở .env.example:23 đã cũ (vẫn ghi «chặn CSSD»); Claude không được đọc hay sửa file .env*.",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "cau-hoi-po-20261119",
+    "commit": "",
+    "ghi_chu": "Đề xuất: có (PO bật trên Vercel và tự sửa dòng mô tả .env.example:23). Nếu im: giữ TẮT. Khối N2 trong CAU_HOI_PO_APPKSNK.md."
+  },
+  {
+    "id": "NEN-014",
+    "module": "NEN",
+    "lop": "VAN_HANH",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "Câu PO (N3): đầu mối từng module (VST/GSC, NKBV, QLCV, Đào tạo) và đợt vận hành thử đầu gồm module nào",
+    "bang_chung": "CLAUDE.md dự án (Pilot DoD: người dùng/môi trường rõ, ≥ 3 kịch bản tay): mới có đầu mối CSSD; VST/GSC đang dùng thật nhưng chưa ghi tên đầu mối; NKBV, QLCV, Đào tạo chưa có (docs/core/handover-roadmap.md:68,101).",
+    "lenh_kiem": "",
+    "trang_thai": "CHO_PO",
+    "nguon": "cau-hoi-po-20261119",
+    "commit": "",
+    "ghi_chu": "Đề xuất (2): đợt đầu = VST/GSC và CSSD, khớp N2; câu (1) tên người không thay được bằng mặc định. Nếu im: Claude chạy kịch bản tay trên local, chưa module nào tính là «xong». Khối N3 trong CAU_HOI_PO_APPKSNK.md."
   }
 ]
