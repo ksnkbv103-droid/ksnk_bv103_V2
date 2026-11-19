@@ -124,24 +124,34 @@ Lệnh: C10 (dòng), C11 (spec), C12 (commit).
 
 ### 3.3 Sổ lỗi (`so-loi.mjs`, C17)
 
-Dòng đầu của `status`: `Sổ lỗi: 156 dòng · mở 25 · đã sửa 109 · lỗi giả 14 · hoãn 8`.
+<!-- so-loi:report:begin -->
+Đo ngày 2026-11-19 bằng `node scripts/readiness/so-loi.mjs report --ghi`; sinh từ sổ, không sửa tay (kiểm: `report --kiem`). Mỗi ô là đang mở/tổng, không tính lỗi giả.
+
+Sổ lỗi: 200 dòng · mở 35 · đã sửa 136 · lỗi giả 16 · hoãn 13
 
 | Module | NGHIEM_TRONG | CAO | TRUNG_BINH | THAP |
 |---|---|---|---|---|
-| VST_GSC | 0/0 | 1/7 | 9/12 | 3/8 |
-| CSSD | 0/1 | 0/6 | 2/17 | 1/11 |
-| NKBV | 0/0 | 1/11 | 6/17 | 1/12 |
+| VST_GSC | 0/0 | 0/7 | 4/14 | 7/18 |
+| CSSD | 0/1 | 0/7 | 5/23 | 6/17 |
+| NKBV | 0/0 | 0/11 | 1/19 | 1/16 |
 | QLCV | 0/0 | 0/0 | 0/5 | 0/1 |
-| DAO_TAO | 0/1 | 0/0 | 0/8 | 0/6 |
-| QUAN_TRI | 0/0 | 0/2 | 0/8 | 0/3 |
-| NEN | 0/0 | 0/2 | 1/3 | 0/1 |
+| DAO_TAO | 0/1 | 0/0 | 1/9 | 0/6 |
+| QUAN_TRI | 0/0 | 0/2 | 1/9 | 3/6 |
+| NEN | 0/0 | 0/2 | 2/5 | 4/5 |
 
-Mỗi ô là đang mở/tổng; bảng không tính 14 lỗi giả (142 + 14 = 156). Mở theo module: VST_GSC 13, NKBV 8, CSSD 3, NEN 1 (cộng 25). Mở theo mức: NGHIEM_TRONG 0 · CAO 2 · TRUNG_BINH 18 · THAP 5.
+```text
+MOI 14 · DA_XAC_MINH 10 · LOI_GIA 16 · DANG_SUA 0 · DA_SUA 136 · HOAN 13 · CHO_PO 11
+Tỉ lệ lỗi giả: 16/152 việc đã đóng
+Việc kế: xác minh 14 · sửa 10 · chờ PO 11
+Kịch bản tay: CHUA 9 · DAT 58 · KHONG_DAT 0
+DA_SUA có test/migration trong commit: 112/136
+Tuổi TB việc mở: 0,3 ngày (35/35 dòng mở có ngày; mốc = commit đầu đưa id vào so-loi.json)
+Migration mỗi lát: TB 0,24 · lớn nhất 1 · lát có ≥ 1 migration 28/116 (file migration thêm mới trong mỗi commit DA_SUA, mỗi commit đếm một lần; trần plan ≤ 1)
+Hàm định nghĩa lại 30 ngày: 34 hàm (52 lần) · tổng 322 lần định nghĩa cho 164 hàm (CREATE OR REPLACE FUNCTION trong supabase/migrations, từ 2026-10-20)
+```
+<!-- so-loi:report:end -->
 
-- Trạng thái (`stats`): `MOI 12 · DA_XAC_MINH 2 · LOI_GIA 14 · DANG_SUA 0 · DA_SUA 109 · HOAN 8 · CHO_PO 11`. Mở = MOI + DA_XAC_MINH + CHO_PO = 25.
-- Tỉ lệ lỗi giả 14/123 việc đã đóng (11,4%). Việc kế theo `stats`: xác minh 12 · sửa 2 · chờ PO 11. `DA_SUA` có test hoặc migration trong commit: 85/109.
-- Kịch bản tay: `CHUA 7 · DAT 40 · KHONG_DAT 0`. Sổ không ghi ai chạy kịch bản tay, nên không kịch bản nào trong 40 `DAT` ghi là do người dùng thật chạy.
-- Đã sửa theo ngày: 11-08: 1 · 11-11: 21 · 11-12: 49 · 11-13: 17 · 11-14: 15 · 11-15: 1 · không rõ ngày: 5 (cộng 109).
+Sổ không ghi ai chạy kịch bản tay, nên không kịch bản nào ghi `DAT` là do người dùng thật chạy. Khối trên do `node scripts/readiness/so-loi.mjs report --ghi` sinh từ sổ (không sửa tay); `report --kiem` thoát ≠ 0 nếu lệch.
 
 ### 3.4 Quy trình và tài liệu
 
