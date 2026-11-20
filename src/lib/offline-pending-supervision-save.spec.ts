@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildFlushOpts,
+  discardPendingSupervisionItem,
   enqueueOfflineGscSave,
   enqueueOfflineVstSave,
   flushPendingSupervisionSaves,
   getPendingSupervisionCount,
   isPermanentSupervisionFlushError,
+  listPendingSupervisionItems,
 } from "./offline-pending-supervision-save";
 import { SUPERVISION_SESSION_MUTATION_EXPIRED_VI } from "./supervision-mutation-window";
 
@@ -137,6 +139,43 @@ describe("flushPendingSupervisionSaves và bảo toàn hàng đợi khi enqueue 
     const q = JSON.parse(raw!);
     expect(q[0].clientRequestId).toBe("req-1");
     expect(q[1].clientRequestId).toBe("req-2");
+  });
+
+  it("hủy một bảng kiểm: chỉ bỏ đúng mục đó; id lạ trả false", () => {
+    enqueueOfflineVstSave({ session: { khoa_id: "k1" } as never, observations: [], clientRequestId: "req-1" });
+    enqueueOfflineGscSave({ session: { khoa_id: "k2" } as never, results: [], clientRequestId: "req-2" });
+    const [first] = listPendingSupervisionItems();
+
+    expect(discardPendingSupervisionItem(first.clientId)).toBe(true);
+    expect(discardPendingSupervisionItem("khong-co")).toBe(false);
+    const q = listPendingSupervisionItems();
+    expect(q).toHaveLength(1);
+    expect(q[0].clientRequestId).toBe("req-2");
+  });
+
+  it("mục bị hủy trong lúc flush đang await không sống lại", async () => {
+    enqueueOfflineVstSave({ session: { khoa_id: "k1" } as never, observations: [], clientRequestId: "req-1" });
+    const [item] = listPendingSupervisionItems();
+    mocks.saveVSTSession.mockImplementationOnce(async () => {
+      discardPendingSupervisionItem(item.clientId);
+      return { success: false, error: "Khu vực không thuộc danh mục cho phép của khoa đã chọn." };
+    });
+
+    await flushPendingSupervisionSaves();
+    expect(getPendingSupervisionCount()).toBe(0);
+  });
+
+  it("mục giữ lại để thử lại có ghi lỗi gần nhất", async () => {
+    enqueueOfflineGscSave({ session: { khoa_id: "k1" } as never, results: [], clientRequestId: "req-1" });
+    mocks.saveGiamSatChung.mockResolvedValueOnce({
+      success: false,
+      error: "Khu vực không thuộc danh mục cho phép của khoa đã chọn.",
+    });
+
+    await flushPendingSupervisionSaves();
+    const q = listPendingSupervisionItems();
+    expect(q).toHaveLength(1);
+    expect(q[0].lastError).toBe("Khu vực không thuộc danh mục cho phép của khoa đã chọn.");
   });
 
   it("writeQueue nuốt lỗi nhẹ nhàng khi localStorage.setItem ném QuotaExceededError", () => {

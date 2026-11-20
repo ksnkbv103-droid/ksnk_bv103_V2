@@ -23,6 +23,8 @@ export type PendingVstItem = {
   /** Idempotency key sinh một lần khi tạo phiên; item cũ không có → bỏ qua. */
   clientRequestId?: string | null;
   enqueuedAt: number;
+  /** Lỗi máy chủ trả về ở lần gửi gần nhất (để người dùng biết mục nào cần hủy). */
+  lastError?: string | null;
 };
 
 export type PendingGscItem = {
@@ -33,6 +35,7 @@ export type PendingGscItem = {
   existingSessionId?: string | null;
   clientRequestId?: string | null;
   enqueuedAt: number;
+  lastError?: string | null;
 };
 
 export type PendingSupervisionItem = PendingVstItem | PendingGscItem;
@@ -125,6 +128,19 @@ export function getPendingSupervisionCount(): number {
   return readQueue().length;
 }
 
+export function listPendingSupervisionItems(): PendingSupervisionItem[] {
+  return readQueue();
+}
+
+/** Người dùng chủ động hủy một bảng kiểm chưa gửi được (không khôi phục). */
+export function discardPendingSupervisionItem(clientId: string): boolean {
+  const q = readQueue();
+  const next = q.filter((item) => item.clientId !== clientId);
+  if (next.length === q.length) return false;
+  writeQueue(next);
+  return true;
+}
+
 export function isLikelyOfflineOrNetworkFailure(err: unknown): boolean {
   if (typeof navigator !== "undefined" && !navigator.onLine) return true;
   const msg = err instanceof Error ? err.message : String(err ?? "");
@@ -172,7 +188,7 @@ export async function flushPendingSupervisionSaves(): Promise<{
         else {
           failed++;
           lastError = res.error || lastError;
-          if (!isPermanentSupervisionFlushError(res.error)) remaining.push(item);
+          if (!isPermanentSupervisionFlushError(res.error)) remaining.push({ ...item, lastError: res.error ?? null });
         }
       } else {
         const res = await saveGiamSatChung(item.session, item.results, buildFlushOpts(item));
@@ -180,13 +196,13 @@ export async function flushPendingSupervisionSaves(): Promise<{
         else {
           failed++;
           lastError = res.error || lastError;
-          if (!isPermanentSupervisionFlushError(res.error)) remaining.push(item);
+          if (!isPermanentSupervisionFlushError(res.error)) remaining.push({ ...item, lastError: res.error ?? null });
         }
       }
     } catch (err) {
       failed++;
       lastError = err instanceof Error ? err.message : String(err);
-      if (!isPermanentSupervisionFlushError(lastError)) remaining.push(item);
+      if (!isPermanentSupervisionFlushError(lastError)) remaining.push({ ...item, lastError });
     }
   }
 
@@ -194,6 +210,8 @@ export async function flushPendingSupervisionSaves(): Promise<{
   const newlyAddedItems = latestQueue.filter(
     (item) => !q.some((old) => old.clientId === item.clientId),
   );
-  writeQueue([...remaining, ...newlyAddedItems]);
+  // Mục người dùng đã hủy trong lúc đang gửi thì không ghi lại.
+  const stillQueued = remaining.filter((item) => latestQueue.some((cur) => cur.clientId === item.clientId));
+  writeQueue([...stillQueued, ...newlyAddedItems]);
   return { synced, failed, lastError };
 }
