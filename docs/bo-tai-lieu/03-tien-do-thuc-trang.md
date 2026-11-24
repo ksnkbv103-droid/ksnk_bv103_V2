@@ -23,7 +23,7 @@
 - **Prod lệch mã.**
   - Prod chạy `e908e7e0` (PR #131, deploy 17/11).
   - `integrate/2026-11` đi trước prod 237 commit, trong đó 19 commit chưa push.
-  - 4 migration `20261118*` đã lên prod ngày 19/11, nhưng code đi kèm chưa deploy (D1).
+  - 4 migration `20261118100000`…`130000` đã lên prod ngày 19/11, nhưng code đi kèm chưa deploy (D1).
   - 12 migration `20261119*` chưa áp prod (§4).
 - **Sổ lỗi:**
   - 0 việc mới, 0 việc chờ sửa, 10 việc chờ PO.
@@ -48,8 +48,8 @@ dao-tao   KHÁM_PHÁ   đầu mối: CHƯA CÓ · mở: 6 · được phép: ch�
 | VST + GSC | 3.637 phiên VST, 1.435 phiên GSC, 33.421 quan sát (12/11) | Ma trận «ai xem gì» theo khoa (GS-1). Vai lãnh đạo khoa lâm sàng (VST-028) chưa áp prod |
 | CSSD | 10 chu trình thử (10/11). Prod có 164 bộ, 0 bộ con tách nhiệt (19/11) | Máy quét. Dữ liệu tách nhiệt chưa lên prod. Câu C1, C2 (§6) |
 | NKBV | 1 sự kiện (10/11) | Đầu mối (N1, N3). HIS/LIS (L3) |
-| QLCV | 0 việc (10/11) | Đầu mối; ba câu QLCV ở 02 §6 |
-| Đào tạo | 1 lần thi (10/11). 787 câu hỏi (07/09) | Đầu mối; câu DT-2 |
+| QLCV | 0 việc (10/11) | Đầu mối (các câu QLCV ở 02 §6 đã trả lời 17/11) |
+| Đào tạo | 1 lần thi (10/11). 787 câu hỏi (07/09) | Đầu mối (DT-2 đã chốt 24/10, `docs/core/handover-roadmap.md` dòng 102) |
 | Nền (MDM, RBAC, quản trị) | Nhân sự 36, khoa phòng 66. Vai NHAN_VIEN_KSNK 19, ADMIN 1, KHACH_THONG_KE_GSTT 1, MANG_LUOI_KSNK 0 (12/11) | QT-015, QT-019, NEN-010 (§6) |
 
 ## 3. Số đo
@@ -144,6 +144,7 @@ docker exec supabase_db_ksnk_bv103 psql -U postgres -d postgres -Atc "select cou
   - Chưa mở dashboard VST/GSC trên prod sau B2.
   - 7 cột prod mà lát L12a/L12b thôi dò chưa được truy vấn. SQL nằm ở `git show 2222a336:.claude/plans/KH_APPKSNK_20261116_lam-gon-ma.md`, dòng 391–406. Thiếu cột thì `git revert 278334e8 1e1a1a8d`.
   - Kịch bản hoàn tác B1 nằm ngoài repo, có thể đã bị dọn, chưa chạy thử.
+  - `executeRejectToPreviousStation` (CSSD trả lui) gọi `rpc_cssd_nhat_ky_ghi` bằng client nào, 5 hay 6 tham số: mới đọc `cssd-workflow-application.ts:269` (KH lô prod 17/11, mục «Tự kiểm»).
 - **Còn treo từ lô 17/11:**
   - Q3: 14 bộ tổng chưa tách.
   - Q5: policy `Authenticated users can read dm_khoa_phong` không có trong migration nào.
@@ -186,7 +187,7 @@ Cập nhật 2026-11-24. Mỗi câu có mã; PO trả lời theo mã. Câu im th
 | A2 | Lấy `integrate/2026-11` làm `main` chuẩn, gắn tag sao lưu nhánh cũ, dọn worktree dư, đưa file dữ liệu ngoài mã ra khỏi gốc repo | Đồng ý. Đưa lên `main` = deploy production: cần «deploy» và D1. Dọn worktree sau khi kiểm không còn phiên nào đang mở | Không gộp, không dọn |
 | A3 | Thứ tự nghiệm thu người dùng thật: Nhóm 1 (VST, GSC, Dashboard, Quản trị) → Nhóm 2 (CSSD, sự cố, hóa chất) → Nhóm 3 (QLCV, NKBV, Đào tạo); giữ ẩn «Chất thải & Đồ vải» | Đồng ý | Giữ thứ tự này |
 | A4 | Chặng 2: đăng nhập nội viện bằng mã nhân viên hoặc email + mật khẩu, lưu ở `public.sys_user_accounts`, giữ UUID và mật khẩu hiện có | Đồng ý, kèm hai điều kiện: đo định dạng hash trong `auth.users` của prod trước; phạm vi gồm quên mật khẩu và khóa sau nhiều lần sai | Chưa mở Chặng 2 |
-| A5 | Chấp nhận các điều kiện sửa ở 01 §6: deploy là cổng PO; 17 policy cần bộ lọc TypeScript có test trước khi bỏ, NKBV cắt sau cùng; SQL thu quyền của `authenticated` cả trên hàm và view, `CREATE OR REPLACE` tường minh, dump policy làm đường lùi; baseline so với dump prod; kiểm kê `pg_cron`; Chặng 2 thêm đặt lại mật khẩu, khóa tài khoản, giới hạn tần suất; bỏ hạn theo ngày | Đồng ý | Áp dụng, vì chỉ thêm bước kiểm |
+| A5 | Chấp nhận các điều kiện sửa ở 01 §6: deploy là cổng PO; 17 policy cần bộ lọc TypeScript có test trước khi bỏ, NKBV cắt sau cùng; SQL thu quyền của `authenticated` cả trên hàm và view, `CREATE OR REPLACE` tường minh, dump policy làm đường lùi; baseline so với dump prod; kiểm kê `pg_cron`; Chặng 2 thêm đặt lại mật khẩu, khóa tài khoản, giới hạn tần suất; bỏ hạn theo ngày | Đồng ý | Áp các bước thêm kiểm; ba chỗ nới so với gốc (01 §6.0) chờ PO |
 
 ### C — Hỏi khoa CSSD (đầu mối: Nguyễn Thanh Bình)
 
@@ -205,21 +206,21 @@ Cập nhật 2026-11-24. Mỗi câu có mã; PO trả lời theo mã. Câu im th
 
 | Mã | Việc | Lệnh PO gõ | Máy kiểm trước |
 |---|---|---|---|
-| D1 | Deploy code đi kèm 4 migration `20261118*` đã ở prod (ngăn kéo CSSD-034, trang kế hoạch giám sát). Nay là gộp 237 commit `integrate` vào `main`. Cần ủy quyền server `vercel` qua `/mcp` | «deploy» | Vai NHAN_VIEN_KSNK trên prod có quyền GIAM_SAT_NKBV import. Áp thử chuỗi 12 migration `20261119*` trên bản sao DB |
+| D1 | Deploy code đi kèm 4 migration `20261118*` đã ở prod (ngăn kéo CSSD-034, trang kế hoạch giám sát). Nay là gộp 237 commit `integrate` vào `main`. Cần ủy quyền server `vercel` qua `/mcp` | «deploy» | Vai NHAN_VIEN_KSNK trên prod có quyền GIAM_SAT_NKBV import. Áp thử chuỗi 12 migration `20261119*` trên bản sao DB. Áp 12 file đó lên prod trước khi deploy (migration trước, code sau), hoặc chứng minh code chạy được khi chưa áp |
 | D3 | Đẩy commit local lên GitHub; CI `db-dung.yml` chỉ chạy sau bước này | «push» | `npm run verify` |
 | D5 | CSSD-041: đếm quy trình kẹt trên bộ tổng còn con active. Đếm 19/11 ra 0 nhưng vô nghĩa, vì prod chưa có bộ con. Câu SQL: `git show 2222a336:CAU_HOI_PO_APPKSNK.md` dòng 45 | «đếm CSSD-041» | Chỉ đọc |
 | D6 | CSSD-048: tắt 68 bộ mẹ rỗng. Chưa chạy: prod có 164 bộ, 0 bộ con, nên số 68 chỉ có ở local. Đo lại sau khi dữ liệu tách nhiệt lên prod | «tắt 68 bộ» | `SELECT count` trước và sau |
 
 Còn thiếu dữ liệu:
-- P12 cần tên người giữ vai CHU_NHIEM_KHOA (N6).
+- P12: người giữ vai CHU_NHIEM_KHOA đã có tên (N6, PO 17/11: Trịnh Hữu Nghĩa, xem 02 bảng vai). Còn gán tài khoản thật (cổng PO).
 - P13 cần danh sách `KSNK_BREAK_GLASS_EMAILS`. Claude không đọc `.env*`, nên PO dán danh sách hoặc tự chạy SELECT.
 - D4 đếm ra 0; QT-015 ý 3 chờ PO quyết đóng.
 
 ### N — Vận hành thử
 
 - **N1 · NKBV-051:** PO đã đồng ý nâng NKBV lên XÂY. Còn thiếu hai thứ: tên đầu mối, và gỡ hết `[CẦN XÁC NHẬN]` ở mục 1–2 của `docs/modules/nkbv/van-de-nguoi-dung.md`.
-- **N2 · NEN-013:** PO tự bật `KSNK_PILOT_FOUR_MODULES` trên Vercel và sửa mô tả ở `.env.example:23`. Lát ẩn module (KH 17/11 lát 2) chưa làm.
-- **N3 · NEN-014:** cần tên đầu mối cho NKBV, QLCV, Đào tạo. VST/GSC đang tạm ghi «Tổ giám sát KSNK». Chưa có tên thì không module nào được tính là xong.
+- **N2 · NEN-013:** PO tự bật `KSNK_PILOT_FOUR_MODULES` trên Vercel và sửa mô tả ở `.env.example:23`. Mã ẩn module đã xong (`c67a5206`, 17/11), lên prod cùng D1.
+- **N3 · NEN-014:** cần tên đầu mối cho NKBV, QLCV, Đào tạo. VST/GSC: `module:gate` và NEN-014 ghi «Tổ giám sát KSNK», còn 02 (V1, PO 17/11) ghi Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa; PO xác nhận bên nào đúng. Chưa có tên thì không module nào được tính là xong.
 - **Việc PO tự làm:**
   - Mở dashboard VST/GSC trên prod và báo nếu số liệu lệch.
   - Tắt plugin superpowers nếu còn bật.
@@ -236,7 +237,13 @@ Còn thiếu dữ liệu:
 | `trace` | Chỉ chạy local, không chạy trong CI | Nói «trace vào CI» |
 | CSSD-043 (b) | Bộ con tách nhiệt nhận bao gói mặc định: CN → GIAY, KCN → TUI_EP | `7d79bdec` |
 | VST-038 lát A | ADMIN và NV KSNK kiêm MẠNG LƯỚI không bị khóa khoa khi in nhãn GSC | `4e076eae` |
-| VST-013(a) | Form VST giữ thứ tự khoa hiện tại, vì danh mục chưa có trường «khoa lâm sàng» | PO chỉ trường hoặc gửi danh sách khoa |
+| VST-013(a) | Ô chọn khoa của form VST xếp khoa lâm sàng (Khối Nội, Ngoại) lên trước (`src/modules/giam-sat-vst/lib/vst-khoa-order.ts`) | `79375a0f` |
+| `lam-het` | Skill `lam-het` là xương sống của luồng | Nói «bỏ lam-het» |
+| Sổ nợ cũ | Phân loại một lần 19/11: dòng chuyển sang sổ lỗi, dòng đã xong, dòng đóng «không làm» | `fbea3fb6`; nói số dòng cần mở lại |
+| `loai` | Dòng sổ lỗi cũ thiếu `loai` thì mặc định `loi` | `ea68c7d6`; nói «điền loai» |
+| settings.json | Claude không sửa `~/.claude/settings.json`; bật/tắt plugin do PO làm | Nói «Claude sửa settings.json» |
+
+Đã chốt 19/11, bỏ khỏi K: P8=A giữ NHSN (NKBV-050); P5=Gác `chat-thai-do-vai`, ẩn menu, giữ mã (NEN-011).
 
 ### K — Không gấp (im = giữ như đang chạy)
 
@@ -248,9 +255,9 @@ Còn thiếu dữ liệu:
 | K4 | Máy CSSD có cần mã QR riêng không? Cột `ma_qr_thiet_bi` chưa từng có trong DB | Giữ mã |
 | K5 | Hiện lại `NkbvCdcMetricsPanel` trong tab NKBV không? | Giữ ẩn |
 | K6 | Làm «gói quyền nhanh» (gán quyền sẵn theo vai) không? | Chưa làm |
-| K7 | NKBV theo NHSN 2026: (a) đã chốt P8=A, `NKBV-050` HOAN · (b) bật lại LabID không · (c) nâng SSOT từ 2025 v3.3 lên 2026 không · (d) PATOS chỉ làm nhãn (đã làm) | (b) giữ tắt · (c) giữ 2025 v3.3 |
-| K8 | `chat-thai-do-vai` giữ hay gác? | Gác (đang ẩn menu, NEN-011) |
+| K7 | NKBV theo NHSN 2026: (b) bật lại LabID không · (c) nâng SSOT từ 2025 v3.3 lên 2026 không · (d) PATOS chỉ làm nhãn (đã làm) | (b) giữ tắt · (c) giữ 2025 v3.3 |
 | K9 | Mã kho tri thức chờ PO (KH 13/11 và 14/11): XM-2, cỡ mẫu (R1.14 nêu tối thiểu 100/tháng, app ghi 20, khóa PO 01/11 ghi 50 theo khoa/kỳ; số app đang dùng: cần kiểm) · X2.13, QT.32, R1.10 (nội dung: cần kiểm) | Giữ như app đang chạy |
+| K10 | Xóa/sửa muộn phiên VST (KH 13/11 L3b): xác nhận các giả định: «đã xác nhận» = quá 30 phút từ lúc tạo phiên; ADMIN vẫn xóa trực tiếp; người gửi yêu cầu = chủ phiên hoặc NV KSNK/CHU_NHIEM_KHOA; không tự duyệt yêu cầu của mình (trừ ADMIN) | Giữ như mã đang chạy |
 
 ## 7. Nợ và ghi nhận ngoài lát
 
@@ -259,13 +266,13 @@ Còn thiếu dữ liệu:
 - **Ghi nhận ngoài lát** (một dòng mỗi mục, phân loại vào sổ ở lần kế):
   - `supabase/migrations/20261119110000_cssd_039_khoa_su_co_ghi_giao_dich.sql:182-193`: hủy sự cố không khóa dòng phiếu ngược đang bị tắt `is_active` cùng lúc. Rủi ro rất thấp (Minor).
   - `…20261119110000…sql:56`: phiếu NHẬP có `su_co_id` vẫn lọt vào sự cố đã hủy. App hiện không gửi trường này (Minor).
-  - `scripts/db-dung.sh:137`: bước chờ chỉ gọi `/login`, không kiểm server của chính script còn sống. Nếu còn server mồ côi, e2e có thể chạy trên bản build cũ và cho kết quả xanh giả (Minor).
-  - `scripts/db-dung.sh:142-143`: lấy tài khoản e2e có sẵn trong shell, và `next build` local nạp `.env.local` (`KSNK_PILOT_FOUR_MODULES`, `KSNK_BREAK_GLASS_EMAILS`), nên xanh ở local chưa chắc xanh ở CI. Việc này thuộc Chặng 0 (`.env.test`).
+  - `scripts/db-dung.sh:150`: bước chờ chỉ gọi `/login`, không kiểm server của chính script còn sống. Nếu còn server mồ côi, e2e có thể chạy trên bản build cũ và cho kết quả xanh giả (Minor).
+  - `scripts/db-dung.sh:155`: lấy tài khoản e2e có sẵn trong shell, và `next build` local nạp `.env.local` (`KSNK_PILOT_FOUR_MODULES`, `KSNK_BREAK_GLASS_EMAILS`), nên xanh ở local chưa chắc xanh ở CI. Việc này thuộc Chặng 0 (`.env.test`).
   - `.github/workflows/db-dung.yml:41`: chưa cache Playwright (Minor).
   - `e2e/gsc-vst-supervision.spec.ts:35,76`: `toHaveCount(0)` qua ngay khi thấy chữ «Tỷ lệ tuân thủ», nên lỗi xuất hiện sau đó sẽ lọt.
-  - `src/lib/offline-pending-supervision-save.ts:142`: lỗi khu vực không được tính là lỗi vĩnh viễn, nên hàng đợi offline thử lại mãi. Ngày 20/11 đã có nút hủy (`2222a336`). Phân loại lỗi vĩnh viễn sang trạng thái «chờ người xem» là việc của Chặng 0; không âm thầm bỏ dữ liệu.
+  - `src/lib/offline-pending-supervision-save.ts:158`: lỗi khu vực không được tính là lỗi vĩnh viễn, nên hàng đợi offline thử lại mãi. Ngày 20/11 đã có nút hủy (`2222a336`). Phân loại lỗi vĩnh viễn sang trạng thái «chờ người xem» là việc của Chặng 0; không âm thầm bỏ dữ liệu.
   - `src/modules/cssd-su-co/domain/cssd-batch-recall.ts:117`: `batchStatusAfterBiRecall` lệch SQL sau KH-L4b; chỉ có spec gọi. Hai cặp chuyển →`QC_KHONG_DAT` chờ siết `ghi_test`. Đích `DA_TAI_XU_LY` đã chốt là Trạm Tiếp nhận (PO 17/11, C6).
-  - `scripts/verify-changed.mjs:64-65`: nuốt dòng «miễn».
+  - `src/modules/giam-sat-nkbv/actions/giam-sat-nkbv-ba-timeline.actions.ts:13,144,165,193`: 4 action ghi chưa thấy kiểm phạm vi bệnh án. Chưa xác minh, cần `security-auditor` rà riêng (KH 16/11 dòng 304); đưa vào sổ lỗi ở lần rà kế.
   - Sáu guard chưa nối vào gate: `engineering:contract:gate:strict`, `gstt:scoring:audit`, `guard:cssd-red-alert-view`, `smoke:cssd-station-map`, `sql:object-refs`, `verify:danh-muc-routes`.
   - Thử tay sau lát làm gọn mã (`lam-gon-ma` §9) chưa ai làm. Ba câu còn treo ở lát đó: `defaultPeriodFilterNow` tháng 0, `invalidateClientDanhMucCache`, `ma_qr_thiet_bi` (= K4).
 
@@ -292,7 +299,7 @@ Số đo lại ở §3.2 khớp phần lớn số của kế hoạch.
 
 **Ba lỗi chặn**, mỗi lỗi thành một điều kiện trong 01 §6:
 1. «Đưa `main` lên `integrate`» thực chất là deploy production 237 commit. Bước này cần «deploy» và D1.
-2. Bỏ 17 policy đang lọc dữ liệu theo khoa hoặc theo người trên bảng người bệnh, trong khi lớp TypeScript chưa có bộ lọc danh sách đã kiểm.
+2. Bỏ 17 policy đang lọc dữ liệu theo khoa hoặc theo người (bảng người bệnh, cùng `mdm_nhan_su` và `user_roles`), trong khi lớp TypeScript chưa có bộ lọc danh sách đã kiểm.
    - Lớp TypeScript từng hở: NKBV-033 đọc census có họ tên qua admin client; NKBV-038 phạm vi khoa mặc định mở toàn viện.
    - `guardKhoaScope(actor, targetKhoaId)` chỉ kiểm một id, không lọc được danh sách.
 3. SQL nháp của Migration 1 và 2 chưa đạt mục tiêu «trình duyệt không chạm DB».
@@ -301,7 +308,9 @@ Số đo lại ở §3.2 khớp phần lớn số của kế hoạch.
    - 18 hàm được viết lại bằng regex lúc chạy, nên thân hàm mới không nằm trong repo.
    - Không có đường lùi.
 
-**Kiểm định:** `kiem-dinh` vòng 1 chấm CHƯA ĐẠT (18/29 mục). Bản nhận định đã sửa theo kết quả đó. Chưa chạy vòng 2.
+**Kiểm định:** `kiem-dinh` vòng 1 chấm CHƯA ĐẠT (18/29 mục; phiên 24/11, kết quả không lưu file). Bản nhận định đã sửa theo kết quả đó. Chưa chạy vòng 2.
+
+**Kiểm định bản gộp tài liệu (24/11):** `kiem-dinh` chấm CHƯA ĐẠT ở commit `efede588` (6 Cao, 10 Trung bình, khoảng 110 mục, khớp khoảng 70%). Đã sửa ở commit kế: luật migration trước code sau, đề xuất A1–A5 chưa phải PO chốt, việc rơi từ kế hoạch gốc (`tsconfig`, ESLint `warn`, 8 hàm `auth.role()`, chi tiết Chặng 2), luật giao diện PO đã duyệt, phát hiện `ba-timeline`, lát ẩn module đã có mã.
 
 ### 8.2 Đối chiếu NKBV với NHSN 2026 (2026-11-11)
 
@@ -311,7 +320,7 @@ Số đo lại ở §3.2 khớp phần lớn số của kế hoạch.
   - LabID đã tắt.
   - Thiếu PedVAE (cố ý), thuật toán Locations (Ch.15), 5 site Ch.17, và admissions ở mẫu số.
 - **Đã làm (giai đoạn GĐ0–GĐ2, đã vào `integrate`):**
-  - 31 ca hồi quy ở `src/modules/giam-sat-nkbv/lib/__fixtures__/nhsn2026/`.
+  - Bộ ca hồi quy ở `src/modules/giam-sat-nkbv/lib/__fixtures__/nhsn2026/` (4 file: ch02 timeline, ch02 transfer, ch07 IUC, ch10 VAC). Bản cũ ghi 31 ca; chưa đếm lại.
   - SSI: PATOS chỉ còn là nhãn.
   - VAE: sửa baseline và chuẩn hóa PEEP.
   - BSI: thêm các cờ loại trừ `excl_*`.

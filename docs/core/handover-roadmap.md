@@ -38,7 +38,7 @@ Verify trước push: `npm run verify` (full) — xem [`engineering-guidelines.m
 
 ## 5. Lộ trình: thang L0–L3 (PO duyệt 2026-10-24)
 
-Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nhật ký các lát cũ (SEC, ACC, KD, HC, TB, NK-*, CS-*, DT, GS, QL…) đã lưu trong git log trước commit này; không chép lại ở đây. **§5 đã gộp vào bộ 3 file (PO duyệt 2026-11-16):** lộ trình hiện hành ở [`01 §6.3`](../bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md); mục này giữ nguyên để tra, lệch với nguồn sống thì nguồn sống thắng.
+Một chủ đề một bản đang dùng ([`ssot-map.md`](../ssot-map.md)). Nhật ký các lát cũ (SEC, ACC, KD, HC, TB, NK-*, CS-*, DT, GS, QL…) đã lưu trong git log trước commit này; không chép lại ở đây. **§5 đã gộp vào bộ 3 file (PO duyệt 2026-11-16):** lộ trình hiện hành ở [`01 §6`](../bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md); mục này giữ nguyên để tra, lệch với nguồn sống thì nguồn sống thắng.
 
 **Thang sẵn sàng (mỗi module)**
 

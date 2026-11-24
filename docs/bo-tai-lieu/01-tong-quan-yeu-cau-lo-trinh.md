@@ -2,7 +2,7 @@
 
 > **File kế hoạch duy nhất của dự án** (gộp 2026-11-24 theo yêu cầu PO).
 > - Kế hoạch đang chạy: **KH cải tổ 24/11, bản đã sửa** (§6).
-> - §1–§4 và §7 là bản PO duyệt ngày 2026-11-16, giữ nguyên.
+> - §1–§4 và §7 lấy từ bản PO duyệt ngày 2026-11-16; §2, §3, §5, §7 đã cập nhật theo nguồn sống ngày 2026-11-24.
 > - Báo cáo, tiến độ, handoff, nợ, câu hỏi PO nằm ở [03-tien-do-thuc-trang.md](03-tien-do-thuc-trang.md). Nghiệp vụ, domain ở [02-nghiep-vu-domain.md](02-nghiep-vu-domain.md).
 > - Nhãn: «cần kiểm» = nguồn không nói rõ hoặc chưa đo lại. `[ĐỀ XUẤT]` = PO chưa chốt.
 
@@ -41,7 +41,7 @@ Nguồn: `CLAUDE.md`; `docs/modules/giam-sat/README.md:18-20`; `docs/core/handov
 
 | Module | Ai dùng, làm gì | Đầu mối (`module:gate` 2026-11-24) |
 |---|---|---|
-| VST/GSC (giám sát) | NV KSNK / mạng lưới KSNK nhập phiên VST (5 mốc WHO) và phiên GSC; xem thống kê một kỳ, in báo cáo. Hội đồng KSNK chỉ xem. Prod 11-12: 19 tài khoản NHAN_VIEN_KSNK, 0 MANG_LUOI_KSNK | «Tổ giám sát KSNK» (tạm, chưa phải tên người: 03 §6 N3) |
+| VST/GSC (giám sát) | NV KSNK / mạng lưới KSNK nhập phiên VST (5 mốc WHO) và phiên GSC; xem thống kê một kỳ, in báo cáo. Hội đồng KSNK chỉ xem. Prod 11-12: 19 tài khoản NHAN_VIEN_KSNK, 0 MANG_LUOI_KSNK | Hai nguồn lệch: `module:gate` và NEN-014 ghi «Tổ giám sát KSNK» (tạm); 02 (V1, PO 17/11) ghi Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa. PO xác nhận ở 03 §6 N3 |
 | CSSD | Tổ CSSD qua các trạm: tiếp nhận → làm sạch → QC → đóng gói → mẻ tiệt khuẩn → cấp phát; truy vết bộ dụng cụ | Nguyễn Thanh Bình |
 | NKBV | «Ai làm» không có trong nguồn: PO cần chỉ định. Ghi ca NKBV theo NHSN 2025, danh sách ca, tỉ lệ | CHƯA CÓ |
 | QLCV | Nhóm KSNK: tạo, giao, duyệt, theo dõi hạn công việc nội bộ; chỉ NV KSNK được giao hoặc phụ trách | CHƯA CÓ |
@@ -110,7 +110,8 @@ Cột «Hiện tại» ghi số ngày 2026-11-15. Số mới ở 03 §1–§3.
 | 2026-10-24 | Thang L0–L3 · nộp trễ > 30 giây = không đạt · thi thử ẩn đáp án đến khi nộp · QL-1 (xóa mềm, ghi chú theo người tạo) · NKBV đóng băng ở mức ghi ca + danh sách + tỉ lệ |
 | 2026-11-01 | Giám sát: ngưỡng 2 mức < 85 đỏ · 85–< 90 vàng · ≥ 90 xanh; cỡ mẫu tối thiểu 50 theo khoa/kỳ; có kế hoạch giám sát khoa/tháng; quy trình QT.KSNK.33 |
 | 2026-11-06 | Ngưỡng dashboard `GREEN_MIN` 85 · `YELLOW_MIN` 70 · `KHOA_WARN_PCT` 80; biểu đồ khoa VST vàng < 90, đỏ < 85. Ghi «chưa có căn cứ định lượng từ nghiên cứu», không dẫn WHO |
-| 2026-11-10 | `CHU_NHIEM_KHOA` ≡ TK_KSNK. Break-glass chỉ ADMIN/CNK thật (QLCV-003, 11-11) |
+| 2026-11-10 | `CHU_NHIEM_KHOA` ≡ TK_KSNK. Break-glass chỉ ADMIN/CNK thật (QLCV-003, 11-11) · Giao diện, quy tắc lớp: tối đa 2 lớp thấy được (nền trang → panel trắng); trong panel nhóm bằng khoảng trắng hoặc đường kẻ mảnh, không hộp lồng; ngoại lệ: bảng dữ liệu, dialog, vùng cảnh báo |
+| 2026-11-11 | Giao diện «chuyên nghiệp, không tối giản», theo canvas đã duyệt `JB6sGEAgEjD3apaX1t3ePW` · quy tắc 3 cỡ: ô nhập và nút chính 48px; nút phụ, chip, nút bảng 36px; vùng chạm điện thoại ≥ 44px · bo control 8px, khung 12px · một khung ngoài mỗi khối, không thẻ trong thẻ · một nút xanh đặc `#026f17` mỗi màn · tab và chip xếp lưới cột đều («Áp toàn bộ») · chữ ≥ 12px, trừ bản in và lưới ngày |
 | 2026-11-13 | CSSD xây lại lõi · lưu danh tính người được quan sát (R2.07) · lý do sửa/xóa ≥ 10 ký tự (VST), ≥ 3 (GSC) · giữ tick tay (R1.09/R1.10) · mẻ không đạt xử lý lại từ đầu, về Tiếp nhận · CSSD-017 ủ BI ≥ 20 phút · NKBV-023 ẩn ca chốt = ADMIN + lý do · NKBV-026 LOA máy chủ · CSSD-025 hoãn |
 | 2026-11-14 | Không có ngưỡng hạn mức nào làm dừng hay thu hẹp việc |
 | 2026-11-17 | K5 (`20261114180000`, NKBV-041) không áp prod: Hội đồng KSNK được thấy danh tính · đích thu hồi tái xử lý `DA_TAI_XU_LY` = Trạm Tiếp nhận (C6) |
@@ -118,7 +119,7 @@ Cột «Hiện tại» ghi số ngày 2026-11-15. Số mới ở 03 §1–§3.
 | 2026-11-19 | Luồng một con đường (`CLAUDE.md`) · migration đã ở prod là bất biến (`supabase/PROD_HEAD`, `guard-adr`) · phát triển lần lượt CSSD → NKBV → QLCV → Đào tạo · sổ lỗi là nơi ghi tiến độ duy nhất |
 | 2026-11-24 | Chọn KH cải tổ 24/11, chạy trên `ksnk_bv103` (§6) · gộp tài liệu: một file kế hoạch (01), một file báo cáo (03) |
 
-Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ lỗi; bản cũ ở §8.
+Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ lỗi; bản cũ ở §8 (giao diện: `ui-redesign-plan.md` §4.1, §9).
 
 ## 6. Kế hoạch đang chạy: KH cải tổ 24/11 (bản đã sửa)
 
@@ -134,18 +135,22 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
   - Nghiệm thu theo nhóm module đang dùng thật.
 - **Không chạy như đã viết.** Kế hoạch gốc có ba lỗi chặn:
   1. Đưa `main` lên `integrate` thực chất là deploy production.
-  2. Bỏ 17 policy lọc dữ liệu người bệnh khi chưa có bộ lọc thay thế.
+  2. Bỏ 17 policy lọc dữ liệu (bảng người bệnh, cùng `mdm_nhan_su` và `user_roles`) khi chưa có bộ lọc thay thế.
   3. SQL nháp vẫn để `authenticated` gọi được hàm và view.
 - **Đổi tên:** kế hoạch gốc gọi hướng này là «Phương án C», trùng tên với phương án trong ADR-003 của ops-web. Ở đây gọi là «KH cải tổ 24/11».
   - ADR-003 không áp dụng cho repo này.
   - Không sửa gì ở ops-web.
 - **Bỏ hạn theo ngày** («Ngày 1–2», «Ngày 3–6», «Tuần 2»). Mỗi chặng chỉ có điều kiện vào và điều kiện xong, đo bằng lệnh.
-- **Trả lời Phần 6 của kế hoạch gốc** (chi tiết và mục «nếu im» ở 03 §6 A):
+- **Đề xuất trả lời Phần 6 của kế hoạch gốc.** PO chưa trả lời; chi tiết và mục «nếu im» ở 03 §6 A:
   - A1: chạy trọn 0 → 3.
   - A2: đồng ý, qua cổng deploy và D1.
   - A3: đồng ý.
   - A4: đồng ý cho Chặng 2, sau khi đo định dạng hash ở prod.
-- **Các điều kiện sửa dưới đây là `[ĐỀ XUẤT]` của Claude** (03 §6 A5). PO im thì vẫn áp dụng, vì chúng chỉ thêm bước kiểm.
+- **Các điều kiện sửa dưới đây là `[ĐỀ XUẤT]` của Claude** (03 §6 A5). Phần lớn chỉ thêm bước kiểm.
+- **Ba chỗ nới so với kế hoạch gốc, PO duyệt riêng:**
+  1. Gốc: `STATUS.md` ≤ 150 dòng. Ở đây: 03 thay `STATUS.md` và dài hơn (khoảng 350 dòng).
+  2. Gốc: lưu file cũ vào `docs/archive/2026-11/`. Ở đây: gỡ bằng `git rm`, khôi phục bằng `git show` (§8).
+  3. Gốc: Chặng 0 xong khi còn đúng 1 workspace `main`. Ở đây: còn các worktree đang dùng, vì mỗi agent ghi trong một worktree riêng (`CLAUDE.md`).
 
 ### 6.1 Nguyên tắc
 
@@ -167,6 +172,7 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
 3. **File ngoài mã ở gốc checkout chính** (xlsx, py, sql untracked): PO chọn chuyển ra ngoài repo hay đưa vào repo. Không xóa khi PO chưa nói.
 4. **Đưa `main` lên `integrate/2026-11`.** Bước này = deploy production 237 commit. Cổng: «deploy» + D1 (03 §6 D).
    - Trước khi deploy: áp thử chuỗi 12 migration `20261119*` trên bản sao DB.
+   - Giữ quy tắc «áp migration trước, deploy code sau» (`docs/core/handover-roadmap.md` dòng 76): áp 12 file `20261119*` lên prod (cổng PO, qua MCP) trước khi deploy, hoặc chứng minh từng chỗ code mới chạy được khi chưa áp. Ba tham số `p_expected_status`, `p_expected_tram_id`, `p_ly_do_xuat` đã có từ migration cũ (`20261110110000`, `20261029130000`); các file còn lại chưa rà.
    - Sau khi deploy:
      - Smoke VST/GSC.
      - Kiểm bốn việc «chưa kiểm sau deploy 17/11» (03 §4).
@@ -181,10 +187,13 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
    - Sáu guard chưa nối (§6.7): nối hoặc bỏ, ghi lý do.
    - Gộp `docs/core/handover-roadmap.md` §5 vào §6 này, rồi sửa `scripts/module-audit.mjs` để đọc ở đây.
    - Nối `node scripts/ui-audit.mjs --check` vào `verify:quick` (UI lát 6).
+   - `tsconfig.json` `exclude` có đủ `node_modules`, `.claude`, `.next-local`, `scripts`, `supabase`. Đo 24/11: mới có `node_modules`, `.claude/worktrees`, `scripts`.
 7. **ESLint chặn theo cấu trúc** (danh sách ngoại lệ chỉ được giảm):
    - Component trình duyệt không import cổng DB phía server.
    - Action không tự mở admin client hay user client ngoài `guard`.
    - Một helper `uuidLikeSchema` thay cho `z.uuid()` rải rác.
+   - File cũ vào danh sách `ignores`, rút dần về `[]` trong Chặng 1.
+   - Bật lại `warn` cho `@typescript-eslint/no-explicit-any` và `react-hooks/exhaustive-deps`.
 8. **Lỗi vặt:**
    - Hàng đợi offline: lỗi vĩnh viễn (khu vực sai, bảng kiểm tắt, không có quyền, quá cửa sổ) chuyển sang «chờ người xem». Không âm thầm bỏ dữ liệu. Nút hủy đã có từ `2222a336`.
    - Thêm `.env.test` tắt `KSNK_BREAK_GLASS_EMAILS` và cờ pilot. `db-dung.sh` dùng tài khoản seed cố định.
@@ -204,7 +213,7 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
 - `git worktree list` chỉ còn worktree đang dùng.
 - `.claude/gate.sh` thoát 0.
 - `CLAUDE.md` ≤ 50 dòng.
-- Baseline dựng DB sạch, và so với dump prod 0 dòng lệch (ngoài danh sách chấp nhận có lý do).
+- Baseline dựng DB sạch trên `postgres:16-alpine` mới trong < 10 giây (kế hoạch gốc), và so với dump prod 0 dòng lệch (ngoài danh sách chấp nhận có lý do).
 - Prod chạy mã `integrate`, smoke VST/GSC đạt.
 
 **Cổng PO:** deploy · dọn worktree · xóa file · dump hoặc đọc prod.
@@ -231,6 +240,7 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
    - Thu SELECT của `authenticated` trên bảng và view, gồm `v_mdm_nhan_su_picker`.
    - Mỗi hàm đổi `auth.uid()` (18 hàm) viết `CREATE OR REPLACE` tường minh, để thân hàm nằm trong repo. Bỏ khối DO viết lại bằng regex.
    - Trước khi bỏ, dump định nghĩa policy hiện có thành SQL tạo lại, để làm đường lùi.
+   - Rà 8 hàm đang kiểm `auth.role()` để chấp nhận `service_role` cùng `ksnk_sec.actor_id() IS NOT NULL`: `fn_cssd_assert_ledger_write`, `fn_cssd_dong_bo_tach_nhiet`, `fn_cssd_me_nguoi_thao_tac`, `fn_cssd_resolve_ledger_actor`, `fn_require_cssd_workflow_edit`, `rpc_assign_staff_ksnk_role`, `rpc_ctyt_dovai_thong_ke_ky`, `rpc_save_rbac_matrix`.
 4. **Duyệt:** `review-bv103` + `security-auditor` một vòng trên migration. Áp thử trên bản sao DB. PO duyệt rồi mới lên prod qua MCP.
 
 **Xong khi:**
@@ -255,11 +265,14 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
 - PO chốt A4.
 
 **Việc theo kế hoạch gốc:**
-- Bảng `public.sys_user_accounts`, giữ UUID cũ.
-- Đổi 2 khóa ngoại khỏi `auth.users`. Sửa 1 hàm đọc `auth.users`.
-- `AuthProvider` (`local` | `supabase`), cookie ký HMAC, `session_version`.
+- Bảng `public.sys_user_accounts`, giữ UUID cũ. Cột: `username` (mã NV), `email`, `password_hash`, `is_active`, `must_change_password`, `session_version`, `banned_until`, `last_login_at`.
+- Đổi 2 khóa ngoại khỏi `auth.users`: `mdm_nhan_su.ho_so_nhan_vien_auth_user_id_fkey`, `sys_user_roles.user_roles_user_id_fkey`.
+- Sửa 1 hàm đọc `auth.users` (`fn_cssd_operator_nhan_su_id`). Gỡ dòng `RETURN auth.uid();` khỏi `ksnk_sec.actor_id()`.
+- Script một lần `scripts/migrate-auth-users-to-local.mjs` chuyển tài khoản. Mật khẩu bcrypt cũ được nhận ở lần đăng nhập đầu rồi nâng sang `scrypt`. Không ép đổi mật khẩu hàng loạt, trừ tài khoản có `must_change_password`.
+- `AuthProvider` (`local` | `supabase`), cookie ký HMAC, `session_version`. Chuyển 10 file client và 7 file server dùng `auth.admin.*` sang `AuthProvider`.
 - `StorageAdapter`.
-- `docker-compose.local.yml`: postgres + postgrest (chỉ mạng nội bộ) + web standalone.
+- `output: "standalone"` trong `next.config.ts`; `deploy/Dockerfile.web` (`node:22-alpine`).
+- `docker-compose.local.yml`: postgres (`postgres:16-alpine`) + postgrest (`v12.2.3`, chỉ mạng nội bộ, không mở cổng ra ngoài) + web standalone.
 - `backup-db.sh` và `restore-db.sh` có kiểm `.sha256`.
 
 **Bổ sung phạm vi.** Supabase Auth đang lo ba việc này, tách ra thì phải tự làm:
@@ -321,15 +334,17 @@ Nguồn cũ khôi phục bằng `git show 2222a336:<đường dẫn>` (§8).
 | Q5: policy `Authenticated users can read dm_khoa_phong` có trên prod nhưng không có trong migration nào | `.claude/plans/KH_APPKSNK_20261117_lo-prod-pha1.md` dòng 143 | Chặng 1: bảo đảm đường đọc khoa phòng đi qua server trước khi bỏ policy |
 | Q7: `dao_tao_cau_hoi` trên prod thiếu 7 cột và 3 index, không có migration | như trên, dòng 145 | Chặng 0 bước 9; PO chọn viết migration hay bỏ tính năng |
 | Q8: 6 bảng `zz_sao_luu_20261112_*` trên prod | như trên, dòng 146 | Xóa sau nghiệm thu Nhóm 1; cổng `destructive-change` |
-| Lát ẩn module bằng `KSNK_PILOT_FOUR_MODULES` | `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` lát 2 | §6.6: ẩn Nhóm 3 tới lượt; PO bật cờ trên Vercel (03 §6 N2) |
+| Ẩn module bằng `KSNK_PILOT_FOUR_MODULES`: mã đã xong (`c67a5206`, 17/11, có trong `integrate`, chưa lên prod) | `.claude/plans/KH_APPKSNK_20261117_thu-hep-len-prod.md` lát 2 | Lên prod cùng deploy (Chặng 0 bước 4); PO bật cờ trên Vercel (03 §6 N2) |
 | Giao diện, lát 5–7. Lát 5 (Thống kê) phần lớn đã làm theo canvas v5 ngày 11/11. Lát 6 nối ratchet `ui-audit --check`. Lát 7+ chuyển module khác. Còn mở: cảnh báo ESLint sẵn có ở NKBV/Dashboard/Chất thải; 2 hàng điều hướng Quản trị cao 38px; `radiusArbitrary` 335 → 336 chưa rõ file; nhãn «so với tuần trước» GSC dễ hiểu nhầm (đổi nhãn cần Spec change) | `docs/ux/ui-redesign-plan.md` §6, §9–10 | Lát 6: Chặng 0 bước 6. Phần còn lại theo nhóm nghiệm thu |
 | CSSD: mẻ hỏng về Tiếp nhận (C6) · nợ `batchStatusAfterBiRecall` (03 §7) · các mục mở CSSD-040…049 trong sổ lỗi | `.claude/plans/KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` (L4); `docs/core/handover-roadmap.md` dòng 79 | Nhóm 2 |
 | Cột `cssd_dm_thiet_bi.ma_qr_thiet_bi` chưa có trong migration nào, nên 2 nhánh dò cột (`src/modules/cssd-erp/actions/cssd-bao-tri-list.actions.ts:70`, `src/modules/cssd-erp/shared/application/cssd-qr-hub.ts:132`) luôn rơi vào nhánh «không có cột». PO 16/11 đồng ý thêm cột khi máy CSSD cần mã QR riêng; không cần thì gỡ 2 nhánh | bản 01 ngày 16/11, ghi chú Pha 3 | Nhóm 2; hỏi PO: 03 §6 K4 |
 | XM-2, cỡ mẫu. KH 13/11 ghi: R1.14 nêu mẫu tối thiểu 100/tháng, app đang 20. Khóa PO 01/11 ghi 50 theo khoa/kỳ. Số app đang dùng: cần kiểm | KH 13/11 dòng 3 | Hỏi PO: 03 §6 K9 |
 | Mã kho tri thức chờ PO: X2.13, QT.32, R1.10. Nội dung từng mã: cần kiểm | `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` dòng 72 | Hỏi PO: 03 §6 K9 |
 | File K5 `20261114180000_nkbv_fact_select_rls_hoi_dong_identity.sql` còn trong repo dù không áp prod | 03 §4 | Chặng 0 bước 9 (baseline). `guard-migrations` cấm xóa file có version ≤ `PROD_HEAD`, nên chỉ xử lý được trong baseline |
-| CI `db-dung.yml` chỉ chạy sau push: theo dõi lần đầu (trần 30 phút, cache Playwright) | `.claude/plans/de-xuat-mot-con-duong-20261119.md` §6, §10 | Sau D3 |
+| CI `db-dung.yml` chỉ chạy sau push: theo dõi lần đầu (trần 30 phút, cache Playwright) | `SO_NO_APPKSNK.md` dòng 27 | Sau D3 |
 | Thử tay sau lát làm gọn mã chưa ai làm | `KH_APPKSNK_20261116_lam-gon-ma.md` §9 | Nhóm 1 |
+| L13: gỡ các nhánh dò cột A2, A3 và nhóm B fallback khi xác nhận prod đã áp migration tương ứng; chờ ủy quyền MCP Supabase | `KH_APPKSNK_20261116_lam-gon-ma.md` dòng 207–219, 259 | Sau Chặng 0 bước 10 |
+| Xóa/sửa muộn phiên VST qua yêu cầu chờ duyệt (L3b-2a, L3b-2b): giả định chờ PO (03 §6 K10); bước DUYỆT sửa muộn chưa thử tay; giới hạn: chỉ chủ phiên gửi yêu cầu sửa, người duyệt chưa thấy diff trước/sau, duyệt ghi đè chỉnh sửa của Admin xen giữa | `KH_APPKSNK_20261113_dung-lai-theo-dac-ta.md` dòng 3 | Nhóm 1 |
 
 ### 6.8 Luật dừng (dừng và báo PO)
 
@@ -381,7 +396,7 @@ Nguồn cũ khôi phục bằng `git show 2222a336:<đường dẫn>` (§8).
 - **Agent và model.**
   - Mặc định Sonnet. Haiku chỉ cho việc cơ học.
   - Opus chỉ cho `migration-author` và reviewer vùng RLS/migration/auth (`review-bv103`, `security-auditor`).
-  - Một agent ghi repo mỗi lúc (mỗi agent ghi một worktree riêng). Agent chỉ đọc tối đa 4 song song (`CLAUDE.md`, PO 2026-11-11).
+  - Nhiều agent ghi cùng lúc được, mỗi agent một worktree riêng và một vùng `src/modules/<module>` không trùng; migration xếp hàng từng cái. Agent chỉ đọc tối đa 4 song song (`CLAUDE.md`, PO 2026-11-11).
   - Giao việc bằng agent ghim sẵn, không dùng agent chung.
 - **Sổ và cổng.**
   - `node scripts/readiness/so-loi.mjs <status|next|check|set|tay|stats|merge>` (dữ liệu ở `scripts/readiness/so-loi.json`) là số chuẩn cho «việc mở».
@@ -406,8 +421,10 @@ Nguồn cũ khôi phục bằng `git show 2222a336:<đường dẫn>` (§8).
 | `.claude/plans/KH_APPKSNK_20261118_cat-script.md` | kế hoạch | §6.2, §6.7 |
 | `.claude/plans/KH_APPKSNK_20261118_squash-migration.md` | kế hoạch | §6.2, §6.7; 03 §4 |
 | `.claude/plans/de-xuat-mot-con-duong-20261119.md` | kế hoạch | `CLAUDE.md` §«Luồng một con đường»; §5 |
-| `docs/ux/ui-redesign-plan.md` | kế hoạch giao diện | §6.7. Code còn trỏ tới §4 của file này (`src/components/ui/bv103/button.tsx`, `scripts/ui-audit.mjs`, `scripts/ui-codemod-type-scale.mjs`) |
+| `docs/ux/ui-redesign-plan.md` | kế hoạch giao diện | Luật PO đã duyệt: §5 (dòng 2026-11-10, 2026-11-11). Việc còn mở: §6.7. Code còn trỏ tới §4 của file này (`src/components/ui/bv103/button.tsx`, `scripts/ui-audit.mjs`, `scripts/ui-codemod-type-scale.mjs`) |
 | `KE-HOACH-CAI-TO-TOAN-DIEN-2026-11-24.md` (gốc checkout chính, ngoài git) | kế hoạch gốc 24/11 | §6. Nguyên văn (mẫu `server-db.ts`, danh sách file theo cụm) chỉ còn ở file đó, chưa vào git |
+
+Comment trong script và test còn trỏ tới file đã gỡ (đọc bằng `git show`): `.github/workflows/db-dung.yml:2`, `scripts/db-dung.sh:2`, `scripts/db-reset-local.sh:4`, `scripts/gate-integrity.mjs:14`, `scripts/squash-baseline-check.sh:2`, `supabase/tests/database/vst_rls.test.sql:3`.
 
 **Còn giữ:**
 
