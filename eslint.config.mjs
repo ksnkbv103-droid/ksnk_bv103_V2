@@ -211,8 +211,8 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
-    // Thư mục build của bản dev thứ hai (`npm run dev:local`).
-    ".next-local/**",
+    // Thư mục build phụ do NEXT_DIST_DIR (dev:local, db:dung, đo hiệu năng).
+    ".next-*/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
