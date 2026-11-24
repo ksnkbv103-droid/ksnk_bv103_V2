@@ -2880,5 +2880,61 @@
     "nguon": "db-verify NEN-018/019",
     "commit": "cdbf5f48",
     "ghi_chu": "Cùng lớp NEN-009/NEN-018. Hướng sửa: MỘT migration REVOKE EXECUTE ... FROM PUBLIC, anon cho 35 hàm (gộp NEN-018) + GRANT lại authenticated, service_role tường minh; trước đó grep src/ tìm hàm nào gọi bằng client chưa đăng nhập; chỉ REVOKE anon thì has_function_privilege vẫn t qua PUBLIC. Trước khi áp prod: đo proacl prod (chỉ đọc). Mức THAP: hygiene, không lộ dữ liệu. | 19/11 migration 20261119210000 (commit cdbf5f48), CHƯA áp prod (chờ PO «prod»; đo proacl prod chỉ đọc trước). Đo local: anon EXECUTE 35 -> 0 (lệnh_kiem ra 0). pgTAP nen_020 5/5; db:dung XANH (328 migration, lint 0, gen types khớp); verify:changed PASS; review-bv103 Go (0 Critical/Major). Còn tồn, ngoài lát: 4 hàm unaccent* owner supabase_admin (extension_in_public, giữ); default ACL SEQUENCE postgres|public|S còn anon=rwU (baseline). Tay CHUA: chỉ trace local SET ROLE anon -> permission denied rpc_qlcv_board_counts; authenticated, service_role gọi fn_qlcv_today_vn() được; chưa chạy UI (bảng điều khiển QLCV, NKBV BA hub, kho bảng kiểm, làm mới gợi ý quản trị MDM)."
+  },
+  {
+    "id": "NEN-021",
+    "module": "NEN",
+    "lop": "TEST",
+    "muc": "THAP",
+    "tieu_de": "ESLint quét thư mục build phụ `.next-e2e/` và `.next-measure/` (gitignored), nên `npm run lint` và `verify:full` đỏ sau mỗi lần chạy db:dung",
+    "bang_chung": "Đo 25/11 ở worktree integrate-2026-11: verify:full thoát 1 ở bước lint, 62.173 vấn đề (2.742 lỗi), khoảng 1.400 file nằm trong `.next-e2e/` và `.next-measure/` (scripts/db-dung.sh đặt NEXT_DIST_DIR=.next-e2e). eslint.config.mjs globalIgnores chỉ liệt `.next-local/**` (đã vá riêng cho dev:local), thiếu hai thư mục kia dù .gitignore có cả ba. Bỏ qua hai thư mục: 0 lỗi, 135 cảnh báo; mã nguồn không vi phạm. ESLint API trước sửa: isPathIgnored('.next-e2e/…') và ('.next-measure/…') đều false.",
+    "lenh_kiem": "node --input-type=module -e \"const {ESLint}=await import('eslint');const e=new ESLint();for(const p of ['.next-e2e/a.js','.next-measure/a.js','.next-local/a.js','src/lib/x.ts'])console.log(p,await e.isPathIgnored(p))\"  (ba đường .next-* phải in true, src/lib/x.ts phải in false)",
+    "trang_thai": "DA_SUA",
+    "nguon": "phiên 25/11 (push integrate)",
+    "commit": "c034ec8c8f1ec3655903e2a2462a2b61966d0bf0",
+    "ghi_chu": "",
+    "loai": "loi"
+  },
+  {
+    "id": "NEN-022",
+    "module": "NEN",
+    "lop": "TEST",
+    "muc": "TRUNG_BINH",
+    "tieu_de": "CI «DB dựng sạch (db:dung)» đỏ ở bước db lint dù schema sạch: CLI 2.122.0 chỉ in JSON khi nhận ra môi trường agent, ngoài agent stdout rỗng khi 0 lỗi",
+    "bang_chung": "Run 45463284160 (push 87aeb18c, 25/11): job db-dung đỏ chỉ ở «db lint không in JSON» rồi «ĐỎ · db lint vượt mốc»; cùng bước đó dựng DB 328 migration đạt (ledger 328), audit:views PASS, pgTAP PASS, gen types khớp, e2e 6/6. Run 19/11 cũng có «db lint không in JSON», kèm pgTAP vst_rls 4/30 ca (5, 16-18, LANH_DAO_KHOA; run 25/11 đã PASS). Nguyên nhân, tái hiện bằng thí nghiệm và xác nhận độc lập (kiem-dinh đọc mã binary CLI): supabase CLI 2.122.0 chọn định dạng theo môi trường; có AI_AGENT hoặc CLAUDECODE thì in JSON {results,message}; không có thì text, stdout rỗng khi 0 lỗi (có lỗi thì in mảng JSON); CI=true, GITHUB_ACTIONS và TTY không ảnh hưởng. scripts/db-dung.sh:83 không ép định dạng, mọi lần chạy trước đều trong phiên agent. Chạy db-dung.sh thật với CLI 2.122.0 và bỏ hai biến agent: bản cũ in «không in JSON» và ĐỎ (khớp log CI); bản thêm --output-format json in «db lint 0 lỗi ≤ mốc 0» và XANH. Hàm lỗi thử trong stack tạm: parser báo 1 lỗi ngoài mốc ở cả ba chế độ. Chưa chạy binary linux-x64 trên runner (suy từ cùng phiên bản ghim); chưa chạy lại CI.",
+    "lenh_kiem": "env -u AI_AGENT -u CLAUDECODE SUPABASE_CLI=\"$PWD/node_modules/.bin/supabase\" bash scripts/db-dung.sh  (phải in «db lint 0 lỗi ≤ mốc 0» và XANH); sau push: gh run list --repo ksnkbv103-droid/ksnk_bv103_V2 --workflow db-dung.yml --branch integrate/2026-11 --limit 3  (kết luận success)",
+    "trang_thai": "DA_SUA",
+    "nguon": "phiên 25/11 (push integrate)",
+    "commit": "ee2e9ea44461d6af0ab3196f35ab0fd9b8175aeb",
+    "ghi_chu": "CI chưa chạy lại: xác nhận sau push (run db-dung.yml phải success). pgTAP vst_rls ngày 19/11 là lỗi riêng, đã PASS ở run 25/11.",
+    "loai": "loi"
+  },
+  {
+    "id": "NEN-023",
+    "module": "NEN",
+    "lop": "TEST",
+    "muc": "THAP",
+    "tieu_de": "Parser mốc lint trong db-dung.sh coi phong bì JSON thiếu results[] hoặc level viết hoa là 0 lỗi (xanh sai nếu CLI đổi định dạng)",
+    "bang_chung": "Kiểm định 25/11, ca tổng hợp trên khối node của scripts/db-dung.sh (dòng 85-106 bản trước sửa): {\"message\":\"db lint\"} thiếu results thoát 0; stream-json có lỗi thoát 0; level \"ERROR\" thoát 0. Khóa mốc «hàm: dòng đầu message» không có số dòng: mốc có [X,Y], sửa Y rồi một lỗi X mới (cùng hàm, cùng message) xuất hiện vẫn xanh. Không xảy ra với CLI 2.122.0 đã ghim, nhưng dependabot có thể bump supabase và đổi phong bì. Mốc hiện là so_loi=0 nên khóa mốc chưa ảnh hưởng.",
+    "lenh_kiem": "Trích khối node của scripts/db-dung.sh (từ dòng «node - \"$TMP/lint.json\"» đến «JS») ra file, chạy với tệp chứa {\"message\":\"db lint\"} và mốc so_loi=0: phải thoát 1 (hiện thoát 0)",
+    "trang_thai": "MOI",
+    "nguon": "kiểm định 25/11 (tan-cong-ban-sua)",
+    "commit": "",
+    "ghi_chu": "",
+    "loai": "loi"
+  },
+  {
+    "id": "NEN-024",
+    "module": "NEN",
+    "lop": "BACKEND",
+    "muc": "THAP",
+    "tieu_de": "scripts/gstt-gap-backfill.mjs gọi `supabase projects api-keys -o json` không kèm --agent=no, có thể hỏng khi chạy trong phiên agent",
+    "bang_chung": "Kiểm định 25/11 (suy luận, chưa chạy vì cần token): scripts/gstt-gap-backfill.mjs:87-100 chạy `supabase --experimental projects api-keys --project-ref <ref> -o json`, JSON.parse rồi keys.find. Phép đo trên `db query`: -o json không kèm --agent=no cho phong bì {boundary,rows,warning} trong phiên agent và mảng trần ngoài agent; nếu api-keys cũng vậy thì keys.find lỗi trong phiên agent. Có thể cần --reveal để khóa không bị che. Các script khác đã ép --agent=no hoặc --output-format.",
+    "lenh_kiem": "Ở terminal thường và trong phiên agent, chạy: supabase --experimental projects api-keys --project-ref <ref> -o json (cần token); so kiểu của đầu ra (mảng hay phong bì)",
+    "trang_thai": "MOI",
+    "nguon": "kiểm định 25/11 (loi-anh-em)",
+    "commit": "",
+    "ghi_chu": "",
+    "loai": "loi"
   }
 ]

@@ -22,7 +22,7 @@
   - NKBV, QLCV, Đào tạo chưa có đầu mối (§2).
 - **Prod lệch mã.**
   - Prod chạy `e908e7e0` (PR #131, deploy 17/11).
-  - `integrate/2026-11` đi trước prod 237 commit, trong đó 19 commit chưa push.
+  - `integrate/2026-11` đi trước prod 243 commit (đo 25/11; các số 237 ở dưới là số đo 24/11). Đã push 25/11 đến `87aeb18c`; các commit sau đó chưa push.
   - 4 migration `20261118100000`…`130000` đã lên prod ngày 19/11, nhưng code đi kèm chưa deploy (D1).
   - 12 migration `20261119*` chưa áp prod (§4).
 - **Sổ lỗi:**
@@ -59,7 +59,7 @@ dao-tao   KHÁM_PHÁ   đầu mối: CHƯA CÓ · mở: 6 · được phép: ch�
 <!-- so-loi:report:begin -->
 Đo ngày 2026-11-24 bằng `node scripts/readiness/so-loi.mjs report --ghi`; sinh từ sổ, không sửa tay (kiểm: `report --kiem`). Mỗi ô là đang mở/tổng, không tính lỗi giả.
 
-Sổ lỗi: 214 dòng · mở 10 · đã sửa 165 · lỗi giả 22 · hoãn 17
+Sổ lỗi: 218 dòng · mở 12 · đã sửa 167 · lỗi giả 22 · hoãn 17
 
 | Module | NGHIEM_TRONG | CAO | TRUNG_BINH | THAP |
 |---|---|---|---|---|
@@ -69,16 +69,16 @@ Sổ lỗi: 214 dòng · mở 10 · đã sửa 165 · lỗi giả 22 · hoãn 17
 | QLCV | 0/0 | 0/0 | 0/5 | 0/1 |
 | DAO_TAO | 0/1 | 0/0 | 0/8 | 0/6 |
 | QUAN_TRI | 0/0 | 0/2 | 1/9 | 1/8 |
-| NEN | 0/0 | 0/2 | 2/8 | 1/9 |
+| NEN | 0/0 | 0/2 | 2/9 | 3/12 |
 
 ```text
-MOI 0 · DA_XAC_MINH 0 · LOI_GIA 22 · DANG_SUA 0 · DA_SUA 165 · HOAN 17 · CHO_PO 10
-Tỉ lệ lỗi giả: 22/187 việc đã đóng
-Việc kế: xác minh 0 · sửa 0 · chờ PO 10
+MOI 2 · DA_XAC_MINH 0 · LOI_GIA 22 · DANG_SUA 0 · DA_SUA 167 · HOAN 17 · CHO_PO 10
+Tỉ lệ lỗi giả: 22/189 việc đã đóng
+Việc kế: xác minh 2 · sửa 0 · chờ PO 10
 Kịch bản tay: CHUA 16 · DAT 70 · KHONG_DAT 0
-DA_SUA có test/migration trong commit: 136/165
-Tuổi TB việc mở: 5,0 ngày (10/10 dòng mở có ngày; mốc = commit đầu đưa id vào so-loi.json)
-Migration mỗi lát: TB 0,28 · lớn nhất 2 · lát có ≥ 1 migration 39/144 (file migration thêm mới trong mỗi commit DA_SUA, mỗi commit đếm một lần; trần plan ≤ 1)
+DA_SUA có test/migration trong commit: 136/167
+Tuổi TB việc mở: 5,0 ngày (10/12 dòng mở có ngày; mốc = commit đầu đưa id vào so-loi.json)
+Migration mỗi lát: TB 0,27 · lớn nhất 2 · lát có ≥ 1 migration 39/146 (file migration thêm mới trong mỗi commit DA_SUA, mỗi commit đếm một lần; trần plan ≤ 1)
 Hàm định nghĩa lại 30 ngày: 33 hàm (49 lần) · tổng 328 lần định nghĩa cho 165 hàm (CREATE OR REPLACE FUNCTION trong supabase/migrations, từ 2026-10-25)
 ```
 <!-- so-loi:report:end -->
@@ -170,10 +170,16 @@ docker exec supabase_db_ksnk_bv103 psql -U postgres -d postgres -Atc "select cou
   - Lát 1, 1b, 1c, 2, 3 của «một con đường». Lát 1c: e2e VST+GSC 6/6 trong `DB_DUNG_E2E=1 npm run db:dung`.
   - Hàng rào `supabase/PROD_HEAD` cùng `scripts/guard-migrations.mjs` và `scripts/guard-adr.mjs`.
   - Ngày 20/11 thêm nút hủy bảng kiểm offline bị kẹt (`2222a336`).
+- **Đã xong 25/11:**
+  - Push `integrate/2026-11` đến `87aeb18c` (25 commit). Vercel Preview `dpl_B2ZF35WT54Kww6wUSkzAX1idvrqQ`: READY.
+  - CI «DB dựng sạch (db:dung)» đỏ ở bước `db lint`: đã tìm ra nguyên nhân và sửa (NEN-022), chờ push để CI chạy lại.
+  - ESLint bỏ qua mọi `.next-*/**` (NEN-021).
+  - Kiểm định độc lập ghi thêm hai điểm nhỏ vào sổ: NEN-023, NEN-024.
 - **Mở phiên mới:**
   1. Làm ở worktree `integrate-2026-11`. Chạy `so-loi.mjs status`, rồi `next 10`, rồi `stats`. Bật `dev-local` (cổng 3001, DB local) bằng `preview_start`.
   2. Không chạy hai `db:dung` cùng lúc: phiên sau tắt stack của phiên trước. Chỉ chạy khi `pgrep -f "bash scripts/db-dung.sh"` rỗng.
   3. Vòng một việc theo `CLAUDE.md`. `lop=DB` thì giao `migration-author`. `VAN_HANH` thì chờ PO. Ghi kết quả thử tay: `so-loi.mjs tay <ID> DAT|KHONG_DAT|CHUA "<ghi chú>"`.
+  4. Push: `gh` đang bật `DrNghiaIPC103MH`, tài khoản này không có quyền ghi vào repo (403). Cách đã dùng 25/11: `GH_TOKEN="$(gh auth token --user ksnkbv103-droid)" git push origin integrate/2026-11` (token một lần, không đổi tài khoản `gh`). Chỉ chạy khi PO gõ «push».
 
 ## 6. Câu hỏi PO (một chỗ duy nhất)
 
@@ -208,7 +214,6 @@ Cập nhật 2026-11-24. Mỗi câu có mã; PO trả lời theo mã. Câu im th
 | Mã | Việc | Lệnh PO gõ | Máy kiểm trước |
 |---|---|---|---|
 | D1 | Deploy code đi kèm 4 migration `20261118*` đã ở prod (ngăn kéo CSSD-034, trang kế hoạch giám sát). Nay là gộp 237 commit `integrate` vào `main`. Cần ủy quyền server `vercel` qua `/mcp` | «deploy» | Vai NHAN_VIEN_KSNK trên prod có quyền GIAM_SAT_NKBV import. Áp thử chuỗi 12 migration `20261119*` trên bản sao DB. Áp 12 file đó lên prod trước khi deploy (migration trước, code sau), hoặc chứng minh code chạy được khi chưa áp |
-| D3 | Đẩy commit local lên GitHub; CI `db-dung.yml` chỉ chạy sau bước này | «push» | `npm run verify` |
 | D5 | CSSD-041: đếm quy trình kẹt trên bộ tổng còn con active. Đếm 19/11 ra 0 nhưng vô nghĩa, vì prod chưa có bộ con. Câu SQL: `git show 2222a336:CAU_HOI_PO_APPKSNK.md` dòng 45 | «đếm CSSD-041» | Chỉ đọc |
 | D6 | CSSD-048: tắt 68 bộ mẹ rỗng. Chưa chạy: prod có 164 bộ, 0 bộ con, nên số 68 chỉ có ở local. Đo lại sau khi dữ liệu tách nhiệt lên prod | «tắt 68 bộ» | `SELECT count` trước và sau |
 | D7 | Tách khóa Preview khỏi prod (bốn biến Supabase, xem §8.4). **Đã làm 25/11 (PO duyệt; Claude thao tác trên Vercel qua Chrome):** `SUPABASE_SERVICE_ROLE_KEY` chỉ còn target Production; `SUPABASE_ACCESS_TOKEN` đã xóa khỏi Vercel (`src/` không dùng; chỉ `scripts/gstt-gap-backfill.mjs` và `scripts/sync-check.mjs` dùng, chạy ở máy PO). Hai thay đổi chỉ có hiệu lực từ lần deploy kế. **Còn lại, PO tự làm:** thu hồi token đó ở Supabase (Account, Access Tokens), vì xóa ở Vercel không vô hiệu hóa token, mà token từng có mặt trong các bản build Preview | PO tự làm ở Supabase | Danh sách biến theo target, đã kiểm lại 25/11 bằng Vercel MCP |
@@ -395,7 +400,7 @@ Ba mức gỡ phụ thuộc [nhận định]: (1) tự chạy bộ Supabase self
 
 **Cloudflare** [nhận định, chưa kiểm tài liệu mới]: không chạy Postgres (D1 là SQLite); Hyperdrive chỉ là lớp đệm tới Postgres bên ngoài; R2 tương thích S3, hợp `StorageAdapter`. Mẫu ở ops-web: `apps/api/wrangler.toml` (Workers + Hyperdrive nối Neon + R2, công tắc `R2_MODE`). Chưa kiểm Next.js 16 trên Workers với 112 file dùng admin client.
 
-**Commit chưa lên** [kiểm]: `integrate/2026-11` hơn `origin/integrate/2026-11` 21 commit và hơn `origin/main` (prod) 239 commit; 751 commit từ 10 đến 24/11. Nguyên nhân: luật «không tự push» (`CLAUDE.md`); `main` là production và `vercel.json` có `git.deploymentEnabled: true`; 12 file migration `20261119*` chưa áp prod; CI `db-dung.yml` chỉ chạy sau push. Cấu hình Vercel (đọc 25/11, chỉ đọc) [kiểm]: bốn biến `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ACCESS_TOKEN` dùng chung một bản ghi cho Production và Preview, nên mọi bản Preview chạy với khóa của prod. Mọi nhánh được push đều dựng Preview: có ít nhất 6 bản từ `integrate/2026-11` (17 đến 19/11) và ít nhất 3 bản từ nhánh dependabot (mới nhất 23/11). Preview chỉ mở được khi đăng nhập Vercel (`ssoProtection: all_except_custom_domains`). Production hiện chạy `main` `e908e7e0` (PR #131, 17/11). Đã xử lý 25/11: `SUPABASE_SERVICE_ROLE_KEY` chỉ còn Production, `SUPABASE_ACCESS_TOKEN` đã xóa khỏi Vercel (§6 D7). Sao lưu 25/11: `git bundle` đầy đủ nhánh và tag, 21 MiB, `git bundle verify` đạt, sha256 `4a80d31006b0d3dcb075972d9c8b545be54b9d14c3c0fa86b5e06e74ea499924`, ở `~/Documents/ksnk-backup-20261125/` (ngoài repo).
+**Commit chưa lên** [kiểm]: `integrate/2026-11` hơn `origin/integrate/2026-11` 21 commit và hơn `origin/main` (prod) 239 commit; 751 commit từ 10 đến 24/11. Nguyên nhân: luật «không tự push» (`CLAUDE.md`); `main` là production và `vercel.json` có `git.deploymentEnabled: true`; 12 file migration `20261119*` chưa áp prod; CI `db-dung.yml` chỉ chạy sau push. Cấu hình Vercel (đọc 25/11, chỉ đọc) [kiểm]: bốn biến `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ACCESS_TOKEN` dùng chung một bản ghi cho Production và Preview, nên mọi bản Preview chạy với khóa của prod. Mọi nhánh được push đều dựng Preview: có ít nhất 6 bản từ `integrate/2026-11` (17 đến 19/11) và ít nhất 3 bản từ nhánh dependabot (mới nhất 23/11). Preview chỉ mở được khi đăng nhập Vercel (`ssoProtection: all_except_custom_domains`). Production hiện chạy `main` `e908e7e0` (PR #131, 17/11). Đã xử lý 25/11: `SUPABASE_SERVICE_ROLE_KEY` chỉ còn Production, `SUPABASE_ACCESS_TOKEN` đã xóa khỏi Vercel (§6 D7). Sao lưu 25/11: `git bundle` đầy đủ nhánh và tag, 21 MiB, `git bundle verify` đạt, sha256 `4a80d31006b0d3dcb075972d9c8b545be54b9d14c3c0fa86b5e06e74ea499924`, ở `~/Documents/ksnk-backup-20261125/` (ngoài repo). **Cập nhật sau «push» 25/11:** đã đẩy `f24445a3..87aeb18c` (25 commit) bằng token một lần của `ksnkbv103-droid`, vì `gh` đang bật `DrNghiaIPC103MH` trả 403; cấu hình `gh` không đổi. Vercel dựng Preview `dpl_B2ZF35WT54Kww6wUSkzAX1idvrqQ`: READY (khóa dịch vụ đã bỏ khỏi Preview, D7). CI «DB dựng sạch (db:dung)» đỏ chỉ ở bước `db lint`: CLI 2.122.0 chỉ in JSON khi nhận ra môi trường agent (`AI_AGENT`, `CLAUDECODE`); ngoài agent, khi 0 lỗi thì stdout rỗng và `db-dung.sh` báo «vượt mốc» dù không có lỗi nào (NEN-022, đã sửa bằng `--output-format json`, chưa chạy lại CI). Lần 19/11 cũng có lỗi `db lint` này, kèm pgTAP `vst_rls` 4/30 ca (5, 16-18); lần 25/11 pgTAP đã PASS. `verify:full` đỏ ở lint do ESLint quét `.next-e2e/` và `.next-measure/` (NEN-021, đã sửa). Kiểm định độc lập (3 người, ngữ cảnh sạch) xác nhận nguyên nhân và bản sửa, ghi thêm: NEN-023 (parser mốc lint chưa chặt), NEN-024 (`gstt-gap-backfill.mjs` gọi CLI không ép định dạng, chưa kiểm).
 
 ## 9. Nguồn đã gộp (2026-11-24)
 
