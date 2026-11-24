@@ -12,6 +12,7 @@
 //          Giới hạn đã biết: quy tắc dựa trên tên + «bị xóa», không chứng minh spec chỉ phủ mã đã xóa (spec còn import module
 //          sống; nội dung nguồn gộp sang file có sẵn rồi xóa) → người duyệt đọc dòng «miễn …» ở đầu ra. Dòng này chỉ hiện khi chạy
 //          thẳng `node scripts/gate-integrity.mjs`; verify-changed.mjs chỉ in «PASS» khi exit 0 và nuốt đầu ra (SO_NO_APPKSNK).
+// Trần dòng tài liệu (PO 2026-11-25, A6): 03-tien-do-thuc-trang.md ≤ 500 dòng, vượt thì exit 1.
 // Exit 1 + in file:dòng khi có vi phạm.
 import { spawnSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
@@ -116,8 +117,18 @@ for (const f of git(["ls-files", "--others", "--exclude-standard"]).split("\n").
   });
 }
 
+const DOC_LINE_LIMITS = { "docs/bo-tai-lieu/03-tien-do-thuc-trang.md": 500 };
+const docOver = [];
+for (const [f, max] of Object.entries(DOC_LINE_LIMITS)) {
+  let n = 0;
+  try { n = readFileSync(f, "utf8").split("\n").length; } catch { continue; }
+  if (n > max) docOver.push(`${f}  ${n} dòng, vượt trần ${max}`);
+}
+if (docOver.length) console.log(`[gate-integrity] tài liệu vượt trần dòng (gộp hoặc cắt trước khi thêm):\n${docOver.join("\n")}`);
+
 if (hits.length) {
   console.log(`[gate-integrity] ${hits.length} chỗ làm yếu kiểm chứng (thêm «// gate-ok: <lý do>» nếu cố ý):\n${hits.join("\n")}`);
   process.exit(1);
 }
+if (docOver.length) process.exit(1);
 console.log("[gate-integrity] 0 vi phạm.");
