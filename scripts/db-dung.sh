@@ -80,7 +80,8 @@ echo "[db:dung] dựng xong sau $(( $(date +%s) - t0 )) giây; $n migration, led
 [ "$led" = "$n" ] || fail="$fail · ledger $led ≠ $n file"
 
 # 3. db lint có mốc
-sb db lint --local --level error > "$TMP/lint.json" 2> "$TMP/lint.err" || { cat "$TMP/lint.err" >&2; fail="$fail · db lint không chạy được"; }
+# CLI tự chọn định dạng theo môi trường (phiên agent: JSON; ngoài agent: text, stdout rỗng khi 0 lỗi): ép JSON để mốc đọc được ở mọi nơi.
+sb db lint --local --level error --output-format json > "$TMP/lint.json" 2> "$TMP/lint.err" || { cat "$TMP/lint.err" >&2; fail="$fail · db lint không chạy được"; }
 node - "$TMP/lint.json" "$MOC" "${DB_DUNG_GHI_MOC:-}" <<'JS' || fail="$fail · db lint vượt mốc"
 const fs = require("node:fs");
 const [file, moc, ghi] = process.argv.slice(2);
