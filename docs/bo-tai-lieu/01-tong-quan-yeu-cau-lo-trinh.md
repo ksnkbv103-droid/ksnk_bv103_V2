@@ -141,13 +141,20 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
   - ADR-003 không áp dụng cho repo này.
   - Không sửa gì ở ops-web.
 - **Bỏ hạn theo ngày** («Ngày 1–2», «Ngày 3–6», «Tuần 2»). Mỗi chặng chỉ có điều kiện vào và điều kiện xong, đo bằng lệnh.
-- **Đề xuất trả lời Phần 6 của kế hoạch gốc.** PO chưa trả lời; chi tiết và mục «nếu im» ở 03 §6 A:
-  - A1: chạy trọn 0 → 3.
-  - A2: đồng ý, qua cổng deploy và D1.
+- **PO chốt 2026-11-25 (sau khi đối chiếu ops-web, 03 §8.4):**
+  - **A1: chạy trọn Chặng 0 → 3 trên `ksnk_bv103`.** ops-web chỉ để học mẫu: đọc rồi tự viết lại; không chép mã, không trộn dữ liệu, không sửa gì ở đó (`CLAUDE.md` của ops-web cũng cấm ghi chéo).
+  - Lý do: ops-web chưa có người dùng thật (nguồn 22/11); còn mặc định ngầm có hại cho dữ liệu lâm sàng chưa có test chốt; các bản sửa an toàn mới của nó nằm trong cây chưa commit.
+  - Xét lại A1 chỉ theo mức nghiêm trọng của lỗi còn lại, không đếm số lỗi.
+  - **Đích nền tảng:** máy chủ nội viện là đích chính, Postgres đặt ở đó. Cloudflare chỉ dùng R2 (file) và Tunnel, không chạy DB trên Cloudflare.
+  - **Chặng 1 tách hai nửa:** 1a đổi nguồn danh tính, giữ policy; 1b bỏ policy, làm sau và có điều kiện (§6.3).
+- **PO duyệt thêm 2026-11-25** (chi tiết ở 03 §6 A):
+  - A2: đồng ý; đưa `integrate` lên `main` là deploy, cần «deploy» và D1.
   - A3: đồng ý.
   - A4: đồng ý cho Chặng 2, sau khi đo định dạng hash ở prod.
-- **Các điều kiện sửa dưới đây là `[ĐỀ XUẤT]` của Claude** (03 §6 A5). Phần lớn chỉ thêm bước kiểm.
-- **Ba chỗ nới so với kế hoạch gốc, PO duyệt riêng:**
+  - A5 và cả ba chỗ nới dưới đây: đồng ý.
+  - A6: đồng ý; `gate-integrity` kiểm trần 500 dòng của 03.
+- **Các điều kiện sửa dưới đây do Claude đề xuất; PO duyệt 25/11** (03 §6 A5). Phần lớn chỉ thêm bước kiểm.
+- **Ba chỗ nới so với kế hoạch gốc (PO duyệt 25/11):**
   1. Gốc: `STATUS.md` ≤ 150 dòng. Ở đây: 03 thay `STATUS.md` và dài hơn (khoảng 350 dòng).
   2. Gốc: lưu file cũ vào `docs/archive/2026-11/`. Ở đây: gỡ bằng `git rm`, khôi phục bằng `git show` (§8).
   3. Gốc: Chặng 0 xong khi còn đúng 1 workspace `main`. Ở đây: còn các worktree đang dùng, vì mỗi agent ghi trong một worktree riêng (`CLAUDE.md`).
@@ -165,7 +172,7 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
 **Vào khi:** ngay.
 
 **Việc:**
-1. **Gắn tag sao lưu trước khi đụng nhánh:** `archive/pre-overhaul-chore-20261124` (nhánh `chore/code-vs-ai-phase1`) và `archive/pre-overhaul-main-20261124` (nhánh `main`).
+1. **Gắn tag sao lưu trước khi đụng nhánh:** `archive/pre-overhaul-chore-20261124` (nhánh `chore/code-vs-ai-phase1`) và `archive/pre-overhaul-main-20261124` (nhánh `main`). Đã gắn 25/11, cục bộ, chưa push: `72ab239b` và `e908e7e0`.
 2. **Gộp tài liệu: một file kế hoạch (01), một file báo cáo (03).** Đã làm 24/11 ở nhánh `gom-tai-lieu`.
    - 03 thay `STATUS.md` của kế hoạch gốc.
    - Bản cũ gỡ khỏi cây mã, khôi phục bằng `git show` (§8).
@@ -188,6 +195,13 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
    - Gộp `docs/core/handover-roadmap.md` §5 vào §6 này, rồi sửa `scripts/module-audit.mjs` để đọc ở đây.
    - Nối `node scripts/ui-audit.mjs --check` vào `verify:quick` (UI lát 6).
    - `tsconfig.json` `exclude` có đủ `node_modules`, `.claude`, `.next-local`, `scripts`, `supabase`. Đo 24/11: mới có `node_modules`, `.claude/worktrees`, `scripts`.
+   - Học từ ops-web (03 §8.4), tự viết lại cho bv103:
+     - Test quét giao diện: 15 tuyến × 2 khung (1440 và 390): 0 `pageerror`, 0 HTTP 5xx, tràn ngang ≤ 2px; thêm 1 ca RBAC âm. Mật khẩu đọc từ biến môi trường, không viết cứng. Hiện bv103 chưa có test nào kiểm `pageerror` hay `scrollWidth`.
+     - Test khớp ghi và đọc cho VST/GSC: ghi bằng action thật, đọc qua RPC dashboard, so với số tính tay, dùng tháng cô lập và dọn trong `afterAll`. Không chèn thẳng bằng SQL (hai ca yếu của ops-web làm vậy).
+     - Hook git đặt trong repo (`.githooks/` kèm `core.hooksPath`) thay cho hook không versioned.
+     - Một lệnh kiểm chung cho gate và CI để hai bên không lệch (ops-web: gate dùng `--quiet`, CI dùng `--max-warnings 0`).
+     - Sau khi `guard` có (Chặng 1): quét file để mọi action ghi đi qua `guard`.
+   - Khóa «chỗ nới 1» bằng máy: `gate-integrity` kiểm trần 500 dòng của 03 (PO duyệt 25/11, 03 §6 A6).
 7. **ESLint chặn theo cấu trúc** (danh sách ngoại lệ chỉ được giảm):
    - Component trình duyệt không import cổng DB phía server.
    - Action không tự mở admin client hay user client ngoài `guard`.
@@ -222,6 +236,14 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
 
 **Vào khi:** Chặng 0 xong; prod chạy mã `integrate`.
 
+**Tách hai nửa (PO chốt 25/11).** Chuyển nền tảng tự do chỉ cần nửa 1a. Nửa 1b là quyết định riêng và là phần rủi ro nhất của kế hoạch (§6.9). RLS là tính năng của PostgreSQL; chỉ `auth.uid()`, `auth.role()` và role `anon`/`authenticated` là của Supabase.
+- **1a: đổi nguồn danh tính, giữ nguyên policy.**
+  - Tạo `ksnk_sec.actor_id()`: đọc header `x-ksnk-actor` do `createServerDb` gửi; không có header thì trả `auth.uid()`. Hành vi không đổi khi Supabase Auth còn chạy.
+  - Thay `auth.uid()` bằng `ksnk_sec.actor_id()` ở 18 hàm (03 §3.2) và ở các policy còn dùng nó; thay `auth.role()` ở 8 hàm theo danh sách dưới; thay `auth.users` ở 1 hàm.
+  - Xong khi: định nghĩa hàm và policy hiện hành không còn `auth.uid()`, `auth.role()`, `auth.users` (kiểm bằng `pg_proc` và `pg_policies` trên DB local), kèm test hai người ở hai khoa.
+  - Chạm hàm và policy, nên qua `review-bv103` + `security-auditor`, áp thử trên bản sao DB, PO duyệt rồi mới lên prod.
+- **1b: bỏ policy, kiểm quyền tập trung ở TypeScript.** Là phần còn lại của mục này. Chỉ làm khi 1a xong và từng policy có bộ lọc TypeScript kèm test.
+
 **Việc theo kế hoạch gốc:**
 - `src/lib/db/server-db.ts` (`createServerDb({ actorId })` gửi header `x-ksnk-actor`).
 - `ksnk_sec.actor_id()`.
@@ -243,7 +265,9 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
    - Rà 8 hàm đang kiểm `auth.role()` để chấp nhận `service_role` cùng `ksnk_sec.actor_id() IS NOT NULL`: `fn_cssd_assert_ledger_write`, `fn_cssd_dong_bo_tach_nhiet`, `fn_cssd_me_nguoi_thao_tac`, `fn_cssd_resolve_ledger_actor`, `fn_require_cssd_workflow_edit`, `rpc_assign_staff_ksnk_role`, `rpc_ctyt_dovai_thong_ke_ky`, `rpc_save_rbac_matrix`.
 4. **Duyệt:** `review-bv103` + `security-auditor` một vòng trên migration. Áp thử trên bản sao DB. PO duyệt rồi mới lên prod qua MCP.
 
-**Xong khi:**
+**Xong khi (1a):** như mô tả ở trên.
+
+**Xong khi (1b):**
 - Điều kiện Chặng 1 ở mục 5.1 kế hoạch gốc:
   - `pg_policies` ở `public` = 0.
   - Bảng chưa bật RLS = 0.
@@ -270,10 +294,18 @@ Nguồn: `CLAUDE.md`; `docs/modules/dashboard/metric-dictionary.md:86-89`; sổ 
 - Sửa 1 hàm đọc `auth.users` (`fn_cssd_operator_nhan_su_id`). Gỡ dòng `RETURN auth.uid();` khỏi `ksnk_sec.actor_id()`.
 - Script một lần `scripts/migrate-auth-users-to-local.mjs` chuyển tài khoản. Mật khẩu bcrypt cũ được nhận ở lần đăng nhập đầu rồi nâng sang `scrypt`. Không ép đổi mật khẩu hàng loạt, trừ tài khoản có `must_change_password`.
 - `AuthProvider` (`local` | `supabase`), cookie ký HMAC, `session_version`. Chuyển 10 file client và 7 file server dùng `auth.admin.*` sang `AuthProvider`.
-- `StorageAdapter`.
+- `StorageAdapter` có hai chế độ: đĩa local (đích chính) và R2 (`R2_MODE=local|cloudflare`, cùng mẫu của ops-web).
+- Storage hiện chỉ có một điểm dùng: `src/modules/giam-sat-chung/components/ChecklistItem.tsx` (ảnh minh chứng GSC). Không migration nào tạo bucket, nên bucket và policy phải lấy từ prod bằng truy vấn chỉ đọc trước khi bỏ Storage.
 - `output: "standalone"` trong `next.config.ts`; `deploy/Dockerfile.web` (`node:22-alpine`).
 - `docker-compose.local.yml`: postgres (`postgres:16-alpine`) + postgrest (`v12.2.3`, chỉ mạng nội bộ, không mở cổng ra ngoài) + web standalone.
 - `backup-db.sh` và `restore-db.sh` có kiểm `.sha256`.
+
+**Học từ ops-web (03 §8.4), tự viết lại, không chép mã:**
+- Cấu hình thiếu khóa ký phiên thì production không khởi động (hàm thuần đọc cấu hình, có test).
+- Compose prod: DB không mở cổng; `depends_on` theo `service_healthy`; biến bắt buộc dạng `${VAR:?}`.
+- Backup bắt buộc có `.sha256`; restore đếm dòng bảng chính (VST/GSC), không chỉ đếm số bảng.
+- `session_version` tăng khi đăng xuất, đổi và đặt lại mật khẩu, so ở mỗi request; có test thu hồi phiên (ops-web chưa có test này).
+- Không lấy: PBKDF2 100.000 vòng (đã định scrypt); token phiên trong `sessionStorage` (dùng cookie httpOnly).
 
 **Bổ sung phạm vi.** Supabase Auth đang lo ba việc này, tách ra thì phải tự làm:
 - Quên hoặc đặt lại mật khẩu.
@@ -297,7 +329,11 @@ Mỗi mục là một lát riêng, PO duyệt:
 - Drizzle + `pg` cho tính năng mới và giao dịch nhiều bước.
 - Rút 5 hàm SQL hay bị vá nhất về TypeScript, kèm test tính tay khớp 0 sai số.
 - Một khung module thống nhất. Tách các component lớn: `NkbvBaMultiTimelineWorkspace.tsx` và `NkbvSyndromeIwpPanel.tsx`.
-- Cân nhắc lấy từ ops-web: PEP, MDRO 24h, ICRA, 24 chỉ số.
+- Cân nhắc lấy từ ops-web (chỉ đọc rồi tự viết lại; mỗi mục một lát, PO duyệt, 03 §8.4):
+  - Nghiệp vụ: PEP (engine thuần kèm test tính tay), MDRO 24h, ICRA, 24 chỉ số.
+  - Sự cố CSSD: chặn người báo tự đóng phiếu, ủy quyền thu hồi cho cấp cao, ma trận mức độ, CAPA 7 ngày (03 §6 L).
+  - Giữ các điểm bv103 đã tốt hơn: vô hiệu có mã lý do và hoàn kho trong một giao dịch, cờ đỏ lưu thành cột, thu hồi hai pha, khóa ngoại kho với sự cố.
+  - Không lấy mô hình «0 RLS, 0 trigger» của ops-web.
 
 ### 6.6 Nghiệm thu người dùng thật (chạy song song, A3)
 
@@ -422,7 +458,7 @@ Nguồn cũ khôi phục bằng `git show 2222a336:<đường dẫn>` (§8).
 | `.claude/plans/KH_APPKSNK_20261118_squash-migration.md` | kế hoạch | §6.2, §6.7; 03 §4 |
 | `.claude/plans/de-xuat-mot-con-duong-20261119.md` | kế hoạch | `CLAUDE.md` §«Luồng một con đường»; §5 |
 | `docs/ux/ui-redesign-plan.md` | kế hoạch giao diện | Luật PO đã duyệt: §5 (dòng 2026-11-10, 2026-11-11). Việc còn mở: §6.7. Code còn trỏ tới §4 của file này (`src/components/ui/bv103/button.tsx`, `scripts/ui-audit.mjs`, `scripts/ui-codemod-type-scale.mjs`) |
-| `KE-HOACH-CAI-TO-TOAN-DIEN-2026-11-24.md` (gốc checkout chính, ngoài git) | kế hoạch gốc 24/11 | §6. Nguyên văn (mẫu `server-db.ts`, danh sách file theo cụm) chỉ còn ở file đó, chưa vào git |
+| `KE-HOACH-CAI-TO-TOAN-DIEN-2026-11-24.md` (ngoài git, đã chuyển 25/11 sang `~/Documents/ksnk-backup-20261125/tai-lieu-ngoai-git/`) | kế hoạch gốc 24/11 | §6. Nguyên văn (mẫu `server-db.ts`, danh sách file theo cụm) chỉ còn ở file đó, chưa vào git |
 
 Comment trong script và test còn trỏ tới file đã gỡ (đọc bằng `git show`): `.github/workflows/db-dung.yml:2`, `scripts/db-dung.sh:2`, `scripts/db-reset-local.sh:4`, `scripts/gate-integrity.mjs:14`, `scripts/squash-baseline-check.sh:2`, `supabase/tests/database/vst_rls.test.sql:3`.
 

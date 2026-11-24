@@ -164,7 +164,7 @@ docker exec supabase_db_ksnk_bv103 psql -U postgres -d postgres -Atc "select cou
 
 ## 5. Đang làm · Kế · Mở phiên mới
 
-- **ĐANG LÀM:** không có lát nào. Đang gộp tài liệu ở nhánh `gom-tai-lieu`; nhánh này chưa gộp vào `integrate/2026-11`.
+- **ĐANG LÀM:** không có lát nào. Gom tài liệu đã gộp vào `integrate/2026-11` (`cc84241c`, 24/11). Đối chiếu ops-web xong 25/11 (§8.4).
 - **KẾ:** Chặng 0 của [01 §6](01-tong-quan-yeu-cau-lo-trinh.md), làm theo thứ tự ở đó. Những việc chỉ PO làm được ở §6.
 - **Đã xong đợt 19/11 (sổ lỗi giữ chi tiết):**
   - Lát 1, 1b, 1c, 2, 3 của «một con đường». Lát 1c: e2e VST+GSC 6/6 trong `DB_DUNG_E2E=1 npm run db:dung`.
@@ -183,11 +183,12 @@ Cập nhật 2026-11-24. Mỗi câu có mã; PO trả lời theo mã. Câu im th
 
 | Mã | Câu | Đề xuất | Nếu im |
 |---|---|---|---|
-| A1 | Chạy trọn Chặng 0 → 3 hay chỉ Chặng 0 + 1 rồi chuyển sang ops-web | Chạy trọn trên `ksnk_bv103` (PO chọn hướng này 24/11). ADR-003 của ops-web không áp dụng cho repo này | Chạy trọn |
-| A2 | Lấy `integrate/2026-11` làm `main` chuẩn, gắn tag sao lưu nhánh cũ, dọn worktree dư, đưa file dữ liệu ngoài mã ra khỏi gốc repo | Đồng ý. Đưa lên `main` = deploy production: cần «deploy» và D1. Dọn worktree sau khi kiểm không còn phiên nào đang mở | Không gộp, không dọn |
-| A3 | Thứ tự nghiệm thu người dùng thật: Nhóm 1 (VST, GSC, Dashboard, Quản trị) → Nhóm 2 (CSSD, sự cố, hóa chất) → Nhóm 3 (QLCV, NKBV, Đào tạo); giữ ẩn «Chất thải & Đồ vải» | Đồng ý | Giữ thứ tự này |
-| A4 | Chặng 2: đăng nhập nội viện bằng mã nhân viên hoặc email + mật khẩu, lưu ở `public.sys_user_accounts`, giữ UUID và mật khẩu hiện có | Đồng ý, kèm hai điều kiện: đo định dạng hash trong `auth.users` của prod trước; phạm vi gồm quên mật khẩu và khóa sau nhiều lần sai | Chưa mở Chặng 2 |
-| A5 | Chấp nhận các điều kiện sửa ở 01 §6: deploy là cổng PO; 17 policy cần bộ lọc TypeScript có test trước khi bỏ, NKBV cắt sau cùng; SQL thu quyền của `authenticated` cả trên hàm và view, `CREATE OR REPLACE` tường minh, dump policy làm đường lùi; baseline so với dump prod; kiểm kê `pg_cron`; Chặng 2 thêm đặt lại mật khẩu, khóa tài khoản, giới hạn tần suất; bỏ hạn theo ngày | Đồng ý | Áp các bước thêm kiểm; ba chỗ nới so với gốc (01 §6.0) chờ PO |
+| A1 | Chạy trọn Chặng 0 → 3 hay chỉ Chặng 0 + 1 rồi chuyển sang ops-web | **ĐÃ CHỐT 2026-11-25 (PO): chạy trọn trên `ksnk_bv103`; ops-web chỉ học mẫu (§8.4).** ADR-003 của ops-web không áp dụng cho repo này | Đã chốt |
+| A2 | Lấy `integrate/2026-11` làm `main` chuẩn, gắn tag sao lưu nhánh cũ, dọn worktree dư, đưa file dữ liệu ngoài mã ra khỏi gốc repo | **ĐÃ CHỐT 25/11: đồng ý.** Đưa lên `main` = deploy production: cần «deploy» và D1. Dọn worktree sau khi kiểm không còn phiên nào đang mở. Tag sao lưu đã gắn cục bộ (chưa push): `archive/pre-overhaul-chore-20261124` (`72ab239b`), `archive/pre-overhaul-main-20261124` (`e908e7e0`) | Đã chốt |
+| A3 | Thứ tự nghiệm thu người dùng thật: Nhóm 1 (VST, GSC, Dashboard, Quản trị) → Nhóm 2 (CSSD, sự cố, hóa chất) → Nhóm 3 (QLCV, NKBV, Đào tạo); giữ ẩn «Chất thải & Đồ vải» | **ĐÃ CHỐT 25/11: đồng ý** | Đã chốt |
+| A4 | Chặng 2: đăng nhập nội viện bằng mã nhân viên hoặc email + mật khẩu, lưu ở `public.sys_user_accounts`, giữ UUID và mật khẩu hiện có | **ĐÃ CHỐT 25/11: đồng ý**, kèm hai điều kiện: đo định dạng hash trong `auth.users` của prod trước; phạm vi gồm quên mật khẩu và khóa sau nhiều lần sai | Đã chốt |
+| A5 | Chấp nhận các điều kiện sửa ở 01 §6: deploy là cổng PO; 17 policy cần bộ lọc TypeScript có test trước khi bỏ, NKBV cắt sau cùng; SQL thu quyền của `authenticated` cả trên hàm và view, `CREATE OR REPLACE` tường minh, dump policy làm đường lùi; baseline so với dump prod; kiểm kê `pg_cron`; Chặng 2 thêm đặt lại mật khẩu, khóa tài khoản, giới hạn tần suất; bỏ hạn theo ngày | **ĐÃ CHỐT 25/11: đồng ý**, gồm ba chỗ nới (01 §6.0) | Đã chốt |
+| A6 | Khóa «chỗ nới 1» bằng máy: `gate-integrity` kiểm trần số dòng của file này. ops-web giữ file ngắn chỉ bằng kỷ luật, không có kiểm máy nên không chứng minh được cách đó đủ | **ĐÃ CHỐT 25/11: đồng ý**; trần 500 dòng (hiện khoảng 410 dòng); cài ở `scripts/gate-integrity.mjs` | Đã chốt |
 
 ### C — Hỏi khoa CSSD (đầu mối: Nguyễn Thanh Bình)
 
@@ -258,6 +259,16 @@ Còn thiếu dữ liệu:
 | K7 | NKBV theo NHSN 2026: (b) bật lại LabID không · (c) nâng SSOT từ 2025 v3.3 lên 2026 không · (d) PATOS chỉ làm nhãn (đã làm) | (b) giữ tắt · (c) giữ 2025 v3.3 |
 | K9 | Mã kho tri thức chờ PO (KH 13/11 và 14/11): XM-2, cỡ mẫu (R1.14 nêu tối thiểu 100/tháng, app ghi 20, khóa PO 01/11 ghi 50 theo khoa/kỳ; số app đang dùng: cần kiểm) · X2.13, QT.32, R1.10 (nội dung: cần kiểm) | Giữ như app đang chạy |
 | K10 | Xóa/sửa muộn phiên VST (KH 13/11 L3b): xác nhận các giả định: «đã xác nhận» = quá 30 phút từ lúc tạo phiên; ADMIN vẫn xóa trực tiếp; người gửi yêu cầu = chủ phiên hoặc NV KSNK/CHU_NHIEM_KHOA; không tự duyệt yêu cầu của mình (trừ ADMIN) | Giữ như mã đang chạy |
+
+### L — Học từ ops-web (2026-11-25; im = giữ như app đang chạy)
+
+| Mã | Câu | Đề xuất | Nếu im |
+|---|---|---|---|
+| L1 | Phiếu sự cố CSSD: chặn người báo tự đóng phiếu. ops-web chặn (`incidents.routes.ts`). bv103 đã chặn tự xác nhận (`confirm-incident.application.ts`); ở bước đóng (`close-incident-release.application.ts`) grep chưa thấy kiểm người báo | Đồng ý, kèm 1 spec | Giữ |
+| L2 | Ủy quyền thu hồi: người báo cấp thấp chỉ ghi «chờ ủy quyền», cấp cao xác nhận thì mới ra lệnh thu hồi | Kiểm trước xem `canApproveCssdIncident` đã có tương đương chưa, rồi hỏi lại | Giữ |
+| L3 | Tự mở việc CAPA 7 ngày từ sự cố, và cờ đỏ khi có từ 2 sự cố cùng chu trình; việc giao cho người khác người báo | Xét ở Nhóm 2, chưa làm | Giữ |
+| L4 | Tài khoản (Chặng 2): khóa sau N lần sai, giới hạn tần suất đăng nhập, đặt lại mật khẩu tự phục vụ. ops-web chưa có, không có mẫu để lấy. PO chốt N và thời gian khóa | Đưa vào Chặng 2 như 01 §6.4 | Chốt khi vào Chặng 2 |
+| L5 | Nạp dữ liệu nền thật từ `raw-inputs/` của ops-web (7 gói: khoa-phòng nguy cơ, nhân sự và mạng lưới, bộ dụng cụ và BOM, máy và hóa chất, vi sinh NKBV, VST cũ, tài liệu). Vào các bảng sẵn có bằng import lô, không thêm bảng. Bản 22/11 ghi 2.311 loại, 164 bộ, 7.289 dòng BOM (chưa kiểm) | Mở lát này sau nghiệm thu Nhóm 1; PO duyệt từng danh mục; chỉ nạp cột cần dùng vì có thông tin cá nhân | Chưa nạp |
 
 ## 7. Nợ và ghi nhận ngoài lát
 
@@ -342,6 +353,49 @@ Số đo lại ở §3.2 khớp phần lớn số của kế hoạch.
 - **Báo cáo tổng hợp 13/11 (gộp 18/11):** «xếp hàng có cổng» thay cho đóng băng; «ẩn, không xóa»; chốt SSOT trước khi code một module; với NKBV, sửa theo NHSN ưu tiên hơn tính năng mới. Bảy quyết định ở §5 của báo cáo đó đã cũ: phần còn sống nằm ở §6 của file này.
 - **Rà soát 05/11, cải tổ 06/11:** đã rút gọn vào báo cáo 13/11.
 
+### 8.4 Đối chiếu ops-web (2026-11-25)
+
+**Phạm vi.** Đọc mã tĩnh `~/Projects/01-app-ksnk-web/ksnk-ops-web` (HEAD `765b210`, 24/11) bằng 4 agent chỉ đọc; điểm ghi [kiểm] là tôi tự mở lại, [agent] là lời agent chưa kiểm. Chưa chạy test hay build của ops-web. Một phiên khác đang sửa ở đó (~90 file chưa commit, 3 migration mới) nên số dòng có thể dời. Hai báo cáo 22/11 nằm ngoài git: `~/Projects/02-cai-tao-ksnk-103/BAO_CAO_SO_SANH_DU_AN_CU_MOI_20261122.md` và `~/Projects/01-app-ksnk-web/SO-SANH-APP-CU-VA-MOI.md`. Mục này chỉ ghi phần đổi từ 22/11.
+
+**Kết luận.** bv103 là nền (A1). Một kế hoạch «học từ ops-web» viết 22/11 (khi ops-web mới có 2 commit) đã kết luận cùng hướng: cải tổ bv103, không chuyển; và khuyến nghị giữ RLS, giảm dần đường dùng admin client, khớp với 1a ở 01 §6.3. ops-web nay có 13 commit nhưng vẫn 0 remote [kiểm], nên CI của nó chưa chạy ở đâu và mã có thể mất nếu hỏng ổ đĩa; việc đó ngoài phạm vi repo này, báo PO.
+
+**Lỗi «xanh giả» của 22/11 trên mã hiện tại** (14 dòng: 6 đã sửa, 3 một phần, 5 còn nguyên):
+- Đã sửa [kiểm]: mã băm toàn vẹn không còn là SHA-256 của chuỗi `test` (HEAD không còn hằng đó; cây làm việc tính từ dữ liệu thật); từ vựng ghi và đọc (CS-07, CS-19, CS-23, `LAB_MICRO`) gom vào `packages/shared/src/constants.ts` (có trong HEAD); `db_to_analytics_concordance.test.ts` assert số tính tay (CS-07 x=1, n=50, giá trị 20), HEAD không còn `toHaveLength(24)`.
+- Còn nguyên [kiểm]:
+  - `properTechnique` và `sufficientDuration` mặc định `true` khi client không gửi (`prototype_ops.routes.ts`).
+  - Nhật ký chất thải mặc định 35 kg lây nhiễm, 6 kg sắc nhọn, mã chứng từ `CT-CTNH-20261120` (`wave3.routes.ts`).
+  - Phơi nhiễm: API mặc định nguồn HIV `POSITIVE` và HBsAg dương (`wave3.routes.ts`).
+  - Điều chỉnh tồn kho hóa chất: người lập cũng là người duyệt (`wave3.routes.ts`).
+  - Bowie-Dick: `runBowieDickPassNow` mặc định `true` (`wave2.routes.ts`); đoạn tự ghi PASS ở khối nạp mẻ mới đọc phần đầu.
+- Sửa một phần [agent]: sự cố có chặn người báo tự đóng, biên bản bắt buộc, CAPA tự sinh, BI dương và Bowie-Dick hỏng mở sự cố, nhưng chuyển trạng thái OPEN, INVESTIGATING, MITIGATED không kiểm thứ tự và lỗi khâu 2, 4 chưa tự mở sự cố; phơi nhiễm ở UI; duyệt ca NKBV (chỉ tầng 2 ra CONFIRMED, nhưng nạp vi sinh vẫn ghi cứng năm sinh 1965 và giới NAM).
+- Sửa nhưng chưa commit [kiểm]: Bowie-Dick «ĐẠT» không còn mở khóa máy (HEAD chưa có `machineStillLocked`).
+
+**Gate của ops-web** [kiểm]: `gate.sh`, `check`, `verify` dùng `lint:errors` (`--quiet`, cảnh báo lọt qua); CI dùng `--max-warnings 0` và không chạy `audit:standards` hay e2e. Không có kiểm độ dài tài liệu bằng máy. `src/` còn dòng `eslint-disable-next-line`, và không có cổng chặn thêm mới (bv103 có `gate-integrity`).
+
+**Xác thực và đóng gói** [kiểm]: ops-web băm PBKDF2 100.000 vòng, token phiên lưu `sessionStorage`; chưa có khóa tài khoản, giới hạn tần suất, đặt lại mật khẩu tự phục vụ; `restore-db.sh` mặc định kiểm 57 bảng, không đếm dòng. Mẫu lấy được: 01 §6.4.
+
+**Sự cố so với bv103** [agent]: bv103 tốt hơn ở vô hiệu (mã lý do, hoàn kho trong một giao dịch), cờ đỏ lưu thành cột, thu hồi hai pha, khóa ngoại kho với sự cố. ops-web tốt hơn ở chặn người báo tự đóng, ủy quyền thu hồi, ma trận mức độ, CAPA 7 ngày. Câu hỏi PO: §6 L.
+
+**Test** [agent; một phần kiểm]: bv103 thiếu test quét giao diện (grep `pageerror`, `scrollWidth` trong `e2e`, `tests`, `scripts` không ra gì [kiểm]) và test khớp ghi và đọc qua đường thật. Đã đưa vào 01 §6.2 bước 6.
+
+**Phụ thuộc Supabase** (đo 25/11 trên mã `cc84241c`, `git grep`, không tính spec):
+
+| Lớp | Số đo | Mức |
+|---|---|---|
+| Postgres và extension | `pgcrypto`, `unaccent`, `uuid-ossp`; 0 file migration dùng `vault`, `pg_net`, `supabase_functions` | Không |
+| Truy vấn qua `supabase-js` | 79 file import `@supabase/`; ít nhất 895 `.from()` trên 88 bảng; 66 `.rpc()` trên 55 hàm (cận dưới vì grep một dòng) | Nặng nhất |
+| Auth | 41 file dùng `getUser`, `getSession`, `signIn`; 7 file `auth.admin.*`; 28 file migration có `auth.uid()`, 11 có `auth.role()`, 7 có `auth.users`; 2 khóa ngoại vào `auth.users` | Nặng |
+| Storage | 1 file (`ChecklistItem.tsx`); 0 migration tạo bucket | Nhẹ |
+| Realtime, Edge function | 0 | Không |
+| Công cụ | 27 trên 114 script npm gọi Supabase CLI hoặc `run-supabase-sql`; MCP `apply_migration` lên prod | Vừa |
+| Hosting | Vercel (`vercel.json`, vùng `sin1`), Next.js 16 | Vừa |
+
+Ba mức gỡ phụ thuộc [nhận định]: (1) tự chạy bộ Supabase self-host: nhanh nhất, gần như không sửa mã, nhưng vẫn phụ thuộc phần mềm Supabase; (2) Chặng 2 của 01 §6.4: Postgres + PostgREST + tài khoản tự quản + `StorageAdapter`, giữ nguyên các lời gọi truy vấn; (3) bỏ PostgREST và viết lại truy vấn như ops-web: nhiều tuần đến nhiều tháng, không chọn.
+
+**Cloudflare** [nhận định, chưa kiểm tài liệu mới]: không chạy Postgres (D1 là SQLite); Hyperdrive chỉ là lớp đệm tới Postgres bên ngoài; R2 tương thích S3, hợp `StorageAdapter`. Mẫu ở ops-web: `apps/api/wrangler.toml` (Workers + Hyperdrive nối Neon + R2, công tắc `R2_MODE`). Chưa kiểm Next.js 16 trên Workers với 112 file dùng admin client.
+
+**Commit chưa lên** [kiểm]: `integrate/2026-11` hơn `origin/integrate/2026-11` 21 commit và hơn `origin/main` (prod) 239 commit; 751 commit từ 10 đến 24/11. Nguyên nhân: luật «không tự push» (`CLAUDE.md`); `main` là production và `vercel.json` có `git.deploymentEnabled: true`; 12 file migration `20261119*` chưa áp prod; CI `db-dung.yml` chỉ chạy sau push. Chưa kiểm được cấu hình Preview của Vercel (403): cần cấp quyền trước khi push nhánh. Sao lưu 25/11: `git bundle` đầy đủ nhánh và tag, 21 MiB, `git bundle verify` đạt, sha256 `4a80d31006b0d3dcb075972d9c8b545be54b9d14c3c0fa86b5e06e74ea499924`, ở `~/Documents/ksnk-backup-20261125/` (ngoài repo).
+
 ## 9. Nguồn đã gộp (2026-11-24)
 
 Khôi phục bản cũ bằng lệnh `git show 2222a336:<đường dẫn>`.
@@ -354,6 +408,6 @@ Khôi phục bản cũ bằng lệnh `git show 2222a336:<đường dẫn>`.
 | `docs/archive/bao-cao/BAO-CAO-TONG-HOP.md` | báo cáo | §8.3. Bản trước nữa: `git show 5618ae82:docs/archive/bao-cao/<tên>.md` |
 | `.claude/plans/NHAT_KY_VONG_LAP.md` | nhật ký vòng (28 dòng, đều ngày 14/11) | Chỉ còn trong git history |
 | `.claude/plans/*.md` (8 kế hoạch) và `docs/ux/ui-redesign-plan.md` | kế hoạch | [01 §8](01-tong-quan-yeu-cau-lo-trinh.md) |
-| `BAO-CAO-DOI-CHIEU-NHSN2026.md` (gốc checkout chính, ngoài git) | báo cáo | §8.2. Nguyên văn còn ở gốc checkout chính tới khi PO xóa |
-| `KE-HOACH-CAI-TO-TOAN-DIEN-2026-11-24.md` (gốc checkout chính, ngoài git) | kế hoạch + khám nghiệm | 01 §6 và §8.1 của file này. Nguyên văn còn ở gốc checkout chính tới khi PO xóa |
+| `BAO-CAO-DOI-CHIEU-NHSN2026.md` (ngoài git) | báo cáo | §8.2. Nguyên văn: đã chuyển 25/11 sang `~/Documents/ksnk-backup-20261125/tai-lieu-ngoai-git/` (không xóa) |
+| `KE-HOACH-CAI-TO-TOAN-DIEN-2026-11-24.md` (ngoài git) | kế hoạch + khám nghiệm | 01 §6 và §8.1 của file này. Nguyên văn: đã chuyển 25/11 sang `~/Documents/ksnk-backup-20261125/tai-lieu-ngoai-git/` (không xóa) |
 | `BAO-CAO-CAI-TO-2026-11-06.md`, `BAO-CAO-RA-SOAT-2026-11-05.md`, `HANDOFF.md` (nhánh cũ `chore/code-vs-ai-phase1`) | báo cáo, handoff | Đã gộp từ 18/11 (§8.3). Khôi phục: `git show chore/code-vs-ai-phase1:<tên>` |
