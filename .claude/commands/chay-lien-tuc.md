@@ -5,7 +5,7 @@ argument-hint: "[module bắt đầu: VST_GSC|CSSD|NKBV|QLCV|DAO_TAO|QUAN_TRI|NE
 
 # /chay-lien-tuc — một vòng = một phát hiện được đóng
 
-> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Vòng lặp qua MỌI module trái «một module một lúc». Giữ file để tra lịch sử, không xóa.
+> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Vòng lặp qua MỌI module trái «một module một lúc». Giữ file để tra lịch sử, không xóa. Kế hoạch KH 14/11 và nhật ký `NHAT_KY_VONG_LAP.md` nhắc dưới đây đã gỡ ngày 2026-11-24 (khôi phục: `git show 2222a336:.claude/plans/<tên>`); kế hoạch đang chạy ở [`docs/bo-tai-lieu/01`](../../docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md) §6.
 
 Chạy lặp bằng `/loop /chay-lien-tuc`. Mỗi lần gọi làm **đúng một vòng** dưới đây rồi kết bằng một dòng nhật ký; `/loop` gọi vòng kế. PO đã ủy quyền (2026-11-14): **không hỏi, không trình phương án chờ duyệt, không kết lượt giữa vòng**.
 

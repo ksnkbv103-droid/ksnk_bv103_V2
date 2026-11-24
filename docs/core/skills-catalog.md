@@ -101,7 +101,7 @@ Supabase `cvzwslpxwgqiugzzhqej` · GitHub `ksnkbv103-droid/ksnk_bv103_V2` · Ver
 
 ## 9. Công cụ ngoài đã xét (sổ sống, đo 19/11/2026)
 
-Chép từ plan «một con đường» §12. Mỗi dòng có bằng chứng và quyết định; cột Lát là lát của plan đó đưa quyết định vào cấu hình; ký hiệu «§n» trong bảng là mục của plan `.claude/plans/de-xuat-mot-con-duong-20261119.md`.
+Chép từ plan «một con đường» §12. Mỗi dòng có bằng chứng và quyết định; cột Lát là lát của plan đó đưa quyết định vào cấu hình; ký hiệu «§n» trong bảng là mục của plan `git show 2222a336:.claude/plans/de-xuat-mot-con-duong-20261119.md`.
 
 **Luật dùng sổ:**
 - Dòng đã có quyết định thì không đề xuất lại. Muốn mở lại phải có số đo mới (theo luật đóng băng: lỗi lặp ≥ 2 lần).
@@ -116,7 +116,7 @@ Chép từ plan «một con đường» §12. Mỗi dòng có bằng chứng và
 | 4 | `usebasejump/supabase-test-helpers` | Hàm pgTAP `tests.authenticate_as`, tạo user test, kiểm RLS bật; docs Supabase dùng các hàm này | ★133 · đẩy lần cuối 05/2024 (đứng yên 18 tháng) · MIT | **Mượn.** Chép đúng các hàm cần vào `supabase/tests/`; không cài qua dbdev để khỏi phụ thuộc gói đứng yên | 1b |
 | 5 | `github/spec-kit` | constitution → … → analyze → implement | ★150k · đẩy 18/11 | **Không cài.** Mượn ý `analyze` (§11) | 2 |
 | 6 | `mattpocock/skills` (catalog: `mattpocock-skills`) | 21 skill kỹ thuật; `grill-with-docs` = phỏng vấn dồn để bắt lỗ kế hoạch, ghi ADR + glossary | ★327k · đẩy 18/11 · MIT | **Mượn ý, không cài.** Cả bộ có `to-spec`, `implement`, `tdd`, `triage`… nên sẽ thành luồng chồng lam-het, đúng lỗi §1. Đọc skill «grilling» rồi đưa câu hỏi vào prompt giao `phan-bien` ở cổng 3 (chỉ đổi prompt, không thêm file) | 3 |
-| 7 | `vercel-labs/agent-skills` | `react-best-practices`, `composition-patterns`, `web-design-guidelines` | ★34k · đẩy 12/11 · không ghi license | **Không, trừ khi cần.** Đã có skill `react-dev` + `ui-redesign-plan.md`. Repo không ghi license nên không chép nguyên văn. Chỉ xét khi một lát UI có vấn đề hiệu năng đo được | — |
+| 7 | `vercel-labs/agent-skills` | `react-best-practices`, `composition-patterns`, `web-design-guidelines` | ★34k · đẩy 12/11 · không ghi license | **Không, trừ khi cần.** Đã có skill `react-dev` + việc UI còn mở ở `docs/bo-tai-lieu/01` §6.7. Repo không ghi license nên không chép nguyên văn. Chỉ xét khi một lát UI có vấn đề hiệu năng đo được | — |
 | 8 | `sbdchd/squawk` (+ `squawk-action`) | Linter migration: bắt thao tác khóa bảng lâu (index không CONCURRENTLY, thêm NOT NULL…) | ★1,27k · đẩy 18/11 · Apache-2.0 | **Không bây giờ.** Dữ liệu pilot nhỏ nên khóa bảng không gây gián đoạn. Lỗi thật của dự án là chuỗi gãy, sửa file đã áp và thân hàm hỏng, đã có `migration-bat-bien` + `db lint` lo. Xét lại khi bảng prod đủ lớn để khóa gây gián đoạn (đo bằng MCP) | — |
 | 9 | `vercel/next-devtools-mcp` | Đọc lỗi runtime/route của dev server Next 16 | ★838 · đẩy 15/09 | **Không.** Browser pane + `read_console_messages` + `preview_logs` trên `dev-local` đã làm việc này | — |
 | 10 | `context7` (Upstash) | Tra docs đúng phiên bản thư viện | ★65k · MIT · MCP chạy trên máy chủ ngoài | **Không.** Docs Supabase/Next đã tra được qua MCP Supabase/Vercel; context7 gửi truy vấn ra ngoài. Xét lại nếu lỗi dùng API cũ của React 19/Zod 4 lặp ≥ 2 lần | — |

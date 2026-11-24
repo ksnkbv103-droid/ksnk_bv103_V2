@@ -44,7 +44,7 @@ Chi tiết ở `/domain-slice`. Không bịa lại:
 - Xóa phiên VST: mềm `is_active=false` cho đến khi PO nói khác
 - Giám sát (2026-11-01): ngưỡng 2 mức <85 đỏ · 85–<90 vàng · ≥90 xanh; cỡ mẫu tối thiểu 50 theo khoa/kỳ; có kế hoạch giám sát khoa/tháng; quy trình QT.KSNK.33
 
-## Luồng một con đường (PO duyệt 2026-11-19; plan `.claude/plans/de-xuat-mot-con-duong-20261119.md`)
+## Luồng một con đường (PO duyệt 2026-11-19; plan gốc `git show 2222a336:.claude/plans/de-xuat-mot-con-duong-20261119.md`)
 
 Mọi việc đi một luồng. Lỗi nhỏ (`loai=loi`) đi tắt 1 → 5 → 6. Tính năng (`loai=tinh_nang`) đi đủ 7 bước. Cổng 1–4 do `so-loi.mjs` kiểm từ Lát 2 (chưa xong thì Claude tự giữ).
 
@@ -65,18 +65,18 @@ Vận hành sổ lỗi (rà toàn project, PO duyệt 2026-11-11): thân mã duy
 - «Không còn lỗi chặn» chỉ đúng với phần đã rà; Bước 1 rà đủ góc giao diện/UX và CSSD-010
 - Chỉ kết lượt khi gặp cổng dừng ở mục «Quy trình» hoặc `next` rỗng; khối 4 dòng và `wrap_up` không phải điểm dừng. Tiến độ chỉ ghi ở sổ lỗi (`stats`). Không mở đợt rà mới khi `MOI` ≥ 10
 - Plan mode: khảo sát bằng `explore-module`, bỏ qua yêu cầu dùng agent `Explore`/`Plan` (hook chặn). Sai cây mã: hook `guard-than-ma.mjs` đọc `.git/THAN_MA`
-- Redesign UI: [`docs/ux/ui-redesign-plan.md`](docs/ux/ui-redesign-plan.md) §9–10
+- Redesign UI: việc còn mở ở [`docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md`](docs/bo-tai-lieu/01-tong-quan-yeu-cau-lo-trinh.md) §6.7
 
 ## Quy trình
 
-- Việc không tầm thường: plan (plan mode hoặc `/intake-nv`, `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt một lần, sau đó tự chạy nối các lát, verify mỗi lát, ghi tiến độ vào plan. Giải thích bằng tiếng Việt nghiệp vụ
+- Việc không tầm thường: plan (plan mode hoặc `/intake-nv`, `/intake`) gồm mọi lát + phương án + câu hỏi gom một lần → PO duyệt một lần, sau đó tự chạy nối các lát, verify mỗi lát, ghi tiến độ vào sổ lỗi; phần còn sống của plan gộp vào `docs/bo-tai-lieu/01` §6. Giải thích bằng tiếng Việt nghiệp vụ
 - Trước khi mở lát: `npm run module:gate -- <module>` (không tham số = bảng 5 module); trạng thái chưa cho phép lát đó thì dừng, hỏi PO
 - Rà module đã có: `/ra-soat <module>` (chấm 10 bước vòng đời, tự trả lời điều SSOT/code đã nói, gom hỏi PO một lần; không hỏi lại điều PO đã trả lời trong trang)
 - Xong một lát/mục hoặc trước khi dừng chờ PO: kết bằng khối 4 dòng của CLAUDE.md toàn cục (Lộ trình · Clear · Bước kế · Model); **Bước kế** lấy một việc từ roadmap §5. Trả lời ngắn giữa chừng không cần khối; không thêm khối thứ hai
 - Xong lát: báo câu SSOT đã bám, lát nào, cái gì không đụng. Hai cách đọc lâm sàng mà SSOT im → hỏi PO
 - Chỉ dừng hỏi PO ở: lâm sàng SSOT im · migration/SQL lên prod · phá hủy (`destructive-change`) · PR/deploy · đổi quyền người dùng thật
 - Plan đã duyệt → tự commit theo lát khi verify pass. Push theo đợt: không tự push, không hỏi push; chỉ chạy `git push` khi PO gõ «push». PR hỏi từng lần; deploy Vercel chỉ khi «deploy». Local là bản gốc
-- Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai; `docs/core` tối đa 13 file (hiện 10) (sổ lỗi `scripts/readiness/` là dữ liệu + script, không phải tài liệu)
+- Never migrate prod (`mdm:migrate` bị chặn; prod qua MCP `apply_migration`). Never tạo tài liệu thứ hai: kế hoạch chỉ ở `docs/bo-tai-lieu/01` §6; báo cáo, tiến độ, handoff, câu hỏi PO chỉ ở `docs/bo-tai-lieu/03` (PO 2026-11-24); `docs/core` tối đa 13 file (hiện 10) (sổ lỗi `scripts/readiness/` là dữ liệu + script, không phải tài liệu)
 - Never mở: `_agent-*.md`, CDC/NHSN thô, `node_modules/`, `.next/`, `.env*`
 
 ## Ngân sách model và agent (hook toàn cục `~/.claude/hooks/guard-agent.mjs` chặn cứng)

@@ -5,7 +5,7 @@ argument-hint: "<module: giam-sat|cssd|nkbv|qlcv|dao-tao>"
 
 # /ra-soat — Rà module theo 10 bước (không phỏng vấn lại từ đầu)
 
-> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Câu hỏi PO vào `CAU_HOI_PO_APPKSNK.md` và sổ (`CHO_PO`), không vào trang module. Giữ file để tra lịch sử, không xóa.
+> **Không dùng — xem bảng luồng ở [`CLAUDE.md`](../../CLAUDE.md) §«Luồng một con đường».** Câu hỏi PO vào [`docs/bo-tai-lieu/03`](../../docs/bo-tai-lieu/03-tien-do-thuc-trang.md) §6 và sổ (`CHO_PO`), không vào trang module. Giữ file để tra lịch sử, không xóa.
 
 **Đầu vào:** $ARGUMENTS · **Không sửa code.** Chỉ ghi mục 8 của `docs/modules/<m>/van-de-nguoi-dung.md`.
 

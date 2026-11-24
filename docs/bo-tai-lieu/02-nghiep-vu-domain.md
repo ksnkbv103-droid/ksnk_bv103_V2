@@ -3,13 +3,13 @@
 > **ĐÃ DUYỆT bởi PO 2026-11-16 (bản gốc)** · ảnh chụp 2026-11-15 · nhánh `integrate/2026-11` · HEAD `1333d47e` · nền so sánh `origin/main` = `ae64317c`.
 > Bộ 3 file: [01-tong-quan-yeu-cau-lo-trinh.md](01-tong-quan-yeu-cau-lo-trinh.md) (vì sao · cái gì · làm thế nào · lộ trình) · **02** (file này: nghiệp vụ, domain) · [03-tien-do-thuc-trang.md](03-tien-do-thuc-trang.md) (đã làm, thực trạng, số đo kèm lệnh đo lại).
 > Nhãn: «cần kiểm» = nguồn không nói rõ hoặc chưa đo lại · «không có trong nguồn» = đã tìm trong các nguồn đã đọc mà không thấy · `[ĐỀ XUẤT]` = chưa PO chốt.
-> Gom theo yêu cầu PO 2026-11-15; nằm ngoài `docs/core`, đã xếp lớp 6 trong `docs/README.md` (PO 2026-11-16; 01 §6.5 mục 6).
+> Gom theo yêu cầu PO 2026-11-15; nằm ngoài `docs/core`, đã xếp lớp 6 trong `docs/README.md` (PO 2026-11-16). Từ 2026-11-24 bộ này là nơi duy nhất cho kế hoạch (01) và báo cáo (03).
 
 ## 0. Cách đọc
 
 - **Mục đích**: gom quy tắc nghiệp vụ và domain đang nằm rải rác thành một chỗ để rà soát và sửa mã đúng nghiệp vụ. File này chỉ chép lại và trỏ nguồn, không đặt quy tắc mới. Số liệu y khoa chỉ lấy điều nguồn có; nguồn im ghi «không có trong nguồn», nguồn không rõ ghi «cần kiểm».
 - **Số liệu trạng thái** (prod, số ca, số lỗi, migration đã áp) thuộc [03](03-tien-do-thuc-trang.md). Ở đây chỉ nêu khi cần để hiểu quy tắc, kèm ghi chú `ảnh chụp <ngày>`.
-- **Khi hai nguồn lệch nhau** `[ĐỀ XUẤT]`: (1) mốc PO muộn nhất thắng; (2) không có mốc thì theo code hiện hành; (3) còn lại ghi «cần kiểm» cho tới khi PO chốt (01 §6.5 mục 5). Mọi chỗ lệch gom ở §8; chưa hàng nào được PO chốt.
+- **Khi hai nguồn lệch nhau** `[ĐỀ XUẤT]`: (1) mốc PO muộn nhất thắng; (2) không có mốc thì theo code hiện hành; (3) còn lại ghi «cần kiểm» cho tới khi PO chốt. Mọi chỗ lệch gom ở §8; chưa hàng nào được PO chốt.
 - **Cách trích**: `KÝ_HIỆU:dòng`. `MD:25-26` là `metric-dictionary.md` dòng 25 đến 26; `MD:11,25-26` là dòng 11 và dòng 25 đến 26. Mỗi mục có dòng `Nguồn:`. Số dòng của từng file ghi ở bảng dưới (đếm bằng `wc -l` ngày 2026-11-16); nguồn đổi thì số dòng trích có thể lệch.
 - **Mã việc** dạng `QT-003`, `QLCV-003`, `CSSD-005`, `DT-002`, `VST-003` (gạch ngang) là mã trong sổ lỗi, khác mã quy trình dạng `QT.07` (dấu chấm). Tiền tố `QT-` nguồn không giải nghĩa: «cần kiểm».
 - **Thứ tự đọc**: §1 nền · §2 và §3 giám sát (đang dùng thật) · §4 CSSD · §5 NKBV · §6 QLCV · §7 Đào tạo · §8 chỗ nguồn lệch nhau · §9 bảng, RPC, route.
@@ -49,7 +49,7 @@ Nguồn: `mdm`, `roadmap:85,89,91,92,176,178`, `GS:88,118-124`, `DO:206,227,251`
 - Tab Phân quyền chỉ hiện khi có `PHAN_QUYEN.edit` hoặc là admin; người thiếu quyền không sửa được danh mục chung (`mdm:19`).
 - Tài khoản đăng nhập (Auth) gắn với `mdm_nhan_su` qua `/quan-tri-he-thong/nhan-su` (cột Tài khoản) và `/quan-tri-he-thong/tai-khoan` (hub yêu cầu) (`mdm:20`).
 - Import: Smart import và `useImportExport` là SSOT; xem trước rồi chọn `An toàn`, `Đồng bộ đầy đủ` hoặc `Hủy`; server mặc định `An toàn` (`mdm:25`). Hub `?tab=mdm_governance` đọc `sys_mdm_registry`; sau khi duyệt FK chạy `npm run mdm:refresh` (`mdm:26`).
-- Từ AR-8 (PO chốt 2026-11-11, `roadmap:92`): Tổ chức tách thành module riêng `/to-chuc` (khoa phòng, nhân sự, lookup ORG); lookup miền sửa ngay trong module: GSC `/giam-sat-chung/danh-muc`, CSSD `/cssd-quy-trinh/danh-muc`, NKBV `/giam-sat-nkbv/danh-muc`; chỉ ADMIN sửa lookup; Quản trị còn ba tab Tài khoản, Phân quyền, Hệ thống (cổng vào `ADMIN · PHAN_QUYEN`). Trạng thái áp dụng ở 03 §5. Một số đường dẫn trong `mdm` vì vậy có thể đã cũ (§8.7).
+- Từ AR-8 (PO chốt 2026-11-11, `roadmap:92`): Tổ chức tách thành module riêng `/to-chuc` (khoa phòng, nhân sự, lookup ORG); lookup miền sửa ngay trong module: GSC `/giam-sat-chung/danh-muc`, CSSD `/cssd-quy-trinh/danh-muc`, NKBV `/giam-sat-nkbv/danh-muc`; chỉ ADMIN sửa lookup; Quản trị còn ba tab Tài khoản, Phân quyền, Hệ thống (cổng vào `ADMIN · PHAN_QUYEN`). Trạng thái áp dụng ở 03 §4. Một số đường dẫn trong `mdm` vì vậy có thể đã cũ (§8.7).
 
 ### 1.2 Vai và quyền
 
@@ -62,9 +62,9 @@ Nguồn: `mdm`, `roadmap:85,89,91,92,176,178`, `GS:88,118-124`, `DO:206,227,251`
 | `KHACH_THONG_KE_GSTT` | Sau AR-8h thấy tab Danh mục GSC ở chế độ chỉ xem; nghĩa nghiệp vụ của vai: «cần kiểm» | `roadmap:92` |
 | `CHU_NHIEM_KHOA` | Vai cộng thêm (PO 2026-11-10); hai action duyệt kiểm quyền `approve` thay cho tên `ADMIN` (AR-1, migration `20261111150000`); chưa gán cho ai (PO 2026-11-17, N6: người giữ vai là Trịnh Hữu Nghĩa; gán tài khoản thật chưa làm, là cổng PO); không gán qua dropdown nhân sự vì `rpc_assign_staff_ksnk_role` thay thế vai; còn nợ test tay UI bằng tài khoản không phải ADMIN | `roadmap:85,91` |
 
-- Sau AR-8h (migration `20261111150400_ar8h_drop_danh_muc_permission_keys`, chạy local; trạng thái ở 03 §5): bỏ các khóa `DANH_MUC`, `DANH_MUC_GSTT`, `DANH_MUC_CSSD_LOOKUP`, giữ `DANH_MUC_ORG`; đọc `sys_lookup_value` = mọi người đã đăng nhập, ghi = ADMIN (`roadmap:92`).
+- Sau AR-8h (migration `20261111150400_ar8h_drop_danh_muc_permission_keys`, chạy local; trạng thái ở 03 §4): bỏ các khóa `DANH_MUC`, `DANH_MUC_GSTT`, `DANH_MUC_CSSD_LOOKUP`, giữ `DANH_MUC_ORG`; đọc `sys_lookup_value` = mọi người đã đăng nhập, ghi = ADMIN (`roadmap:92`).
 - Quyền VST và GSC: `/giam-sat` mở đủ ba lối nhập khi người dùng có quyền VST và GSC (`GS:88`); đây là mục nghiệm thu nhanh, không phải bảng quyền chi tiết. Ma trận quyền chi tiết theo vai và module: «không có trong nguồn».
-- Quyền `approve` cho hóa chất và thiết bị (AR-5d, `roadmap:89`): thao tác nhạy cảm của hai danh mục này cần `approve` (hàm `requireCssdSensitiveApprove`); đổi tên, ghi chú, vị trí vẫn ghi trực tiếp; PO chọn không làm hàng chờ mới (tổ nhờ chủ nhiệm khoa thực hiện); import Excel hóa chất và thiết bị cũng cần `approve`. Trigger DB `fn_cssd_dm_approve_guard` (migration `20261111150200`, chạy local) chặn ghi thẳng PostgREST của `authenticated` khi thiếu `approve`; `service_role` và hàm DEFINER đi qua. Áp hai migration AR-5d lên prod là cổng của PO (trạng thái ở 03 §5). Khi làm AR-8, PO giả định không đổi luật AR-5d cho master hóa chất, thiết bị, dụng cụ (`roadmap:92`).
+- Quyền `approve` cho hóa chất và thiết bị (AR-5d, `roadmap:89`): thao tác nhạy cảm của hai danh mục này cần `approve` (hàm `requireCssdSensitiveApprove`); đổi tên, ghi chú, vị trí vẫn ghi trực tiếp; PO chọn không làm hàng chờ mới (tổ nhờ chủ nhiệm khoa thực hiện); import Excel hóa chất và thiết bị cũng cần `approve`. Trigger DB `fn_cssd_dm_approve_guard` (migration `20261111150200`, chạy local) chặn ghi thẳng PostgREST của `authenticated` khi thiếu `approve`; `service_role` và hàm DEFINER đi qua. Áp hai migration AR-5d lên prod là cổng của PO (trạng thái ở 03 §4). Khi làm AR-8, PO giả định không đổi luật AR-5d cho master hóa chất, thiết bị, dụng cụ (`roadmap:92`).
 - Nợ RBAC đã ghi (`roadmap:91`, rà 2026-11-11): `permission-registry-data.ts` thiếu `APPROVE` cho `THIET_BI` và `HOA_CHAT`; `CHU_NHIEM_KHOA` không gán được từ UI (`RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER`); không có preset `Đặt lại quyền mặc định`; dropdown `Gói quyền` áp được cho vai này nên có thể cấp quá `approve` và `view`. Mục nợ về `approve` của hai danh mục và mô tả AR-5d ở `roadmap:89` cùng nói về một việc; chưa đối chiếu code xem nợ đã đóng chưa: «cần kiểm».
 
 ### 1.3 Quyết định PO 2026-11-11 (`roadmap:178`)
@@ -78,12 +78,12 @@ Nguồn: `mdm`, `roadmap:85,89,91,92,176,178`, `GS:88,118-124`, `DO:206,227,251`
 | DT-001 | Xóa file TRUNCATE qbank | Nguồn ghi đã xóa (`roadmap:178`) nhưng mã còn nằm trong danh sách việc mở (`roadmap:176`): «cần kiểm» |
 | Hội đồng KSNK (không có mã) | Hội đồng xem NKBV toàn viện (khớp quy tắc hiện có) | — |
 | CSSD-002 | — | Đã kiểm tầng DB; còn bấm tay nút trả lui và mẻ ETO trên giao diện |
-| VST-003 | — | Còn chặn lúc ảnh chụp 11-11 (cần PO duyệt RLS prod); trạng thái sau đó ở 03 §5 |
+| VST-003 | — | Còn chặn lúc ảnh chụp 11-11 (cần PO duyệt RLS prod); trạng thái sau đó ở 03 §4 |
 | CSSD-001 | — | Còn chặn lúc ảnh chụp 11-11: PO trả lời còn cần bộ con -EO không |
 
-Danh sách migration chờ PO duyệt lên prod ở `roadmap:176`: `20261111170000` (NKBV-003, RLS theo khoa), `20261111180000` (VST-006), `20261111190000` (QLCV-002); còn mở VST-003, VST-004, CSSD-001, CSSD-002, DT-001, QT-003. Trạng thái hiện tại ở 03 §5.
+Danh sách migration chờ PO duyệt lên prod ở `roadmap:176`: `20261111170000` (NKBV-003, RLS theo khoa), `20261111180000` (VST-006), `20261111190000` (QLCV-002); còn mở VST-003, VST-004, CSSD-001, CSSD-002, DT-001, QT-003. Trạng thái hiện tại ở 03 §4.
 
-Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 §3.3): Hội đồng tương đương BGĐ ở mức `Xa`, vì M03 không có mã vai HOI_DONG (M03 theo bản đặc tả ngoài repo, «cần kiểm»). PO 2026-11-11 đã nói Hội đồng xem NKBV toàn viện; hai ý ghi cạnh nhau, không tự gộp. PO 2026-11-17 (K5, rồi «Có, sửa P3»): Hội đồng KSNK ĐƯỢC xem danh tính người bệnh NKBV toàn viện; giả định «Hội đồng ≈ BGĐ, `Xa`» ở trên bị thay, tầng app không còn chặn Hội đồng (NKBV-041), và KHÔNG áp `20261114180000` lên prod (xem 1.5, 03 §6).
+Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 §3.1): Hội đồng tương đương BGĐ ở mức `Xa`, vì M03 không có mã vai HOI_DONG (M03 theo bản đặc tả ngoài repo, «cần kiểm»). PO 2026-11-11 đã nói Hội đồng xem NKBV toàn viện; hai ý ghi cạnh nhau, không tự gộp. PO 2026-11-17 (K5, rồi «Có, sửa P3»): Hội đồng KSNK ĐƯỢC xem danh tính người bệnh NKBV toàn viện; giả định «Hội đồng ≈ BGĐ, `Xa`» ở trên bị thay, tầng app không còn chặn Hội đồng (NKBV-041), và KHÔNG áp `20261114180000` lên prod (xem 1.5, 03 §4).
 
 ### 1.4 Không có trong nguồn
 
@@ -93,14 +93,14 @@ Giả định chờ PO ở sổ lỗi (mã NKBV-032, 034, 035, 039, 040; xem 03 
 
 ### 1.5 PO trả lời phiếu hỏi 2026-11-17 (vai, VST, GSC, ngưỡng)
 
-Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng chỉ số) và K1 (đầu mối NKBV). Câu trả lời nằm trong phiếu, chưa nằm trong mã; mã câu ở ngoặc. Kết quả từng mục sổ lỗi: 03 §6.
+Phiếu 52 câu; PO trả lời 50, bỏ trống B2 (ngưỡng đúng từng chỉ số) và K1 (đầu mối NKBV). Câu trả lời nằm trong phiếu, chưa nằm trong mã; mã câu ở ngoặc. Kết quả từng mục: sổ lỗi; câu còn chờ ở 03 §6.
 
 - Vai: `NHAN_VIEN_KSNK` thấy mọi khoa trong viện (N1); `MANG_LUOI_KSNK` chỉ khoa được gán (N2); cần vai riêng cho điều dưỡng trưởng hoặc chủ nhiệm khoa lâm sàng xem danh sách có tên của khoa mình, chưa có tên vai (N3); `CHU_NHIEM_KHOA` được mở GSC, đọc toàn viện (N4); người giữ vai là Trịnh Hữu Nghĩa (N6).
 - `KHACH_THONG_KE_GSTT` (N5): «cho tất cả thành viên mạng lưới, hoặc 1 mail dùng chung, mật khẩu chung»; phạm vi xem chưa trả lời. Cần kiểm: hai cách khác nhau, và mật khẩu chung làm mất dấu vết ai đã xem; chưa chọn.
-- Hội đồng KSNK (K5): thấy danh tính người bệnh NKBV toàn viện. PO chọn K5 và sửa P3 (2026-11-17): không áp sáu policy chặn Hội đồng đọc danh tính; tầng app đã gỡ chặn (`isNkbvHoiDongOnly` luôn false); đã gỡ migration `20261114180000` và probe khỏi repo và DB local (`aecd3eb6`, 2026-11-18), xem 03 §6 (NKBV-041).
+- Hội đồng KSNK (K5): thấy danh tính người bệnh NKBV toàn viện. PO chọn K5 và sửa P3 (2026-11-17): không áp sáu policy chặn Hội đồng đọc danh tính; tầng app đã gỡ chặn (`isNkbvHoiDongOnly` luôn false); đã gỡ migration `20261114180000` và probe khỏi repo và DB local (`aecd3eb6`, 2026-11-18), xem 03 §4 (NKBV-041, file K5).
 - VST/GSC: đầu mối Nguyễn Bá Hoài Việt, Trịnh Hữu Nghĩa (V1); mạng lưới khoa tự nhập sau khi hoàn thiện repo và nhập danh sách thành viên, chưa có tháng (V2); ba người chạy kịch bản tay: «tổ giám sát», chưa có họ tên (V3); biểu mẫu: «dùng biểu mẫu đang có», chưa nêu mã (V4); bản in thêm chữ ký và dấu ● ở ô đã chọn, không thêm khối IV, không in kết luận (V5); lưu 1 năm, chưa nêu căn cứ và có in không (V6); xuất thô kèm cả hai tên (V7); đối soát GSC: «phần mềm tự tính sự chênh lệch», chưa có người, khoa, kỳ (V8); ngưỡng đạt QT.32: «không cần con số, tính theo tỉ lệ tuân thủ» (V9).
 - Ngưỡng dashboard: căn cứ của 85/70/80 là chỉ tiêu nội bộ của viện (B1); ngưỡng đúng từng chỉ số bỏ trống (B2); báo cáo tổng hợp nộp Giám đốc, phó giám đốc, theo tháng, quý, năm (B3).
-- Duyệt áp prod: PO đồng ý P1 (sửa lịch sử migration trước khi đẩy lô), P2 (RLS VST); P3 (RLS NKBV) đã SỬA 2026-11-17 thành «không áp» vì K5. Chưa áp cái nào; mỗi lần áp cần lệnh trong chính lượt đó (03 §6).
+- Duyệt áp prod: PO đồng ý P1 (sửa lịch sử migration trước khi đẩy lô), P2 (RLS VST); P3 (RLS NKBV) đã SỬA 2026-11-17 thành «không áp» vì K5. Chưa áp cái nào; mỗi lần áp cần lệnh trong chính lượt đó (03 §6 D).
 
 ## 2. Vệ sinh tay (VST)
 
@@ -382,7 +382,7 @@ BM `KSNK.QT.37.BM.01` (điều kiện kho): chưa tìm thấy trong code ở th�
 
 - Vai: danh sách vai CSSD: «không có trong nguồn»; chỉ ADMIN ghi cứng loại, bộ, BOM và duyệt `BOM_PENDING` (`DO:206,227,251`); `BO_DC.edit` = duyệt phiếu (`DO:206`; lệch với ADMIN duyệt, §8.1). Quyền `approve` của hóa chất và thiết bị (AR-5d): 1.2.
 - Màn hình (`DO:245-251`): `/cssd-quy-trinh`, `/cssd-erp/batch`, `/cssd-dung-cu`, `/cssd-su-co`, `/cssd-thiet-bi`, `/cssd-hoa-chat`.
-- Còn mở: tổ CSSD chạy tay bộ Đóng gói thật (`18:246`); migration lên prod mà code app chưa deploy (`18:248`, ảnh chụp; đối chiếu 03 §5); chưa tìm thấy hướng dẫn BYT (`18:23`).
+- Còn mở: tổ CSSD chạy tay bộ Đóng gói thật (`18:246`); migration lên prod mà code app chưa deploy (`18:248`, ảnh chụp; đối chiếu 03 §4); chưa tìm thấy hướng dẫn BYT (`18:23`).
 - PO 2026-11-17 (phiếu): đầu mối Tổ CSSD là «nhân viên tổ cssd», theo vai, chưa có tên (C1); nhập bằng máy quét QR hoặc nhập tay (C2); cần mã QR riêng cho từng thiết bị (C3); mỗi trạm do nhân viên tổ CSSD đứng, 1 đến 2 người (C4); mẻ thu hồi cần tái xử lý (`DA_TAI_XU_LY`) quay về Trạm Tiếp nhận (C6; ghi chú PO bị cắt ở «nếu dụng cụ h»); phiếu xuất hóa chất cho lập phiếu ngược, bắt buộc ghi lý do (C7, CSSD-034); tổ CSSD chạy tay «tuần sau», chưa có ngày (C8). Quy mô (C5): bộ dụng cụ «như trong database», máy tiệt khuẩn «10», mẻ mỗi ngày «khoảng 200 bộ»: cần kiểm, ô «số mẻ» ghi đơn vị «bộ».
 
 ## 5. NKBV
@@ -439,7 +439,7 @@ Nguồn: `19` (v1.0 draft, Applied A 2026-09-25), `QV`, `roadmap:178`, `MD:106-1
 | Cách tính % hoàn thành từ checklist (Q5) | Số mục đã tích chia tổng số mục |
 | Người đề xuất tự duyệt việc của mình (Q6, QLCV-010) | «Chỉ trong một số trường hợp», ghi chú: admin, chủ nhiệm khoa |
 
-Nhãn `[CẦN XÁC NHẬN]` của đầu mối ở `QV` còn nguyên: trả lời theo vai chưa đủ để tính là đầu mối có tên (03 §6).
+Nhãn `[CẦN XÁC NHẬN]` của đầu mối ở `QV` còn nguyên: trả lời theo vai chưa đủ để tính là đầu mối có tên (03 §6 N3).
 
 ## 7. Đào tạo (Thi KSNK)
 
@@ -536,10 +536,10 @@ Mỗi hàng: hai nguồn nói khác nhau về cùng một việc. Cột Đề xu
 | Chủ đề | Nguồn A | Nguồn B | Đề xuất | Ai chốt |
 |---|---|---|---|---|
 | Nơi sửa BOM | `mdm:21`: `/quan-tri-he-thong/danh-muc/dung-cu?tab=bo`; `mdm:3`: CRUD master CSSD tại Quản trị | `roadmap:89` (AR-5a, 2026-11-10): UI loại, bộ, BOM chuyển sang `cssd-erp`; route cũ chuyển hướng `/cssd-dung-cu` | Theo `roadmap:89` | Claude sửa `mdm`, PO duyệt |
-| `npm run impact` | `chay-lien-tuc.md` dẫn `npm run impact` | Nhánh `integrate/2026-11` chưa có script (có từ `330eeb7d` trên `origin/main`, 03 §3.1) | Có sau khi nhánh gộp `origin/main` | PO |
+| `npm run impact` | `chay-lien-tuc.md` dẫn `npm run impact` | Nhánh `integrate/2026-11` chưa có script (có từ `330eeb7d` trên `origin/main`) | Có sau khi nhánh gộp `origin/main` | PO |
 | Hỏi PO khi SSOT lâm sàng im | `CLAUDE.md`: SSOT lâm sàng im thì hỏi PO | `chay-lien-tuc.md`: không hỏi | Theo `CLAUDE.md` (cấp cao hơn) | PO |
 | Thêm module | `KE_HOACH_TONG_THE_PHAT_TRIEN_KSNK.md:8,56`: không thêm module | `CLAUDE.md`: mục tiêu triển khai tất cả module (ghi PO 2026-10-12) | Chỉ đạo mới thắng; ngày chính xác của chỉ đạo: «cần kiểm» | PO |
-| Đếm việc mở | `scripts/readiness/so-loi.mjs:21,127,136`: `check` tính CHO_PO là việc mở và đòi HANDOFF tối đa 6000 byte | Việc mở đo bằng `stats` (03 §3.3, lệnh C17) | Dùng `stats` | PO |
+| Đếm việc mở | `scripts/readiness/so-loi.mjs:21,127,136`: `check` tính CHO_PO là việc mở và đòi HANDOFF tối đa 6000 byte (file HANDOFF đã gộp vào 03 ngày 2026-11-24, nên điều kiện này không còn tác dụng) | Việc mở đo bằng `stats` (03 §3.3) | Dùng `stats` | PO |
 
 Khác:
 
@@ -549,7 +549,7 @@ Khác:
 
 ### 8.8 Kho tri thức ngoài repo
 
-Nguồn: `.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` mục 5. Kho này là bản nháp; app chưa truy vết mã R và T của M01 đến M15. Không nêu số kiểm kê ở đây. Các điểm kế hoạch đó đánh dấu cần đối chiếu (chưa kiểm, «cần kiểm»):
+Nguồn: `git show 2222a336:.claude/plans/KH_APPKSNK_20261114_doi-chieu-nguon-va-mo-rong.md` mục 5. Kho này là bản nháp; app chưa truy vết mã R và T của M01 đến M15. Không nêu số kiểm kê ở đây. Các điểm kế hoạch đó đánh dấu cần đối chiếu (chưa kiểm, «cần kiểm»):
 
 - Dấu `[CẦN XÁC MINH]` bị gỡ khi chưa có nguồn.
 - QT.20: giá trị tải tối đa 75% và khoảng trống 2 đến 5 cm cần đối chiếu nguồn gốc.
